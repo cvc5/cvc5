@@ -73,10 +73,9 @@ using namespace CVC4::theory;
 
 namespace CVC4 {
 
-SmtEngine::SmtEngine(ExprManager* em, Options* optr)
+SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
     : d_state(new SmtEngineState(*this)),
-      d_exprManager(em),
-      d_nodeManager(d_exprManager->getNodeManager()),
+      d_nodeManager(nm),
       d_absValues(new AbstractValues(d_nodeManager)),
       d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
       d_dumpm(new DumpManager(getUserContext())),
@@ -244,7 +243,7 @@ void SmtEngine::finishInit()
   TheoryModel* tm = te->getModel();
   if (tm != nullptr)
   {
-    d_model.reset(new Model(*this, tm));
+    d_model.reset(new Model(tm));
     // make the check models utility
     d_checkModels.reset(new CheckModels(*d_smtSolver.get()));
   }
@@ -333,6 +332,7 @@ SmtEngine::~SmtEngine()
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
     d_dumpm.reset(nullptr);
+    d_model.reset(nullptr);
 
     d_sygusSolver.reset(nullptr);
 
@@ -469,11 +469,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
                value.getValue() == "2.6" ) {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }
-    else
-    {
-      Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
-      throw UnrecognizedOptionException();
-    }
     options::inputLanguage.set(ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
@@ -498,7 +493,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     d_state->notifyExpectedStatus(s);
     return;
   }
-  throw UnrecognizedOptionException();
 }
 
 bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
@@ -518,21 +512,11 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   SmtScope smts(this);
 
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
-  if (!isValidGetInfoFlag(key))
-  {
-    throw UnrecognizedOptionException();
-  }
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    for (StatisticsRegistry::const_iterator i =
-             NodeManager::fromExprManager(d_exprManager)
-                 ->getStatisticsRegistry()
-                 ->begin();
-         i
-         != NodeManager::fromExprManager(d_exprManager)
-                ->getStatisticsRegistry()
-                ->end();
+    StatisticsRegistry* sr = d_nodeManager->getStatisticsRegistry();
+    for (StatisticsRegistry::const_iterator i = sr->begin(); i != sr->end();
          ++i)
     {
       vector<SExpr> v;
@@ -1515,7 +1499,8 @@ Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
-  return d_quantElimSolver->getQuantifierElimination(*d_asserts, q, doFull);
+  return d_quantElimSolver->getQuantifierElimination(
+      *d_asserts, q, doFull, d_isInternalSubsolver);
 }
 
 bool SmtEngine::getInterpol(const Node& conj,
@@ -1637,7 +1622,6 @@ void SmtEngine::pop() {
 void SmtEngine::reset()
 {
   SmtScope smts(this);
-  ExprManager *em = d_exprManager;
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
     getOutputManager().getPrinter().toStreamCmdReset(
@@ -1647,7 +1631,7 @@ void SmtEngine::reset()
   Options opts;
   opts.copyValues(d_originalOptions);
   this->~SmtEngine();
-  new (this) SmtEngine(em, &opts);
+  new (this) SmtEngine(d_nodeManager, &opts);
   // Restore data set after creation
   notifyStartParsing(filename);
 }
@@ -1713,10 +1697,7 @@ unsigned long SmtEngine::getResourceRemaining() const
   return d_resourceManager->getResourceRemaining();
 }
 
-NodeManager* SmtEngine::getNodeManager() const
-{
-  return d_exprManager->getNodeManager();
-}
+NodeManager* SmtEngine::getNodeManager() const { return d_nodeManager; }
 
 Statistics SmtEngine::getStatistics() const
 {
@@ -1733,20 +1714,15 @@ void SmtEngine::safeFlushStatistics(int fd) const {
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
-                                 Expr expr,
-                                 const std::vector<Expr>& expr_values,
+                                 Node expr,
+                                 const std::vector<Node>& expr_values,
                                  const std::string& str_value)
 {
   SmtScope smts(this);
   finishInit();
-  std::vector<Node> node_values;
-  for (std::size_t i = 0, n = expr_values.size(); i < n; i++)
-  {
-    node_values.push_back( expr_values[i].getNode() );
-  }
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->setUserAttribute(attr, expr.getNode(), node_values, str_value);
+  te->setUserAttribute(attr, expr, expr_values, str_value);
 }
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)

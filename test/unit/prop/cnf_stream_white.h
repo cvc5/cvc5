@@ -131,9 +131,9 @@ class CnfStreamWhite : public CxxTest::TestSuite {
   void setUp() override
   {
     d_exprManager = new ExprManager();
-    d_smt = new SmtEngine(d_exprManager);
-    d_smt->d_logic.lock();
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
+    d_smt = new SmtEngine(d_nodeManager);
+    d_smt->d_logic.lock();
     d_scope = new SmtScope(d_smt);
 
     // Notice that this unit test uses the theory engine of a created SMT

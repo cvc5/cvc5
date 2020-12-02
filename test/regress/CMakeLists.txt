@@ -126,6 +126,7 @@ set(regress_0_tests
   regress0/aufbv/fuzz14.smtv1.smt2
   regress0/aufbv/fuzz15.smtv1.smt2
   regress0/aufbv/issue3737.smt2
+  regress0/aufbv/issue3687-check-models-small.smt2
   regress0/aufbv/rewrite_bug.smtv1.smt2
   regress0/aufbv/try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.delta01.smtv1.smt2
   regress0/aufbv/try5_small_difret_functions_wp_su.set_char_quoting.il.wp.delta01.smtv1.smt2
@@ -584,7 +585,12 @@ set(regress_0_tests
   regress0/issue2832-qualId.smt2
   regress0/issue4010-sort-inf-var.smt2
   regress0/issue4469-unc-no-reuse-var.smt2
+  regress0/issue4707-bv-to-bool-small.smt2
+  regress0/issue5099-model-1.smt2
+  regress0/issue5099-model-2.smt2
   regress0/issue5144-resetAssertions.smt2
+  regress0/issue5540-2-dump-model.smt2
+  regress0/issue5540-model-decls.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -622,6 +628,7 @@ set(regress_0_tests
   regress0/nl/issue3971.smt2
   regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
+  regress0/nl/issue5534-no-assertions.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -769,7 +776,6 @@ set(regress_0_tests
   regress0/quantifiers/issue4086-infs.smt2
   regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
   regress0/quantifiers/issue4437-unc-quant.smt2
-  regress0/quantifiers/issue4476-ext-rew.smt2
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
@@ -1016,6 +1022,7 @@ set(regress_0_tests
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
+  regress0/strings/leq.smt2
   regress0/strings/loop001.smt2
   regress0/strings/loop-wrong-sem.smt2
   regress0/strings/model001.smt2
@@ -1283,6 +1290,8 @@ set(regress_1_tests
   regress1/arith/div.08.smt2
   regress1/arith/div.09.smt2
   regress1/arith/issue3952-rew-eq.smt2
+  regress1/arith/issue4985-model-success.smt2
+  regress1/arith/issue4985b-model-success.smt2
   regress1/arith/issue789.smt2
   regress1/arith/miplib3.cvc
   regress1/arith/mod.02.smt2
@@ -1414,6 +1423,7 @@ set(regress_1_tests
   regress1/issue3970-nl-ext-purify.smt2
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
+  regress1/issue4335-unsat-core.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
@@ -1613,12 +1623,15 @@ set(regress_1_tests
   regress1/quantifiers/issue5019-cegqi-i.smt2
   regress1/quantifiers/issue5279-nqe.smt2
   regress1/quantifiers/issue5365-nqe.smt2
+  regress1/quantifiers/issue5378-witness.smt2
   regress1/quantifiers/issue5469-aext.smt2
   regress1/quantifiers/issue5470-aext.smt2
   regress1/quantifiers/issue5471-aext.smt2
   regress1/quantifiers/issue5482-rtf-no-fv.smt2
   regress1/quantifiers/issue5484-qe.smt2
   regress1/quantifiers/issue5484b-qe.smt2
+  regress1/quantifiers/issue5506-qe.smt2
+  regress1/quantifiers/issue5507-qe.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
@@ -1864,6 +1877,7 @@ set(regress_1_tests
   regress1/strings/issue5374-proxy-i.smt2
   regress1/strings/issue5483-pp-leq.smt2
   regress1/strings/issue5510-re-consume.smt2
+  regress1/strings/issue5520-re-consume.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2163,6 +2177,8 @@ set(regress_2_tests
   regress2/hole7.cvc
   regress2/hole8.cvc
   regress2/instance_1444.smtv1.smt2
+  regress2/issue3687-check-models.smt2
+  regress2/issue4707-bv-to-bool-large.smt2
   regress2/javafe.ast.StandardPrettyPrint.319_no_forall.smt2
   regress2/javafe.ast.WhileStmt.447_no_forall.smt2
   regress2/ooo.rf6.smt2
@@ -2414,6 +2430,8 @@ set(regression_disabled_tests
   regress0/ite_arith.smt2
   regress0/lemmas/fischer3-mutex-16.smtv1.smt2
   regress0/nl/all-logic.smt2
+  # timeout after change to datatypes, impacting sygus-inst
+  regress0/quantifiers/issue4476-ext-rew.smt2
   regress0/quantifiers/qbv-multi-lit-uge.smt2
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2

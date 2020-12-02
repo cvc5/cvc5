@@ -88,8 +88,13 @@ class SineSolver
   void doTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
 
   /** Sent secant lemmas around c for e */
-  void doSecantLemmas(
-      TNode e, TNode c, TNode poly_approx, unsigned d, int region);
+  void doSecantLemmas(TNode e,
+                      TNode poly_approx,
+                      TNode c,
+                      TNode poly_approx_c,
+                      unsigned d,
+                      unsigned actual_d,
+                      int region);
 
  private:
   std::pair<Node, Node> getSecantBounds(TNode e,
@@ -148,15 +153,15 @@ class SineSolver
       default: return 0;
     }
   }
-  int regionToConcavity(int region)
+  Convexity regionToConvexity(int region)
   {
     switch (region)
     {
       case 1:
-      case 2: return -1;
+      case 2: return Convexity::CONCAVE;
       case 3:
-      case 4: return 1;
-      default: return 0;
+      case 4: return Convexity::CONVEX;
+      default: return Convexity::UNKNOWN;
     }
   }
 

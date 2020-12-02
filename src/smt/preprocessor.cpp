@@ -36,7 +36,8 @@ Preprocessor::Preprocessor(SmtEngine& smt,
       d_absValues(abs),
       d_propagator(true, true),
       d_assertionsProcessed(u, false),
-      d_processor(smt, *smt.getResourceManager(), stats),
+      d_exDefs(smt, *smt.getResourceManager(), stats),
+      d_processor(smt, d_exDefs, *smt.getResourceManager(), stats),
       d_rtf(u),
       d_pnm(nullptr)
 {
@@ -108,7 +109,7 @@ RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
 Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return expandDefinitions(n, cache, expandOnly);
+  return d_exDefs.expandDefinitions(n, cache, expandOnly);
 }
 
 Node Preprocessor::expandDefinitions(
@@ -125,7 +126,7 @@ Node Preprocessor::expandDefinitions(
     n.getType(true);
   }
   // expand only = true
-  return d_processor.expandDefinitions(n, cache, expandOnly);
+  return d_exDefs.expandDefinitions(n, cache, expandOnly);
 }
 
 Node Preprocessor::simplify(const Node& node, bool removeItes)
@@ -143,7 +144,7 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
     nas.getType(true);
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_processor.expandDefinitions(nas, cache);
+  Node n = d_exDefs.expandDefinitions(nas, cache);
   TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
   Node ns = ts.isNull() ? n : ts.getNode();
   if (removeItes)
@@ -158,6 +159,7 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
   Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
+  d_exDefs.setProofNodeManager(d_pnm);
   d_propagator.setProof(d_pnm, d_context, pppg);
   d_rtf.setProofNodeManager(d_pnm);
 }

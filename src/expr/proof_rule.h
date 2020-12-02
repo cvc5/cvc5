@@ -231,6 +231,9 @@ enum class PfRule : uint32_t
   THEORY_PREPROCESS,
   // where F was added as a new assertion by theory preprocessing.
   THEORY_PREPROCESS_LEMMA,
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on theory expand definitions.
+  THEORY_EXPAND_DEF,
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
@@ -959,11 +962,13 @@ enum class PfRule : uint32_t
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
   // ======== Regular expression elimination
-  // Children: (P:F)
-  // Arguments: none
+  // Children: none
+  // Arguments: (F, b)
   // ---------------------
-  // Conclusion: R
-  // where R = strings::RegExpElimination::eliminate(F).
+  // Conclusion: (= F strings::RegExpElimination::eliminate(F, b))
+  // where b is a Boolean indicating whether we are using aggressive
+  // eliminations. Notice this rule concludes (= F F) if no eliminations
+  // are performed for F.
   RE_ELIM,
   //======================== Code points
   // Children: none

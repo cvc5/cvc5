@@ -219,6 +219,8 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
+  smt/expand_definitions.cpp
+  smt/expand_definitions.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -1135,7 +1137,6 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
-          expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
           expr/emptyset.h
