@@ -161,7 +161,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           Trace("nl-ext-factor") << "...lemma is " << flem << std::endl;
           if (d_data->isProofEnabled())
           {
-            Node k_eq = Rewriter::rewrite(kf.eqNode(sum));
+            Node k_eq = kf.eqNode(sum);
             Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
             proof->addStep(split, PfRule::SPLIT, {}, {lit});
             proof->addStep(
