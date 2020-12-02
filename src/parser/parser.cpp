@@ -200,9 +200,10 @@ api::Term Parser::bindVar(const std::string& name,
                           bool levelZero,
                           bool doOverload)
 {
+  bool globalDecls = d_symman->getGlobalDeclarations();
   Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
   api::Term expr = d_solver->mkConst(type, name);
-  defineVar(name, expr, levelZero, doOverload);
+  defineVar(name, expr, globalDecls || levelZero, doOverload);
   return expr;
 }
 
@@ -308,8 +309,9 @@ void Parser::defineParameterizedType(const std::string& name,
 api::Sort Parser::mkSort(const std::string& name)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
+  bool globalDecls = d_symman->getGlobalDeclarations();
   api::Sort type = d_solver->mkUninterpretedSort(name);
-  defineType(name, type);
+  defineType(name, type, globalDecls);
   return type;
 }
 
@@ -317,14 +319,16 @@ api::Sort Parser::mkSortConstructor(const std::string& name, size_t arity)
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
+  bool globalDecls = d_symman->getGlobalDeclarations();
   api::Sort type = d_solver->mkSortConstructorSort(name, arity);
-  defineType(name, vector<api::Sort>(arity), type);
+  defineType(name, vector<api::Sort>(arity), type, globalDecls);
   return type;
 }
 
 api::Sort Parser::mkUnresolvedType(const std::string& name)
 {
-  api::Sort unresolved = mkSort(name);
+  api::Sort unresolved = d_solver->mkUninterpretedSort(name);
+  defineType(name, unresolved);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
@@ -332,7 +336,8 @@ api::Sort Parser::mkUnresolvedType(const std::string& name)
 api::Sort Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                               size_t arity)
 {
-  api::Sort unresolved = mkSortConstructor(name, arity);
+  api::Sort unresolved = d_solver->mkSortConstructorSort(name, arity);
+  defineType(name, vector<api::Sort>(arity), unresolved);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
