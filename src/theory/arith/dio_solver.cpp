@@ -784,8 +784,8 @@ void DioSolver::debugPrintTrail(DioSolver::TrailIndex i) const{
   const SumPair& eq = d_trail[i].d_eq;
   const Polynomial& proof = d_trail[i].d_proof;
 
-  Message() << "d_trail["<<i<<"].d_eq = " << eq.getNode() << endl;
-  Message() << "d_trail["<<i<<"].d_proof = " << proof.getNode() << endl;
+  CVC4Message() << "d_trail[" << i << "].d_eq = " << eq.getNode() << endl;
+  CVC4Message() << "d_trail[" << i << "].d_proof = " << proof.getNode() << endl;
 }
 
 void DioSolver::subAndReduceCurrentFByIndex(DioSolver::SubIndex subIndex){

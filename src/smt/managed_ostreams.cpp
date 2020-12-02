@@ -122,8 +122,9 @@ ManagedDiagnosticOutputChannel::~ManagedDiagnosticOutputChannel() {
   if(Warning.getStreamPointer() == getManagedOstream()){
     Warning.setStream(&null_os);
   }
-  if(Message.getStreamPointer() == getManagedOstream()){
-    Message.setStream(&null_os);
+  if (CVC4Message.getStreamPointer() == getManagedOstream())
+  {
+    CVC4Message.setStream(&null_os);
   }
   if(Notice.getStreamPointer() == getManagedOstream()){
     Notice.setStream(&null_os);
