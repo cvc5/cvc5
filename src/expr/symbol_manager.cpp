@@ -77,6 +77,7 @@ class SymbolManager::Implementation
   void popScope();
   /** Have we pushed a scope (e.g. let or quantifier) in the current context? */
   bool hasPushedScope() const;
+
  private:
   /** The context manager for the scope maps. */
   Context d_context;
@@ -331,7 +332,7 @@ void SymbolManager::popScope()
 {
   // If global declarations is true, then if d_hasPushedScope is false, then
   // the pop corresponds to a user context, which we did not push.
-  
+
   // we have pushed a scope context. Since we are not allowed to push user
   // contexts within scope context, this means that we are popping a scope
   // context, and hence should always pop. Conversely, since we do not push
