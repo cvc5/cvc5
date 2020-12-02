@@ -346,6 +346,7 @@ class SymbolTable::Implementation {
         d_typeMap(&d_context),
         d_overload_trie(&d_context)
   {
+    // keep a global push, to be able to clear definitions not at level zero
     d_context.push();
   }
 
@@ -542,7 +543,8 @@ size_t SymbolTable::Implementation::lookupArity(const string& name) {
 }
 
 void SymbolTable::Implementation::popScope() {
-  if (d_context.getLevel() == 0) {
+  // should not pop beyond level one
+  if (d_context.getLevel() == 1) {
     throw ScopeException();
   }
   d_context.pop();
