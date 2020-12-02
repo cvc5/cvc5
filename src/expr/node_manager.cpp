@@ -951,6 +951,97 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
   return bvl;
 }
 
+Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
+{
+  AlwaysAssert(kind::isAssociative(kind)) << "Illegal kind in mkAssociative";
+
+  const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
+  size_t numChildren = children.size();
+
+  /* If the number of children is within bounds, then there's nothing to do. */
+  if (numChildren <= max)
+  {
+    return mkNode(kind, children);
+  }
+  const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
+
+  std::vector<Node>::const_iterator it = children.begin();
+  std::vector<Node>::const_iterator end = children.end();
+
+  /* The new top-level children and the children of each sub node */
+  std::vector<Node> newChildren;
+  std::vector<Node> subChildren;
+
+  while (it != end && numChildren > max)
+  {
+    /* Grab the next max children and make a node for them. */
+    for (std::vector<Node>::const_iterator next = it + max; it != next;
+         ++it, --numChildren)
+    {
+      subChildren.push_back(*it);
+    }
+    Node subNode = mkNode(kind, subChildren);
+    newChildren.push_back(subNode);
+
+    subChildren.clear();
+  }
+
+  // add the leftover children
+  if (numChildren > 0)
+  {
+    for (; it != end; ++it)
+    {
+      newChildren.push_back(*it);
+    }
+  }
+
+  /* It would be really weird if this happened (it would require
+   * min > 2, for one thing), but let's make sure. */
+  AlwaysAssert(newChildren.size() >= min)
+      << "Too few new children in mkAssociative";
+
+  // recurse
+  return mkAssociative(kind, newChildren);
+}
+
+Node NodeManager::mkLeftAssociative(Kind kind,
+                                    const std::vector<Node>& children)
+{
+  Node n = children[0];
+  for (size_t i = 1, size = children.size(); i < size; i++)
+  {
+    n = mkNode(kind, n, children[i]);
+  }
+  return n;
+}
+
+Node NodeManager::mkRightAssociative(Kind kind,
+                                     const std::vector<Node>& children)
+{
+  Node n = children[children.size() - 1];
+  for (size_t i = children.size() - 1; i > 0;)
+  {
+    n = mkNode(kind, children[--i], n);
+  }
+  return n;
+}
+
+Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
+{
+  if (children.size() == 2)
+  {
+    // if this is the case exactly 1 pair will be generated so the
+    // AND is not required
+    return mkNode(kind, children[0], children[1]);
+  }
+  std::vector<Node> cchildren;
+  for (size_t i = 0, nargsmo = children.size() - 1; i < nargsmo; i++)
+  {
+    cchildren.push_back(mkNode(kind, children[i], children[i + 1]));
+  }
+  return mkNode(kind::AND, cchildren);
+}
+
 Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
