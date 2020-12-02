@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file datatype_api_black.h
+/*! \file test_api.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz

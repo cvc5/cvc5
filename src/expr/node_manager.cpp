@@ -958,7 +958,7 @@ Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
   AlwaysAssert(kind::isAssociative(kind)) << "Illegal kind in mkAssociative";
 
   const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
-  unsigned int numChildren = children.size();
+  size_t numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
   if (numChildren <= max)
@@ -1010,7 +1010,7 @@ Node NodeManager::mkLeftAssociative(Kind kind,
                                     const std::vector<Node>& children)
 {
   Node n = children[0];
-  for (unsigned i = 1, size = children.size(); i < size; i++)
+  for (size_t i = 1, size = children.size(); i < size; i++)
   {
     n = mkNode(kind, n, children[i]);
   }
@@ -1021,7 +1021,7 @@ Node NodeManager::mkRightAssociative(Kind kind,
                                      const std::vector<Node>& children)
 {
   Node n = children[children.size() - 1];
-  for (unsigned i = children.size() - 1; i > 0;)
+  for (size_t i = children.size() - 1; i > 0;)
   {
     n = mkNode(kind, children[--i], n);
   }
