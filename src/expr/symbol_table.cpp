@@ -346,9 +346,12 @@ class SymbolTable::Implementation {
         d_typeMap(&d_context),
         d_overload_trie(&d_context)
   {
+    d_context.push();
   }
 
-  ~Implementation() {
+  ~Implementation() 
+  {
+    d_context.pop();
   }
 
   bool bind(const string& name, api::Term obj, bool levelZero, bool doOverload);
@@ -568,6 +571,7 @@ void SymbolTable::Implementation::resetAssertions()
   {
     d_context.pop();
   }
+  d_context.push();
 }
 
 bool SymbolTable::Implementation::isOverloadedFunction(api::Term fun) const
