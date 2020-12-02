@@ -349,10 +349,7 @@ class SymbolTable::Implementation {
     d_context.push();
   }
 
-  ~Implementation() 
-  {
-    d_context.pop();
-  }
+  ~Implementation() { d_context.pop(); }
 
   bool bind(const string& name, api::Term obj, bool levelZero, bool doOverload);
   void bindType(const string& name, api::Sort t, bool levelZero = false);
