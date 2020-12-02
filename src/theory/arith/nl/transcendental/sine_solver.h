@@ -93,6 +93,7 @@ class SineSolver
                       TNode c,
                       TNode poly_approx_c,
                       unsigned d,
+                      unsigned actual_d,
                       int region);
 
  private:
@@ -152,15 +153,15 @@ class SineSolver
       default: return 0;
     }
   }
-  int regionToConcavity(int region)
+  Convexity regionToConvexity(int region)
   {
     switch (region)
     {
       case 1:
-      case 2: return -1;
+      case 2: return Convexity::CONCAVE;
       case 3:
-      case 4: return 1;
-      default: return 0;
+      case 4: return Convexity::CONVEX;
+      default: return Convexity::UNKNOWN;
     }
   }
 

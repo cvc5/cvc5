@@ -1138,7 +1138,6 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
-          expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
           expr/emptyset.h

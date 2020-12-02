@@ -19,7 +19,7 @@
 
 #include <vector>
 
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "options/smt_options.h"
 #include "theory/theory_model.h"
 
