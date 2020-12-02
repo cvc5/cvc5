@@ -417,7 +417,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "model-u-print=MODE"
   type       = "ModelUninterpPrintMode"
-  default    = "DeclFun"
+  default    = "As"
   read_only  = true
   help       = "determines how to print uninterpreted elements in models"
   help_mode  = "uninterpreted elements in models printing  modes."
@@ -430,6 +430,10 @@ header = "options/smt_options.h"
 [[option.mode.DeclFun]]
   name = "decl-fun"
   help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+[[option.mode.As]]
+  name = "as"
+  help = "(default) print uninterpreted elements in `as` terms."
+
 
 [[option]]
   name       = "modelWitnessValue"
