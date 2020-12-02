@@ -18,7 +18,11 @@
 
 using namespace CVC4::api;
 
-TEST_F(TestApi, mkDatatypeSort)
+class TestApiDatatypeBlack : public TestApi
+{
+};
+
+TEST_F(TestApiDatatypeBlack, mkDatatypeSort)
 {
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
@@ -35,7 +39,7 @@ TEST_F(TestApi, mkDatatypeSort)
   ASSERT_NO_THROW(nilConstr.getConstructorTerm());
 }
 
-TEST_F(TestApi, mkDatatypeSorts)
+TEST_F(TestApiDatatypeBlack, mkDatatypeSorts)
 {
   /* Create two mutual datatypes corresponding to this definition
    * block:
@@ -100,7 +104,7 @@ TEST_F(TestApi, mkDatatypeSorts)
   EXPECT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC4ApiException);
 }
 
-TEST_F(TestApi, datatypeStructs)
+TEST_F(TestApiDatatypeBlack, datatypeStructs)
 {
   Sort intSort = d_solver.getIntegerSort();
   Sort boolSort = d_solver.getBooleanSort();
@@ -174,7 +178,7 @@ TEST_F(TestApi, datatypeStructs)
   EXPECT_TRUE(dtRecord.isWellFounded());
 }
 
-TEST_F(TestApi, datatypeNames)
+TEST_F(TestApiDatatypeBlack, datatypeNames)
 {
   Sort intSort = d_solver.getIntegerSort();
 
@@ -211,7 +215,7 @@ TEST_F(TestApi, datatypeNames)
   ASSERT_THROW(DatatypeDecl().getName(), CVC4ApiException);
 }
 
-TEST_F(TestApi, parametricDatatype)
+TEST_F(TestApiDatatypeBlack, parametricDatatype)
 {
   std::vector<Sort> v;
   Sort t1 = d_solver.mkParamSort("T1");
@@ -289,7 +293,7 @@ TEST_F(TestApi, parametricDatatype)
   EXPECT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
 }
 
-TEST_F(TestApi, datatypeSimplyRec)
+TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
 {
   /* Create mutual datatypes corresponding to this definition block:
    *
@@ -488,7 +492,7 @@ TEST_F(TestApi, datatypeSimplyRec)
   EXPECT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 }
 
-TEST_F(TestApi, datatypeSpecializedCons)
+TEST_F(TestApiDatatypeBlack, datatypeSpecializedCons)
 {
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
