@@ -236,25 +236,30 @@ class wrappedBitVector : public BitVector
 
   /** Bit-vector signed/unsigned (zero) extension. */
   wrappedBitVector<isSigned> extend(CVC4BitWidth extension) const;
+
   /**
    * Create a "contracted" bit-vector by cutting off the 'reduction' number of
    * most significant bits, i.e., by extracting the (bit-width - reduction)
    * least significant bits.
    */
   wrappedBitVector<isSigned> contract(CVC4BitWidth reduction) const;
+
   /**
    * Create a "resized" bit-vector of given size bei either extending (if new
    * size is larger) or contracting (if it is smaller) this wrapped bit-vector.
    */
   wrappedBitVector<isSigned> resize(CVC4BitWidth newSize) const;
+
   /**
    * Create an extension of this bit-vector that matches the bit-width of the
    * given bit-vector.
+   *
    * Note: The size of the given bit-vector may not be larger than the size of
-   * this bit-vector.
+   *       this bit-vector.
    */
   wrappedBitVector<isSigned> matchWidth(
       const wrappedBitVector<isSigned>& op) const;
+
   /** Bit-vector concatenation. */
   wrappedBitVector<isSigned> append(const wrappedBitVector<isSigned>& op) const;
 
