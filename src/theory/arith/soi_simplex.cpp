@@ -121,7 +121,10 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
 
   if(initialProcessSignals()){
     d_conflictVariables.purge();
-    if(verbose){ Message() << "fcFindModel("<< instance <<") early conflict" << endl; }
+    if (verbose)
+    {
+      CVC4Message() << "fcFindModel(" << instance << ") early conflict" << endl;
+    }
     Debug("soi::findModel") << "fcFindModel("<< instance <<") early conflict" << endl;
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
@@ -152,17 +155,26 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
 
     if(result ==  Result::UNSAT){
       ++(d_statistics.d_soiFoundUnsat);
-      if(verbose){ Message() << "fc found unsat";}
+      if (verbose)
+      {
+        CVC4Message() << "fc found unsat";
+      }
     }else if(d_errorSet.errorEmpty()){
       ++(d_statistics.d_soiFoundSat);
-      if(verbose){ Message() << "fc found model"; }
+      if (verbose)
+      {
+        CVC4Message() << "fc found model";
+      }
     }else{
       ++(d_statistics.d_soiMissed);
-      if(verbose){ Message() << "fc missed"; }
+      if (verbose)
+      {
+        CVC4Message() << "fc missed";
+      }
     }
   }
   if(verbose){
-    Message() << "(" << instance << ") pivots " << d_pivots << endl;
+    CVC4Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
   Assert(!d_errorSet.moreSignals());
@@ -373,12 +385,10 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     }
     if(degenerate(w) && selected.describesPivot()){
       ArithVar leaving = selected.leaving();
-      Message()
-        << "degenerate " << leaving
-        << ", atBounds " << d_linEq.basicsAtBounds(selected)
-        << ", len " << d_tableau.basicRowLength(leaving)
-        << ", bc " << d_linEq.debugBasicAtBoundCount(leaving)
-        << endl;
+      CVC4Message() << "degenerate " << leaving << ", atBounds "
+                    << d_linEq.basicsAtBounds(selected) << ", len "
+                    << d_tableau.basicRowLength(leaving) << ", bc "
+                    << d_linEq.debugBasicAtBoundCount(leaving) << endl;
     }
   }
 
@@ -425,8 +435,8 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
   }
 
   if(verbose){
-    Message() << "conflict variable " << selected << endl;
-    Message() << ss.str();
+    CVC4Message() << "conflict variable " << selected << endl;
+    CVC4Message() << ss.str();
   }
   if(Debug.isOn("error")){ d_errorSet.debugPrint(Debug("error")); }
 
@@ -983,7 +993,7 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
     Assert(d_errorSize == d_errorSet.errorSize());
 
     if(verbose){
-      debugSOI(w,  Message(), instance);
+      debugSOI(w, CVC4Message(), instance);
     }
     Assert(debugSOI(w, Debug("dualLike"), instance));
   }

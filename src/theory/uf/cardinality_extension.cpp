@@ -1015,7 +1015,7 @@ int SortModel::addSplit(Region* r)
         Trace("uf-ss-warn") << "Split on unknown literal : " << ss << std::endl;
       }
       if( ss==b_t ){
-        Message() << "Bad split " << s << std::endl;
+        CVC4Message() << "Bad split " << s << std::endl;
         AlwaysAssert(false);
       }
     }
@@ -1420,8 +1420,8 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
             if( !it->second->hasCardinalityAsserted() ){
               Trace("uf-ss-warn") << "WARNING: Assert " << n << " as a decision before cardinality for " << it->first << "." << std::endl;
-              //Message() << "Error: constraint asserted before cardinality for " << it->first << std::endl;
-              //Unimplemented();
+              // CVC4Message() << "Error: constraint asserted before cardinality
+              // for " << it->first << std::endl; Unimplemented();
             }
           }
         }

@@ -216,16 +216,17 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
       if(opts.getInteractivePrompt()) {
-        Message() << Configuration::getPackageName()
-                  << " " << Configuration::getVersionString();
+        CVC4Message() << Configuration::getPackageName() << " "
+                      << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
-          Message() << " [" << Configuration::getGitId() << "]";
+          CVC4Message() << " [" << Configuration::getGitId() << "]";
         }
-        Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                  << " assertions:"
-                  << (Configuration::isAssertionBuild() ? "on" : "off")
-                  << endl << endl;
-        Message() << Configuration::copyright() << endl;
+        CVC4Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                      << " assertions:"
+                      << (Configuration::isAssertionBuild() ? "on" : "off")
+                      << endl
+                      << endl;
+        CVC4Message() << Configuration::copyright() << endl;
       }
 
       while(true) {

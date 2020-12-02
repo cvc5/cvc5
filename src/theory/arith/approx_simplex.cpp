@@ -631,8 +631,8 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistic
     ArithVar v = *vi;
 
     if(s_verbosity >= 2){
-      //Message() << v  << " ";
-      //d_vars.printModel(v, Message());
+      // CVC4Message() << v  << " ";
+      // d_vars.printModel(v, CVC4Message());
     }
 
     int type;
@@ -764,8 +764,8 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
     ArithVar v = *vi;
 
     if(s_verbosity >= 2){
-      Message() << v  << " ";
-      d_vars.printModel(v, Message());
+      CVC4Message() << v << " ";
+      d_vars.printModel(v, CVC4Message());
     }
 
     int type;
@@ -866,8 +866,9 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
       int dir = guessDir(r);
       if(len >= rowLengthReq){
         if(s_verbosity >= 1){
-          Message() << "high row " << r << " " << len << " " << avgRowLength << " " << dir<< endl;
-          d_vars.printModel(r, Message());
+          CVC4Message() << "high row " << r << " " << len << " " << avgRowLength
+                        << " " << dir << endl;
+          d_vars.printModel(r, CVC4Message());
         }
         ret.push_back(ArithRatPair(r, Rational(dir)));
       }
@@ -886,8 +887,9 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
       double lbScore = double(bc.lowerBoundCount()) / maxCount;
       if(ubScore  >= .9 || lbScore >= .9){
         if(s_verbosity >= 1){
-          Message() << "high col " << c << " " << bc << " " << ubScore << " " << lbScore << " " << dir << endl;
-          d_vars.printModel(c, Message());
+          CVC4Message() << "high col " << c << " " << bc << " " << ubScore
+                        << " " << lbScore << " " << dir << endl;
+          d_vars.printModel(c, CVC4Message());
         }
         ret.push_back(ArithRatPair(c, Rational(c)));
       }
@@ -1010,21 +1012,24 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
     int status = isAux ? glp_get_row_stat(prob, glpk_index)
       : glp_get_col_stat(prob, glpk_index);
     if(s_verbosity >= 2){
-      Message() << "assignment " << vi << endl;
+      CVC4Message() << "assignment " << vi << endl;
     }
 
     bool useDefaultAssignment = false;
 
     switch(status){
     case GLP_BS:
-      //Message() << "basic" << endl;
+      // CVC4Message() << "basic" << endl;
       newBasis.add(vi);
       useDefaultAssignment = true;
       break;
     case GLP_NL:
     case GLP_NS:
       if(!mip){
-        if(s_verbosity >= 2){ Message() << "non-basic lb" << endl; }
+        if (s_verbosity >= 2)
+        {
+          CVC4Message() << "non-basic lb" << endl;
+        }
         newValues.set(vi, d_vars.getLowerBound(vi));
       }else{// intentionally fall through otherwise
         useDefaultAssignment = true;
@@ -1032,7 +1037,10 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
       break;
     case GLP_NU:
       if(!mip){
-        if(s_verbosity >= 2){ Message() << "non-basic ub" << endl; }
+        if (s_verbosity >= 2)
+        {
+          CVC4Message() << "non-basic ub" << endl;
+        }
         newValues.set(vi, d_vars.getUpperBound(vi));
       }else {// intentionally fall through otherwise
         useDefaultAssignment = true;
@@ -1046,7 +1054,10 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
     }
 
     if(useDefaultAssignment){
-      if(s_verbosity >= 2){ Message() << "non-basic other" << endl; }
+      if (s_verbosity >= 2)
+      {
+        CVC4Message() << "non-basic other" << endl;
+      }
 
       double newAssign;
       if(mip){
@@ -1061,21 +1072,23 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
 
       if(d_vars.hasLowerBound(vi) &&
          roughlyEqual(newAssign, d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA))){
-        //Message() << "  to lb" << endl;
+        // CVC4Message() << "  to lb" << endl;
 
         newValues.set(vi, d_vars.getLowerBound(vi));
       }else if(d_vars.hasUpperBound(vi) &&
                roughlyEqual(newAssign, d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA))){
         newValues.set(vi, d_vars.getUpperBound(vi));
-        // Message() << "  to ub" << endl;
+        // CVC4Message() << "  to ub" << endl;
       }else{
 
         double rounded = round(newAssign);
         if(roughlyEqual(newAssign, rounded)){
-          // Message() << "roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
+          // CVC4Message() << "roughly equal " << rounded << " " << newAssign <<
+          // " " << oldAssign << endl;
           newAssign = rounded;
         }else{
-          // Message() << "not roughly equal " << rounded << " " << newAssign << " " << oldAssign << endl;
+          // CVC4Message() << "not roughly equal " << rounded << " " <<
+          // newAssign << " " << oldAssign << endl;
         }
 
         DeltaRational proposal;
@@ -1090,19 +1103,23 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
         }
 
         if(roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA))){
-          // Message() << "  to prev value" << newAssign << " " << oldAssign << endl;
+          // CVC4Message() << "  to prev value" << newAssign << " " << oldAssign
+          // << endl;
           proposal = d_vars.getAssignment(vi);
         }
 
 
         if(d_vars.strictlyLessThanLowerBound(vi, proposal)){
-          //Message() << "  round to lb " << d_vars.getLowerBound(vi) << endl;
+          // CVC4Message() << "  round to lb " << d_vars.getLowerBound(vi) <<
+          // endl;
           proposal = d_vars.getLowerBound(vi);
         }else if(d_vars.strictlyGreaterThanUpperBound(vi, proposal)){
-          //Message() << "  round to ub " << d_vars.getUpperBound(vi) << endl;
+          // CVC4Message() << "  round to ub " << d_vars.getUpperBound(vi) <<
+          // endl;
           proposal = d_vars.getUpperBound(vi);
         }else{
-          //Message() << "  use proposal" << proposal << " " << oldAssign  << endl;
+          // CVC4Message() << "  use proposal" << proposal << " " << oldAssign
+          // << endl;
         }
         newValues.set(vi, proposal);
       }
