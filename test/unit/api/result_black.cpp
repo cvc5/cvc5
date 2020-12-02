@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file result_black.h
+/*! \file result_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds
