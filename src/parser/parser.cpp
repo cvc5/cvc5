@@ -197,11 +197,12 @@ bool Parser::isPredicate(const std::string& name) {
 
 api::Term Parser::bindVar(const std::string& name,
                           const api::Sort& type,
+                          bool levelZero,
                           bool doOverload)
 {
   Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
   api::Term expr = mkVar(name, type);
-  defineVar(name, expr, false, doOverload);
+  defineVar(name, expr, levelZero, doOverload);
   return expr;
 }
 
@@ -210,7 +211,7 @@ api::Term Parser::bindBoundVar(const std::string& name, const api::Sort& type)
   Debug("parser") << "bindBoundVar(" << name << ", " << type << ")"
                   << std::endl;
   api::Term expr = d_solver->mkVar(type, name);
-  defineVar(name, expr, false);
+  defineVar(name, expr);
   return expr;
 }
 
@@ -235,11 +236,12 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
                                         const api::Sort& type,
+                          bool levelZero,
                                         bool doOverload)
 {
   std::vector<api::Term> vars;
   for (unsigned i = 0; i < names.size(); ++i) {
-    vars.push_back(bindVar(names[i], type, doOverload));
+    vars.push_back(bindVar(names[i], type, levelZero, doOverload));
   }
   return vars;
 }

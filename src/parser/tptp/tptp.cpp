@@ -246,7 +246,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   {
     api::Sort t =
         p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
-    expr = bindVar(p.d_name, t);
+    expr = bindVar(p.d_name, t, true); // must define at level zero
     preemptCommand(new DeclareFunctionCommand(p.d_name, expr, t));
   }
   return expr;
@@ -290,7 +290,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       api::Sort t =
           p.d_type == d_solver->getBooleanSort() ? p.d_type : d_unsorted;
       t = d_solver->mkFunctionSort(sorts, t);
-      v = bindVar(p.d_name, t);
+      v = bindVar(p.d_name, t, true); // must define at level zero
       preemptCommand(new DeclareFunctionCommand(p.d_name, v, t));
     }
     // args might be rationals, in which case we need to create

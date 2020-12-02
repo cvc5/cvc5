@@ -444,7 +444,7 @@ api::Term Smt2::bindDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return bindVar(fname, ft, true);
+  return bindVar(fname, ft, false, true);
 }
 
 void Smt2::pushDefineFunRecScope(

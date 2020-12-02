@@ -291,7 +291,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       else
       {
         api::Term func =
-            PARSER_STATE->bindVar(name, t, true);
+            PARSER_STATE->bindVar(name, t, false, true);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -330,7 +330,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       // we allow overloading for function definitions
-      api::Term func = PARSER_STATE->bindVar(name, t, true);
+      api::Term func = PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DefineFunctionCommand(
           name, func, terms, expr, SYM_MAN->getGlobalDeclarations()));
     }
@@ -771,7 +771,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
       api::Term c =
-          PARSER_STATE->bindVar(name, t, true);
+          PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -937,7 +937,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, tt, true);
+            PARSER_STATE->bindVar(name, tt, false, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
@@ -957,7 +957,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, true);
+            PARSER_STATE->bindVar(name, t, false, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }

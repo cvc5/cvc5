@@ -883,7 +883,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       idCommaFlag=true;
       })?
     {
-      func = PARSER_STATE->bindVar(id, t, true);
+      func = PARSER_STATE->bindVar(id, t, false, true);
       ids.push_back(id);
       types.push_back(t);
       funcs.push_back(func);
