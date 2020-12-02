@@ -347,8 +347,7 @@ bool TheoryStrings::collectModelInfoType(
               // otherwise, it is a shared term
               argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
             }
-            Node c = Rewriter::rewrite(nm->mkNode(
-                SEQ_UNIT, argVal));
+            Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
             m->getEqualityEngine()->addTerm(c);
