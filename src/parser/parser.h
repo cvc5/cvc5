@@ -415,7 +415,7 @@ public:
    */
   std::vector<api::Term> bindVars(const std::vector<std::string> names,
                                   const api::Sort& type,
-                    bool levelZero = false,
+                                  bool levelZero = false,
                                   bool doOverload = false);
 
   /**

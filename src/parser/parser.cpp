@@ -236,7 +236,7 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
                                         const api::Sort& type,
-                          bool levelZero,
+                                        bool levelZero,
                                         bool doOverload)
 {
   std::vector<api::Term> vars;
