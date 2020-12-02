@@ -20,14 +20,14 @@ namespace CVC4 {
 
 namespace proof {
 
-const char* veritRuletoString(VeritRule id)
+const char* veritRuletoString(VeritRule id) //TODO: RENAME veritRuleToString?
 {
   switch (id)
   {
     case VeritRule::UNDEFINED: return "undefined";
     case VeritRule::ASSUME: return "assume";
     case VeritRule::ANCHOR: return "anchor";
-    case VeritRule::ANCHOR_SCOPE: return "subproof";
+    case VeritRule::ANCHOR_SUBPROOF: return "subproof";
     case VeritRule::ANCHOR_BIND: return "bind";
     case VeritRule::INPUT: return "input";
     case VeritRule::TRUE: return "true";
@@ -92,7 +92,7 @@ const char* veritRuletoString(VeritRule id)
     case VeritRule::NOT_ITE1: return "not_ite1";
     case VeritRule::NOT_ITE2: return "not_ite2";
     case VeritRule::ITE_INTRO: return "ite_intro";
-    case VeritRule::DUPLICATE_LITERALS: return "duplicate_literals";
+    case VeritRule::DUPLICATED_LITERALS: return "duplicated_literals";
     case VeritRule::CONNECTIVE_DEF: return "connective_def";
     case VeritRule::ITE_SIMPLIFY: return "ite_simplify";
     case VeritRule::EQ_SIMPLIFY: return "eq_simplify";

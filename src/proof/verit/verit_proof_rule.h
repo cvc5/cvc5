@@ -38,11 +38,10 @@ enum class VeritRule : uint32_t
   // Each subproof in veriT begins with an anchor command. The outermost
   // application of anchor will not be printed.
   ANCHOR,
-  ANCHOR_SCOPE,
+  ANCHOR_SUBPROOF,
   ANCHOR_BIND,
   ASSUME,
   UNDEFINED,  // TODO: delete later
-
   INPUT,
   TRUE,
   FALSE,
@@ -106,7 +105,7 @@ enum class VeritRule : uint32_t
   NOT_ITE1,
   NOT_ITE2,
   ITE_INTRO,
-  DUPLICATE_LITERALS,
+  DUPLICATED_LITERALS,
   CONNECTIVE_DEF,
   ITE_SIMPLIFY,
   EQ_SIMPLIFY,

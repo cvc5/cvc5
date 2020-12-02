@@ -135,9 +135,10 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
     d_vpfpp->process(fp);
     proof::veritPrinter(out, fp);
   }
+  else{
   out << "(proof\n";
   out << *fp;
-  out << "\n)\n";
+  out << "\n)\n";}
 }
 
 void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)

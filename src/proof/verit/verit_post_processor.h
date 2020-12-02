@@ -68,7 +68,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The variable cl **/
   Node d_cl;
   /**
-   * This method adds a new step to the proof applying the veriT rule.
+   * This method adds a new step to the proof applying the VERIT_RULE. It adds the id of the VERIT_RULE as the first argument, the res node as the second and third argument.
    *
    * @param res The expected result of the application,
    * @param rule The id of the veriT rule,
@@ -83,8 +83,8 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& args,
                     CDProof& cdp);
   /**
-   * This method adds a new step to the proof applying the veriT rule but adds
-   * a conclusion different from the result
+   * This method adds a new step to the proof applying the VERIT_RULE but adds
+   * a conclusion different from the result as the third argument.
    *
    * @param res The expected result of the application,
    * @param rule The id of the veriT rule,
@@ -100,6 +100,13 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
 		    const std::vector<Node>& children,
 		    const std::vector<Node>& args,
 		    CDProof& cdp);
+  //TODO
+  bool addVeritStepOr(Node res,
+		      VeritRule rule,
+		      const std::vector<Node>& children,
+		      const std::vector<Node>& args,
+		      CDProof& cdp);
+
   /**
    * This method adds a new step to the proof applying the veriT rule while
    * replacing the outermost or by cl, i.e. (cl F1 ... Fn). The kind of the
@@ -113,11 +120,13 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return True if the step could be added, or false if not.
   */
 
-  bool addVeritClStepFromOr(Node res,
+  bool addVeritStepFromOr(Node res,
 		            VeritRule rule,
 		            const std::vector<Node>& children,
 		            const std::vector<Node>& args,
 		            CDProof& cdp);
+  //TODO:Add comment
+  Node mkClNode(std::vector<Node> clauses);
 
 };
 
@@ -135,19 +144,13 @@ class VeritProofPostprocess
 
  private:
   /** The post process callback */
-  std::unique_ptr<ProofNodeUpdaterCallback> d_cb;
+  std::unique_ptr<VeritProofPostprocessCallback> d_cb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-
-  // TODO: infrastructure from ProofNodeUpdater
-  void processInternal(std::shared_ptr<ProofNode> pf,
-                       const std::vector<Node>& fa);
-  bool runUpdate(std::shared_ptr<ProofNode> cur,
-                 const std::vector<Node>& fa,
-                 bool& continueUpdate);
-
-  bool d_debugFreeAssumps;
-  std::vector<Node> d_freeAssumps;
+  /** Internal processing for a proof node*/
+  void processInternal(std::shared_ptr<ProofNode> pf, CDProof *cdp);
+  /** Special processing for the first scope*/
+  void processFirstScope(std::shared_ptr<ProofNode> pf, CDProof* cdp);
 };
 
 }  // namespace proof
