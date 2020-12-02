@@ -334,6 +334,7 @@ SmtEngine::~SmtEngine()
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
     d_dumpm.reset(nullptr);
+    d_model.reset(nullptr);
 
     d_sygusSolver.reset(nullptr);
 
