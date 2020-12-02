@@ -172,6 +172,8 @@ class CVC4_PUBLIC SymbolTable {
 
   /** Reset everything. */
   void reset();
+  /** Reset assertions. */
+  void resetAssertions();
 
   //------------------------ operator overloading
   /** is this function overloaded? */

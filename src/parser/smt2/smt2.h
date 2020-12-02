@@ -192,8 +192,6 @@ class Smt2 : public Parser
 
   void reset() override;
 
-  void resetAssertions();
-
   /**
    * Creates a command that adds an invariant constraint.
    *

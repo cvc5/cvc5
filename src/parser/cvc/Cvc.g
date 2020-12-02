@@ -565,12 +565,8 @@ namespace CVC4 {
 #include <vector>
 
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
-
 
 #define REPEAT_COMMAND(k, CommandCtor)                      \
   ({                                                        \
@@ -743,12 +739,10 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 
   | RESET_TOK
     { cmd->reset(new ResetCommand());
-      PARSER_STATE->reset();
     }
 
   | RESET_TOK ASSERTIONS_TOK
     { cmd->reset(new ResetAssertionsCommand());
-      PARSER_STATE->reset();
     }
 
     // Datatypes can be mututally-recursive if they're in the same
@@ -889,7 +883,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       idCommaFlag=true;
       })?
     {
-      func = PARSER_STATE->bindVar(id, t, ExprManager::VAR_FLAG_NONE, true);
+      func = PARSER_STATE->bindVar(id, t, false, true);
       ids.push_back(id);
       types.push_back(t);
       funcs.push_back(func);
@@ -1117,8 +1111,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
             if(topLevel) {
-              api::Term func =
-                  PARSER_STATE->bindVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
+              api::Term func = PARSER_STATE->bindVar(*i, t);
               Command* decl = new DeclareFunctionCommand(*i, func, t);
               seq->addCommand(decl);
             } else {
@@ -1151,10 +1144,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             ++i) {
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          api::Term func = PARSER_STATE->mkVar(
-              *i,
-              t,
-              ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
+          api::Term func = SOLVER->mkConst(t, *i);
           PARSER_STATE->defineVar(*i, fterm);
           Command* decl = new DefineFunctionCommand(*i, func, formals, f, true);
           seq->addCommand(decl);
@@ -2307,11 +2297,11 @@ datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
      * below. */
   : identifier[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
     ( LBRACKET identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
+        t = PARSER_STATE->mkSort(id2);
         params.push_back( t );
       }
       ( COMMA identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
+        t = PARSER_STATE->mkSort(id2);
         params.push_back( t ); }
       )* RBRACKET
     )?
