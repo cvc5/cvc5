@@ -738,7 +738,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("POPTO_SCOPE command"); }
 
   | RESET_TOK
-    { 
+    {
       cmd->reset(new ResetCommand());
       // reset the state of the parser, which is independent of the symbol
       // manager
