@@ -397,6 +397,9 @@ public:
 
   /** Create a new CVC4 variable expression of the given type. 
    *
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
+   * 
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
@@ -409,6 +412,9 @@ public:
   /**
    * Create a set of new CVC4 variable expressions of the given type.
    *
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
+   * 
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.

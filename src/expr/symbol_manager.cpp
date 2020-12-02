@@ -319,7 +319,8 @@ size_t SymbolManager::scopeLevel() const
 
 void SymbolManager::pushScope(bool isUserContext)
 {
-  // we do not push user contexts when global declarations is true
+  // we do not push user contexts when global declarations is true. This
+  // policy applies both to the symbol table and to the symbol manager.
   if (d_globalDeclarations && isUserContext)
   {
     return;
@@ -331,12 +332,10 @@ void SymbolManager::pushScope(bool isUserContext)
 void SymbolManager::popScope()
 {
   // If global declarations is true, then if d_hasPushedScope is false, then
-  // the pop corresponds to a user context, which we did not push.
-
-  // we have pushed a scope context. Since we are not allowed to push user
-  // contexts within scope context, this means that we are popping a scope
-  // context, and hence should always pop. Conversely, since we do not push
-  // user contexts, we should never pop when d_hasPushedScope is false.
+  // the pop corresponds to a user context, which we did not push. Note this
+  // additionally relies on the fact that user contexts cannot be pushed
+  // within scope contexts. Hence, since we did not push the context, we
+  // do not pop a context here.
   if (d_globalDeclarations && !d_implementation->hasPushedScope())
   {
     return;

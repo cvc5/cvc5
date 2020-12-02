@@ -790,7 +790,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   | RESET_TOK
     {
       cmd->reset(new ResetCommand());
-      // must also reset the parser state
+      // reset the state of the parser, which is independent of the symbol
+      // manager
       PARSER_STATE->reset();
     }
     /* reset-assertions: reset assertions, assertion stack, declarations,
