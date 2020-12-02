@@ -18,7 +18,11 @@
 
 using namespace CVC4::api;
 
-TEST_F(TestApi, addRule)
+class TestApiGrammarBlack : public TestApi
+{
+};
+
+TEST_F(TestApiGrammarBlack, addRule)
 {
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
@@ -42,7 +46,7 @@ TEST_F(TestApi, addRule)
   ASSERT_THROW(g.addRule(start, d_solver.mkBoolean(false)), CVC4ApiException);
 }
 
-TEST_F(TestApi, addRules)
+TEST_F(TestApiGrammarBlack, addRules)
 {
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
@@ -67,7 +71,7 @@ TEST_F(TestApi, addRules)
                CVC4ApiException);
 }
 
-TEST_F(TestApi, addAnyConstant)
+TEST_F(TestApiGrammarBlack, addAnyConstant)
 {
   Sort boolean = d_solver.getBooleanSort();
 
@@ -88,7 +92,7 @@ TEST_F(TestApi, addAnyConstant)
   ASSERT_THROW(g.addAnyConstant(start), CVC4ApiException);
 }
 
-TEST_F(TestApi, addAnyVariable)
+TEST_F(TestApiGrammarBlack, addAnyVariable)
 {
   Sort boolean = d_solver.getBooleanSort();
 
