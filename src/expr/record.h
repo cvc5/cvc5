@@ -53,7 +53,7 @@ struct CVC4_PUBLIC RecordUpdateHashFunction {
 
 std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) CVC4_PUBLIC;
 
-typedef std::vector<std::pair<std::string, TypeNode>> Record;
+using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 }/* CVC4 namespace */
 
