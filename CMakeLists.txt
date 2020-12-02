@@ -216,6 +216,9 @@ if(NOT CMAKE_BUILD_TYPE)
       Production CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
   # Provide drop down menu options in cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${BUILD_TYPES})
+elseif ("${CMAKE_BUILD_TYPE}" STREQUAL Release)
+  message(STATUS "Interpreting Release build type as 'Production'")
+  set(CMAKE_BUILD_TYPE Production CACHE STRING "Build type options are: ${BUILD_TYPES}" FORCE)
 endif()
 
 # Check if specified build type is valid.
