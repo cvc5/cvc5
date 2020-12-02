@@ -32,13 +32,13 @@ TEST_F(TestApiOpBlack, isNull)
   Op x;
   ASSERT_TRUE(x.isNull());
   x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
-  ASSERT_TRUE(!x.isNull());
+  ASSERT_FALSE(x.isNull());
 }
 
 TEST_F(TestApiOpBlack, opFromKind)
 {
   Op plus(&d_solver, PLUS);
-  ASSERT_TRUE(!plus.isIndexed());
+  ASSERT_FALSE(plus.isIndexed());
   ASSERT_THROW(plus.getIndices<uint32_t>(), CVC4ApiException);
 
   ASSERT_NO_THROW(d_solver.mkOp(PLUS));
@@ -54,11 +54,11 @@ TEST_F(TestApiOpBlack, getIndicesString)
   Op divisible_ot = d_solver.mkOp(DIVISIBLE, 4);
   ASSERT_TRUE(divisible_ot.isIndexed());
   std::string divisible_idx = divisible_ot.getIndices<std::string>();
-  ASSERT_TRUE(divisible_idx == "4");
+  EXPECT_EQ(divisible_idx, "4");
 
   Op record_update_ot = d_solver.mkOp(RECORD_UPDATE, "test");
   std::string record_update_idx = record_update_ot.getIndices<std::string>();
-  ASSERT_TRUE(record_update_idx == "test");
+  EXPECT_EQ(record_update_idx, "test");
   ASSERT_THROW(record_update_ot.getIndices<uint32_t>(), CVC4ApiException);
 }
 
@@ -67,7 +67,7 @@ TEST_F(TestApiOpBlack, getIndicesUint)
   Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
   ASSERT_TRUE(bitvector_repeat_ot.isIndexed());
   uint32_t bitvector_repeat_idx = bitvector_repeat_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(bitvector_repeat_idx == 5);
+  EXPECT_EQ(bitvector_repeat_idx, 5);
   ASSERT_THROW(
       (bitvector_repeat_ot.getIndices<std::pair<uint32_t, uint32_t>>()),
       CVC4ApiException);
@@ -75,40 +75,40 @@ TEST_F(TestApiOpBlack, getIndicesUint)
   Op bitvector_zero_extend_ot = d_solver.mkOp(BITVECTOR_ZERO_EXTEND, 6);
   uint32_t bitvector_zero_extend_idx =
       bitvector_zero_extend_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(bitvector_zero_extend_idx == 6);
+  EXPECT_EQ(bitvector_zero_extend_idx, 6);
 
   Op bitvector_sign_extend_ot = d_solver.mkOp(BITVECTOR_SIGN_EXTEND, 7);
   uint32_t bitvector_sign_extend_idx =
       bitvector_sign_extend_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(bitvector_sign_extend_idx == 7);
+  EXPECT_EQ(bitvector_sign_extend_idx, 7);
 
   Op bitvector_rotate_left_ot = d_solver.mkOp(BITVECTOR_ROTATE_LEFT, 8);
   uint32_t bitvector_rotate_left_idx =
       bitvector_rotate_left_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(bitvector_rotate_left_idx == 8);
+  EXPECT_EQ(bitvector_rotate_left_idx, 8);
 
   Op bitvector_rotate_right_ot = d_solver.mkOp(BITVECTOR_ROTATE_RIGHT, 9);
   uint32_t bitvector_rotate_right_idx =
       bitvector_rotate_right_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(bitvector_rotate_right_idx == 9);
+  EXPECT_EQ(bitvector_rotate_right_idx, 9);
 
   Op int_to_bitvector_ot = d_solver.mkOp(INT_TO_BITVECTOR, 10);
   uint32_t int_to_bitvector_idx = int_to_bitvector_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(int_to_bitvector_idx == 10);
+  EXPECT_EQ(int_to_bitvector_idx, 10);
 
   Op floatingpoint_to_ubv_ot = d_solver.mkOp(FLOATINGPOINT_TO_UBV, 11);
   uint32_t floatingpoint_to_ubv_idx =
       floatingpoint_to_ubv_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(floatingpoint_to_ubv_idx == 11);
+  EXPECT_EQ(floatingpoint_to_ubv_idx, 11);
 
   Op floatingpoint_to_sbv_ot = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
   uint32_t floatingpoint_to_sbv_idx =
       floatingpoint_to_sbv_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(floatingpoint_to_sbv_idx == 13);
+  EXPECT_EQ(floatingpoint_to_sbv_idx, 13);
 
   Op tuple_update_ot = d_solver.mkOp(TUPLE_UPDATE, 5);
   uint32_t tuple_update_idx = tuple_update_ot.getIndices<uint32_t>();
-  ASSERT_TRUE(tuple_update_idx == 5);
+  EXPECT_EQ(tuple_update_idx, 5);
   ASSERT_THROW(tuple_update_ot.getIndices<std::string>(), CVC4ApiException);
 }
 
