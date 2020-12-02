@@ -83,17 +83,13 @@ void LfscPrinter::print(std::ostream& out,
   out << "(check" << std::endl;
   cparen << ")";
   // compute the term lets
-  std::vector<Node> visitList;
-  std::map<Node, uint32_t> count;
+  LetBinding lbind;
   for (const Node& ia : iasserts)
   {
-    Letify::updateCounts(ia, visitList, count);
+    lbind.process(ia);
   }
-  std::vector<Node> letList;
-  std::map<Node, uint32_t> letMap;
-  Letify::convertCountToLet(visitList, count, letList, letMap);
   // print the let list
-  printLetList(out, cparen, letList, letMap);
+  printLetList(out, cparen, lbind);
 
   // [3] print the assertions, with letification
   // the assumption identifier mapping
@@ -104,7 +100,7 @@ void LfscPrinter::print(std::ostream& out,
     out << "(% ";
     printAssumeId(out, i);
     out << " (holds ";
-    printInternal(out, ia, letMap);
+    printInternal(out, ia, lbind);
     out << ")" << std::endl;
     cparen << ")";
     // remember the assumption name
@@ -119,7 +115,7 @@ void LfscPrinter::print(std::ostream& out,
   Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
-  printProofLetify(out, pn->getChildren()[0].get(), letMap, passumeMap);
+  printProofLetify(out, pn->getChildren()[0].get(), lbind, passumeMap);
 
   out << cparen.str();
 }
@@ -127,15 +123,15 @@ void LfscPrinter::print(std::ostream& out,
 void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   // TODO: compute term lets across all terms in the proof?
-  std::map<Node, uint32_t> letMap;
+  LetBinding lbind;
   // empty passume map
   std::map<Node, uint32_t> passumeMap;
-  printProofLetify(out, pn, letMap, passumeMap);
+  printProofLetify(out, pn, lbind, passumeMap);
 }
 
 void LfscPrinter::printProofLetify(std::ostream& out,
                                    const ProofNode* pn,
-                                   std::map<Node, uint32_t>& letMap,
+                                   LetBinding& lbind,
                                    std::map<Node, uint32_t>& passumeMap)
 {
   // closing parentheses
@@ -157,7 +153,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
       uint32_t pid = itp->second;
       out << "(plet _ _ ";
       pletMap.erase(p);
-      printProofInternal(out, p, letMap, pletMap, passumeMap);
+      printProofInternal(out, p, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
       out << " (\\ ";
       printProofId(out, pid);
@@ -168,7 +164,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   }
 
   // [2] print the proof body
-  printProofInternal(out, pn, letMap, pletMap, passumeMap);
+  printProofInternal(out, pn, lbind, pletMap, passumeMap);
 
   out << cparen.str() << std::endl;
 }
@@ -176,7 +172,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
 void LfscPrinter::printProofInternal(
     std::ostream& out,
     const ProofNode* pn,
-    std::map<Node, uint32_t>& letMap,
+    LetBinding& lbind,
     std::map<const ProofNode*, uint32_t>& pletMap,
     std::map<Node, uint32_t>& passumeMap)
 {
@@ -246,7 +242,7 @@ void LfscPrinter::printProofInternal(
             // could not print the rule, trust for now
             out << std::endl << "(trust ";
             Node ni = d_tproc.toInternal(cur->getResult());
-            printInternal(out, ni, letMap);
+            printInternal(out, ni, lbind);
             out << ") ; from " << cur->getRule() << std::endl;
           }
         }
@@ -261,7 +257,7 @@ void LfscPrinter::printProofInternal(
     else if (!curn.isNull())
     {
       out << " ";
-      printInternal(out, curn, letMap);
+      printInternal(out, curn, lbind);
     }
     // case 3: a hole
     else
@@ -330,38 +326,35 @@ void LfscPrinter::printLetify(std::ostream& out, Node n)
   // closing parentheses
   std::stringstream cparen;
 
-  std::vector<Node> letList;
-  std::map<Node, uint32_t> letMap;
-  Letify::computeLet(n, letList, letMap);
+  LetBinding lbind;
+  lbind.process(n);
 
   // [1] print the letification
-  printLetList(out, cparen, letList, letMap);
+  printLetList(out, cparen, lbind);
 
   // [2] print the body
-  printInternal(out, n, letMap);
+  printInternal(out, n, lbind);
 
   out << cparen.str();
 }
 
 void LfscPrinter::printLetList(std::ostream& out,
                                std::ostream& cparen,
-                               const std::vector<Node>& letList,
-                               std::map<Node, uint32_t>& letMap)
+                               LetBinding& lbind)
 {
+  std::vector<Node> letList;
+  lbind.letify(letList);
   std::map<Node, uint32_t>::const_iterator it;
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node nl = letList[i];
-    it = letMap.find(nl);
-    Assert(it != letMap.end());
     out << "(@ ";
-    uint32_t id = it->second;
+    uint32_t id = lbind.getId(nl);
+    Assert (id!=0);
     printId(out, id);
     out << " ";
     // remove, print, insert again
-    letMap.erase(nl);
-    printInternal(out, nl, letMap);
-    letMap[nl] = id;
+    printInternal(out, nl, lbind, false);
     out << std::endl;
     cparen << ")";
   }
@@ -369,10 +362,10 @@ void LfscPrinter::printLetList(std::ostream& out,
 
 void LfscPrinter::printInternal(std::ostream& out,
                                 Node n,
-                                const std::map<Node, uint32_t>& letMap)
+                                LetBinding& lbind, bool letTop)
 {
   // TODO: smt2 printer, dag thresh 0 print?
-  Node nc = Letify::convert(n, letMap, "__t");
+  Node nc = lbind.convert(n, "__t", letTop);
   out << nc;
 }
 
