@@ -395,14 +395,15 @@ public:
    */
   void checkFunctionLike(api::Term fun);
 
-  /** Create a new CVC4 variable expression of the given type. 
+  /** Create a new CVC4 variable expression of the given type.
    *
    * It is inserted at context level zero in the symbol table if levelZero is
    * true, or if we are using global declarations.
-   * 
+   *
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   api::Term bindVar(const std::string& name,
                     const api::Sort& type,
@@ -414,10 +415,11 @@ public:
    *
    * It is inserted at context level zero in the symbol table if levelZero is
    * true, or if we are using global declarations.
-   * 
+   *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   std::vector<api::Term> bindVars(const std::vector<std::string> names,
                                   const api::Sort& type,
