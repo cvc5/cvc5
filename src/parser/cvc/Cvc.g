@@ -1144,9 +1144,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             ++i) {
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          api::Term func = PARSER_STATE->mkVar(
-              *i,
-              t);
+          api::Term func = SOLVER->mkConst(t, *i);
           PARSER_STATE->defineVar(*i, fterm);
           Command* decl = new DefineFunctionCommand(*i, func, formals, f, true);
           seq->addCommand(decl);

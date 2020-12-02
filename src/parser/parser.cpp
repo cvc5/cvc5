@@ -201,7 +201,7 @@ api::Term Parser::bindVar(const std::string& name,
                           bool doOverload)
 {
   Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
-  api::Term expr = mkVar(name, type);
+  api::Term expr = d_solver->mkConst(type, name);
   defineVar(name, expr, levelZero, doOverload);
   return expr;
 }
@@ -224,14 +224,6 @@ std::vector<api::Term> Parser::bindBoundVars(
     vars.push_back(bindBoundVar(i.first, i.second));
   }
   return vars;
-}
-
-api::Term Parser::mkAnonymousFunction(const std::string& prefix,
-                                      const api::Sort& type)
-{
-  stringstream name;
-  name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return mkVar(name.str(), type);
 }
 
 std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
@@ -606,13 +598,6 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   }
   return t;
 }
-
-//!!!!!!!!!!! temporary
-api::Term Parser::mkVar(const std::string& name, const api::Sort& type)
-{
-  return d_solver->mkConst(type, name);
-}
-//!!!!!!!!!!! temporary
 
 bool Parser::isDeclared(const std::string& name, SymbolType type) {
   switch (type) {

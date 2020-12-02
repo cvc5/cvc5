@@ -788,7 +788,10 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     /* reset: reset everything, returning solver to initial state.
      * Logic and options must be set again. */
   | RESET_TOK
-    { cmd->reset(new ResetCommand());
+    {
+      cmd->reset(new ResetCommand());
+      // must also reset the parser state
+      PARSER_STATE->reset();
     }
     /* reset-assertions: reset assertions, assertion stack, declarations,
      * etc., but the logic and options remain as they were. */

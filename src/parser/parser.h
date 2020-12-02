@@ -441,14 +441,6 @@ public:
   std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
                                        const api::Sort& type);
 
-  /**
-   * Create a new CVC4 function expression of the given type,
-   * appending a unique index to its name.  (That's the ONLY
-   * difference between mkAnonymousFunction() and mkVar()).
-   */
-  api::Term mkAnonymousFunction(const std::string& prefix,
-                                const api::Sort& type);
-
   /** Create a new variable definition (e.g., from a let binding). 
    * levelZero is set if the binding must be done at level 0.
    * If a symbol with name already exists,
@@ -635,11 +627,6 @@ public:
    * @return Term t with sort s ascribed.
    */
   api::Term applyTypeAscription(api::Term t, api::Sort s);
-
-  /**
-   * Make variable of the given name and type
-   */
-  api::Term mkVar(const std::string& name, const api::Sort& type);
 
   /**
    * Add an operator to the current legal set.

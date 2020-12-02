@@ -208,7 +208,6 @@ void SymbolManager::Implementation::pushScope(bool isUserContext)
                        << isUserContext << std::endl;
   PrettyCheckArgument(!d_hasPushedScope.get() || !isUserContext,
                       "cannot push a user context within a scope context");
-  // we don't push user contexts if we are using global declarations
   d_context.push();
   if (!isUserContext)
   {
@@ -241,6 +240,7 @@ void SymbolManager::Implementation::reset()
   {
     d_context.pop();
   }
+  // push the outermost context
   d_context.push();
 }
 
@@ -364,7 +364,14 @@ void SymbolManager::reset()
 void SymbolManager::resetAssertions()
 {
   d_symtabAllocated.resetAssertions();
-  d_implementation->resetAssertions();
+  if (d_globalDeclarations)
+  {
+    d_implementation->resetAssertions();
+  }
+  else
+  {
+    d_implementation->reset();
+  }
 }
 
 }  // namespace CVC4
