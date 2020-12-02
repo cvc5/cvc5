@@ -363,15 +363,8 @@ void SymbolManager::reset()
 
 void SymbolManager::resetAssertions()
 {
+  d_implementation->resetAssertions();
   d_symtabAllocated.resetAssertions();
-  if (d_globalDeclarations)
-  {
-    d_implementation->resetAssertions();
-  }
-  else
-  {
-    d_implementation->reset();
-  }
 }
 
 }  // namespace CVC4
