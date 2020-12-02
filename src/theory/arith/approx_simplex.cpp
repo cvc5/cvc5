@@ -630,7 +630,8 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistic
   for(ArithVariables::var_iterator vi = d_vars.var_begin(), vi_end = d_vars.var_end(); vi != vi_end; ++vi){
     ArithVar v = *vi;
 
-    if(s_verbosity >= 2){
+    if (s_verbosity >= 2)
+    {
       // CVC4Message() << v  << " ";
       // d_vars.printModel(v, CVC4Message());
     }
@@ -763,7 +764,8 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
   for(ArithVariables::var_iterator vi = d_vars.var_begin(), vi_end = d_vars.var_end(); vi != vi_end; ++vi){
     ArithVar v = *vi;
 
-    if(s_verbosity >= 2){
+    if (s_verbosity >= 2)
+    {
       CVC4Message() << v << " ";
       d_vars.printModel(v, CVC4Message());
     }
@@ -865,7 +867,8 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
 
       int dir = guessDir(r);
       if(len >= rowLengthReq){
-        if(s_verbosity >= 1){
+        if (s_verbosity >= 1)
+        {
           CVC4Message() << "high row " << r << " " << len << " " << avgRowLength
                         << " " << dir << endl;
           d_vars.printModel(r, CVC4Message());
@@ -886,7 +889,8 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
       double ubScore = double(bc.upperBoundCount()) / maxCount;
       double lbScore = double(bc.lowerBoundCount()) / maxCount;
       if(ubScore  >= .9 || lbScore >= .9){
-        if(s_verbosity >= 1){
+        if (s_verbosity >= 1)
+        {
           CVC4Message() << "high col " << c << " " << bc << " " << ubScore
                         << " " << lbScore << " " << dir << endl;
           d_vars.printModel(c, CVC4Message());
@@ -1011,7 +1015,8 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
 
     int status = isAux ? glp_get_row_stat(prob, glpk_index)
       : glp_get_col_stat(prob, glpk_index);
-    if(s_verbosity >= 2){
+    if (s_verbosity >= 2)
+    {
       CVC4Message() << "assignment " << vi << endl;
     }
 
@@ -1069,24 +1074,33 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
       }
       const DeltaRational& oldAssign = d_vars.getAssignment(vi);
 
-
-      if(d_vars.hasLowerBound(vi) &&
-         roughlyEqual(newAssign, d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA))){
+      if (d_vars.hasLowerBound(vi)
+          && roughlyEqual(newAssign,
+                          d_vars.getLowerBound(vi).approx(SMALL_FIXED_DELTA)))
+      {
         // CVC4Message() << "  to lb" << endl;
 
         newValues.set(vi, d_vars.getLowerBound(vi));
-      }else if(d_vars.hasUpperBound(vi) &&
-               roughlyEqual(newAssign, d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA))){
+      }
+      else if (d_vars.hasUpperBound(vi)
+               && roughlyEqual(
+                   newAssign,
+                   d_vars.getUpperBound(vi).approx(SMALL_FIXED_DELTA)))
+      {
         newValues.set(vi, d_vars.getUpperBound(vi));
         // CVC4Message() << "  to ub" << endl;
-      }else{
-
+      }
+      else
+      {
         double rounded = round(newAssign);
-        if(roughlyEqual(newAssign, rounded)){
+        if (roughlyEqual(newAssign, rounded))
+        {
           // CVC4Message() << "roughly equal " << rounded << " " << newAssign <<
           // " " << oldAssign << endl;
           newAssign = rounded;
-        }else{
+        }
+        else
+        {
           // CVC4Message() << "not roughly equal " << rounded << " " <<
           // newAssign << " " << oldAssign << endl;
         }
@@ -1102,22 +1116,27 @@ ApproximateSimplex::Solution ApproxGLPK::extractSolution(bool mip) const
           proposal = d_vars.getAssignment(vi);
         }
 
-        if(roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA))){
+        if (roughlyEqual(newAssign, oldAssign.approx(SMALL_FIXED_DELTA)))
+        {
           // CVC4Message() << "  to prev value" << newAssign << " " << oldAssign
           // << endl;
           proposal = d_vars.getAssignment(vi);
         }
 
-
-        if(d_vars.strictlyLessThanLowerBound(vi, proposal)){
+        if (d_vars.strictlyLessThanLowerBound(vi, proposal))
+        {
           // CVC4Message() << "  round to lb " << d_vars.getLowerBound(vi) <<
           // endl;
           proposal = d_vars.getLowerBound(vi);
-        }else if(d_vars.strictlyGreaterThanUpperBound(vi, proposal)){
+        }
+        else if (d_vars.strictlyGreaterThanUpperBound(vi, proposal))
+        {
           // CVC4Message() << "  round to ub " << d_vars.getUpperBound(vi) <<
           // endl;
           proposal = d_vars.getUpperBound(vi);
-        }else{
+        }
+        else
+        {
           // CVC4Message() << "  use proposal" << proposal << " " << oldAssign
           // << endl;
         }

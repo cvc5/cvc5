@@ -107,12 +107,18 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
       }
     }
 
-    if(verbose && numDifferencePivots > 0){
-      if(result ==  Result::UNSAT){
+    if (verbose && numDifferencePivots > 0)
+    {
+      if (result == Result::UNSAT)
+      {
         CVC4Message() << "diff order found unsat" << endl;
-      }else if(d_errorSet.errorEmpty()){
+      }
+      else if (d_errorSet.errorEmpty())
+      {
         CVC4Message() << "diff order found model" << endl;
-      }else{
+      }
+      else
+      {
         CVC4Message() << "diff order missed" << endl;
       }
     }
@@ -133,12 +139,18 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
       if(searchForFeasibleSolution(options::arithStandardCheckVarOrderPivots())){
         result = Result::UNSAT;
       }
-      if(verbose){
-        if(result ==  Result::UNSAT){
+      if (verbose)
+      {
+        if (result == Result::UNSAT)
+        {
           CVC4Message() << "restricted var order found unsat" << endl;
-        }else if(d_errorSet.errorEmpty()){
+        }
+        else if (d_errorSet.errorEmpty())
+        {
           CVC4Message() << "restricted var order found model" << endl;
-        }else{
+        }
+        else
+        {
           CVC4Message() << "restricted var order missed" << endl;
         }
       }

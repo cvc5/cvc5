@@ -98,8 +98,10 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
   if(d_errorSet.errorEmpty() && !d_errorSet.moreSignals()){
     Debug("arith::findModel") << "fcFindModel("<< instance <<") trivial" << endl;
     Assert(d_conflictVariables.empty());
-    // if(verbose){ CVC4Message() << "fcFindModel("<< instance <<") trivial" <<
-    // endl; }
+    //if (verbose)
+    //{
+    //  CVC4Message() << "fcFindModel(" << instance << ") trivial" << endl;
+    //}
     return Result::SAT;
   }
 
@@ -119,8 +121,10 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
     Assert(d_conflictVariables.empty());
     return Result::UNSAT;
   }else if(d_errorSet.errorEmpty()){
-    // if(verbose){ CVC4Message() << "fcFindModel("<< instance <<") fixed
-    // itself" << endl; }
+    //if (verbose)
+    //{
+    //  CVC4Message() << "fcFindModel(" << instance << ") fixed itself" << endl;
+    //}
     Debug("arith::findModel") << "fcFindModel("<< instance <<") fixed itself" << endl;
     if (verbose) Assert(!d_errorSet.moreSignals());
     Assert(d_conflictVariables.empty());
@@ -165,7 +169,8 @@ Result::Sat FCSimplexDecisionProcedure::findModel(bool exactResult){
       }
     }
   }
-  if(verbose){
+  if (verbose)
+  {
     CVC4Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
@@ -587,7 +592,8 @@ void FCSimplexDecisionProcedure::updateAndSignal(const UpdateInfo& selected, Wit
     }
   }
 
-  if(verbose){
+  if (verbose)
+  {
     CVC4Message() << "conflict variable " << selected << endl;
     CVC4Message() << ss.str();
   }
@@ -803,7 +809,8 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
     Assert(d_focusSize == d_errorSet.focusSize());
     Assert(d_errorSize == d_errorSet.errorSize());
 
-    if(verbose){
+    if (verbose)
+    {
       debugDualLike(w, CVC4Message(), instance, prevFocusSize, prevErrorSize);
     }
     Assert(debugDualLike(

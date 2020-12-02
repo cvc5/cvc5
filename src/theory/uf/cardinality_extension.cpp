@@ -1014,7 +1014,8 @@ int SortModel::addSplit(Region* r)
       }else{
         Trace("uf-ss-warn") << "Split on unknown literal : " << ss << std::endl;
       }
-      if( ss==b_t ){
+      if (ss == b_t)
+      {
         CVC4Message() << "Bad split " << s << std::endl;
         AlwaysAssert(false);
       }

@@ -173,7 +173,8 @@ Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
       }
     }
   }
-  if(verbose){
+  if (verbose)
+  {
     CVC4Message() << "(" << instance << ") pivots " << d_pivots << endl;
   }
 
@@ -434,7 +435,8 @@ void SumOfInfeasibilitiesSPD::updateAndSignal(const UpdateInfo& selected, Witnes
     }
   }
 
-  if(verbose){
+  if (verbose)
+  {
     CVC4Message() << "conflict variable " << selected << endl;
     CVC4Message() << ss.str();
   }
@@ -992,7 +994,8 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
 
     Assert(d_errorSize == d_errorSet.errorSize());
 
-    if(verbose){
+    if (verbose)
+    {
       debugSOI(w, CVC4Message(), instance);
     }
     Assert(debugSOI(w, Debug("dualLike"), instance));
