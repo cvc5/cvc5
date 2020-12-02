@@ -53,7 +53,7 @@ TrustNode ExpandDefs::expandDefinitions(
     bool expandOnly,
     TConvProofGenerator* tpg)
 {
-  Node orig = n;
+  const TNode orig = n;
   NodeManager* nm = d_smt.getNodeManager();
   std::stack<std::tuple<Node, Node, bool>> worklist;
   std::stack<Node> result;
@@ -362,8 +362,6 @@ void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
                                         true));
   }
 }
-
-bool ExpandDefs::isProofEnabled() const { return d_tpg != nullptr; }
 
 }  // namespace smt
 }  // namespace CVC4

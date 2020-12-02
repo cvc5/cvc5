@@ -78,8 +78,6 @@ class ExpandDefs
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       bool expandOnly,
       TConvProofGenerator* tpg);
-  /** Whether proofs are enabled */
-  bool isProofEnabled() const;
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
   /** Reference to resource manager */
