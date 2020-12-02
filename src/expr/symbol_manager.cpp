@@ -41,6 +41,7 @@ class SymbolManager::Implementation
         d_declareTerms(&d_context),
         d_hasPushedScope(&d_context, false)
   {
+    // use an outermost push, to be able to clear all definitions
     d_context.push();
   }
 
