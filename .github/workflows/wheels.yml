@@ -10,9 +10,9 @@ jobs:
       matrix:
         # TODO: put windows-latest back in (should also test CVC4 on windows-latest in ci.yml)
         os: [ubuntu-18.04, macos-latest]
-          env:
-            CIBW_BEFORE_ALL_LINUX: .github/scripts/ubuntu-dependency-installs.sh
-            CIBW_BEFORE_ALL_MACOS: .github/scripts/macos-dependency-installs.sh
+        env:
+          CIBW_BEFORE_ALL_LINUX: .github/scripts/ubuntu-dependency-installs.sh
+          CIBW_BEFORE_ALL_MACOS: .github/scripts/macos-dependency-installs.sh
 
     steps:
       - uses: actions/checkout@v2
