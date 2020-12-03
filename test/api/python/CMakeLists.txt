@@ -20,7 +20,9 @@ execute_process(
   ERROR_QUIET
 )
 
-if(RET_PYTEST)
+# HACK this breaks when using pip wheel for some reason
+#      don't check if SKBUILD is defined
+if(RET_PYTEST AND NOT SKBUILD)
     message(FATAL_ERROR
       "Could not find Python module pytest. Install via `pip install pytest'.")
 endif()
