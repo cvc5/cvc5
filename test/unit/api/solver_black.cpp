@@ -17,7 +17,11 @@
 #include "base/configuration.h"
 #include "test_api.h"
 
-using namespace CVC4::api;
+namespace CVC4 {
+
+using namespace api;
+
+namespace test {
 
 class TestApiSolverBlack : public TestApi
 {
@@ -2251,3 +2255,6 @@ TEST_F(TestApiSolverBlack, getSynthSolutions)
   Solver slv;
   ASSERT_THROW(slv.getSynthSolutions({x}), CVC4ApiException);
 }
+
+}  // namespace test
+}  // namespace CVC4
