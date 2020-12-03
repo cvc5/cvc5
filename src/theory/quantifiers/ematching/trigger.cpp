@@ -54,7 +54,7 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     : d_quantEngine(qe), d_quant(q)
 {
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
-  if (Trace.isOn("trigger")
+  if (Trace.isOn("trigger"))
   {
     quantifiers::QuantAttributes* qa = d_quantEngine->getQuantAttributes();
     Trace("trigger") << "Trigger for " << qa->quantToString(q) << ": " << std::endl;
