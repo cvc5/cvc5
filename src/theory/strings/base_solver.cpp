@@ -144,7 +144,8 @@ void BaseSolver::checkInit()
               Node nc = (*tti)[k].add(n, 0, d_state, emps, c);
               if (nc != n)
               {
-                Trace("strings-base-debug") << "...found congruent term " << nc << std::endl;
+                Trace("strings-base-debug")
+                    << "...found congruent term " << nc << std::endl;
                 // check if we have inferred a new equality by removal of empty
                 // components
                 if (k == STRING_CONCAT && !d_state.areEqual(nc, n))
@@ -170,7 +171,9 @@ void BaseSolver::checkInit()
                         count[t]++;
                       }
                     }
-                    Trace("strings-base-debug") << "  counts = " << count[0] << ", " << count[1] << std::endl;
+                    Trace("strings-base-debug")
+                        << "  counts = " << count[0] << ", " << count[1]
+                        << std::endl;
                     // explain equal components
                     if (count[0] < nc.getNumChildren())
                     {
@@ -282,7 +285,8 @@ void BaseSolver::checkInit()
   }
   if (Trace.isOn("strings-base"))
   {
-    for (const std::pair<const Kind, std::pair<uint32_t, uint32_t>>& cc : congruentCount)
+    for (const std::pair<const Kind, std::pair<uint32_t, uint32_t>>& cc :
+         congruentCount)
     {
       Trace("strings-base")
           << "  Terms[" << cc.first << "] = " << cc.second.second << "/"
@@ -303,9 +307,11 @@ void BaseSolver::checkConstantEquivalenceClasses()
     Trace("strings-base-debug")
         << "Check constant equivalence classes..." << std::endl;
     prevSize = d_eqcInfo.size();
-    for (std::pair<const TypeNode, std::map<Kind, TermIndex>>& tindex : d_termIndex)
+    for (std::pair<const TypeNode, std::map<Kind, TermIndex>>& tindex :
+         d_termIndex)
     {
-      checkConstantEquivalenceClasses(&tindex.second[STRING_CONCAT], vecc, true);
+      checkConstantEquivalenceClasses(
+          &tindex.second[STRING_CONCAT], vecc, true);
     }
   } while (!d_im.hasProcessed() && d_eqcInfo.size() > prevSize);
 
@@ -313,9 +319,11 @@ void BaseSolver::checkConstantEquivalenceClasses()
   {
     // now, go back and set "most content" terms
     vecc.clear();
-    for (std::pair<const TypeNode, std::map<Kind, TermIndex>>& tindex : d_termIndex)
+    for (std::pair<const TypeNode, std::map<Kind, TermIndex>>& tindex :
+         d_termIndex)
     {
-      checkConstantEquivalenceClasses(&tindex.second[STRING_CONCAT], vecc, false);
+      checkConstantEquivalenceClasses(
+          &tindex.second[STRING_CONCAT], vecc, false);
     }
   }
 }
