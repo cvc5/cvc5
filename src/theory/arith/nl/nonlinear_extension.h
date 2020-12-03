@@ -18,8 +18,6 @@
 #ifndef CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 #define CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 
-#include <stdint.h>
-
 #include <map>
 #include <vector>
 
@@ -31,6 +29,7 @@
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
+#include "theory/arith/nl/ext/proof_checker.h"
 #include "theory/arith/nl/ext/split_zero_check.h"
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 #include "theory/arith/nl/ext_theory_callback.h"
@@ -40,7 +39,7 @@
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
-#include "theory/arith/nl/transcendental_solver.h"
+#include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -258,7 +257,9 @@ class NonlinearExtension
    * This is the subsolver responsible for running the procedure for
    * transcendental functions.
    */
-  TranscendentalSolver d_trSlv;
+  transcendental::TranscendentalSolver d_trSlv;
+  /** The proof checker for proofs of the nlext. */
+  ExtProofRuleChecker d_proofChecker;
   /**
    * Holds common lookup data for the checks implemented in the "nl-ext"
    * solvers (from Cimatti et al., TACAS 2017).

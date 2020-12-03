@@ -92,56 +92,6 @@ public:
 };/* class ExprSetDepth */
 
 /**
- * IOStream manipulator to print type ascriptions or not.
- *
- *   // let a, b, c, and d be variables of sort U
- *   Expr e = em->mkExpr(OR, a, b, em->mkExpr(AND, c, em->mkExpr(NOT, d)))
- *   out << e;
- *
- * gives "(OR a:U b:U (AND c:U (NOT d:U)))", but
- */
-class CVC4_PUBLIC ExprPrintTypes {
-public:
-  /**
-   * Construct a ExprPrintTypes with the given setting.
-   */
-  ExprPrintTypes(bool printTypes);
-
-  void applyPrintTypes(std::ostream& out);
-
-  static bool getPrintTypes(std::ostream& out);
-
-  static void setPrintTypes(std::ostream& out, bool printTypes);
-
-  /**
-   * Set the print-types state on the output stream for the current
-   * stack scope.  This makes sure the old state is reset on the
-   * stream after normal OR exceptional exit from the scope, using the
-   * RAII C++ idiom.
-   */
-  class Scope {
-  public:
-    Scope(std::ostream& out, bool printTypes);
-    ~Scope();
-
-  private:
-    std::ostream& d_out;
-    bool d_oldPrintTypes;
-  };/* class ExprPrintTypes::Scope */
-
- private:
-  /**
-   * The allocated index in ios_base for our setting.
-   */
-  static const int s_iosIndex;
-
-  /**
-   * When this manipulator is used, the setting is stored here.
-   */
-  bool d_printTypes;
-};/* class ExprPrintTypes */
-
-/**
  * IOStream manipulator to print expressions as a dag (or not).
  */
 class CVC4_PUBLIC ExprDag {
@@ -208,18 +158,6 @@ public:
  * The setting stays permanently (until set again) with the stream.
  */
 std::ostream& operator<<(std::ostream& out, ExprDag d) CVC4_PUBLIC;
-
-
-/**
- * Sets the default print-types setting when pretty-printing an Expr
- * to an ostream.  Use like this:
- *
- *   // let out be an ostream, e an Expr
- *   out << Expr::printtypes(true) << e << endl;
- *
- * The setting stays permanently (until set again) with the stream.
- */
-std::ostream& operator<<(std::ostream& out, ExprPrintTypes pt) CVC4_PUBLIC;
 
 /**
  * Sets the default depth when pretty-printing a Expr to an ostream.

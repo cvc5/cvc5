@@ -17,7 +17,6 @@
 
 #include "util/index.h"
 
-#include <cstddef>
 #include <limits>
 
 namespace CVC4 {

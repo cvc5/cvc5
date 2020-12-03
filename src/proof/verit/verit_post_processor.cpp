@@ -19,6 +19,7 @@
 #include <memory>
 #include <vector>
 
+#include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
 
 namespace CVC4 {
@@ -148,8 +149,6 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof rule: assume
     // proof node: (VP:F)
     // proof term: F
-    // premises: ()
-    // args: ()
     case PfRule::ASSUME:
     {
       if(res.getKind() == kind::OR){
@@ -1840,9 +1839,10 @@ bool VeritProofPostprocessCallback::update(Node res,
                              {},
                              *cdp);
     }
-
     default:
+    {
       return addVeritStep(res, VeritRule::UNDEFINED, children, args, *cdp);
+    }
   }
   return true;
 }

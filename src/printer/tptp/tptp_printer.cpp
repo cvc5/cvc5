@@ -35,10 +35,12 @@ namespace CVC4 {
 namespace printer {
 namespace tptp {
 
-void TptpPrinter::toStream(
-    std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
+void TptpPrinter::toStream(std::ostream& out,
+                           TNode n,
+                           int toDepth,
+                           size_t dag) const
 {
-  n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
+  n.toStream(out, toDepth, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
@@ -52,32 +54,44 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
                                         : "CandidateFiniteModel");
   out << "% SZS output start " << statusName << " for " << m.getInputName()
       << endl;
-  for(size_t i = 0; i < m.getNumCommands(); ++i) {
-    this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_5, out, m, m.getCommand(i));
-  }
+  this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_5, out, m);
   out << "% SZS output end " << statusName << " for " << m.getInputName()
       << endl;
 }
 
-void TptpPrinter::toStream(std::ostream& out,
-                           const smt::Model& m,
-                           const NodeCommand* c) const
+void TptpPrinter::toStreamModelSort(std::ostream& out,
+                                    const smt::Model& m,
+                                    TypeNode tn) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
+
+void TptpPrinter::toStreamModelTerm(std::ostream& out,
+                                    const smt::Model& m,
+                                    Node n) const
+{
+  // shouldn't be called; only the non-Command* version above should be
+  Unreachable();
+}
+
 void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "% SZS output start UnsatCore " << std::endl;
-  SmtEngine * smt = core.getSmtEngine();
-  Assert(smt != NULL);
-  for(UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i) {
-    std::string name;
-    if (smt->getExpressionName(*i, name)) {
-      // Named assertions always get printed
-      out << name << endl;
-    } else if (options::dumpUnsatCoresFull()) {
-      // Unnamed assertions only get printed if the option is set
+  if (core.useNames())
+  {
+    // use the names
+    const std::vector<std::string>& cnames = core.getCoreNames();
+    for (const std::string& cn : cnames)
+    {
+      out << cn << std::endl;
+    }
+  }
+  else
+  {
+    // otherwise, use the formulas
+    for (UnsatCore::const_iterator i = core.begin(); i != core.end(); ++i)
+    {
       out << *i << endl;
     }
   }

@@ -59,7 +59,7 @@ class InferProofCons : public ProofGenerator
    * This is used for lazy proof construction, where proofs are constructed
    * only for facts that are explained.
    */
-  void notifyFact(std::shared_ptr<DatatypesInference> di);
+  void notifyFact(const std::shared_ptr<DatatypesInference>& di);
 
   /**
    * This returns the proof for fact. This is required for using this class as
@@ -83,7 +83,9 @@ class InferProofCons : public ProofGenerator
    * step(s) are for concluding the conclusion of the inference. This
    * information is stored in cdp.
    */
-  void convert(InferId infer, Node conc, Node exp, CDProof* cdp);
+  void convert(InferId infer, TNode conc, TNode exp, CDProof* cdp);
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */

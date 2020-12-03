@@ -22,6 +22,7 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
+#include "expr/symbol_manager.h"
 #include "main/interactive_shell.h"
 #include "options/base_options.h"
 #include "options/language.h"
@@ -42,29 +43,34 @@ class InteractiveShellBlack : public CxxTest::TestSuite
     d_options.set(options::in, d_sin);
     d_options.set(options::out, d_sout);
     d_options.set(options::inputLanguage, language::input::LANG_CVC4);
+    d_symman.reset(nullptr);
     d_solver.reset(new api::Solver(&d_options));
+    d_symman.reset(new SymbolManager(d_solver.get()));
   }
 
   void tearDown() override
   {
     delete d_sin;
     delete d_sout;
+    // ensure that symbol manager is destroyed before solver
+    d_symman.reset(nullptr);
+    d_solver.reset(nullptr);
   }
 
   void testAssertTrue() {
     *d_sin << "ASSERT TRUE;\n" << flush;
-    InteractiveShell shell(d_solver.get());
+    InteractiveShell shell(d_solver.get(), d_symman.get());
     countCommands( shell, 1, 1 );
   }
 
   void testQueryFalse() {
     *d_sin << "QUERY FALSE;\n" << flush;
-    InteractiveShell shell(d_solver.get());
+    InteractiveShell shell(d_solver.get(), d_symman.get());
     countCommands( shell, 1, 1 );
   }
 
   void testDefUse() {
-    InteractiveShell shell(d_solver.get());
+    InteractiveShell shell(d_solver.get(), d_symman.get());
     *d_sin << "x : REAL; ASSERT x > 0;\n" << flush;
     /* readCommand may return a sequence, so we can't say for sure
        whether it will return 1 or 2... */
@@ -72,7 +78,7 @@ class InteractiveShellBlack : public CxxTest::TestSuite
   }
 
   void testDefUse2() {
-    InteractiveShell shell(d_solver.get());
+    InteractiveShell shell(d_solver.get(), d_symman.get());
     /* readCommand may return a sequence, see above. */
     *d_sin << "x : REAL;\n" << flush;
     Command* tmp = shell.readCommand();
@@ -82,20 +88,21 @@ class InteractiveShellBlack : public CxxTest::TestSuite
   }
 
   void testEmptyLine() {
-    InteractiveShell shell(d_solver.get());
+    InteractiveShell shell(d_solver.get(), d_symman.get());
     *d_sin << flush;
     countCommands(shell,0,0);
   }
 
   void testRepeatedEmptyLines() {
     *d_sin << "\n\n\n";
-    InteractiveShell shell(d_solver.get());
+    InteractiveShell shell(d_solver.get(), d_symman.get());
     /* Might return up to four empties, might return nothing */
     countCommands( shell, 0, 3 );
   }
 
  private:
   std::unique_ptr<api::Solver> d_solver;
+  std::unique_ptr<SymbolManager> d_symman;
   Options d_options;
   stringstream* d_sin;
   stringstream* d_sout;

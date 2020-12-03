@@ -19,7 +19,6 @@
 #ifndef CVC4__BITVECTOR_H
 #define CVC4__BITVECTOR_H
 
-#include <cstdint>
 #include <iosfwd>
 
 #include "base/exception.h"

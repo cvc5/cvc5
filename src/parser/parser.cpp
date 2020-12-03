@@ -16,8 +16,6 @@
 
 #include "parser/parser.h"
 
-#include <stdint.h>
-
 #include <cassert>
 #include <fstream>
 #include <iostream>
@@ -28,7 +26,6 @@
 #include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
-#include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/type.h"
 #include "options/options.h"
@@ -43,14 +40,14 @@ namespace CVC4 {
 namespace parser {
 
 Parser::Parser(api::Solver* solver,
+               SymbolManager* sm,
                Input* input,
                bool strictMode,
                bool parseOnly)
     : d_input(input),
-      d_symtabAllocated(),
-      d_symtab(&d_symtabAllocated),
+      d_symman(sm),
+      d_symtab(sm->getSymbolTable()),
       d_assertionLevel(0),
-      d_globalDeclarations(false),
       d_anonymousFunctionCount(0),
       d_done(false),
       d_checksEnabled(true),
@@ -205,7 +202,8 @@ api::Term Parser::bindVar(const std::string& name,
                           uint32_t flags,
                           bool doOverload)
 {
-  if (d_globalDeclarations) {
+  if (d_symman->getGlobalDeclarations())
+  {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "bindVar(" << name << ", " << type << ")" << std::endl;
@@ -238,7 +236,9 @@ api::Term Parser::mkAnonymousFunction(const std::string& prefix,
                                       const api::Sort& type,
                                       uint32_t flags)
 {
-  if (d_globalDeclarations) {
+  bool globalDecls = d_symman->getGlobalDeclarations();
+  if (globalDecls)
+  {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   stringstream name;
@@ -251,7 +251,9 @@ std::vector<api::Term> Parser::bindVars(const std::vector<std::string> names,
                                         uint32_t flags,
                                         bool doOverload)
 {
-  if (d_globalDeclarations) {
+  bool globalDecls = d_symman->getGlobalDeclarations();
+  if (globalDecls)
+  {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   std::vector<api::Term> vars;
@@ -331,12 +333,10 @@ void Parser::defineParameterizedType(const std::string& name,
 api::Sort Parser::mkSort(const std::string& name, uint32_t flags)
 {
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  api::Sort type =
-      api::Sort(d_solver, d_solver->getExprManager()->mkSort(name, flags));
+  api::Sort type = d_solver->mkUninterpretedSort(name);
+  bool globalDecls = d_symman->getGlobalDeclarations();
   defineType(
-      name,
-      type,
-      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
+      name, type, globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -346,14 +346,12 @@ api::Sort Parser::mkSortConstructor(const std::string& name,
 {
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  api::Sort type = api::Sort(
-      d_solver,
-      d_solver->getExprManager()->mkSortConstructor(name, arity, flags));
-  defineType(
-      name,
-      vector<api::Sort>(arity),
-      type,
-      d_globalDeclarations && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
+  api::Sort type = d_solver->mkSortConstructorSort(name, arity);
+  bool globalDecls = d_symman->getGlobalDeclarations();
+  defineType(name,
+             vector<api::Sort>(arity),
+             type,
+             globalDecls && !(flags & ExprManager::SORT_FLAG_PLACEHOLDER));
   return type;
 }
 
@@ -378,10 +376,7 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
 {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  api::Sort unresolved =
-      api::Sort(d_solver,
-                d_solver->getExprManager()->mkSortConstructor(
-                    name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER));
+  api::Sort unresolved = d_solver->mkSortConstructorSort(name, params.size());
   defineType(name, params, unresolved);
   api::Sort t = getSort(name, params);
   d_unresolved.insert(unresolved);
@@ -412,6 +407,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
         d_solver->mkDatatypeSorts(datatypes, d_unresolved);
 
     assert(datatypes.size() == types.size());
+    bool globalDecls = d_symman->getGlobalDeclarations();
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {
       api::Sort t = types[i];
@@ -424,18 +420,17 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
       if (t.isParametricDatatype())
       {
         std::vector<api::Sort> paramTypes = t.getDatatypeParamSorts();
-        defineType(name, paramTypes, t, d_globalDeclarations);
+        defineType(name, paramTypes, t, globalDecls);
       }
       else
       {
-        defineType(name, t, d_globalDeclarations);
+        defineType(name, t, globalDecls);
       }
       std::unordered_set< std::string > consNames;
       std::unordered_set< std::string > selNames;
       for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         const api::DatatypeConstructor& ctor = dt[j];
-        expr::ExprPrintTypes::Scope pts(Debug("parser-idt"), true);
         api::Term constructor = ctor.getConstructorTerm();
         Debug("parser-idt") << "+ define " << constructor << std::endl;
         string constructorName = ctor.getName();
@@ -443,8 +438,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
           if(!doOverload) {
             checkDeclaration(constructorName, CHECK_UNDECLARED);
           }
-          defineVar(
-              constructorName, constructor, d_globalDeclarations, doOverload);
+          defineVar(constructorName, constructor, globalDecls, doOverload);
           consNames.insert(constructorName);
         }else{
           throw ParserException(constructorName + " already declared in this datatype");
@@ -458,7 +452,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
           {
             checkDeclaration(testerName, CHECK_UNDECLARED);
           }
-          defineVar(testerName, tester, d_globalDeclarations, doOverload);
+          defineVar(testerName, tester, globalDecls, doOverload);
         }
         for (size_t k = 0, nargs = ctor.getNumSelectors(); k < nargs; k++)
         {
@@ -470,7 +464,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
             if(!doOverload) {
               checkDeclaration(selectorName, CHECK_UNDECLARED);
             }
-            defineVar(selectorName, selector, d_globalDeclarations, doOverload);
+            defineVar(selectorName, selector, globalDecls, doOverload);
             selNames.insert(selectorName);
           }else{
             throw ParserException(selectorName + " already declared in this datatype");
@@ -644,8 +638,7 @@ api::Term Parser::mkVar(const std::string& name,
                         const api::Sort& type,
                         uint32_t flags)
 {
-  return api::Term(
-      d_solver, d_solver->getExprManager()->mkVar(name, type.getType(), flags));
+  return d_solver->mkConst(type, name);
 }
 //!!!!!!!!!!! temporary
 
@@ -770,6 +763,31 @@ void Parser::attributeNotSupported(const std::string& attr) {
     d_attributesWarnedAbout.insert(attr);
   }
 }
+
+size_t Parser::scopeLevel() const { return d_symman->scopeLevel(); }
+
+void Parser::pushScope(bool isUserContext)
+{
+  d_symman->pushScope(isUserContext);
+  if (isUserContext)
+  {
+    d_assertionLevel = scopeLevel();
+  }
+}
+
+void Parser::popScope()
+{
+  d_symman->popScope();
+  if (scopeLevel() < d_assertionLevel)
+  {
+    d_assertionLevel = scopeLevel();
+    d_reservedSymbols.clear();
+  }
+}
+
+void Parser::reset() { d_symman->reset(); }
+
+SymbolManager* Parser::getSymbolManager() { return d_symman; }
 
 std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 {

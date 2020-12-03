@@ -20,6 +20,7 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
+#include "expr/symbol_manager.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
@@ -27,10 +28,6 @@
 namespace CVC4 {
 
 class Command;
-
-namespace api {
-class Solver;
-}
 
 namespace main {
 
@@ -40,7 +37,22 @@ class CommandExecutor
   std::string d_lastStatistics;
 
  protected:
+  /**
+   * The solver object, which is allocated by this class and is used for
+   * executing most commands (e.g. check-sat).
+   */
   std::unique_ptr<api::Solver> d_solver;
+  /**
+   * The symbol manager, which is allocated by this class. This manages
+   * all things related to definitions of symbols and their impact on behaviors
+   * for commands (e.g. get-unsat-core, get-model, get-assignment), as well
+   * as tracking expression names. Note the symbol manager is independent from
+   * the parser, which uses this symbol manager given a text input.
+   *
+   * Certain commands (e.g. reset-assertions) have a specific impact on the
+   * symbol manager.
+   */
+  std::unique_ptr<SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
   StatisticsRegistry d_stats;
@@ -49,9 +61,7 @@ class CommandExecutor
  public:
   CommandExecutor(Options& options);
 
-  virtual ~CommandExecutor()
-  {
-  }
+  virtual ~CommandExecutor();
 
   /**
    * Executes a command. Recursively handles if cmd is a command
@@ -66,6 +76,9 @@ class CommandExecutor
 
   /** Get a pointer to the solver object owned by this CommandExecutor. */
   api::Solver* getSolver() { return d_solver.get(); }
+
+  /** Get a pointer to the symbol manager owned by this CommandExecutor */
+  SymbolManager* getSymbolManager() { return d_symman.get(); }
 
   api::Result getResult() const { return d_result; }
   void reset();
@@ -101,7 +114,10 @@ private:
 
 }; /* class CommandExecutor */
 
-bool solverInvoke(api::Solver* solver, Command* cmd, std::ostream* out);
+bool solverInvoke(api::Solver* solver,
+                  SymbolManager* sm,
+                  Command* cmd,
+                  std::ostream* out);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */

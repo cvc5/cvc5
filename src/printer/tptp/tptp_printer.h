@@ -34,7 +34,6 @@ class TptpPrinter : public CVC4::Printer
   void toStream(std::ostream& out,
                 TNode n,
                 int toDepth,
-                bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const smt::Model& m) const override;
@@ -45,9 +44,21 @@ class TptpPrinter : public CVC4::Printer
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 
  private:
-  void toStream(std::ostream& out,
-                const smt::Model& m,
-                const NodeCommand* c) const override;
+  /**
+   * To stream model sort. This prints the appropriate output for type
+   * tn declared via declare-sort or declare-datatype.
+   */
+  void toStreamModelSort(std::ostream& out,
+                         const smt::Model& m,
+                         TypeNode tn) const override;
+
+  /**
+   * To stream model term. This prints the appropriate output for term
+   * n declared via declare-fun.
+   */
+  void toStreamModelTerm(std::ostream& out,
+                         const smt::Model& m,
+                         Node n) const override;
 
 }; /* class TptpPrinter */
 

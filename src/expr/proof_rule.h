@@ -251,6 +251,9 @@ enum class PfRule : uint32_t
   THEORY_PREPROCESS,
   // where F was added as a new assertion by theory preprocessing.
   THEORY_PREPROCESS_LEMMA,
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on theory expand definitions.
+  THEORY_EXPAND_DEF,
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
@@ -713,6 +716,21 @@ enum class PfRule : uint32_t
   // Conclusion: F
   ARRAYS_TRUST,
 
+  //================================================= Bit-Vector rules
+  // ======== Bitblast
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST,
+  // ======== Eager Atom
+  // Children: none
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: (= F F[0])
+  // where F is of kind BITVECTOR_EAGER_ATOM
+  BV_EAGER_ATOM,
+
   //================================================= Datatype rules
   // ======== Unification
   // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
@@ -1087,6 +1105,27 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+  //======== Multiplication tangent plane
+  // Children: none
+  // Arguments: (t, x, y, a, b, sgn)
+  // ---------------------
+  // Conclusion:
+  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y
+  //   b))) sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a)
+  //   (>= y b)))
+  // Where x,y are real terms (variables or extended terms), t = (* x y)
+  // (possibly under rewriting), a,b are real constants, and sgn is either -1
+  // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
+  ARITH_MULT_TANGENT,
+
+  // ================ Lemmas for transcendentals
+  //======== Assert bounds on PI
+  // Children: none
+  // Arguments: (l, u)
+  // ---------------------
+  // Conclusion: (and (>= real.pi l) (<= real.pi u))
+  // Where l (u) is a valid lower (upper) bound on pi.
+  ARITH_TRANS_PI,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.

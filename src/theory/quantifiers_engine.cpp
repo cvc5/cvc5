@@ -336,6 +336,8 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
+  d_lemmas_waiting.clear();
+  d_phase_req_waiting.clear();
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
@@ -1013,24 +1015,12 @@ void QuantifiersEngine::flushLemmas(){
   }
 }
 
-bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas ) {
-  return d_instantiate->getUnsatCoreLemmas(active_lemmas);
-}
-
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
   d_instantiate->getInstantiationTermVectors(q, tvecs);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
   d_instantiate->getInstantiationTermVectors(insts);
-}
-
-void QuantifiersEngine::getExplanationForInstLemmas(
-    const std::vector<Node>& lems,
-    std::map<Node, Node>& quant,
-    std::map<Node, std::vector<Node> >& tvec)
-{
-  d_instantiate->getExplanationForInstLemmas(lems, quant, tvec);
 }
 
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
@@ -1064,18 +1054,6 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
 
 void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
   d_instantiate->getInstantiatedQuantifiedFormulas(qs);
-}
-
-void QuantifiersEngine::getInstantiations( std::map< Node, std::vector< Node > >& insts ) {
-  d_instantiate->getInstantiations(insts);
-}
-
-void QuantifiersEngine::getInstantiations( Node q, std::vector< Node >& insts  ) {
-  d_instantiate->getInstantiations(q, insts);
-}
-
-Node QuantifiersEngine::getInstantiatedConjunction( Node q ) {
-  return d_instantiate->getInstantiatedConjunction(q);
 }
 
 QuantifiersEngine::Statistics::Statistics()

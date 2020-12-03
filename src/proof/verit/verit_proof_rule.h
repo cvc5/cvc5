@@ -135,7 +135,6 @@ enum class VeritRule : uint32_t
 
   /** Extended Rules */
   SYMM
-
 };
 
 }  // namespace proof

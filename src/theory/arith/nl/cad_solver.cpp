@@ -31,10 +31,11 @@ namespace nl {
 
 CadSolver::CadSolver(InferenceManager& im,
                      NlModel& model,
+                     context::Context* ctx,
                      ProofNodeManager* pnm)
     :
 #ifdef CVC4_POLY_IMP
-      d_CAC(pnm),
+      d_CAC(ctx, pnm),
 #endif
       d_foundSatisfiability(false),
       d_im(im),
@@ -87,6 +88,11 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
 void CadSolver::checkFull()
 {
 #ifdef CVC4_POLY_IMP
+  if (d_CAC.getConstraints().getConstraints().empty()) {
+    Trace("nl-cad") << "No constraints. Return." << std::endl;
+    return;
+  }
+  d_CAC.startNewProof();
   auto covering = d_CAC.getUnsatCover();
   if (covering.empty())
   {
@@ -101,8 +107,8 @@ void CadSolver::checkFull()
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
-    d_im.addTrustedLemma(TrustNode::mkTrustLemma(lem, d_CAC.getProof()),
-                            InferenceId::NL_CAD_CONFLICT);
+    ProofGenerator* proof = d_CAC.closeProof(mis);
+    d_im.addPendingArithLemma(lem, InferenceId::NL_CAD_CONFLICT, proof);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
@@ -114,6 +120,10 @@ void CadSolver::checkFull()
 void CadSolver::checkPartial()
 {
 #ifdef CVC4_POLY_IMP
+  if (d_CAC.getConstraints().getConstraints().empty()) {
+    Trace("nl-cad") << "No constraints. Return." << std::endl;
+    return;
+  }
   auto covering = d_CAC.getUnsatCover(0, true);
   if (covering.empty())
   {

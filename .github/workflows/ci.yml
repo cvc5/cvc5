@@ -61,10 +61,12 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
+          build-essential \
           ccache \
           cxxtest \
           libcln-dev \
           libgmp-dev \
+          libgtest-dev \
           libedit-dev \
           flex \
           libfl-dev \
@@ -72,6 +74,10 @@ jobs:
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
+        cd /usr/src/googletest
+        sudo cmake .
+        sudo cmake --build . --target install
+        cd -
         echo "/usr/lib/ccache" >> $GITHUB_PATH
 
     # Note: macOS comes with a libedit; it does not need to brew-installed
@@ -90,24 +96,14 @@ jobs:
         python3 -m pip install pexpect
         echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
 
-    - name: Install Cython
-      if: matrix.python-bindings && runner.os == 'Linux'
-      run: |
-        python3 -m pip install \
-          Cython==0.29.* --install-option="--no-cython-compile"
-        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
-
-    - name: Install Cython (macOS)
-      if: matrix.python-bindings && runner.os == 'macOS'
-      run: |
-        python3 -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
-
-    - name: Install Pytest
+    - name: Install Python Dependencies
       if: matrix.python-bindings
       run: |
         python3 -m pip install pytest
         python3 -m pytest --version
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
 
     - name: Restore Dependencies
       id: restore-deps
@@ -187,12 +183,6 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
-
-    - name: Run Pytest
-      if: matrix.python-bindings
-      run: |
-       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-       python3 -m pytest ./test/unit/api/python
 
       # Examples are built for non-symfpu builds
     - name: Check Examples

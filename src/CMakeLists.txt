@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/cvc/cvc_printer.h
   printer/dagification_visitor.cpp
   printer/dagification_visitor.h
+  printer/let_binding.cpp
+  printer/let_binding.h
   printer/printer.cpp
   printer/printer.h
   printer/smt2/smt2_printer.cpp
@@ -149,10 +151,10 @@ libcvc4_add_sources(
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
-  proof/lfsc/term_processor.cpp
-  proof/lfsc/term_processor.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
+  proof/term_processor.cpp
+  proof/term_processor.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   prop/bv_sat_solver_notify.h
@@ -233,8 +235,8 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
-  smt/expr_names.cpp
-  smt/expr_names.h
+  smt/expand_definitions.cpp
+  smt/expand_definitions.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -379,6 +381,8 @@ libcvc4_add_sources(
   theory/arith/nl/ext/monomial_check.h
   theory/arith/nl/ext/ext_state.cpp
   theory/arith/nl/ext/ext_state.h
+  theory/arith/nl/ext/proof_checker.cpp
+  theory/arith/nl/ext/proof_checker.h
   theory/arith/nl/ext/split_zero_check.cpp
   theory/arith/nl/ext/split_zero_check.h
   theory/arith/nl/ext/tangent_plane_check.cpp
@@ -409,8 +413,16 @@ libcvc4_add_sources(
   theory/arith/nl/stats.h
   theory/arith/nl/strategy.cpp
   theory/arith/nl/strategy.h
-  theory/arith/nl/transcendental_solver.cpp
-  theory/arith/nl/transcendental_solver.h
+  theory/arith/nl/transcendental/exponential_solver.cpp
+  theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/sine_solver.cpp
+  theory/arith/nl/transcendental/sine_solver.h
+  theory/arith/nl/transcendental/taylor_generator.cpp
+  theory/arith/nl/transcendental/taylor_generator.h
+  theory/arith/nl/transcendental/transcendental_solver.cpp
+  theory/arith/nl/transcendental/transcendental_solver.h
+  theory/arith/nl/transcendental/transcendental_state.cpp
+  theory/arith/nl/transcendental/transcendental_state.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/operator_elim.cpp
@@ -512,6 +524,8 @@ libcvc4_add_sources(
   theory/bv/bitblast/eager_bitblaster.h
   theory/bv/bitblast/lazy_bitblaster.cpp
   theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bitblast/simple_bitblaster.cpp
+  theory/bv/bitblast/simple_bitblaster.h
   theory/bv/bv_eager_solver.cpp
   theory/bv/bv_eager_solver.h
   theory/bv/bv_inequality_graph.cpp
@@ -532,6 +546,8 @@ libcvc4_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
+  theory/bv/proof_checker.cpp
+  theory/bv/proof_checker.h
   theory/bv/slicer.cpp
   theory/bv/slicer.h
   theory/bv/theory_bv.cpp
@@ -640,6 +656,8 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
   theory/quantifiers/cegqi/inst_strategy_cegqi.h
+  theory/quantifiers/cegqi/nested_qe.cpp
+  theory/quantifiers/cegqi/nested_qe.h
   theory/quantifiers/cegqi/vts_term_cache.cpp
   theory/quantifiers/cegqi/vts_term_cache.h
   theory/quantifiers/conjecture_generator.cpp
@@ -772,6 +790,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_pbe.h
   theory/quantifiers/sygus/sygus_process_conj.cpp
   theory/quantifiers/sygus/sygus_process_conj.h
+  theory/quantifiers/sygus/sygus_qe_preproc.cpp
+  theory/quantifiers/sygus/sygus_qe_preproc.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
   theory/quantifiers/sygus/sygus_stats.cpp
@@ -788,6 +808,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
   theory/quantifiers/sygus/synth_engine.h
+  theory/quantifiers/sygus/template_infer.cpp
+  theory/quantifiers/sygus/template_infer.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
   theory/quantifiers/sygus/type_info.cpp
@@ -1155,13 +1177,13 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
-          expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/record.h
           expr/sequence.h
+          expr/symbol_manager.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
@@ -1230,10 +1252,10 @@ install(FILES
           util/string.h
           util/tuple.h
           util/unsafe_interrupt_exception.h
-          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint_literal_symfpu.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/util)
 

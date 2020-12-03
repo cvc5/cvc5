@@ -120,15 +120,16 @@ struct TreeProofNode
  * To explicitly finish proof construction, we need to call closeChild() one
  * additional time.
  */
-class LazyTreeProofGenerator
+class LazyTreeProofGenerator : public ProofGenerator
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const LazyTreeProofGenerator& ltpg);
 
-  LazyTreeProofGenerator(ProofNodeManager* pnm);
-  /** Reset this proof generator, removes everything */
-  void reset();
+  LazyTreeProofGenerator(ProofNodeManager* pnm,
+                         const std::string& name = "LazyTreeProofGenerator");
+
+  std::string identify() const override { return d_name; }
   /** Create a new child and make it the current node */
   void openChild();
   /**
@@ -150,6 +151,40 @@ class LazyTreeProofGenerator
                   Node proven);
   /** Construct the proof as a ProofNode */
   std::shared_ptr<ProofNode> getProof() const;
+  /** Return the constructed proof. Checks that we have proven f */
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Checks whether we have proven f */
+  bool hasProofFor(Node f) override;
+
+  /**
+   * Removes children from the current node based on the given predicate.
+   * It can be used for cases where facts (and their proofs) are eagerly
+   * generated and then later pruned, for example to produce smaller conflicts.
+   * The predicate is given as a Callable f that is called for every child with
+   * the id of the child and the child itself.
+   * f should return true if the child should be kept, fals if the child should
+   * be removed.
+   * @param f a Callable bool(std::size_t, const detail::TreeProofNode&)
+   */
+  template <typename F>
+  void pruneChildren(F&& f)
+  {
+    auto& children = getCurrent().d_children;
+    std::size_t cur = 0;
+    std::size_t pos = 0;
+    for (std::size_t size = children.size(); cur < size; ++cur)
+    {
+      if (f(cur, children[pos]))
+      {
+        if (cur != pos)
+        {
+          children[pos] = std::move(children[cur]);
+        }
+        ++pos;
+      }
+    }
+    children.resize(pos);
+  }
 
  private:
   /** recursive proof construction used by getProof() */
@@ -170,6 +205,8 @@ class LazyTreeProofGenerator
   detail::TreeProofNode d_proof;
   /** Caches the result of getProof() */
   mutable std::shared_ptr<ProofNode> d_cached;
+  /** Name of this proof generator */
+  std::string d_name;
 };
 
 /**

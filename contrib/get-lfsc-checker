@@ -3,9 +3,8 @@
 source "$(dirname "$0")/get-script-header.sh"
 
 LFSC_DIR="$DEPS_DIR/lfsc-checker"
-version="master"
+version="61ef1dc55d2bc909656f905699b28c99ddcfc518"
 
-check_dep_dir "$LFSC_DIR"
 setup_dep "https://github.com/CVC4/LFSC/archive/$version.tar.gz" "$LFSC_DIR"
 cd "$LFSC_DIR"
 

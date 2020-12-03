@@ -70,6 +70,7 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void addPendingArithLemma(const Node& lemma,
                             InferenceId inftype,
+                            ProofGenerator* pg = nullptr,
                             bool isWaiting = false);
 
   /**
@@ -88,7 +89,7 @@ class InferenceManager : public InferenceManagerBuffered
 
   /** Add a conflict with a proof to this inference manager. */
   void addTrustedConflict(const TrustNode& tconf, InferenceId inftype);
-  
+
   /** Add a lemma with a proof to this inference manager. */
   void addTrustedLemma(const TrustNode& tlem, InferenceId inftype);
 

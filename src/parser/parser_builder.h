@@ -26,11 +26,12 @@
 
 namespace CVC4 {
 
-class Options;
-
 namespace api {
 class Solver;
 }
+
+class Options;
+class SymbolManager;
 
 namespace parser {
 
@@ -67,6 +68,9 @@ class CVC4_PUBLIC ParserBuilder {
   /** The API Solver object. */
   api::Solver* d_solver;
 
+  /** The symbol manager */
+  SymbolManager* d_symman;
+
   /** Should semantic checks be enabled during parsing? */
   bool d_checksEnabled;
 
@@ -89,13 +93,18 @@ class CVC4_PUBLIC ParserBuilder {
   std::string d_forcedLogic;
 
   /** Initialize this parser builder */
-  void init(api::Solver* solver, const std::string& filename);
+  void init(api::Solver* solver,
+            SymbolManager* sm,
+            const std::string& filename);
 
  public:
   /** Create a parser builder using the given Solver and filename. */
-  ParserBuilder(api::Solver* solver, const std::string& filename);
+  ParserBuilder(api::Solver* solver,
+                SymbolManager* sm,
+                const std::string& filename);
 
   ParserBuilder(api::Solver* solver,
+                SymbolManager* sm,
                 const std::string& filename,
                 const Options& options);
 
