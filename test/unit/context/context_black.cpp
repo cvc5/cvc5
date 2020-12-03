@@ -20,11 +20,13 @@
 #include "base/exception.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
-#include "context/context.h"
-#include "test.h"
+#include "test_context.h"
 
-using namespace CVC4;
-using namespace CVC4::context;
+namespace CVC4 {
+
+using namespace context;
+
+namespace test {
 
 struct MyContextNotifyObj : public ContextNotifyObj
 {
@@ -77,13 +79,8 @@ class MyContextObj : public ContextObj
   }
 };
 
-class TestContextBlack : public TestInternal
+class TestContextBlack : public TestContext
 {
- protected:
-  void SetUp() override { d_context = new Context; }
-  void TearDown() override { delete d_context; }
-
-  Context* d_context;
 };
 
 TEST_F(TestContextBlack, push_pop)
@@ -239,3 +236,6 @@ TEST_F(TestContextBlack, top_scope_context_obj)
   EXPECT_EQ(x.d_nsaves, 1);
   EXPECT_EQ(y.d_nsaves, 2);
 }
+
+}  // namespace test
+}  // namespace CVC4
