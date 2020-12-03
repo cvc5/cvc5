@@ -16,18 +16,16 @@
 
 #include "base/check.h"
 #include "context/cdhashmap.h"
-#include "test.h"
+#include "test_context.h"
 
-using namespace CVC4;
-using namespace CVC4::context;
+namespace CVC4 {
 
-class TestCDMapWhite : public TestInternal
+using namespace context;
+
+namespace test {
+
+class TestCDMapWhite : public TestContext
 {
-  void SetUp() override { d_context = new Context; }
-  void TearDown() override { delete d_context; }
-
- protected:
-  Context* d_context;
 };
 
 TEST_F(TestCDMapWhite, unreachable_save_and_restore)
@@ -44,3 +42,6 @@ TEST_F(TestCDMapWhite, unreachable_save_and_restore)
   d_context->push();
   ASSERT_DEATH(map.makeCurrent(), "Unreachable code reached");
 }
+
+}  // namespace test
+}  // namespace CVC4
