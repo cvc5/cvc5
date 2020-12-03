@@ -34,7 +34,7 @@ macro(cvc4_add_python_api_test name filename)
   add_test (NAME api/api/python/${name}
     COMMAND ${PYTHON_EXECUTABLE} -m pytest ${CMAKE_CURRENT_SOURCE_DIR}/${filename}
     # directory for importing the python bindings
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/python)
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/src/api/)
 
 endmacro()
 
