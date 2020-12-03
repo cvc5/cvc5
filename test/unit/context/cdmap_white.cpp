@@ -30,7 +30,7 @@ class TestCDMapWhite : public TestContext
 
 TEST_F(TestCDMapWhite, unreachable_save_and_restore)
 {
-  CDHashMap<int, int> map(d_context);
+  CDHashMap<int, int> map(d_context.get());
 
   ASSERT_NO_THROW(map.makeCurrent());
 
