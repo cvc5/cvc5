@@ -2,7 +2,7 @@
 /*! \file floatingpoint_literal_symfpu.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Aina Niemetz
+ **   Martin Brain, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -65,12 +65,12 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::allOnes(
 template <bool isSigned>
 CVC4Prop wrappedBitVector<isSigned>::isAllOnes() const
 {
-  return (*this == wrappedBitVector<isSigned>::allOnes(this->getWidth()));
+  return (*this == wrappedBitVector<isSigned>::allOnes(getWidth()));
 }
 template <bool isSigned>
 CVC4Prop wrappedBitVector<isSigned>::isAllZeros() const
 {
-  return (*this == wrappedBitVector<isSigned>::zero(this->getWidth()));
+  return (*this == wrappedBitVector<isSigned>::zero(getWidth()));
 }
 
 template <bool isSigned>
@@ -110,101 +110,101 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator<<(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::leftShift(op);
+  return BitVector::leftShift(op);
 }
 
 template <>
 wrappedBitVector<true> wrappedBitVector<true>::operator>>(
     const wrappedBitVector<true>& op) const
 {
-  return this->BitVector::arithRightShift(op);
+  return BitVector::arithRightShift(op);
 }
 
 template <>
 wrappedBitVector<false> wrappedBitVector<false>::operator>>(
     const wrappedBitVector<false>& op) const
 {
-  return this->BitVector::logicalRightShift(op);
+  return BitVector::logicalRightShift(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator|(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::operator|(op);
+  return BitVector::operator|(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator&(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::operator&(op);
+  return BitVector::operator&(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator+(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::operator+(op);
+  return BitVector::operator+(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::operator-(op);
+  return BitVector::operator-(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator*(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::operator*(op);
+  return BitVector::operator*(op);
 }
 
 template <>
 wrappedBitVector<false> wrappedBitVector<false>::operator/(
     const wrappedBitVector<false>& op) const
 {
-  return this->BitVector::unsignedDivTotal(op);
+  return BitVector::unsignedDivTotal(op);
 }
 
 template <>
 wrappedBitVector<false> wrappedBitVector<false>::operator%(
     const wrappedBitVector<false>& op) const
 {
-  return this->BitVector::unsignedRemTotal(op);
+  return BitVector::unsignedRemTotal(op);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator-(void) const
 {
-  return this->BitVector::operator-();
+  return BitVector::operator-();
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::operator~(void) const
 {
-  return this->BitVector::operator~();
+  return BitVector::operator~();
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::increment() const
 {
-  return *this + wrappedBitVector<isSigned>::one(this->getWidth());
+  return *this + wrappedBitVector<isSigned>::one(getWidth());
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::decrement() const
 {
-  return *this - wrappedBitVector<isSigned>::one(this->getWidth());
+  return *this - wrappedBitVector<isSigned>::one(getWidth());
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::signExtendRightShift(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::arithRightShift(BitVector(this->getWidth(), op));
+  return BitVector::arithRightShift(BitVector(getWidth(), op));
 }
 
 /*** Modular opertaions ***/
@@ -226,13 +226,13 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularRightShift(
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularIncrement() const
 {
-  return this->increment();
+  return increment();
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::modularDecrement() const
 {
-  return this->decrement();
+  return decrement();
 }
 
 template <bool isSigned>
@@ -254,63 +254,63 @@ template <bool isSigned>
 CVC4Prop wrappedBitVector<isSigned>::operator==(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::operator==(op);
+  return BitVector::operator==(op);
 }
 
 template <>
 CVC4Prop wrappedBitVector<true>::operator<=(
     const wrappedBitVector<true>& op) const
 {
-  return this->signedLessThanEq(op);
+  return signedLessThanEq(op);
 }
 
 template <>
 CVC4Prop wrappedBitVector<true>::operator>=(
     const wrappedBitVector<true>& op) const
 {
-  return !(this->signedLessThan(op));
+  return !(signedLessThan(op));
 }
 
 template <>
 CVC4Prop wrappedBitVector<true>::operator<(
     const wrappedBitVector<true>& op) const
 {
-  return this->signedLessThan(op);
+  return signedLessThan(op);
 }
 
 template <>
 CVC4Prop wrappedBitVector<true>::operator>(
     const wrappedBitVector<true>& op) const
 {
-  return !(this->signedLessThanEq(op));
+  return !(signedLessThanEq(op));
 }
 
 template <>
 CVC4Prop wrappedBitVector<false>::operator<=(
     const wrappedBitVector<false>& op) const
 {
-  return this->unsignedLessThanEq(op);
+  return unsignedLessThanEq(op);
 }
 
 template <>
 CVC4Prop wrappedBitVector<false>::operator>=(
     const wrappedBitVector<false>& op) const
 {
-  return !(this->unsignedLessThan(op));
+  return !(unsignedLessThan(op));
 }
 
 template <>
 CVC4Prop wrappedBitVector<false>::operator<(
     const wrappedBitVector<false>& op) const
 {
-  return this->unsignedLessThan(op);
+  return unsignedLessThan(op);
 }
 
 template <>
 CVC4Prop wrappedBitVector<false>::operator>(
     const wrappedBitVector<false>& op) const
 {
-  return !(this->unsignedLessThanEq(op));
+  return !(unsignedLessThanEq(op));
 }
 
 /*** Type conversion ***/
@@ -335,11 +335,11 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extend(
 {
   if (isSigned)
   {
-    return this->BitVector::signExtend(extension);
+    return BitVector::signExtend(extension);
   }
   else
   {
-    return this->BitVector::zeroExtend(extension);
+    return BitVector::zeroExtend(extension);
   }
 }
 
@@ -347,24 +347,24 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::contract(
     CVC4BitWidth reduction) const
 {
-  Assert(this->getWidth() > reduction);
+  Assert(getWidth() > reduction);
 
-  return this->extract((this->getWidth() - 1) - reduction, 0);
+  return extract((getWidth() - 1) - reduction, 0);
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::resize(
     CVC4BitWidth newSize) const
 {
-  CVC4BitWidth width = this->getWidth();
+  CVC4BitWidth width = getWidth();
 
   if (newSize > width)
   {
-    return this->extend(newSize - width);
+    return extend(newSize - width);
   }
   else if (newSize < width)
   {
-    return this->contract(width - newSize);
+    return contract(width - newSize);
   }
   else
   {
@@ -376,15 +376,15 @@ template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::matchWidth(
     const wrappedBitVector<isSigned>& op) const
 {
-  Assert(this->getWidth() <= op.getWidth());
-  return this->extend(op.getWidth() - this->getWidth());
+  Assert(getWidth() <= op.getWidth());
+  return extend(op.getWidth() - getWidth());
 }
 
 template <bool isSigned>
 wrappedBitVector<isSigned> wrappedBitVector<isSigned>::append(
     const wrappedBitVector<isSigned>& op) const
 {
-  return this->BitVector::concat(op);
+  return BitVector::concat(op);
 }
 
 // Inclusive of end points, thus if the same, extracts just one bit
@@ -393,7 +393,7 @@ wrappedBitVector<isSigned> wrappedBitVector<isSigned>::extract(
     CVC4BitWidth upper, CVC4BitWidth lower) const
 {
   Assert(upper >= lower);
-  return this->BitVector::extract(upper, lower);
+  return BitVector::extract(upper, lower);
 }
 
 // Explicit instantiation

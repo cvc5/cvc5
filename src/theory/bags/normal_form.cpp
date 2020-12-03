@@ -1,15 +1,16 @@
-/*************************                                                    */
+/*********************                                                        */
 /*! \file normal_form.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
+ **
+ ** \brief Normal form for bag constants.
  **/
-
 #include "normal_form.h"
 
 #include "theory/sets/normal_form.h"

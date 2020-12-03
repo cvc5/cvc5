@@ -2,7 +2,7 @@
 /*! \file node_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -537,6 +537,42 @@ class NodeManager {
 
   /** get the canonical bound variable list for function type tn */
   Node getBoundVarListForFunctionType( TypeNode tn );
+
+  /**
+   * Create an Node by applying an associative operator to the children.
+   * If <code>children.size()</code> is greater than the max arity for
+   * <code>kind</code>, then the expression will be broken up into
+   * suitably-sized chunks, taking advantage of the associativity of
+   * <code>kind</code>. For example, if kind <code>FOO</code> has max arity
+   * 2, then calling <code>mkAssociative(FOO,a,b,c)</code> will return
+   * <code>(FOO (FOO a b) c)</code> or <code>(FOO a (FOO b c))</code>.
+   * The order of the arguments will be preserved in a left-to-right
+   * traversal of the resulting tree.
+   */
+  Node mkAssociative(Kind kind, const std::vector<Node>& children);
+
+  /**
+   * Create an Node by applying an binary left-associative operator to the
+   * children. For example, mkLeftAssociative( f, { a, b, c } ) returns
+   * f( f( a, b ), c ).
+   */
+  Node mkLeftAssociative(Kind kind, const std::vector<Node>& children);
+  /**
+   * Create an Node by applying an binary right-associative operator to the
+   * children. For example, mkRightAssociative( f, { a, b, c } ) returns
+   * f( a, f( b, c ) ).
+   */
+  Node mkRightAssociative(Kind kind, const std::vector<Node>& children);
+
+  /** make chain
+   *
+   * Given a kind k and arguments t_1, ..., t_n, this returns the
+   * conjunction of:
+   *  (k t_1 t_2) .... (k t_{n-1} t_n)
+   * It is expected that k is a kind denoting a predicate, and args is a list
+   * of terms of size >= 2 such that the terms above are well-typed.
+   */
+  Node mkChain(Kind kind, const std::vector<Node>& children);
 
   /**
    * Optional flags used to control behavior of NodeManager::mkSkolem().

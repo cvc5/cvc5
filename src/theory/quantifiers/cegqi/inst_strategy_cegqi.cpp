@@ -2,7 +2,7 @@
 /*! \file inst_strategy_cegqi.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -156,7 +156,11 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         {
           d_parent_quant[q].push_back(qi);
           d_children_quant[qi].push_back(q);
-          Assert(hasAddedCbqiLemma(qi));
+          // may not have added the CEX lemma, but the literal is created by
+          // the following call regardless. One rare case where this can happen
+          // is if both sygus-inst and CEGQI are being run in parallel, and
+          // a parent quantified formula is not handled by CEGQI, but a child
+          // is.
           Node qicel = getCounterexampleLiteral(qi);
           dep.push_back(qi);
           dep.push_back(qicel);
@@ -164,6 +168,9 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       }
       if (!dep.empty())
       {
+        // This lemma states that if the child is active, then the parent must
+        // be asserted, in particular G => Q where G is the CEX literal for the
+        // child and Q is the parent.
         Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
         Trace("cegqi-lemma")
             << "Counterexample dependency lemma : " << dep_lemma << std::endl;

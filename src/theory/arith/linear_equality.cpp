@@ -184,12 +184,12 @@ void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    Message() << toRemove << " " << toAdd << endl;
+    CVC4Message() << toRemove << " " << toAdd << endl;
     d_tableau.pivot(toRemove, toAdd, d_trackCallback);
     d_basicVariableUpdates(toAdd);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    Message() << needsToBeAdded.size() << "to go" << endl;
+    CVC4Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
   }
 }

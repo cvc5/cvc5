@@ -2,7 +2,7 @@
 /*! \file options_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -76,7 +76,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprSetDepth(depth);
     Notice.getStream() << expr::ExprSetDepth(depth);
     Chat.getStream() << expr::ExprSetDepth(depth);
-    Message.getStream() << expr::ExprSetDepth(depth);
+    CVC4Message.getStream() << expr::ExprSetDepth(depth);
     Warning.getStream() << expr::ExprSetDepth(depth);
     // intentionally exclude Dump stream from this list
   }
@@ -87,7 +87,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << expr::ExprDag(dag);
     Notice.getStream() << expr::ExprDag(dag);
     Chat.getStream() << expr::ExprDag(dag);
-    Message.getStream() << expr::ExprDag(dag);
+    CVC4Message.getStream() << expr::ExprDag(dag);
     Warning.getStream() << expr::ExprDag(dag);
     Dump.getStream() << expr::ExprDag(dag);
   }
@@ -103,7 +103,7 @@ void OptionsManager::notifySetOption(const std::string& key)
     Trace.getStream() << Command::printsuccess(value);
     Notice.getStream() << Command::printsuccess(value);
     Chat.getStream() << Command::printsuccess(value);
-    Message.getStream() << Command::printsuccess(value);
+    CVC4Message.getStream() << Command::printsuccess(value);
     Warning.getStream() << Command::printsuccess(value);
     *options::out() << Command::printsuccess(value);
   }
