@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file cdmap_white.h
+/*! \file cdmap_white.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Andres Noetzli
+ **   Aina Niemetz, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -14,37 +14,33 @@
  ** White box testing of CVC4::context::CDMap<>.
  **/
 
-#include <cxxtest/TestSuite.h>
-
 #include "base/check.h"
 #include "context/cdhashmap.h"
-#include "test_utils.h"
+#include "test.h"
 
-using namespace std;
 using namespace CVC4;
 using namespace CVC4::context;
 
-class CDMapWhite : public CxxTest::TestSuite {
+class TestCDMapWhite : public TestInternal
+{
+  void SetUp() override { d_context = new Context; }
+  void TearDown() override { delete d_context; }
 
+ protected:
   Context* d_context;
-
- public:
-  void setUp() override { d_context = new Context; }
-
-  void tearDown() override { delete d_context; }
-
-  void testUnreachableSaveAndRestore()
-  {
-    CDHashMap<int, int> map(d_context);
-
-    TS_ASSERT_THROWS_NOTHING(map.makeCurrent());
-
-    TS_UTILS_EXPECT_ABORT(map.update());
-
-    TS_UTILS_EXPECT_ABORT(map.save(d_context->getCMM()));
-    TS_UTILS_EXPECT_ABORT(map.restore(&map));
-
-    d_context->push();
-    TS_UTILS_EXPECT_ABORT(map.makeCurrent());
-  }
 };
+
+TEST_F(TestCDMapWhite, unreachable_save_and_restore)
+{
+  CDHashMap<int, int> map(d_context);
+
+  ASSERT_NO_THROW(map.makeCurrent());
+
+  ASSERT_DEATH(map.update(), "Unreachable code reached");
+
+  ASSERT_DEATH(map.save(d_context->getCMM()), "Unreachable code reached");
+  ASSERT_DEATH(map.restore(&map), "Unreachable code reached");
+
+  d_context->push();
+  ASSERT_DEATH(map.makeCurrent(), "Unreachable code reached");
+}
