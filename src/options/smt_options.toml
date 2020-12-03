@@ -432,7 +432,7 @@ header = "options/smt_options.h"
   help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
 [[option.mode.None]]
   name = "none"
-  help = "(default) print uninterpreted elements in `as` terms."
+  help = "(default) do not print declarations of uninterpreted elements in models."
 
 
 [[option]]
