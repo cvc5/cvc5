@@ -20,21 +20,19 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/context.h"
-#include "test.h"
+#include "test_context.h"
 
 using CVC4::context::CDHashMap;
 using CVC4::context::Context;
 
-class TestCDMapBlack : public TestInternal
+class TestCDMapBlack : public TestContext
 {
  protected:
-  void SetUp() override { d_context = new Context; }
-  void TearDown() override { delete d_context; }
-
   /** Returns the elements in a CDHashMap. */
-  static std::map<int, int> get_elements(const CDHashMap<int, int>& map)
+  static std::map<int32_t, int32_t> get_elements(
+      const CDHashMap<int32_t, int32_t>& map)
   {
-    return std::map<int, int>{map.begin(), map.end()};
+    return std::map<int32_t, int32_t>{map.begin(), map.end()};
   }
 
   /**
@@ -42,18 +40,16 @@ class TestCDMapBlack : public TestInternal
    * NOTE: This is mostly to help the type checker for matching expected within
    *       a ASSERT_*.
    */
-  static bool elements_are(const CDHashMap<int, int>& map,
-                           const std::map<int, int>& expected)
+  static bool elements_are(const CDHashMap<int32_t, int32_t>& map,
+                           const std::map<int32_t, int32_t>& expected)
   {
     return get_elements(map) == expected;
   }
-
-  Context* d_context;
 };
 
 TEST_F(TestCDMapBlack, simple_sequence)
 {
-  CDHashMap<int, int> map(d_context);
+  CDHashMap<int32_t, int32_t> map(d_context.get());
   ASSERT_TRUE(elements_are(map, {}));
 
   map.insert(3, 4);
@@ -106,7 +102,7 @@ TEST_F(TestCDMapBlack, simple_sequence_fewer_finds)
 {
   // no intervening find() in this one (under the theory that this could trigger
   // a bug)
-  CDHashMap<int, int> map(d_context);
+  CDHashMap<int, int> map(d_context.get());
   map.insert(3, 4);
 
   {
@@ -135,7 +131,7 @@ TEST_F(TestCDMapBlack, simple_sequence_fewer_finds)
 
 TEST_F(TestCDMapBlack, insert_at_context_level_zero)
 {
-  CDHashMap<int, int> map(d_context);
+  CDHashMap<int, int> map(d_context.get());
 
   map.insert(3, 4);
 
