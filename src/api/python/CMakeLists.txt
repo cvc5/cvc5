@@ -50,6 +50,10 @@ target_link_libraries(pycvc4 cvc4 ${PYTHON_LIBRARIES})
 
 python_extension_module(pycvc4)
 
+# Make sure that gen-pycvc4-kinds target is run before building the bindings
+# doesn't always work correctly with ALL since there are multiple targets
+add_dependencies(pycvc4 gen-pycvc4-kinds)
+
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 # Create a wrapper python directory and generate a distutils setup.py file
 configure_file(setup.py.in setup.py)
