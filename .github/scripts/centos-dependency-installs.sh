@@ -1,6 +1,8 @@
 #!/bin/sh
 # Install dependencies GitHub actions in a centos environment (e.g. for manylinux for Python wheels)
 
+# NOTE manylinux doesn't seem to have cln-devel -- leaving out, it's optional
+
 yum update
 yum install -y \
     gcc \
@@ -8,7 +10,6 @@ yum install -y \
     make \
     ccache \
     cxxtest \
-    # manylinux doesn't seem to have cln-devel -- leaving out, it's optional
     gmp-devel \
     libedit-devel \
     gtest-devel \

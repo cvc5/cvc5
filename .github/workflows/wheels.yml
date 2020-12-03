@@ -13,6 +13,13 @@ jobs:
     env:
       CIBW_BEFORE_ALL_LINUX: .github/scripts/centos-dependency-installs.sh
       CIBW_BEFORE_ALL_MACOS: .github/scripts/macos-dependency-installs.sh
+      # CentOS 6 went end-of-life on November 30, 2020
+      # but cibuildwheel is still using manylinux2010 which uses CentOS 6
+      # yum is not working out-of-the-box, so update to manylinux2014
+      # which uses CentOS 7
+      CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64
+      CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2014_i686
+      CIBW_MANYLINUX_PYPY_X86_64_IMAGE: pypywheels/manylinux2014-pypy_x86_64
 
     steps:
       - uses: actions/checkout@v2
