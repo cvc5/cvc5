@@ -192,8 +192,6 @@ class Smt2 : public Parser
 
   void reset() override;
 
-  void resetAssertions();
-
   /**
    * Creates a command that adds an invariant constraint.
    *
@@ -260,10 +258,6 @@ class Smt2 : public Parser
    * denoting a single double quote (").
    */
   bool escapeDupDblQuote() const { return v2_5() || sygus(); }
-
-  void setInfo(const std::string& flag, const SExpr& sexpr);
-
-  void setOption(const std::string& flag, const SExpr& sexpr);
 
   void checkThatLogicIsSet();
 

@@ -2,7 +2,7 @@
 /*! \file expand_definitions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Haniel Barbosa
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -32,7 +32,7 @@ namespace smt {
 ExpandDefs::ExpandDefs(SmtEngine& smt,
                        ResourceManager& rm,
                        SmtEngineStatistics& stats)
-    : d_smt(smt), d_resourceManager(rm), d_smtStats(stats)
+    : d_smt(smt), d_resourceManager(rm), d_smtStats(stats), d_tpg(nullptr)
 {
 }
 
@@ -43,6 +43,17 @@ Node ExpandDefs::expandDefinitions(
     std::unordered_map<Node, Node, NodeHashFunction>& cache,
     bool expandOnly)
 {
+  TrustNode trn = expandDefinitions(n, cache, expandOnly, nullptr);
+  return trn.isNull() ? Node(n) : trn.getNode();
+}
+
+TrustNode ExpandDefs::expandDefinitions(
+    TNode n,
+    std::unordered_map<Node, Node, NodeHashFunction>& cache,
+    bool expandOnly,
+    TConvProofGenerator* tpg)
+{
+  const TNode orig = n;
   NodeManager* nm = d_smt.getNodeManager();
   std::stack<std::tuple<Node, Node, bool>> worklist;
   std::stack<Node> result;
@@ -75,17 +86,24 @@ Node ExpandDefs::expandDefinitions(
         if (i != dfuns->end())
         {
           Node f = (*i).second.getFormula();
-          // must expand its definition
-          Node fe = expandDefinitions(f, cache, expandOnly);
+          const std::vector<Node>& formals = (*i).second.getFormals();
           // replacement must be closed
-          if ((*i).second.getFormals().size() > 0)
+          if (!formals.empty())
           {
-            result.push(
-                nm->mkNode(LAMBDA,
-                           nm->mkNode(BOUND_VAR_LIST, (*i).second.getFormals()),
-                           fe));
-            continue;
+            f = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, formals), f);
           }
+          // are we are producing proofs for this call?
+          if (tpg != nullptr)
+          {
+            // if this is a variable, we can simply assume it
+            // ------- ASSUME
+            // n = f
+            Node conc = n.eqNode(f);
+            tpg->addRewriteStep(n, f, PfRule::ASSUME, {}, {conc});
+          }
+          // must recursively expand its definition
+          TrustNode tfe = expandDefinitions(f, cache, expandOnly, tpg);
+          Node fe = tfe.isNull() ? f : tfe.getNode();
           // don't bother putting in the cache
           result.push(fe);
           continue;
@@ -126,6 +144,9 @@ Node ExpandDefs::expandDefinitions(
           doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
         }
       }
+      // the premise of the proof of expansion (if we are expanding a definition
+      // and proofs are enabled)
+      std::vector<Node> pfExpChildren;
       if (doExpand)
       {
         std::vector<Node> formals;
@@ -180,6 +201,18 @@ Node ExpandDefs::expandDefinitions(
           }
 
           fm = def.getFormula();
+          // are we producing proofs for this call?
+          if (tpg != nullptr)
+          {
+            Node pfRhs = fm;
+            if (!formals.empty())
+            {
+              Node bvl = nm->mkNode(BOUND_VAR_LIST, formals);
+              pfRhs = nm->mkNode(LAMBDA, bvl, pfRhs);
+            }
+            Assert(func.getType().isComparableTo(pfRhs.getType()));
+            pfExpChildren.push_back(func.eqNode(pfRhs));
+          }
         }
 
         Node instance = fm.substitute(formals.begin(),
@@ -187,9 +220,29 @@ Node ExpandDefs::expandDefinitions(
                                       n.begin(),
                                       n.begin() + formals.size());
         Debug("expand") << "made : " << instance << std::endl;
-
-        Node expanded = expandDefinitions(instance, cache, expandOnly);
-        cache[n] = (n == expanded ? Node::null() : expanded);
+        // are we producing proofs for this call?
+        if (tpg != nullptr)
+        {
+          if (n != instance)
+          {
+            // This code is run both when we are doing expand definitions and
+            // simple beta reduction.
+            //
+            // f = (lambda ((x T)) t)  [if we are expanding a definition]
+            // ---------------------- MACRO_SR_PRED_INTRO
+            // n = instance
+            Node conc = n.eqNode(instance);
+            tpg->addRewriteStep(n,
+                                instance,
+                                PfRule::MACRO_SR_PRED_INTRO,
+                                pfExpChildren,
+                                {conc});
+          }
+        }
+        // now, call expand definitions again on the result
+        TrustNode texp = expandDefinitions(instance, cache, expandOnly, tpg);
+        Node expanded = texp.isNull() ? instance : texp.getNode();
+        cache[n] = n == expanded ? Node::null() : expanded;
         result.push(expanded);
         continue;
       }
@@ -201,7 +254,19 @@ Node ExpandDefs::expandDefinitions(
 
         Assert(t != NULL);
         TrustNode trn = t->expandDefinition(n);
-        node = trn.isNull() ? Node(n) : trn.getNode();
+        if (!trn.isNull())
+        {
+          node = trn.getNode();
+          if (tpg != nullptr)
+          {
+            tpg->addRewriteStep(
+                n, node, trn.getGenerator(), PfRule::THEORY_EXPAND_DEF);
+          }
+        }
+        else
+        {
+          node = n;
+        }
       }
 
       // the partial functions can fall through, in which case we still
@@ -252,25 +317,49 @@ Node ExpandDefs::expandDefinitions(
 
   AlwaysAssert(result.size() == 1);
 
-  return result.top();
+  Node res = result.top();
+
+  if (res == orig)
+  {
+    return TrustNode::null();
+  }
+  return TrustNode::mkTrustRewrite(orig, res, tpg);
 }
 
 void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
                                   bool expandOnly)
 {
   Chat() << "expanding definitions in assertions..." << std::endl;
-  Trace("simplify") << "ExpandDefs::simplify(): expanding definitions"
+  Trace("exp-defs") << "ExpandDefs::simplify(): expanding definitions"
                     << std::endl;
   TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
   {
     Node assert = assertions[i];
-    Node expd = expandDefinitions(assert, cache, expandOnly);
-    if (expd != assert)
+    // notice we call this method with only one value of expandOnly currently,
+    // hence we maintain only a single set of proof steps in d_tpg.
+    TrustNode expd = expandDefinitions(assert, cache, expandOnly, d_tpg.get());
+    if (!expd.isNull())
     {
-      assertions.replace(i, expd);
+      Trace("exp-defs") << "ExpandDefs::expandAssertions: " << assert << " -> "
+                        << expd.getNode() << std::endl;
+      assertions.replaceTrusted(i, expd);
     }
+  }
+}
+
+void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
+{
+  if (d_tpg == nullptr)
+  {
+    d_tpg.reset(new TConvProofGenerator(pnm,
+                                        d_smt.getUserContext(),
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::NEVER,
+                                        "ExpandDefs::TConvProofGenerator",
+                                        nullptr,
+                                        true));
   }
 }
 
