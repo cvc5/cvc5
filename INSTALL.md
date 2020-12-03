@@ -46,7 +46,7 @@ compatible.
 
 - [GNU C and C++ (gcc and g++)](https://gcc.gnu.org)
   or [Clang](https://clang.llvm.org) (reasonably recent versions)
-- [CMake >= 3.1](https://cmake.org)
+- [CMake >= 3.9](https://cmake.org)
 - [GNU Bash](https://www.gnu.org/software/bash/)
 - [Python >= 2.7](https://www.python.org)
   + module [toml](https://pypi.org/project/toml/)
@@ -194,6 +194,12 @@ provided with CVC4.
 (included with the distribution). 
 See [Testing CVC4](#Testing-CVC4) below for more details.
 
+
+### Google Test Unit Testing Framework (Unit Tests)
+
+[Google Test](https://github.com/google/googletest) is required to optionally
+run CVC4's unit tests (included with the distribution). 
+See [Testing CVC4](#Testing-CVC4) below for more details.
 
 ## Language bindings
 

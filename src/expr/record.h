@@ -2,7 +2,7 @@
 /*! \file record.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -29,7 +29,7 @@
 namespace CVC4 {
 // This forward delcartion is required to resolve a cicular dependency with
 // Record which is a referenced in a Kind file.
-class Type;
+class TypeNode;
 } /* namespace CVC4 */
 
 namespace CVC4 {
@@ -53,40 +53,7 @@ struct CVC4_PUBLIC RecordUpdateHashFunction {
 
 std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) CVC4_PUBLIC;
 
-// now an actual record definition
-class CVC4_PUBLIC Record {
- public:
-  // Type must stay as incomplete types throughout this header!
-  // Everything containing a Type must be a pointer or a reference.
-  typedef std::vector< std::pair<std::string, Type> > FieldVector;
-
-  Record(const FieldVector& fields);
-  Record(const Record& other);
-  ~Record();
-  Record& operator=(const Record& r);
-
-  bool contains(const std::string &name) const;
-
-  size_t getIndex(std::string name) const;
-  size_t getNumFields() const;
-
-  const FieldVector& getFields() const;
-  const std::pair<std::string, Type>& operator[](size_t index) const;
-
-  bool operator==(const Record& r) const;
-  bool operator!=(const Record& r) const {
-    return !(*this == r);
-  }
-
-private:
-  FieldVector* d_fields;
-};/* class Record */
-
-struct CVC4_PUBLIC RecordHashFunction {
-  size_t operator()(const Record& r) const;
-};/* struct RecordHashFunction */
-
-std::ostream& operator<<(std::ostream& os, const Record& r) CVC4_PUBLIC;
+using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 }/* CVC4 namespace */
 
