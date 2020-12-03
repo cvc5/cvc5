@@ -1140,7 +1140,7 @@ enum class PfRule : uint32_t
   LEAN_RULE,
 
   //================================================ Place holder for veriT
-  //rules
+  // rules
   // ======== veriT rule
   // Children: (P1 ... Pn)
   // Arguments: (id, Q, Q', A1, ..., Am)

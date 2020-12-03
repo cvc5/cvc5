@@ -410,9 +410,16 @@ bool VeritProofPostprocessCallback::update(Node res,
         if (std::stoi(args[0].toString()) == 1
             && children[0].getKind() == kind::OR)
         {
-          return addVeritStep(res, VeritRule::RESOLUTION, d_nm->mkNode(kind::SEXPR,d_cl,Node::null()), {children[0][0],children[1]}, {}, *cdp);
+          return addVeritStep(res,
+                              VeritRule::RESOLUTION,
+                              d_nm->mkNode(kind::SEXPR, d_cl, Node::null()),
+                              {children[0][0], children[1]},
+                              {},
+                              *cdp);
         }
-        if(std::stoi(args[0].toString()) == 0 && children[1].getKind() == kind::OR){
+        if (std::stoi(args[0].toString()) == 0
+            && children[1].getKind() == kind::OR)
+        {
           return addVeritStep(res,
                               VeritRule::RESOLUTION,
                               d_nm->mkNode(kind::SEXPR, d_cl, Node::null()),
@@ -420,7 +427,7 @@ bool VeritProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
         }
-	return addVeritStep(res, VeritRule::RESOLUTION, d_nm->mkNode(kind::SEXPR,d_cl,Node::null()), children, {}, *cdp);
+        return addVeritStep(res, VeritRule::RESOLUTION, d_nm->mkNode(kind::SEXPR,d_cl,Node::null()), children, {}, *cdp);
       }
 
       std::cout << "TEST2" << std::endl;
