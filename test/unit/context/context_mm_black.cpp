@@ -30,10 +30,8 @@ namespace test {
 class TestContextMMBlack : public TestInternal
 {
  protected:
-  void SetUp() override { d_cmm = new ContextMemoryManager(); }
-  void TearDown() override { delete d_cmm; }
-
-  ContextMemoryManager* d_cmm;
+  void SetUp() override { d_cmm.reset(new ContextMemoryManager()); }
+  std::unique_ptr<ContextMemoryManager> d_cmm;
 };
 
 TEST_F(TestContextMMBlack, push_pop)
@@ -101,7 +99,7 @@ TEST_F(TestContextMMBlack, push_pop)
   }
 
   // Try popping out of scope
-  ASSERT_DEATH(d_cmm->pop(), "asdf");
+  ASSERT_DEATH(d_cmm->pop(), "d_nextFreeStack.size\\(\\) > 0");
 #endif
 }
 
