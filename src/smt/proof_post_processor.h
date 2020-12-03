@@ -152,6 +152,12 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   bool addToTransChildren(Node eq,
                           std::vector<Node>& tchildren,
                           bool isSymm = false);
+
+  Node processCrowdingLits(const std::vector<Node>& clauseLits,
+                           const std::vector<Node>& targetClauseLits,
+                           const std::vector<Node>& children,
+                           const std::vector<Node>& args,
+                           CDProof* cdp);
 };
 
 /** Final callback class, for stats and pedantic checking */
@@ -220,6 +226,7 @@ class ProofPostproccess
   ProofNodeUpdater d_updater;
   /** The post process callback for finalization */
   ProofPostprocessFinalCallback d_finalCb;
+
   /**
    * The finalizer, which is responsible for taking stats and checking for
    * (lazy) pedantic failures.
