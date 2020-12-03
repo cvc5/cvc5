@@ -2,7 +2,7 @@
 /*! \file record.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -53,7 +53,7 @@ struct CVC4_PUBLIC RecordUpdateHashFunction {
 
 std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) CVC4_PUBLIC;
 
-typedef std::vector<std::pair<std::string, TypeNode>> Record;
+using Record = std::vector<std::pair<std::string, TypeNode>>;
 
 }/* CVC4 namespace */
 

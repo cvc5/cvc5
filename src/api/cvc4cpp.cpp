@@ -3075,7 +3075,7 @@ const static std::
             {ROUND_NEAREST_TIES_TO_EVEN,
              CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
             {ROUND_TOWARD_POSITIVE, CVC4::RoundingMode::ROUND_TOWARD_POSITIVE},
-            {ROUND_TOWARD_NEGATIVE, CVC4::RoundingMode::ROUND_TOWARD_POSITIVE},
+            {ROUND_TOWARD_NEGATIVE, CVC4::RoundingMode::ROUND_TOWARD_NEGATIVE},
             {ROUND_TOWARD_ZERO, CVC4::RoundingMode::ROUND_TOWARD_ZERO},
             {ROUND_NEAREST_TIES_TO_AWAY,
              CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},

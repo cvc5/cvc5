@@ -346,7 +346,7 @@ class SymbolTable::Implementation {
         d_typeMap(&d_context),
         d_overload_trie(&d_context)
   {
-    // keep a global push, to be able to clear definitions not at level zero
+    // use an outermost push, to be able to clear definitions not at level zero
     d_context.push();
   }
 
