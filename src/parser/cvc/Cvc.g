@@ -797,24 +797,24 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DBG_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Debug.on(s); Trace.on(s); }
-    | { Message() << "Please specify what to debug." << std::endl; }
+    | { CVC4Message() << "Please specify what to debug." << std::endl; }
     )
 
   | TRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.on(s); }
-    | { Message() << "Please specify something to trace." << std::endl; }
+    | { CVC4Message() << "Please specify something to trace." << std::endl; }
     )
   | UNTRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.off(s); }
-    | { Message() << "Please specify something to untrace." << std::endl; }
+    | { CVC4Message() << "Please specify something to untrace." << std::endl; }
     )
 
   | HELP_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
-      { Message() << "No help available for `" << s << "'." << std::endl; }
-  |   { Message() << "Please use --help at the command line for help."
+      { CVC4Message() << "No help available for `" << s << "'." << std::endl; }
+  |   { CVC4Message() << "Please use --help at the command line for help."
                 << std::endl; }
             )
 

@@ -2,7 +2,7 @@
 /*! \file type_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Martin Brain, Andrew Reynolds
+ **   Tim King, Martin Brain, Aina Niemetz
  ** Copyright (c) 2009-2015  New York University and The University of Iowa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS

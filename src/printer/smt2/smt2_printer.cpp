@@ -30,7 +30,6 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
-#include "printer/dagification_visitor.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
