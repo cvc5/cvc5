@@ -56,6 +56,7 @@ add_dependencies(pycvc4 gen-pycvc4-kinds)
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 configure_file(setup.py.in setup.py)
+configure_file(__init__.py __init__.py COPYONLY)
 
 if (SKBUILD)
   # if building a wheel with scikit-build, then just put the files in the right place
