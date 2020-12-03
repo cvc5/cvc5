@@ -2,7 +2,7 @@
 /*! \file sygus_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ **   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.

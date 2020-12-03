@@ -2,7 +2,7 @@
 /*! \file grammar_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Aina Niemetz, Andrew Reynolds
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -16,7 +16,11 @@
 
 #include "test_api.h"
 
-using namespace CVC4::api;
+namespace CVC4 {
+
+using namespace api;
+
+namespace test {
 
 class TestApiGrammarBlack : public TestApi
 {
@@ -115,3 +119,5 @@ TEST_F(TestApiGrammarBlack, addAnyVariable)
 
   ASSERT_THROW(g1.addAnyVariable(start), CVC4ApiException);
 }
+}  // namespace test
+}  // namespace CVC4

@@ -18,7 +18,6 @@
 
 #include <antlr3.h>
 
-#include "expr/expr_manager.h"
 #include "parser/antlr_input.h"
 #include "parser/parser_exception.h"
 #include "parser/cvc/CvcLexer.h"

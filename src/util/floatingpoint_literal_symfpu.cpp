@@ -2,7 +2,7 @@
 /*! \file floatingpoint_literal_symfpu.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Aina Niemetz
+ **   Martin Brain, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
