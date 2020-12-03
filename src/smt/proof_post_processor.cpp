@@ -675,7 +675,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       chainConclusion = eliminateCrowdingLits(
           chainConclusionLits, conclusionLits, children, args, cdp);
-      // update vector of lits. Note that the set is no longer used, so we don't need to update it
+      // update vector of lits. Note that the set is no longer used, so we don't
+      // need to update it
       chainConclusionLits.clear();
       chainConclusionLits.insert(chainConclusionLits.end(),
                                  chainConclusion.begin(),
