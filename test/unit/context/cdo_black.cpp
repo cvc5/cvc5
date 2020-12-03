@@ -20,11 +20,13 @@
 #include "base/check.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
-#include "context/context.h"
-#include "test.h"
+#include "test_context.h"
 
-using namespace CVC4;
-using namespace CVC4::context;
+namespace CVC4 {
+
+using namespace context;
+
+namespace test {
 
 class TestCDOBlack : public TestInternal
 {
@@ -50,3 +52,6 @@ TEST_F(TestCDOBlack, cdo)
   EXPECT_EQ(d_context->getLevel(), 0);
   EXPECT_EQ(a1, 5);
 }
+
+}  // namespace test
+}  // namespace CVC4
