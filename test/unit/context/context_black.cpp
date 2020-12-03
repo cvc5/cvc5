@@ -100,7 +100,7 @@ TEST_F(TestContextBlack, dtor)
   // Destruction of ContextObj was broken in revision 324 (bug #45) when
   // at a higher context level with an intervening modification.
   // (The following caused a "pure virtual method called" error.)
-  CDO<int> i(d_context);
+  CDO<int> i(d_context.get());
   d_context->push();
   i = 5;
 }
@@ -111,21 +111,21 @@ TEST_F(TestContextBlack, pre_post_notify)
   // done correctly.  For that, we have to use a special ContextObj,
   // since that's the only thing that runs between pre- and post-.
 
-  MyContextNotifyObj a(d_context, true), b(d_context, false);
+  MyContextNotifyObj a(d_context.get(), true), b(d_context.get(), false);
 
   try
   {
-    MyContextNotifyObj c(d_context, true), d(d_context, false);
+    MyContextNotifyObj c(d_context.get(), true), d(d_context.get(), false);
 
     EXPECT_EQ(a.d_ncalls, 0);
     EXPECT_EQ(b.d_ncalls, 0);
     EXPECT_EQ(c.d_ncalls, 0);
     EXPECT_EQ(d.d_ncalls, 0);
 
-    MyContextObj w(d_context, a);
-    MyContextObj x(d_context, b);
-    MyContextObj y(d_context, c);
-    MyContextObj z(d_context, d);
+    MyContextObj w(d_context.get(), a);
+    MyContextObj x(d_context.get(), b);
+    MyContextObj y(d_context.get(), c);
+    MyContextObj z(d_context.get(), d);
 
     d_context->push();
 
@@ -194,9 +194,7 @@ TEST_F(TestContextBlack, pre_post_notify)
   // we do this (together with the { } block above) to get full code
   // coverage of destruction paths; a and b haven't been destructed
   // yet, here.
-  delete d_context;
-
-  d_context = NULL;
+  d_context.reset(nullptr);
 }
 
 TEST_F(TestContextBlack, top_scope_context_obj)
@@ -206,12 +204,12 @@ TEST_F(TestContextBlack, top_scope_context_obj)
   // to ctor is "true"), doesn't get updated if you immediately call
   // makeCurrent().
 
-  MyContextNotifyObj n(d_context, true);
+  MyContextNotifyObj n(d_context.get(), true);
 
   d_context->push();
 
-  MyContextObj x(true, d_context, n);
-  MyContextObj y(false, d_context, n);
+  MyContextObj x(true, d_context.get(), n);
+  MyContextObj y(false, d_context.get(), n);
 
   EXPECT_EQ(x.d_nsaves, 0);
   EXPECT_EQ(y.d_nsaves, 0);
