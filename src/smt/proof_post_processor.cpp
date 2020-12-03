@@ -345,17 +345,20 @@ Node ProofPostprocessCallback::processCrowdingLits(
     }
     else
     {
-      for (unsigned i = 1, size = eliminators.size(); i < size; ++i)
+      nextGuardedElimPos = children.size();
+      for (unsigned i = 0, size = eliminators.size(); i < size; ++i)
       {
-        // the next chain resolution is lastClause + children[lastElim ...
+        // the next chain resolution is lastClause + children[lastElim + 1 ...
         // nextGuardedElim - 1], where nextGuardedElim is the largest element of
         // eliminators bigger than lastElim and smaller than the next crowded
         // literal's last inclusion
         if (eliminators[i] > lastInclusion[nextCrowdedInclusionPos].second)
         {
           nextGuardedElimPos = eliminators[i];
+          break;
         }
       }
+      Assert(nextGuardedElimPos < children.size());
     }
     Trace("smt-proof-pp-debug2")
         << "nextGuardedElimPos: " << nextGuardedElimPos << "\n";
