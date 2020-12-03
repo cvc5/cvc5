@@ -613,6 +613,8 @@ set(regress_0_tests
   regress0/logops.04.cvc
   regress0/logops.05.cvc
   regress0/model-core.smt2
+  regress0/models-print-1.smt2
+  regress0/models-print-2.smt2
   regress0/named-expr-use.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
