@@ -11,4 +11,4 @@
 #-----------------------------------------------------------------------------#
 # Add unit tests
 
-cvc4_add_cxx_unit_test_black(map_util_black base)
+cvc4_add_unit_test_black(map_util_black base)

@@ -1,29 +1,24 @@
 /*********************                                                        */
-/*! \file record.cpp
+/*! \file test.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A class representing a record definition
- **
- ** A class representing a record definition.
+ ** \brief Common header for API unit test.
  **/
 
-#include "expr/record.h"
+#ifndef CVC4__TEST__UNIT__TEST_H
+#define CVC4__TEST__UNIT__TEST_H
 
-#include "base/check.h"
-#include "base/output.h"
+#include "gtest/gtest.h"
 
+class TestInternal : public ::testing::Test
+{
+};
 
-namespace CVC4 {
-
-std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) {
-  return out << "[" << t.getField() << "]";
-}
-
-}/* CVC4 namespace */
+#endif
