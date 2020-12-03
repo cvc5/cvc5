@@ -16,7 +16,11 @@
 
 #include "test_api.h"
 
-using namespace CVC4::api;
+namespace CVC4 {
+
+using namespace api;
+
+namespace test {
 
 class TestApiGrammarBlack : public TestApi
 {
@@ -115,3 +119,5 @@ TEST_F(TestApiGrammarBlack, addAnyVariable)
 
   ASSERT_THROW(g1.addAnyVariable(start), CVC4ApiException);
 }
+}  // namespace test
+}  // namespace CVC4
