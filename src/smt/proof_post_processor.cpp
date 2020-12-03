@@ -130,7 +130,7 @@ bool ProofPostprocessCallback::updateInternal(Node res,
   return update(res, id, children, args, cdp, continueUpdate);
 }
 
-Node ProofPostprocessCallback::processCrowdingLits(
+Node ProofPostprocessCallback::eliminateCrowdingLits(
     const std::vector<Node>& clauseLits,
     const std::vector<Node>& targetClauseLits,
     const std::vector<Node>& children,
@@ -179,7 +179,7 @@ Node ProofPostprocessCallback::processCrowdingLits(
       Assert(j > 0);
       lastInclusion.push_back(std::make_pair(crowdLit, j - 1));
       Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
-      Trace("smt-proof-pp-debug2") << "last inc " << j-1 << "\n";
+      Trace("smt-proof-pp-debug2") << "last inc " << j - 1 << "\n";
       // get elimination position, starting from the following link as the last
       // inclusion one. The reslut is the last resolution link that eliminates
       // the crowding literal. A literal l is eliminated by a link if it
@@ -238,13 +238,38 @@ Node ProofPostprocessCallback::processCrowdingLits(
     }
     Trace("smt-proof-pp-debug") << "\n";
   }
-  // BAD FROM HERE ON
-
-  // the next chain resolution is lastClause + children[lastElim ...
-  // nextGuardedElim - 1], where nextGuardedElim is the largest element of
-  // eliminators bigger than lastElim and smaller than the next crowded
-  // literal's last inclusion
-
+  // We now start to break the chain, one step at a time. Naively this breaking
+  // down would be one resolution/factoring to each crowding literal, but we can
+  // merge some of the cases. Effectively we do the following:
+  //
+  //
+  // lastClause   children[start] ... children[end]
+  // ---------------------------------------------- CHAIN_RES
+  //         C
+  //    ----------- FACTORING
+  //    lastClause'                children[start'] ... children[end']
+  //    -------------------------------------------------------------- CHAIN_RES
+  //                                    ...
+  //
+  // where
+  //   lastClause_0 = children[0]
+  //   start_0 = 1
+  //   end_0 = eliminators[0] - 1
+  //   start_i+1 = nextGuardedElimPos - 1
+  //
+  // The important point is how end_i+1 is computed. It is based on what we cann
+  // the "nextGuardedElimPos", i.e., the next elimination position that requires
+  // removal of duplicates. The intuition is that a factoring step may eliminate
+  // the duplicates of crowding literals l1 and l2. If the last inclusion of l2
+  // is before the elimination of l1, then we can go ahead and also perform the
+  // elimination of l2 without another factoring. However if another literal l3
+  // has its last inclusion after the elimination of l2, then the elimination of
+  // l3 is the next guarded elimination.
+  //
+  // To do the above computation then we determine, after a resolution/factoring
+  // step, the first crowded literal to have its last inclusion after "end". The
+  // first elimination position to be bigger than the position of that crowded
+  // literal is the next guarded elimination position.
   unsigned lastElim = 0;
   Node lastClause = children[0];
   std::vector<Node> childrenRes;
@@ -253,28 +278,6 @@ Node ProofPostprocessCallback::processCrowdingLits(
   unsigned nextGuardedElimPos = eliminators[0];
   do
   {
-    // lastClause   children[lastElim + 1] ...
-    // children[eliminators[nextGuardedElimPos] - 1]
-    // ------------------------------------------------------------------------
-    // CHAIN_RES
-    //       C
-    //     ----- FACTORING
-    //      C'                children[lastElim + 1] ...
-    //      children[eliminators[nextGuardedElimPos] - 1]
-    //     --------------------------------------------------------------------------
-    //     CHAIN_RES
-    //                                    ...
-    //
-    // where after each CHAIN_RES the following computation happens:
-    // --> lastElim = nextGuardedElimPos[nextGuardedElimPos] - 1;
-    // nextGuardedElimPos = F(lastElim, lastInclusion)
-    //
-    // This continues until nextGuardedElimPos becomes children.size(), meaning
-    // the whole chain has been processed. The computation of nextGuardedElimPos
-    // is so that it's the largest element of eliminators bigger than lastElim
-    // and smaller than the next crowded literal's last inclusion. The next
-    // crowded literal is the element of lastInclusion with the bigger index
-    // that is smaller than the current nextGuardedElimPos.
     unsigned start = lastElim + 1;
     unsigned end = nextGuardedElimPos - 1;
     Trace("smt-proof-pp-debug2")
@@ -282,8 +285,9 @@ Node ProofPostprocessCallback::processCrowdingLits(
         << "\n\tend: " << end << "\n";
     childrenRes.push_back(lastClause);
     // note that the interval of insert is exclusive in the end, so we add 1
-    childrenRes.insert(
-        childrenRes.end(), children.begin() + start, children.begin() + end + 1);
+    childrenRes.insert(childrenRes.end(),
+                       children.begin() + start,
+                       children.begin() + end + 1);
     childrenResArgs.insert(childrenResArgs.end(),
                            args.begin() + (2 * start) - 1,
                            args.begin() + (2 * end) + 1);
@@ -294,7 +298,8 @@ Node ProofPostprocessCallback::processCrowdingLits(
                                                      childrenResArgs,
                                                      Node::null(),
                                                      "");
-    Trace("smt-proof-pp-debug2") << "resPlaceHorder: " << resPlaceHolder << "\n";
+    Trace("smt-proof-pp-debug2")
+        << "resPlaceHorder: " << resPlaceHolder << "\n";
     cdp->addStep(
         resPlaceHolder, PfRule::CHAIN_RESOLUTION, childrenRes, childrenResArgs);
     // I need to add factoring if end < children.size(). Otherwise, this is
@@ -348,10 +353,8 @@ Node ProofPostprocessCallback::processCrowdingLits(
       nextGuardedElimPos = children.size();
       for (unsigned i = 0, size = eliminators.size(); i < size; ++i)
       {
-        // the next chain resolution is lastClause + children[lastElim + 1 ...
-        // nextGuardedElim - 1], where nextGuardedElim is the largest element of
-        // eliminators bigger than lastElim and smaller than the next crowded
-        // literal's last inclusion
+        //  nextGuardedElimPos is the largest element of
+        // eliminators bigger the next crowded literal's last inclusion
         if (eliminators[i] > lastInclusion[nextCrowdedInclusionPos].second)
         {
           nextGuardedElimPos = eliminators[i];
@@ -670,7 +673,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // implicit multi-usage of premises in the resolution chain.
     if (chainConclusionLitsSet != conclusionLitsSet)
     {
-      chainConclusion = processCrowdingLits(
+      chainConclusion = eliminateCrowdingLits(
           chainConclusionLits, conclusionLits, children, args, cdp);
       // update vector of lits. Note that the set is no longer used, so we don't need to update it
       chainConclusionLits.clear();
