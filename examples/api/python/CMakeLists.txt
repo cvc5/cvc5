@@ -38,6 +38,7 @@ execute_process(COMMAND
                 OUTPUT_VARIABLE PYTHON_MODULE_PATH
                 OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+message("Got PYTHON_MODULE_PATH=${PYTHON_MODULE_PATH}")
 foreach(example ${EXAMPLES_API_PYTHON})
   set(example_test example/api/python/${example})
   add_test(
