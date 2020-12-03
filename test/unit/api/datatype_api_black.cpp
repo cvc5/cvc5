@@ -16,7 +16,11 @@
 
 #include "test_api.h"
 
-using namespace CVC4::api;
+namespace CVC4 {
+
+using namespace api;
+
+namespace test {
 
 class TestApiDatatypeBlack : public TestApi
 {
@@ -542,3 +546,5 @@ TEST_F(TestApiDatatypeBlack, datatypeSpecializedCons)
   // error to get the specialized constructor term for Int
   EXPECT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException);
 }
+}  // namespace test
+}  // namespace CVC4
