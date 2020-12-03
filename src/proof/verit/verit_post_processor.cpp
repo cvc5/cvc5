@@ -427,7 +427,12 @@ bool VeritProofPostprocessCallback::update(Node res,
                               {},
                               *cdp);
         }
-        return addVeritStep(res, VeritRule::RESOLUTION, d_nm->mkNode(kind::SEXPR,d_cl,Node::null()), children, {}, *cdp);
+        return addVeritStep(res,
+                            VeritRule::RESOLUTION,
+                            d_nm->mkNode(kind::SEXPR, d_cl, Node::null()),
+                            children,
+                            {},
+                            *cdp);
       }
 
       std::cout << "TEST2" << std::endl;
