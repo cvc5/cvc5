@@ -22,6 +22,9 @@
 #include "context/context.h"
 #include "test_context.h"
 
+namespace CVC4 {
+namespace test {
+
 using CVC4::context::CDHashMap;
 using CVC4::context::Context;
 
@@ -200,3 +203,5 @@ TEST_F(TestCDMapBlack, insert_at_context_level_zero)
 
   ASSERT_TRUE(elements_are(map, {{3, 4}, {23, 317}}));
 }
+}  // namespace test
+}  // namespace CVC4
