@@ -29,22 +29,6 @@ jobs:
         run: |
           choco install vcpython27 -f -y
 
-      # # Note: macOS comes with a libedit; it does not need to brew-installed
-      # - name: Install Packages (macOS)
-      #   if: runner.os == 'macOS'
-      #   run: |
-      #     brew install \
-      #       ccache \
-      #       cxxtest \
-      #       cln \
-      #       gmp \
-      #       pkgconfig \
-      #       flex
-      #     python3 -m pip install toml
-      #     python3 -m pip install setuptools
-      #     python3 -m pip install pexpect
-      #     echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
-
       - name: Build wheels
         run: |
           python -m cibuildwheel --output-dir wheelhouse

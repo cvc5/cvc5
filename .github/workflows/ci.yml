@@ -73,13 +73,7 @@ jobs:
     - name: Install Packages (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install \
-          ccache \
-          cxxtest \
-          cln \
-          gmp \
-          pkgconfig \
-          flex
+        .github/scripts/macos-dependency-installs.sh
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect

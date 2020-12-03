@@ -1,5 +1,5 @@
-#!/bin/bash
-# Install dependencies GitHub actions in the ubuntu flavor
+#!/bin/sh
+# Install dependencies GitHub actions in the ubuntu environment
 
 sudo apt-get update
 sudo apt-get install -y \
