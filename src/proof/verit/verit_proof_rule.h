@@ -133,7 +133,6 @@ enum class VeritRule : uint32_t
   SKO_EX,
   SKO_FORALL,
 
-
   /** Extended Rules */
   SYMM
 

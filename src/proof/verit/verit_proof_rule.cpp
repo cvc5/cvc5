@@ -20,7 +20,7 @@ namespace CVC4 {
 
 namespace proof {
 
-const char* veritRuletoString(VeritRule id) //TODO: RENAME veritRuleToString?
+const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
 {
   switch (id)
   {
@@ -119,7 +119,7 @@ const char* veritRuletoString(VeritRule id) //TODO: RENAME veritRuleToString?
     case VeritRule::QNT_SIMPLIFY: return "qnt_simplify";
     case VeritRule::SKO_EX: return "sko_ex";
     case VeritRule::SKO_FORALL: return "sko_forall";
-    //Extended
+    // Extended
     case VeritRule::SYMM: return "symm";
     default: return "?";
   }

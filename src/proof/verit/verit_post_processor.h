@@ -70,7 +70,9 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** Flag to indicate whether proof format should be extended */
   bool d_extended;
   /**
-   * This method adds a new step to the proof applying the VERIT_RULE. It adds the id of the VERIT_RULE as the first argument, the res node as the second and third argument.
+   * This method adds a new step to the proof applying the VERIT_RULE. It adds
+   * the id of the VERIT_RULE as the first argument, the res node as the second
+   * and third argument.
    *
    * @param res The expected result of the application,
    * @param rule The id of the veriT rule,
@@ -95,19 +97,19 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @param args The arguments of the application
    * @param cdp The proof to add to
    * @return True if the step could be added, or false if not.
-  */
+   */
   bool addVeritStep(Node res,
 		    VeritRule rule,
 		    Node conclusion,
 		    const std::vector<Node>& children,
 		    const std::vector<Node>& args,
 		    CDProof& cdp);
-  //TODO
+  // TODO
   bool addVeritStepOr(Node res,
-		      VeritRule rule,
-		      const std::vector<Node>& children,
-		      const std::vector<Node>& args,
-		      CDProof& cdp);
+                      VeritRule rule,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof& cdp);
 
   /**
    * This method adds a new step to the proof applying the veriT rule while
@@ -123,13 +125,12 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
   */
 
   bool addVeritStepFromOr(Node res,
-		            VeritRule rule,
-		            const std::vector<Node>& children,
-		            const std::vector<Node>& args,
-		            CDProof& cdp);
-  //TODO:Add comment
+                          VeritRule rule,
+                          const std::vector<Node>& children,
+                          const std::vector<Node>& args,
+                          CDProof& cdp);
+  // TODO:Add comment
   Node mkClNode(std::vector<Node> clauses);
-
 };
 
 /**
@@ -150,7 +151,7 @@ class VeritProofPostprocess
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Internal processing for a proof node*/
-  void processInternal(std::shared_ptr<ProofNode> pf, CDProof *cdp);
+  void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdp);
   /** Special processing for the first scope*/
   void processFirstScope(std::shared_ptr<ProofNode> pf, CDProof* cdp);
   /** Flag to indicate whether proof format should be extended */

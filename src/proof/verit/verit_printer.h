@@ -29,14 +29,16 @@ namespace CVC4 {
 
 namespace proof {
 
-
 /**
- * Prints an index for a step or an assume. E.g. if the current id is 1 in a subproof with prefix t3.t4 it returns the string t13.t4.t1. If the current step is an assumption it prints t3.t4.h1
+ * Prints an index for a step or an assume. E.g. if the current id is 1 in a
+ * subproof with prefix t3.t4 it returns the string t13.t4.t1. If the current
+ * step is an assumption it prints t3.t4.h1
  *
  * @param ids Nested ids of the current subproof,
  * @param i The id of the current step,
  * @param isAssump True, if the current step is an assumption,
- * @return A string consisting of the ids of the subproof followed by the current step printed either as assumption (h) or step (t).
+ * @return A string consisting of the ids of the subproof followed by the
+ * current step printed either as assumption (h) or step (t).
  */
 static std::string veritPrintName(std::vector<int> ids, int i, bool isAssump)
 {
@@ -80,8 +82,9 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
   // Ids of the childrens of this proof node that are used to print the premises
   std::vector<int> childIds;
 
-  //In case the rule is an anchor add anchor step before children are printed
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR_SUBPROOF)
+  // In case the rule is an anchor add anchor step before children are printed
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
+      == VeritRule::ANCHOR_SUBPROOF)
   {
     out << "(anchor :step " << veritPrintName(ids, i, false) << " :args (";
     for (int j = 3; j < pfn->getArguments().size(); j++)
@@ -95,8 +98,9 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
     h = 1;
   }
 
-  //In case the rule is an assume add assume
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ASSUME)
+  // In case the rule is an assume add assume
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
+      == VeritRule::ASSUME)
   {
     out << "(assume " << veritPrintName(ids, h, true) << " "
         << pfn->getArguments()[2] << ")" << std::endl;
@@ -110,16 +114,20 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
     std::vector<int> res = veritPrintInternal(out, child, ids, i, h);
     i = res[0];
     h = res[1];
-    if(static_cast<VeritRule>(std::stoul(child->getArguments()[0].toString())) == VeritRule::ASSUME){
+    if (static_cast<VeritRule>(std::stoul(child->getArguments()[0].toString()))
+        == VeritRule::ASSUME)
+    {
       childIds.push_back(h);
     }
-    else{
+    else
+    {
       childIds.push_back(i);
     }
   }
 
-  //In case the rule is an anchor add subproof step after children are printed
-  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())) == VeritRule::ANCHOR_SUBPROOF)
+  // In case the rule is an anchor add subproof step after children are printed
+  if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
+      == VeritRule::ANCHOR_SUBPROOF)
   {
     auto last = ids.back();
     ids.pop_back();
@@ -127,40 +135,50 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
         << pfn->getArguments()[2] << " :rule "
         << veritRuletoString(static_cast<VeritRule>(
                std::stoul(pfn->getArguments()[0].toString())))
-	<< " :discharge (";
+        << " :discharge (";
     ids.push_back(last);
-    for(int j=current_h; j<=h;j++){//TODO: Does this also work with nested anchors?
-      out << veritPrintName(ids,j-1,true);
-      if(j!=h){out << " ";}
+    for (int j = current_h; j <= h; j++)
+    {  // TODO: Does this also work with nested anchors?
+      out << veritPrintName(ids, j - 1, true);
+      if (j != h)
+      {
+        out << " ";
+      }
     }
     ids.pop_back();
     // TODO: Print premises
     out << "))\n";
     i = current_i;
     h = current_h;
-    return {i+1, h};
+    return {i + 1, h};
   }
 
 
   //Print current step
-  if (pfn->getArguments().size() >= 3) //TODO: Should this be checked also above
+  if (pfn->getArguments().size()
+      >= 3)  // TODO: Should this be checked also above
   {
     out << "(step " << veritPrintName(ids, i, false) << " ";
 
-    try{
-      if(pfn->getArguments()[2][1] == Node::null()){
+    try
+    {
+      if (pfn->getArguments()[2][1] == Node::null())
+      {
         out << "(cl)";
       }
-      else{
+      else
+      {
         out << pfn->getArguments()[2];
       }
     }
-    catch(Exception e){
+    catch (Exception e)
+    {
       out << pfn->getArguments()[2];
     }
 
     out << " :rule " << veritRuletoString(static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())));
-    if (pfn->getArguments().size() > 3){
+    if (pfn->getArguments().size() > 3)
+    {
       out << " :args";
       for (int i = 3; i < pfn->getArguments().size(); i++)
       {
@@ -172,37 +190,44 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
       out << " :premises (";
       for (int j = 0; j < childIds.size(); j++)
       {
-	if (static_cast<VeritRule>(std::stoul(pfn->getChildren()[j]->getArguments()[0].toString())) == VeritRule::ASSUME){
-          out << veritPrintName(ids, childIds[j]-1, true);
-	}
-        else{
-          out << veritPrintName(ids, childIds[j]-1, false);
-	}
-        if(j!=childIds.size()-1) {out<< " ";}
+        if (static_cast<VeritRule>(
+                std::stoul(pfn->getChildren()[j]->getArguments()[0].toString()))
+            == VeritRule::ASSUME)
+        {
+          out << veritPrintName(ids, childIds[j] - 1, true);
+        }
+        else
+        {
+          out << veritPrintName(ids, childIds[j] - 1, false);
+        }
+        if (j != childIds.size() - 1)
+        {
+          out << " ";
+        }
       }
       out << ")";
     }
     out << ")\n";
   }
-  else{
-     out << "Not translated yet\n";//TODO: Give out undefined
+  else
+  {
+    out << "Not translated yet\n";  // TODO: Give out undefined
   }
 
   return {i + 1, h};
 }
 
-
 /**
-   * This method updates the proof rule application by splitting on the given
-   * rule and translating it into a proof node in terms of the veriT rules.
-   *
-   * @param res The expected result of the application,
-   * @param rule The id of the veriT rule,
-   * @param children The children of the application,
-   * @param args The arguments of the application,
-   * @param cdp The proof to add to,
-   * @return True if the step could be added, or null if not.
-   */
+ * This method updates the proof rule application by splitting on the given
+ * rule and translating it into a proof node in terms of the veriT rules.
+ *
+ * @param res The expected result of the application,
+ * @param rule The id of the veriT rule,
+ * @param children The children of the application,
+ * @param args The arguments of the application,
+ * @param cdp The proof to add to,
+ * @return True if the step could be added, or null if not.
+ */
 static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
   out << "\n";
@@ -210,7 +235,7 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   std::vector<int> ids;
   veritPrintInternal(out, pfn, ids, 1, 1);
   out << "\n";
-  //veritProofChecker(pfn);
+  // veritProofChecker(pfn);
   out << "\n";
   out << "\n";
 }
