@@ -97,7 +97,7 @@ class LetBinding
    */
   void letify(Node n, std::vector<Node>& letList);
   /**
-   * Same as above, without a node to letify.
+   * Same as above, without a node to letify, and does not push a scope.
    */
   void letify(std::vector<Node>& letList);
   /** Push scope */

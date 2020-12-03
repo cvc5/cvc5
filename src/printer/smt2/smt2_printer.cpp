@@ -40,7 +40,6 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
 

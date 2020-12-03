@@ -686,7 +686,7 @@ options { backtrack = true; }
 mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   api::Term f;
-  SExpr sexpr;
+  api::Term sexpr;
   std::string id;
   api::Sort t;
   std::vector<CVC4::api::DatatypeDecl> dts;
@@ -715,14 +715,14 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
     ( symbolicExpr[sexpr]
       { if(s == "logic") {
-          cmd->reset(new SetBenchmarkLogicCommand(sexpr.getValue()));
+          cmd->reset(new SetBenchmarkLogicCommand(sexprToString(sexpr)));
         } else {
-          cmd->reset(new SetOptionCommand(s, sexpr));
+          cmd->reset(new SetOptionCommand(s, sexprToString(sexpr)));
         }
       }
-    | TRUE_TOK { cmd->reset(new SetOptionCommand(s, SExpr("true"))); }
-    | FALSE_TOK { cmd->reset(new SetOptionCommand(s, SExpr("false"))); }
-    | { cmd->reset(new SetOptionCommand(s, SExpr("true"))); }
+    | TRUE_TOK { cmd->reset(new SetOptionCommand(s, "true")); }
+    | FALSE_TOK { cmd->reset(new SetOptionCommand(s, "false")); }
+    | { cmd->reset(new SetOptionCommand(s, "true")); }
     )
 
     /* push / pop */
@@ -832,8 +832,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("CALL command"); }
 
   | ECHO_TOK
-    ( simpleSymbolicExpr[sexpr]
-      { cmd->reset(new EchoCommand(sexpr.getValue())); }
+    ( simpleSymbolicExpr[s]
+      { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
 
@@ -939,34 +939,31 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | toplevelDeclaration[cmd]
   ;
 
-simpleSymbolicExpr[CVC4::SExpr& sexpr]
-@declarations {
-  std::string s;
-  CVC4::Rational r;
-}
+simpleSymbolicExpr[std::string& s]
   : INTEGER_LITERAL
-    { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
+    { s = AntlrInput::tokenText($INTEGER_LITERAL); }
   | MINUS_TOK INTEGER_LITERAL
-    { sexpr = SExpr(-Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
+    { s = std::to_string(MINUS_TOK) + AntlrInput::tokenText($INTEGER_LITERAL); }
   | DECIMAL_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+    { s = AntlrInput::tokenText($DECIMAL_LITERAL); }
   | HEX_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($HEX_LITERAL)); }
+    { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($BINARY_LITERAL)); }
+    { s = AntlrInput::tokenText($BINARY_LITERAL); }
   | str[s]
-    { sexpr = SExpr(s); }
   | IDENTIFIER
-    { sexpr = SExpr(AntlrInput::tokenText($IDENTIFIER)); }
+    { s = AntlrInput::tokenText($IDENTIFIER); }
   ;
 
-symbolicExpr[CVC4::SExpr& sexpr]
+symbolicExpr[CVC4::api::Term& sexpr]
 @declarations {
-  std::vector<SExpr> children;
+  std::string s;
+  std::vector<api::Term> children;
 }
-  : simpleSymbolicExpr[sexpr]
+  : simpleSymbolicExpr[s]
+    { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
   | LPAREN (symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN
-    { sexpr = SExpr(children); }
+    { sexpr = SOLVER->mkTerm(CVC4::api::SEXPR, children); }
   ;
 
 /**

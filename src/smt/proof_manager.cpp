@@ -24,6 +24,7 @@
 #include "proof/verit/verit_post_processor.h"
 #include "proof/verit/verit_printer.h"
 #include "smt/assertions.h"
+#include "smt/defined_function.h"
 
 namespace CVC4 {
 namespace smt {
@@ -64,7 +65,9 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
+void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
+                              Assertions& as,
+                              DefinedFunctionMap& df)
 {
   // Note this assumes that setFinalProof is only called once per unsat
   // response. This method would need to cache its result otherwise.
@@ -79,7 +82,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   }
 
   std::vector<Node> assertions;
-  getAssertions(as, assertions);
+  getAssertions(as, df, assertions);
 
   if (Trace.isOn("smt-proof"))
   {
@@ -115,10 +118,12 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
+void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
+                           Assertions& as,
+                           DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
   // leanPrinter(out, fp.get());
@@ -137,7 +142,7 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
     std::vector<Node> assertions;
-    getAssertions(as, assertions);
+    getAssertions(as, df, assertions);
     // NOTE: update permanent to fp, which could be reused in incremental mode
     proof::LfscProofPostprocess lpp(d_pnm.get());
     lpp.process(fp);
@@ -157,10 +162,12 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   }
 }
 
-void PfManager::checkProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
+void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
+                           Assertions& as,
+                           DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   Trace("smt-proof-debug") << "PfManager::checkProof: returned " << *fp.get()
                            << std::endl;
 }
@@ -180,14 +187,16 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 }
 
 std::shared_ptr<ProofNode> PfManager::getFinalProof(
-    std::shared_ptr<ProofNode> pfn, Assertions& as)
+    std::shared_ptr<ProofNode> pfn, Assertions& as, DefinedFunctionMap& df)
 {
-  setFinalProof(pfn, as);
+  setFinalProof(pfn, as, df);
   Assert(d_finalProof);
   return d_finalProof;
 }
 
-void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
+void PfManager::getAssertions(Assertions& as,
+                              DefinedFunctionMap& df,
+                              std::vector<Node>& assertions)
 {
   context::CDList<Node>* al = as.getAssertionList();
   Assert(al != nullptr);
@@ -195,6 +204,20 @@ void PfManager::getAssertions(Assertions& as, std::vector<Node>& assertions)
        ++i)
   {
     assertions.push_back(*i);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  for (const std::pair<Node, smt::DefinedFunction>& dfn : df)
+  {
+    Node def = dfn.second.getFormula();
+    const std::vector<Node>& formals = dfn.second.getFormals();
+    if (!formals.empty())
+    {
+      Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, formals);
+      def = nm->mkNode(kind::LAMBDA, bvl, def);
+    }
+    // assume the (possibly higher order) equality
+    Node eq = dfn.first.eqNode(def);
+    assertions.push_back(eq);
   }
 }
 

@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/proof_node.h"
+#include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_term_process.h"
 
 namespace CVC4 {
@@ -111,15 +112,13 @@ class LfscPrinter
    */
   void printInternal(std::ostream& out,
                      Node n,
-                     const std::map<Node, uint32_t>& letMap);
+                     LetBinding& lbind,
+                     bool letTop = true);
   /**
-   * print let list, prints definitions of letList on out in order based on the
-   * identifiers in letMap, and closing parentheses on cparen.
+   * print let list, prints definitions of lbind on out in order, and closing
+   * parentheses on cparen.
    */
-  void printLetList(std::ostream& out,
-                    std::ostream& cparen,
-                    const std::vector<Node>& letList,
-                    std::map<Node, uint32_t>& letMap);
+  void printLetList(std::ostream& out, std::ostream& cparen, LetBinding& lbind);
   /**
    * Print type node to stream in the expected format of LFSC.
    */
@@ -172,14 +171,14 @@ class LfscPrinter
    */
   void printProofLetify(std::ostream& out,
                         const ProofNode* pn,
-                        std::map<Node, uint32_t>& letMap,
+                        LetBinding& lbind,
                         std::map<Node, uint32_t>& passumeMap);
   /**
    * Print proof internal, after all mappings have been computed.
    */
   void printProofInternal(std::ostream& out,
                           const ProofNode* pn,
-                          std::map<Node, uint32_t>& letMap,
+                          LetBinding& lbind,
                           std::map<const ProofNode*, uint32_t>& pletMap,
                           std::map<Node, uint32_t>& passumeMap);
   /**

@@ -44,6 +44,7 @@ const char* toString(PfRule id)
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
+    case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
@@ -164,6 +165,7 @@ const char* toString(PfRule id)
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
+    case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
     case PfRule::ARITH_NL_CAD_RECURSIVE:
       return "ARITH_NL_CAD_RECURSIVE";
