@@ -1403,8 +1403,13 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   {
     if (trn.isVar())
     {
-      if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DeclSortAndFun || options::modelUninterpPrint() == options::ModelUninterpPrintMode::DeclFun) {
-        out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")" << endl;
+      if (options::modelUninterpPrint()
+              == options::ModelUninterpPrintMode::DeclSortAndFun
+          || options::modelUninterpPrint()
+                 == options::ModelUninterpPrintMode::DeclFun)
+      {
+        out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
+            << endl;
       }
     }
     else
