@@ -18,9 +18,10 @@ jobs:
         with:
           python-version: '3.7'
 
-      - name: Install cibuildwheel
+      - name: Install cibuildwheel and Python dependencies
         run: |
           python -m pip install cibuildwheel==1.7.0
+          python -m pip install scikit-build Cython ninja toml pytest
 
       - name: Install Visual C++ for Python 2.7
         if: runner.os == 'Windows'
