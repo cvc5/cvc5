@@ -77,7 +77,7 @@ else()
     set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
   endif()
 
-  TODO: fix the installation option and use setuptools
+  # TODO: fix the installation option and use setuptools
   message("Python bindings install command: ${INSTALL_CMD}")
   install(CODE "execute_process(COMMAND ${INSTALL_CMD})"  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
 endif()
