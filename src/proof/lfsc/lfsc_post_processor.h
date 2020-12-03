@@ -58,7 +58,6 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   LfscTermProcessCallback d_lcb;
   /** The term processor */
   TermProcessor d_tproc;
-  
 };
 
 /**
