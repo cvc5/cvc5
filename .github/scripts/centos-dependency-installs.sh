@@ -13,5 +13,6 @@ yum install -y \
     gmp-devel \
     libedit-devel \
     gtest-devel \
-    flex-devel
+    flex-devel \
+    java-1.8.0-openjdk
 
