@@ -71,9 +71,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       Node cur = children[0];
       for (size_t i = 1, size = children.size(); i < size; i++)
       {
-        std::vector<Node> newChildren;
-        newChildren.push_back(cur);
-        newChildren.push_back(children[i]);
+        std::vector<Node> newChildren{cur, children[i]};
 
         std::vector<Node> newArgs;
 
