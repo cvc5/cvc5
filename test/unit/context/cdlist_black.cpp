@@ -2,7 +2,7 @@
 /*! \file cdlist_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andres Noetzli
+ **   Aina Niemetz, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -25,8 +25,11 @@
 #include "memory.h"
 #include "test.h"
 
-using namespace CVC4::context;
-using namespace CVC4;
+namespace CVC4 {
+
+using namespace context;
+
+namespace test {
 
 struct DtorSensitiveObject
 {
@@ -165,3 +168,5 @@ TEST_F(TestCDListBlack, pop_below_level_created)
   d_context->popto(0);
   list.push_back(42);
 }
+}  // namespace test
+}  // namespace CVC4
