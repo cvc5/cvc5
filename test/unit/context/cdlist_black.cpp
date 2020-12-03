@@ -21,9 +21,8 @@
 
 #include "base/exception.h"
 #include "context/cdlist.h"
-#include "context/context.h"
 #include "memory.h"
-#include "test.h"
+#include "test_context.h"
 
 namespace CVC4 {
 
@@ -38,12 +37,9 @@ struct DtorSensitiveObject
   ~DtorSensitiveObject() { d_dtorCalled = true; }
 };
 
-class TestCDListBlack : public TestInternal
+class TestCDListBlack : public TestContext
 {
  protected:
-  void SetUp() override { d_context = new Context(); }
-  void TearDown() override { delete d_context; }
-
   void list_test(int n)
   {
     list_test(n, true);
@@ -52,7 +48,7 @@ class TestCDListBlack : public TestInternal
 
   void list_test(int32_t n, bool callDestructor)
   {
-    CDList<int32_t> list(d_context, callDestructor);
+    CDList<int32_t> list(d_context.get(), callDestructor);
 
     ASSERT_TRUE(list.empty());
     for (int32_t i = 0; i < n; ++i)
@@ -75,8 +71,6 @@ class TestCDListBlack : public TestInternal
       EXPECT_EQ(list[i], i);
     }
   }
-
-  Context* d_context;
 };
 
 TEST_F(TestCDListBlack, CDList10) { list_test(10); }
@@ -99,8 +93,8 @@ TEST_F(TestCDListBlack, destructor_called)
   bool shouldAlsoRemainFalse = false;
   bool aThirdFalse = false;
 
-  CDList<DtorSensitiveObject> listT(d_context, true);
-  CDList<DtorSensitiveObject> listF(d_context, false);
+  CDList<DtorSensitiveObject> listT(d_context.get(), true);
+  CDList<DtorSensitiveObject> listF(d_context.get(), false);
 
   DtorSensitiveObject shouldRemainFalseDSO(shouldRemainFalse);
   DtorSensitiveObject shouldFlipToTrueDSO(shouldFlipToTrue);
@@ -137,7 +131,7 @@ TEST_F(TestCDListBlack, destructor_called)
 
 TEST_F(TestCDListBlack, empty_iterator)
 {
-  CDList<int>* list = new (true) CDList<int>(d_context);
+  CDList<int>* list = new (true) CDList<int>(d_context.get());
   EXPECT_EQ(list->begin(), list->end());
   list->deleteSelf();
 }
@@ -145,7 +139,7 @@ TEST_F(TestCDListBlack, empty_iterator)
 TEST_F(TestCDListBlack, out_of_memory)
 {
 #ifndef CVC4_MEMORY_LIMITING_DISABLED
-  CDList<uint32_t> list(d_context);
+  CDList<uint32_t> list(d_context.get());
   test::WithLimitedMemory wlm(1);
 
   ASSERT_THROW(
@@ -164,7 +158,7 @@ TEST_F(TestCDListBlack, out_of_memory)
 TEST_F(TestCDListBlack, pop_below_level_created)
 {
   d_context->push();
-  CDList<int32_t> list(d_context);
+  CDList<int32_t> list(d_context.get());
   d_context->popto(0);
   list.push_back(42);
 }
