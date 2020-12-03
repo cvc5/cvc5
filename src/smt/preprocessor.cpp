@@ -2,7 +2,7 @@
 /*! \file preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -159,6 +159,7 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
 {
   Assert(pppg != nullptr);
   d_pnm = pppg->getManager();
+  d_exDefs.setProofNodeManager(d_pnm);
   d_propagator.setProof(d_pnm, d_context, pppg);
   d_rtf.setProofNodeManager(d_pnm);
 }
