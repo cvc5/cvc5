@@ -19,7 +19,6 @@
 #include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
-#include "context/context.h"
 #include "test_context.h"
 
 namespace CVC4 {
