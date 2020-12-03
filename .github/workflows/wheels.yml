@@ -8,66 +8,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # TODO: add windows-latest
-        os: [ubuntu-18.04, macos-latest]
+        os: [ubuntu-18.04, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Packages
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            ccache \
-            cxxtest \
-            libcln-dev \
-            libgmp-dev \
-            libgtest-dev \
-            libedit-dev \
-            flex \
-            libfl-dev \
-            flexc++
-          python3 -m pip install toml
-          python3 -m pip install setuptools
-          python3 -m pip install pexpect
-          cd /usr/src/googletest
-          sudo cmake .
-          sudo cmake --build . --target install
-          cd -
-          echo "/usr/lib/ccache" >> $GITHUB_PATH
-
-      # Note: macOS comes with a libedit; it does not need to brew-installed
-      - name: Install Packages (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install \
-            ccache \
-            cxxtest \
-            cln \
-            gmp \
-            pkgconfig \
-            flex
-          python3 -m pip install toml
-          python3 -m pip install setuptools
-          python3 -m pip install pexpect
-          echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
-
-      - name: Install Python Dependencies
-        if: matrix.python-bindings
-        run: |
-          python3 -m pip install pytest
-          python3 -m pytest --version
-          python3 -m pip install \
-            Cython==0.29.* --install-option="--no-cython-compile"
-          echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
-
-      - name: Setup Dependencies
-        # TODO: put this back -- need other steps for it to work
-        # if: steps.restore-deps.outputs.cache-hit != 'true'
-        run: |
-          ./contrib/get-antlr-3.4
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.7'
 
       - name: Install cibuildwheel
         run: |
@@ -78,15 +27,66 @@ jobs:
         run: |
           choco install vcpython27 -f -y
 
+      # - name: Install Packages
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y \
+      #       build-essential \
+      #       ccache \
+      #       cxxtest \
+      #       libcln-dev \
+      #       libgmp-dev \
+      #       libgtest-dev \
+      #       libedit-dev \
+      #       flex \
+      #       libfl-dev \
+      #       flexc++
+      #     python3 -m pip install toml
+      #     python3 -m pip install setuptools
+      #     python3 -m pip install pexpect
+      #     cd /usr/src/googletest
+      #     sudo cmake .
+      #     sudo cmake --build . --target install
+      #     cd -
+      #     echo "/usr/lib/ccache" >> $GITHUB_PATH
+
+      # # Note: macOS comes with a libedit; it does not need to brew-installed
+      # - name: Install Packages (macOS)
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     brew install \
+      #       ccache \
+      #       cxxtest \
+      #       cln \
+      #       gmp \
+      #       pkgconfig \
+      #       flex
+      #     python3 -m pip install toml
+      #     python3 -m pip install setuptools
+      #     python3 -m pip install pexpect
+      #     echo "/usr/local/opt/ccache/libexec" >> $GITHUB_PATH
+
+      # - name: Install Python Dependencies
+      #   if: matrix.python-bindings
+      #   run: |
+      #     python3 -m pip install pytest
+      #     python3 -m pytest --version
+      #     python3 -m pip install \
+      #       Cython==0.29.* --install-option="--no-cython-compile"
+      #     echo "$(python3 -m site --user-base)/bin" >> $GITHUB_PATH
+
+      # - name: Setup Dependencies
+      #   # TODO: put this back -- need other steps for it to work
+      #   # if: steps.restore-deps.outputs.cache-hit != 'true'
+      #   run: |
+      #     ./contrib/get-antlr-3.4
+
       - name: Build wheels
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 
-      - uses: actions/upload-artifact@v2
-        with:
-          path: ./wheelhouse/*.whl
+      # - uses: actions/upload-artifact@v2
+      #   with:
+      #     path: ./wheelhouse/*.whl
 
-      - name: Test wheels
-        run: |
-          python -m pip install ./wheelhouse/*.whl
-          python -c "import pycvc4"
