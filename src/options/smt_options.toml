@@ -111,7 +111,9 @@ header = "options/smt_options.h"
 [[option.mode.VERIT]]
   name       = "verit"
   help       = "Output veriT proof"
-
+[[option.mode.VERIT_EXTENDED]]
+  name       = "verit-extended"
+  help       = "Output veriT proof extended by additional proof rules"
 
 [[option]]
   name       = "modelCoresMode"

@@ -131,7 +131,12 @@ enum class VeritRule : uint32_t
   LET,
   QNT_SIMPLIFY,
   SKO_EX,
-  SKO_FORALL
+  SKO_FORALL,
+
+
+  /** Extended Rules */
+  SYMM
+
 };
 
 }  // namespace proof

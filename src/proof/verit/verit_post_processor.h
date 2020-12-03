@@ -40,7 +40,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
    */
-  void initializeUpdate();
+  void initializeUpdate(bool extended);
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     bool& continueUpdate) override;
   /**
@@ -67,6 +67,8 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
   NodeManager* d_nm;
   /** The variable cl **/
   Node d_cl;
+  /** Flag to indicate whether proof format should be extended */
+  bool d_extended;
   /**
    * This method adds a new step to the proof applying the VERIT_RULE. It adds the id of the VERIT_RULE as the first argument, the res node as the second and third argument.
    *
@@ -137,7 +139,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
 class VeritProofPostprocess
 {
  public:
-  VeritProofPostprocess(ProofNodeManager* pnm);
+  VeritProofPostprocess(ProofNodeManager* pnm, bool extended);
   ~VeritProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
@@ -151,6 +153,8 @@ class VeritProofPostprocess
   void processInternal(std::shared_ptr<ProofNode> pf, CDProof *cdp);
   /** Special processing for the first scope*/
   void processFirstScope(std::shared_ptr<ProofNode> pf, CDProof* cdp);
+  /** Flag to indicate whether proof format should be extended */
+  bool d_extended;
 };
 
 }  // namespace proof

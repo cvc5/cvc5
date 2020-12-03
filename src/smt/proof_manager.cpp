@@ -131,7 +131,13 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn, Assertions& as)
   }
   if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
-    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get()));
+    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get(),false));
+    d_vpfpp->process(fp);
+    proof::veritPrinter(out, fp);
+  }
+  if (options::proofFormatMode() == options::ProofFormatMode::VERIT_EXTENDED)
+  {
+    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get(),true));
     d_vpfpp->process(fp);
     proof::veritPrinter(out, fp);
   }

@@ -209,6 +209,7 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   out << "\n";
   std::vector<int> ids;
   veritPrintInternal(out, pfn, ids, 1, 1);
+  out << "\n";
   //veritProofChecker(pfn);
   out << "\n";
   out << "\n";
