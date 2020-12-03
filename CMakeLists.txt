@@ -587,7 +587,7 @@ add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
-  add_subdirectory(src/api/python)
+  add_subdirectory(src/api/pycvc4)
 endif()
 
 if(BUILD_BINDINGS_JAVA)
