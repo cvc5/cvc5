@@ -86,7 +86,7 @@ TEST_F(TestMapBlack, constant_map)
   }
   EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
   EXPECT_EQ(FindOrDie(map, "other"), "entry");
-  // Cannot do death tests for FindOrDie.
+  ASSERT_DEATH(FindOrDie(map, "asdf"), "The map does not contain the key.");
 }
 
 TEST_F(TestMapBlack, unordered_map)
@@ -118,7 +118,7 @@ TEST_F(TestMapBlack, const_unordered_map)
   }
   EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
   EXPECT_EQ(FindOrDie(map, "other"), "entry");
-  // Cannot do death tests for FindOrDie.
+  ASSERT_DEATH(FindOrDie(map, "asdf"), "The map does not contain the key.");
 }
 
 TEST_F(TestMapBlack, set)
