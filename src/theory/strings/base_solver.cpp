@@ -57,12 +57,11 @@ void BaseSolver::checkInit()
     if (!tn.isRegExp())
     {
       Node emps;
-      std::map<Kind, TermIndex>* tti = nullptr;
+      std::map<Kind, TermIndex>& tti = d_termIndex[tn];
       if (tn.isStringLike())
       {
         d_stringsEqc.push_back(eqc);
         emps = Word::mkEmptyWord(tn);
-        tti = &d_termIndex[tn];
       }
       Node var;
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
@@ -141,7 +140,7 @@ void BaseSolver::checkInit()
             if (d_congruent.find(n) == d_congruent.end())
             {
               std::vector<Node> c;
-              Node nc = (*tti)[k].add(n, 0, d_state, emps, c);
+              Node nc = tti[k].add(n, 0, d_state, emps, c);
               if (nc != n)
               {
                 Trace("strings-base-debug")
