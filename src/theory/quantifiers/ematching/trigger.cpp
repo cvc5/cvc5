@@ -21,6 +21,7 @@
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
@@ -53,9 +54,13 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     : d_quantEngine(qe), d_quant(q)
 {
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
-  Trace("trigger") << "Trigger for " << q << ": " << std::endl;
-  for( unsigned i=0; i<d_nodes.size(); i++ ){
-    Trace("trigger") << "   " << d_nodes[i] << std::endl;
+  if (Trace.isOn("trigger")
+  {
+    quantifiers::QuantAttributes* qa = d_quantEngine->getQuantAttributes();
+    Trace("trigger") << "Trigger for " << qa->quantToString(q) << ": " << std::endl;
+    for (const Node& n : d_nodes){
+      Trace("trigger") << "   " << n << std::endl;
+    }
   }
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
