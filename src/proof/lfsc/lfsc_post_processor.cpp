@@ -25,7 +25,7 @@ namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm), d_lcb(), d_tproc(&d_lcb)
+    : d_pnm(pnm), d_pc(pnm->getChecker()), d_lcb(), d_tproc(&d_lcb)
 {
 }
 
@@ -66,6 +66,20 @@ bool LfscProofPostprocessCallback::update(Node res,
 
   switch (id)
   {
+    case PfRule::CHAIN_RESOLUTION:
+    {
+      Node cur = children[0];
+      for (size_t i = 1, size = children.size(); i < size; i++)
+      {
+        std::vector<Node> newChildren{cur, children[i]};
+
+     std::vector<Node> newArgs{args[(i - 1) * 2], args[(i - 1) * 2 + 1]};
+        cur = d_pc->checkDebug(
+            PfRule::RESOLUTION, newChildren, newArgs, Node(), "");
+        cdp->addStep(cur, PfRule::RESOLUTION, newChildren, newArgs);
+      }
+    }
+    break;
     case PfRule::TRANS:
     {
       // nested

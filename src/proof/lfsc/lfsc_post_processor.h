@@ -53,7 +53,8 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-
+  /** The proof checker of d_pnm **/
+  ProofChecker* d_pc;
   /** The LFSC term processor callback */
   LfscTermProcessCallback d_lcb;
   /** The term processor */
