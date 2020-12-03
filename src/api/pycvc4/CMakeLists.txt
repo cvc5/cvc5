@@ -57,28 +57,28 @@ add_dependencies(pycvc4 gen-pycvc4-kinds)
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 configure_file(setup.py.in setup.py)
 
-# set(PYCVC4_LOC "${PYCVC4_MODULE}/$<TARGET_FILE_NAME:pycvc4>")
-# add_custom_command(TARGET pycvc4 POST_BUILD
-#     COMMAND ${CMAKE_COMMAND} -E rename $<TARGET_FILE:pycvc4> ${PYCVC4_LOC}
-# )
+if (SKBUILD)
+  # if building a wheel with scikit-build, then just put the files in the right place
+  install(TARGETS pycvc4 LIBRARY DESTINATION src/api/pycvc4)
+  install(FILES __init__.py DESTINATION src/api/pycvc4)
+else()
+  # otherwise install the python module
+  # figure out if we're in a virtualenv
+  execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
+    COMMAND
+    "${PYTHON_EXECUTABLE}"
+    -c
+    "from __future__ import print_function; import os;
+  print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
 
-# # figure out if we're in a virtualenv
-# execute_process(OUTPUT_VARIABLE IN_VIRTUALENV
-#   COMMAND
-#   "${PYTHON_EXECUTABLE}"
-#   -c
-#   "from __future__ import print_function; import os;
-# print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
+  set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
+  # if we're in a virtualenv, we install it in the virtualenv lib location
+  if ("${IN_VIRTUALENV}" STREQUAL "NO")
+    set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
+  endif()
 
-# set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
-# # if we're in a virtualenv, we install it in the virtualenv lib location
-# if ("${IN_VIRTUALENV}" STREQUAL "NO")
-#   set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
-# endif()
+  TODO: fix the installation option and use setuptools
+  message("Python bindings install command: ${INSTALL_CMD}")
+  install(CODE "execute_process(COMMAND ${INSTALL_CMD})"  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+endif()
 
-# TODO: fix the installation option and use setuptools
-# message("Python bindings install command: ${INSTALL_CMD}")
-# install(CODE "execute_process(COMMAND ${INSTALL_CMD})"  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
-
-install(TARGETS pycvc4 LIBRARY DESTINATION src/api/pycvc4)
-install(FILES __init__.py DESTINATION src/api/pycvc4)
