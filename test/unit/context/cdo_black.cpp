@@ -28,20 +28,14 @@ using namespace context;
 
 namespace test {
 
-class TestCDOBlack : public TestInternal
+class TestContextCDOBlack : public TestContext
 {
- protected:
-  void SetUp() override { d_context = new Context; }
-
-  void TearDown() override { delete d_context; }
-
-  Context* d_context;
 };
 
-TEST_F(TestCDOBlack, cdo)
+TEST_F(TestContextCDOBlack, cdo)
 {
   // Test that push/pop maintains the original value
-  CDO<int> a1(d_context);
+  CDO<int> a1(d_context.get());
   a1 = 5;
   EXPECT_EQ(d_context->getLevel(), 0);
   d_context->push();
