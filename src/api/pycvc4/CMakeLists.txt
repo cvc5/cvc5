@@ -70,7 +70,8 @@ else()
     "${PYTHON_EXECUTABLE}"
     -c
     "from __future__ import print_function; import os;
-  print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')")
+print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')"
+    )
 
   set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
   # if we're in a virtualenv, we install it in the virtualenv lib location
@@ -80,6 +81,7 @@ else()
 
   # TODO: fix the installation option and use setuptools
   message("Python bindings install command: ${INSTALL_CMD}")
-  install(CODE "execute_process(COMMAND ${INSTALL_CMD})"  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
+  install(CODE "execute_process(COMMAND ${INSTALL_CMD})"
+          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
 endif()
 
