@@ -2,7 +2,7 @@
 /*! \file theory_inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Martin Brain
+ **   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
