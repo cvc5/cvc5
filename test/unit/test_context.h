@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test.h
+/*! \file test_context.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -9,19 +9,23 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Common header for API unit test.
+ ** \brief Header for context unit tests.
  **/
 
-#ifndef CVC4__TEST__UNIT__TEST_H
-#define CVC4__TEST__UNIT__TEST_H
+#ifndef CVC4__TEST__UNIT__TEST_CONTEXT_H
+#define CVC4__TEST__UNIT__TEST_CONTEXT_H
 
-#include "gtest/gtest.h"
+#include "context/context.h"
+#include "test.h"
 
 namespace CVC4 {
 namespace test {
 
-class TestInternal : public ::testing::Test
+class TestContext : public TestInternal
 {
+ protected:
+  void SetUp() override { d_context.reset(new CVC4::context::Context()); }
+  std::unique_ptr<CVC4::context::Context> d_context;
 };
 
 }  // namespace test

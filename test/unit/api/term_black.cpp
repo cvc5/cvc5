@@ -2,7 +2,7 @@
 /*! \file term_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Makai Mann
+ **   Aina Niemetz, Makai Mann, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -14,7 +14,11 @@
 
 #include "test_api.h"
 
-using namespace CVC4::api;
+namespace CVC4 {
+
+using namespace api;
+
+namespace test {
 
 class TestApiTermBlack : public TestApi
 {
@@ -766,3 +770,5 @@ TEST_F(TestApiTermBlack, termScopedToString)
   Solver solver2;
   EXPECT_EQ(x.toString(), "x");
 }
+}  // namespace test
+}  // namespace CVC4
