@@ -32,43 +32,6 @@ namespace proof {
 class Letify
 {
  public:
-  /**
-   * Convert n to a form that is printed assuming definitions in letMap
-   * with the given prefix.
-   */
-  static Node convert(Node n,
-                      const std::map<Node, uint32_t>& letMap,
-                      const std::string& prefix);
-  //------------------- letification of terms
-  /** stores nodes in map that require letification */
-  static void computeLet(Node n,
-                         std::vector<Node>& letList,
-                         std::map<Node, uint32_t>& letMap,
-                         uint32_t thresh = 2);
-  /**
-   * Compute the count of sub nodes in pn, store in pcount. Additionally,
-   * store each node in the domain of pcount in an order in visitList
-   * such that visitList[i] does not contain sub visitList[j] for j>i.
-   */
-  static void updateCounts(Node n,
-                           std::vector<Node>& visitList,
-                           std::map<Node, uint32_t>& count);
-  /**
-   * Same as above, for each node printed in proof pn
-   */
-  static void updateCounts(const ProofNode* pn,
-                           std::vector<Node>& visitList,
-                           std::map<Node, uint32_t>& count);
-  /**
-   * Convert a count to a let binding.
-   */
-  static void convertCountToLet(const std::vector<Node>& visitList,
-                                const std::map<Node, uint32_t>& count,
-                                std::vector<Node>& letList,
-                                std::map<Node, uint32_t>& letMap,
-                                uint32_t thresh = 2);
-  //------------------- end letification of terms
-
   //------------------- letification of proofs
   /**
    * Stores proofs in map that require letification, mapping them to a unique
