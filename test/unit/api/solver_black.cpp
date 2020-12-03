@@ -1696,15 +1696,6 @@ TEST_F(TestApiSolverBlack, blockModelValues1)
                CVC4ApiException);
 }
 
-TEST_F(TestApiSolverBlack, blockModelValues2)
-{
-  d_solver.setOption("produce-models", "true");
-  Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
-  d_solver.assertFormula(x.eqTerm(x));
-  d_solver.checkSat();
-  ASSERT_THROW(d_solver.blockModelValues({x}), CVC4ApiException);
-}
-
 TEST_F(TestApiSolverBlack, blockModelValues3)
 {
   d_solver.setOption("block-models", "literals");
