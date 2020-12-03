@@ -44,7 +44,7 @@ class DefinedFunction;
  */
 class PfManager
 {
-  /** The type of the map of defined functions */
+  /** The type of our internal map of defined functions */
   using DefinedFunctionMap =
       context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>;
 
@@ -57,7 +57,9 @@ class PfManager
    * The argument pfn is the proof for false in the current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
-   * respect to assertions in as.
+   * respect to assertions in as and df. For the latter, entries in the defined
+   * function map correspond to equalities of the form (= f (lambda (...) t)),
+   * which are considered assertions in the final proof.
    */
   void printProof(std::shared_ptr<ProofNode> pfn,
                   Assertions& as,

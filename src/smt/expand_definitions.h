@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file process_assertions.h
+/*! \file expand_definitions.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -78,8 +78,6 @@ class ExpandDefs
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       bool expandOnly,
       TConvProofGenerator* tpg);
-  /** Whether proofs are enabled */
-  bool isProofEnabled() const;
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
   /** Reference to resource manager */

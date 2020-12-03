@@ -30,7 +30,6 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
-#include "printer/dagification_visitor.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
@@ -310,8 +309,8 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
       std::stringstream ss;
-      ss << '@' << uc;
-      out << CVC4::quoteSymbol(ss.str());
+      ss << "(as @" << uc << " " << n.getType() << ")";
+      out << ss.str();
       break;
     }
 
@@ -1410,7 +1409,14 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   {
     if (trn.isVar())
     {
-      out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")" << endl;
+      if (options::modelUninterpPrint()
+              == options::ModelUninterpPrintMode::DeclSortAndFun
+          || options::modelUninterpPrint()
+                 == options::ModelUninterpPrintMode::DeclFun)
+      {
+        out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
+            << endl;
+      }
     }
     else
     {

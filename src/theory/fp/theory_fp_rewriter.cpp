@@ -2,7 +2,7 @@
 /*! \file theory_fp_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Andrew Reynolds
+ **   Martin Brain, Andres Noetzli, Aina Niemetz
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS

@@ -2,7 +2,7 @@
 /*! \file expand_definitions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Haniel Barbosa
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -53,7 +53,7 @@ TrustNode ExpandDefs::expandDefinitions(
     bool expandOnly,
     TConvProofGenerator* tpg)
 {
-  Node orig = n;
+  const TNode orig = n;
   NodeManager* nm = d_smt.getNodeManager();
   std::stack<std::tuple<Node, Node, bool>> worklist;
   std::stack<Node> result;
@@ -362,8 +362,6 @@ void ExpandDefs::setProofNodeManager(ProofNodeManager* pnm)
                                         true));
   }
 }
-
-bool ExpandDefs::isProofEnabled() const { return d_tpg != nullptr; }
 
 }  // namespace smt
 }  // namespace CVC4
