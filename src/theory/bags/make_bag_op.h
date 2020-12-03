@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file mk_bag_op.h
+/*! \file make_bag_op.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed

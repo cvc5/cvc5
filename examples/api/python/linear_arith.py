@@ -2,7 +2,7 @@
 #####################
 ## linear_arith.py
 ## Top contributors (to current version):
-##   Makai Mann, Aina Niemetz
+##   Makai Mann, Mudathir Mohamed, Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
