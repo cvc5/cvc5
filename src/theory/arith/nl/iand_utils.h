@@ -87,10 +87,10 @@ class IAndUtils
   Node createSumNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
 
   /** Create a bitwise integer And node for two integers x and y for bits
-   * between hgih and low Example for high = 0, low = 0 (e.g. granularity 1)
+   *  between hgih and low Example for high = 0, low = 0 (e.g. granularity 1)
    *    ite(x[0] == 1 & y[0] == 1, #b1, #b0)
    *
-   *  For higher granularities it makes use of computeAndTable
+   *  It makes use of computeAndTable
    *
    *  @param x an integer operand corresponding to the first original
    *         bit-vector operand
