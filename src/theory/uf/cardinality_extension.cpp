@@ -1175,7 +1175,8 @@ bool SortModel::checkLastCall()
           }
         }
         Node cl = getCardinalityLiteral( d_maxNegCard );
-        Node lem = NodeManager::currentNM()->mkNode( OR, cl, NodeManager::currentNM()->mkNode( AND, force_cl ) );
+        Node lem = NodeManager::currentNM()->mkNode(
+            OR, cl, NodeManager::currentNM()->mkAnd(force_cl));
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
         d_im.lemma(lem, LemmaProperty::NONE, false);
         return false;
