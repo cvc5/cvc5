@@ -116,9 +116,9 @@ bool getFreeVariables(TNode n,
  * @return true iff this node contains a free variable.
  */
 bool getFreeVariablesScope(TNode n,
-                      std::unordered_set<Node, NodeHashFunction>& fvs,
-                      std::unordered_set<TNode, TNodeHashFunction>& scope,
-                      bool computeFv = true);
+                           std::unordered_set<Node, NodeHashFunction>& fvs,
+                           std::unordered_set<TNode, TNodeHashFunction>& scope,
+                           bool computeFv = true);
 
 /**
  * Get all variables in n.

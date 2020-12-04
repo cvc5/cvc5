@@ -333,9 +333,9 @@ bool getFreeVariables(TNode n,
 }
 
 bool getFreeVariablesScope(TNode n,
-                      std::unordered_set<Node, NodeHashFunction>& fvs,
-  std::unordered_set<TNode, TNodeHashFunction>& scope,
-                      bool computeFv)
+                           std::unordered_set<Node, NodeHashFunction>& fvs,
+                           std::unordered_set<TNode, TNodeHashFunction>& scope,
+                           bool computeFv)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
