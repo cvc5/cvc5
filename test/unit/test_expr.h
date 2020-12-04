@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Common header for API unit test.
+ ** \brief Common header for Expr unit test.
  **/
 
 #ifndef CVC4__TEST__UNIT__TEST_EXPR_H
