@@ -121,6 +121,7 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
     case VeritRule::SKO_FORALL: return "sko_forall";
     // Extended
     case VeritRule::SYMM: return "symm";
+    case VeritRule::REORDER: return "reorder";
     default: return "?";
   }
 }
