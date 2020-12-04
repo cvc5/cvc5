@@ -1,1 +1,1 @@
-from pycvc4_cython import *
+from .pycvc4_cython import *

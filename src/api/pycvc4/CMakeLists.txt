@@ -76,7 +76,7 @@ print('YES' if 'VIRTUAL_ENV' in os.environ else 'NO', end='')"
   set(INSTALL_CMD "${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/setup.py install")
   # if we're in a virtualenv, we install it in the virtualenv lib location
   if ("${IN_VIRTUALENV}" STREQUAL "NO")
-    set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX}")
+    set(INSTALL_CMD "${INSTALL_CMD} --prefix=${CMAKE_INSTALL_PREFIX} --single-version-externally-managed --root=/")
   endif()
 
   # TODO: fix the installation option and use setuptools
