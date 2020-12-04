@@ -1,6 +1,11 @@
 ; COMMAND-LINE: --iand-mode=value --no-check-models
 ; COMMAND-LINE: --iand-mode=sum --bvand-integer-granularity=1 --finite-model-find --no-check-models
-; COMMAND-LINE:  --solve-bv-as-int=iand --iand-mode=bitwise
+; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=bitwise
+; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=bitwise --bvand-integer-granularity=1
+; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=bitwise --bvand-integer-granularity=2
+; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=bitwise --bvand-integer-granularity=4
+; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=bitwise --bvand-integer-granularity=5
+; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=bitwise --bvand-integer-granularity=6
 ; EXPECT: sat
 (set-logic QF_NIA)
 (set-info :status sat)
