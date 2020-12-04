@@ -75,8 +75,10 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
                                            int i,
                                            int h)
 {
-  //std::cout << "rule " << pfn->getRule() << " verit rule " << veritRuletoString(static_cast<VeritRule>(
-  //std::stoul(pfn->getArguments()[0].toString()))) << " res " << pfn->getResult() << std::endl;
+  // std::cout << "rule " << pfn->getRule() << " verit rule " <<
+  // veritRuletoString(static_cast<VeritRule>(
+  // std::stoul(pfn->getArguments()[0].toString()))) << " res " <<
+  // pfn->getResult() << std::endl;
   // The id of the current proof node
   int current_i = i;
   // The id of the latest assumption
@@ -142,7 +144,7 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
     for (int j = 1; j < current_h; j++)
     {  // TODO: Does this also work with nested anchors?
       out << veritPrintName(ids, j, true);
-      if (j != current_h-1)
+      if (j != current_h - 1)
       {
         out << " ";
       }
@@ -157,11 +159,13 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
 
 
   //Print current step
-  if (pfn->getArguments().size() >= 3)  // TODO: Should this be checked also above
+  if (pfn->getArguments().size()
+      >= 3)  // TODO: Should this be checked also above
   {
     out << "(step " << veritPrintName(ids, i, false) << " ";
 
-    if(pfn->getArguments()[2].end()- pfn->getArguments()[2].begin() >=2){
+    if (pfn->getArguments()[2].end() - pfn->getArguments()[2].begin() >= 2)
+    {
       if (pfn->getArguments()[2][1] == Node::null())
       {
         out << "(cl)";
@@ -171,7 +175,8 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
         out << pfn->getArguments()[2];
       }
     }
-    else{
+    else
+    {
       out << pfn->getArguments()[2];
     }
 
