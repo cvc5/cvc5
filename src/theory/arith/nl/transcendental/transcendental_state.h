@@ -65,9 +65,15 @@ struct TranscendentalState
    * This call may add lemmas to lems based on registering term
    * information (for example, purification of sine terms).
    */
-  void init(const std::vector<Node>& assertions,
-            const std::vector<Node>& false_asserts,
-            const std::vector<Node>& xts);
+  void init(const std::vector<Node>& xts, std::vector<Node>& needsMaster);
+
+  /**
+   * Checks for terms that are congruent but disequal to a.
+   * If any are found, appropriate lemmas are sent.
+   * @param a Some node
+   * @param argTrie Lookup for equivalence classes
+   */
+  void ensureCongruence(TNode a, std::map<Kind, ArgTrie>& argTrie);
 
   /** Initialize members for pi-related values */
   void mkPi();
