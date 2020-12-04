@@ -592,6 +592,7 @@ set(regress_0_tests
   regress0/issue5144-resetAssertions.smt2
   regress0/issue5540-2-dump-model.smt2
   regress0/issue5540-model-decls.smt2
+  regress0/issue5550-num-children.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -613,6 +614,8 @@ set(regress_0_tests
   regress0/logops.04.cvc
   regress0/logops.05.cvc
   regress0/model-core.smt2
+  regress0/models-print-1.smt2
+  regress0/models-print-2.smt2
   regress0/named-expr-use.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
