@@ -60,7 +60,9 @@ TrustNode OperatorElim::eliminate(Node n, bool partialOnly)
   return TrustNode::null();
 }
 
-Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator* tg, bool partialOnly)
+Node OperatorElim::eliminateOperatorsRec(Node n,
+                                         TConvProofGenerator* tg,
+                                         bool partialOnly)
 {
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -123,7 +125,9 @@ Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator* tg, bool p
   return visited[n];
 }
 
-Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator* tg, bool partialOnly)
+Node OperatorElim::eliminateOperators(Node node,
+                                      TConvProofGenerator* tg,
+                                      bool partialOnly)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();

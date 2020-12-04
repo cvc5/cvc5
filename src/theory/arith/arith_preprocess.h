@@ -46,7 +46,7 @@ class ArithPreprocess
    * Call eliminate operators on formula n, return the resulting trust node,
    * which is of TrustNodeKind REWRITE and whose node is the result of
    * eliminating extended operators from n.
-   * 
+   *
    * @param n The node to eliminate operators from
    * @param partialOnly Whether we are eliminating partial operators only.
    * @return the trust node proving (= n nr) where nr is the return of
