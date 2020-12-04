@@ -252,7 +252,13 @@ CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
       || k == EQUAL
       || k == MULT
-      || k == NONLINEAR_MULT)
+      || k == NONLINEAR_MULT 
+      || k == DIVISION 
+      || k == DIVISION_TOTAL
+      || k == INTS_DIVISION
+      || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS
+      || k == INTS_MODULUS_TOTAL || k == TO_INTEGER || k == IS_INTEGER)
   {
     return CEG_HANDLED;
   }

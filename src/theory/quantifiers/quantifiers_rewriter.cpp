@@ -404,8 +404,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
       Node r = computeProcessTerms2(fbody,
                                     cache,
                                     new_vars,
-                                    new_conds,
-                                    false);
+                                    new_conds);
       Assert(new_vars.size() == h.getNumChildren());
       return Rewriter::rewrite(NodeManager::currentNM()->mkNode(EQUAL, h, r));
     }
