@@ -898,7 +898,7 @@ class CVC4_PUBLIC SmtEngine
    * Check that a generated proof checks. This method is the same as printProof,
    * but does not print the proof. Like that method, it should be called
    * after an UNSAT response. It ensures that a well-formed proof of false
-   * can be constructed by a the combination of the PropEngine and ProofManager.
+   * can be constructed by the combination of the PropEngine and ProofManager.
    */
   void checkProof();
 

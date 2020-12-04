@@ -47,6 +47,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
     d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+    d_pfpp->setEliminateRule(PfRule::MACRO_RESOLUTION);
     if (options::proofGranularityMode()
         != options::ProofGranularityMode::REWRITE)
     {
@@ -126,7 +127,6 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  // leanPrinter(out, fp.get());
   std::ostream& out = *options::out();
   if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {

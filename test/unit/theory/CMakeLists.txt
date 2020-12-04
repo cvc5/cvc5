@@ -1,7 +1,7 @@
 #####################
 ## CMakeLists.txt
 ## Top contributors (to current version):
-##   Aina Niemetz, Andres Noetzli, Andrew Reynolds
+##   Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.

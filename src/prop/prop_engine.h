@@ -225,12 +225,16 @@ class PropEngine
 
   ProofCnfStream* getProofCnfStream() { return d_pfCnfStream.get(); }
 
-  /** pieces together the prop engine proof and produce it */
-  std::shared_ptr<ProofNode> getProof();
-
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
   void checkProof(context::CDList<Node>* assertions);
+
+  /**
+   * Return the prop engine proof. This should be called only when proofs are
+   * enabled. Returns a proof of false whose free assumptions are the
+   * preprocessed assertions.
+   */
+  std::shared_ptr<ProofNode> getProof();
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

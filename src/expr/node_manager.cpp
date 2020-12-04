@@ -2,7 +2,7 @@
 /*! \file node_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -736,13 +736,14 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
 }
 
 TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Record& rec, unsigned index ) {
-  if( index==rec.getNumFields() ){
+  if (index == rec.size())
+  {
     if( d_data.isNull() ){
-      const Record::FieldVector& fields = rec.getFields();
       std::stringstream sst;
       sst << "__cvc4_record";
-      for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-        sst << "_" << (*i).first << "_" << (*i).second;
+      for (const std::pair<std::string, TypeNode>& i : rec)
+      {
+        sst << "_" << i.first << "_" << i.second;
       }
       DType dt(sst.str());
       dt.setRecord();
@@ -750,17 +751,18 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       ssc << sst.str() << "_ctor";
       std::shared_ptr<DTypeConstructor> c =
           std::make_shared<DTypeConstructor>(ssc.str());
-      for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-        c->addArg((*i).first, TypeNode::fromType((*i).second));
+      for (const std::pair<std::string, TypeNode>& i : rec)
+      {
+        c->addArg(i.first, i.second);
       }
       dt.addConstructor(c);
       d_data = nm->mkDatatypeType(dt);
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
-  }else{
-    return d_children[TypeNode::fromType( rec[index].second )][rec[index].first].getRecordType( nm, rec, index+1 );
   }
+  return d_children[rec[index].second][rec[index].first].getRecordType(
+      nm, rec, index + 1);
 }
 
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
@@ -949,6 +951,97 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
     tn.setAttribute(LambdaBoundVarListAttr(),bvl);
   }
   return bvl;
+}
+
+Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
+{
+  AlwaysAssert(kind::isAssociative(kind)) << "Illegal kind in mkAssociative";
+
+  const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
+  size_t numChildren = children.size();
+
+  /* If the number of children is within bounds, then there's nothing to do. */
+  if (numChildren <= max)
+  {
+    return mkNode(kind, children);
+  }
+  const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
+
+  std::vector<Node>::const_iterator it = children.begin();
+  std::vector<Node>::const_iterator end = children.end();
+
+  /* The new top-level children and the children of each sub node */
+  std::vector<Node> newChildren;
+  std::vector<Node> subChildren;
+
+  while (it != end && numChildren > max)
+  {
+    /* Grab the next max children and make a node for them. */
+    for (std::vector<Node>::const_iterator next = it + max; it != next;
+         ++it, --numChildren)
+    {
+      subChildren.push_back(*it);
+    }
+    Node subNode = mkNode(kind, subChildren);
+    newChildren.push_back(subNode);
+
+    subChildren.clear();
+  }
+
+  // add the leftover children
+  if (numChildren > 0)
+  {
+    for (; it != end; ++it)
+    {
+      newChildren.push_back(*it);
+    }
+  }
+
+  /* It would be really weird if this happened (it would require
+   * min > 2, for one thing), but let's make sure. */
+  AlwaysAssert(newChildren.size() >= min)
+      << "Too few new children in mkAssociative";
+
+  // recurse
+  return mkAssociative(kind, newChildren);
+}
+
+Node NodeManager::mkLeftAssociative(Kind kind,
+                                    const std::vector<Node>& children)
+{
+  Node n = children[0];
+  for (size_t i = 1, size = children.size(); i < size; i++)
+  {
+    n = mkNode(kind, n, children[i]);
+  }
+  return n;
+}
+
+Node NodeManager::mkRightAssociative(Kind kind,
+                                     const std::vector<Node>& children)
+{
+  Node n = children[children.size() - 1];
+  for (size_t i = children.size() - 1; i > 0;)
+  {
+    n = mkNode(kind, children[--i], n);
+  }
+  return n;
+}
+
+Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
+{
+  if (children.size() == 2)
+  {
+    // if this is the case exactly 1 pair will be generated so the
+    // AND is not required
+    return mkNode(kind, children[0], children[1]);
+  }
+  std::vector<Node> cchildren;
+  for (size_t i = 0, nargsmo = children.size() - 1; i < nargsmo; i++)
+  {
+    cchildren.push_back(mkNode(kind, children[i], children[i + 1]));
+  }
+  return mkNode(kind::AND, cchildren);
 }
 
 Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
