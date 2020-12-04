@@ -22,12 +22,14 @@
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
+#include "theory/quantifiers/sygus/sygus_stats.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
+class SygusReconstruct;
 
 // this class infers whether a conjecture is single invocation (Reynolds et al CAV 2015), and sets up the
 // counterexample-guided quantifier instantiation utility (d_cinst), and methods for solution
@@ -55,6 +57,8 @@ class CegSingleInv
   SingleInvocationPartition* d_sip;
   // solution reconstruction
   CegSingleInvSol* d_sol;
+  /** new version of solution reconstruction */
+  std::unique_ptr<SygusReconstruct> d_srcons;
 
   // list of skolems for each argument of programs
   std::vector<Node> d_single_inv_arg_sk;
@@ -97,7 +101,7 @@ class CegSingleInv
   Node d_single_inv;
   
  public:
-  CegSingleInv(QuantifiersEngine* qe);
+  CegSingleInv(QuantifiersEngine* qe, SygusStatistics& s);
   ~CegSingleInv();
 
   // get simplified conjecture

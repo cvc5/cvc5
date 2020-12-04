@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_reconstruct.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
@@ -34,14 +35,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegSingleInv::CegSingleInv(QuantifiersEngine* qe)
+CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SygusStatistics& s)
     : d_qe(qe),
       d_sip(new SingleInvocationPartition),
       d_sol(new CegSingleInvSol(qe)),
+      d_srcons(new SygusReconstruct(qe->getTermDatabaseSygus(), s)),
       d_isSolved(false),
       d_single_invocation(false)
 {
-
 }
 
 CegSingleInv::~CegSingleInv()
@@ -282,6 +283,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   Node varList = dt.getSygusVarList();
   Node prog = d_quant[0][sol_index];
   std::vector< Node > vars;
+  std::vector<Node> subs;
   Node s;
   // If it is unconstrained: either the variable does not appear in the
   // conjecture or the conjecture can be solved without a single instantiation.
@@ -295,12 +297,11 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   {
     Trace("csi-sol") << "Get solution for " << prog << ", with skolems : ";
     sol_index = d_prog_to_sol_index[prog];
-    d_sol->d_varList.clear();
+    subs.insert(subs.end(), varList.begin(), varList.end());
     Assert(d_single_inv_arg_sk.size() == varList.getNumChildren());
     for( unsigned i=0; i<d_single_inv_arg_sk.size(); i++ ){
       Trace("csi-sol") << d_single_inv_arg_sk[i] << " ";
       vars.push_back( d_single_inv_arg_sk[i] );
-      d_sol->d_varList.push_back( varList[i] );
     }
     Trace("csi-sol") << std::endl;
 
@@ -340,8 +341,8 @@ Node CegSingleInv::getSolution(unsigned sol_index,
       cond = TermUtil::simpleNegate(cond);
       s = nm->mkNode(ITE, cond, d_inst[uindex][sol_index], s);
     }
-    Assert(vars.size() == d_sol->d_varList.size());
-    s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
+    Assert(vars.size() == subs.size());
+    s = s.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
   }
   d_orig_solution = s;
 
@@ -366,7 +367,6 @@ Node CegSingleInv::reconstructToSyntax(Node s,
           != options::CegqiSingleInvRconsMode::NONE
       && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus)
   {
-    d_sol->preregisterConjecture( d_orig_conjecture );
     int enumLimit = -1;
     if (options::cegqiSingleInvReconstruct()
         == options::CegqiSingleInvRconsMode::TRY)
@@ -378,8 +378,18 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     {
       enumLimit = options::cegqiSingleInvReconstructLimit();
     }
-    d_sygus_solution =
-        d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
+    if (options::sygusSiReconstructNew())
+    {
+      // new implementation
+      d_sygus_solution =
+          d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
+    }
+    else
+    {
+      d_sol->preregisterConjecture(d_orig_conjecture, stn);
+      d_sygus_solution =
+          d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
+    }
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;
     }

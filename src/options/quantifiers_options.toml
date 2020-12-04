@@ -1019,6 +1019,15 @@ header = "options/quantifiers_options.h"
   help = "Try to reconstruct solutions in the original grammar. In this mode, we do not terminate until a solution is successfully reconstructed."
 
 [[option]]
+  name       = "sygusSiReconstructNew"
+  category   = "regular"
+  long       = "sygus-si-rcons-new"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use new implementation of solution reconstruction"
+
+[[option]]
   name       = "cegqiSingleInvReconstructLimit"
   category   = "regular"
   long       = "sygus-si-rcons-limit=N"

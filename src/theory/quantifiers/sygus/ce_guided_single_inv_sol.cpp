@@ -85,7 +85,7 @@ void CegSingleInvSol::debugTermSize(Node sol, int& t_size, int& num_ite)
   }
 }
 
-void CegSingleInvSol::preregisterConjecture(Node q)
+void CegSingleInvSol::preregisterConjecture(Node q, TypeNode stn)
 {
   Trace("csi-sol") << "Preregister conjecture : " << q << std::endl;
   Node n = q;
@@ -93,13 +93,21 @@ void CegSingleInvSol::preregisterConjecture(Node q)
     n = n[1];
   }
   if( n.getKind()==EXISTS ){
-    if( n[0].getNumChildren()==d_varList.size() ){
-      std::vector< Node > evars;
+    const DType& dt = stn.getDType();
+    Node varList = dt.getSygusVarList();
+    std::vector<Node> varVec;
+    varVec.insert(varVec.end(), varList.begin(), varList.end());
+    if (n[0].getNumChildren() == varVec.size())
+    {
+      std::vector<Node> evars;
       for( unsigned i=0; i<n[0].getNumChildren(); i++ ){
         evars.push_back( n[0][i] );
       }
-      n = n[1].substitute( evars.begin(), evars.end(), d_varList.begin(), d_varList.end() );
-    }else{
+      n = n[1].substitute(
+          evars.begin(), evars.end(), varVec.begin(), varVec.end());
+    }
+    else
+    {
       Trace("csi-sol") << "Not the same number of variables, return." << std::endl;
       return;
     }

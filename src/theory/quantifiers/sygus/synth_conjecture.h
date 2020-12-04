@@ -196,6 +196,9 @@ class SynthConjecture
    */
   bool checkSideCondition(const std::vector<Node>& cvals) const;
 
+  /** get a reference to the statistics of parent */
+  SygusStatistics& getSygusStatistics() { return d_stats; };
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
