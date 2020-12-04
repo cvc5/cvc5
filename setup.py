@@ -29,5 +29,5 @@ setup(
     packages=['pycvc4'],
     package_dir={
         'pycvc4': 'src/api/pycvc4'},
-    cmake_args=['-DBUILD_BINDINGS_PYTHON=ON', '-DENABLE_SHARED=OFF', '-DBUILD_LIB_ONLY=ON']
+    cmake_args=['-DBUILD_BINDINGS_PYTHON=ON', '-DBUILD_LIB_ONLY=ON']
 )
