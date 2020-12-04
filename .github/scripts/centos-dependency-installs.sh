@@ -17,9 +17,3 @@ yum install -y \
     flex-devel \
     java-1.8.0-openjdk
 
-echo "lib64"
-ls /usr/lib64
-
-echo "lib"
-ls /usr/lib
-
