@@ -261,7 +261,11 @@ bool hasBoundVar(TNode n)
     {
       for (auto i = n.begin(); i != n.end() && !hasBv; ++i)
       {
-        hasBv = hasBoundVar(*i);
+        if (hasBoundVar(*i))
+        {
+          hasBv = true;
+          break;
+        }
       }
     }
     if (!hasBv && n.hasOperator())
