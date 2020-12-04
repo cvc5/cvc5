@@ -28,15 +28,16 @@ set(EXAMPLES_API_PYTHON
 
 find_package(PythonInterp ${CVC4_BINDINGS_PYTHON_VERSION} REQUIRED)
 
-# Find Python bindings in the corresponding python-*/site-packages directory.
-# Lookup Python module directory and store path in PYTHON_MODULE_PATH.
+# Find Python bindings and store path in PYTHON_MODULE_PATH.
+# NOTE can't count on Python's distutils.sysconfig.get_python_lib
+# to work correctly with CMAKE_PREFIX_PATH because the C++ libs
+# are in lib64 on some systems, while the python modules get put
+# in lib
 execute_process(COMMAND
-                  ${PYTHON_EXECUTABLE} -c
-                    "from distutils.sysconfig import get_python_lib;\
-                     print(get_python_lib(plat_specific=True,\
-                             prefix='${CMAKE_PREFIX_PATH}/../..'))"
+                  find ${CMAKE_PREFIX_PATH}/../../ -name "pycvc4" -type d
                 OUTPUT_VARIABLE PYTHON_MODULE_PATH
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                )
 
 message("Got PYTHON_MODULE_PATH=${PYTHON_MODULE_PATH}")
 foreach(example ${EXAMPLES_API_PYTHON})
