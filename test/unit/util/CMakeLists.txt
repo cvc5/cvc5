@@ -1,7 +1,7 @@
 #####################
 ## CMakeLists.txt
 ## Top contributors (to current version):
-##   Aina Niemetz, Gereon Kremer, Andres Noetzli
+##   Aina Niemetz, Yoni Zohar, Gereon Kremer
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
