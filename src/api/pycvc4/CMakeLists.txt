@@ -40,19 +40,19 @@ add_custom_target(
     "Generate cvc4kinds.{pxd,pyx}"
 )
 
-add_cython_target(pycvc4 CXX)
+add_cython_target(pycvc4_cython CXX)
 
-add_library(pycvc4
+add_library(pycvc4_cython
             MODULE
-            ${pycvc4})
+            ${pycvc4_cython})
 
-target_link_libraries(pycvc4 cvc4 ${PYTHON_LIBRARIES})
+target_link_libraries(pycvc4_cython cvc4 ${PYTHON_LIBRARIES})
 
-python_extension_module(pycvc4)
+python_extension_module(pycvc4_cython)
 
 # Make sure that gen-pycvc4-kinds target is run before building the bindings
 # doesn't always work correctly with ALL since there are multiple targets
-add_dependencies(pycvc4 gen-pycvc4-kinds)
+add_dependencies(pycvc4_cython gen-pycvc4-kinds)
 
 # Installation based on https://bloerg.net/2012/11/10/cmake-and-distutils.html
 configure_file(setup.py.in setup.py)
@@ -60,7 +60,7 @@ configure_file(__init__.py __init__.py COPYONLY)
 
 if (SKBUILD)
   # if building a wheel with scikit-build, then just put the files in the right place
-  install(TARGETS pycvc4 LIBRARY DESTINATION src/api/pycvc4)
+  install(TARGETS pycvc4_cython LIBRARY DESTINATION src/api/pycvc4)
   install(FILES __init__.py DESTINATION src/api/pycvc4)
 else()
   # otherwise install the python module
