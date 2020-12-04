@@ -534,7 +534,13 @@ class CVC4_PUBLIC SmtEngine
 
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
-
+  /**
+   * Print the current proof. This method should be called after an UNSAT
+   * response. It gets the proof of false from the PropEngine and passes
+   * it to the ProofManager, which post-processes the proof and prints it
+   * in the proper format.
+   */
+  void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
@@ -870,6 +876,9 @@ class CVC4_PUBLIC SmtEngine
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
+  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
+  smt::PfManager* getPfManager() { return d_pfManager.get(); };
+
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
   {
@@ -883,6 +892,14 @@ class CVC4_PUBLIC SmtEngine
    * command.
    */
   UnsatCore getUnsatCoreInternal();
+
+  /**
+   * Check that a generated proof checks. This method is the same as printProof,
+   * but does not print the proof. Like that method, it should be called
+   * after an UNSAT response. It ensures that a well-formed proof of false
+   * can be constructed by the combination of the PropEngine and ProofManager.
+   */
+  void checkProof();
 
   /**
    * Check that an unsatisfiable core is indeed unsatisfiable.
