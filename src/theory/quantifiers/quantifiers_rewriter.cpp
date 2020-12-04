@@ -401,10 +401,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     if (!fbody.isNull())
     {
-      Node r = computeProcessTerms2(fbody,
-                                    cache,
-                                    new_vars,
-                                    new_conds);
+      Node r = computeProcessTerms2(fbody, cache, new_vars, new_conds);
       Assert(new_vars.size() == h.getNumChildren());
       return Rewriter::rewrite(NodeManager::currentNM()->mkNode(EQUAL, h, r));
     }
@@ -412,10 +409,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
     // forall xy. false.
   }
-  return computeProcessTerms2(body,
-                              cache,
-                              new_vars,
-                              new_conds);
+  return computeProcessTerms2(body, cache, new_vars, new_conds);
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(Node body,
@@ -435,8 +429,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
   for (size_t i = 0; i < body.getNumChildren(); i++)
   {
     // do the recursive call on children
-    Node nn =
-        computeProcessTerms2(body[i], cache, new_vars, new_conds);
+    Node nn = computeProcessTerms2(body[i], cache, new_vars, new_conds);
     children.push_back(nn);
     changed = changed || nn != body[i];
   }
@@ -1786,8 +1779,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return is_std
-           && options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
+    return is_std && options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {
