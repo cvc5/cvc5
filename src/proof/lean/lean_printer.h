@@ -39,7 +39,31 @@ static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // should print theorem statement
   out << "hello world"
       << "\n";
-
+  std::vector<Node> args = pfn->getArguments();
+  std::vector<Node> children = pfn->getChildren();
+  Node id = args[0];
+  int counter = 0;
+  switch (id) {
+  case LeanRule::TRUST:
+    {
+      out << "trust(" << args[1] << ")";
+    }
+  case LeanRule::ASSUME:
+    {
+      out << "(assume v" << counter << " : holds [";
+      for (size_t i = 1; i < args.size() - 1; i++) {
+        out << args[i] << ", ";
+      }
+      out << args[args.size() - 1] << "],";
+    };
+  case LeanRule::SCOPE:
+    {
+      out << ")";
+    }
+  }
+  for (Node ch : children) {
+    leanPrinter(out, ch);
+  }
   // should traverse proof node, print each as a proof step, according to the
   // LEAN_RULE id in the LeanRule enum
   out << pfn;

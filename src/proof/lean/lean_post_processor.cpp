@@ -60,11 +60,27 @@ bool LeanProofPostprocessCallback::update(Node res,
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
       break;
     }
-    /*
-    case PfRule::ASSUME:
-    {
+    case (PfRule::SCOPE): { // not sure here
+      Node lean_id = nm->mkConst<Rational>(
+          static_cast<unsigned>(proof::LeanRule::SCOPE));
+      std::vector<Node> lean_args;
+      lean_args.push_back(lean_id);
+      lean_args.insert(lean_args.end(), args.begin(), args.end());
+      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
+      break;
+    }
+    case (PfRule::MACRO_RESOLUTION): {
+      Node lean_id = nm->mkConst<Rational>(
+          static_cast<unsigned>(proof::LeanRule::TRUST));
+      std::vector<Node> lean_args;
+      lean_args.push_back(lean_id);
+      lean_args.push_back(args[0]);
+      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
+      break;
 
     }
+
+    /*
     case PfRule::RESOLUTION:
     {
       Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(
@@ -135,9 +151,9 @@ bool LeanProofPostprocessCallback::update(Node res,
         Node ineq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, n[0], n[1]));
         conclusion_nodes.push_back(ineq);
       }
-      Node eq_node = nm->mkNode(kind::EQUAL, children.front()[0], children.back()[1]);
-      conclusion_nodes.push_back(eq_node);
-      Node new_res = nm->mkNode(conclusion_nodes);
+      Node eq_node = nm->mkNode(kind::EQUAL, children.front()[0],
+    children.back()[1]); conclusion_nodes.push_back(eq_node); Node new_res =
+    nm->mkNode(conclusion_nodes);
       // args will be the function and clauses
       cdp->addStep(
           new_res, PfRule::LEAN_RULE, {}, args);  // take no children, only args
@@ -157,27 +173,19 @@ bool LeanProofPostprocessCallback::update(Node res,
       cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  // add child
       break;
     }
-    case (PfRule::SCOPE): { // not sure here
-      // proof::LeanRule::CNF_IMPLIES
-      Node new_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(proof::LeanRule::CNF_IMPLIES));
-      cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  // add child
-      break;
-    }
     case (PfRule::CHAIN_RESOLUTION): { // not sure here
       // proof::LeanRule::CNF_IMPLIES
       Node new_id = nm->mkConst<Rational>(
           static_cast<unsigned>(proof::LeanRule::CNF_IMPLIES));
       // need to add several steps, like resolution
-      // by looking through arguments <-- will need to build intermediate conclusions
-      cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  // add child
-      break;
+      // by looking through arguments <-- will need to build intermediate
+    conclusions cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  //
+    add child break;
     }
     */
     default:
       {
-        return false;
-      }
+        return false;}
   };
   return true;
 }  // namespace proof
