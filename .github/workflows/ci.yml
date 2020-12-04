@@ -159,8 +159,6 @@ jobs:
         make -j2 install
         echo -e "#include <cvc4/api/cvc4cpp.h>\nint main() { CVC4::api::Solver s; return 0; }" > /tmp/test.cpp
         g++ -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4
-        echo "More debugging"
-        tree ./*
       working-directory: build
 
     - name: Python Install Check
@@ -168,6 +166,8 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
+       echo "More debugging"
+       ls $(dirname $(find build/install/ -name "pycvc4" -type d))
 
       # Examples are built for non-symfpu builds
     - name: Check Examples
