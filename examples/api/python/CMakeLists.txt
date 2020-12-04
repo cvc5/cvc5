@@ -44,7 +44,7 @@ foreach(example ${EXAMPLES_API_PYTHON})
   add_test(
     NAME ${example_test}
     COMMAND
-      "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/api/python/${example}.py"
+      printenv PYTHONPATH && ls ${PYTHON_MODULE_PATH} && "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/api/python/${example}.py"
   )
   set_tests_properties(${example_test} PROPERTIES
     LABELS "example"
