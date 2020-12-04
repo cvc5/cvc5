@@ -3075,7 +3075,7 @@ const static std::
             {ROUND_NEAREST_TIES_TO_EVEN,
              CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN},
             {ROUND_TOWARD_POSITIVE, CVC4::RoundingMode::ROUND_TOWARD_POSITIVE},
-            {ROUND_TOWARD_NEGATIVE, CVC4::RoundingMode::ROUND_TOWARD_POSITIVE},
+            {ROUND_TOWARD_NEGATIVE, CVC4::RoundingMode::ROUND_TOWARD_NEGATIVE},
             {ROUND_TOWARD_ZERO, CVC4::RoundingMode::ROUND_TOWARD_ZERO},
             {ROUND_NEAREST_TIES_TO_AWAY,
              CVC4::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY},
@@ -3650,7 +3650,7 @@ Sort Solver::mkRecordSort(
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  std::vector<std::pair<std::string, Type>> f;
+  std::vector<std::pair<std::string, TypeNode>> f;
   size_t i = 0;
   for (const auto& p : fields)
   {
@@ -3661,10 +3661,10 @@ Sort Solver::mkRecordSort(
         this == p.second.d_solver, "parameter sort", p.second, i)
         << "sort associated to this solver object";
     i += 1;
-    f.emplace_back(p.first, p.second.d_type->toType());
+    f.emplace_back(p.first, *p.second.d_type);
   }
 
-  return Sort(this, getNodeManager()->mkRecordType(Record(f)));
+  return Sort(this, getNodeManager()->mkRecordType(f));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

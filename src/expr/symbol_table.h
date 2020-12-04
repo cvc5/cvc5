@@ -2,7 +2,7 @@
 /*! \file symbol_table.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -172,6 +172,8 @@ class CVC4_PUBLIC SymbolTable {
 
   /** Reset everything. */
   void reset();
+  /** Reset assertions. */
+  void resetAssertions();
 
   //------------------------ operator overloading
   /** is this function overloaded? */
