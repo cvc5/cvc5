@@ -11,6 +11,7 @@ yum install -y \
     ccache \
     cxxtest \
     gmp-devel \
+    gmp-static \
     libedit-devel \
     gtest-devel \
     flex-devel \
