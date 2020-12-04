@@ -13,6 +13,7 @@ jobs:
     env:
       # only build for cpython3
       CIBW_BUILD: cp3*
+      CIBW_SKIP: cp35*
       CIBW_BEFORE_ALL_LINUX: .github/scripts/centos-dependency-installs.sh
       CIBW_BEFORE_ALL_MACOS: .github/scripts/macos-dependency-installs.sh
 
