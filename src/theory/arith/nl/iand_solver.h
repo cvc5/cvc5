@@ -2,7 +2,7 @@
 /*! \file iand_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Tianyi Liang
+ **   Andrew Reynolds, Yoni Zohar, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.

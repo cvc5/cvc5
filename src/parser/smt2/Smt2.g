@@ -103,9 +103,6 @@ namespace CVC4 {
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/type.h"
 #include "options/set_language.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -294,7 +291,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       else
       {
         api::Term func =
-            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+            PARSER_STATE->bindVar(name, t, false, true);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -333,8 +330,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       // we allow overloading for function definitions
-      api::Term func = PARSER_STATE->bindVar(name, t,
-                                      ExprManager::VAR_FLAG_DEFINED, true);
+      api::Term func = PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DefineFunctionCommand(
           name, func, terms, expr, SYM_MAN->getGlobalDeclarations()));
     }
@@ -775,7 +771,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
       api::Term c =
-          PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+          PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -792,14 +788,16 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     /* reset: reset everything, returning solver to initial state.
      * Logic and options must be set again. */
   | RESET_TOK
-    { cmd->reset(new ResetCommand());
+    {
+      cmd->reset(new ResetCommand());
+      // reset the state of the parser, which is independent of the symbol
+      // manager
       PARSER_STATE->reset();
     }
     /* reset-assertions: reset assertions, assertion stack, declarations,
      * etc., but the logic and options remain as they were. */
   | RESET_ASSERTIONS_TOK
     { cmd->reset(new ResetAssertionsCommand());
-      PARSER_STATE->resetAssertions();
     }
   | DEFINE_FUN_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet(); }
@@ -943,7 +941,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, tt, ExprManager::VAR_FLAG_NONE, true);
+            PARSER_STATE->bindVar(name, tt, false, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
@@ -963,7 +961,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+            PARSER_STATE->bindVar(name, t, false, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -977,8 +975,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
       {
-        api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
-                                        ExprManager::VAR_FLAG_DEFINED);
+        api::Term func = PARSER_STATE->bindVar(name, e.getSort());
         cmd->reset(new DefineFunctionCommand(
             name, func, e, SYM_MAN->getGlobalDeclarations()));
       }
@@ -1008,8 +1005,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           }
           tt = SOLVER->mkFunctionSort(sorts, tt);
         }
-        api::Term func = PARSER_STATE->bindVar(name, tt,
-                                        ExprManager::VAR_FLAG_DEFINED);
+        api::Term func = PARSER_STATE->bindVar(name, tt);
         cmd->reset(new DefineFunctionCommand(
             name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
       }
@@ -1030,8 +1026,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      api::Term func = PARSER_STATE->bindVar(name, t,
-                                      ExprManager::VAR_FLAG_DEFINED);
+      api::Term func = PARSER_STATE->bindVar(name, t);
       cmd->reset(new DefineFunctionCommand(
           name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
     }
@@ -1101,7 +1096,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   LPAREN_TOK /* parametric sorts */
   ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
     {
-      sorts.push_back(PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER));
+      sorts.push_back(PARSER_STATE->mkSort(name));
     }
   )*
   RPAREN_TOK
@@ -1197,7 +1192,7 @@ datatypesDef[bool isCo,
     ( PAR_TOK { PARSER_STATE->pushScope(); } LPAREN_TOK
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
         {
-          params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER)); }
+          params.push_back( PARSER_STATE->mkSort(name)); }
       )*
       RPAREN_TOK {
         // if the arity was fixed by prelude and is not equal to the number of parameters
