@@ -2,7 +2,7 @@
 /*! \file floatingpoint.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Aina Niemetz, Haniel Barbosa
+ **   Aina Niemetz, Martin Brain, Haniel Barbosa
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
@@ -129,35 +129,35 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 #ifdef CVC4_USE_SYMFPU
   if (signedBV)
   {
-    d_fpl = new FloatingPointLiteral(
+    d_fpl.reset(new FloatingPointLiteral(
         symfpu::convertSBVToFloat<symfpuLiteral::traits>(
             symfpuLiteral::CVC4FPSize(size),
             symfpuLiteral::CVC4RM(rm),
-            symfpuLiteral::CVC4SignedBitVector(bv)));
+            symfpuLiteral::CVC4SignedBitVector(bv))));
   }
   else
   {
-    d_fpl = new FloatingPointLiteral(
+    d_fpl.reset(new FloatingPointLiteral(
         symfpu::convertUBVToFloat<symfpuLiteral::traits>(
             symfpuLiteral::CVC4FPSize(size),
             symfpuLiteral::CVC4RM(rm),
-            symfpuLiteral::CVC4UnsignedBitVector(bv)));
+            symfpuLiteral::CVC4UnsignedBitVector(bv))));
   }
 #else
-  d_fpl = new FloatingPointLiteral(2, 2, 0.0);
+  d_fpl.reset(new FloatingPointLiteral(2, 2, 0.0));
 #endif
 }
 
 FloatingPoint::FloatingPoint(const FloatingPointSize& fp_size,
-                             const FloatingPointLiteral* fpl)
+                             FloatingPointLiteral* fpl)
     : d_fp_size(fp_size)
 {
-  d_fpl = new FloatingPointLiteral(*fpl);
+  d_fpl.reset(fpl);
 }
 
 FloatingPoint::FloatingPoint(const FloatingPoint& fp) : d_fp_size(fp.d_fp_size)
 {
-  d_fpl = new FloatingPointLiteral(*fp.d_fpl);
+  d_fpl.reset(new FloatingPointLiteral(*fp.d_fpl));
 }
 
 FloatingPoint::FloatingPoint(const FloatingPointSize& size,
@@ -171,10 +171,10 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
   {
 #ifdef CVC4_USE_SYMFPU
     // In keeping with the SMT-LIB standard
-    d_fpl = new FloatingPointLiteral(
-        SymFPUUnpackedFloatLiteral::makeZero(size, false));
+    d_fpl.reset(new FloatingPointLiteral(
+        SymFPUUnpackedFloatLiteral::makeZero(size, false)));
 #else
-    d_fpl = new FloatingPointLiteral(2, 2, 0.0);
+    d_fpl.reset(new FloatingPointLiteral(2, 2, 0.0));
 #endif
   }
   else
@@ -285,8 +285,8 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
         negative, exactExp.signExtend(extension), sig);
 
     // Then cast...
-    d_fpl = new FloatingPointLiteral(
-        symfpu::convertFloatToFloat(exactFormat, size, rm, exactFloat.d_symuf));
+    d_fpl.reset(new FloatingPointLiteral(symfpu::convertFloatToFloat(
+        exactFormat, size, rm, exactFloat.d_symuf)));
 #else
     Unreachable() << "no concrete implementation of FloatingPointLiteral";
 #endif
@@ -295,8 +295,6 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 
 FloatingPoint::~FloatingPoint()
 {
-  delete d_fpl;
-  d_fpl = nullptr;
 }
 
 FloatingPoint FloatingPoint::makeNaN(const FloatingPointSize& size)

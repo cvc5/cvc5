@@ -2,7 +2,7 @@
 /*! \file tptp_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -54,20 +54,27 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
                                         : "CandidateFiniteModel");
   out << "% SZS output start " << statusName << " for " << m.getInputName()
       << endl;
-  for(size_t i = 0; i < m.getNumCommands(); ++i) {
-    this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_5, out, m, m.getCommand(i));
-  }
+  this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_5, out, m);
   out << "% SZS output end " << statusName << " for " << m.getInputName()
       << endl;
 }
 
-void TptpPrinter::toStream(std::ostream& out,
-                           const smt::Model& m,
-                           const NodeCommand* c) const
+void TptpPrinter::toStreamModelSort(std::ostream& out,
+                                    const smt::Model& m,
+                                    TypeNode tn) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
 }
+
+void TptpPrinter::toStreamModelTerm(std::ostream& out,
+                                    const smt::Model& m,
+                                    Node n) const
+{
+  // shouldn't be called; only the non-Command* version above should be
+  Unreachable();
+}
+
 void TptpPrinter::toStream(std::ostream& out, const UnsatCore& core) const
 {
   out << "% SZS output start UnsatCore " << std::endl;

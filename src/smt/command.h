@@ -2,7 +2,7 @@
 /*! \file command.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Abdalrhman Mohamed
+ **   Abdalrhman Mohamed, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -29,8 +29,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/type.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 
@@ -50,6 +48,16 @@ class CommandStatus;
 namespace smt {
 class Model;
 }
+
+/**
+ * Convert a symbolic expression to string. This method differs from
+ * Term::toString in that it does not surround constant strings with double
+ * quote symbols.
+ *
+ * @param sexpr the symbolic expression to convert
+ * @return the symbolic expression as string
+ */
+std::string sexprToString(api::Term sexpr);
 
 std::ostream& operator<<(std::ostream&, const Command&) CVC4_PUBLIC;
 std::ostream& operator<<(std::ostream&, const Command*) CVC4_PUBLIC;
@@ -198,7 +206,6 @@ class CVC4_PUBLIC Command
   typedef CommandPrintSuccess printsuccess;
 
   Command();
-  Command(const api::Solver* solver);
   Command(const Command& cmd);
 
   virtual ~Command();
@@ -387,16 +394,11 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
  protected:
   api::Term d_func;
   api::Sort d_sort;
-  bool d_printInModel;
-  bool d_printInModelSetByUser;
 
  public:
   DeclareFunctionCommand(const std::string& id, api::Term func, api::Sort sort);
   api::Term getFunction() const;
   api::Sort getSort() const;
-  bool getPrintInModel() const;
-  bool getPrintInModelSetByUser() const;
-  void setPrintInModel(bool p);
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
@@ -1290,13 +1292,13 @@ class CVC4_PUBLIC SetInfoCommand : public Command
 {
  protected:
   std::string d_flag;
-  SExpr d_sexpr;
+  std::string d_sexpr;
 
  public:
-  SetInfoCommand(std::string flag, const SExpr& sexpr);
+  SetInfoCommand(std::string flag, const std::string& sexpr);
 
   std::string getFlag() const;
-  SExpr getSExpr() const;
+  const std::string& getSExpr() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
@@ -1335,13 +1337,13 @@ class CVC4_PUBLIC SetOptionCommand : public Command
 {
  protected:
   std::string d_flag;
-  SExpr d_sexpr;
+  std::string d_sexpr;
 
  public:
-  SetOptionCommand(std::string flag, const SExpr& sexpr);
+  SetOptionCommand(std::string flag, const std::string& sexpr);
 
   std::string getFlag() const;
-  SExpr getSExpr() const;
+  const std::string& getSExpr() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;

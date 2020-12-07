@@ -565,12 +565,8 @@ namespace CVC4 {
 #include <vector>
 
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
-
 
 #define REPEAT_COMMAND(k, CommandCtor)                      \
   ({                                                        \
@@ -686,7 +682,7 @@ options { backtrack = true; }
 mainCommand[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   api::Term f;
-  SExpr sexpr;
+  api::Term sexpr;
   std::string id;
   api::Sort t;
   std::vector<CVC4::api::DatatypeDecl> dts;
@@ -715,14 +711,14 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
     ( symbolicExpr[sexpr]
       { if(s == "logic") {
-          cmd->reset(new SetBenchmarkLogicCommand(sexpr.getValue()));
+          cmd->reset(new SetBenchmarkLogicCommand(sexprToString(sexpr)));
         } else {
-          cmd->reset(new SetOptionCommand(s, sexpr));
+          cmd->reset(new SetOptionCommand(s, sexprToString(sexpr)));
         }
       }
-    | TRUE_TOK { cmd->reset(new SetOptionCommand(s, SExpr("true"))); }
-    | FALSE_TOK { cmd->reset(new SetOptionCommand(s, SExpr("false"))); }
-    | { cmd->reset(new SetOptionCommand(s, SExpr("true"))); }
+    | TRUE_TOK { cmd->reset(new SetOptionCommand(s, "true")); }
+    | FALSE_TOK { cmd->reset(new SetOptionCommand(s, "false")); }
+    | { cmd->reset(new SetOptionCommand(s, "true")); }
     )
 
     /* push / pop */
@@ -742,13 +738,15 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("POPTO_SCOPE command"); }
 
   | RESET_TOK
-    { cmd->reset(new ResetCommand());
+    {
+      cmd->reset(new ResetCommand());
+      // reset the state of the parser, which is independent of the symbol
+      // manager
       PARSER_STATE->reset();
     }
 
   | RESET_TOK ASSERTIONS_TOK
     { cmd->reset(new ResetAssertionsCommand());
-      PARSER_STATE->reset();
     }
 
     // Datatypes can be mututally-recursive if they're in the same
@@ -799,24 +797,24 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | DBG_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Debug.on(s); Trace.on(s); }
-    | { Message() << "Please specify what to debug." << std::endl; }
+    | { CVC4Message() << "Please specify what to debug." << std::endl; }
     )
 
   | TRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.on(s); }
-    | { Message() << "Please specify something to trace." << std::endl; }
+    | { CVC4Message() << "Please specify something to trace." << std::endl; }
     )
   | UNTRACE_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
       { Trace.off(s); }
-    | { Message() << "Please specify something to untrace." << std::endl; }
+    | { CVC4Message() << "Please specify something to untrace." << std::endl; }
     )
 
   | HELP_TOK
     ( ( str[s] | IDENTIFIER { s = AntlrInput::tokenText($IDENTIFIER); } )
-      { Message() << "No help available for `" << s << "'." << std::endl; }
-  |   { Message() << "Please use --help at the command line for help."
+      { CVC4Message() << "No help available for `" << s << "'." << std::endl; }
+  |   { CVC4Message() << "Please use --help at the command line for help."
                 << std::endl; }
             )
 
@@ -832,8 +830,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
     { UNSUPPORTED("CALL command"); }
 
   | ECHO_TOK
-    ( simpleSymbolicExpr[sexpr]
-      { cmd->reset(new EchoCommand(sexpr.getValue())); }
+    ( simpleSymbolicExpr[s]
+      { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
 
@@ -889,7 +887,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       idCommaFlag=true;
       })?
     {
-      func = PARSER_STATE->bindVar(id, t, ExprManager::VAR_FLAG_NONE, true);
+      func = PARSER_STATE->bindVar(id, t, false, true);
       ids.push_back(id);
       types.push_back(t);
       funcs.push_back(func);
@@ -939,34 +937,31 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
   | toplevelDeclaration[cmd]
   ;
 
-simpleSymbolicExpr[CVC4::SExpr& sexpr]
-@declarations {
-  std::string s;
-  CVC4::Rational r;
-}
+simpleSymbolicExpr[std::string& s]
   : INTEGER_LITERAL
-    { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
+    { s = AntlrInput::tokenText($INTEGER_LITERAL); }
   | MINUS_TOK INTEGER_LITERAL
-    { sexpr = SExpr(-Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
+    { s = std::to_string(MINUS_TOK) + AntlrInput::tokenText($INTEGER_LITERAL); }
   | DECIMAL_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+    { s = AntlrInput::tokenText($DECIMAL_LITERAL); }
   | HEX_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($HEX_LITERAL)); }
+    { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenText($BINARY_LITERAL)); }
+    { s = AntlrInput::tokenText($BINARY_LITERAL); }
   | str[s]
-    { sexpr = SExpr(s); }
   | IDENTIFIER
-    { sexpr = SExpr(AntlrInput::tokenText($IDENTIFIER)); }
+    { s = AntlrInput::tokenText($IDENTIFIER); }
   ;
 
-symbolicExpr[CVC4::SExpr& sexpr]
+symbolicExpr[CVC4::api::Term& sexpr]
 @declarations {
-  std::vector<SExpr> children;
+  std::string s;
+  std::vector<api::Term> children;
 }
-  : simpleSymbolicExpr[sexpr]
+  : simpleSymbolicExpr[s]
+    { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
   | LPAREN (symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN
-    { sexpr = SExpr(children); }
+    { sexpr = SOLVER->mkTerm(CVC4::api::SEXPR, children); }
   ;
 
 /**
@@ -1120,8 +1115,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           } else {
             Debug("parser") << "  " << *i << " not declared" << std::endl;
             if(topLevel) {
-              api::Term func =
-                  PARSER_STATE->bindVar(*i, t, ExprManager::VAR_FLAG_GLOBAL);
+              api::Term func = PARSER_STATE->bindVar(*i, t);
               Command* decl = new DeclareFunctionCommand(*i, func, t);
               seq->addCommand(decl);
             } else {
@@ -1154,10 +1148,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
             ++i) {
           Debug("parser") << "making " << *i << " : " << t << " = " << f << std::endl;
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
-          api::Term func = PARSER_STATE->mkVar(
-              *i,
-              t,
-              ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
+          api::Term func = SOLVER->mkConst(t, *i);
           PARSER_STATE->defineVar(*i, fterm);
           Command* decl = new DefineFunctionCommand(*i, func, formals, f, true);
           seq->addCommand(decl);
@@ -2310,11 +2301,11 @@ datatypeDef[std::vector<CVC4::api::DatatypeDecl>& datatypes]
      * below. */
   : identifier[id,CHECK_NONE,SYM_SORT] { PARSER_STATE->pushScope(); }
     ( LBRACKET identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
+        t = PARSER_STATE->mkSort(id2);
         params.push_back( t );
       }
       ( COMMA identifier[id2,CHECK_UNDECLARED,SYM_SORT] {
-        t = PARSER_STATE->mkSort(id2, ExprManager::SORT_FLAG_PLACEHOLDER);
+        t = PARSER_STATE->mkSort(id2);
         params.push_back( t ); }
       )* RBRACKET
     )?

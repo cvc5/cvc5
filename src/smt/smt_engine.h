@@ -21,13 +21,12 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "base/modal_exception.h"
 #include "context/cdhashmap_forward.h"
 #include "context/cdhashset_forward.h"
 #include "context/cdlist_forward.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "options/options.h"
 #include "smt/logic_exception.h"
 #include "smt/output_manager.h"
@@ -48,9 +47,10 @@ namespace CVC4 {
 template <bool ref_count> class NodeTemplate;
 typedef NodeTemplate<true> Node;
 typedef NodeTemplate<false> TNode;
+class TypeNode;
 struct NodeHashFunction;
 
-class SmtEngine;
+class NodeManager;
 class DecisionEngine;
 class TheoryEngine;
 class ProofManager;
@@ -58,6 +58,7 @@ class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
 class Printer;
+class ResourceManager;
 
 /* -------------------------------------------------------------------------- */
 
@@ -147,7 +148,7 @@ class CVC4_PUBLIC SmtEngine
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
    */
-  SmtEngine(ExprManager* em, Options* optr = nullptr);
+  SmtEngine(NodeManager* nm, Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -533,7 +534,13 @@ class CVC4_PUBLIC SmtEngine
 
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
-
+  /**
+   * Print the current proof. This method should be called after an UNSAT
+   * response. It gets the proof of false from the PropEngine and passes
+   * it to the ProofManager, which post-processes the proof and prints it
+   * in the proper format.
+   */
+  void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
@@ -691,7 +698,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Completely reset the state of the solver, as though destroyed and
    * recreated.  The result is as if newly constructed (so it still
-   * retains the same options structure and ExprManager).
+   * retains the same options structure and NodeManager).
    */
   void reset();
 
@@ -785,9 +792,6 @@ class CVC4_PUBLIC SmtEngine
    */
   unsigned long getResourceRemaining() const;
 
-  /** Permit access to the underlying ExprManager. */
-  ExprManager* getExprManager() const { return d_exprManager; }
-
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
@@ -806,8 +810,8 @@ class CVC4_PUBLIC SmtEngine
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
    */
   void setUserAttribute(const std::string& attr,
-                        Expr expr,
-                        const std::vector<Expr>& expr_values,
+                        Node expr,
+                        const std::vector<Node>& expr_values,
                         const std::string& str_value);
 
   /** Get the options object (const and non-const versions) */
@@ -872,6 +876,9 @@ class CVC4_PUBLIC SmtEngine
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
+  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
+  smt::PfManager* getPfManager() { return d_pfManager.get(); };
+
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
   {
@@ -885,6 +892,14 @@ class CVC4_PUBLIC SmtEngine
    * command.
    */
   UnsatCore getUnsatCoreInternal();
+
+  /**
+   * Check that a generated proof checks. This method is the same as printProof,
+   * but does not print the proof. Like that method, it should be called
+   * after an UNSAT response. It ensures that a well-formed proof of false
+   * can be constructed by the combination of the PropEngine and ProofManager.
+   */
+  void checkProof();
 
   /**
    * Check that an unsatisfiable core is indeed unsatisfiable.
@@ -1013,9 +1028,7 @@ class CVC4_PUBLIC SmtEngine
    */
   std::unique_ptr<smt::SmtEngineState> d_state;
 
-  /** Our expression manager */
-  ExprManager* d_exprManager;
-  /** Our internal expression/node manager */
+  /** Our internal node manager */
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;

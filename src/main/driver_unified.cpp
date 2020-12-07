@@ -209,23 +209,24 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             "--tear-down-incremental doesn't work in interactive mode");
       }
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
+        cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }
       InteractiveShell shell(pExecutor->getSolver(),
                              pExecutor->getSymbolManager());
       if(opts.getInteractivePrompt()) {
-        Message() << Configuration::getPackageName()
-                  << " " << Configuration::getVersionString();
+        CVC4Message() << Configuration::getPackageName() << " "
+                      << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
-          Message() << " [" << Configuration::getGitId() << "]";
+          CVC4Message() << " [" << Configuration::getGitId() << "]";
         }
-        Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                  << " assertions:"
-                  << (Configuration::isAssertionBuild() ? "on" : "off")
-                  << endl << endl;
-        Message() << Configuration::copyright() << endl;
+        CVC4Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                      << " assertions:"
+                      << (Configuration::isAssertionBuild() ? "on" : "off")
+                      << endl
+                      << endl;
+        CVC4Message() << Configuration::copyright() << endl;
       }
 
       while(true) {
@@ -246,7 +247,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
         // For tear-down-incremental values greater than 1, need incremental
         // on too.
-        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
+        cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         // if(opts.wasSetByUserIncrementalSolving()) {
@@ -410,7 +411,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
     } else {
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
+        cmd.reset(new SetOptionCommand("incremental", "false"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }

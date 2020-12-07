@@ -2,7 +2,7 @@
 /*! \file theory_preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -350,30 +350,32 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   {
     return (*find).second;
   }
-  unsigned nc = term.getNumChildren();
-  if (nc == 0)
+  if (term.getNumChildren() == 0)
   {
     return preprocessWithProof(term);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-
-  Node newTerm = term;
+  // We must rewrite before preprocessing, because some terms when rewritten
+  // may introduce new terms that are not top-level and require preprocessing.
+  // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
+  // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
+  // must be preprocessed as a child here.
+  Node newTerm = rewriteWithProof(term);
   // do not rewrite inside quantifiers
-  if (!term.isClosure())
+  if (newTerm.getNumChildren() > 0 && !newTerm.isClosure())
   {
-    NodeBuilder<> newNode(term.getKind());
-    if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
+    NodeBuilder<> newNode(newTerm.getKind());
+    if (newTerm.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      newNode << term.getOperator();
+      newNode << newTerm.getOperator();
     }
-    unsigned i;
-    for (i = 0; i < nc; ++i)
+    for (const Node& nt : newTerm)
     {
-      newNode << ppTheoryRewrite(term[i]);
+      newNode << ppTheoryRewrite(nt);
     }
     newTerm = Node(newNode);
+    newTerm = rewriteWithProof(newTerm);
   }
-  newTerm = rewriteWithProof(newTerm);
   newTerm = preprocessWithProof(newTerm);
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;

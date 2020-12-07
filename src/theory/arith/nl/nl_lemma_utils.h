@@ -98,6 +98,25 @@ struct SortNlModel
   bool operator()(Node i, Node j);
 };
 
+/**
+ * Wrapper for std::sort that uses SortNlModel to sort an iterator range.
+ */
+template <typename It>
+void sortByNlModel(It begin,
+                   It end,
+                   NlModel* model,
+                   bool concrete = true,
+                   bool absolute = false,
+                   bool reverse = false)
+{
+  SortNlModel smv;
+  smv.d_nlm = model;
+  smv.d_isConcrete = concrete;
+  smv.d_isAbsolute = absolute;
+  smv.d_reverse_order = reverse;
+  std::sort(begin, end, smv);
+}
+
 struct SortNonlinearDegree
 {
   SortNonlinearDegree(const std::map<Node, unsigned>& m) : d_mdegree(m) {}

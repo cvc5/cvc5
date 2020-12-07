@@ -179,10 +179,7 @@ std::ostream& operator<<(std::ostream& o, const ConstraintCPVec& v){
   return o;
 }
 
-void Constraint::debugPrint() const {
-  Message() << *this << endl;
-}
-
+void Constraint::debugPrint() const { CVC4Message() << *this << endl; }
 
 ValueCollection::ValueCollection()
   : d_lowerBound(NullConstraint),

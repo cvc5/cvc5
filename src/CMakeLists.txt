@@ -122,8 +122,6 @@ libcvc4_add_sources(
   printer/ast/ast_printer.h
   printer/cvc/cvc_printer.cpp
   printer/cvc/cvc_printer.h
-  printer/dagification_visitor.cpp
-  printer/dagification_visitor.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
@@ -219,6 +217,8 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
+  smt/expand_definitions.cpp
+  smt/expand_definitions.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -387,8 +387,16 @@ libcvc4_add_sources(
   theory/arith/nl/stats.h
   theory/arith/nl/strategy.cpp
   theory/arith/nl/strategy.h
-  theory/arith/nl/transcendental_solver.cpp
-  theory/arith/nl/transcendental_solver.h
+  theory/arith/nl/transcendental/exponential_solver.cpp
+  theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/sine_solver.cpp
+  theory/arith/nl/transcendental/sine_solver.h
+  theory/arith/nl/transcendental/taylor_generator.cpp
+  theory/arith/nl/transcendental/taylor_generator.h
+  theory/arith/nl/transcendental/transcendental_solver.cpp
+  theory/arith/nl/transcendental/transcendental_solver.h
+  theory/arith/nl/transcendental/transcendental_state.cpp
+  theory/arith/nl/transcendental/transcendental_state.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/operator_elim.cpp
@@ -1127,7 +1135,6 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
-          expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
           expr/emptyset.h
