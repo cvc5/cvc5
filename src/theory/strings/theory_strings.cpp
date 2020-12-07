@@ -995,12 +995,6 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  // first, see if we need to expand definitions
-  TrustNode texp = expandDefinition(atom);
-  if (!texp.isNull())
-  {
-    return texp;
-  }
   if (atom.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->
