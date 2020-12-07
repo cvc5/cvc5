@@ -405,7 +405,7 @@ bool Trigger::isAtomicTrigger( Node n ){
 
 bool Trigger::isAtomicTriggerKind( Kind k ) {
   return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
-         || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER || k == UNION
+         || k == APPLY_SELECTOR || k == APPLY_TESTER || k == UNION
          || k == INTERSECTION || k == SUBSET || k == SETMINUS || k == MEMBER
          || k == SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
          || k == INT_TO_BITVECTOR || k == HO_APPLY || k == SEQ_NTH;
@@ -432,7 +432,7 @@ bool Trigger::isSimpleTrigger( Node n ){
         return false;
       }
     }
-    if( options::purifyDtTriggers() && t.getKind()==APPLY_SELECTOR_TOTAL ){
+    if( options::purifyDtTriggers() && t.getKind()==APPLY_SELECTOR ){
       return false;
     }
     if (t.getKind() == HO_APPLY && t[0].getKind() == INST_CONSTANT)
