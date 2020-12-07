@@ -2,7 +2,7 @@
 /*! \file resource_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Gereon Kremer, Liana Hadarean
+ **   Gereon Kremer, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
