@@ -21,6 +21,8 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/uf/theory_uf.h"
 
 using namespace std;
@@ -49,7 +51,13 @@ void CandidateGeneratorQE::resetInstantiationRound(){
 }
 
 void CandidateGeneratorQE::reset( Node eqc ){
+  resetForOperator(eqc,d_op);
+}
+
+void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
+{
   d_term_iter = 0;
+  d_eqc = eqc;
   if( eqc.isNull() ){
     d_mode = cand_term_db;
   }else{
@@ -69,7 +77,6 @@ void CandidateGeneratorQE::reset( Node eqc ){
         }   
       }else{
         //the only match is this term itself
-        d_eqc = eqc;
         d_mode = cand_term_ident;
       }
     }
@@ -85,6 +92,10 @@ bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
 }
 
 Node CandidateGeneratorQE::getNextCandidate(){
+  return getNextCandidateInternal();
+}
+
+Node CandidateGeneratorQE::getNextCandidateInternal(){
   if( d_mode==cand_term_db ){
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
@@ -232,7 +243,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
 Node CandidateGeneratorConsExpand::getNextCandidate()
 {
   // get the next term from the base class
-  Node curr = CandidateGeneratorQE::getNextCandidate();
+  Node curr = getNextCandidateInternal();
   if (curr.isNull() || (curr.hasOperator() && curr.getOperator() == d_op))
   {
     return curr;
@@ -255,4 +266,42 @@ Node CandidateGeneratorConsExpand::getNextCandidate()
 bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
 {
   return isLegalCandidate(n);
+}
+
+CandidateGeneratorSelector::CandidateGeneratorSelector(
+    QuantifiersEngine* qe, Node mpat)
+    : CandidateGeneratorQE(qe, mpat)
+{
+  Assert(mpat.getKind() == APPLY_SELECTOR);
+  Node mpatExp = smt::currentSmtEngine()->expandDefinitions(mpatExp);
+  Assert (mpatExp.getKind()==ITE);
+  Assert (mpatExp[2].getKind()==APPLY_UF);
+  d_selOp = qe->getTermDatabase()->getMatchOperator( mpatExp[1]);
+  d_ufOp =qe->getTermDatabase()->getMatchOperator( mpatExp[2]);
+  Assert (d_selOp!=d_ufOp);
+}
+
+void CandidateGeneratorSelector::reset(Node eqc)
+{
+  // start with d_selOp
+  resetForOperator(eqc, d_selOp);
+  d_currOp = d_selOp;
+}
+
+Node CandidateGeneratorSelector::getNextCandidate()
+{
+  Node nextc = getNextCandidateInternal();
+  if (!nextc.isNull())
+  {
+    return nextc;
+  }
+  else if (d_currOp==d_selOp)
+  {
+    // finished correctly applied selectors, now try incorrectly applied ones
+    resetForOperator(d_eqc, d_ufOp);
+    d_currOp = d_ufOp;
+    return getNextCandidate();
+  }
+  // no more candidates
+  return Node::null();
 }
