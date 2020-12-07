@@ -172,5 +172,6 @@ typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 typerule CONST_SEQUENCE ::CVC4::theory::strings::ConstSequenceTypeRule
 typerule SEQ_UNIT ::CVC4::theory::strings::SeqUnitTypeRule
 typerule SEQ_NTH ::CVC4::theory::strings::SeqNthTypeRule
+typerule SEQ_NTH_TOTAL ::CVC4::theory::strings::SeqNthTypeRule
 
 endtheory

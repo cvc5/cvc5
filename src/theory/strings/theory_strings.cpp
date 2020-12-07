@@ -567,11 +567,11 @@ TrustNode TheoryStrings::expandDefinition(Node node)
     SkolemCache* sc = d_termReg.getSkolemCache();
     Node s = node[0];
     Node n = node[1];
-    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n,1), Uf(s, n))
+    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
     Node cond = nm->mkNode(AND,
                            nm->mkNode(LEQ, d_zero, n),
                            nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
-    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n, d_one);
+    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
     Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
     Node u = nm->mkNode(APPLY_UF, uf, s, n);
     Node ret = nm->mkNode(ITE, cond, ss, u);
