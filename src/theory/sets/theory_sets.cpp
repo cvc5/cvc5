@@ -68,6 +68,9 @@ void TheorySets::finishInit()
   d_valuation.setUnevaluatedKind(COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
+  // Universe set is not evaluated. This is moreover important for ensuring that
+  // we do not eliminate terms whose value involves the universe set.
+  d_valuation.setUnevaluatedKind(UNIVERSE_SET);
 
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(SINGLETON);
@@ -128,6 +131,11 @@ void TheorySets::preRegisterTerm(TNode node)
 
 TrustNode TheorySets::expandDefinition(Node n)
 {
+  return d_internal->expandDefinition(n);
+}
+
+TrustNode TheorySets::ppRewrite(TNode n)
+{
   Kind nk = n.getKind();
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
       || nk == COMPREHENSION)
@@ -150,7 +158,8 @@ TrustNode TheorySets::expandDefinition(Node n)
       throw LogicException(ss.str());
     }
   }
-  return d_internal->expandDefinition(n);
+  // just expand definitions
+  return expandDefinition(n);
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(

@@ -14,7 +14,11 @@
 
 #include "test_api.h"
 
-using namespace CVC4::api;
+namespace CVC4 {
+
+using namespace api;
+
+namespace test {
 
 class TestApiTermBlack : public TestApi
 {
@@ -766,3 +770,5 @@ TEST_F(TestApiTermBlack, termScopedToString)
   Solver solver2;
   EXPECT_EQ(x.toString(), "x");
 }
+}  // namespace test
+}  // namespace CVC4

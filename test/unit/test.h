@@ -17,8 +17,13 @@
 
 #include "gtest/gtest.h"
 
+namespace CVC4 {
+namespace test {
+
 class TestInternal : public ::testing::Test
 {
 };
 
+}  // namespace test
+}  // namespace CVC4
 #endif

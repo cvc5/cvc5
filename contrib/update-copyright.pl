@@ -257,6 +257,11 @@ sub handleFile {
     print $OUT $_;
   }
   close $OUT;
+
+  # Preserve file permissions of $infile
+  my $perm = (stat($infile))[2] & 0777;
+  chmod $perm, $outfile;
+
   rename($outfile, $infile) || die "can't rename working file \`$outfile' to \`$infile'";
 }
 

@@ -353,5 +353,11 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const {
   return true;
 }
 
+std::shared_ptr<ProofNode> PropEngine::getProof()
+{
+  // TODO (proj #37) implement this
+  return nullptr;
+}
+
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
