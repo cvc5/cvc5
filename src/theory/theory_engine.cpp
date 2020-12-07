@@ -26,6 +26,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
+#include "expr/proof_ensure_closed.h"
 #include "options/bv_options.h"
 #include "options/options.h"
 #include "options/quantifiers_options.h"
