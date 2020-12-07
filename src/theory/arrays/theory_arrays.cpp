@@ -318,6 +318,12 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
 
 TrustNode TheoryArrays::ppRewrite(TNode term)
 {
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(term);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
   if (!d_preprocess)
   {
     return TrustNode::null();
