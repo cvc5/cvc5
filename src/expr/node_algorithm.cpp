@@ -328,8 +328,16 @@ bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv)
 {
-  std::unordered_set<TNode, TNodeHashFunction> bound_var;
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction> scope;
+  return getFreeVariablesScope(n, fvs, scope, computeFv);
+}
+
+bool getFreeVariablesScope(TNode n,
+                           std::unordered_set<Node, NodeHashFunction>& fvs,
+                           std::unordered_set<TNode, TNodeHashFunction>& scope,
+                           bool computeFv)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -342,15 +350,14 @@ bool getFreeVariables(TNode n,
     {
       continue;
     }
-    Kind k = cur.getKind();
-    bool isQuant = cur.isClosure();
-    std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
+    std::unordered_set<TNode, TNodeHashFunction>::iterator itv =
         visited.find(cur);
     if (itv == visited.end())
     {
-      if (k == kind::BOUND_VARIABLE)
+      visited.insert(cur);
+      if (cur.getKind() == kind::BOUND_VARIABLE)
       {
-        if (bound_var.find(cur) == bound_var.end())
+        if (scope.find(cur) == scope.end())
         {
           if (computeFv)
           {
@@ -362,32 +369,34 @@ bool getFreeVariables(TNode n,
           }
         }
       }
-      else if (isQuant)
+      else if (cur.isClosure())
       {
+        // add to scope
         for (const TNode& cn : cur[0])
         {
           // should not shadow
-          Assert(bound_var.find(cn) == bound_var.end());
-          bound_var.insert(cn);
+          Assert(scope.find(cn) == scope.end());
+          scope.insert(cn);
         }
-        visit.push_back(cur);
+        // must make recursive call to use separate cache
+        if (getFreeVariablesScope(cur[1], fvs, scope, computeFv) && !computeFv)
+        {
+          return true;
+        }
+        // cleanup
+        for (const TNode& cn : cur[0])
+        {
+          scope.erase(cn);
+        }
       }
-      // must visit quantifiers again to clean up below
-      visited[cur] = !isQuant;
-      if (cur.hasOperator())
+      else
       {
-        visit.push_back(cur.getOperator());
+        if (cur.hasOperator())
+        {
+          visit.push_back(cur.getOperator());
+        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-      visit.insert(visit.end(), cur.begin(), cur.end());
-    }
-    else if (!itv->second)
-    {
-      Assert(isQuant);
-      for (const TNode& cn : cur[0])
-      {
-        bound_var.erase(cn);
-      }
-      visited[cur] = true;
     }
   } while (!visit.empty());
 
