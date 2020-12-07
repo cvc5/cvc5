@@ -97,6 +97,12 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
+TrustNode TheoryArith::expandDefinition(Node node)
+{
+  // call eliminate operators, to eliminate partial operators only
+  return d_arithPreproc.eliminate(node, true);
+}
+
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)
@@ -140,8 +146,9 @@ TrustNode TheoryArith::ppRewriteTerms(TNode n)
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
-  // call eliminate operators
-  return d_arithPreproc.eliminate(n);
+  // call eliminate operators. In contrast to expandDefinitions, we eliminate
+  // *all* extended arithmetic operators here, including total ones.
+  return d_arithPreproc.eliminate(n, false);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(

@@ -130,7 +130,11 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
   dumpAssertions("pre-definition-expansion", assertions);
-  d_exDefs.expandAssertions(assertions, false);
+  // Expand definitions, which replaces defined functions with their definition
+  // and does beta reduction. Notice we pass true as the second argument since
+  // we do not want to call theories to expand definitions here, since we want
+  // to give the opportunity to rewrite/preprocess terms before expansion.
+  d_exDefs.expandAssertions(assertions, true);
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
