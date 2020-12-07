@@ -17,6 +17,8 @@
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "proof/lfsc/lfsc_post_processor.h"
+#include "proof/lfsc/lfsc_printer.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
@@ -132,7 +134,7 @@ void PfManager::printProof(std::ostream& out,
   if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
     d_lpfpp->process(fp);
-    proof::leanPrinter(out, fp);
+    CVC4::proof::leanPrinter(out, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
@@ -145,9 +147,9 @@ void PfManager::printProof(std::ostream& out,
     std::vector<Node> assertions;
     getAssertions(as, df, assertions);
     // NOTE: update permanent to fp, which could be reused in incremental mode
-    proof::LfscProofPostprocess lpp(d_pnm.get());
+    CVC4::proof::LfscProofPostprocess lpp(d_pnm.get());
     lpp.process(fp);
-    proof::LfscPrinter lp;
+    CVC4::proof::LfscPrinter lp;
     // print the proof for assertions
     Trace("lfsc-debug") << "(proof\n";
     Trace("lfsc-debug") << *fp;

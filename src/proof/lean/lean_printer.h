@@ -19,9 +19,15 @@
 
 #include <iostream>
 #include "expr/proof_node.h"
+#include "proof/lean/lean_rules.h"
 
 namespace CVC3 {
 namespace proof {
+
+static uint32_t getUInt32(TNode n)
+{
+  return n.getConst<Rational>().getNumerator().toUnsignedInt();
+}
 
 static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
@@ -32,29 +38,40 @@ static void leanPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   // should print theorem statement
   out << "hello world"
       << "\n";
-  std::vector<Node> args = pfn->getArguments();
-  std::vector<Node> children = pfn->getChildren();
-  Node id = args[0];
+  const std::vector<Node>& args = pfn->getArguments();
+  const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
+  LeanRule id = static_cast<LeanRule>(getUInt32(args[0]));
   int counter = 0;
-  switch (id) {
-  case LeanRule::TRUST:
+  switch (id)
+  {
+    case LeanRule::TRUST:
     {
       out << "trust(" << args[1] << ")";
+      break;
     }
-  case LeanRule::ASSUME:
+    case LeanRule::ASSUME:
     {
       out << "(assume v" << counter << " : holds [";
-      for (size_t i = 1; i < args.size() - 1; i++) {
+      for (size_t i = 1; i < args.size() - 1; i++)
+      {
         out << args[i] << ", ";
       }
       out << args[args.size() - 1] << "],";
+      break;
     };
-  case LeanRule::SCOPE:
+    case LeanRule::SCOPE:
     {
       out << ")";
+      break;
+    }
+  default:
+    {
+      out << " ? ";
+      break;
     }
   }
-  for (Node ch : children) {
+  for (std::shared_ptr<ProofNode> ch : children)
+  {
     leanPrinter(out, ch);
   }
 

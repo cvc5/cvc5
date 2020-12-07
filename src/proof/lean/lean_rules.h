@@ -3,6 +3,7 @@
 #include <iostream>
 
 namespace CVC4 {
+namespace proof {
 enum class LeanRule : uint32_t
 {
   // in what format should I put these lean rules
@@ -17,4 +18,5 @@ enum class LeanRule : uint32_t
   ASSUME,
   SCOPE
 };
+}
 }

@@ -13,11 +13,10 @@
  **/
 
 #include "proof/lean/lean_post_processor.h"
-
+#include "proof/lean/lean_rules.h"
+#include "../../expr/proof_node_updater.h"
 #include "expr/lazy_proof.h"
 #include "expr/proof_node_algorithm.h"
-#include "expr/proof_node_updater.h"
-#include "proof/lean/lean_rules.h"
 
 namespace CVC4 {
 
@@ -60,7 +59,7 @@ bool LeanProofPostproccessCallback::update(Node res,
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
       break;
     }
-    case (PfRule::SCOPE): { // not sure here
+    case PfRule::SCOPE: { // not sure here
       Node lean_id = nm->mkConst<Rational>(
           static_cast<unsigned>(proof::LeanRule::SCOPE));
       std::vector<Node> lean_args;
@@ -69,7 +68,7 @@ bool LeanProofPostproccessCallback::update(Node res,
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
       break;
     }
-    case (PfRule::MACRO_RESOLUTION): {
+    case PfRule::MACRO_RESOLUTION: {
       Node lean_id = nm->mkConst<Rational>(
           static_cast<unsigned>(proof::LeanRule::TRUST));
       std::vector<Node> lean_args;
@@ -77,7 +76,6 @@ bool LeanProofPostproccessCallback::update(Node res,
       lean_args.push_back(args[0]);
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
       break;
-
     }
 
     /*
@@ -185,7 +183,8 @@ bool LeanProofPostproccessCallback::update(Node res,
     */
     default:
       {
-        return false;}
+        return false;
+      }
   };
   return true;
 }  // namespace proof
