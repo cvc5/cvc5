@@ -424,10 +424,10 @@ Node BVToInt::translateWithChildren(Node original,
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode =
-            d_iandTable.createBitwiseNode(translated_children[0],
-                                          translated_children[1],
-                                          bvsize,
-                                          options::BVAndIntegerGranularity());
+            d_iandUtils.createSumNode(translated_children[0],
+                                      translated_children[1],
+                                      bvsize,
+                                      options::BVAndIntegerGranularity());
       }
       break;
     }

@@ -431,6 +431,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 {
   Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
+  // external selectors should be preprocessed away by now
+  Assert(n.getKind() != APPLY_SELECTOR);
   // must ensure the type is well founded and has no nested recursion if
   // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
@@ -595,7 +597,12 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
 TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
-
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(in);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;
