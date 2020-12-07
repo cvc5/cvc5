@@ -29,6 +29,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SYMM, this);
   pc->registerChecker(PfRule::TRANS, this);
   pc->registerChecker(PfRule::CONG, this);
+  pc->registerChecker(PfRule::CONG_LEMMA, this);
   pc->registerChecker(PfRule::TRUE_INTRO, this);
   pc->registerChecker(PfRule::TRUE_ELIM, this);
   pc->registerChecker(PfRule::FALSE_INTRO, this);
@@ -134,6 +135,56 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     Node l = nm->mkNode(k, lchildren);
     Node r = nm->mkNode(k, rchildren);
     return l.eqNode(r);
+  }
+  else if (id == PfRule::CONG_LEMMA)
+  {
+    Assert(children.size() == 0);
+    Assert(args.size() >= 1);
+    // eqs: premise, equalities of arguments
+    std::vector<Node> eqs;
+    // for conclusion, children of the functions
+    std::vector<Node> lchildren;
+    std::vector<Node> rchildren;
+    // get the kind encoded as args[0]
+    Kind k;
+    if (!getKind(args[0], k))
+    {
+      return Node::null();
+    }
+    if (k == kind::UNDEFINED_KIND)
+    {
+      return Node::null();
+    }
+    // Offset into args
+    std::size_t offset = 1;
+    Trace("uf-pfcheck") << "congruence for " << args[0] << " uses kind " << k
+                        << ", metakind=" << kind::metaKindOf(k) << std::endl;
+    if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+    {
+      ++offset;
+      Assert(args.size() % 2 == 0);
+      if (args.size() <= 1)
+      {
+        return Node::null();
+      }
+      // parameterized kinds require the operator
+      lchildren.push_back(args[1]);
+      rchildren.push_back(args[1]);
+    }
+    else
+    {
+      Assert(args.size() % 2 == 1);
+    }
+    for (std::size_t i = offset, nargs = args.size(); i < nargs-1; i+=2)
+    {
+      eqs.emplace_back(args[i].eqNode(args[i+1]));
+      lchildren.push_back(args[i]);
+      rchildren.push_back(args[i+1]);
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    Node l = nm->mkNode(k, lchildren);
+    Node r = nm->mkNode(k, rchildren);
+    return nm->mkNode(Kind::IMPLIES, nm->mkAnd(eqs), l.eqNode(r));
   }
   else if (id == PfRule::TRUE_INTRO)
   {

@@ -644,6 +644,14 @@ enum class PfRule : uint32_t
   // APPLY_UF. The actual node for <kind> is constructible via
   // ProofRuleChecker::mkKindNode.
   CONG,
+  // ======== Congruence lemma
+  // Children: none
+  // Arguments: (<kind> f? t1 s1 ... tn sn)
+  // ---------------------------------------------
+  // Conclusion: (=> (and (= t1 s1) ... (= tn sn)) (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn)))
+  // The same as CONG, but constructs a lemma instead of
+  // doing the inference directly.
+  CONG_LEMMA,
   // ======== True intro
   // Children: (P:F)
   // Arguments: none

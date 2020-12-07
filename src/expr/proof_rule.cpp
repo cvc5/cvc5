@@ -107,6 +107,7 @@ const char* toString(PfRule id)
     case PfRule::SYMM: return "SYMM";
     case PfRule::TRANS: return "TRANS";
     case PfRule::CONG: return "CONG";
+    case PfRule::CONG_LEMMA: return "CONG_LEMMA";
     case PfRule::TRUE_INTRO: return "TRUE_INTRO";
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
