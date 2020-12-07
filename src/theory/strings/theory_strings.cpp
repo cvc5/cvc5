@@ -561,17 +561,19 @@ TrustNode TheoryStrings::expandDefinition(Node node)
 {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
 
-  if (node.getKind()==kind::SEQ_NTH)
+  if (node.getKind() == kind::SEQ_NTH)
   {
     NodeManager* nm = NodeManager::currentNM();
-    SkolemCache * sc = d_termReg.getSkolemCache();
+    SkolemCache* sc = d_termReg.getSkolemCache();
     Node s = node[0];
     Node n = node[1];
     // seq.nth(s, n) --> ite(0 <= n < len(s), seq.substr(s,n,1), Uf(s, n))
-    Node cond = nm->mkNode(AND, nm->mkNode(LEQ, d_zero, n), nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
+    Node cond = nm->mkNode(AND,
+                           nm->mkNode(LEQ, d_zero, n),
+                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
     Node ss = nm->mkNode(STRING_SUBSTR, s, n, d_one);
     Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
-    Node u = nm->mkNode(APPLY_UF, uf, s, n );
+    Node u = nm->mkNode(APPLY_UF, uf, s, n);
     Node ret = nm->mkNode(ITE, cond, ss, u);
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
