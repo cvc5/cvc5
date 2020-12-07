@@ -272,9 +272,9 @@ void SatProofManager::processRedundantLit(
     Assert(!negated || litNode.getKind() == kind::NOT);
 
     d_resLinks.emplace(d_resLinks.begin() + pos,
-                      d_cnfStream->getNodeCache()[~lit],
-                                      negated ? litNode[0] : litNode,
-                                      !negated);
+                       d_cnfStream->getNodeCache()[~lit],
+                       negated ? litNode[0] : litNode,
+                       !negated);
     return;
   }
   Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
