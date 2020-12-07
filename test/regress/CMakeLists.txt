@@ -904,6 +904,7 @@ set(regress_0_tests
   regress0/seq/seq-ex4.smt2
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
+  regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2
