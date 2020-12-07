@@ -1516,7 +1516,7 @@ RewriteResponse SequencesRewriter::preRewrite(TNode node)
 
 Node SequencesRewriter::rewriteSeqNth(Node node)
 {
-  Assert(node.getKind() == SEQ_NTH);
+  Assert(node.getKind() == SEQ_NTH || node.getKind() == SEQ_NTH_TOTAL);
   Node ret;
   Node s = node[0];
   Node i = node[1];
