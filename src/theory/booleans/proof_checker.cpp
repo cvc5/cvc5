@@ -351,7 +351,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
       std::vector<Node> added;
-      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      for (std::size_t j = 0, size = lits.size(); j < size; ++j)
       {
         // only add if literal does not occur in elimination set
         if (elim.count(lits[j]) == 0)
