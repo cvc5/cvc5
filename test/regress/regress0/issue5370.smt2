@@ -1,6 +1,7 @@
 ; COMMAND-LINE: --bv-to-bool
 ; REQUIRES: symfpu
 (set-logic ALL)
+(set-info :status sat)
 (declare-fun c () (Array (_ BitVec 2) (_ BitVec 1)))
 (declare-fun b () (Array (_ BitVec 2) (_ BitVec 1)))
 (declare-fun a () (_ BitVec 2))
