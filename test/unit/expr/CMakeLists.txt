@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------#
 # Add unit tests
 
-cvc4_add_cxx_unit_test_black(attribute_black expr)
+cvc4_add_unit_test_black(attribute_black expr)
 cvc4_add_cxx_unit_test_white(attribute_white expr)
 cvc4_add_cxx_unit_test_black(expr_manager_public expr)
 cvc4_add_cxx_unit_test_black(expr_public expr)
