@@ -199,7 +199,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> clauseNodes;
     // literals to be removed from the virtual lhs clause of the resolution
     std::unordered_map<Node, unsigned, NodeHashFunction> lhsElim;
-    for (unsigned i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
+    for (std::size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
     {
       // whether pivot should occur as is or negated depends on the id of
       // each step in the chain
@@ -217,20 +217,20 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     {
       Trace("bool-pfcheck")
           << "Original elimination multiset for lhs clause:\n";
-      for (const std::pair<const Node&, unsigned>& pair : lhsElim)
+      for (const auto& pair : lhsElim)
       {
         Trace("bool-pfcheck")
             << "\t- " << pair.first << " {" << pair.second << "}\n";
       }
     }
-    for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize; ++i)
     {
       // literal to be removed from rhs clause. They will be negated
       Node rhsElim = Node::null();
       if (Trace.isOn("bool-pfcheck"))
       {
         Trace("bool-pfcheck") << i << ": current lhsElim:\n";
-        for (const std::pair<const Node&, unsigned>& pair : lhsElim)
+        for (const auto& pair : lhsElim)
         {
           Trace("bool-pfcheck")
               << "\t- " << pair.first << " {" << pair.second << "}\n";
@@ -238,7 +238,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       if (i > 0)
       {
-        unsigned index = 2 * (i - 1);
+        std::size_t index = 2 * (i - 1);
         rhsElim = args[index] == trueNode ? args[index + 1].notNode()
                                           : args[index + 1];
         Trace("bool-pfcheck") << i << ": rhs elim: " << rhsElim << "\n";
@@ -261,7 +261,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
       std::vector<Node> added;
-      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      for (std::size_t j = 0, size = lits.size(); j < size; ++j)
       {
         if (lits[j] == rhsElim)
         {
@@ -301,13 +301,13 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
-    for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize; ++i)
     {
       std::unordered_set<Node, NodeHashFunction> elim;
       // literals to be removed from "first" clause
       if (i < childrenSize - 1)
       {
-        for (unsigned j = (2 * i) + 1, argsSize = args.size(); j < argsSize;
+        for (std::size_t j = (2 * i) + 1, argsSize = args.size(); j < argsSize;
              j = j + 2)
         {
           // whether pivot should occur as is or negated depends on the id of
@@ -326,7 +326,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // literal to be removed from "second" clause. They will be negated
       if (i > 0)
       {
-        unsigned index = 2 * (i - 1) + 1;
+        std::size_t index = 2 * (i - 1) + 1;
         Node pivot = args[index] == trueNode ? args[index + 1].notNode()
                                              : args[index + 1];
         elim.insert(pivot);
@@ -339,7 +339,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // non-unit clauses will not occur themselves in their elimination sets.
       // If they do then they must be unit.
       std::vector<Node> lits;
-      if (children[i].getKind() == kind::OR && !elim.count(children[i]))
+      if (children[i].getKind() == kind::OR && elim.count(children[i]) == 0)
       {
         lits.insert(lits.end(), children[i].begin(), children[i].end());
       }
@@ -352,7 +352,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       for (unsigned j = 0, size = lits.size(); j < size; ++j)
       {
         // only add if literal does not occur in elimination set
-        if (!elim.count(lits[j]))
+        if (elim.count(lits[j]) == 0)
         {
           clauseNodes.push_back(lits[j]);
           added.push_back(lits[j]);
@@ -663,7 +663,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts;
-    for (unsigned i = 0, size = children[0][0].getNumChildren(); i < size; ++i)
+    for (std::size_t i = 0, size = children[0][0].getNumChildren(); i < size; ++i)
     {
       disjuncts.push_back(children[0][0][i].notNode());
     }
