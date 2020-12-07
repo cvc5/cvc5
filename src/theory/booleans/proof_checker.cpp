@@ -98,9 +98,9 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     for (unsigned i = 0; i < 2; ++i)
     {
-      // determine whether the clause is unit for effects of resolution, which
-      // is the case if it's not an OR node or it is an OR node but it is equal
-      // to the pivot
+      // determine whether the clause is a singleton for effects of resolution,
+      // which is the case if it's not an OR node or it is an OR node but it is
+      // equal to the pivot
       std::vector<Node> lits;
       if (children[i].getKind() == kind::OR && pivots[i] != children[i])
       {
@@ -201,7 +201,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     std::unordered_map<Node, unsigned, NodeHashFunction> lhsElim;
     for (std::size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
     {
-      // whether pivot should occur as is or negated depends on the id of
+      // whether pivot should occur as is or negated depends on the polarity of
       // each step in the chain
       if (args[i] == trueNode)
       {
@@ -244,12 +244,18 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                                           : args[index + 1];
         Trace("bool-pfcheck") << i << ": rhs elim: " << rhsElim << "\n";
       }
-      // only add to conclusion nodes that are not in elimination set. First get
+      // Only add to conclusion nodes that are not in elimination set. First get
       // the nodes.
       //
-      // Since unit clauses can also be OR nodes, we rely on the invariant that
-      // non-unit clauses will not occur themselves in their elimination sets.
-      // If they do then they must be unit.
+      // Since a Node cannot hold an OR with a single child we need to
+      // disambiguate singleton clauses that are OR nodes from non-singleton
+      // clauses (i.e. unit clauses in the SAT solver).
+      //
+      // If the child is not an OR, it is a singleton clause and we take the
+      // child itself as the clause. Otherwise the child can only be a singleton
+      // clause if the child itself is used as a resolution literal, i.e. if the
+      // child is in lhsElim or is equal to rhsElim (which means that the
+      // negation of the child is in lhsElim).
       std::vector<Node> lits;
       if (children[i].getKind() == kind::OR && lhsElim.count(children[i]) == 0
           && children[i] != rhsElim)
@@ -312,8 +318,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
         for (std::size_t j = (2 * i) + 1, argsSize = args.size(); j < argsSize;
              j = j + 2)
         {
-          // whether pivot should occur as is or negated depends on the id of
-          // each step in the macro
+          // whether pivot should occur as is or negated depends on the polarity
+          // of each step in the macro
           if (args[j] == trueNode)
           {
             elim.insert(args[j + 1]);
@@ -337,9 +343,15 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // only add to conclusion nodes that are not in elimination set. First get
       // the nodes.
       //
-      // Since unit clauses can also be OR nodes, we rely on the invariant that
-      // non-unit clauses will not occur themselves in their elimination sets.
-      // If they do then they must be unit.
+      // Since a Node cannot hold an OR with a single child we need to
+      // disambiguate singleton clauses that are OR nodes from non-singleton
+      // clauses (i.e. unit clauses in the SAT solver).
+      //
+      // If the child is not an OR, it is a singleton clause and we take the
+      // child itself as the clause. Otherwise the child can only be a singleton
+      // clause if the child itself is used as a resolution literal, i.e. if the
+      // child is in lhsElim or is equal to rhsElim (which means that the
+      // negation of the child is in lhsElim).
       std::vector<Node> lits;
       if (children[i].getKind() == kind::OR && elim.count(children[i]) == 0)
       {
@@ -388,7 +400,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return args[0];
     }
     // At this point, should amount to them differing only on order. So the
-    // original result can't be a unit clause
+    // original result can't be a singleton clause
     if (args[0].getKind() != kind::OR
         || clauseComputed.size() != args[0].getNumChildren())
     {
