@@ -223,7 +223,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
             << "\t- " << pair.first << " {" << pair.second << "}\n";
       }
     }
-    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
+         ++i)
     {
       // literal to be removed from rhs clause. They will be negated
       Node rhsElim = Node::null();
@@ -301,7 +302,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
-    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
+         ++i)
     {
       std::unordered_set<Node, NodeHashFunction> elim;
       // literals to be removed from "first" clause
@@ -663,7 +665,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts;
-    for (std::size_t i = 0, size = children[0][0].getNumChildren(); i < size; ++i)
+    for (std::size_t i = 0, size = children[0][0].getNumChildren(); i < size;
+         ++i)
     {
       disjuncts.push_back(children[0][0][i].notNode());
     }
