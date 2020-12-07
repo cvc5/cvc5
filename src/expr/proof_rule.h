@@ -273,15 +273,18 @@ enum class PfRule : uint32_t
   //   to resolution but rather to a weakening of the clause that did not have a
   //   literal eliminated.
   RESOLUTION,
-  // ======== Chain Resolution
-  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
-  // Arguments: (L_1, ..., L_{m-1})
+  // ======== N-ary Resolution
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (id_1, L_1, ..., id_{n-1}, L_{n-1})
   // ---------------------
-  // Conclusion: C_m'
+  // Conclusion: C
   // where
-  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
-  //   let C_1' = C_1 (from P_1),
-  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
+  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and policy id, as defined above
+  //   - let C_1' = C_1 (from P1),
+  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   The result of the chain resolution is C = C_n'
   CHAIN_RESOLUTION,
   // ======== Factoring
   // Children: (P:C1)
@@ -301,6 +304,21 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+  // ======== N-ary Resolution + Factoring + Reordering
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (C, id_1, L_1, ..., id_{n-1}, L_{n-1})
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
+  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and policy id, as defined in RESOLUTION
+  //   - let C_1' be equal, in its set representation, to C_1 (from P1),
+  //   - for each i > 1, let C_i' be equal, it its set representation, to
+  //     C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   The result of the chain resolution is C, which is equal, in its set
+  //   representation, to C_n'
+  MACRO_RESOLUTION,
 
   // ======== Split
   // Children: none
