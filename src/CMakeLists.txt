@@ -413,6 +413,8 @@ libcvc4_add_sources(
   theory/arith/nl/strategy.h
   theory/arith/nl/transcendental/exponential_solver.cpp
   theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/proof_checker.cpp
+  theory/arith/nl/transcendental/proof_checker.h
   theory/arith/nl/transcendental/sine_solver.cpp
   theory/arith/nl/transcendental/sine_solver.h
   theory/arith/nl/transcendental/taylor_generator.cpp

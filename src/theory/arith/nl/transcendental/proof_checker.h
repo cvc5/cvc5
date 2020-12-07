@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief NlExt proof checker utility
+ ** \brief Proof checker utility for transcendental solver
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__EXT__PROOF_CHECKER_H
-#define CVC4__THEORY__ARITH__NL__EXT__PROOF_CHECKER_H
+#ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__PROOF_CHECKER_H
+#define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__PROOF_CHECKER_H
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
@@ -25,18 +25,19 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+namespace transcendental {
 
 /**
  * A checker for NlExt proofs
  *
- * This proof checker takes care of all proofs for lemmas from the ext
- * subsolver.
+ * This proof checker takes care of all proofs for lemmas from the
+ * transcendental subsolver.
  */
-class ExtProofRuleChecker : public ProofRuleChecker
+class TranscendentalProofRuleChecker : public ProofRuleChecker
 {
  public:
-  ExtProofRuleChecker() = default;
-  ~ExtProofRuleChecker() = default;
+  TranscendentalProofRuleChecker() = default;
+  ~TranscendentalProofRuleChecker() = default;
 
   /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;
@@ -48,6 +49,7 @@ class ExtProofRuleChecker : public ProofRuleChecker
                      const std::vector<Node>& args) override;
 };
 
+}  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
