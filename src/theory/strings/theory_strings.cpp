@@ -1000,24 +1000,24 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
   {
     return texp;
   }
-  if (node.getKind() == STRING_FROM_CODE)
+  if (atom.getKind() == STRING_FROM_CODE)
   {
     // str.from_code(t) --->
     //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
-    Node t = node[0];
+    Node t = atom[0];
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-    Node emp = Word::mkEmptyWord(node.getType());
+    Node emp = Word::mkEmptyWord(atom.getType());
     Node ret = nm->mkNode(
         WITNESS,
         bvl,
         nm->mkNode(
             ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
-    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
   TrustNode ret;
   Node atomRet = atom;
