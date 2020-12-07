@@ -46,7 +46,7 @@ add_library(pycvc4
             MODULE
             ${pycvc4})
 
-target_link_libraries(pycvc4 cvc4 ${PYTHON_LIBRARIES})
+target_link_libraries(pycvc4 cvc4)
 
 python_extension_module(pycvc4)
 
