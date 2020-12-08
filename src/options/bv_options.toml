@@ -80,11 +80,11 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
-  category   = "regular"
+  category   = "experimental"
   long       = "bv-algebraic-solver"
   type       = "bool"
-  default    = "true"
-  help       = "turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
+  default    = "false"
+  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
   name       = "bitvectorAlgebraicBudget"
