@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic AUFBV)
 (set-info :status sat)
 (set-option :bv-div-zero-const false)

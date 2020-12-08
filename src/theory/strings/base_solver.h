@@ -235,8 +235,8 @@ class BaseSolver
   std::map<Node, BaseEqcInfo> d_eqcInfo;
   /** The list of equivalence classes of type string */
   std::vector<Node> d_stringsEqc;
-  /** A term index for each function kind */
-  std::map<Kind, TermIndex> d_termIndex;
+  /** A term index for each type, function kind pair */
+  std::map<TypeNode, std::map<Kind, TermIndex> > d_termIndex;
   /** the cardinality of the alphabet */
   uint32_t d_cardSize;
 }; /* class BaseSolver */

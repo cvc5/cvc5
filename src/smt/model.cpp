@@ -2,7 +2,7 @@
 /*! \file model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -49,7 +49,11 @@ Node Model::getValue(TNode n) const { return d_tmodel->getValue(n); }
 
 bool Model::hasApproximations() const { return d_tmodel->hasApproximations(); }
 
-void Model::clearModelDeclarations() { d_declareSorts.clear(); }
+void Model::clearModelDeclarations()
+{
+  d_declareTerms.clear();
+  d_declareSorts.clear();
+}
 
 void Model::addDeclarationSort(TypeNode tn) { d_declareSorts.push_back(tn); }
 

@@ -2,7 +2,7 @@
 /*! \file taylor_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -212,7 +212,7 @@ void TaylorGenerator::getPolynomialApproximationBounds(
   }
 }
 
-void TaylorGenerator::getPolynomialApproximationBoundForArg(
+unsigned TaylorGenerator::getPolynomialApproximationBoundForArg(
     Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
@@ -252,7 +252,9 @@ void TaylorGenerator::getPolynomialApproximationBoundForArg(
       getPolynomialApproximationBounds(k, ds, pboundss);
       pbounds[2] = pboundss[2];
     }
+    return ds;
   }
+  return d;
 }
 
 std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, unsigned d, NlModel& model)

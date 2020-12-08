@@ -8,7 +8,7 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.9)
 
 #-----------------------------------------------------------------------------#
 # Project configuration

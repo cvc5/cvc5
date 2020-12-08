@@ -71,7 +71,8 @@ class InferenceManager : public InferenceManagerBuffered
   void addPendingArithLemma(const Node& lemma,
                             InferenceId inftype,
                             ProofGenerator* pg = nullptr,
-                            bool isWaiting = false);
+                            bool isWaiting = false,
+                            LemmaProperty p = LemmaProperty::NONE);
 
   /**
    * Flush all waiting lemmas to this inference manager (as pending
