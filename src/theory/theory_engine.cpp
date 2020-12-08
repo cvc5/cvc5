@@ -31,7 +31,6 @@
 #include "options/options.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
