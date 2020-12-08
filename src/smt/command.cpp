@@ -689,7 +689,8 @@ void SynthFunCommand::toStream(std::ostream& out,
       nodeVars,
       d_sort.getTypeNode(),
       d_isInv,
-      d_grammar->resolve().getTypeNode());
+      d_grammar == nullptr ? TypeNode::null()
+                           : d_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */

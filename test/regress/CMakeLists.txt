@@ -144,6 +144,7 @@ set(regress_0_tests
   regress0/auflia/fuzz04.smtv1.smt2
   regress0/auflia/fuzz05.smtv1.smt2
   regress0/auflia/x2.smtv1.smt2
+  regress0/bool/issue1978.smt2
   regress0/boolean-prec.cvc
   regress0/boolean-terms-bug-array.smt2
   regress0/boolean-terms-kernel1.smt2
@@ -1091,6 +1092,7 @@ set(regress_0_tests
   regress0/sygus/issue3645-grammar-sets.smt2
   regress0/sygus/issue4383-cache-fv-id.sy
   regress0/sygus/issue4790-dtd.sy
+  regress0/sygus/issue5512-vvv.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-logic.sy

@@ -353,7 +353,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // child is in lhsElim or is equal to rhsElim (which means that the
       // negation of the child is in lhsElim).
       std::vector<Node> lits;
-      if (children[i].getKind() == kind::OR && elim.count(children[i]) == 0)
+      if (children[i].getKind() == kind::OR && !elim.count(children[i]))
       {
         lits.insert(lits.end(), children[i].begin(), children[i].end());
       }

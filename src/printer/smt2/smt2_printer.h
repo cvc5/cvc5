@@ -117,12 +117,13 @@ class Smt2Printer : public CVC4::Printer
                              TypeNode type) const override;
 
   /** Print synth-fun command */
-  void toStreamCmdSynthFun(std::ostream& out,
-                           const std::string& sym,
-                           const std::vector<Node>& vars,
-                           TypeNode range,
-                           bool isInv,
-                           TypeNode sygusType) const override;
+  void toStreamCmdSynthFun(
+      std::ostream& out,
+      const std::string& sym,
+      const std::vector<Node>& vars,
+      TypeNode range,
+      bool isInv,
+      TypeNode sygusType = TypeNode::null()) const override;
 
   /** Print constraint command */
   void toStreamCmdConstraint(std::ostream& out, Node n) const override;
