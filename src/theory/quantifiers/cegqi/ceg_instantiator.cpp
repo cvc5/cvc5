@@ -350,6 +350,8 @@ CegHandledStatus CegInstantiator::isCbqiSort(
         CegHandledStatus cret = isCbqiSort(crange, visited, qe);
         if (cret == CEG_UNHANDLED)
         {
+            Trace("cegqi-debug2") << "Non-cbqi sort : " << tn << " due to " << crange
+                                 <<  std::endl;
           visited[tn] = CEG_UNHANDLED;
           return CEG_UNHANDLED;
         }
