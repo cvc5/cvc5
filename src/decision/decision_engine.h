@@ -142,9 +142,13 @@ class DecisionEngine {
   // External World helping us help the Strategies
 
   /**
-   * Add a list of assertions from an AssertionPipeline.
+   * Add a list of assertions, as well as lemmas coming from preprocessing
+   * (ppLemmas) and the skolems they are used to constraint (ppSkolems).
    */
-  void addAssertions(const preprocessing::AssertionPipeline& assertions);
+  void addAssertions(
+      const std::vector<Node>& assertions,
+                       const std::vector<Node>& ppLemmas,
+                       const std::vector<Node>& ppSkolems);
 
   // Interface for Strategies to use stuff stored in Decision Engine
   // (which was possibly requested by them on initialization)

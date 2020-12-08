@@ -59,7 +59,9 @@ public:
   bool needIteSkolemMap() override { return true; }
 
   virtual void addAssertions(
-      const preprocessing::AssertionPipeline& assertions) = 0;
+      const std::vector<Node>& assertions,
+                       const std::vector<Node>& newLemmas,
+                       const std::vector<Node>& newSkolems) = 0;
 };/* class ITEDecisionStrategy */
 
 class RelevancyStrategy : public ITEDecisionStrategy {

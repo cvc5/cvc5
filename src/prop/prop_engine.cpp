@@ -130,18 +130,53 @@ void PropEngine::assertFormula(TNode node) {
   d_cnfStream->convertAndAssert(node, false, false, true);
 }
 
-void PropEngine::assertLemma(TNode node, bool negated, bool removable)
+void PropEngine::notifyPreprocessedAssertions(const std::vector<Node>& assertions)
 {
+  // notify the theory enfine of preprocessed assertions
+  d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  // add assertions to decision engine
+  std::vector<Node> ppLemmas;
+  std::vector<Node> ppSkolems;
+  d_decisionEngine->addAssertions(assertions, ppLemmas, ppSkolems);
+}
+
+void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
+{
+  Node node = trn.getNode();
+  bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
   d_cnfStream->convertAndAssert(node, removable, negated);
 }
 
-void PropEngine::addAssertionsToDecisionEngine(
-    const preprocessing::AssertionPipeline& assertions)
+void PropEngine::assertLemmas(
+    theory::TrustNode lem,
+                      std::vector<theory::TrustNode>& ppLemmas,
+                      std::vector<Node>& ppSkolems, bool removable)
 {
-  d_decisionEngine->addAssertions(assertions);
+  Assert(ppSkolems.size() == ppLemmas.size());
+  // assert the lemmas
+  assertLemma(tlemma, removable);
+  for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+  {
+    assertLemma(ppLemmas[i], removable);
+  }
+
+  // assert to decision engine
+  if (!removable)
+  {
+    // also add to the decision engine
+    std::vector<Node> assertions;
+    assertions.push_back(lem);
+    // don't need proofs
+    std::vector<Node> ppLemmasF;
+    for (const theory::TrustNode& tnl : ppLemmas)
+    {
+      newLemmasF.push_back(tnl.getProven());
+    }
+    d_decisionEngine->addAssertions(assertions, ppLemmasF, ppSkolems);
+  }
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {

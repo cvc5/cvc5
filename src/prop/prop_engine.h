@@ -94,24 +94,32 @@ class PropEngine
    */
   void assertFormula(TNode node);
 
+  /** Notify preprocessed assertions */
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
+  
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
-   * @param node the formula to assert
-   * @param negated whether the node should be considered to be negated
-   * at the top level (or not)
+   * @param trn the trust node storing the formula to assert
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node, bool negated, bool removable);
+  void assertLemma(theory::TrustNode trn, bool removable);
 
   /**
-   * Pass a list of assertions from an AssertionPipeline to the decision engine.
+   * Assert lemma trn with preprocessing lemmas newLemmas which corresponding
+   * to lemmas for skolems in newSkolems.
+   * 
+   * @param trn the trust node storing the formula to assert
+   * @param removable whether this lemma can be quietly removed based
+   * on an activity heuristic (or not)
    */
-  void addAssertionsToDecisionEngine(
-      const preprocessing::AssertionPipeline& assertions);
+  void assertLemmas(
+      theory::TrustNode trn,
+                       std::vector<theory::TrustNode>& newLemmas,
+                       std::vector<Node>& newSkolems, bool removable);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
