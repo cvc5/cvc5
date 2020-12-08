@@ -32,15 +32,16 @@ add_custom_target(units
   COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $$ARGS
   DEPENDS build-units)
 
-set(CVC4_CXXTEST_FLAGS_BLACK
+set(CVC4_UNIT_TEST_FLAGS_BLACK
   -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
   -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
-set(CVC4_CXXTEST_FLAGS_WHITE -fno-access-control ${CVC4_CXXTEST_FLAGS_BLACK})
+set(CVC4_CXXTEST_FLAGS_WHITE -fno-access-control ${CVC4_UNIT_TEST_FLAGS_BLACK})
 
 # Generate and add unit test.
 macro(cvc4_add_unit_test is_white name output_dir)
   set(test_src ${CMAKE_CURRENT_LIST_DIR}/${name}.cpp)
   add_executable(${name} ${test_src})
+  target_compile_definitions(${name} PRIVATE ${CVC4_UNIT_TEST_FLAGS_BLACK})
   gtest_add_tests(TARGET ${name})
   target_link_libraries(${name} main-test)
   target_link_libraries(${name} GTest::GTest)
@@ -110,7 +111,7 @@ macro(cvc4_add_cxx_unit_test is_white name output_dir)
   add_executable(${name} ${test_src} ${test_header})
   target_link_libraries(${name} main-test)
   target_include_directories(${name} PRIVATE ${CxxTest_INCLUDE_DIR})
-  target_compile_definitions(${name} PRIVATE ${CVC4_CXXTEST_FLAGS_BLACK})
+  target_compile_definitions(${name} PRIVATE ${CVC4_UNIT_TEST_FLAGS_BLACK})
   if(USE_LFSC)
     # We don't link against LFSC, because CVC4 is already linked against it.
     target_include_directories(${name} PRIVATE ${LFSC_INCLUDE_DIR})

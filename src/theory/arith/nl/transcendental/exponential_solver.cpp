@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file transcendental_solver.cpp
+/*! \file exponential_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Gereon Kremer
+ **   Gereon Kremer, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -36,6 +36,19 @@ ExponentialSolver::ExponentialSolver(TranscendentalState* tstate)
 }
 
 ExponentialSolver::~ExponentialSolver() {}
+
+void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // do both equalities to ensure that new_a becomes a preregistered term
+  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
+  // note we must do preprocess on this lemma
+  Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
+                        << std::endl;
+  NlLemma nlem(
+      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
+  d_data->d_im.addPendingArithLemma(nlem);
+}
 
 void ExponentialSolver::checkInitialRefine()
 {

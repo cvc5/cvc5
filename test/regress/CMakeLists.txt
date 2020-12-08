@@ -91,6 +91,7 @@ set(regress_0_tests
   regress0/arrays/incorrect9.smtv1.smt2
   regress0/arrays/issue3813-massign-assert.smt2
   regress0/arrays/issue3814.smt2
+  regress0/arrays/issue4927-unsat-cores.smt2
   regress0/arrays/swap_t1_np_nf_ai_00005_007.cvc.smtv1.smt2
   regress0/arrays/x2.smtv1.smt2
   regress0/arrays/x3.smtv1.smt2
@@ -531,6 +532,7 @@ set(regress_0_tests
   regress0/fp/issue3536.smt2
   regress0/fp/issue3619.smt2
   regress0/fp/issue4277-assign-func.smt2
+  regress0/fp/issue-5524.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/rti_3_5_bug_report.smt2
   regress0/fp/simple.smt2
@@ -589,8 +591,11 @@ set(regress_0_tests
   regress0/issue5099-model-1.smt2
   regress0/issue5099-model-2.smt2
   regress0/issue5144-resetAssertions.smt2
+  regress0/issue5370.smt2
+  regress0/issue5462.smt2
   regress0/issue5540-2-dump-model.smt2
   regress0/issue5540-model-decls.smt2
+  regress0/issue5550-num-children.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2
@@ -612,6 +617,8 @@ set(regress_0_tests
   regress0/logops.04.cvc
   regress0/logops.05.cvc
   regress0/model-core.smt2
+  regress0/models-print-1.smt2
+  regress0/models-print-2.smt2
   regress0/named-expr-use.smt2
   regress0/nl/coeff-sat.smt2
   regress0/nl/ext-rew-aggr-test.smt2
@@ -815,6 +822,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/sygus-inst-nia-psyco-060.smt2
   regress0/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
+  regress0/quantifiers/ufnia-fv-delta.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc
   regress0/rels/atom_univ2.cvc
@@ -892,6 +900,7 @@ set(regress_0_tests
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
+  regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -899,6 +908,7 @@ set(regress_0_tests
   regress0/seq/seq-ex4.smt2
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
+  regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2
@@ -1584,6 +1594,7 @@ set(regress_1_tests
   regress1/quantifiers/cdt-0208-to.smt2
   regress1/quantifiers/const.cvc
   regress1/quantifiers/constfunc.cvc
+  regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
   regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
@@ -1685,7 +1696,6 @@ set(regress_1_tests
   regress1/quantifiers/smtlib46f14a.smt2
   regress1/quantifiers/smtlibe99bbe.smt2
   regress1/quantifiers/smtlibf957ea.smt2
-  regress1/quantifiers/stream-x2014-09-18-unsat.smt2
   regress1/quantifiers/sygus-infer-nested.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
   regress1/quantifiers/var-eq-trigger.smt2
@@ -2155,7 +2165,6 @@ set(regress_2_tests
   regress2/bv_to_int_5095_2.smt2
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_bitwise.smt2
-  regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
   regress2/bv_to_int_inc1.smt2
   regress2/bv_to_int_mask_array_1.smt2
@@ -2582,6 +2591,8 @@ set(regression_disabled_tests
   regress1/quantifiers/nl-pow-trick.smt2
   # timeout after changes to nonlinear on PR #5351
   regress1/quantifiers/rel-trigger-unusable.smt2
+  # changes to expand definitions, related to trigger selection for selectors
+  regress1/quantifiers/stream-x2014-09-18-unsat.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/subtype-param-unk.smt2
   regress1/quantifiers/subtype-param.smt2
@@ -2616,6 +2627,8 @@ set(regression_disabled_tests
   # timeout on debug
   regress2/arith/real2int-test.smt2
   regress2/bug396.smt2
+  # due to bv2int not handling unsigned/signed division
+  regress2/bv_to_int_bvmul1.smt2
   regress2/nl/dumortier-050317.smt2
   regress2/nl/nt-lemmas-bad.smt2
   regress2/quantifiers/ForElimination-scala-9.smt2

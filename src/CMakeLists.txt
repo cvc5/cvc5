@@ -122,8 +122,6 @@ libcvc4_add_sources(
   printer/ast/ast_printer.h
   printer/cvc/cvc_printer.cpp
   printer/cvc/cvc_printer.h
-  printer/dagification_visitor.cpp
-  printer/dagification_visitor.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
@@ -375,8 +373,8 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/iand_table.cpp
-  theory/arith/nl/iand_table.h
+  theory/arith/nl/iand_utils.cpp
+  theory/arith/nl/iand_utils.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
@@ -500,6 +498,8 @@ libcvc4_add_sources(
   theory/bv/bitblast/eager_bitblaster.h
   theory/bv/bitblast/lazy_bitblaster.cpp
   theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bitblast/simple_bitblaster.cpp
+  theory/bv/bitblast/simple_bitblaster.h
   theory/bv/bv_eager_solver.cpp
   theory/bv/bv_eager_solver.h
   theory/bv/bv_inequality_graph.cpp
@@ -520,6 +520,8 @@ libcvc4_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
+  theory/bv/proof_checker.cpp
+  theory/bv/proof_checker.h
   theory/bv/slicer.cpp
   theory/bv/slicer.h
   theory/bv/theory_bv.cpp

@@ -2,7 +2,7 @@
 /*! \file attempt_solution_simplex.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Mathias Preiner
+ **   Tim King, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -122,12 +122,12 @@ Result::Sat AttemptSolutionSDP::attempt(const ApproximateSimplex::Solution& sol)
     Assert(toAdd != ARITHVAR_SENTINEL);
 
     Trace("arith::forceNewBasis") << toRemove << " " << toAdd << endl;
-    //Message() << toRemove << " " << toAdd << endl;
+    // CVC4Message() << toRemove << " " << toAdd << endl;
 
     d_linEq.pivotAndUpdate(toRemove, toAdd, newValues[toRemove]);
 
     Trace("arith::forceNewBasis") << needsToBeAdded.size() << "to go" << endl;
-    //Message() << needsToBeAdded.size() << "to go" << endl;
+    // CVC4Message() << needsToBeAdded.size() << "to go" << endl;
     needsToBeAdded.remove(toAdd);
 
     bool conflict = processSignals();
