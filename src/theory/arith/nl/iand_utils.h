@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file iand_table.h
+/*! \file iand_utils.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
@@ -18,6 +18,7 @@
 
 #include <tuple>
 #include <vector>
+
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -29,9 +30,11 @@ namespace nl {
  * A class that computes tables for iand values
  * with various bit-widths
  */
-class IAndTable
+class IAndUtils
 {
  public:
+  IAndUtils();
+
   /**
    * A generic function that creates a node that represents a bvand
    * operation.
@@ -81,10 +84,34 @@ class IAndTable
    *        pass.
    * @return A node that represents the operation, as described above.
    */
-  Node createBitwiseNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
+  Node createSumNode(Node x, Node y, uint64_t bvsize, uint64_t granularity);
+
+  /** Create a bitwise integer And node for two integers x and y for bits
+   *  between hgih and low Example for high = 0, low = 0 (e.g. granularity 1)
+   *    ite(x[0] == 1 & y[0] == 1, #b1, #b0)
+   *
+   *  It makes use of computeAndTable
+   *
+   *  @param x an integer operand corresponding to the first original
+   *         bit-vector operand
+   *  @param y an integer operand corresponding to the second original
+   *         bit-vector operand
+   *  @param high the upper bit index
+   *  @param low the lower bit index
+   *  @return an integer node corresponding to a bitwise AND applied to
+   *          integers for the bits between high and low
+   */
+  Node createBitwiseIAndNode(Node x, Node y, uint64_t high, uint64_t low);
+
+  /** extract from integer
+   *  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
+   */
+  Node iextract(unsigned i, unsigned j, Node n) const;
+
+  // Helpers
 
   /**
-   * A helper function for createBitwiseNode
+   * A helper function for createSumNode and createBitwiseIAndNode
    * @param x integer node corresponding to the original first bit-vector
    *        argument
    * @param y integer node corresponding to the original second bit-vector
@@ -118,14 +145,26 @@ class IAndTable
   void addDefaultValue(std::map<std::pair<int64_t, int64_t>, uint64_t>& table,
                        uint64_t num_of_values);
 
+  /** 2^k */
+  Node twoToK(unsigned k) const;
+
+  /** 2^k-1 */
+  Node twoToKMinusOne(unsigned k) const;
+
   /**
    * For each granularity between 1 and 8, we store a separate table
    * in d_bvandTable[granularity].
    * The definition of these tables is given in the description of
-   * createBitwiseNode.
+   * createSumNode.
    */
   std::map<uint64_t, std::map<std::pair<int64_t, int64_t>, uint64_t>>
       d_bvandTable;
+
+ private:
+  /** commonly used terms */
+  Node d_zero;
+  Node d_one;
+  Node d_two;
 };
 
 }  // namespace nl

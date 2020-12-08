@@ -158,7 +158,7 @@ Node BVToInt::eliminationPass(Node n)
     {
       // current is not the elimination of any previously-visited node
       // current hasn't been eliminated yet.
-      // eliminate operators from it
+      // eliminate operators from it using rewrite rules
       Node currentEliminated =
           FixpointRewriteStrategy<RewriteRule<UdivZero>,
                                   RewriteRule<SdivEliminateFewerBitwiseOps>,
@@ -179,6 +179,21 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SltEliminate>,
                                   RewriteRule<SgtEliminate>,
                                   RewriteRule<SgeEliminate>>::apply(current);
+
+      // expanding definitions of udiv and urem
+      if (k == kind::BITVECTOR_UDIV)
+      {
+        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
+                                         currentEliminated[0],
+                                         currentEliminated[1]);
+      }
+      else if (k == kind::BITVECTOR_UREM)
+      {
+        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
+                                         currentEliminated[0],
+                                         currentEliminated[1]);
+      }
+
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
       // also assign the eliminated now to itself to avoid revisiting.
@@ -331,6 +346,10 @@ Node BVToInt::translateWithChildren(Node original,
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
+  // Assert that BITVECTOR_UDIV/UREM were replaced by their
+  // *_TOTAL versions
+  Assert(oldKind != kind::BITVECTOR_UDIV);
+  Assert(oldKind != kind::BITVECTOR_UREM);
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
@@ -424,10 +443,10 @@ Node BVToInt::translateWithChildren(Node original,
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode =
-            d_iandTable.createBitwiseNode(translated_children[0],
-                                          translated_children[1],
-                                          bvsize,
-                                          options::BVAndIntegerGranularity());
+            d_iandUtils.createSumNode(translated_children[0],
+                                      translated_children[1],
+                                      bvsize,
+                                      options::BVAndIntegerGranularity());
       }
       break;
     }
