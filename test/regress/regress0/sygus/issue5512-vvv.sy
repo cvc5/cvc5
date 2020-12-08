@@ -1,7 +1,6 @@
 ; COMMAND-LINE: -vvv --sygus-out=status --check-synth-sol --check-abducts
-; SCRUBBER: grep unsat
-; EXPECT: SygusSolver::checkSynthSolution(): result is unsat
-; EXPECT: unsat
+; SCRUBBER: sed -e 's/.*//g'
+; EXIT: 0
 
 ; This regression ensures that printing Sygus commands with option -vvv does not
 ; crash CVC4
