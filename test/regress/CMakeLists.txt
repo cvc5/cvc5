@@ -591,6 +591,8 @@ set(regress_0_tests
   regress0/issue5099-model-1.smt2
   regress0/issue5099-model-2.smt2
   regress0/issue5144-resetAssertions.smt2
+  regress0/issue5370.smt2
+  regress0/issue5462.smt2
   regress0/issue5540-2-dump-model.smt2
   regress0/issue5540-model-decls.smt2
   regress0/issue5550-num-children.smt2
@@ -898,6 +900,7 @@ set(regress_0_tests
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
+  regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -905,6 +908,7 @@ set(regress_0_tests
   regress0/seq/seq-ex4.smt2
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
+  regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2

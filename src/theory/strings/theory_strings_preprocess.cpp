@@ -444,13 +444,7 @@ Node StringsPreprocess::reduce(Node t,
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
     // nodes for the case where `seq.nth` is undefined.
-    std::vector<TypeNode> argTypes;
-    argTypes.push_back(s.getType());
-    argTypes.push_back(nm->integerType());
-    TypeNode elemType = s.getType().getSequenceElementType();
-    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-    Node uf = sc->mkTypedSkolemCached(
-        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
     Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
 
     // the full ite, split on definedness of `seq.nth`

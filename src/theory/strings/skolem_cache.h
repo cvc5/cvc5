@@ -159,6 +159,11 @@ class SkolemCache
       TypeNode tn, Node a, Node b, SkolemId id, const char* c);
   /** Same as mkTypedSkolemCached above for (a,[null],id) */
   Node mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c);
+  /**
+   * Specific version for seq.nth, used for cases where the index is out of
+   * range for sequence type seqType.
+   */
+  Node mkSkolemSeqNth(TypeNode seqType, const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
