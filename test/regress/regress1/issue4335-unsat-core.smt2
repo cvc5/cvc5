@@ -1,5 +1,18 @@
+; SCRUBBER: sed -e 's/IP_[0-9]*/IP/'
 ; EXPECT: unsat
+; EXPECT: (
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: IP
+; EXPECT: )
 (set-logic ALL)
+(set-option :produce-unsat-cores true)
 (declare-const v0 Bool)
 (declare-const v1 Bool)
 (declare-const v2 Bool)
@@ -170,4 +183,5 @@
 (assert (! (or (distinct v4 (= v0 v4 v3 v3 v4)) v0 (< 397 (div (- i1) 60))) :named IP_145))
 (assert (! (or (distinct v4 (= v0 v4 v3 v3 v4)) (not v4) v3) :named IP_146))
 (check-sat-assuming (IP_107 IP_133))
+(get-unsat-core)
 (exit)

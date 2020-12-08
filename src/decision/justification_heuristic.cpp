@@ -168,6 +168,7 @@ void JustificationHeuristic::addAssertions(const std::vector<Node>& assertions,
                                            const std::vector<Node>& ppLemmas,
                                            const std::vector<Node>& ppSkolems)
 {
+  Assert(ppSkolems.size() == ppLemmas.size());
   Trace("decision")
     << "JustificationHeuristic::addAssertions()"
     << " size = " << assertions.size()
