@@ -104,8 +104,6 @@ private:
 private:
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
-  /** map from nodes to their instantiated equivalent for each constructor type */
-  std::map< Node, std::map< int, Node > > d_inst_map;
   //---------------------------------labels
   /** labels for each equivalence class
    *
