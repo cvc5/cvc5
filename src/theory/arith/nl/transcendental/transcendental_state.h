@@ -56,18 +56,23 @@ struct TranscendentalState
 
   /** init last call
    *
-   * This is called at the beginning of last call effort check, where
-   * assertions are the set of assertions belonging to arithmetic,
-   * false_asserts is the subset of assertions that are false in the current
-   * model, and xts is the set of extended function terms that are active in
-   * the current context.
+   * This is called at the beginning of last call effort check xts is the set of
+   * extended function terms that are active in the current context.
    *
    * This call may add lemmas to lems based on registering term
-   * information (for example, purification of sine terms).
+   * information (for example to ensure congruence of terms).
+   * It puts terms that need to be treated further as a master term on their own
+   * (for example purification of sine terms) into needsMaster.
    */
-  void init(const std::vector<Node>& assertions,
-            const std::vector<Node>& false_asserts,
-            const std::vector<Node>& xts);
+  void init(const std::vector<Node>& xts, std::vector<Node>& needsMaster);
+
+  /**
+   * Checks for terms that are congruent but disequal to a.
+   * If any are found, appropriate lemmas are sent.
+   * @param a Some node
+   * @param argTrie Lookup for equivalence classes
+   */
+  void ensureCongruence(TNode a, std::map<Kind, ArgTrie>& argTrie);
 
   /** Initialize members for pi-related values */
   void mkPi();
