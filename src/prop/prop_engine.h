@@ -117,12 +117,16 @@ class PropEngine
    * to lemmas for skolems in newSkolems.
    *
    * @param trn the trust node storing the formula to assert
+   * @param ppLemmas the lemmas from preprocessing and term formula removal on
+   * the proven node of trn
+   * @param ppSkolem the skolem that each lemma in ppLemma constrains. It should
+   * be the case that ppLemmas.size()==ppSkolems.size().
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
   void assertLemmas(theory::TrustNode trn,
-                    std::vector<theory::TrustNode>& newLemmas,
-                    std::vector<Node>& newSkolems,
+                    std::vector<theory::TrustNode>& ppLemmas,
+                    std::vector<Node>& ppSkolems,
                     bool removable);
 
   /**

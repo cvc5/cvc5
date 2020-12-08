@@ -141,16 +141,15 @@ void PropEngine::notifyPreprocessedAssertions(
   // delay all theory preprocessing and term formula removal to this point, in
   // which case this method could simply take a vector of Node and not rely on
   // assertion pipeline or its ITE skolem map.
-  size_t assertionsEnd = ap.getRealAssertionsEnd();
   std::vector<Node> ppLemmas;
   std::vector<Node> ppSkolems;
   for (const std::pair<const Node, unsigned>& i : ap.getIteSkolemMap())
   {
-    Assert(i.second >= assertionsEnd && i.second < ap.size());
+    Assert(i.second >= ap.getRealAssertionsEnd() && i.second < ap.size());
     ppSkolems.push_back(i.first);
-    ppLemmas.push_back(assertions[i.second]);
+    ppLemmas.push_back(ap[i.second]);
   }
-  d_decisionEngine->addAssertions(assertions, ppLemmas, ppSkolems);
+  d_decisionEngine->addAssertions(ap.ref(), ppLemmas, ppSkolems);
 }
 
 void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
