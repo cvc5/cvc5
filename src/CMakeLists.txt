@@ -122,8 +122,6 @@ libcvc4_add_sources(
   printer/ast/ast_printer.h
   printer/cvc/cvc_printer.cpp
   printer/cvc/cvc_printer.h
-  printer/dagification_visitor.cpp
-  printer/dagification_visitor.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
@@ -375,8 +373,8 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/iand_table.cpp
-  theory/arith/nl/iand_table.h
+  theory/arith/nl/iand_utils.cpp
+  theory/arith/nl/iand_utils.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp

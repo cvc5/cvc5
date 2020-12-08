@@ -250,9 +250,10 @@ bool CegInstantiator::isEligible( Node n ) {
 CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
-      || k == EQUAL
-      || k == MULT
-      || k == NONLINEAR_MULT)
+      || k == EQUAL || k == MULT || k == NONLINEAR_MULT || k == DIVISION
+      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == TO_INTEGER
+      || k == IS_INTEGER)
   {
     return CEG_HANDLED;
   }
@@ -1612,7 +1613,10 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
       // already processed variable
       continue;
     }
-    if (ces.getType().isBoolean())
+    // must avoid selector symbols, and function skolems introduced by
+    // theory preprocessing
+    TypeNode ct = ces.getType();
+    if (ct.isBoolean() || ct.isFunctionLike())
     {
       // Boolean variables, including the counterexample literal, don't matter
       // since they are always assigned a model value.

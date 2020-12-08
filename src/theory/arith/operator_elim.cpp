@@ -46,21 +46,23 @@ void OperatorElim::checkNonLinearLogic(Node term)
   }
 }
 
-TrustNode OperatorElim::eliminate(Node n)
+TrustNode OperatorElim::eliminate(Node n, bool partialOnly)
 {
   TConvProofGenerator* tg = nullptr;
-  Node nn = eliminateOperators(n, tg);
+  Node nn = eliminateOperators(n, tg, partialOnly);
   if (nn != n)
   {
     // since elimination may introduce new operators to eliminate, we must
     // recursively eliminate result
-    Node nnr = eliminateOperatorsRec(nn, tg);
+    Node nnr = eliminateOperatorsRec(nn, tg, partialOnly);
     return TrustNode::mkTrustRewrite(n, nnr, nullptr);
   }
   return TrustNode::null();
 }
 
-Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator* tg)
+Node OperatorElim::eliminateOperatorsRec(Node n,
+                                         TConvProofGenerator* tg,
+                                         bool partialOnly)
 {
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -108,12 +110,12 @@ Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator* tg)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
-      Node retElim = eliminateOperators(ret, tg);
+      Node retElim = eliminateOperators(ret, tg, partialOnly);
       if (retElim != ret)
       {
         // recursively eliminate operators in result, since some eliminations
         // are defined in terms of other non-standard operators.
-        ret = eliminateOperatorsRec(retElim, tg);
+        ret = eliminateOperatorsRec(retElim, tg, partialOnly);
       }
       visited[cur] = ret;
     }
@@ -123,7 +125,9 @@ Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator* tg)
   return visited[n];
 }
 
-Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator* tg)
+Node OperatorElim::eliminateOperators(Node node,
+                                      TConvProofGenerator* tg,
+                                      bool partialOnly)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
@@ -143,6 +147,11 @@ Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator* tg)
     case TO_INTEGER:
     case IS_INTEGER:
     {
+      if (partialOnly)
+      {
+        // not eliminating total operators
+        return node;
+      }
       Node toIntSkolem;
       std::map<Node, Node>::const_iterator it = d_to_int_skolem.find(node[0]);
       if (it == d_to_int_skolem.end())
@@ -180,6 +189,11 @@ Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator* tg)
     case INTS_DIVISION_TOTAL:
     case INTS_MODULUS_TOTAL:
     {
+      if (partialOnly)
+      {
+        // not eliminating total operators
+        return node;
+      }
       Node den = Rewriter::rewrite(node[1]);
       Node num = Rewriter::rewrite(node[0]);
       Node intVar;
@@ -283,6 +297,11 @@ Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator* tg)
     }
     case DIVISION_TOTAL:
     {
+      if (partialOnly)
+      {
+        // not eliminating total operators
+        return node;
+      }
       Node num = Rewriter::rewrite(node[0]);
       Node den = Rewriter::rewrite(node[1]);
       if (den.isConst())

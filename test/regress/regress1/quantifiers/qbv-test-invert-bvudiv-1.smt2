@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cegqi-bv --cegqi-bv-ineq=keep --no-cegqi-full --bv-div-zero-const
+; COMMAND-LINE: --cegqi-bv --cegqi-bv-ineq=keep --no-cegqi-full --bv-div-zero-const -q
 ; EXPECT: sat
 (set-logic BV)
 (set-info :status sat)

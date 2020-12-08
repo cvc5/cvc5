@@ -2,7 +2,7 @@
 #####################
 ## sygus-fun.py
 ## Top contributors (to current version):
-##   Yoni Zohar, Andres Noetzli
+##   Yoni Zohar, Andres Noetzli, Mudathir Mohamed
 ## Copyright (c) 2009-2018 by the authors listed in the file AUTHkinds.OrS
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
