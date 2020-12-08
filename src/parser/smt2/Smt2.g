@@ -103,9 +103,6 @@ namespace CVC4 {
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/type.h"
 #include "options/set_language.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -294,7 +291,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       else
       {
         api::Term func =
-            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+            PARSER_STATE->bindVar(name, t, false, true);
         cmd->reset(new DeclareFunctionCommand(name, func, t));
       }
     }
@@ -333,8 +330,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // must not be extended with the name itself; no recursion
       // permitted)
       // we allow overloading for function definitions
-      api::Term func = PARSER_STATE->bindVar(name, t,
-                                      ExprManager::VAR_FLAG_DEFINED, true);
+      api::Term func = PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DefineFunctionCommand(
           name, func, terms, expr, SYM_MAN->getGlobalDeclarations()));
     }
@@ -722,29 +718,27 @@ sygusGrammar[CVC4::api::Grammar*& ret,
 setInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::string name;
-  SExpr sexpr;
+  api::Term sexpr;
 }
   : KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
-      cmd->reset(new SetInfoCommand(name.c_str() + 1, sexpr));
+      cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr)));
     }
   ;
 
 setOptionInternal[std::unique_ptr<CVC4::Command>* cmd]
 @init {
   std::string name;
-  SExpr sexpr;
+  api::Term sexpr;
 }
   : keyword[name] symbolicExpr[sexpr]
-    { PARSER_STATE->setOption(name.c_str() + 1, sexpr);
-      cmd->reset(new SetOptionCommand(name.c_str() + 1, sexpr));
+    { cmd->reset(new SetOptionCommand(name.c_str() + 1, sexprToString(sexpr)));
       // Ugly that this changes the state of the parser; but
       // global-declarations affects parsing, so we can't hold off
       // on this until some SmtEngine eventually (if ever) executes it.
       if(name == ":global-declarations")
       {
-        SYM_MAN->setGlobalDeclarations(sexpr.getValue() == "true");
+        SYM_MAN->setGlobalDeclarations(sexprToString(sexpr) == "true");
       }
     }
   ;
@@ -755,7 +749,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   std::string fname;
   CVC4::api::Term expr, expr2;
   std::vector<std::pair<std::string, CVC4::api::Sort> > sortedVarNames;
-  SExpr sexpr;
+  std::string s;
   CVC4::api::Sort t;
   CVC4::api::Term func;
   std::vector<CVC4::api::Term> bvs;
@@ -777,7 +771,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     { // allow overloading here
       api::Term c =
-          PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+          PARSER_STATE->bindVar(name, t, false, true);
       cmd->reset(new DeclareFunctionCommand(name, c, t)); }
 
     /* get model */
@@ -786,22 +780,24 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
 
     /* echo */
   | ECHO_TOK
-    ( simpleSymbolicExpr[sexpr]
-      { cmd->reset(new EchoCommand(sexpr.toString())); }
+    ( simpleSymbolicExpr[s]
+      { cmd->reset(new EchoCommand(s)); }
     | { cmd->reset(new EchoCommand()); }
     )
 
     /* reset: reset everything, returning solver to initial state.
      * Logic and options must be set again. */
   | RESET_TOK
-    { cmd->reset(new ResetCommand());
+    {
+      cmd->reset(new ResetCommand());
+      // reset the state of the parser, which is independent of the symbol
+      // manager
       PARSER_STATE->reset();
     }
     /* reset-assertions: reset assertions, assertion stack, declarations,
      * etc., but the logic and options remain as they were. */
   | RESET_ASSERTIONS_TOK
     { cmd->reset(new ResetAssertionsCommand());
-      PARSER_STATE->resetAssertions();
     }
   | DEFINE_FUN_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet(); }
@@ -945,7 +941,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, tt, ExprManager::VAR_FLAG_NONE, true);
+            PARSER_STATE->bindVar(name, tt, false, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, tt));
         sorts.clear();
       }
@@ -965,7 +961,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         // allow overloading
         api::Term func =
-            PARSER_STATE->bindVar(name, t, ExprManager::VAR_FLAG_NONE, true);
+            PARSER_STATE->bindVar(name, t, false, true);
         seq->addCommand(new DeclareFunctionCommand(name, func, t));
         sorts.clear();
       }
@@ -979,8 +975,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
       {
-        api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
-                                        ExprManager::VAR_FLAG_DEFINED);
+        api::Term func = PARSER_STATE->bindVar(name, e.getSort());
         cmd->reset(new DefineFunctionCommand(
             name, func, e, SYM_MAN->getGlobalDeclarations()));
       }
@@ -1010,8 +1005,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
           }
           tt = SOLVER->mkFunctionSort(sorts, tt);
         }
-        api::Term func = PARSER_STATE->bindVar(name, tt,
-                                        ExprManager::VAR_FLAG_DEFINED);
+        api::Term func = PARSER_STATE->bindVar(name, tt);
         cmd->reset(new DefineFunctionCommand(
             name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
       }
@@ -1032,8 +1026,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
-      api::Term func = PARSER_STATE->bindVar(name, t,
-                                      ExprManager::VAR_FLAG_DEFINED);
+      api::Term func = PARSER_STATE->bindVar(name, t);
       cmd->reset(new DefineFunctionCommand(
           name, func, terms, e, SYM_MAN->getGlobalDeclarations()));
     }
@@ -1103,7 +1096,7 @@ datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
   LPAREN_TOK /* parametric sorts */
   ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
     {
-      sorts.push_back(PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER));
+      sorts.push_back(PARSER_STATE->mkSort(name));
     }
   )*
   RPAREN_TOK
@@ -1199,7 +1192,7 @@ datatypesDef[bool isCo,
     ( PAR_TOK { PARSER_STATE->pushScope(); } LPAREN_TOK
       ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
         {
-          params.push_back( PARSER_STATE->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER)); }
+          params.push_back( PARSER_STATE->mkSort(name)); }
       )*
       RPAREN_TOK {
         // if the arity was fixed by prelude and is not equal to the number of parameters
@@ -1246,30 +1239,17 @@ datatypesDef[bool isCo,
   }
   ;
 
-simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
-@declarations {
-  CVC4::Kind k;
-  std::string s;
-  std::vector<unsigned int> s_vec;
-}
+simpleSymbolicExprNoKeyword[std::string& s]
   : INTEGER_LITERAL
-    { sexpr = SExpr(Integer(AntlrInput::tokenText($INTEGER_LITERAL))); }
+    { s = AntlrInput::tokenText($INTEGER_LITERAL); }
   | DECIMAL_LITERAL
-    { sexpr = SExpr(AntlrInput::tokenToRational($DECIMAL_LITERAL)); }
+    { s = AntlrInput::tokenText($DECIMAL_LITERAL); }
   | HEX_LITERAL
-    { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
-      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-      sexpr = SExpr(Integer(hexString, 16));
-    }
+    { s = AntlrInput::tokenText($HEX_LITERAL); }
   | BINARY_LITERAL
-    { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
-      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
-      sexpr = SExpr(Integer(binString, 2));
-    }
+    { s = AntlrInput::tokenText($BINARY_LITERAL); }
   | str[s,false]
-    { sexpr = SExpr(s); }
   | symbol[s,CHECK_NONE,SYM_SORT]
-    { sexpr = SExpr(SExpr::Keyword(s)); }
   | tok=(ASSERT_TOK | CHECK_SAT_TOK | CHECK_SAT_ASSUMING_TOK | DECLARE_FUN_TOK
         | DECLARE_SORT_TOK
         | DEFINE_FUN_TOK | DEFINE_FUN_REC_TOK | DEFINE_FUNS_REC_TOK
@@ -1279,7 +1259,7 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
         | RESET_TOK | RESET_ASSERTIONS_TOK | SET_LOGIC_TOK | SET_INFO_TOK
         | GET_INFO_TOK | SET_OPTION_TOK | GET_OPTION_TOK | PUSH_TOK | POP_TOK
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | SIMPLIFY_TOK)
-    { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
+    { s = AntlrInput::tokenText($tok); }
   ;
 
 keyword[std::string& s]
@@ -1287,20 +1267,21 @@ keyword[std::string& s]
     { s = AntlrInput::tokenText($KEYWORD); }
   ;
 
-simpleSymbolicExpr[CVC4::SExpr& sexpr]
-  : simpleSymbolicExprNoKeyword[sexpr]
-  | KEYWORD
-    { sexpr = SExpr(AntlrInput::tokenText($KEYWORD)); }
+simpleSymbolicExpr[std::string& s]
+  : simpleSymbolicExprNoKeyword[s]
+  | KEYWORD { s = AntlrInput::tokenText($KEYWORD); }
   ;
 
-symbolicExpr[CVC4::SExpr& sexpr]
+symbolicExpr[CVC4::api::Term& sexpr]
 @declarations {
-  std::vector<SExpr> children;
+  std::string s;
+  std::vector<api::Term> children;
 }
-  : simpleSymbolicExpr[sexpr]
+  : simpleSymbolicExpr[s]
+    { sexpr = SOLVER->mkString(PARSER_STATE->processAdHocStringEsc(s)); }
   | LPAREN_TOK
     ( symbolicExpr[sexpr] { children.push_back(sexpr); } )* RPAREN_TOK
-    { sexpr = SExpr(children); }
+    { sexpr = SOLVER->mkTerm(CVC4::api::SEXPR, children); }
   ;
 
 /**
@@ -1781,13 +1762,14 @@ termAtomic[CVC4::api::Term& atomTerm]
  */
 attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
 @init {
-  SExpr sexpr;
+  api::Term sexpr;
+  std::string s;
   CVC4::api::Term patexpr;
   std::vector<CVC4::api::Term> patexprs;
   CVC4::api::Term e2;
   bool hasValue = false;
 }
-  : KEYWORD ( simpleSymbolicExprNoKeyword[sexpr] { hasValue = true; } )?
+  : KEYWORD ( simpleSymbolicExprNoKeyword[s] { hasValue = true; } )?
   {
     attr = AntlrInput::tokenText($KEYWORD);
     PARSER_STATE->attributeNotSupported(attr);
@@ -1824,7 +1806,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
     {
       api::Sort boolType = SOLVER->getBooleanSort();
-      api::Term avar = SOLVER->mkConst(boolType, sexpr.toString());
+      api::Term avar = SOLVER->mkConst(boolType, sexprToString(sexpr));
       attr = std::string(":qid");
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand("qid", avar);
@@ -1835,7 +1817,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
     {
       attr = std::string(":named");
       // notify that expression was given a name
-      PARSER_STATE->notifyNamedExpression(expr, sexpr.getValue());
+      PARSER_STATE->notifyNamedExpression(expr, sexprToString(sexpr));
     }
   ;
 

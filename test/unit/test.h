@@ -1,26 +1,29 @@
 /*********************                                                        */
-/*! \file array.h
+/*! \file test.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Morgan Deters
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Array types.
- **
- ** Array types.
+ ** \brief Common header for API unit test.
  **/
 
-#include "cvc4_public.h"
+#ifndef CVC4__TEST__UNIT__TEST_H
+#define CVC4__TEST__UNIT__TEST_H
 
-#ifndef CVC4__ARRAY_H
-#define CVC4__ARRAY_H
+#include "gtest/gtest.h"
 
-// we get ArrayType right now by #including type.h.
-// array.h is still useful for the auto-generated kinds #includes.
-#include "expr/type.h"
+namespace CVC4 {
+namespace test {
 
-#endif /* CVC4__ARRAY_H */
+class TestInternal : public ::testing::Test
+{
+};
+
+}  // namespace test
+}  // namespace CVC4
+#endif

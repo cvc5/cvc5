@@ -2,7 +2,7 @@
 /*! \file theory_strings.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Yoni Zohar
+ **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -337,8 +337,17 @@ bool TheoryStrings::collectModelInfoType(
           // is it an equivalence class with a seq.unit term?
           if (nfe.d_nf[0].getKind() == SEQ_UNIT)
           {
-            Node c = Rewriter::rewrite(nm->mkNode(
-                SEQ_UNIT, d_valuation.getModelValue(nfe.d_nf[0][0])));
+            Node argVal;
+            if (nfe.d_nf[0][0].getType().isStringLike())
+            {
+              argVal = d_state.getRepresentative(nfe.d_nf[0][0]);
+            }
+            else
+            {
+              // otherwise, it is a shared term
+              argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
+            }
+            Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
             m->getEqualityEngine()->addTerm(c);
@@ -561,23 +570,21 @@ TrustNode TheoryStrings::expandDefinition(Node node)
 {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
 
-  if (node.getKind() == STRING_FROM_CODE)
+  if (node.getKind() == kind::SEQ_NTH)
   {
-    // str.from_code(t) --->
-    //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
     NodeManager* nm = NodeManager::currentNM();
-    Node t = node[0];
-    Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
-    Node cond =
-        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
-    Node k = nm->mkBoundVar(nm->stringType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
-    Node emp = Word::mkEmptyWord(node.getType());
-    Node ret = nm->mkNode(
-        WITNESS,
-        bvl,
-        nm->mkNode(
-            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
+    SkolemCache* sc = d_termReg.getSkolemCache();
+    Node s = node[0];
+    Node n = node[1];
+    // seq.nth(s, n) --> ite(0 <= n < len(s), seq.nth_total(s,n), Uf(s, n))
+    Node cond = nm->mkNode(AND,
+                           nm->mkNode(LEQ, d_zero, n),
+                           nm->mkNode(LT, n, nm->mkNode(STRING_LENGTH, s)));
+    Node ss = nm->mkNode(SEQ_NTH_TOTAL, s, n);
+    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
+    Node u = nm->mkNode(APPLY_UF, uf, s, n);
+    Node ret = nm->mkNode(ITE, cond, ss, u);
+    Trace("strings-exp-def") << "...return " << ret << std::endl;
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
   return TrustNode::null();
@@ -997,27 +1004,47 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  if (atom.getKind() == STRING_FROM_CODE)
+  {
+    // str.from_code(t) --->
+    //   witness k. ite(0 <= t < |A|, t = str.to_code(k), k = "")
+    NodeManager* nm = NodeManager::currentNM();
+    Node t = atom[0];
+    Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
+    Node cond =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
+    Node k = nm->mkBoundVar(nm->stringType());
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    Node emp = Word::mkEmptyWord(atom.getType());
+    Node ret = nm->mkNode(
+        WITNESS,
+        bvl,
+        nm->mkNode(
+            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
+    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+  }
+  TrustNode ret;
   Node atomRet = atom;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
-    Node atomElim = d_regexp_elim.eliminate(atomRet);
-    if (!atomElim.isNull())
+    ret = d_regexp_elim.eliminateTrusted(atomRet);
+    if (!ret.isNull())
     {
-      Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
+      Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret.getNode()
                            << " via regular expression elimination."
                            << std::endl;
-      atomRet = atomElim;
+      atomRet = ret.getNode();
     }
   }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
     StringsPreprocess* p = d_esolver.getPreprocess();
-    Node ret = p->processAssertion(atomRet, new_nodes);
-    if (ret != atomRet)
+    Node pret = p->processAssertion(atomRet, new_nodes);
+    if (pret != atomRet)
     {
-      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << ret
+      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << pret
                            << ", with " << new_nodes.size() << " lemmas."
                            << std::endl;
       for (const Node& lem : new_nodes)
@@ -1026,16 +1053,16 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
         ++(d_statistics.d_lemmasEagerPreproc);
         d_out->lemma(lem);
       }
-      atomRet = ret;
+      atomRet = pret;
+      // Don't support proofs yet, thus we must return nullptr. This is the
+      // case even if we had proven the elimination via regexp elimination
+      // above.
+      ret = TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
     }else{
       Assert(new_nodes.empty());
     }
   }
-  if (atomRet != atom)
-  {
-    return TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
-  }
-  return TrustNode::null();
+  return ret;
 }
 
 /** run the given inference step */

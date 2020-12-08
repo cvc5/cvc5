@@ -130,6 +130,10 @@ class CVC4_PUBLIC SymbolManager
    * Reset this symbol manager, which resets the symbol table.
    */
   void reset();
+  /**
+   * Reset assertions for this symbol manager, which resets the symbol table.
+   */
+  void resetAssertions();
   /** Set global declarations to the value flag. */
   void setGlobalDeclarations(bool flag);
   /** Get global declarations flag. */

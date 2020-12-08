@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file transcendental_solver.cpp
+/*! \file exponential_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Gereon Kremer
+ **   Gereon Kremer, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -36,6 +36,19 @@ ExponentialSolver::ExponentialSolver(TranscendentalState* tstate)
 }
 
 ExponentialSolver::~ExponentialSolver() {}
+
+void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // do both equalities to ensure that new_a becomes a preregistered term
+  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
+  // note we must do preprocess on this lemma
+  Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
+                        << std::endl;
+  NlLemma nlem(
+      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
+  d_data->d_im.addPendingArithLemma(nlem);
+}
 
 void ExponentialSolver::checkInitialRefine()
 {
@@ -170,31 +183,41 @@ void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
   d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
 }
 
-void ExponentialSolver::doSecantLemmas(
-    TNode e, TNode poly_approx, TNode c, TNode poly_approx_c, unsigned d)
+void ExponentialSolver::doSecantLemmas(TNode e,
+                                       TNode poly_approx,
+                                       TNode center,
+                                       TNode cval,
+                                       unsigned d,
+                                       unsigned actual_d)
 {
-  d_data->doSecantLemmas(
-      getSecantBounds(e, c, d), poly_approx, c, poly_approx_c, e, d, 1);
+  d_data->doSecantLemmas(getSecantBounds(e, center, d),
+                         poly_approx,
+                         center,
+                         cval,
+                         e,
+                         Convexity::CONVEX,
+                         d,
+                         actual_d);
 }
 
 std::pair<Node, Node> ExponentialSolver::getSecantBounds(TNode e,
-                                                         TNode c,
+                                                         TNode center,
                                                          unsigned d)
 {
-  std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, c, d);
+  std::pair<Node, Node> bounds = d_data->getClosestSecantPoints(e, center, d);
 
   // Check if we already have neighboring secant points
   if (bounds.first.isNull())
   {
     // pick c-1
     bounds.first = Rewriter::rewrite(
-        NodeManager::currentNM()->mkNode(Kind::MINUS, c, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::MINUS, center, d_data->d_one));
   }
   if (bounds.second.isNull())
   {
     // pick c+1
     bounds.second = Rewriter::rewrite(
-        NodeManager::currentNM()->mkNode(Kind::PLUS, c, d_data->d_one));
+        NodeManager::currentNM()->mkNode(Kind::PLUS, center, d_data->d_one));
   }
   return bounds;
 }

@@ -2,7 +2,7 @@
 /*! \file sygus_interpol.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Ying Sheng
+ **   Ying Sheng, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/type.h"
+#include "expr/type_node.h"
 #include "smt/smt_engine.h"
 
 namespace CVC4 {

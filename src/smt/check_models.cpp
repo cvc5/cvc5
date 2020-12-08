@@ -2,7 +2,7 @@
 /*! \file check_models.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -67,24 +67,14 @@ void CheckModels::checkModel(Model* m,
                                 /* substituteUnderQuantifiers = */ false);
 
   Trace("check-model") << "checkModel: Collect substitution..." << std::endl;
-  for (size_t k = 0, ncmd = m->getNumCommands(); k < ncmd; ++k)
+  const std::vector<Node>& decTerms = m->getDeclaredTerms();
+  for (const Node& func : decTerms)
   {
-    const DeclareFunctionNodeCommand* c =
-        dynamic_cast<const DeclareFunctionNodeCommand*>(m->getCommand(k));
-    Notice() << "SmtEngine::checkModel(): model command " << k << " : "
-             << m->getCommand(k)->toString() << std::endl;
-    if (c == nullptr)
-    {
-      // we don't care about DECLARE-DATATYPES, DECLARE-SORT, ...
-      Notice() << "SmtEngine::checkModel(): skipping..." << std::endl;
-      continue;
-    }
     // We have a DECLARE-FUN:
     //
     // We'll first do some checks, then add to our substitution map
     // the mapping: function symbol |-> value
 
-    Node func = c->getFunction();
     Node val = m->getValue(func);
 
     Notice() << "SmtEngine::checkModel(): adding substitution: " << func
