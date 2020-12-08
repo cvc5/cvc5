@@ -87,15 +87,19 @@ class PropEngine
    */
   void shutdown() {}
 
+  /** 
+   * Notify preprocessed assertions. This method is called just before the
+   * assertions are asserted to this prop engine. This method notifies the
+   * decision engine and the theory engine of the assertions in ap.
+   */
+  void notifyPreprocessedAssertions(const preprocessing::AssertionPipeline& ap);
+
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
    * The formula is asserted permanently for the current context.
    * @param node the formula to assert
    */
   void assertFormula(TNode node);
-
-  /** Notify preprocessed assertions */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.

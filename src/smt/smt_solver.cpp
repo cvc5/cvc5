@@ -228,7 +228,7 @@ void SmtSolver::processAssertions(Assertions& as)
   if (noConflict)
   {
     Chat() << "notifying theory engine and decision engine..." << std::endl;
-    d_propEngine->notifyPreprocessedAssertions(ap.ref());
+    d_propEngine->notifyPreprocessedAssertions(ap);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
