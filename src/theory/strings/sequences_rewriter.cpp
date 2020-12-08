@@ -1491,7 +1491,7 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteSeqUnit(node);
   }
-  else if (nk == SEQ_NTH)
+  else if (nk == SEQ_NTH || nk == SEQ_NTH_TOTAL)
   {
     retNode = rewriteSeqNth(node);
   }
@@ -1516,7 +1516,7 @@ RewriteResponse SequencesRewriter::preRewrite(TNode node)
 
 Node SequencesRewriter::rewriteSeqNth(Node node)
 {
-  Assert(node.getKind() == SEQ_NTH);
+  Assert(node.getKind() == SEQ_NTH || node.getKind() == SEQ_NTH_TOTAL);
   Node ret;
   Node s = node[0];
   Node i = node[1];
@@ -1529,6 +1529,12 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
       std::vector<Node> elements = s.getConst<Sequence>().getVec();
       ret = elements[pos];
       return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
+    }
+    else if (node.getKind() == SEQ_NTH_TOTAL)
+    {
+      // return arbitrary term
+      Node ret = s.getType().getSequenceElementType().mkGroundValue();
+      return returnRewrite(node, ret, Rewrite::SEQ_NTH_TOTAL_OOB);
     }
     else
     {
