@@ -166,6 +166,11 @@ const char* toString(PfRule id)
     case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
+    case PfRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
+    case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
+    case PfRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_ZERO: return "ARITH_TRANS_SINE_TANGENT_ZERO";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_PI: return "ARITH_TRANS_SINE_TANGENT_PI";
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
     case PfRule::ARITH_NL_CAD_RECURSIVE:
       return "ARITH_NL_CAD_RECURSIVE";

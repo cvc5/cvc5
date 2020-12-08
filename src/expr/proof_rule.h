@@ -1127,6 +1127,50 @@ enum class PfRule : uint32_t
   // Where l (u) is a valid lower (upper) bound on pi.
   ARITH_TRANS_PI,
 
+  //======== Sine is always between -1 and 1
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and (<= (sin t) 1) (>= (sin t) (- 1)))
+  ARITH_TRANS_SINE_BOUNDS,
+  //======== Sine arg shifted to -pi..pi
+  // Children: none
+  // Arguments: (x, y, s)
+  // ---------------------
+  // Conclusion: (and
+  //   (<= -pi y pi)
+  //   (= (sin y) (sin x))
+  //   (ite (<= -pi x pi) (= x y) (= x (+ y (* 2 pi s))))
+  // )
+  // Where x is the argument to sine, y is a new real skolem that is x shifted
+  // into -pi..pi and s is a new integer skolem that is the number of phases y
+  // is shifted.
+  ARITH_TRANS_SINE_SHIFT,
+  //======== Sine is symmetric with respect to negation of the argument
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (- (sin t) (sin (- t))) 0)
+  ARITH_TRANS_SINE_SYMMETRY,
+  //======== Sine is bounded by the tangent at zero
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and
+  //   (=> (> t 0) (< (sin t) t))
+  //   (=> (< t 0) (> (sin t) t))
+  // )
+  ARITH_TRANS_SINE_TANGENT_ZERO,
+  //======== Sine is bounded by the tangents at -pi and pi
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and
+  //   (=> (> t -pi) (> (sin t) (- -pi t)))
+  //   (=> (< t pi) (< (sin t) (- pi t)))
+  // )
+  ARITH_TRANS_SINE_TANGENT_PI,
+
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.
   //
