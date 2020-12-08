@@ -1529,23 +1529,28 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
     {
       Trace("te-lemma") << "Lemma, new lemma: " << newLemmas[i].getProven()
-                        << " (skolem is " << newSkolem[i] << ")" << std::endl;
+                        << " (skolem is " << newSkolems[i] << ")" << std::endl;
     }
   }
 
   // now, send the lemmas to the prop engine
-  d_propEngine->addLemmas(tlemma, newLemmas, newSkolems, removable);
+  d_propEngine->assertLemmas(tlemma, newLemmas, newSkolems, removable);
 
   // Mark that we added some lemmas
   d_lemmasAdded = true;
 
   // Lemma analysis isn't online yet; this lemma may only live for this
   // user level.
-  Node retLemma = lemmas[0];
-  if (lemmas.size() > 1)
+  Node retLemma = tlemma.getNode();
+  if (!newLemmas.empty())
   {
+    std::vector<Node> lemmas{retLemma};
+    for (const theory::TrustNode& tnl : newLemmas)
+    {
+      lemmas.push_back(tnl.getProven());
+    }
     // the returned lemma is the conjunction of all additional lemmas.
-    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
+    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas);
   }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }

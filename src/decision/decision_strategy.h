@@ -58,6 +58,10 @@ public:
 
   bool needIteSkolemMap() override { return true; }
 
+  /** 
+   * Add a list of assertions, as well as lemmas coming from preprocessing
+   * (ppLemmas) and the skolems they constrain (ppSkolems).
+   */
   virtual void addAssertions(const std::vector<Node>& assertions,
                              const std::vector<Node>& newLemmas,
                              const std::vector<Node>& newSkolems) = 0;

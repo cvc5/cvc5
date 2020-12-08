@@ -114,7 +114,6 @@ SatValue DecisionEngine::getPolarity(SatVariable var)
 }
 
 void DecisionEngine::addAssertions(
-
     const std::vector<Node>& assertions,
     const std::vector<Node>& ppLemmas,
     const std::vector<Node>& ppSkolems)

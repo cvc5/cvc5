@@ -158,7 +158,7 @@ void PropEngine::assertLemmas(theory::TrustNode lem,
 {
   Assert(ppSkolems.size() == ppLemmas.size());
   // assert the lemmas
-  assertLemma(tlemma, removable);
+  assertLemma(lem, removable);
   for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
   {
     assertLemma(ppLemmas[i], removable);
@@ -167,14 +167,13 @@ void PropEngine::assertLemmas(theory::TrustNode lem,
   // assert to decision engine
   if (!removable)
   {
-    // also add to the decision engine
+    // also add to the decision engine, where notice we don't need proofs
     std::vector<Node> assertions;
-    assertions.push_back(lem);
-    // don't need proofs
+    assertions.push_back(lem.getProven());
     std::vector<Node> ppLemmasF;
     for (const theory::TrustNode& tnl : ppLemmas)
     {
-      newLemmasF.push_back(tnl.getProven());
+      ppLemmasF.push_back(tnl.getProven());
     }
     d_decisionEngine->addAssertions(assertions, ppLemmasF, ppSkolems);
   }
