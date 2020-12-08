@@ -19,7 +19,9 @@
 #ifndef CVC4__DECISION__DECISION_STRATEGY_H
 #define CVC4__DECISION__DECISION_STRATEGY_H
 
-#include "preprocessing/assertion_pipeline.h"
+#include <vector>
+
+#include "expr/node.h"
 #include "prop/sat_solver_types.h"
 #include "smt/term_formula_removal.h"
 

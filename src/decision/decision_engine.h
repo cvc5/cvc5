@@ -24,7 +24,6 @@
 #include "base/output.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/sat_solver_types.h"
