@@ -164,10 +164,9 @@ inline void computeXorIffDesiredValues
   }
 }
 
-void JustificationHeuristic::addAssertions(
-      const std::vector<Node>& assertions,
-                       const std::vector<Node>& newLemmas,
-                       const std::vector<Node>& newSkolems)
+void JustificationHeuristic::addAssertions(const std::vector<Node>& assertions,
+                                           const std::vector<Node>& newLemmas,
+                                           const std::vector<Node>& newSkolems)
 {
   Trace("decision")
     << "JustificationHeuristic::addAssertions()"
@@ -197,7 +196,7 @@ void JustificationHeuristic::addAssertions(
   }
 
   // Save mapping between ite skolems and ite assertions
-  for (size_t i=0, nlemmas = newLemmas.size(); i<nlemmas; i++)
+  for (size_t i = 0, nlemmas = newLemmas.size(); i < nlemmas; i++)
   {
     Trace("decision::jh::ite") << " jh-ite: " << newSkolems[i] << " maps to "
                                << newLemmas[i] << std::endl;

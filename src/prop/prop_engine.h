@@ -96,7 +96,7 @@ class PropEngine
 
   /** Notify preprocessed assertions */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
-  
+
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
    * The formula can be removed by the SAT solver after backtracking lower
@@ -111,15 +111,15 @@ class PropEngine
   /**
    * Assert lemma trn with preprocessing lemmas newLemmas which corresponding
    * to lemmas for skolems in newSkolems.
-   * 
+   *
    * @param trn the trust node storing the formula to assert
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemmas(
-      theory::TrustNode trn,
-                       std::vector<theory::TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems, bool removable);
+  void assertLemmas(theory::TrustNode trn,
+                    std::vector<theory::TrustNode>& newLemmas,
+                    std::vector<Node>& newSkolems,
+                    bool removable);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This

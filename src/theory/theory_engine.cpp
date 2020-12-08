@@ -1532,7 +1532,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
                         << " (skolem is " << newSkolem[i] << ")" << std::endl;
     }
   }
-  
+
   // now, send the lemmas to the prop engine
   d_propEngine->addLemmas(tlemma, newLemmas, newSkolems, removable);
 

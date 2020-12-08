@@ -130,7 +130,8 @@ void PropEngine::assertFormula(TNode node) {
   d_cnfStream->convertAndAssert(node, false, false, true);
 }
 
-void PropEngine::notifyPreprocessedAssertions(const std::vector<Node>& assertions)
+void PropEngine::notifyPreprocessedAssertions(
+    const std::vector<Node>& assertions)
 {
   // notify the theory enfine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
@@ -150,10 +151,10 @@ void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
   d_cnfStream->convertAndAssert(node, removable, negated);
 }
 
-void PropEngine::assertLemmas(
-    theory::TrustNode lem,
-                      std::vector<theory::TrustNode>& ppLemmas,
-                      std::vector<Node>& ppSkolems, bool removable)
+void PropEngine::assertLemmas(theory::TrustNode lem,
+                              std::vector<theory::TrustNode>& ppLemmas,
+                              std::vector<Node>& ppSkolems,
+                              bool removable)
 {
   Assert(ppSkolems.size() == ppLemmas.size());
   // assert the lemmas

@@ -145,10 +145,9 @@ class DecisionEngine {
    * Add a list of assertions, as well as lemmas coming from preprocessing
    * (ppLemmas) and the skolems they are used to constraint (ppSkolems).
    */
-  void addAssertions(
-      const std::vector<Node>& assertions,
-                       const std::vector<Node>& ppLemmas,
-                       const std::vector<Node>& ppSkolems);
+  void addAssertions(const std::vector<Node>& assertions,
+                     const std::vector<Node>& ppLemmas,
+                     const std::vector<Node>& ppSkolems);
 
   // Interface for Strategies to use stuff stored in Decision Engine
   // (which was possibly requested by them on initialization)
