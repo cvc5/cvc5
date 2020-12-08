@@ -65,8 +65,8 @@ public:
    * (ppLemmas) and the skolems they constrain (ppSkolems).
    */
   virtual void addAssertions(const std::vector<Node>& assertions,
-                             const std::vector<Node>& newLemmas,
-                             const std::vector<Node>& newSkolems) = 0;
+                             const std::vector<Node>& ppLemmas,
+                             const std::vector<Node>& ppSkolems) = 0;
 };/* class ITEDecisionStrategy */
 
 class RelevancyStrategy : public ITEDecisionStrategy {

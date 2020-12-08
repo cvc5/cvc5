@@ -165,8 +165,8 @@ inline void computeXorIffDesiredValues
 }
 
 void JustificationHeuristic::addAssertions(const std::vector<Node>& assertions,
-                                           const std::vector<Node>& newLemmas,
-                                           const std::vector<Node>& newSkolems)
+                                           const std::vector<Node>& ppLemmas,
+                                           const std::vector<Node>& ppSkolems)
 {
   Trace("decision")
     << "JustificationHeuristic::addAssertions()"
@@ -196,11 +196,11 @@ void JustificationHeuristic::addAssertions(const std::vector<Node>& assertions,
   }
 
   // Save mapping between ite skolems and ite assertions
-  for (size_t i = 0, nlemmas = newLemmas.size(); i < nlemmas; i++)
+  for (size_t i = 0, nlemmas = ppLemmas.size(); i < nlemmas; i++)
   {
-    Trace("decision::jh::ite") << " jh-ite: " << newSkolems[i] << " maps to "
-                               << newLemmas[i] << std::endl;
-    d_skolemAssertions[newSkolems[i]] = newLemmas[i];
+    Trace("decision::jh::ite") << " jh-ite: " << ppSkolems[i] << " maps to "
+                               << ppLemmas[i] << std::endl;
+    d_skolemAssertions[ppSkolems[i]] = ppLemmas[i];
   }
 
   // Automatic weight computation
