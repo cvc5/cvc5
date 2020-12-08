@@ -187,7 +187,7 @@ Node BVToInt::eliminationPass(Node n)
                                          currentEliminated[0],
                                          currentEliminated[1]);
       }
-      if (k == kind::BITVECTOR_UREM)
+      else if (k == kind::BITVECTOR_UREM)
       {
         currentEliminated = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
                                          currentEliminated[0],
