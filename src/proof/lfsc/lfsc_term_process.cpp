@@ -34,8 +34,7 @@ Node LfscTermProcessor::runConvert(Node n)
   TypeNode tn = n.getType();
   if (k == APPLY_UF)
   {
-    return runConvert(
-        theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+    return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == HO_APPLY)
   {
@@ -91,8 +90,8 @@ Node LfscTermProcessor::runConvert(Node n)
     {
       tmp.push_back(v[i]);
       // also convert internal
-      ret = nm->mkNode(
-          STRING_CONCAT, runConvert(nm->mkConst(String(tmp))), ret);
+      ret =
+          nm->mkNode(STRING_CONCAT, runConvert(nm->mkConst(String(tmp))), ret);
       tmp.pop_back();
     }
     return ret;
@@ -178,16 +177,16 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 }
 
 Node LfscTermProcessor::getSymbolInternalFor(Node n,
-                                                   const std::string& name,
-                                                   uint32_t v)
+                                             const std::string& name,
+                                             uint32_t v)
 {
   return getSymbolInternal(n.getKind(), n.getType(), name, v);
 }
 
 Node LfscTermProcessor::getSymbolInternal(Kind k,
-                                                TypeNode tn,
-                                                const std::string& name,
-                                                uint32_t v)
+                                          TypeNode tn,
+                                          const std::string& name,
+                                          uint32_t v)
 {
   std::tuple<Kind, TypeNode, uint32_t> key(k, tn, v);
   std::map<std::tuple<Kind, TypeNode, uint32_t>, Node>::iterator it =

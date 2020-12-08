@@ -21,8 +21,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace proof {
 
-
-TermProcessor::TermProcessor(){}
+TermProcessor::TermProcessor() {}
 
 Node TermProcessor::convert(Node n)
 {
@@ -30,8 +29,7 @@ Node TermProcessor::convert(Node n)
   {
     return n;
   }
-  Trace("term-process-debug")
-      << "TermProcessor::convert: " << n << std::endl;
+  Trace("term-process-debug") << "TermProcessor::convert: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -169,14 +167,8 @@ TypeNode TermProcessor::convertType(TypeNode tn)
 
 Node TermProcessor::runConvert(Node n) { return Node::null(); }
 
-TypeNode TermProcessor::runConvertType(TypeNode tn)
-{
-  return TypeNode::null();
-}
-bool TermProcessor::shouldTraverse(Node n)
-{
-  return true;
-}
+TypeNode TermProcessor::runConvertType(TypeNode tn) { return TypeNode::null(); }
+bool TermProcessor::shouldTraverse(Node n) { return true; }
 
 }  // namespace proof
 }  // namespace CVC4

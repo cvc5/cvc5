@@ -38,7 +38,7 @@ class TermProcessor
  public:
   TermProcessor();
   virtual ~TermProcessor() {}
-  /** 
+  /**
    * This converts node n based on the runConvert method that can be overriden
    * by instances of this class.
    */

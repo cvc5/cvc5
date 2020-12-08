@@ -40,7 +40,7 @@ std::ostream& operator<<(std::ostream& out, LfscRule id)
   return out;
 }
 
-LfscPrinter::LfscPrinter(){}
+LfscPrinter::LfscPrinter() {}
 
 void LfscPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
