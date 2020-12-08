@@ -202,7 +202,8 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       // applied selectors
       d_cg = new inst::CandidateGeneratorSelector(qe, d_match_pattern);
     }
-    else if( Trigger::isAtomicTriggerKind( mpk ) ){
+    else if (Trigger::isAtomicTriggerKind(mpk))
+    {
       if (mpk == APPLY_CONSTRUCTOR)
       {
         // 1-constructors have a trivial way of generating candidates in a
@@ -228,7 +229,9 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
           d_eq_class_rel = Node::null();
         }
       }
-    }else if( mpk==INST_CONSTANT ){
+    }
+    else if (mpk == INST_CONSTANT)
+    {
       if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
         Node selectorExpr = qe->getTermDatabase()->getMatchOperator(d_pattern);
         size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);

@@ -15,14 +15,14 @@
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "expr/dtype.h"
 #include "options/quantifiers_options.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "theory/uf/theory_uf.h"
 
 using namespace CVC4::kind;
@@ -49,9 +49,7 @@ void CandidateGeneratorQE::resetInstantiationRound(){
   d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
 }
 
-void CandidateGeneratorQE::reset( Node eqc ){
-  resetForOperator(eqc,d_op);
-}
+void CandidateGeneratorQE::reset(Node eqc) { resetForOperator(eqc, d_op); }
 
 void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
 {
@@ -95,7 +93,8 @@ Node CandidateGeneratorQE::getNextCandidate(){
   return getNextCandidateInternal();
 }
 
-Node CandidateGeneratorQE::getNextCandidateInternal(){
+Node CandidateGeneratorQE::getNextCandidateInternal()
+{
   if( d_mode==cand_term_db ){
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
@@ -268,28 +267,28 @@ bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
   return isLegalCandidate(n);
 }
 
-CandidateGeneratorSelector::CandidateGeneratorSelector(
-    QuantifiersEngine* qe, Node mpat)
+CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersEngine* qe,
+                                                       Node mpat)
     : CandidateGeneratorQE(qe, mpat)
 {
   Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
   Assert(mpat.getKind() == APPLY_SELECTOR);
   Node mpatExp = smt::currentSmtEngine()->expandDefinitions(mpat, false);
   Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
-  if (mpatExp.getKind()==ITE)
+  if (mpatExp.getKind() == ITE)
   {
-    Assert (mpatExp[1].getKind() == APPLY_SELECTOR_TOTAL);
-    Assert (mpatExp[2].getKind()==APPLY_UF);
-    d_selOp = qe->getTermDatabase()->getMatchOperator( mpatExp[1]);
-    d_ufOp =qe->getTermDatabase()->getMatchOperator( mpatExp[2]);
+    Assert(mpatExp[1].getKind() == APPLY_SELECTOR_TOTAL);
+    Assert(mpatExp[2].getKind() == APPLY_UF);
+    d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp[1]);
+    d_ufOp = qe->getTermDatabase()->getMatchOperator(mpatExp[2]);
   }
   else
   {
     // corner case of datatype with one constructor
-    Assert (mpatExp.getKind() == APPLY_SELECTOR_TOTAL );
-    d_selOp = qe->getTermDatabase()->getMatchOperator( mpatExp);
+    Assert(mpatExp.getKind() == APPLY_SELECTOR_TOTAL);
+    d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp);
   }
-  Assert (d_selOp!=d_ufOp);
+  Assert(d_selOp != d_ufOp);
 }
 
 void CandidateGeneratorSelector::reset(Node eqc)
@@ -307,7 +306,7 @@ Node CandidateGeneratorSelector::getNextCandidate()
     Trace("sel-trigger-debug") << "...next candidate is " << nextc << std::endl;
     return nextc;
   }
-  else if (d_op==d_selOp)
+  else if (d_op == d_selOp)
   {
     if (d_ufOp.isNull())
     {
@@ -326,6 +325,6 @@ Node CandidateGeneratorSelector::getNextCandidate()
   return Node::null();
 }
 
-}
-}
-}
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4

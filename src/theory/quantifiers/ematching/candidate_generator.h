@@ -224,6 +224,7 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
+
  protected:
   /** the selector operator */
   Node d_selOp;
