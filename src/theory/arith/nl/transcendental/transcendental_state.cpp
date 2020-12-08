@@ -48,64 +48,59 @@ TranscendentalState::TranscendentalState(InferenceManager& im, NlModel& model)
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
 }
 
-void TranscendentalState::init(const std::vector<Node>& assertions,
-                               const std::vector<Node>& false_asserts,
-                               const std::vector<Node>& xts)
+void TranscendentalState::init(const std::vector<Node>& xts,
+                               std::vector<Node>& needsMaster)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
   d_tf_region.clear();
 
-  NodeManager* nm = NodeManager::currentNM();
-
-  // register the extended function terms
-  std::vector<Node> trNeedsMaster;
   bool needPi = false;
   // for computing congruence
   std::map<Kind, ArgTrie> argTrie;
-  for (unsigned i = 0, xsize = xts.size(); i < xsize; i++)
+  for (std::size_t i = 0, xsize = xts.size(); i < xsize; ++i)
   {
+    // Ignore if it is not a transcendental
+    if (!isTranscendentalKind(xts[i].getKind()))
+    {
+      continue;
+    }
     Node a = xts[i];
     Kind ak = a.getKind();
     bool consider = true;
-    // if is an unpurified application of SINE, or it is a transcendental
-    // applied to a trancendental, purify.
-    if (isTranscendentalKind(ak))
+    // if we've already computed master for a
+    if (d_trMaster.find(a) != d_trMaster.end())
     {
-      // if we've already computed master for a
-      if (d_trMaster.find(a) != d_trMaster.end())
+      // a master has at least one slave
+      consider = (d_trSlaves.find(a) != d_trSlaves.end());
+    }
+    else
+    {
+      if (ak == Kind::SINE)
       {
-        // a master has at least one slave
-        consider = (d_trSlaves.find(a) != d_trSlaves.end());
+        // always not a master
+        consider = false;
       }
       else
       {
-        if (ak == Kind::SINE)
+        for (const Node& ac : a)
         {
-          // always not a master
-          consider = false;
-        }
-        else
-        {
-          for (const Node& ac : a)
+          if (isTranscendentalKind(ac.getKind()))
           {
-            if (isTranscendentalKind(ac.getKind()))
-            {
-              consider = false;
-              break;
-            }
+            consider = false;
+            break;
           }
         }
-        if (!consider)
-        {
-          // wait to assign a master below
-          trNeedsMaster.push_back(a);
-        }
-        else
-        {
-          d_trMaster[a] = a;
-          d_trSlaves[a].insert(a);
-        }
+      }
+      if (!consider)
+      {
+        // wait to assign a master below
+        needsMaster.push_back(a);
+      }
+      else
+      {
+        d_trMaster[a] = a;
+        d_trSlaves[a].insert(a);
       }
     }
     if (ak == Kind::EXPONENTIAL || ak == Kind::SINE)
@@ -114,38 +109,7 @@ void TranscendentalState::init(const std::vector<Node>& assertions,
       // if we didn't indicate that it should be purified above
       if (consider)
       {
-        std::vector<Node> repList;
-        for (const Node& ac : a)
-        {
-          Node r = d_model.computeConcreteModelValue(ac);
-          repList.push_back(r);
-        }
-        Node aa = argTrie[ak].add(a, repList);
-        if (aa != a)
-        {
-          // apply congruence to pairs of terms that are disequal and congruent
-          Assert(aa.getNumChildren() == a.getNumChildren());
-          Node mvaa = d_model.computeAbstractModelValue(a);
-          Node mvaaa = d_model.computeAbstractModelValue(aa);
-          if (mvaa != mvaaa)
-          {
-            std::vector<Node> exp;
-            for (unsigned j = 0, size = a.getNumChildren(); j < size; j++)
-            {
-              exp.push_back(a[j].eqNode(aa[j]));
-            }
-            Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
-            Node cong_lemma = nm->mkNode(Kind::OR, expn.negate(), a.eqNode(aa));
-            d_im.addPendingArithLemma(cong_lemma, InferenceId::NL_CONGRUENCE);
-          }
-        }
-        else
-        {
-          // new representative of congruence class
-          d_funcMap[ak].push_back(a);
-        }
-        // add to congruence class
-        d_funcCongClass[aa].push_back(a);
+        ensureCongruence(a, argTrie);
       }
     }
     else if (ak == Kind::PI)
@@ -161,61 +125,6 @@ void TranscendentalState::init(const std::vector<Node>& assertions,
   {
     mkPi();
     getCurrentPiBounds();
-  }
-
-  if (d_im.hasUsed())
-  {
-    return;
-  }
-
-  // process SINE phase shifting
-  for (const Node& a : trNeedsMaster)
-  {
-    // should not have processed this already
-    Assert(d_trMaster.find(a) == d_trMaster.end());
-    Kind k = a.getKind();
-    Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
-    Node y =
-        nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
-    Node new_a = nm->mkNode(k, y);
-    d_trSlaves[new_a].insert(new_a);
-    d_trSlaves[new_a].insert(a);
-    d_trMaster[a] = new_a;
-    d_trMaster[new_a] = new_a;
-    Node lem;
-    if (k == Kind::SINE)
-    {
-      Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a
-                         << std::endl;
-      Assert(!d_pi.isNull());
-      Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
-      // TODO : do not introduce shift here, instead needs model-based
-      // refinement for constant shifts (cvc4-projects #1284)
-      lem = nm->mkNode(
-          Kind::AND,
-          transcendental::mkValidPhase(y, d_pi),
-          nm->mkNode(
-              Kind::ITE,
-              transcendental::mkValidPhase(a[0], d_pi),
-              a[0].eqNode(y),
-              a[0].eqNode(nm->mkNode(
-                  Kind::PLUS,
-                  y,
-                  nm->mkNode(
-                      Kind::MULT, nm->mkConst(Rational(2)), shift, d_pi)))),
-          new_a.eqNode(a));
-    }
-    else
-    {
-      // do both equalities to ensure that new_a becomes a preregistered term
-      lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
-    }
-    // note we must do preprocess on this lemma
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
-                          << std::endl;
-    NlLemma nlem(
-        lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
-    d_im.addPendingArithLemma(nlem);
   }
 
   if (Trace.isOn("nl-ext-mv"))
@@ -237,6 +146,44 @@ void TranscendentalState::init(const std::vector<Node>& assertions,
       }
     }
   }
+}
+
+void TranscendentalState::ensureCongruence(TNode a,
+                                           std::map<Kind, ArgTrie>& argTrie)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> repList;
+  for (const Node& ac : a)
+  {
+    Node r = d_model.computeConcreteModelValue(ac);
+    repList.push_back(r);
+  }
+  Node aa = argTrie[a.getKind()].add(a, repList);
+  if (aa != a)
+  {
+    // apply congruence to pairs of terms that are disequal and congruent
+    Assert(aa.getNumChildren() == a.getNumChildren());
+    Node mvaa = d_model.computeAbstractModelValue(a);
+    Node mvaaa = d_model.computeAbstractModelValue(aa);
+    if (mvaa != mvaaa)
+    {
+      std::vector<Node> exp;
+      for (unsigned j = 0, size = a.getNumChildren(); j < size; j++)
+      {
+        exp.push_back(a[j].eqNode(aa[j]));
+      }
+      Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
+      Node cong_lemma = expn.impNode(a.eqNode(aa));
+      d_im.addPendingArithLemma(cong_lemma, InferenceId::NL_CONGRUENCE);
+    }
+  }
+  else
+  {
+    // new representative of congruence class
+    d_funcMap[a.getKind()].push_back(a);
+  }
+  // add to congruence class
+  d_funcCongClass[aa].push_back(a);
 }
 
 void TranscendentalState::mkPi()

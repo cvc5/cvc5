@@ -656,7 +656,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_tangentPlaneSlv.check(true);
         break;
       case InferStep::TRANS_INIT:
-        d_trSlv.initLastCall(assertions, false_asserts, xts);
+        d_trSlv.initLastCall(xts);
         break;
       case InferStep::TRANS_INITIAL:
         d_trSlv.checkTranscendentalInitialRefine();

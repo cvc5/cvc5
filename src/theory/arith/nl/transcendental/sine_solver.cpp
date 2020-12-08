@@ -29,10 +29,54 @@ namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
+namespace {
+
+/**
+ * Ensure a is in the main phase:
+ *   -pi <= a <= pi
+ */
+inline Node mkValidPhase(TNode a, TNode pi)
+{
+  return mkBounded(
+      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
+      a,
+      pi);
+}
+}  // namespace
 
 SineSolver::SineSolver(TranscendentalState* tstate) : d_data(tstate) {}
 
 SineSolver::~SineSolver() {}
+
+void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(a.getKind() == Kind::SINE);
+  Trace("nl-ext-tf") << "Basis sine : " << new_a << " for " << a << std::endl;
+  Assert(!d_data->d_pi.isNull());
+  Node shift = nm->mkSkolem("s", nm->integerType(), "number of shifts");
+  // TODO (cvc4-projects #47) : do not introduce shift here, instead needs model-based
+  // refinement for constant shifts (cvc4-projects #1284)
+  Node lem = nm->mkNode(
+      Kind::AND,
+      mkValidPhase(y, d_data->d_pi),
+      nm->mkNode(Kind::ITE,
+                 mkValidPhase(a[0], d_data->d_pi),
+                 a[0].eqNode(y),
+                 a[0].eqNode(nm->mkNode(Kind::PLUS,
+                                        y,
+                                        nm->mkNode(Kind::MULT,
+                                                   nm->mkConst(Rational(2)),
+                                                   shift,
+                                                   d_data->d_pi)))),
+      new_a.eqNode(a));
+  // note we must do preprocess on this lemma
+  Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
+                        << std::endl;
+  NlLemma nlem(
+      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
+  d_data->d_im.addPendingArithLemma(nlem);
+}
 
 void SineSolver::checkInitialRefine()
 {
@@ -52,7 +96,6 @@ void SineSolver::checkInitialRefine()
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
         d_tf_initial_refine[t] = true;
-        Node lem;
         Node symn = nm->mkNode(Kind::SINE,
                                nm->mkNode(Kind::MULT, d_data->d_neg_one, t[0]));
         symn = Rewriter::rewrite(symn);
@@ -61,54 +104,70 @@ void SineSolver::checkInitialRefine()
         d_data->d_trMaster[symn] = symn;
         d_data->d_trSlaves[symn].insert(symn);
         Assert(d_data->d_trSlaves.find(t) != d_data->d_trSlaves.end());
-        std::vector<Node> children;
 
-        lem =
-            nm->mkNode(Kind::AND,
-                       // bounds
-                       nm->mkNode(Kind::AND,
-                                  nm->mkNode(Kind::LEQ, t, d_data->d_one),
-                                  nm->mkNode(Kind::GEQ, t, d_data->d_neg_one)),
-                       // symmetry
-                       nm->mkNode(Kind::PLUS, t, symn).eqNode(d_data->d_zero),
-                       // sign
-                       nm->mkNode(Kind::EQUAL,
-                                  nm->mkNode(Kind::LT, t[0], d_data->d_zero),
-                                  nm->mkNode(Kind::LT, t, d_data->d_zero)),
-                       // zero val
-                       nm->mkNode(Kind::EQUAL,
-                                  nm->mkNode(Kind::GT, t[0], d_data->d_zero),
-                                  nm->mkNode(Kind::GT, t, d_data->d_zero)));
-        lem = nm->mkNode(
-            Kind::AND,
-            lem,
-            // zero tangent
-            nm->mkNode(Kind::AND,
-                       nm->mkNode(Kind::IMPLIES,
-                                  nm->mkNode(Kind::GT, t[0], d_data->d_zero),
-                                  nm->mkNode(Kind::LT, t, t[0])),
-                       nm->mkNode(Kind::IMPLIES,
-                                  nm->mkNode(Kind::LT, t[0], d_data->d_zero),
-                                  nm->mkNode(Kind::GT, t, t[0]))),
-            // pi tangent
-            nm->mkNode(
-                Kind::AND,
-                nm->mkNode(
-                    Kind::IMPLIES,
-                    nm->mkNode(Kind::LT, t[0], d_data->d_pi),
-                    nm->mkNode(Kind::LT,
-                               t,
-                               nm->mkNode(Kind::MINUS, d_data->d_pi, t[0]))),
-                nm->mkNode(
-                    Kind::IMPLIES,
-                    nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
-                    nm->mkNode(
-                        Kind::GT,
-                        t,
-                        nm->mkNode(Kind::MINUS, d_data->d_pi_neg, t[0])))));
-        if (!lem.isNull())
         {
-          d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_INIT_REFINE);
+          // sine bounds: -1 <= sin(t) <= 1
+          Node lem = nm->mkNode(Kind::AND,
+                                nm->mkNode(Kind::LEQ, t, d_data->d_one),
+                                nm->mkNode(Kind::GEQ, t, d_data->d_neg_one));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE);
+        }
+        {
+          // sine symmetry: sin(t) - sin(-t) = 0
+          Node lem = nm->mkNode(Kind::PLUS, t, symn).eqNode(d_data->d_zero);
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE);
+        }
+        {
+          // sine zero tangent:
+          //   t > 0  =>  sin(t) < t
+          //   t < 0  =>  sin(t) > t
+          Node lem =
+              nm->mkNode(Kind::AND,
+                         nm->mkNode(Kind::IMPLIES,
+                                    nm->mkNode(Kind::GT, t[0], d_data->d_zero),
+                                    nm->mkNode(Kind::LT, t, t[0])),
+                         nm->mkNode(Kind::IMPLIES,
+                                    nm->mkNode(Kind::LT, t[0], d_data->d_zero),
+                                    nm->mkNode(Kind::GT, t, t[0])));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE);
+        }
+        {
+          // sine pi tangent:
+          //   t > -pi  =>  sin(t) > -pi-t
+          //   t <  pi  =>  sin(t) <  pi-t
+          Node lem = nm->mkNode(
+              Kind::AND,
+              nm->mkNode(
+                  Kind::IMPLIES,
+                  nm->mkNode(Kind::GT, t[0], d_data->d_pi_neg),
+                  nm->mkNode(Kind::GT,
+                             t,
+                             nm->mkNode(Kind::MINUS, d_data->d_pi_neg, t[0]))),
+              nm->mkNode(
+                  Kind::IMPLIES,
+                  nm->mkNode(Kind::LT, t[0], d_data->d_pi),
+                  nm->mkNode(Kind::LT,
+                             t,
+                             nm->mkNode(Kind::MINUS, d_data->d_pi, t[0]))));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE);
+        }
+        {
+          Node lem =
+              nm->mkNode(Kind::AND,
+                         // sign
+                         nm->mkNode(Kind::EQUAL,
+                                    nm->mkNode(Kind::LT, t[0], d_data->d_zero),
+                                    nm->mkNode(Kind::LT, t, d_data->d_zero)),
+                         // zero val
+                         nm->mkNode(Kind::EQUAL,
+                                    nm->mkNode(Kind::GT, t[0], d_data->d_zero),
+                                    nm->mkNode(Kind::GT, t, d_data->d_zero)));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE);
         }
       }
     }
@@ -287,7 +346,8 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
   Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
-  d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
+  d_data->d_im.addPendingArithLemma(
+      lem, InferenceId::NL_T_TANGENT, nullptr, true);
 }
 
 void SineSolver::doSecantLemmas(TNode e,
