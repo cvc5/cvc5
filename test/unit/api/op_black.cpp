@@ -14,7 +14,11 @@
 
 #include "test_api.h"
 
-using namespace CVC4::api;
+namespace CVC4 {
+
+using namespace api;
+
+namespace test {
 
 class TestApiOpBlack : public TestApi
 {
@@ -178,3 +182,5 @@ TEST_F(TestApiOpBlack, opScopingToString)
   Solver solver2;
   EXPECT_EQ(bitvector_repeat_ot.toString(), op_repr);
 }
+}  // namespace test
+}  // namespace CVC4

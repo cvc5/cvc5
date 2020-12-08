@@ -219,6 +219,13 @@ class PropEngine
    */
   bool properExplanation(TNode node, TNode expl) const;
 
+  /**
+   * Return the prop engine proof. This should be called only when proofs are
+   * enabled. Returns a proof of false whose free assumptions are the
+   * preprocessed assertions.
+   */
+  std::shared_ptr<ProofNode> getProof();
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();

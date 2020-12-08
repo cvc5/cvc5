@@ -2,7 +2,7 @@
 /*! \file output_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andres Noetzli
+ **   Morgan Deters, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -61,7 +61,7 @@ class OutputBlack : public CxxTest::TestSuite {
     Debug.on("foo");
     Debug("foo") << "testing3";
 
-    Message() << "a message";
+    CVC4Message() << "a message";
     Warning() << "bad warning!";
     Chat() << "chatty";
     Notice() << "note";
@@ -136,7 +136,7 @@ class OutputBlack : public CxxTest::TestSuite {
     TS_ASSERT( !( Debug.isOn("foo") ) );
     TS_ASSERT( !( Trace.isOn("foo") ) );
     TS_ASSERT( !( Warning.isOn() ) );
-    TS_ASSERT( !( Message.isOn() ) );
+    TS_ASSERT(!(CVC4Message.isOn()));
     TS_ASSERT( !( Notice.isOn() ) );
     TS_ASSERT( !( Chat.isOn() ) );
 
@@ -147,7 +147,7 @@ class OutputBlack : public CxxTest::TestSuite {
     cout << "warning" << std::endl;
     Warning() << failure() << endl;
     cout << "message" << std::endl;
-    Message() << failure() << endl;
+    CVC4Message() << failure() << endl;
     cout << "notice" << std::endl;
     Notice() << failure() << endl;
     cout << "chat" << std::endl;
@@ -185,7 +185,7 @@ class OutputBlack : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(d_chatStream.str(), string());
     d_chatStream.str("");
 
-    Message() << "baz foo";
+    CVC4Message() << "baz foo";
     TS_ASSERT_EQUALS(d_messageStream.str(), string());
     d_messageStream.str("");
 
@@ -229,7 +229,7 @@ class OutputBlack : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(d_chatStream.str(), string("baz foo"));
     d_chatStream.str("");
 
-    Message() << "baz foo";
+    CVC4Message() << "baz foo";
     TS_ASSERT_EQUALS(d_messageStream.str(), string("baz foo"));
     d_messageStream.str("");
 

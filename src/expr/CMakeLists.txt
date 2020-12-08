@@ -1,7 +1,7 @@
 #####################
 ## CMakeLists.txt
 ## Top contributors (to current version):
-##   Mathias Preiner, Aina Niemetz, Andrew Reynolds
+##   Mathias Preiner, Andrew Reynolds, Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
@@ -55,6 +55,8 @@ libcvc4_add_sources(
   proof.h
   proof_checker.cpp
   proof_checker.h
+  proof_ensure_closed.cpp
+  proof_ensure_closed.h
   proof_generator.cpp
   proof_generator.h
   proof_node.cpp

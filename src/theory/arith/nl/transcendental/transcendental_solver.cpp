@@ -2,7 +2,7 @@
 /*! \file transcendental_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Gereon Kremer
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -41,11 +41,36 @@ TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m)
 
 TranscendentalSolver::~TranscendentalSolver() {}
 
-void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
-                                        const std::vector<Node>& false_asserts,
-                                        const std::vector<Node>& xts)
+void TranscendentalSolver::initLastCall(const std::vector<Node>& xts)
 {
-  d_tstate.init(assertions, false_asserts, xts);
+  std::vector<Node> needsMaster;
+  d_tstate.init(xts, needsMaster);
+
+  if (d_tstate.d_im.hasUsed()) {
+    return;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& a : needsMaster)
+  {
+    // should not have processed this already
+    Assert(d_tstate.d_trMaster.find(a) == d_tstate.d_trMaster.end());
+    Kind k = a.getKind();
+    Assert(k == Kind::SINE || k == Kind::EXPONENTIAL);
+    Node y =
+        nm->mkSkolem("y", nm->realType(), "phase shifted trigonometric arg");
+    Node new_a = nm->mkNode(k, y);
+    d_tstate.d_trSlaves[new_a].insert(new_a);
+    d_tstate.d_trSlaves[new_a].insert(a);
+    d_tstate.d_trMaster[a] = new_a;
+    d_tstate.d_trMaster[new_a] = new_a;
+    switch (k)
+    {
+      case Kind::SINE: d_sineSlv.doPhaseShift(a, new_a, y); break;
+      case Kind::EXPONENTIAL: d_expSlv.doPurification(a, new_a, y); break;
+      default: AlwaysAssert(false) << "Unexpected Kind " << k;
+    }
+  }
 }
 
 bool TranscendentalSolver::preprocessAssertionsCheckModel(
