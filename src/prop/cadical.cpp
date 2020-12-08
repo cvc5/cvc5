@@ -127,7 +127,6 @@ SatValue CadicalSolver::solve(long unsigned int&)
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
   d_assumptions.clear();
-
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   for (const SatLiteral& lit : assumptions)
   {

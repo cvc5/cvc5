@@ -138,7 +138,7 @@ Node BVSolverBitblast::getValueFromSatSolver(TNode node)
     if (d_cnfStream->hasLiteral(bits[j]))
     {
       prop::SatLiteral lit = d_cnfStream->getLiteral(bits[j]);
-      prop::SatValue val = d_satSolver->value(lit);
+      prop::SatValue val = d_satSolver->modelValue(lit);
       bit = val == prop::SatValue::SAT_VALUE_TRUE ? one : zero;
     }
     else
