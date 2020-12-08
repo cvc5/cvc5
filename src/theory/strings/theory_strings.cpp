@@ -337,8 +337,17 @@ bool TheoryStrings::collectModelInfoType(
           // is it an equivalence class with a seq.unit term?
           if (nfe.d_nf[0].getKind() == SEQ_UNIT)
           {
-            Node c = Rewriter::rewrite(nm->mkNode(
-                SEQ_UNIT, d_valuation.getModelValue(nfe.d_nf[0][0])));
+            Node argVal;
+            if (nfe.d_nf[0][0].getType().isStringLike())
+            {
+              argVal = d_state.getRepresentative(nfe.d_nf[0][0]);
+            }
+            else
+            {
+              // otherwise, it is a shared term
+              argVal = d_valuation.getModelValue(nfe.d_nf[0][0]);
+            }
+            Node c = Rewriter::rewrite(nm->mkNode(SEQ_UNIT, argVal));
             pure_eq_assign[eqc] = c;
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
             m->getEqualityEngine()->addTerm(c);

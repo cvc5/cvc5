@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file iand_table.cpp
+/*! \file iand_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
@@ -13,7 +13,7 @@
  ** the value of iand.
  **/
 
-#include "theory/arith/nl/iand_table.h"
+#include "theory/arith/nl/iand_utils.h"
 
 #include <cmath>
 
@@ -52,7 +52,15 @@ Node intExtract(Node x, uint64_t i, uint64_t size)
   return extract;
 }
 
-Node IAndTable::createITEFromTable(
+IAndUtils::IAndUtils()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  d_zero = nm->mkConst(Rational(0));
+  d_one = nm->mkConst(Rational(1));
+  d_two = nm->mkConst(Rational(2));
+}
+
+Node IAndUtils::createITEFromTable(
     Node x,
     Node y,
     uint64_t granularity,
@@ -90,10 +98,10 @@ Node IAndTable::createITEFromTable(
   return ite;
 }
 
-Node IAndTable::createBitwiseNode(Node x,
-                                  Node y,
-                                  uint64_t bvsize,
-                                  uint64_t granularity)
+Node IAndUtils::createSumNode(Node x,
+                              Node y,
+                              uint64_t bvsize,
+                              uint64_t granularity)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(0 < granularity && granularity <= 8);
@@ -146,7 +154,35 @@ Node IAndTable::createBitwiseNode(Node x,
   return sumNode;
 }
 
-void IAndTable::computeAndTable(uint64_t granularity)
+Node IAndUtils::createBitwiseIAndNode(Node x,
+                                      Node y,
+                                      uint64_t high,
+                                      uint64_t low)
+{
+  uint64_t granularity = high - low + 1;
+  Assert(granularity <= 8);
+  // compute the table for the current granularity if needed
+  if (d_bvandTable.find(granularity) == d_bvandTable.end())
+  {
+    computeAndTable(granularity);
+  }
+  const std::map<std::pair<int64_t, int64_t>, uint64_t>& table =
+      d_bvandTable[granularity];
+  return createITEFromTable(
+      iextract(high, low, x), iextract(high, low, y), granularity, table);
+}
+
+Node IAndUtils::iextract(unsigned i, unsigned j, Node n) const
+{
+  NodeManager* nm = NodeManager::currentNM();
+  //  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
+  Node n2j = nm->mkNode(kind::INTS_DIVISION_TOTAL, n, twoToK(j));
+  Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, n2j, twoToK(i - j + 1));
+  ret = Rewriter::rewrite(ret);
+  return ret;
+}
+
+void IAndUtils::computeAndTable(uint64_t granularity)
 {
   Assert(d_bvandTable.find(granularity) == d_bvandTable.end());
   // the table was not yet computed
@@ -176,12 +212,13 @@ void IAndTable::computeAndTable(uint64_t granularity)
   }
   // optimize the table by identifying and adding the default value
   addDefaultValue(table, num_of_values);
-  Assert(table.size() == 1 + (static_cast<uint64_t>(num_of_values * num_of_values)));
+  Assert(table.size()
+         == 1 + (static_cast<uint64_t>(num_of_values * num_of_values)));
   // store the table in the cache and return it
   d_bvandTable[granularity] = table;
 }
 
-void IAndTable::addDefaultValue(
+void IAndUtils::addDefaultValue(
     std::map<std::pair<int64_t, int64_t>, uint64_t>& table,
     uint64_t num_of_values)
 {
@@ -214,6 +251,24 @@ void IAndTable::addDefaultValue(
   // -1 is the default case of the table.
   // add it to the table
   table[std::make_pair(-1, -1)] = most_common_result;
+}
+
+Node IAndUtils::twoToK(unsigned k) const
+{
+  // could be faster
+  NodeManager* nm = NodeManager::currentNM();
+  Node ret = nm->mkNode(kind::POW, d_two, nm->mkConst(Rational(k)));
+  ret = Rewriter::rewrite(ret);
+  return ret;
+}
+
+Node IAndUtils::twoToKMinusOne(unsigned k) const
+{
+  // could be faster
+  NodeManager* nm = NodeManager::currentNM();
+  Node ret = nm->mkNode(kind::MINUS, twoToK(k), d_one);
+  ret = Rewriter::rewrite(ret);
+  return ret;
 }
 
 }  // namespace nl

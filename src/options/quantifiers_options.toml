@@ -178,14 +178,6 @@ header = "options/quantifiers_options.h"
   help       = "eliminate tautological disjuncts of quantified formulas"
 
 [[option]]
-  name       = "elimExtArithQuant"
-  category   = "regular"
-  long       = "elim-ext-arith-quant"
-  type       = "bool"
-  default    = "true"
-  help       = "eliminate extended arithmetic symbols in quantified formulas"
-
-[[option]]
   name       = "extRewriteQuant"
   category   = "regular"
   long       = "ext-rewrite-quant"
