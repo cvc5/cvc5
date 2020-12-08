@@ -652,8 +652,7 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
     d_normal_form[eqc] = normal_forms[nf_index];
     Trace("strings-process-debug")
         << "Return process equivalence class " << eqc
-        << " : returned = " << d_normal_form[eqc].d_nf
-        << std::endl;
+        << " : returned = " << d_normal_form[eqc].d_nf << std::endl;
   }
 }
 
@@ -897,7 +896,9 @@ void CoreSolver::getNormalForms(Node eqc,
             // get the normal form for the component
             NormalForm& nfr = getNormalForm(nr);
             std::vector<Node>& nfrv = nfr.d_nf;
-            Trace("strings-process-debug") << "Normalizing subterm " << n[i] << " = "  << nr << ", which is " << nfrv << std::endl;
+            Trace("strings-process-debug")
+                << "Normalizing subterm " << n[i] << " = " << nr
+                << ", which is " << nfrv << std::endl;
             unsigned orig_size = nf_curr.d_nf.size();
             unsigned add_size = nfrv.size();
             //if not the empty string, add to current normal form
@@ -996,7 +997,9 @@ void CoreSolver::getNormalForms(Node eqc,
     }
     else
     {
-      Trace("strings-process-debug") << "Get Normal Form : term " << n << " in eqc " << eqc << " is congruent" << std::endl;
+      Trace("strings-process-debug")
+          << "Get Normal Form : term " << n << " in eqc " << eqc
+          << " is congruent" << std::endl;
     }
     ++eqc_i;
   }
@@ -1364,7 +1367,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         }
         eqn[r] = utils::mkNConcat(eqnc, stype);
       }
-      Trace("strings-solve-debug") << "Endpoint eq check: " << eqn[0] << " " << eqn[1] << std::endl;
+      Trace("strings-solve-debug")
+          << "Endpoint eq check: " << eqn[0] << " " << eqn[1] << std::endl;
       if (!d_state.areEqual(eqn[0], eqn[1]))
       {
         std::vector<Node> antec;
