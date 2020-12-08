@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext-tf-tplanes --no-check-unsat-cores
+; COMMAND-LINE: --nl-ext-tf-tplanes
 ; EXPECT: unsat
 (set-logic QF_NRAT)
 (declare-fun x () Real)
