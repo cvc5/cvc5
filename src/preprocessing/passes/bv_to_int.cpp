@@ -158,7 +158,7 @@ Node BVToInt::eliminationPass(Node n)
     {
       // current is not the elimination of any previously-visited node
       // current hasn't been eliminated yet.
-      // eliminate operators from it
+      // eliminate operators from it using rewrite rules
       Node currentEliminated =
           FixpointRewriteStrategy<RewriteRule<UdivZero>,
                                   RewriteRule<SdivEliminateFewerBitwiseOps>,
@@ -179,6 +179,21 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SltEliminate>,
                                   RewriteRule<SgtEliminate>,
                                   RewriteRule<SgeEliminate>>::apply(current);
+
+      // extra elimination steps not through rewrites:
+      if (k == kind::BITVECTOR_UDIV)
+      {
+        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
+                                         currentEliminated[0],
+                                         currentEliminated[1]);
+      }
+      if (k == kind::BITVECTOR_UREM)
+      {
+        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
+                                         currentEliminated[0],
+                                         currentEliminated[1]);
+      }
+
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
       // also assign the eliminated now to itself to avoid revisiting.
