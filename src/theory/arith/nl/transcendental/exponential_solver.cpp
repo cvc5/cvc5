@@ -92,10 +92,10 @@ void ExponentialSolver::checkInitialRefine()
               lem, InferenceId::NL_T_INIT_REFINE, nullptr);
         }
         {
-          // exp on positive values: (t > 0) <=> (exp(t) > t+1)
+          // exp on positive values: (t <= 0) or (exp(t) > t+1)
           Node lem = nm->mkNode(
-              Kind::EQUAL,
-              nm->mkNode(Kind::GT, t[0], d_data->d_zero),
+              Kind::OR,
+              nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
               nm->mkNode(
                   Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
           d_data->d_im.addPendingArithLemma(
