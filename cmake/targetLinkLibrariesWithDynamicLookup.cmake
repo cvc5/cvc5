@@ -1,76 +1,80 @@
+#.rst:
 #
-# - This module provides the function
-# target_link_libraries_with_dynamic_lookup which can be used to
-# "weakly" link a loadable module.
-#
-# Link a library to a target such that the symbols are resolved at
-# run-time not link-time. This should be used when compiling a
-# loadable module when the symbols should be resolve from the run-time
-# environment where the module is loaded, and not a specific system
-# library.
-#
-# Specifically, for OSX it uses undefined dynamic_lookup. This is
-# similar to using "-shared" on Linux where undefined symbols are
-# ignored.
-#
-# Additionally, the linker is checked to see if it supports undefined
-# symbols when linking a shared library. If it does then the library
-# is not linked when specified with this function.
-#
-# http://blog.tim-smith.us/2015/09/python-extension-modules-os-x/
-#
+# Public Functions
+# ^^^^^^^^^^^^^^^^
 #
 # The following functions are defined:
 #
-#   _get_target_type(<ResultVar> <Target>)
+# .. cmake:command:: target_link_libraries_with_dynamic_lookup
 #
-# **INTERNAL** Shorthand for querying an abbreviated version of the target type
-# of the given ``<Target>``.  ``<ResultVar>`` is set to "STATIC" for a
-# STATIC_LIBRARY, "SHARED" for a SHARED_LIBRARY, "MODULE" for a MODULE_LIBRARY,
-# and "EXE" for an EXECUTABLE.
+# ::
 #
-# Defined variables:
-#
-# ``<ResultVar>``
-#   The abbreviated version of the ``<Target>``'s type.
+#     target_link_libraries_with_dynamic_lookup(<Target> [<Libraries>])
 #
 #
-#   _test_weak_link_project(<TargetType>
-#                           <LibType>
-#                           <ResultVar>
-#                           <LinkFlagsVar>)
+# Useful to "weakly" link a loadable module. For example, it should be used
+# when compiling a loadable module when the symbols should be resolve from
+# the run-time environment where the module is loaded, and not a specific
+# system library.
 #
-# **INTERNAL** Attempt to compile and run a test project where a target of type
-# ``<TargetType>`` is weakly-linked against a dependency of type ``<LibType>``.
-# ``<TargetType>`` can be one of "STATIC", "SHARED", "MODULE", or "EXE".
-# ``<LibType>`` can be one of "STATIC", "SHARED", or "MODULE".
+# Like proper linking, except that the given ``<Libraries>`` are not necessarily
+# linked. Instead, the ``<Target>`` is produced in a manner that allows for
+# symbols unresolved within it to be resolved at runtime, presumably by the
+# given ``<Libraries>``.  If such a target can be produced, the provided
+# ``<Libraries>`` are not actually linked.
 #
-# Defined variables:
+# It links a library to a target such that the symbols are resolved at
+# run-time not link-time.
 #
-# ``<ResultVar>``
-#   Whether the current C toolchain can produce a working target binary of type
-#   ``<TargetType>`` that is weakly-linked against a dependency target of type
-#   ``<LibType>``.
+# The linker is checked to see if it supports undefined
+# symbols when linking a shared library. If it does then the library
+# is not linked when specified with this function.
 #
-# ``<LinkFlagsVar>``
-#   List of flags to add to the linker command to produce a working target
-#   binary of type ``<TargetType>`` that is weakly-linked against a dependency
-#   target of type ``<LibType>``.
+# On platforms that do not support weak-linking, this function works just
+# like ``target_link_libraries``.
+#
+# .. note::
+#
+#     For OSX it uses ``undefined dynamic_lookup``. This is similar to using
+#     ``-shared`` on Linux where undefined symbols are ignored.
+#
+#     For more details, see `blog <http://blog.tim-smith.us/2015/09/python-extension-modules-os-x/>`_
+#     from Tim D. Smith.
 #
 #
-#   check_dynamic_lookup(<TargetType>
-#                        <LibType>
-#                        <ResultVar>
-#                        <LinkFlagsVar>)
+# .. cmake:command:: check_dynamic_lookup
 #
 # Check if the linker requires a command line flag to allow leaving symbols
 # unresolved when producing a target of type ``<TargetType>`` that is
-# weakly-linked against a dependency of type ``<LibType>``.  ``<TargetType>``
-# can be one of "STATIC", "SHARED", "MODULE", or "EXE".  ``<LibType>`` can be
-# one of "STATIC", "SHARED", or "MODULE".  The result is cached between
-# invocations and recomputed only when the value of CMake's linker flag list
-# changes; ``CMAKE_STATIC_LINKER_FLAGS`` if ``<TargetType>`` is "STATIC", and
-# ``CMAKE_SHARED_LINKER_FLAGS`` otherwise.
+# weakly-linked against a dependency of type ``<LibType>``.
+#
+# ``<TargetType>``
+#   can be one of "STATIC", "SHARED", "MODULE", or "EXE".
+#
+# ``<LibType>``
+#   can be one of "STATIC", "SHARED", or "MODULE".
+#
+# Long signature:
+#
+# ::
+#
+#     check_dynamic_lookup(<TargetType>
+#                          <LibType>
+#                          <ResultVar>
+#                          [<LinkFlagsVar>])
+#
+#
+# Short signature:
+#
+# ::
+#
+#     check_dynamic_lookup(<ResultVar>) # <TargetType> set to "MODULE"
+#                                       # <LibType> set to "SHARED"
+#
+#
+# The result is cached between invocations and recomputed only when the value
+# of CMake's linker flag list changes; ``CMAKE_STATIC_LINKER_FLAGS`` if
+# ``<TargetType>`` is "STATIC", and ``CMAKE_SHARED_LINKER_FLAGS`` otherwise.
 #
 #
 # Defined variables:
@@ -92,14 +96,69 @@
 #   Cached, global alias for ``<LinkFlagsVar>``
 #
 #
-#   target_link_libraries_with_dynamic_lookup(<Target> [<Libraries>])
+# Private Functions
+# ^^^^^^^^^^^^^^^^^
 #
-# Like proper linking, except that the given ``<Libraries>`` are not necessarily
-# linked. Instead, the ``<Target>`` is produced in a manner that allows for
-# symbols unresolved within it to be resolved at runtime, presumably by the
-# given ``<Libraries>``.  If such a target can be produced, the provided
-# ``<Libraries>`` are not actually linked.  On platforms that do not support
-# weak-linking, this function works just like ``target_link_libraries``.
+# The following private functions are defined:
+#
+# .. warning:: These functions are not part of the scikit-build API. They
+#     exist purely as an implementation detail and may change from version
+#     to version without notice, or even be removed.
+#
+#     We mean it.
+#
+#
+# .. cmake:command:: _get_target_type
+#
+# ::
+#
+#     _get_target_type(<ResultVar> <Target>)
+#
+#
+# Shorthand for querying an abbreviated version of the target type
+# of the given ``<Target>``.
+#
+# ``<ResultVar>`` is set to:
+#
+# - "STATIC" for a STATIC_LIBRARY,
+# - "SHARED" for a SHARED_LIBRARY,
+# - "MODULE" for a MODULE_LIBRARY,
+# - and "EXE" for an EXECUTABLE.
+#
+# Defined variables:
+#
+# ``<ResultVar>``
+#   The abbreviated version of the ``<Target>``'s type.
+#
+#
+# .. cmake:command:: _test_weak_link_project
+#
+# ::
+#
+#     _test_weak_link_project(<TargetType>
+#                             <LibType>
+#                             <ResultVar>
+#                             <LinkFlagsVar>)
+#
+#
+# Attempt to compile and run a test project where a target of type
+# ``<TargetType>`` is weakly-linked against a dependency of type ``<LibType>``:
+#
+# - ``<TargetType>`` can be one of "STATIC", "SHARED", "MODULE", or "EXE".
+# - ``<LibType>`` can be one of "STATIC", "SHARED", or "MODULE".
+#
+# Defined variables:
+#
+# ``<ResultVar>``
+#   Whether the current C toolchain can produce a working target binary of type
+#   ``<TargetType>`` that is weakly-linked against a dependency target of type
+#   ``<LibType>``.
+#
+# ``<LinkFlagsVar>``
+#   List of flags to add to the linker command to produce a working target
+#   binary of type ``<TargetType>`` that is weakly-linked against a dependency
+#   target of type ``<LibType>``.
+#
 
 function(_get_target_type result_var target)
   set(target_type "SHARED_LIBRARY")
@@ -327,6 +386,7 @@ function(_test_weak_link_project
                 "${project_name}"
                 CMAKE_FLAGS
                   "-DCMAKE_SHARED_LINKER_FLAGS='${CMAKE_SHARED_LINKER_FLAGS}'"
+                  "-DCMAKE_ENABLE_EXPORTS=ON"
                   ${_rpath_arg}
                 OUTPUT_VARIABLE compile_output)
 
@@ -365,12 +425,55 @@ function(_test_weak_link_project
   endforeach()
 endfunction()
 
+function(check_dynamic_lookup)
+  # Two signatures are supported:
 
-function(check_dynamic_lookup
+  if(ARGC EQUAL "1")
+    #
+    # check_dynamic_lookup(<ResultVar>)
+    #
+    set(target_type "MODULE")
+    set(lib_type "SHARED")
+    set(has_dynamic_lookup_var "${ARGV0}")
+    set(link_flags_var "unused")
+
+  elseif(ARGC GREATER "2")
+    #
+    # check_dynamic_lookup(<TargetType>
+    #                      <LibType>
+    #                      <ResultVar>
+    #                      [<LinkFlagsVar>])
+    #
+    set(target_type "${ARGV0}")
+    set(lib_type "${ARGV1}")
+    set(has_dynamic_lookup_var "${ARGV2}")
+    if(ARGC EQUAL "3")
+      set(link_flags_var "unused")
+    else()
+      set(link_flags_var "${ARGV3}")
+    endif()
+  else()
+    message(FATAL_ERROR "missing arguments")
+  endif()
+
+  _check_dynamic_lookup(
+    ${target_type}
+    ${lib_type}
+    ${has_dynamic_lookup_var}
+    ${link_flags_var}
+    )
+  set(${has_dynamic_lookup_var} ${${has_dynamic_lookup_var}} PARENT_SCOPE)
+  if(NOT "x${link_flags_var}x" STREQUAL "xunusedx")
+    set(${link_flags_var} ${${link_flags_var}} PARENT_SCOPE)
+  endif()
+endfunction()
+
+function(_check_dynamic_lookup
          target_type
          lib_type
          has_dynamic_lookup_var
-         link_flags_var)
+         link_flags_var
+         )
 
   # hash the CMAKE_FLAGS passed and check cache to know if we need to rerun
   if("${target_type}" STREQUAL "STATIC")
@@ -391,9 +494,7 @@ function(check_dynamic_lookup
   if(NOT DEFINED ${cache_var})
     set(skip_test FALSE)
 
-    if(NOT CMAKE_CROSSCOMPILING)
-      set(skip_test TRUE)
-    elseif(CMAKE_CROSSCOMPILING AND CMAKE_CROSSCOMPILING_EMULATOR)
+   if(CMAKE_CROSSCOMPILING AND NOT CMAKE_CROSSCOMPILING_EMULATOR)
       set(skip_test TRUE)
     endif()
 
@@ -412,10 +513,12 @@ function(check_dynamic_lookup
     set(${cache_var} "${has_dynamic_lookup}"
         CACHE BOOL
         "linker supports dynamic lookup for undefined symbols${caveat}")
+    mark_as_advanced(${cache_var})
 
     set(${result_var} "${link_flags}"
-        CACHE BOOL
+        CACHE STRING
         "linker flags for dynamic lookup${caveat}")
+    mark_as_advanced(${result_var})
 
     set(${cache_hash_var} "${cmake_flags_hash}"
         CACHE INTERNAL "hashed flags for ${cache_var} check")
@@ -424,7 +527,6 @@ function(check_dynamic_lookup
   set(${has_dynamic_lookup_var} "${${cache_var}}" PARENT_SCOPE)
   set(${link_flags_var} "${${result_var}}" PARENT_SCOPE)
 endfunction()
-
 
 function(target_link_libraries_with_dynamic_lookup target)
   _get_target_type(target_type ${target})
@@ -448,6 +550,8 @@ function(target_link_libraries_with_dynamic_lookup target)
           list(APPEND link_props "${dynamic_lookup_flags}")
         endif()
       endif()
+    elseif(${lib} MATCHES "(debug|optimized|general)")
+      # See gh-255
     else()
       list(APPEND link_libs "${lib}")
     endif()

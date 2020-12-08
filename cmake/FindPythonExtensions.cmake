@@ -1,10 +1,7 @@
-#.rst
-# Define functions to create Python modules and executables.
+#.rst:
 #
-# This file defines CMake functions to build Python extension modules and
-# stand-alone executables.  To use it, first include this file.
-#
-#   find_package(PythonExtensions)
+# This module defines CMake functions to build Python extension modules and
+# stand-alone executables.
 #
 # The following variables are defined:
 # ::
@@ -22,17 +19,24 @@
 #   PYTHON_PATH_SEPARATOR             - separator string for PATH-style
 #                                       environment variables.  Equivalent to
 #                                       ``os.pathsep`` in Python.
+#   PYTHON_EXTENSION_MODULE_SUFFIX    - suffix of the compiled module. For example, on
+#                                       Linux, based on environment, it could be ``.cpython-35m-x86_64-linux-gnu.so``.
+#
+#
 #
 # The following functions are defined:
 #
-#   python_extension_module(<Target>
-#                           [LINKED_MODULES_VAR <LinkedModVar>]
-#                           [FORWARD_DECL_MODULES_VAR <ForwardDeclModVar>])
+# .. cmake:command:: python_extension_module
 #
 # For libraries meant to be used as Python extension modules, either dynamically
 # loaded or directly linked.  Amend the configuration of the library target
 # (created using ``add_library``) with additional options needed to build and
 # use the referenced library as a Python extension module.
+#
+#   python_extension_module(<Target>
+#                           [LINKED_MODULES_VAR <LinkedModVar>]
+#                           [FORWARD_DECL_MODULES_VAR <ForwardDeclModVar>]
+#                           [MODULE_SUFFIX <ModuleSuffix>])
 #
 # Only extension modules that are configured to be built as MODULE libraries can
 # be runtime-loaded through the standard Python import mechanism.  All other
@@ -49,6 +53,10 @@
 # linked modules.  They still must be forward declared and initialized, however,
 # and so are added to the forward declared modules list.
 #
+# If the associated target is of type ``MODULE_LIBRARY``, the LINK_FLAGS target
+# property is used to set symbol visibility and export only the module init function.
+# This applies to GNU and MSVC compilers.
+#
 # Options:
 #
 # ``LINKED_MODULES_VAR <LinkedModVar>``
@@ -62,6 +70,17 @@
 #   that use them.  By default, the global property
 #   ``PY_FORWARD_DECL_MODULES_LIST`` is used.
 #
+# ``MODULE_SUFFIX <ModuleSuffix>``
+#   Suffix appended to the python extension module file.
+#   The default suffix is retrieved using ``sysconfig.get_config_var("SO")"``,
+#   if not available, the default is then ``.so`` on unix and ``.pyd`` on
+#   windows.
+#   Setting the variable ``PYTHON_EXTENSION_MODULE_SUFFIX`` in the caller
+#   scope defines the value used for all extensions not having a suffix
+#   explicitly specified using ``MODULE_SUFFIX`` parameter.
+#
+#
+# .. cmake:command:: python_standalone_executable
 #
 #   python_standalone_executable(<Target>)
 #
@@ -71,10 +90,8 @@
 # (created using ``add_executable``) with additional options needed to properly
 # build the referenced executable.
 #
-#   python_modules_header(<Name> [HeaderFilename]
-#                         [FORWARD_DECL_MODULES_LIST <ForwardDeclModList>]
-#                         [HEADER_OUTPUT_VAR <HeaderOutputVar>]
-#                         [INCLUDE_DIR_OUTPUT_VAR <IncludeDirOutputVar>])
+#
+# .. cmake:command:: python_modules_header
 #
 # Generate a header file that contains the forward declarations and
 # initialization routines for the given list of Python extension modules.
@@ -82,9 +99,15 @@
 # ``<HeaderFilename>`` is the actual destination filename for the header file
 # (e.g.: decl_modules.h).
 #
+#   python_modules_header(<Name> [HeaderFilename]
+#                         [FORWARD_DECL_MODULES_LIST <ForwardDeclModList>]
+#                         [HEADER_OUTPUT_VAR <HeaderOutputVar>]
+#                         [INCLUDE_DIR_OUTPUT_VAR <IncludeDirOutputVar>])
+#
+# without the extension is used as the logical name.  If only ``<Name>`` is
+#
 # If only ``<Name>`` is provided, and it ends in the ".h" extension, then it
 # is assumed to be the ``<HeaderFilename>``.  The filename of the header file
-# without the extension is used as the logical name.  If only ``<Name>`` is
 # provided, and it does not end in the ".h" extension, then the
 # ``<HeaderFilename>`` is assumed to ``<Name>.h``.
 #
@@ -122,7 +145,7 @@
 #   List of extension modules for which to generate forward declarations of
 #   their entry points and their initializations.  By default, the global
 #   property ``PY_FORWARD_DECL_MODULES_LIST`` is used.
-
+#
 # ``HEADER_OUTPUT_VAR <HeaderOutputVar>``
 #   Name of the variable to set to the path to the generated header file.  By
 #   default, ``<Name>`` is used.
@@ -139,69 +162,71 @@
 # ``<IncludeDirOutputVar>``
 #   Directory containing the generated header file
 #
-# Example usage:
+#
+# Example usage
+# ^^^^^^^^^^^^^
 #
 # .. code-block:: cmake
 #
-#   find_package(PythonInterp)
-#   find_package(PythonLibs)
-#   find_package(PythonExtensions)
-#   find_package(Cython)
-#   find_package(Boost COMPONENTS python)
+#    find_package(PythonInterp)
+#    find_package(PythonLibs)
+#    find_package(PythonExtensions)
+#    find_package(Cython)
+#    find_package(Boost COMPONENTS python)
 #
-#   # Simple Cython Module -- no executables
-#   add_cython_target(_module.pyx)
-#   add_library(_module MODULE ${_module})
-#   python_extension_module(_module)
+#    # Simple Cython Module -- no executables
+#    add_cython_target(_module.pyx)
+#    add_library(_module MODULE ${_module})
+#    python_extension_module(_module)
 #
-#   # Mix of Cython-generated code and C++ code using Boost Python
-#   # Stand-alone executable -- no modules
-#   include_directories(${Boost_INCLUDE_DIRS})
-#   add_cython_target(main.pyx CXX EMBED_MAIN)
-#   add_executable(main boost_python_module.cxx ${main})
-#   target_link_libraries(main ${Boost_LIBRARIES})
-#   python_standalone_executable(main)
+#    # Mix of Cython-generated code and C++ code using Boost Python
+#    # Stand-alone executable -- no modules
+#    include_directories(${Boost_INCLUDE_DIRS})
+#    add_cython_target(main.pyx CXX EMBED_MAIN)
+#    add_executable(main boost_python_module.cxx ${main})
+#    target_link_libraries(main ${Boost_LIBRARIES})
+#    python_standalone_executable(main)
 #
-#   # stand-alone executable with three extension modules:
-#   # one statically linked, one dynamically linked, and one loaded at runtime
-#   #
-#   # Freely mixes Cython-generated code, code using Boost-Python, and
-#   # hand-written code using the CPython API.
+#    # stand-alone executable with three extension modules:
+#    # one statically linked, one dynamically linked, and one loaded at runtime
+#    #
+#    # Freely mixes Cython-generated code, code using Boost-Python, and
+#    # hand-written code using the CPython API.
 #
-#   # module1 -- statically linked
-#   add_cython_target(module1.pyx)
-#   add_library(module1 STATIC ${module1})
-#   python_extension_module(module1
-#                           LINKED_MODULES_VAR linked_module_list
-#                           FORWARD_DECL_MODULES_VAR fdecl_module_list)
+#    # module1 -- statically linked
+#    add_cython_target(module1.pyx)
+#    add_library(module1 STATIC ${module1})
+#    python_extension_module(module1
+#                            LINKED_MODULES_VAR linked_module_list
+#                            FORWARD_DECL_MODULES_VAR fdecl_module_list)
 #
-#   # module2 -- dynamically linked
-#   include_directories({Boost_INCLUDE_DIRS})
-#   add_library(module2 SHARED boost_module2.cxx)
-#   target_link_libraries(module2 ${Boost_LIBRARIES})
-#   python_extension_module(module2
-#                           LINKED_MODULES_VAR linked_module_list
-#                           FORWARD_DECL_MODULES_VAR fdecl_module_list)
+#    # module2 -- dynamically linked
+#    include_directories({Boost_INCLUDE_DIRS})
+#    add_library(module2 SHARED boost_module2.cxx)
+#    target_link_libraries(module2 ${Boost_LIBRARIES})
+#    python_extension_module(module2
+#                            LINKED_MODULES_VAR linked_module_list
+#                            FORWARD_DECL_MODULES_VAR fdecl_module_list)
 #
-#   # module3 -- loaded at runtime
-#   add_cython_target(module3a.pyx)
-#   add_library(module1 MODULE ${module3a} module3b.cxx)
-#   target_link_libraries(module3 ${Boost_LIBRARIES})
-#   python_extension_module(module3
-#                           LINKED_MODULES_VAR linked_module_list
-#                           FORWARD_DECL_MODULES_VAR fdecl_module_list)
+#    # module3 -- loaded at runtime
+#    add_cython_target(module3a.pyx)
+#    add_library(module3 MODULE ${module3a} module3b.cxx)
+#    target_link_libraries(module3 ${Boost_LIBRARIES})
+#    python_extension_module(module3
+#                            LINKED_MODULES_VAR linked_module_list
+#                            FORWARD_DECL_MODULES_VAR fdecl_module_list)
 #
-#   # application executable -- generated header file + other source files
-#   python_modules_header(modules
-#                         FORWARD_DECL_MODULES_LIST ${fdecl_module_list})
-#   include_directories(${modules_INCLUDE_DIRS})
+#    # application executable -- generated header file + other source files
+#    python_modules_header(modules
+#                          FORWARD_DECL_MODULES_LIST ${fdecl_module_list})
+#    include_directories(${modules_INCLUDE_DIRS})
 #
-#   add_cython_target(mainA)
-#   add_cython_target(mainC)
-#   add_executable(main ${mainA} mainB.cxx ${mainC} mainD.c)
+#    add_cython_target(mainA)
+#    add_cython_target(mainC)
+#    add_executable(main ${mainA} mainB.cxx ${mainC} mainD.c)
 #
-#   target_link_libraries(main ${linked_module_list} ${Boost_LIBRARIES})
-#   python_standalone_executable(main)
+#    target_link_libraries(main ${linked_module_list} ${Boost_LIBRARIES})
+#    python_standalone_executable(main)
 #
 #=============================================================================
 # Copyright 2011 Kitware, Inc.
@@ -257,12 +282,17 @@ for candidate in candidates:
         rel_result = rel_candidate
         break
 
+ext_suffix_var = 'SO'
+if sys.version_info[:2] >= (3, 5):
+    ext_suffix_var = 'EXT_SUFFIX'
+
 sys.stdout.write(\";\".join((
     os.sep,
     os.pathsep,
     sys.prefix,
     result,
     rel_result,
+    distutils.sysconfig.get_config_var(ext_suffix_var)
 )))
 ")
 
@@ -290,8 +320,37 @@ list(GET _list 4 _item)
 set(PYTHON_RELATIVE_SITE_PACKAGES_DIR "${_item}")
 mark_as_advanced(PYTHON_RELATIVE_SITE_PACKAGES_DIR)
 
+if(NOT DEFINED PYTHON_EXTENSION_MODULE_SUFFIX)
+  list(GET _list 5 _item)
+  set(PYTHON_EXTENSION_MODULE_SUFFIX "${_item}")
+endif()
+
+function(_set_python_extension_symbol_visibility _target)
+  if(PYTHON_VERSION_MAJOR VERSION_GREATER 2)
+    set(_modinit_prefix "PyInit_")
+  else()
+    set(_modinit_prefix "init")
+  endif()
+  message("_modinit_prefix:${_modinit_prefix}")
+  if("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
+    set_target_properties(${_target} PROPERTIES LINK_FLAGS 
+        "/EXPORT:${_modinit_prefix}${_target}"
+    )
+  elseif("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(_script_path
+      ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${_target}-version-script.map
+    )
+    file(WRITE ${_script_path} 
+               "{global: ${_modinit_prefix}${_target}; local: *; };"
+    )
+    set_property(TARGET ${_target} APPEND_STRING PROPERTY LINK_FLAGS
+        " -Wl,--version-script=\"${_script_path}\""
+    )
+  endif()
+endfunction()
+
 function(python_extension_module _target)
-  set(one_ops LINKED_MODULES_VAR FORWARD_DECL_MODULES_VAR)
+  set(one_ops LINKED_MODULES_VAR FORWARD_DECL_MODULES_VAR MODULE_SUFFIX)
   cmake_parse_arguments(_args "" "${one_ops}" "" ${ARGN})
 
   set(_lib_type "NA")
@@ -349,11 +408,27 @@ function(python_extension_module _target)
   endif()
 
   if(_is_module_lib OR _is_shared_lib)
-    if(_is_module_lib AND WIN32 AND NOT CYGWIN)
-      set_target_properties(${_target} PROPERTIES SUFFIX ".pyd")
+    if(_is_module_lib)
+
+      if(NOT _args_MODULE_SUFFIX)
+        set(_args_MODULE_SUFFIX "${PYTHON_EXTENSION_MODULE_SUFFIX}")
+      endif()
+
+      if(_args_MODULE_SUFFIX STREQUAL "" AND WIN32 AND NOT CYGWIN)
+        set(_args_MODULE_SUFFIX ".pyd")
+      endif()
+
+      if(NOT _args_MODULE_SUFFIX STREQUAL "")
+        set_target_properties(${_target}
+          PROPERTIES SUFFIX ${_args_MODULE_SUFFIX})
+      endif()
     endif()
 
     target_link_libraries_with_dynamic_lookup(${_target} ${PYTHON_LIBRARIES})
+    
+    if(_is_module_lib)
+      _set_python_extension_symbol_visibility(${_target})
+    endif()
   endif()
 endfunction()
 

@@ -1,10 +1,8 @@
 #.rst:
-# FindCython
-# ----------
 #
 # Find ``cython`` executable.
 #
-# This module defines the following variables:
+# This module will set the following variables in your project:
 #
 #  ``CYTHON_EXECUTABLE``
 #    path to the ``cython`` program
@@ -15,7 +13,10 @@
 #  ``CYTHON_FOUND``
 #    true if the program was found
 #
-# See also UseCython.cmake
+# For more information on the Cython project, see http://cython.org/.
+#
+# *Cython is a language that makes writing C extensions for the Python language
+# as easy as Python itself.*
 #
 #=============================================================================
 # Copyright 2011 Kitware, Inc.
