@@ -591,6 +591,8 @@ set(regress_0_tests
   regress0/issue5099-model-1.smt2
   regress0/issue5099-model-2.smt2
   regress0/issue5144-resetAssertions.smt2
+  regress0/issue5370.smt2
+  regress0/issue5462.smt2
   regress0/issue5540-2-dump-model.smt2
   regress0/issue5540-model-decls.smt2
   regress0/issue5550-num-children.smt2
@@ -821,6 +823,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/sygus-inst-nia-psyco-060.smt2
   regress0/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
+  regress0/quantifiers/ufnia-fv-delta.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc
   regress0/rels/atom_univ2.cvc
@@ -898,6 +901,7 @@ set(regress_0_tests
   regress0/seq/intseq.smt2
   regress0/seq/intseq_dt.smt2
   regress0/seq/issue4370-bool-terms.smt2
+  regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -905,6 +909,7 @@ set(regress_0_tests
   regress0/seq/seq-ex4.smt2
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
+  regress0/seq/seq-expand-defs.smt2
   regress0/seq/seq-nemp.smt2
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2
@@ -1025,6 +1030,7 @@ set(regress_0_tests
   regress0/strings/issue5090.smt2
   regress0/strings/issue5384-double-conflict.smt2
   regress0/strings/issue5428-re-diff-assoc.smt2
+  regress0/strings/issue5542-strings-seq-mix.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1589,6 +1595,7 @@ set(regress_1_tests
   regress1/quantifiers/cdt-0208-to.smt2
   regress1/quantifiers/const.cvc
   regress1/quantifiers/constfunc.cvc
+  regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
   regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
@@ -2160,6 +2167,7 @@ set(regress_2_tests
   regress2/bv_to_int_ashr.smt2
   regress2/bv_to_int_bitwise.smt2
   regress2/bv_to_int_bvuf_to_intuf_smtlib.smt2
+  regress2/bv_to_int_bvmul1.smt2
   regress2/bv_to_int_inc1.smt2
   regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
@@ -2622,7 +2630,6 @@ set(regression_disabled_tests
   regress2/arith/real2int-test.smt2
   regress2/bug396.smt2
   # due to bv2int not handling unsigned/signed division
-  regress2/bv_to_int_bvmul1.smt2
   regress2/nl/dumortier-050317.smt2
   regress2/nl/nt-lemmas-bad.smt2
   regress2/quantifiers/ForElimination-scala-9.smt2
