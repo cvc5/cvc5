@@ -87,7 +87,7 @@ class PropEngine
    */
   void shutdown() {}
 
-  /** 
+  /**
    * Notify preprocessed assertions. This method is called just before the
    * assertions are asserted to this prop engine. This method notifies the
    * decision engine and the theory engine of the assertions in ap.

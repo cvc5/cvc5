@@ -135,7 +135,7 @@ void PropEngine::notifyPreprocessedAssertions(
 {
   // notify the theory engine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
-  
+
   // Add assertions to decision engine, which manually extracts what assertions
   // corresponded to term formula removal. Note that alternatively we could
   // delay all theory preprocessing and term formula removal to this point, in
@@ -144,7 +144,7 @@ void PropEngine::notifyPreprocessedAssertions(
   size_t assertionsEnd = ap.getRealAssertionsEnd();
   std::vector<Node> ppLemmas;
   std::vector<Node> ppSkolems;
-  for (const std::pair<const Node, unsigned> &i : ap.getIteSkolemMap())
+  for (const std::pair<const Node, unsigned>& i : ap.getIteSkolemMap())
   {
     Assert(i.second >= assertionsEnd && i.second < ap.size());
     ppSkolems.push_back(i.first);
