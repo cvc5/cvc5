@@ -60,7 +60,7 @@ public:
 
   bool needIteSkolemMap() override { return true; }
 
-  /** 
+  /**
    * Add a list of assertions, as well as lemmas coming from preprocessing
    * (ppLemmas) and the skolems they constrain (ppSkolems).
    */
