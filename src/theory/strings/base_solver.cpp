@@ -57,6 +57,7 @@ void BaseSolver::checkInit()
     if (!tn.isRegExp())
     {
       Node emps;
+      // get the term index for type tn
       std::map<Kind, TermIndex>& tti = d_termIndex[tn];
       if (tn.isStringLike())
       {
