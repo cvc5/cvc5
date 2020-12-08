@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file transcendental_solver.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds, Gereon Kremer, Tim King
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
 
 /*********************                                                        */
 /*! \file transcendental_solver.h
@@ -63,9 +79,7 @@ class TranscendentalSolver
    * This call may add lemmas to lems based on registering term
    * information (for example, purification of sine terms).
    */
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  void initLastCall(const std::vector<Node>& xts);
   /** increment taylor degree */
   void incrementTaylorDegree();
   /** get taylor degree */

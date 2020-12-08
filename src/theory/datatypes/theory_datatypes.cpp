@@ -431,6 +431,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
 {
   Trace("datatypes-prereg")
       << "TheoryDatatypes::preRegisterTerm() " << n << endl;
+  // external selectors should be preprocessed away by now
+  Assert(n.getKind() != APPLY_SELECTOR);
   // must ensure the type is well founded and has no nested recursion if
   // the option dtNestedRec is not set to true.
   TypeNode tn = n.getType();
@@ -595,7 +597,12 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
 TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
-
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(in);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
   if( in.getKind()==EQUAL ){
     Node nn;
     std::vector< Node > rew;
@@ -1497,26 +1504,18 @@ void TheoryDatatypes::collectTerms( Node n ) {
 
 Node TheoryDatatypes::getInstantiateCons(Node n, const DType& dt, int index)
 {
-  std::map< int, Node >::iterator it = d_inst_map[n].find( index );
-  if( it!=d_inst_map[n].end() ){
-    return it->second;
-  }else{
-    Node n_ic;
-    if( n.getKind()==APPLY_CONSTRUCTOR && n.getNumChildren()==0 ){
-      n_ic = n;
-    }else{
-      //add constructor to equivalence class
-      Node k = getTermSkolemFor( n );
-      n_ic = utils::getInstCons(k, dt, index);
-      //Assert( n_ic==Rewriter::rewrite( n_ic ) );
-      n_ic = Rewriter::rewrite( n_ic );
-      collectTerms( n_ic );
-      d_equalityEngine->addTerm(n_ic);
-      Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
-    }
-    d_inst_map[n][index] = n_ic;
-    return n_ic;
+  if( n.getKind()==APPLY_CONSTRUCTOR && n.getNumChildren()==0 ){
+    return n;
   }
+  //add constructor to equivalence class
+  Node k = getTermSkolemFor( n );
+  Node n_ic = utils::getInstCons(k, dt, index);
+  n_ic = Rewriter::rewrite( n_ic );
+  // it may be a new term, so we collect terms and add it to the equality engine
+  collectTerms( n_ic );
+  d_equalityEngine->addTerm(n_ic);
+  Debug("dt-enum") << "Made instantiate cons " << n_ic << std::endl;
+  return n_ic;
 }
 
 void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
@@ -1551,18 +1550,15 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   }
   eq = tt.eqNode(tt_cons);
   // Determine if the equality must be sent out as a lemma. Notice that
-  // we could potentially keep new equalities from the instantiate rule internal
+  // we  keep new equalities from the instantiate rule internal
   // as long as they are for datatype constructors that have no arguments that
-  // have finite external type, which would correspond to:
+  // have finite external type, which corresponds to:
   //   forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   // Such equalities must be sent because they introduce selector terms that
   // may contribute to conflicts due to cardinality (good examples of this are
   // regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  // For now, to be conservative, we always send lemmas out, since otherwise
-  // we may encounter conflicts during model building when datatypes adds its
-  // equality engine to the theory model.
-  bool forceLemma = true;
+  bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
   d_im.addPendingInference(eq, exp, forceLemma, InferId::INST);

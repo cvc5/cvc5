@@ -401,11 +401,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     Trace("quantifiers-rewrite-debug") << "Decompose " << h << " / " << fbody << " as function definition for " << q << "." << std::endl;
     if (!fbody.isNull())
     {
-      Node r = computeProcessTerms2(fbody,
-                                    cache,
-                                    new_vars,
-                                    new_conds,
-                                    false);
+      Node r = computeProcessTerms2(fbody, cache, new_vars, new_conds);
       Assert(new_vars.size() == h.getNumChildren());
       return Rewriter::rewrite(NodeManager::currentNM()->mkNode(EQUAL, h, r));
     }
@@ -413,18 +409,13 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
     // for example: forall xy. f( x, y ) = 1 + f( x, y ), this is rewritten to
     // forall xy. false.
   }
-  return computeProcessTerms2(body,
-                              cache,
-                              new_vars,
-                              new_conds,
-                              options::elimExtArithQuant());
+  return computeProcessTerms2(body, cache, new_vars, new_conds);
 }
 
 Node QuantifiersRewriter::computeProcessTerms2(Node body,
                                                std::map<Node, Node>& cache,
                                                std::vector<Node>& new_vars,
-                                               std::vector<Node>& new_conds,
-                                               bool elimExtArith)
+                                               std::vector<Node>& new_conds)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2")
@@ -438,8 +429,7 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
   for (size_t i = 0; i < body.getNumChildren(); i++)
   {
     // do the recursive call on children
-    Node nn =
-        computeProcessTerms2(body[i], cache, new_vars, new_conds, elimExtArith);
+    Node nn = computeProcessTerms2(body[i], cache, new_vars, new_conds);
     children.push_back(nn);
     changed = changed || nn != body[i];
   }
@@ -513,82 +503,6 @@ Node QuantifiersRewriter::computeProcessTerms2(Node body,
     for (int i = (iconds.size() - 1); i >= 0; i--)
     {
       ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
-    }
-  }
-  else if (elimExtArith)
-  {
-    if (ret.getKind() == INTS_DIVISION_TOTAL
-        || ret.getKind() == INTS_MODULUS_TOTAL)
-    {
-      Node num = ret[0];
-      Node den = ret[1];
-      if (den.isConst())
-      {
-        const Rational& rat = den.getConst<Rational>();
-        Assert(!num.isConst());
-        if (rat != 0)
-        {
-          Node intVar = nm->mkBoundVar(nm->integerType());
-          new_vars.push_back(intVar);
-          Node cond;
-          if (rat > 0)
-          {
-            cond = nm->mkNode(
-                AND,
-                nm->mkNode(LEQ, nm->mkNode(MULT, den, intVar), num),
-                nm->mkNode(
-                    LT,
-                    num,
-                    nm->mkNode(
-                        MULT,
-                        den,
-                        nm->mkNode(PLUS, intVar, nm->mkConst(Rational(1))))));
-          }
-          else
-          {
-            cond = nm->mkNode(
-                AND,
-                nm->mkNode(LEQ, nm->mkNode(MULT, den, intVar), num),
-                nm->mkNode(
-                    LT,
-                    num,
-                    nm->mkNode(
-                        MULT,
-                        den,
-                        nm->mkNode(PLUS, intVar, nm->mkConst(Rational(-1))))));
-          }
-          new_conds.push_back(cond.negate());
-          if (ret.getKind() == INTS_DIVISION_TOTAL)
-          {
-            ret = intVar;
-          }
-          else
-          {
-            ret = nm->mkNode(MINUS, num, nm->mkNode(MULT, den, intVar));
-          }
-        }
-      }
-    }
-    else if (ret.getKind() == TO_INTEGER || ret.getKind() == IS_INTEGER)
-    {
-      Node intVar = nm->mkBoundVar(nm->integerType());
-      new_vars.push_back(intVar);
-      new_conds.push_back(
-          nm->mkNode(
-                AND,
-                nm->mkNode(LT,
-                           nm->mkNode(MINUS, ret[0], nm->mkConst(Rational(1))),
-                           intVar),
-                nm->mkNode(LEQ, intVar, ret[0]))
-              .negate());
-      if (ret.getKind() == TO_INTEGER)
-      {
-        ret = intVar;
-      }
-      else
-      {
-        ret = ret[0].eqNode(intVar);
-      }
     }
   }
   cache[body] = ret;
@@ -1865,9 +1779,7 @@ bool QuantifiersRewriter::doOperation(Node q,
   }
   else if (computeOption == COMPUTE_PROCESS_TERMS)
   {
-    return is_std
-           && (options::elimExtArithQuant()
-               || options::iteLiftQuant() != options::IteLiftQuantMode::NONE);
+    return is_std && options::iteLiftQuant() != options::IteLiftQuantMode::NONE;
   }
   else if (computeOption == COMPUTE_COND_SPLIT)
   {

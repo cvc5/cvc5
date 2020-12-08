@@ -2,7 +2,7 @@
 /*! \file exponential_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -49,9 +49,11 @@ class ExponentialSolver
   ExponentialSolver(TranscendentalState* tstate);
   ~ExponentialSolver();
 
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  /**
+   * Ensures that new_a is properly registered as a term where new_a is the
+   * purified version of a, y being the new skolem used for purification.
+   */
+  void doPurification(TNode a, TNode new_a, TNode y);
 
   /**
    * check initial refine

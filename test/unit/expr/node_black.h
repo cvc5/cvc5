@@ -631,31 +631,6 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(sstr.str() ==
               "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
               "y) OR (f(g(x)) = g(y))");
-
-    sstr.str(string());
-    sstr << Node::dag(true) << n;  // always dagify
-    TS_ASSERT(sstr.str() ==
-              "LET _let_0 = f(x), _let_1 = g(x), _let_2 = f(f(_let_0)) IN "
-              "(_let_2 = x) OR (_let_2 = y) OR (_let_0 = _let_1) OR (x = y) OR "
-              "(f(_let_1) = g(y))");
-
-    sstr.str(string());
-    sstr << Node::dag(2) << n;  // dagify subexprs occurring > 2 times
-    TS_ASSERT(sstr.str() ==
-              "LET _let_0 = f(x) IN (f(f(_let_0)) = x) OR (f(f(_let_0)) = y) "
-              "OR (_let_0 = g(x)) OR (x = y) OR (f(g(x)) = g(y))");
-
-    Warning() << Node::setdepth(-1)
-              << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2)
-              << n << std::endl;
-    sstr.str(string());
-    sstr << Node::dag(3) << n;  // dagify subexprs occurring > 3 times
-    TS_ASSERT(sstr.str() ==
-              "(f(f(f(x))) = x) OR (f(f(f(x))) = y) OR (f(x) = g(x)) OR (x = "
-              "y) OR (f(g(x)) = g(y))");
-    Warning() << Node::setdepth(-1)
-              << Node::setlanguage(language::output::LANG_CVC4) << Node::dag(2)
-              << n << std::endl;
   }
 
   void testForEachOverNodeAsNodes() {
