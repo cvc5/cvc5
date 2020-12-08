@@ -182,7 +182,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   {
     NodeManager* nm = NodeManager::currentNM();
     Node k = nm->getSkolemManager()->mkPurifySkolem(n, "kf");
-    Node k_eq = Rewriter::rewrite(k.eqNode(n));
+    Node k_eq = k.eqNode(n);
     Trace("nl-ext-factor") << "...adding factor skolem " << k << " == " << n
                            << std::endl;
     if (d_data->isProofEnabled())

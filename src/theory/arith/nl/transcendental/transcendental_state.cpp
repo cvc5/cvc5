@@ -52,6 +52,8 @@ TranscendentalState::TranscendentalState(InferenceManager& im,
   if (d_pnm != nullptr)
   {
     d_proof.reset(new CDProofSet<CDProof>(d_pnm, d_ctx, "nl-trans"));
+    d_proofChecker.reset(new TranscendentalProofRuleChecker());
+    d_proofChecker->registerTo(pnm->getChecker());
   }
 }
 
