@@ -279,10 +279,8 @@ int InstMatchGenerator::getMatch(
     //if t is null
     Assert(!t.isNull());
     Assert(!quantifiers::TermUtil::hasInstConstAttr(t));
-    Assert(d_match_pattern.getKind() == INST_CONSTANT
-           || t.getKind() == d_match_pattern.getKind());
-    Assert(!Trigger::isAtomicTrigger(d_match_pattern)
-           || t.getOperator() == d_match_pattern.getOperator());
+    // notice that t may have a different kind or operator from our match
+    // pattern, e.g. for APPLY_SELECTOR triggers.
     //first, check if ground arguments are not equal, or a match is in conflict
     Trace("matching-debug2") << "Setting immediate matches..." << std::endl;
     for (unsigned i = 0, size = d_match_pattern.getNumChildren(); i < size; i++)
