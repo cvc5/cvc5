@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of NlExt proof checker
+ ** \brief Implementation of proof checker for transcendentals
  **/
 
 #include "theory/arith/nl/transcendental/proof_checker.h"
@@ -29,6 +29,11 @@ namespace transcendental {
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_TRANS_PI, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_BOUNDS, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_SHIFT, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_PI, this);
 }
 
 Node TranscendentalProofRuleChecker::checkInternal(PfRule id,
@@ -54,6 +59,77 @@ Node TranscendentalProofRuleChecker::checkInternal(PfRule id,
       nm->mkNode(Kind::GEQ, pi, args[0]),
       nm->mkNode(Kind::LEQ, pi, args[1])
     });
+  }
+  else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Assert(args[0].getType().isReal());
+    Node s = nm->mkNode(Kind::SINE, args[0]);
+    return nm->mkNode(AND, nm->mkNode(LEQ, s, one), nm->mkNode(GEQ, s, mone));
+  }
+  else if (id == PfRule::ARITH_TRANS_SINE_SHIFT)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 3);
+    const auto& x = args[0];
+    const auto& y = args[1];
+    const auto& s = args[2];
+    return nm->mkAnd(std::vector<Node>{
+        nm->mkAnd(std::vector<Node>{
+            nm->mkNode(Kind::GEQ, y, nm->mkNode(Kind::MULT, mone, pi)),
+            nm->mkNode(Kind::LEQ, y, pi)}),
+        nm->mkNode(
+            Kind::ITE,
+            nm->mkAnd(std::vector<Node>{
+                nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
+                nm->mkNode(Kind::LEQ, x, pi),
+            }),
+            x.eqNode(y),
+            x.eqNode(nm->mkNode(
+                Kind::PLUS,
+                y,
+                nm->mkNode(Kind::MULT, nm->mkConst<Rational>(2), s, pi)))),
+        nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
+  }
+  else if (id == PfRule::ARITH_TRANS_SINE_SYMMETRY)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Assert(args[0].getType().isReal());
+    Node s1 = nm->mkNode(Kind::SINE, args[0]);
+    Node s2 = nm->mkNode(
+        Kind::SINE, Rewriter::rewrite(nm->mkNode(Kind::MULT, mone, args[0])));
+    return nm->mkNode(PLUS, s1, s2).eqNode(zero);
+  }
+  else if (id == PfRule::ARITH_TRANS_SINE_TANGENT_ZERO)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Assert(args[0].getType().isReal());
+    Node s = nm->mkNode(Kind::SINE, args[0]);
+    return nm->mkNode(
+        AND,
+        nm->mkNode(
+            IMPLIES, nm->mkNode(GT, args[0], zero), nm->mkNode(LT, s, args[0])),
+        nm->mkNode(IMPLIES,
+                   nm->mkNode(LT, args[0], zero),
+                   nm->mkNode(GT, s, args[0])));
+  }
+  else if (id == PfRule::ARITH_TRANS_SINE_TANGENT_PI)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Assert(args[0].getType().isReal());
+    Node s = nm->mkNode(Kind::SINE, args[0]);
+    return nm->mkNode(
+        AND,
+        nm->mkNode(IMPLIES,
+                   nm->mkNode(GT, args[0], mpi),
+                   nm->mkNode(GT, s, nm->mkNode(MINUS, mpi, args[0]))),
+        nm->mkNode(IMPLIES,
+                   nm->mkNode(LT, args[0], pi),
+                   nm->mkNode(LT, s, nm->mkNode(MINUS, pi, args[0]))));
   }
   return Node::null();
 }
