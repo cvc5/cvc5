@@ -70,11 +70,17 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
                                                    shift,
                                                    d_data->d_pi)))),
       new_a.eqNode(a));
+  CDProof* proof = nullptr;
+  if (d_data->isProofEnabled())
+  {
+    proof = d_data->getProof();
+    proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], y, shift});
+  }
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
   NlLemma nlem(
-      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
+      lem, LemmaProperty::PREPROCESS, proof, InferenceId::NL_T_PURIFY_ARG);
   d_data->d_im.addPendingArithLemma(nlem);
 }
 
@@ -110,14 +116,26 @@ void SineSolver::checkInitialRefine()
           Node lem = nm->mkNode(Kind::AND,
                                 nm->mkNode(Kind::LEQ, t, d_data->d_one),
                                 nm->mkNode(Kind::GEQ, t, d_data->d_neg_one));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_SINE_BOUNDS, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
         {
           // sine symmetry: sin(t) - sin(-t) = 0
           Node lem = nm->mkNode(Kind::PLUS, t, symn).eqNode(d_data->d_zero);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SYMMETRY, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
         {
           // sine zero tangent:
@@ -131,8 +149,15 @@ void SineSolver::checkInitialRefine()
                          nm->mkNode(Kind::IMPLIES,
                                     nm->mkNode(Kind::LT, t[0], d_data->d_zero),
                                     nm->mkNode(Kind::GT, t, t[0])));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(
+                lem, PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
         {
           // sine pi tangent:
@@ -152,8 +177,15 @@ void SineSolver::checkInitialRefine()
                   nm->mkNode(Kind::LT,
                              t,
                              nm->mkNode(Kind::MINUS, d_data->d_pi, t[0]))));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(
+                lem, PfRule::ARITH_TRANS_SINE_TANGENT_PI, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
         {
           Node lem =
