@@ -79,9 +79,7 @@ class TranscendentalSolver
    * This call may add lemmas to lems based on registering term
    * information (for example, purification of sine terms).
    */
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  void initLastCall(const std::vector<Node>& xts);
   /** increment taylor degree */
   void incrementTaylorDegree();
   /** get taylor degree */

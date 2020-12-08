@@ -820,6 +820,7 @@ set(regress_0_tests
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/sygus-inst-nia-psyco-060.smt2
   regress0/quantifiers/sygus-inst-ufnia-sat-t3_rw1505.smt2
+  regress0/quantifiers/ufnia-fv-delta.smt2
   regress0/rec-fun-const-parse-bug.smt2
   regress0/rels/addr_book_0.cvc
   regress0/rels/atom_univ2.cvc
@@ -1588,6 +1589,7 @@ set(regress_1_tests
   regress1/quantifiers/cdt-0208-to.smt2
   regress1/quantifiers/const.cvc
   regress1/quantifiers/constfunc.cvc
+  regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
   regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
