@@ -25,7 +25,7 @@ namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pc(pnm->getChecker()), d_lcb(), d_tproc(&d_lcb)
+    : d_pnm(pnm), d_pc(pnm->getChecker())
 {
 }
 
@@ -54,14 +54,14 @@ bool LfscProofPostprocessCallback::update(Node res,
   std::vector<Node> ics;
   for (const Node& c : children)
   {
-    ics.push_back(d_tproc.toInternal(c));
+    ics.push_back(d_tproc.convert(c));
   }
 
   // convert arguments to internal form
   std::vector<Node> ias;
   for (const Node& a : args)
   {
-    ias.push_back(d_tproc.toInternal(a));
+    ias.push_back(d_tproc.convert(a));
   }
 
   switch (id)
