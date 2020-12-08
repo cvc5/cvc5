@@ -123,13 +123,6 @@ PropEngine::~PropEngine() {
   delete d_theoryProxy;
 }
 
-void PropEngine::assertFormula(TNode node) {
-  Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "assertFormula(" << node << ")" << endl;
-  // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false, true);
-}
-
 void PropEngine::notifyPreprocessedAssertions(
     const preprocessing::AssertionPipeline& ap)
 {
@@ -150,6 +143,13 @@ void PropEngine::notifyPreprocessedAssertions(
     ppLemmas.push_back(ap[i.second]);
   }
   d_decisionEngine->addAssertions(ap.ref(), ppLemmas, ppSkolems);
+}
+
+void PropEngine::assertFormula(TNode node) {
+  Assert(!d_inCheckSat) << "Sat solver in solve()!";
+  Debug("prop") << "assertFormula(" << node << ")" << endl;
+  // Assert as non-removable
+  d_cnfStream->convertAndAssert(node, false, false, true);
 }
 
 void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
