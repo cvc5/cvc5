@@ -1,3 +1,5 @@
+(set-logic ALL)
+(set-info :status unsat)
 (declare-datatypes ((T 0)) (
   ((Z) (Y (y Int)))))
 

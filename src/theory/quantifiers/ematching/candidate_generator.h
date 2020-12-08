@@ -229,8 +229,6 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
   Node d_selOp;
   /** the UF operator */
   Node d_ufOp;
-  /** Which operator we are currently considering */
-  Node d_currOp;
 };
 
 }/* CVC4::theory::inst namespace */

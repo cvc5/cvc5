@@ -148,9 +148,6 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
           break;
         }
       }
-    }else if( d_match_pattern.getKind()==APPLY_SELECTOR && d_match_pattern[0].getKind()==INST_CONSTANT && 
-              options::purifyDtTriggers() && !options::dtSharedSelectors() ){
-      d_match_pattern = d_match_pattern[0];
     }
     d_match_pattern_type = d_match_pattern.getType();
     Trace("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is " << d_match_pattern << std::endl;
