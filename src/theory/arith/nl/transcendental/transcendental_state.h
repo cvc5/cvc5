@@ -19,6 +19,7 @@
 #include "expr/proof_set.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/transcendental/proof_checker.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
 namespace CVC4 {
@@ -175,6 +176,9 @@ struct TranscendentalState
    * A CDProofSet that hands out CDProof objects for lemmas.
    */
   std::unique_ptr<CDProofSet<CDProof>> d_proof;
+
+  /** The proof checker for transcendental proofs */
+  std::unique_ptr<TranscendentalProofRuleChecker> d_proofChecker;
 
   /**
    * Some transcendental functions f(t) are "purified", e.g. we add

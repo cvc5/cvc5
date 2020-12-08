@@ -28,7 +28,6 @@ namespace nl {
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_PI, this);
 }
 
 Node ExtProofRuleChecker::checkInternal(PfRule id,
@@ -80,13 +79,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
             nm->mkNode(Kind::AND,
                        nm->mkNode(Kind::GEQ, x, a),
                        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
-  }
-  else if (id == PfRule::ARITH_TRANS_PI)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, pi, args[0]),
-                                       nm->mkNode(Kind::LEQ, pi, args[1])});
   }
   return Node::null();
 }
