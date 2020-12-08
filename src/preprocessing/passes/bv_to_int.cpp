@@ -331,6 +331,11 @@ Node BVToInt::translateWithChildren(Node original,
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
+  Assert(oldKind != kind::BITVECTOR_UDIV);
+  Assert(oldKind != kind::BITVECTOR_SDIV);
+  Assert(oldKind != kind::BITVECTOR_UREM);
+  Assert(oldKind != kind::BITVECTOR_SREM);
+  Assert(oldKind != kind::BITVECTOR_SMOD);
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
