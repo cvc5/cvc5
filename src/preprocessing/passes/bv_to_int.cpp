@@ -180,7 +180,7 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SgtEliminate>,
                                   RewriteRule<SgeEliminate>>::apply(current);
 
-      // extra elimination steps not through rewrites:
+      // expanding definitions of udiv and urem
       if (k == kind::BITVECTOR_UDIV)
       {
         currentEliminated = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
