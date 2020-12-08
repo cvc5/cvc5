@@ -404,6 +404,9 @@ bool Trigger::isAtomicTrigger( Node n ){
 }
 
 bool Trigger::isAtomicTriggerKind( Kind k ) {
+  // we use both APPLY_SELECTOR and APPLY_SELECTOR_TOTAL since this
+  // method is used both for trigger selection and for ground term registration,
+  // where these two things require those kinds respectively.
   return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
          || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL
          || k == APPLY_TESTER || k == UNION || k == INTERSECTION || k == SUBSET
