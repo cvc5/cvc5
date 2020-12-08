@@ -53,6 +53,10 @@ void BBSimple::storeBBTerm(TNode node, const Bits& bits)
 
 bool BBSimple::hasBBAtom(TNode atom) const
 {
+  if (atom.getKind() == kind::NOT)
+  {
+    atom = atom[0];
+  }
   return d_bbAtoms.find(atom) != d_bbAtoms.end();
 }
 
@@ -141,6 +145,11 @@ bool BBSimple::collectModelValues(TheoryModel* m,
     }
   }
   return true;
+}
+
+bool BBSimple::isVariable(TNode node)
+{
+  return d_variables.find(node) != d_variables.end();
 }
 
 }  // namespace bv

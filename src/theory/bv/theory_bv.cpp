@@ -17,6 +17,7 @@
 
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -42,6 +43,10 @@ TheoryBV::TheoryBV(context::Context* c,
 {
   switch (options::bvSolver())
   {
+    case options::BVSolver::BITBLAST:
+      d_internal.reset(new BVSolverBitblast(&d_state, d_inferMgr, pnm));
+      break;
+
     case options::BVSolver::LAZY:
       d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
       break;

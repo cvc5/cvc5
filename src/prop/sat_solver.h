@@ -96,6 +96,11 @@ public:
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
 
+  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  {
+    Unimplemented() << "getUnsatAssumptions not implemented";
+  }
+
 };/* class SatSolver */
 
 

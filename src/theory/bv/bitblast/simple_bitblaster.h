@@ -58,6 +58,8 @@ class BBSimple : public TBitblaster<Node>
 
   prop::SatSolver* getSatSolver() override { Unreachable(); }
 
+  bool isVariable(TNode node);
+
  private:
   /** Query SAT solver for assignment of node 'a'. */
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
