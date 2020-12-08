@@ -26,9 +26,83 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
+namespace {
+
+/**
+ * Evaluates the first d terms of the Maclaurin series for the exponential
+ * function at t. This is a lower bound on the exponential function.
+ */
+inline Node evalMaclaurinExp(std::uint64_t d, TNode t)
+{
+  auto* nm = NodeManager::currentNM();
+  Node res = nm->mkConst<Rational>(1);
+  Node num = nm->mkConst<Rational>(1);
+  std::uint64_t den = 1;
+  for (std::uint64_t i = 1; i <= d; ++i)
+  {
+    num = nm->mkNode(Kind::MULT, num, t);
+    den *= i;
+    res =
+        nm->mkNode(Kind::PLUS,
+                   res,
+                   nm->mkNode(Kind::DIVISION, num, nm->mkConst<Rational>(den)));
+  }
+  return Rewriter::rewrite(res);
+}
+
+/**
+ * Evaluates an upper bound on the exponential function based on the Maclaurin
+ * series. This approach is described in
+ * https://dl.acm.org/doi/pdf/10.1145/3230639 Section 4.2.1.
+ */
+inline Node evalMaclaurinExpUpper(std::uint64_t d, TNode t)
+{
+  auto* nm = NodeManager::currentNM();
+  Node f1 = evalMaclaurinExp(d - 1, t);
+  std::uint64_t fac = 1;
+  for (std::uint64_t i = 2; i <= d; ++i) fac *= i;
+  Node f2 =
+      nm->mkNode(Kind::PLUS,
+                 nm->mkConst<Rational>(1),
+                 nm->mkNode(Kind::DIVISION,
+                            nm->mkNode(Kind::POW, t, nm->mkConst<Rational>(d)),
+                            nm->mkConst<Rational>(fac)));
+  return Rewriter::rewrite(nm->mkNode(Kind::MULT, f1, f2));
+}
+
+/**
+ * Helper method to construct (t >= lb) AND (t <= up)
+ */
+Node mkBounds(TNode t, TNode lb, TNode ub)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, t, lb),
+                                     nm->mkNode(Kind::LEQ, t, ub)});
+}
+
+/**
+ * Helper method to construct a secant plane:
+ * ((evall - evalu) / (l - u)) * (t - l) + evall
+ */
+Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(Kind::PLUS,
+                    nm->mkNode(Kind::MULT,
+                               nm->mkNode(Kind::DIVISION,
+                                          nm->mkNode(Kind::MINUS, evall, evalu),
+                                          nm->mkNode(Kind::MINUS, l, u)),
+                               nm->mkNode(Kind::MINUS, t, l)),
+                    evall);
+}
+
+}  // namespace
+
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_TRANS_PI, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_BOUNDS, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SHIFT, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
@@ -59,6 +133,52 @@ Node TranscendentalProofRuleChecker::checkInternal(PfRule id,
       nm->mkNode(Kind::GEQ, pi, args[0]),
       nm->mkNode(Kind::LEQ, pi, args[1])
     });
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 4);
+    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
+           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
+    std::uint64_t d =
+        args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    Node t = args[1];
+    Node l = args[2];
+    Node u = args[3];
+    Node evall = evalMaclaurinExpUpper(d, l);
+    Node evalu = evalMaclaurinExpUpper(d, u);
+    Node evalsecant = mkSecant(t, l, u, evall, evalu);
+    Node lem = nm->mkNode(
+        Kind::IMPLIES,
+        mkBounds(t, l, u),
+        nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
+    return Rewriter::rewrite(lem);
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 4);
+    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
+           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
+    std::uint64_t d =
+        args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    Node t = args[1];
+    Node l = args[2];
+    Node u = args[3];
+    Node evall = evalMaclaurinExp(d, l);
+    Node evalu = evalMaclaurinExp(d, u);
+    Node evalsecant = mkSecant(t, l, u, evall, evalu);
+    Node lem = nm->mkNode(
+        Kind::IMPLIES,
+        mkBounds(t, l, u),
+        nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
+    return Rewriter::rewrite(lem);
   }
   else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
   {
