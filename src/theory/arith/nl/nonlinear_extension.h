@@ -226,8 +226,6 @@ class NonlinearExtension
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
   InferenceManager& d_im;
-  // pointer to used equality engine
-  eq::EqualityEngine* d_ee;
   /** The statistics class */
   NlStats d_stats;
   // needs last call effort

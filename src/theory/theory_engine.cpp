@@ -1871,7 +1871,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     if (Trace.isOn("te-proof-exp"))
     {
       Trace("te-proof-exp") << "Explanation is:" << std::endl;
-      for (const Node& e : exp)
+      for (TNode e : exp)
       {
         Trace("te-proof-exp") << "  " << e << std::endl;
       }
