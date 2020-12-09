@@ -1770,7 +1770,6 @@ set(regress_1_tests
   regress1/quantifiers/rew-to-0211-dd.smt2
   regress1/quantifiers/ricart-agrawala6.smt2
   regress1/quantifiers/set-choice-koikonomou.cvc
-  regress1/quantifiers/set3.smt2
   regress1/quantifiers/set8.smt2
   regress1/quantifiers/seu169+1.smt2
   regress1/quantifiers/seq-solved-enum.smt2
@@ -2461,6 +2460,8 @@ set(regression_disabled_tests
   regress1/quantifiers/model_6_1_bv.smt2
   # timeout after changes to nonlinear on PR #5351
   regress1/quantifiers/rel-trigger-unusable.smt2
+  # does not terminate/takes a long time when doing a coverage build with LFSC.
+  regress1/quantifiers/set3.smt2
   # changes to expand definitions, related to trigger selection for selectors
   regress1/quantifiers/stream-x2014-09-18-unsat.smt2
   # ajreynol: different error messages on production and debug:
