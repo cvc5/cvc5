@@ -41,6 +41,18 @@ class TestExprBlack : public TestApi
   SmtEngine* d_smtEngine;
 };
 
+class TestExprWhite : public TestApi
+{
+ protected:
+  void SetUp() override
+  {
+    d_nodeManager.reset(new NodeManager(nullptr));
+    d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
+  }
+  std::unique_ptr<NodeManager> d_nodeManager;
+  std::unique_ptr<NodeManagerScope> d_scope;
+};
+
 }  // namespace test
 }  // namespace CVC4
 #endif
