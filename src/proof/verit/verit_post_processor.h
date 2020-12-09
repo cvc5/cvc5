@@ -12,6 +12,7 @@
  ** \brief The module for processing proof nodes into veriT proof nodes
  **/
 
+#include <memory>
 #include "cvc4_private.h"
 
 #ifndef CVC4__PROOF__VERIT_PROOF_PROCESSOR_H
@@ -31,7 +32,7 @@ namespace proof {
  * A callback class used by the veriT converter for post-processing proof nodes
  * by replacing internal rules by the rules in the veriT calculus.
  */
-class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
+class VeritProofPostprocessCallback
 {
  public:
   VeritProofPostprocessCallback(ProofNodeManager* pnm);
@@ -42,7 +43,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    */
   void initializeUpdate(bool extended);
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    bool& continueUpdate) override;
+                    bool& continueUpdate);
   /**
    * This method updates the proof rule application by splitting on the given
    * rule and translating it into a proof node in terms of the veriT rules.
@@ -56,10 +57,10 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    */
   bool update(Node res,
               PfRule id,
-              const std::vector<Node>& children,
+	      const std::vector<std::shared_ptr<ProofNode>>& pf_children,
               const std::vector<Node>& args,
               CDProof* cdp,
-              bool& continueUpdate) override;
+              bool& continueUpdate);
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -154,6 +155,7 @@ class VeritProofPostprocess
   void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdp);
   /** Special processing for the first scope*/
   void processFirstScope(std::shared_ptr<ProofNode> pf, CDProof* cdp);
+  void processSYMM(std::shared_ptr<ProofNode> pf, CDProof *cdp);
   /** Flag to indicate whether proof format should be extended */
   bool d_extended;
 };

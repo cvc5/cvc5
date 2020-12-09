@@ -75,10 +75,10 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
                                            int i,
                                            int h)
 {
-  // std::cout << "rule " << pfn->getRule() << " verit rule " <<
-  // veritRuletoString(static_cast<VeritRule>(
-  // std::stoul(pfn->getArguments()[0].toString()))) << " res " <<
-  // pfn->getResult() << std::endl;
+   //std::cout << " verit rule " <<
+   //veritRuletoString(static_cast<VeritRule>(
+   //std::stoul(pfn->getArguments()[0].toString())));
+   //std::cout << " res " << pfn->getResult() << std::endl;
   // The id of the current proof node
   int current_i = i;
   // The id of the latest assumption
@@ -86,6 +86,9 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
   // Ids of the childrens of this proof node that are used to print the premises
   std::vector<int> childIds;
 
+
+  if (pfn->getArguments().size() >= 3 && pfn->getRule() == PfRule::VERIT_RULE)
+  {
   // In case the rule is an anchor add anchor step before children are printed
   if (static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()))
       == VeritRule::ANCHOR_SUBPROOF)
@@ -159,21 +162,12 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
 
 
   //Print current step
-  if (pfn->getArguments().size()
-      >= 3)  // TODO: Should this be checked also above
-  {
+
     out << "(step " << veritPrintName(ids, i, false) << " ";
 
     if (pfn->getArguments()[2].end() - pfn->getArguments()[2].begin() >= 2)
     {
-      if (pfn->getArguments()[2][1] == Node::null())
-      {
-        out << "(cl)";
-      }
-      else
-      {
         out << pfn->getArguments()[2];
-      }
     }
     else
     {
@@ -239,7 +233,12 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   std::vector<int> ids;
   veritPrintInternal(out, pfn, ids, 1, 1);
   out << "\n";
-  // veritProofChecker(pfn);
+  out << "Check proof? (0/1)" << "\n";
+  bool check;
+  std::cin >> check;
+  if(check){
+   veritProofChecker(pfn);
+  }
   out << "\n";
   out << "\n";
 }
