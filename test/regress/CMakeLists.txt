@@ -2346,11 +2346,13 @@ set(regress_2_tests
 
 set(regress_3_tests
   regress3/arith_prp-13-24.smt2
+  regress3/aufbv-wchains010ue.smtv1.smt2
   regress3/auflia-fuzz06.smtv1.smt2
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2
   regress3/bmc-ibm-5.smtv1.smt2
   regress3/bmc-ibm-7.smtv1.smt2
+  regress3/bug2.smtv1.smt2
   regress3/bv_to_int_and_or.smt2
   regress3/bv_to_int_bench_9839.smt2.minimized.smt2
   regress3/bv_to_int_check_bvsge_bvashr0_4bit.smt2.minimized.smt2
@@ -2359,7 +2361,13 @@ set(regress_3_tests
   regress3/bv_to_int_input_mouser_detect.c.smt2.minimized.smt2
   regress3/bv_to_int_quant1.smt2
   regress3/bv_to_int_quant2.smt2
+  regress3/bv-core-ext_con_004_001_1024.smtv1.smt2
+  regress3/bv-fuzz15.smtv1.smt2
+  regress3/bv-fuzz16.smtv1.smt2
+  regress3/bv-fuzz17.smtv1.smt2
   regress3/cegisunif-depth1.sy
+  regress3/decision-uflia-xs-09-16-3-4-1-5.smtv1.smt2
+  regress3/decision-wchains010ue.smtv1.smt2
   regress3/DRAGON_1.lus.sy
   regress3/eq_diamond14.smtv1.smt2
   regress3/friedman_n4_i5.smtv1.smt2
@@ -2373,6 +2381,7 @@ set(regress_3_tests
   regress3/issue4714.smt2
   regress3/lpsat-goal-9.smt2
   regress3/nia-max-square.sy
+  regress3/PEQ018_size4.smtv1.smt2
   regress3/policyM.sy
   regress3/pp-regfile.smtv1.smt2
   regress3/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
@@ -2387,6 +2396,7 @@ set(regress_3_tests
   regress3/strings/replace_re_all.smt2
   regress3/strings/unsat-circ-reduce.smt2
   regress3/unbdd_inv_gen_ex7.sy
+  regress3/unifpi-solve-car_1.lus.sy
   regress3/vcb.sy
 )
 
@@ -2394,11 +2404,19 @@ set(regress_3_tests
 # Regression level 4 tests
 
 set(regress_4_tests
-  regress4/C880mul.miter.shuffled-as.sat03-348.smtv1.smt2
-  regress4/NEQ016_size5.smtv1.smt2
   regress4/bug143.smtv1.smt2
+  regress4/bug337.smt2
+  regress4/bug396.smt2
+  regress4/C880mul.miter.shuffled-as.sat03-348.smtv1.smt2
   regress4/comb2.shuffled-as.sat03-420.smtv1.smt2
+  regress4/fischer3-mutex-16.smtv1.smt2
   regress4/instance_1151.smtv1.smt2
+  regress4/miplib-pp08a-3000.smt2
+  regress4/miplib-pp08a-3000.smtv1.smt2
+  regress4/NEQ016_size5.smtv1.smt2
+  regress4/sets-card-neg-mem-union-2.smt2
+  regress4/xs-11-20-5-2-5-3.smt2
+  regress4/xs-11-20-5-2-5-3.smtv1.smt2
 )
 
 #-----------------------------------------------------------------------------#
@@ -2406,37 +2424,26 @@ set(regress_4_tests
 
 set(regression_disabled_tests
   regress0/arith/miplib-opt1217--27.smtv1.smt2
-  regress0/arith/miplib-pp08a-3000.smtv1.smt2
   regress0/aufbv/dubreva005ue.smtv1.smt2
   regress0/aufbv/fifo32bc06k08.smtv1.smt2
   regress0/aufbv/fifo32in06k08.smtv1.smt2
   regress0/aufbv/no_init_multi_delete14.smtv1.smt2
   regress0/aufbv/try3_sameret_functions_fse-bfs_tac.calc_next.il.fse-bfs.smtv1.smt2
-  regress0/aufbv/wchains010ue.smtv1.smt2
   regress0/auflia/fuzz01.smtv1.smt2
-  regress0/bug2.smtv1.smt2
-  regress0/bv/core/ext_con_004_001_1024.smtv1.smt2
   ###
-  regress0/bv/fuzz15.smtv1.smt2
-  regress0/bv/fuzz16.smtv1.smt2
-  regress0/bv/fuzz17.smtv1.smt2
   regress0/bv/test00.smtv1.smt2
   # FIXME #1649
   regress0/datatypes/datatype-dump.cvc
   # no longer support overloaded symbols across multiple parametric datatypes
   regress0/datatypes/repeated-selectors-2769.smt2
-  regress0/decision/uflia-xs-09-16-3-4-1-5.smtv1.smt2
-  regress0/decision/wchains010ue.smtv1.smt2
-  regress0/lemmas/fischer3-mutex-16.smtv1.smt2
+  # need finite model finding command line in tptp regression
   regress0/tptp/BOO003-4.p
   regress0/tptp/BOO027-1.p
   regress0/tptp/MGT031-1.p
   regress0/tptp/NLP114-1.p
   regress0/tptp/SYN075+1.p
-  regress0/uf/PEQ018_size4.smtv1.smt2
   regress0/uf/iso_icl_repgen004.smtv1.smt2
   ###
-  regress1/auflia/bug337.smt2
   regress1/bug472.smt2
   regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
@@ -2451,7 +2458,7 @@ set(regression_disabled_tests
   regress1/quantifiers/arith-snorm.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
-  # times out with competition build:
+  # times out with competition build, ok with other builds:
   regress1/quantifiers/model_6_1_bv.smt2
   # timeout after changes to nonlinear on PR #5351
   regress1/quantifiers/rel-trigger-unusable.smt2
@@ -2462,8 +2469,6 @@ set(regression_disabled_tests
   regress1/quantifiers/subtype-param.smt2
   ###
   regress1/rels/garbage_collect.cvc
-  # timeout
-  regress1/sets/infinite-type/sets-card-neg-mem-union-2.smt2
   regress1/sets/setofsets-disequal.smt2
   regress1/sets/finite-type/sets-card-neg-mem-union-2.smt2
   regress1/simple-rdl-definefun.smt2
@@ -2473,8 +2478,6 @@ set(regression_disabled_tests
   regress1/sygus/interpol_from_pono_3.smt2
   regress1/sygus/interpol_dt.smt2
   regress1/sygus/inv_gen_fig8.sy
-  # slow (179 seconds) in debug at 45e489e2
-  regress1/sygus/unifpi-solve-car_1.lus.sy
   # rely on heuristic solution reconstruction TODO #3146 revisit
   regress1/sygus/array_search_2.sy
   regress1/sygus/array_sum_2_5.sy
@@ -2482,12 +2485,7 @@ set(regression_disabled_tests
   # previously sygus inference did not apply, now (correctly) times out
   regress1/sygus/issue3498.smt2
   regress2/arith/miplib-opt1217--27.smt2
-  regress2/arith/miplib-pp08a-3000.smt2
-  regress2/bug396.smt2
-  # due to bv2int not handling unsigned/signed division
   regress2/nl/dumortier-050317.smt2
-  regress2/xs-11-20-5-2-5-3.smtv1.smt2
-  regress2/xs-11-20-5-2-5-3.smt2
 )
 
 #-----------------------------------------------------------------------------#
