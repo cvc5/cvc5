@@ -51,7 +51,7 @@ class TaylorGenerator
    * In the latter case, note we compute the exponential x^{n+1}
    * instead of (x-a)^{n+1}, which can be done faster.
    */
-  std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n);
+  std::pair<Node, Node> getTaylor(Kind k, std::uint64_t n);
 
   /**
    * polynomial approximation bounds
@@ -98,16 +98,12 @@ class TaylorGenerator
  private:
   NodeManager* d_nm;
   const Node d_taylor_real_fv;
-  const Node d_taylor_real_fv_base;
-  const Node d_taylor_real_fv_base_rem;
-  std::unordered_map<Node,
-                     std::unordered_map<std::uint64_t, Node>,
-                     NodeHashFunction>
-      s_taylor_sum;
-  std::unordered_map<Node,
-                     std::unordered_map<std::uint64_t, Node>,
-                     NodeHashFunction>
-      d_taylor_rem;
+
+  /**
+   * For every kind (EXP or SINE) and every degree we store the taylor series up
+   * to this degree and the next term in the series.
+   */
+  std::map<Kind, std::map<std::uint64_t, std::pair<Node, Node>>> d_taylor_terms;
   std::map<Kind, std::map<unsigned, std::vector<Node>>> d_poly_bounds;
 };
 
