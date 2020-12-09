@@ -72,24 +72,42 @@ void ExponentialSolver::checkInitialRefine()
         {
           // exp is always positive: exp(t) > 0
           Node lem = nm->mkNode(Kind::GT, t, d_data->d_zero);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_POSITIVITY, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
         {
           // exp at zero: (t = 0) <=> (exp(t) = 1)
           Node lem = nm->mkNode(Kind::EQUAL,
                                 t[0].eqNode(d_data->d_zero),
                                 t.eqNode(d_data->d_one));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_ZERO, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
         {
           // exp on negative values: (t < 0) <=> (exp(t) < 1)
           Node lem = nm->mkNode(Kind::EQUAL,
                                 nm->mkNode(Kind::LT, t[0], d_data->d_zero),
                                 nm->mkNode(Kind::LT, t, d_data->d_one));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_NEG, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
         {
           // exp on positive values: (t <= 0) or (exp(t) > t+1)
@@ -98,8 +116,14 @@ void ExponentialSolver::checkInitialRefine()
               nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
               nm->mkNode(
                   Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_SUPER_LIN, {}, {t[0]});
+          }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::NL_T_INIT_REFINE, proof);
         }
       }
     }

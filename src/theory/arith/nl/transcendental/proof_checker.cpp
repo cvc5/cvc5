@@ -29,6 +29,10 @@ namespace transcendental {
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_TRANS_PI, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_NEG, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_POSITIVITY, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_SUPER_LIN, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_ZERO, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_BOUNDS, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SHIFT, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
@@ -59,6 +63,37 @@ Node TranscendentalProofRuleChecker::checkInternal(PfRule id,
       nm->mkNode(Kind::GEQ, pi, args[0]),
       nm->mkNode(Kind::LEQ, pi, args[1])
     });
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_NEG)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(
+        EQUAL, nm->mkNode(LT, args[0], zero), nm->mkNode(LT, e, one));
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_POSITIVITY)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(GT, e, zero);
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_SUPER_LIN)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(OR,
+                      nm->mkNode(LEQ, args[0], zero),
+                      nm->mkNode(GT, e, nm->mkNode(PLUS, args[0], one)));
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_ZERO)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(EQUAL, args[0].eqNode(zero), e.eqNode(one));
   }
   else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
   {
