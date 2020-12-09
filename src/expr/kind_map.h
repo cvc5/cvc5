@@ -33,41 +33,6 @@ class KindMap {
 
   uint64_t d_bitmap[SIZE];
 
-  /**
-   * Accessor proxy class used so that things like "map[k] = true"
-   * will work as expected (we have to return a proxy from
-   * KindMap::operator[]() in that case, since we can't construct an
-   * address to the individual *bit* in the packed representation).
-   */
-  class Accessor {
-    KindMap& d_map;
-    Kind d_kind;
-
-    Accessor(KindMap& m, Kind k) :
-      d_map(m),
-      d_kind(k) {
-      AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
-    }
-
-    friend class KindMap;
-
-  public:
-
-    operator bool() const {
-      return d_map.tst(d_kind);
-    }
-
-    Accessor operator=(bool b) const {
-      if(b) {
-        d_map.set(d_kind);
-      } else {
-        d_map.clr(d_kind);
-      }
-      return *this;
-    }
-
-  };/* class KindMap::Accessor */
-
 public:
 
   /** An iterator over a KindMap. */
@@ -222,10 +187,6 @@ public:
   /** Test whether k is in the map. */
   bool operator[](Kind k) const {
     return tst(k);
-  }
-  /** Test whether k is in the map (allowing assignment). */
-  Accessor operator[](Kind k) {
-    return Accessor(*this, k);
   }
 
   /** Test equality between two maps. */
