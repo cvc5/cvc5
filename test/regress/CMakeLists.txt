@@ -555,6 +555,7 @@ set(regress_0_tests
   regress0/fmf/fmf-strange-bounds-2.smt2
   regress0/fmf/forall_unit_data2.smt2
   regress0/fmf/issue3661-ccard-dec.smt2
+  regress0/fmf/issue4850-force-card.smt2
   regress0/fmf/issue4872-qf_ufc.smt2
   regress0/fmf/issue5239-uf-ss-tot.smt2
   regress0/fmf/krs-sat.smt2
@@ -1304,6 +1305,7 @@ set(regress_0_tests
   regress0/unconstrained/bvslt3.smt2
   regress0/unconstrained/bvslt4.smt2
   regress0/unconstrained/bvslt5.smt2
+  regress0/unconstrained/bvdiv.smt2
   regress0/unconstrained/bvule.smt2
   regress0/unconstrained/bvule2.smt2
   regress0/unconstrained/bvule3.smt2
@@ -1351,6 +1353,7 @@ set(regress_0_tests
 
 set(regress_1_tests
   regress1/abduct-dt.smt2
+  regress1/arith/arith-brab-test.smt2
   regress1/arith/arith-int-004.cvc
   regress1/arith/arith-int-011.cvc
   regress1/arith/arith-int-012.cvc
@@ -1493,6 +1496,9 @@ set(regress_1_tests
   regress1/fmf/sort-inf-int.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
+  regress1/ho/bug_freevar_PHI004^4-delta.smt2
+  regress1/ho/bug_freeVar_BDD_General_data_270.p
+  regress1/ho/bound_var_bug.p
   regress1/ho/fta0328.lfho.p
   regress1/ho/issue3136-fconst-bool-bool.smt2
   regress1/ho/issue4065-no-rep.smt2
@@ -1538,6 +1544,7 @@ set(regress_1_tests
   regress1/nl/factor_agg_s.smt2
   regress1/nl/iand-native-1.smt2
   regress1/nl/iand-native-2.smt2
+  regress1/nl/iand-native-granularities.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -2392,21 +2399,6 @@ set(regress_4_tests
   regress4/bug143.smtv1.smt2
   regress4/comb2.shuffled-as.sat03-420.smtv1.smt2
   regress4/instance_1151.smtv1.smt2
-  
-  regress1/sygus/interpol_from_pono_3.smt2
-  regress1/sygus/interpol_dt.smt2
-  regress1/ho/bug_freevar_PHI004^4-delta.smt2
-  regress1/ho/bug_freeVar_BDD_General_data_270.p
-  regress1/ho/bound_var_bug.p
-  regress1/sets/infinite-type/sets-card-neg-mem-union-2.smt2
-  regress1/arith/arith-brab-test.smt2
-  regress1/quantifiers/issue5373-qe-req-phase.smt2
-  regress1/datatypes/non-simple-rec-set.smt2
-  regress1/nl/iand-native-granularities.smt2
-  regress0/fmf/issue4850-force-card.smt2
-  regress0/unconstrained/bvdiv.smt2
-  regress0/bv/core/equality-05.cvc
-  regress0/quantifiers/qe-skolem-inst.smt2
 )
 
 #-----------------------------------------------------------------------------#
@@ -2446,6 +2438,7 @@ set(regression_disabled_tests
   ###
   regress1/auflia/bug337.smt2
   regress1/bug472.smt2
+  regress1/datatypes/non-simple-rec-set.smt2
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
   # slow on some builds after changes to tangent planes
@@ -2469,12 +2462,16 @@ set(regression_disabled_tests
   regress1/quantifiers/subtype-param.smt2
   ###
   regress1/rels/garbage_collect.cvc
+  # timeout
+  regress1/sets/infinite-type/sets-card-neg-mem-union-2.smt2
   regress1/sets/setofsets-disequal.smt2
   regress1/sets/finite-type/sets-card-neg-mem-union-2.smt2
   regress1/simple-rdl-definefun.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy
+  regress1/sygus/interpol_from_pono_3.smt2
+  regress1/sygus/interpol_dt.smt2
   regress1/sygus/inv_gen_fig8.sy
   # slow (179 seconds) in debug at 45e489e2
   regress1/sygus/unifpi-solve-car_1.lus.sy
