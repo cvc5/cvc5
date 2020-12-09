@@ -37,7 +37,7 @@ inline Node evalMaclaurinExp(std::uint64_t d, TNode t)
   auto* nm = NodeManager::currentNM();
   Node res = nm->mkConst<Rational>(1);
   Node num = nm->mkConst<Rational>(1);
-  std::uint64_t den = 1;
+  Integer den = 1;
   for (std::uint64_t i = 1; i <= d; ++i)
   {
     num = nm->mkNode(Kind::MULT, num, t);
@@ -59,7 +59,7 @@ inline Node evalMaclaurinExpUpper(std::uint64_t d, TNode t)
 {
   auto* nm = NodeManager::currentNM();
   Node f1 = evalMaclaurinExp(d - 1, t);
-  std::uint64_t fac = 1;
+  Integer fac = 1;
   for (std::uint64_t i = 2; i <= d; ++i) fac *= i;
   Node f2 =
       nm->mkNode(Kind::PLUS,
