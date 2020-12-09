@@ -1526,7 +1526,7 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     if (pos < len)
     {
       std::vector<Node> elements = s.getConst<Sequence>().getVec();
-      Node ret = elements[pos];
+      const Node& ret = elements[pos];
       return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
     }
     else if (node.getKind() == SEQ_NTH_TOTAL)
