@@ -36,14 +36,14 @@ TEST_F(TestContextWhite, simple)
   EXPECT_EQ(d_context->getLevel(), 0);
   EXPECT_EQ(d_context->d_scopeList.size(), 1);
 
-  EXPECT_EQ(s->d_pContext, d_context);
+  EXPECT_EQ(s->d_pContext, d_context.get());
   EXPECT_EQ(s->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(s->d_level, 0);
   EXPECT_EQ(s->d_pContextObjList, nullptr);
 
   CDO<int> a(d_context.get());
 
-  EXPECT_EQ(s->d_pContext, d_context);
+  EXPECT_EQ(s->d_pContext, d_context.get());
   EXPECT_EQ(s->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(s->d_level, 0);
   EXPECT_EQ(s->d_pContextObjList, &a);
@@ -55,7 +55,7 @@ TEST_F(TestContextWhite, simple)
 
   CDO<int> b(d_context.get());
 
-  EXPECT_EQ(s->d_pContext, d_context);
+  EXPECT_EQ(s->d_pContext, d_context.get());
   EXPECT_EQ(s->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(s->d_level, 0);
   EXPECT_EQ(s->d_pContextObjList, &b);
@@ -78,12 +78,12 @@ TEST_F(TestContextWhite, simple)
   EXPECT_EQ(d_context->getLevel(), 1);
   EXPECT_EQ(d_context->d_scopeList.size(), 2);
 
-  EXPECT_EQ(s->d_pContext, d_context);
+  EXPECT_EQ(s->d_pContext, d_context.get());
   EXPECT_EQ(s->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(s->d_level, 0);
   EXPECT_EQ(s->d_pContextObjList, &b);
 
-  EXPECT_EQ(t->d_pContext, d_context);
+  EXPECT_EQ(t->d_pContext, d_context.get());
   EXPECT_EQ(t->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(t->d_level, 1);
   EXPECT_EQ(t->d_pContextObjList, nullptr);
@@ -100,7 +100,7 @@ TEST_F(TestContextWhite, simple)
 
   a = 5;
 
-  EXPECT_EQ(t->d_pContext, d_context);
+  EXPECT_EQ(t->d_pContext, d_context.get());
   EXPECT_EQ(t->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(t->d_level, 1);
   EXPECT_EQ(t->d_pContextObjList, &a);
@@ -112,7 +112,7 @@ TEST_F(TestContextWhite, simple)
 
   b = 3;
 
-  EXPECT_EQ(t->d_pContext, d_context);
+  EXPECT_EQ(t->d_pContext, d_context.get());
   EXPECT_EQ(t->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(t->d_level, 1);
   EXPECT_EQ(t->d_pContextObjList, &b);
@@ -142,7 +142,7 @@ TEST_F(TestContextWhite, simple)
 
   d_context->pop();
 
-  EXPECT_EQ(t->d_pContext, d_context);
+  EXPECT_EQ(t->d_pContext, d_context.get());
   EXPECT_EQ(t->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(t->d_level, 1);
   EXPECT_EQ(t->d_pContextObjList, &b);
@@ -159,7 +159,7 @@ TEST_F(TestContextWhite, simple)
 
   d_context->pop();
 
-  EXPECT_EQ(s->d_pContext, d_context);
+  EXPECT_EQ(s->d_pContext, d_context.get());
   EXPECT_EQ(s->d_pCMM, d_context->d_pCMM);
   EXPECT_EQ(s->d_level, 0);
   EXPECT_EQ(s->d_pContextObjList, &c);
