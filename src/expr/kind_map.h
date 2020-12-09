@@ -190,17 +190,18 @@ public:
   }
 
   /** Test equality between two maps. */
-  bool operator==(KindMap m) {
-    for(unsigned i = 0; i < SIZE; ++i) {
-      if(d_bitmap[i] != m.d_bitmap[i]) {
+  bool operator==(const KindMap& m) const
+  {
+    for (size_t i = 0; i < SIZE; ++i)
+    {
+      if (d_bitmap[i] != m.d_bitmap[i])
+      {
         return false;
       }
     }
     return true;
   }
-  bool operator!=(KindMap m) {
-    return !(*this == m);
-  }
+  bool operator!=(const KindMap& m) const { return !(*this == m); }
 };/* class KindMap */
 
 inline KindMap operator~(Kind k) {
