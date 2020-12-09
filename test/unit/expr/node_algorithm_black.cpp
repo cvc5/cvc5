@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file node_algorithm_black.h
+/*! \file node_algorithm_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar, Abdalrhman Mohamed, Andres Noetzli
+ **   Aina Niemetz, Yoni Zohar, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
