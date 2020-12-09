@@ -38,6 +38,8 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(TNode fa, std::uint64_t n)
   NodeManager* nm = NodeManager::currentNM();
   Node d_zero = nm->mkConst(Rational(0));
 
+  AlwaysAssert(fa[0] == d_zero);
+
   Assert(n > 0);
   Node fac;  // what term we cache for fa
   if (fa[0] == d_zero)
