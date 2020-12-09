@@ -144,6 +144,7 @@ set(regress_0_tests
   regress0/auflia/fuzz04.smtv1.smt2
   regress0/auflia/fuzz05.smtv1.smt2
   regress0/auflia/x2.smtv1.smt2
+  regress0/bool/issue1978.smt2
   regress0/boolean-prec.cvc
   regress0/boolean-terms-bug-array.smt2
   regress0/boolean-terms-kernel1.smt2
@@ -764,6 +765,7 @@ set(regress_0_tests
   regress0/quantifiers/cbqi-lia-dt-simp.smt2
   regress0/quantifiers/cegqi-nl-simp.cvc
   regress0/quantifiers/cegqi-nl-sq.smt2
+  regress0/quantifiers/cegqi-par-dt-simple.smt2
   regress0/quantifiers/clock-10.smt2
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
@@ -1091,6 +1093,7 @@ set(regress_0_tests
   regress0/sygus/issue3645-grammar-sets.smt2
   regress0/sygus/issue4383-cache-fv-id.sy
   regress0/sygus/issue4790-dtd.sy
+  regress0/sygus/issue5512-vvv.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-logic.sy
@@ -2349,70 +2352,11 @@ set(regression_disabled_tests
   regress0/bv/core/bv_eq_diamond15.smtv1.smt2
   regress0/bv/core/bv_eq_diamond16.smtv1.smt2
   regress0/bv/core/bv_eq_diamond17.smtv1.smt2
-  regress0/bv/core/concat-merge-0.cvc
-  regress0/bv/core/concat-merge-1.cvc
-  regress0/bv/core/concat-merge-2.cvc
-  regress0/bv/core/concat-merge-3.cvc
   regress0/bv/core/constant_core.smt2
-  regress0/bv/core/equality-00.cvc
-  regress0/bv/core/equality-01.cvc
-  regress0/bv/core/equality-02.cvc
-  regress0/bv/core/equality-03.cvc
-  regress0/bv/core/equality-03.smtv1.smt2
   regress0/bv/core/equality-04.smtv1.smt2
   regress0/bv/core/equality-05.smtv1.smt2
   regress0/bv/core/ext_con_004_001_1024.smtv1.smt2
-  regress0/bv/core/extract-concat-0.cvc
-  regress0/bv/core/extract-concat-1.cvc
-  regress0/bv/core/extract-concat-10.cvc
-  regress0/bv/core/extract-concat-11.cvc
-  regress0/bv/core/extract-concat-2.cvc
-  regress0/bv/core/extract-concat-3.cvc
-  regress0/bv/core/extract-concat-4.cvc
-  regress0/bv/core/extract-concat-5.cvc
-  regress0/bv/core/extract-concat-6.cvc
-  regress0/bv/core/extract-concat-7.cvc
-  regress0/bv/core/extract-concat-8.cvc
-  regress0/bv/core/extract-concat-9.cvc
-  regress0/bv/core/extract-constant.cvc
-  regress0/bv/core/extract-extract-0.cvc
-  regress0/bv/core/extract-extract-1.cvc
-  regress0/bv/core/extract-extract-10.cvc
-  regress0/bv/core/extract-extract-11.cvc
-  regress0/bv/core/extract-extract-2.cvc
-  regress0/bv/core/extract-extract-3.cvc
-  regress0/bv/core/extract-extract-4.cvc
-  regress0/bv/core/extract-extract-5.cvc
-  regress0/bv/core/extract-extract-6.cvc
-  regress0/bv/core/extract-extract-7.cvc
-  regress0/bv/core/extract-extract-8.cvc
-  regress0/bv/core/extract-extract-9.cvc
-  regress0/bv/core/extract-whole-0.cvc
-  regress0/bv/core/extract-whole-1.cvc
-  regress0/bv/core/extract-whole-2.cvc
-  regress0/bv/core/extract-whole-3.cvc
-  regress0/bv/core/extract-whole-4.cvc
   regress0/bv/core/incremental.smtv1.smt2
-  regress0/bv/core/slice-01.cvc
-  regress0/bv/core/slice-02.cvc
-  regress0/bv/core/slice-03.cvc
-  regress0/bv/core/slice-04.cvc
-  regress0/bv/core/slice-05.cvc
-  regress0/bv/core/slice-06.cvc
-  regress0/bv/core/slice-07.cvc
-  regress0/bv/core/slice-08.cvc
-  regress0/bv/core/slice-09.cvc
-  regress0/bv/core/slice-10.cvc
-  regress0/bv/core/slice-11.cvc
-  regress0/bv/core/slice-12.cvc
-  regress0/bv/core/slice-13.cvc
-  regress0/bv/core/slice-14.cvc
-  regress0/bv/core/slice-15.cvc
-  regress0/bv/core/slice-16.cvc
-  regress0/bv/core/slice-17.cvc
-  regress0/bv/core/slice-18.cvc
-  regress0/bv/core/slice-19.cvc
-  regress0/bv/core/slice-20.cvc
   regress0/bv/fuzz07-delta.smtv1.smt2
   # Proof checking takes too long. Add this back. FIXME
   regress0/bv/fuzz15.delta01.smtv1.smt2
@@ -2449,7 +2393,6 @@ set(regression_disabled_tests
   regress0/quantifiers/qbv-test-invert-concat-1-neq.smt2
   # times out on some CI configs after dt fact vs lemma update #5115
   regress0/rels/rel_tc_7.cvc
-  regress0/sets/mar2014/stacks0.hs.78.cvc4.smt2
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-new.smt2
   regress0/sets/sets-testlemma-ints.smt2
@@ -2480,100 +2423,14 @@ set(regression_disabled_tests
   # lianah: disabled these as the unconstrained terms are no longer
   # recognized after implementing the divide-by-zero semantics for bv division:
   regress0/unconstrained/bvconcat.smt2
-  regress0/unconstrained/bvdiv.smtv1.smt2
-  ###
-  regress1/arith/arith-int-001.cvc
-  regress1/arith/arith-int-002.cvc
-  regress1/arith/arith-int-003.cvc
-  regress1/arith/arith-int-005.cvc
-  regress1/arith/arith-int-006.cvc
-  regress1/arith/arith-int-007.cvc
-  regress1/arith/arith-int-008.cvc
-  regress1/arith/arith-int-009.cvc
-  regress1/arith/arith-int-010.cvc
-  regress1/arith/arith-int-016.cvc
-  regress1/arith/arith-int-017.cvc
-  regress1/arith/arith-int-018.cvc
-  regress1/arith/arith-int-019.cvc
-  regress1/arith/arith-int-020.cvc
-  regress1/arith/arith-int-026.cvc
-  regress1/arith/arith-int-027.cvc
-  regress1/arith/arith-int-028.cvc
-  regress1/arith/arith-int-029.cvc
-  regress1/arith/arith-int-030.cvc
-  regress1/arith/arith-int-031.cvc
-  regress1/arith/arith-int-032.cvc
-  regress1/arith/arith-int-033.cvc
-  regress1/arith/arith-int-034.cvc
-  regress1/arith/arith-int-035.cvc
-  regress1/arith/arith-int-036.cvc
-  regress1/arith/arith-int-037.cvc
-  regress1/arith/arith-int-038.cvc
-  regress1/arith/arith-int-039.cvc
-  regress1/arith/arith-int-040.cvc
-  regress1/arith/arith-int-041.cvc
-  regress1/arith/arith-int-043.cvc
-  regress1/arith/arith-int-044.cvc
-  regress1/arith/arith-int-045.cvc
-  regress1/arith/arith-int-046.cvc
-  regress1/arith/arith-int-049.cvc
-  regress1/arith/arith-int-051.cvc
-  regress1/arith/arith-int-052.cvc
-  regress1/arith/arith-int-053.cvc
-  regress1/arith/arith-int-054.cvc
-  regress1/arith/arith-int-055.cvc
-  regress1/arith/arith-int-056.cvc
-  regress1/arith/arith-int-057.cvc
-  regress1/arith/arith-int-058.cvc
-  regress1/arith/arith-int-059.cvc
-  regress1/arith/arith-int-060.cvc
-  regress1/arith/arith-int-061.cvc
-  regress1/arith/arith-int-062.cvc
-  regress1/arith/arith-int-063.cvc
-  regress1/arith/arith-int-064.cvc
-  regress1/arith/arith-int-065.cvc
-  regress1/arith/arith-int-066.cvc
-  regress1/arith/arith-int-067.cvc
-  regress1/arith/arith-int-068.cvc
-  regress1/arith/arith-int-069.cvc
-  regress1/arith/arith-int-070.cvc
-  regress1/arith/arith-int-071.cvc
-  regress1/arith/arith-int-072.cvc
-  regress1/arith/arith-int-073.cvc
-  regress1/arith/arith-int-074.cvc
-  regress1/arith/arith-int-075.cvc
-  regress1/arith/arith-int-076.cvc
-  regress1/arith/arith-int-077.cvc
-  regress1/arith/arith-int-078.cvc
-  regress1/arith/arith-int-080.cvc
-  regress1/arith/arith-int-081.cvc
-  regress1/arith/arith-int-082.cvc
-  regress1/arith/arith-int-083.cvc
-  regress1/arith/arith-int-086.cvc
-  regress1/arith/arith-int-087.cvc
-  regress1/arith/arith-int-088.cvc
-  regress1/arith/arith-int-089.cvc
-  regress1/arith/arith-int-090.cvc
-  regress1/arith/arith-int-091.cvc
-  regress1/arith/arith-int-092.cvc
-  regress1/arith/arith-int-093.cvc
-  regress1/arith/arith-int-094.cvc
-  regress1/arith/arith-int-095.cvc
-  regress1/arith/arith-int-096.cvc
-  regress1/arith/arith-int-099.cvc
-  regress1/arith/arith-int-100.cvc
   regress1/auflia/bug337.smt2
   regress1/bug472.smt2
-  regress1/bug585.cvc
   regress1/bug590.smt2
   regress1/bv/bench_38.delta.smt2
-  regress1/crash_burn_locusts.smt2
-  # regress1/ho/hoa0102.smt2 results in an assertion failure (see issue #1650).
+  # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
   # unknown after update to commands
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
-  # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
-  regress1/issue1048-arrays-int-real.smt2
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
   # times out after no expand definitions for arithmetic
@@ -2610,7 +2467,6 @@ set(regression_disabled_tests
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
   regress1/sygus/Base16_1.sy
-  regress1/sygus/enum-test.sy
   regress1/sygus/inv_gen_fig8.sy
   # slow (179 seconds) in debug at 45e489e2
   regress1/sygus/unifpi-solve-car_1.lus.sy
