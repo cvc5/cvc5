@@ -2049,7 +2049,7 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   }
   out << '\n';
   // print grammar, if any
-  if (sygusType != TypeNode::null())
+  if (!sygusType.isNull())
   {
     toStreamSygusGrammar(out, sygusType);
   }

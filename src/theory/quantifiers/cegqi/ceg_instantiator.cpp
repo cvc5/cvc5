@@ -344,12 +344,24 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     const DType& dt = tn.getDType();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      // get the constructor type
+      TypeNode consType;
+      if (dt.isParametric())
       {
-        TypeNode crange = dt[i].getArgType(j);
+        // if parametric, must instantiate the argument types
+        consType = dt[i].getSpecializedConstructorType(tn);
+      }
+      else
+      {
+        consType = dt[i].getConstructor().getType();
+      }
+      for (const TypeNode& crange : consType)
+      {
         CegHandledStatus cret = isCbqiSort(crange, visited, qe);
         if (cret == CEG_UNHANDLED)
         {
+          Trace("cegqi-debug2")
+              << "Non-cbqi sort : " << tn << " due to " << crange << std::endl;
           visited[tn] = CEG_UNHANDLED;
           return CEG_UNHANDLED;
         }
