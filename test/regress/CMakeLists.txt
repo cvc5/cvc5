@@ -2430,7 +2430,6 @@ set(regression_disabled_tests
   regress1/ho/hoa0102.smt2
   # unknown after update to commands
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
-  # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
   # times out after no expand definitions for arithmetic
