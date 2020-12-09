@@ -809,6 +809,7 @@ set(regress_0_tests
   regress0/quantifiers/cbqi-lia-dt-simp.smt2
   regress0/quantifiers/cegqi-nl-simp.cvc
   regress0/quantifiers/cegqi-nl-sq.smt2
+  regress0/quantifiers/cegqi-par-dt-simple.smt2
   regress0/quantifiers/clock-10.smt2
   regress0/quantifiers/clock-3.smt2
   regress0/quantifiers/cond-var-elim-binary.smt2
@@ -2432,7 +2433,6 @@ set(regression_disabled_tests
   regress1/bug472.smt2
   # results in an assertion failure (see issue #1650).
   regress1/ho/hoa0102.smt2
-  # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
   # times out after update to tangent planes
