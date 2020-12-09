@@ -1450,49 +1450,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // call preprocessor
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  TrustNode tplemma =
-      d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
-  // the preprocessed lemma
-  Node lemmap;
-  if (tplemma.isNull())
-  {
-    lemmap = lemma;
-  }
-  else
-  {
-    Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
-    lemmap = tplemma.getNode();
-
-    // must update the trust lemma
-    if (lemmap != lemma)
-    {
-      // process the preprocessing
-      if (isProofEnabled())
-      {
-        Assert(d_lazyProof != nullptr);
-        // add the original proof to the lazy proof
-        d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
-        // only need to do anything if lemmap changed in a non-trivial way
-        if (!CDProof::isSame(lemmap, lemma))
-        {
-          d_lazyProof->addLazyStep(tplemma.getProven(),
-                                   tplemma.getGenerator(),
-                                   PfRule::PREPROCESS_LEMMA,
-                                   true,
-                                   "TheoryEngine::lemma_pp");
-          // ---------- from d_lazyProof -------------- from theory preprocess
-          // lemma                       lemma = lemmap
-          // ------------------------------------------ EQ_RESOLVE
-          // lemmap
-          std::vector<Node> pfChildren;
-          pfChildren.push_back(lemma);
-          pfChildren.push_back(tplemma.getProven());
-          d_lazyProof->addStep(lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
-        }
-      }
-      tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());
-    }
-  }
+  TrustNode tplemma = d_tpp.preprocessLemma(tlemma, newLemmas, newSkolems, preprocess);
 
   Assert(newSkolems.size() == newLemmas.size());
 
@@ -1501,7 +1459,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // by extension must be justified as well.
   if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
   {
-    d_relManager->notifyPreprocessedAssertion(tlemma.getProven());
+    d_relManager->notifyPreprocessedAssertion(tplemma.getProven());
     for (const theory::TrustNode& tnl : newLemmas)
     {
       d_relManager->notifyPreprocessedAssertion(tnl.getProven());
@@ -1511,9 +1469,9 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // do final checks on the lemmas we are about to send
   if (isProofEnabled())
   {
-    Assert(tlemma.getGenerator() != nullptr);
+    Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug
-    tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+    tplemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
     for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
     {
       Assert(newLemmas[i].getGenerator() != nullptr);
@@ -1524,7 +1482,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
 
   if (Trace.isOn("te-lemma"))
   {
-    Trace("te-lemma") << "Lemma, output: " << tlemma.getProven() << std::endl;
+    Trace("te-lemma") << "Lemma, output: " << tplemma.getProven() << std::endl;
     for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
     {
       Trace("te-lemma") << "Lemma, new lemma: " << newLemmas[i].getProven()
@@ -1533,14 +1491,14 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // now, send the lemmas to the prop engine
-  d_propEngine->assertLemmas(tlemma, newLemmas, newSkolems, removable);
+  d_propEngine->assertLemmas(tplemma, newLemmas, newSkolems, removable);
 
   // Mark that we added some lemmas
   d_lemmasAdded = true;
 
   // Lemma analysis isn't online yet; this lemma may only live for this
   // user level.
-  Node retLemma = tlemma.getNode();
+  Node retLemma = tplemma.getNode();
   if (!newLemmas.empty())
   {
     std::vector<Node> lemmas{retLemma};
