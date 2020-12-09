@@ -78,7 +78,7 @@ TEST_F(TestExprBlackKindMap, iteration)
   EXPECT_EQ(i, m.end());
 
   m = ~m;
-  unsigned k = 0;
+  uint32_t k = 0;
   for (i = m.begin(); i != m.end(); ++i, ++k)
   {
     while (k == AND || k == OR)

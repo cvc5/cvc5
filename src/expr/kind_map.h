@@ -231,7 +231,7 @@ public:
   /** Test equality between two maps. */
   bool operator==(const KindMap& m) const
   {
-    for (unsigned i = 0; i < SIZE; ++i)
+    for (size_t i = 0; i < SIZE; ++i)
     {
       if (d_bitmap[i] != m.d_bitmap[i])
       {
