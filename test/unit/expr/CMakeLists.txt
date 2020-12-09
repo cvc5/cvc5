@@ -12,7 +12,7 @@
 # Add unit tests
 
 cvc4_add_unit_test_black(attribute_black expr)
-cvc4_add_cxx_unit_test_white(attribute_white expr)
+cvc4_add_unit_test_white(attribute_white expr)
 cvc4_add_cxx_unit_test_black(kind_black expr)
 cvc4_add_unit_test_black(kind_map_black expr)
 cvc4_add_cxx_unit_test_black(node_black expr)
