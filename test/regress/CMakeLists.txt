@@ -2302,8 +2302,9 @@ set(regress_4_tests
   # !! regress4/NEQ016_size5.smtv1.smt2
   # !! regress4/bug143.smtv1.smt2
   # !! regress4/comb2.shuffled-as.sat03-420.smtv1.smt2
-  regress4/hole10.cvc
+  regress2/hole10.cvc
   # !! regress4/instance_1151.smtv1.smt2
+  
   regress0/arith/bug549.cvc
   regress0/arith/incorrect1.smtv1.smt2
   regress0/arith/integers/arith-int-014.cvc
@@ -2319,8 +2320,8 @@ set(regress_4_tests
   regress0/arr1.smt2
   regress0/arr2.smtv1.smt2
   # regress0/aufbv/bug348 does not seem to terminate with proofs
-  regress0/aufbv/bug348.smtv1.smt2
-  regress0/aufbv/bug349.smtv1.smt2
+  regress1/aufbv/bug348.smtv1.smt2
+  regress2/bug349.smtv1.smt2
   regress0/aufbv/bug493.smtv1.smt2
   # !! regress0/aufbv/dubreva005ue.smtv1.smt2
   # !! regress0/aufbv/fifo32bc06k08.smtv1.smt2
@@ -2331,7 +2332,7 @@ set(regress_4_tests
   # !! regress0/aufbv/wchains010ue.smtv1.smt2
   # !! regress0/auflia/fuzz01.smtv1.smt2
   # !! regress0/bug2.smtv1.smt2
-  regress0/bug374.smtv1.smt2
+  regress2/bug374.smtv1.smt2
   regress0/bv/bug345.smtv1.smt2
   regress0/bv/bvcomp.cvc
   regress0/bv/bvsmod.smt2
@@ -2345,70 +2346,11 @@ set(regress_4_tests
   regress0/bv/core/bv_eq_diamond15.smtv1.smt2
   regress0/bv/core/bv_eq_diamond16.smtv1.smt2
   regress0/bv/core/bv_eq_diamond17.smtv1.smt2
-  
-  
-  
-  
   regress0/bv/core/constant_core.smt2
-  
-  
-  
-  
-  
   regress0/bv/core/equality-04.smtv1.smt2
   regress0/bv/core/equality-05.smtv1.smt2
   # !! regress0/bv/core/ext_con_004_001_1024.smtv1.smt2
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   regress0/bv/core/incremental.smtv1.smt2
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   regress0/bv/fuzz07-delta.smtv1.smt2
   # Proof checking takes too long. Add this back. FIXME
   regress0/bv/fuzz15.delta01.smtv1.smt2
@@ -2417,7 +2359,7 @@ set(regress_4_tests
   # !! regress0/bv/fuzz16.smtv1.smt2
   # !! regress0/bv/fuzz17.smtv1.smt2
   regress0/bv/incorrect1.delta01.smtv1.smt2
-  regress0/bv/incorrect1.smtv1.smt2
+  regress1/bv/incorrect1.smtv1.smt2
   regress0/bv/inequality00.smt2
   regress0/bv/inequality01.smt2
   regress0/bv/inequality02.smt2
@@ -2438,14 +2380,13 @@ set(regress_4_tests
   # !! regress0/lemmas/fischer3-mutex-16.smtv1.smt2
   regress0/nl/all-logic.smt2
   # timeout after change to datatypes, impacting sygus-inst
-  regress0/quantifiers/issue4476-ext-rew.smt2
+  regress1/quantifiers/issue4476-ext-rew.smt2
   regress0/quantifiers/qbv-multi-lit-uge.smt2
   regress0/quantifiers/qbv-test-invert-bvshl-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-0-neq.smt2
   regress0/quantifiers/qbv-test-invert-concat-1-neq.smt2
   # times out on some CI configs after dt fact vs lemma update #5115
   regress0/rels/rel_tc_7.cvc
-  
   regress0/sets/setel-eq.smt2
   regress0/sets/sets-new.smt2
   regress0/sets/sets-testlemma-ints.smt2
@@ -2553,6 +2494,7 @@ set(regress_4_tests
 # Disabled tests, will not be run.
 
 set(regression_disabled_tests
+  
 )
 
 #-----------------------------------------------------------------------------#
