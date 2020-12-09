@@ -36,9 +36,8 @@ void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_PI, this);
 }
 
-Node TranscendentalProofRuleChecker::checkInternal(PfRule id,
-                                        const std::vector<Node>& children,
-                                        const std::vector<Node>& args)
+Node TranscendentalProofRuleChecker::checkInternal(
+    PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
   auto zero = nm->mkConst<Rational>(0);
@@ -55,10 +54,8 @@ Node TranscendentalProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 2);
-    return nm->mkAnd(std::vector<Node>{
-      nm->mkNode(Kind::GEQ, pi, args[0]),
-      nm->mkNode(Kind::LEQ, pi, args[1])
-    });
+    return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, pi, args[0]),
+                                       nm->mkNode(Kind::LEQ, pi, args[1])});
   }
   else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
   {
@@ -134,7 +131,7 @@ Node TranscendentalProofRuleChecker::checkInternal(PfRule id,
   return Node::null();
 }
 
-}
+}  // namespace transcendental
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory

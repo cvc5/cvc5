@@ -1450,7 +1450,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // call preprocessor
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  TrustNode tplemma = d_tpp.preprocessLemma(tlemma, newLemmas, newSkolems, preprocess);
+  TrustNode tplemma =
+      d_tpp.preprocessLemma(tlemma, newLemmas, newSkolems, preprocess);
 
   Assert(newSkolems.size() == newLemmas.size());
 

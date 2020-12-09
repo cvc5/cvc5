@@ -225,13 +225,14 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
 }
 
 TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
-                      std::vector<TrustNode>& newLemmas,
-                      std::vector<Node>& newSkolems,
-                      bool doTheoryPreprocess)
+                                              std::vector<TrustNode>& newLemmas,
+                                              std::vector<Node>& newSkolems,
+                                              bool doTheoryPreprocess)
 {
   // what was originally proven
   Node lemma = node.getProven();
-  TrustNode tplemma = preprocess(lemma, newLemmas, newSkolems, doTheoryPreprocess);
+  TrustNode tplemma =
+      preprocess(lemma, newLemmas, newSkolems, doTheoryPreprocess);
   if (tplemma.isNull())
   {
     // no change needed
@@ -240,7 +241,7 @@ TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
   Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
   // what it was preprocessed to
   Node lemmap = tplemma.getNode();
-  Assert(lemmap!=node.getProven());
+  Assert(lemmap != node.getProven());
   // process the preprocessing
   if (isProofEnabled())
   {
@@ -251,10 +252,10 @@ TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
     if (!CDProof::isSame(lemmap, lemma))
     {
       d_lp->addLazyStep(tplemma.getProven(),
-                                tplemma.getGenerator(),
-                                PfRule::PREPROCESS_LEMMA,
-                                true,
-                                "TheoryEngine::lemma_pp");
+                        tplemma.getGenerator(),
+                        PfRule::PREPROCESS_LEMMA,
+                        true,
+                        "TheoryEngine::lemma_pp");
       // ---------- from node -------------- from theory preprocess
       // lemma                lemma = lemmap
       // ------------------------------------------ EQ_RESOLVE
