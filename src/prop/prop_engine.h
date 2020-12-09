@@ -108,13 +108,13 @@ class PropEngine
    *
    * @param trn the trust node storing the formula to assert
    * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic (or not)
+   * on an activity heuristic
    */
   void assertLemma(theory::TrustNode trn, bool removable);
 
   /**
-   * Assert lemma trn with preprocessing lemmas newLemmas which corresponding
-   * to lemmas for skolems in newSkolems.
+   * Assert lemma trn with preprocessing lemmas ppLemmas which correspond
+   * to lemmas for skolems in ppSkolems.
    *
    * @param trn the trust node storing the formula to assert
    * @param ppLemmas the lemmas from preprocessing and term formula removal on
@@ -122,7 +122,7 @@ class PropEngine
    * @param ppSkolem the skolem that each lemma in ppLemma constrains. It should
    * be the case that ppLemmas.size()==ppSkolems.size().
    * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic (or not)
+   * on an activity heuristic
    */
   void assertLemmas(theory::TrustNode trn,
                     std::vector<theory::TrustNode>& ppLemmas,
