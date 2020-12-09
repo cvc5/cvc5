@@ -282,7 +282,6 @@ set(regress_0_tests
   regress0/bv/core/equality-02.smtv1.smt2
   regress0/bv/core/equality-04.smtv1.smt2
   regress0/bv/core/equality-05.smtv1.smt2
-  regress0/bv/core/equality-05.smtv1.smt2
   regress0/bv/core/extract-concat-0.smtv1.smt2
   regress0/bv/core/extract-concat-1.smtv1.smt2
   regress0/bv/core/extract-concat-10.smtv1.smt2
@@ -1052,7 +1051,6 @@ set(regress_0_tests
   regress0/smtlib/reset-set-logic.smt2
   regress0/smtlib/reset.smt2
   regress0/smtlib/set-info-status.smt2
-  regress0/strings/bidir_star.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
@@ -2298,6 +2296,7 @@ set(regress_2_tests
   regress2/quantifiers/small-bug1-fixpoint-3.smt2
   regress2/quantifiers/syn874-1.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
+  regress2/strings/bidir_star.smt2
   regress2/strings/cmi-split-cm-fail.smt2
   regress2/strings/cmu-dis-0707-3.smt2
   regress2/strings/cmu-disagree-0707-dd.smt2
@@ -2376,14 +2375,12 @@ set(regress_3_tests
   regress3/incorrect1.smtv1.smt2
   regress3/interpol2.smt2
   regress3/inv_gen_n_c11.sy
-  regress3/issue2429.smt2
   regress3/issue4170.smt2
   regress3/issue4714.smt2
   regress3/lpsat-goal-9.smt2
   regress3/nia-max-square.sy
   regress3/PEQ018_size4.smtv1.smt2
   regress3/policyM.sy
-  regress3/pp-regfile.smtv1.smt2
   regress3/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
   regress3/regex-rrv.sy
@@ -2394,7 +2391,6 @@ set(regress_3_tests
   regress3/strings/extf_d_perf.smt2
   regress3/strings/norn-dis-0707-3.smt2
   regress3/strings/replace_re_all.smt2
-  regress3/strings/unsat-circ-reduce.smt2
   regress3/unbdd_inv_gen_ex7.sy
   regress3/unifpi-solve-car_1.lus.sy
   regress3/vcb.sy
@@ -2411,10 +2407,13 @@ set(regress_4_tests
   regress4/comb2.shuffled-as.sat03-420.smtv1.smt2
   regress4/fischer3-mutex-16.smtv1.smt2
   regress4/instance_1151.smtv1.smt2
+  regress4/issue2429.smt2
   regress4/miplib-pp08a-3000.smt2
   regress4/miplib-pp08a-3000.smtv1.smt2
   regress4/NEQ016_size5.smtv1.smt2
+  regress4/pp-regfile.smtv1.smt2
   regress4/sets-card-neg-mem-union-2.smt2
+  regress4/unsat-circ-reduce.smt2
   regress4/xs-11-20-5-2-5-3.smt2
   regress4/xs-11-20-5-2-5-3.smtv1.smt2
 )
