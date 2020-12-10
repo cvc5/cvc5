@@ -9,13 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Common header for Expr unit tests.
+ ** \brief Common header for Node unit tests.
  **/
 
-#ifndef CVC4__TEST__UNIT__TEST_EXPR_H
-#define CVC4__TEST__UNIT__TEST_EXPR_H
+#ifndef CVC4__TEST__UNIT__TEST_NODE_H
+#define CVC4__TEST__UNIT__TEST_NODE_H
 
-#include "expr/expr_manager.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -25,32 +24,23 @@
 namespace CVC4 {
 namespace test {
 
-class TestExprBlack : public TestApi
-{
- protected:
-  void SetUp() override
-  {
-    d_exprManager = d_solver.getExprManager();
-    d_nodeManager = NodeManager::fromExprManager(d_exprManager);
-    d_smtEngine = d_solver.getSmtEngine();
-    d_scope.reset(new smt::SmtScope(d_smtEngine));
-  }
-  std::unique_ptr<smt::SmtScope> d_scope;
-  ExprManager* d_exprManager;
-  NodeManager* d_nodeManager;
-  SmtEngine* d_smtEngine;
-};
-
-class TestExprWhite : public TestApi
+class TestNodeBlack : public TestInternal
 {
  protected:
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager(nullptr));
     d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
+    d_intTypeNode.reset(new TypeNode(d_nodeManager->integerType()));
+    d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
+    d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));
   }
-  std::unique_ptr<NodeManager> d_nodeManager;
+
   std::unique_ptr<NodeManagerScope> d_scope;
+  std::unique_ptr<NodeManager> d_nodeManager;
+  std::unique_ptr<TypeNode> d_intTypeNode;
+  std::unique_ptr<TypeNode> d_boolTypeNode;
+  std::unique_ptr<TypeNode> d_bvTypeNode;
 };
 
 }  // namespace test
