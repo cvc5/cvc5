@@ -27,17 +27,16 @@
 
 namespace CVC4 {
 
-/** A bitmap for Kinds */
-class KindMap : public std::bitset<kind::LAST_KIND>
+/** A very simple bitmap for Kinds */
+class KindMap 
 {
-  /** The base class to ease calling overriden methods */
-  using Base = std::bitset<kind::LAST_KIND>;
-
  public:
   /** Set the bit for k */
-  void set(Kind k) { Base::set(fromKind(k)); }
+  void set(Kind k) { d_bits.set(fromKind(k)); }
+  /** Reset the bit for k */
+  void reset(Kind k) { d_bits.reset(fromKind(k)); }
   /** Check whether the bit for k is set */
-  bool test(Kind k) const { return Base::test(fromKind(k)); }
+  bool test(Kind k) const { return d_bits.test(fromKind(k)); }
   /** Check whether the bit for k is set */
   bool operator[](Kind k) const { return test(k); }
 
@@ -48,6 +47,8 @@ class KindMap : public std::bitset<kind::LAST_KIND>
     AssertArgument(k >= Kind(0) && k < kind::LAST_KIND, k, "invalid kind");
     return static_cast<std::size_t>(k);
   }
+  /** The bitmap */
+  std::bitset<kind::LAST_KIND> d_bits;
 };
 
 }  // namespace CVC4

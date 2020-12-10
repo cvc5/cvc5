@@ -34,11 +34,11 @@ class TestExprBlackKindMap : public TestExprBlack
 TEST_F(TestExprBlackKindMap, simple)
 {
   KindMap map;
-  ASSERT_TRUE(map.none());
+  ASSERT_FALSE(map.test(AND));
   map.set(AND);
-  ASSERT_FALSE(map.none());
+  ASSERT_TRUE(map.test(AND));
   map.reset(AND);
-  ASSERT_TRUE(map.none());
+  ASSERT_FALSE(map.test(AND));
 #ifdef CVC4_ASSERTIONS
   ASSERT_THROW(map.set(LAST_KIND), AssertArgumentException);
 #endif
