@@ -2223,8 +2223,8 @@ bool isInteger(const CVC4::Node& node)
 }
 Integer getInteger(const CVC4::Node& node)
 {
-  CVC4_API_CHECK(isInteger(node))
-      << "Term should be a integer when calling getInteger()";
+  CVC4_API_CHECK(isInteger())
+      << "Term should be an Integer when calling getInteger()";
   return node.getConst<Rational>().getNumerator();
 }
 template <typename T>
