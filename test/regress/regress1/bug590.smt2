@@ -1,7 +1,7 @@
 ; EXPECT: unknown
 ; EXPECT: ((charlst2 ((as const (Array Int String)) "")))
 
-(set-logic QF_ALL_SUPPORTED)
+(set-logic ALL)
 (set-option :strings-exp true)
 (set-option :produce-models true)
 (set-info :smt-lib-version 2.0)

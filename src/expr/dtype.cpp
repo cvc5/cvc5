@@ -171,7 +171,7 @@ bool DType::resolve(const std::map<std::string, TypeNode>& resolutions,
 
   d_involvesExt = false;
   d_involvesUt = false;
-  for (const std::shared_ptr<DTypeConstructor> ctor : d_constructors)
+  for (const std::shared_ptr<DTypeConstructor>& ctor : d_constructors)
   {
     if (ctor->involvesExternalType())
     {
