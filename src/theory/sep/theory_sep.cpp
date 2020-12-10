@@ -755,7 +755,7 @@ void TheorySep::postCheck(Effort level)
 
       // get model values
       std::map<int, Node> mvals;
-      for (const std::pair<int, Node>& sub_element : d_label_map[satom][slbl])
+      for (const std::pair<const int, Node>& sub_element : d_label_map[satom][slbl])
       {
         int sub_index = sub_element.first;
         Node sub_lbl = sub_element.second;
