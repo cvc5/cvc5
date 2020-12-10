@@ -1248,6 +1248,8 @@ class CVC4_PUBLIC Term
   std::pair<std::int32_t, std::uint32_t> getReal32() const;
   bool isReal64() const;
   std::pair<std::int64_t, std::uint64_t> getReal64() const;
+  bool isRealString() const;
+  std::string getRealString() const;
   bool isPi() const;
 
   // Arrays
