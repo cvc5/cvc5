@@ -28,7 +28,7 @@
 namespace CVC4 {
 
 /** A very simple bitmap for Kinds */
-class KindMap 
+class KindMap
 {
  public:
   /** Set the bit for k */
