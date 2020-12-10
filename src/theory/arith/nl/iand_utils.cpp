@@ -228,7 +228,7 @@ void IAndUtils::addDefaultValue(
   {
     counters[i] = 0;
   }
-  for (const std::pair<std::pair<int64_t, int64_t>, uint64_t>& element : table)
+  for (const auto& element : table)
   {
     uint64_t result = element.second;
     counters[result]++;

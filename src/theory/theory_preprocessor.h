@@ -63,12 +63,28 @@ class TheoryPreprocessor
    * @param newLemmas The lemmas to add to the set of assertions,
    * @param newSkolems The skolems that newLemmas correspond to,
    * @param doTheoryPreprocess whether to run theory-specific preprocessing.
-   * @return The trust node corresponding to rewriting node via preprocessing.
+   * @return The (REWRITE) trust node corresponding to rewritten node via
+   * preprocessing.
    */
   TrustNode preprocess(TNode node,
                        std::vector<TrustNode>& newLemmas,
                        std::vector<Node>& newSkolems,
                        bool doTheoryPreprocess);
+  /**
+   * Same as above, but transforms the proof of node into a proof of the
+   * preprocessed node.
+   *
+   * @param node The assertion to preprocess,
+   * @param newLemmas The lemmas to add to the set of assertions,
+   * @param newSkolems The skolems that newLemmas correspond to,
+   * @param doTheoryPreprocess whether to run theory-specific preprocessing.
+   * @return The (LEMMA) trust node corresponding to the proof of the rewritten
+   * form of the proven field of node.
+   */
+  TrustNode preprocessLemma(TrustNode node,
+                            std::vector<TrustNode>& newLemmas,
+                            std::vector<Node>& newSkolems,
+                            bool doTheoryPreprocess);
   /**
    * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs
