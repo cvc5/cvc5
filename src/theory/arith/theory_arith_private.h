@@ -237,7 +237,7 @@ private:
   context::CDQueue<ArithVar> d_constantIntegerVariables;
 
   Node callDioSolver();
-  Node dioCutting();
+  TrustNode dioCutting();
 
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
@@ -552,9 +552,11 @@ private:
    * Returns a cut for a lemma.
    * If there is an integer model, this returns Node::null().
    */
-  Node roundRobinBranch();
+  TrustNode roundRobinBranch();
 
-public:
+  bool proofsEnabled() const { return d_pnm; }
+
+ public:
   /**
    * This requests a new unique ArithVar value for x.
    * This also does initial (not context dependent) set up for a variable,
@@ -703,13 +705,13 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
-  context::CDQueue<Node> d_approxCuts;
+  context::CDQueue<TrustNode> d_approxCuts;
   std::vector<Node> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  Node branchIntegerVariable(ArithVar x) const;
+  TrustNode branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
