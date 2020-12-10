@@ -277,15 +277,15 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
 }
 
 void EqualityEngine::addFunctionKind(Kind fun, bool interpreted, bool extOperator) {
-  d_congruenceKinds |= fun;
+  d_congruenceKinds.set(fun);
   if (fun != kind::EQUAL) {
     if (interpreted) {
       Debug("equality::evaluation") << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted " << std::endl;
-      d_congruenceKindsInterpreted |= fun;
+      d_congruenceKindsInterpreted.set(fun);
     }
     if (extOperator) {
       Debug("equality::extoperator") << d_name << "::eq::addFunctionKind(): " << fun << " is an external operator kind " << std::endl;
-      d_congruenceKindsExtOperators |= fun;
+      d_congruenceKindsExtOperators.set(fun);
     }
   }
 }
