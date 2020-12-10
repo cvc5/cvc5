@@ -1286,7 +1286,7 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
     explainPredicate(atom, polarity, tassumptions);
   }
   // ensure that duplicates are removed
-  for (const TNode a : tassumptions)
+  for (TNode a : tassumptions)
   {
     if (std::find(assumptions.begin(), assumptions.end(), a)
         == assumptions.end())

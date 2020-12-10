@@ -1163,7 +1163,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   {
     const std::map<TypeNode, std::vector<TNode> >& slackElements =
         d_cardSolver->getFiniteTypeSlackElements();
-    for (const std::pair<TypeNode, std::vector<TNode> >& pair : slackElements)
+    for (const auto& pair : slackElements)
     {
       const std::vector<Node>& members =
           d_cardSolver->getFiniteTypeMembers(pair.first);

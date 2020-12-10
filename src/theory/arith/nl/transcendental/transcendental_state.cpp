@@ -23,21 +23,6 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-namespace {
-
-/**
- * Ensure a is in the main phase:
- *   -pi <= a <= pi
- */
-inline Node mkValidPhase(TNode a, TNode pi)
-{
-  return mkBounded(
-      NodeManager::currentNM()->mkNode(Kind::MULT, mkRationalNode(-1), pi),
-      a,
-      pi);
-}
-}  // namespace
-
 TranscendentalState::TranscendentalState(InferenceManager& im, NlModel& model)
     : d_im(im), d_model(model)
 {
