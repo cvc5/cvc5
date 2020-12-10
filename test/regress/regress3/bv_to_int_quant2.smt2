@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=sum --no-check-models
+; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=bitwise --no-check-models
 ; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=bv --no-check-models
 ; COMMAND-LINE: --cegqi-all --full-saturate-quant --solve-bv-as-int=iand --no-check-models
 ; EXPECT: sat
