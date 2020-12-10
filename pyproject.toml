@@ -13,6 +13,5 @@
 ## This file can be safely ignored, it is for build infrastructure
 ## only (such as pip wheel)
 
-# TODO: consider putting ninja back in. Took it out while debugging to see if it fixed any issues
 [build-system]
-requires = ["setuptools", "wheel", "scikit-build", "cmake", "Cython", "toml", "pytest"]
+requires = ["setuptools", "wheel", "scikit-build", "cmake", "Cython", "toml", "pytest", "ninja"]
