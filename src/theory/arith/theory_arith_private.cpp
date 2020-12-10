@@ -1709,6 +1709,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
         // if is (not true), or false
         Assert((reEq.getConst<bool>() && isDistinct)
                || (!reEq.getConst<bool>() && !isDistinct));
+        // TODO: justify
         raiseBlackBoxConflict(assertion);
       }
       return NullConstraint;
@@ -3639,6 +3640,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       if(possibleConflict != Node::null()){
         revertOutOfConflict();
         Debug("arith::conflict") << "dio conflict   " << possibleConflict << endl;
+        // TODO: justify (proofs in the DIO solver)
         raiseBlackBoxConflict(possibleConflict);
         outputConflicts();
         emmittedConflictOrSplit = true;
@@ -4021,12 +4023,49 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
       outputPropagate(toProp);
     }else if(constraint->negationHasProof()){
-      Node exp = d_congruenceManager.explain(toProp).getNode();
-      Node notNormalized = normalized.getKind() == NOT ?
-        normalized[0] : normalized.notNode();
-      Node lp = flattenAnd(exp.andNode(notNormalized));
+      TrustNode exp = d_congruenceManager.explain(toProp);
+      Node notNormalized = normalized.negate();
+      std::vector<Node> ants(exp.getNode().begin(), exp.getNode().end());
+      ants.push_back(notNormalized);
+      Node lp = safeConstructNary(kind::AND, ants);
+      // Node lp = flattenAnd(exp.getNode().andNode(notNormalized));
       Debug("arith::prop") << "propagate conflict" <<  lp << endl;
-      raiseBlackBoxConflict(lp);
+      if (proofsEnabled())
+      {
+        std::vector<Pf> pfAntList;
+        for (size_t i = 0; i < ants.size(); ++i)
+        {
+          pfAntList.push_back(d_pnm->mkAssume(ants[i]));
+        }
+        Pf pfAnt = pfAntList.size() > 1
+                       ? d_pnm->mkNode(PfRule::AND_INTRO, pfAntList, {})
+                       : pfAntList[0];
+        Pf pfConc = d_pnm->mkNode(
+            PfRule::MODUS_PONENS,
+            {pfAnt, exp.getGenerator()->getProofFor(exp.getProven())},
+            {});
+        Pf pfConcRewritten = d_pnm->mkNode(
+            PfRule::MACRO_SR_PRED_TRANSFORM, {pfConc}, {normalized});
+        Pf pfNotNormalized = d_pnm->mkAssume(notNormalized);
+        Pf pfBot;
+        if (normalized.getKind() == kind::NOT)
+        {
+          pfBot = d_pnm->mkNode(
+              PfRule::CONTRA, {pfNotNormalized, pfConcRewritten}, {});
+        }
+        else
+        {
+          pfBot = d_pnm->mkNode(
+              PfRule::CONTRA, {pfConcRewritten, pfNotNormalized}, {});
+        }
+        Pf pfNotAnd = d_pnm->mkScope(pfBot, ants);
+        // TODO: test
+        raiseBlackBoxConflict(lp, pfNotAnd);
+      }
+      else
+      {
+        raiseBlackBoxConflict(lp);
+      }
       outputConflicts();
       return;
     }else{
