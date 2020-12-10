@@ -2216,29 +2216,59 @@ bool Term::getBoolean() const
 bool Term::isPi() const { return d_node->getKind() == CVC4::Kind::PI; }
 
 namespace {
-bool isInteger(const CVC4::Node& node)
-{
-  return node.getKind() == CVC4::Kind::CONST_RATIONAL
-         && node.getConst<Rational>().isIntegral();
-}
-Integer getInteger(const CVC4::Node& node)
-{
-  CVC4_API_CHECK(isInteger(node))
-      << "Term should be an Integer when calling getInteger()";
-  return node.getConst<Rational>().getNumerator();
-}
 template <typename T>
-bool checkIntegerBounds(const CVC4::Node& node)
+bool checkIntegerBounds(const Integer& i)
 {
-  const Integer& i = getInteger(node);
   return i >= std::numeric_limits<T>::min()
          && i <= std::numeric_limits<T>::max();
 }
+bool isRational(const CVC4::Node& node)
+{
+  return node.getKind() == CVC4::Kind::CONST_RATIONAL;
+}
+const Rational& getRational(const CVC4::Node& node)
+{
+  CVC4_API_CHECK(isRational(node))
+      << "Term should be a Rational when calling getRational()";
+  return node.getConst<Rational>();
+}
+bool checkReal32Bounds(const CVC4::Node& node)
+{
+  const Rational& r = getRational(node);
+  return checkIntegerBounds<std::int32_t>(r.getNumerator()) && checkIntegerBounds<std::uint32_t>(r.getDenominator());
+}
+bool checkReal64Bounds(const CVC4::Node& node)
+{
+  const Rational& r = getRational(node);
+  return checkIntegerBounds<std::int64_t>(r.getNumerator()) && checkIntegerBounds<std::uint64_t>(r.getDenominator());
+}
 }  // namespace
 
-bool Term::isValueReal() const
+bool Term::isReal32() const
 {
-  return d_node->getKind() == CVC4::Kind::CONST_RATIONAL;
+  return d_node->getKind() == CVC4::Kind::CONST_RATIONAL
+         && checkReal32Bounds(*d_node);
+}
+std::pair<std::int32_t, std::uint32_t> Term::getReal32() const
+{
+  CVC4_API_CHECK(isReal32())
+      << "Term should be a Real32 when calling getReal32()";
+  const Rational& r = getRational(*d_node);
+  return std::make_pair(r.getNumerator().getSignedInt(),
+                        r.getDenominator().getUnsignedInt());
+}
+bool Term::isReal64() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_RATIONAL
+         && checkReal64Bounds(*d_node);
+}
+std::pair<std::int64_t, std::uint64_t> Term::getReal64() const
+{
+  CVC4_API_CHECK(isReal64())
+      << "Term should be a Real64 when calling getReal64()";
+  const Rational& r = getRational(*d_node);
+  return std::make_pair(r.getNumerator().getLong(),
+                        r.getDenominator().getUnsignedLong());
 }
 
 bool Term::isRegexpEmpty() const
@@ -2282,6 +2312,15 @@ bool Term::isEmptySequence() const
 {
   return d_node->getKind() == CVC4::Kind::CONST_SEQUENCE
          && d_node->getConst<Sequence>().empty();
+}
+bool Term::isSet() const {
+  return d_node->getType().isSet(); 
+}
+std::set<Term> Term::getSet() const {
+  CVC4_API_CHECK(isSet()) << "Term should be a Set when calling getSet()";
+  std::set<Term> res;
+  // Todo(Gereon): do something here
+  return res;
 }
 bool Term::isUniverseSet() const
 {
@@ -2390,6 +2429,19 @@ std::tuple<std::uint32_t, std::uint32_t, Term> Term::getFloatingPoint() const
   return std::make_tuple(fp.d_fp_size.exponentWidth(),
                          fp.d_fp_size.significandWidth(),
                          d_solver->mkValHelper<BitVector>(fp.pack()));
+}
+
+bool Term::isSequence() const {
+  return d_node->getType().isSequence(); 
+}
+std::vector<Term> Term::getSequence() const {
+  CVC4_API_CHECK(isSequence()) << "Term should be a Sequence when calling getSequence()";
+  std::vector<Term> res;
+  const Sequence& seq = d_node->getConst<Sequence>();
+  for (const Node& n: seq.getVec()) {
+    res.emplace_back(Term(d_solver, n));
+  }
+  return res;
 }
 
 std::ostream& operator<<(std::ostream& out, const Term& t)

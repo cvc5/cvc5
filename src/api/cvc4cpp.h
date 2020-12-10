@@ -1243,63 +1243,70 @@ class CVC4_PUBLIC Term
    */
   std::wstring getString() const;
 
-  // mkTuple
-  bool isTuple() const;
-  // mkTrue
-  bool isTrue() const;
-  // mkFalse
-  bool isFalse() const;
-  // mkBoolean
-  bool isBoolean() const;
-  bool getBoolean() const;
-  // mkPi
+  // Arithmetic
+  bool isReal32() const;
+  std::pair<std::int32_t, std::uint32_t> getReal32() const;
+  bool isReal64() const;
+  std::pair<std::int64_t, std::uint64_t> getReal64() const;
   bool isPi() const;
-  // mkReal
-  bool isValueReal() const;
-  // mkRegexpEmpty
-  bool isRegexpEmpty() const;
-  // mkRegexpSigma
-  bool isRegexpSigma() const;
-  // mkEmptySet
-  bool isEmptySet() const;
-  // mkEmptyBag
-  bool isEmptyBag() const;
-  // mkSepNil
-  bool isSepNil() const;
-  // mkChar
-  bool isChar() const;
-  std::string getChar() const;
-  // mkEmptySequence
-  bool isEmptySequence() const;
-  // mkUniverseSet
-  bool isUniverseSet() const;
-  // mkBitVector
-  bool isBitVector() const;
-  std::string getBitVector(std::uint32_t base = 2) const;
-  // mkConstArray
+
+  // Arrays
   bool isConstArray() const;
   Term getConstArray() const;
-  // mkPosInf
-  bool isPosInf() const;
-  // mkNegInf
-  bool isNegInf() const;
-  // mkNaN
-  bool isNaN() const;
-  // mkPosZero
-  bool isPosZero() const;
-  // mkNegZero
-  bool isNegZero() const;
-  // mkRoundingMode
-  bool isRoundingMode() const;
-  // mkUninterpretedConst
-  bool isUninterpretedConst() const;
-  std::pair<Sort, std::int32_t> getUninterpretedConst() const;
-  // mkAbstractValue
+
+  // Bags
+  bool isEmptyBag() const;
+
+  // Booleans
+  bool isBoolean() const;
+  bool isFalse() const;
+  bool isTrue() const;
+  bool getBoolean() const;
+
+  // BitVector
+  bool isBitVector() const;
+  std::string getBitVector(std::uint32_t base = 2) const;
+
+  // Builtin
   bool isAbstractValue() const;
   std::string getAbstractValue() const;
-  // mkFloatingPoint
+
+  // Datatypes
+  bool isTuple() const;
+
+  // FloatingPoint
+  bool isPosZero() const;
+  bool isNegZero() const;
+  bool isPosInf() const;
+  bool isNegInf() const;
+  bool isNaN() const;
+  bool isRoundingMode() const;
   bool isFloatingPoint() const;
   std::tuple<std::uint32_t, std::uint32_t, Term> getFloatingPoint() const;
+
+  // Quantifiers
+
+  // Separation Logic
+  bool isSepNil() const;
+
+  // Sets
+  bool isSet() const;
+  bool isEmptySet() const;
+  bool isUniverseSet() const;
+  std::set<Term> getSet() const;
+
+  // Strings
+  bool isChar() const;
+  bool isEmptySequence() const;
+  bool isSequence() const;
+  std::string getChar() const;
+  std::vector<Term> getSequence() const;
+  bool isRegexpEmpty() const;
+  bool isRegexpSigma() const;
+
+  // UF
+  bool isUninterpretedConst() const;
+  std::pair<Sort, std::int32_t> getUninterpretedConst() const;
 
  protected:
   /**
