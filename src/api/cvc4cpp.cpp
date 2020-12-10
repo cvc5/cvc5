@@ -2299,7 +2299,7 @@ std::vector<Term> Term::getTuple() const
   std::vector<Term> res;
   for (std::size_t i = 1, n = d_node->getNumChildren(); i < n; ++i)
   {
-    res.emplace_back(Term(d_solver, d_node[i]));
+    res.emplace_back(Term(d_solver, (*d_node)[i]));
   }
   return res;
 }
@@ -2384,9 +2384,9 @@ void collectSet(std::set<Term>& set, TNode node, const Solver* slv)
 {
   switch (node.getKind())
   {
-    case Kind::EMPTYSET: break;
-    case Kind::SINGLETON: set.emplace(Term(slv, node[0])); break;
-    case Kind::UNION:
+    case CVC4::Kind::EMPTYSET: break;
+    case CVC4::Kind::SINGLETON: set.emplace(Term(slv, node[0])); break;
+    case CVC4::Kind::UNION:
     {
       for (const auto& sub : node)
       {
