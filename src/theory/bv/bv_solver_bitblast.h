@@ -72,7 +72,6 @@ class BVSolverBitblast : public BVSolver
                           const std::set<Node>& termSet) override;
 
  private:
-  void bbFact(TNode fact);
   Node getValueFromSatSolver(TNode node);
 
   /** Bit-blaster used to bit-blast atoms/terms. */

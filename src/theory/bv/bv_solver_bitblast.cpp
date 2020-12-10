@@ -63,7 +63,11 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       node_map;
   for (const TNode fact : d_facts)
   {
+    /* Bitblast fact */
+    d_bitblaster->bbAtom(fact);
     Node bb_fact = Rewriter::rewrite(d_bitblaster->getStoredBBAtom(fact));
+    d_cnfStream->ensureLiteral(bb_fact);
+
     prop::SatLiteral lit = d_cnfStream->getLiteral(bb_fact);
     assumptions.push_back(lit);
     node_map.emplace(lit, fact);
@@ -88,17 +92,9 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   }
 }
 
-void BVSolverBitblast::bbFact(TNode fact)
-{
-  d_bitblaster->bbAtom(fact);
-  Node atom_bb = Rewriter::rewrite(d_bitblaster->getStoredBBAtom(fact));
-  d_cnfStream->ensureLiteral(atom_bb);
-}
-
 bool BVSolverBitblast::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  bbFact(fact);
   d_facts.push_back(fact);
   return false;
 }
