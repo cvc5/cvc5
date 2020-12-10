@@ -905,7 +905,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_conj_count++;
             }else{
               std::vector< Node > bvs;
-              for (const std::pair<TypeNode, unsigned>& lhs_pattern :
+              for (const std::pair<const TypeNode, unsigned>& lhs_pattern :
                    d_pattern_var_id[lhs])
               {
                 for (unsigned j = 0; j <= lhs_pattern.second; j++)

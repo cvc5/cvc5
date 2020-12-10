@@ -38,7 +38,6 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
     : d_containing(containing),
       d_im(containing.getInferenceManager()),
-      d_ee(ee),
       d_needsLastCall(false),
       d_checkCounter(0),
       d_extTheoryCb(ee),

@@ -69,26 +69,37 @@ void ExponentialSolver::checkInitialRefine()
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
         d_tf_initial_refine[t] = true;
-        Node lem;
-        // ( exp(x) > 0 ) ^ ( x=0 <=> exp( x ) = 1 ) ^ ( x < 0 <=> exp( x ) <
-        // 1 ) ^ ( x <= 0 V exp( x ) > x + 1 )
-        lem = nm->mkNode(
-            Kind::AND,
-            nm->mkNode(Kind::GT, t, d_data->d_zero),
-            nm->mkNode(Kind::EQUAL,
-                       t[0].eqNode(d_data->d_zero),
-                       t.eqNode(d_data->d_one)),
-            nm->mkNode(Kind::EQUAL,
-                       nm->mkNode(Kind::LT, t[0], d_data->d_zero),
-                       nm->mkNode(Kind::LT, t, d_data->d_one)),
-            nm->mkNode(
-                Kind::OR,
-                nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
-                nm->mkNode(
-                    Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one))));
-        if (!lem.isNull())
         {
-          d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_INIT_REFINE);
+          // exp is always positive: exp(t) > 0
+          Node lem = nm->mkNode(Kind::GT, t, d_data->d_zero);
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+        }
+        {
+          // exp at zero: (t = 0) <=> (exp(t) = 1)
+          Node lem = nm->mkNode(Kind::EQUAL,
+                                t[0].eqNode(d_data->d_zero),
+                                t.eqNode(d_data->d_one));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+        }
+        {
+          // exp on negative values: (t < 0) <=> (exp(t) < 1)
+          Node lem = nm->mkNode(Kind::EQUAL,
+                                nm->mkNode(Kind::LT, t[0], d_data->d_zero),
+                                nm->mkNode(Kind::LT, t, d_data->d_one));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+        }
+        {
+          // exp on positive values: (t <= 0) or (exp(t) > t+1)
+          Node lem = nm->mkNode(
+              Kind::OR,
+              nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
+              nm->mkNode(
+                  Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
         }
       }
     }
