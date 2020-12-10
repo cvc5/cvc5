@@ -1273,6 +1273,7 @@ class CVC4_PUBLIC Term
 
   // Datatypes
   bool isTuple() const;
+  std::vector<Term> getTuple() const;
 
   // FloatingPoint
   bool isPosZero() const;
@@ -1293,6 +1294,7 @@ class CVC4_PUBLIC Term
   bool isSet() const;
   bool isEmptySet() const;
   bool isUniverseSet() const;
+  bool isSingletonSet() const;
   std::set<Term> getSet() const;
 
   // Strings

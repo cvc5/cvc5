@@ -2293,6 +2293,16 @@ bool Term::isTuple() const
 {
   return d_node->getKind() == CVC4::Kind::APPLY_CONSTRUCTOR;
 }
+std::vector<Term> Term::getTuple() const
+{
+  CVC4_API_CHECK(isTuple()) << "Term should be a Tuple when calling getTuple()";
+  std::vector<Term> res;
+  for (std::size_t i = 1, n = d_node->getNumChildren(); i < n; ++i)
+  {
+    res.emplace_back(Term(d_solver, d_node[i]));
+  }
+  return res;
+}
 
 bool Term::isPosZero() const
 {
@@ -2365,10 +2375,33 @@ bool Term::isUniverseSet() const
 {
   return d_node->getKind() == CVC4::Kind::UNIVERSE_SET;
 }
+bool Term::isSingletonSet() const
+{
+  return d_node->getKind() == CVC4::Kind::SINGLETON;
+}
+namespace {
+void collectSet(std::set<Term>& set, TNode node, const Solver* slv)
+{
+  switch (node.getKind())
+  {
+    case Kind::EMPTYSET: break;
+    case Kind::SINGLETON: set.emplace(Term(slv, node[0])); break;
+    case Kind::UNION:
+    {
+      for (const auto& sub : node)
+      {
+        collectSet(set, sub, slv);
+      }
+      break;
+    }
+    default: break;
+  }
+}
+}  // namespace
 std::set<Term> Term::getSet() const {
   CVC4_API_CHECK(isSet()) << "Term should be a Set when calling getSet()";
   std::set<Term> res;
-  // Todo(Gereon): do something here
+  collectSet(res, *d_node, d_solver);
   return res;
 }
 
