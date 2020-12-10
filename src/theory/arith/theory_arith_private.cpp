@@ -1704,13 +1704,29 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
     Assert(!isSetup(eq));
     Node reEq = Rewriter::rewrite(eq);
+    Debug("arith::distinct::const") << "Assertion: " << assertion << std::endl;
+    Debug("arith::distinct::const") << "Eq       : " << eq << std::endl;
+    Debug("arith::distinct::const") << "reEq     : " << reEq << std::endl;
     if(reEq.getKind() == CONST_BOOLEAN){
       if(reEq.getConst<bool>() == isDistinct){
         // if is (not true), or false
         Assert((reEq.getConst<bool>() && isDistinct)
                || (!reEq.getConst<bool>() && !isDistinct));
-        // TODO: justify
-        raiseBlackBoxConflict(assertion);
+        if (proofsEnabled())
+        {
+          // TODO: test
+          Pf assume = d_pnm->mkAssume(assertion);
+          std::vector<Node> assumptions = {assertion};
+          Pf pf = d_pnm->mkScope(d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                                               {d_pnm->mkAssume(assertion)},
+                                               {}),
+                                 assumptions);
+          raiseBlackBoxConflict(assertion, pf);
+        }
+        else
+        {
+          raiseBlackBoxConflict(assertion);
+        }
       }
       return NullConstraint;
     }
