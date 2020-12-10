@@ -104,6 +104,72 @@ Node VeritProofPostprocessCallback::mkClNode(std::vector<Node> clauses)
   return d_nm->mkNode(kind::SEXPR, clauses);
 }
 
+// Input:
+// Proof rule RULE that asserts (cl F1 ... Fn)
+// Gives out proof for: (cl (or F1 ... Fn))
+// and adds or rule: (cl F1 ... Fn)
+//
+// proof rule: RULE
+// proof node: (VP1:(cl F1 ... Fn))
+// proof term: (cl F1 ... Fn)
+// premises: children
+// args: ()
+//
+// for i=1 to n:
+//
+// proof rule: or_neg
+// proof node: (VP2i:(cl (or F1 ... Fn) (not Fi)))
+// proof term: (cl (or F1 ... Fn) (not Fi))
+// premises: ()
+// args: ()
+//
+// proof rule: resolution
+// proof node: (VP3:(cl (or F1 ... Fn)^n))
+// proof term: (cl (or F1 ... Fn)^n)
+// premises: VP1 VP21 ... VPn
+// args: ()
+//
+// proof rule: duplicated_literals
+// proof node: (VP4:(cl (or (F1 ... Fn)))
+// proof term: (cl (or F1 ... Fn))
+// premises: VP3
+// args: ()
+//
+// proof rule: or
+// proof node: (or F1 ... Fn)
+// proof term: (cl F1 ... Fn)
+// premises: VP4
+// args: ()
+bool VeritProofPostprocessCallback::addClProof(
+    Node res,
+    VeritRule rule,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp)
+{
+  std::vector<Node> clauses;
+  clauses.push_back(d_cl);
+  clauses.insert(clauses.end(),res.begin(),res.end());
+  Node vp1 = d_nm->mkNode(kind::SEXPR,clauses);
+  bool success = addVeritStep(vp1,rule,children,args,*cdp);
+
+  std::vector<Node> vp2Nodes = {vp1};
+  std::vector<Node> resNodes;
+  for(int i = 0; i < res.end()-res.begin(); i++){
+    Node vp2i = d_nm->mkNode(kind::SEXPR,d_cl,res,res[i].notNode());
+    success &= addVeritStep(vp2i,VeritRule::OR_NEG,{},{},*cdp);
+    vp2Nodes.push_back(vp2i);
+    resNodes.push_back(res);
+  }
+  Node vp3 = mkClNode(resNodes);
+  success &= addVeritStep(vp3,VeritRule::RESOLUTION,vp2Nodes,{},*cdp);
+
+  Node vp4 = d_nm->mkNode(kind::SEXPR,d_cl,res);
+  return success
+      && addVeritStep(vp4,VeritRule::DUPLICATED_LITERALS,{vp3},{},*cdp)
+      && addVeritStepFromOr(res,VeritRule::OR,{vp4},{},*cdp);
+}
+
 bool VeritProofPostprocessCallback::update(Node res,
                                            PfRule id,
 				           const std::vector<std::shared_ptr<ProofNode>>& pf_children,
@@ -1335,7 +1401,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::NOT_AND:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_AND, children, {}, *cdp);
+      return addClProof(res,VeritRule::NOT_AND,children,args,cdp);
     }
 
     //================================================= CNF rules
@@ -1345,69 +1411,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (and F1 ... Fn)) Fi)
     //
-    // proof rule: and_pos
-    // proof node: (VP1:(cl (not (and F1 ... Fn)) Fi))
-    // proof term: (cl (not (and F1 ... Fn)) Fi)
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: or_neg
-    // proof node: (VP2:(cl (or (not (and F1 ... Fn)) Fi) (not (not (and F1 ... Fn)))))
-    // proof term: (cl (or (not (and F1 ... Fn)) Fi) (not (not (and F1 ... Fn))))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: or_neg
-    // proof node: (VP3:(cl (or (not (and F1 ... Fn)) Fi) (not Fi)))
-    // proof term: (cl (or (not (and F1 ... Fn)) Fi) (not Fi)))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (VP4:(cl (or (not (and F1 ... Fn)) Fi) (or (not (and F1 ... Fn)) Fi)))
-    // proof term: (cl (or (not (and F1 ... Fn)) Fi) (or (not (and F1 ... Fn)) Fi))
-    // premises: VP1 VP2 VP3
-    // args: ()
-    //
-    // proof rule: duplicated_literals
-    // proof node: (VP5:(cl (or (not (and F1 ... Fn)) Fi)))
-    // proof term: (cl (or (not (and F1 ... Fn)) Fi))
-    // premises: VP4
-    // args: ()
-    //
-    // proof rule: or
-    // proof node: (or (not (and F1 ... Fn)) Fi)
-    // proof term: (cl (not (and F1 ... Fn)) Fi)
-    // premises: VP5
-    // args: ()
-    //
-    // TODO Delete just for my information. It is not possible to do:
-    //
-    // ---------------------- AND_POS
-    // (cl (not (and a b)) a)                   (cl (not(or (not (a b)) a)))
-    // (cl (or (not (and a b))
-    // --------------------------------------------------------------------- RESOLUTION
-    //
-    // Thus, the last step always has to be (cl F) and then an or step. This is not always possible, i.e. factoring.
-    // This problem occurs also if the or step is added to the children and cannot be easily adverted by the printer as well.
-    //
+    // Use addClProof to first prove (cl (or (not (and F1 ... Fn)) Fi)) followed by (cl (not (and F1 ... Fn)) Fi)
     case PfRule::CNF_AND_POS:
     {
-      std::vector<Node> clauses;
-      clauses.push_back(d_cl);
-      clauses.insert(clauses.end(),res.begin(),res.end());
-      Node vp1 = d_nm->mkNode(kind::SEXPR,clauses);
-      Node vp2 = d_nm->mkNode(kind::SEXPR,d_cl,res,res[0].notNode());
-      Node vp3 = d_nm->mkNode(kind::SEXPR,d_cl,res,res[1].notNode());
-      Node vp4 = d_nm->mkNode(kind::SEXPR,d_cl,res,res);
-      Node vp5 = d_nm->mkNode(kind::SEXPR,d_cl,res);
-
-      return addVeritStep(vp1,VeritRule::AND_POS,{},{},*cdp)
-	     && addVeritStep(vp2,VeritRule::OR_NEG,{},{},*cdp)
-	     && addVeritStep(vp3,VeritRule::OR_NEG,{},{},*cdp)
-	     && addVeritStep(vp4,VeritRule::RESOLUTION,{vp1,vp2,vp3},{},*cdp)
-	     && addVeritStep(vp5,VeritRule::DUPLICATED_LITERALS,{vp4},{},*cdp)
-	     && addVeritStepFromOr(res,VeritRule::OR,{vp5},{},*cdp);
+      return addClProof(res,VeritRule::AND_POS, {}, {},cdp);
     }
     // ======== CNF And Neg
     // Children: ()
@@ -1415,65 +1422,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (and F1 ... Fn) (not F1) ... (not Fn))
     //
-    // proof rule: and_neg
-    // proof node: (VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn)))
-    // proof term: (cl (and F1 ... Fn) (not F1) ... (not Fn))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: or_neg
-    // proof node: (VP20:(cl (or (and F1 ... Fn) (not F1) ... (not Fn)) (not (and F1 ... Fn))))
-    // proof term: (cl (or (and F1 ... Fn) (not F1) ... (not Fn)) (not (and F1 ... Fn)))
-    // premises: ()
-    // args: ()
-    //
-    // for i=1 to n:
-    //
-    // proof rule: or_neg
-    // proof node: (VP2i:(cl (or (and F1 ... Fn) (not F1) ... (not Fn)) (not (not Fi))))
-    // proof term: (cl (or (and F1 ... Fn) (not F1) ... (not Fn)) (not Fi))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (VP3:(cl (or (and F1 ... Fn) (not F1) ... (not Fn))^n+1))
-    // proof term: (cl (or (and F1 ... Fn) (not F1) ... (not Fn))^n+1)
-    // premises: VP1 VP20 ... VPn
-    // args: ()
-    //
-    // proof rule: duplicated_literals
-    // proof node: (VP4:(cl (or (and F1 ... Fn) (not F1) ... (not Fn))))
-    // proof term: (cl (or (and F1 ... Fn) (not F1) ... (not Fn)))
-    // premises: VP3
-    // args: ()
-    //
-    // proof rule: or
-    // proof node: (or (and F1 ... Fn) (not F1) ... (not Fn))
-    // proof term: (cl (and F1 ... Fn) (not F1) ... (not Fn))
-    // premises: VP4
-    // args: ()
+    // Use addClProof to first prove (cl (or (and F1 ... Fn) (not F1) ... (not Fn))) followed by (cl (and F1 ... Fn) (not F1) ... (not Fn))
     case PfRule::CNF_AND_NEG:
     {
-      std::vector<Node> clauses;
-      clauses.push_back(d_cl);
-      clauses.insert(clauses.end(),res.begin(),res.end());
-      Node vp1 = d_nm->mkNode(kind::SEXPR,clauses);
-      bool success = addVeritStep(vp1,VeritRule::AND_NEG,{},{},*cdp);
-
-      std::vector<Node> vp2Nodes = {vp1};
-      std::vector<Node> resNodes;
-      for(int i = 0; i < res.end()-res.begin(); i++){
-        Node vp2i = d_nm->mkNode(kind::SEXPR,d_cl,res,res[i].notNode());
-	success &= addVeritStep(vp2i,VeritRule::OR_NEG,{},{},*cdp);
-        vp2Nodes.push_back(vp2i);
-	resNodes.push_back(res);
-      }
-      Node vp3 = mkClNode(resNodes);
-      success &= addVeritStep(vp3,VeritRule::RESOLUTION,vp2Nodes,{},*cdp);
-
-      Node vp4 = d_nm->mkNode(kind::SEXPR,d_cl,res);
-      return addVeritStep(vp4,VeritRule::DUPLICATED_LITERALS,{vp3},{},*cdp)
-	     && addVeritStepFromOr(res,VeritRule::OR,{vp4},{},*cdp);
+      return addClProof(res,VeritRule::AND_NEG,{},{},cdp);
     }
     // ======== CNF Or Pos
     // Children: ()
@@ -1481,65 +1433,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (or F1 ... Fn)) F1 ... Fn)
     //
-    // proof rule: or_pos
-    // proof node: (VP1:(cl (not (or F1 ... Fn)) F1 ... Fn))
-    // proof term: (cl (not (or F1 ... Fn)) F1 ... Fn)
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: or_neg
-    // proof node: (VP20:(cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not (or F1 ... Fn)))))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not (or F1 ... Fn))))
-    // premises: ()
-    // args: ()
-    //
-    // for i=1 to n:
-    //
-    // proof rule: or_neg
-    // proof node: (VP2i:(cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not Fi))))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not Fi)))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (VP3:(cl (or (not (or F1 ... Fn)) F1 ... Fn)^n+1))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn)^n+1)
-    // premises: VP1 VP20 ... VPn
-    // args: ()
-    //
-    // proof rule: duplicated_literals
-    // proof node: (VP4:(cl (or (not (or F1 ... Fn)) F1 ... Fn)))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn))
-    // premises: VP3
-    // args: ()
-    //
-    // proof rule: or
-    // proof node: (or (not (or F1 ... Fn)) F1 ... Fn)
-    // proof term: (cl (not (or F1 ... Fn)) F1 ... Fn)
-    // premises: VP4
-    // args: ()
+    // Use addClProof to first prove (cl (or (and F1 ... Fn) (not F1) ... (not Fn))) followed by (cl (and F1 ... Fn) (not F1) ... (not Fn))
     case PfRule::CNF_OR_POS:
     {
-      std::vector<Node> clauses;
-      clauses.push_back(d_cl);
-      clauses.insert(clauses.end(),res.begin(),res.end());
-      Node vp1 = d_nm->mkNode(kind::SEXPR,clauses);
-      bool success = addVeritStep(vp1,VeritRule::OR_POS,{},{},*cdp);
-
-      std::vector<Node> vp2Nodes = {vp1};
-      std::vector<Node> resNodes;
-      for(int i = 0; i < res.end()-res.begin(); i++){
-        Node vp2i = d_nm->mkNode(kind::SEXPR,d_cl,res,res[i].notNode());
-	success &= addVeritStep(vp2i,VeritRule::OR_NEG,{},{},*cdp);
-        vp2Nodes.push_back(vp2i);
-	resNodes.push_back(res);
-      }
-      Node vp3 = mkClNode(resNodes);
-      success &= addVeritStep(vp3,VeritRule::RESOLUTION,vp2Nodes,{},*cdp);
-
-      Node vp4 = d_nm->mkNode(kind::SEXPR,d_cl,res);
-      return addVeritStep(vp4,VeritRule::DUPLICATED_LITERALS,{vp3},{},*cdp)
-	     && addVeritStepFromOr(res,VeritRule::OR,{vp4},{},*cdp);
+      addClProof(res,VeritRule::OR_POS,{},{},cdp);
     }
     // ======== CNF Or Neg
     // Children: ()
@@ -1547,87 +1444,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (or F1 ... Fn) (not Fi))
     //
-    // proof rule: or_pos
-    // proof node: (VP1:(cl (not (or F1 ... Fn)) F1 ... Fn))
-    // proof term: (cl (not (or F1 ... Fn)) F1 ... Fn)
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: or_neg
-    // proof node: (VP20:(cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not (or F1 ... Fn)))))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not (or F1 ... Fn))))
-    // premises: ()
-    // args: ()
-    //
-    // for i=1 to n:
-    //
-    // proof rule: or_neg
-    // proof node: (VP2i:(cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not Fi))))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn) (not (not Fi)))
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node: (VP3:(cl (or (not (or F1 ... Fn)) F1 ... Fn)^n+1))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn)^n+1)
-    // premises: VP1 VP20 ... VPn
-    // args: ()
-    //
-    // proof rule: duplicated_literals
-    // proof node: (VP4:(cl (or (not (or F1 ... Fn)) F1 ... Fn)))
-    // proof term: (cl (or (not (or F1 ... Fn)) F1 ... Fn))
-    // premises: VP3
-    // args: ()
-    //
-    // proof rule: or
-    // proof node: (or (not (or F1 ... Fn)) F1 ... Fn)
-    // proof term: (cl (not (or F1 ... Fn)) F1 ... Fn)
-    // premises: VP4
-    // args: ()
-    //
-    //
-    //
-    //
-    // proof rule: and_neg
-    // proof node:
-    // proof term:
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: or_neg
-    // proof node:
-    // proof term:
-    // premises: ()
-    // args: ()
-    //
-    // for i=1 to n:
-    //
-    // proof rule: or_neg
-    // proof node:
-    // proof term:
-    // premises: ()
-    // args: ()
-    //
-    // proof rule: resolution
-    // proof node:
-    // proof term:
-    // premises: VP1 VP20 ... VPn
-    // args: ()
-    //
-    // proof rule: duplicated_literals
-    // proof node:
-    // proof term:
-    // premises: VP3
-    // args: ()
-    //
-    // proof rule: or_neg
-    // proof node: (or (or F1 ... Fn) (not Fi))
-    // proof term: (cl (or F1 ... Fn) (not Fi))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (or F1 ... Fn) (not Fi))) followed by (cl (or F1 ... Fn) (not Fi))
     case PfRule::CNF_OR_NEG:
     {
-      return addVeritStepFromOr(res, VeritRule::OR_NEG, children, {}, *cdp);
+      return addClProof(res, VeritRule::OR_NEG, {}, {}, cdp);
     }
     // ======== CNF Implies Pos
     // Children: ()
@@ -1635,15 +1455,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (implies F1 F2)) (not F1) F2)
     //
-    // proof rule: implies_pos
-    // proof node: (or (not (implies F1 F2)) (not F1) F2)
-    // proof term: (cl (not (implies F1 F2)) (not F1) F2)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (not (implies F1 F2)) (not F1) F2)) followed by (cl (or F1 ... Fn) (not Fi))
     case PfRule::CNF_IMPLIES_POS:
     {
-      return addVeritStepFromOr(
-          res, VeritRule::IMPLIES_POS, children, {}, *cdp);
+      return addClProof(res,VeritRule::IMPLIES_POS,{},{},cdp);
     }
     // ======== CNF Implies Neg version 1
     // Children: ()
@@ -1651,15 +1466,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (implies F1 F2) F1)
     //
-    // proof rule: implies_neg1
-    // proof node: (or (implies F1 F2) F1)
-    // proof term: (cl (implies F1 F2) F1)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (implies F1 F2) F1)) followed by (cl (implies F1 F2) F1)
     case PfRule::CNF_IMPLIES_NEG1:
     {
-      return addVeritStepFromOr(
-          res, VeritRule::IMPLIES_NEG1, children, {}, *cdp);
+      return addClProof(res,VeritRule::IMPLIES_NEG1,{},{},cdp);
     }
     // ======== CNF Implies Neg version 2
     // Children: ()
@@ -1667,15 +1477,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (implies F1 F2) (not F2))
     //
-    // proof rule: implies_neg2
-    // proof node: (or (implies F1 F2) (not F2))
-    // proof term: (cl (implies F1 F2) (not F2))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (implies F1 F2) (not F2))) followed by (cl (implies F1 F2) (not F2))
     case PfRule::CNF_IMPLIES_NEG2:
     {
-      return addVeritStepFromOr(
-          res, VeritRule::IMPLIES_NEG2, children, {}, *cdp);
+      return addClProof(res,VeritRule::IMPLIES_NEG2,{},{},cdp);
     }
     // ======== CNF Equiv Pos version 1
     // Children: ()
@@ -1683,14 +1488,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (= F1 F2)) (not F1) F2)
     //
-    // proof rule: equiv_pos2
-    // proof node: (or (not (= F1 F2)) (not F1) F2)
-    // proof term: (cl (not (= F1 F2)) (not F1) F2)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (not (= F1 F2)) (not F1) F2)) followed by (cl (not (= F1 F2)) (not F1) F2)
     case PfRule::CNF_EQUIV_POS1:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_POS2, children, {}, *cdp);
+      return addClProof(res,VeritRule::EQUIV_POS2,{},{},cdp);
     }
     // ======== CNF Equiv Pos version 2
     // Children: ()
@@ -1698,14 +1499,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (= F1 F2)) F1 (not F2))
     //
-    // proof rule: equiv_pos1
-    // proof node: (or (not (= F1 F2)) F1 (not F2))
-    // proof term: (cl (not (= F1 F2)) F1 (not F2))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (not (= F1 F2)) F1 (not F2))) followed by (cl (not (= F1 F2)) F1 (not F2))
     case PfRule::CNF_EQUIV_POS2:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_POS1, children, {}, *cdp);
+      return addClProof(res,VeritRule::EQUIV_POS1,{},{},cdp);
     }
     // ======== CNF Equiv Neg version 1
     // Children: ()
@@ -1713,14 +1510,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (= F1 F2) F1 F2)
     //
-    // proof rule: equiv_neg2
-    // proof node: (or (= F1 F2) F1 F2)
-    // proof term: (cl (= F1 F2) F1 F2)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (= F1 F2) F1 F2)) followed by (cl (= F1 F2) F1 F2)
     case PfRule::CNF_EQUIV_NEG1:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_NEG2, children, {}, *cdp);
+      return addClProof(res,VeritRule::EQUIV_NEG2,{},{},cdp);
     }
     // ======== CNF Equiv Neg version 2
     // Children: ()
@@ -1728,14 +1521,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (= F1 F2) (not F1) (not F2))
     //
-    // proof rule: equiv_neg1
-    // proof node: (or (= F1 F2) (not F1) (not F2))
-    // proof term: (cl (= F1 F2) (not F1) (not F2))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (= F1 F2) (not F1) (not F2))) followed by (cl (= F1 F2) (not F1) (not F2))
     case PfRule::CNF_EQUIV_NEG2:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV_NEG1, children, {}, *cdp);
+      return addClProof(res,VeritRule::EQUIV_NEG1,{},{},cdp);
     }
     // ======== CNF Xor Pos version 1
     // Children: ()
@@ -1743,14 +1532,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (xor F1 F2)) F1 F2)
     //
-    // proof rule: xor_pos1
-    // proof node: (or (not (xor F1 F2)) F1 F2)
-    // proof term: (cl (not (xor F1 F2)) F1 F2)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (not (xor F1 F2)) F1 F2)) followed by (cl (not (xor F1 F2)) F1 F2)
     case PfRule::CNF_XOR_POS1:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_POS1, children, {}, *cdp);
+      return addClProof(res,VeritRule::XOR_POS1,{},{},cdp);
     }
     // ======== CNF Xor Pos version 2
     // Children: ()
@@ -1758,14 +1543,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (xor F1 F2)) (not F1) (not F2))
     //
-    // proof rule: xor_pos2
-    // proof node: (or (not (xor F1 F2)) (not F1) (not F2))
-    // proof term: (cl (not (xor F1 F2)) (not F1) (not F2))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (not (xor F1 F2)) (not F1) (not F2))) followed by (cl (not (xor F1 F2)) (not F1) (not F2))
     case PfRule::CNF_XOR_POS2:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_POS2, children, {}, *cdp);
+      return addClProof(res,VeritRule::XOR_POS2,{},{},cdp);
     }
     // ======== CNF Xor Neg version 1
     // Children: ()
@@ -1773,14 +1554,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (xor F1 F2) (not F1) F2)
     //
-    // proof rule: xor_neg2
-    // proof node: (or (xor F1 F2) (not F1) F2)
-    // proof term: (cl (xor F1 F2) (not F1) F2)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (xor F1 F2) (not F1) F2)) followed by (cl (xor F1 F2) (not F1) F2)
     case PfRule::CNF_XOR_NEG1:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_NEG2, children, {}, *cdp);
+      return addClProof(res,VeritRule::XOR_NEG2,{},{},cdp);
     }
     // ======== CNF Xor Neg version 2
     // Children: ()
@@ -1788,14 +1565,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (xor F1 F2) F1 (not F2))
     //
-    // proof rule: xor_neg1
-    // proof node: (or (xor F1 F2) F1 (not F2))
-    // proof term: (cl (xor F1 F2) F1 (not F2))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (xor F1 F2) F1 (not F2))) followed by (cl (xor F1 F2) F1 (not F2))
     case PfRule::CNF_XOR_NEG2:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR_NEG1, children, {}, *cdp);
+      return addClProof(res,VeritRule::XOR_NEG1,{},{},cdp);
     }
     // ======== CNF ITE Pos version 1
     // Children: ()
@@ -1803,14 +1576,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (ite C F1 F2)) (not C) F1)
     //
-    // proof rule: ite_pos2
-    // proof node: (or (not (ite C F1 F2)) (not C) F1)
-    // proof term: (cl (not (ite C F1 F2)) (not C) F1)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (not (ite C F1 F2)) (not C) F1)) followed by (cl (not (ite C F1 F2)) (not C) F1)
     case PfRule::CNF_ITE_POS1:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_POS2, children, {}, *cdp);
+      return addClProof(res,VeritRule::ITE_POS2,{},{},cdp);
     }
     // ======== CNF ITE Pos version 2
     // Children: ()
@@ -1818,14 +1587,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not (ite C F1 F2)) C F2)
     //
-    // proof rule: ite_pos1
-    // proof node: (or (not (ite C F1 F2)) C F2)
-    // proof term: (cl (not (ite C F1 F2)) C F2)
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (not (ite C F1 F2)) C F2)) followed by (cl (not (ite C F1 F2)) C F2)
     case PfRule::CNF_ITE_POS2:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_POS1, children, {}, *cdp);
+      return addClProof(res,VeritRule::ITE_POS1,{},{},cdp);
     }
     // ======== CNF ITE Pos version 3
     // Children: ()
@@ -1852,10 +1617,12 @@ bool VeritProofPostprocessCallback::update(Node res,
     // F1) args: ()
     //
     // proof rule: duplicated_literals
-    // proof node: (or (not (ite C F1 F2)) F1 F2)
+    // proof node: (cl (not (ite C F1 F2)) F1 F2)
     // proof term: (cl (not (ite C F1 F2)) F1 F2)
     // premises: (VP3:(or (not (ite C F1 F2)) F1 (not (ite C F1 F2)) F2))
     // args: ()
+    //
+    // Then use addClProof to first prove (cl (or (not (ite C F1 F2)) F1 F2)) and then  (cl (not (ite C F1 F2)) F1 F2)
     case PfRule::CNF_ITE_POS3:
     {
       Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, res[0], args[0][0], res[2]);
@@ -1867,8 +1634,7 @@ bool VeritProofPostprocessCallback::update(Node res,
       return addVeritStep(vp1, VeritRule::ITE_POS1, {}, {}, *cdp)
              && addVeritStep(vp2, VeritRule::ITE_POS2, {}, {}, *cdp)
              && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
-             && addVeritStepFromOr(
-                 res, VeritRule::DUPLICATED_LITERALS, {vp3}, {}, *cdp);
+	     && addClProof(res, VeritRule::DUPLICATED_LITERALS, {vp3}, {}, cdp);
     }
     // ======== CNF ITE Neg version 1
     // Children: ()
@@ -1876,14 +1642,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (ite C F1 F2) (not C) (not F1))
     //
-    // proof rule: ite_neg2
-    // proof node: (or (ite C F1 F2) (not C) (not F1))
-    // proof term: (cl (ite C F1 F2) (not C) (not F1))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (ite C F1 F2) (not C) (not F1))) followed by (cl (ite C F1 F2) (not C) (not F1))
     case PfRule::CNF_ITE_NEG1:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_NEG2, children, {}, *cdp);
+      return addClProof(res, VeritRule::ITE_NEG2, children, {}, cdp);
     }
     // ======== CNF ITE Neg version 2
     // Children: ()
@@ -1891,14 +1653,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (ite C F1 F2) C (not F2))
     //
-    // proof rule: ite_neg1
-    // proof node: (or (ite C F1 F2) C (not F2))
-    // proof term: (cl (ite C F1 F2) C (not F2))
-    // premises: ()
-    // args: ()
+    // Use addClProof to first prove (cl (or (ite C F1 F2) C (not F2))) followed by (cl (ite C F1 F2) C (not F2))
     case PfRule::CNF_ITE_NEG2:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE_NEG1, children, {}, *cdp);
+      return addClProof(res, VeritRule::ITE_NEG1, children, {}, cdp);
     }
     // ======== CNF ITE Neg version 3
     // Children: ()
@@ -1907,24 +1665,30 @@ bool VeritProofPostprocessCallback::update(Node res,
     // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
     //
     // proof rule: ite_neg1
-    // proof term: (VP1:(cl (ite C F1 F2) C (not F2)))
+    // proof node: (VP1:(cl (ite C F1 F2) C (not F2)))
+    // proof term: (cl (ite C F1 F2) C (not F2))
     // premises: ()
     // args: ()
     //
     // proof rule: ite_neg2
-    // proof term: (VP2:(cl (ite C F1 F2) (not C) (not F1)))
+    // proof node: (VP2:(cl (ite C F1 F2) (not C) (not F1)))
+    // proof term: (cl (ite C F1 F2) (not C) (not F1))
     // premises: ()
     // args: ()
     //
     // proof rule: resolution
-    // proof term: (VP3:(cl (ite C F1 F2) (not F2) (ite C F1 F2) (not F1)))
+    // proof node: (VP3:(cl (ite C F1 F2) (not F2) (ite C F1 F2) (not F1)))
+    // proof term: (cl (ite C F1 F2) (not F2) (ite C F1 F2) (not F1))
     // premises: ((VP1:(cl (ite C F1 F2) C (not F2))) (VP2:(cl (ite C F1 F2)
     // (not C) (not F1)))) args: ()
     //
     // proof rule: duplicated_literals
+    // proof node: (cl (ite C F1 F2) C (not F2))
     // proof term: (cl (ite C F1 F2) C (not F2))
     // premises: (VP3:(or (ite C F1 F2) (not F2) (ite C F1 F2) (not F1)))
     // args: ()
+    //
+    // Then use addClProof to first prove (cl (or (ite C F1 F2) C (not F2))) and then (cl (ite C F1 F2) C (not F2))
     case PfRule::CNF_ITE_NEG3:
     {
       Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, res[0], args[0][0], res[2]);
@@ -1936,8 +1700,7 @@ bool VeritProofPostprocessCallback::update(Node res,
       return addVeritStep(vp1, VeritRule::ITE_NEG1, {}, {}, *cdp)
              && addVeritStep(vp2, VeritRule::ITE_NEG2, {}, {}, *cdp)
              && addVeritStep(vp3, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp)
-             && addVeritStepFromOr(
-                 res, VeritRule::DUPLICATED_LITERALS, {vp3}, {}, *cdp);
+             && addClProof(res, VeritRule::DUPLICATED_LITERALS, {vp3}, {}, cdp);
     }
     //================================================= Equality rules
     // ======== Reflexive
@@ -1992,7 +1755,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term: (cl (= t1 tn))
     // premises: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
     // args: ()
-    case PfRule::TRANS: //TODO: THERE SEEMS TO BE A PROBLEM HERE WITH SYMMETRY?
+    case PfRule::TRANS:
     {
       return addVeritStep(res, VeritRule::TRANS, d_nm->mkNode(kind::SEXPR,d_cl,res), children, {}, *cdp);
     }

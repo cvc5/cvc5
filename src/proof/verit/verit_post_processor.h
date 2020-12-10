@@ -132,6 +132,7 @@ class VeritProofPostprocessCallback
                           CDProof& cdp);
   // TODO:Add comment
   Node mkClNode(std::vector<Node> clauses);
+  bool addClProof(Node res, VeritRule rule, const std::vector<Node>& children, const std::vector<Node>& args,CDProof* cdp);
 };
 
 /**
