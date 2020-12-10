@@ -276,16 +276,26 @@ EqualityNodeId EqualityEngine::newNode(TNode node) {
   return newId;
 }
 
-void EqualityEngine::addFunctionKind(Kind fun, bool interpreted, bool extOperator) {
-  d_congruenceKinds |= fun;
-  if (fun != kind::EQUAL) {
-    if (interpreted) {
-      Debug("equality::evaluation") << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted " << std::endl;
-      d_congruenceKindsInterpreted |= fun;
+void EqualityEngine::addFunctionKind(Kind fun,
+                                     bool interpreted,
+                                     bool extOperator)
+{
+  d_congruenceKinds.set(fun);
+  if (fun != kind::EQUAL)
+  {
+    if (interpreted)
+    {
+      Debug("equality::evaluation")
+          << d_name << "::eq::addFunctionKind(): " << fun << " is interpreted "
+          << std::endl;
+      d_congruenceKindsInterpreted.set(fun);
     }
-    if (extOperator) {
-      Debug("equality::extoperator") << d_name << "::eq::addFunctionKind(): " << fun << " is an external operator kind " << std::endl;
-      d_congruenceKindsExtOperators |= fun;
+    if (extOperator)
+    {
+      Debug("equality::extoperator")
+          << d_name << "::eq::addFunctionKind(): " << fun
+          << " is an external operator kind " << std::endl;
+      d_congruenceKindsExtOperators.set(fun);
     }
   }
 }
@@ -1744,8 +1754,9 @@ void EqualityEngine::addTriggerPredicate(TNode predicate) {
     // equality is handled separately
     return addTriggerEquality(predicate);
   }
-  Assert(d_congruenceKinds.tst(predicate.getKind()))
-      << "No point in adding non-congruence predicates, kind is " << predicate.getKind();
+  Assert(d_congruenceKinds.test(predicate.getKind()))
+      << "No point in adding non-congruence predicates, kind is "
+      << predicate.getKind();
 
   if (d_done) {
     return;
