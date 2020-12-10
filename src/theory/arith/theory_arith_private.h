@@ -706,7 +706,7 @@ private:
   }
 
   context::CDQueue<TrustNode> d_approxCuts;
-  std::vector<Node> d_acTmp;
+  std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;

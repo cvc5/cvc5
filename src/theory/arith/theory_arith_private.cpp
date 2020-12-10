@@ -2680,7 +2680,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
         d_replayedLemmas = replayLemmas(approx);
         Assert(d_acTmp.empty());
         while(!d_approxCuts.empty()){
-          Node lem = d_approxCuts.front().getNode();
+          TrustNode lem = d_approxCuts.front();
           d_approxCuts.pop();
           d_acTmp.push_back(lem);
         }
@@ -2690,10 +2690,9 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
   /* move into the current context. */
   while(!d_acTmp.empty()){
-    Node lem = d_acTmp.back();
+    TrustNode lem = d_acTmp.back();
     d_acTmp.pop_back();
-    // TODO: justify
-    d_approxCuts.push_back(TrustNode::mkTrustLemma(lem, nullptr));
+    d_approxCuts.push_back(lem);
   }
   Assert(d_acTmp.empty());
 
