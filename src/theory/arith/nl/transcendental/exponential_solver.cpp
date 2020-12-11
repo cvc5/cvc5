@@ -198,7 +198,10 @@ void ExponentialSolver::checkMonotonic()
   }
 }
 
-void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
+void ExponentialSolver::doTangentLemma(TNode e,
+                                       TNode c,
+                                       TNode poly_approx,
+                                       std::uint64_t d)
 {
   NodeManager* nm = NodeManager::currentNM();
   // compute tangent plane
@@ -215,7 +218,17 @@ void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
   Trace("nl-ext-exp") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
-  d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
+  CDProof* proof = nullptr;
+  if (d_data->isProofEnabled())
+  {
+    proof = d_data->getProof();
+    proof->addStep(lem,
+                   PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
+                   {},
+                   {nm->mkConst<Rational>(d), e[0]});
+  }
+  d_data->d_im.addPendingArithLemma(
+      lem, InferenceId::NL_T_TANGENT, proof, true);
 }
 
 void ExponentialSolver::doSecantLemmas(TNode e,
