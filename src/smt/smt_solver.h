@@ -39,7 +39,7 @@ namespace smt {
 class Assertions;
 class SmtEngineState;
 class Preprocessor;
-class SmtEngineStatistics;
+struct SmtEngineStatistics;
 
 /**
  * A solver for SMT queries.

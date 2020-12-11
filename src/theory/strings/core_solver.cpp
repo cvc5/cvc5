@@ -2589,7 +2589,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
     addNormalFormPair(cii.d_nfPair[0], cii.d_nfPair[1]);
   }
   // send phase requirements
-  for (const std::pair<const Node, bool> pp : cii.d_pendingPhase)
+  for (const std::pair<const Node, bool>& pp : cii.d_pendingPhase)
   {
     Node ppr = Rewriter::rewrite(pp.first);
     d_im.addPendingPhaseRequirement(ppr, pp.second);

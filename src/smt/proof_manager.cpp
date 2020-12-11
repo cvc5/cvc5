@@ -161,7 +161,7 @@ void PfManager::getAssertions(Assertions& as,
     assertions.push_back(*i);
   }
   NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<Node, smt::DefinedFunction>& dfn : df)
+  for (const std::pair<const Node, const smt::DefinedFunction>& dfn : df)
   {
     Node def = dfn.second.getFormula();
     const std::vector<Node>& formals = dfn.second.getFormals();
