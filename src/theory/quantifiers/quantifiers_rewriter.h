@@ -225,10 +225,10 @@ class QuantifiersRewriter : public TheoryRewriter
   //------------------------------------- end extended rewrite
  public:
   static Node computeElimSymbols( Node body );
-  /** 
+  /**
    * Compute miniscoping in quantified formula q with attributes in qa.
    */
-  static Node computeMiniscoping( Node q, QAttributes& qa );
+  static Node computeMiniscoping(Node q, QAttributes& qa);
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   /**
    * This function removes top-level quantifiers from subformulas of body
@@ -246,7 +246,12 @@ class QuantifiersRewriter : public TheoryRewriter
    *   (or (P x z) (not (Q y z)))
    * and add {x} to args, and {y} to nargs.
    */
-  static Node computePrenex(Node q, Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
+  static Node computePrenex(Node q,
+                            Node body,
+                            std::vector<Node>& args,
+                            std::vector<Node>& nargs,
+                            bool pol,
+                            bool prenexAgg);
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */
