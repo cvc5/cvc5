@@ -17,7 +17,7 @@ jobs:
       CIBW_SKIP: cp35*
       CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux2014_x86_64
       CIBW_MANYLINUX_I686_IMAGE: quay.io/pypa/manylinux2014_i686
-      CIBW_BEFORE_ALL_LINUX: .github/scripts/centos-dependency-installs.sh
+      CIBW_BEFORE_ALL_LINUX: .github/scripts/manylinux-dependency-installs.sh
       CIBW_BEFORE_ALL_MACOS: .github/scripts/macos-dependency-installs.sh
 
     steps:

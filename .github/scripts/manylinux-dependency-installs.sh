@@ -1,7 +1,7 @@
 #!/bin/sh
 # Install dependencies in a centos environment (e.g. for manylinux for Python wheels)
-
-# NOTE manylinux doesn't seem to have cln-devel -- leaving out, it's optional
+# https://github.com/pypa/manylinux
+# used in .github/workflows/wheels.yml
 
 yum update
 yum install -y \
