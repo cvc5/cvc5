@@ -2261,7 +2261,9 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       //      x = "" ^ ...
       Trace("strings-solve-debug")
           << "Disequality normalize empty" << std::endl;
+      // the antecedant
       std::vector<Node> ant;
+      // the antecedant that is not explainable in this context
       std::vector<Node> antn;
       Node niLenTerm = d_state.getLengthExp(ni, ant, nfni.d_base);
       Node njLenTerm = d_state.getLengthExp(nj, ant, nfnj.d_base);
