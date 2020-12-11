@@ -803,8 +803,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** Flush statistics from this SmtEngine and the NodeManager it uses. */
   void flushStatistics(std::ostream& out) const;
-  
-  /** 
+
+  /**
    * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
    * use in a signal handler.
    */
