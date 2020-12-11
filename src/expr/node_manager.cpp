@@ -194,8 +194,10 @@ NodeManager::~NodeManager() {
 
   NodeManagerScope nms(this);
 
-  // Destroy skolem manager before cleaning up attributes and zombies
+  // Destroy skolem and bound var manager before cleaning up attributes and
+  // zombies
   d_skManager = nullptr;
+  d_bvManager = nullptr;
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
