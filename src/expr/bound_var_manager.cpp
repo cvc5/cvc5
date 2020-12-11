@@ -18,7 +18,8 @@
 
 namespace CVC4 {
 
-BoundVarManager::BoundVarManager() : d_keepCacheVals(false){}
+// TODO: only enable when proofs are enabled
+BoundVarManager::BoundVarManager() : d_keepCacheVals(true){}
 
 BoundVarManager::~BoundVarManager()
 {

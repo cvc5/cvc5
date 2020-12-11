@@ -73,8 +73,7 @@ Node SkolemCache::getExtIndexVar(Node deq)
   Assert(atn == deq[0][1].getType());
   TypeNode atnIndex = atn.getArrayIndexType();
   BoundVarManager * bvm = NodeManager::currentNM()->getBoundVarManager();
-  ExtIndexVarAttribute eiva;
-  return bvm->mkBoundVar<ExtIndexVarAttribute>(eiva, deq, atnIndex);
+  return bvm->mkBoundVar<ExtIndexVarAttribute>(deq, atnIndex);
 }
 
 }  // namespace arrays

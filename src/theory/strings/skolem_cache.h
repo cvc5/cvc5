@@ -22,7 +22,6 @@
 #include <unordered_set>
 
 #include "expr/node.h"
-#include "expr/skolem_manager.h"
 
 namespace CVC4 {
 namespace theory {

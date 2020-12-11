@@ -43,10 +43,10 @@ class BoundVarManager
    */
   void enableKeepCacheValues(bool isEnabled=true);
   /** 
-   * Make a bound variable of type tn and name tn, cached based on (n, attr),
-   * where attr is an attribute class of the form:
+   * Make a bound variable of type tn and name tn, cached based on (T, n),
+   * where T is an attribute class of the form:
    *   expr::Attribute<id, Node>
-   * This variable is unique for (attr, n) during the lifetime of n. If
+   * This variable is unique for (T, n) during the lifetime of n. If
    * this bound variable manager is configured to keep cache values, then
    * n is added to the d_cacheVals set and survives in the lifetime of the
    * current node manager.
@@ -54,8 +54,9 @@ class BoundVarManager
    * Returns the bound variable.
    */
   template <class T>
-  Node mkBoundVar(const T& attr, Node n, TypeNode tn)
+  Node mkBoundVar(Node n, TypeNode tn)
   {
+    T attr;
     if (n.hasAttribute(attr))
     {
       Assert (n.getAttribute(attr).getType()==tn);
@@ -72,10 +73,9 @@ class BoundVarManager
   }
   /** Same as above, with a name for the bound variable. */
   template <class T>
-  Node mkBoundVar(const T& attr, Node n, const std::string& name, TypeNode tn)
+  Node mkBoundVar(Node n, const std::string& name, TypeNode tn)
   {
-    Node v = mkBoundVar<T>(attr, n, tn);
-    // set the name of n
+    Node v = mkBoundVar<T>(n, tn);
     setNameAttr(n, name);
     return v;
   }
