@@ -12,7 +12,7 @@ jobs:
         # TODO: put macos-latest back in, just removed for debugging linux one
         os: [ubuntu-18.04]
     env:
-      CIBW_ENVIRONMENT: "PIP_NO_CLEAN=false"
+      CIBW_ENVIRONMENT: "PIP_NO_CLEAN=1"
       # only build for cpython3
       CIBW_BUILD: cp3*
       CIBW_SKIP: cp35*
