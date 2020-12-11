@@ -276,14 +276,14 @@ void TermDb::computeUfEqcTerms( TNode f ) {
     ops.insert(ops.end(), d_ho_op_slaves[f].begin(), d_ho_op_slaves[f].end());
   }
   eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
-  for (const Node& ff : ops)
+  for (TNode ff : ops)
   {
-    for (const TNode& n : d_op_map[ff])
+    for (const Node& n : d_op_map[ff])
     {
       if (hasTermCurrent(n) && isTermActive(n))
       {
         computeArgReps(n);
-        TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : n;
+        TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
         d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
@@ -312,7 +312,7 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned relevantCount = 0;
   eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
-  for (const Node& ff : ops)
+  for (TNode ff : ops)
   {
     std::map<Node, std::vector<Node> >::iterator it = d_op_map.find(ff);
     if (it == d_op_map.end())

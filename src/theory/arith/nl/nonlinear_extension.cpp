@@ -39,7 +39,6 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        ProofNodeManager* pnm)
     : d_containing(containing),
       d_im(containing.getInferenceManager()),
-      d_ee(ee),
       d_needsLastCall(false),
       d_checkCounter(0),
       d_extTheoryCb(ee),

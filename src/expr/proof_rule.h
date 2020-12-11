@@ -1128,6 +1128,30 @@ enum class PfRule : uint32_t
   // Where l (u) is a valid lower (upper) bound on pi.
   ARITH_TRANS_PI,
 
+  //======== Exp at negative values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (< t 0) (< (exp t) 1))
+  ARITH_TRANS_EXP_NEG,
+  //======== Exp is always positive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (> (exp t) 0)
+  ARITH_TRANS_EXP_POSITIVITY,
+  //======== Exp grows super-linearly for positive values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (or (<= t 0) (> exp(t) (+ t 1)))
+  ARITH_TRANS_EXP_SUPER_LIN,
+  //======== Exp at zero
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (= t 0) (= (exp t) 1))
+  ARITH_TRANS_EXP_ZERO,
   //======== Exp is approximated from above for negative values
   // Children: none
   // Arguments: (d, t, l, u)
