@@ -27,6 +27,7 @@
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
+#include "expr/bound_var_manager.h"
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -94,6 +95,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAtt
 NodeManager::NodeManager(ExprManager* exprManager)
     : d_statisticsRegistry(new StatisticsRegistry()),
       d_skManager(new SkolemManager),
+      d_bvManager(new BoundVarManager),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_exprManager(exprManager),

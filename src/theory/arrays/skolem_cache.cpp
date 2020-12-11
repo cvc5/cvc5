@@ -16,6 +16,7 @@
 
 #include "expr/attribute.h"
 #include "expr/skolem_manager.h"
+#include "expr/bound_var_manager.h"
 #include "expr/type_node.h"
 
 using namespace CVC4::kind;
@@ -66,20 +67,14 @@ Node SkolemCache::getExtIndexSkolem(Node deq)
 
 Node SkolemCache::getExtIndexVar(Node deq)
 {
-  ExtIndexVarAttribute eiva;
-  if (deq.hasAttribute(eiva))
-  {
-    return deq.getAttribute(eiva);
-  }
   Node a = deq[0][0];
-  Node b = deq[0][1];
   TypeNode atn = a.getType();
   Assert(atn.isArray());
-  Assert(atn == b.getType());
+  Assert(atn == deq[0][1].getType());
   TypeNode atnIndex = atn.getArrayIndexType();
-  Node v = NodeManager::currentNM()->mkBoundVar(atnIndex);
-  deq.setAttribute(eiva, v);
-  return v;
+  BoundVarManager * bvm = NodeManager::currentNM()->getBoundVarManager();
+  ExtIndexVarAttribute eiva;
+  return bvm->mkBoundVar<ExtIndexVarAttribute>(eiva, deq, atnIndex);
 }
 
 }  // namespace arrays
