@@ -15,11 +15,23 @@
 #include "expr/skolem_manager.h"
 
 #include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
+
+/**
+ * Attribute for associating terms to a unique bound variable.  This
+ * is used to construct canonical bound variables e.g. for constructing
+ * bound variables for witness terms in the skolemize method below.
+ */
+struct WitnessBoundVarAttributeId
+{
+};
+typedef expr::Attribute<WitnessBoundVarAttributeId, Node>
+    WitnessBoundVarAttribute;
 
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
@@ -115,6 +127,7 @@ Node SkolemManager::skolemize(Node q,
   std::vector<Node> ovarsW;
   Trace("sk-manager-debug") << "mkSkolemize..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   for (const Node& av : q[0])
   {
     if (v.isNull())
@@ -127,7 +140,7 @@ Node SkolemManager::skolemize(Node q,
     // method deterministic ensures that the proof checker (e.g. for
     // quantifiers) is capable of proving the expected value for conclusions
     // of proof rules, instead of an alpha-equivalent variant of a conclusion.
-    Node avp = getOrMakeBoundVariable(av);
+    Node avp = bvm->mkBoundVar<WitnessBoundVarAttribute>(av, av.getType());
     ovarsW.push_back(avp);
     ovars.push_back(av);
   }
@@ -344,19 +357,6 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
                       << std::endl;
   return k;
-}
-
-Node SkolemManager::getOrMakeBoundVariable(Node t)
-{
-  std::map<Node, Node>::iterator it = d_witnessBoundVar.find(t);
-  if (it != d_witnessBoundVar.end())
-  {
-    return it->second;
-  }
-  TypeNode tt = t.getType();
-  Node v = NodeManager::currentNM()->mkBoundVar(tt);
-  d_witnessBoundVar[t] = v;
-  return v;
 }
 
 }  // namespace CVC4
