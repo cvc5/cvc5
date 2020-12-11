@@ -281,7 +281,6 @@ class PropEngine
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
 
-
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
   /** Pointer to resource manager for associated SmtEngine */
