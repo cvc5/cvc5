@@ -28,13 +28,9 @@ jobs:
         with:
           python-version: '3.7'
 
-      # install from fork to get --no-clean option
-      - name: Install cibuildwheel
+      - name: Install cibuildwheel and Python dependencies
         run: |
-          git clone -b add-no-clean-option https://github.com/makaimann/cibuildwheel.git
-          cd cibuildwheel
-          python -m pip install -e .
-          cd ../
+          python -m pip install cibuildwheel
 
       - name: Install Visual C++ for Python 2.7
         if: runner.os == 'Windows'
@@ -43,7 +39,7 @@ jobs:
 
       - name: Build wheels
         run: |
-          python -m cibuildwheel --output-dir wheelhouse --no-clean
+          python -m cibuildwheel --output-dir wheelhouse
 
       # - uses: actions/upload-artifact@v2
       #   with:
