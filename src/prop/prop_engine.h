@@ -28,6 +28,7 @@
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_manager.h"
+#include "prop/proof_cnf_stream.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -235,6 +236,9 @@ class PropEngine
    */
   bool properExplanation(TNode node, TNode expl) const;
 
+  /** Retrieve this modules proof CNF stream. */
+  ProofCnfStream* getProofCnfStream();
+
   /**
    * Return the prop engine proof. This should be called only when proofs are
    * enabled. Returns a proof of false whose free assumptions are the
@@ -274,6 +278,9 @@ class PropEngine
 
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
+  /** Proof-producing CNF converter */
+  std::unique_ptr<ProofCnfStream> d_pfCnfStream;
+
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;
