@@ -80,12 +80,14 @@ class BoundVarManager
     return v;
   }
   //---------------------------------- utilities for computing Node hash
-  /** get hash value from two nodes, returns SEXPR */
-  static Node getHashValue(TNode cv1, TNode cv2);
-  /** get hash value, returns a constant rational node */
-  static Node getHashValue(uint32_t i);
-  /** get hash value, return SEXPR of cv and constant rational node */
-  static Node getHashValue(TNode cv, uint32_t i);
+  /** get cache value from two nodes, returns SEXPR */
+  static Node getCacheValue(TNode cv1, TNode cv2);
+  /** get cache value from two nodes and a size_t, returns SEXPR */
+  static Node getCacheValue(TNode cv1, TNode cv2, size_t i);
+  /** get cache value, returns a constant rational node */
+  static Node getCacheValue(size_t i);
+  /** get cache value, return SEXPR of cv and constant rational node */
+  static Node getCacheValue(TNode cv, size_t i);
   //---------------------------------- end utilities for computing Node hash
  private:
   /** Set name of bound variable to name */
