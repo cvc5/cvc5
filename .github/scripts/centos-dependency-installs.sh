@@ -8,11 +8,8 @@ yum install -y \
     gcc \
     gcc-c++ \
     make \
-    ccache \
-    cxxtest \
     gmp-devel \
     libedit-devel \
-    gtest-devel \
     flex-devel \
     java-1.8.0-openjdk
 
