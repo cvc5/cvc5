@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models
+; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic UFBV)
 (set-option :solve-bv-as-int sum)
