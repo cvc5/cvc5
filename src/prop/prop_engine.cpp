@@ -78,6 +78,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_satSolver(NULL),
       d_registrar(NULL),
       d_cnfStream(NULL),
+      d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm),
       d_outMgr(outMgr)
@@ -398,6 +399,8 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const {
 
   return true;
 }
+
+ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
 std::shared_ptr<ProofNode> PropEngine::getProof()
 {
