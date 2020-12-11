@@ -33,13 +33,6 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-/**
- * Simple bit-blasting solver that sends bit-blasting lemmas directly to the
- * internal MiniSat. It is also ablo to handle atoms of kind
- * BITVECTOR_EAGER_ATOM.
- *
- * Sends lemmas atom <=> bb(atom) to MiniSat on preNotifyFact().
- */
 class BVSolverBitblast : public BVSolver
 {
  public:
