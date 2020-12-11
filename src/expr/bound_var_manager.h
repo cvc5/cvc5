@@ -26,7 +26,7 @@ namespace CVC4 {
 
 /**
  * Bound variable manager.
- * 
+ *
  * This class is responsible for constructing BOUND_VARIABLE that are
  * canonical based on cache keys (Node). It does this using expression
  * attributes on these nodes.
@@ -41,8 +41,8 @@ class BoundVarManager
    * the bound variables returned by the methods below are deterministic in the
    * lifetime of the NodeManager we are using.
    */
-  void enableKeepCacheValues(bool isEnabled=true);
-  /** 
+  void enableKeepCacheValues(bool isEnabled = true);
+  /**
    * Make a bound variable of type tn and name tn, cached based on (T, n),
    * where T is an attribute class of the form:
    *   expr::Attribute<id, Node>
@@ -50,7 +50,7 @@ class BoundVarManager
    * this bound variable manager is configured to keep cache values, then
    * n is added to the d_cacheVals set and survives in the lifetime of the
    * current node manager.
-   * 
+   *
    * Returns the bound variable.
    */
   template <class T>
@@ -59,7 +59,7 @@ class BoundVarManager
     T attr;
     if (n.hasAttribute(attr))
     {
-      Assert (n.getAttribute(attr).getType()==tn);
+      Assert(n.getAttribute(attr).getType() == tn);
       return n.getAttribute(attr);
     }
     Node v = NodeManager::currentNM()->mkBoundVar(tn);
@@ -87,7 +87,7 @@ class BoundVarManager
   /** get hash value, return SEXPR of cv and constant rational node */
   static Node getHashValue(TNode cv, uint32_t i);
   //---------------------------------- end utilities for computing Node hash
-private:
+ private:
   /** Set name of bound variable to name */
   static void setNameAttr(Node v, const std::string& name);
   /** Whether we keep cache values */

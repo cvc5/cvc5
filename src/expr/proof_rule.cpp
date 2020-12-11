@@ -167,7 +167,8 @@ const char* toString(PfRule id)
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
     case PfRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
-    case PfRule::ARITH_TRANS_EXP_POSITIVITY: return "ARITH_TRANS_EXP_POSITIVITY";
+    case PfRule::ARITH_TRANS_EXP_POSITIVITY:
+      return "ARITH_TRANS_EXP_POSITIVITY";
     case PfRule::ARITH_TRANS_EXP_SUPER_LIN: return "ARITH_TRANS_EXP_SUPER_LIN";
     case PfRule::ARITH_TRANS_EXP_ZERO: return "ARITH_TRANS_EXP_ZERO";
     case PfRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";

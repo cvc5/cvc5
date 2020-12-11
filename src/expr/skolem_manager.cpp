@@ -15,8 +15,8 @@
 #include "expr/skolem_manager.h"
 
 #include "expr/attribute.h"
-#include "expr/node_algorithm.h"
 #include "expr/bound_var_manager.h"
+#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -24,13 +24,14 @@ namespace CVC4 {
 
 /**
  * Attribute for associating terms to a unique bound variable.  This
-* is used to construct canonical bound variables e.g. for constructing
-* bound variables for witness terms in the skolemize method below.
+ * is used to construct canonical bound variables e.g. for constructing
+ * bound variables for witness terms in the skolemize method below.
  */
 struct WitnessBoundVarAttributeId
 {
 };
-typedef expr::Attribute<WitnessBoundVarAttributeId, Node> WitnessBoundVarAttribute;
+typedef expr::Attribute<WitnessBoundVarAttributeId, Node>
+    WitnessBoundVarAttribute;
 
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.

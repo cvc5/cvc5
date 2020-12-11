@@ -15,13 +15,13 @@
 #include "theory/strings/skolem_cache.h"
 
 #include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 #include "util/rational.h"
-#include "expr/bound_var_manager.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 
@@ -277,7 +277,7 @@ Node SkolemCache::mkIndexVar(Node t)
 {
   NodeManager* nm = NodeManager::currentNM();
   TypeNode intType = nm->integerType();
-  BoundVarManager * bvm = nm->getBoundVarManager();
+  BoundVarManager* bvm = nm->getBoundVarManager();
   return bvm->mkBoundVar<IndexVarAttribute>(t, intType);
 }
 

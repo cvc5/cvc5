@@ -15,8 +15,8 @@
 #include "theory/arrays/skolem_cache.h"
 
 #include "expr/attribute.h"
-#include "expr/skolem_manager.h"
 #include "expr/bound_var_manager.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_node.h"
 
 using namespace CVC4::kind;
@@ -72,7 +72,7 @@ Node SkolemCache::getExtIndexVar(Node deq)
   Assert(atn.isArray());
   Assert(atn == deq[0][1].getType());
   TypeNode atnIndex = atn.getArrayIndexType();
-  BoundVarManager * bvm = NodeManager::currentNM()->getBoundVarManager();
+  BoundVarManager* bvm = NodeManager::currentNM()->getBoundVarManager();
   return bvm->mkBoundVar<ExtIndexVarAttribute>(deq, atnIndex);
 }
 

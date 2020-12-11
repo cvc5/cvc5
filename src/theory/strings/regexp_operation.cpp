@@ -17,12 +17,12 @@
 #include "theory/strings/regexp_operation.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 
