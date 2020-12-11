@@ -88,6 +88,13 @@ class PropEngine
   void shutdown() {}
 
   /**
+   * Notify preprocessed assertions. This method is called just before the
+   * assertions are asserted to this prop engine. This method notifies the
+   * decision engine and the theory engine of the assertions in ap.
+   */
+  void notifyPreprocessedAssertions(const preprocessing::AssertionPipeline& ap);
+
+  /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
    * The formula is asserted permanently for the current context.
    * @param node the formula to assert
@@ -99,19 +106,28 @@ class PropEngine
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
-   * @param node the formula to assert
-   * @param negated whether the node should be considered to be negated
-   * at the top level (or not)
+   * @param trn the trust node storing the formula to assert
    * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic (or not)
+   * on an activity heuristic
    */
-  void assertLemma(TNode node, bool negated, bool removable);
+  void assertLemma(theory::TrustNode trn, bool removable);
 
   /**
-   * Pass a list of assertions from an AssertionPipeline to the decision engine.
+   * Assert lemma trn with preprocessing lemmas ppLemmas which correspond
+   * to lemmas for skolems in ppSkolems.
+   *
+   * @param trn the trust node storing the formula to assert
+   * @param ppLemmas the lemmas from preprocessing and term formula removal on
+   * the proven node of trn
+   * @param ppSkolem the skolem that each lemma in ppLemma constrains. It should
+   * be the case that ppLemmas.size()==ppSkolems.size().
+   * @param removable whether this lemma can be quietly removed based
+   * on an activity heuristic
    */
-  void addAssertionsToDecisionEngine(
-      const preprocessing::AssertionPipeline& assertions);
+  void assertLemmas(theory::TrustNode trn,
+                    std::vector<theory::TrustNode>& ppLemmas,
+                    std::vector<Node>& ppSkolems,
+                    bool removable);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -218,6 +234,13 @@ class PropEngine
    * 4. node was assigned after all of the literals in expl
    */
   bool properExplanation(TNode node, TNode expl) const;
+
+  /**
+   * Return the prop engine proof. This should be called only when proofs are
+   * enabled. Returns a proof of false whose free assumptions are the
+   * preprocessed assertions.
+   */
+  std::shared_ptr<ProofNode> getProof();
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */

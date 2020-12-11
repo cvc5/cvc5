@@ -66,7 +66,7 @@ class TheoryFp : public Theory
 
   //--------------------------------- standard check
   /** Do we need a check call at last call effort? */
-  bool needsCheckLastEffort() override { return true; }
+  bool needsCheckLastEffort() override;
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort level) override;
   /** Pre-notify fact, return true if processed. */

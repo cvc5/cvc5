@@ -271,16 +271,16 @@ MinisatSatSolver::Statistics::~Statistics() {
   d_registry->unregisterStat(&d_statTotLiterals);
 }
 
-void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
-  d_statStarts.setData(d_minisat->starts);
-  d_statDecisions.setData(d_minisat->decisions);
-  d_statRndDecisions.setData(d_minisat->rnd_decisions);
-  d_statPropagations.setData(d_minisat->propagations);
-  d_statConflicts.setData(d_minisat->conflicts);
-  d_statClausesLiterals.setData(d_minisat->clauses_literals);
-  d_statLearntsLiterals.setData(d_minisat->learnts_literals);
-  d_statMaxLiterals.setData(d_minisat->max_literals);
-  d_statTotLiterals.setData(d_minisat->tot_literals);
+void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
+  d_statStarts.setData(minisat->starts);
+  d_statDecisions.setData(minisat->decisions);
+  d_statRndDecisions.setData(minisat->rnd_decisions);
+  d_statPropagations.setData(minisat->propagations);
+  d_statConflicts.setData(minisat->conflicts);
+  d_statClausesLiterals.setData(minisat->clauses_literals);
+  d_statLearntsLiterals.setData(minisat->learnts_literals);
+  d_statMaxLiterals.setData(minisat->max_literals);
+  d_statTotLiterals.setData(minisat->tot_literals);
 }
 
 } /* namespace CVC4::prop */

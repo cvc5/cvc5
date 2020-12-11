@@ -80,11 +80,11 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
-  category   = "regular"
+  category   = "experimental"
   long       = "bv-algebraic-solver"
   type       = "bool"
-  default    = "true"
-  help       = "turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
+  default    = "false"
+  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
   name       = "bitvectorAlgebraicBudget"
@@ -135,7 +135,7 @@ header = "options/bv_options.h"
   long       = "bv-div-zero-const"
   type       = "bool"
   default    = "true"
-  help       = "always return -1 on division by zero"
+  help       = "always return -1 on (bvudiv s 0) and s on (bvurem s 0)"
 
 [[option]]
   name       = "bvExtractArithRewrite"
