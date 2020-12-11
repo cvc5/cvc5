@@ -286,6 +286,17 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
+  if (options::earlyIteRemoval())
+  {
+    d_smtStats.d_numAssertionsPre += assertions.size();
+    d_passes["ite-removal"]->apply(&assertions);
+    // This is needed because when solving incrementally, removeITEs may
+    // introduce skolems that were solved for earlier and thus appear in the
+    // substitution map.
+    d_passes["apply-substs"]->apply(&assertions);
+    d_smtStats.d_numAssertionsPost += assertions.size();
+  }
+
   dumpAssertions("pre-repeat-simplify", assertions);
   if (options::repeatSimp())
   {
