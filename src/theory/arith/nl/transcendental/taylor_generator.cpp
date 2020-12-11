@@ -72,13 +72,11 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       }
     }
     factorial *= counter;
-    varpow =
-        Rewriter::rewrite(nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow));
+    varpow = Rewriter::rewrite(nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow));
   }
-  Node taylor_sum = sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum);
-
+  Node taylor_sum = Rewriter::rewrite(sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum));
   Node taylor_rem =
-      nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial));
+      Rewriter::rewrite(nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial)));
 
   auto res = std::make_pair(taylor_sum, taylor_rem);
 
@@ -89,79 +87,71 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
 }
 
 void TaylorGenerator::getPolynomialApproximationBounds(
-    Kind k, unsigned d, std::vector<Node>& pbounds)
+    Kind k, std::uint64_t d, ApproximationBounds& pbounds)
 {
-  if (d_poly_bounds[k][d].empty())
+  auto it = d_poly_bounds[k].find(d);
+  if (it == d_poly_bounds[k].end())
   {
     NodeManager* nm = NodeManager::currentNM();
     // n is the Taylor degree we are currently considering
-    unsigned n = 2 * d;
+    std::uint64_t n = 2 * d;
     // n must be even
     std::pair<Node, Node> taylor = getTaylor(k, n);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor for " << k << " is : " << taylor.first << std::endl;
-    Node taylor_sum = Rewriter::rewrite(taylor.first);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor for " << k << " is (post-rewrite) : " << taylor_sum
-        << std::endl;
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
+    Node taylor_sum = taylor.first;
     // ru is x^{n+1}/(n+1)!
-    Node ru = Rewriter::rewrite(taylor.second);
-    Trace("nl-ext-tftp-debug2")
-        << "Taylor remainder factor is (post-rewrite) : " << ru << std::endl;
+    Node ru = taylor.second;
+    Trace("nl-trans")
+        << "Taylor for " << k << " is : " << taylor.first << std::endl;
+    Trace("nl-trans")
+        << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
     if (k == Kind::EXPONENTIAL)
     {
-      pbounds.push_back(taylor_sum);
-      pbounds.push_back(taylor_sum);
-      pbounds.push_back(Rewriter::rewrite(
+      pbounds.d_lower = taylor_sum;
+      pbounds.d_upperNeg = 
+          Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru));
+      pbounds.d_upperPos = Rewriter::rewrite(
           nm->mkNode(Kind::MULT,
                      taylor_sum,
-                     nm->mkNode(Kind::PLUS, nm->mkConst(Rational(1)), ru))));
-      pbounds.push_back(
-          Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru)));
+                     nm->mkNode(Kind::PLUS, nm->mkConst(Rational(1)), ru)));
     }
     else
     {
       Assert(k == Kind::SINE);
       Node l = Rewriter::rewrite(nm->mkNode(Kind::MINUS, taylor_sum, ru));
       Node u = Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru));
-      pbounds.push_back(l);
-      pbounds.push_back(l);
-      pbounds.push_back(u);
-      pbounds.push_back(u);
+      pbounds.d_lower = l;
+      pbounds.d_upperNeg = u;
+      pbounds.d_upperPos = u;
     }
-    Trace("nl-ext-tf-tplanes")
+    Trace("nl-trans")
         << "Polynomial approximation for " << k << " is: " << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Lower (pos): " << pbounds[0] << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Upper (pos): " << pbounds[2] << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Lower (neg): " << pbounds[1] << std::endl;
-    Trace("nl-ext-tf-tplanes") << " Upper (neg): " << pbounds[3] << std::endl;
-    d_poly_bounds[k][d].insert(
-        d_poly_bounds[k][d].end(), pbounds.begin(), pbounds.end());
+    Trace("nl-trans") << " Lower: " << pbounds.d_lower << std::endl;
+    Trace("nl-trans") << " Upper (neg): " << pbounds.d_upperNeg << std::endl;
+    Trace("nl-trans") << " Upper (pos): " << pbounds.d_upperPos << std::endl;
+    d_poly_bounds[k].emplace(d, pbounds);
   }
   else
   {
-    pbounds.insert(
-        pbounds.end(), d_poly_bounds[k][d].begin(), d_poly_bounds[k][d].end());
+    pbounds = it->second;
   }
 }
 
-unsigned TaylorGenerator::getPolynomialApproximationBoundForArg(
-    Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
+std::uint64_t TaylorGenerator::getPolynomialApproximationBoundForArg(
+    Kind k, Node c, std::uint64_t d, ApproximationBounds& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
+  Trace("nl-trans") << "c = " << c << std::endl;
   Assert(c.isConst());
   if (k == Kind::EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
   {
     bool success = false;
-    unsigned ds = d;
+    std::uint64_t ds = d;
     TNode ttrf = getTaylorVariable();
     TNode tc = c;
     do
     {
       success = true;
-      unsigned n = 2 * ds;
+      std::uint64_t n = 2 * ds;
       std::pair<Node, Node> taylor = getTaylor(k, n);
       // check that 1-c^{n+1}/(n+1)! > 0
       Node ru = taylor.second;
@@ -180,16 +170,16 @@ unsigned TaylorGenerator::getPolynomialApproximationBoundForArg(
           << "*** Increase Taylor bound to " << ds << " > " << d << " for ("
           << k << " " << c << ")" << std::endl;
       // must use sound upper bound
-      std::vector<Node> pboundss;
+      ApproximationBounds pboundss;
       getPolynomialApproximationBounds(k, ds, pboundss);
-      pbounds[2] = pboundss[2];
+      pbounds.d_upperPos = pboundss.d_upperPos;
     }
     return ds;
   }
   return d;
 }
 
-std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, unsigned d, NlModel& model)
+std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, std::uint64_t d, NlModel& model)
 {
   // compute the model value of the argument
   Node c = model.computeAbstractModelValue(tf[0]);
@@ -211,7 +201,7 @@ std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, unsigned d, NlM
   }
   bool isNeg = csign == -1;
 
-  std::vector<Node> pbounds;
+  ApproximationBounds pbounds;
   getPolynomialApproximationBoundForArg(k, c, d, pbounds);
 
   std::vector<Node> bounds;
@@ -219,8 +209,7 @@ std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, unsigned d, NlM
   TNode tfs = tf[0];
   for (unsigned d2 = 0; d2 < 2; d2++)
   {
-    int index = d2 == 0 ? (isNeg ? 1 : 0) : (isNeg ? 3 : 2);
-    Node pab = pbounds[index];
+    Node pab = (d2 == 0 ? pbounds.d_lower : (isNeg ? pbounds.d_upperNeg : pbounds.d_upperPos));
     if (!pab.isNull())
     {
       // { x -> M_A(tf[0]) }

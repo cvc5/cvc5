@@ -27,6 +27,17 @@ namespace transcendental {
 class TaylorGenerator
 {
  public:
+
+  /** Stores the approximation bounds for transcendental functions */
+  struct ApproximationBounds {
+    /** Lower bound */
+    Node d_lower;
+    /** Upper bound for negative values */
+    Node d_upperNeg;
+    /** Upper bound for positive values */
+    Node d_upperPos;
+  };
+
   TaylorGenerator();
 
   /**
@@ -62,8 +73,8 @@ class TaylorGenerator
    * given <k>( c ), use the function below.
    */
   void getPolynomialApproximationBounds(Kind k,
-                                        unsigned d,
-                                        std::vector<Node>& pbounds);
+                                        std::uint64_t d,
+                                        ApproximationBounds& pbounds);
 
   /**
    * polynomial approximation bounds
@@ -76,10 +87,10 @@ class TaylorGenerator
    * @return the actual degree of the polynomial approximations (which may be
    * larger than d).
    */
-  unsigned getPolynomialApproximationBoundForArg(Kind k,
+  std::uint64_t getPolynomialApproximationBoundForArg(Kind k,
                                                  Node c,
-                                                 unsigned d,
-                                                 std::vector<Node>& pbounds);
+                                                 std::uint64_t d,
+                                                 ApproximationBounds& pbounds);
 
   /** get transcendental function model bounds
    *
@@ -87,7 +98,7 @@ class TaylorGenerator
    * function application tf based on Taylor of degree 2*d, which is dependent
    * on the model value of its argument.
    */
-  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d, NlModel& model);
+  std::pair<Node, Node> getTfModelBounds(Node tf, std::uint64_t d, NlModel& model);
 
  private:
   NodeManager* d_nm;
@@ -98,7 +109,7 @@ class TaylorGenerator
    * to this degree and the next term in the series.
    */
   std::map<Kind, std::map<std::uint64_t, std::pair<Node, Node>>> d_taylor_terms;
-  std::map<Kind, std::map<unsigned, std::vector<Node>>> d_poly_bounds;
+  std::map<Kind, std::map<std::uint64_t, ApproximationBounds>> d_poly_bounds;
 };
 
 }  // namespace transcendental
