@@ -26,6 +26,8 @@
 
 #include "main/main.h"
 #include "smt/command.h"
+// for statistics printing
+#include "expr/node_manager.h"
 
 namespace CVC4 {
 namespace main {
@@ -66,14 +68,14 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
-  d_solver->getExprManager()->getStatistics().flushInformation(out);
+  d_nodeManager->getStatisticsRegistry()->flushInformation(out);
   d_smtEngine->getStatistics().flushInformation(out);
   d_stats.flushInformation(out);
 }
 
 void CommandExecutor::safeFlushStatistics(int fd) const
 {
-  d_solver->getExprManager()->safeFlushStatistics(fd);
+  d_nodeManager->getStatisticsRegistry()->safeFlushInformation(fd);
   d_smtEngine->safeFlushStatistics(fd);
   d_stats.safeFlushInformation(fd);
 }
