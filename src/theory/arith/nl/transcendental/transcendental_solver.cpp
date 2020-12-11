@@ -260,13 +260,13 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // Figure 3: P_l, P_u
   // mapped to for signs of c
   std::map<int, Node> poly_approx_bounds[2];
-  std::vector<Node> pbounds;
-  unsigned actual_d =
+  TaylorGenerator::ApproximationBounds pbounds;
+  std::uint64_t actual_d =
       d_tstate.d_taylor.getPolynomialApproximationBoundForArg(k, c, d, pbounds);
-  poly_approx_bounds[0][1] = pbounds[0];
-  poly_approx_bounds[0][-1] = pbounds[1];
-  poly_approx_bounds[1][1] = pbounds[2];
-  poly_approx_bounds[1][-1] = pbounds[3];
+  poly_approx_bounds[0][1] = pbounds.d_lower;
+  poly_approx_bounds[0][-1] = pbounds.d_lower;
+  poly_approx_bounds[1][1] = pbounds.d_upperPos;
+  poly_approx_bounds[1][-1] = pbounds.d_upperNeg;
 
   // Figure 3 : v
   Node v = d_tstate.d_model.computeAbstractModelValue(tf);
@@ -316,14 +316,14 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     Node v_pab = r == 0 ? mvb.first : mvb.second;
     if (!v_pab.isNull())
     {
-      Trace("nl-ext-tftp-debug2")
+      Trace("nl-trans")
           << "...model value of " << pab << " is " << v_pab << std::endl;
 
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
-      Trace("nl-ext-tftp-debug2") << "...compare : " << comp << std::endl;
+      Trace("nl-trans") << "...compare : " << comp << std::endl;
       Node compr = Rewriter::rewrite(comp);
-      Trace("nl-ext-tftp-debug2") << "...got : " << compr << std::endl;
+      Trace("nl-trans") << "...got : " << compr << std::endl;
       if (compr == d_tstate.d_true)
       {
         poly_approx_c = Rewriter::rewrite(v_pab);
@@ -367,7 +367,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // Figure 3: P( c )
   if (is_tangent || is_secant)
   {
-    Trace("nl-ext-tftp-debug2")
+    Trace("nl-trans")
         << "...poly approximation at c is " << poly_approx_c << std::endl;
   }
   else
