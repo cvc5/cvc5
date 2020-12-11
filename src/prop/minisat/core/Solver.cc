@@ -148,11 +148,14 @@ class ScopedBool
 
 Solver::Solver(CVC4::prop::TheoryProxy* proxy,
                CVC4::context::Context* context,
-               bool enable_incremental)
+               CVC4::context::UserContext* userContext,
+               ProofNodeManager* pnm,
+               bool enableIncremental)
     : d_proxy(proxy),
       d_context(context),
       assertionLevel(0),
-      d_enable_incremental(enable_incremental),
+      d_pfManager(nullptr),
+      d_enable_incremental(enableIncremental),
       minisat_busy(false)
       // Parameters (user settable):
       //
@@ -209,7 +212,7 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
       simpDB_props(0),
       order_heap(VarOrderLt(activity)),
       progress_estimate(0),
-      remove_satisfied(!enable_incremental)
+      remove_satisfied(!enableIncremental)
 
       // Resource constraints:
       //

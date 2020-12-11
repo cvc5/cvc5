@@ -70,7 +70,8 @@ PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
                        UserContext* userContext,
                        ResourceManager* rm,
-                       OutputManager& outMgr)
+                       OutputManager& outMgr,
+                       ProofNodeManager* pnm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -97,7 +98,7 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
-  d_satSolver->initialize(d_context, d_theoryProxy);
+  d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
