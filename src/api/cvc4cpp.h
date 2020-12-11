@@ -1245,71 +1245,191 @@ class CVC4_PUBLIC Term
 
   // Arithmetic
   bool isReal32() const;
+  /**
+   * Returns the stored rational as a pair of its numerator and denominator.
+   * Asserts isReal32().
+   */
   std::pair<std::int32_t, std::uint32_t> getReal32() const;
+  /**
+   * Returns true if the term is a rational whose numerator and denominator fit
+   * within std::int64_t and std::uint64_t, respectively.
+   */
   bool isReal64() const;
+  /**
+   * Returns the stored rational as a pair of its numerator and denominator.
+   * Asserts isReal64().
+   */
   std::pair<std::int64_t, std::uint64_t> getReal64() const;
+  /**
+   * Returns true if the term is a rational.
+   */
   bool isRealString() const;
+  /**
+   * Returns the stored rational in (decimal) string representation.
+   * Asserts isRealString().
+   */
   std::string getRealString() const;
+  /**
+   * Returns true if the term is the symbolic value for the transcendental
+   * constant pi.
+   */
   bool isPi() const;
 
-  // Arrays
+  /**
+   * Returns true if the term is a constant array.
+   */
   bool isConstArray() const;
+  /**
+   * Returns the value stored in the constant array. Asserts isConstArray().
+   */
   Term getConstArray() const;
 
-  // Bags
+  /**
+   * Returns true if the term is the empty bag.
+   */
   bool isEmptyBag() const;
 
-  // Booleans
+  /**
+   * Returns true if the term is a Boolean constant.
+   */
   bool isBoolean() const;
+  /**
+   * Returns true if the term is the Boolean constant false.
+   */
   bool isFalse() const;
+  /**
+   * Returns true if the term is the Boolean constant true.
+   */
   bool isTrue() const;
+  /**
+   * Returns the stored Boolean constant. Asserts isBoolean().
+   */
   bool getBoolean() const;
 
-  // BitVector
+  /**
+   * Returns true if the term is a BitVector constant.
+   */
   bool isBitVector() const;
+  /**
+   * Returns the stored BitVector constant in string representation. Supported
+   * bases are 2 (bit string), 10 (decimal string) or 16 (hexadecimal string).
+   */
   std::string getBitVector(std::uint32_t base = 2) const;
 
-  // Builtin
+  /**
+   * Returns true if the term is an abstract value.
+   */
   bool isAbstractValue() const;
+  /**
+   * Returns the stored abstract value in string representation.
+   */
   std::string getAbstractValue() const;
 
-  // Datatypes
+  /**
+   * Returns true if the term is a tuple.
+   */
   bool isTuple() const;
+  /**
+   * Returns the stored tuple as a vector of terms.
+   */
   std::vector<Term> getTuple() const;
 
-  // FloatingPoint
+  /**
+   * Returns true if the term is the floating-point constant for positive zero.
+   */
   bool isPosZero() const;
+  /**
+   * Returns true if the term is the floating-point constant for negative zero.
+   */
   bool isNegZero() const;
+  /**
+   * Returns true if the term is the floating-point constant for positive
+   * infinity.
+   */
   bool isPosInf() const;
+  /**
+   * Returns true if the term is the floating-point constant for negative
+   * infinity.
+   */
   bool isNegInf() const;
+  /**
+   * Returns true if the term is the floating-point constant for not a number.
+   */
   bool isNaN() const;
+  /**
+   * Returns true if the term is a floating-point rounding mode.
+   */
   bool isRoundingMode() const;
+  /**
+   * Returns true if the term is a floating-point constant.
+   */
   bool isFloatingPoint() const;
+  /**
+   * Returns the stored floating-point constant as a tuple of the exponent
+   * width, the significand with and a bit-vector constant. Asserts
+   * isFloatingPoint().
+   */
   std::tuple<std::uint32_t, std::uint32_t, Term> getFloatingPoint() const;
 
-  // Quantifiers
-
-  // Separation Logic
+  /**
+   * Returns true if the term is the nil constant for separation logic.
+   */
   bool isSepNil() const;
 
-  // Sets
+  /**
+   * Returns true if the term is a set.
+   */
   bool isSet() const;
+  /**
+   * Returns true if the term is the empty set.
+   */
   bool isEmptySet() const;
+  /**
+   * Returns true if the term is the universe set.
+   */
   bool isUniverseSet() const;
+  /**
+   * Returns true if the term is a singleton set.
+   */
   bool isSingletonSet() const;
+  /**
+   * Returns the stored set as a set of terms. Asserts isSet().
+   */
   std::set<Term> getSet() const;
 
-  // Strings
+  /**
+   * Returns true if the term is a single string character.
+   */
   bool isChar() const;
   bool isEmptySequence() const;
+  /**
+   * Returns true if the term is a constant sequence.
+   */
   bool isSequence() const;
+  /**
+   * Returns the stored character as a string that holds the unicode code point
+   * as hexadecimal numer. Asserts isChar().
+   */
   std::string getChar() const;
   std::vector<Term> getSequence() const;
+  /**
+   * Returns true if the term is the empty regular expression.
+   */
   bool isRegexpEmpty() const;
+  /**
+   * Returns true if the term is the regular expression that matches the whole
+   * alphabet.
+   */
   bool isRegexpSigma() const;
 
-  // UF
+  /**
+   * Returns true if the term is a constant from an uninterpreted sort.
+   */
   bool isUninterpretedConst() const;
+  /**
+   * Returns the stored uninterpreted constant as a pair of its sort and its
+   * index.
+   */
   std::pair<Sort, std::int32_t> getUninterpretedConst() const;
 
  protected:
