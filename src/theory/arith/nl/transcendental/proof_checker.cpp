@@ -30,48 +30,6 @@ namespace transcendental {
 namespace {
 
 /**
- * Evaluates the first d terms of the Maclaurin series for the exponential
- * function at t. This is a lower bound on the exponential function.
- */
-inline Node evalMaclaurinExp(std::uint64_t d, TNode t)
-{
-  auto* nm = NodeManager::currentNM();
-  Node res = nm->mkConst<Rational>(1);
-  Node num = nm->mkConst<Rational>(1);
-  Integer den = 1;
-  for (std::uint64_t i = 1; i <= d; ++i)
-  {
-    num = nm->mkNode(Kind::MULT, num, t);
-    den *= i;
-    res =
-        nm->mkNode(Kind::PLUS,
-                   res,
-                   nm->mkNode(Kind::DIVISION, num, nm->mkConst<Rational>(den)));
-  }
-  return Rewriter::rewrite(res);
-}
-
-/**
- * Evaluates an upper bound on the exponential function based on the Maclaurin
- * series. This approach is described in
- * https://dl.acm.org/doi/pdf/10.1145/3230639 Section 4.2.1.
- */
-inline Node evalMaclaurinExpUpper(std::uint64_t d, TNode t)
-{
-  auto* nm = NodeManager::currentNM();
-  Node f1 = evalMaclaurinExp(d - 1, t);
-  Integer fac = 1;
-  for (std::uint64_t i = 2; i <= d; ++i) fac *= i;
-  Node f2 =
-      nm->mkNode(Kind::PLUS,
-                 nm->mkConst<Rational>(1),
-                 nm->mkNode(Kind::DIVISION,
-                            nm->mkNode(Kind::POW, t, nm->mkConst<Rational>(d)),
-                            nm->mkConst<Rational>(fac)));
-  return Rewriter::rewrite(nm->mkNode(Kind::MULT, f1, f2));
-}
-
-/**
  * Helper method to construct (t >= lb) AND (t <= up)
  */
 Node mkBounds(TNode t, TNode lb, TNode ub)
