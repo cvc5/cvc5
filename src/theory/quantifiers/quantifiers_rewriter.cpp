@@ -1114,7 +1114,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   std::vector<Node> inactive_vars;
   std::map<Node, std::map<int, bool> > visited;
   std::map<Node, int> exclude;
-  for (const std::pair<Node, bool>& pr : qpr.d_phase_reqs)
+  for (const std::pair<const Node, bool>& pr : qpr.d_phase_reqs)
   {
     if (pr.first.getKind() == GEQ)
     {
@@ -1188,7 +1188,7 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   } while (!evisit.empty() && !elig_vars.empty());
 
   bool ret = false;
-  for (const std::pair<Node, bool>& ev : elig_vars)
+  for (const std::pair<const Node, bool>& ev : elig_vars)
   {
     Node v = ev.first;
     Trace("var-elim-ineq-debug")
