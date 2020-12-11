@@ -367,7 +367,6 @@ header = "options/smt_options.h"
   long       = "early-ite-removal"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "remove ITEs early in preprocessing"
 
 [[option]]
