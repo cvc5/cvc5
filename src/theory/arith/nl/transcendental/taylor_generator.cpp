@@ -25,127 +25,67 @@ namespace transcendental {
 
 TaylorGenerator::TaylorGenerator()
     : d_nm(NodeManager::currentNM()),
-      d_taylor_real_fv(d_nm->mkBoundVar("x", d_nm->realType())),
-      d_taylor_real_fv_base(d_nm->mkBoundVar("a", d_nm->realType())),
-      d_taylor_real_fv_base_rem(d_nm->mkBoundVar("b", d_nm->realType()))
+      d_taylor_real_fv(d_nm->mkBoundVar("x", d_nm->realType()))
 {
 }
 
 TNode TaylorGenerator::getTaylorVariable() { return d_taylor_real_fv; }
 
-std::pair<Node, Node> TaylorGenerator::getTaylor(TNode fa, std::uint64_t n)
+std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  Node d_zero = nm->mkConst(Rational(0));
-
   Assert(n > 0);
-  Node fac;  // what term we cache for fa
-  if (fa[0] == d_zero)
-  {
-    // optimization : simpler to compute (x-fa[0])^n if we are centered around 0
-    fac = fa;
-  }
-  else
-  {
-    // otherwise we use a standard factor a in (x-a)^n
-    fac = nm->mkNode(fa.getKind(), d_taylor_real_fv_base);
-  }
-  Node taylor_rem;
-  Node taylor_sum;
   // check if we have already computed this Taylor series
-  auto itt = s_taylor_sum[fac].find(n);
-  if (itt == s_taylor_sum[fac].end())
+  auto itt = d_taylor_terms[k].find(n);
+  if (itt != d_taylor_terms[k].end())
   {
-    Node i_exp_base;
-    if (fa[0] == d_zero)
-    {
-      i_exp_base = d_taylor_real_fv;
-    }
-    else
-    {
-      i_exp_base = Rewriter::rewrite(
-          nm->mkNode(Kind::MINUS, d_taylor_real_fv, d_taylor_real_fv_base));
-    }
-    Node i_derv = fac;
-    Node i_fact = nm->mkConst(Rational(1));
-    Node i_exp = i_fact;
-    int i_derv_status = 0;
-    unsigned counter = 0;
-    std::vector<Node> sum;
-    do
-    {
-      counter++;
-      if (fa.getKind() == Kind::EXPONENTIAL)
-      {
-        // unchanged
-      }
-      else if (fa.getKind() == Kind::SINE)
-      {
-        if (i_derv_status % 2 == 1)
-        {
-          Node pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
-          Node pi_2 = Rewriter::rewrite(nm->mkNode(
-              Kind::MULT, pi, nm->mkConst(Rational(1) / Rational(2))));
-
-          Node arg = nm->mkNode(Kind::PLUS, pi_2, d_taylor_real_fv_base);
-          i_derv = nm->mkNode(Kind::SINE, arg);
-        }
-        else
-        {
-          i_derv = fa;
-        }
-        if (i_derv_status >= 2)
-        {
-          i_derv = nm->mkNode(Kind::MINUS, d_zero, i_derv);
-        }
-        i_derv = Rewriter::rewrite(i_derv);
-        i_derv_status = i_derv_status == 3 ? 0 : i_derv_status + 1;
-      }
-      if (counter == (n + 1))
-      {
-        TNode x = d_taylor_real_fv_base;
-        i_derv = i_derv.substitute(x, d_taylor_real_fv_base_rem);
-      }
-      Node curr = nm->mkNode(
-          Kind::MULT, nm->mkNode(Kind::DIVISION, i_derv, i_fact), i_exp);
-      if (counter == (n + 1))
-      {
-        taylor_rem = curr;
-      }
-      else
-      {
-        sum.push_back(curr);
-        i_fact = Rewriter::rewrite(
-            nm->mkNode(Kind::MULT, nm->mkConst(Rational(counter)), i_fact));
-        i_exp = Rewriter::rewrite(nm->mkNode(Kind::MULT, i_exp_base, i_exp));
-      }
-    } while (counter <= n);
-    taylor_sum = sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum);
-
-    if (fac[0] != d_taylor_real_fv_base)
-    {
-      TNode x = d_taylor_real_fv_base;
-      taylor_sum = taylor_sum.substitute(x, fac[0]);
-    }
-
-    // cache
-    s_taylor_sum[fac][n] = taylor_sum;
-    d_taylor_rem[fac][n] = taylor_rem;
-  }
-  else
-  {
-    taylor_sum = itt->second;
-    Assert(d_taylor_rem[fac].find(n) != d_taylor_rem[fac].end());
-    taylor_rem = d_taylor_rem[fac][n];
+    return itt->second;
   }
 
-  // must substitute for the argument if we were using a different lookup
-  if (fa[0] != fac[0])
+  NodeManager* nm = NodeManager::currentNM();
+
+  // the current factorial `counter!`
+  Integer factorial = 1;
+  // the current variable power `x^counter`
+  Node varpow = nm->mkConst(Rational(1));
+  std::vector<Node> sum;
+  for (std::uint64_t counter = 1; counter <= n; ++counter)
   {
-    TNode x = d_taylor_real_fv_base;
-    taylor_sum = taylor_sum.substitute(x, fa[0]);
+    if (k == Kind::EXPONENTIAL)
+    {
+      // Maclaurin series for exponential:
+      //   \sum_{n=0}^\infty x^n / n!
+      sum.push_back(
+          nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial)));
+    }
+    else if (k == Kind::SINE)
+    {
+      // Maclaurin series for exponential:
+      //   \sum_{n=0}^\infty (-1)^n / (2n+1)! * x^(2n+1)
+      if (counter % 2 == 0)
+      {
+        int sign = (counter % 4 == 0 ? -1 : 1);
+        sum.push_back(nm->mkNode(Kind::MULT,
+                                 nm->mkNode(Kind::DIVISION,
+                                            nm->mkConst<Rational>(sign),
+                                            nm->mkConst<Rational>(factorial)),
+                                 varpow));
+      }
+    }
+    factorial *= counter;
+    varpow =
+        Rewriter::rewrite(nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow));
   }
-  return std::pair<Node, Node>(taylor_sum, taylor_rem);
+  Node taylor_sum = sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum);
+
+  Node taylor_rem =
+      nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial));
+
+  auto res = std::make_pair(taylor_sum, taylor_rem);
+
+  // put result in cache
+  d_taylor_terms[k][n] = res;
+
+  return res;
 }
 
 void TaylorGenerator::getPolynomialApproximationBounds(
@@ -154,25 +94,20 @@ void TaylorGenerator::getPolynomialApproximationBounds(
   if (d_poly_bounds[k][d].empty())
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node tft = nm->mkNode(k, nm->mkConst(Rational(0)));
     // n is the Taylor degree we are currently considering
     unsigned n = 2 * d;
     // n must be even
-    std::pair<Node, Node> taylor = getTaylor(tft, n);
+    std::pair<Node, Node> taylor = getTaylor(k, n);
     Trace("nl-ext-tftp-debug2")
         << "Taylor for " << k << " is : " << taylor.first << std::endl;
     Node taylor_sum = Rewriter::rewrite(taylor.first);
     Trace("nl-ext-tftp-debug2")
         << "Taylor for " << k << " is (post-rewrite) : " << taylor_sum
         << std::endl;
-    Assert(taylor.second.getKind() == Kind::MULT);
-    Assert(taylor.second.getNumChildren() == 2);
-    Assert(taylor.second[0].getKind() == Kind::DIVISION);
     Trace("nl-ext-tftp-debug2")
         << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
     // ru is x^{n+1}/(n+1)!
-    Node ru = nm->mkNode(Kind::DIVISION, taylor.second[1], taylor.second[0][1]);
-    ru = Rewriter::rewrite(ru);
+    Node ru = Rewriter::rewrite(taylor.second);
     Trace("nl-ext-tftp-debug2")
         << "Taylor remainder factor is (post-rewrite) : " << ru << std::endl;
     if (k == Kind::EXPONENTIAL)
@@ -219,8 +154,6 @@ unsigned TaylorGenerator::getPolynomialApproximationBoundForArg(
   Assert(c.isConst());
   if (k == Kind::EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
   {
-    NodeManager* nm = NodeManager::currentNM();
-    Node tft = nm->mkNode(k, nm->mkConst(Rational(0)));
     bool success = false;
     unsigned ds = d;
     TNode ttrf = getTaylorVariable();
@@ -229,10 +162,9 @@ unsigned TaylorGenerator::getPolynomialApproximationBoundForArg(
     {
       success = true;
       unsigned n = 2 * ds;
-      std::pair<Node, Node> taylor = getTaylor(tft, n);
+      std::pair<Node, Node> taylor = getTaylor(k, n);
       // check that 1-c^{n+1}/(n+1)! > 0
-      Node ru =
-          nm->mkNode(Kind::DIVISION, taylor.second[1], taylor.second[0][1]);
+      Node ru = taylor.second;
       Node rus = ru.substitute(ttrf, tc);
       rus = Rewriter::rewrite(rus);
       Assert(rus.isConst());
