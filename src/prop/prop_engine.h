@@ -242,7 +242,8 @@ class PropEngine
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  ProofCnfStream* getProofCnfStream() { return d_pfCnfStream.get(); }
+  /** Retrieve this modules proof CNF stream. */
+  ProofCnfStream* getProofCnfStream();
 
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */

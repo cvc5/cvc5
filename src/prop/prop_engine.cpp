@@ -472,6 +472,8 @@ void PropEngine::checkProof(context::CDList<Node>* assertions)
   return d_ppm->checkProof(assertions);
 }
 
+ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
+
 std::shared_ptr<ProofNode> PropEngine::getProof()
 {
   if (!d_pnm)
