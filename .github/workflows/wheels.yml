@@ -9,8 +9,7 @@ jobs:
     strategy:
       matrix:
         # TODO: put windows-latest back in (should also test CVC4 on windows-latest in ci.yml)
-        # TODO: put macos-latest back in, just removed for debugging linux one
-        os: [ubuntu-18.04]
+        os: [ubuntu-18.04, macos-latest]
     env:
       CIBW_ENVIRONMENT: "PIP_NO_CLEAN=1"
       # only build for cpython3
