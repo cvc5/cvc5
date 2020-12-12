@@ -11,6 +11,10 @@ jobs:
         # TODO: put windows-latest back in (should also test CVC4 on windows-latest in ci.yml)
         os: [ubuntu-18.04, macos-latest]
     env:
+      # setting PIP_NO_CLEAN tells pip not to remove the build directory
+      # this is important because without this the built CVC4 libraries will be removed
+      # before auditwheel repairs the wheel (which would then fail when it can't find
+      # the library)
       CIBW_ENVIRONMENT: "PIP_NO_CLEAN=1"
       # only build for cpython3
       CIBW_BUILD: cp3*
