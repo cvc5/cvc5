@@ -598,8 +598,7 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
 
 Node DType::mkGroundTerm(TypeNode t) const
 {
-  Trace("datatypes-init") << "DType::mkGroundTerm of type " << t
-                          << std::endl;
+  Trace("datatypes-init") << "DType::mkGroundTerm of type " << t << std::endl;
   Assert(isResolved());
   return mkGroundTermInternal(t, false);
 }
@@ -607,10 +606,9 @@ Node DType::mkGroundTerm(TypeNode t) const
 Node DType::mkGroundValue(TypeNode t) const
 {
   Assert(isResolved());
-  Trace("datatypes-init") << "DType::mkGroundValue of type " << t
-                          << std::endl;
+  Trace("datatypes-init") << "DType::mkGroundValue of type " << t << std::endl;
   Node v = mkGroundTermInternal(t, true);
-  Assert (v.isConst());
+  Assert(v.isConst());
   return v;
 }
 
@@ -637,7 +635,8 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
         << "constructed: " << getName() << " => " << groundTerm << std::endl;
   }
   // if ground term is null, we are not well-founded
-  Trace("datatypes-init") << "DType::mkGroundTerm for " << t << ", isValue=" << isValue << " returns "
+  Trace("datatypes-init") << "DType::mkGroundTerm for " << t
+                          << ", isValue=" << isValue << " returns "
                           << groundTerm << std::endl;
   return groundTerm;
 }
@@ -796,8 +795,8 @@ Node DType::computeGroundTerm(TypeNode t,
 {
   if (std::find(processing.begin(), processing.end(), t) != processing.end())
   {
-    Trace("datatypes-init") << "...already processing " << t << " " << d_self
-                          << std::endl;
+    Trace("datatypes-init")
+        << "...already processing " << t << " " << d_self << std::endl;
     return Node();
   }
   processing.push_back(t);
@@ -811,9 +810,9 @@ Node DType::computeGroundTerm(TypeNode t,
       {
         continue;
       }
-      Trace("datatypes-init")
-          << "Try constructing for " << ctor->getName()
-          << ", processing = " << processing.size() << ", isValue=" << isValue << std::endl;
+      Trace("datatypes-init") << "Try constructing for " << ctor->getName()
+                              << ", processing = " << processing.size()
+                              << ", isValue=" << isValue << std::endl;
       Node e = ctor->computeGroundTerm(t, processing, gtCache, isValue);
       if (!e.isNull())
       {
