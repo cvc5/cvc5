@@ -69,7 +69,7 @@ void CheckModels::checkModel(Model* m,
     // evaluate e.g. divide-by-zero.
     Node n = pp->expandDefinitions(assertion, cache, true);
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << std::endl;
-    
+
     n = Rewriter::rewrite(n);
     Notice() << "SmtEngine::checkModel(): -- rewrites to " << n << std::endl;
 
