@@ -239,14 +239,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::fmfBound.set(true);
       Trace("smt") << "turning on fmf-bound-int, for strings-exp" << std::endl;
     }
-    // Do not eliminate extended arithmetic symbols from quantified formulas,
-    // since some strategies, e.g. --re-elim-agg, introduce them.
-    if (!options::elimExtArithQuant.wasSetByUser())
-    {
-      options::elimExtArithQuant.set(false);
-      Trace("smt") << "turning off elim-ext-arith-quant, for strings-exp"
-                   << std::endl;
-    }
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
@@ -934,11 +926,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!options::quantDynamicSplit.wasSetByUser())
     {
       options::quantDynamicSplit.set(options::QuantDSplitMode::DEFAULT);
-    }
-    // do not eliminate extended arithmetic symbols from quantified formulas
-    if (!options::elimExtArithQuant.wasSetByUser())
-    {
-      options::elimExtArithQuant.set(false);
     }
     if (!options::eMatching.wasSetByUser())
     {

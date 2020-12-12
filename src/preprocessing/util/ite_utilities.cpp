@@ -450,7 +450,7 @@ Node ITECompressor::compressTerm(Node toCompress)
     if (cmpCnd.isConst())
     {
       Node branch = (cmpCnd == d_true) ? toCompress[1] : toCompress[2];
-      Node res = compressTerm(toCompress);
+      Node res = compressTerm(branch);
       d_compressed[toCompress] = res;
       return res;
     }

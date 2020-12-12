@@ -22,7 +22,7 @@
 #include "expr/node.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/iand_table.h"
+#include "theory/arith/nl/iand_utils.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 
@@ -83,13 +83,13 @@ class IAndSolver
   /** Reference to the non-linear model object */
   NlModel& d_model;
   /** commonly used terms */
+  Node d_false;
+  Node d_true;
   Node d_zero;
   Node d_one;
-  Node d_neg_one;
   Node d_two;
-  Node d_true;
-  Node d_false;
-  IAndTable d_iandTable;
+
+  IAndUtils d_iandUtils;
   /** IAND terms that have been given initial refinement lemmas */
   NodeSet d_initRefine;
   /** all IAND terms, for each bit-width */
@@ -100,20 +100,12 @@ class IAndSolver
    * equivalent to Rewriter::rewrite( ((_ intToBv k) n) ).
    */
   Node convertToBvK(unsigned k, Node n) const;
-  /** 2^k */
-  Node twoToK(unsigned k) const;
-  /** 2^k-1 */
-  Node twoToKMinusOne(unsigned k) const;
   /** make iand */
   Node mkIAnd(unsigned k, Node x, Node y) const;
   /** make ior */
   Node mkIOr(unsigned k, Node x, Node y) const;
   /** make inot */
   Node mkINot(unsigned k, Node i) const;
-  /** extract from integer
-   *  ((_ extract i j) n) is n / 2^j mod 2^{i-j+1}
-   */
-  Node iextract(unsigned i, unsigned j, Node n) const;
   /**
    * Value-based refinement lemma for i of the form ((_ iand k) x y). Returns:
    *   x = M(x) ^ y = M(y) =>
@@ -127,6 +119,12 @@ class IAndSolver
    * and min is defined with an ite.
    */
   Node sumBasedLemma(Node i);
+  /** Bitwise refinement lemma for i of the form ((_ iand k) x y). Returns:
+   *   x[j] & y[j] == ite(x[j] == 1 /\ y[j] == 1, 1, 0)
+   *   for all j where M(x)[j] ^ M(y)[j]
+   *   does not match M(((_ iand k) x y))
+   */
+  Node bitwiseLemma(Node i);
 }; /* class IAndSolver */
 
 }  // namespace nl

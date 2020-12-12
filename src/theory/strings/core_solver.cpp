@@ -525,6 +525,7 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
       ++eqc_i;
     }
     curr.pop_back();
+    Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
     //now we can add it to the list of equivalence classes
     d_strings_eqc.push_back( eqc );
   }else{
@@ -651,8 +652,7 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
     d_normal_form[eqc] = normal_forms[nf_index];
     Trace("strings-process-debug")
         << "Return process equivalence class " << eqc
-        << " : returned, size = " << d_normal_form[eqc].d_nf.size()
-        << std::endl;
+        << " : returned = " << d_normal_form[eqc].d_nf << std::endl;
   }
 }
 
@@ -896,7 +896,9 @@ void CoreSolver::getNormalForms(Node eqc,
             // get the normal form for the component
             NormalForm& nfr = getNormalForm(nr);
             std::vector<Node>& nfrv = nfr.d_nf;
-            Trace("strings-process-debug") << "Normalizing subterm " << n[i] << " = "  << nr << std::endl;
+            Trace("strings-process-debug")
+                << "Normalizing subterm " << n[i] << " = " << nr
+                << ", which is " << nfrv << std::endl;
             unsigned orig_size = nf_curr.d_nf.size();
             unsigned add_size = nfrv.size();
             //if not the empty string, add to current normal form
@@ -992,6 +994,12 @@ void CoreSolver::getNormalForms(Node eqc,
       }else{
         eqc_non_c = n;
       }
+    }
+    else
+    {
+      Trace("strings-process-debug")
+          << "Get Normal Form : term " << n << " in eqc " << eqc
+          << " is congruent" << std::endl;
     }
     ++eqc_i;
   }
@@ -1359,6 +1367,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         }
         eqn[r] = utils::mkNConcat(eqnc, stype);
       }
+      Trace("strings-solve-debug")
+          << "Endpoint eq check: " << eqn[0] << " " << eqn[1] << std::endl;
       if (!d_state.areEqual(eqn[0], eqn[1]))
       {
         std::vector<Node> antec;
@@ -2251,10 +2261,16 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       //      x = "" ^ ...
       Trace("strings-solve-debug")
           << "Disequality normalize empty" << std::endl;
+      // the antecedant
       std::vector<Node> ant;
+      // the antecedant that is not explainable in this context
+      std::vector<Node> antn;
       Node niLenTerm = d_state.getLengthExp(ni, ant, nfni.d_base);
       Node njLenTerm = d_state.getLengthExp(nj, ant, nfnj.d_base);
-      ant.push_back(niLenTerm.eqNode(njLenTerm));
+      // length is not guaranteed to hold
+      Node leq = niLenTerm.eqNode(njLenTerm);
+      ant.push_back(leq);
+      antn.push_back(leq);
       ant.insert(ant.end(), nfni.d_exp.begin(), nfni.d_exp.end());
       ant.insert(ant.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
       std::vector<Node> cc;
@@ -2266,7 +2282,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       Node conc = cc.size() == 1
                       ? cc[0]
                       : NodeManager::currentNM()->mkNode(kind::AND, cc);
-      d_im.sendInference(ant, conc, Inference::DEQ_NORM_EMP, isRev, true);
+      d_im.sendInference(ant, antn, conc, Inference::DEQ_NORM_EMP, isRev, true);
       return true;
     }
 
@@ -2575,7 +2591,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
     addNormalFormPair(cii.d_nfPair[0], cii.d_nfPair[1]);
   }
   // send phase requirements
-  for (const std::pair<const Node, bool> pp : cii.d_pendingPhase)
+  for (const std::pair<const Node, bool>& pp : cii.d_pendingPhase)
   {
     Node ppr = Rewriter::rewrite(pp.first);
     d_im.addPendingPhaseRequirement(ppr, pp.second);

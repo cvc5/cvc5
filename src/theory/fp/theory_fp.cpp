@@ -454,6 +454,12 @@ TrustNode TheoryFp::expandDefinition(Node node)
 TrustNode TheoryFp::ppRewrite(TNode node)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(node);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
 
   Node res = node;
 
@@ -943,6 +949,14 @@ void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
   d_state.notifyInConflict();
   d_out->conflict(conflict);
   return;
+}
+
+
+bool TheoryFp::needsCheckLastEffort() 
+{ 
+  // only need to check if we have added to the abstraction map, otherwise
+  // postCheck below is a no-op.
+  return !d_abstractionMap.empty(); 
 }
 
 void TheoryFp::postCheck(Effort level)

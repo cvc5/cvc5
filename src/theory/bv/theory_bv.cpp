@@ -47,7 +47,7 @@ TheoryBV::TheoryBV(context::Context* c,
 
     default:
       AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
-      d_internal.reset(new BVSolverSimple(d_state, d_inferMgr));
+      d_internal.reset(new BVSolverSimple(&d_state, d_inferMgr, pnm));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_inferMgr;
@@ -200,7 +200,16 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t) { return d_internal->ppRewrite(t); }
+TrustNode TheoryBV::ppRewrite(TNode t)
+{
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(t);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
+  return d_internal->ppRewrite(t);
+}
 
 void TheoryBV::presolve() { d_internal->presolve(); }
 
