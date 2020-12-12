@@ -598,6 +598,8 @@ bool DType::computeWellFounded(std::vector<TypeNode>& processing) const
 
 Node DType::mkGroundTerm(TypeNode t) const
 {
+  Trace("datatypes-init") << "DType::mkGroundTerm of type " << t
+                          << std::endl;
   Assert(isResolved());
   return mkGroundTermInternal(t, false);
 }
@@ -605,7 +607,11 @@ Node DType::mkGroundTerm(TypeNode t) const
 Node DType::mkGroundValue(TypeNode t) const
 {
   Assert(isResolved());
-  return mkGroundTermInternal(t, true);
+  Trace("datatypes-init") << "DType::mkGroundValue of type " << t
+                          << std::endl;
+  Node v = mkGroundTermInternal(t, true);
+  Assert (v.isConst());
+  return v;
 }
 
 Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
@@ -631,7 +637,7 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
         << "constructed: " << getName() << " => " << groundTerm << std::endl;
   }
   // if ground term is null, we are not well-founded
-  Trace("datatypes-init") << "DType::mkGroundTerm for " << t << " returns "
+  Trace("datatypes-init") << "DType::mkGroundTerm for " << t << ", isValue=" << isValue << " returns "
                           << groundTerm << std::endl;
   return groundTerm;
 }
@@ -790,11 +796,12 @@ Node DType::computeGroundTerm(TypeNode t,
 {
   if (std::find(processing.begin(), processing.end(), t) != processing.end())
   {
-    Debug("datatypes-gt") << "...already processing " << t << " " << d_self
+    Trace("datatypes-init") << "...already processing " << t << " " << d_self
                           << std::endl;
     return Node();
   }
   processing.push_back(t);
+  std::map<TypeNode, Node>& gtCache = isValue ? d_groundValue : d_groundTerm;
   for (unsigned r = 0; r < 2; r++)
   {
     for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
@@ -806,8 +813,8 @@ Node DType::computeGroundTerm(TypeNode t,
       }
       Trace("datatypes-init")
           << "Try constructing for " << ctor->getName()
-          << ", processing = " << processing.size() << std::endl;
-      Node e = ctor->computeGroundTerm(t, processing, d_groundTerm, isValue);
+          << ", processing = " << processing.size() << ", isValue=" << isValue << std::endl;
+      Node e = ctor->computeGroundTerm(t, processing, gtCache, isValue);
       if (!e.isNull())
       {
         // must check subterms for the same type to avoid infinite loops in

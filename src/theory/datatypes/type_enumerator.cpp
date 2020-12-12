@@ -212,6 +212,7 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    // TypeNode::mkGroundTerm for d_type, which avoids debug check model
    // failures.
    d_zeroTerm = d_datatype.mkGroundValue(d_type);
+   Assert (d_zeroTerm.isConst());
    // Only use the zero term if it was successfully constructed. This may
    // fail for codatatype types whose only values are infinite.
    d_zeroTermActive = !d_zeroTerm.isNull();
