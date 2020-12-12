@@ -19,9 +19,7 @@
 
 #include "base/exception.h"
 #include "cvc4autoconfig.h"
-#include "expr/expr_manager.h"
 #include "options/options.h"
-#include "smt/smt_engine.h"
 #include "util/statistics.h"
 #include "util/statistics_registry.h"
 
