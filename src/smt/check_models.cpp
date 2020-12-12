@@ -58,6 +58,8 @@ void CheckModels::checkModel(Model* m,
 
   Trace("check-model") << "checkModel: Check assertions..." << std::endl;
   std::unordered_map<Node, Node, NodeHashFunction> cache;
+  // the list of assertions that did not rewrite to true
+  std::vector<Node> noCheckList;
   // Now go through all our user assertions checking if they're satisfied.
   for (const Node& assertion : *al)
   {
@@ -65,8 +67,10 @@ void CheckModels::checkModel(Model* m,
              << std::endl;
 
     // Apply any define-funs from the problem. We do not expand theory symbols
-    // like divide-by-zero here. Hence, the code below is not able to properly
-    // evaluate e.g. divide-by-zero.
+    // like integer division here. Hence, the code below is not able to properly
+    // evaluate e.g. divide-by-zero. This is intentional since the evaluation
+    // is not trustworthy, since the UF introduced by expanding definitions may
+    // not be properly constrained.
     Node n = pp->expandDefinitions(assertion, cache, true);
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << std::endl;
 
@@ -105,6 +109,7 @@ void CheckModels::checkModel(Model* m,
       Warning() << "Warning : SmtEngine::checkModel(): cannot check simplified "
                    "assertion : "
                 << n << std::endl;
+      noCheckList.push_back(n);
       continue;
     }
     // Assertions that simplify to false result in an InternalError or
@@ -131,6 +136,8 @@ void CheckModels::checkModel(Model* m,
   Trace("check-model") << "checkModel: Finish" << std::endl;
   Notice() << "SmtEngine::checkModel(): all assertions checked out OK !"
            << std::endl;
+  // if the noCheckList is non-empty, we expand definitions on this list
+  // and check satisfiability
 }
 
 }  // namespace smt
