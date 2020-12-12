@@ -166,8 +166,6 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
-       echo "More debugging"
-       ls $(dirname $(find build/install/ -name "pycvc4" -type d))
 
       # Examples are built for non-symfpu builds
     - name: Check Examples
