@@ -801,7 +801,13 @@ class CVC4_PUBLIC SmtEngine
   /** Get the value of one named statistic from this SmtEngine. */
   SExpr getStatistic(std::string name) const;
 
-  /** Flush statistic from this SmtEngine. Safe to use in a signal handler. */
+  /** Flush statistics from this SmtEngine and the NodeManager it uses. */
+  void flushStatistics(std::ostream& out) const;
+
+  /**
+   * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
+   * use in a signal handler.
+   */
   void safeFlushStatistics(int fd) const;
 
   /**
