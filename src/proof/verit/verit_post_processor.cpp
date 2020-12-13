@@ -778,7 +778,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // premises: (VP1:(cl (not (not (not F))) F)) (VP2:(cl (not (not (not (not
     // F)))) (not F)) args: ()
     //
-    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not
+    // F1) F2)
     case PfRule::SPLIT:
     {
       Node vp1 = d_nm->mkNode(
@@ -832,7 +833,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::EQ_RESOLVE:
     {
-      Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, children[1].notNode(), children[0].notNode(), res);
+      Node vp1 = d_nm->mkNode(
+          kind::SEXPR, d_cl, children[1].notNode(), children[0].notNode(), res);
       bool success = addVeritStep(vp1, VeritRule::EQUIV_POS2, {}, {}, *cdp);
 
       std::vector<Node> new_children;
@@ -1137,7 +1139,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) F2)
     //
-    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not
+    // F1) F2)
     case PfRule::IMPLIES_ELIM:
     {
       return addClProof(res, VeritRule::IMPLIES, children, {}, cdp);
@@ -1211,7 +1214,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) F2)
     //
-    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not
+    // F1) F2)
     case PfRule::EQUIV_ELIM1:
     {
       return addClProof(res, VeritRule::EQUIV1, children, {}, cdp);
@@ -1222,7 +1226,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 (not F2))
     //
-    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1 (not F2))
+    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1
+    // (not F2))
     case PfRule::EQUIV_ELIM2:
     {
       return addClProof(res, VeritRule::EQUIV2, children, {}, cdp);
@@ -1244,7 +1249,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) (not F2))
     //
-    // Use addClProof to first prove (cl (or (not F1) (not F2))) followed by (cl (not F1) (not F2))
+    // Use addClProof to first prove (cl (or (not F1) (not F2))) followed by (cl
+    // (not F1) (not F2))
     case PfRule::NOT_EQUIV_ELIM2:
     {
       return addClProof(res, VeritRule::NOT_EQUIV2, children, {}, cdp);
@@ -1266,7 +1272,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 (not F2))
     //
-    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1 (not F2))
+    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1
+    // (not F2))
     case PfRule::XOR_ELIM2:
     {
       return addClProof(res, VeritRule::XOR2, children, {}, cdp);
@@ -1277,7 +1284,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 (not F2))
     //
-    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1 (not F2))
+    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1
+    // (not F2))
     case PfRule::NOT_XOR_ELIM1:
     {
       return addClProof(res, VeritRule::NOT_XOR1, children, {}, cdp);
@@ -1288,7 +1296,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) F2)
     //
-    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not
+    // F1) F2)
     case PfRule::NOT_XOR_ELIM2:
     {
       return addClProof(res, VeritRule::NOT_XOR2, children, {}, cdp);
@@ -1299,7 +1308,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not C) F1)
     //
-    // Use addClProof to first prove (cl (or (not C) F1)) followed by (cl (not C) F1)
+    // Use addClProof to first prove (cl (or (not C) F1)) followed by (cl (not
+    // C) F1)
     case PfRule::ITE_ELIM1:
     {
       return addClProof(res, VeritRule::ITE2, children, {}, cdp);
@@ -1321,7 +1331,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not C) (not F1))
     //
-    // Use addClProof to first prove (cl (or (not C) (not F1))) followed by (cl (not C) (not F1))
+    // Use addClProof to first prove (cl (or (not C) (not F1))) followed by (cl
+    // (not C) (not F1))
     case PfRule::NOT_ITE_ELIM1:
     {
       return addClProof(res, VeritRule::NOT_ITE2, children, {}, cdp);
@@ -1332,7 +1343,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or C (not F2))
     //
-    // Use addClProof to first prove (cl (or C (not F2))) followed by (cl C (not F2))
+    // Use addClProof to first prove (cl (or C (not F2))) followed by (cl C (not
+    // F2))
     case PfRule::NOT_ITE_ELIM2:
     {
       return addClProof(res, VeritRule::NOT_ITE1, children, {}, cdp);

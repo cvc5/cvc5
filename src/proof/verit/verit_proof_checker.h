@@ -14,8 +14,8 @@
 
 #include <iostream>
 #include <memory>
-#include <string>
 #include <set>
+#include <string>
 
 #include "cvc4_private.h"
 #include "expr/proof_node_updater.h"
@@ -199,9 +199,12 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::EQUIV_POS2:
     {
-	    std::cout << (res.getKind() == kind::SEXPR) << (res[0].toString() == cl.toString()) << 
-(res[1].getKind() == kind::NOT) <<(res[1][0].getKind() == kind::EQUAL) << (res[2].getKind() == kind::NOT)
-<<(res[1][0][0] == res[2][0]) << (res[1][0][1] == res[3]);
+      std::cout << (res.getKind() == kind::SEXPR)
+                << (res[0].toString() == cl.toString())
+                << (res[1].getKind() == kind::NOT)
+                << (res[1][0].getKind() == kind::EQUAL)
+                << (res[2].getKind() == kind::NOT)
+                << (res[1][0][0] == res[2][0]) << (res[1][0][1] == res[3]);
       return (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[2].getKind() == kind::NOT
           && res[1][0][0] == res[2][0] && res[1][0][1] == res[3]);
@@ -308,7 +311,7 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::REFL:
     {  // TODO
-	    std::cout << (res[1][0] == res[1][1]) << std::endl;
+      std::cout << (res[1][0] == res[1][1]) << std::endl;
       return (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && res[1][0] == res[1][1]);
     }
     case VeritRule::TRANS: //DONE
@@ -389,14 +392,14 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::AND:
     {
       bool equal = false;
-        for (int i = 0;
-             i < (new_children[0][1].end() - new_children[0][1].begin());
-             i++)
+      for (int i = 0;
+           i < (new_children[0][1].end() - new_children[0][1].begin());
+           i++)
+      {
+        if (new_children[0][1][i] == res[1])
         {
-          if (new_children[0][1][i] == res[1])
-          {
-            equal = true;
-          }
+          equal = true;
+        }
         }
         return (res[0].toString() == cl.toString() && new_children[0][0] == cl
             && new_children[0][1].getKind() == kind::AND && equal);
@@ -404,10 +407,12 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::TAUTOLOGIC_CLAUSE:
     {
       bool equal = false;
-      for (int i = 0; i < (new_children[0].end() - new_children[0].begin()); i++)
+      for (int i = 0; i < (new_children[0].end() - new_children[0].begin());
+           i++)
       {
         Node clause = new_children[0][i];
-        for (int j = 0; j < (new_children[0].end() - new_children[0].begin()); j++)
+        for (int j = 0; j < (new_children[0].end() - new_children[0].begin());
+             j++)
         {
           if (new_children[0][i] == new_children[0][i].negate())
           {
@@ -424,7 +429,9 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
       if (static_cast<VeritRule>(std::stoul(pfn->getChildren()[0]->getArguments()[0].toString())) == VeritRule::ASSUME)
       {
         bool equal = false;
-        for (int i = 0; i < (new_children[0][0].end() - new_children[0][0].end()); i++)
+        for (int i = 0;
+             i < (new_children[0][0].end() - new_children[0][0].end());
+             i++)
         {
           if (new_children[0][0][i] == res[1].negate())
           {
@@ -453,47 +460,60 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::OR:
     {
       bool equal;
-      if((new_children[0][1].end() - new_children[0][1].begin()) == (res.end()-res.begin())){return false;}
-      for (int i = 0; i < (new_children[0][1].end() - new_children[0][1].begin());
+      if ((new_children[0][1].end() - new_children[0][1].begin())
+          == (res.end() - res.begin()))
+      {
+        return false;
+      }
+      for (int i = 0;
+           i < (new_children[0][1].end() - new_children[0][1].begin());
            i++)
       {
-        if (new_children[0][1][i].toString() == res[i+1].toString())
+        if (new_children[0][1][i].toString() == res[i + 1].toString())
         {
           equal = true;
         }
       }
-      return (res[0].toString() == cl.toString() && new_children[0][0].toString() == cl.toString()
-          && new_children[0][1].getKind() == kind::OR
-          && equal);
+      return (res[0].toString() == cl.toString()
+              && new_children[0][0].toString() == cl.toString()
+              && new_children[0][1].getKind() == kind::OR && equal);
     }
-    case VeritRule::DUPLICATED_LITERALS:{//TODO: could be better
+    case VeritRule::DUPLICATED_LITERALS:
+    {  // TODO: could be better
       std::vector<Node> resVec;
-      for (int i = 1; i < (res.end() - res.begin());
-           i++)
+      for (int i = 1; i < (res.end() - res.begin()); i++)
       {
         resVec.push_back(res[i]);
       }
-      std::set<Node> s1(resVec.begin(),resVec.end());
+      std::set<Node> s1(resVec.begin(), resVec.end());
       std::vector<Node> childVec;
       for (int i = 1; i < (new_children[0].end() - new_children[0].begin());
            i++)
       {
         childVec.push_back(new_children[0][i]);
       }
-      std::set<Node> s2(childVec.begin(),childVec.end());
+      std::set<Node> s2(childVec.begin(), childVec.end());
 
       int j = 1;
-      for (int i = 1; i < (new_children[0].end() - new_children[0].begin()) && j < (res.end()-res.begin());
+      for (int i = 1; i < (new_children[0].end() - new_children[0].begin())
+                      && j < (res.end() - res.begin());
            i++)
       {
-        if(new_children[0][i] == res[j]){j++;}
+        if (new_children[0][i] == res[j])
+        {
+          j++;
+        }
       }
-      if(j==(new_children[0][1].end() - new_children[0][1].begin())-1 && s1.size() == s2.size()){return true;}
+      if (j == (new_children[0][1].end() - new_children[0][1].begin()) - 1
+          && s1.size() == s2.size())
+      {
+        return true;
+      }
       return false;
     }
     default:
     {
-      return true; //TODO: Change to false
+      return true;  // TODO: Change to false
     }
   }
 }
