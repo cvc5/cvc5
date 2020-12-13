@@ -79,11 +79,9 @@ class Preprocessor
    * has been constructed.  It also involves theory normalization.
    *
    * @param n The node to simplify
-   * @param removeItes Whether to remove ITE (and other terms with formulas in
-   * term positions) from the result.
    * @return The simplified term.
    */
-  Node simplify(const Node& n, bool removeItes = false);
+  Node simplify(const Node& n);
   /**
    * Expand the definitions in a term or formula n.  No other
    * simplification or normalization is done.

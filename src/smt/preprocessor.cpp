@@ -129,7 +129,7 @@ Node Preprocessor::expandDefinitions(
   return d_exDefs.expandDefinitions(n, cache, expandOnly);
 }
 
-Node Preprocessor::simplify(const Node& node, bool removeItes)
+Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
@@ -147,11 +147,6 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   Node n = d_exDefs.expandDefinitions(nas, cache);
   TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
   Node ns = ts.isNull() ? n : ts.getNode();
-  if (removeItes)
-  {
-    // also remove ites if asked
-    ns = d_rtf.replace(ns);
-  }
   return ns;
 }
 
