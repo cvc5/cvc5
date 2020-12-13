@@ -703,6 +703,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     //  proof term: (cl F1 ... Fn)
     //  premises: (P:C1)
     //  args: ()
+    //
+    //  TODO: addClProof
     case PfRule::FACTORING:
     {
       bool special_case = true;
@@ -771,10 +773,12 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     //
     // proof rule: resolution
-    // proof node: (or F (not F))
+    // proof node: (cl F (not F))
     // proof term: (cl F (not F))
     // premises: (VP1:(cl (not (not (not F))) F)) (VP2:(cl (not (not (not (not
     // F)))) (not F)) args: ()
+    //
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
     case PfRule::SPLIT:
     {
       Node vp1 = d_nm->mkNode(
@@ -786,8 +790,7 @@ bool VeritProofPostprocessCallback::update(Node res,
 
       return addVeritStep(vp2, VeritRule::NOT_NOT, {}, {}, *cdp)
              && addVeritStep(vp1, VeritRule::NOT_NOT, {}, {}, *cdp)
-             && addVeritStepFromOr(
-                 res, VeritRule::RESOLUTION, {vp1, vp2}, {}, *cdp);
+             && addClProof(res, VeritRule::RESOLUTION, {vp1, vp2}, {}, cdp);
     }
     // ======== Equality resolution
     // Children: (P1:F1, P2:(= F1 F2))
@@ -829,7 +832,9 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args: ()
     case PfRule::EQ_RESOLVE:
     {
-      Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, children[1].negate(), children[0].negate(), res);
+      Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, children[1].notNode(), children[0].notNode(), res);
+      bool success = addVeritStep(vp1, VeritRule::EQUIV_POS2, {}, {}, *cdp);
+
       std::vector<Node> new_children;
 
       if (children[0].getKind() == kind::OR && children[0] == children[1][0] && pf_children[0]->getChildren().end()-pf_children[0]->getChildren().begin() > 0)
@@ -841,8 +846,6 @@ bool VeritProofPostprocessCallback::update(Node res,
       {
         new_children = {vp1, children[0], children[1]};
       }
-
-      bool success = addVeritStep(vp1, VeritRule::EQUIV_POS2, {}, {}, *cdp);
 
       if(res.getKind() == kind::OR){
         Node vp2 = d_nm->mkNode(kind::SEXPR, d_cl, res);
@@ -1134,14 +1137,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) F2)
     //
-    // proof rule: implies
-    // proof node: (or (not F1) F2)
-    // proof term: (cl (not F1) F2)
-    // premises: (P:(=> F1 F2))
-    // args: ()
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
     case PfRule::IMPLIES_ELIM:
     {
-      return addVeritStepFromOr(res, VeritRule::IMPLIES, children, {}, *cdp);
+      return addClProof(res, VeritRule::IMPLIES, children, {}, cdp);
     }
     // ======== Not Implication elimination version 1
     // Children: (P:(not (=> F1 F2)))
@@ -1212,14 +1211,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) F2)
     //
-    // proof rule: equiv1
-    // proof node: (or (not F1) F2)
-    // proof term: (cl (not F1) F2)
-    // premises: (P:(= F1 F2))
-    // args: ()
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
     case PfRule::EQUIV_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV1, children, {}, *cdp);
+      return addClProof(res, VeritRule::EQUIV1, children, {}, cdp);
     }
     // ======== Equivalence elimination version 2
     // Children: (P:(= F1 F2))
@@ -1227,14 +1222,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 (not F2))
     //
-    // proof rule: equiv2
-    // proof node: (or F1 (not F2))
-    // proof term: (cl F1 (not F2))
-    // premises: (P:(= F1 F2))
-    // args: ()
+    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1 (not F2))
     case PfRule::EQUIV_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::EQUIV2, children, {}, *cdp);
+      return addClProof(res, VeritRule::EQUIV2, children, {}, cdp);
     }
     // ======== Not Equivalence elimination version 1
     // Children: (P:(not (= F1 F2)))
@@ -1242,14 +1233,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 F2)
     //
-    // proof rule: not_equiv1
-    // proof node: (or F1 F2)
-    // proof term: (cl F1 F2)
-    // premises: (P:(not (= F1 F2)))
-    // args: ()
+    // Use addClProof to first prove (cl (or F1 F2)) followed by (cl F1 F2)
     case PfRule::NOT_EQUIV_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_EQUIV1, children, {}, *cdp);
+      return addClProof(res, VeritRule::NOT_EQUIV1, children, {}, cdp);
     }
     // ======== Not Equivalence elimination version 2
     // Children: (P:(not (= F1 F2)))
@@ -1257,14 +1244,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) (not F2))
     //
-    // proof rule: not_equiv2
-    // proof node: (or (not F1) (not F2))
-    // proof term: (cl (not F1) (not F2))
-    // premises: (P:(not (= F1 F2)))
-    // args: ()
+    // Use addClProof to first prove (cl (or (not F1) (not F2))) followed by (cl (not F1) (not F2))
     case PfRule::NOT_EQUIV_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_EQUIV2, children, {}, *cdp);
+      return addClProof(res, VeritRule::NOT_EQUIV2, children, {}, cdp);
     }
     // ======== XOR elimination version 1
     // Children: (P:(xor F1 F2)))
@@ -1272,14 +1255,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 F2)
     //
-    // proof rule: XOR1
-    // proof node: (or F1 F2)
-    // proof term: (cl F1 F2)
-    // premises: (P:(xor F1 F2))
-    // args: ()
+    // Use addClProof to first prove (cl (or F1 F2)) followed by (cl F1 F2)
     case PfRule::XOR_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR1, children, {}, *cdp);
+      return addClProof(res, VeritRule::XOR1, children, {}, cdp);
     }
     // ======== XOR elimination version 2
     // Children: (P:(not (xor F1 F2))))
@@ -1287,14 +1266,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 (not F2))
     //
-    // proof rule: XOR2
-    // proof node: (or F1 (not F2))
-    // proof term: (cl F1 (not F2))
-    // premises: (P:(not (xor F1 F2)))
-    // args: ()
+    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1 (not F2))
     case PfRule::XOR_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::XOR2, children, {}, *cdp);
+      return addClProof(res, VeritRule::XOR2, children, {}, cdp);
     }
     // ======== Not XOR elimination version 1
     // Children: (P:(not (xor F1 F2)))
@@ -1302,14 +1277,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or F1 (not F2))
     //
-    // proof rule: NOT_XOR1
-    // proof node: (or F1 (not F2))
-    // proof term: (cl F1 (not F2))
-    // premises: (P:(not (xor F1 F2)))
-    // args: ()
+    // Use addClProof to first prove (cl (or F1 (not F2))) followed by (cl F1 (not F2))
     case PfRule::NOT_XOR_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_XOR1, children, {}, *cdp);
+      return addClProof(res, VeritRule::NOT_XOR1, children, {}, cdp);
     }
     // ======== Not XOR elimination version 2
     // Children: (P:(not (xor F1 F2)))
@@ -1317,14 +1288,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not F1) F2)
     //
-    // proof rule: NOT_XOR1
-    // proof node: (or (not F1) F2)
-    // proof term: (cl (not F1) F2)
-    // premises: (P:(not (xor F1 F2)))
-    // args: ()
+    // Use addClProof to first prove (cl (or (not F1) F2)) followed by (cl (not F1) F2)
     case PfRule::NOT_XOR_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_XOR2, children, {}, *cdp);
+      return addClProof(res, VeritRule::NOT_XOR2, children, {}, cdp);
     }
     // ======== ITE elimination version 1
     // Children: (P:(ite C F1 F2))
@@ -1332,14 +1299,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not C) F1)
     //
-    // proof rule: ite2
-    // proof node: (or (not C) F1)
-    // proof term: (cl (not C) F1)
-    // premises: (P:(ite C F1 F2))
-    // args: ()
+    // Use addClProof to first prove (cl (or (not C) F1)) followed by (cl (not C) F1)
     case PfRule::ITE_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE2, children, {}, *cdp);
+      return addClProof(res, VeritRule::ITE2, children, {}, cdp);
     }
     // ======== ITE elimination version 2
     // Children: (P:(ite C F1 F2))
@@ -1347,14 +1310,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or C F2)
     //
-    // proof rule: ite1
-    // proof node: (or C F2)
-    // proof term: (cl C F2)
-    // premises: (P:(ite C F1 F2))
-    // args: ()
+    // Use addClProof to first prove (cl (or C F2)) followed by (cl C F2)
     case PfRule::ITE_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::ITE1, children, {}, *cdp);
+      return addClProof(res, VeritRule::ITE1, children, {}, cdp);
     }
     // ======== Not ITE elimination version 1
     // Children: (P:(not (ite C F1 F2)))
@@ -1362,14 +1321,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or (not C) (not F1))
     //
-    // proof rule: not_ite2
-    // proof node: (or (not C) (not F1))
-    // proof term: (cl (not C) (not F1))
-    // premises: (P:(not (ite C F1 F2)))
-    // args: ()
+    // Use addClProof to first prove (cl (or (not C) (not F1))) followed by (cl (not C) (not F1))
     case PfRule::NOT_ITE_ELIM1:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_ITE2, children, {}, *cdp);
+      return addClProof(res, VeritRule::NOT_ITE2, children, {}, cdp);
     }
     // ======== Not ITE elimination version 1
     // Children: (P:(not (ite C F1 F2)))
@@ -1377,14 +1332,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // ---------------------
     // Conclusion: (or C (not F2))
     //
-    // proof rule: not_ite1
-    // proof node: (or C (not F2))
-    // proof term: (cl C (not F2))
-    // premises: (P:(not (ite C F1 F2)))
-    // args: ()
+    // Use addClProof to first prove (cl (or C (not F2))) followed by (cl C (not F2))
     case PfRule::NOT_ITE_ELIM2:
     {
-      return addVeritStepFromOr(res, VeritRule::NOT_ITE1, children, {}, *cdp);
+      return addClProof(res, VeritRule::NOT_ITE1, children, {}, cdp);
     }
 
     //================================================= De Morgan rules
