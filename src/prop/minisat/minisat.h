@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace prop {
 
-class MinisatSatSolver : public DPLLSatSolverInterface {
+class MinisatSatSolver : public CDCLTSatSolverInterface {
 public:
 
   MinisatSatSolver(StatisticsRegistry* registry);

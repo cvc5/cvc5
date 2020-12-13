@@ -90,7 +90,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
+  d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::CnfStream(
@@ -104,9 +104,12 @@ PropEngine::PropEngine(TheoryEngine* te,
   if (pnm)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
-        userContext, *d_cnfStream, d_satSolver->getProofManager(), pnm));
-    d_ppm.reset(new PropPfManager(
-        userContext, pnm, d_satSolver->getProofManager(), d_pfCnfStream.get()));
+        userContext,
+        *d_cnfStream,
+        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager(),
+        pnm));
+    d_ppm.reset(
+        new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
   if (options::unsatCores())
   {
@@ -124,7 +127,9 @@ void PropEngine::finishInit()
   // issue we track it directly here
   if (d_pfCnfStream)
   {
-    d_satSolver->getProofManager()->registerSatAssumptions({nm->mkConst(true)});
+    static_cast<MinisatSatSolver*>(d_satSolver)
+        ->getProofManager()
+        ->registerSatAssumptions({nm->mkConst(true)});
   }
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
