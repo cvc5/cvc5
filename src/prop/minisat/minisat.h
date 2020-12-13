@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace prop {
 
-class MinisatSatSolver : public DPLLSatSolverInterface {
+class MinisatSatSolver : public CDCLTSatSolverInterface {
 public:
 
   MinisatSatSolver(StatisticsRegistry* registry);
@@ -84,10 +84,8 @@ public:
 
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
-  /** Retrieve the proof manager of this Minisat solver. */
   SatProofManager* getProofManager();
 
-  /** Retrieve the refutation proof of this Minisat solver. */
   std::shared_ptr<ProofNode> getProof();
 
  private:
