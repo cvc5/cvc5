@@ -193,8 +193,7 @@ public:
        }
      }
    }
-    };
-
+ };
 
     // CVC4 context push/pop
     void          push                     ();

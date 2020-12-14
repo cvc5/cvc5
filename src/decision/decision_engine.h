@@ -75,7 +75,8 @@ class DecisionEngine {
     Trace("decision") << "Destroying decision engine" << std::endl;
   }
 
-  void setSatSolver(CDCLTSatSolverInterface* ss) {
+  void setSatSolver(CDCLTSatSolverInterface* ss)
+  {
     // setPropEngine should not be called more than once
     Assert(d_satSolver == NULL);
     Assert(ss != NULL);
