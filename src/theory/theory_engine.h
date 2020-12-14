@@ -449,7 +449,7 @@ class TheoryEngine {
    */
   theory::TrustNode preprocess(TNode node);
   /** Get the theory preprocessor TODO (project #42) remove this */
-  theory::TheoryPreprocessor * getTheoryPreprocess() { return &d_tpp; }
+  theory::TheoryPreprocessor* getTheoryPreprocess() { return &d_tpp; }
 
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
