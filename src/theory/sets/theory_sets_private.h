@@ -167,7 +167,7 @@ class TheorySetsPrivate {
 
   void preRegisterTerm(TNode node);
 
-  /** 
+  /**
    * ppRewrite, which expands choose and is_singleton.
    */
   TrustNode ppRewrite(Node n);
