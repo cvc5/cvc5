@@ -286,6 +286,7 @@ class PropEngine
   /** Theory registrar; kept around for destructor cleanup */
   theory::TheoryRegistrar* d_registrar;
 
+  /** A pointer to the proof node maneger to be used by this engine. */
   ProofNodeManager* d_pnm;
 
   /** The CNF converter in use */
@@ -295,8 +296,6 @@ class PropEngine
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;
-
-  CDProof d_proof;
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;

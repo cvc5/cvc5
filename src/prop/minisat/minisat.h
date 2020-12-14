@@ -83,10 +83,13 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   bool isDecision(SatVariable decn) const override;
 
+  /** Retrieve a pointer to the unerlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
+  /** Retrieve the proof manager of this SAT solver. */
   SatProofManager* getProofManager();
 
+  /** Retrieve the refutation proof of this SAT solver. */
   std::shared_ptr<ProofNode> getProof() override;
 
  private:
