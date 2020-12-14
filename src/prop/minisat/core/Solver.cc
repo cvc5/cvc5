@@ -148,11 +148,14 @@ class ScopedBool
 
 Solver::Solver(CVC4::prop::TheoryProxy* proxy,
                CVC4::context::Context* context,
-               bool enable_incremental)
+               CVC4::context::UserContext* userContext,
+               ProofNodeManager* pnm,
+               bool enableIncremental)
     : d_proxy(proxy),
       d_context(context),
       assertionLevel(0),
-      d_enable_incremental(enable_incremental),
+      d_pfManager(nullptr),
+      d_enable_incremental(enableIncremental),
       minisat_busy(false)
       // Parameters (user settable):
       //
@@ -209,7 +212,7 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
       simpDB_props(0),
       order_heap(VarOrderLt(activity)),
       progress_estimate(0),
-      remove_satisfied(!enable_incremental)
+      remove_satisfied(!enableIncremental)
 
       // Resource constraints:
       //
@@ -2116,6 +2119,16 @@ inline bool Solver::withinBudget(ResourceManager::Resource r) const
       && (propagation_budget < 0
           || propagations < (uint64_t)propagation_budget);
   return within_budget;
+}
+
+SatProofManager* Solver::getProofManager()
+{
+  return d_pfManager ? d_pfManager.get() : nullptr;
+}
+
+std::shared_ptr<ProofNode> Solver::getProof()
+{
+  return d_pfManager ? d_pfManager->getProof() : nullptr;
 }
 
 } /* CVC4::Minisat namespace */

@@ -70,7 +70,8 @@ PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
                        UserContext* userContext,
                        ResourceManager* rm,
-                       OutputManager& outMgr)
+                       OutputManager& outMgr,
+                       ProofNodeManager* pnm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -79,6 +80,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_registrar(NULL),
       d_cnfStream(NULL),
       d_pfCnfStream(nullptr),
+      d_ppm(nullptr),
       d_interrupted(false),
       d_resourceManager(rm),
       d_outMgr(outMgr)
@@ -89,7 +91,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
+  d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::CnfStream(
@@ -97,7 +99,7 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
-  d_satSolver->initialize(d_context, d_theoryProxy);
+  d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
