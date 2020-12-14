@@ -235,6 +235,8 @@ set(regress_0_tests
   regress0/bv/bv_to_int_5230_missing_op.smt2
   regress0/bv/bv_to_int_5230_shift_const.smt2
   regress0/bv/bv_to_int_5281.smt2
+  regress0/bv/bv_to_int_5293_1.smt2
+  regress0/bv/bv_to_int_5293_2.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
@@ -952,6 +954,8 @@ set(regress_0_tests
   regress0/seq/intseq.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
+  regress0/seq/issue5547-seq-len-unit.smt2
+  regress0/seq/issue5547-small-seq-len-unit.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1973,6 +1977,7 @@ set(regress_1_tests
   regress1/strings/issue5483-pp-leq.smt2
   regress1/strings/issue5510-re-consume.smt2
   regress1/strings/issue5520-re-consume.smt2
+  regress1/strings/issue5611-deq-norm-emp.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
