@@ -1265,9 +1265,9 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-TrustNode TheorySetsPrivate::expandDefinition(Node node)
+TrustNode TheorySetsPrivate::ppRewrite(Node node)
 {
-  Debug("sets-proc") << "expandDefinition : " << node << std::endl;
+  Debug("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {

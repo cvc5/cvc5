@@ -167,7 +167,7 @@ class TheorySetsPrivate {
 
   void preRegisterTerm(TNode node);
 
-  /** expandDefinition
+  /** ppRewrite
    * If the sets-ext option is not set and we have an extended operator, 
    * we throw an exception. This function is a no-op otherwise.
    *
@@ -196,7 +196,7 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  TrustNode expandDefinition(Node n);
+  TrustNode ppRewrite(Node n);
 
   void presolve();
 
