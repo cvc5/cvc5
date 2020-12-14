@@ -18,6 +18,7 @@
 #include "preprocessing/passes/ite_removal.h"
 
 #include "theory/rewriter.h"
+#include "theory/theory_preprocessor.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -37,12 +38,14 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
   // Remove all of the ITE occurrences and normalize
+  theory::TheoryPreprocessor * tpp = d_preprocContext->getTheoryEngine()->getTheoryPreprocess();
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     Node assertion = (*assertions)[i];
     std::vector<theory::TrustNode> newAsserts;
     std::vector<Node> newSkolems;
-    TrustNode trn = d_preprocContext->getPropEngine()->preprocess(
+    // TODO (project #42): this will call the prop engine
+    TrustNode trn = tpp->preprocess(
         assertion, newAsserts, newSkolems, false);
     if (!trn.isNull())
     {
