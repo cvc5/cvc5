@@ -131,7 +131,6 @@ TrustNode TheoryBV::expandDefinition(Node node)
       NodeManager* nm = NodeManager::currentNM();
       unsigned width = node.getType().getBitVectorSize();
 
-
       Kind kind = node.getKind() == kind::BITVECTOR_UDIV
                       ? kind::BITVECTOR_UDIV_TOTAL
                       : kind::BITVECTOR_UREM_TOTAL;
