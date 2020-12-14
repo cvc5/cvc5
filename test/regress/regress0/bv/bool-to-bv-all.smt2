@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bool-to-bv=all -q
+; COMMAND-LINE: --bool-to-bv=all
 ; EXPECT: sat
 (set-logic QF_BV)
 (declare-fun x2 () (_ BitVec 3))
