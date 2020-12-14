@@ -25,6 +25,7 @@ namespace passes {
 
 using namespace CVC4::theory;
 
+// TODO (project #42): note this preprocessing pass is deprecated
 IteRemoval::IteRemoval(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ite-removal")
 {
@@ -38,17 +39,32 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   // Remove all of the ITE occurrences and normalize
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
+    Node assertion = (*assertions)[i];
     std::vector<theory::TrustNode> newAsserts;
     std::vector<Node> newSkolems;
-    TrustNode trn = d_preprocContext->getIteRemover()->run(
-        (*assertions)[i], newAsserts, newSkolems, true);
-    // process
-    assertions->replaceTrusted(i, trn);
+    TrustNode trn = d_preprocContext->getPropEngine()->preprocess(
+        assertion, newAsserts, newSkolems, false);
+    if (!trn.isNull())
+    {
+      // process
+      assertions->replaceTrusted(i, trn);
+      // rewritten assertion has a dependence on the node (old pf architecture)
+      if (options::unsatCores())
+      {
+        ProofManager::currentPM()->addDependence(trn.getNode(), assertion);
+      }
+    }
     Assert(newSkolems.size() == newAsserts.size());
     for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
     {
       imap[newSkolems[j]] = assertions->size();
       assertions->pushBackTrusted(newAsserts[j]);
+      // new assertions have a dependence on the node (old pf architecture)
+      if (options::unsatCores())
+      {
+        ProofManager::currentPM()->addDependence(newAsserts[j].getProven(),
+                                                 assertion);
+      }
     }
   }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
