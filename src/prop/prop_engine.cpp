@@ -124,7 +124,7 @@ void PropEngine::finishInit()
   // CNF stream will ignore it since the SAT solver already had it registered,
   // thus not having True as an assumption for the SAT proof. To solve this
   // issue we track it directly here
-  if (d_pfCnfStream)
+  if (isProofEnabled())
   {
     static_cast<MinisatSatSolver*>(d_satSolver)
         ->getProofManager()
@@ -169,7 +169,7 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  if (d_pfCnfStream)
+  if (isProofEnabled())
   {
     d_pfCnfStream->convertAndAssert(node, false, false, nullptr);
     // register in proof manager
@@ -187,7 +187,7 @@ void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
   // Assert as (possibly) removable
-  if (d_pfCnfStream)
+  if (isProofEnabled())
   {
     Assert(trn.getGenerator());
     d_pfCnfStream->convertAndAssert(
@@ -486,6 +486,8 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   }
   return d_ppm->getProof();
 }
+
+bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 }  // namespace prop
 }  // namespace CVC4
