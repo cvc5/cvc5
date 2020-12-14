@@ -95,12 +95,7 @@ class RelevanceManager;
 namespace eq {
 class EqualityEngine;
 }  // namespace eq
-
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
-
-class RemoveTermFormulas;
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -313,7 +308,6 @@ class TheoryEngine {
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
                ResourceManager* rm,
-               RemoveTermFormulas& iteRemover,
                const LogicInfo& logic,
                OutputManager& outMgr,
                ProofNodeManager* pnm);
