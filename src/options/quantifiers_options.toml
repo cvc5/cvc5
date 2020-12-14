@@ -264,14 +264,6 @@ header = "options/quantifiers_options.h"
   help       = "purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1"
 
 [[option]]
-  name       = "purifyDtTriggers"
-  category   = "regular"
-  long       = "purify-dt-triggers"
-  type       = "bool"
-  default    = "false"
-  help       = "purify dt triggers, match all constructors of correct form instead of selectors"
-
-[[option]]
   name       = "pureThTriggers"
   category   = "regular"
   long       = "pure-th-triggers"

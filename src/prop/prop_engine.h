@@ -256,6 +256,8 @@ class PropEngine
    */
   std::shared_ptr<ProofNode> getProof();
 
+  /** Is proof enabled? */
+  bool isProofEnabled() const;
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
