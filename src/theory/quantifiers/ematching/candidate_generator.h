@@ -222,9 +222,13 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
   CandidateGeneratorSelector(QuantifiersEngine* qe, Node mpat);
   /** reset */
   void reset(Node eqc) override;
-  /** get next candidate */
+  /**
+   * Get next candidate, returns matching candidates that are ground terms
+   * of the selector operator, followed by those that are applications of the
+   * UF corresponding to an invocation of applying this selector to an
+   * application of the wrong constructor.
+   */
   Node getNextCandidate() override;
-
  protected:
   /** the selector operator */
   Node d_selOp;
