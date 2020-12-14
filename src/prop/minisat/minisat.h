@@ -86,7 +86,7 @@ public:
 
   SatProofManager* getProofManager();
 
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof() override;
 
  private:
 

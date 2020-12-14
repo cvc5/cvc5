@@ -80,6 +80,8 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_registrar(NULL),
       d_cnfStream(NULL),
       d_pfCnfStream(nullptr),
+      d_ppm(nullptr),
+      d_proof(pnm, userContext, "CDProof::PropEngine"),
       d_interrupted(false),
       d_resourceManager(rm),
       d_outMgr(outMgr)
@@ -90,7 +92,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
+  d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::CnfStream(
