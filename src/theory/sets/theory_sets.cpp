@@ -129,11 +129,6 @@ void TheorySets::preRegisterTerm(TNode node)
   d_internal->preRegisterTerm(node);
 }
 
-TrustNode TheorySets::expandDefinition(Node n)
-{
-  return d_internal->expandDefinition(n);
-}
-
 TrustNode TheorySets::ppRewrite(TNode n)
 {
   Kind nk = n.getKind();
@@ -158,8 +153,7 @@ TrustNode TheorySets::ppRewrite(TNode n)
       throw LogicException(ss.str());
     }
   }
-  // just expand definitions
-  return expandDefinition(n);
+  return d_internal->ppRewrite(n);
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(
