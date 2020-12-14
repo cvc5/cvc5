@@ -1758,7 +1758,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   Trace("arrays-crl")<<"Arrays::checkLemmas done.\n";
 }
 
-void TheoryArrays::propagate(RowLemmaType lem)
+void TheoryArrays::propagateRowLemma(RowLemmaType lem)
 {
   Debug("pf::array") << "TheoryArrays: RowLemma Propagate called. options::arraysPropagate() = "
                      << options::arraysPropagate() << std::endl;
@@ -1845,7 +1845,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   // If propagating, check propagations
   int prop = options::arraysPropagate();
   if (prop > 0) {
-    propagate(lem);
+    propagateRowLemma(lem);
   }
 
   // Prefer equality between indexes so as not to introduce new read terms
@@ -1975,7 +1975,7 @@ bool TheoryArrays::dischargeLemmas()
 
     int prop = options::arraysPropagate();
     if (prop > 0) {
-      propagate(l);
+      propagateRowLemma(l);
       if (d_state.isInConflict())
       {
         return true;

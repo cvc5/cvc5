@@ -442,7 +442,7 @@ class TheoryArrays : public Theory {
   void checkStore(TNode a);
   void checkRowForIndex(TNode i, TNode a);
   void checkRowLemmas(TNode a, TNode b);
-  void propagate(RowLemmaType lem);
+  void propagateRowLemma(RowLemmaType lem);
   void queueRowLemma(RowLemmaType lem);
   bool dischargeLemmas();
 
