@@ -1775,7 +1775,15 @@ SExpr SmtEngine::getStatistic(std::string name) const
   return d_statisticsRegistry->getStatistic(name);
 }
 
-void SmtEngine::safeFlushStatistics(int fd) const {
+void SmtEngine::flushStatistics(std::ostream& out) const
+{
+  d_nodeManager->getStatisticsRegistry()->flushInformation(out);
+  d_statisticsRegistry->flushInformation(out);
+}
+
+void SmtEngine::safeFlushStatistics(int fd) const
+{
+  d_nodeManager->getStatisticsRegistry()->safeFlushInformation(fd);
   d_statisticsRegistry->safeFlushInformation(fd);
 }
 

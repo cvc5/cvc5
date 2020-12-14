@@ -80,7 +80,6 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
       d_ppm(nullptr),
-      d_proof(pnm, userContext, "CDProof::PropEngine"),
       d_interrupted(false),
       d_resourceManager(rm),
       d_outMgr(outMgr)

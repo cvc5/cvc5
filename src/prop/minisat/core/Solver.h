@@ -152,10 +152,10 @@ public:
  Var trueVar() const { return varTrue; }
  Var falseVar() const { return varFalse; }
 
- /** retrive SAT proof manager */
+ /** Retrive the SAT proof manager */
  CVC4::prop::SatProofManager* getProofManager();
 
- /** retrive refutation proof */
+ /** Retrive the refutation proof */
  std::shared_ptr<ProofNode> getProof();
 
  // Less than for literals in a lemma
@@ -193,8 +193,7 @@ public:
        }
      }
    }
-    };
-
+ };
 
     // CVC4 context push/pop
     void          push                     ();

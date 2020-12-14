@@ -66,14 +66,14 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
-  d_solver->getExprManager()->getStatistics().flushInformation(out);
-  d_smtEngine->getStatistics().flushInformation(out);
+  // SmtEngine + node manager flush statistics is part of the call below
+  d_smtEngine->flushStatistics(out);
   d_stats.flushInformation(out);
 }
 
 void CommandExecutor::safeFlushStatistics(int fd) const
 {
-  d_solver->getExprManager()->safeFlushStatistics(fd);
+  // SmtEngine + node manager flush statistics is part of the call below
   d_smtEngine->safeFlushStatistics(fd);
   d_stats.safeFlushInformation(fd);
 }
