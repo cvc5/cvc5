@@ -608,7 +608,6 @@ Node DType::mkGroundValue(TypeNode t) const
   Assert(isResolved());
   Trace("datatypes-init") << "DType::mkGroundValue of type " << t << std::endl;
   Node v = mkGroundTermInternal(t, true);
-  Assert(v.isConst());
   return v;
 }
 
