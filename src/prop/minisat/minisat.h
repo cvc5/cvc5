@@ -26,7 +26,6 @@ namespace prop {
 class MinisatSatSolver : public CDCLTSatSolverInterface
 {
  public:
-
   MinisatSatSolver(StatisticsRegistry* registry);
   ~MinisatSatSolver() override;
 
