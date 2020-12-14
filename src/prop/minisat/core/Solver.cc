@@ -481,8 +481,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       }
       // If a literal is false at 0 level (both sat and user level) we also ignore it
       if (value(ps[i]) == l_False) {
-        if (!options::unsatCores() && !isProofEnabled() && level(var(ps[i])) == 0
-            && user_level(var(ps[i])) == 0)
+        if (!options::unsatCores() && !isProofEnabled()
+            && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0)
         {
           continue;
         }
@@ -1764,7 +1764,7 @@ lbool Solver::search(int nof_conflicts)
             // theory processing
             d_proxy->notifyRestart();
             return l_Undef;
-            }
+          }
 
             // Simplify the set of problem clauses:
             if (decisionLevel() == 0 && !simplify()) {
@@ -2340,7 +2340,6 @@ std::shared_ptr<ProofNode> Solver::getProof()
 }
 
 bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
-
 
 } /* CVC4::Minisat namespace */
 } /* CVC4 namespace */
