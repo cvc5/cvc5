@@ -2,7 +2,7 @@
 /*! \file command_executor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Tim King
+ **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -66,14 +66,14 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
-  d_solver->getExprManager()->getStatistics().flushInformation(out);
-  d_smtEngine->getStatistics().flushInformation(out);
+  // SmtEngine + node manager flush statistics is part of the call below
+  d_smtEngine->flushStatistics(out);
   d_stats.flushInformation(out);
 }
 
 void CommandExecutor::safeFlushStatistics(int fd) const
 {
-  d_solver->getExprManager()->safeFlushStatistics(fd);
+  // SmtEngine + node manager flush statistics is part of the call below
   d_smtEngine->safeFlushStatistics(fd);
   d_stats.safeFlushInformation(fd);
 }

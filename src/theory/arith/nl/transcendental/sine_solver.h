@@ -2,7 +2,7 @@
 /*! \file sine_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -49,9 +49,11 @@ class SineSolver
   SineSolver(TranscendentalState* tstate);
   ~SineSolver();
 
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  /**
+   * Introduces new_a as purified version of a which is also shifted to the main
+   * phase (from -pi to pi). y is the new skolem used for purification.
+   */
+  void doPhaseShift(TNode a, TNode new_a, TNode y);
 
   /**
    * check initial refine

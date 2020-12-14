@@ -38,7 +38,6 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
     : d_containing(containing),
       d_im(containing.getInferenceManager()),
-      d_ee(ee),
       d_needsLastCall(false),
       d_checkCounter(0),
       d_extTheoryCb(ee),
@@ -656,7 +655,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
         d_tangentPlaneSlv.check(true);
         break;
       case InferStep::TRANS_INIT:
-        d_trSlv.initLastCall(assertions, false_asserts, xts);
+        d_trSlv.initLastCall(xts);
         break;
       case InferStep::TRANS_INITIAL:
         d_trSlv.checkTranscendentalInitialRefine();

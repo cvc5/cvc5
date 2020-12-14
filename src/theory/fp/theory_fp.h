@@ -2,7 +2,7 @@
 /*! \file theory_fp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Martin Brain, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -66,7 +66,7 @@ class TheoryFp : public Theory
 
   //--------------------------------- standard check
   /** Do we need a check call at last call effort? */
-  bool needsCheckLastEffort() override { return true; }
+  bool needsCheckLastEffort() override;
   /** Post-check, called after the fact queue of the theory is processed. */
   void postCheck(Effort level) override;
   /** Pre-notify fact, return true if processed. */

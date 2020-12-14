@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file transcendental_solver.cpp
+/*! \file exponential_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Gereon Kremer
+ **   Gereon Kremer, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -37,6 +37,19 @@ ExponentialSolver::ExponentialSolver(TranscendentalState* tstate)
 
 ExponentialSolver::~ExponentialSolver() {}
 
+void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // do both equalities to ensure that new_a becomes a preregistered term
+  Node lem = nm->mkNode(Kind::AND, a.eqNode(new_a), a[0].eqNode(y));
+  // note we must do preprocess on this lemma
+  Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
+                        << std::endl;
+  NlLemma nlem(
+      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
+  d_data->d_im.addPendingArithLemma(nlem);
+}
+
 void ExponentialSolver::checkInitialRefine()
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -56,26 +69,37 @@ void ExponentialSolver::checkInitialRefine()
       if (d_tf_initial_refine.find(t) == d_tf_initial_refine.end())
       {
         d_tf_initial_refine[t] = true;
-        Node lem;
-        // ( exp(x) > 0 ) ^ ( x=0 <=> exp( x ) = 1 ) ^ ( x < 0 <=> exp( x ) <
-        // 1 ) ^ ( x <= 0 V exp( x ) > x + 1 )
-        lem = nm->mkNode(
-            Kind::AND,
-            nm->mkNode(Kind::GT, t, d_data->d_zero),
-            nm->mkNode(Kind::EQUAL,
-                       t[0].eqNode(d_data->d_zero),
-                       t.eqNode(d_data->d_one)),
-            nm->mkNode(Kind::EQUAL,
-                       nm->mkNode(Kind::LT, t[0], d_data->d_zero),
-                       nm->mkNode(Kind::LT, t, d_data->d_one)),
-            nm->mkNode(
-                Kind::OR,
-                nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
-                nm->mkNode(
-                    Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one))));
-        if (!lem.isNull())
         {
-          d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_INIT_REFINE);
+          // exp is always positive: exp(t) > 0
+          Node lem = nm->mkNode(Kind::GT, t, d_data->d_zero);
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+        }
+        {
+          // exp at zero: (t = 0) <=> (exp(t) = 1)
+          Node lem = nm->mkNode(Kind::EQUAL,
+                                t[0].eqNode(d_data->d_zero),
+                                t.eqNode(d_data->d_one));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+        }
+        {
+          // exp on negative values: (t < 0) <=> (exp(t) < 1)
+          Node lem = nm->mkNode(Kind::EQUAL,
+                                nm->mkNode(Kind::LT, t[0], d_data->d_zero),
+                                nm->mkNode(Kind::LT, t, d_data->d_one));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+        }
+        {
+          // exp on positive values: (t <= 0) or (exp(t) > t+1)
+          Node lem = nm->mkNode(
+              Kind::OR,
+              nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
+              nm->mkNode(
+                  Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
+          d_data->d_im.addPendingArithLemma(
+              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
         }
       }
     }

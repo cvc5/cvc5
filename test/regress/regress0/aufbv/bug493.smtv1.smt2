@@ -1,7 +1,5 @@
 (set-option :incremental false)
-(set-info :source "Source unknown")
-(set-info :status unknown)
-(set-info :category "unknown")
+(set-info :status unsat)
 (set-logic QF_AUFBV)
 (declare-fun m () (Array (_ BitVec 8) (_ BitVec 8)))
 (declare-fun regionSize () (Array (_ BitVec 8) (_ BitVec 8)))

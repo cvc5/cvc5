@@ -2,7 +2,7 @@
 /*! \file printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Tim King, Aina Niemetz
+ **   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -135,7 +135,7 @@ class Printer
                                    const std::vector<Node>& vars,
                                    TypeNode range,
                                    bool isInv,
-                                   TypeNode sygusType) const;
+                                   TypeNode sygusType = TypeNode::null()) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;

@@ -2,7 +2,7 @@
 /*! \file command.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
+ **   Tim King, Abdalrhman Mohamed, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -689,7 +689,8 @@ void SynthFunCommand::toStream(std::ostream& out,
       nodeVars,
       d_sort.getTypeNode(),
       d_isInv,
-      d_grammar->resolve().getTypeNode());
+      d_grammar == nullptr ? TypeNode::null()
+                           : d_grammar->resolve().getTypeNode());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -869,6 +870,7 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    sm->reset();
     solver->getSmtEngine()->reset();
     d_commandStatus = CommandSuccess::instance();
   }
@@ -897,6 +899,7 @@ void ResetAssertionsCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
+    sm->resetAssertions();
     solver->resetAssertions();
     d_commandStatus = CommandSuccess::instance();
   }
