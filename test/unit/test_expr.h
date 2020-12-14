@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Common header for Expr unit test.
+ ** \brief Common header for Expr unit tests.
  **/
 
 #ifndef CVC4__TEST__UNIT__TEST_EXPR_H
@@ -39,6 +39,18 @@ class TestExprBlack : public TestApi
   ExprManager* d_exprManager;
   NodeManager* d_nodeManager;
   SmtEngine* d_smtEngine;
+};
+
+class TestExprWhite : public TestApi
+{
+ protected:
+  void SetUp() override
+  {
+    d_nodeManager.reset(new NodeManager(nullptr));
+    d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
+  }
+  std::unique_ptr<NodeManager> d_nodeManager;
+  std::unique_ptr<NodeManagerScope> d_scope;
 };
 
 }  // namespace test
