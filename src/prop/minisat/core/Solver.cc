@@ -1036,8 +1036,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             }
 
             // FIXME: can we do it lazily if we actually need the proof?
-            if ((options::unsatCores() || isProofEnabled())
-                && level(var(q)) == 0)
+            if (level(var(q)) == 0)
             {
               if (options::unsatCores())
               {
@@ -1072,7 +1071,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
     }while (pathC > 0);
     out_learnt[0] = ~p;
-    if (CVC4::options::proofNew())
+    if (Debug.isOn("newproof::sat"))
     {
       Debug("newproof::sat") << "finished with learnt clause ";
       for (unsigned i = 0, size = out_learnt.size(); i < size; ++i)
