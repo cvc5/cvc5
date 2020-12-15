@@ -2099,13 +2099,10 @@ bool checkReal64Bounds(const Rational& r)
          && checkIntegerBounds<std::uint64_t>(r.getDenominator());
 }
 
-bool isReal(const Node& node)
-{
-  return node.getKind() == CVC4::Kind::CONST_RATIONAL;
-}
 bool isInteger(const Node& node)
 {
-  return isReal(node) && node.getConst<Rational>().isIntegral();
+  return node.getKind() == CVC4::Kind::CONST_RATIONAL
+         && node.getConst<Rational>().isIntegral();
 }
 bool isInt32(const Node& node)
 {
