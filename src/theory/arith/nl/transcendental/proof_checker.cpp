@@ -71,8 +71,13 @@ void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_PI, this);
+<<<<<<< HEAD
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG, this);
+=======
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS, this);
+>>>>>>> 1a309953613986471a4dd57f6537d84ae959da1e
 }
 
 Node TranscendentalProofRuleChecker::checkInternal(
@@ -282,6 +287,31 @@ Node TranscendentalProofRuleChecker::checkInternal(
             Kind::LEQ, nm->mkNode(Kind::SINE, t), mkSecant(t, lb, ub, l, u)));
     return Rewriter::rewrite(lem);
   }
+  else if (id == PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 5);
+    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
+           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].getType().isReal());
+    Assert(args[3].getType().isReal());
+    std::uint64_t d =
+        args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    Node t = args[1];
+    Node c = args[2];
+    Node lb = args[3];
+    Node ub = args[4];
+    TaylorGenerator tg;
+    TaylorGenerator::ApproximationBounds bounds;
+    tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
+    Node eval = Rewriter::rewrite(
+        bounds.d_upperPos.substitute(tg.getTaylorVariable(), c));
+    return Rewriter::rewrite(
+        nm->mkNode(Kind::IMPLIES,
+                   mkBounds(t, lb, ub),
+                   nm->mkNode(Kind::LEQ, nm->mkNode(Kind::SINE, t), eval)));
+  }
   else if (id == PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS)
   {
     Assert(children.empty());
@@ -313,6 +343,31 @@ Node TranscendentalProofRuleChecker::checkInternal(
         nm->mkNode(
             Kind::GEQ, nm->mkNode(Kind::SINE, t), mkSecant(t, lb, ub, l, u)));
     return Rewriter::rewrite(lem);
+  }
+  else if (id == PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 5);
+    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
+           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].getType().isReal());
+    Assert(args[3].getType().isReal());
+    std::uint64_t d =
+        args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    Node t = args[1];
+    Node c = args[2];
+    Node lb = args[3];
+    Node ub = args[4];
+    TaylorGenerator tg;
+    TaylorGenerator::ApproximationBounds bounds;
+    tg.getPolynomialApproximationBounds(Kind::SINE, d / 2, bounds);
+    Node eval =
+        Rewriter::rewrite(bounds.d_lower.substitute(tg.getTaylorVariable(), c));
+    return Rewriter::rewrite(
+        nm->mkNode(Kind::IMPLIES,
+                   mkBounds(t, lb, ub),
+                   nm->mkNode(Kind::GEQ, nm->mkNode(Kind::SINE, t), eval)));
   }
   return Node::null();
 }
