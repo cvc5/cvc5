@@ -131,25 +131,11 @@ TrustNode TheoryBV::expandDefinition(Node node)
       NodeManager* nm = NodeManager::currentNM();
       unsigned width = node.getType().getBitVectorSize();
 
-      if (options::bitvectorDivByZeroConst())
-      {
-        Kind kind = node.getKind() == kind::BITVECTOR_UDIV
-                        ? kind::BITVECTOR_UDIV_TOTAL
-                        : kind::BITVECTOR_UREM_TOTAL;
-        ret = nm->mkNode(kind, node[0], node[1]);
-        break;
-      }
-
-      TNode num = node[0], den = node[1];
-      Node den_eq_0 = nm->mkNode(kind::EQUAL, den, utils::mkZero(width));
-      Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV
-                                           ? kind::BITVECTOR_UDIV_TOTAL
-                                           : kind::BITVECTOR_UREM_TOTAL,
-                                       num,
-                                       den);
-      Node divByZero = getUFDivByZero(node.getKind(), width);
-      Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-      ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+      Kind kind = node.getKind() == kind::BITVECTOR_UDIV
+                      ? kind::BITVECTOR_UDIV_TOTAL
+                      : kind::BITVECTOR_UREM_TOTAL;
+      ret = nm->mkNode(kind, node[0], node[1]);
+      break;
     }
     break;
 
