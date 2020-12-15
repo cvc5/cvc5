@@ -1182,6 +1182,17 @@ enum class PfRule : uint32_t
   // The lemma states that if t is between l and u, then (exp t) is below the
   // secant of p from l to u.
   ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+  //======== Exp is approximated from below
+  // Children: none
+  // Arguments: (d, t)
+  // ---------------------
+  // Conclusion: (>= (exp t) (maclaurin exp d t))
+  // Where d is an odd positive number and (maclaurin exp d t) is the d'th
+  // taylor polynomial at zero (also called the Maclaurin series) of the
+  // exponential function evaluated at t. The Maclaurin series for the
+  // exponential function is the following:
+  //   e^x = \sum_{n=0}^{\infty} x^n / n!
+  ARITH_TRANS_EXP_APPROX_BELOW,
 
   //======== Sine is always between -1 and 1
   // Children: none

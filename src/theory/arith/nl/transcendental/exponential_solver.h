@@ -85,10 +85,10 @@ class ExponentialSolver
    */
   void checkMonotonic();
 
-  /** Sent tangent lemma around c for e */
-  void doTangentLemma(TNode e, TNode c, TNode poly_approx);
+  /** Send tangent lemma around c for e */
+  void doTangentLemma(TNode e, TNode c, TNode poly_approx, std::uint64_t d);
 
-  /** Sent secant lemmas around c for e */
+  /** Send secant lemmas around c for e */
   void doSecantLemmas(TNode e,
                       TNode poly_approx,
                       TNode center,
