@@ -377,6 +377,9 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> groundTerms;
   groundTerms.push_back(getConstructor());
+  Trace("datatypes-init") << "cons " << d_constructor
+                          << " computeGroundTerm, isValue = " << isValue
+                          << std::endl;
 
   // for each selector, get a ground term
   std::vector<TypeNode> instTypes;
@@ -418,13 +421,18 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
     }
     if (arg.isNull())
     {
-      Trace("datatypes") << "...unable to construct arg of "
-                         << d_args[i]->getName() << std::endl;
+      Trace("datatypes-init") << "...unable to construct arg of "
+                              << d_args[i]->getName() << std::endl;
       return Node();
     }
     else
     {
-      Trace("datatypes") << "...constructed arg " << arg.getType() << std::endl;
+      Trace("datatypes-init")
+          << "...constructed arg " << arg << " of type " << arg.getType()
+          << ", isConst = " << arg.isConst() << std::endl;
+      Assert(!isValue || arg.isConst())
+          << "Expected non-constant constructor argument : " << arg
+          << " of type " << arg.getType();
       groundTerms.push_back(arg);
     }
   }
@@ -434,14 +442,17 @@ Node DTypeConstructor::computeGroundTerm(TypeNode t,
   {
     Assert(DType::datatypeOf(d_constructor).isParametric());
     // type is parametric, must apply type ascription
-    Debug("datatypes-gt") << "ambiguous type for " << groundTerm
-                          << ", ascribe to " << t << std::endl;
+    Trace("datatypes-init") << "ambiguous type for " << groundTerm
+                            << ", ascribe to " << t << std::endl;
     groundTerms[0] = nm->mkNode(
         APPLY_TYPE_ASCRIPTION,
         nm->mkConst(AscriptionType(getSpecializedConstructorType(t))),
         groundTerms[0]);
     groundTerm = nm->mkNode(APPLY_CONSTRUCTOR, groundTerms);
   }
+  Trace("datatypes-init") << "...return " << groundTerm << std::endl;
+  Assert(!isValue || groundTerm.isConst()) << "Non-constant term " << groundTerm
+                                           << " returned for computeGroundTerm";
   return groundTerm;
 }
 

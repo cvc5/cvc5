@@ -778,6 +778,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_unif_rl.h
   theory/quantifiers/sygus/sygus_unif_strat.cpp
   theory/quantifiers/sygus/sygus_unif_strat.h
+  theory/quantifiers/sygus/sygus_utils.cpp
+  theory/quantifiers/sygus/sygus_utils.h
   theory/quantifiers/sygus/synth_conjecture.cpp
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
