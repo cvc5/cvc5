@@ -2104,17 +2104,17 @@ bool checkReal64Bounds(const Rational& r)
          && checkIntegerBounds<std::uint64_t>(r.getDenominator());
 }
 
-bool isRealString(const Node& node)
+bool isReal(const Node& node)
 {
   return node.getKind() == CVC4::Kind::CONST_RATIONAL;
 }
 bool isReal32(const Node& node)
 {
-  return isRealString(node) && checkReal32Bounds(getRational(node));
+  return isReal(node) && checkReal32Bounds(getRational(node));
 }
 bool isReal64(const Node& node)
 {
-  return isRealString(node) && checkReal64Bounds(getRational(node));
+  return isReal(node) && checkReal64Bounds(getRational(node));
 }
 
 bool isInteger(const Node& node)
@@ -2217,7 +2217,7 @@ bool checkReal64Bounds(const CVC4::Node& node)
 
 bool Term::isReal32() const
 {
-  return isRealString() && checkReal32Bounds(*d_node);
+  return isString() && checkReal32Bounds(*d_node);
 }
 std::pair<std::int32_t, std::uint32_t> Term::getReal32() const
 {
@@ -2229,7 +2229,7 @@ std::pair<std::int32_t, std::uint32_t> Term::getReal32() const
 }
 bool Term::isReal64() const
 {
-  return isRealString() && checkReal64Bounds(*d_node);
+  return isString() && checkReal64Bounds(*d_node);
 }
 std::pair<std::int64_t, std::uint64_t> Term::getReal64() const
 {
@@ -2239,11 +2239,11 @@ std::pair<std::int64_t, std::uint64_t> Term::getReal64() const
   return std::make_pair(r.getNumerator().getLong(),
                         r.getDenominator().getUnsignedLong());
 }
-bool Term::isRealString() const { return detail::isRealString(*d_node); }
-std::string Term::getRealString() const
+bool Term::isReal() const { return detail::isReal(*d_node); }
+std::string Term::getReal() const
 {
-  CVC4_API_CHECK(detail::isRealString(*d_node))
-      << "Term should be a Real when calling getRealString()";
+  CVC4_API_CHECK(detail::isReal(*d_node))
+      << "Term should be a Real when calling getReal()";
   return detail::getRational(*d_node).toString();
 }
 

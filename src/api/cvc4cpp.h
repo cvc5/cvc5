@@ -1263,12 +1263,12 @@ class CVC4_PUBLIC Term
   /**
    * Returns true if the term is a rational.
    */
-  bool isRealString() const;
+  bool isReal() const;
   /**
    * Returns the stored rational in (decimal) string representation.
    * Asserts isRealString().
    */
-  std::string getRealString() const;
+  std::string getReal() const;
   /**
    * Returns true if the term is the symbolic value for the transcendental
    * constant pi.
