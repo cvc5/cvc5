@@ -180,6 +180,10 @@ const char* toString(PfRule id)
       return "ARITH_TRANS_SINE_TANGENT_ZERO";
     case PfRule::ARITH_TRANS_SINE_TANGENT_PI:
       return "ARITH_TRANS_SINE_TANGENT_PI";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
     case PfRule::ARITH_NL_CAD_RECURSIVE:
       return "ARITH_NL_CAD_RECURSIVE";
