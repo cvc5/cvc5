@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find
+; COMMAND-LINE: --finite-model-find -q
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)

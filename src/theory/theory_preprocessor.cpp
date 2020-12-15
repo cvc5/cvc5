@@ -224,6 +224,51 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   return tret;
 }
 
+TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
+                                              std::vector<TrustNode>& newLemmas,
+                                              std::vector<Node>& newSkolems,
+                                              bool doTheoryPreprocess)
+{
+  // what was originally proven
+  Node lemma = node.getProven();
+  TrustNode tplemma =
+      preprocess(lemma, newLemmas, newSkolems, doTheoryPreprocess);
+  if (tplemma.isNull())
+  {
+    // no change needed
+    return node;
+  }
+  Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
+  // what it was preprocessed to
+  Node lemmap = tplemma.getNode();
+  Assert(lemmap != node.getProven());
+  // process the preprocessing
+  if (isProofEnabled())
+  {
+    Assert(d_lp != nullptr);
+    // add the original proof to the lazy proof
+    d_lp->addLazyStep(node.getProven(), node.getGenerator());
+    // only need to do anything if lemmap changed in a non-trivial way
+    if (!CDProof::isSame(lemmap, lemma))
+    {
+      d_lp->addLazyStep(tplemma.getProven(),
+                        tplemma.getGenerator(),
+                        PfRule::PREPROCESS_LEMMA,
+                        true,
+                        "TheoryEngine::lemma_pp");
+      // ---------- from node -------------- from theory preprocess
+      // lemma                lemma = lemmap
+      // ------------------------------------------ EQ_RESOLVE
+      // lemmap
+      std::vector<Node> pfChildren;
+      pfChildren.push_back(lemma);
+      pfChildren.push_back(tplemma.getProven());
+      d_lp->addStep(lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
+    }
+  }
+  return TrustNode::mkTrustLemma(lemmap, d_lp.get());
+}
+
 struct preprocess_stack_element
 {
   TNode node;

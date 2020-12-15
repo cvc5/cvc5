@@ -27,12 +27,13 @@
 #include "context/context.h"
 #include "test.h"
 
-using CVC4::ContainsKey;
-using CVC4::FindOrDie;
-using CVC4::FindOrNull;
-using CVC4::context::CDHashMap;
-using CVC4::context::CDInsertHashMap;
-using CVC4::context::Context;
+namespace CVC4 {
+
+using context::CDHashMap;
+using context::CDInsertHashMap;
+using context::Context;
+
+namespace test {
 
 class TestMapBlack : public TestInternal
 {
@@ -211,3 +212,5 @@ TEST_F(TestMapBlack, const_CDInsertHashMap)
   EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
   EXPECT_EQ(FindOrDie(map, "other"), "entry");
 }
+}  // namespace test
+}  // namespace CVC4
