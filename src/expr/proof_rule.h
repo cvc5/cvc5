@@ -1226,6 +1226,30 @@ enum class PfRule : uint32_t
   //   (=> (< t pi) (< (sin t) (- pi t)))
   // )
   ARITH_TRANS_SINE_TANGENT_PI,
+  //======== Sine is approximated from above for positive values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (upper sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (upper sin c) denotes the upper
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the maximum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_ABOVE_POS,
+  //======== Sine is approximated from below for negative values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (lower sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (lower sin c) denotes the lower
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the minimum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_BELOW_NEG,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.

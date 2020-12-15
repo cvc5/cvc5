@@ -87,7 +87,8 @@ class SineSolver
   void checkMonotonic();
 
   /** Sent tangent lemma around c for e */
-  void doTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
+  void doTangentLemma(
+      TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d);
 
   /** Sent secant lemmas around c for e */
   void doSecantLemmas(TNode e,

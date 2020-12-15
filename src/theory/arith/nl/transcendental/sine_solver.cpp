@@ -349,7 +349,8 @@ void SineSolver::checkMonotonic()
   }
 }
 
-void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
+void SineSolver::doTangentLemma(
+    TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d)
 {
   NodeManager* nm = NodeManager::currentNM();
 
@@ -365,7 +366,7 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
       nm->mkNode(
           Kind::AND,
           nm->mkNode(
-              Kind::GEQ, e[0], usec ? Node(c) : regionToLowerBound(region)),
+              Kind::GEQ, e[0], usec ? regionToLowerBound(region) : Node(c)),
           nm->mkNode(
               Kind::LEQ, e[0], usec ? Node(c) : regionToUpperBound(region))),
       nm->mkNode(convexity == Convexity::CONVEX ? Kind::GEQ : Kind::LEQ,
@@ -378,8 +379,63 @@ void SineSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx, int region)
   Trace("nl-ext-sine") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
+  CDProof* proof = nullptr;
+  if (d_data->isProofEnabled())
+  {
+    proof = d_data->getProof();
+    if (convexity == Convexity::CONVEX)
+    {
+      if (usec)
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
+                       {},
+                       {nm->mkConst<Rational>(2 * d),
+                        e[0],
+                        c,
+                        regionToLowerBound(region),
+                        c});
+      }
+      else
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG,
+                       {},
+                       {nm->mkConst<Rational>(2 * d),
+                        e[0],
+                        c,
+                        c,
+                        regionToUpperBound(region)});
+      }
+    }
+    else
+    {
+      if (usec)
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
+                       {},
+                       {nm->mkConst<Rational>(2 * d),
+                        e[0],
+                        c,
+                        regionToLowerBound(region),
+                        c});
+      }
+      else
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS,
+                       {},
+                       {nm->mkConst<Rational>(2 * d),
+                        e[0],
+                        c,
+                        c,
+                        regionToUpperBound(region)});
+      }
+    }
+  }
   d_data->d_im.addPendingArithLemma(
-      lem, InferenceId::NL_T_TANGENT, nullptr, true);
+      lem, InferenceId::NL_T_TANGENT, proof, true);
 }
 
 void SineSolver::doSecantLemmas(TNode e,
