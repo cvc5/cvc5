@@ -39,17 +39,15 @@ class TriggerTrie
  public:
   TriggerTrie();
   ~TriggerTrie();
-  /** get trigger
-   * This returns a Trigger t that is indexed by nodes,
-   * or NULL otherwise.
+  /**
+   * This returns a Trigger t that is indexed by nodes, or nullptr otherwise.
    */
   Trigger* getTrigger(std::vector<Node>& nodes);
-  /** add trigger
-   * This adds t to the trie, indexed by nodes.
-   * In typical use cases, nodes is t->d_nodes.
+  /**
+   * This adds t to the trie, indexed by nodes. In typical use cases, nodes i
+   * t->d_nodes.
    */
   void addTrigger(std::vector<Node>& nodes, Trigger* t);
-
  private:
   /** The trigger at this node in the trie. */
   std::vector<Trigger*> d_tr;
