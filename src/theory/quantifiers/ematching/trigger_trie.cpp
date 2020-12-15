@@ -64,7 +64,7 @@ void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
     }
     else
     {
-      tt = itt->second;
+      tt = &(itt->second);
     }
   }
   tt->d_tr.push_back(t);
