@@ -1230,7 +1230,7 @@ enum class PfRule : uint32_t
   // Children: none
   // Arguments: (d, t, lb, ub, l, u)
   // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sine t) (secant sin l u t))
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (secant sin l u t))
   // Where d is an even positive number, t an arithmetic term, lb (ub) a
   // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
   // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
@@ -1245,7 +1245,7 @@ enum class PfRule : uint32_t
   // Children: none
   // Arguments: (d, t, lb, ub, l, u)
   // ---------------------
-  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sine t) (secant sin l u t))
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (secant sin l u t))
   // Where d is an even positive number, t an arithmetic term, lb (ub) a
   // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
   // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
