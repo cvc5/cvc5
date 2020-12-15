@@ -113,14 +113,14 @@ void SygusUtils::decomposeSygusConjecture(Node q,
   }
 }
 
-Node SygusUtils::decomposeConjectureBody(Node conj, std::vector<Node>& vs)
+Node SygusUtils::decomposeSygusNegatedBody(Node conj, std::vector<Node>& vs)
 {
   if (conj.getKind() == NOT && conj[0].getKind() == FORALL)
   {
     vs.insert(vs.end(), conj[0][0].begin(), conj[0][0].end());
-    return conj[0][1];
+    return conj[0][1].negate();
   }
-  return conj.negate();
+  return conj;
 }
 
 Node SygusUtils::getSygusArgumentListForSynthFun(Node f)

@@ -59,9 +59,9 @@ class SygusUtils
                                 Node conj,
                                 const Subs& solvedf);
   /**
-   * Decompose sygus conjecture.
+   * Decompose (negated) sygus conjecture.
    *
-   * @param q The sygus conjecture to decompose
+   * @param q The (negated) sygus conjecture to decompose, of kind FORALL
    * @param fs The functions-to-synthesize
    * @param unsf The functions that have not been marked as solved.
    * @param solvedf The substitution corresponding to the solved functions.
@@ -73,13 +73,12 @@ class SygusUtils
                                        std::vector<Node>& unsf,
                                        Subs& solvedf);
   /**
-   * Decompose the negated conjecture body.
-   *
-   * This returns a quantifier-free formula corresponding to the (un-negated)
-   * conjecture body. It adds the quantified free variables of the conjecture
-   * to vs.
+   * Decompose the negated body. This takes as input the body of the negated
+   * sygus conjecture, which is of the form (NOT (FORALL V G)) or
+   * quantifier-free formula G. It returns the conjecture without quantified
+   * variables (G), and adds the quantified variables (V) to vs.
    */
-  static Node decomposeConjectureBody(Node conj, std::vector<Node>& vs);
+  static Node decomposeSygusNegatedBody(Node conj, std::vector<Node>& vs);
 
   /**
    * Get the formal argument list for a function-to-synthesize. This returns
