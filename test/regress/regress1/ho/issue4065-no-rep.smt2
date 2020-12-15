@@ -1,8 +1,5 @@
-; COMMAND-LINE: -q
-; EXPECT: sat
 (set-logic AUFBV)
-(set-info :status sat)
-(set-option :bv-div-zero-const false)
+(set-info :status unsat)
 (set-option :fmf-bound-int true)
 (set-option :uf-ho true)
 (declare-fun _substvar_20_ () Bool)
