@@ -1194,17 +1194,9 @@ class CVC4_PUBLIC Term
   std::string getInteger() const;
 
   /**
-   * Returns true if the term is a single string character.
-   */
-  bool isChar() const;
-  /**
    * Returns true if the term is a string constant.
    */
   bool isString() const;
-  /**
-   * Returns true if the term is the empty sequence.
-   */
-  std::string getChar() const;
   /**
    * Returns the stored string constant. This method is not to be confused with
    * toString() which returns the term in some string representation, whatever

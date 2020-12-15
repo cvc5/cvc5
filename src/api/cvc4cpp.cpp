@@ -2165,29 +2165,9 @@ std::string Term::getInteger() const
   return detail::getInteger(*d_node).toString();
 }
 
-bool Term::isChar() const
-{
-  return d_node->getKind() == CVC4::Kind::CONST_STRING
-         && d_node->getConst<String>().getVec().size() == 1;
-}
 bool Term::isString() const
 {
   return d_node->getKind() == CVC4::Kind::CONST_STRING;
-}
-std::string Term::getChar() const
-{
-  CVC4_API_CHECK(d_node->getKind() == CVC4::Kind::CONST_STRING
-                 && d_node->getConst<String>().getVec().size() == 1)
-      << "Term should be a Char when calling getChar()";
-  unsigned codePoint = d_node->getConst<String>().getVec()[0];
-  const char* digits = "0123456789ABCDEF";
-  std::string res;
-  for (; codePoint > 0; codePoint /= 16)
-  {
-    res += digits[codePoint % 16];
-  }
-  std::reverse(res.begin(), res.end());
-  return res;
 }
 std::wstring Term::getString() const
 {
