@@ -113,7 +113,7 @@ void SygusUtils::decomposeSygusConjecture(Node q,
   }
 }
 
-Node SygusUtils::decomposeSygusNegatedBody(Node conj, std::vector<Node>& vs)
+Node SygusUtils::decomposeSygusBody(Node conj, std::vector<Node>& vs)
 {
   if (conj.getKind() == NOT && conj[0].getKind() == FORALL)
   {

@@ -78,7 +78,7 @@ class SygusUtils
    * quantifier-free formula G. It returns the conjecture without quantified
    * variables (G), and adds the quantified variables (V) to vs.
    */
-  static Node decomposeSygusNegatedBody(Node conj, std::vector<Node>& vs);
+  static Node decomposeSygusBody(Node conj, std::vector<Node>& vs);
 
   /**
    * Get the formal argument list for a function-to-synthesize. This returns
