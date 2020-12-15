@@ -56,7 +56,7 @@ void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
   std::sort(temp.begin(), temp.end());
   TriggerTrie* tt = this;
   for (const Node& n : temp)
-  {getTrigger
+  {
     std::map<TNode, TriggerTrie>::iterator itt = tt->d_children.find(n);
     if (itt == tt->d_children.end())
     {
