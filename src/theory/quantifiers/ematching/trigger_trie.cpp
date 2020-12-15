@@ -39,20 +39,19 @@ inst::Trigger* TriggerTrie::getTrigger(std::vector<Node>& nodes)
     std::map<TNode, TriggerTrie>::iterator itt = tt->d_children.find(n);
     if (itt == tt->d_children.end())
     {
-      return NULL;
+      return nullptr;
     }
     else
     {
-      tt = itt->second;
+      tt = &(itt->second);
     }
   }
-  return tt->d_tr.empty() ? NULL : tt->d_tr[0];
+  return tt->d_tr.empty() ? nullptr : tt->d_tr[0];
 }
 
 void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
 {
-  std::vector<Node> temp;
-  temp.insert(temp.begin(), nodes.begin(), nodes.end());
+  std::vector<Node> temp(nodes.begin(), nodes.end());
   std::sort(temp.begin(), temp.end());
   TriggerTrie* tt = this;
   for (const Node& n : temp)
