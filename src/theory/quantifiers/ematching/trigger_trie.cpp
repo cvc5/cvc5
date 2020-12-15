@@ -14,16 +14,16 @@
 
 #include "theory/quantifiers/ematching/trigger_trie.h"
 
-
 namespace CVC4 {
 namespace theory {
 namespace inst {
 
-TriggerTrie::TriggerTrie()
-{}
+TriggerTrie::TriggerTrie() {}
 
-TriggerTrie::~TriggerTrie() {
-  for( size_t i=0, ntriggers = d_tr.size(); i<ntriggers; i++ ){
+TriggerTrie::~TriggerTrie()
+{
+  for (size_t i = 0, ntriggers = d_tr.size(); i < ntriggers; i++)
+  {
     delete d_tr[i];
   }
 }
@@ -71,6 +71,6 @@ void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
   tt->d_tr.push_back(t);
 }
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4
