@@ -316,6 +316,14 @@ Node QuantAttributes::getQuantName(Node q) const
   return Node::null();
 }
 
+std::string QuantAttributes::quantToString(Node q) const
+{
+  std::stringstream ss;
+  Node name = getQuantName(q);
+  ss << (name.isNull() ? q : name);
+  return ss.str();
+}
+
 int QuantAttributes::getQuantIdNum( Node q ) {
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it!=d_qattr.end() ){
