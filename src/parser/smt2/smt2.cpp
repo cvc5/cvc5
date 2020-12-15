@@ -1075,7 +1075,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     {
       parseError("index of tupSel is larger than size of uint32_t");
     }
-    uint32_t n = p.d_expr.getUInt32();
+    uint64_t n = p.d_expr.getUInt64();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");
