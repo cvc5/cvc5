@@ -2139,7 +2139,7 @@ std::int32_t Term::getInt32() const
 bool Term::isUInt32() const { return detail::isUInt32(*d_node); }
 std::uint32_t Term::getUInt32() const
 {
-  CVC4_API_CHECK(detail::isInt32(*d_node))
+  CVC4_API_CHECK(detail::isUInt32(*d_node))
       << "Term should be a UInt32 when calling getUInt32()";
   return detail::getInteger(*d_node).getUnsignedInt();
 }
