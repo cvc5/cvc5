@@ -71,13 +71,10 @@ void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_PI, this);
-<<<<<<< HEAD
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS, this);
-  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG, this);
-=======
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS, this);
->>>>>>> 1a309953613986471a4dd57f6537d84ae959da1e
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG, this);
 }
 
 Node TranscendentalProofRuleChecker::checkInternal(
