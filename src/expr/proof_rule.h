@@ -1226,6 +1226,36 @@ enum class PfRule : uint32_t
   //   (=> (< t pi) (< (sin t) (- pi t)))
   // )
   ARITH_TRANS_SINE_TANGENT_PI,
+  //======== Sine is approximated from above for negative values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sine t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+  //======== Sine is approximated from below for positive values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sine t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is above the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.

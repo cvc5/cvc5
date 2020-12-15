@@ -322,9 +322,9 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
   CDProof* proof = nullptr;
   if (isProofEnabled())
   {
+    proof = getProof();
     if (tf.getKind() == Kind::EXPONENTIAL)
     {
-      proof = getProof();
       if (csign == 1)
       {
         proof->addStep(
@@ -340,6 +340,35 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
             PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
             {},
             {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+      }
+    }
+    else if (tf.getKind() == Kind::SINE)
+    {
+      if (convexity == Convexity::CONCAVE)
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
+                       {},
+                       {nm->mkConst<Rational>(actual_d),
+                        tf[0],
+                        lower,
+                        upper,
+                        lapprox,
+                        uapprox
+
+                       });
+      }
+      else
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+                       {},
+                       {nm->mkConst<Rational>(actual_d),
+                        tf[0],
+                        lower,
+                        upper,
+                        lapprox,
+                        uapprox});
       }
     }
   }
