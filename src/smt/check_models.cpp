@@ -184,8 +184,7 @@ void CheckModels::checkModel(Model* m,
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
 
-    // Simplify the result and replace the already-known ITEs (this is important
-    // for ground ITEs under quantifiers).
+    // Simplify the result
     n = pp->simplify(n);
     Notice()
         << "SmtEngine::checkModel(): -- simplifies with ite replacement to  "
