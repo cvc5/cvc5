@@ -40,12 +40,10 @@ Node SygusUtils::mkSygusConjecture(const std::vector<Node>& fs,
 {
   Assert(!fs.empty());
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> ipls;
   SygusAttribute ca;
   Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
   sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
-  ipls.push_back(instAttr);
+  std::vector<Node> ipls{nm->mkNode(INST_ATTRIBUTE, sygusVar)};
   // insert the remaining instantiation attributes
   ipls.insert(ipls.end(), iattrs.begin(), iattrs.end());
   Node ipl = nm->mkNode(INST_PATTERN_LIST, ipls);
