@@ -2,7 +2,7 @@
 /*! \file parser_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Aina Niemetz
+ **   Christopher L. Conway, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -259,8 +259,6 @@ public:
     tryGoodInput("a : INT = 5; a: INT;"); // decl after define, compatible
     tryGoodInput("a : TYPE; a : INT;"); // ok, sort and variable symbol spaces distinct
     tryGoodInput("a : TYPE; a : INT; b : a;"); // ok except a is both INT and sort `a'
-    //tryGoodInput("a : [0..0]; b : [-5..5]; c : [-1..1]; d : [ _ .._];"); // subranges
-    tryGoodInput("a : [ _..1]; b : [_.. 0]; c :[_..-1];");
     tryGoodInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE cons = null END;");
     tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) | nil END;");
     //tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");

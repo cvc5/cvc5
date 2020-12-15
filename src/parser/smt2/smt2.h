@@ -169,7 +169,7 @@ class Smt2 : public Parser
 
   /** Push scope for define-fun-rec
    *
-   * This calls Parser::pushScope(bindingLevel) and sets up
+   * This calls Parser::pushScope() and sets up
    * initial information for reading a body of a function definition
    * in the define-fun-rec and define-funs-rec command.
    * The input parameters func/flattenVars are the result
@@ -180,7 +180,7 @@ class Smt2 : public Parser
    * flattenVars : the implicit variables introduced when defining func.
    *
    * This function:
-   * (1) Calls Parser::pushScope(bindingLevel).
+   * (1) Calls Parser::pushScope().
    * (2) Computes the bound variable list for the quantified formula
    *     that defined this definition and stores it in bvs.
    */
@@ -188,12 +188,9 @@ class Smt2 : public Parser
       const std::vector<std::pair<std::string, api::Sort>>& sortedVarNames,
       api::Term func,
       const std::vector<api::Term>& flattenVars,
-      std::vector<api::Term>& bvs,
-      bool bindingLevel = false);
+      std::vector<api::Term>& bvs);
 
   void reset() override;
-
-  void resetAssertions();
 
   /**
    * Creates a command that adds an invariant constraint.
@@ -261,10 +258,6 @@ class Smt2 : public Parser
    * denoting a single double quote (").
    */
   bool escapeDupDblQuote() const { return v2_5() || sygus(); }
-
-  void setInfo(const std::string& flag, const SExpr& sexpr);
-
-  void setOption(const std::string& flag, const SExpr& sexpr);
 
   void checkThatLogicIsSet();
 
@@ -344,17 +337,11 @@ class Smt2 : public Parser
     }
     this->Parser::checkDeclaration(name, check, type, notes);
   }
-  /** Set named attribute
-   *
-   * This is called when expression expr is annotated with a name, i.e.
-   * (! expr :named sexpr). It sets up the necessary information to process
-   * this naming, including marking that expr is the last named term.
-   *
-   * We construct an expression symbol whose name is the name of s-expression
-   * which is used later for tracking assertions in unsat cores. This
-   * symbol is returned by this method.
+  /**
+   * Notify that expression expr was given name std::string via a :named
+   * attribute.
    */
-  api::Term setNamedAttribute(api::Term& expr, const SExpr& sexpr);
+  void notifyNamedExpression(api::Term& expr, std::string name);
 
   // Throw a ParserException with msg appended with the current logic.
   inline void parseErrorLogic(const std::string& msg)

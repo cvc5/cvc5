@@ -2,7 +2,7 @@
 /*! \file resource_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Gereon Kremer, Liana Hadarean
+ **   Gereon Kremer, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -66,13 +66,18 @@ struct ResourceManager::Statistics
 {
   ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
   IntStat d_spendResourceCalls;
+  IntStat d_numArithPivotStep;
+  IntStat d_numArithNlLemmaStep;
   IntStat d_numBitblastStep;
   IntStat d_numBvEagerAssertStep;
   IntStat d_numBvPropagationStep;
   IntStat d_numBvSatConflictsStep;
+  IntStat d_numBvSatPropagateStep;
+  IntStat d_numBvSatSimplifyStep;
   IntStat d_numCnfStep;
   IntStat d_numDecisionStep;
   IntStat d_numLemmaStep;
+  IntStat d_numNewSkolemStep;
   IntStat d_numParseStep;
   IntStat d_numPreprocessStep;
   IntStat d_numQuantifierStep;
@@ -90,13 +95,18 @@ struct ResourceManager::Statistics
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
       d_spendResourceCalls("resource::spendResourceCalls", 0),
+      d_numArithPivotStep("resource::ArithPivotStep", 0),
+      d_numArithNlLemmaStep("resource::ArithNlLemmaStep", 0),
       d_numBitblastStep("resource::BitblastStep", 0),
       d_numBvEagerAssertStep("resource::BvEagerAssertStep", 0),
       d_numBvPropagationStep("resource::BvPropagationStep", 0),
       d_numBvSatConflictsStep("resource::BvSatConflictsStep", 0),
+      d_numBvSatPropagateStep("resource::BvSatPropagateStep", 0),
+      d_numBvSatSimplifyStep("resource::BvSatSimplifyStep", 0),
       d_numCnfStep("resource::CnfStep", 0),
       d_numDecisionStep("resource::DecisionStep", 0),
       d_numLemmaStep("resource::LemmaStep", 0),
+      d_numNewSkolemStep("resource::NewSkolemStep", 0),
       d_numParseStep("resource::ParseStep", 0),
       d_numPreprocessStep("resource::PreprocessStep", 0),
       d_numQuantifierStep("resource::QuantifierStep", 0),
@@ -108,13 +118,18 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
 {
   d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
   d_statisticsRegistry.registerStat(&d_spendResourceCalls);
+  d_statisticsRegistry.registerStat(&d_numArithPivotStep);
+  d_statisticsRegistry.registerStat(&d_numArithNlLemmaStep);
   d_statisticsRegistry.registerStat(&d_numBitblastStep);
   d_statisticsRegistry.registerStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.registerStat(&d_numBvPropagationStep);
   d_statisticsRegistry.registerStat(&d_numBvSatConflictsStep);
+  d_statisticsRegistry.registerStat(&d_numBvSatPropagateStep);
+  d_statisticsRegistry.registerStat(&d_numBvSatSimplifyStep);
   d_statisticsRegistry.registerStat(&d_numCnfStep);
   d_statisticsRegistry.registerStat(&d_numDecisionStep);
   d_statisticsRegistry.registerStat(&d_numLemmaStep);
+  d_statisticsRegistry.registerStat(&d_numNewSkolemStep);
   d_statisticsRegistry.registerStat(&d_numParseStep);
   d_statisticsRegistry.registerStat(&d_numPreprocessStep);
   d_statisticsRegistry.registerStat(&d_numQuantifierStep);
@@ -128,13 +143,18 @@ ResourceManager::Statistics::~Statistics()
 {
   d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
   d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
+  d_statisticsRegistry.unregisterStat(&d_numArithPivotStep);
+  d_statisticsRegistry.unregisterStat(&d_numArithNlLemmaStep);
   d_statisticsRegistry.unregisterStat(&d_numBitblastStep);
   d_statisticsRegistry.unregisterStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.unregisterStat(&d_numBvPropagationStep);
   d_statisticsRegistry.unregisterStat(&d_numBvSatConflictsStep);
+  d_statisticsRegistry.unregisterStat(&d_numBvSatPropagateStep);
+  d_statisticsRegistry.unregisterStat(&d_numBvSatSimplifyStep);
   d_statisticsRegistry.unregisterStat(&d_numCnfStep);
   d_statisticsRegistry.unregisterStat(&d_numDecisionStep);
   d_statisticsRegistry.unregisterStat(&d_numLemmaStep);
+  d_statisticsRegistry.unregisterStat(&d_numNewSkolemStep);
   d_statisticsRegistry.unregisterStat(&d_numParseStep);
   d_statisticsRegistry.unregisterStat(&d_numPreprocessStep);
   d_statisticsRegistry.unregisterStat(&d_numQuantifierStep);
@@ -145,8 +165,6 @@ ResourceManager::Statistics::~Statistics()
 }
 
 /*---------------------------------------------------------------------------*/
-
-const uint64_t ResourceManager::s_resourceCount = 1000;
 
 ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
     : d_perCallTimer(),
@@ -219,7 +237,8 @@ void ResourceManager::spendResource(unsigned amount)
   if (out())
   {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
-    Trace("limit") << "          on call " << d_statistics->d_spendResourceCalls.getData() << std::endl;
+    Trace("limit") << "          on call "
+                   << d_statistics->d_spendResourceCalls.getData() << std::endl;
     if (outOfTime())
     {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"
@@ -238,6 +257,14 @@ void ResourceManager::spendResource(Resource r)
   uint32_t amount = 0;
   switch (r)
   {
+    case Resource::ArithPivotStep:
+      amount = d_options[options::arithPivotStep];
+      ++d_statistics->d_numArithPivotStep;
+      break;
+    case Resource::ArithNlLemmaStep:
+      amount = d_options[options::arithNlLemmaStep];
+      ++d_statistics->d_numArithNlLemmaStep;
+      break;
     case Resource::BitblastStep:
       amount = d_options[options::bitblastStep];
       ++d_statistics->d_numBitblastStep;
@@ -254,6 +281,14 @@ void ResourceManager::spendResource(Resource r)
       amount = d_options[options::bvSatConflictStep];
       ++d_statistics->d_numBvSatConflictsStep;
       break;
+    case Resource::BvSatPropagateStep:
+      amount = d_options[options::bvSatPropagateStep];
+      ++d_statistics->d_numBvSatPropagateStep;
+      break;
+    case Resource::BvSatSimplifyStep:
+      amount = d_options[options::bvSatSimplifyStep];
+      ++d_statistics->d_numBvSatSimplifyStep;
+      break;
     case Resource::CnfStep:
       amount = d_options[options::cnfStep];
       ++d_statistics->d_numCnfStep;
@@ -265,6 +300,10 @@ void ResourceManager::spendResource(Resource r)
     case Resource::LemmaStep:
       amount = d_options[options::lemmaStep];
       ++d_statistics->d_numLemmaStep;
+      break;
+    case Resource::NewSkolemStep:
+      amount = d_options[options::newSkolemStep];
+      ++d_statistics->d_numNewSkolemStep;
       break;
     case Resource::ParseStep:
       amount = d_options[options::parseStep];

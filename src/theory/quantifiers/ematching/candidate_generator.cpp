@@ -15,6 +15,8 @@
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "expr/dtype.h"
 #include "options/quantifiers_options.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
@@ -23,12 +25,11 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
 
-using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::inst;
+
+namespace CVC4 {
+namespace theory {
+namespace inst {
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
@@ -48,8 +49,13 @@ void CandidateGeneratorQE::resetInstantiationRound(){
   d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
 }
 
-void CandidateGeneratorQE::reset( Node eqc ){
+void CandidateGeneratorQE::reset(Node eqc) { resetForOperator(eqc, d_op); }
+
+void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
+{
   d_term_iter = 0;
+  d_eqc = eqc;
+  d_op = op;
   if( eqc.isNull() ){
     d_mode = cand_term_db;
   }else{
@@ -58,7 +64,7 @@ void CandidateGeneratorQE::reset( Node eqc ){
     }else{
       eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
       if( ee->hasTerm( eqc ) ){
-        TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, d_op);
+        TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, op);
         if( tat ){
           //create an equivalence class iterator in eq class eqc
           Node rep = ee->getRepresentative( eqc );
@@ -69,7 +75,6 @@ void CandidateGeneratorQE::reset( Node eqc ){
         }   
       }else{
         //the only match is this term itself
-        d_eqc = eqc;
         d_mode = cand_term_ident;
       }
     }
@@ -85,6 +90,11 @@ bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
 }
 
 Node CandidateGeneratorQE::getNextCandidate(){
+  return getNextCandidateInternal();
+}
+
+Node CandidateGeneratorQE::getNextCandidateInternal()
+{
   if( d_mode==cand_term_db ){
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
@@ -232,7 +242,7 @@ void CandidateGeneratorConsExpand::reset(Node eqc)
 Node CandidateGeneratorConsExpand::getNextCandidate()
 {
   // get the next term from the base class
-  Node curr = CandidateGeneratorQE::getNextCandidate();
+  Node curr = getNextCandidateInternal();
   if (curr.isNull() || (curr.hasOperator() && curr.getOperator() == d_op))
   {
     return curr;
@@ -256,3 +266,65 @@ bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
 {
   return isLegalCandidate(n);
 }
+
+CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersEngine* qe,
+                                                       Node mpat)
+    : CandidateGeneratorQE(qe, mpat)
+{
+  Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
+  Assert(mpat.getKind() == APPLY_SELECTOR);
+  Node mpatExp = smt::currentSmtEngine()->expandDefinitions(mpat, false);
+  Trace("sel-trigger") << "Expands to: " << mpatExp << std::endl;
+  if (mpatExp.getKind() == ITE)
+  {
+    Assert(mpatExp[1].getKind() == APPLY_SELECTOR_TOTAL);
+    Assert(mpatExp[2].getKind() == APPLY_UF);
+    d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp[1]);
+    d_ufOp = qe->getTermDatabase()->getMatchOperator(mpatExp[2]);
+  }
+  else
+  {
+    // corner case of datatype with one constructor
+    Assert(mpatExp.getKind() == APPLY_SELECTOR_TOTAL);
+    d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp);
+  }
+  Assert(d_selOp != d_ufOp);
+}
+
+void CandidateGeneratorSelector::reset(Node eqc)
+{
+  Trace("sel-trigger-debug") << "Reset in eqc=" << eqc << std::endl;
+  // start with d_selOp
+  resetForOperator(eqc, d_selOp);
+}
+
+Node CandidateGeneratorSelector::getNextCandidate()
+{
+  Node nextc = getNextCandidateInternal();
+  if (!nextc.isNull())
+  {
+    Trace("sel-trigger-debug") << "...next candidate is " << nextc << std::endl;
+    return nextc;
+  }
+  else if (d_op == d_selOp)
+  {
+    if (d_ufOp.isNull())
+    {
+      // corner case: selector cannot be wrongly applied (1-cons case)
+      d_op = Node::null();
+    }
+    else
+    {
+      // finished correctly applied selectors, now try incorrectly applied ones
+      resetForOperator(d_eqc, d_ufOp);
+      return getNextCandidate();
+    }
+  }
+  Trace("sel-trigger-debug") << "...finished" << std::endl;
+  // no more candidates
+  return Node::null();
+}
+
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file prop_proof_manager
+/*! \file prop_proof_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
@@ -14,6 +14,7 @@
 
 #include "prop/prop_proof_manager.h"
 
+#include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
 
 namespace CVC4 {
@@ -21,11 +22,11 @@ namespace prop {
 
 PropPfManager::PropPfManager(context::UserContext* userContext,
                              ProofNodeManager* pnm,
-                             SatProofManager* satPM,
+                             CDCLTSatSolverInterface* satSolver,
                              ProofCnfStream* cnfProof)
     : d_pnm(pnm),
       d_pfpp(new ProofPostproccess(pnm, cnfProof)),
-      d_satPM(satPM),
+      d_satSolver(satSolver),
       d_assertions(userContext)
 {
   // add trivial assumption. This is so that we can check the that the prop
@@ -46,7 +47,7 @@ void PropPfManager::checkProof(context::CDList<Node>* assertions)
 {
   Trace("sat-proof") << "PropPfManager::checkProof: Checking if resolution "
                         "proof of false is closed\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
@@ -65,7 +66,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
   // retrieve the SAT solver's refutation proof
   Trace("sat-proof")
       << "PropPfManager::getProof: Getting resolution proof of false\n";
-  std::shared_ptr<ProofNode> conflictProof = d_satPM->getProof();
+  std::shared_ptr<ProofNode> conflictProof = d_satSolver->getProof();
   Assert(conflictProof);
   if (Trace.isOn("sat-proof"))
   {

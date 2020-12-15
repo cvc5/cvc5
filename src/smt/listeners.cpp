@@ -15,7 +15,6 @@
 #include "smt/listeners.h"
 
 #include "expr/attribute.h"
-#include "expr/expr.h"
 #include "expr/node_manager_attributes.h"
 #include "options/smt_options.h"
 #include "printer/printer.h"

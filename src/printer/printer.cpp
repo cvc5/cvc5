@@ -2,7 +2,7 @@
 /*! \file printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Morgan Deters, Aina Niemetz
+ **   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -74,17 +74,33 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 
 void Printer::toStream(std::ostream& out, const smt::Model& m) const
 {
-  for(size_t i = 0; i < m.getNumCommands(); ++i) {
-    const NodeCommand* cmd = m.getCommand(i);
-    const DeclareFunctionNodeCommand* dfc =
-        dynamic_cast<const DeclareFunctionNodeCommand*>(cmd);
-    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction()))
+  // print the declared sorts
+  const std::vector<TypeNode>& dsorts = m.getDeclaredSorts();
+  for (const TypeNode& tn : dsorts)
+  {
+    toStreamModelSort(out, m, tn);
+  }
+
+  // print the declared terms
+  const std::vector<Node>& dterms = m.getDeclaredTerms();
+  for (const Node& n : dterms)
+  {
+    // take into account model core, independently of the format
+    if (!m.isModelCoreSymbol(n))
     {
       continue;
     }
-    toStream(out, m, cmd);
+    toStreamModelTerm(out, m, n);
   }
+
 }/* Printer::toStream(Model) */
+
+void Printer::toStreamUsing(OutputLanguage lang,
+                            std::ostream& out,
+                            const smt::Model& m) const
+{
+  getPrinter(lang)->toStream(out, m);
+}
 
 void Printer::toStream(std::ostream& out, const UnsatCore& core) const
 {
@@ -160,8 +176,6 @@ void Printer::toStreamCmdDeclareFunction(std::ostream& out,
 }
 
 void Printer::toStreamCmdDeclareType(std::ostream& out,
-                                     const std::string& id,
-                                     size_t arity,
                                      TypeNode type) const
 {
   printUnknownCommand(out, "declare-sort");
@@ -182,15 +196,6 @@ void Printer::toStreamCmdDefineFunction(std::ostream& out,
                                         Node formula) const
 {
   printUnknownCommand(out, "define-fun");
-}
-
-void Printer::toStreamCmdDefineNamedFunction(std::ostream& out,
-                                             const std::string& id,
-                                             const std::vector<Node>& formals,
-                                             TypeNode range,
-                                             Node formula) const
-{
-  printUnknownCommand(out, "define-named-function");
 }
 
 void Printer::toStreamCmdDefineFunctionRec(

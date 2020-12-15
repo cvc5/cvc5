@@ -1151,6 +1151,59 @@ class CVC4_PUBLIC Term
   // to the new API. !!!
   const CVC4::Node& getNode(void) const;
 
+  /**
+   * Returns true if the term is an integer that fits within std::int32_t.
+   */
+  bool isInt32() const;
+  /**
+   * Returns the stored integer as a std::int32_t. Asserts isInt32().
+   */
+  std::int32_t getInt32() const;
+  /**
+   * Returns true if the term is an integer that fits within std::uint32_t.
+   */
+  bool isUInt32() const;
+  /**
+   * Returns the stored integer as a std::uint32_t. Asserts isUInt32().
+   */
+  std::uint32_t getUInt32() const;
+  /**
+   * Returns true if the term is an integer that fits within std::int64_t.
+   */
+  bool isInt64() const;
+  /**
+   * Returns the stored integer as a std::int64_t. Asserts isInt64().
+   */
+  std::int64_t getInt64() const;
+  /**
+   * Returns true if the term is an integer that fits within std::uint64_t.
+   */
+  bool isUInt64() const;
+  /**
+   * Returns the stored integer as a std::uint64_t. Asserts isUInt64().
+   */
+  std::uint64_t getUInt64() const;
+  /**
+   * Returns true if the term is an integer.
+   */
+  bool isInteger() const;
+  /**
+   * Returns the stored integer in (decimal) string representation. Asserts
+   * isInteger().
+   */
+  std::string getInteger() const;
+
+  /**
+   * Returns true if the term is a string constant.
+   */
+  bool isString() const;
+  /**
+   * Returns the stored string constant. This method is not to be confused with
+   * toString() which returns the term in some string representation, whatever
+   * data it may hold. Asserts isString().
+   */
+  std::wstring getString() const;
+
  protected:
   /**
    * The associated solver object.
@@ -2829,7 +2882,15 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the constant
    * @return the first-order constant
    */
-  Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
+  Term mkConst(Sort sort, const std::string& symbol) const;
+  /**
+   * Create (first-order) constant (0-arity function symbol), with a default
+   * symbol name.
+   *
+   * @param sort the sort of the constant
+   * @return the first-order constant
+   */
+  Term mkConst(Sort sort) const;
 
   /**
    * Create a bound variable to be used in a binder (i.e. a quantifier, a
@@ -3232,13 +3293,6 @@ class CVC4_PUBLIC Solver
    * @return true if it gets C successfully, false otherwise
    */
   bool getAbduct(Term conj, Grammar& g, Term& output) const;
-
-  /**
-   * Print the model of a satisfiable query to the given output stream.
-   * Requires to enable option 'produce-models'.
-   * @param out the output stream
-   */
-  void printModel(std::ostream& out) const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a

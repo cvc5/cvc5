@@ -2,7 +2,7 @@
 /*! \file process_assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Haniel Barbosa
+ **   Andrew Reynolds, Yoni Zohar, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -52,8 +52,15 @@ class ScopeCounter
   unsigned& d_depth;
 };
 
-ProcessAssertions::ProcessAssertions(SmtEngine& smt, ResourceManager& rm)
-    : d_smt(smt), d_resourceManager(rm), d_preprocessingPassContext(nullptr)
+ProcessAssertions::ProcessAssertions(SmtEngine& smt,
+                                     ExpandDefs& exDefs,
+                                     ResourceManager& rm,
+                                     SmtEngineStatistics& stats)
+    : d_smt(smt),
+      d_exDefs(exDefs),
+      d_resourceManager(rm),
+      d_smtStats(stats),
+      d_preprocessingPassContext(nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -123,21 +130,11 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : pre-definition-expansion"
       << endl;
   dumpAssertions("pre-definition-expansion", assertions);
-  {
-    Chat() << "expanding definitions..." << endl;
-    Trace("simplify") << "ProcessAssertions::simplify(): expanding definitions"
-                      << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_definitionExpansionTime);
-    unordered_map<Node, Node, NodeHashFunction> cache;
-    for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
-    {
-      Node expd = expandDefinitions(assertions[i], cache);
-      if (expd != assertions[i])
-      {
-        assertions.replace(i, expd);
-      }
-    }
-  }
+  // Expand definitions, which replaces defined functions with their definition
+  // and does beta reduction. Notice we pass true as the second argument since
+  // we do not want to call theories to expand definitions here, since we want
+  // to give the opportunity to rewrite/preprocess terms before expansion.
+  d_exDefs.expandAssertions(assertions, true);
   Trace("smt-proc")
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
@@ -232,7 +229,7 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["sep-skolem-emp"]->apply(&assertions);
   }
 
-  if (d_smt.d_logic.isQuantified())
+  if (d_smt.getLogicInfo().isQuantified())
   {
     // remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_passes["quantifiers-preprocess"]->apply(&assertions);
@@ -261,7 +258,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   // rephrasing normal inputs as sygus problems
-  if (!d_smt.d_isInternalSubsolver)
+  if (!d_smt.isInternalSubsolver())
   {
     if (options::sygusInference())
     {
@@ -281,7 +278,7 @@ bool ProcessAssertions::apply(Assertions& as)
   noConflict = simplifyAssertions(assertions);
   if (!noConflict)
   {
-    ++(d_smt.d_stats->d_simplifiedToFalse);
+    ++(d_smtStats.d_simplifiedToFalse);
   }
   Trace("smt-proc") << "ProcessAssertions::processAssertions() : post-simplify"
                     << endl;
@@ -294,13 +291,13 @@ bool ProcessAssertions::apply(Assertions& as)
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   {
-    d_smt.d_stats->d_numAssertionsPre += assertions.size();
+    d_smtStats.d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
     // This is needed because when solving incrementally, removeITEs may
     // introduce skolems that were solved for earlier and thus appear in the
     // substitution map.
     d_passes["apply-substs"]->apply(&assertions);
-    d_smt.d_stats->d_numAssertionsPost += assertions.size();
+    d_smtStats.d_numAssertionsPost += assertions.size();
   }
 
   dumpAssertions("pre-repeat-simplify", assertions);
@@ -411,6 +408,11 @@ bool ProcessAssertions::apply(Assertions& as)
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
   d_passes["theory-preprocess"]->apply(&assertions);
+  // Must remove ITEs again since theory preprocessing may introduce them.
+  // Notice that we alternatively could ensure that the theory-preprocess
+  // pass above calls TheoryPreprocess::preprocess instead of
+  // TheoryPreprocess::theoryPreprocess, as the former also does ITE removal.
+  d_passes["ite-removal"]->apply(&assertions);
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -451,7 +453,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
       if (  // check that option is on
           options::arithMLTrick() &&
           // only useful in arith
-          d_smt.d_logic.isTheoryEnabled(THEORY_ARITH) &&
+          d_smt.getLogicInfo().isTheoryEnabled(THEORY_ARITH) &&
           // we add new assertions and need this (in practice, this
           // restriction only disables miplib processing during
           // re-simplification, which we don't expect to be useful anyway)
@@ -538,222 +540,6 @@ void ProcessAssertions::dumpAssertions(const char* key,
           d_smt.getOutputManager().getDumpOut(), n);
     }
   }
-}
-
-Node ProcessAssertions::expandDefinitions(
-    TNode n,
-    unordered_map<Node, Node, NodeHashFunction>& cache,
-    bool expandOnly)
-{
-  NodeManager* nm = d_smt.d_nodeManager;
-  std::stack<std::tuple<Node, Node, bool>> worklist;
-  std::stack<Node> result;
-  worklist.push(std::make_tuple(Node(n), Node(n), false));
-  // The worklist is made of triples, each is input / original node then the
-  // output / rewritten node and finally a flag tracking whether the children
-  // have been explored (i.e. if this is a downward or upward pass).
-
-  do
-  {
-    spendResource(ResourceManager::Resource::PreprocessStep);
-
-    // n is the input / original
-    // node is the output / result
-    Node node;
-    bool childrenPushed;
-    std::tie(n, node, childrenPushed) = worklist.top();
-    worklist.pop();
-
-    // Working downwards
-    if (!childrenPushed)
-    {
-      Kind k = n.getKind();
-
-      // we can short circuit (variable) leaves
-      if (n.isVar())
-      {
-        SmtEngine::DefinedFunctionMap::const_iterator i =
-            d_smt.d_definedFunctions->find(n);
-        if (i != d_smt.d_definedFunctions->end())
-        {
-          Node f = (*i).second.getFormula();
-          // must expand its definition
-          Node fe = expandDefinitions(f, cache, expandOnly);
-          // replacement must be closed
-          if ((*i).second.getFormals().size() > 0)
-          {
-            result.push(
-                nm->mkNode(LAMBDA,
-                           nm->mkNode(BOUND_VAR_LIST, (*i).second.getFormals()),
-                           fe));
-            continue;
-          }
-          // don't bother putting in the cache
-          result.push(fe);
-          continue;
-        }
-        // don't bother putting in the cache
-        result.push(n);
-        continue;
-      }
-
-      // maybe it's in the cache
-      unordered_map<Node, Node, NodeHashFunction>::iterator cacheHit =
-          cache.find(n);
-      if (cacheHit != cache.end())
-      {
-        TNode ret = (*cacheHit).second;
-        result.push(ret.isNull() ? n : ret);
-        continue;
-      }
-
-      // otherwise expand it
-      bool doExpand = false;
-      if (k == APPLY_UF)
-      {
-        // Always do beta-reduction here. The reason is that there may be
-        // operators such as INTS_MODULUS in the body of the lambda that would
-        // otherwise be introduced by beta-reduction via the rewriter, but are
-        // not expanded here since the traversal in this function does not
-        // traverse the operators of nodes. Hence, we beta-reduce here to
-        // ensure terms in the body of the lambda are expanded during this
-        // call.
-        if (n.getOperator().getKind() == LAMBDA)
-        {
-          doExpand = true;
-        }
-        else
-        {
-          // We always check if this operator corresponds to a defined function.
-          doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
-        }
-      }
-      if (doExpand)
-      {
-        vector<Node> formals;
-        TNode fm;
-        if (n.getOperator().getKind() == LAMBDA)
-        {
-          TNode op = n.getOperator();
-          // lambda
-          for (unsigned i = 0; i < op[0].getNumChildren(); i++)
-          {
-            formals.push_back(op[0][i]);
-          }
-          fm = op[1];
-        }
-        else
-        {
-          // application of a user-defined symbol
-          TNode func = n.getOperator();
-          SmtEngine::DefinedFunctionMap::const_iterator i =
-              d_smt.d_definedFunctions->find(func);
-          if (i == d_smt.d_definedFunctions->end())
-          {
-            throw TypeCheckingException(
-                n.toExpr(),
-                string("Undefined function: `") + func.toString() + "'");
-          }
-          DefinedFunction def = (*i).second;
-          formals = def.getFormals();
-
-          if (Debug.isOn("expand"))
-          {
-            Debug("expand") << "found: " << n << endl;
-            Debug("expand") << " func: " << func << endl;
-            string name = func.getAttribute(expr::VarNameAttr());
-            Debug("expand") << "     : \"" << name << "\"" << endl;
-          }
-          if (Debug.isOn("expand"))
-          {
-            Debug("expand") << " defn: " << def.getFunction() << endl
-                            << "       [";
-            if (formals.size() > 0)
-            {
-              copy(formals.begin(),
-                   formals.end() - 1,
-                   ostream_iterator<Node>(Debug("expand"), ", "));
-              Debug("expand") << formals.back();
-            }
-            Debug("expand") << "]" << endl
-                            << "       " << def.getFunction().getType() << endl
-                            << "       " << def.getFormula() << endl;
-          }
-
-          fm = def.getFormula();
-        }
-
-        Node instance = fm.substitute(formals.begin(),
-                                      formals.end(),
-                                      n.begin(),
-                                      n.begin() + formals.size());
-        Debug("expand") << "made : " << instance << endl;
-
-        Node expanded = expandDefinitions(instance, cache, expandOnly);
-        cache[n] = (n == expanded ? Node::null() : expanded);
-        result.push(expanded);
-        continue;
-      }
-      else if (!expandOnly)
-      {
-        // do not do any theory stuff if expandOnly is true
-
-        theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
-
-        Assert(t != NULL);
-        TrustNode trn = t->expandDefinition(n);
-        node = trn.isNull() ? Node(n) : trn.getNode();
-      }
-
-      // the partial functions can fall through, in which case we still
-      // consider their children
-      worklist.push(std::make_tuple(
-          Node(n), node, true));  // Original and rewritten result
-
-      for (size_t i = 0; i < node.getNumChildren(); ++i)
-      {
-        worklist.push(
-            std::make_tuple(node[i],
-                            node[i],
-                            false));  // Rewrite the children of the result only
-      }
-    }
-    else
-    {
-      // Working upwards
-      // Reconstruct the node from it's (now rewritten) children on the stack
-
-      Debug("expand") << "cons : " << node << endl;
-      if (node.getNumChildren() > 0)
-      {
-        // cout << "cons : " << node << endl;
-        NodeBuilder<> nb(node.getKind());
-        if (node.getMetaKind() == metakind::PARAMETERIZED)
-        {
-          Debug("expand") << "op   : " << node.getOperator() << endl;
-          // cout << "op   : " << node.getOperator() << endl;
-          nb << node.getOperator();
-        }
-        for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; ++i)
-        {
-          Assert(!result.empty());
-          Node expanded = result.top();
-          result.pop();
-          // cout << "exchld : " << expanded << endl;
-          Debug("expand") << "exchld : " << expanded << endl;
-          nb << expanded;
-        }
-        node = nb;
-      }
-      // Only cache once all subterms are expanded
-      cache[n] = n == node ? Node::null() : node;
-      result.push(node);
-    }
-  } while (!worklist.empty());
-
-  AlwaysAssert(result.size() == 1);
-
-  return result.top();
 }
 
 void ProcessAssertions::collectSkolems(

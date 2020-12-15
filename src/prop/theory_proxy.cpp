@@ -2,7 +2,7 @@
 /*! \file theory_proxy.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Kshitij Bansal, Dejan Jovanovic
+ **   Kshitij Bansal, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -75,25 +75,39 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  theory::TrustNode texp = d_theoryEngine->getExplanation(lNode);
-  Node theoryExplanation = texp.getNode();
-
+  theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
+  Node theoryExplanation = tte.getNode();
+  if (CVC4::options::proofNew())
+  {
+    d_propEngine->getProofCnfStream()->convertPropagation(tte);
+  }
   if (options::unsatCores())
   {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }
-
   Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
-  if (theoryExplanation.getKind() == kind::AND) {
-    Node::const_iterator it = theoryExplanation.begin();
-    Node::const_iterator it_end = theoryExplanation.end();
-    explanation.push_back(l);
-    for (; it != it_end; ++ it) {
-      explanation.push_back(~d_cnfStream->getLiteral(*it));
+  explanation.push_back(l);
+  if (theoryExplanation.getKind() == kind::AND)
+  {
+    for (const Node& n : theoryExplanation)
+    {
+      explanation.push_back(~d_cnfStream->getLiteral(n));
     }
-  } else {
-    explanation.push_back(l);
+  }
+  else
+  {
     explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
+  }
+  if (Trace.isOn("sat-proof"))
+  {
+    std::stringstream ss;
+    ss << "TheoryProxy::explainPropagation: clause for lit is ";
+    for (unsigned i = 0, size = explanation.size(); i < size; ++i)
+    {
+      ss << explanation[i] << " [" << d_cnfStream->getNode(explanation[i])
+         << "] ";
+    }
+    Trace("sat-proof") << ss.str() << "\n";
   }
 }
 

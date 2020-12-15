@@ -2,7 +2,7 @@
 /*! \file combination.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Andrew Reynolds
+ **   Aina Niemetz, Tim King, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -105,10 +105,6 @@ int main()
        << "on all terms."
        << endl;
   prefixPrintGetValue(slv, assertions);
-
-  cout << endl << endl << "Alternatively, print the model." << endl << endl;
-
-  slv.printModel(cout);
 
   cout << endl;
   cout << "You can also use nested loops to iterate over terms." << endl;

@@ -2,7 +2,7 @@
 /*! \file antlr_tracing.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner
+ **   Morgan Deters, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -53,7 +53,7 @@ static struct __Cvc4System {
   struct JavaPrinter {
     template <class T>
     JavaPrinter operator+(const T& t) const {
-      Message() << t;
+      CVC4Message() << t;
       return JavaPrinter();
     }
   };/* struct JavaPrinter */
@@ -66,7 +66,7 @@ static struct __Cvc4System {
      * to the call-by-value semantics of C.  All that's left to
      * do is print the newline.
      */
-    void println(JavaPrinter) { Message() << std::endl; }
+    void println(JavaPrinter) { CVC4Message() << std::endl; }
   } out;
 } System;
 

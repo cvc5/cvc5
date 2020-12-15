@@ -2,7 +2,7 @@
 /*! \file monomial_bounds_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -320,7 +320,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
             // Trace("nl-ext-bound-lemma") << "       intro new
             // monomials = " << introNewTerms << std::endl;
             d_data->d_im.addPendingArithLemma(
-                iblem, InferenceId::NL_INFER_BOUNDS_NT, introNewTerms);
+                iblem, InferenceId::NL_INFER_BOUNDS_NT, nullptr, introNewTerms);
           }
         }
       }

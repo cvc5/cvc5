@@ -2,7 +2,7 @@
 /*! \file proof_node_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -111,7 +111,8 @@ class ProofNodeManager
    *
    * Additionally, if both ensureClosed and doMinimize are true, assumps is
    * updated to contain exactly the free asumptions of pf. This also includes
-   * having no duplicates.
+   * having no duplicates. Furthermore, if assumps is empty after minimization,
+   * this method is a no-op.
    *
    * In each case, the update vector assumps is passed as arguments to SCOPE.
    *

@@ -127,22 +127,6 @@ private:
   */
  size_t d_assertionLevel;
 
- /**
-  * Whether we're in global declarations mode (all definitions and
-  * declarations are global).
-  */
- bool d_globalDeclarations;
-
- /**
-  * Maintains a list of reserved symbols at the assertion level that might
-  * not occur in our symbol table.  This is necessary to e.g. support the
-  * proper behavior of the :named annotation in SMT-LIBv2 when used under
-  * a let or a quantifier, since inside a let/quant body the declaration
-  * scope is that of the let/quant body, but the defined name should be
-  * reserved at the assertion level.
-  */
- std::set<std::string> d_reservedSymbols;
-
  /** How many anonymous functions we've created. */
  size_t d_anonymousFunctionCount;
 
@@ -401,11 +385,6 @@ public:
                         std::string notes = "");
 
   /**
-   * Reserve a symbol at the assertion level.
-   */
-  void reserveSymbolAtAssertionLevel(const std::string& name);
-
-  /**
    * Checks whether the given expression is function-like, i.e.
    * it expects arguments. This is checked by looking at the type 
    * of fun. Examples of function types are function, constructor,
@@ -416,33 +395,35 @@ public:
    */
   void checkFunctionLike(api::Term fun);
 
-  /** Create a new CVC4 variable expression of the given type. 
+  /** Create a new CVC4 variable expression of the given type.
    *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
    *
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   api::Term bindVar(const std::string& name,
                     const api::Sort& type,
-                    uint32_t flags = ExprManager::VAR_FLAG_NONE,
+                    bool levelZero = false,
                     bool doOverload = false);
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
    *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
    *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   std::vector<api::Term> bindVars(const std::vector<std::string> names,
                                   const api::Sort& type,
-                                  uint32_t flags = ExprManager::VAR_FLAG_NONE,
+                                  bool levelZero = false,
                                   bool doOverload = false);
 
   /**
@@ -461,27 +442,12 @@ public:
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
    *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
-   *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
                                        const api::Sort& type);
-
-  /**
-   * Create a new CVC4 function expression of the given type,
-   * appending a unique index to its name.  (That's the ONLY
-   * difference between mkAnonymousFunction() and mkVar()).
-   *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
-   */
-  api::Term mkAnonymousFunction(const std::string& prefix,
-                                const api::Sort& type,
-                                uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a new variable definition (e.g., from a let binding). 
    * levelZero is set if the binding must be done at level 0.
@@ -532,15 +498,12 @@ public:
   /**
    * Creates a new sort with the given name.
    */
-  api::Sort mkSort(const std::string& name,
-                   uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  api::Sort mkSort(const std::string& name);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  api::Sort mkSortConstructor(const std::string& name,
-                              size_t arity,
-                              uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  api::Sort mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
@@ -673,15 +636,6 @@ public:
    */
   api::Term applyTypeAscription(api::Term t, api::Sort s);
 
-  //!!!!!!!!!!! temporary
-  /**
-   * Make var, with flags required by the ExprManager, see ExprManager::mkVar.
-   */
-  api::Term mkVar(const std::string& name,
-                  const api::Sort& type,
-                  uint32_t flags);
-  //!!!!!!!!!!! temporary
-
   /**
    * Add an operator to the current legal set.
    *
@@ -751,44 +705,26 @@ public:
   /**
    * Gets the current declaration level.
    */
-  inline size_t scopeLevel() const { return d_symtab->getLevel(); }
+  size_t scopeLevel() const;
 
   /**
    * Pushes a scope. All subsequent symbol declarations made are only valid in
    * this scope, i.e. they are deleted on the next call to popScope.
    *
-   * The argument bindingLevel is true, the assertion level is set to the
-   * current scope level. This determines which scope assertions are declared
-   * at.
+   * The argument isUserContext is true, when we are pushing a user context
+   * e.g. via the smt2 command (push n). This may also include one initial
+   * pushScope when the parser is initialized. User-context pushes and pops
+   * have an impact on both expression names and the symbol table, whereas
+   * other pushes and pops only have an impact on the symbol table.
    */
-  inline void pushScope(bool bindingLevel = false) {
-    d_symtab->pushScope();
-    if(!bindingLevel) {
-      d_assertionLevel = scopeLevel();
-    }
-  }
+  void pushScope(bool isUserContext = false);
 
-  inline void popScope() {
-    d_symtab->popScope();
-    if(scopeLevel() < d_assertionLevel) {
-      d_assertionLevel = scopeLevel();
-      d_reservedSymbols.clear();
-    }
-  }
+  void popScope();
 
-  virtual void reset() {
-    d_symtab->reset();
-  }
+  virtual void reset();
 
-  void setGlobalDeclarations(bool flag) {
-    d_globalDeclarations = flag;
-  }
-
-  bool getGlobalDeclarations() { return d_globalDeclarations; }
-
-  inline SymbolTable* getSymbolTable() const {
-    return d_symtab;
-  }
+  /** Return the symbol manager used by this parser. */
+  SymbolManager* getSymbolManager();
 
   //------------------------ operator overloading
   /** is this function overloaded? */
@@ -827,7 +763,6 @@ public:
    */
   api::Term mkStringConstant(const std::string& s);
 
- private:
   /** ad-hoc string escaping
    *
    * Returns the (internal) vector of code points corresponding to processing

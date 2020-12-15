@@ -16,8 +16,6 @@
 
 #include "theory/strings/theory_strings_preprocess.h"
 
-#include <stdint.h>
-
 #include "expr/kind.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -446,13 +444,7 @@ Node StringsPreprocess::reduce(Node t,
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
     // nodes for the case where `seq.nth` is undefined.
-    std::vector<TypeNode> argTypes;
-    argTypes.push_back(s.getType());
-    argTypes.push_back(nm->integerType());
-    TypeNode elemType = s.getType().getSequenceElementType();
-    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-    Node uf = sc->mkTypedSkolemCached(
-        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
     Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
 
     // the full ite, split on definedness of `seq.nth`
@@ -967,7 +959,9 @@ Node StringsPreprocess::simplifyRec(Node t,
     Node retNode = t;
     if( t.getNumChildren()==0 ){
       retNode = simplify(t, asserts);
-    }else if( t.getKind()!=kind::FORALL ){
+    }
+    else if (!t.isClosure())
+    {
       bool changed = false;
       std::vector< Node > cc;
       if( t.getMetaKind() == kind::metakind::PARAMETERIZED ){

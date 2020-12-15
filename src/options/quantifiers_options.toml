@@ -178,14 +178,6 @@ header = "options/quantifiers_options.h"
   help       = "eliminate tautological disjuncts of quantified formulas"
 
 [[option]]
-  name       = "elimExtArithQuant"
-  category   = "regular"
-  long       = "elim-ext-arith-quant"
-  type       = "bool"
-  default    = "true"
-  help       = "eliminate extended arithmetic symbols in quantified formulas"
-
-[[option]]
   name       = "extRewriteQuant"
   category   = "regular"
   long       = "ext-rewrite-quant"
@@ -270,14 +262,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1"
-
-[[option]]
-  name       = "purifyDtTriggers"
-  category   = "regular"
-  long       = "purify-dt-triggers"
-  type       = "bool"
-  default    = "false"
-  help       = "purify dt triggers, match all constructors of correct form instead of selectors"
 
 [[option]]
   name       = "pureThTriggers"

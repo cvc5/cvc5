@@ -156,7 +156,8 @@ class TypeEnumerator {
 #if defined(CVC4_ASSERTIONS) && !(defined(__APPLE__) && defined(__clang__))
     try {
       Node n = **d_te;
-      Assert(n.isConst());
+      Assert(n.isConst()) << "Term " << n
+                          << " from type enumerator is not constant";
       Assert(!isFinished());
       return n;
     } catch(NoMoreValuesException&) {

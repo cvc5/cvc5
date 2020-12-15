@@ -2,7 +2,7 @@
 /*! \file synth_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -37,7 +37,7 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
       d_sqp(qe)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, this, d_statistics)));
+      new SynthConjecture(d_quantEngine, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -159,7 +159,7 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, this, d_statistics)));
+        new SynthConjecture(d_quantEngine, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }

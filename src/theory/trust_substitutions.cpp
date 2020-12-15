@@ -2,7 +2,7 @@
 /*! \file trust_substitutions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -24,7 +24,8 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            std::string name,
                                            PfRule trustId,
                                            MethodId ids)
-    : d_subs(c),
+    : d_ctx(c),
+      d_subs(c),
       d_pnm(pnm),
       d_tsubs(c),
       d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
@@ -68,7 +69,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
     addSubstitution(x, t, nullptr);
     return;
   }
-  LazyCDProof* stepPg = d_helperPf.allocateProof();
+  LazyCDProof* stepPg = d_helperPf.allocateProof(nullptr, d_ctx);
   Node eq = x.eqNode(t);
   stepPg->addStep(eq, id, {}, args);
   addSubstitution(x, t, stepPg);
@@ -99,7 +100,7 @@ ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
     Trace("trust-subs") << "...use generator directly" << std::endl;
     return tn.getGenerator();
   }
-  LazyCDProof* solvePg = d_helperPf.allocateProof();
+  LazyCDProof* solvePg = d_helperPf.allocateProof(nullptr, d_ctx);
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {

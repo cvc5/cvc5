@@ -2,7 +2,7 @@
 #####################
 ## combination.py
 ## Top contributors (to current version):
-##   Makai Mann, Aina Niemetz, Andrew Reynolds
+##   Makai Mann, Mudathir Mohamed, Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
@@ -85,9 +85,6 @@ if __name__ == "__main__":
     print("Alternatively, iterate over assertions and call"
           " slv.getValue(...) on all terms")
     prefixPrintGetValue(slv, assertions)
-
-    print("Alternatively, print the model", "\n")
-    slv.printModel()
 
     print()
     print("You can also use nested loops to iterate over terms")

@@ -2,7 +2,7 @@
 /*! \file interactive_shell_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Aina Niemetz, Andres Noetzli
+ **   Christopher L. Conway, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -52,6 +52,9 @@ class InteractiveShellBlack : public CxxTest::TestSuite
   {
     delete d_sin;
     delete d_sout;
+    // ensure that symbol manager is destroyed before solver
+    d_symman.reset(nullptr);
+    d_solver.reset(nullptr);
   }
 
   void testAssertTrue() {

@@ -2,7 +2,7 @@
 /*! \file type_node_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli
+ **   Morgan Deters, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -42,7 +42,7 @@ class TypeNodeWhite : public CxxTest::TestSuite {
   {
     d_em = new ExprManager();
     d_nm = d_em->getNodeManager();
-    d_smt = new SmtEngine(d_em);
+    d_smt = new SmtEngine(d_nm);
     d_scope = new NodeManagerScope(d_nm);
   }
 

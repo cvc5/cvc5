@@ -2,7 +2,7 @@
 /*! \file theory_uf.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -142,7 +142,7 @@ private:
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  TrustNode expandDefinition(Node node) override;
+  TrustNode ppRewrite(TNode node) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 

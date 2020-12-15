@@ -23,7 +23,6 @@
 #ifndef CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 #define CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 
-#include <cstdint>
 #include <unordered_map>
 
 namespace CVC4 {

@@ -404,11 +404,15 @@ bool Trigger::isAtomicTrigger( Node n ){
 }
 
 bool Trigger::isAtomicTriggerKind( Kind k ) {
+  // we use both APPLY_SELECTOR and APPLY_SELECTOR_TOTAL since this
+  // method is used both for trigger selection and for ground term registration,
+  // where these two things require those kinds respectively.
   return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
-         || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER || k == UNION
-         || k == INTERSECTION || k == SUBSET || k == SETMINUS || k == MEMBER
-         || k == SINGLETON || k == SEP_PTO || k == BITVECTOR_TO_NAT
-         || k == INT_TO_BITVECTOR || k == HO_APPLY || k == SEQ_NTH;
+         || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL
+         || k == APPLY_TESTER || k == UNION || k == INTERSECTION || k == SUBSET
+         || k == SETMINUS || k == MEMBER || k == SINGLETON || k == SEP_PTO
+         || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR || k == HO_APPLY
+         || k == SEQ_NTH;
 }
 
 bool Trigger::isRelationalTrigger( Node n ) {
@@ -432,17 +436,13 @@ bool Trigger::isSimpleTrigger( Node n ){
         return false;
       }
     }
-    if( options::purifyDtTriggers() && t.getKind()==APPLY_SELECTOR_TOTAL ){
-      return false;
-    }
     if (t.getKind() == HO_APPLY && t[0].getKind() == INST_CONSTANT)
     {
       return false;
     }
     return true;
-  }else{
-    return false;
   }
+  return false;
 }
 
 //store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula

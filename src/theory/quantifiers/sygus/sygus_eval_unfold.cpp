@@ -314,8 +314,11 @@ Node SygusEvalUnfold::unfold(Node en,
   Node ret = d_tds->mkGeneric(dt, i, pre);
   // apply the appropriate substitution to ret
   ret = datatypes::utils::applySygusArgs(dt, sop, ret, args);
+  Trace("sygus-eval-unfold-debug")
+      << "Applied sygus args : " << ret << std::endl;
   // rewrite
   ret = Rewriter::rewrite(ret);
+  Trace("sygus-eval-unfold-debug") << "Rewritten : " << ret << std::endl;
   return ret;
 }
 

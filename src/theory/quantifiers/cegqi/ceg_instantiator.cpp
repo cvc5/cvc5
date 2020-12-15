@@ -250,9 +250,10 @@ bool CegInstantiator::isEligible( Node n ) {
 CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
-      || k == EQUAL
-      || k == MULT
-      || k == NONLINEAR_MULT)
+      || k == EQUAL || k == MULT || k == NONLINEAR_MULT || k == DIVISION
+      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == TO_INTEGER
+      || k == IS_INTEGER)
   {
     return CEG_HANDLED;
   }
@@ -343,12 +344,24 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     const DType& dt = tn.getDType();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      // get the constructor type
+      TypeNode consType;
+      if (dt.isParametric())
       {
-        TypeNode crange = dt[i].getArgType(j);
+        // if parametric, must instantiate the argument types
+        consType = dt[i].getSpecializedConstructorType(tn);
+      }
+      else
+      {
+        consType = dt[i].getConstructor().getType();
+      }
+      for (const TypeNode& crange : consType)
+      {
         CegHandledStatus cret = isCbqiSort(crange, visited, qe);
         if (cret == CEG_UNHANDLED)
         {
+          Trace("cegqi-debug2")
+              << "Non-cbqi sort : " << tn << " due to " << crange << std::endl;
           visited[tn] = CEG_UNHANDLED;
           return CEG_UNHANDLED;
         }
@@ -630,20 +643,6 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
         && (vinst->useModelValue(this, sf, pv, d_effort) || is_sv)
         && vinst->allowModelValue(this, sf, pv, d_effort))
     {
-#ifdef CVC4_ASSERTIONS
-      // the instantiation strategy for quantified linear integer/real
-      // arithmetic with arbitrary quantifier nesting is "monotonic" as a
-      // consequence of Lemmas 5, 9 and Theorem 4 of Reynolds et al, "Solving
-      // Quantified Linear Arithmetic by Counterexample Guided Instantiation",
-      // FMSD 2017. We throw an assertion failure if we detect a case where the
-      // strategy was not monotonic.
-      if (options::cegqiNestedQE() && d_qe->getLogicInfo().isPure(THEORY_ARITH)
-          && d_qe->getLogicInfo().isLinear())
-      {
-        Trace("cegqi-warn") << "Had to resort to model value." << std::endl;
-        Assert(false);
-      }
-#endif
       Node mv = getModelValue( pv );
       TermProperties pv_prop_m;
       Trace("cegqi-inst-debug") << "[4] " << i << "...try model value " << mv << std::endl;
@@ -1626,7 +1625,10 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
       // already processed variable
       continue;
     }
-    if (ces.getType().isBoolean())
+    // must avoid selector symbols, and function skolems introduced by
+    // theory preprocessing
+    TypeNode ct = ces.getType();
+    if (ct.isBoolean() || ct.isFunctionLike())
     {
       // Boolean variables, including the counterexample literal, don't matter
       // since they are always assigned a model value.

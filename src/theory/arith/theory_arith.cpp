@@ -2,7 +2,7 @@
 /*! \file theory_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -99,8 +99,8 @@ void TheoryArith::preRegisterTerm(TNode n)
 
 TrustNode TheoryArith::expandDefinition(Node node)
 {
-  // call eliminate operators
-  return d_arithPreproc.eliminate(node);
+  // call eliminate operators, to eliminate partial operators only
+  return d_arithPreproc.eliminate(node, true);
 }
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
@@ -146,8 +146,9 @@ TrustNode TheoryArith::ppRewriteTerms(TNode n)
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
-  // call eliminate operators
-  return d_arithPreproc.eliminate(n);
+  // call eliminate operators. In contrast to expandDefinitions, we eliminate
+  // *all* extended arithmetic operators here, including total ones.
+  return d_arithPreproc.eliminate(n, false);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(
@@ -160,10 +161,15 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
   d_internal->ppStaticLearn(n, learned);
 }
 
-bool TheoryArith::preCheck(Effort level) { return d_internal->preCheck(level); }
+bool TheoryArith::preCheck(Effort level)
+{
+  Trace("arith-check") << "TheoryArith::preCheck " << level << std::endl;
+  return d_internal->preCheck(level);
+}
 
 void TheoryArith::postCheck(Effort level)
 {
+  Trace("arith-check") << "TheoryArith::postCheck " << level << std::endl;
   // check with the non-linear solver at last call
   if (level == Theory::EFFORT_LAST_CALL)
   {
@@ -197,6 +203,9 @@ void TheoryArith::postCheck(Effort level)
 bool TheoryArith::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
+  Trace("arith-check") << "TheoryArith::preNotifyFact: " << fact
+                       << ", isPrereg=" << isPrereg
+                       << ", isInternal=" << isInternal << std::endl;
   d_internal->preNotifyFact(atom, pol, fact);
   // We do not assert to the equality engine of arithmetic in the standard way,
   // hence we return "true" to indicate we are finished with this fact.

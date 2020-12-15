@@ -2,7 +2,7 @@
 /*! \file trust_substitutions.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -20,8 +20,8 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/lazy_proof.h"
-#include "expr/lazy_proof_set.h"
 #include "expr/proof_node_manager.h"
+#include "expr/proof_set.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/substitutions.h"
@@ -94,6 +94,8 @@ class TrustSubstitutionMap
    * Moreover, it ensures that d_subsPg has a proof of the returned value.
    */
   Node getCurrentSubstitution();
+  /** The context used here */
+  context::Context* d_ctx;
   /** The substitution map */
   SubstitutionMap d_subs;
   /** The proof node manager */
@@ -109,7 +111,7 @@ class TrustSubstitutionMap
   /**
    * A context-dependent list of LazyCDProof, allocated for internal steps.
    */
-  LazyCDProofSet d_helperPf;
+  CDProofSet<LazyCDProof> d_helperPf;
   /**
    * The formula corresponding to the current substitution. This is of the form
    *   (and (= x1 t1) ... (= xn tn))

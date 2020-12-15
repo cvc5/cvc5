@@ -2,7 +2,7 @@
 /*! \file cnf_stream.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Morgan Deters
+ **   Dejan Jovanovic, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -201,12 +201,6 @@ class CnfStream {
    * dumps the Nodes corresponding to decision literals.
    */
   const bool d_fullLitToNodeMap;
-
-  /**
-   * Counter for resource limiting that is used to spend a resource
-   * every ResourceManager::resourceCounter calls to convertAndAssert.
-   */
-  unsigned long d_convertAndAssertCounter;
 
   /** The "registrar" for pre-registration of terms */
   Registrar* d_registrar;
