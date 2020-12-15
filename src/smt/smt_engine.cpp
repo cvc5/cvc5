@@ -1152,15 +1152,14 @@ Node SmtEngine::simplify(const Node& ex)
   return d_pp->simplify(ex);
 }
 
-Node SmtEngine::expandDefinitions(const Node& ex)
+Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  // set expandOnly flag to true
-  return d_pp->expandDefinitions(ex, true);
+  return d_pp->expandDefinitions(ex, expandOnly);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.

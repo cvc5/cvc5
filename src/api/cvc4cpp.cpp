@@ -2073,6 +2073,106 @@ CVC4::Expr Term::getExpr(void) const
 // to the new API. !!!
 const CVC4::Node& Term::getNode(void) const { return *d_node; }
 
+namespace detail {
+const Rational& getRational(const CVC4::Node& node)
+{
+  return node.getConst<Rational>();
+}
+Integer getInteger(const CVC4::Node& node)
+{
+  return node.getConst<Rational>().getNumerator();
+}
+template <typename T>
+bool checkIntegerBounds(const Integer& i)
+{
+  return i >= std::numeric_limits<T>::min()
+         && i <= std::numeric_limits<T>::max();
+}
+bool checkReal32Bounds(const Rational& r)
+{
+  return checkIntegerBounds<std::int32_t>(r.getNumerator())
+         && checkIntegerBounds<std::uint32_t>(r.getDenominator());
+}
+bool checkReal64Bounds(const Rational& r)
+{
+  return checkIntegerBounds<std::int64_t>(r.getNumerator())
+         && checkIntegerBounds<std::uint64_t>(r.getDenominator());
+}
+
+bool isInteger(const Node& node)
+{
+  return node.getKind() == CVC4::Kind::CONST_RATIONAL
+         && node.getConst<Rational>().isIntegral();
+}
+bool isInt32(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::int32_t>(getInteger(node));
+}
+bool isUInt32(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::uint32_t>(getInteger(node));
+}
+bool isInt64(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::int64_t>(getInteger(node));
+}
+bool isUInt64(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::uint64_t>(getInteger(node));
+}
+}  // namespace detail
+
+bool Term::isInt32() const { return detail::isInt32(*d_node); }
+std::int32_t Term::getInt32() const
+{
+  CVC4_API_CHECK(detail::isInt32(*d_node))
+      << "Term should be a Int32 when calling getInt32()";
+  return detail::getInteger(*d_node).getSignedInt();
+}
+bool Term::isUInt32() const { return detail::isUInt32(*d_node); }
+std::uint32_t Term::getUInt32() const
+{
+  CVC4_API_CHECK(detail::isUInt32(*d_node))
+      << "Term should be a UInt32 when calling getUInt32()";
+  return detail::getInteger(*d_node).getUnsignedInt();
+}
+bool Term::isInt64() const { return detail::isInt64(*d_node); }
+std::int64_t Term::getInt64() const
+{
+  CVC4_API_CHECK(detail::isInt64(*d_node))
+      << "Term should be a Int64 when calling getInt64()";
+  return detail::getInteger(*d_node).getLong();
+}
+bool Term::isUInt64() const { return detail::isUInt64(*d_node); }
+std::uint64_t Term::getUInt64() const
+{
+  CVC4_API_CHECK(detail::isUInt64(*d_node))
+      << "Term should be a UInt64 when calling getUInt64()";
+  return detail::getInteger(*d_node).getUnsignedLong();
+}
+bool Term::isInteger() const { return detail::isInteger(*d_node); }
+std::string Term::getInteger() const
+{
+  CVC4_API_CHECK(detail::isInteger(*d_node))
+      << "Term should be an Int when calling getIntString()";
+  return detail::getInteger(*d_node).toString();
+}
+
+bool Term::isString() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_STRING;
+}
+std::wstring Term::getString() const
+{
+  CVC4_API_CHECK(d_node->getKind() == CVC4::Kind::CONST_STRING)
+      << "Term should be a String when calling getString()";
+  return d_node->getConst<CVC4::String>().toWString();
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   out << t.toString();
