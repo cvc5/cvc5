@@ -5740,7 +5740,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   std::vector<Node> bvns = termVectorToNodes(boundVars);
 
   d_smtEngine->declareSynthFun(
-      fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
+      symbol, fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
 
   return Term(this, fun);
 
