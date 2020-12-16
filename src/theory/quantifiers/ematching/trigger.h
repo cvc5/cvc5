@@ -447,35 +447,6 @@ class Trigger {
   IMGenerator* d_mg;
 }; /* class Trigger */
 
-/** A trie of triggers.
-*
-* This class is used to cache all Trigger objects that are generated in the
-* current context. We index Triggers in this data structure based on the
-* value of Trigger::d_nodes. When a Trigger is added to this data structure,
-* this Trie assumes responsibility for deleting it.
-*/
-class TriggerTrie {
-public:
-  TriggerTrie();
-  ~TriggerTrie();
-  /** get trigger
-  * This returns a Trigger t that is indexed by nodes,
-  * or NULL otherwise.
-  */
-  Trigger* getTrigger(std::vector<Node>& nodes);
-  /** add trigger
-  * This adds t to the trie, indexed by nodes.
-  * In typical use cases, nodes is t->d_nodes.
-  */
-  void addTrigger(std::vector<Node>& nodes, Trigger* t);
-
- private:
-  /** The trigger at this node in the trie. */
-  std::vector<Trigger*> d_tr;
-  /** The children of this node in the trie. */
-  std::map< TNode, TriggerTrie* > d_children;
-};/* class inst::Trigger::TriggerTrie */
-
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

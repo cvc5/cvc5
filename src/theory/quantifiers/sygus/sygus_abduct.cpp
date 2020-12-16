@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
@@ -155,12 +156,6 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
     res = nm->mkNode(EXISTS, bvl, res);
   }
   // sygus attribute
-  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  theory::SygusAttribute ca;
-  sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
-  std::vector<Node> iplc;
-  iplc.push_back(instAttr);
   Node aconj = axioms.size() == 0
                    ? nm->mkConst(true)
                    : (axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms));
@@ -171,18 +166,14 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   sc = nm->mkNode(EXISTS, vbvl, sc);
   Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
   sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
-  instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
+  Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
   // build in the side condition
   //   exists x. A( x ) ^ input_axioms( x )
   // as an additional annotation on the sygus conjecture. In other words,
   // the abducts A we procedure must be consistent with our axioms.
-  iplc.push_back(instAttr);
-  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
-
-  Node fbvl = nm->mkNode(BOUND_VAR_LIST, abd);
 
   // forall A. exists x. ~( A( x ) => ~input( x ) )
-  res = nm->mkNode(FORALL, fbvl, res, instAttrList);
+  res = SygusUtils::mkSygusConjecture({abd}, res, {instAttr});
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   res = theory::Rewriter::rewrite(res);

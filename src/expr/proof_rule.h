@@ -1182,6 +1182,17 @@ enum class PfRule : uint32_t
   // The lemma states that if t is between l and u, then (exp t) is below the
   // secant of p from l to u.
   ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+  //======== Exp is approximated from below
+  // Children: none
+  // Arguments: (d, t)
+  // ---------------------
+  // Conclusion: (>= (exp t) (maclaurin exp d t))
+  // Where d is an odd positive number and (maclaurin exp d t) is the d'th
+  // taylor polynomial at zero (also called the Maclaurin series) of the
+  // exponential function evaluated at t. The Maclaurin series for the
+  // exponential function is the following:
+  //   e^x = \sum_{n=0}^{\infty} x^n / n!
+  ARITH_TRANS_EXP_APPROX_BELOW,
 
   //======== Sine is always between -1 and 1
   // Children: none
@@ -1226,6 +1237,60 @@ enum class PfRule : uint32_t
   //   (=> (< t pi) (< (sin t) (- pi t)))
   // )
   ARITH_TRANS_SINE_TANGENT_PI,
+  //======== Sine is approximated from above for negative values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+  //======== Sine is approximated from above for positive values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (upper sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (upper sin c) denotes the upper
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the maximum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_ABOVE_POS,
+  //======== Sine is approximated from below for negative values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (lower sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (lower sin c) denotes the lower
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the minimum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_BELOW_NEG,
+  //======== Sine is approximated from below for positive values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is above the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.

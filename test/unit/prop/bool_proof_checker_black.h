@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_black.h
+/*! \file bool_proof_checker_black.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Haniel Barbosa
@@ -84,6 +84,12 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
 
     std::vector<Node> children{c1, c2, c3};
     std::vector<Node> args{d_nm->mkConst(true), l0, d_nm->mkConst(true), l1};
+    // l0 v l0 v l0 v l1 v l2    ~l0    ~l1
+    // ------------------------------------- CHAIN_RES_{T, l0, T, l1}
+    //            l0 v l0 v l2
+    //
+    // where we want to test that the chain resolution checker is not
+    // inadvertently removing more than one occurrence of the pivot.
     Node resChecker = d_checker->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "");
     TS_ASSERT(res == resChecker);
@@ -105,6 +111,11 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
     args.push_back(l0);
     args.push_back(d_nm->mkConst(false));
     args.push_back(l1);
+    // l0 v l0 v l0 v ~l1 v l2    ~l0    l1
+    // ------------------------------------ CHAIN_RES_{T, l0, F, l1}
+    //            l0 v l0 v l2
+    //
+    // where we test as above but with different polarites for the pivot.
     resChecker = d_checker->checkDebug(
         PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "");
     TS_ASSERT(res == resChecker);

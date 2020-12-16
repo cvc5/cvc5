@@ -148,16 +148,14 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
           break;
         }
       }
-    }else if( d_match_pattern.getKind()==APPLY_SELECTOR_TOTAL && d_match_pattern[0].getKind()==INST_CONSTANT && 
-              options::purifyDtTriggers() && !options::dtSharedSelectors() ){
-      d_match_pattern = d_match_pattern[0];
     }
     d_match_pattern_type = d_match_pattern.getType();
     Trace("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is " << d_match_pattern << std::endl;
     d_match_pattern_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
 
     //now, collect children of d_match_pattern
-    if (d_match_pattern.getKind() == INST_CONSTANT)
+    Kind mpk = d_match_pattern.getKind();
+    if (mpk == INST_CONSTANT)
     {
       d_children_types.push_back(
           d_match_pattern.getAttribute(InstVarNumAttribute()));
@@ -198,8 +196,15 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }
 
     //create candidate generator
-    if( Trigger::isAtomicTrigger( d_match_pattern ) ){
-      if (d_match_pattern.getKind() == APPLY_CONSTRUCTOR)
+    if (mpk == APPLY_SELECTOR)
+    {
+      // candidates for apply selector are a union of correctly and incorrectly
+      // applied selectors
+      d_cg = new inst::CandidateGeneratorSelector(qe, d_match_pattern);
+    }
+    else if (Trigger::isAtomicTriggerKind(mpk))
+    {
+      if (mpk == APPLY_CONSTRUCTOR)
       {
         // 1-constructors have a trivial way of generating candidates in a
         // given equivalence class
@@ -224,7 +229,9 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
           d_eq_class_rel = Node::null();
         }
       }
-    }else if( d_match_pattern.getKind()==INST_CONSTANT ){
+    }
+    else if (mpk == INST_CONSTANT)
+    {
       if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
         Node selectorExpr = qe->getTermDatabase()->getMatchOperator(d_pattern);
         size_t selectorIndex = datatypes::utils::cindexOf(selectorExpr);
@@ -237,7 +244,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
         d_cg = new CandidateGeneratorQEAll( qe, d_match_pattern );
       }
     }
-    else if (d_match_pattern.getKind() == EQUAL)
+    else if (mpk == EQUAL)
     {
       //we will be producing candidates via literal matching heuristics
       if (d_pattern.getKind() == NOT)
@@ -272,10 +279,8 @@ int InstMatchGenerator::getMatch(
     //if t is null
     Assert(!t.isNull());
     Assert(!quantifiers::TermUtil::hasInstConstAttr(t));
-    Assert(d_match_pattern.getKind() == INST_CONSTANT
-           || t.getKind() == d_match_pattern.getKind());
-    Assert(!Trigger::isAtomicTrigger(d_match_pattern)
-           || t.getOperator() == d_match_pattern.getOperator());
+    // notice that t may have a different kind or operator from our match
+    // pattern, e.g. for APPLY_SELECTOR triggers.
     //first, check if ground arguments are not equal, or a match is in conflict
     Trace("matching-debug2") << "Setting immediate matches..." << std::endl;
     for (unsigned i = 0, size = d_match_pattern.getNumChildren(); i < size; i++)
