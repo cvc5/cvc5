@@ -139,7 +139,7 @@ void CheckModels::checkModel(Model* m,
              << std::endl;
     return;
   }
-  // if the noCheckList is non-empty, we expand definitions on this list
+  // if the noCheckList is non-empty, we could expand definitions on this list
   // and check satisfiability
 
   Trace("check-model") << "checkModel: Finish" << std::endl;
