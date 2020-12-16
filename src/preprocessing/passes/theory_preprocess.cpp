@@ -66,10 +66,6 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
       }
     }
   }
-  for (unsigned i = 0, size = assertions->size(); i < size; ++i)
-  {
-    assertions->replace(i, Rewriter::rewrite((*assertions)[i]));
-  }
 
   return PreprocessingPassResult::NO_CONFLICT;
 }

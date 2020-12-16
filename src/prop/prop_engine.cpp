@@ -245,7 +245,7 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
   {
     // also add to the decision engine, where notice we don't need proofs
     std::vector<Node> assertions;
-    assertions.push_back(lem.getProven());
+    assertions.push_back(tplemma.getProven());
     std::vector<Node> ppLemmasF;
     for (const theory::TrustNode& tnl : ppLemmas)
     {
@@ -255,7 +255,7 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // make the return lemma, which the theory engine will use
-  Node retLemma = tplemma.getNode();
+  Node retLemma = tplemma.getProven();
   if (!ppLemmas.empty())
   {
     std::vector<Node> lemmas{retLemma};

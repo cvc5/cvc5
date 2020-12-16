@@ -45,15 +45,12 @@ namespace prop {
 
 class PropEngine;
 class CnfStream;
-class SatRelevancy;
 
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
 class TheoryProxy
 {
-  using NodeNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
-
  public:
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,

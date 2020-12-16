@@ -96,10 +96,15 @@ class PropEngine
 
   /**
    * Preprocess the given node. Return the REWRITE trust node corresponding to
-   * rewriting node. New lemmas and skolems are added to newLemmas and
-   * newSkolems respectively.
+   * rewriting node. New lemmas and skolems are added to ppLemmas and
+   * ppSkolems respectively.
    *
-   *
+   * @param node The assertion to preprocess,
+   * @param ppLemmas The lemmas to add to the set of assertions,
+   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @param doTheoryPreprocess whether to run theory-specific preprocessing.
+   * @return The (REWRITE) trust node corresponding to rewritten node via
+   * preprocessing.
    */
   theory::TrustNode preprocess(TNode node,
                                std::vector<theory::TrustNode>& ppLemmas,
