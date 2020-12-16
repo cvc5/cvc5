@@ -22,7 +22,6 @@
 #include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "prop/sat_relevancy.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
@@ -116,12 +115,6 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 }
 
 void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
-  if (d_satRlv != nullptr)
-  {
-    // use the sat relevancy to enqueue literals that are relevant
-    d_satRlv->notifyAsserted(l, d_queue);
-    return;
-  }
   Node literalNode = d_cnfStream->getNode(l);
   Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
@@ -192,75 +185,7 @@ theory::TrustNode TheoryProxy::preprocess(
 {
   theory::TrustNode pnode =
       d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess);
-  // if we changed node by preprocessing
-  if (!pnode.isNull())
-  {
-    // map the preprocessed formula to the original
-    d_ppLitMap[pnode.getNode()] = node;
-  }
   return pnode;
-}
-
-theory::TrustNode TheoryProxy::convertLemmaToProp(theory::TrustNode lem)
-{
-  Node clem = convertLemmaToPropInternal(lem.getProven());
-  return theory::TrustNode::mkTrustLemma(clem);
-}
-
-Node TheoryProxy::convertLemmaToPropInternal(Node lem) const
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  NodeNodeMap::const_iterator itp;
-  TNode cur;
-  visit.push_back(lem);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      // if it was the result of preprocessing something else
-      itp = d_ppLitMap.find(cur);
-      if (itp != d_ppLitMap.end())
-      {
-        visited[cur] = itp->second;
-      }
-      else
-      {
-        visited[cur] = Node::null();
-        visit.push_back(cur);
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      // only Boolean connectives, should not be parameterized
-      Assert(cur.getMetaKind() != kind::metakind::PARAMETERIZED);
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(lem) != visited.end());
-  Assert(!visited.find(lem)->second.isNull());
-  return visited[lem];
 }
 
 }/* CVC4::prop namespace */

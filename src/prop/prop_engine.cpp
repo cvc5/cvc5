@@ -196,11 +196,6 @@ void PropEngine::assertFormula(TNode node) {
   {
     d_cnfStream->convertAndAssert(node, false, false, true);
   }
-  // notify the SAT relevancy if it exists
-  if (d_satRlv != nullptr)
-  {
-    d_satRlv->notifyPreprocessedAssertion(node);
-  }
 }
 
 Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
