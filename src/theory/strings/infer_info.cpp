@@ -131,7 +131,7 @@ bool InferInfo::isFact() const
   return !atom.isConst() && atom.getKind() != kind::OR && d_noExplain.empty();
 }
 
-Node InferInfo::getAntecedant() const
+Node InferInfo::getAntecedent() const
 {
   // d_noExplain is a subset of d_ant
   return utils::mkAnd(d_ant);
