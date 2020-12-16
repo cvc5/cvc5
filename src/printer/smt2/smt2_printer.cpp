@@ -902,15 +902,17 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::WITNESS:
   {
     out << smtKindString(k, d_variant) << " ";
+    toStream(out, n[0], toDepth, lbind);
+    out << " ";
     if (n.getNumChildren() == 3)
     {
       out << "(! ";
     }
-    out << n[0] << " ";
     toStreamWithLetify(out, n[1], toDepth - 1, lbind);
     if (n.getNumChildren() == 3)
     {
-      out << n[2];
+      out << " ";
+      toStream(out, n[2], toDepth, lbind);
       out << ")";
     }
     out << ")";

@@ -20,6 +20,7 @@
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -53,9 +54,15 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     : d_quantEngine(qe), d_quant(q)
 {
   d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
-  Trace("trigger") << "Trigger for " << q << ": " << std::endl;
-  for( unsigned i=0; i<d_nodes.size(); i++ ){
-    Trace("trigger") << "   " << d_nodes[i] << std::endl;
+  if (Trace.isOn("trigger"))
+  {
+    quantifiers::QuantAttributes* qa = d_quantEngine->getQuantAttributes();
+    Trace("trigger") << "Trigger for " << qa->quantToString(q) << ": "
+                     << std::endl;
+    for (const Node& n : d_nodes)
+    {
+      Trace("trigger") << "   " << n << std::endl;
+    }
   }
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
@@ -933,66 +940,6 @@ void Trigger::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
 
 int Trigger::getActiveScore() {
   return d_mg->getActiveScore( d_quantEngine );
-}
-
-TriggerTrie::TriggerTrie()
-{}
-
-TriggerTrie::~TriggerTrie() {
-  for(std::map< TNode, TriggerTrie* >::iterator i = d_children.begin(), iend = d_children.end();
-      i != iend; ++i) {
-    TriggerTrie* current = (*i).second;
-    delete current;
-  }
-  d_children.clear();
-
-  for( unsigned i=0; i<d_tr.size(); i++ ){
-    delete d_tr[i];
-  }
-}
-
-inst::Trigger* TriggerTrie::getTrigger(std::vector<Node>& nodes)
-{
-  std::vector<Node> temp;
-  temp.insert(temp.begin(), nodes.begin(), nodes.end());
-  std::sort(temp.begin(), temp.end());
-  TriggerTrie* tt = this;
-  for (const Node& n : temp)
-  {
-    std::map<TNode, TriggerTrie*>::iterator itt = tt->d_children.find(n);
-    if (itt == tt->d_children.end())
-    {
-      return NULL;
-    }
-    else
-    {
-      tt = itt->second;
-    }
-  }
-  return tt->d_tr.empty() ? NULL : tt->d_tr[0];
-}
-
-void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
-{
-  std::vector<Node> temp;
-  temp.insert(temp.begin(), nodes.begin(), nodes.end());
-  std::sort(temp.begin(), temp.end());
-  TriggerTrie* tt = this;
-  for (const Node& n : temp)
-  {
-    std::map<TNode, TriggerTrie*>::iterator itt = tt->d_children.find(n);
-    if (itt == tt->d_children.end())
-    {
-      TriggerTrie* ttn = new TriggerTrie;
-      tt->d_children[n] = ttn;
-      tt = ttn;
-    }
-    else
-    {
-      tt = itt->second;
-    }
-  }
-  tt->d_tr.push_back(t);
 }
 
 }/* CVC4::theory::inst namespace */
