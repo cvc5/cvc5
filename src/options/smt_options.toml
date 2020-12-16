@@ -362,6 +362,14 @@ header = "options/smt_options.h"
   help       = "enables compressing ites after ite simplification"
 
 [[option]]
+  name       = "earlyIteRemoval"
+  category   = "experimental"
+  long       = "early-ite-removal"
+  type       = "bool"
+  default    = "false"
+  help       = "remove ITEs early in preprocessing"
+
+[[option]]
   name       = "unconstrainedSimp"
   category   = "regular"
   long       = "unconstrained-simp"
