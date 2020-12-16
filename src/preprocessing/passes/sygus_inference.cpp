@@ -20,6 +20,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;
@@ -293,15 +294,8 @@ bool SygusInference::solveSygus(const std::vector<Node>& assertions,
 
   // sygus attribute to mark the conjecture as a sygus conjecture
   Trace("sygus-infer") << "Make outer sygus conjecture..." << std::endl;
-  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  theory::SygusAttribute ca;
-  sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
-  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
 
-  Node fbvl = nm->mkNode(BOUND_VAR_LIST, ff_vars);
-
-  body = nm->mkNode(FORALL, fbvl, body, instAttrList);
+  body = quantifiers::SygusUtils::mkSygusConjecture(ff_vars, body);
 
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
