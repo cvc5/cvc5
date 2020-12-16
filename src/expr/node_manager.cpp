@@ -24,6 +24,7 @@
 #include "base/check.h"
 #include "base/listener.h"
 #include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
@@ -94,6 +95,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAtt
 NodeManager::NodeManager(ExprManager* exprManager)
     : d_statisticsRegistry(new StatisticsRegistry()),
       d_skManager(new SkolemManager),
+      d_bvManager(new BoundVarManager),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_exprManager(exprManager),
@@ -192,8 +194,10 @@ NodeManager::~NodeManager() {
 
   NodeManagerScope nms(this);
 
-  // Destroy skolem manager before cleaning up attributes and zombies
+  // Destroy skolem and bound var manager before cleaning up attributes and
+  // zombies
   d_skManager = nullptr;
+  d_bvManager = nullptr;
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
