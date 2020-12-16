@@ -481,8 +481,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       }
       // If a literal is false at 0 level (both sat and user level) we also ignore it
       if (value(ps[i]) == l_False) {
-        if (!options::unsatCores() && !d_pfManager && level(var(ps[i])) == 0
-            && user_level(var(ps[i])) == 0)
+        if (!options::unsatCores() && !isProofEnabled()
+            && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0)
         {
           continue;
         }
@@ -524,7 +524,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if (options::unsatCores() || d_pfManager)
+        if (options::unsatCores() || isProofEnabled())
         {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
@@ -546,7 +546,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
               ProofManager::getSatProof()->finalizeProof(
                   CVC4::Minisat::CRef_Lazy);
             }
-            if (d_pfManager)
+            if (isProofEnabled())
             {
               d_pfManager->finalizeProof(ps[0], true);
             }
@@ -571,7 +571,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         clauses_persistent.push(cr);
         attachClause(cr);
 
-        if (options::unsatCores() || d_pfManager)
+        if (options::unsatCores() || isProofEnabled())
         {
           if (options::unsatCores())
           {
@@ -593,7 +593,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             {
               ProofManager::getSatProof()->finalizeProof(cr);
             }
-            if (d_pfManager)
+            if (isProofEnabled())
             {
               d_pfManager->finalizeProof(ca[cr], true);
             }
@@ -628,7 +628,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           // already been registered, as the ProofCnfStream will not register
           // them and as they are not the result of propagation will be left
           // hanging in assumptions accumulator
-          if (d_pfManager && ps.size() == 1)
+          if (isProofEnabled() && ps.size() == 1)
           {
             d_pfManager->registerSatLitAssumption(ps[0]);
           }
@@ -648,7 +648,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 ProofManager::getSatProof()->finalizeProof(confl);
               }
             }
-            if (d_pfManager)
+            if (isProofEnabled())
             {
               if (ca[confl].size() == 1)
               {
@@ -749,7 +749,7 @@ void Solver::removeClause(CRef cr) {
       // Solver::reason, if it appears in a resolution chain built lazily we
       // will be unable to do so after the step below. Thus we eagerly justify
       // this propagation here.
-      if (d_pfManager)
+      if (isProofEnabled())
       {
         Trace("pf::sat")
             << "Solver::removeClause: eagerly compute propagation of " << c[0]
@@ -992,7 +992,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     {
       ProofManager::getSatProof()->startResChain(confl);
     }
-    if (d_pfManager)
+    if (isProofEnabled())
     {
       d_pfManager->startResChain(ca[confl]);
     }
@@ -1036,19 +1036,14 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             }
 
             // FIXME: can we do it lazily if we actually need the proof?
-            if ((options::unsatCores() || d_pfManager) && level(var(q)) == 0)
+            if (level(var(q)) == 0)
             {
               if (options::unsatCores())
               {
                 ProofManager::getSatProof()->resolveOutUnit(q);
               }
-              if (d_pfManager)
+              if (isProofEnabled())
               {
-                // TODO HB the usage above in the old proof code indicates that
-                // this may be the only case in which it is necessary, as the
-                // resolution step is added, that this literal be *recursively*
-                // justified, i.e., reason is called for its negation and their
-                // dependencies.
                 d_pfManager->addResolutionStep(q);
               }
             }
@@ -1068,7 +1063,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           {
             ProofManager::getSatProof()->addResolutionStep(p, confl, sign(p));
           }
-          if (d_pfManager)
+          if (isProofEnabled())
           {
             d_pfManager->addResolutionStep(ca[confl], p);
           }
@@ -1076,7 +1071,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
     }while (pathC > 0);
     out_learnt[0] = ~p;
-    if (CVC4::options::proofNew())
+    if (Debug.isOn("newproof::sat"))
     {
       Debug("newproof::sat") << "finished with learnt clause ";
       for (unsigned i = 0, size = out_learnt.size(); i < size; ++i)
@@ -1108,7 +1103,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 {
                   ProofManager::getSatProof()->storeLitRedundant(out_learnt[i]);
                 }
-                if (d_pfManager)
+                if (isProofEnabled())
                 {
                   Debug("newproof::sat")
                       << "Solver::analyze: redundant lit "
@@ -1652,7 +1647,7 @@ lbool Solver::search(int nof_conflicts)
               {
                 ProofManager::getSatProof()->finalizeProof(confl);
               }
-              if (d_pfManager)
+              if (isProofEnabled())
               {
                 if (confl == CRef_Lazy)
                 {
@@ -1678,7 +1673,7 @@ lbool Solver::search(int nof_conflicts)
                 {
                   ProofManager::getSatProof()->endResChain(learnt_clause[0]);
                 }
-                if (d_pfManager)
+                if (isProofEnabled())
                 {
                   d_pfManager->endResChain(learnt_clause[0]);
                 }
@@ -1697,7 +1692,7 @@ lbool Solver::search(int nof_conflicts)
                     ProofManager::getSatProof()->registerClause(cr, LEARNT);
                 ProofManager::getSatProof()->endResChain(id);
               }
-              if (d_pfManager)
+              if (isProofEnabled())
               {
                 d_pfManager->endResChain(ca[cr]);
               }
@@ -1763,7 +1758,7 @@ lbool Solver::search(int nof_conflicts)
             // theory processing
             d_proxy->notifyRestart();
             return l_Undef;
-            }
+          }
 
             // Simplify the set of problem clauses:
             if (decisionLevel() == 0 && !simplify()) {
@@ -2156,7 +2151,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert(!options::unsatCores() && !d_pfManager);
+        Assert(!options::unsatCores() && !isProofEnabled());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -2259,7 +2254,7 @@ CRef Solver::updateLemmas() {
             {
               ProofManager::getSatProof()->storeUnitConflict(lemma[0], LEARNT);
             }
-            if (d_pfManager)
+            if (isProofEnabled())
             {
               d_pfManager->storeUnitConflict(lemma[0]);
             }
@@ -2330,13 +2325,15 @@ inline bool Solver::withinBudget(ResourceManager::Resource r) const
 
 SatProofManager* Solver::getProofManager()
 {
-  return d_pfManager ? d_pfManager.get() : nullptr;
+  return isProofEnabled() ? d_pfManager.get() : nullptr;
 }
 
 std::shared_ptr<ProofNode> Solver::getProof()
 {
-  return d_pfManager ? d_pfManager->getProof() : nullptr;
+  return isProofEnabled() ? d_pfManager->getProof() : nullptr;
 }
+
+bool Solver::isProofEnabled() const { return d_pfManager != nullptr; }
 
 } /* CVC4::Minisat namespace */
 } /* CVC4 namespace */

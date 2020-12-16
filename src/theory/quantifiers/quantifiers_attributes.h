@@ -225,6 +225,8 @@ public:
   bool isInternal(Node q) const;
   /** get quant name, which is used for :qid */
   Node getQuantName(Node q) const;
+  /** Print quantified formula q, possibly using its name, if it has one */
+  std::string quantToString(Node q) const;
   /** get (internal) quant id num */
   int getQuantIdNum( Node q );
   /** get (internal)quant id num */

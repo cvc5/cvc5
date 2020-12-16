@@ -158,6 +158,9 @@ public:
  /** Retrive the refutation proof */
  std::shared_ptr<ProofNode> getProof();
 
+ /** Is proof enabled? */
+ bool isProofEnabled() const;
+
  // Less than for literals in a lemma
  struct lemma_lt
  {
