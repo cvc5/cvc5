@@ -671,6 +671,80 @@ TEST_F(TestApiTermBlack, termChildren)
   ASSERT_THROW(tnull[0], CVC4ApiException);
 }
 
+TEST_F(TestApiTermBlack, getInteger)
+{
+  Term int1 = d_solver.mkInteger("-18446744073709551616");
+  Term int2 = d_solver.mkInteger("-18446744073709551615");
+  Term int3 = d_solver.mkInteger("-4294967296");
+  Term int4 = d_solver.mkInteger("-4294967295");
+  Term int5 = d_solver.mkInteger("-10");
+  Term int6 = d_solver.mkInteger("0");
+  Term int7 = d_solver.mkInteger("10");
+  Term int8 = d_solver.mkInteger("4294967295");
+  Term int9 = d_solver.mkInteger("4294967296");
+  Term int10 = d_solver.mkInteger("18446744073709551615");
+  Term int11 = d_solver.mkInteger("18446744073709551616");
+
+  EXPECT_TRUE(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64()
+              && !int1.isUInt64() && int1.isInteger());
+  EXPECT_EQ(int1.getInteger(), "-18446744073709551616");
+  EXPECT_TRUE(!int2.isInt32() && !int2.isUInt32() && !int2.isInt64()
+              && !int2.isUInt64() && int2.isInteger());
+  EXPECT_EQ(int2.getInteger(), "-18446744073709551615");
+  EXPECT_TRUE(!int3.isInt32() && !int3.isUInt32() && int3.isInt64()
+              && !int3.isUInt64() && int3.isInteger());
+  EXPECT_EQ(int3.getInt64(), -4294967296);
+  EXPECT_EQ(int3.getInteger(), "-4294967296");
+  EXPECT_TRUE(!int4.isInt32() && !int4.isUInt32() && int4.isInt64()
+              && !int4.isUInt64() && int4.isInteger());
+  EXPECT_EQ(int4.getInt64(), -4294967295);
+  EXPECT_EQ(int4.getInteger(), "-4294967295");
+  EXPECT_TRUE(int5.isInt32() && !int5.isUInt32() && int5.isInt64()
+              && !int5.isUInt64() && int5.isInteger());
+  EXPECT_EQ(int5.getInt32(), -10);
+  EXPECT_EQ(int5.getInt64(), -10);
+  EXPECT_EQ(int5.getInteger(), "-10");
+  EXPECT_TRUE(int6.isInt32() && int6.isUInt32() && int6.isInt64()
+              && int6.isUInt64() && int6.isInteger());
+  EXPECT_EQ(int6.getInt32(), 0);
+  EXPECT_EQ(int6.getUInt32(), 0);
+  EXPECT_EQ(int6.getInt64(), 0);
+  EXPECT_EQ(int6.getUInt64(), 0);
+  EXPECT_EQ(int6.getInteger(), "0");
+  EXPECT_TRUE(int7.isInt32() && int7.isUInt32() && int7.isInt64()
+              && int7.isUInt64() && int7.isInteger());
+  EXPECT_EQ(int7.getInt32(), 10);
+  EXPECT_EQ(int7.getUInt32(), 10);
+  EXPECT_EQ(int7.getInt64(), 10);
+  EXPECT_EQ(int7.getUInt64(), 10);
+  EXPECT_EQ(int7.getInteger(), "10");
+  EXPECT_TRUE(!int8.isInt32() && int8.isUInt32() && int8.isInt64()
+              && int8.isUInt64() && int8.isInteger());
+  EXPECT_EQ(int8.getUInt32(), 4294967295);
+  EXPECT_EQ(int8.getInt64(), 4294967295);
+  EXPECT_EQ(int8.getUInt64(), 4294967295);
+  EXPECT_EQ(int8.getInteger(), "4294967295");
+  EXPECT_TRUE(!int9.isInt32() && !int9.isUInt32() && int9.isInt64()
+              && int9.isUInt64() && int9.isInteger());
+  EXPECT_EQ(int9.getInt64(), 4294967296);
+  EXPECT_EQ(int9.getUInt64(), 4294967296);
+  EXPECT_EQ(int9.getInteger(), "4294967296");
+  EXPECT_TRUE(!int10.isInt32() && !int10.isUInt32() && !int10.isInt64()
+              && int10.isUInt64() && int10.isInteger());
+  EXPECT_EQ(int10.getUInt64(), 18446744073709551615ull);
+  EXPECT_EQ(int10.getInteger(), "18446744073709551615");
+  EXPECT_TRUE(!int11.isInt32() && !int11.isUInt32() && !int11.isInt64()
+              && !int11.isUInt64() && int11.isInteger());
+  EXPECT_EQ(int11.getInteger(), "18446744073709551616");
+}
+
+TEST_F(TestApiTermBlack, getString)
+{
+  Term s1 = d_solver.mkString("abcde");
+  EXPECT_TRUE(s1.isString());
+  EXPECT_EQ(s1.getString(), L"abcde");
+}
+
 TEST_F(TestApiTermBlack, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");

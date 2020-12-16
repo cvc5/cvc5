@@ -26,13 +26,12 @@ namespace CVC4 {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
-                                       RemoveTermFormulas& tfr,
                                        context::UserContext* userContext,
                                        ProofNodeManager* pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
       d_ppCache(userContext),
-      d_tfr(tfr),
+      d_tfr(userContext, pnm),
       d_tpg(pnm ? new TConvProofGenerator(
                       pnm,
                       userContext,
@@ -102,7 +101,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   }
 
   // Remove the ITEs
-  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, false);
+  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems);
   Node rtfNode = ttfr.getNode();
 
   if (Debug.isOn("lemma-ites"))

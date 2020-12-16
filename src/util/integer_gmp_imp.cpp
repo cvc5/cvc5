@@ -403,7 +403,7 @@ unsigned int Integer::getUnsignedInt() const
                 this,
                 "Overflow detected in Integer::getUnsignedInt()");
   CheckArgument(
-      fitsSignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
+      fitsUnsignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
   return (unsigned int)d_value.get_ui();
 }
 
