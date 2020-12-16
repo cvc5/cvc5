@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/expr.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -1072,13 +1071,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    std::string indexString = p.d_expr.toString();
-    Integer x = p.d_expr.getExpr().getConst<Rational>().getNumerator();
-    if (!x.fitsUnsignedInt())
+    if (!p.d_expr.isUInt64())
     {
-      parseError("index of tupSel is larger than size of unsigned int");
+      parseError("index of tupSel is larger than size of uint64_t");
     }
-    unsigned int n = x.toUnsignedInt();
+    uint64_t n = p.d_expr.getUInt64();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");
