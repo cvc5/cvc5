@@ -1070,7 +1070,7 @@ void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdDeclareVar(
-        getOutputManager().getDumpOut(), var, type);
+        getOutputManager().getDumpOut(), var, var.getType());
   }
   // don't need to set that the conjecture is stale
 }
@@ -1092,13 +1092,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdSynthFun(
-        getOutputManager().getDumpOut(),
-        id,
-        vars,
-        func.getType().isFunction() ? func.getType().getRangeType()
-                                    : func.getType(),
-        isInv,
-        sygusType);
+        getOutputManager().getDumpOut(), func, vars, isInv, sygusType);
   }
 }
 
