@@ -61,7 +61,7 @@ class TheoryProxy
               context::Context* context,
               context::UserContext* userContext,
               CnfStream* cnfStream,
-             ProofNodeManager* pnm);
+              ProofNodeManager* pnm);
 
   ~TheoryProxy();
 

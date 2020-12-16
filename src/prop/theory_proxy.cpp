@@ -36,7 +36,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          context::Context* context,
                          context::UserContext* userContext,
                          CnfStream* cnfStream,
-             ProofNodeManager* pnm)
+                         ProofNodeManager* pnm)
     : d_propEngine(propEngine),
       d_cnfStream(cnfStream),
       d_decisionEngine(decisionEngine),

@@ -44,8 +44,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
     Node assertion = (*assertions)[i];
     std::vector<theory::TrustNode> newAsserts;
     std::vector<Node> newSkolems;
-    TrustNode trn = pe->preprocess(
-        assertion, newAsserts, newSkolems, false);
+    TrustNode trn = pe->preprocess(assertion, newAsserts, newSkolems, false);
     if (!trn.isNull())
     {
       // process
