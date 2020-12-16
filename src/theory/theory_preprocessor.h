@@ -72,7 +72,7 @@ class TheoryPreprocessor
                        bool doTheoryPreprocess);
   /**
    * Same as above, but transforms the proof of node into a proof of the
-   * preprocessed node.
+   * preprocessed node and returns the LEMMA trust node.
    *
    * @param node The assertion to preprocess,
    * @param newLemmas The lemmas to add to the set of assertions,

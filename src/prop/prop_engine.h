@@ -95,11 +95,15 @@ class PropEngine
   void shutdown() {}
 
   /**
-   * Preprocess
+   * Preprocess the given node. Return the REWRITE trust node corresponding to
+   * rewriting node. New lemmas and skolems are added to newLemmas and
+   * newSkolems respectively.
+   * 
+   * 
    */
   theory::TrustNode preprocess(TNode node,
-                               std::vector<theory::TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems,
+                               std::vector<theory::TrustNode>& ppLemmas,
+                               std::vector<Node>& ppSkolems,
                                bool doTheoryPreprocess);
 
   /**
@@ -122,38 +126,10 @@ class PropEngine
    * than the (SAT and SMT) level at which it was asserted.
    *
    * @param trn the trust node storing the formula to assert
-   * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic
+   * @param p the properties of the lemma
+   * @return the (preprocessed) lemma
    */
   Node assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
-
-  /**
-   * Converts the given formula to CNF and assert the CNF to the SAT solver.
-   * The formula can be removed by the SAT solver after backtracking lower
-   * than the (SAT and SMT) level at which it was asserted.
-   *
-   * @param trn the trust node storing the formula to assert
-   * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic
-   */
-  void assertLemmaInternal(theory::TrustNode trn, bool removable);
-
-  /**
-   * Assert lemma trn with preprocessing lemmas ppLemmas which correspond
-   * to lemmas for skolems in ppSkolems.
-   *
-   * @param trn the trust node storing the formula to assert
-   * @param ppLemmas the lemmas from preprocessing and term formula removal on
-   * the proven node of trn
-   * @param ppSkolem the skolem that each lemma in ppLemma constrains. It should
-   * be the case that ppLemmas.size()==ppSkolems.size().
-   * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic
-   */
-  void assertLemmas(theory::TrustNode trn,
-                    std::vector<theory::TrustNode>& ppLemmas,
-                    std::vector<Node>& ppSkolems,
-                    bool removable);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -280,6 +256,18 @@ class PropEngine
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
+  
+  /**
+   * Converts the given formula to CNF and assert the CNF to the SAT solver.
+   * The formula can be removed by the SAT solver after backtracking lower
+   * than the (SAT and SMT) level at which it was asserted.
+   *
+   * @param trn the trust node storing the formula to assert
+   * @param removable whether this lemma can be quietly removed based
+   * on an activity heuristic
+   */
+  void assertLemmaInternal(theory::TrustNode trn, bool removable);
+
   /**
    * Indicates that the SAT solver is currently solving something and we should
    * not mess with it's internal state.
