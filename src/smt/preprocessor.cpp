@@ -38,7 +38,6 @@ Preprocessor::Preprocessor(SmtEngine& smt,
       d_assertionsProcessed(u, false),
       d_exDefs(smt, *smt.getResourceManager(), stats),
       d_processor(smt, d_exDefs, *smt.getResourceManager(), stats),
-      d_rtf(u),
       d_pnm(nullptr)
 {
 }
@@ -55,7 +54,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_rtf, &d_propagator, d_pnm));
+      &d_smt, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -103,8 +102,6 @@ void Preprocessor::clearLearnedLiterals()
 }
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
-
-RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
 
 Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
 {
@@ -156,7 +153,6 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
   d_pnm = pppg->getManager();
   d_exDefs.setProofNodeManager(d_pnm);
   d_propagator.setProof(d_pnm, d_context, pppg);
-  d_rtf.setProofNodeManager(d_pnm);
 }
 
 }  // namespace smt

@@ -95,12 +95,7 @@ class RelevanceManager;
 namespace eq {
 class EqualityEngine;
 }  // namespace eq
-
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
-
-class RemoveTermFormulas;
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -313,7 +308,6 @@ class TheoryEngine {
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
                ResourceManager* rm,
-               RemoveTermFormulas& iteRemover,
                const LogicInfo& logic,
                OutputManager& outMgr,
                ProofNodeManager* pnm);
@@ -454,6 +448,8 @@ class TheoryEngine {
    * have been removed.
    */
   theory::TrustNode preprocess(TNode node);
+  /** Get the theory preprocessor TODO (project #42) remove this */
+  theory::TheoryPreprocessor* getTheoryPreprocess() { return &d_tpp; }
 
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);

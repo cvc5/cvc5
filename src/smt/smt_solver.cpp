@@ -50,7 +50,6 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   d_theoryEngine.reset(new TheoryEngine(d_smt.getContext(),
                                         d_smt.getUserContext(),
                                         d_rm,
-                                        d_pp.getTermFormulaRemover(),
                                         logicInfo,
                                         d_smt.getOutputManager(),
                                         d_pnm));
