@@ -38,7 +38,7 @@ typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
 
 class RemoveTermFormulas {
  public:
-  RemoveTermFormulas(context::UserContext* u);
+  RemoveTermFormulas(context::UserContext* u, ProofNodeManager* pnm = nullptr);
   ~RemoveTermFormulas();
 
   /**
@@ -83,15 +83,13 @@ class RemoveTermFormulas {
    * @param newAsserts The new assertions corresponding to axioms for newly
    * introduced skolems.
    * @param newSkolems The skolems corresponding to each of the newAsserts.
-   * @param reportDeps Used for unsat cores in the old proof infrastructure.
    * @return a trust node of kind TrustNodeKind::REWRITE whose
    * right hand side is assertion after removing term formulas, and the proof
    * generator (if provided) that can prove the equivalence.
    */
   theory::TrustNode run(Node assertion,
                         std::vector<theory::TrustNode>& newAsserts,
-                        std::vector<Node>& newSkolems,
-                        bool reportDeps = false);
+                        std::vector<Node>& newSkolems);
 
   /**
    * Substitute under node using pre-existing cache.  Do not remove
@@ -104,12 +102,6 @@ class RemoveTermFormulas {
 
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-
-  /**
-   * Set proof node manager, which signals this class to enable proofs using the
-   * given proof node manager.
-   */
-  void setProofNodeManager(ProofNodeManager* pnm);
 
   /**
    * Get proof generator that is responsible for all proofs for removing term

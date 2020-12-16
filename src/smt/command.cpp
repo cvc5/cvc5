@@ -685,9 +685,8 @@ void SynthFunCommand::toStream(std::ostream& out,
   std::vector<Node> nodeVars = termVectorToNodes(d_vars);
   Printer::getPrinter(language)->toStreamCmdSynthFun(
       out,
-      d_symbol,
+      d_fun.getNode(),
       nodeVars,
-      d_sort.getTypeNode(),
       d_isInv,
       d_grammar == nullptr ? TypeNode::null()
                            : d_grammar->resolve().getTypeNode());

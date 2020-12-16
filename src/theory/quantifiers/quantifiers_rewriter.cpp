@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+#include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
@@ -35,6 +36,30 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+/**
+ * Attributes used for constructing bound variables in a canonical way. These
+ * are attributes that map to bound variable, introduced for the following
+ * purposes:
+ * - QRewPrenexAttribute: cached on (v, body) where we are prenexing bound
+ * variable v in a nested quantified formula within the given body.
+ * - QRewMiniscopeAttribute: cached on (v, q, i) where q is being miniscoped
+ * for F_i in its body (and F_1 ... F_n), and v is one of the bound variables
+ * that q binds.
+ * - QRewDtExpandAttribute: cached on
+ */
+struct QRewPrenexAttributeId
+{
+};
+typedef expr::Attribute<QRewPrenexAttributeId, Node> QRewPrenexAttribute;
+struct QRewMiniscopeAttributeId
+{
+};
+typedef expr::Attribute<QRewMiniscopeAttributeId, Node> QRewMiniscopeAttribute;
+struct QRewDtExpandAttributeId
+{
+};
+typedef expr::Attribute<QRewDtExpandAttributeId, Node> QRewDtExpandAttribute;
 
 std::ostream& operator<<(std::ostream& out, RewriteStep s)
 {
@@ -777,7 +802,9 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
 {
   if (lit.getKind() == NOT)
   {
-    return getVarElimLit(lit[0], !pol, args, vars, subs);
+    lit = lit[0];
+    pol = !pol;
+    Assert(lit.getKind() != NOT);
   }
   NodeManager* nm = NodeManager::currentNM();
   Trace("var-elim-quant-debug")
@@ -857,23 +884,6 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       }
     }
   }
-  else if (lit.getKind() == APPLY_TESTER && pol
-           && lit[0].getKind() == BOUND_VARIABLE && options::dtVarExpandQuant())
-  {
-    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
-                         << std::endl;
-    Node tester = lit.getOperator();
-    unsigned index = datatypes::utils::indexOf(tester);
-    Node s = datatypeExpand(index, lit[0], args);
-    if (!s.isNull())
-    {
-      vars.push_back(lit[0]);
-      subs.push_back(s);
-      Trace("var-elim-dt") << "...apply substitution " << s << "/" << lit[0]
-                           << std::endl;
-      return true;
-    }
-  }
   if (lit.getKind() == BOUND_VARIABLE)
   {
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit );
@@ -947,37 +957,6 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
   return false;
 }
 
-Node QuantifiersRewriter::datatypeExpand(unsigned index,
-                                         Node v,
-                                         std::vector<Node>& args)
-{
-  if (!v.getType().isDatatype())
-  {
-    return Node::null();
-  }
-  std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
-  if (ita == args.end())
-  {
-    return Node::null();
-  }
-  const DType& dt = v.getType().getDType();
-  Assert(index < dt.getNumConstructors());
-  const DTypeConstructor& c = dt[index];
-  std::vector<Node> newChildren;
-  newChildren.push_back(c.getConstructor());
-  std::vector<Node> newVars;
-  for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
-  {
-    TypeNode tn = c.getArgType(j);
-    Node vn = NodeManager::currentNM()->mkBoundVar(tn);
-    newChildren.push_back(vn);
-    newVars.push_back(vn);
-  }
-  args.erase(ita);
-  args.insert(args.end(), newVars.begin(), newVars.end());
-  return NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, newChildren);
-}
-
 bool QuantifiersRewriter::getVarElim(Node n,
                                      bool pol,
                                      std::vector<Node>& args,
@@ -987,9 +966,12 @@ bool QuantifiersRewriter::getVarElim(Node n,
   Kind nk = n.getKind();
   if (nk == NOT)
   {
-    return getVarElim(n[0], !pol, args, vars, subs);
+    n = n[0];
+    pol = !pol;
+    nk = n.getKind();
+    Assert(nk != NOT);
   }
-  else if ((nk == AND && pol) || (nk == OR && !pol))
+  if ((nk == AND && pol) || (nk == OR && !pol))
   {
     for (const Node& cn : n)
     {
@@ -1255,7 +1237,13 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
   return body;
 }
 
-Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg ){
+Node QuantifiersRewriter::computePrenex(Node q,
+                                        Node body,
+                                        std::vector<Node>& args,
+                                        std::vector<Node>& nargs,
+                                        bool pol,
+                                        bool prenexAgg)
+{
   NodeManager* nm = NodeManager::currentNM();
   Kind k = body.getKind();
   if (k == FORALL)
@@ -1263,12 +1251,25 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
     if( ( pol || prenexAgg ) && ( options::prenexQuantUser() || body.getNumChildren()==2 ) ){
       std::vector< Node > terms;
       std::vector< Node > subs;
+      BoundVarManager* bvm = nm->getBoundVarManager();
       //for doing prenexing of same-signed quantifiers
       //must rename each variable that already exists
       for (const Node& v : body[0])
       {
         terms.push_back(v);
-        subs.push_back(nm->mkBoundVar(v.getType()));
+        TypeNode vt = v.getType();
+        Node vv;
+        if (!q.isNull())
+        {
+          Node cacheVal = BoundVarManager::getCacheValue(q, v);
+          vv = bvm->mkBoundVar<QRewPrenexAttribute>(cacheVal, vt);
+        }
+        else
+        {
+          // not specific to a quantified formula, use normal
+          vv = nm->mkBoundVar(vt);
+        }
+        subs.push_back(vv);
       }
       if( pol ){
         args.insert( args.end(), subs.begin(), subs.end() );
@@ -1286,14 +1287,14 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
     Node nn = nm->mkNode(AND,
                          nm->mkNode(OR, body[0].notNode(), body[1]),
                          nm->mkNode(OR, body[0], body[2]));
-    return computePrenex( nn, args, nargs, pol, prenexAgg );
+    return computePrenex(q, nn, args, nargs, pol, prenexAgg);
   }
   else if (prenexAgg && k == EQUAL && body[0].getType().isBoolean())
   {
     Node nn = nm->mkNode(AND,
                          nm->mkNode(OR, body[0].notNode(), body[1]),
                          nm->mkNode(OR, body[0], body[1].notNode()));
-    return computePrenex( nn, args, nargs, pol, prenexAgg );
+    return computePrenex(q, nn, args, nargs, pol, prenexAgg);
   }else if( body.getType().isBoolean() ){
     Assert(k != EXISTS);
     bool childrenChanged = false;
@@ -1308,7 +1309,7 @@ Node QuantifiersRewriter::computePrenex( Node body, std::vector< Node >& args, s
         newChildren.push_back( body[i] );
         continue;
       }
-      Node n = computePrenex(body[i], args, nargs, newPol, prenexAgg);
+      Node n = computePrenex(q, body[i], args, nargs, newPol, prenexAgg);
       newChildren.push_back(n);
       childrenChanged = n != body[i] || childrenChanged;
     }
@@ -1369,7 +1370,8 @@ Node QuantifiersRewriter::computePrenexAgg(Node n,
   {
     std::vector<Node> args;
     std::vector<Node> nargs;
-    Node nn = computePrenex(n, args, nargs, true, true);
+    Node q;
+    Node nn = computePrenex(q, n, args, nargs, true, true);
     if (n != nn)
     {
       Node nnn = computePrenexAgg(nn, visited);
@@ -1554,12 +1556,15 @@ Node QuantifiersRewriter::mkForall( std::vector< Node >& args, Node body, std::v
 }
 
 //computes miniscoping, also eliminates variables that do not occur free in body
-Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa ){
+Node QuantifiersRewriter::computeMiniscoping(Node q, QAttributes& qa)
+{
   NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> args(q[0].begin(), q[0].end());
+  Node body = q[1];
   if( body.getKind()==FORALL ){
     //combine prenex
     std::vector< Node > newArgs;
-    newArgs.insert( newArgs.end(), args.begin(), args.end() );
+    newArgs.insert(newArgs.end(), q[0].begin(), q[0].end());
     for( unsigned i=0; i<body[0].getNumChildren(); i++ ){
       newArgs.push_back( body[0][i] );
     }
@@ -1569,19 +1574,23 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
     // be applied first
     if (options::miniscopeQuant() || options::aggressiveMiniscopeQuant())
     {
+      BoundVarManager* bvm = nm->getBoundVarManager();
       // Break apart the quantifed formula
       // forall x. P1 ^ ... ^ Pn ---> forall x. P1 ^ ... ^ forall x. Pn
       NodeBuilder<> t(kind::AND);
       std::vector<Node> argsc;
-      for (unsigned i = 0, nchild = body.getNumChildren(); i < nchild; i++)
+      for (size_t i = 0, nchild = body.getNumChildren(); i < nchild; i++)
       {
         if (argsc.empty())
         {
           // If not done so, we must create fresh copy of args. This is to
           // ensure that quantified formulas do not reuse variables.
-          for (const Node& v : args)
+          for (const Node& v : q[0])
           {
-            argsc.push_back(nm->mkBoundVar(v.getType()));
+            TypeNode vt = v.getType();
+            Node cacheVal = BoundVarManager::getCacheValue(q, v, i);
+            Node vv = bvm->mkBoundVar<QRewMiniscopeAttribute>(cacheVal, vt);
+            argsc.push_back(vv);
           }
         }
         Node b = body[i];
@@ -1595,7 +1604,10 @@ Node QuantifiersRewriter::computeMiniscoping( std::vector< Node >& args, Node bo
         }
         else
         {
-          t << computeMiniscoping(argsc, bodyc, qa);
+          // make the miniscoped quantified formula
+          Node cbvl = nm->mkNode(BOUND_VAR_LIST, argsc);
+          Node qq = nm->mkNode(FORALL, cbvl, bodyc);
+          t << qq;
           // We used argsc, clear so we will construct a fresh copy above.
           argsc.clear();
         }
@@ -1807,14 +1819,8 @@ Node QuantifiersRewriter::computeOperation(Node f,
                                            QAttributes& qa)
 {
   Trace("quantifiers-rewrite-debug") << "Compute operation " << computeOption << " on " << f << " " << qa.d_qid_num << std::endl;
-  std::vector< Node > args;
-  for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
-    args.push_back( f[0][i] );
-  }
-  Node n = f[1];
-  if( computeOption==COMPUTE_ELIM_SYMBOLS ){
-    n = computeElimSymbols( n );
-  }else if( computeOption==COMPUTE_MINISCOPING ){
+  if (computeOption == COMPUTE_MINISCOPING)
+  {
     if (options::prenexQuant() == options::PrenexQuantMode::NORMAL)
     {
       if( !qa.d_qid_num.isNull() ){
@@ -1823,7 +1829,13 @@ Node QuantifiersRewriter::computeOperation(Node f,
       }
     }
     //return directly
-    return computeMiniscoping( args, n, qa );
+    return computeMiniscoping(f, qa);
+  }
+  std::vector<Node> args(f[0].begin(), f[0].end());
+  Node n = f[1];
+  if (computeOption == COMPUTE_ELIM_SYMBOLS)
+  {
+    n = computeElimSymbols(n);
   }else if( computeOption==COMPUTE_AGGRESSIVE_MINISCOPING ){
     return computeAggressiveMiniscoping( args, n );
   }
@@ -1854,7 +1866,7 @@ Node QuantifiersRewriter::computeOperation(Node f,
     else
     {
       std::vector< Node > nargs;
-      n = computePrenex( n, args, nargs, true, false );
+      n = computePrenex(f, n, args, nargs, true, false);
       Assert(nargs.empty());
     }
   }

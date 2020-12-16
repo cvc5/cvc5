@@ -158,8 +158,7 @@ TrustNode TheorySets::ppRewrite(TNode n)
       throw LogicException(ss.str());
     }
   }
-  // just expand definitions
-  return expandDefinition(n);
+  return d_internal->ppRewrite(n);
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(

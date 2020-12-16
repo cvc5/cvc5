@@ -1070,7 +1070,7 @@ void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdDeclareVar(
-        getOutputManager().getDumpOut(), var, type);
+        getOutputManager().getDumpOut(), var, var.getType());
   }
   // don't need to set that the conjecture is stale
 }
@@ -1092,13 +1092,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdSynthFun(
-        getOutputManager().getDumpOut(),
-        id,
-        vars,
-        func.getType().isFunction() ? func.getType().getRangeType()
-                                    : func.getType(),
-        isInv,
-        sygusType);
+        getOutputManager().getDumpOut(), func, vars, isInv, sygusType);
   }
 }
 
@@ -1152,15 +1146,14 @@ Node SmtEngine::simplify(const Node& ex)
   return d_pp->simplify(ex);
 }
 
-Node SmtEngine::expandDefinitions(const Node& ex)
+Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  // set expandOnly flag to true
-  return d_pp->expandDefinitions(ex, true);
+  return d_pp->expandDefinitions(ex, expandOnly);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
