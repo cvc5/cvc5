@@ -994,14 +994,16 @@ void QuantifiersEngine::flushLemmas(){
       const Node& lemw = d_lemmas_waiting[i];
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
       itp = d_lemmasWaitingPg.find(lemw);
+      LemmaProperty p =
+          LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY;
       if (itp != d_lemmasWaitingPg.end())
       {
         TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
-        out.trustedLemma(tlemw, LemmaProperty::PREPROCESS);
+        out.trustedLemma(tlemw, p);
       }
       else
       {
-        out.lemma(lemw, LemmaProperty::PREPROCESS);
+        out.lemma(lemw, p);
       }
     }
     d_lemmas_waiting.clear();
