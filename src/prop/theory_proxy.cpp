@@ -42,8 +42,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_queue(context),
-      d_tpp(*theoryEngine, userContext, pnm),
-      d_ppLitMap(userContext)
+      d_tpp(*theoryEngine, userContext, pnm)
 {
 }
 

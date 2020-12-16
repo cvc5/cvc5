@@ -85,14 +85,12 @@ class TheoryPreprocessor
                             std::vector<TrustNode>& newLemmas,
                             std::vector<Node>& newSkolems,
                             bool doTheoryPreprocess);
+ private:
   /**
-   * Runs theory specific preprocessing on the non-Boolean parts of
-   * the formula.  This is only called on input assertions, after ITEs
-   * have been removed.
+   * Runs theory specific preprocessing (Theory::ppRewrite) on the non-Boolean
+   * parts of the node.
    */
   TrustNode theoryPreprocess(TNode node);
-
- private:
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
   /** Logic info of theory engine */
