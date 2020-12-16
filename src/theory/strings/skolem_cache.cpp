@@ -15,6 +15,8 @@
 #include "theory/strings/skolem_cache.h"
 
 #include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -273,15 +275,10 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
 
 Node SkolemCache::mkIndexVar(Node t)
 {
-  IndexVarAttribute iva;
-  if (t.hasAttribute(iva))
-  {
-    return t.getAttribute(iva);
-  }
   NodeManager* nm = NodeManager::currentNM();
-  Node v = nm->mkBoundVar(nm->integerType());
-  t.setAttribute(iva, v);
-  return v;
+  TypeNode intType = nm->integerType();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  return bvm->mkBoundVar<IndexVarAttribute>(t, intType);
 }
 
 }  // namespace strings

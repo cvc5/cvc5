@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/tconv_seq_proof_generator.h"
 #include "expr/term_conversion_proof_generator.h"
+#include "smt/term_formula_removal.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -45,7 +46,6 @@ class TheoryPreprocessor
  public:
   /** Constructs a theory preprocessor */
   TheoryPreprocessor(TheoryEngine& engine,
-                     RemoveTermFormulas& tfr,
                      context::UserContext* userContext,
                      ProofNodeManager* pnm = nullptr);
   /** Destroys a theory preprocessor */
@@ -100,7 +100,7 @@ class TheoryPreprocessor
   /** Cache for theory-preprocessing of assertions */
   NodeMap d_ppCache;
   /** The term formula remover */
-  RemoveTermFormulas& d_tfr;
+  RemoveTermFormulas d_tfr;
   /** The term context, which computes hash values for term contexts. */
   InQuantTermContext d_iqtc;
   /**
