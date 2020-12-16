@@ -59,6 +59,7 @@
 #include "theory/theory_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "expr/bound_var_manager.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
