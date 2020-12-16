@@ -95,6 +95,14 @@ class PropEngine
   void shutdown() {}
 
   /**
+   * Preprocess
+   */
+  theory::TrustNode preprocess(TNode node,
+                               std::vector<theory::TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems,
+                               bool doTheoryPreprocess);
+
+  /**
    * Notify preprocessed assertions. This method is called just before the
    * assertions are asserted to this prop engine. This method notifies the
    * decision engine and the theory engine of the assertions in ap.
@@ -117,7 +125,18 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic
    */
-  void assertLemma(theory::TrustNode trn, bool removable);
+  Node assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
+
+  /**
+   * Converts the given formula to CNF and assert the CNF to the SAT solver.
+   * The formula can be removed by the SAT solver after backtracking lower
+   * than the (SAT and SMT) level at which it was asserted.
+   *
+   * @param trn the trust node storing the formula to assert
+   * @param removable whether this lemma can be quietly removed based
+   * on an activity heuristic
+   */
+  void assertLemmaInternal(theory::TrustNode trn, bool removable);
 
   /**
    * Assert lemma trn with preprocessing lemmas ppLemmas which correspond
@@ -188,7 +207,7 @@ class PropEngine
    * that is definitionally equal to it.  The result of this function
    * is that the Node can be queried via getSatValue().
    */
-  void ensureLiteral(TNode n);
+  Node ensureLiteral(TNode n);
 
   /**
    * Push the context level.
