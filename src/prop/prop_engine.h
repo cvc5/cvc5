@@ -98,8 +98,8 @@ class PropEngine
    * Preprocess the given node. Return the REWRITE trust node corresponding to
    * rewriting node. New lemmas and skolems are added to newLemmas and
    * newSkolems respectively.
-   * 
-   * 
+   *
+   *
    */
   theory::TrustNode preprocess(TNode node,
                                std::vector<theory::TrustNode>& ppLemmas,
@@ -256,7 +256,7 @@ class PropEngine
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
-  
+
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
    * The formula can be removed by the SAT solver after backtracking lower

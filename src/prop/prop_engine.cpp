@@ -206,7 +206,7 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
   std::vector<theory::TrustNode> ppLemmas;
   std::vector<Node> ppSkolems;
   theory::TrustNode tplemma =
-      d_theoryProxy->preprocessLemma(tlemma, ppLemmas,ppSkolems, preprocess);
+      d_theoryProxy->preprocessLemma(tlemma, ppLemmas, ppSkolems, preprocess);
 
   Assert(ppSkolems.size() == ppLemmas.size());
 
@@ -219,8 +219,7 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
     for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
     {
       Assert(ppLemmas[i].getGenerator() != nullptr);
-      ppLemmas[i].debugCheckClosed("te-proof-debug",
-                                    "TheoryEngine::lemma_new");
+      ppLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
     }
   }
 
@@ -254,7 +253,7 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
     }
     d_decisionEngine->addAssertions(assertions, ppLemmasF, ppSkolems);
   }
-  
+
   // make the return lemma, which the theory engine will use
   Node retLemma = tplemma.getNode();
   if (!ppLemmas.empty())
@@ -287,7 +286,6 @@ void PropEngine::assertLemmaInternal(theory::TrustNode trn, bool removable)
     d_cnfStream->convertAndAssert(node, removable, negated);
   }
 }
-
 
 void PropEngine::requirePhase(TNode n, bool phase) {
   Debug("prop") << "requirePhase(" << n << ", " << phase << ")" << endl;
