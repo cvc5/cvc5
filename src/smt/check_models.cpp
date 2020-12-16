@@ -133,11 +133,16 @@ void CheckModels::checkModel(Model* m,
       Warning() << ss.str() << std::endl;
     }
   }
-  Trace("check-model") << "checkModel: Finish" << std::endl;
-  Notice() << "SmtEngine::checkModel(): all assertions checked out OK !"
-           << std::endl;
+  if (noCheckList.empty())
+  {
+    Notice() << "SmtEngine::checkModel(): all assertions checked out OK !"
+            << std::endl;
+            return;
+  }
   // if the noCheckList is non-empty, we expand definitions on this list
   // and check satisfiability
+  
+  Trace("check-model") << "checkModel: Finish" << std::endl;
 }
 
 }  // namespace smt
