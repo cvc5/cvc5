@@ -220,6 +220,9 @@ void SmtEngine::finishInit()
   ProofNodeManager* pnm = nullptr;
   if (options::proofNew())
   {
+    // ensure bound variable uses canonical bound variables
+    d_nodeManager->getBoundVarManager()->enableKeepCacheValues();
+    // make the proof manager
     d_pfManager.reset(new PfManager(getUserContext(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
     // use this proof node manager
