@@ -46,7 +46,6 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
 }
 
 void CandidateGeneratorQE::resetInstantiationRound(){
-  d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
 }
 
 void CandidateGeneratorQE::reset(Node eqc) { resetForOperator(eqc, d_op); }
@@ -56,6 +55,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_term_iter = 0;
   d_eqc = eqc;
   d_op = op;
+  d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms( d_op );
   if( eqc.isNull() ){
     d_mode = cand_term_db;
   }else{
