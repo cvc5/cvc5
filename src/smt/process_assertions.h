@@ -118,22 +118,6 @@ class ProcessAssertions
    */
   void dumpAssertions(const char* key,
                       const preprocessing::AssertionPipeline& assertionList);
-  /**
-   * Helper function to fix up assertion list to restore invariants needed after
-   * ite removal.
-   */
-  void collectSkolems(IteSkolemMap& iskMap,
-                      TNode n,
-                      set<TNode>& skolemSet,
-                      NodeToBoolHashMap& cache);
-  /**
-   * Helper function to fix up assertion list to restore invariants needed after
-   * ite removal.
-   */
-  bool checkForBadSkolems(IteSkolemMap& iskMap,
-                          TNode n,
-                          TNode skolem,
-                          NodeToBoolHashMap& cache);
 };
 
 }  // namespace smt

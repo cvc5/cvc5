@@ -811,6 +811,7 @@ set(regress_0_tests
   regress0/quantifiers/bug291.smt2
   regress0/quantifiers/bug749-rounding.smt2
   regress0/quantifiers/cbqi-lia-dt-simp.smt2
+  regress0/quantifiers/cegqi-needs-justify.smt2
   regress0/quantifiers/cegqi-nl-simp.cvc
   regress0/quantifiers/cegqi-nl-sq.smt2
   regress0/quantifiers/cegqi-par-dt-simple.smt2

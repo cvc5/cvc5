@@ -203,10 +203,6 @@ bool ProcessAssertions::apply(Assertions& as)
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     d_passes["bv-to-int"]->apply(&assertions);
-    // after running bv-to-int, we need to immediately run
-    // theory-preprocess and ite-removal so that newlly created
-    // terms and assertions are normalized (e.g., div is expanded).
-    d_passes["theory-preprocess"]->apply(&assertions);
   }
 
   // Since this pass is not robust for the information tracking necessary for
@@ -290,6 +286,7 @@ bool ProcessAssertions::apply(Assertions& as)
   }
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
+  if (options::earlyIteRemoval())
   {
     d_smtStats.d_numAssertionsPre += assertions.size();
     d_passes["ite-removal"]->apply(&assertions);
@@ -309,84 +306,6 @@ bool ProcessAssertions::apply(Assertions& as)
     Chat() << "re-simplifying assertions..." << endl;
     ScopeCounter depth(d_simplifyAssertionsDepth);
     noConflict &= simplifyAssertions(assertions);
-    if (noConflict)
-    {
-      // Need to fix up assertion list to maintain invariants:
-      // Let Sk be the set of Skolem variables introduced by ITE's.  Let <_sk be
-      // the order in which these variables were introduced during ite removal.
-      // For each skolem variable sk, let iteExpr = iteMap(sk) be the ite expr
-      // mapped to by sk.
-
-      // cache for expression traversal
-      unordered_map<Node, bool, NodeHashFunction> cache;
-
-      IteSkolemMap& iskMap = assertions.getIteSkolemMap();
-      // First, find all skolems that appear in the substitution map - their
-      // associated iteExpr will need to be moved to the main assertion set
-      set<TNode> skolemSet;
-      SubstitutionMap& top_level_substs =
-          d_preprocessingPassContext->getTopLevelSubstitutions().get();
-      SubstitutionMap::iterator pos = top_level_substs.begin();
-      for (; pos != top_level_substs.end(); ++pos)
-      {
-        collectSkolems(iskMap, (*pos).first, skolemSet, cache);
-        collectSkolems(iskMap, (*pos).second, skolemSet, cache);
-      }
-      // We need to ensure:
-      // 1. iteExpr has the form (ite cond (sk = t) (sk = e))
-      // 2. if some sk' in Sk appears in cond, t, or e, then sk' <_sk sk
-      // If either of these is violated, we must add iteExpr as a proper
-      // assertion
-      IteSkolemMap::iterator it = iskMap.begin();
-      IteSkolemMap::iterator iend = iskMap.end();
-      std::vector<Node> newConj;
-      vector<TNode> toErase;
-      for (; it != iend; ++it)
-      {
-        if (skolemSet.find((*it).first) == skolemSet.end())
-        {
-          TNode iteExpr = assertions[(*it).second];
-          if (iteExpr.getKind() == ITE && iteExpr[1].getKind() == EQUAL
-              && iteExpr[1][0] == (*it).first && iteExpr[2].getKind() == EQUAL
-              && iteExpr[2][0] == (*it).first)
-          {
-            cache.clear();
-            bool bad =
-                checkForBadSkolems(iskMap, iteExpr[0], (*it).first, cache);
-            bad = bad
-                  || checkForBadSkolems(
-                         iskMap, iteExpr[1][1], (*it).first, cache);
-            bad = bad
-                  || checkForBadSkolems(
-                         iskMap, iteExpr[2][1], (*it).first, cache);
-            if (!bad)
-            {
-              continue;
-            }
-          }
-        }
-        // Move this iteExpr into the main assertions
-        newConj.push_back(assertions[(*it).second]);
-        assertions.replace((*it).second, d_true);
-        toErase.push_back((*it).first);
-      }
-      if (!newConj.empty())
-      {
-        while (!toErase.empty())
-        {
-          iskMap.erase(toErase.back());
-          toErase.pop_back();
-        }
-        size_t index = assertions.getRealAssertionsEnd() - 1;
-        Node newAssertion = NodeManager::currentNM()->mkAnd(newConj);
-        assertions.conjoin(index, newAssertion);
-      }
-      // TODO(b/1256): For some reason this is needed for some benchmarks, such
-      // as
-      // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      d_passes["ite-removal"]->apply(&assertions);
-      d_passes["apply-substs"]->apply(&assertions);
-    }
     Trace("smt-proc")
         << "ProcessAssertions::processAssertions() : post-repeat-simplify"
         << endl;
@@ -407,12 +326,19 @@ bool ProcessAssertions::apply(Assertions& as)
                << endl;
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
+  // ensure rewritten
+  d_passes["rewrite"]->apply(&assertions);
+  // apply theory preprocess
   d_passes["theory-preprocess"]->apply(&assertions);
   // Must remove ITEs again since theory preprocessing may introduce them.
   // Notice that we alternatively could ensure that the theory-preprocess
   // pass above calls TheoryPreprocess::preprocess instead of
   // TheoryPreprocess::theoryPreprocess, as the former also does ITE removal.
   d_passes["ite-removal"]->apply(&assertions);
+  // This is needed because when solving incrementally, removeITEs may
+  // introduce skolems that were solved for earlier and thus appear in the
+  // substitution map.
+  d_passes["apply-substs"]->apply(&assertions);
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -469,13 +395,6 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
     }
 
     Debug("smt") << " assertions     : " << assertions.size() << endl;
-
-    // Theory preprocessing
-    bool doEarlyTheoryPp = !options::arithRewriteEq();
-    if (doEarlyTheoryPp)
-    {
-      d_passes["theory-preprocess"]->apply(&assertions);
-    }
 
     // ITE simplification
     if (options::doITESimp()
@@ -540,81 +459,6 @@ void ProcessAssertions::dumpAssertions(const char* key,
           d_smt.getOutputManager().getDumpOut(), n);
     }
   }
-}
-
-void ProcessAssertions::collectSkolems(
-    IteSkolemMap& iskMap,
-    TNode n,
-    set<TNode>& skolemSet,
-    unordered_map<Node, bool, NodeHashFunction>& cache)
-{
-  unordered_map<Node, bool, NodeHashFunction>::iterator it;
-  it = cache.find(n);
-  if (it != cache.end())
-  {
-    return;
-  }
-
-  size_t sz = n.getNumChildren();
-  if (sz == 0)
-  {
-    if (iskMap.find(n) != iskMap.end())
-    {
-      skolemSet.insert(n);
-    }
-    cache[n] = true;
-    return;
-  }
-
-  size_t k = 0;
-  for (; k < sz; ++k)
-  {
-    collectSkolems(iskMap, n[k], skolemSet, cache);
-  }
-  cache[n] = true;
-}
-
-bool ProcessAssertions::checkForBadSkolems(
-    IteSkolemMap& iskMap,
-    TNode n,
-    TNode skolem,
-    unordered_map<Node, bool, NodeHashFunction>& cache)
-{
-  unordered_map<Node, bool, NodeHashFunction>::iterator it;
-  it = cache.find(n);
-  if (it != cache.end())
-  {
-    return (*it).second;
-  }
-
-  size_t sz = n.getNumChildren();
-  if (sz == 0)
-  {
-    IteSkolemMap::iterator iit = iskMap.find(n);
-    bool bad = false;
-    if (iit != iskMap.end())
-    {
-      if (!((*iit).first < n))
-      {
-        bad = true;
-      }
-    }
-    cache[n] = bad;
-    return bad;
-  }
-
-  size_t k = 0;
-  for (; k < sz; ++k)
-  {
-    if (checkForBadSkolems(iskMap, n[k], skolem, cache))
-    {
-      cache[n] = true;
-      return true;
-    }
-  }
-
-  cache[n] = false;
-  return false;
 }
 
 }  // namespace smt
