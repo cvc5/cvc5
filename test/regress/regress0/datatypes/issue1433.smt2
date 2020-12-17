@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic QF_UFDTLIA)
 (set-info :status sat)
 (declare-datatype MyList (par (T) ((nelem) (cons (hd T) (tl (MyList T))))))
