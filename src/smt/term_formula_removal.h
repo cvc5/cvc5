@@ -83,6 +83,10 @@ class RemoveTermFormulas {
    * @param newAsserts The new assertions corresponding to axioms for newly
    * introduced skolems.
    * @param newSkolems The skolems corresponding to each of the newAsserts.
+   * @param fixedPoint Whether to run term formula removal on the lemmas in
+   * newAsserts. This adds new assertions to this vector until a fixed
+   * point is reached. When this option is true, all lemmas in newAsserts
+   * have all term formulas removed.
    * @return a trust node of kind TrustNodeKind::REWRITE whose
    * right hand side is assertion after removing term formulas, and the proof
    * generator (if provided) that can prove the equivalence.
@@ -92,11 +96,13 @@ class RemoveTermFormulas {
                         std::vector<Node>& newSkolems,
                         bool fixedPoint = false);
   /**
-   * Same as above, but transforms a lemma.
+   * Same as above, but transforms a lemma, returning a LEMMA trust node that
+   * proves the same formula as lem with term formulas removed.
    */
   theory::TrustNode runLemma(theory::TrustNode lem,
                              std::vector<theory::TrustNode>& newAsserts,
-                             std::vector<Node>& newSkolems);
+                             std::vector<Node>& newSkolems,
+                             bool fixedPoint = false);
 
   /**
    * Get proof generator that is responsible for all proofs for removing term

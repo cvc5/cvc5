@@ -70,7 +70,9 @@ theory::TrustNode RemoveTermFormulas::run(
       theory::TrustNode trn = newAsserts[i];
       AlwaysAssert(processed.find(trn.getProven())==processed.end());
       processed.insert(trn.getProven());
-      newAsserts[i] = runLemma(trn, newAsserts, newSkolems);
+      // do not run to fixed point on subcall, since we are processing all
+      // lemmas in this loop
+      newAsserts[i] = runLemma(trn, newAsserts, newSkolems, false);
       i++;
     }
   }
@@ -82,10 +84,10 @@ theory::TrustNode RemoveTermFormulas::run(
 theory::TrustNode RemoveTermFormulas::runLemma(
     theory::TrustNode lem,
     std::vector<theory::TrustNode>& newAsserts,
-    std::vector<Node>& newSkolems)
+    std::vector<Node>& newSkolems,
+    bool fixedPoint)
 {
-  // do not run to fixed point
-  theory::TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, false);
+  theory::TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
   if (trn.isNull())
   {
     // no change
