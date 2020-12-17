@@ -16,7 +16,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_checker.h"
-#include "proof/lfsc/letify.h"
+#include "proof/proof_letify.h"
 
 namespace CVC4 {
 namespace proof {
@@ -140,7 +140,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   // [1] compute and print the proof lets
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, uint32_t> pletMap;
-  Letify::computeProofLet(pn, pletList, pletMap);
+  ProofLetify::computeProofLet(pn, pletList, pletMap);
   // define the let proofs
   if (!pletList.empty())
   {

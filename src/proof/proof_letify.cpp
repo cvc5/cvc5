@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file letify.cpp
+/*! \file proof_letify.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,15 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utilities for computing letification
+ ** \brief Utilities for computing letification of proofs
  **/
 
-#include "proof/lfsc/letify.h"
+#include "proof/proof_letify.h"
 
 namespace CVC4 {
 namespace proof {
 
-void Letify::computeProofLet(const ProofNode* pn,
+void ProofLetify::computeProofLet(const ProofNode* pn,
                              std::vector<const ProofNode*>& pletList,
                              std::map<const ProofNode*, uint32_t>& pletMap,
                              uint32_t thresh)
@@ -35,7 +35,7 @@ void Letify::computeProofLet(const ProofNode* pn,
   convertProofCountToLet(visitList, pcount, pletList, pletMap, thresh);
 }
 
-void Letify::computeProofCounts(const ProofNode* pn,
+void ProofLetify::computeProofCounts(const ProofNode* pn,
                                 std::vector<const ProofNode*>& visitList,
                                 std::map<const ProofNode*, uint32_t>& pcount)
 {
@@ -68,7 +68,7 @@ void Letify::computeProofCounts(const ProofNode* pn,
   } while (!visit.empty());
 }
 
-void Letify::convertProofCountToLet(
+void ProofLetify::convertProofCountToLet(
     const std::vector<const ProofNode*>& visitList,
     const std::map<const ProofNode*, uint32_t>& pcount,
     std::vector<const ProofNode*>& pletList,

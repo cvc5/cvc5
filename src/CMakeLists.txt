@@ -133,28 +133,28 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
-  proof/proof_manager.cpp
-  proof/proof_manager.h
   proof/lean/lean_post_processor.cpp
   proof/lean/lean_post_processor.h
   proof/lean/lean_printer.h
-  proof/verit/verit_post_processor.cpp
-  proof/verit/verit_post_processor.h
-  proof/verit/verit_printer.h
-  proof/lfsc/letify.cpp
-  proof/lfsc/letify.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
   proof/lfsc/lfsc_printer.cpp
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
+  proof/proof_letify.cpp
+  proof/proof_letify.h
+  proof/proof_manager.cpp
+  proof/proof_manager.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/term_processor.cpp
   proof/term_processor.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/verit/verit_post_processor.cpp
+  proof/verit/verit_post_processor.h
+  proof/verit/verit_printer.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h

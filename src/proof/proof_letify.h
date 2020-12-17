@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file letify.h
+/*! \file proof_letify.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utilities for computing letification
+ ** \brief Utilities for computing letification of proofs
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__LFSC__LETIFY_H
-#define CVC4__PROOF__LFSC__LETIFY_H
+#ifndef CVC4__PROOF__PROOF_LETIFY_H
+#define CVC4__PROOF__PROOF_LETIFY_H
 
 #include <iostream>
 #include <map>
@@ -29,7 +29,7 @@ namespace proof {
 /**
  * Utilities for letification.
  */
-class Letify
+class ProofLetify
 {
  public:
   //------------------- letification of proofs
