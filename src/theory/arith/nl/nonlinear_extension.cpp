@@ -35,7 +35,8 @@ namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        ArithState& state,
-                                       eq::EqualityEngine* ee)
+                                       eq::EqualityEngine* ee,
+                                       ProofNodeManager* pnm)
     : d_containing(containing),
       d_im(containing.getInferenceManager()),
       d_needsLastCall(false),
@@ -47,7 +48,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                   containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_im, d_model),
-      d_extState(d_im, d_model, containing.getSatContext()),
+      d_extState(d_im, d_model, pnm, containing.getUserContext()),
       d_factoringSlv(d_im, d_model),
       d_monomialBoundsSlv(&d_extState),
       d_monomialSlv(&d_extState),
@@ -67,6 +68,12 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_proofChecker.registerTo(pc);
+  }
 }
 
 NonlinearExtension::~NonlinearExtension() {}
