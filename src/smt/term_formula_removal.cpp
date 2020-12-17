@@ -54,7 +54,7 @@ theory::TrustNode RemoveTermFormulas::run(
     bool fixedPoint)
 {
   Node itesRemoved = runInternal(assertion, newAsserts, newSkolems);
-  Assert (newAsserts.size()==newSkolems.size());
+  Assert(newAsserts.size() == newSkolems.size());
   if (itesRemoved == assertion)
   {
     return theory::TrustNode::null();
@@ -65,10 +65,10 @@ theory::TrustNode RemoveTermFormulas::run(
   {
     size_t i = 0;
     std::unordered_set<Node, NodeHashFunction> processed;
-    while (i<newAsserts.size())
+    while (i < newAsserts.size())
     {
       theory::TrustNode trn = newAsserts[i];
-      AlwaysAssert(processed.find(trn.getProven())==processed.end());
+      AlwaysAssert(processed.find(trn.getProven()) == processed.end());
       processed.insert(trn.getProven());
       // do not run to fixed point on subcall, since we are processing all
       // lemmas in this loop
@@ -87,7 +87,8 @@ theory::TrustNode RemoveTermFormulas::runLemma(
     std::vector<Node>& newSkolems,
     bool fixedPoint)
 {
-  theory::TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
+  theory::TrustNode trn =
+      run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
   if (trn.isNull())
   {
     // no change
