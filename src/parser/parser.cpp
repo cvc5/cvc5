@@ -17,6 +17,7 @@
 #include "parser/parser.h"
 
 #include <cassert>
+#include <clocale>
 #include <fstream>
 #include <iostream>
 #include <iterator>
