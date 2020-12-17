@@ -1764,6 +1764,8 @@ theory::TrustNode TheoryEngine::getExplanation(
       Trace("te-proof-exp")
           << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node
           << " by " << texplanation.getNode() << std::endl;
+      // should prove the propagation we asked for, this is currently violated by arithmetic
+      //Assert (texplanation.getKind()==TrustNodeKind::PROP_EXP && texplanation.getProven()[1]==toExplain.d_node);
       // if not a trivial explanation
       if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
       {
