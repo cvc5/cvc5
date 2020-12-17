@@ -43,6 +43,7 @@ namespace CVC4 {
 class StatisticsRegistry;
 class ResourceManager;
 class SkolemManager;
+class BoundVarManager;
 
 class DType;
 
@@ -108,7 +109,9 @@ class NodeManager {
   StatisticsRegistry* d_statisticsRegistry;
 
   /** The skolem manager */
-  std::shared_ptr<SkolemManager> d_skManager;
+  std::unique_ptr<SkolemManager> d_skManager;
+  /** The bound variable manager */
+  std::unique_ptr<BoundVarManager> d_bvManager;
 
   NodeValuePool d_nodeValuePool;
 
@@ -386,6 +389,8 @@ class NodeManager {
   static NodeManager* currentNM() { return s_current; }
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
+  /** Get this node manager's bound variable manager */
+  BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const
