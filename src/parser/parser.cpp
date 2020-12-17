@@ -837,7 +837,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
         {
           if (std::isxdigit(ws[i + 1]) && std::isxdigit(ws[i + 2]))
           {
-            std::stringstream shex;
+            std::wstringstream shex;
             shex << ws[i + 1] << ws[i + 2];
             unsigned val;
             shex >> std::hex >> val;
