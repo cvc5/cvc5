@@ -79,6 +79,16 @@ class PfManager
   std::shared_ptr<ProofNode> getFinalProof(std::shared_ptr<ProofNode> pfn,
                                            Assertions& as,
                                            DefinedFunctionMap& df);
+
+  /** Gets the unsat core.
+   *
+   * The unsat core is the intersection of the assertions in as and the free
+   * assumptions of pfn *after* it has been connected to the preprocessing proof
+   * in this proof manager. */
+  std::vector<Node> getUnsatCore(std::shared_ptr<ProofNode> pfn,
+                                 Assertions& as,
+                                 DefinedFunctionMap& df);
+
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

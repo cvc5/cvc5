@@ -154,7 +154,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
 
   // d_proofManager must be created before Options has been finished
   // being parsed from the input file. Because of this, we cannot trust
-  // that options::proof() is set correctly yet.
+  // that options::unsatCores() is set correctly yet.
 #ifdef CVC4_PROOF
   d_proofManager.reset(new ProofManager(getUserContext()));
 #endif
@@ -1426,9 +1426,18 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT/ENTAILED response.");
   }
-
-  d_proofManager->traceUnsatCore();  // just to trigger core creation
-  return UnsatCore(d_proofManager->extractUnsatCore());
+  // use old proof infrastructure
+  if (!d_pfManager)
+  {
+    d_proofManager->traceUnsatCore();  // just to trigger core creation
+    return UnsatCore(d_proofManager->extractUnsatCore());
+  }
+  // generate with new proofs
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
+  return UnsatCore(d_pfManager->getUnsatCore(
+      pe->getProof(), *d_asserts, *d_definedFunctions));
 #else  /* IS_PROOFS_BUILD */
   throw ModalException(
       "This build of CVC4 doesn't have proof support (required for unsat "
@@ -1500,12 +1509,12 @@ void SmtEngine::checkModel(bool hardFailure) {
   d_checkModels->checkModel(m, al, hardFailure);
 }
 
-// TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
-  Trace("smt") << "SMT getUnsatCore()" << endl;
+  Trace("smt") << "SMT getUnsatCore()" << std::endl;
   SmtScope smts(this);
   finishInit();
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     getOutputManager().getPrinter().toStreamCmdGetUnsatCore(
         getOutputManager().getDumpOut());
   }

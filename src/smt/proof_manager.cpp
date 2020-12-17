@@ -172,6 +172,45 @@ void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
                            << std::endl;
 }
 
+std::vector<Node> PfManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
+                                          Assertions& as,
+                                          DefinedFunctionMap& df)
+{
+  std::vector<Node> core;
+  Trace("smt-proof") << "PfManager::getUnsatCore: build final proof\n";
+  std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
+  // get free assumptions of the final proof, which are the free assumptions of
+  // the proof under the outermost scope, which must be the root rule of fp
+  Trace("smt-proof-debug") << "PfManager::getUnsatCore: final proof: "
+                           << *fp.get() << "\n";
+  Assert(fp->getRule() == PfRule::SCOPE);
+  std::vector<Node> fassumps;
+  expr::getFreeAssumptions(fp->getChildren()[0].get(), fassumps);
+  Trace("smt-proof") << "PfManager::getUnsatCore: free assumptions: "
+                     << fassumps << "\n";
+  context::CDList<Node>* al = as.getAssertionList();
+  Assert(al != nullptr);
+  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
+       ++i)
+  {
+    Trace("smt-proof") << "is assertion " << *i << " there?\n";
+    if (std::find(fassumps.begin(), fassumps.end(), *i) != fassumps.end())
+    {
+      Trace("smt-proof") << "\tyes\n";
+      core.push_back(*i);
+    }
+  }
+  if (Trace.isOn("smt-proof"))
+  {
+    Trace("smt-proof") << "PfManager::getUnsatCore():\n";
+    for (const Node& n : core)
+    {
+      Trace("smt-proof") << "- " << n << "\n";
+    }
+  }
+  return core;
+}
+
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
