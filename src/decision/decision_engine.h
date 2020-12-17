@@ -46,7 +46,7 @@ class DecisionEngine {
 
   // PropEngine* d_propEngine;
   CnfStream* d_cnfStream;
-  DPLLSatSolverInterface* d_satSolver;
+  CDCLTSatSolverInterface* d_satSolver;
 
   context::Context* d_satContext;
   context::UserContext* d_userContext;
@@ -75,7 +75,8 @@ class DecisionEngine {
     Trace("decision") << "Destroying decision engine" << std::endl;
   }
 
-  void setSatSolver(DPLLSatSolverInterface* ss) {
+  void setSatSolver(CDCLTSatSolverInterface* ss)
+  {
     // setPropEngine should not be called more than once
     Assert(d_satSolver == NULL);
     Assert(ss != NULL);

@@ -510,12 +510,15 @@ class CVC4_PUBLIC SmtEngine
   Node simplify(const Node& e);
 
   /**
-   * Expand the definitions in a term or formula.  No other
-   * simplification or normalization is done.
+   * Expand the definitions in a term or formula.
+   *
+   * @param n The node to expand
+   * @param expandOnly if true, then the expandDefinitions function of
+   * TheoryEngine is not called on subterms of n.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Node expandDefinitions(const Node& e);
+  Node expandDefinitions(const Node& n, bool expandOnly = true);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT

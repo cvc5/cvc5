@@ -82,15 +82,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::bitvectorAlgebraicSolver.set(true);
   }
 
-  // Language-based defaults
-  if (!options::bitvectorDivByZeroConst.wasSetByUser())
-  {
-    // Bitvector-divide-by-zero changed semantics in SMT LIB 2.6, thus we
-    // set this option if the input format is SMT LIB 2.6. We also set this
-    // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
-    options::bitvectorDivByZeroConst.set(
-        !language::isInputLang_smt2_5(options::inputLanguage(), true));
-  }
   bool is_sygus = language::isInputLangSygus(options::inputLanguage());
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
@@ -216,6 +207,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       logic = logic.getUnlockedCopy();
       logic.disableTheory(THEORY_ARRAYS);
       logic.lock();
+    }
+  }
+
+  // --ite-simp is an experimental option designed for QF_LIA/nec. This
+  // technique is experimental. This benchmark set also requires removing ITEs
+  // during preprocessing, before repeating simplification. Hence, we enable
+  // this by default.
+  if (options::doITESimp())
+  {
+    if (!options::earlyIteRemoval.wasSetByUser())
+    {
+      options::earlyIteRemoval.set(true);
     }
   }
 
@@ -569,10 +572,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       // eliminated altogether (or otherwise fail at preprocessing).
       || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
           && options::solveIntAsBV() == 0)
-      // If division/mod-by-zero is not treated as a constant value in BV, we
-      // need UF.
-      || (logic.isTheoryEnabled(THEORY_BV)
-          && !options::bitvectorDivByZeroConst())
       // FP requires UF since there are multiple operators that are partially
       // defined (see http://smtlib.cs.uiowa.edu/papers/BTRW15.pdf for more
       // details).
@@ -1064,19 +1063,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       {
         options::cegqiSingleInvMode.set(options::CegqiSingleInvMode::NONE);
       }
-    }
-    // do not allow partial functions
-    if (!options::bitvectorDivByZeroConst())
-    {
-      if (options::bitvectorDivByZeroConst.wasSetByUser())
-      {
-        throw OptionException(
-            "--no-bv-div-zero-const is not supported with SyGuS");
-      }
-      Notice()
-          << "SmtEngine: setting bv-div-zero-const to true to support SyGuS"
-          << std::endl;
-      options::bitvectorDivByZeroConst.set(true);
     }
     if (!options::dtRewriteErrorSel.wasSetByUser())
     {

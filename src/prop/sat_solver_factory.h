@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "context/context.h"
+#include "prop/minisat/minisat.h"
 #include "prop/sat_solver.h"
 #include "util/statistics_registry.h"
 
@@ -36,8 +37,7 @@ class SatSolverFactory
                                              StatisticsRegistry* registry,
                                              const std::string& name = "");
 
-  static DPLLSatSolverInterface* createDPLLMinisat(
-      StatisticsRegistry* registry);
+  static MinisatSatSolver* createCDCLTMinisat(StatisticsRegistry* registry);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry* registry,
                                         const std::string& name = "");

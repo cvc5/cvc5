@@ -809,6 +809,7 @@ set(regress_0_tests
   regress0/quantifiers/bug291.smt2
   regress0/quantifiers/bug749-rounding.smt2
   regress0/quantifiers/cbqi-lia-dt-simp.smt2
+  regress0/quantifiers/cegqi-needs-justify.smt2
   regress0/quantifiers/cegqi-nl-simp.cvc
   regress0/quantifiers/cegqi-nl-sq.smt2
   regress0/quantifiers/cegqi-par-dt-simple.smt2
@@ -870,6 +871,7 @@ set(regress_0_tests
   regress0/quantifiers/qcf-rel-dom-opt.smt2
   regress0/quantifiers/quant-model-simplification.smt2
   regress0/quantifiers/rew-to-scala.smt2
+  regress0/quantifiers/selector-trigger.smt2
   regress0/quantifiers/simp-len.smt2
   regress0/quantifiers/simp-typ-test.smt2
   regress0/quantifiers/sygus-inst-nia-psyco-060.smt2
@@ -954,6 +956,8 @@ set(regress_0_tests
   regress0/seq/intseq.smt2
   regress0/seq/issue4370-bool-terms.smt2
   regress0/seq/issue5543-unit-cmv.smt2
+  regress0/seq/issue5547-seq-len-unit.smt2
+  regress0/seq/issue5547-small-seq-len-unit.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2

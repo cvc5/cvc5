@@ -329,10 +329,10 @@ bool InferenceManager::processFact(InferInfo& ii)
   {
     facts.push_back(ii.d_conc);
   }
-  Trace("strings-assert") << "(assert (=> " << ii.getAntecedant() << " "
+  Trace("strings-assert") << "(assert (=> " << ii.getAntecedent() << " "
                           << ii.d_conc << ")) ; fact " << ii.d_id << std::endl;
   Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
-                         << ii.getAntecedant() << " by " << ii.d_id
+                         << ii.getAntecedent() << " by " << ii.d_id
                          << std::endl;
   std::vector<Node> exp;
   for (const Node& ec : ii.d_ant)

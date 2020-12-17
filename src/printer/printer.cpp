@@ -238,9 +238,8 @@ void Printer::toStreamCmdDeclareVar(std::ostream& out,
 }
 
 void Printer::toStreamCmdSynthFun(std::ostream& out,
-                                  const std::string& sym,
+                                  Node f,
                                   const std::vector<Node>& vars,
-                                  TypeNode range,
                                   bool isInv,
                                   TypeNode sygusType) const
 {

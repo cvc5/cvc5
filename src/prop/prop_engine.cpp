@@ -30,6 +30,7 @@
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
+#include "prop/minisat/minisat.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
@@ -38,9 +39,6 @@
 #include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
-
-using namespace std;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace prop {
@@ -66,40 +64,51 @@ public:
 };
 
 PropEngine::PropEngine(TheoryEngine* te,
-                       Context* satContext,
-                       UserContext* userContext,
+                       context::Context* satContext,
+                       context::UserContext* userContext,
                        ResourceManager* rm,
-                       OutputManager& outMgr)
+                       OutputManager& outMgr,
+                       ProofNodeManager* pnm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
-      d_theoryProxy(NULL),
-      d_satSolver(NULL),
-      d_registrar(NULL),
-      d_cnfStream(NULL),
+      d_theoryProxy(nullptr),
+      d_satSolver(nullptr),
+      d_registrar(nullptr),
+      d_pnm(pnm),
+      d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
+      d_ppm(nullptr),
       d_interrupted(false),
       d_resourceManager(rm),
       d_outMgr(outMgr)
 {
-
   Debug("prop") << "Constructing the PropEngine" << endl;
 
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
+  d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::CnfStream(
       d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
-
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
-  d_satSolver->initialize(d_context, d_theoryProxy);
+  d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
+  if (pnm)
+  {
+    d_pfCnfStream.reset(new ProofCnfStream(
+        userContext,
+        *d_cnfStream,
+        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager(),
+        pnm));
+    d_ppm.reset(
+        new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
+  }
   if (options::unsatCores())
   {
     ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
@@ -110,6 +119,16 @@ void PropEngine::finishInit()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
+  // this is necessary because if True is later asserted to the prop engine the
+  // CNF stream will ignore it since the SAT solver already had it registered,
+  // thus not having True as an assumption for the SAT proof. To solve this
+  // issue we track it directly here
+  if (isProofEnabled())
+  {
+    static_cast<MinisatSatSolver*>(d_satSolver)
+        ->getProofManager()
+        ->registerSatAssumptions({nm->mkConst(true)});
+  }
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
 
@@ -149,7 +168,16 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false, true);
+  if (isProofEnabled())
+  {
+    d_pfCnfStream->convertAndAssert(node, false, false, nullptr);
+    // register in proof manager
+    d_ppm->registerAssertion(node);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(node, false, false, true);
+  }
 }
 
 void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
@@ -157,9 +185,17 @@ void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
   Node node = trn.getNode();
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
-
   // Assert as (possibly) removable
-  d_cnfStream->convertAndAssert(node, removable, negated);
+  if (isProofEnabled())
+  {
+    Assert(trn.getGenerator());
+    d_pfCnfStream->convertAndAssert(
+        node, negated, removable, trn.getGenerator());
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(node, removable, negated);
+  }
 }
 
 void PropEngine::assertLemmas(theory::TrustNode lem,
@@ -266,61 +302,75 @@ Result PropEngine::checkSat() {
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
 
-Node PropEngine::getValue(TNode node) const {
+Node PropEngine::getValue(TNode node) const
+{
   Assert(node.getType().isBoolean());
   Assert(d_cnfStream->hasLiteral(node));
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
   SatValue v = d_satSolver->value(lit);
-  if(v == SAT_VALUE_TRUE) {
+  if (v == SAT_VALUE_TRUE)
+  {
     return NodeManager::currentNM()->mkConst(true);
-  } else if(v == SAT_VALUE_FALSE) {
+  }
+  else if (v == SAT_VALUE_FALSE)
+  {
     return NodeManager::currentNM()->mkConst(false);
-  } else {
+  }
+  else
+  {
     Assert(v == SAT_VALUE_UNKNOWN);
     return Node::null();
   }
 }
 
-bool PropEngine::isSatLiteral(TNode node) const {
+bool PropEngine::isSatLiteral(TNode node) const
+{
   return d_cnfStream->hasLiteral(node);
 }
 
-bool PropEngine::hasValue(TNode node, bool& value) const {
+bool PropEngine::hasValue(TNode node, bool& value) const
+{
   Assert(node.getType().isBoolean());
   Assert(d_cnfStream->hasLiteral(node)) << node;
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
   SatValue v = d_satSolver->value(lit);
-  if(v == SAT_VALUE_TRUE) {
+  if (v == SAT_VALUE_TRUE)
+  {
     value = true;
     return true;
-  } else if(v == SAT_VALUE_FALSE) {
+  }
+  else if (v == SAT_VALUE_FALSE)
+  {
     value = false;
     return true;
-  } else {
+  }
+  else
+  {
     Assert(v == SAT_VALUE_UNKNOWN);
     return false;
   }
 }
 
-void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const {
+void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
+{
   d_cnfStream->getBooleanVariables(outputVariables);
 }
 
-void PropEngine::ensureLiteral(TNode n) {
-  d_cnfStream->ensureLiteral(n);
-}
+void PropEngine::ensureLiteral(TNode n) { d_cnfStream->ensureLiteral(n); }
 
-void PropEngine::push() {
+void PropEngine::push()
+{
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
   Debug("prop") << "push()" << endl;
 }
 
-void PropEngine::pop() {
+void PropEngine::pop()
+{
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
@@ -332,16 +382,16 @@ void PropEngine::resetTrail()
   Debug("prop") << "resetTrail()" << endl;
 }
 
-unsigned PropEngine::getAssertionLevel() const {
+unsigned PropEngine::getAssertionLevel() const
+{
   return d_satSolver->getAssertionLevel();
 }
 
-bool PropEngine::isRunning() const {
-  return d_inCheckSat;
-}
+bool PropEngine::isRunning() const { return d_inCheckSat; }
 void PropEngine::interrupt()
 {
-  if(! d_inCheckSat) {
+  if (!d_inCheckSat)
+  {
     return;
   }
 
@@ -355,43 +405,60 @@ void PropEngine::spendResource(ResourceManager::Resource r)
   d_resourceManager->spendResource(r);
 }
 
-bool PropEngine::properExplanation(TNode node, TNode expl) const {
-  if(! d_cnfStream->hasLiteral(node)) {
-    Trace("properExplanation") << "properExplanation(): Failing because node "
-                               << "being explained doesn't have a SAT literal ?!" << std::endl
-                               << "properExplanation(): The node is: " << node << std::endl;
+bool PropEngine::properExplanation(TNode node, TNode expl) const
+{
+  if (!d_cnfStream->hasLiteral(node))
+  {
+    Trace("properExplanation")
+        << "properExplanation(): Failing because node "
+        << "being explained doesn't have a SAT literal ?!" << std::endl
+        << "properExplanation(): The node is: " << node << std::endl;
     return false;
   }
 
   SatLiteral nodeLit = d_cnfStream->getLiteral(node);
 
-  for(TNode::kinded_iterator i = expl.begin(kind::AND),
-        i_end = expl.end(kind::AND);
-      i != i_end;
-      ++i) {
-    if(! d_cnfStream->hasLiteral(*i)) {
-      Trace("properExplanation") << "properExplanation(): Failing because one of explanation "
-                                 << "nodes doesn't have a SAT literal" << std::endl
-                                 << "properExplanation(): The explanation node is: " << *i << std::endl;
+  for (TNode::kinded_iterator i = expl.begin(kind::AND),
+                              i_end = expl.end(kind::AND);
+       i != i_end;
+       ++i)
+  {
+    if (!d_cnfStream->hasLiteral(*i))
+    {
+      Trace("properExplanation")
+          << "properExplanation(): Failing because one of explanation "
+          << "nodes doesn't have a SAT literal" << std::endl
+          << "properExplanation(): The explanation node is: " << *i
+          << std::endl;
       return false;
     }
 
     SatLiteral iLit = d_cnfStream->getLiteral(*i);
 
-    if(iLit == nodeLit) {
-      Trace("properExplanation") << "properExplanation(): Failing because the node" << std::endl
-                                 << "properExplanation(): " << node << std::endl
-                                 << "properExplanation(): cannot be made to explain itself!" << std::endl;
+    if (iLit == nodeLit)
+    {
+      Trace("properExplanation")
+          << "properExplanation(): Failing because the node" << std::endl
+          << "properExplanation(): " << node << std::endl
+          << "properExplanation(): cannot be made to explain itself!"
+          << std::endl;
       return false;
     }
 
-    if(! d_satSolver->properExplanation(nodeLit, iLit)) {
-      Trace("properExplanation") << "properExplanation(): SAT solver told us that node" << std::endl
-                                 << "properExplanation(): " << *i << std::endl
-                                 << "properExplanation(): is not part of a proper explanation node for" << std::endl
-                                 << "properExplanation(): " << node << std::endl
-                                 << "properExplanation(): Perhaps it one of the two isn't assigned or the explanation" << std::endl
-                                 << "properExplanation(): node wasn't propagated before the node being explained" << std::endl;
+    if (!d_satSolver->properExplanation(nodeLit, iLit))
+    {
+      Trace("properExplanation")
+          << "properExplanation(): SAT solver told us that node" << std::endl
+          << "properExplanation(): " << *i << std::endl
+          << "properExplanation(): is not part of a proper explanation node for"
+          << std::endl
+          << "properExplanation(): " << node << std::endl
+          << "properExplanation(): Perhaps it one of the two isn't assigned or "
+             "the explanation"
+          << std::endl
+          << "properExplanation(): node wasn't propagated before the node "
+             "being explained"
+          << std::endl;
       return false;
     }
   }
@@ -399,13 +466,27 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const {
   return true;
 }
 
+void PropEngine::checkProof(context::CDList<Node>* assertions)
+{
+  if (!d_pnm)
+  {
+    return;
+  }
+  return d_ppm->checkProof(assertions);
+}
+
 ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
 
 std::shared_ptr<ProofNode> PropEngine::getProof()
 {
-  // TODO (proj #37) implement this
-  return nullptr;
+  if (!d_pnm)
+  {
+    return nullptr;
+  }
+  return d_ppm->getProof();
 }
 
-}/* CVC4::prop namespace */
-}/* CVC4 namespace */
+bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
+
+}  // namespace prop
+}  // namespace CVC4
