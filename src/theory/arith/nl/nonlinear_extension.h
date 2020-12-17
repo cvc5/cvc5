@@ -29,6 +29,7 @@
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
+#include "theory/arith/nl/ext/proof_checker.h"
 #include "theory/arith/nl/ext/split_zero_check.h"
 #include "theory/arith/nl/ext/tangent_plane_check.h"
 #include "theory/arith/nl/ext_theory_callback.h"
@@ -76,7 +77,10 @@ class NonlinearExtension
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  NonlinearExtension(TheoryArith& containing, ArithState& state, eq::EqualityEngine* ee);
+  NonlinearExtension(TheoryArith& containing,
+                     ArithState& state,
+                     eq::EqualityEngine* ee,
+                     ProofNodeManager* pnm);
   ~NonlinearExtension();
   /**
    * Does non-context dependent setup for a node connected to a theory.
@@ -252,6 +256,8 @@ class NonlinearExtension
    * transcendental functions.
    */
   transcendental::TranscendentalSolver d_trSlv;
+  /** The proof checker for proofs of the nlext. */
+  ExtProofRuleChecker d_proofChecker;
   /**
    * Holds common lookup data for the checks implemented in the "nl-ext"
    * solvers (from Cimatti et al., TACAS 2017).
