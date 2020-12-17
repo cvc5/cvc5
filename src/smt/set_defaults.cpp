@@ -260,14 +260,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // formulas is unsat. Thus, proofs do not apply.
     disableProofNewOk = true;
   }
-  // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
-  // with new proof system
-  if (options::unsatCores())
-  {
-    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
-    // don't want CI failures
-    disableProofNewOk = true;
-  }
 
   if (options::arraysExp())
   {
@@ -414,7 +406,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // explicitly
   if (options::unsatCores())
   {
-    if (options::simplificationMode() != options::SimplificationMode::NONE)
+    // only disable if not in proof new, since new proofs support it
+    if (!options::proofNew()
+        && options::simplificationMode() != options::SimplificationMode::NONE)
     {
       if (options::simplificationMode.wasSetByUser())
       {
@@ -529,6 +523,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (options::bitvectorAig())
     {
       throw OptionException("bitblast-aig not supported with unsat cores");
+    }
+
+    if (options::doITESimp())
+    {
+      throw OptionException("ITE simp not supported with unsat cores");
     }
   }
   else

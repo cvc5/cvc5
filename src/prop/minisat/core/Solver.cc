@@ -227,8 +227,7 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
     d_pfManager.reset(
         new SatProofManager(this, proxy->getCnfStream(), userContext, pnm));
   }
-
-  if (options::unsatCores() && !isProofEnabled())
+  else if (options::unsatCores())
   {
     ProofManager::currentPM()->initSatProof(this);
   }
