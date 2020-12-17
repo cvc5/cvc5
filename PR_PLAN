@@ -132,6 +132,9 @@ PRs ready:
 (70) rewriter unit test [Andres] (req 36, 37)
 (131) Updates to Boolean proof checker [Haniel]
 (133) Boolean proof checker unit test [Haniel]
+(138) Macro resolution expansion [Haniel]
+(139) CAD proofs [Gereon]
+(141) nl transcendental proofs [Gereon]
 
 PRs future:
 
@@ -142,11 +145,10 @@ PRs future:
 (69) Initial dumping infrastructure [Haniel]
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (98) fixes in setDefaults
+(140) nl-ext proofs [Gereon]
 
 Wish list:
 
 (57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
-- CAD proofs [Gereon]
-- nl-ext proofs [Gereon]
 - SEXPR simply typed
 - arith op eliminate proof producing, defining axioms (req 30)
