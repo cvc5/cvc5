@@ -1,3 +1,4 @@
+; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic QF_ALL_SUPPORTED)
 (set-info :status sat)

@@ -1,4 +1,6 @@
 ; REQUIRES: symfpu
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic QF_FPLRA)
 (set-info :status sat)
 (declare-fun a () (_ FloatingPoint 11 53))
