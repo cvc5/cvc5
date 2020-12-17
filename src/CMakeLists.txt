@@ -357,6 +357,8 @@ libcvc4_add_sources(
   theory/arith/nl/ext/monomial_check.h
   theory/arith/nl/ext/ext_state.cpp
   theory/arith/nl/ext/ext_state.h
+  theory/arith/nl/ext/proof_checker.cpp
+  theory/arith/nl/ext/proof_checker.h
   theory/arith/nl/ext/split_zero_check.cpp
   theory/arith/nl/ext/split_zero_check.h
   theory/arith/nl/ext/tangent_plane_check.cpp
