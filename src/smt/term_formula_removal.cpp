@@ -107,7 +107,8 @@ theory::TrustNode RemoveTermFormulas::runLemma(
   Node assertionPre = lem.getProven();
   Node naEq = trn.getProven();
   // Can skip adding to d_lp if it was already added. The common use case of
-  // this method is using the
+  // this method is applying this method to TrustNode whose generator is
+  // already d_lp (from the run method above).
   if (trn.getGenerator() != d_lp.get())
   {
     d_lp->addLazyStep(naEq, trn.getGenerator());
