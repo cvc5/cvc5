@@ -44,15 +44,6 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
   return *this;
 }
 
-CVC4dumpstream& CVC4dumpstream::operator<<(ProofNode* pn)
-{
-  if (d_os != nullptr)
-  {
-    (*d_os) << *pn;
-  }
-  return *this;
-}
-
 #else
 
 CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c) { return *this; }
@@ -60,7 +51,6 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 {
   return *this;
 }
-CVC4dumpstream& CVC4dumpstream::operator<<(ProofNode* pn) { return *this; }
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 

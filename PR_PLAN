@@ -63,6 +63,7 @@ PR finished:
 (65) updates to strings core solver
 (66) preprocess proof generator
 (67) AssertionsPipeline update (req 66)
+(68) PropEngine proof producing [Haniel] (req 53, 85, 110, 111, 112)
 (71) quantifiers proof producing (req 38, 52, 87)
 (72) witness form proof generator
 (73) ProofNode print ast
@@ -75,6 +76,7 @@ PR finished:
 (81) update term formula removal to use term context (req 79, 80)
 (82) SmtEngine proof manager (req 84, 87, 93)
 (84) SMT engine proof post-processor (req 63)
+(85) SmtEngine infrastructure for check proofs (req 82)
 (86) builtin proof checker updates including theory rewrite is a trusted rule
 (87) Delete old proof code [Haniel]
 (88) fixes for smt preprocess proof generator
@@ -106,6 +108,7 @@ PR finished:
 (115) trust substitution and ppAssert interface
 (116) general smt preprocess proof generator (req 119)
 (117) trust substitution implementation (req 119)
+(118) non-clausal simplification proof producing (req 116, 117, 120, 125)
 (119) Lazy proof set
 (120) new miscellaneous proof rules + Boolean checker
 (121) proof rule checker simplify
@@ -117,21 +120,18 @@ PR finished:
 (127) datatypes proof checker (req 126)
 (128) updates to lazy cd proof chain [Haniel]
 (129) refinements to cyclic checking policy
+(130) regexp elimination proofs (req 101)
 (132) Datatypes inference to proof (req 127)
 (134) proofs for skolemization
 (135) Datatypes proof producing (req 132)
+(136) BV proof checker [Mathias]
+(137) basic proofs for simple BV solver [Mathias]
 
 PRs ready:
 
-(68) PropEngine proof producing [Haniel] (req 53, 85, 110, 111, 112)
 (70) rewriter unit test [Andres] (req 36, 37)
-(85) SmtEngine infrastructure for check proofs (req 82)
-(118) non-clausal simplification proof producing (req 116, 117, 120, 125) *
-(130) regexp elimination proofs (req 101) *
 (131) Updates to Boolean proof checker [Haniel]
 (133) Boolean proof checker unit test [Haniel]
-(136) BV proof checker [Mathias]
-(137) basic proofs for simple BV solver [Mathias]
 
 PRs future:
 
@@ -148,7 +148,5 @@ Wish list:
 (57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
 - CAD proofs [Gereon]
 - nl-ext proofs [Gereon]
-- BV simple solver proof producing [Mathias]
 - SEXPR simply typed
-- Proof kinds infrastructure?
 - arith op eliminate proof producing, defining axioms (req 30)

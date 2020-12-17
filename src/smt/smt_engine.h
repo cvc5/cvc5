@@ -127,7 +127,6 @@ ProofManager* currentProofManager();
 namespace theory {
   class TheoryModel;
   class Rewriter;
-  class RewriteDb;
 }/* CVC4::theory namespace */
 
 
