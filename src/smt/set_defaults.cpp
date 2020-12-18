@@ -72,8 +72,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
     options::dumpUnsatCores.set(true);
   }
-  if (options::checkUnsatCores() || options::dumpUnsatCores()
-      || options::unsatAssumptions())
+  if (options::checkUnsatCores() || options::checkUnsatCoresNew()
+      || options::dumpUnsatCores() || options::unsatAssumptions())
   {
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
@@ -258,6 +258,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     // When global negate answers "unsat", it is not due to showing a set of
     // formulas is unsat. Thus, proofs do not apply.
+    disableProofNewOk = true;
+  }
+  // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
+  // with new proof system
+  if (options::unsatCores() && !options::checkUnsatCoresNew())
+  {
+    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
+    // don't want CI failures
     disableProofNewOk = true;
   }
 
