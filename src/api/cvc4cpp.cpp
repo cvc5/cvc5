@@ -5615,7 +5615,7 @@ Term Solver::mkSygusVar(Sort sort, const std::string& symbol) const
   Node res = getNodeManager()->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
 
-  d_smtEngine->declareSygusVar(symbol, res, *sort.d_type);
+  d_smtEngine->declareSygusVar(res);
 
   return Term(this, res);
 
@@ -5740,7 +5740,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   std::vector<Node> bvns = termVectorToNodes(boundVars);
 
   d_smtEngine->declareSynthFun(
-      symbol, fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
+      fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
 
   return Term(this, fun);
 
