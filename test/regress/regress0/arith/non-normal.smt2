@@ -1,4 +1,4 @@
-; COMMAND-LINE: --proof-new-eager-checking --proof-new
+; COMMAND-LINE: --proof-new-eager-checking
 ; EXPECT: sat
 (set-logic QF_UFLRA)
 (declare-fun v1 () Real)
