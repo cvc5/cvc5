@@ -1456,7 +1456,11 @@ void SmtEngine::checkUnsatCore() {
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
+  // disable all proof options
+  coreChecker->getOptions().set(options::proofNew, false);
+  coreChecker->getOptions().set(options::proofNewReq, false);
   coreChecker->getOptions().set(options::checkProofsNew, false);
+  coreChecker->getOptions().set(options::proofNewEagerChecking, false);
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
