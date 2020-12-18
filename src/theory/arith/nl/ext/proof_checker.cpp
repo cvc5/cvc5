@@ -27,6 +27,7 @@ namespace nl {
 
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
+  pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
 }
 
 Node ExtProofRuleChecker::checkInternal(PfRule id,
@@ -43,6 +44,41 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
   for (const auto& c : children)
   {
     Trace("nl-ext-checker") << "\t" << c << std::endl;
+  }
+  if (id == PfRule::ARITH_MULT_TANGENT)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 6);
+    Assert(args[0].getType().isReal());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].getType().isReal());
+    Assert(args[3].getType().isReal());
+    Assert(args[4].getType().isReal());
+    Assert(args[5].isConst() && args[5].getKind() == Kind::CONST_RATIONAL
+           && args[5].getConst<Rational>().isIntegral());
+    Node t = args[0];
+    Node x = args[1];
+    Node y = args[2];
+    Node a = args[3];
+    Node b = args[4];
+    int sgn = args[5].getConst<Rational>().getNumerator().sgn();
+    Assert(sgn == -1 || sgn == 1);
+    Node tplane = nm->mkNode(Kind::MINUS,
+                             nm->mkNode(Kind::PLUS,
+                                        nm->mkNode(Kind::MULT, b, x),
+                                        nm->mkNode(Kind::MULT, a, y)),
+                             nm->mkNode(Kind::MULT, a, b));
+    return nm->mkNode(
+        Kind::EQUAL,
+        nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, t, tplane),
+        nm->mkNode(
+            Kind::OR,
+            nm->mkNode(Kind::AND,
+                       nm->mkNode(Kind::LEQ, x, a),
+                       nm->mkNode(sgn == -1 ? Kind::GEQ : Kind::LEQ, y, b)),
+            nm->mkNode(Kind::AND,
+                       nm->mkNode(Kind::GEQ, x, a),
+                       nm->mkNode(sgn == -1 ? Kind::LEQ : Kind::GEQ, y, b))));
   }
   return Node::null();
 }
