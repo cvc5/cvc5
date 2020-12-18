@@ -55,6 +55,10 @@ class FactoringCheck
   Node d_zero;
   Node d_one;
 
+  /**
+   * Introduces a new purification skolem k for n and adds k=n as lemma.
+   * If proof is not nullptr, it proves this lemma via MACRO_SR_PRED_INTRO.
+   */
   Node getFactorSkolem(Node n, CDProof* proof);
 };
 
