@@ -210,6 +210,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
+  // --ite-simp is an experimental option designed for QF_LIA/nec. This
+  // technique is experimental. This benchmark set also requires removing ITEs
+  // during preprocessing, before repeating simplification. Hence, we enable
+  // this by default.
+  if (options::doITESimp())
+  {
+    if (!options::earlyIteRemoval.wasSetByUser())
+    {
+      options::earlyIteRemoval.set(true);
+    }
+  }
+
   // Set default options associated with strings-exp. We also set these options
   // if we are using eager string preprocessing, which may introduce quantified
   // formulas at preprocess time.

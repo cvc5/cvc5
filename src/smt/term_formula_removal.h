@@ -92,18 +92,6 @@ class RemoveTermFormulas {
                         std::vector<Node>& newSkolems);
 
   /**
-   * Substitute under node using pre-existing cache.  Do not remove
-   * any ITEs not seen during previous runs.
-   */
-  Node replace(TNode node) const;
-
-  /** Returns true if e contains a term ite. */
-  bool containsTermITE(TNode e) const;
-
-  /** Garbage collects non-context dependent data-structures. */
-  void garbageCollect();
-
-  /**
    * Get proof generator that is responsible for all proofs for removing term
    * formulas from nodes. When proofs are enabled, the returned trust node
    * of the run method use this proof generator (the trust nodes in newAsserts
@@ -199,8 +187,6 @@ class RemoveTermFormulas {
   Node runCurrent(std::pair<Node, uint32_t>& curr,
                   std::vector<theory::TrustNode>& newAsserts,
                   std::vector<Node>& newSkolems);
-  /** Replace internal */
-  Node replaceInternal(TCtxStack& ctx) const;
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;
