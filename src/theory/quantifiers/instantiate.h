@@ -267,11 +267,11 @@ class Instantiate : public QuantifiersUtil
   Node getInstantiatedConjunction(Node q);
   /** get unsat core lemmas
    *
-   * If this method returns true, then it appends to active_lemmas all lemmas
+   * If this method returns true, then it appends to activeLemmas all lemmas
    * that are in the unsat core that originated from the theory of quantifiers.
    * This method returns false if the unsat core is not available.
    */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
+  bool getUnsatCoreLemmas(std::vector<Node>& activeLemmas);
   /** get explanation for instantiation lemmas
    *
    *

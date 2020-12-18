@@ -696,6 +696,9 @@ class CVC4_PUBLIC SmtEngine
    */
   UnsatCore getUnsatCore();
 
+  /** Retrieve the lemmas that appear in the unsat core. */
+  void getLemmasInUnsatCore(std::vector<Node>& lemmas);
+
   /**
    * Get the current set of assertions.  Only permitted if the
    * SmtEngine is set to operate interactively.

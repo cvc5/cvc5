@@ -580,29 +580,38 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   }
 }
 
-bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
+bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& activeLemmas)
 {
   // only if unsat core available
-  if (options::unsatCores() && !isProofEnabled())
-  {
-    if (!ProofManager::currentPM()->unsatCoreAvailable())
-    {
-      return false;
-    }
-  }
-  else
+  if (!options::unsatCores())
   {
     return false;
   }
-
-  Trace("inst-unsat-core") << "Get instantiations in unsat core..."
-                           << std::endl;
-  ProofManager::currentPM()->getLemmasInUnsatCore(active_lemmas);
+  Trace("inst-unsat-core") << "Get instantiations in unsat core...\n";
+  // computing from old proofs
+  if (!isProofEnabled())
+  {
+    if (!ProofManager::currentPM()->unsatCoreAvailable())
+    {
+      Trace("inst-unsat-core") << "No unsat core yet.\n";
+      return false;
+    }
+    ProofManager::currentPM()->getLemmasInUnsatCore(activeLemmas);
+  }
+  else
+  {
+    // smt::currentSmtEngine()->getLemmasInUnsatCore(activeLemmas);
+    // if (activeLemmas.empty())
+    // {
+    //   Trace("inst-unsat-core") << "No unsat core or no lemmas in it.\n";
+    //   return false;
+    // }
+  }
   if (Trace.isOn("inst-unsat-core"))
   {
-    Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
-                             << std::endl;
-    for (const Node& lem : active_lemmas)
+    Trace("inst-unsat-core")
+        << "Quantifiers lemmas in unsat core: " << std::endl;
+    for (const Node& lem : activeLemmas)
     {
       Trace("inst-unsat-core") << "  " << lem << std::endl;
     }

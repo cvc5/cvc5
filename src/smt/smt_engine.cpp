@@ -987,8 +987,10 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate an unsat core correctly.
-    if(options::checkUnsatCores()) {
-      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+    if (options::checkUnsatCores() || options::checkUnsatCoresNew())
+    {
+      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      {
         TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
         checkUnsatCore();
       }
@@ -1460,6 +1462,7 @@ void SmtEngine::checkUnsatCore() {
   coreChecker->getOptions().set(options::proofNew, false);
   coreChecker->getOptions().set(options::proofNewReq, false);
   coreChecker->getOptions().set(options::checkProofsNew, false);
+  coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
   coreChecker->getOptions().set(options::proofNewEagerChecking, false);
 
   // set up separation logic heap if necessary
@@ -1524,6 +1527,22 @@ UnsatCore SmtEngine::getUnsatCore() {
         getOutputManager().getDumpOut());
   }
   return getUnsatCoreInternal();
+}
+
+void SmtEngine::getLemmasInUnsatCore(std::vector<Node>& lemmas)
+{
+  Assert(options::unsatCores());
+  // no unsat core yet
+  if (d_state->getMode() != SmtMode::UNSAT)
+  {
+    return;
+  }
+  // generate with new proofs
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
+  const std::vector<Node>& core = d_pfManager->getUnsatCore(
+      pe->getProof(), *d_asserts, *d_definedFunctions);
 }
 
 void SmtEngine::printProof()
