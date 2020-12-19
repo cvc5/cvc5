@@ -28,11 +28,7 @@ namespace CVC4 {
 
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
                                        ProofNodeManager* pnm)
-    : d_tfCache(u),
-      d_skolem_cache(u),
-      d_pnm(pnm),
-      d_tpg(nullptr),
-      d_lp(nullptr)
+    : d_tfCache(u), d_skolem_cache(u), d_pnm(pnm), d_tpg(nullptr), d_lp(nullptr)
 {
   // enable proofs if necessary
   if (d_pnm != nullptr)
@@ -91,7 +87,8 @@ theory::TrustNode RemoveTermFormulas::runLemma(
     std::vector<Node>& newSkolems,
     bool fixedPoint)
 {
-  theory::TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
+  theory::TrustNode trn =
+      run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
   if (trn.isNull())
   {
     // no change

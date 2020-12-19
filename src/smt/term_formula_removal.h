@@ -95,7 +95,7 @@ class RemoveTermFormulas {
                         std::vector<theory::TrustNode>& newAsserts,
                         std::vector<Node>& newSkolems,
                         bool fixedPoint = false);
-  /**   
+  /**
    * Same as above, but transforms a lemma, returning a LEMMA trust node that
    * proves the same formula as lem with term formulas removed.
    */
