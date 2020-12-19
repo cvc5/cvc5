@@ -45,9 +45,6 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
   Assert(!d_op.isNull());
 }
 
-void CandidateGeneratorQE::resetInstantiationRound(){
-}
-
 void CandidateGeneratorQE::reset(Node eqc) { resetForOperator(eqc, d_op); }
 
 void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
