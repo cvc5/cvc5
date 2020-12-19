@@ -62,7 +62,7 @@ class SygusSolver
    * which a function is being synthesized. Thus declared functions should use
    * this method as well.
    */
-  void declareSygusVar(const std::string& id, Node var, TypeNode type);
+  void declareSygusVar(Node var);
 
   /**
    * Add a function-to-synthesize declaration.
@@ -79,8 +79,7 @@ class SygusSolver
    * invariant. This information is necessary if we are dumping a command
    * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(const std::string& id,
-                       Node func,
+  void declareSynthFun(Node func,
                        TypeNode type,
                        bool isInv,
                        const std::vector<Node>& vars);
