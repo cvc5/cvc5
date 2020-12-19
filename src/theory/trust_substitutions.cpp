@@ -201,8 +201,7 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
   {
     // if we fail for any reason, we must use a trusted step instead
-    Node eq = n.eqNode(ns);
-    d_tspb->tryStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
+    d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
   }
   // -------        ------- from external proof generators
   // x1 = t1 ...    xn = tn
@@ -243,6 +242,7 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
   {
     csubsChildren.push_back(tns.getProven());
   }
+  std::reverse(csubsChildren.begin(),csubsChildren.end());
   d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
   if (d_currentSubs.get().getKind() == kind::AND)
   {
