@@ -28,7 +28,11 @@ namespace CVC4 {
 
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
                                        ProofNodeManager* pnm)
-    : d_tfCache(u), d_skolem_cache(u), d_pnm(pnm), d_tpg(nullptr), d_lp(nullptr)
+    : d_tfCache(u),
+      d_skolem_cache(u),
+      d_pnm(pnm),
+      d_tpg(nullptr),
+      d_lp(nullptr)
 {
   // enable proofs if necessary
   if (d_pnm != nullptr)
@@ -87,8 +91,7 @@ theory::TrustNode RemoveTermFormulas::runLemma(
     std::vector<Node>& newSkolems,
     bool fixedPoint)
 {
-  theory::TrustNode trn =
-      run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
+  theory::TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
   if (trn.isNull())
   {
     // no change
@@ -106,9 +109,9 @@ theory::TrustNode RemoveTermFormulas::runLemma(
       << std::endl;
   Node assertionPre = lem.getProven();
   Node naEq = trn.getProven();
-  // Can skip adding to d_lp if it was already added. The common use case of
   // this method is applying this method to TrustNode whose generator is
-  // already d_lp (from the run method above).
+  // already d_lp (from the run method above), in which case this link is
+  // not necessary.
   if (trn.getGenerator() != d_lp.get())
   {
     d_lp->addLazyStep(naEq, trn.getGenerator());
@@ -154,7 +157,14 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     if (!processedChildren.back())
     {
       // check if we should replace the current node
-      Node currt = runCurrent(curr, output, newSkolems);
+      theory::TrustNode newLem;
+      Node currt = runCurrent(curr, newLem);
+      if (!newLem.isNull())
+      {
+        Assert(!currt.isNull());
+        output.push_back(newLem);
+        newSkolems.push_back(currt);
+      }
       // if null, we need to recurse
       if (!currt.isNull())
       {
@@ -228,14 +238,9 @@ Node RemoveTermFormulas::runInternal(Node assertion,
 }
 
 Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
-                                    std::vector<theory::TrustNode>& output,
-                                    std::vector<Node>& newSkolems)
+                                    theory::TrustNode& newLem)
 {
   TNode node = curr.first;
-  if (node.getKind() == kind::INST_PATTERN_LIST)
-  {
-    return Node(node);
-  }
   uint32_t cval = curr.second;
   bool inQuant, inTerm;
   RtfTermContext::getFlags(curr.second, inQuant, inTerm);
@@ -476,15 +481,11 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
       Trace("rtf-debug") << "*** term formula removal introduced " << skolem
                          << " for " << node << std::endl;
 
-      theory::TrustNode trna =
-          theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
+      newLem = theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
-      trna.debugCheckClosed("rtf-proof-debug",
-                            "RemoveTermFormulas::run:new_assert");
-
-      output.push_back(trna);
-      newSkolems.push_back(skolem);
+      newLem.debugCheckClosed("rtf-proof-debug",
+                              "RemoveTermFormulas::run:new_assert");
     }
 
     // The representation is now the skolem
