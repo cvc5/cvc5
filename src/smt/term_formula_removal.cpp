@@ -156,15 +156,16 @@ Node RemoveTermFormulas::runInternal(Node assertion,
       // check if we should replace the current node
       theory::TrustNode newLem;
       Node currt = runCurrent(curr, newLem);
-      if (!newLem.isNull())
-      {
-        Assert(!currt.isNull());
-        output.push_back(newLem);
-        newSkolems.push_back(currt);
-      }
-      // if null, we need to recurse
+      // if we replaced by a skolem, we do not recurse
       if (!currt.isNull())
       {
+        // if this is the first time we've seen this term, we have a new lemma
+        // which we add to our vectors
+        if (!newLem.isNull())
+        {
+          output.push_back(newLem);
+          newSkolems.push_back(currt);
+        }
         Trace("rtf-debug") << "...replace by skolem" << std::endl;
         d_tfCache.insert(curr, currt);
         ctx.pop();
