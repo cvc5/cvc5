@@ -72,7 +72,58 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
 }
 
-void TheoryBags::postCheck(Effort level) {}
+void TheoryBags::postCheck(Effort e)
+{
+  d_im.doPendingFacts();
+  // TODO: clean this before merge Assert(d_strat.isStrategyInit());
+  if (!d_state.isInConflict() && !d_valuation.needCheck())
+  // TODO: clean this before merge && d_strat.hasStrategyEffort(e))
+  {
+    Trace("bags-check-debug")
+        << "Theory of bags " << e << " effort check " << std::endl;
+
+    // TODO: clean this before merge ++(d_statistics.d_checkRuns);
+    bool sentLemma = false;
+    bool hadPending = false;
+    Trace("bags-check") << "Full effort check..." << std::endl;
+    do
+    {
+      d_im.reset();
+      // TODO: clean this before merge ++(d_statistics.d_strategyRuns);
+      Trace("bags-check") << "  * Run strategy..." << std::endl;
+      // TODO: clean this before merge runStrategy(e);
+      // remember if we had pending facts or lemmas
+      hadPending = d_im.hasPending();
+      // Send the facts *and* the lemmas. We send lemmas regardless of whether
+      // we send facts since some lemmas cannot be dropped. Other lemmas are
+      // otherwise avoided by aborting the strategy when a fact is ready.
+      d_im.doPending();
+      // Did we successfully send a lemma? Notice that if hasPending = true
+      // and sentLemma = false, then the above call may have:
+      // (1) had no pending lemmas, but successfully processed pending facts,
+      // (2) unsuccessfully processed pending lemmas.
+      // In either case, we repeat the strategy if we are not in conflict.
+      sentLemma = d_im.hasSentLemma();
+      if (Trace.isOn("bags-check"))
+      {
+        // TODO: clean this Trace("bags-check") << "  ...finish run strategy: ";
+        Trace("bags-check") << (hadPending ? "hadPending " : "");
+        Trace("bags-check") << (sentLemma ? "sentLemma " : "");
+        Trace("bags-check") << (d_state.isInConflict() ? "conflict " : "");
+        if (!hadPending && !sentLemma && !d_state.isInConflict())
+        {
+          Trace("bags-check") << "(none)";
+        }
+        Trace("bags-check") << std::endl;
+      }
+      // repeat if we did not add a lemma or conflict, and we had pending
+      // facts or lemmas.
+    } while (!d_state.isInConflict() && !sentLemma && hadPending);
+  }
+  Trace("bags-check") << "Theory of bags, done check : " << e << std::endl;
+  Assert(!d_im.hasPendingFact());
+  Assert(!d_im.hasPendingLemma());
+}
 
 void TheoryBags::notifyFact(TNode atom,
                             bool polarity,
