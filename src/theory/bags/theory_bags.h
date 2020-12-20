@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
 #include "theory/bags/inference_manager.h"
@@ -100,6 +101,10 @@ class TheoryBags : public Theory
   BagsStatistics d_statistics;
   /** The theory rewriter for this theory. */
   BagsRewriter d_rewriter;
+  /** The term registry for this theory */
+  TermRegistry d_termReg;
+  /** the main solver for bags */
+  BagSolver d_solver;
 
   void eqNotifyNewClass(TNode t);
   void eqNotifyMerge(TNode t1, TNode t2);
