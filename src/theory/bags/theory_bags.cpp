@@ -92,6 +92,8 @@ void TheoryBags::postCheck(Effort e)
       // TODO: clean this before merge ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
       // TODO: clean this before merge runStrategy(e);
+      d_solver.checkNormalFormsEq();
+      d_solver.checkNormalFormsDeq();
       // remember if we had pending facts or lemmas
       hadPending = d_im.hasPending();
       // Send the facts *and* the lemmas. We send lemmas regardless of whether
