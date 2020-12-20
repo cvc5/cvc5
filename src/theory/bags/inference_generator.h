@@ -69,6 +69,8 @@ class InferenceGenerator
    *   true
    *   (= (count e k_{(union_disjoint A B)})
    *      (+ (count e A) (count e B))))
+   *  where k_{(union_disjoint A B)} is a unique purification skolem
+   *  for (union_disjoint A B)
    */
   InferInfo unionDisjoint(Node n, Node e);
   /**
