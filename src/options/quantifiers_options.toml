@@ -1668,14 +1668,6 @@ header = "options/quantifiers_options.h"
   help       = "use real infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cegqiPreRegInst"
-  category   = "regular"
-  long       = "cegqi-prereg-inst"
-  type       = "bool"
-  default    = "false"
-  help       = "preregister ground instantiations in counterexample-based quantifier instantiation"
-
-[[option]]
   name       = "cegqiMinBounds"
   category   = "regular"
   long       = "cegqi-min-bounds"
