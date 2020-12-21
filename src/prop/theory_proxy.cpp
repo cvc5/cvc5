@@ -19,14 +19,13 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "options/decision_options.h"
+#include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "proof/cnf_proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
-
 
 namespace CVC4 {
 namespace prop {
@@ -35,12 +34,15 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
                          DecisionEngine* decisionEngine,
                          context::Context* context,
-                         CnfStream* cnfStream)
+                         context::UserContext* userContext,
+                         CnfStream* cnfStream,
+                         ProofNodeManager* pnm)
     : d_propEngine(propEngine),
       d_cnfStream(cnfStream),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_queue(context)
+      d_queue(context),
+      d_tpp(*theoryEngine, userContext, pnm)
 {
 }
 
@@ -164,6 +166,26 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
 }
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+
+theory::TrustNode TheoryProxy::preprocessLemma(
+    theory::TrustNode trn,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems,
+    bool doTheoryPreprocess)
+{
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems, doTheoryPreprocess);
+}
+
+theory::TrustNode TheoryProxy::preprocess(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems,
+    bool doTheoryPreprocess)
+{
+  theory::TrustNode pnode =
+      d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess);
+  return pnode;
+}
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
