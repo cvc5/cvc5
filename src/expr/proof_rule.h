@@ -1104,6 +1104,14 @@ enum class PfRule : uint32_t
   // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
   ARITH_MULT_TANGENT,
 
+  // ================ Lemmas for transcendentals
+  //======== Assert bounds on PI
+  // Children: none
+  // Arguments: (l, u)
+  // ---------------------
+  // Conclusion: (and (>= real.pi l) (<= real.pi u))
+  // Where l (u) is a valid lower (upper) bound on pi.
+  ARITH_TRANS_PI,
   //======== Sine arg shifted to -pi..pi
   // Children: none
   // Arguments: (x, y, s)

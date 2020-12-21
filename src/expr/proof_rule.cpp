@@ -160,6 +160,7 @@ const char* toString(PfRule id)
     case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
     case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
