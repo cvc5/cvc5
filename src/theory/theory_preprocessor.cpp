@@ -100,14 +100,13 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     ppNode = tpp.getNode();
   }
 
-  // Remove the ITEs
-  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems);
-  Node rtfNode = ttfr.getNode();
+  // Remove the ITEs, fixed point
+  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, true);
+  Node rtfNode = ttfr.isNull() ? ppNode : ttfr.getNode();
 
   if (Debug.isOn("lemma-ites"))
   {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << ttfr.getNode()
-                        << endl;
+    Debug("lemma-ites") << "removed ITEs from lemma: " << rtfNode << endl;
     Debug("lemma-ites") << " + now have the following " << newLemmas.size()
                         << " lemma(s):" << endl;
     for (size_t i = 0, lsize = newLemmas.size(); i <= lsize; ++i)
