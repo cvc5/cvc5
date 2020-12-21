@@ -390,7 +390,7 @@ protected:
     ClauseAllocator     ca;
 
     // CVC4 Stuff
-    /** 
+    /**
      * A vector determining whether each variable represents a theory atom.
      * More generally, this value is true for any literal that the theory proxy
      * should be notified about when asserted.
