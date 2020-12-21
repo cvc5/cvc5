@@ -29,6 +29,7 @@ namespace transcendental {
 
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
+  pc->registerChecker(PfRule::ARITH_TRANS_PI, this);
 }
 
 Node TranscendentalProofRuleChecker::checkInternal(
@@ -44,6 +45,13 @@ Node TranscendentalProofRuleChecker::checkInternal(
   for (const auto& c : children)
   {
     Trace("nl-trans-checker") << "\t" << c << std::endl;
+  }
+  if (id == PfRule::ARITH_TRANS_PI)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, pi, args[0]),
+                                       nm->mkNode(Kind::LEQ, pi, args[1])});
   }
   return Node::null();
 }
