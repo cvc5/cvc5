@@ -434,13 +434,13 @@ class CVC4_PUBLIC SmtEngine
    * which a function is being synthesized. Thus declared functions should use
    * this method as well.
    */
-  void declareSygusVar(const std::string& id, Node var, TypeNode type);
+  void declareSygusVar(Node var);
 
   /**
    * Add a function-to-synthesize declaration.
    *
-   * The given type may not correspond to the actual function type but to a
-   * datatype encoding the syntax restrictions for the
+   * The given sygusType may not correspond to the actual function type of func
+   * but to a datatype encoding the syntax restrictions for the
    * function-to-synthesize. In this case this information is stored to be used
    * during solving.
    *
@@ -451,11 +451,14 @@ class CVC4_PUBLIC SmtEngine
    * invariant. This information is necessary if we are dumping a command
    * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(const std::string& id,
-                       Node func,
-                       TypeNode type,
+  void declareSynthFun(Node func,
+                       TypeNode sygusType,
                        bool isInv,
                        const std::vector<Node>& vars);
+  /**
+   * Same as above, without a sygus type.
+   */
+  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint.*/
   void assertSygusConstraint(Node constraint);

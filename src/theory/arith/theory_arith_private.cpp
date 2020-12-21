@@ -3848,12 +3848,12 @@ TrustNode TheoryArithPrivate::explain(TNode n)
   TrustNode exp;
   if(c != NullConstraint){
     Assert(!c->isAssumption());
-    exp = c->externalExplainForPropagation();
+    exp = c->externalExplainForPropagation(n);
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
-      exp = c->externalExplainForPropagation();
+      exp = c->externalExplainForPropagation(n);
       Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
     }else{
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
