@@ -92,8 +92,12 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::CnfStream(
-      d_satSolver, d_registrar, userContext, &d_outMgr, rm, FormulaLitPolicy::TRACK);
+  d_cnfStream = new CVC4::prop::CnfStream(d_satSolver,
+                                          d_registrar,
+                                          userContext,
+                                          &d_outMgr,
+                                          rm,
+                                          FormulaLitPolicy::TRACK);
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
