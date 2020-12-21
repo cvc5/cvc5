@@ -263,7 +263,7 @@ class PropEngine
   void printSatisfyingAssignment();
 
   /**
-   * Converts the given formula to CNF and assert the CNF to the SAT solver.
+   * Converts the given formula to CNF and asserts the CNF to the SAT solver.
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
