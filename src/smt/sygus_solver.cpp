@@ -23,6 +23,7 @@
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
@@ -44,24 +45,20 @@ SygusSolver::SygusSolver(SmtSolver& sms,
 
 SygusSolver::~SygusSolver() {}
 
-void SygusSolver::declareSygusVar(const std::string& id,
-                                  Node var,
-                                  TypeNode type)
+void SygusSolver::declareSygusVar(Node var)
 {
-  Trace("smt") << "SygusSolver::declareSygusVar: " << id << " " << var << " "
-               << type << "\n";
-  Assert(var.getType() == type);
+  Trace("smt") << "SygusSolver::declareSygusVar: " << var << " "
+               << var.getType() << "\n";
   d_sygusVars.push_back(var);
   // don't need to set that the conjecture is stale
 }
 
-void SygusSolver::declareSynthFun(const std::string& id,
-                                  Node fn,
+void SygusSolver::declareSynthFun(Node fn,
                                   TypeNode sygusType,
                                   bool isInv,
                                   const std::vector<Node>& vars)
 {
-  Trace("smt") << "SygusSolver::declareSynthFun: " << id << "\n";
+  Trace("smt") << "SygusSolver::declareSynthFun: " << fn << "\n";
   NodeManager* nm = NodeManager::currentNM();
   d_sygusFunSymbols.push_back(fn);
   if (!vars.empty())
@@ -72,7 +69,8 @@ void SygusSolver::declareSynthFun(const std::string& id,
     fn.setAttribute(ssfvla, bvl);
   }
   // whether sygus type encodes syntax restrictions
-  if (sygusType.isDatatype() && sygusType.getDType().isSygus())
+  if (!sygusType.isNull() && sygusType.isDatatype()
+      && sygusType.getDType().isSygus())
   {
     Node sym = nm->mkBoundVar("sfproxy", sygusType);
     // use an attribute to mark its grammar
@@ -180,9 +178,6 @@ Result SygusSolver::checkSynth(Assertions& as)
     NodeManager* nm = NodeManager::currentNM();
     // build synthesis conjecture from asserted constraints and declared
     // variables/functions
-    Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-    Node inst_attr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
-    Node sygusAttr = nm->mkNode(INST_PATTERN_LIST, inst_attr);
     std::vector<Node> bodyv;
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
     size_t nconstraints = d_sygusConstraints.size();
@@ -200,14 +195,10 @@ Result SygusSolver::checkSynth(Assertions& as)
     }
     if (!d_sygusFunSymbols.empty())
     {
-      Node boundVars = nm->mkNode(BOUND_VAR_LIST, d_sygusFunSymbols);
-      body = nm->mkNode(FORALL, boundVars, body, sygusAttr);
+      body =
+          quantifiers::SygusUtils::mkSygusConjecture(d_sygusFunSymbols, body);
     }
     Trace("smt") << "...constructed forall " << body << std::endl;
-
-    // set attribute for synthesis conjecture
-    SygusAttribute sa;
-    sygusVar.setAttribute(sa, true);
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
     if (Dump.isOn("raw-benchmark"))
