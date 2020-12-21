@@ -68,6 +68,7 @@ set(regress_0_tests
   regress0/arith/mod-simp.smt2
   regress0/arith/mod.01.smt2
   regress0/arith/mult.01.smt2
+  regress0/arith/non-normal.smt2
   regress0/arr1.smt2
   regress0/arr1.smtv1.smt2
   regress0/arr2.smtv1.smt2
@@ -809,6 +810,7 @@ set(regress_0_tests
   regress0/quantifiers/bug291.smt2
   regress0/quantifiers/bug749-rounding.smt2
   regress0/quantifiers/cbqi-lia-dt-simp.smt2
+  regress0/quantifiers/cegqi-needs-justify.smt2
   regress0/quantifiers/cegqi-nl-simp.cvc
   regress0/quantifiers/cegqi-nl-sq.smt2
   regress0/quantifiers/cegqi-par-dt-simple.smt2
@@ -832,6 +834,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
   regress0/quantifiers/issue4437-unc-quant.smt2
   regress0/quantifiers/issue4576.smt2
+  regress0/quantifiers/issue5645-dt-cm-spurious.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2

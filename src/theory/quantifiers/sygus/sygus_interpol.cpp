@@ -233,14 +233,6 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
   itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
-  // sygus attribute
-  Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  SygusAttribute ca;
-  sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(kind::INST_ATTRIBUTE, sygusVar);
-  std::vector<Node> iplc;
-  iplc.push_back(instAttr);
-  Node instAttrList = nm->mkNode(kind::INST_PATTERN_LIST, iplc);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // Fa( x )
@@ -339,12 +331,12 @@ bool SygusInterpol::solveInterpolation(const std::string& name,
   l.enableSygus();
   subSolver->setLogic(l);
 
-  for (Node var : d_vars)
+  for (const Node& var : d_vars)
   {
-    subSolver->declareSygusVar(name, var, var.getType());
+    subSolver->declareSygusVar(var);
   }
   std::vector<Node> vars_empty;
-  subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
+  subSolver->declareSynthFun(itp, grammarType, false, vars_empty);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0] << std::endl;

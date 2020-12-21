@@ -89,8 +89,6 @@ class CandidateGeneratorQE : public CandidateGenerator
 
  public:
   CandidateGeneratorQE(QuantifiersEngine* qe, Node pat);
-  /** reset instantiation round */
-  void resetInstantiationRound() override;
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -102,7 +100,6 @@ class CandidateGeneratorQE : public CandidateGenerator
   {
     return d_exclude_eqc.find(r) != d_exclude_eqc.end();
   }
-
  protected:
   /** reset this class for matching operator op in equivalence class eqc */
   void resetForOperator(Node eqc, Node op);
