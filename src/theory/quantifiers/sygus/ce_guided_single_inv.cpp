@@ -303,6 +303,7 @@ Node CegSingleInv::getSolution(size_t sol_index,
   // maybe it is in the solved map already?
   if (d_solvedf.contains(f))
   {
+    // notice that we ignore d_solutions for solved functions
     Trace("csi-sol") << "...return solution from annotation" << std::endl;
     return d_solvedf.apply(f);
   }
@@ -423,10 +424,6 @@ void CegSingleInv::setSolution()
   {
     // replace the final solution into the solved functions
     finalSol.applyToRange(d_solvedf, true);
-    // TODO: go back and replace the dummy solution for the solved functions
-    for (size_t i = 0, nvars = d_quant[0].getNumChildren(); i < nvars; i++)
-    {
-    }
   }
 }
 

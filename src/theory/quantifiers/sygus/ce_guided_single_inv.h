@@ -141,11 +141,14 @@ class CegSingleInv
    */
   bool solveTrivial(Node q);
   /**
-   * Get solution from inst
+   * Get solution from the instantiations stored in this class (d_inst) for
+   * the index^th function to synthesize. The vector d_inst should be
+   * initialized before calling this method.
    */
   Node getSolutionFromInst(size_t index);
   /**
-   * Set solution
+   * Set solution, which sets the d_solutions / d_rcSolutions fields based on
+   * calls to the above method.
    */
   void setSolution();
   /** The conjecture */
