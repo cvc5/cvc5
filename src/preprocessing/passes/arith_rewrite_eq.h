@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief The ArithRewriteEq preprocessing pass
- **
- ** Calls Theory::preprocess(...) on every assertion of the formula.
  **/
 
 #include "cvc4_private.h"
@@ -27,6 +25,11 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+  /**
+   * Implements the preprocessing pass for options::arithRewriteEq() which
+   * replaces arithmetic equalities with a conjunction of inequalities, as
+   * described below.
+   */
 class ArithRewriteEq : public PreprocessingPass
 {
  public:

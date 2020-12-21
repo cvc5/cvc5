@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief The ArithRewriteEq preprocessing pass
- **
- ** Calls Theory::preprocess(...) on every assertion of the formula.
  **/
 
 #include "preprocessing/passes/arith_rewrite_eq.h"
