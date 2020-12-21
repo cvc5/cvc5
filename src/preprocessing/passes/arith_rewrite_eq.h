@@ -25,11 +25,11 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-  /**
-   * Implements the preprocessing pass for options::arithRewriteEq() which
-   * replaces arithmetic equalities with a conjunction of inequalities, as
-   * described below.
-   */
+/**
+ * Implements the preprocessing pass for options::arithRewriteEq() which
+ * replaces arithmetic equalities with a conjunction of inequalities, as
+ * described below.
+ */
 class ArithRewriteEq : public PreprocessingPass
 {
  public:
