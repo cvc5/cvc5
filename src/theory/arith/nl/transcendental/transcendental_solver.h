@@ -65,7 +65,10 @@ namespace transcendental {
 class TranscendentalSolver
 {
  public:
-  TranscendentalSolver(InferenceManager& im, NlModel& m);
+  TranscendentalSolver(InferenceManager& im,
+                       NlModel& m,
+                       ProofNodeManager* pnm,
+                       context::UserContext* c);
   ~TranscendentalSolver();
 
   /** init last call

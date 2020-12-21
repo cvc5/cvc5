@@ -467,54 +467,6 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
   return Node::null();
 }
 
-Node RemoveTermFormulas::replace(TNode node) const
-{
-  TCtxStack ctx(&d_rtfc);
-  ctx.pushInitial(node);
-  return replaceInternal(ctx);
-}
-
-Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
-{
-  // get the current node, tagged with a term context identifier
-  Assert(!ctx.empty());
-  std::pair<Node, uint32_t> curr = ctx.getCurrent();
-  ctx.pop();
-  TNode node = curr.first;
-
-  if( node.getKind()==kind::INST_PATTERN_LIST ){
-    return Node(node);
-  }
-
-  // Check the cache
-  TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
-  if (itc != d_tfCache.end())
-  {
-    return (*itc).second;
-  }
-
-  vector<Node> newChildren;
-  bool somethingChanged = false;
-  if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
-    newChildren.push_back(node.getOperator());
-  }
-  // Replace in children
-  uint32_t cval = curr.second;
-  for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
-  {
-    ctx.pushChild(node, cval, i);
-    Node newChild = replaceInternal(ctx);
-    somethingChanged |= (newChild != node[i]);
-    newChildren.push_back(newChild);
-  }
-
-  // If changes, we rewrite
-  if(somethingChanged) {
-    return NodeManager::currentNM()->mkNode(node.getKind(), newChildren);
-  }
-  return node;
-}
-
 Node RemoveTermFormulas::getAxiomFor(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
