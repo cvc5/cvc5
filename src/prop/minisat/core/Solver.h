@@ -390,7 +390,12 @@ protected:
     ClauseAllocator     ca;
 
     // CVC4 Stuff
-    vec<bool>           theory;           // Is the variable representing a theory atom
+    /** 
+     * A vector determining whether each variable represents a theory atom.
+     * More generally, this value is true for any literal that the theory proxy
+     * should be notified about when asserted.
+     */
+    vec<bool> theory;
 
     enum TheoryCheckType {
       // Quick check, but don't perform theory reasoning
