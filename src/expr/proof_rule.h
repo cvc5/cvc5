@@ -1104,6 +1104,20 @@ enum class PfRule : uint32_t
   // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
   ARITH_MULT_TANGENT,
 
+  //======== Sine arg shifted to -pi..pi
+  // Children: none
+  // Arguments: (x, y, s)
+  // ---------------------
+  // Conclusion: (and
+  //   (<= -pi y pi)
+  //   (= (sin y) (sin x))
+  //   (ite (<= -pi x pi) (= x y) (= x (+ y (* 2 pi s))))
+  // )
+  // Where x is the argument to sine, y is a new real skolem that is x shifted
+  // into -pi..pi and s is a new integer skolem that is the number of phases y
+  // is shifted.
+  ARITH_TRANS_SINE_SHIFT,
+
   //================================================= Unknown rule
   UNKNOWN,
 };

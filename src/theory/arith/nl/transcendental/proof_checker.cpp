@@ -29,6 +29,7 @@ namespace transcendental {
 
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_SHIFT, this);
 }
 
 Node TranscendentalProofRuleChecker::checkInternal(
@@ -44,6 +45,30 @@ Node TranscendentalProofRuleChecker::checkInternal(
   for (const auto& c : children)
   {
     Trace("nl-trans-checker") << "\t" << c << std::endl;
+  }
+  if (id == PfRule::ARITH_TRANS_SINE_SHIFT)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 3);
+    const auto& x = args[0];
+    const auto& y = args[1];
+    const auto& s = args[2];
+    return nm->mkAnd(std::vector<Node>{
+        nm->mkAnd(std::vector<Node>{
+            nm->mkNode(Kind::GEQ, y, nm->mkNode(Kind::MULT, mone, pi)),
+            nm->mkNode(Kind::LEQ, y, pi)}),
+        nm->mkNode(
+            Kind::ITE,
+            nm->mkAnd(std::vector<Node>{
+                nm->mkNode(Kind::GEQ, x, nm->mkNode(Kind::MULT, mone, pi)),
+                nm->mkNode(Kind::LEQ, x, pi),
+            }),
+            x.eqNode(y),
+            x.eqNode(nm->mkNode(
+                Kind::PLUS,
+                y,
+                nm->mkNode(Kind::MULT, nm->mkConst<Rational>(2), s, pi)))),
+        nm->mkNode(Kind::SINE, y).eqNode(nm->mkNode(Kind::SINE, x))});
   }
   return Node::null();
 }
