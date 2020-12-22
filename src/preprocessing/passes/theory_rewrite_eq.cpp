@@ -29,7 +29,7 @@ PreprocessingPassResult TheoryRewriteEq::applyInternal(
     AssertionPipeline* assertions)
 {
   // apply ppRewrite to all equalities in assertions
-  for (unsigned i = 0, size = assertions->size(); i < size; ++i)
+  for (std::size_t i = 0, size = assertions->size(); i < size; ++i)
   {
     Node assertion = (*assertions)[i];
     TrustNode trn = rewriteAssertion(assertion);
