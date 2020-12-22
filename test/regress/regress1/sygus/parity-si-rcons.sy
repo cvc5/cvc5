@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-si-abort --decision=internal --cegqi-prereg-inst --sygus-si-rcons=try --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-si-abort --decision=internal --sygus-si-rcons=try --sygus-out=status
 
 (set-logic BV)
 
