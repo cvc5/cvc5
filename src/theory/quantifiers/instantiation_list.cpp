@@ -19,10 +19,15 @@
 
 namespace CVC4 {
 
-/** Print the unsat core to stream out */
 std::ostream& operator<<(std::ostream& out, const InstantiationList& ilist)
 {
   Printer::getPrinter(options::outputLanguage())->toStream(out, ilist);
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const SkolemList& skl)
+{
+  Printer::getPrinter(options::outputLanguage())->toStream(out, skl);
   return out;
 }
 

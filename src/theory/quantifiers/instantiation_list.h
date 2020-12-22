@@ -37,8 +37,25 @@ struct InstantiationList
   std::vector<std::vector<Node> > d_inst;
 };
 
-/** Print the unsat core to stream out */
+/** Print the instantiation list to stream out */
 std::ostream& operator<<(std::ostream& out, const InstantiationList& ilist);
+
+
+/** The list of skolemization for a quantified formula */
+struct SkolemList
+{
+  SkolemList(Node q, const std::vector<Node>& sks)
+      : d_quant(q), d_sks(sks)
+  {
+  }
+  /** The quantified formula */
+  Node d_quant;
+  /** The list of skolems for the quantified formula */
+  std::vector<Node> d_sks;
+};
+
+/** Print the skolem list to stream out */
+std::ostream& operator<<(std::ostream& out, const SkolemList& skl);
 
 }  // namespace CVC4
 

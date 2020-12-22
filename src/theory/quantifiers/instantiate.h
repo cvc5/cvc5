@@ -321,12 +321,6 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
-  /**
-   * Print quantified formula q on output out. If isFull is false, then we print
-   * the identifier of the quantified formula if it has one, or print
-   * nothing and return false otherwise.
-   */
-  bool printQuant(Node q, std::ostream& out, bool isFull);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;

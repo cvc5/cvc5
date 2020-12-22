@@ -559,23 +559,6 @@ Node Instantiate::getTermForType(TypeNode tn)
   return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
-bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
-{
-  if (isFull)
-  {
-    out << q;
-    return true;
-  }
-  quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
-  Node name = qa->getQuantName(q);
-  if (name.isNull())
-  {
-    return false;
-  }
-  out << name;
-  return true;
-}
-
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
@@ -818,15 +801,15 @@ void Instantiate::debugPrint(std::ostream& out)
   }
   if (options::debugInst())
   {
-    bool isFull = options::printInstFull();
+    bool req = !options::printInstFull();
     for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
-      std::stringstream ss;
-      if (!printQuant(i.first, ss, isFull))
+      Node name;
+      if (!d_qe->getNameForQuant(i.first, name, req))
       {
         continue;
       }
-      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+      out << "(num-instantiations " << name << " " << i.second << ")"
           << std::endl;
     }
   }

@@ -1035,8 +1035,14 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
+void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs )
+{
   d_instantiate->getInstantiatedQuantifiedFormulas(qs);
+}
+
+void QuantifiersEngine::getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const
+{
+  d_skolemize->getSkolemTermVectors(sks);
 }
 
 QuantifiersEngine::Statistics::Statistics()
@@ -1113,6 +1119,23 @@ eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   return d_eq_query->getInternalRepresentative(a, q, index);
+}
+
+Node QuantifiersEngine::getNameForQuant(Node q) const
+{
+  Node name = d_quant_attr->getQuantName(q);
+  if (!name.isNull())
+  {
+    return name;
+  }
+  return q;
+}
+
+bool QuantifiersEngine::getNameForQuant(Node q, Node& name, bool req) const
+{
+  name = getNameForQuant(q);
+  // if we have a name, or we did not require one
+  return name!=q || !req;
 }
 
 bool QuantifiersEngine::getSynthSolutions(

@@ -664,20 +664,6 @@ class TheoryEngine {
   void printSynthSolution( std::ostream& out );
 
   /**
-   * Get list of quantified formulas that were instantiated
-   */
-  void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
-
-  /**
-   * Get instantiation methods
-   *   the first given forall x.q[x] returns ( a, ..., z )
-   *   the second returns mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
-   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
-   */
-  void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
-  void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
-
-  /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */

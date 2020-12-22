@@ -126,6 +126,18 @@ void Printer::toStream(std::ostream& out, const InstantiationList& is) const
   out << ")" << std::endl;
 }
 
+void Printer::toStream(std::ostream& out, const SkolemList& sks) const
+{
+  out << "(skolem " << sks.d_quant << std::endl;
+  out << "  ( ";
+  for (const Node& n : sks.d_sks)
+  {
+    out << n << " ";
+  }
+  out << ")" << std::endl;
+  out << ")" << std::endl;
+}
+
 Printer* Printer::getPrinter(OutputLanguage lang)
 {
   if(lang == language::output::LANG_AUTO) {
