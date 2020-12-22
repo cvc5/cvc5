@@ -33,6 +33,9 @@ struct InstantiationList
   std::vector< std::vector<Node> > d_inst;
 };
 
+/** Print the unsat core to stream out */
+std::ostream& operator<<(std::ostream& out, const InstantiationList& ilist);
+
 } /* CVC4 namespace */
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H */
