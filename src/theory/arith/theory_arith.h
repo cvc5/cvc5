@@ -107,23 +107,6 @@ class TheoryArith : public Theory {
   void notifyRestart() override;
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
-  /**
-   * Preprocess rewrite, return the trust node encapsulating the
-   * preprocessed form of n, and the proof generator that can provide the
-   * proof for the equivalence of n and this term.
-   *
-   * This rewrites (= x y) ---> (and (>= x y) (<= x y)) if the option
-   * arithRewriteEq is enabled.
-   */
-  TrustNode ppRewriteEquality(TNode atom) override;
-  /**
-   * Preprocess rewrite, return the trust node encapsulating the
-   * preprocessed form of n, and the proof generator that can provide the
-   * proof for the equivalence of n and this term.
-   *
-   * This calls the operator elimination utility to eliminate extended
-   * symbols.
-   */
   TrustNode ppRewrite(TNode atom) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
@@ -144,6 +127,15 @@ class TheoryArith : public Theory {
   }
 
  private:
+  /**
+   * Preprocess rewrite terms, return the trust node encapsulating the
+   * preprocessed form of n, and the proof generator that can provide the
+   * proof for the equivalence of n and this term.
+   *
+   * This calls the operator elimination utility to eliminate extended
+   * symbols.
+   */
+  TrustNode ppRewriteTerms(TNode n);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */

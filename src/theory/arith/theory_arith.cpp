@@ -17,7 +17,6 @@
 
 #include "theory/arith/theory_arith.h"
 
-#include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"
@@ -106,28 +105,41 @@ TrustNode TheoryArith::expandDefinition(Node node)
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
-TrustNode TheoryArith::ppRewriteEquality(TNode atom)
-{
-  if (options::arithRewriteEq())
-  {
-    Assert(atom.getKind() == kind::EQUAL && atom[0].getType().isReal());
-    Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-    Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-    Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-    Debug("arith::preprocess")
-        << "arith::preprocess() : returning " << rewritten << endl;
-    // don't need to rewrite terms since rewritten is not a non-standard op
-    return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
-  }
-  // otherwise, no rewrite
-  return TrustNode::null();
-}
-
-TrustNode TheoryArith::ppRewrite(TNode n)
+TrustNode TheoryArith::ppRewrite(TNode atom)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Debug("arith::preprocess") << "arith::preprocess() : " << n << endl;
-  Assert(Theory::theoryOf(n) == THEORY_ARITH);
+  Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
+
+  if (options::arithRewriteEq())
+  {
+    if (atom.getKind() == kind::EQUAL)
+    {
+      Assert (atom[0].getType().isReal());
+      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+      TrustNode tleq = ppRewriteTerms(leq);
+      TrustNode tgeq = ppRewriteTerms(geq);
+      if (!tleq.isNull())
+      {
+        leq = tleq.getNode();
+      }
+      if (!tgeq.isNull())
+      {
+        geq = tgeq.getNode();
+      }
+      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+      Debug("arith::preprocess")
+          << "arith::preprocess() : returning " << rewritten << endl;
+      // don't need to rewrite terms since rewritten is not a non-standard op
+      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
+    }
+  }
+  return ppRewriteTerms(atom);
+}
+
+TrustNode TheoryArith::ppRewriteTerms(TNode n)
+{
+  Assert (Theory::theoryOf(n) == THEORY_ARITH);
   // Eliminate operators recursively. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
