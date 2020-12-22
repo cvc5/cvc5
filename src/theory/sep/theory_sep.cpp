@@ -1184,13 +1184,6 @@ void TheorySep::initializeBounds() {
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
-      //if pto had free variable reference      
-      if( d_bound_kind[tn]==bound_herbrand ){
-        d_bound_kind[tn] = bound_invalid;
-        Trace("sep-bound")
-            << "reference cannot be bound (due to non-EPR variable)."
-            << std::endl;
-      }
       unsigned n_emp = 0;
       if( d_bound_kind[tn] != bound_invalid ){
         n_emp = d_card_max[tn];  

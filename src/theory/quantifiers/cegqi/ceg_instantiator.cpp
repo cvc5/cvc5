@@ -17,14 +17,12 @@
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
-#include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
@@ -1099,19 +1097,6 @@ bool CegInstantiator::isEligibleForInstantiation(Node n) const
   {
     // virtual terms are allowed
     return true;
-  }
-  TypeNode tn = n.getType();
-  if (tn.isSort())
-  {
-    QuantEPR* qepr = d_qe->getQuantEPR();
-    if (qepr != NULL)
-    {
-      // legal if in the finite set of constants of type tn
-      if (qepr->isEPRConstant(tn, n))
-      {
-        return true;
-      }
-    }
   }
   // only legal if current quantified formula contains n
   return expr::hasSubterm(d_quant, n);
