@@ -165,7 +165,9 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind. Notice that constants are a
+        // special case here, where the theory of the kind of a constant
+        // always coincides with the type of that constant.
         tid = kindToTheoryId(node.getKind());
       }
       break;
@@ -251,7 +253,8 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind, which includes constants as a
+        // special case.
         tid = kindToTheoryId(node.getKind());
       }
     break;
