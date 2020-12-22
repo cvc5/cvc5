@@ -71,6 +71,10 @@ class TheoryPreprocessor
                        std::vector<Node>& newSkolems,
                        bool doTheoryPreprocess,
                        bool fixedPoint);
+  /** 
+   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
+   * can be extracted from the RemoveTermFormulas utility.
+   */
   TrustNode preprocess(TNode node, bool doTheoryPreprocess);
   /**
    * Same as above, but transforms the proof of node into a proof of the
@@ -88,6 +92,10 @@ class TheoryPreprocessor
                             std::vector<Node>& newSkolems,
                             bool doTheoryPreprocess,
                             bool fixedPoint);
+  /** 
+   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
+   * can be extracted from the RemoveTermFormulas utility.
+   */
   TrustNode preprocessLemma(TrustNode node, bool doTheoryPreprocess);
 
   /** Get the term formula removal utility */
