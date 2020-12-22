@@ -1014,7 +1014,9 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
         TypeNode tn1 = n[0].getType();
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
           d_bound_kind[tn1] = bound_invalid;
-          Trace("sep-bound") << "reference cannot be bound (due to quantified pto)." << std::endl;
+          Trace("sep-bound")
+              << "reference cannot be bound (due to quantified pto)."
+              << std::endl;
         }
       }else{
         references[index][n].push_back( n[0] );
@@ -1185,7 +1187,9 @@ void TheorySep::initializeBounds() {
       //if pto had free variable reference      
       if( d_bound_kind[tn]==bound_herbrand ){
         d_bound_kind[tn] = bound_invalid;
-        Trace("sep-bound") << "reference cannot be bound (due to non-EPR variable)." << std::endl;
+        Trace("sep-bound")
+            << "reference cannot be bound (due to non-EPR variable)."
+            << std::endl;
       }
       unsigned n_emp = 0;
       if( d_bound_kind[tn] != bound_invalid ){
@@ -1201,7 +1205,7 @@ void TheorySep::initializeBounds() {
         Node e = NodeManager::currentNM()->mkSkolem( "e", tn, "cardinality bound element for seplog" );
         d_type_references_card[tn].push_back( e );
         d_type_ref_card_id[e] = r;
-      }     
+      }
     }
   }
 }
