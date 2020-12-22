@@ -18,9 +18,9 @@ namespace CVC4 {
 namespace proof {
 
 void ProofLetify::computeProofLet(const ProofNode* pn,
-                             std::vector<const ProofNode*>& pletList,
-                             std::map<const ProofNode*, uint32_t>& pletMap,
-                             uint32_t thresh)
+                                  std::vector<const ProofNode*>& pletList,
+                                  std::map<const ProofNode*, uint32_t>& pletMap,
+                                  uint32_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
   if (thresh == 0)
@@ -35,9 +35,10 @@ void ProofLetify::computeProofLet(const ProofNode* pn,
   convertProofCountToLet(visitList, pcount, pletList, pletMap, thresh);
 }
 
-void ProofLetify::computeProofCounts(const ProofNode* pn,
-                                std::vector<const ProofNode*>& visitList,
-                                std::map<const ProofNode*, uint32_t>& pcount)
+void ProofLetify::computeProofCounts(
+    const ProofNode* pn,
+    std::vector<const ProofNode*>& visitList,
+    std::map<const ProofNode*, uint32_t>& pcount)
 {
   std::map<const ProofNode*, uint32_t>::iterator it;
   std::vector<const ProofNode*> visit;

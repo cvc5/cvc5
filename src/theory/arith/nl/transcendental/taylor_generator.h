@@ -27,9 +27,9 @@ namespace transcendental {
 class TaylorGenerator
 {
  public:
-
   /** Stores the approximation bounds for transcendental functions */
-  struct ApproximationBounds {
+  struct ApproximationBounds
+  {
     /** Lower bound */
     Node d_lower;
     /** Upper bound for negative values */
@@ -87,10 +87,8 @@ class TaylorGenerator
    * @return the actual degree of the polynomial approximations (which may be
    * larger than d).
    */
-  std::uint64_t getPolynomialApproximationBoundForArg(Kind k,
-                                                 Node c,
-                                                 std::uint64_t d,
-                                                 ApproximationBounds& pbounds);
+  std::uint64_t getPolynomialApproximationBoundForArg(
+      Kind k, Node c, std::uint64_t d, ApproximationBounds& pbounds);
 
   /** get transcendental function model bounds
    *
@@ -98,7 +96,9 @@ class TaylorGenerator
    * function application tf based on Taylor of degree 2*d, which is dependent
    * on the model value of its argument.
    */
-  std::pair<Node, Node> getTfModelBounds(Node tf, std::uint64_t d, NlModel& model);
+  std::pair<Node, Node> getTfModelBounds(Node tf,
+                                         std::uint64_t d,
+                                         NlModel& model);
 
  private:
   NodeManager* d_nm;

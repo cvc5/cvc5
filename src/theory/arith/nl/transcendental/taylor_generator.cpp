@@ -72,11 +72,13 @@ std::pair<Node, Node> TaylorGenerator::getTaylor(Kind k, std::uint64_t n)
       }
     }
     factorial *= counter;
-    varpow = Rewriter::rewrite(nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow));
+    varpow =
+        Rewriter::rewrite(nm->mkNode(Kind::MULT, d_taylor_real_fv, varpow));
   }
-  Node taylor_sum = Rewriter::rewrite(sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum));
-  Node taylor_rem =
-      Rewriter::rewrite(nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial)));
+  Node taylor_sum =
+      Rewriter::rewrite(sum.size() == 1 ? sum[0] : nm->mkNode(Kind::PLUS, sum));
+  Node taylor_rem = Rewriter::rewrite(
+      nm->mkNode(Kind::DIVISION, varpow, nm->mkConst<Rational>(factorial)));
 
   auto res = std::make_pair(taylor_sum, taylor_rem);
 
@@ -100,14 +102,14 @@ void TaylorGenerator::getPolynomialApproximationBounds(
     Node taylor_sum = taylor.first;
     // ru is x^{n+1}/(n+1)!
     Node ru = taylor.second;
-    Trace("nl-trans")
-        << "Taylor for " << k << " is : " << taylor.first << std::endl;
-    Trace("nl-trans")
-        << "Taylor remainder for " << k << " is " << taylor.second << std::endl;
+    Trace("nl-trans") << "Taylor for " << k << " is : " << taylor.first
+                      << std::endl;
+    Trace("nl-trans") << "Taylor remainder for " << k << " is " << taylor.second
+                      << std::endl;
     if (k == Kind::EXPONENTIAL)
     {
       pbounds.d_lower = taylor_sum;
-      pbounds.d_upperNeg = 
+      pbounds.d_upperNeg =
           Rewriter::rewrite(nm->mkNode(Kind::PLUS, taylor_sum, ru));
       pbounds.d_upperPos = Rewriter::rewrite(
           nm->mkNode(Kind::MULT,
@@ -123,8 +125,8 @@ void TaylorGenerator::getPolynomialApproximationBounds(
       pbounds.d_upperNeg = u;
       pbounds.d_upperPos = u;
     }
-    Trace("nl-trans")
-        << "Polynomial approximation for " << k << " is: " << std::endl;
+    Trace("nl-trans") << "Polynomial approximation for " << k
+                      << " is: " << std::endl;
     Trace("nl-trans") << " Lower: " << pbounds.d_lower << std::endl;
     Trace("nl-trans") << " Upper (neg): " << pbounds.d_upperNeg << std::endl;
     Trace("nl-trans") << " Upper (pos): " << pbounds.d_upperPos << std::endl;
@@ -179,7 +181,9 @@ std::uint64_t TaylorGenerator::getPolynomialApproximationBoundForArg(
   return d;
 }
 
-std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, std::uint64_t d, NlModel& model)
+std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf,
+                                                        std::uint64_t d,
+                                                        NlModel& model)
 {
   // compute the model value of the argument
   Node c = model.computeAbstractModelValue(tf[0]);
@@ -209,7 +213,8 @@ std::pair<Node, Node> TaylorGenerator::getTfModelBounds(Node tf, std::uint64_t d
   TNode tfs = tf[0];
   for (unsigned d2 = 0; d2 < 2; d2++)
   {
-    Node pab = (d2 == 0 ? pbounds.d_lower : (isNeg ? pbounds.d_upperNeg : pbounds.d_upperPos));
+    Node pab = (d2 == 0 ? pbounds.d_lower
+                        : (isNeg ? pbounds.d_upperNeg : pbounds.d_upperPos));
     if (!pab.isNull())
     {
       // { x -> M_A(tf[0]) }

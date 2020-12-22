@@ -22,6 +22,7 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
+#include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "options/base_options.h"
 #include "options/language.h"
@@ -53,14 +54,13 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/instantiation_list.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-#include "expr/bound_var_manager.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -1538,7 +1538,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     out << "% SZS output start Proof for " << d_state->getFilename()
         << std::endl;
   }
-  std::map<Node, std::vector<std::vector<Node> > > insts;
+  std::map<Node, std::vector<std::vector<Node>>> insts;
   /*
   if (options::proofNew() && getSmtMode() == SmtMode::UNSAT)
   {
@@ -1551,7 +1551,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->getInstantiationTermVectors(insts);
-  for (const std::pair<const Node, std::vector<std::vector<Node> > >& i : insts)
+  for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
   {
     if (i.second.empty())
     {
@@ -1559,7 +1559,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     }
     if (options::printInstMode() == options::PrintInstMode::NUM)
     {
-      out << "(num-instantiations " << i.first << " " << i.second.size() << ")" << std::endl;
+      out << "(num-instantiations " << i.first << " " << i.second.size() << ")"
+          << std::endl;
     }
     else
     {

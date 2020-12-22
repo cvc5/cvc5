@@ -316,8 +316,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     Node v_pab = r == 0 ? mvb.first : mvb.second;
     if (!v_pab.isNull())
     {
-      Trace("nl-trans")
-          << "...model value of " << pab << " is " << v_pab << std::endl;
+      Trace("nl-trans") << "...model value of " << pab << " is " << v_pab
+                        << std::endl;
 
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
@@ -367,8 +367,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // Figure 3: P( c )
   if (is_tangent || is_secant)
   {
-    Trace("nl-trans")
-        << "...poly approximation at c is " << poly_approx_c << std::endl;
+    Trace("nl-trans") << "...poly approximation at c is " << poly_approx_c
+                      << std::endl;
   }
   else
   {

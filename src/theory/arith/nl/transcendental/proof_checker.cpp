@@ -147,8 +147,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
-    Node evall = Rewriter::rewrite(bounds.d_upperPos.substitute(tg.getTaylorVariable(), l));
-    Node evalu = Rewriter::rewrite(bounds.d_upperPos.substitute(tg.getTaylorVariable(), u));
+    Node evall = Rewriter::rewrite(
+        bounds.d_upperPos.substitute(tg.getTaylorVariable(), l));
+    Node evalu = Rewriter::rewrite(
+        bounds.d_upperPos.substitute(tg.getTaylorVariable(), u));
     Node evalsecant = mkSecant(t, l, u, evall, evalu);
     Node lem = nm->mkNode(
         Kind::IMPLIES,
@@ -173,8 +175,10 @@ Node TranscendentalProofRuleChecker::checkInternal(
     TaylorGenerator tg;
     TaylorGenerator::ApproximationBounds bounds;
     tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
-    Node evall = Rewriter::rewrite(bounds.d_upperNeg.substitute(tg.getTaylorVariable(), l));
-    Node evalu = Rewriter::rewrite(bounds.d_upperNeg.substitute(tg.getTaylorVariable(), u));
+    Node evall = Rewriter::rewrite(
+        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), l));
+    Node evalu = Rewriter::rewrite(
+        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), u));
     Node evalsecant = mkSecant(t, l, u, evall, evalu);
     Node lem = nm->mkNode(
         Kind::IMPLIES,

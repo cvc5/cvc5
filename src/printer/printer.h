@@ -61,7 +61,7 @@ class Printer
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
-  
+
   /** Write an instantiation list out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const InstantiationList& is) const;
 
