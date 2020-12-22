@@ -377,16 +377,18 @@ bool Skolemize::isInductionTerm(Node n)
   return false;
 }
 
-void Skolemize::getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const
+void Skolemize::getSkolemTermVectors(
+    std::map<Node, std::vector<Node> >& sks) const
 {
-  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator itk;
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
+      itk;
   for (NodeNodeMap::const_iterator it = d_skolemized.begin();
        it != d_skolemized.end();
        ++it)
   {
     Node q = it->first;
     itk = d_skolem_constants.find(q);
-    Assert (itk!=d_skolem_constants.end());
+    Assert(itk != d_skolem_constants.end());
     sks[q].insert(sks[q].end(), itk->second.begin(), itk->second.end());
   }
 }

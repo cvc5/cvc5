@@ -278,7 +278,7 @@ public:
   * Get name for quantified formula. Returns true if q has a name or if req
   * is false. Sets name to the result of the above method.
   */
- bool getNameForQuant(Node q, Node& name, bool req=true) const;
+ bool getNameForQuant(Node q, Node& name, bool req = true) const;
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
@@ -291,7 +291,7 @@ public:
                                   std::vector<std::vector<Node> >& tvecs);
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
- /** 
+ /**
   * Get skolemization vectors, where for each quantified formula that was
   * skolemized, this is the list of skolems that were used to witness the
   * negation of that quantified formula.

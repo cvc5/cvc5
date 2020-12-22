@@ -59,7 +59,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Assert(te != nullptr);
   te->setUserAttribute(
       doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
-  QuantifiersEngine * qe = te->getQuantifiersEngine();
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
   n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
   std::vector<Node> children;

@@ -65,7 +65,7 @@ class Printer
 
   /** Write an instantiation list out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const InstantiationList& is) const;
-  
+
   /** Write an skolem list out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const SkolemList& sks) const;
 

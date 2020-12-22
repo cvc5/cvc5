@@ -110,17 +110,17 @@ class Skolemize
   Node getSkolemizedBody(Node q);
   /** is n a variable that we can apply inductive strenghtening to? */
   static bool isInductionTerm(Node n);
- /** 
-  * Get skolemization vectors, where for each quantified formula that was
-  * skolemized, this is the list of skolems that were used to witness the
-  * negation of that quantified formula.
-  * 
+  /**
+   * Get skolemization vectors, where for each quantified formula that was
+   * skolemized, this is the list of skolems that were used to witness the
+   * negation of that quantified formula.
+   *
    * This is used for the command line option
    *   --dump-instantiations
    * which prints an informal justification of steps taken by the quantifiers
    * module.
-  */
- void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
+   */
+  void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
 
  private:
   /** Are proofs enabled? */
