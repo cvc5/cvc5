@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers_engine.h"
 
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
@@ -1023,26 +1024,6 @@ void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::v
 
 void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
   d_instantiate->getInstantiationTermVectors(insts);
-}
-
-void QuantifiersEngine::printInstantiations( std::ostream& out ) {
-  bool printed = false;
-  // print the skolemizations
-  if (options::printInstMode() == options::PrintInstMode::LIST)
-  {
-    if (d_skolemize->printSkolemization(out))
-    {
-      printed = true;
-    }
-  }
-  // print the instantiations
-  if (d_instantiate->printInstantiations(out))
-  {
-    printed = true;
-  }
-  if( !printed ){
-    out << "No instantiations" << std::endl;
-  }
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {

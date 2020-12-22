@@ -1174,16 +1174,6 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   return d_propEngine->ensureLiteral(rewritten);
 }
 
-
-void TheoryEngine::printInstantiations( std::ostream& out ) {
-  if( d_quantEngine ){
-    d_quantEngine->printInstantiations( out );
-  }else{
-    out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
-    Assert(false);
-  }
-}
-
 void TheoryEngine::printSynthSolution( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printSynthSolution( out );

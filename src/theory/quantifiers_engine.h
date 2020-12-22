@@ -272,8 +272,6 @@ public:
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print instantiations */
- void printInstantiations(std::ostream& out);
  /** print solution for synthesis conjectures */
  void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */

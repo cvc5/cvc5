@@ -15,6 +15,7 @@
 #include "theory/quantifiers/instantiation_list.h"
 
 #include "printer/printer.h"
+#include "options/base_options.h"
 
 namespace CVC4 {
 
@@ -22,6 +23,7 @@ namespace CVC4 {
 std::ostream& operator<<(std::ostream& out, const InstantiationList& ilist)
 {
   Printer::getPrinter(options::outputLanguage())->toStream(out, ilist);
+  return out;
 }
 
 } /* CVC4 namespace */

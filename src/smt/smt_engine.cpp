@@ -1539,17 +1539,18 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
         << std::endl;
   }
   std::map<Node, std::vector<std::vector<Node> > > insts;
+  /*
   if (options::proofNew() && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
   }
   else
   {
-    // otherwise, just get the list of all instantiations
-    TheoryEngine* te = getTheoryEngine();
-    Assert(te != nullptr);
-    te->getInstantiationTermVectors(insts);
-  }
+  */
+  // otherwise, just get the list of all instantiations
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  te->getInstantiationTermVectors(insts);
   for (const std::pair<const Node, std::vector<std::vector<Node> > >& i : insts)
   {
     if (i.second.empty())
@@ -1567,11 +1568,6 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
       out << ilist;
     }
   }
-  /*
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->printInstantiations(out);
-  */
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
     out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;

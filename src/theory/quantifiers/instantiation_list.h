@@ -17,6 +17,7 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H
 #define CVC4__THEORY__QUANTIFIERS__INSTANTIATION_LIST_H
 
+#include <iosfwd>
 #include <vector>
 
 #include "expr/node.h"

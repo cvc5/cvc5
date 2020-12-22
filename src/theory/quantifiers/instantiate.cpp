@@ -15,6 +15,7 @@
 #include "theory/quantifiers/instantiate.h"
 
 #include "expr/node_algorithm.h"
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
@@ -556,90 +557,6 @@ Node Instantiate::getTermForType(TypeNode tn)
     return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
   }
   return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
-}
-
-bool Instantiate::printInstantiations(std::ostream& out)
-{
-  if (options::printInstMode() == options::PrintInstMode::NUM)
-  {
-    return printInstantiationsNum(out);
-  }
-  Assert(options::printInstMode() == options::PrintInstMode::LIST);
-  return printInstantiationsList(out);
-}
-
-bool Instantiate::printInstantiationsList(std::ostream& out)
-{
-  bool useUnsatCore = false;
-  std::vector<Node> active_lemmas;
-  if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
-  {
-    useUnsatCore = true;
-  }
-  bool printed = false;
-  bool isFull = options::printInstFull();
-  if (options::incrementalSolving())
-  {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
-    {
-      std::stringstream qout;
-      if (!printQuant(t.first, qout, isFull))
-      {
-        continue;
-      }
-      std::stringstream sout;
-      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
-      if (!sout.str().empty())
-      {
-        out << "(instantiations " << qout.str() << std::endl;
-        out << sout.str();
-        out << ")" << std::endl;
-        printed = true;
-      }
-    }
-  }
-  else
-  {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-    {
-      std::stringstream qout;
-      if (!printQuant(t.first, qout, isFull))
-      {
-        continue;
-      }
-      std::stringstream sout;
-      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
-      if (!sout.str().empty())
-      {
-        out << "(instantiations " << qout.str() << std::endl;
-        out << sout.str();
-        out << ")" << std::endl;
-        printed = true;
-      }
-    }
-  }
-  return printed;
-}
-
-bool Instantiate::printInstantiationsNum(std::ostream& out)
-{
-  if (d_total_inst_debug.empty())
-  {
-    return false;
-  }
-  bool isFull = options::printInstFull();
-  for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
-       it != d_total_inst_debug.end();
-       ++it)
-  {
-    std::stringstream ss;
-    if (printQuant((*it).first, ss, isFull))
-    {
-      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")"
-          << std::endl;
-    }
-  }
-  return true;
 }
 
 bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)

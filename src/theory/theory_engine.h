@@ -659,11 +659,6 @@ class TheoryEngine {
   Node ensureLiteral(TNode n);
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   */
-  void printInstantiations( std::ostream& out );
-
-  /**
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );

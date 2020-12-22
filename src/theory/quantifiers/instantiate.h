@@ -223,13 +223,6 @@ class Instantiate : public QuantifiersUtil
   void debugPrintModel();
 
   //--------------------------------------user-level interface utilities
-  /** print instantiations
-   *
-   * Print all instantiations for all quantified formulas on out,
-   * returns true if at least one instantiation was printed. The type of output
-   * (list, num, etc.) is determined by printInstMode.
-   */
-  bool printInstantiations(std::ostream& out);
   /** get instantiated quantified formulas
    *
    * Get the list of quantified formulas that were instantiated in the current
@@ -328,10 +321,6 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
-  /** print instantiations in list format */
-  bool printInstantiationsList(std::ostream& out);
-  /** print instantiations in num format */
-  bool printInstantiationsNum(std::ostream& out);
   /**
    * Print quantified formula q on output out. If isFull is false, then we print
    * the identifier of the quantified formula if it has one, or print
