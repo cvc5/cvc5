@@ -71,7 +71,7 @@ class TheoryPreprocessor
                        std::vector<Node>& newSkolems,
                        bool doTheoryPreprocess,
                        bool fixedPoint);
-  /** 
+  /**
    * Same as above, without lemma tracking or fixed point. Lemmas for skolems
    * can be extracted from the RemoveTermFormulas utility.
    */
@@ -92,7 +92,7 @@ class TheoryPreprocessor
                             std::vector<Node>& newSkolems,
                             bool doTheoryPreprocess,
                             bool fixedPoint);
-  /** 
+  /**
    * Same as above, without lemma tracking or fixed point. Lemmas for skolems
    * can be extracted from the RemoveTermFormulas utility.
    */
