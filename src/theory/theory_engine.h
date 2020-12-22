@@ -451,7 +451,7 @@ class TheoryEngine {
   /** Get the theory preprocessor TODO (project #42) remove this */
   theory::TheoryPreprocessor* getTheoryPreprocess() { return &d_tpp; }
 
-  /** 
+  /**
    * Preprocess rewrite equality, called by the preprocessor to rewrite
    * equalities appearing in the input.
    */

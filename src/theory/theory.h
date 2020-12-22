@@ -734,7 +734,7 @@ class Theory {
    * Given a (non-equality) term of the theory coming from the input formula or
    * from a lemma generated during solving, this method can be overridden in a
    * theory implementation to rewrite the term into an equivalent form.
-   * 
+   *
    * This method returns a TrustNode of kind TrustNodeKind::REWRITE, which
    * carries information about the proof generator for the rewrite, which can
    * be the null TrustNode if n is unchanged.

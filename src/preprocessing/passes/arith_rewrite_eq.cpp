@@ -45,7 +45,7 @@ PreprocessingPassResult TheoryRewriteEq::applyInternal(
 theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
-  TheoryEngine * te = d_preprocContext->getTheoryEngine();
+  TheoryEngine* te = d_preprocContext->getTheoryEngine();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
