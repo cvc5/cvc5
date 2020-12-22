@@ -858,6 +858,13 @@ TrustNode TheoryEngine::preprocess(TNode assertion)
   return d_tpp.theoryPreprocess(assertion);
 }
 
+
+theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
+{
+  Assert (eq.getKind()==EQUAL);
+  return theoryOf(atom)->ppRewriteEquality(eq);
+}
+
 void TheoryEngine::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions) {
   // call all the theories

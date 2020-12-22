@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file arith_rewrite_eq.cpp
+/*! \file theory_rewrite_eq.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The ArithRewriteEq preprocessing pass
+ ** \brief The TheoryRewriteEq preprocessing pass
  **/
 
-#include "preprocessing/passes/arith_rewrite_eq.h"
+#include "preprocessing/passes/theory_rewrite_eq.h"
+
+#include "theory/theory_engine.h"
 
 using namespace CVC4::theory;
 
@@ -20,10 +22,10 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-ArithRewriteEq::ArithRewriteEq(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "arith-rewrite-eq"){};
+TheoryRewriteEq::TheoryRewriteEq(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "theory-rewrite-eq"){};
 
-PreprocessingPassResult ArithRewriteEq::applyInternal(
+PreprocessingPassResult TheoryRewriteEq::applyInternal(
     AssertionPipeline* assertions)
 {
   // Remove all of the ITE occurrences and normalize
@@ -40,9 +42,10 @@ PreprocessingPassResult ArithRewriteEq::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-theory::TrustNode ArithRewriteEq::rewriteAssertion(TNode n)
+theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 {
   NodeManager* nm = NodeManager::currentNM();
+  TheoryEngine * te = d_preprocContext->getTheoryEngine();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -56,13 +59,12 @@ theory::TrustNode ArithRewriteEq::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
-      if (cur.getKind() == kind::EQUAL && cur[0].getType().isReal())
+      if (cur.getKind() == kind::EQUAL)
       {
-        // (= x y) ---> (and (>= x y) (<= x y))
-        Node leq = nm->mkNode(kind::LEQ, cur[0], cur[1]);
-        Node geq = nm->mkNode(kind::GEQ, cur[0], cur[1]);
-        Node ret = nm->mkNode(kind::AND, leq, geq);
-        visited[cur] = ret;
+        // For example, (= x y) ---> (and (>= x y) (<= x y))
+        theory::TrustNode trn = te->ppRewriteEquality(cur);
+        // can make proof producing by using proof generator from trn
+        visited[cur] = trn.getNode();
       }
       else
       {
