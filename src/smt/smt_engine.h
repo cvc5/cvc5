@@ -686,7 +686,8 @@ class CVC4_PUBLIC SmtEngine
    * list is minimized if proofs are enabled, and this call is immediately
    * preceded by an UNSAT or ENTAILED query
    */
-  void getInstantiationTermVectors(std::map<Node, std::vector<std::vector<Node>>>& insts);
+  void getInstantiationTermVectors(
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or

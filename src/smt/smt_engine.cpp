@@ -1606,7 +1606,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
 }
 
-void SmtEngine::getInstantiationTermVectors(std::map<Node, std::vector<std::vector<Node>>>& insts)
+void SmtEngine::getInstantiationTermVectors(
+    std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
   SmtScope smts(this);
   finishInit();
