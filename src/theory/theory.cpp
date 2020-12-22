@@ -158,10 +158,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           tid = Theory::theoryOf(node.getType());
         }
       }
-      else if (node.isConst())
-      {
-        tid = Theory::theoryOf(node.getType());
-      }
       else if (node.getKind() == kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
@@ -195,11 +191,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
             tid = THEORY_BOOL;
           }
         }
-      }
-      else if (node.isConst())
-      {
-        // Constants go to the theory of the type
-        tid = Theory::theoryOf(node.getType());
       }
       else if (node.getKind() == kind::EQUAL)
       {  // Equality
