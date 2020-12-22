@@ -548,7 +548,7 @@ bool RemoveTermFormulas::getSkolems(
     if (it == visited.end())
     {
       visited.insert(cur);
-      if (cur.getKind() == kind::SKOLEM)
+      if (cur.isVar())
       {
         if (d_lemmaCache.find(cur) != d_lemmaCache.end())
         {
