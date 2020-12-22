@@ -861,7 +861,7 @@ TrustNode TheoryEngine::preprocess(TNode assertion)
 theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
 {
   Assert(eq.getKind() == EQUAL);
-  return theoryOf(atom)->ppRewriteEquality(eq);
+  return theoryOf(eq)->ppRewriteEquality(eq);
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(

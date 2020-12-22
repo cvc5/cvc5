@@ -106,6 +106,23 @@ TrustNode TheoryArith::expandDefinition(Node node)
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
+TrustNode TheoryArith::ppRewriteEquality(TNode atom)
+{
+  if (options::arithRewriteEq())
+  {
+    Assert (atom.getKind() == kind::EQUAL && atom[0].getType().isReal());
+    Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+    Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+    Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+    Debug("arith::preprocess")
+        << "arith::preprocess() : returning " << rewritten << endl;
+    // don't need to rewrite terms since rewritten is not a non-standard op
+    return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
+  }
+  // otherwise, no rewrite
+  return TrustNode::null();
+}
+
 TrustNode TheoryArith::ppRewrite(TNode n)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);

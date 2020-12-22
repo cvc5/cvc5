@@ -112,6 +112,15 @@ class TheoryArith : public Theory {
    * preprocessed form of n, and the proof generator that can provide the
    * proof for the equivalence of n and this term.
    *
+   * This rewrites (= x y) ---> (and (>= x y) (<= x y)) if the option 
+   * arithRewriteEq is enabled.
+   */
+  TrustNode ppRewriteEquality(TNode atom) override;
+  /**
+   * Preprocess rewrite, return the trust node encapsulating the
+   * preprocessed form of n, and the proof generator that can provide the
+   * proof for the equivalence of n and this term.
+   *
    * This calls the operator elimination utility to eliminate extended
    * symbols.
    */

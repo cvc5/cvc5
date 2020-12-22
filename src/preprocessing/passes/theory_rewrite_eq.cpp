@@ -64,7 +64,7 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
         // For example, (= x y) ---> (and (>= x y) (<= x y))
         theory::TrustNode trn = te->ppRewriteEquality(cur);
         // can make proof producing by using proof generator from trn
-        visited[cur] = trn.getNode();
+        visited[cur] = trn.isNull() ? Node(cur) : trn.getNode();
       }
       else
       {
