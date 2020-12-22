@@ -292,6 +292,8 @@ libcvc4_add_sources(
   smt/term_formula_removal.h
   smt/theory_rewrite_rcons.cpp
   smt/theory_rewrite_rcons.h
+  smt/unsat_core_manager.cpp
+  smt/unsat_core_manager.h
   smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
