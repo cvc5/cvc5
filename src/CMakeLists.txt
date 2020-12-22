@@ -52,8 +52,6 @@ libcvc4_add_sources(
   preprocessing/passes/ackermann.h
   preprocessing/passes/apply_substs.cpp
   preprocessing/passes/apply_substs.h
-  preprocessing/passes/arith_rewrite_eq.cpp
-  preprocessing/passes/arith_rewrite_eq.h
   preprocessing/passes/bool_to_bv.cpp
   preprocessing/passes/bool_to_bv.h
   preprocessing/passes/bv_abstraction.cpp
@@ -110,6 +108,8 @@ libcvc4_add_sources(
   preprocessing/passes/synth_rew_rules.h
   preprocessing/passes/theory_preprocess.cpp
   preprocessing/passes/theory_preprocess.h
+  preprocessing/passes/theory_rewrite_eq.cpp
+  preprocessing/passes/theory_rewrite_eq.h
   preprocessing/passes/unconstrained_simplifier.cpp
   preprocessing/passes/unconstrained_simplifier.h
   preprocessing/preprocessing_pass.cpp
