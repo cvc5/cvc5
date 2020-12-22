@@ -852,10 +852,9 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
-
 theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
 {
-  Assert (eq.getKind()==kind::EQUAL);
+  Assert(eq.getKind() == kind::EQUAL);
   return theoryOf(eq)->ppRewrite(eq);
 }
 

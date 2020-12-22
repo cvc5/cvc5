@@ -439,7 +439,6 @@ class TheoryEngine {
   bool isProofEnabled() const;
 
  public:
-
   /**
    * Preprocess rewrite equality, called by the preprocessor to rewrite
    * equalities appearing in the input.
