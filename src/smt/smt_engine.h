@@ -694,7 +694,7 @@ class CVC4_PUBLIC SmtEngine
    * As above but only the instantiations that were relevant for the
    * refutation.. */
   void getRelevantInstantiationTermVectors(
-      std::map<Node, std::vector<Node>>& insts);
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or

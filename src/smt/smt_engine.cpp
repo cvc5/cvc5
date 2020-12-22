@@ -1538,7 +1538,7 @@ UnsatCore SmtEngine::getUnsatCore() {
 }
 
 void SmtEngine::getRelevantInstantiationTermVectors(
-    std::map<Node, std::vector<Node>>& insts)
+    std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
   Assert(options::unsatCores());
   Assert(d_state->getMode() == SmtMode::UNSAT);
@@ -1650,10 +1650,10 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  // TODO: enable
-  if (false && options::proofNew() && getSmtMode() == SmtMode::UNSAT)
+  if (options::proofNew() && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
+    getRelevantInstantiationTermVectors(insts);
   }
   else
   {

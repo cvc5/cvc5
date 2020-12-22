@@ -36,7 +36,7 @@ class UnsatCoreManager
 {
  public:
   UnsatCoreManager() {}
-  ~UnsatCoreManager() {};
+  ~UnsatCoreManager(){};
 
   /** Gets the unsat core.
    *
@@ -57,10 +57,13 @@ class UnsatCoreManager
    * INSTANTIATE that occur in pfn.
    *
    * This method populates the insts map from quantified formulas occurring as
-   * premises of INSTANTIATE proof nodes to its instantiations.
+   * premises of INSTANTIATE proof nodes to its instantiations, which are a
+   * matrix with each row corresponding to the terms with which the respective
+   * quantified formula is instiated.
    */
-  void getRelevantInstantiations(std::shared_ptr<ProofNode> pfn,
-                                 std::map<Node, std::vector<Node>>& insts);
+  void getRelevantInstantiations(
+      std::shared_ptr<ProofNode> pfn,
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
 
 }; /* class UnsatCoreManager */
 

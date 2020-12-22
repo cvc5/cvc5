@@ -54,8 +54,39 @@ void UnsatCoreManager::getUnsatCore(std::shared_ptr<ProofNode> pfn,
 }
 
 void UnsatCoreManager::getRelevantInstantiations(
-    std::shared_ptr<ProofNode> pfn, std::map<Node, std::vector<Node>>& insts)
+    std::shared_ptr<ProofNode> pfn,
+    std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
+  std::unordered_map<ProofNode*, bool> visited;
+  std::unordered_map<ProofNode*, bool>::iterator it;
+  std::vector<std::shared_ptr<ProofNode>> visit;
+  std::vector<std::shared_ptr<ProofNode>> traversing;
+
+  std::shared_ptr<ProofNode> cur;
+  visit.push_back(pfn);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur.get());
+    if (it != visited.end())
+    {
+      continue;
+    }
+    visited[cur.get()] = true;
+    const std::vector<std::shared_ptr<ProofNode>>& cs = cur->getChildren();
+    if (cur->getRule() == PfRule::INSTANTIATE)
+    {
+      const std::vector<Node>& instTerms = cur->getArguments();
+      Assert(cs.size() == 1);
+      Node q = cs[0]->getResult();
+      insts[q].push_back({instTerms.begin(), instTerms.end()});
+    }
+    for (const std::shared_ptr<ProofNode>& cp : cs)
+    {
+      visit.push_back(cp);
+    }
+  } while (!visit.empty());
 }
 
 }  // namespace smt
