@@ -1546,6 +1546,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   // First, extract and print the skolemizations
   bool printed = false;
   bool reqNames = !options::printInstFull();
+  // only print when in list mode
   if (options::printInstMode() == options::PrintInstMode::LIST)
   {
     std::map<Node, std::vector<Node>> sks;
@@ -1566,16 +1567,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
 
   // Second, extract and print the instantiations
   std::map<Node, std::vector<std::vector<Node>>> insts;
-  // TODO: enable
-  if (false && options::proofNew() && getSmtMode() == SmtMode::UNSAT)
-  {
-    // minimize instantiations based on proof manager
-  }
-  else
-  {
-    // otherwise, just get the list of all instantiations
-    qe->getInstantiationTermVectors(insts);
-  }
+  getInstantiationTermVectors(insts);
   for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
   {
     if (i.second.empty())
@@ -1611,6 +1603,25 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
     out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
+  }
+}
+
+void SmtEngine::getInstantiationTermVectors(std::map<Node, std::vector<std::vector<Node>>>& insts)
+{
+  SmtScope smts(this);
+  finishInit();
+  // TODO: enable
+  if (false && options::proofNew() && getSmtMode() == SmtMode::UNSAT)
+  {
+    // minimize instantiations based on proof manager
+  }
+  else
+  {
+    TheoryEngine* te = getTheoryEngine();
+    Assert(te != nullptr);
+    QuantifiersEngine* qe = te->getQuantifiersEngine();
+    // otherwise, just get the list of all instantiations
+    qe->getInstantiationTermVectors(insts);
   }
 }
 
