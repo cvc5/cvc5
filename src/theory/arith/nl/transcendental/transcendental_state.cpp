@@ -215,7 +215,14 @@ void TranscendentalState::getCurrentPiBounds()
   Node pi_lem = nm->mkNode(Kind::AND,
                            nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
                            nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
-  d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND);
+  CDProof* proof = nullptr;
+  if (isProofEnabled())
+  {
+    proof = getProof();
+    proof->addStep(
+        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+  }
+  d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND, proof);
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
