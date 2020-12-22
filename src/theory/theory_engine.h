@@ -439,7 +439,11 @@ class TheoryEngine {
   bool isProofEnabled() const;
 
  public:
-
+  /**
+   * Preprocess rewrite equality, called by the preprocessor to rewrite
+   * equalities appearing in the input.
+   */
+  theory::TrustNode ppRewriteEquality(TNode eq);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 

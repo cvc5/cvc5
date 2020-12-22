@@ -852,6 +852,12 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
+theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
+{
+  Assert(eq.getKind() == kind::EQUAL);
+  return theoryOf(eq)->ppRewrite(eq);
+}
+
 void TheoryEngine::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions) {
   // call all the theories
