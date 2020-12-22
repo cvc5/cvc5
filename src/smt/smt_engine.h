@@ -118,6 +118,7 @@ struct SmtEngineStatistics;
 class SmtScope;
 class ProcessAssertions;
 class PfManager;
+class UnsatCoreManager;
 
 ProofManager* currentProofManager();
 }/* CVC4::smt namespace */
@@ -690,14 +691,18 @@ class CVC4_PUBLIC SmtEngine
       std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
+   * As above but only the instantiations that were relevant for the
+   * refutation.. */
+  void getRelevantInstantiationTermVectors(
+      std::map<Node, std::vector<Node>>& insts);
+
+  /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
    * ENTAILED query).  Only permitted if CVC4 was built with unsat-core support
    * and produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
 
-  /** Retrieve the lemmas that appear in the unsat core. */
-  void getLemmasInUnsatCore(std::vector<Node>& lemmas);
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -1091,6 +1096,11 @@ class CVC4_PUBLIC SmtEngine
    * processing, and printing proofs.
    */
   std::unique_ptr<smt::PfManager> d_pfManager;
+
+  /**
+   * The unsat core manager, which produces unsat cores and related information
+   * from refutations. */
+  std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
 
   /**
    * The rewriter associated with this SmtEngine. We have a different instance

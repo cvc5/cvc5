@@ -35,8 +35,8 @@ class Assertions;
 class UnsatCoreManager
 {
  public:
-  UnsatCoreManager();
-  ~UnsatCoreManager();
+  UnsatCoreManager() {}
+  ~UnsatCoreManager() {};
 
   /** Gets the unsat core.
    *

@@ -54,6 +54,7 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
+#include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers_engine.h"
@@ -89,6 +90,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_model(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
+      d_ucManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
@@ -228,6 +230,8 @@ void SmtEngine::finishInit()
     // make the proof manager
     d_pfManager.reset(new PfManager(getUserContext(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
+    // start the unsat core manager
+    d_ucManager.reset(new UnsatCoreManager());
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter
@@ -336,6 +340,7 @@ SmtEngine::~SmtEngine()
 #endif
     d_rewriter.reset(nullptr);
     d_pfManager.reset(nullptr);
+    d_ucManager.reset(nullptr);
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
@@ -1438,8 +1443,11 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  return UnsatCore(d_pfManager->getUnsatCore(
-      pe->getProof(), *d_asserts, *d_definedFunctions));
+  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
+      pe->getProof(), *d_asserts, *d_definedFunctions);
+  std::vector<Node> core;
+  d_ucManager->getUnsatCore(pfn, *d_asserts, core);
+  return UnsatCore(core);
 #else  /* IS_PROOFS_BUILD */
   throw ModalException(
       "This build of CVC4 doesn't have proof support (required for unsat "
@@ -1529,20 +1537,18 @@ UnsatCore SmtEngine::getUnsatCore() {
   return getUnsatCoreInternal();
 }
 
-void SmtEngine::getLemmasInUnsatCore(std::vector<Node>& lemmas)
+void SmtEngine::getRelevantInstantiationTermVectors(
+    std::map<Node, std::vector<Node>>& insts)
 {
   Assert(options::unsatCores());
-  // no unsat core yet
-  if (d_state->getMode() != SmtMode::UNSAT)
-  {
-    return;
-  }
+  Assert(d_state->getMode() == SmtMode::UNSAT);
   // generate with new proofs
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  const std::vector<Node>& core = d_pfManager->getUnsatCore(
+  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
       pe->getProof(), *d_asserts, *d_definedFunctions);
+  d_ucManager->getRelevantInstantiations(pfn, insts);
 }
 
 void SmtEngine::printProof()
