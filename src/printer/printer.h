@@ -32,8 +32,8 @@ namespace CVC4 {
 
 class Command;
 class CommandStatus;
-class NodeCommand;
 class UnsatCore;
+class InstantiationList;
 
 class Printer
 {
@@ -61,6 +61,9 @@ class Printer
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
+  
+  /** Write an instantiation list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const InstantiationList& is) const;
 
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,

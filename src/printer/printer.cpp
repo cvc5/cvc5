@@ -24,6 +24,7 @@
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
 #include "proof/unsat_core.h"
+#include "theory/quantifiers/instantiation_list.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
 
@@ -110,6 +111,21 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const
   }
 }/* Printer::toStream(UnsatCore) */
 
+void Printer::toStream(std::ostream& out, const InstantiationList& is) const
+{
+  out << "(instantiations " << is.d_quant << std::endl;
+  for (const std::vector<Node>& i : is.d_insts)
+  {
+    out << "  ( ";
+    for (const Node& n : i)
+    {
+      out << n << " ";
+    }
+    out << ")" << std::endl;
+  }
+  out << ")" << std::endl;
+}
+  
 Printer* Printer::getPrinter(OutputLanguage lang)
 {
   if(lang == language::output::LANG_AUTO) {

@@ -1537,6 +1537,17 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     out << "% SZS output start Proof for " << d_state->getFilename()
         << std::endl;
   }
+  /*
+  std::map<Node, std::vector<std::vector<Node> > > insts;
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  te->getInstantiationTermVectors(insts);
+  for (const std::pair<const Node, std::vector<std::vector<Node> > >& i : insts)
+  {
+    InstantiationList ilist(i.first, i.second);
+    out << ilist;
+  }
+  */
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   te->printInstantiations(out);
