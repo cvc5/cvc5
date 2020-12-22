@@ -114,7 +114,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
   {
     if (atom.getKind() == kind::EQUAL)
     {
-      Assert (atom[0].getType().isReal());
+      Assert(atom[0].getType().isReal());
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
       TrustNode tleq = ppRewriteTerms(leq);
@@ -139,7 +139,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
 
 TrustNode TheoryArith::ppRewriteTerms(TNode n)
 {
-  Assert (Theory::theoryOf(n) == THEORY_ARITH);
+  Assert(Theory::theoryOf(n) == THEORY_ARITH);
   // Eliminate operators recursively. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may

@@ -463,7 +463,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   // applied to them. However, it is more uniform to say that theory
   // preprocessing is applied to all formulas, and make it so that theory
   // preprocessing does not interfere with theory combination.
-  if (term.getKind()==kind::EQUAL)
+  if (term.getKind() == kind::EQUAL)
   {
     return term;
   }
