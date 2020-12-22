@@ -372,17 +372,6 @@ CegHandledStatus CegInstantiator::isCbqiSort(
       }
     }
   }
-  else if (tn.isSort())
-  {
-    QuantEPR* qepr = qe != nullptr ? qe->getQuantEPR() : nullptr;
-    if (qepr != nullptr)
-    {
-      if (qepr->isEPR(tn))
-      {
-        ret = CEG_HANDLED_UNCONDITIONAL;
-      }
-    }
-  }
   // sets, arrays, functions and others are not supported
   visited[tn] = ret;
   return ret;
@@ -489,8 +478,6 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     Instantiator * vinst;
     if( tn.isReal() ){
       vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
-    }else if( tn.isSort() ){
-      vinst = new EprInstantiator(tn);
     }else if( tn.isDatatype() ){
       vinst = new DtInstantiator(tn);
     }else if( tn.isBitVector() ){

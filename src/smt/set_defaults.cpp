@@ -811,7 +811,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // disable modes not supported by incremental
     options::sortInference.set(false);
     options::ufssFairnessMonotone.set(false);
-    options::quantEpr.set(false);
     options::globalNegate.set(false);
     options::bvAbstraction.set(false);
     options::arithMLTrick.set(false);
@@ -903,18 +902,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       options::finiteModelFind.set(true);
     }
-  }
-  // EPR
-  if (options::quantEpr())
-  {
-    if (!options::preSkolemQuant.wasSetByUser())
-    {
-      options::preSkolemQuant.set(true);
-    }
-    // must have separation logic
-    logic = logic.getUnlockedCopy();
-    logic.enableTheory(THEORY_SEP);
-    logic.lock();
   }
 
   // now, have determined whether finite model find is on/off

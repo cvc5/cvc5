@@ -21,7 +21,6 @@
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
@@ -114,33 +113,6 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       lem = Rewriter::rewrite( lem );
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
       registerCounterexampleLemma( q, lem );
-      
-      //totality lemmas for EPR
-      QuantEPR * qepr = d_quantEngine->getQuantEPR();
-      if( qepr!=NULL ){   
-        for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-          TypeNode tn = q[0][i].getType();
-          if( tn.isSort() ){
-            if( qepr->isEPR( tn ) ){
-              //add totality lemma
-              std::map< TypeNode, std::vector< Node > >::iterator itc = qepr->d_consts.find( tn );
-              if( itc!=qepr->d_consts.end() ){
-                Assert(!itc->second.empty());
-                Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
-                std::vector< Node > disj;
-                for( unsigned j=0; j<itc->second.size(); j++ ){
-                  disj.push_back( ic.eqNode( itc->second[j] ) );
-                }
-                Node tlem = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
-                Trace("cegqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
-                d_quantEngine->getOutputChannel().lemma( tlem );
-              }else{
-                Assert(false);
-              }                  
-            }
-          }
-        }
-      }      
       
       //compute dependencies between quantified formulas
       std::vector<Node> ics;

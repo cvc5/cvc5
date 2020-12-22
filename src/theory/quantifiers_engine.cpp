@@ -86,10 +86,6 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
-  if( options::quantEpr() ){
-    Assert(!options::incrementalSolving());
-    d_qepr.reset(new quantifiers::QuantEPR);
-  }
   //---- end utilities
 
   //allow theory combination to go first, once initially
@@ -182,10 +178,6 @@ EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
-}
-quantifiers::QuantEPR* QuantifiersEngine::getQuantEPR() const
-{
-  return d_qepr.get();
 }
 quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 {
