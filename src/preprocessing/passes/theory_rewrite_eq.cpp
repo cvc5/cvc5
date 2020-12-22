@@ -28,14 +28,14 @@ TheoryRewriteEq::TheoryRewriteEq(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult TheoryRewriteEq::applyInternal(
     AssertionPipeline* assertions)
 {
-  // Remove all of the ITE occurrences and normalize
+  // apply ppRewrite to all equalities in assertions
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     Node assertion = (*assertions)[i];
     TrustNode trn = rewriteAssertion(assertion);
     if (!trn.isNull())
     {
-      // process
+      // replace based on the trust node
       assertions->replaceTrusted(i, trn);
     }
   }
