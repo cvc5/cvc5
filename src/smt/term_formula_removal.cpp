@@ -54,7 +54,7 @@ theory::TrustNode RemoveTermFormulas::run(
     bool fixedPoint)
 {
   Node itesRemoved = runInternal(assertion, newAsserts, newSkolems);
-  Assert (newAsserts.size()==newSkolems.size());
+  Assert(newAsserts.size() == newSkolems.size());
   if (itesRemoved == assertion)
   {
     return theory::TrustNode::null();
@@ -65,12 +65,14 @@ theory::TrustNode RemoveTermFormulas::run(
   {
     size_t i = 0;
     std::unordered_set<Node, NodeHashFunction> processed;
-    while (i<newAsserts.size())
+    while (i < newAsserts.size())
     {
       theory::TrustNode trn = newAsserts[i];
-      AlwaysAssert(processed.find(trn.getProven())==processed.end());
+      AlwaysAssert(processed.find(trn.getProven()) == processed.end());
       processed.insert(trn.getProven());
-      newAsserts[i] = runLemma(trn, newAsserts, newSkolems);
+      // do not run to fixed point on subcall, since we are processing all
+      // lemmas in this loop
+      newAsserts[i] = runLemma(trn, newAsserts, newSkolems, false);
       i++;
     }
   }
@@ -82,10 +84,11 @@ theory::TrustNode RemoveTermFormulas::run(
 theory::TrustNode RemoveTermFormulas::runLemma(
     theory::TrustNode lem,
     std::vector<theory::TrustNode>& newAsserts,
-    std::vector<Node>& newSkolems)
+    std::vector<Node>& newSkolems,
+    bool fixedPoint)
 {
-  // do not run to fixed point
-  theory::TrustNode trn = run(lem.getProven(), newAsserts, newSkolems, false);
+  theory::TrustNode trn =
+      run(lem.getProven(), newAsserts, newSkolems, fixedPoint);
   if (trn.isNull())
   {
     // no change
@@ -103,8 +106,9 @@ theory::TrustNode RemoveTermFormulas::runLemma(
       << std::endl;
   Node assertionPre = lem.getProven();
   Node naEq = trn.getProven();
-  // Can skip adding to d_lp if it was already added. The common use case of
-  // this method is using the
+  // this method is applying this method to TrustNode whose generator is
+  // already d_lp (from the run method above), in which case this link is
+  // not necessary.
   if (trn.getGenerator() != d_lp.get())
   {
     d_lp->addLazyStep(naEq, trn.getGenerator());
@@ -150,10 +154,18 @@ Node RemoveTermFormulas::runInternal(Node assertion,
     if (!processedChildren.back())
     {
       // check if we should replace the current node
-      Node currt = runCurrent(curr, output, newSkolems);
-      // if null, we need to recurse
+      theory::TrustNode newLem;
+      Node currt = runCurrent(curr, newLem);
+      // if we replaced by a skolem, we do not recurse
       if (!currt.isNull())
       {
+        // if this is the first time we've seen this term, we have a new lemma
+        // which we add to our vectors
+        if (!newLem.isNull())
+        {
+          output.push_back(newLem);
+          newSkolems.push_back(currt);
+        }
         Trace("rtf-debug") << "...replace by skolem" << std::endl;
         d_tfCache.insert(curr, currt);
         ctx.pop();
@@ -224,14 +236,9 @@ Node RemoveTermFormulas::runInternal(Node assertion,
 }
 
 Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
-                                    std::vector<theory::TrustNode>& output,
-                                    std::vector<Node>& newSkolems)
+                                    theory::TrustNode& newLem)
 {
   TNode node = curr.first;
-  if (node.getKind() == kind::INST_PATTERN_LIST)
-  {
-    return Node(node);
-  }
   uint32_t cval = curr.second;
   bool inQuant, inTerm;
   RtfTermContext::getFlags(curr.second, inQuant, inTerm);
@@ -472,15 +479,11 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
       Trace("rtf-debug") << "*** term formula removal introduced " << skolem
                          << " for " << node << std::endl;
 
-      theory::TrustNode trna =
-          theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
+      newLem = theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
-      trna.debugCheckClosed("rtf-proof-debug",
-                            "RemoveTermFormulas::run:new_assert");
-
-      output.push_back(trna);
-      newSkolems.push_back(skolem);
+      newLem.debugCheckClosed("rtf-proof-debug",
+                              "RemoveTermFormulas::run:new_assert");
     }
 
     // The representation is now the skolem

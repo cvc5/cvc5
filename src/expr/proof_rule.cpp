@@ -25,8 +25,6 @@ const char* toString(PfRule id)
     //================================================= Core rules
     case PfRule::ASSUME: return "ASSUME";
     case PfRule::SCOPE: return "SCOPE";
-
-    //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
     case PfRule::EVALUATE: return "EVALUATE";
@@ -191,9 +189,6 @@ const char* toString(PfRule id)
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
     case PfRule::ARITH_NL_CAD_RECURSIVE:
       return "ARITH_NL_CAD_RECURSIVE";
-
-      //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
-
     //================================================= External rules
     case PfRule::LFSC_RULE: return "LFSC_RULE";
     case PfRule::LEAN_RULE: return "LEAN_RULE";
