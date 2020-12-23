@@ -1086,10 +1086,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       options::macrosQuant.set(false);
     }
-    if (!options::cegqiPreRegInst.wasSetByUser())
-    {
-      options::cegqiPreRegInst.set(true);
-    }
     // use tangent planes by default, since we want to put effort into
     // the verification step for sygus queries with non-linear arithmetic
     if (!options::nlExtTangentPlanes.wasSetByUser())
@@ -1135,7 +1131,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       // cannot do nested quantifier elimination in incremental mode
       options::cegqiNestedQE.set(false);
-      options::cegqiPreRegInst.set(false);
     }
     if (logic.isPure(THEORY_ARITH) || logic.isPure(THEORY_BV))
     {

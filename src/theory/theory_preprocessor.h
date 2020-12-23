@@ -72,7 +72,7 @@ class TheoryPreprocessor
                        bool doTheoryPreprocess);
   /**
    * Same as above, but transforms the proof of node into a proof of the
-   * preprocessed node.
+   * preprocessed node and returns the LEMMA trust node.
    *
    * @param node The assertion to preprocess,
    * @param newLemmas The lemmas to add to the set of assertions,
@@ -85,14 +85,13 @@ class TheoryPreprocessor
                             std::vector<TrustNode>& newLemmas,
                             std::vector<Node>& newSkolems,
                             bool doTheoryPreprocess);
-  /**
-   * Runs theory specific preprocessing on the non-Boolean parts of
-   * the formula.  This is only called on input assertions, after ITEs
-   * have been removed.
-   */
-  TrustNode theoryPreprocess(TNode node);
 
  private:
+  /**
+   * Runs theory specific preprocessing (Theory::ppRewrite) on the non-Boolean
+   * parts of the node.
+   */
+  TrustNode theoryPreprocess(TNode node);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
   /** Logic info of theory engine */

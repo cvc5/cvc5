@@ -70,11 +70,17 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
                                                    shift,
                                                    d_data->d_pi)))),
       new_a.eqNode(a));
+  CDProof* proof = nullptr;
+  if (d_data->isProofEnabled())
+  {
+    proof = d_data->getProof();
+    proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SHIFT, {}, {a[0], y, shift});
+  }
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
   NlLemma nlem(
-      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
+      lem, LemmaProperty::PREPROCESS, proof, InferenceId::NL_T_PURIFY_ARG);
   d_data->d_im.addPendingArithLemma(nlem);
 }
 

@@ -353,11 +353,6 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
       // will process using nested quantifier elimination
       return;
     }
-    // get the instantiator
-    if (options::cegqiPreRegInst())
-    {
-      getInstantiator(q);
-    }
     // register the cbqi lemma
     if( registerCbqiLemma( q ) ){
       Trace("cegqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
@@ -536,18 +531,6 @@ VtsTermCache* InstStrategyCegqi::getVtsTermCache() const
 BvInverter* InstStrategyCegqi::getBvInverter() const
 {
   return d_bv_invert.get();
-}
-
-void InstStrategyCegqi::presolve() {
-  if (!options::cegqiPreRegInst())
-  {
-    return;
-  }
-  for (std::pair<const Node, std::unique_ptr<CegInstantiator>>& ci : d_cinst)
-  {
-    Trace("cegqi-presolve") << "Presolve " << ci.first << std::endl;
-    ci.second->presolve(ci.first);
-  }
 }
 
 bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)

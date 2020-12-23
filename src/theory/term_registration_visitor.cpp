@@ -238,22 +238,6 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
       }
     }
   }
-  if (current != parent) {
-    if (currentTheoryId != parentTheoryId) {
-      // If enclosed by different theories it's shared -- in read(a, f(a)) f(a) should be shared with integers
-      TypeNode type = current.getType();
-      useType = true;
-      typeTheoryId = Theory::theoryOf(type);
-    } else {
-      TypeNode type = current.getType();
-      typeTheoryId = Theory::theoryOf(type);
-      if (typeTheoryId != currentTheoryId) {
-        if (type.isInterpretedFinite()) {
-          useType = true;
-        }
-      }
-    }
-  }
 
   if (TheoryIdSetUtil::setContains(currentTheoryId, theories))
   {

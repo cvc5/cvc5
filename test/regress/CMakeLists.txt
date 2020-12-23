@@ -1719,7 +1719,6 @@ set(regress_1_tests
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4433-nqe.smt2
-  regress1/quantifiers/issue4476-ext-rew.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
   regress1/quantifiers/issue4849-nqe.smt2
@@ -2384,6 +2383,7 @@ set(regress_3_tests
   regress3/interpol2.smt2
   regress3/inv_gen_n_c11.sy
   regress3/issue4170.smt2
+  regress3/issue4476-ext-rew.smt2
   regress3/issue4714.smt2
   regress3/lpsat-goal-9.smt2
   regress3/nia-max-square.sy
