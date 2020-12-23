@@ -146,10 +146,6 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(q != nullptr) {
     d_result = res = q->getResult();
   }
-  const CheckSynthCommand* csy = dynamic_cast<const CheckSynthCommand*>(cmd);
-  if(csy != nullptr) {
-    d_result = res = csy->getResult();
-  }
 
   if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
     std::ostringstream ossCurStats;
@@ -184,11 +180,6 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
             || isResultUnsat))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
-    }
-
-    if (d_options.getDumpSynth() && res.isUnsat())
-    {
-      getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
     if (d_options.getDumpUnsatCores() && isResultUnsat)
