@@ -40,7 +40,7 @@ class TrustSubstitutionMap
   TrustSubstitutionMap(context::Context* c,
                        ProofNodeManager* pnm,
                        std::string name = "TrustSubstitutionMap",
-                       PfRule trustId = PfRule::TRUST_SUBS_MAP,
+                       PfRule trustId = PfRule::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();

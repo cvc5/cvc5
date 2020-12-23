@@ -66,6 +66,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                 d_csolver,
                 d_esolver,
                 d_statistics),
+      d_regexp_elim(options::regExpElimAgg(), pnm, u),
       d_stringsFmf(c, u, valuation, d_termReg)
 {
 
