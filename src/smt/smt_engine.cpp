@@ -1503,7 +1503,10 @@ UnsatCore SmtEngine::getUnsatCore() {
   return getUnsatCoreInternal();
 }
 
-void SmtEngine::printUnsatCore() { getUnsatCore().toStream(*options::out()); }
+void SmtEngine::printUnsatCore()
+{
+  getUnsatCore().toStream(*options::out());
+}
 
 void SmtEngine::printProof()
 {
