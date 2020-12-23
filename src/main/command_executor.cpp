@@ -136,6 +136,12 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(cs != nullptr) {
     d_result = res = cs->getResult();
   }
+  const CheckSatAssumingCommand* csa =
+      dynamic_cast<const CheckSatAssumingCommand*>(cmd);
+  if (csa != nullptr)
+  {
+    d_result = res = csa->getResult();
+  }
   const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
   if(q != nullptr) {
     d_result = res = q->getResult();
