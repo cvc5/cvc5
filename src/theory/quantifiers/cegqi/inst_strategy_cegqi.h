@@ -98,8 +98,6 @@ class InstStrategyCegqi : public QuantifiersModule
   BvInverter* getBvInverter() const;
   /** pre-register quantifier */
   void preRegisterQuantifier(Node q) override;
-  // presolve
-  void presolve() override;
 
   /**
    * Rewrite the instantiation inst of quantified formula q for terms; return
