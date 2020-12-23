@@ -980,6 +980,12 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
         checkProof();
       }
     }
+    // print unsat core if dumping
+    if (options::dumpUnsatCores()
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      printUnsatCore();
+    }
     // Check that UNSAT results generate an unsat core correctly.
     if(options::checkUnsatCores()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
@@ -1430,6 +1436,7 @@ void SmtEngine::checkUnsatCore() {
   // initialize the core checker
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
+  coreChecker->getOptions().set(options::dumpUnsatCores, false);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
 
   // set up separation logic heap if necessary
@@ -1494,6 +1501,11 @@ UnsatCore SmtEngine::getUnsatCore() {
         getOutputManager().getDumpOut());
   }
   return getUnsatCoreInternal();
+}
+
+void SmtEngine::printUnsatCore()
+{
+  getUnsatCore().toStream(*options::out());
 }
 
 void SmtEngine::printProof()
