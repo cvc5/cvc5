@@ -242,7 +242,7 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
   {
     csubsChildren.push_back(tns.getProven());
   }
-  std::reverse(csubsChildren.begin(), csubsChildren.end());
+  std::reverse(csubsChildren.begin(),csubsChildren.end());
   d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
   if (d_currentSubs.get().getKind() == kind::AND)
   {
