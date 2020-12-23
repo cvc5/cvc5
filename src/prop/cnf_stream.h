@@ -42,7 +42,7 @@ namespace prop {
 
 class ProofCnfStream;
 
-/** A policy for how literals for formulas steps are handled in cnf_stream */
+/** A policy for how literals for formulas are handled in cnf_stream */
 enum class FormulaLitPolicy : uint32_t
 {
   // literals for formulas are notified
