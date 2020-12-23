@@ -146,7 +146,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(q != nullptr) {
     d_result = res = q->getResult();
   }
- const  CheckSynthCommand* csy = dynamic_cast<const CheckSynthCommand*>(cmd);
+  const CheckSynthCommand* csy = dynamic_cast<const CheckSynthCommand*>(cmd);
   if(csy != nullptr) {
     d_result = res = csy->getResult();
   }
@@ -170,7 +170,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetModelCommand());
     }
     // for now only use this route for old proof
-    if (d_options.getDumpProofs() && res.isUnsat() && !d_options.getProofNew())
+    if (d_options.getDumpProofs() && (res.isUnsat() || res.isEntailed())
+        && !d_options.getProofNew())
     {
       getterCommands.emplace_back(new GetProofCommand());
     }
@@ -180,7 +181,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
              && (res.isSat()
                  || (res.isSatUnknown()
                      && res.getResult().whyUnknown() == Result::INCOMPLETE)))
-            || res.isUnsat()))
+            || res.isUnsat() || res.isEntailed()))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
@@ -190,7 +191,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
-    if (d_options.getDumpUnsatCores() && res.isUnsat())
+    if (d_options.getDumpUnsatCores() && (res.isUnsat() || res.isEntailed()))
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
