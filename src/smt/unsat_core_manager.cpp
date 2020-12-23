@@ -60,7 +60,6 @@ void UnsatCoreManager::getRelevantInstantiations(
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<std::shared_ptr<ProofNode>> visit;
-  std::vector<std::shared_ptr<ProofNode>> traversing;
 
   std::shared_ptr<ProofNode> cur;
   visit.push_back(pfn);
