@@ -1835,8 +1835,6 @@ set(regress_1_tests
   regress1/sep/chain-int.smt2
   regress1/sep/crash1220.smt2
   regress1/sep/dispose-list-4-init.smt2
-  regress1/sep/emp2-quant-unsat.smt2
-  regress1/sep/finite-witness-sat.smt2
   regress1/sep/fmf-nemp-2.smt2
   regress1/sep/loop-1220.smt2
   regress1/sep/pto-04.smt2
@@ -1844,7 +1842,6 @@ set(regress_1_tests
   regress1/sep/sep-02.smt2
   regress1/sep/sep-03.smt2
   regress1/sep/sep-find2.smt2
-  regress1/sep/sep-fmf-priority.smt2
   regress1/sep/sep-neg-1refine.smt2
   regress1/sep/sep-neg-nstrict.smt2
   regress1/sep/sep-neg-nstrict2.smt2
@@ -2480,6 +2477,10 @@ set(regression_disabled_tests
   regress1/rels/garbage_collect.cvc
   regress1/sets/setofsets-disequal.smt2
   regress1/sets/finite-type/sets-card-neg-mem-union-2.smt2
+  # no longer support quant-epr + sep
+  regress1/sep/emp2-quant-unsat.smt2
+  regress1/sep/finite-witness-sat.smt2
+  regress1/sep/sep-fmf-priority.smt2
   regress1/simple-rdl-definefun.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy
