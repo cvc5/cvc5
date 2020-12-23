@@ -233,14 +233,6 @@ header = "options/smt_options.h"
   help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
 
 [[option]]
-  name       = "dumpSynth"
-  category   = "regular"
-  long       = "dump-synth"
-  type       = "bool"
-  default    = "false"
-  help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
-
-[[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
