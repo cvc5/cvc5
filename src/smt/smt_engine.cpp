@@ -991,6 +991,12 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
         checkProof();
       }
     }
+    // print unsat core if dumping
+    if (options::dumpUnsatCores()
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      printUnsatCore();
+    }
     // Check that UNSAT results generate an unsat core correctly.
     if (options::checkUnsatCores() || options::checkUnsatCoresNew())
     {
@@ -1465,6 +1471,7 @@ void SmtEngine::checkUnsatCore() {
   // initialize the core checker
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
+  coreChecker->getOptions().set(options::dumpUnsatCores, false);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
   coreChecker->getOptions().set(options::proofNew, false);
@@ -1549,6 +1556,11 @@ void SmtEngine::getRelevantInstantiationTermVectors(
   std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
       pe->getProof(), *d_asserts, *d_definedFunctions);
   d_ucManager->getRelevantInstantiations(pfn, insts);
+}
+
+void SmtEngine::printUnsatCore()
+{
+  getUnsatCore().toStream(*options::out());
 }
 
 void SmtEngine::printProof()
