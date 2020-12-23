@@ -159,6 +159,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_lastStatistics = ossCurStats.str();
   }
 
+  bool isResultUnsat = res.isUnsat() || res.isEntailed();
+
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
@@ -170,8 +172,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetModelCommand());
     }
     // for now only use this route for old proof
-    if (d_options.getDumpProofs() && (res.isUnsat() || res.isEntailed())
-        && !d_options.getProofNew())
+    if (d_options.getDumpProofs() && isResultUnsat && !d_options.getProofNew())
     {
       getterCommands.emplace_back(new GetProofCommand());
     }
@@ -181,7 +182,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
              && (res.isSat()
                  || (res.isSatUnknown()
                      && res.getResult().whyUnknown() == Result::INCOMPLETE)))
-            || res.isUnsat() || res.isEntailed()))
+            || isResultUnsat))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
@@ -191,7 +192,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
-    if (d_options.getDumpUnsatCores() && (res.isUnsat() || res.isEntailed()))
+    if (d_options.getDumpUnsatCores() && isResultUnsat)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
