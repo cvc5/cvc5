@@ -548,15 +548,6 @@ class CVC4_PUBLIC SmtEngine
    */
   void printProof();
   /**
-   * Print the current unsat core. This method should be called after an UNSAT
-   * response. It uses the SMT engine getUnsatCore() method.
-   *
-   * Note that this printing is in terms of the assertions given to this SMT
-   * engine and ignores "names" that may have been used for assertions in the
-   * front end.
-   */
-  void printUnsatCore();
-  /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
    */
