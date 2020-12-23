@@ -1702,25 +1702,6 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "non-optimal bounds for counterexample-based quantifier instantiation"
 
-# CEGQI for EPR
-
-[[option]]
-  name       = "quantEpr"
-  category   = "regular"
-  long       = "quant-epr"
-  type       = "bool"
-  default    = "false"
-  help       = "infer whether in effectively propositional fragment, use for cegqi"
-
-[[option]]
-  name       = "quantEprMatching"
-  category   = "regular"
-  long       = "quant-epr-match"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use matching heuristics for EPR instantiation"
-
 # CEGQI for BV
 
 [[option]]
