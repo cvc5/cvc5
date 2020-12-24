@@ -654,8 +654,6 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h
   theory/quantifiers/cegqi/ceg_dt_instantiator.cpp
   theory/quantifiers/cegqi/ceg_dt_instantiator.h
-  theory/quantifiers/cegqi/ceg_epr_instantiator.cpp
-  theory/quantifiers/cegqi/ceg_epr_instantiator.h
   theory/quantifiers/cegqi/ceg_instantiator.cpp
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
@@ -722,8 +720,6 @@ libcvc4_add_sources(
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
-  theory/quantifiers/quant_epr.cpp
-  theory/quantifiers/quant_epr.h
   theory/quantifiers/quant_relevance.cpp
   theory/quantifiers/quant_relevance.h
   theory/quantifiers/quant_rep_bound_ext.cpp

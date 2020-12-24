@@ -273,7 +273,8 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
     polarity .push(sign);
     decision .push();
     trail    .capacity(v+1);
-    theory   .push(isTheoryAtom);
+    // push whether it corresponds to a theory atom
+    theory.push(isTheoryAtom);
 
     setDecisionVar(v, dvar);
 
@@ -305,7 +306,6 @@ void Solver::resizeVars(int newSize) {
     polarity.shrink(shrinkSize);
     decision.shrink(shrinkSize);
     theory.shrink(shrinkSize);
-
   }
 
   if (Debug.isOn("minisat::pop")) {
