@@ -35,28 +35,26 @@ void SolverState::registerClass(TNode n)
   Kind k = n.getKind();
   if(t.isBag())
   {
-    // TODO: check that n is not already there
-    d_bags[t].push_back(n);
+    d_bags[t].insert(n);
   }
 
   if(k == BAG_COUNT)
   {
-    // TODO: check that n[0] is not already there
-    d_elements[n[0].getType()].push_back(n[0]);
+    d_elements[n[0].getType()].insert(n[0]);
   }
 }
 
-std::map<TypeNode, std::vector<Node>> & SolverState::getBags()
+std::map<TypeNode, std::set<Node>> & SolverState::getBags()
 {
   return d_bags;
 }
 
-std::vector<Node> & SolverState::getBags(TypeNode t)
+std::set<Node> & SolverState::getBags(TypeNode t)
 {
   return d_bags[t];
 }
 
-std::vector<Node> & SolverState::getElements(TypeNode t)
+std::set<Node> & SolverState::getElements(TypeNode t)
 {
   return d_elements[t];
 }
