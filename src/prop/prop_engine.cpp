@@ -117,7 +117,7 @@ PropEngine::PropEngine(TheoryEngine* te,
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
-  if (options::unsatCores())
+  else if (options::unsatCores())
   {
     ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
   }

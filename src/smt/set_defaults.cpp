@@ -484,6 +484,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       throw OptionException("bitblast-aig not supported with unsat cores");
     }
+
+    if (options::doITESimp())
+    {
+      throw OptionException("ITE simp not supported with unsat cores");
+    }
   }
   else
   {

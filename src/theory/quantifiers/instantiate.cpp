@@ -683,7 +683,7 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 {
   // only if unsat core available
-  if (options::unsatCores())
+  if (options::unsatCores() && !isProofEnabled())
   {
     if (!ProofManager::currentPM()->unsatCoreAvailable())
     {
