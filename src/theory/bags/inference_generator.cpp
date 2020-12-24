@@ -120,7 +120,6 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
   Node B = n[1];
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_UNION_MAX;
-  inferInfo.d_ant.push_back(d_true);
   Node mA = d_nm->mkNode(kind::BAG_COUNT, e, A);
   Node mB = d_nm->mkNode(kind::BAG_COUNT, e, B);
   Node mUnionMax = d_nm->mkNode(kind::BAG_COUNT, e, n);
@@ -140,7 +139,6 @@ InferInfo InferenceGenerator::intersection(Node n, Node e)
   Node B = n[1];
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_INTERSECTION_MIN;
-  inferInfo.d_ant.push_back(d_true);
   Node mA = d_nm->mkNode(kind::BAG_COUNT, e, A);
   Node mB = d_nm->mkNode(kind::BAG_COUNT, e, B);
   Node mIntersection = d_nm->mkNode(kind::BAG_COUNT, e, n);
@@ -160,7 +158,6 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
   Node B = n[1];
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_DIFFERENCE_SUBTRACT;
-  inferInfo.d_ant.push_back(d_true);
   Node mA = d_nm->mkNode(kind::BAG_COUNT, e, A);
   Node mB = d_nm->mkNode(kind::BAG_COUNT, e, B);
   Node mDifference = d_nm->mkNode(kind::BAG_COUNT, e, n);
@@ -181,7 +178,6 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   Node B = n[1];
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_DIFFERENCE_REMOVE;
-  inferInfo.d_ant.push_back(d_true);
   Node mA = d_nm->mkNode(kind::BAG_COUNT, e, A);
   Node mB = d_nm->mkNode(kind::BAG_COUNT, e, B);
   Node mDifference = d_nm->mkNode(kind::BAG_COUNT, e, n);
@@ -202,7 +198,7 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
   InferInfo inferInfo;
   Node mA = d_nm->mkNode(kind::BAG_COUNT, e, A);
   inferInfo.d_id = Inference::BAG_DUPLICATE_REMOVAL;
-  inferInfo.d_ant.push_back(d_true);
+
   Node multiplicity = d_nm->mkNode(kind::BAG_COUNT, e, A);
 
   Node mDistinct = d_nm->mkNode(kind::BAG_COUNT, e, n);

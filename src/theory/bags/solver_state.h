@@ -31,10 +31,22 @@ class SolverState : public TheoryState
  public:
   SolverState(context::Context* c, context::UserContext* u, Valuation val);
 
+  void registerClass(TNode n);
+
+  std::map<TypeNode, std::vector<Node>> & getBags();
+
+  std::vector<Node> & getBags(TypeNode t);
+
+  std::vector<Node> & getElements(TypeNode t);
+
  private:
   /** constants */
   Node d_true;
   Node d_false;
+  std::map<TypeNode, std::vector<Node>> d_bags;
+  std::map<TypeNode, std::vector<Node>> d_elements;
+  /** bag -> element -> multiplicity */
+  std::map<Node, std::map<Node, Node>> d_count;
 }; /* class SolverState */
 
 }  // namespace bags

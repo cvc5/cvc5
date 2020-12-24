@@ -38,11 +38,22 @@ InferInfo::InferInfo() : d_im(nullptr), d_id(Inference::NONE) {}
 
 bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 {
-  //  if (asLemma)
-  //  {
-  //    return d_im->processLemma(*this);
-  //  }
-  //  return d_im->processFact(*this);
+  Node lemma = d_conc;
+  if (d_ant.size() >= 2)
+  {
+    Node andNode = NodeManager::currentNM()->mkNode(kind::AND, d_ant);
+    lemma = andNode.impNode(lemma);
+  }
+  else if (d_ant.size() == 1)
+  {
+    lemma = d_ant[0].impNode(lemma);
+  }
+  if (asLemma)
+  {
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+    return d_im->trustedLemma(trustedLemma);
+  }
+  Unreachable();
 }
 
 bool InferInfo::isTrivial() const

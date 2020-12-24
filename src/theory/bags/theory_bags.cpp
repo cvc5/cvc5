@@ -14,6 +14,8 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "theory/bags/inference_generator.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -28,7 +30,7 @@ TheoryBags::TheoryBags(context::Context* c,
                        ProofNodeManager* pnm)
     : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_im(*this, d_state, nullptr),
       d_notify(*this, d_im),
       d_statistics(),
       d_rewriter(&d_statistics.d_rewrites),
@@ -72,15 +74,14 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
 }
 
-void TheoryBags::postCheck(Effort e)
+void TheoryBags::postCheck(Effort effort)
 {
   d_im.doPendingFacts();
   // TODO: clean this before merge Assert(d_strat.isStrategyInit());
   if (!d_state.isInConflict() && !d_valuation.needCheck())
   // TODO: clean this before merge && d_strat.hasStrategyEffort(e))
   {
-    Trace("bags-check-debug")
-        << "Theory of bags " << e << " effort check " << std::endl;
+    Trace("bags::TheoryBags::postCheck") << "effort: " << std::endl;
 
     // TODO: clean this before merge ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
@@ -92,6 +93,28 @@ void TheoryBags::postCheck(Effort e)
       // TODO: clean this before merge ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
       // TODO: clean this before merge runStrategy(e);
+
+      for (std::pair<const TypeNode, std::vector<Node>>& t : d_state.getBags())
+      {
+        for (Node& n : t.second)
+        {
+          std::cout << n << std::endl;
+          Kind k = n.getKind();
+          switch (k)
+          {
+            case kind::DIFFERENCE_SUBTRACT:
+              for (Node& e : d_state.getElements(t.first.getBagElementType()))
+              {
+                InferenceGenerator ig(NodeManager::currentNM());
+                InferInfo i = ig.differenceSubtract(n, e);
+                i.d_im = &d_im;
+                i.process(&d_im, true);
+              }
+            default: break;
+          }
+        }
+      }
+
       d_solver.checkNormalFormsEq();
       d_solver.checkNormalFormsDeq();
       // remember if we had pending facts or lemmas
@@ -122,7 +145,7 @@ void TheoryBags::postCheck(Effort e)
       // facts or lemmas.
     } while (!d_state.isInConflict() && !sentLemma && hadPending);
   }
-  Trace("bags-check") << "Theory of bags, done check : " << e << std::endl;
+  Trace("bags-check") << "Theory of bags, done check : " << effort << std::endl;
   Assert(!d_im.hasPendingFact());
   Assert(!d_im.hasPendingLemma());
 }
@@ -156,20 +179,11 @@ void TheoryBags::presolve() {}
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode t)
-{
-  Assert(false) << "Not implemented yet" << std::endl;
-}
+void TheoryBags::eqNotifyNewClass(TNode t) { d_state.registerClass(t); }
 
-void TheoryBags::eqNotifyMerge(TNode t1, TNode t2)
-{
-  Assert(false) << "Not implemented yet" << std::endl;
-}
+void TheoryBags::eqNotifyMerge(TNode t1, TNode t2) {}
 
-void TheoryBags::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-  Assert(false) << "Not implemented yet" << std::endl;
-}
+void TheoryBags::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
 
 void TheoryBags::NotifyClass::eqNotifyNewClass(TNode t)
 {

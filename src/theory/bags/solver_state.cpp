@@ -29,6 +29,37 @@ SolverState::SolverState(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
+void SolverState::registerClass(TNode n)
+{
+  TypeNode t = n.getType();
+  Kind k = n.getKind();
+  if(t.isBag())
+  {
+    // TODO: check that n is not already there
+    d_bags[t].push_back(n);
+  }
+
+  if(k == BAG_COUNT)
+  {
+    // TODO: check that n[0] is not already there
+    d_elements[n[0].getType()].push_back(n[0]);
+  }
+}
+
+std::map<TypeNode, std::vector<Node>> & SolverState::getBags()
+{
+  return d_bags;
+}
+
+std::vector<Node> & SolverState::getBags(TypeNode t)
+{
+  return d_bags[t];
+}
+
+std::vector<Node> & SolverState::getElements(TypeNode t)
+{
+  return d_elements[t];
+}
 
 }  // namespace bags
 }  // namespace theory
