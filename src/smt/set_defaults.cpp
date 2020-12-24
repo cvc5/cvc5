@@ -414,9 +414,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // explicitly
   if (options::unsatCores())
   {
-    // only disable if not in proof new, since new proofs support it
-    if (!options::proofNew()
-        && options::simplificationMode() != options::SimplificationMode::NONE)
+    // TODO only disable if not in proof new, since new proofs support it
+    if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
       if (options::simplificationMode.wasSetByUser())
       {
@@ -504,6 +503,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::bvIntroducePow2.set(false);
     }
 
+    // TODO only disable if not in proof new, since new proofs support it
     if (options::repeatSimp())
     {
       if (options::repeatSimp.wasSetByUser())
@@ -712,6 +712,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !options::unsatCores();
+                      // TODO && !options::unsatCores() && !options::proofNew();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);
