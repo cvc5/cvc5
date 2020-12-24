@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of the theory of bags.
+ ** \brief solver for the theory of bags.
  **
- ** Implementation of the theory of bags.
+ ** solver for the theory of bags.
  **/
 
 #include "theory/bags/bag_solver.h"
@@ -43,7 +43,6 @@ void BagSolver::postCheck()
   {
     for (Node& n : t.second)
     {
-      std::cout << n << std::endl;
       Kind k = n.getKind();
       switch (k)
       {
@@ -54,6 +53,7 @@ void BagSolver::postCheck()
             InferInfo i = ig.differenceSubtract(n, e);
             i.d_im = &d_im;
             i.process(&d_im, true);
+            Trace("bags::BagSolver::postCheck") << i << std::endl;
           }
         default: break;
       }

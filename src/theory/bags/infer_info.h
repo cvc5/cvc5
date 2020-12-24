@@ -83,12 +83,12 @@ class InferInfo : public TheoryInference
   /** The inference identifier */
   Inference d_id;
   /** The conclusion */
-  Node d_conc;
+  Node d_conclusion;
   /**
-   * The antecedent(s) of the inference, interpreted conjunctively. These are
+   * The premise(s) of the inference, interpreted conjunctively. These are
    * literals that currently hold in the equality engine.
    */
-  std::vector<Node> d_ant;
+  std::vector<Node> d_premises;
 
   /**
    * A list of new skolems introduced as a result of this inference. They
@@ -100,17 +100,17 @@ class InferInfo : public TheoryInference
   bool isTrivial() const;
   /**
    * Does this infer info correspond to a conflict? True if d_conc is false
-   * and it has no new antecedents (d_noExplain).
+   * and it has no new premises (d_noExplain).
    */
   bool isConflict() const;
   /**
    * Does this infer info correspond to a "fact". A fact is an inference whose
    * conclusion should be added as an equality or predicate to the equality
-   * engine with no new external antecedents (d_noExplain).
+   * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
-  /** Get antecedent */
-  Node getAntecedent() const;
+  /** Get premises */
+  Node getPremises() const;
 };
 
 /**

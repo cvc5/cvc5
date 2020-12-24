@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file core_solver.h
+/*! \file bag_solver.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Core solver for the theory of bags.
+ ** \brief solver for the theory of bags.
  **/
 
 #include "cvc4_private.h"
@@ -29,10 +29,8 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-/** The core solver for the theory of bags
+/** The solver for the theory of bags
  *
- * This implements techniques for handling (dis)equalities involving
- * bag terms.
  */
 class BagSolver
 {

@@ -38,15 +38,15 @@ InferInfo::InferInfo() : d_im(nullptr), d_id(Inference::NONE) {}
 
 bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 {
-  Node lemma = d_conc;
-  if (d_ant.size() >= 2)
+  Node lemma = d_conclusion;
+  if (d_premises.size() >= 2)
   {
-    Node andNode = NodeManager::currentNM()->mkNode(kind::AND, d_ant);
+    Node andNode = NodeManager::currentNM()->mkNode(kind::AND, d_premises);
     lemma = andNode.impNode(lemma);
   }
-  else if (d_ant.size() == 1)
+  else if (d_premises.size() == 1)
   {
-    lemma = d_ant[0].impNode(lemma);
+    lemma = d_premises[0].impNode(lemma);
   }
   if (asLemma)
   {
@@ -58,36 +58,37 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 
 bool InferInfo::isTrivial() const
 {
-  Assert(!d_conc.isNull());
-  return d_conc.isConst() && d_conc.getConst<bool>();
+  Assert(!d_conclusion.isNull());
+  return d_conclusion.isConst() && d_conclusion.getConst<bool>();
 }
 
 bool InferInfo::isConflict() const
 {
-  Assert(!d_conc.isNull());
-  return d_conc.isConst() && !d_conc.getConst<bool>();
+  Assert(!d_conclusion.isNull());
+  return d_conclusion.isConst() && !d_conclusion.getConst<bool>();
 }
 
 bool InferInfo::isFact() const
 {
-  Assert(!d_conc.isNull());
-  TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
+  Assert(!d_conclusion.isNull());
+  TNode atom =
+      d_conclusion.getKind() == kind::NOT ? d_conclusion[0] : d_conclusion;
   return !atom.isConst() && atom.getKind() != kind::OR;
 }
 
-Node InferInfo::getAntecedent() const
+Node InferInfo::getPremises() const
 {
   // d_noExplain is a subset of d_ant
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkAnd(d_ant);
+  return nm->mkAnd(d_premises);
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer " << ii.d_id << " " << ii.d_conc;
-  if (!ii.d_ant.empty())
+  out << "(infer " << ii.d_id << " " << ii.d_conclusion << std::endl;
+  if (!ii.d_premises.empty())
   {
-    out << " :ant (" << ii.d_ant << ")";
+    out << " :premise (" << ii.d_premises << ")" << std::endl;
   }
 
   out << ")";
