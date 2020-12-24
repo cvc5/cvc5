@@ -16,6 +16,8 @@
 
 #include "theory/bags/bag_solver.h"
 
+#include "theory/bags/inference_generator.h"
+
 using namespace std;
 using namespace CVC4::context;
 using namespace CVC4::kind;
@@ -35,9 +37,29 @@ BagSolver::BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr)
 
 BagSolver::~BagSolver() {}
 
-void BagSolver::checkNormalFormsEq() {}
-
-void BagSolver::checkNormalFormsDeq() {}
+void BagSolver::postCheck()
+{
+  for (std::pair<const TypeNode, std::vector<Node>>& t : d_state.getBags())
+  {
+    for (Node& n : t.second)
+    {
+      std::cout << n << std::endl;
+      Kind k = n.getKind();
+      switch (k)
+      {
+        case kind::DIFFERENCE_SUBTRACT:
+          for (Node& e : d_state.getElements(t.first.getBagElementType()))
+          {
+            InferenceGenerator ig(NodeManager::currentNM());
+            InferInfo i = ig.differenceSubtract(n, e);
+            i.d_im = &d_im;
+            i.process(&d_im, true);
+          }
+        default: break;
+      }
+    }
+  }
+}
 
 }  // namespace bags
 }  // namespace theory

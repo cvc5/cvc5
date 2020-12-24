@@ -43,24 +43,7 @@ class BagSolver
   BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BagSolver();
 
-  //-----------------------inference steps
-  /** check normal forms equalities
-   *
-   * This applies an inference schema based on "normal forms".
-   */
-  void checkNormalFormsEq();
-  /** check normal forms disequalities
-   *
-   * This inference schema can be seen as the converse of the above schema. In
-   * particular, it ensures that each pair of distinct equivalence classes
-   * e1 and e2 of the same type have distinct normal forms.
-   *
-   * If this inference schema returns no facts, lemmas, or conflicts, then all
-   * disequalities between bag terms are satisfied by all models that are
-   * extensions of the current assignment.
-   */
-  void checkNormalFormsDeq();
-  //-----------------------end inference steps
+  void postCheck();
 
  private:
   /** The solver state object */

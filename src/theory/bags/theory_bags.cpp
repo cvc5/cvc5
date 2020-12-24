@@ -14,8 +14,6 @@
 
 #include "theory/bags/theory_bags.h"
 
-#include "theory/bags/inference_generator.h"
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -94,29 +92,8 @@ void TheoryBags::postCheck(Effort effort)
       Trace("bags-check") << "  * Run strategy..." << std::endl;
       // TODO: clean this before merge runStrategy(e);
 
-      for (std::pair<const TypeNode, std::vector<Node>>& t : d_state.getBags())
-      {
-        for (Node& n : t.second)
-        {
-          std::cout << n << std::endl;
-          Kind k = n.getKind();
-          switch (k)
-          {
-            case kind::DIFFERENCE_SUBTRACT:
-              for (Node& e : d_state.getElements(t.first.getBagElementType()))
-              {
-                InferenceGenerator ig(NodeManager::currentNM());
-                InferInfo i = ig.differenceSubtract(n, e);
-                i.d_im = &d_im;
-                i.process(&d_im, true);
-              }
-            default: break;
-          }
-        }
-      }
+      d_solver.postCheck();
 
-      d_solver.checkNormalFormsEq();
-      d_solver.checkNormalFormsDeq();
       // remember if we had pending facts or lemmas
       hadPending = d_im.hasPending();
       // Send the facts *and* the lemmas. We send lemmas regardless of whether
