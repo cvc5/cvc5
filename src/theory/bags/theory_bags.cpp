@@ -14,6 +14,8 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "theory/theory_model.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -135,8 +137,36 @@ void TheoryBags::notifyFact(TNode atom,
 }
 
 bool TheoryBags::collectModelValues(TheoryModel* m,
-                                    const std::set<Node>& termBag)
+                                    const std::set<Node>& termSet)
 {
+  Trace("bags-model") << "TheoryBags : Collect model values" << std::endl;
+
+  Trace("bags-model") << "Term set: " << termSet << std::endl;
+
+  // get the relevant bag equivalence classes
+  for (const Node& n : termSet)
+  {
+    TypeNode tn = n.getType();
+    if (!tn.isBag())
+    {
+      continue;
+    }
+    Node r = d_state.getRepresentative(n);
+    std::map<Node, Node> elements = d_state.getBagElements(r);
+    Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
+                        << elements << std::endl;
+    Node rep = NormalForm::constructBagFromElements(tn, elements);
+    rep = Rewriter::rewrite(rep);
+
+    Trace("bags-model") << "rep of " << n << " is: " << rep << std::endl;
+    for (std::pair<Node, Node> pair : elements)
+    {
+      m->assertSkeleton(pair.first);
+      m->assertSkeleton(pair.second);
+    }
+    m->assertEquality(rep, n, true);
+    m->assertSkeleton(rep);
+  }
   return true;
 }
 
@@ -156,7 +186,18 @@ void TheoryBags::presolve() {}
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode t) { d_state.registerClass(t); }
+void TheoryBags::eqNotifyNewClass(TNode t)
+{
+  Kind k = t.getKind();
+  d_state.registerClass(t);
+  if (k == BAG_COUNT)
+  {
+    Node skolem = d_state.registerBagElement(t);
+    Node lemma = t.eqNode(skolem);
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+    d_im.trustedLemma(trustedLemma);
+  }
+}
 
 void TheoryBags::eqNotifyMerge(TNode t1, TNode t2) {}
 
