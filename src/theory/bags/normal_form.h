@@ -61,8 +61,11 @@ class NormalForm
    *        multiplicities
    * @return a constant bag that contains
    */
-  static Node constructBagFromElements(
+  static Node constructConstantBagFromElements(
       TypeNode t, const std::map<Node, Rational>& elements);
+
+  static Node constructBagFromElements(TypeNode t,
+                                       const std::map<Node, Node>& elements);
 
  private:
   /**

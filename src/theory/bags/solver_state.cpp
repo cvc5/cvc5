@@ -14,6 +14,10 @@
 
 #include "theory/bags/solver_state.h"
 
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
+#include "expr/skolem_manager.h"
+
 using namespace std;
 using namespace CVC4::kind;
 
@@ -29,35 +33,49 @@ SolverState::SolverState(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
+
+struct BagsCountAttributeId
+{
+};
+typedef expr::Attribute<BagsCountAttributeId, Node> BagsCountAttribute;
+
 void SolverState::registerClass(TNode n)
 {
   TypeNode t = n.getType();
-  Kind k = n.getKind();
-  if(t.isBag())
+  if (t.isBag())
   {
     d_bags[t].insert(n);
   }
-
-  if(k == BAG_COUNT)
-  {
-    d_elements[n[0].getType()].insert(n[0]);
-  }
 }
 
-std::map<TypeNode, std::set<Node>> & SolverState::getBags()
+Node SolverState::registerBagElement(TNode n)
 {
-  return d_bags;
+  Assert(n.getKind() == BAG_COUNT);
+  Node element = n[0];
+  TypeNode elementType = element.getType();
+  Node bag = n[1];
+  d_elements[elementType].insert(element);
+  NodeManager* nm = NodeManager::currentNM();
+  BoundVarManager* bvm = nm->getBoundVarManager();
+  Node multiplicity = bvm->mkBoundVar<BagsCountAttribute>(n, nm->integerType());
+  Node equal = n.eqNode(multiplicity);
+  SkolemManager* sm = nm->getSkolemManager();
+  Node skolem = sm->mkSkolem(
+      multiplicity,
+      equal,
+      "bag_multiplicity",
+      "an extensional lemma for multiplicity of an element in a bag");
+  d_count[bag][element] = skolem;
+  return skolem;
 }
 
-std::set<Node> & SolverState::getBags(TypeNode t)
-{
-  return d_bags[t];
-}
+std::map<TypeNode, std::set<Node>>& SolverState::getBags() { return d_bags; }
 
-std::set<Node> & SolverState::getElements(TypeNode t)
-{
-  return d_elements[t];
-}
+std::set<Node>& SolverState::getBags(TypeNode t) { return d_bags[t]; }
+
+std::set<Node>& SolverState::getElements(TypeNode t) { return d_elements[t]; }
+
+std::map<Node, Node>& SolverState::getBagElements(Node B) { return d_count[B]; }
 
 }  // namespace bags
 }  // namespace theory

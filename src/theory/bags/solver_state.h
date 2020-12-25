@@ -33,11 +33,15 @@ class SolverState : public TheoryState
 
   void registerClass(TNode n);
 
+  Node registerBagElement(TNode n);
+
   std::map<TypeNode, std::set<Node>> & getBags();
 
   std::set<Node> & getBags(TypeNode t);
 
   std::set<Node> & getElements(TypeNode t);
+
+  std::map<Node, Node> & getBagElements(Node B);
 
  private:
   /** constants */
