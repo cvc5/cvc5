@@ -44,6 +44,8 @@ class BagSolver
   void postCheck();
 
  private:
+  void checkDifferenceSubtract(const Node& n);
+
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of bags */

@@ -39,25 +39,26 @@ BagSolver::~BagSolver() {}
 
 void BagSolver::postCheck()
 {
-  for (std::pair<const TypeNode, std::set<Node>>& t : d_state.getBags())
+  for (const Node& n : d_state.getBags())
   {
-    for (const Node& n : t.second)
+    Kind k = n.getKind();
+    switch (k)
     {
-      Kind k = n.getKind();
-      switch (k)
-      {
-        case kind::DIFFERENCE_SUBTRACT:
-          for (const Node& e : d_state.getElements(t.first.getBagElementType()))
-          {
-            InferenceGenerator ig(NodeManager::currentNM());
-            InferInfo i = ig.differenceSubtract(n, e);
-            i.d_im = &d_im;
-            i.process(&d_im, true);
-            Trace("bags::BagSolver::postCheck") << i << std::endl;
-          }
-        default: break;
-      }
+      case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
+      default: break;
     }
+  }
+}
+void BagSolver::checkDifferenceSubtract(const Node& n)
+{
+  TypeNode elementType = n.getType().getBagElementType();
+  for (const Node& e : d_state.getElements(elementType))
+  {
+    InferenceGenerator ig(NodeManager::currentNM());
+    InferInfo i = ig.differenceSubtract(n, e);
+    i.d_im = &d_im;
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
   }
 }
 

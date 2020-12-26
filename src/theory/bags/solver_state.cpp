@@ -44,7 +44,7 @@ void SolverState::registerClass(TNode n)
   TypeNode t = n.getType();
   if (t.isBag())
   {
-    d_bags[t].insert(n);
+    d_bags.insert(n);
   }
 }
 
@@ -69,9 +69,7 @@ Node SolverState::registerBagElement(TNode n)
   return skolem;
 }
 
-std::map<TypeNode, std::set<Node>>& SolverState::getBags() { return d_bags; }
-
-std::set<Node>& SolverState::getBags(TypeNode t) { return d_bags[t]; }
+std::set<Node>& SolverState::getBags() { return d_bags; }
 
 std::set<Node>& SolverState::getElements(TypeNode t) { return d_elements[t]; }
 

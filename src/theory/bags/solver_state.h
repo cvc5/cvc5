@@ -35,19 +35,17 @@ class SolverState : public TheoryState
 
   Node registerBagElement(TNode n);
 
-  std::map<TypeNode, std::set<Node>> & getBags();
+  std::set<Node>& getBags();
 
-  std::set<Node> & getBags(TypeNode t);
+  std::set<Node>& getElements(TypeNode t);
 
-  std::set<Node> & getElements(TypeNode t);
-
-  std::map<Node, Node> & getBagElements(Node B);
+  std::map<Node, Node>& getBagElements(Node B);
 
  private:
   /** constants */
   Node d_true;
   Node d_false;
-  std::map<TypeNode, std::set<Node>> d_bags;
+  std::set<Node> d_bags;
   std::map<TypeNode, std::set<Node>> d_elements;
   /** bag -> element -> multiplicity */
   std::map<Node, std::map<Node, Node>> d_count;
