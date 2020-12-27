@@ -31,6 +31,7 @@ TheoryBags::TheoryBags(context::Context* c,
     : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
       d_im(*this, d_state, nullptr),
+      d_ig(NodeManager::currentNM()),
       d_notify(*this, d_im),
       d_statistics(),
       d_rewriter(&d_statistics.d_rewrites),
@@ -201,7 +202,17 @@ void TheoryBags::eqNotifyNewClass(TNode t)
 
 void TheoryBags::eqNotifyMerge(TNode t1, TNode t2) {}
 
-void TheoryBags::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {}
+void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
+{
+  TypeNode t1 = n1.getType();
+  if (t1.isBag())
+  {
+    InferInfo info = d_ig.bagDisequality(n1.eqNode(n2).notNode());
+    Node lemma = reason.impNode(info.d_conclusion);
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+    d_im.trustedLemma(trustedLemma);
+  }
+}
 
 void TheoryBags::NotifyClass::eqNotifyNewClass(TNode t)
 {

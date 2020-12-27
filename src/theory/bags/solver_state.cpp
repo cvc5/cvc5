@@ -66,6 +66,8 @@ Node SolverState::registerBagElement(TNode n)
       "bag_multiplicity",
       "an extensional lemma for multiplicity of an element in a bag");
   d_count[bag][element] = skolem;
+  Trace("bags::SolverState::registerBagElement")
+      << "New skolem: " << skolem << " for " << n << std::endl;
   return skolem;
 }
 

@@ -34,9 +34,6 @@ namespace bags {
  */
 class BagSolver
 {
-  friend class InferenceManager;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-
  public:
   BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr);
   ~BagSolver();
@@ -48,7 +45,7 @@ class BagSolver
 
   /** The solver state object */
   SolverState& d_state;
-  /** The (custom) output channel of the theory of bags */
+  /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
   /** Reference to the term registry of theory of bags */
   TermRegistry& d_termReg;

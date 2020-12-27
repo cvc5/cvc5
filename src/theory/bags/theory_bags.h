@@ -23,6 +23,7 @@
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
 #include "theory/bags/inference_manager.h"
+#include "theory/bags/inference_generator.h"
 #include "theory/bags/solver_state.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -95,6 +96,8 @@ class TheoryBags : public Theory
   SolverState d_state;
   /** The inference manager */
   InferenceManager d_im;
+  /** The inference generator */
+  InferenceGenerator d_ig;
   /** Instance of the above class */
   NotifyClass d_notify;
   /** Statistics for the theory of bags. */

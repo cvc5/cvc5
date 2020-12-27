@@ -14,6 +14,8 @@
 
 #include "inference_generator.h"
 
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
 
 namespace CVC4 {
@@ -44,11 +46,11 @@ InferInfo InferenceGenerator::bagEquality(Node n, Node e)
   inferInfo.d_conclusion = equal;
   return inferInfo;
 }
-//
-// struct BagsDeqIndexAttributeId
-//{
-//};
-// typedef expr::Attribute<BagsDeqIndexAttributeId, Node> BagsDeqIndexAttribute;
+
+struct BagsDeqAttributeId
+{
+};
+typedef expr::Attribute<BagsDeqAttributeId, Node> BagsDeqAttribute;
 
 InferInfo InferenceGenerator::bagDisequality(Node n)
 {
@@ -63,19 +65,24 @@ InferInfo InferenceGenerator::bagDisequality(Node n)
   Node pred;
   // Bound exists x => m(x)
   BoundVarManager* bvm = d_nm->getBoundVarManager();
-  Node v;  // =  bvm->mkBoundVar<BagsDeqIndexAttribute>(n, elementType);
+  Node element = bvm->mkBoundVar<BagsDeqAttribute>(n, elementType);
+  Node skolem =
+      sm->mkSkolem(element,
+                   n,
+                   "bag_disequal",
+                   "an extensional lemma for disequality of two bags");
+
+  Node countA = d_nm->mkNode(kind::BAG_COUNT, skolem, A);
+  Node countB = d_nm->mkNode(kind::BAG_COUNT, skolem, B);
+  Node disEqual = countA.eqNode(countB).notNode();
 
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_DISEQUALITY;
   // add e as a new skolem variable
-  inferInfo.d_new_skolem.push_back(v);
+  inferInfo.d_new_skolem.push_back(skolem);
   inferInfo.d_premises.push_back(n);
-  Node mA = d_nm->mkNode(kind::BAG_COUNT, v, A);
-  Node mB = d_nm->mkNode(kind::BAG_COUNT, v, B);
-  Node equal = mA.eqNode(mB);
-  Node notEqual = equal.notNode();
-  inferInfo.d_conclusion = notEqual;
-  //  Node e = sm->mkSkolem(v, pred, "disequalityWitness", elementType);
+
+  inferInfo.d_conclusion = disEqual;
   return inferInfo;
 }
 
