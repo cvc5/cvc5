@@ -187,14 +187,14 @@ void TheoryBags::presolve() {}
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode t)
+void TheoryBags::eqNotifyNewClass(TNode n)
 {
-  Kind k = t.getKind();
-  d_state.registerClass(t);
+  Kind k = n.getKind();
+  d_state.registerClass(n);
   if (k == BAG_COUNT)
   {
-    Node skolem = d_state.registerBagElement(t);
-    Node lemma = t.eqNode(skolem);
+    Node skolem = d_state.registerBagElement(n);
+    Node lemma = n.eqNode(skolem);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
     d_im.trustedLemma(trustedLemma);
   }

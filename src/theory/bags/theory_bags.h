@@ -109,7 +109,7 @@ class TheoryBags : public Theory
   /** the main solver for bags */
   BagSolver d_solver;
 
-  void eqNotifyNewClass(TNode t);
+  void eqNotifyNewClass(TNode n);
   void eqNotifyMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 }; /* class TheoryBags */

@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
+#include "theory/uf/equality_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -68,6 +69,7 @@ Node SolverState::registerBagElement(TNode n)
   d_count[bag][element] = skolem;
   Trace("bags::SolverState::registerBagElement")
       << "New skolem: " << skolem << " for " << n << std::endl;
+//  d_ee->assertEquality(skolem, n, true);
   return skolem;
 }
 
