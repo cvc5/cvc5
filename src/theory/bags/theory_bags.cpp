@@ -156,11 +156,18 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     std::map<Node, Node> elements = d_state.getBagElements(r);
     Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
                         << elements << std::endl;
-    Node rep = NormalForm::constructBagFromElements(tn, elements);
+    std::map<Node, Node> elementReps;
+    for (std::pair<Node, Node> pair : elements)
+    {
+      Node key = d_state.getRepresentative(pair.first);
+      Node value = d_state.getRepresentative(pair.second);
+      elementReps[key] = value;
+    }
+    Node rep = NormalForm::constructBagFromElements(tn, elementReps);
     rep = Rewriter::rewrite(rep);
 
     Trace("bags-model") << "rep of " << n << " is: " << rep << std::endl;
-    for (std::pair<Node, Node> pair : elements)
+    for (std::pair<Node, Node> pair : elementReps)
     {
       m->assertSkeleton(pair.first);
       m->assertSkeleton(pair.second);
