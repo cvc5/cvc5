@@ -53,7 +53,7 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
     return im->trustedLemma(trustedLemma);
   }
-  Unreachable();
+  Unimplemented();
 }
 
 bool InferInfo::isTrivial() const
