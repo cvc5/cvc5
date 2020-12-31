@@ -249,7 +249,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_tpp(*this, userContext, d_pnm),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -853,9 +852,10 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
-TrustNode TheoryEngine::preprocess(TNode assertion)
+theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
 {
-  return d_tpp.theoryPreprocess(assertion);
+  Assert(eq.getKind() == kind::EQUAL);
+  return theoryOf(eq)->ppRewrite(eq);
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1171,21 +1171,7 @@ Node TheoryEngine::getModelValue(TNode var) {
 Node TheoryEngine::ensureLiteral(TNode n) {
   Trace("ensureLiteral") << "ensureLiteral rewriting: " << n << std::endl;
   Node rewritten = Rewriter::rewrite(n);
-  Trace("ensureLiteral") << "  got: " << rewritten << std::endl;
-  std::vector<TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  TrustNode tpn = d_tpp.preprocess(n, newLemmas, newSkolems, true);
-  // send lemmas corresponding to the skolems introduced by preprocessing n
-  for (const TrustNode& tnl : newLemmas)
-  {
-    Trace("ensureLiteral") << "  lemma: " << tnl.getNode() << std::endl;
-    lemma(tnl, LemmaProperty::NONE);
-  }
-  Node preprocessed = tpn.isNull() ? rewritten : tpn.getNode();
-  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
-                         << std::endl;
-  d_propEngine->ensureLiteral(preprocessed);
-  return preprocessed;
+  return d_propEngine->ensureLiteral(rewritten);
 }
 
 
@@ -1440,75 +1426,20 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     printer.toStreamCmdComment(out, "theory lemma: expect valid");
     printer.toStreamCmdCheckSat(out, n);
   }
-  bool removable = isLemmaPropertyRemovable(p);
-  bool preprocess = isLemmaPropertyPreprocess(p);
 
-  // ensure closed
-  tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
-
-  // call preprocessor
-  std::vector<TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  TrustNode tplemma =
-      d_tpp.preprocessLemma(tlemma, newLemmas, newSkolems, preprocess);
-
-  Assert(newSkolems.size() == newLemmas.size());
+  Node retLemma = d_propEngine->assertLemma(tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in lemmas, since these
   // by extension must be justified as well.
   if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
   {
-    d_relManager->notifyPreprocessedAssertion(tplemma.getProven());
-    for (const theory::TrustNode& tnl : newLemmas)
-    {
-      d_relManager->notifyPreprocessedAssertion(tnl.getProven());
-    }
+    d_relManager->notifyPreprocessedAssertion(retLemma);
   }
-
-  // do final checks on the lemmas we are about to send
-  if (isProofEnabled())
-  {
-    Assert(tplemma.getGenerator() != nullptr);
-    // ensure closed, make the proof node eagerly here to debug
-    tplemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
-    for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
-    {
-      Assert(newLemmas[i].getGenerator() != nullptr);
-      newLemmas[i].debugCheckClosed("te-proof-debug",
-                                    "TheoryEngine::lemma_new");
-    }
-  }
-
-  if (Trace.isOn("te-lemma"))
-  {
-    Trace("te-lemma") << "Lemma, output: " << tplemma.getProven() << std::endl;
-    for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
-    {
-      Trace("te-lemma") << "Lemma, new lemma: " << newLemmas[i].getProven()
-                        << " (skolem is " << newSkolems[i] << ")" << std::endl;
-    }
-  }
-
-  // now, send the lemmas to the prop engine
-  d_propEngine->assertLemmas(tplemma, newLemmas, newSkolems, removable);
 
   // Mark that we added some lemmas
   d_lemmasAdded = true;
 
-  // Lemma analysis isn't online yet; this lemma may only live for this
-  // user level.
-  Node retLemma = tplemma.getNode();
-  if (!newLemmas.empty())
-  {
-    std::vector<Node> lemmas{retLemma};
-    for (const theory::TrustNode& tnl : newLemmas)
-    {
-      lemmas.push_back(tnl.getProven());
-    }
-    // the returned lemma is the conjunction of all additional lemmas.
-    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas);
-  }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
 

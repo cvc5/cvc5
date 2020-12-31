@@ -83,13 +83,26 @@ class RemoveTermFormulas {
    * @param newAsserts The new assertions corresponding to axioms for newly
    * introduced skolems.
    * @param newSkolems The skolems corresponding to each of the newAsserts.
+   * @param fixedPoint Whether to run term formula removal on the lemmas in
+   * newAsserts. This adds new assertions to this vector until a fixed
+   * point is reached. When this option is true, all lemmas in newAsserts
+   * have all term formulas removed.
    * @return a trust node of kind TrustNodeKind::REWRITE whose
    * right hand side is assertion after removing term formulas, and the proof
    * generator (if provided) that can prove the equivalence.
    */
   theory::TrustNode run(Node assertion,
                         std::vector<theory::TrustNode>& newAsserts,
-                        std::vector<Node>& newSkolems);
+                        std::vector<Node>& newSkolems,
+                        bool fixedPoint = false);
+  /**
+   * Same as above, but transforms a lemma, returning a LEMMA trust node that
+   * proves the same formula as lem with term formulas removed.
+   */
+  theory::TrustNode runLemma(theory::TrustNode lem,
+                             std::vector<theory::TrustNode>& newAsserts,
+                             std::vector<Node>& newSkolems,
+                             bool fixedPoint = false);
 
   /**
    * Get proof generator that is responsible for all proofs for removing term
@@ -179,14 +192,14 @@ class RemoveTermFormulas {
   /**
    * This is called on curr of the form (t, val) where t is a term and val is
    * a term context identifier computed by RtfTermContext. If curr should be
-   * replaced by a skolem, this method returns this skolem k, adds k to
-   * newSkolems and adds the axiom defining that skolem to newAsserts, where
-   * runInternal is called on that axiom. Otherwise, this method returns the
-   * null node.
+   * replaced by a skolem, this method returns this skolem k. If this was the
+   * first time that t was encountered, we set newLem to the lemma for the
+   * skolem that axiomatizes k.
+   *
+   * Otherwise, if t should not be replaced in the term context, this method
+   * returns the null node.
    */
-  Node runCurrent(std::pair<Node, uint32_t>& curr,
-                  std::vector<theory::TrustNode>& newAsserts,
-                  std::vector<Node>& newSkolems);
+  Node runCurrent(std::pair<Node, uint32_t>& curr, theory::TrustNode& newLem);
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;

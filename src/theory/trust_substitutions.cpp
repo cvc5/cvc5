@@ -200,13 +200,14 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
   {
-    return TrustNode::mkTrustRewrite(n, ns, nullptr);
+    // if we fail for any reason, we must use a trusted step instead
+    d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
   }
   // -------        ------- from external proof generators
   // x1 = t1 ...    xn = tn
   // ----------------------- AND_INTRO
   //   ...
-  // --------- MACRO_SR_EQ_INTRO
+  // --------- MACRO_SR_EQ_INTRO (or TRUST_SUBS_MAP if we failed above)
   // n == ns
   // add it to the apply proof generator.
   //
@@ -241,6 +242,7 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
   {
     csubsChildren.push_back(tns.getProven());
   }
+  std::reverse(csubsChildren.begin(),csubsChildren.end());
   d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
   if (d_currentSubs.get().getKind() == kind::AND)
   {

@@ -43,7 +43,6 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
-      d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
       d_term_canon(new expr::TermCanonize),
       d_term_db(new quantifiers::TermDb(d_context, d_userContext, this)),
@@ -86,10 +85,6 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
-  if( options::quantEpr() ){
-    Assert(!options::incrementalSolving());
-    d_qepr.reset(new quantifiers::QuantEPR);
-  }
   //---- end utilities
 
   //allow theory combination to go first, once initially
@@ -182,10 +177,6 @@ EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
-}
-quantifiers::QuantEPR* QuantifiersEngine::getQuantEPR() const
-{
-  return d_qepr.get();
 }
 quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 {
@@ -357,7 +348,7 @@ void QuantifiersEngine::ppNotifyAssertions(
     const std::vector<Node>& assertions) {
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
-      << " check epr = " << (d_qepr != NULL) << std::endl;
+      << std::endl;
   if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
   {
     for (const Node& a : assertions)

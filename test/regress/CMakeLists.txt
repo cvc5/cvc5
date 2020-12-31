@@ -68,6 +68,7 @@ set(regress_0_tests
   regress0/arith/mod-simp.smt2
   regress0/arith/mod.01.smt2
   regress0/arith/mult.01.smt2
+  regress0/arith/non-normal.smt2
   regress0/arr1.smt2
   regress0/arr1.smtv1.smt2
   regress0/arr2.smtv1.smt2
@@ -1721,7 +1722,6 @@ set(regress_1_tests
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4433-nqe.smt2
-  regress1/quantifiers/issue4476-ext-rew.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue4685-wrewrite.smt2
   regress1/quantifiers/issue4849-nqe.smt2
@@ -1838,8 +1838,6 @@ set(regress_1_tests
   regress1/sep/chain-int.smt2
   regress1/sep/crash1220.smt2
   regress1/sep/dispose-list-4-init.smt2
-  regress1/sep/emp2-quant-unsat.smt2
-  regress1/sep/finite-witness-sat.smt2
   regress1/sep/fmf-nemp-2.smt2
   regress1/sep/loop-1220.smt2
   regress1/sep/pto-04.smt2
@@ -1847,7 +1845,6 @@ set(regress_1_tests
   regress1/sep/sep-02.smt2
   regress1/sep/sep-03.smt2
   regress1/sep/sep-find2.smt2
-  regress1/sep/sep-fmf-priority.smt2
   regress1/sep/sep-neg-1refine.smt2
   regress1/sep/sep-neg-nstrict.smt2
   regress1/sep/sep-neg-nstrict2.smt2
@@ -2386,6 +2383,7 @@ set(regress_3_tests
   regress3/interpol2.smt2
   regress3/inv_gen_n_c11.sy
   regress3/issue4170.smt2
+  regress3/issue4476-ext-rew.smt2
   regress3/issue4714.smt2
   regress3/lpsat-goal-9.smt2
   regress3/nia-max-square.sy
@@ -2482,6 +2480,10 @@ set(regression_disabled_tests
   regress1/rels/garbage_collect.cvc
   regress1/sets/setofsets-disequal.smt2
   regress1/sets/finite-type/sets-card-neg-mem-union-2.smt2
+  # no longer support quant-epr + sep
+  regress1/sep/emp2-quant-unsat.smt2
+  regress1/sep/finite-witness-sat.smt2
+  regress1/sep/sep-fmf-priority.smt2
   regress1/simple-rdl-definefun.smt2
   # does not solve after minor modification to search
   regress1/sygus/car_3.lus.sy

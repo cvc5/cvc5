@@ -1063,10 +1063,10 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
    --------------------------------------------------------------------------
 */
 
-void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
+void SmtEngine::declareSygusVar(Node var)
 {
   SmtScope smts(this);
-  d_sygusSolver->declareSygusVar(id, var, type);
+  d_sygusSolver->declareSygusVar(var);
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdDeclareVar(
@@ -1075,15 +1075,14 @@ void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
   // don't need to set that the conjecture is stale
 }
 
-void SmtEngine::declareSynthFun(const std::string& id,
-                                Node func,
+void SmtEngine::declareSynthFun(Node func,
                                 TypeNode sygusType,
                                 bool isInv,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
   d_state->doPendingPops();
-  d_sygusSolver->declareSynthFun(id, func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 
   // !!! TEMPORARY: We cannot construct a SynthFunCommand since we cannot
   // construct a Term-level Grammar from a Node-level sygus TypeNode. Thus we
@@ -1094,6 +1093,14 @@ void SmtEngine::declareSynthFun(const std::string& id,
     getOutputManager().getPrinter().toStreamCmdSynthFun(
         getOutputManager().getDumpOut(), func, vars, isInv, sygusType);
   }
+}
+void SmtEngine::declareSynthFun(Node func,
+                                bool isInv,
+                                const std::vector<Node>& vars)
+{
+  // use a null sygus type
+  TypeNode sygusType;
+  declareSynthFun(func, sygusType, isInv, vars);
 }
 
 void SmtEngine::assertSygusConstraint(Node constraint)

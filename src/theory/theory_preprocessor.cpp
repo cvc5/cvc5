@@ -100,14 +100,13 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     ppNode = tpp.getNode();
   }
 
-  // Remove the ITEs
-  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems);
-  Node rtfNode = ttfr.getNode();
+  // Remove the ITEs, fixed point
+  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, true);
+  Node rtfNode = ttfr.isNull() ? ppNode : ttfr.getNode();
 
   if (Debug.isOn("lemma-ites"))
   {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << ttfr.getNode()
-                        << endl;
+    Debug("lemma-ites") << "removed ITEs from lemma: " << rtfNode << endl;
     Debug("lemma-ites") << " + now have the following " << newLemmas.size()
                         << " lemma(s):" << endl;
     for (size_t i = 0, lsize = newLemmas.size(); i <= lsize; ++i)
@@ -451,6 +450,23 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   // be steps from the same term to multiple rewritten forms, which would be
   // the case if we registered a preprocessing step for a non-rewritten term.
   Assert(term == Rewriter::rewrite(term));
+  // We never call ppRewrite on equalities here, since equalities have a
+  // special status. In particular, notice that theory preprocessing can be
+  // called on all formulas asserted to theory engine, including those generated
+  // as new literals appearing in lemmas. Calling ppRewrite on equalities is
+  // incompatible with theory combination where a split on equality requested
+  // by a theory could be preprocessed to something else, thus making theory
+  // combination either non-terminating or result in solution soundness.
+  // Notice that an alternative solution is to ensure that certain lemmas
+  // (e.g. splits from theory combination) can never have theory preprocessing
+  // applied to them. However, it is more uniform to say that theory
+  // preprocessing is applied to all formulas. This makes it so that e.g.
+  // theory solvers do not need to specify whether they want their lemmas to
+  // be theory-preprocessed or not.
+  if (term.getKind() == kind::EQUAL)
+  {
+    return term;
+  }
   // call ppRewrite for the given theory
   TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
   if (trn.isNull())
