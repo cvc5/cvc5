@@ -41,6 +41,7 @@ class BagSolver
   void postCheck();
 
  private:
+  /** apply inference rules for difference subtract */
   void checkDifferenceSubtract(const Node& n);
 
   /** The solver state object */
