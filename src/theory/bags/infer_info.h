@@ -78,8 +78,6 @@ class InferInfo : public TheoryInference
   ~InferInfo() {}
   /** Process this inference */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
-  /** Pointer to the class used for processing this info */
-  InferenceManager* d_im;
   /** The inference identifier */
   Inference d_id;
   /** The conclusion */

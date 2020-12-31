@@ -51,12 +51,12 @@ void BagSolver::postCheck()
 }
 void BagSolver::checkDifferenceSubtract(const Node& n)
 {
+  Assert(n.getKind() == DIFFERENCE_SUBTRACT);
   TypeNode elementType = n.getType().getBagElementType();
   for (const Node& e : d_state.getElements(elementType))
   {
     InferenceGenerator ig(NodeManager::currentNM());
     InferInfo i = ig.differenceSubtract(n, e);
-    i.d_im = &d_im;
     i.process(&d_im, true);
     Trace("bags::BagSolver::postCheck") << i << endl;
   }
