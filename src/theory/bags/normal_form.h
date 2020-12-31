@@ -64,6 +64,13 @@ class NormalForm
   static Node constructConstantBagFromElements(
       TypeNode t, const std::map<Node, Rational>& elements);
 
+  /**
+   * construct a constant bag from node elements
+   * @param t the type of the returned bag
+   * @param elements a map whose keys are constant elements and values are
+   *        multiplicities
+   * @return a constant bag that contains
+   */
   static Node constructBagFromElements(TypeNode t,
                                        const std::map<Node, Node>& elements);
 
