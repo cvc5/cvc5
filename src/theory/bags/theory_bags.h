@@ -84,9 +84,9 @@ class TheoryBags : public Theory
         : TheoryEqNotifyClass(inferenceManager), d_theory(theory)
     {
     }
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyMerge(TNode t1, TNode t2) override;
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
+    void eqNotifyNewClass(TNode n) override;
+    void eqNotifyMerge(TNode n1, TNode n2) override;
+    void eqNotifyDisequal(TNode n1, TNode n2, TNode reason) override;
 
    private:
     TheoryBags& d_theory;
@@ -110,7 +110,7 @@ class TheoryBags : public Theory
   BagSolver d_solver;
 
   void eqNotifyNewClass(TNode n);
-  void eqNotifyMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode n1, TNode n2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 }; /* class TheoryBags */
 

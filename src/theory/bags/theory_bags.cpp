@@ -207,7 +207,7 @@ void TheoryBags::eqNotifyNewClass(TNode n)
   }
 }
 
-void TheoryBags::eqNotifyMerge(TNode t1, TNode t2) {}
+void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
 
 void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 {
@@ -221,26 +221,26 @@ void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
   }
 }
 
-void TheoryBags::NotifyClass::eqNotifyNewClass(TNode t)
+void TheoryBags::NotifyClass::eqNotifyNewClass(TNode n)
 {
   Debug("bags-eq") << "[bags-eq] eqNotifyNewClass:"
-                   << " t = " << t << std::endl;
-  d_theory.eqNotifyNewClass(t);
+                   << " n = " << n << std::endl;
+  d_theory.eqNotifyNewClass(n);
 }
 
-void TheoryBags::NotifyClass::eqNotifyMerge(TNode t1, TNode t2)
+void TheoryBags::NotifyClass::eqNotifyMerge(TNode n1, TNode n2)
 {
   Debug("bags-eq") << "[bags-eq] eqNotifyMerge:"
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyMerge(t1, t2);
+                   << " n1 = " << n1 << " n2 = " << n2 << std::endl;
+  d_theory.eqNotifyMerge(n1, n2);
 }
 
-void TheoryBags::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+void TheoryBags::NotifyClass::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 {
   Debug("bags-eq") << "[bags-eq] eqNotifyDisequal:"
-                   << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
+                   << " n1 = " << n1 << " n2 = " << n2 << " reason = " << reason
                    << std::endl;
-  d_theory.eqNotifyDisequal(t1, t2, reason);
+  d_theory.eqNotifyDisequal(n1, n2, reason);
 }
 
 }  // namespace bags
