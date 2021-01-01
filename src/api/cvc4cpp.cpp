@@ -3418,6 +3418,20 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       Node singleton = getNodeManager()->mkSingleton(type, *children[0].d_node);
       res = Term(this, singleton).getExpr();
     }
+    else if (kind == api::MK_BAG)
+    {
+      // the type of the term is the same as the type of the internal node
+      // see Term::getSort()
+      TypeNode type = children[0].d_node->getType();
+      // Internally NodeManager::mkBag needs a type argument
+      // to construct a bag, since there is no difference between
+      // integers and reals (both are Rationals).
+      // At the API, mkReal and mkInteger are different and therefore the
+      // element type can be used safely here.
+      Node singleton = getNodeManager()->mkBag(
+          type, *children[0].d_node, *children[1].d_node);
+      res = Term(this, singleton).getExpr();
+    }
     else
     {
       res = d_exprMgr->mkExpr(k, echildren);
