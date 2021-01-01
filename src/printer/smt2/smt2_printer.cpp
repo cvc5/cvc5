@@ -814,6 +814,16 @@ void Smt2Printer::toStream(std::ostream& out,
 
   // bags
   case kind::BAG_TYPE:  out << smtKindString(k, d_variant) << " "; break;
+  case kind::MK_BAG:
+  {
+    // print (MK_BAG (mkBag_op Real) 1 3) as (MK_BAG 1.0 3)
+    out << smtKindString(k, d_variant) << " ";
+    TypeNode elemType = n.getType().getBagElementType();
+    toStreamCastToType(
+        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    out << " " << n[1] << ")";
+    return;
+  }
 
     // fp theory
   case kind::FLOATINGPOINT_FP:
