@@ -44,11 +44,26 @@ void BagSolver::postCheck()
     Kind k = n.getKind();
     switch (k)
     {
+      case kind::UNION_DISJOINT: checkUnionDisjoint(n); break;
       case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
       default: break;
     }
   }
 }
+
+void BagSolver::checkUnionDisjoint(const Node& n)
+{
+  Assert(n.getKind() == UNION_DISJOINT);
+  TypeNode elementType = n.getType().getBagElementType();
+  for (const Node& e : d_state.getElements(elementType))
+  {
+    InferenceGenerator ig(NodeManager::currentNM());
+    InferInfo i = ig.unionDisjoint(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+}
+
 void BagSolver::checkDifferenceSubtract(const Node& n)
 {
   Assert(n.getKind() == DIFFERENCE_SUBTRACT);

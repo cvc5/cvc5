@@ -43,10 +43,11 @@ typedef expr::Attribute<BagsCountAttributeId, Node> BagsCountAttribute;
 void SolverState::registerClass(TNode n)
 {
   TypeNode t = n.getType();
-  if (t.isBag())
+  if (!t.isBag())
   {
-    d_bags.insert(n);
+    return;
   }
+  d_bags.insert(n);
 }
 
 Node SolverState::registerBagElement(TNode n)
@@ -69,7 +70,7 @@ Node SolverState::registerBagElement(TNode n)
   d_count[bag][element] = skolem;
   Trace("bags::SolverState::registerBagElement")
       << "New skolem: " << skolem << " for " << n << std::endl;
-//  d_ee->assertEquality(skolem, n, true);
+
   return skolem;
 }
 

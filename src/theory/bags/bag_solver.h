@@ -41,6 +41,8 @@ class BagSolver
   void postCheck();
 
  private:
+  /** apply inference rules for union disjoint */
+  void checkUnionDisjoint(const Node& n);
   /** apply inference rules for difference subtract */
   void checkDifferenceSubtract(const Node& n);
 

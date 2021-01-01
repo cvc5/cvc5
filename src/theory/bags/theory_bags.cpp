@@ -198,8 +198,28 @@ void TheoryBags::eqNotifyNewClass(TNode n)
 {
   Kind k = n.getKind();
   d_state.registerClass(n);
+  if (n.getKind() == MK_BAG)
+  {
+    // TODO: refactor this before merge
+    /*
+     * (bag x m) generates the lemma (and (= s (count x (bag x m))) (= s m))
+     * where s is a fresh skolem variable
+     */
+    NodeManager* nm = NodeManager::currentNM();
+    Node count = nm->mkNode(BAG_COUNT, n[0], n);
+    Node skolem = d_state.registerBagElement(count);
+    Node countSkolem = count.eqNode(skolem);
+    Node skolemMultiplicity = n[1].eqNode(skolem);
+    Node lemma = countSkolem.andNode(skolemMultiplicity);
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+    d_im.trustedLemma(trustedLemma);
+  }
   if (k == BAG_COUNT)
   {
+    /*
+     * (count x A) generates the lemma (= s (count x A))
+     * where s is a fresh skolem variable
+     */
     Node skolem = d_state.registerBagElement(n);
     Node lemma = n.eqNode(skolem);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
