@@ -3428,9 +3428,9 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // integers and reals (both are Rationals).
       // At the API, mkReal and mkInteger are different and therefore the
       // element type can be used safely here.
-      Node singleton = getNodeManager()->mkBag(
+      Node bag = getNodeManager()->mkBag(
           type, *children[0].d_node, *children[1].d_node);
-      res = Term(this, singleton).getExpr();
+      res = Term(this, bag).getExpr();
     }
     else
     {
