@@ -166,6 +166,8 @@ class CDCAC
    */
   bool hasRootBelow(const poly::Polynomial& p, const poly::Value& val) const;
 
+  static constexpr Projection d_projection = cad::Projection::MCCALLUM;
+
   /**
    * The current assignment. When the method terminates with SAT, it contains a
    * model for the input constraints.

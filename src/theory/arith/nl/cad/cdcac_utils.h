@@ -35,6 +35,17 @@ namespace arith {
 namespace nl {
 namespace cad {
 
+/** Specifies which projection is to be used. */
+enum class Projection
+{
+  /** Resultants, discriminants and all coefficients */
+  MCCALLUM,
+  /** Resultants, discriminants and coefficients until one that does not vanish */
+  MCCALLUM_PARTIAL,
+  /** Resultants, discriminants and leading and trailing coefficients*/
+  LAZARD
+};
+
 /**
  * An interval as specified in section 4.1 of
  * https://arxiv.org/pdf/2003.05633.pdf.
