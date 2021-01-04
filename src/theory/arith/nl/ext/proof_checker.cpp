@@ -60,15 +60,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
            || mon.getKind() == Kind::NONLINEAR_MULT);
     for (const auto& v : mon)
     {
-      auto it = exps.find(v);
-      if (it == exps.end())
-      {
-        exps.emplace(v, 1);
-      }
-      else
-      {
-        ++it->second;
-      }
+      exps[v]++;
     }
     std::map<Node, int> signs;
     for (const auto& f : premise)
@@ -154,7 +146,7 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
     Kind rel = args[2].getKind();
     Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
            || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
-    Kind rel_inv = reverseRelationKind(rel);
+    Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
     Node lhs = args[2][0];
     Node rhs = args[2][1];
     return Rewriter::rewrite(nm->mkNode(
