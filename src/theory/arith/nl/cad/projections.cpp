@@ -18,6 +18,8 @@
 
 #ifdef CVC4_POLY_IMP
 
+#include "base/check.h"
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
