@@ -26,10 +26,14 @@ namespace cad {
 
 using namespace poly;
 
-void PolyVector::add(const poly::Polynomial& poly) {
+void PolyVector::add(const poly::Polynomial& poly, bool assertMain) {
         for (const auto& p : poly::square_free_factors(poly))
         {
             if (poly::is_constant(p)) continue;
+            if (assertMain)
+            {
+              Assert(main_variable(poly) == main_variable(p));
+            }
             std::vector<poly::Polynomial>::emplace_back(p);
         }
     }

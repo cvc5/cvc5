@@ -257,16 +257,11 @@ CACInterval CDCAC::intervalFromCharacterization(
 
   for (const auto& p : characterization)
   {
-    // Add polynomials to either main or down
-    if (main_variable(p) == d_variableOrdering[cur_variable])
-    {
-      m.add(p);
-    }
-    else
-    {
-      d.add(p);
-    }
+    // Add polynomials to main
+    m.add(p);
   }
+  // Push lower-dimensional polys to down
+  m.pushDownPolys(d, d_variableOrdering[cur_variable]);
 
   // Collect -oo, all roots, oo
   std::vector<poly::Value> roots;
@@ -307,7 +302,7 @@ CACInterval CDCAC::intervalFromCharacterization(
     {
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
-        l.add(p);
+        l.add(p, true);
       }
     }
     d_assignment.unset(d_variableOrdering[cur_variable]);
@@ -320,7 +315,7 @@ CACInterval CDCAC::intervalFromCharacterization(
     {
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
-        u.add(p);
+        u.add(p, true);
       }
     }
     d_assignment.unset(d_variableOrdering[cur_variable]);

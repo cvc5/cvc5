@@ -58,7 +58,7 @@ class PolyVector: public std::vector<poly::Polynomial> {
      * Adds a polynomial to the list of projection polynomials.
      * Before adding, it factorizes the polynomials and removed constant factors.
      */
-    void add(const poly::Polynomial& poly);
+    void add(const poly::Polynomial& poly, bool assertMain = false);
     /** Sort and remove duplicates from the list of polynomials. */
     void reduce();
     /** Make this list of polynomials a finest square-free basis. */
