@@ -79,7 +79,7 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e (union_disjoint A B))
+   *   (= (count e (union_max A B))
    *     (ite
    *     (> (count e A) (count e B))
    *     (count e A)
@@ -92,7 +92,7 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e (union_disjoint A B))
+   *   (= (count e (intersection_min A B))
    *     (ite(
    *     (< (count e A) (count e B))
    *     (count e A)
