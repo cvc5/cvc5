@@ -274,6 +274,8 @@ libcvc4_add_sources(
   smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
+  smt/unsat_core_manager.cpp
+  smt/unsat_core_manager.h
   smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
@@ -628,8 +630,6 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h
   theory/quantifiers/cegqi/ceg_dt_instantiator.cpp
   theory/quantifiers/cegqi/ceg_dt_instantiator.h
-  theory/quantifiers/cegqi/ceg_epr_instantiator.cpp
-  theory/quantifiers/cegqi/ceg_epr_instantiator.h
   theory/quantifiers/cegqi/ceg_instantiator.cpp
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
@@ -694,8 +694,6 @@ libcvc4_add_sources(
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
-  theory/quantifiers/quant_epr.cpp
-  theory/quantifiers/quant_epr.h
   theory/quantifiers/quant_relevance.cpp
   theory/quantifiers/quant_relevance.h
   theory/quantifiers/quant_rep_bound_ext.cpp

@@ -1026,7 +1026,7 @@ void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
                    : NodeManager::currentNM()->mkNode(kind::AND, asserts);
     if( res!=vec_node[i] ){
       res = Rewriter::rewrite( res );
-      if (options::unsatCores())
+      if (options::unsatCores() && !options::proofNew())
       {
         ProofManager::currentPM()->addDependence(res, vec_node[i]);
       }

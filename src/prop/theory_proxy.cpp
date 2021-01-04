@@ -83,11 +83,12 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  if (options::unsatCores())
+  else if (options::unsatCores())
   {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }
-  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
+  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation
+                        << std::endl;
   explanation.push_back(l);
   if (theoryExplanation.getKind() == kind::AND)
   {

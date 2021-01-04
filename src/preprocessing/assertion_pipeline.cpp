@@ -96,19 +96,19 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   }
   Trace("assert-pipeline") << "Assertions: Replace " << d_nodes[i] << " with "
                            << n << std::endl;
-  if (options::unsatCores())
-  {
-    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-  }
   if (isProofEnabled())
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
+  }
+  else if (options::unsatCores())
+  {
+    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
   }
   d_nodes[i] = n;
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
-{  
+{
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
@@ -201,7 +201,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
   }
-  if (options::unsatCores())
+  if (options::unsatCores() && !isProofEnabled())
   {
     ProofManager::currentPM()->addDependence(newConjr, d_nodes[i]);
   }
