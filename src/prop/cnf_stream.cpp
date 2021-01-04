@@ -45,14 +45,15 @@ CnfStream::CnfStream(SatSolver* satSolver,
                      context::Context* context,
                      OutputManager* outMgr,
                      ResourceManager* rm,
-                     bool fullLitToNodeMap,
+                     FormulaLitPolicy flpol,
                      std::string name)
     : d_satSolver(satSolver),
       d_outMgr(outMgr),
       d_booleanVariables(context),
+      d_notifyFormulas(context),
       d_nodeToLiteralMap(context),
       d_literalToNodeMap(context),
-      d_fullLitToNodeMap(fullLitToNodeMap),
+      d_flitPolicy(flpol),
       d_registrar(registrar),
       d_name(name),
       d_cnfProof(nullptr),
@@ -202,6 +203,13 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
                << push;
   Assert(node.getKind() != kind::NOT);
 
+  // if we are tracking formulas, everything is a theory atom
+  if (!isTheoryAtom && d_flitPolicy == FormulaLitPolicy::TRACK_AND_NOTIFY)
+  {
+    isTheoryAtom = true;
+    d_notifyFormulas.insert(node);
+  }
+
   // Get the literal for this node
   SatLiteral lit;
   if (!hasLiteral(node)) {
@@ -225,7 +233,9 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   }
 
   // If it's a theory literal, need to store it for back queries
-  if ( isTheoryAtom || d_fullLitToNodeMap || (Dump.isOn("clauses")) ) {
+  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK
+      || (Dump.isOn("clauses")))
+  {
     d_literalToNodeMap.insert_safe(lit, node);
     d_literalToNodeMap.insert_safe(~lit, node.notNode());
   }
@@ -265,6 +275,11 @@ void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
   for (it = d_booleanVariables.begin(); it != d_booleanVariables.end(); ++ it) {
     outputVariables.push_back(*it);
   }
+}
+
+bool CnfStream::isNotifyFormula(TNode node) const
+{
+  return d_notifyFormulas.find(node) != d_notifyFormulas.end();
 }
 
 void CnfStream::setProof(CnfProof* proof) {

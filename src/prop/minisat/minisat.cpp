@@ -159,7 +159,9 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
     return ClauseIdUndef;
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
-  Assert(!CVC4::options::unsatCores() || clause_id != ClauseIdError);
+  // FIXME: to be deleted when we kill old proof code for unsat cores
+  Assert(!options::unsatCores() || options::proofNew()
+         || clause_id != ClauseIdError);
   return clause_id;
 }
 

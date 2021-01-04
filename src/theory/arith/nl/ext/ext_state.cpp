@@ -26,14 +26,21 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-ExtState::ExtState(InferenceManager& im, NlModel& model, context::Context* c)
-    : d_im(im), d_model(model)
+ExtState::ExtState(InferenceManager& im,
+                   NlModel& model,
+                   ProofNodeManager* pnm,
+                   context::UserContext* c)
+    : d_im(im), d_model(model), d_pnm(pnm), d_ctx(c)
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  if (d_pnm != nullptr)
+  {
+    d_proof.reset(new CDProofSet<CDProof>(d_pnm, d_ctx, "nl-ext"));
+  }
 }
 
 void ExtState::init(const std::vector<Node>& xts)
@@ -87,6 +94,14 @@ void ExtState::init(const std::vector<Node>& xts)
   }
 
   Trace("nl-ext") << "We have " << d_ms.size() << " monomials." << std::endl;
+}
+
+bool ExtState::isProofEnabled() const { return d_proof.get() != nullptr; }
+
+CDProof* ExtState::getProof()
+{
+  Assert(isProofEnabled());
+  return d_proof->allocateProof(d_ctx);
 }
 
 }  // namespace nl

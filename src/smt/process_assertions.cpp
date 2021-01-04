@@ -207,10 +207,7 @@ bool ProcessAssertions::apply(Assertions& as)
 
   // Since this pass is not robust for the information tracking necessary for
   // unsat cores, it's only applied if we are not doing unsat core computation
-  if (!options::unsatCores())
-  {
-    d_passes["apply-substs"]->apply(&assertions);
-  }
+  d_passes["apply-substs"]->apply(&assertions);
 
   // Assertions MUST BE guaranteed to be rewritten by this point
   d_passes["rewrite"]->apply(&assertions);
@@ -317,6 +314,9 @@ bool ProcessAssertions::apply(Assertions& as)
     d_passes["ho-elim"]->apply(&assertions);
   }
 
+  // rewrite equalities based on theory-specific rewriting
+  d_passes["theory-rewrite-eq"]->apply(&assertions);
+
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
@@ -328,13 +328,8 @@ bool ProcessAssertions::apply(Assertions& as)
 
   // ensure rewritten
   d_passes["rewrite"]->apply(&assertions);
-  // apply theory preprocess
+  // apply theory preprocess, which includes ITE removal
   d_passes["theory-preprocess"]->apply(&assertions);
-  // Must remove ITEs again since theory preprocessing may introduce them.
-  // Notice that we alternatively could ensure that the theory-preprocess
-  // pass above calls TheoryPreprocess::preprocess instead of
-  // TheoryPreprocess::theoryPreprocess, as the former also does ITE removal.
-  d_passes["ite-removal"]->apply(&assertions);
   // This is needed because when solving incrementally, removeITEs may
   // introduce skolems that were solved for earlier and thus appear in the
   // substitution map.
@@ -363,15 +358,12 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
-      if (!options::unsatCores())
+      // Perform non-clausal simplification
+      PreprocessingPassResult res =
+          d_passes["non-clausal-simp"]->apply(&assertions);
+      if (res == PreprocessingPassResult::CONFLICT)
       {
-        // Perform non-clausal simplification
-        PreprocessingPassResult res =
-            d_passes["non-clausal-simp"]->apply(&assertions);
-        if (res == PreprocessingPassResult::CONFLICT)
-        {
-          return false;
-        }
+        return false;
       }
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
@@ -417,8 +409,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
     }
 
     if (options::repeatSimp()
-        && options::simplificationMode() != options::SimplificationMode::NONE
-        && !options::unsatCores())
+        && options::simplificationMode() != options::SimplificationMode::NONE)
     {
       PreprocessingPassResult res =
           d_passes["non-clausal-simp"]->apply(&assertions);

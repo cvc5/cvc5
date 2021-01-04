@@ -82,7 +82,7 @@ void TheoryArith::finishInit()
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine));
+        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine, d_pnm));
   }
   // finish initialize internally
   d_internal->finishInit();
@@ -112,8 +112,9 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
 
   if (options::arithRewriteEq())
   {
-    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
+    if (atom.getKind() == kind::EQUAL)
     {
+      Assert(atom[0].getType().isReal());
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
       TrustNode tleq = ppRewriteTerms(leq);
@@ -138,10 +139,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
 
 TrustNode TheoryArith::ppRewriteTerms(TNode n)
 {
-  if (Theory::theoryOf(n) != THEORY_ARITH)
-  {
-    return TrustNode::null();
-  }
+  Assert(Theory::theoryOf(n) == THEORY_ARITH);
   // Eliminate operators recursively. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
