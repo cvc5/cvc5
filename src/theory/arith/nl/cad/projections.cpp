@@ -26,72 +26,64 @@ namespace cad {
 
 using namespace poly;
 
-void reduceProjectionPolynomials(std::vector<Polynomial>& polys)
+void PolyVector::add(const poly::Polynomial& poly) {
+        for (const auto& p : poly::square_free_factors(poly))
+        {
+            if (poly::is_constant(p)) continue;
+            std::vector<poly::Polynomial>::emplace_back(p);
+        }
+    }
+
+void PolyVector::reduce()
 {
-  std::sort(polys.begin(), polys.end());
-  auto it = std::unique(polys.begin(), polys.end());
-  polys.erase(it, polys.end());
+  std::sort(begin(), end());
+  erase(std::unique(begin(), end()), end());
 }
 
-void addPolynomial(std::vector<Polynomial>& polys, const Polynomial& poly)
+void PolyVector::makeFinestSquareFreeBasis()
 {
-  for (const auto& p : square_free_factors(poly))
-  {
-    if (is_constant(p)) continue;
-    polys.emplace_back(p);
-  }
-}
-
-void addPolynomials(std::vector<Polynomial>& polys,
-                    const std::vector<Polynomial>& p)
-{
-  for (const auto& q : p) addPolynomial(polys, q);
-}
-
-void makeFinestSquareFreeBasis(std::vector<Polynomial>& polys)
-{
-  for (std::size_t i = 0, n = polys.size(); i < n; ++i)
+  for (std::size_t i = 0, n = size(); i < n; ++i)
   {
     for (std::size_t j = i + 1; j < n; ++j)
     {
-      Polynomial g = gcd(polys[i], polys[j]);
+      Polynomial g = gcd((*this)[i], (*this)[j]);
       if (!is_constant(g))
       {
-        polys[i] = div(polys[i], g);
-        polys[j] = div(polys[j], g);
-        polys.emplace_back(g);
+        (*this)[i] = div((*this)[i], g);
+        (*this)[j] = div((*this)[j], g);
+        add(g);
       }
     }
   }
-  auto it = std::remove_if(polys.begin(), polys.end(), [](const Polynomial& p) {
+  auto it = std::remove_if(begin(), end(), [](const Polynomial& p) {
     return is_constant(p);
   });
-  polys.erase(it, polys.end());
-  reduceProjectionPolynomials(polys);
+  erase(it, end());
+  reduce();
 }
 
-std::vector<Polynomial> projection_mccallum(
+PolyVector projection_mccallum(
     const std::vector<Polynomial>& polys)
 {
-  std::vector<Polynomial> res;
+  PolyVector res;
 
   for (const auto& p : polys)
   {
     for (const auto& coeff : coefficients(p))
     {
-      addPolynomial(res, coeff);
+      res.add(coeff);
     }
-    addPolynomial(res, discriminant(p));
+    res.add(discriminant(p));
   }
   for (std::size_t i = 0, n = polys.size(); i < n; ++i)
   {
     for (std::size_t j = i + 1; j < n; ++j)
     {
-      addPolynomial(res, resultant(polys[i], polys[j]));
+      res.add(resultant(polys[i], polys[j]));
     }
   }
 
-  reduceProjectionPolynomials(res);
+  res.reduce();
   return res;
 }
 

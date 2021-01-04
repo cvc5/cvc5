@@ -103,7 +103,7 @@ class CDCAC
    * Collects the coefficients required for projection from the given
    * polynomial. Implements Algorithm 6.
    */
-  std::vector<poly::Polynomial> requiredCoefficients(
+  PolyVector requiredCoefficients(
       const poly::Polynomial& p) const;
 
   /**
@@ -111,7 +111,7 @@ class CDCAC
    * A characterization contains polynomials whose roots bound the region around
    * the current assignment. Implements Algorithm 4.
    */
-  std::vector<poly::Polynomial> constructCharacterization(
+  PolyVector constructCharacterization(
       std::vector<CACInterval>& intervals);
 
   /**
@@ -119,7 +119,7 @@ class CDCAC
    * Implements Algorithm 5.
    */
   CACInterval intervalFromCharacterization(
-      const std::vector<poly::Polynomial>& characterization,
+      const PolyVector& characterization,
       std::size_t cur_variable,
       const poly::Value& sample);
 
