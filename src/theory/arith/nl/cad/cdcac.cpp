@@ -126,9 +126,9 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
     {
       Trace("cdcac") << "-> " << i << std::endl;
       std::vector<poly::Polynomial> l, u, m, d;
-      if (!is_minus_infinity(get_lower(i))) l.emplace_back(p);
-      if (!is_plus_infinity(get_upper(i))) u.emplace_back(p);
-      m.emplace_back(p);
+      addPolynomial(m, p);
+      if (!is_minus_infinity(get_lower(i))) l = m;
+      if (!is_plus_infinity(get_upper(i))) u = m;
       res.emplace_back(CACInterval{i, l, u, m, d, {n}});
     }
   }
