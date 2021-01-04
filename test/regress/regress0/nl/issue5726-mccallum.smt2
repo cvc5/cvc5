@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --no-nl-ext --nl-cad
+; REQUIRES: poly
 ; EXPECT: sat
 (set-logic QF_NRA)
 (declare-fun x () Real)
