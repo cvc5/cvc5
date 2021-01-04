@@ -161,18 +161,30 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
 std::vector<poly::Polynomial> CDCAC::requiredCoefficients(
     const poly::Polynomial& p) const
 {
-  std::vector<poly::Polynomial> res;
-  for (long deg = degree(p); deg >= 0; --deg)
-  {
-    auto coeff = coefficient(p, deg);
-    if (lp_polynomial_is_constant(coeff.get_internal())) break;
-    res.emplace_back(coeff);
-    if (evaluate_constraint(coeff, d_assignment, poly::SignCondition::NE))
+  switch (d_projection) {
+    case Projection::MCCALLUM:
+      return poly::coefficients(p);
+    case Projection::MCCALLUM_PARTIAL:
     {
-      break;
+      std::vector<poly::Polynomial> res;
+      for (long deg = degree(p); deg >= 0; --deg)
+      {
+        auto coeff = coefficient(p, deg);
+        if (lp_polynomial_is_constant(coeff.get_internal())) break;
+        res.emplace_back(coeff);
+        if (evaluate_constraint(coeff, d_assignment, poly::SignCondition::NE))
+        {
+          break;
+        }
+      }
+      return res;
     }
+    case Projection::LAZARD:
+      return { poly::leading_coefficient(p), coefficient(p, 0) };
+    default:
+      Unreachable();
+      return {};
   }
-  return res;
 }
 
 std::vector<poly::Polynomial> CDCAC::constructCharacterization(
