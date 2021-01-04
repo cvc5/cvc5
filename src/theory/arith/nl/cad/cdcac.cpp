@@ -149,8 +149,7 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
   return sampleOutside(infeasible, sample);
 }
 
-PolyVector CDCAC::requiredCoefficients(
-    const poly::Polynomial& p) const
+PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p) const
 {
   PolyVector res;
   for (long deg = degree(p); deg >= 0; --deg)
@@ -166,13 +165,11 @@ PolyVector CDCAC::requiredCoefficients(
   return res;
 }
 
-PolyVector CDCAC::constructCharacterization(
-    std::vector<CACInterval>& intervals)
+PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
 {
   Assert(!intervals.empty()) << "A covering can not be empty";
   Trace("cdcac") << "Constructing characterization now" << std::endl;
   PolyVector res;
-
 
   for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
   {
