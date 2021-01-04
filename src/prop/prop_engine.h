@@ -95,6 +95,23 @@ class PropEngine
   void shutdown() {}
 
   /**
+   * Preprocess the given node. Return the REWRITE trust node corresponding to
+   * rewriting node. New lemmas and skolems are added to ppLemmas and
+   * ppSkolems respectively.
+   *
+   * @param node The assertion to preprocess,
+   * @param ppLemmas The lemmas to add to the set of assertions,
+   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @param doTheoryPreprocess whether to run theory-specific preprocessing.
+   * @return The (REWRITE) trust node corresponding to rewritten node via
+   * preprocessing.
+   */
+  theory::TrustNode preprocess(TNode node,
+                               std::vector<theory::TrustNode>& ppLemmas,
+                               std::vector<Node>& ppSkolems,
+                               bool doTheoryPreprocess);
+
+  /**
    * Notify preprocessed assertions. This method is called just before the
    * assertions are asserted to this prop engine. This method notifies the
    * decision engine and the theory engine of the assertions in ap.
@@ -114,27 +131,10 @@ class PropEngine
    * than the (SAT and SMT) level at which it was asserted.
    *
    * @param trn the trust node storing the formula to assert
-   * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic
+   * @param p the properties of the lemma
+   * @return the (preprocessed) lemma
    */
-  void assertLemma(theory::TrustNode trn, bool removable);
-
-  /**
-   * Assert lemma trn with preprocessing lemmas ppLemmas which correspond
-   * to lemmas for skolems in ppSkolems.
-   *
-   * @param trn the trust node storing the formula to assert
-   * @param ppLemmas the lemmas from preprocessing and term formula removal on
-   * the proven node of trn
-   * @param ppSkolem the skolem that each lemma in ppLemma constrains. It should
-   * be the case that ppLemmas.size()==ppSkolems.size().
-   * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic
-   */
-  void assertLemmas(theory::TrustNode trn,
-                    std::vector<theory::TrustNode>& ppLemmas,
-                    std::vector<Node>& ppSkolems,
-                    bool removable);
+  Node assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -185,10 +185,11 @@ class PropEngine
 
   /**
    * Ensure that the given node will have a designated SAT literal
-   * that is definitionally equal to it.  The result of this function
-   * is that the Node can be queried via getSatValue().
+   * that is definitionally equal to it. Note that theory preprocessing is
+   * applied to n. The node returned by this method can be subsequently queried
+   * via getSatValue().
    */
-  void ensureLiteral(TNode n);
+  Node ensureLiteral(TNode n);
 
   /**
    * Push the context level.
@@ -261,6 +262,18 @@ class PropEngine
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
+
+  /**
+   * Converts the given formula to CNF and asserts the CNF to the SAT solver.
+   * The formula can be removed by the SAT solver after backtracking lower
+   * than the (SAT and SMT) level at which it was asserted.
+   *
+   * @param trn the trust node storing the formula to assert
+   * @param removable whether this lemma can be quietly removed based
+   * on an activity heuristic
+   */
+  void assertLemmaInternal(theory::TrustNode trn, bool removable);
+
   /**
    * Indicates that the SAT solver is currently solving something and we should
    * not mess with it's internal state.

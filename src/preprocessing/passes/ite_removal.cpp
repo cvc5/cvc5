@@ -38,21 +38,19 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
   // Remove all of the ITE occurrences and normalize
-  theory::TheoryPreprocessor* tpp =
-      d_preprocContext->getTheoryEngine()->getTheoryPreprocess();
+  prop::PropEngine* pe = d_preprocContext->getPropEngine();
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     Node assertion = (*assertions)[i];
     std::vector<theory::TrustNode> newAsserts;
     std::vector<Node> newSkolems;
-    // TODO (project #42): this will call the prop engine
-    TrustNode trn = tpp->preprocess(assertion, newAsserts, newSkolems, false);
+    TrustNode trn = pe->preprocess(assertion, newAsserts, newSkolems, false);
     if (!trn.isNull())
     {
       // process
       assertions->replaceTrusted(i, trn);
       // rewritten assertion has a dependence on the node (old pf architecture)
-      if (options::unsatCores())
+      if (options::unsatCores() && !options::proofNew())
       {
         ProofManager::currentPM()->addDependence(trn.getNode(), assertion);
       }
@@ -63,7 +61,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
       imap[newSkolems[j]] = assertions->size();
       assertions->pushBackTrusted(newAsserts[j]);
       // new assertions have a dependence on the node (old pf architecture)
-      if (options::unsatCores())
+      if (options::unsatCores() && !options::proofNew())
       {
         ProofManager::currentPM()->addDependence(newAsserts[j].getProven(),
                                                  assertion);

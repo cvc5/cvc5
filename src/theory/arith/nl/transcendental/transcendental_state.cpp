@@ -23,14 +23,34 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalState::TranscendentalState(InferenceManager& im, NlModel& model)
-    : d_im(im), d_model(model)
+TranscendentalState::TranscendentalState(InferenceManager& im,
+                                         NlModel& model,
+                                         ProofNodeManager* pnm,
+                                         context::UserContext* c)
+    : d_im(im), d_model(model), d_pnm(pnm), d_ctx(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
+  if (d_pnm != nullptr)
+  {
+    d_proof.reset(new CDProofSet<CDProof>(d_pnm, d_ctx, "nl-trans"));
+    d_proofChecker.reset(new TranscendentalProofRuleChecker());
+    d_proofChecker->registerTo(pnm->getChecker());
+  }
+}
+
+bool TranscendentalState::isProofEnabled() const
+{
+  return d_proof.get() != nullptr;
+}
+
+CDProof* TranscendentalState::getProof()
+{
+  Assert(isProofEnabled());
+  return d_proof->allocateProof(d_ctx);
 }
 
 void TranscendentalState::init(const std::vector<Node>& xts,
@@ -195,7 +215,14 @@ void TranscendentalState::getCurrentPiBounds()
   Node pi_lem = nm->mkNode(Kind::AND,
                            nm->mkNode(Kind::GEQ, d_pi, d_pi_bound[0]),
                            nm->mkNode(Kind::LEQ, d_pi, d_pi_bound[1]));
-  d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND);
+  CDProof* proof = nullptr;
+  if (isProofEnabled())
+  {
+    proof = getProof();
+    proof->addStep(
+        pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
+  }
+  d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND, proof);
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,

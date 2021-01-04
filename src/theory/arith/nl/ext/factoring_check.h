@@ -18,8 +18,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,12 +28,12 @@ namespace nl {
 class FactoringCheck
 {
  public:
-  FactoringCheck(InferenceManager& im, NlModel& model);
+  FactoringCheck(ExtState* data);
 
   /** check factoring
    *
    * Returns a set of valid theory lemmas, based on a
-   * lemma schema that states a relationship betwen monomials
+   * lemma schema that states a relationship between monomials
    * with common factors that occur in the same constraint.
    *
    * Examples:
@@ -47,17 +46,20 @@ class FactoringCheck
              const std::vector<Node>& false_asserts);
 
  private:
-  /** The inference manager that we push conflicts and lemmas to. */
-  InferenceManager& d_im;
-  /** Reference to the non-linear model object */
-  NlModel& d_model;
+  /** Basic data that is shared with other checks */
+  ExtState* d_data;
+
   /** maps nodes to their factor skolems */
   std::map<Node, Node> d_factor_skolem;
 
   Node d_zero;
   Node d_one;
 
-  Node getFactorSkolem(Node n);
+  /**
+   * Introduces a new purification skolem k for n and adds k=n as lemma.
+   * If proof is not nullptr, it proves this lemma via MACRO_SR_PRED_INTRO.
+   */
+  Node getFactorSkolem(Node n, CDProof* proof);
 };
 
 }  // namespace nl

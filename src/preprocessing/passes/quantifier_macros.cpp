@@ -80,7 +80,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
     for( int i=0; i<(int)assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
-        if (options::unsatCores()
+        if (options::unsatCores() && !options::proofNew()
             && std::find(macro_assertions.begin(),
                          macro_assertions.end(),
                          assertions[i])
@@ -106,7 +106,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
           // is an over-approximation. a more fine-grained unsat core
           // computation would require caching dependencies for each subterm of
           // the formula, which is expensive.
-          if (options::unsatCores())
+          if (options::unsatCores() && !options::proofNew())
           {
             ProofManager::currentPM()->addDependence(curr, assertions[i]);
             for (unsigned j = 0; j < macro_assertions.size(); j++)

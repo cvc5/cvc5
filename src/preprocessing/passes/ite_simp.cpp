@@ -114,13 +114,7 @@ ITESimp::Statistics::~Statistics()
 
 bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 {
-  // This pass does not support dependency tracking yet
-  // (learns substitutions from all assertions so just
-  // adding addDependence is not enough)
-  if (options::unsatCores())
-  {
-    return true;
-  }
+  Assert(!options::unsatCores());
   bool result = true;
   bool simpDidALotOfWork = d_iteUtilities.simpIteDidALotOfWorkHeuristic();
   if (simpDidALotOfWork)
