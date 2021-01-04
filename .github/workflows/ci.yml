@@ -59,7 +59,7 @@ jobs:
     - name: Install Packages
       if: runner.os == 'Linux'
       run: |
-        .github/scripts/ubuntu-dependency-installs.sh
+        .github/scripts/install-dependencies-ubuntu.sh
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
@@ -73,7 +73,7 @@ jobs:
     - name: Install Packages (macOS)
       if: runner.os == 'macOS'
       run: |
-        .github/scripts/macos-dependency-installs.sh
+        .github/scripts/install-dependencies-macos.sh
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
