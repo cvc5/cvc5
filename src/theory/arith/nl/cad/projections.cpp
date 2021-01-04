@@ -28,17 +28,18 @@ namespace cad {
 
 using namespace poly;
 
-void PolyVector::add(const poly::Polynomial& poly, bool assertMain) {
-        for (const auto& p : poly::square_free_factors(poly))
-        {
-            if (poly::is_constant(p)) continue;
-            if (assertMain)
-            {
-              Assert(main_variable(poly) == main_variable(p));
-            }
-            std::vector<poly::Polynomial>::emplace_back(p);
-        }
+void PolyVector::add(const poly::Polynomial& poly, bool assertMain)
+{
+  for (const auto& p : poly::square_free_factors(poly))
+  {
+    if (poly::is_constant(p)) continue;
+    if (assertMain)
+    {
+      Assert(main_variable(poly) == main_variable(p));
     }
+    std::vector<poly::Polynomial>::emplace_back(p);
+  }
+}
 
 void PolyVector::reduce()
 {
@@ -61,23 +62,23 @@ void PolyVector::makeFinestSquareFreeBasis()
       }
     }
   }
-  auto it = std::remove_if(begin(), end(), [](const Polynomial& p) {
-    return is_constant(p);
-  });
+  auto it = std::remove_if(
+      begin(), end(), [](const Polynomial& p) { return is_constant(p); });
   erase(it, end());
   reduce();
 }
-void PolyVector::pushDownPolys(PolyVector& down, poly::Variable var) {
-  auto it = std::remove_if(begin(), end(), [&down, &var](const poly::Polynomial& p){
-    if (main_variable(p) == var) return false;
-    down.add(p);
-    return true;
-  });
+void PolyVector::pushDownPolys(PolyVector& down, poly::Variable var)
+{
+  auto it =
+      std::remove_if(begin(), end(), [&down, &var](const poly::Polynomial& p) {
+        if (main_variable(p) == var) return false;
+        down.add(p);
+        return true;
+      });
   erase(it, end());
 }
 
-PolyVector projection_mccallum(
-    const std::vector<Polynomial>& polys)
+PolyVector projection_mccallum(const std::vector<Polynomial>& polys)
 {
   PolyVector res;
 
