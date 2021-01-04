@@ -63,6 +63,8 @@ class PolyVector: public std::vector<poly::Polynomial> {
     void reduce();
     /** Make this list of polynomials a finest square-free basis. */
     void makeFinestSquareFreeBasis();
+    /** Push polynomials with a lower main variable to another PolyVector. */
+    void pushDownPolys(PolyVector& down, poly::Variable var);
 };
 
 /**

@@ -61,6 +61,14 @@ void PolyVector::makeFinestSquareFreeBasis()
   erase(it, end());
   reduce();
 }
+void PolyVector::pushDownPolys(PolyVector& down, poly::Variable var) {
+  auto it = std::remove_if(begin(), end(), [&down, &var](const poly::Polynomial& p){
+    if (main_variable(p) == var) return false;
+    down.add(p);
+    return true;
+  });
+  erase(it, end());
+}
 
 PolyVector projection_mccallum(
     const std::vector<Polynomial>& polys)

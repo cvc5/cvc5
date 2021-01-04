@@ -117,6 +117,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
       Trace("cdcac") << "-> " << i << std::endl;
       PolyVector l, u, m, d;
       m.add(p);
+      m.pushDownPolys(d, d_variableOrdering[cur_variable]);
       if (!is_minus_infinity(get_lower(i))) l = m;
       if (!is_plus_infinity(get_upper(i))) u = m;
       res.emplace_back(CACInterval{i, l, u, m, d, {n}});
