@@ -11,7 +11,7 @@
  **
  ** \brief The str_len_simplify preprocessing pass
  **
- ** Simplifies Arithmetic nodes by calling 
+ ** Simplifies Arithmetic nodes by calling
  ** CVC4::theory::strings::ArithEntail::check
  ** on each GEQ node.
  **/
@@ -31,7 +31,6 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-
 using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 
 class StrLenSimplify : public PreprocessingPass
@@ -46,7 +45,6 @@ class StrLenSimplify : public PreprocessingPass
   Node simplify(Node n);
   // A cache to store the simplified nodes
   CDNodeMap d_cache;
-
 };
 
 }  // namespace passes
@@ -54,4 +52,3 @@ class StrLenSimplify : public PreprocessingPass
 }  // namespace CVC4
 
 #endif /* CVC4__PREPROCESSING__PASSES__STR_LEN_SIMPLIFY_H */
-

@@ -11,7 +11,7 @@
  **
  ** \brief The str_len_simplify preprocessing pass
  **
- ** Simplifies Arithmetic nodes by calling 
+ ** Simplifies Arithmetic nodes by calling
  ** CVC4::theory::strings::ArithEntail::check
  ** on each GEQ node.
  **/
@@ -27,12 +27,11 @@ namespace passes {
 
 using namespace CVC4::theory;
 
-
 StrLenSimplify::StrLenSimplify(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "str-len-simplify"), d_cache(preprocContext->getUserContext()){};
+    : PreprocessingPass(preprocContext, "str-len-simplify"),
+      d_cache(preprocContext->getUserContext()){};
 
-
-Node StrLenSimplify::simplify(Node n) 
+Node StrLenSimplify::simplify(Node n)
 {
   // first make sure the node is rewritten
   n = Rewriter::rewrite(n);
@@ -100,16 +99,17 @@ Node StrLenSimplify::simplify(Node n)
 }
 
 PreprocessingPassResult StrLenSimplify::applyInternal(
-  AssertionPipeline* assertionsToPreprocess)
+    AssertionPipeline* assertionsToPreprocess)
 {
   Trace("str-len-simplify") << "apply internal of StrLenSimplify" << std::endl;
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i) {
-    assertionsToPreprocess->replace(i, Rewriter::rewrite(simplify((*assertionsToPreprocess)[i])));
+  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  {
+    assertionsToPreprocess->replace(
+        i, Rewriter::rewrite(simplify((*assertionsToPreprocess)[i])));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing

@@ -204,10 +204,10 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
-  if (options::strLenSimplify()) {
+  if (options::strLenSimplify())
+  {
     d_passes["str-len-simplify"]->apply(&assertions);
   }
-
 
   // Since this pass is not robust for the information tracking necessary for
   // unsat cores, it's only applied if we are not doing unsat core computation
