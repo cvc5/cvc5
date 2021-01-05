@@ -91,7 +91,7 @@ class RemoveTermFormulas {
    * right hand side is assertion after removing term formulas, and the proof
    * generator (if provided) that can prove the equivalence.
    */
-  theory::TrustNode run(Node assertion,
+  theory::TrustNode run(TNode assertion,
                         std::vector<theory::TrustNode>& newAsserts,
                         std::vector<Node>& newSkolems,
                         bool fixedPoint = false);
@@ -100,7 +100,7 @@ class RemoveTermFormulas {
    * The relevant lemmas can be extracted by the caller later using getSkolems
    * and getLemmaForSkolem.
    */
-  theory::TrustNode run(Node assertion);
+  theory::TrustNode run(TNode assertion);
   /**
    * Same as above, but transforms a lemma, returning a LEMMA trust node that
    * proves the same formula as lem with term formulas removed.
@@ -215,7 +215,7 @@ class RemoveTermFormulas {
    * This uses a term-context-sensitive stack to process assertion. It returns
    * the version of assertion with all term formulas removed.
    */
-  Node runInternal(Node assertion,
+  Node runInternal(TNode assertion,
                    std::vector<theory::TrustNode>& newAsserts,
                    std::vector<Node>& newSkolems);
   /**

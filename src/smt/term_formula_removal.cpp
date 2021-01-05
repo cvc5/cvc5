@@ -53,7 +53,7 @@ RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
 RemoveTermFormulas::~RemoveTermFormulas() {}
 
 theory::TrustNode RemoveTermFormulas::run(
-    Node assertion,
+    TNode assertion,
     std::vector<theory::TrustNode>& newAsserts,
     std::vector<Node>& newSkolems,
     bool fixedPoint)
@@ -86,7 +86,7 @@ theory::TrustNode RemoveTermFormulas::run(
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-theory::TrustNode RemoveTermFormulas::run(Node assertion)
+theory::TrustNode RemoveTermFormulas::run(TNode assertion)
 {
   std::vector<theory::TrustNode> newAsserts;
   std::vector<Node> newSkolems;
@@ -133,7 +133,7 @@ theory::TrustNode RemoveTermFormulas::runLemma(
   return theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 }
 
-Node RemoveTermFormulas::runInternal(Node assertion,
+Node RemoveTermFormulas::runInternal(TNode assertion,
                                      std::vector<theory::TrustNode>& output,
                                      std::vector<Node>& newSkolems)
 {
