@@ -174,7 +174,8 @@ theory::TrustNode TheoryProxy::preprocessLemma(
     std::vector<Node>& newSkolems,
     bool doTheoryPreprocess)
 {
-  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems, doTheoryPreprocess, true);
+  return d_tpp.preprocessLemma(
+      trn, newLemmas, newSkolems, doTheoryPreprocess, true);
 }
 
 theory::TrustNode TheoryProxy::preprocess(
