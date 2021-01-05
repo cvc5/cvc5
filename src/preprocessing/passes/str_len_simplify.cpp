@@ -35,17 +35,37 @@ StrLenSimplify::StrLenSimplify(PreprocessingPassContext* preprocContext)
 Node StrLenSimplify::simplify(Node n) 
 {
   n = Rewriter::rewrite(n);
-  for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER, [this](TNode tn) {std::cout << "panda kind: " << tn.getKind() << std::endl; bool b = d_cache.find(tn) != d_cache.end() || tn.getKind() != kind::GEQ; cout << "panda b: " << b << std::endl; return b;})) {
-    kind::Kind_t k = current.getKind();
-      Trace("str-len-simplify") << "kind: " << k << std::endl;
-      if (k == kind::GEQ) {
-        if (theory::strings::ArithEntail::check(current[0], current[1],false)) {
-          d_cache[current] = NodeManager::currentNM()->mkConst<bool>(true);
+  for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER, [this](TNode tn) {return d_cache.find(tn) != d_cache.end();} )) {
+    if (current.getKind() == kind::GEQ) {
+      Assert(d_cache.find(current[0]) != d_cache.end());
+      Assert(d_cache.find(current[1]) != d_cache.end());
+      Trace("str-len-simplify") << "current: " << current << std::endl;
+      bool b = theory::strings::ArithEntail::check(d_cache[current[0]], d_cache[current[1]], false);
+      Trace("str-len-simplify") << "check result: " << b << std::endl;
+      if (b) {
+            d_cache[current] = NodeManager::currentNM()->mkConst<bool>(true);
+      } else {
+        d_cache[current] = current;
+        }
+    } else {
+        if (current.getNumChildren() == 0) {
+          d_cache[current] = current;
+        } else {
+          NodeBuilder<> builder(current.getKind());
+          if (current.getMetaKind() == kind::metakind::PARAMETERIZED)    {
+            builder << current.getOperator();
+          }
+          for (size_t i = 0; i < current.getNumChildren(); i++) {
+            Assert(d_cache.find(current[i]) != d_cache.end());
+            builder << d_cache[current[i]].get();
+          }
+          Node result = builder.constructNode();
+          d_cache[current] = result;
         }
       }
   }
   if (d_cache.find(n) == d_cache.end()) {
-    return n;
+    Assert(false);
   } else {
     return d_cache[n];
   }
