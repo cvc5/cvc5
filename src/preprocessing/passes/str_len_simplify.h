@@ -42,7 +42,9 @@ class StrLenSimplify : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+  // the main function that simplifies n
   Node simplify(Node n); 
+  // A cache to store the simplified nodes
   CDNodeMap d_cache;
 
 };
