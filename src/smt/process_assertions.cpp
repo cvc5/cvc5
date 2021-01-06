@@ -204,9 +204,9 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
-  if (options::strLenSimplify())
+  if (options::foreignTheoryRewrite())
   {
-    d_passes["str-len-simplify"]->apply(&assertions);
+    d_passes["foreign-theory-rewrite"]->apply(&assertions);
   }
 
   // Since this pass is not robust for the information tracking necessary for

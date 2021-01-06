@@ -102,8 +102,8 @@ libcvc4_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
-  preprocessing/passes/str_len_simplify.cpp
-  preprocessing/passes/str_len_simplify.h
+  preprocessing/passes/foreign_theory_rewrite.cpp
+  preprocessing/passes/foreign_theory_rewrite.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
   preprocessing/passes/synth_rew_rules.cpp

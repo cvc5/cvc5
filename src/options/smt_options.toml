@@ -681,13 +681,13 @@ header = "options/smt_options.h"
   help       = "Force no CPU limit when dumping models and proofs"
 
 [[option]]
-  name       = "strLenSimplify"
+  name       = "foreignTheoryRewrite"
   category   = "regular"
-  long       = "str-len-simplify"
+  long       = "foreign-theory-rewritey"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "Simplify arithmetic constraints in strings"
+  help       = "Cross-theory rewrites"
 
 
 [[option]]

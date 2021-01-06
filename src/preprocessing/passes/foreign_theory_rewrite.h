@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file str_len_simplify.h
+/*! \file foreign_theory_rewrite.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Yoni Zohar
@@ -9,17 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The str_len_simplify preprocessing pass
- **
- ** Simplifies Arithmetic nodes by calling
- ** CVC4::theory::strings::ArithEntail::check
- ** on each GEQ node.
+ ** \brief The foreign_theory_rewrite preprocessing pass
+ ** 
+ ** Simplifies nodes of one theory using rewrites from another.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PREPROCESSING__PASSES__STR_LEN_SIMPLIFY_H
-#define CVC4__PREPROCESSING__PASSES__STR_LEN_SIMPLIFY_H
+#ifndef CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
+#define CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
 
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
@@ -33,10 +31,10 @@ namespace passes {
 
 using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 
-class StrLenSimplify : public PreprocessingPass
+class ForeignTheoryRewrite : public PreprocessingPass
 {
  public:
-  StrLenSimplify(PreprocessingPassContext* preprocContext);
+  ForeignTheoryRewrite(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
@@ -51,4 +49,4 @@ class StrLenSimplify : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* CVC4__PREPROCESSING__PASSES__STR_LEN_SIMPLIFY_H */
+#endif /* CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H */

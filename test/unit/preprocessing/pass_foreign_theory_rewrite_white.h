@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file pass_bv_gauss_white.h
+/*! \file pass_foreign_theory_rewrite.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Mathias Preiner, Andres Noetzli
@@ -9,9 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Unit tests for Gaussian Elimination preprocessing pass.
- **
- ** Unit tests for Gaussian Elimination preprocessing pass.
+ ** \brief Unit tests for Foreign Theory Rerwrite prepricessing pass
+ ** Unit tests for Foreign Theory Rerwrite prepricessing pass
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -22,7 +21,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "preprocessing/passes/str_len_simplify.h"
+#include "preprocessing/passes/foreign_theory_rewrite.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -40,7 +39,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::booleans;
 using namespace CVC4::smt;
 
-class StrLenSimpWhite : public CxxTest::TestSuite
+class ForeignTheoryRewriteWhite : public CxxTest::TestSuite
 {
   ExprManager* d_em;
   NodeManager* d_nm;
@@ -50,10 +49,10 @@ class StrLenSimpWhite : public CxxTest::TestSuite
   ProofNodeManager* d_pnm;
   PreprocessingPassContext* d_ppc;
   PreprocessingPassRegistry* d_ppr;
-  StrLenSimplify* d_strLenSimplifyPP;
+  ForeignTheoryRewrite* d_foreignTheoryRewritePP;
 
  public:
-  StrLenSimpWhite() {}
+  ForeignTheoryRewriteWhite() {}
 
   void setUp() override
   {
@@ -71,7 +70,7 @@ class StrLenSimpWhite : public CxxTest::TestSuite
     // for existing statistics
     d_smt->d_pp->d_processor.cleanup();
 
-    d_strLenSimplifyPP = (StrLenSimplify*)d_ppr->createPass(d_ppc, "str-len-simplify");
+    d_foreignTheoryRewritePP = (ForeignTheoryRewrite*)d_ppr->createPass(d_ppc, "foreign-theory-rewrite");
   }
 
   void tearDown() override
@@ -93,13 +92,13 @@ class StrLenSimpWhite : public CxxTest::TestSuite
     Node zero = d_nm->mkConst<Rational>(0);
     Node geq1 = d_nm->mkNode(kind::GEQ, len_x, zero);
     Node tt = d_nm->mkConst<bool>(true);
-    Node simplified1 = d_strLenSimplifyPP->simplify(geq1);
+    Node simplified1 = d_foreignTheoryRewritePP->simplify(geq1);
     TS_ASSERT_EQUALS(simplified1, tt);
 
     std::cout << "len(x) >= n is not simplified to true" << std::endl;
     Node n = d_nm->mkVar("n", d_nm->integerType());
     Node geq2 = d_nm->mkNode(kind::GEQ, len_x, n);
-    Node simplified2 = d_strLenSimplifyPP->simplify(geq2);
+    Node simplified2 = d_foreignTheoryRewritePP->simplify(geq2);
     TS_ASSERT(simplified2 != tt);
 
     std::cout << "len(x) >= 0 && len(x) >= n is simplified to"
@@ -108,7 +107,7 @@ class StrLenSimpWhite : public CxxTest::TestSuite
     // by the rewriter, however we are only testing the
     // simplify method
     Node conj = d_nm->mkNode(kind::AND, geq1, geq2);
-    Node simplified3 = d_strLenSimplifyPP->simplify(conj);
+    Node simplified3 = d_foreignTheoryRewritePP->simplify(conj);
     Node expected = d_nm->mkNode(kind::AND, simplified1, simplified2);
     TS_ASSERT_EQUALS(simplified3, expected);
   }
