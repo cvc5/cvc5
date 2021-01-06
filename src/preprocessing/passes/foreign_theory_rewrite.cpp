@@ -29,7 +29,72 @@ ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocCont
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
       d_cache(preprocContext->getUserContext()){};
 
-Node ForeignTheoryRewrite::simplify(Node n) { assert(false); }
+Node ForeignTheoryRewrite::simplify(Node n)
+{
+  // first make sure the node is rewritten
+  n = Rewriter::rewrite(n);
+  // traverse the node
+  for (TNode current :
+       NodeDfsIterable(n, VisitOrder::POSTORDER, [this](TNode tn) {
+         return d_cache.find(tn) != d_cache.end();
+       }))
+  {
+    // the node is rewritten, and so GT, LT, LEQ
+    // should be eliminated
+    Assert(current.getKind() != kind::GT);
+    Assert(current.getKind() != kind::LT);
+    Assert(current.getKind() != kind::LEQ);
+
+    // for GEQ, we check whether the node can be simplified
+    if (current.getKind() == kind::GEQ)
+    {
+      Assert(d_cache.find(current[0]) != d_cache.end());
+      Assert(d_cache.find(current[1]) != d_cache.end());
+      // check if the node can be simplified to true
+      if (theory::strings::ArithEntail::check(
+              d_cache[current[0]], d_cache[current[1]], false))
+      {
+        d_cache[current] = NodeManager::currentNM()->mkConst<bool>(true);
+      }
+      else
+      {
+        d_cache[current] = current;
+      }
+    }
+    else
+    {
+      // leaves are left unchanged
+      if (current.getNumChildren() == 0)
+      {
+        d_cache[current] = current;
+      }
+      else
+      {
+        // compound nodes are reconstructed according to
+        // the cache, with the simplified versions
+        NodeBuilder<> builder(current.getKind());
+        // special case for parameterized operators
+        if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+        {
+          builder << current.getOperator();
+        }
+        // add the children to the constructed node
+        for (size_t i = 0; i < current.getNumChildren(); i++)
+        {
+          Assert(d_cache.find(current[i]) != d_cache.end());
+          builder << d_cache[current[i]].get();
+        }
+        // store the reconstruction in the cache
+        Node result = builder.constructNode();
+        d_cache[current] = result;
+      }
+    }
+  }
+  // make sure the cache includes the input node
+  Assert(d_cache.find(n) != d_cache.end());
+  // return the simplified version
+  return d_cache[n];
+}
 
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
