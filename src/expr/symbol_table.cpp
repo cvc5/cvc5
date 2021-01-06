@@ -27,8 +27,6 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
-#include "expr/dtype.h"
-#include "expr/type.h"
 
 namespace CVC4 {
 
