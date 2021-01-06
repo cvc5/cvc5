@@ -38,6 +38,12 @@ if [ -z "$HOST" ]; then
   echo "WARNING:"
 fi
 
+MACHINE_TYPE=x86_64
+
+if [[ $HOST == *"i686"* ]]; then
+  MACHINE_TYPE=i686
+fi
+
 GMPVERSION=6.2.0
 BOOSTVERSION=1.55.0
 BOOSTBASE=boost_1_55_0
@@ -73,7 +79,7 @@ echo ===========================================================================
 echo
 echo "Setting up ANTLR 3.4..."
 echo
-MACHINE_TYPE="x86_64" ANTLR_CONFIGURE_ARGS="--host=$HOST" contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
+MACHINE_TYPE=${MACHINE_TYPE} ANTLR_CONFIGURE_ARGS="--host=$HOST" contrib/get-antlr-3.4 | grep -v 'Now configure CVC4 with' | grep -v '\./configure --with-antlr-dir='
 [ ${PIPESTATUS[0]} -eq 0 ] || reporterror
 echo
 

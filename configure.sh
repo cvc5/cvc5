@@ -23,6 +23,7 @@ General options;
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
   --win64                  cross-compile for Windows 64 bit
+  --win32                  cross-compile for Windows 32 bit
   --ninja                  use Ninja build system
 
 
@@ -151,6 +152,7 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+win32=default
 
 abc_dir=default
 antlr_dir=default
@@ -242,6 +244,8 @@ do
 
     --win64) win64=ON;;
     --no-win64) win64=OFF;;
+
+    --win32) win32=ON;;
 
     --ninja) ninja=ON;;
 
@@ -388,6 +392,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+[ $win32 != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw32.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
@@ -475,6 +481,7 @@ root_dir=$(pwd)
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
 [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
+[ $win32 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
 mkdir -p "$build_dir"
 
 cd "$build_dir"
