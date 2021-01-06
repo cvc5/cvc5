@@ -12,3 +12,4 @@
 # Add unit tests
 
 cvc4_add_cxx_unit_test_white(pass_bv_gauss_white preprocessing)
+cvc4_add_cxx_unit_test_white(pass_str_len_simp_white preprocessing)
