@@ -20,7 +20,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h"            // for ExprSetDepth etc..
 #include "expr/node_manager.h"    // for VarNameAttr
 #include "options/language.h"     // for LANG_AST
 #include "options/smt_options.h"  // for unsat cores
