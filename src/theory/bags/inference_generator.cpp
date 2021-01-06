@@ -107,9 +107,11 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
   Node B = n[1];
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_UNION_DISJOINT;
-  Node countA = d_nm->mkNode(kind::BAG_COUNT, e, A);
-  Node countB = d_nm->mkNode(kind::BAG_COUNT, e, B);
+  Node countA = getMultiplicitySkolem(e, A);
+  Node countB = getMultiplicitySkolem(e, B);
   Node skolem = d_sm->mkPurifySkolem(n, "union_disjoint");
+  inferInfo.d_new_skolem.push_back(countA);
+  inferInfo.d_new_skolem.push_back(countB);
   inferInfo.d_new_skolem.push_back(skolem);
   Node countSkolem = d_nm->mkNode(kind::BAG_COUNT, e, skolem);
   Node sum = d_nm->mkNode(kind::PLUS, countA, countB);
@@ -127,12 +129,17 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
   Node B = n[1];
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_UNION_MAX;
-  Node mA = d_nm->mkNode(kind::BAG_COUNT, e, A);
-  Node mB = d_nm->mkNode(kind::BAG_COUNT, e, B);
-  Node mUnionMax = d_nm->mkNode(kind::BAG_COUNT, e, n);
-  Node gt = d_nm->mkNode(kind::GT, mA, mB);
-  Node max = d_nm->mkNode(kind::ITE, gt, mA, mB);
-  Node equal = mUnionMax.eqNode(max);
+  Node countA = getMultiplicitySkolem(e, A);
+  Node countB = getMultiplicitySkolem(e, B);
+  Node skolem = d_sm->mkPurifySkolem(n, "union_max");
+  inferInfo.d_new_skolem.push_back(countA);
+  inferInfo.d_new_skolem.push_back(countB);
+  inferInfo.d_new_skolem.push_back(skolem);
+  Node countSkolem = d_nm->mkNode(kind::BAG_COUNT, e, skolem);
+
+  Node gt = d_nm->mkNode(kind::GT, countA, countB);
+  Node max = d_nm->mkNode(kind::ITE, gt, countA, countB);
+  Node equal = countSkolem.eqNode(max);
   inferInfo.d_conclusion = equal;
   return inferInfo;
 }
@@ -214,6 +221,13 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
   Node equal = multiplicity.eqNode(ite);
   inferInfo.d_conclusion = equal;
   return inferInfo;
+}
+
+Node InferenceGenerator::getMultiplicitySkolem(Node element, Node bag)
+{
+  Node count = d_nm->mkNode(kind::BAG_COUNT, element, bag);
+  Node skolem = d_sm->mkPurifySkolem(count, "countSkolem");
+  return skolem;
 }
 
 }  // namespace bags

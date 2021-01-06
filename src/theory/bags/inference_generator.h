@@ -137,6 +137,13 @@ class InferenceGenerator
   InferInfo duplicateRemoval(Node n, Node e);
 
  private:
+  /**
+   * @param element of type T
+   * @param bag of type (bag T)
+   * @return  a skolem for (bag.count element bag)
+   */
+  Node getMultiplicitySkolem(Node element, Node bag);
+
   NodeManager* d_nm;
   SkolemManager* d_sm;
   Node d_true;
