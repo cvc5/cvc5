@@ -23,11 +23,15 @@
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "preprocessing/passes/str_len_simplify.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test_utils.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/rewriter.h"
+#include "smt/smt_statistics_registry.h"
+#include "smt/preprocessor.h"
+#include "smt/process_assertions.h"
 
 using namespace CVC4;
 using namespace CVC4::preprocessing;
@@ -45,6 +49,7 @@ class StrLenSimpWhite : public CxxTest::TestSuite
   CircuitPropagator* d_cp;
   ProofNodeManager* d_pnm;
   PreprocessingPassContext* d_ppc;
+  PreprocessingPassRegistry* d_ppr;
   StrLenSimplify* d_strLenSimplifyPP;
 
  public:
@@ -60,7 +65,13 @@ class StrLenSimpWhite : public CxxTest::TestSuite
     d_cp = new CircuitPropagator();
     d_pnm = new ProofNodeManager();
     d_ppc = new PreprocessingPassContext(d_smt, d_cp, d_pnm);
-    d_strLenSimplifyPP = new StrLenSimplify(d_ppc);
+    d_ppr = &PreprocessingPassRegistry::getInstance();
+
+    // workaround: avoiding assertion errors
+    // for existing statistics
+    d_smt->d_pp->d_processor.cleanup();
+
+    d_strLenSimplifyPP = (StrLenSimplify*)d_ppr->createPass(d_ppc, "str-len-simplify");
   }
 
   void tearDown() override
@@ -68,7 +79,6 @@ class StrLenSimpWhite : public CxxTest::TestSuite
     (void)d_scope;
     delete d_cp;
     delete d_pnm;
-    delete d_strLenSimplifyPP;
     delete d_ppc;
     delete d_scope;
     delete d_smt;
