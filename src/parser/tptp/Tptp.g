@@ -918,7 +918,7 @@ thfQuantifier[CVC4::api::Kind& kind]
   | LAMBDA_TOK { kind = api::LAMBDA; }
   | CHOICE_TOK
     {
-        UNSUPPORTED("Choice operator");
+      UNSUPPORTED("Choice operator");
     }
   | DEF_DESC_TOK
     {
@@ -1626,7 +1626,7 @@ NOT_TOK        : '~';
 FORALL_TOK     : '!';
 EXISTS_TOK     : '?';
 LAMBDA_TOK     : '^';
-WITNESS_TOK     : '@+';
+CHOICE_TOK     : '@+';
 DEF_DESC_TOK   : '@-';
 AND_TOK        : '&';
 IFF_TOK        : '<=>';
