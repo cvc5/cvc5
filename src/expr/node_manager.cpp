@@ -1050,7 +1050,7 @@ Node NodeManager::mkVar(const TypeNode& type) {
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, flags);
+    (*i)->nmNotifyNewVar(n);
   }
   return n;
 }
@@ -1060,7 +1060,7 @@ Node* NodeManager::mkVarPtr(const TypeNode& type) {
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, flags);
+    (*i)->nmNotifyNewVar(*n);
   }
   return n;
 }

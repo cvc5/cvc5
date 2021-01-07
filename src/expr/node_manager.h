@@ -71,7 +71,7 @@ class NodeManagerListener {
                                     uint32_t flags)
   {
   }
-  virtual void nmNotifyNewVar(TNode n, uint32_t flags) {}
+  virtual void nmNotifyNewVar(TNode n) {}
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
                                  uint32_t flags) {}
   /**

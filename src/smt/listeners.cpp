@@ -80,16 +80,11 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
   }
 }
 
-void SmtNodeManagerListener::nmNotifyNewVar(TNode n, uint32_t flags)
+void SmtNodeManagerListener::nmNotifyNewVar(TNode n)
 {
-  /*
   DeclareFunctionNodeCommand c(
       n.getAttribute(expr::VarNameAttr()), n, n.getType());
-  if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
-  {
-    d_dm.addToDump(c, flags);
-  }
-  */
+  d_dm.addToDump(c, flags);
 }
 
 void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
@@ -103,12 +98,7 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
     d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
                                              id + " is " + comment);
   }
-  /*
-  if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
-  {
-    d_dm.addToDump(c, "skolems");
-  }
-  */
+  d_dm.addToDump(c, "skolems");
 }
 
 }  // namespace smt
