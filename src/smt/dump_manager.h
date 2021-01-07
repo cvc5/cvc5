@@ -49,8 +49,8 @@ class DumpManager
    */
   void resetAssertions();
   /**
-   * Add to Model command.  This is used for recording a command
-   * that should be reported during a get-model call.
+   * Add to dump command.  This is used for recording a command
+   * that should be reported via the dumpTag trace.
    */
   void addToDump(const NodeCommand& c, const char* dumpTag = "declarations");
 
