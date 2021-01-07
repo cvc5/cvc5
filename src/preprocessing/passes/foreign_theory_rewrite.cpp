@@ -66,15 +66,17 @@ Node ForeignTheoryRewrite::simplify(Node n)
       // (c) process the node and store the result in the cache
       Node result = foreignRewrite(reconstruction);
       d_cache[current] = result;
-      // (d) the result to toVisit
-      toVisit.push_back(result);
+      // (d) add the result to toVisit, unless it is the same as current
+      if (current != result)
+      {
+        toVisit.push_back(result);
+      }
     }
     else
     {
       // current was already processed
       // remove from toVisit and skip
       toVisit.pop_back();
-      continue;
     }
   }
   return d_cache[n];
@@ -103,7 +105,7 @@ Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
   // check if the node can be simplified to true
   if (theory::strings::ArithEntail::check(n[0], n[1], false))
   {
-    return NodeManager::currentNM()->mkConst<bool>(true);
+    return NodeManager::currentNM()->mkConst(true);
   }
   else
   {

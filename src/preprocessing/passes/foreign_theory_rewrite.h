@@ -47,9 +47,14 @@ class ForeignTheoryRewrite : public PreprocessingPass
    * constraints in strings.
    */
   static Node rewriteStringsGeq(Node n);
-  // invoke rewrite functions for n
+  // invoke rewrite functions for n.
+  // based on the structure of n (typically its kind)
+  // we invoke rewrites from other theories.
+  // For example: when encountering a `>=` node,
+  // we invoke rewrites from the theory of strings.
   static Node foreignRewrite(Node n);
-  // reconstruct a node with different children
+  /** construct a node with the same operator as originalNode whose children are
+   * processedChildren */
   static Node reconstructNode(Node originalNode, vector<Node> newChildren);
   // A cache to store the simplified nodes
   CDNodeMap d_cache;
