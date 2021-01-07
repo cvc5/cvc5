@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "expr/expr.h"
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "proof/clause_id.h"

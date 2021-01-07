@@ -28,7 +28,12 @@ namespace CVC4 {
 
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
                                        ProofNodeManager* pnm)
-    : d_tfCache(u), d_skolem_cache(u), d_pnm(pnm), d_tpg(nullptr), d_lp(nullptr)
+    : d_tfCache(u),
+      d_skolem_cache(u),
+      d_lemmaCache(u),
+      d_pnm(pnm),
+      d_tpg(nullptr),
+      d_lp(nullptr)
 {
   // enable proofs if necessary
   if (d_pnm != nullptr)
@@ -48,7 +53,7 @@ RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
 RemoveTermFormulas::~RemoveTermFormulas() {}
 
 theory::TrustNode RemoveTermFormulas::run(
-    Node assertion,
+    TNode assertion,
     std::vector<theory::TrustNode>& newAsserts,
     std::vector<Node>& newSkolems,
     bool fixedPoint)
@@ -79,6 +84,13 @@ theory::TrustNode RemoveTermFormulas::run(
   // The rewriting of assertion can be justified by the term conversion proof
   // generator d_tpg.
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
+}
+
+theory::TrustNode RemoveTermFormulas::run(TNode assertion)
+{
+  std::vector<theory::TrustNode> newAsserts;
+  std::vector<Node> newSkolems;
+  return run(assertion, newAsserts, newSkolems, false);
 }
 
 theory::TrustNode RemoveTermFormulas::runLemma(
@@ -121,7 +133,7 @@ theory::TrustNode RemoveTermFormulas::runLemma(
   return theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 }
 
-Node RemoveTermFormulas::runInternal(Node assertion,
+Node RemoveTermFormulas::runInternal(TNode assertion,
                                      std::vector<theory::TrustNode>& output,
                                      std::vector<Node>& newSkolems)
 {
@@ -481,6 +493,9 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
 
       newLem = theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
+      // store in the lemma cache
+      d_lemmaCache.insert(skolem, newLem);
+
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
       newLem.debugCheckClosed("rtf-proof-debug",
                               "RemoveTermFormulas::run:new_assert");
@@ -494,15 +509,59 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
   return Node::null();
 }
 
-Node RemoveTermFormulas::getSkolemForNode(Node node) const
+Node RemoveTermFormulas::getSkolemForNode(Node k) const
 {
   context::CDInsertHashMap<Node, Node, NodeHashFunction>::const_iterator itk =
-      d_skolem_cache.find(node);
+      d_skolem_cache.find(k);
   if (itk != d_skolem_cache.end())
   {
     return itk->second;
   }
   return Node::null();
+}
+
+bool RemoveTermFormulas::getSkolems(
+    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
+{
+  // if n was unchanged by term formula removal, just return immediately
+  std::pair<Node, uint32_t> initial(n, d_rtfc.initialValue());
+  TermFormulaCache::const_iterator itc = d_tfCache.find(initial);
+  if (itc != d_tfCache.end())
+  {
+    if (itc->second == n)
+    {
+      return false;
+    }
+  }
+  // otherwise, traverse it
+  bool ret = false;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.isVar())
+      {
+        if (d_lemmaCache.find(cur) != d_lemmaCache.end())
+        {
+          // technically could already be in skolems if skolems was non-empty,
+          // regardless set return value to true.
+          skolems.insert(cur);
+          ret = true;
+        }
+      }
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return ret;
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)
@@ -514,6 +573,17 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
     return nm->mkNode(kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
   }
   return Node::null();
+}
+
+theory::TrustNode RemoveTermFormulas::getLemmaForSkolem(TNode n) const
+{
+  context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>::
+      const_iterator it = d_lemmaCache.find(n);
+  if (it == d_lemmaCache.end())
+  {
+    return theory::TrustNode::null();
+  }
+  return (*it).second;
 }
 
 ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
