@@ -30,7 +30,6 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
-#include "printer/dagification_visitor.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
@@ -40,7 +39,6 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
 
@@ -311,8 +309,8 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
       std::stringstream ss;
-      ss << '@' << uc;
-      out << CVC4::quoteSymbol(ss.str());
+      ss << "(as @" << uc << " " << n.getType() << ")";
+      out << ss.str();
       break;
     }
 
@@ -910,15 +908,17 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::WITNESS:
   {
     out << smtKindString(k, d_variant) << " ";
+    toStream(out, n[0], toDepth, lbind);
+    out << " ";
     if (n.getNumChildren() == 3)
     {
       out << "(! ";
     }
-    out << n[0] << " ";
     toStreamWithLetify(out, n[1], toDepth - 1, lbind);
     if (n.getNumChildren() == 3)
     {
-      out << n[2];
+      out << " ";
+      toStream(out, n[2], toDepth, lbind);
       out << ")";
     }
     out << ")";
@@ -1411,7 +1411,14 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   {
     if (trn.isVar())
     {
-      out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")" << endl;
+      if (options::modelUninterpPrint()
+              == options::ModelUninterpPrintMode::DeclSortAndFun
+          || options::modelUninterpPrint()
+                 == options::ModelUninterpPrintMode::DeclFun)
+      {
+        out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
+            << endl;
+      }
     }
     else
     {
@@ -2015,14 +2022,15 @@ static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
-                                      const std::string& sym,
+                                      Node f,
                                       const std::vector<Node>& vars,
-                                      TypeNode range,
                                       bool isInv,
                                       TypeNode sygusType) const
 {
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << CVC4::quoteSymbol(sym)
-      << ' ';
+  std::stringstream sym;
+  sym << f;
+  out << '(' << (isInv ? "synth-inv " : "synth-fun ")
+      << CVC4::quoteSymbol(sym.str()) << ' ';
   out << '(';
   if (!vars.empty())
   {
@@ -2040,11 +2048,13 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   // if not invariant-to-synthesize, print return type
   if (!isInv)
   {
+    TypeNode ftn = f.getType();
+    TypeNode range = ftn.isFunction() ? ftn.getRangeType() : ftn;
     out << ' ' << range;
   }
   out << '\n';
   // print grammar, if any
-  if (sygusType != TypeNode::null())
+  if (!sygusType.isNull())
   {
     toStreamSygusGrammar(out, sygusType);
   }

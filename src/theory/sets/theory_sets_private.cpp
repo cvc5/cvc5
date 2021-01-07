@@ -1163,7 +1163,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   {
     const std::map<TypeNode, std::vector<TNode> >& slackElements =
         d_cardSolver->getFiniteTypeSlackElements();
-    for (const std::pair<TypeNode, std::vector<TNode> >& pair : slackElements)
+    for (const auto& pair : slackElements)
     {
       const std::vector<Node>& members =
           d_cardSolver->getFiniteTypeMembers(pair.first);
@@ -1268,6 +1268,17 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 TrustNode TheorySetsPrivate::expandDefinition(Node node)
 {
   Debug("sets-proc") << "expandDefinition : " << node << std::endl;
+
+  if (node.getKind()==kind::CHOOSE)
+  {
+    return expandChooseOperator(node);
+  }
+  return TrustNode::null();
+}
+
+TrustNode TheorySetsPrivate::ppRewrite(Node node)
+{
+  Debug("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {

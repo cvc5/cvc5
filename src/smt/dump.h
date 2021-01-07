@@ -20,7 +20,6 @@
 #define CVC4__DUMP_H
 
 #include "base/output.h"
-#include "expr/proof_node.h"
 
 namespace CVC4 {
 
@@ -36,14 +35,13 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream(std::ostream& os) : d_os(&os) {}
 
   CVC4dumpstream& operator<<(const Command& c);
+
   /** A convenience function for dumping internal commands.
    *
    * Since Commands are now part of the public API, internal code should use
    * NodeCommands and this function (instead of the one above) to dump them.
    */
   CVC4dumpstream& operator<<(const NodeCommand& nc);
-
-  CVC4dumpstream& operator<<(ProofNode* pn);
 
  private:
   std::ostream* d_os;
@@ -62,7 +60,6 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream(std::ostream& os) {}
   CVC4dumpstream& operator<<(const Command& c);
   CVC4dumpstream& operator<<(const NodeCommand& nc);
-  CVC4dumpstream& operator<<(ProofNode* pn);
 }; /* class CVC4dumpstream */
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */

@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -41,10 +40,9 @@ Smt2::Smt2(api::Solver* solver,
       d_logicSet(false),
       d_seenSetLogic(false)
 {
-  pushScope(true);
 }
 
-Smt2::~Smt2() { popScope(); }
+Smt2::~Smt2() {}
 
 void Smt2::addArithmeticOperators() {
   addOperator(api::PLUS, "+");
@@ -445,7 +443,7 @@ api::Term Smt2::bindDefineFunRec(
   api::Sort ft = mkFlatFunctionType(sorts, t, flattenVars);
 
   // allow overloading
-  return bindVar(fname, ft, ExprManager::VAR_FLAG_NONE, true);
+  return bindVar(fname, ft, false, true);
 }
 
 void Smt2::pushDefineFunRecScope(
@@ -473,16 +471,6 @@ void Smt2::reset() {
   d_logic = LogicInfo();
   operatorKindMap.clear();
   d_lastNamedTerm = std::pair<api::Term, std::string>();
-  this->Parser::reset();
-  pushScope(true);
-}
-
-void Smt2::resetAssertions() {
-  // Remove all declarations except the ones at level 0.
-  while (this->scopeLevel() > 0) {
-    this->popScope();
-  }
-  pushScope(true);
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(
@@ -748,14 +736,6 @@ bool Smt2::sygus() const
 bool Smt2::sygus_v2() const
 {
   return getLanguage() == language::input::LANG_SYGUS_V2;
-}
-
-void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
-  // TODO: ???
-}
-
-void Smt2::setOption(const std::string& flag, const SExpr& sexpr) {
-  // TODO: ???
 }
 
 void Smt2::checkThatLogicIsSet()
@@ -1091,12 +1071,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    Integer x = p.d_expr.getExpr().getConst<Rational>().getNumerator();
-    if (!x.fitsUnsignedInt())
+    if (!p.d_expr.isUInt64())
     {
-      parseError("index of tupSel is larger than size of unsigned int");
+      parseError("index of tupSel is larger than size of uint64_t");
     }
-    unsigned int n = x.toUnsignedInt();
+    uint64_t n = p.d_expr.getUInt64();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");

@@ -29,15 +29,14 @@ namespace nl {
 /**
  * A checker for NlExt proofs
  *
- * This proof checker takes care of the two CAD proof rules ARITH_NL_CAD_DIRECT
- * and ARITH_NL_CAD_RECURSIVE. It does not do any actual proof checking yet, but
- * considers them to be trusted rules.
+ * This proof checker takes care of all proofs for lemmas from the ext
+ * subsolver.
  */
 class ExtProofRuleChecker : public ProofRuleChecker
 {
  public:
-  ExtProofRuleChecker() {}
-  ~ExtProofRuleChecker() {}
+  ExtProofRuleChecker() = default;
+  ~ExtProofRuleChecker() = default;
 
   /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;

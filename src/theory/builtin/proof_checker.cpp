@@ -76,6 +76,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 3);
+  pc->registerTrustedChecker(PfRule::THEORY_EXPAND_DEF, this, 3);
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
@@ -425,9 +426,11 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
-  else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
-           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
-           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE
+  else if (id == PfRule::PREPROCESS || id == PfRule::PREPROCESS_LEMMA
+           || id == PfRule::THEORY_PREPROCESS
+           || id == PfRule::THEORY_PREPROCESS_LEMMA
+           || id == PfRule::THEORY_EXPAND_DEF || id == PfRule::WITNESS_AXIOM
+           || id == PfRule::THEORY_LEMMA || id == PfRule::THEORY_REWRITE
            || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS
            || id == PfRule::TRUST_SUBS_MAP)
   {

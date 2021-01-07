@@ -95,12 +95,7 @@ class RelevanceManager;
 namespace eq {
 class EqualityEngine;
 }  // namespace eq
-
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
-
-class RemoveTermFormulas;
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -295,9 +290,6 @@ class TheoryEngine {
   /** sort inference module */
   SortInference d_sortInfer;
 
-  /** The theory preprocessor */
-  theory::TheoryPreprocessor d_tpp;
-
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
 
@@ -313,7 +305,6 @@ class TheoryEngine {
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
                ResourceManager* rm,
-               RemoveTermFormulas& iteRemover,
                const LogicInfo& logic,
                OutputManager& outMgr,
                ProofNodeManager* pnm);
@@ -449,12 +440,10 @@ class TheoryEngine {
 
  public:
   /**
-   * Runs theory specific preprocessing on the non-Boolean parts of
-   * the formula.  This is only called on input assertions, after ITEs
-   * have been removed.
+   * Preprocess rewrite equality, called by the preprocessor to rewrite
+   * equalities appearing in the input.
    */
-  theory::TrustNode preprocess(TNode node);
-
+  theory::TrustNode ppRewriteEquality(TNode eq);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
@@ -670,28 +659,9 @@ class TheoryEngine {
   Node ensureLiteral(TNode n);
 
   /**
-   * Print all instantiations made by the quantifiers module.
-   */
-  void printInstantiations( std::ostream& out );
-
-  /**
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */
   void printSynthSolution( std::ostream& out );
-
-  /**
-   * Get list of quantified formulas that were instantiated
-   */
-  void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
-
-  /**
-   * Get instantiation methods
-   *   the first given forall x.q[x] returns ( a, ..., z )
-   *   the second returns mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
-   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
-   */
-  void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
-  void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

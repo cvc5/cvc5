@@ -2,7 +2,7 @@
 /*! \file proof_node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -26,6 +26,9 @@ namespace CVC4 {
 
 class ProofNodeManager;
 class ProofNode;
+
+// Alias for shared pointer to a proof node
+using Pf = std::shared_ptr<ProofNode>;
 
 struct ProofNodeHashFunction
 {

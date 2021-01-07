@@ -2,7 +2,7 @@
 /*! \file sine_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -49,9 +49,11 @@ class SineSolver
   SineSolver(TranscendentalState* tstate);
   ~SineSolver();
 
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  /**
+   * Introduces new_a as purified version of a which is also shifted to the main
+   * phase (from -pi to pi). y is the new skolem used for purification.
+   */
+  void doPhaseShift(TNode a, TNode new_a, TNode y);
 
   /**
    * check initial refine
@@ -85,7 +87,8 @@ class SineSolver
   void checkMonotonic();
 
   /** Sent tangent lemma around c for e */
-  void doTangentLemma(TNode e, TNode c, TNode poly_approx, int region);
+  void doTangentLemma(
+      TNode e, TNode c, TNode poly_approx, int region, std::uint64_t d);
 
   /** Sent secant lemmas around c for e */
   void doSecantLemmas(TNode e,
@@ -93,6 +96,7 @@ class SineSolver
                       TNode c,
                       TNode poly_approx_c,
                       unsigned d,
+                      unsigned actual_d,
                       int region);
 
  private:
@@ -152,15 +156,15 @@ class SineSolver
       default: return 0;
     }
   }
-  int regionToConcavity(int region)
+  Convexity regionToConvexity(int region)
   {
     switch (region)
     {
       case 1:
-      case 2: return -1;
+      case 2: return Convexity::CONCAVE;
       case 3:
-      case 4: return 1;
-      default: return 0;
+      case 4: return Convexity::CONVEX;
+      default: return Convexity::UNKNOWN;
     }
   }
 

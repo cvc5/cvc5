@@ -1589,8 +1589,7 @@ Node RewriteRule<ShiftZero>::apply(TNode node) {
 template <>
 inline bool RewriteRule<UgtUrem>::applies(TNode node)
 {
-  return (options::bitvectorDivByZeroConst()
-          && node.getKind() == kind::BITVECTOR_UGT
+  return (node.getKind() == kind::BITVECTOR_UGT
           && node[0].getKind() == kind::BITVECTOR_UREM_TOTAL
           && node[0][1] == node[1]);
 }

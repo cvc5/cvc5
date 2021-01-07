@@ -20,14 +20,13 @@
 #include <iosfwd>
 #include <vector>
 
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "theory/theory_model.h"
 #include "util/cardinality.h"
 
 namespace CVC4 {
 
 class SmtEngine;
-class NodeCommand;
 
 namespace smt {
 
@@ -49,13 +48,9 @@ class Model {
 
  public:
   /** construct */
-  Model(SmtEngine& smt, theory::TheoryModel* tm);
+  Model(theory::TheoryModel* tm);
   /** virtual destructor */
   ~Model() {}
-  /** get the smt engine that this model is hooked up to */
-  SmtEngine* getSmtEngine() { return &d_smt; }
-  /** get the smt engine (as a pointer-to-const) that this model is hooked up to */
-  const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
   /**
@@ -77,10 +72,6 @@ class Model {
   /** Does this model have approximations? */
   bool hasApproximations() const;
   //----------------------- end helper methods
-  /** get number of commands to report */
-  size_t getNumCommands() const;
-  /** get command */
-  const NodeCommand* getCommand(size_t i) const;
   //----------------------- model declarations
   /** Clear the current model declarations. */
   void clearModelDeclarations();
@@ -100,8 +91,6 @@ class Model {
   const std::vector<Node>& getDeclaredTerms() const;
   //----------------------- end model declarations
  protected:
-  /** The SmtEngine we're associated with */
-  SmtEngine& d_smt;
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
   /**

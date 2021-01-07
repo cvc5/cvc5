@@ -61,10 +61,12 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
+          build-essential \
           ccache \
           cxxtest \
           libcln-dev \
           libgmp-dev \
+          libgtest-dev \
           libedit-dev \
           flex \
           libfl-dev \
@@ -72,6 +74,10 @@ jobs:
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
+        cd /usr/src/googletest
+        sudo cmake .
+        sudo cmake --build . --target install
+        cd -
         echo "/usr/lib/ccache" >> $GITHUB_PATH
 
     # Note: macOS comes with a libedit; it does not need to brew-installed

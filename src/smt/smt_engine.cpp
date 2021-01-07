@@ -22,6 +22,7 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
+#include "expr/bound_var_manager.h"
 #include "expr/node.h"
 #include "options/base_options.h"
 #include "options/language.h"
@@ -53,7 +54,10 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
+#include "smt/unsat_core_manager.h"
+#include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
@@ -86,6 +90,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_model(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
+      d_ucManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
@@ -151,7 +156,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
 
   // d_proofManager must be created before Options has been finished
   // being parsed from the input file. Because of this, we cannot trust
-  // that options::proof() is set correctly yet.
+  // that options::unsatCores() is set correctly yet.
 #ifdef CVC4_PROOF
   d_proofManager.reset(new ProofManager(getUserContext()));
 #endif
@@ -220,8 +225,13 @@ void SmtEngine::finishInit()
   ProofNodeManager* pnm = nullptr;
   if (options::proofNew())
   {
+    // ensure bound variable uses canonical bound variables
+    d_nodeManager->getBoundVarManager()->enableKeepCacheValues();
+    // make the proof manager
     d_pfManager.reset(new PfManager(getUserContext(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
+    // start the unsat core manager
+    d_ucManager.reset(new UnsatCoreManager());
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter
@@ -243,7 +253,7 @@ void SmtEngine::finishInit()
   TheoryModel* tm = te->getModel();
   if (tm != nullptr)
   {
-    d_model.reset(new Model(*this, tm));
+    d_model.reset(new Model(tm));
     // make the check models utility
     d_checkModels.reset(new CheckModels(*d_smtSolver.get()));
   }
@@ -330,10 +340,12 @@ SmtEngine::~SmtEngine()
 #endif
     d_rewriter.reset(nullptr);
     d_pfManager.reset(nullptr);
+    d_ucManager.reset(nullptr);
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
     d_dumpm.reset(nullptr);
+    d_model.reset(nullptr);
 
     d_sygusSolver.reset(nullptr);
 
@@ -470,11 +482,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
                value.getValue() == "2.6" ) {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }
-    else
-    {
-      Warning() << "Warning: unsupported smt-lib-version: " << value << endl;
-      throw UnrecognizedOptionException();
-    }
     options::inputLanguage.set(ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
@@ -499,7 +506,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     d_state->notifyExpectedStatus(s);
     return;
   }
-  throw UnrecognizedOptionException();
 }
 
 bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
@@ -519,10 +525,6 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   SmtScope smts(this);
 
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
-  if (!isValidGetInfoFlag(key))
-  {
-    throw UnrecognizedOptionException();
-  }
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
@@ -962,12 +964,6 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
 
-    if (options::dumpProofs() && options::proofNew()
-        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      printProof();
-    }
-
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -990,8 +986,10 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate an unsat core correctly.
-    if(options::checkUnsatCores()) {
-      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+    if (options::checkUnsatCores() || options::checkUnsatCoresNew())
+    {
+      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      {
         TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
         checkUnsatCore();
       }
@@ -1072,27 +1070,26 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
    --------------------------------------------------------------------------
 */
 
-void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
+void SmtEngine::declareSygusVar(Node var)
 {
   SmtScope smts(this);
-  d_sygusSolver->declareSygusVar(id, var, type);
+  d_sygusSolver->declareSygusVar(var);
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdDeclareVar(
-        getOutputManager().getDumpOut(), var, type);
+        getOutputManager().getDumpOut(), var, var.getType());
   }
   // don't need to set that the conjecture is stale
 }
 
-void SmtEngine::declareSynthFun(const std::string& id,
-                                Node func,
+void SmtEngine::declareSynthFun(Node func,
                                 TypeNode sygusType,
                                 bool isInv,
                                 const std::vector<Node>& vars)
 {
   SmtScope smts(this);
   d_state->doPendingPops();
-  d_sygusSolver->declareSynthFun(id, func, sygusType, isInv, vars);
+  d_sygusSolver->declareSynthFun(func, sygusType, isInv, vars);
 
   // !!! TEMPORARY: We cannot construct a SynthFunCommand since we cannot
   // construct a Term-level Grammar from a Node-level sygus TypeNode. Thus we
@@ -1101,14 +1098,16 @@ void SmtEngine::declareSynthFun(const std::string& id,
   if (Dump.isOn("raw-benchmark"))
   {
     getOutputManager().getPrinter().toStreamCmdSynthFun(
-        getOutputManager().getDumpOut(),
-        id,
-        vars,
-        func.getType().isFunction() ? func.getType().getRangeType()
-                                    : func.getType(),
-        isInv,
-        sygusType);
+        getOutputManager().getDumpOut(), func, vars, isInv, sygusType);
   }
+}
+void SmtEngine::declareSynthFun(Node func,
+                                bool isInv,
+                                const std::vector<Node>& vars)
+{
+  // use a null sygus type
+  TypeNode sygusType;
+  declareSynthFun(func, sygusType, isInv, vars);
 }
 
 void SmtEngine::assertSygusConstraint(Node constraint)
@@ -1161,15 +1160,14 @@ Node SmtEngine::simplify(const Node& ex)
   return d_pp->simplify(ex);
 }
 
-Node SmtEngine::expandDefinitions(const Node& ex)
+Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  // set expandOnly flag to true
-  return d_pp->expandDefinitions(ex, true);
+  return d_pp->expandDefinitions(ex, expandOnly);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -1409,9 +1407,9 @@ void SmtEngine::checkProof()
   {
     AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
   }
-  if (options ::checkProofsNew())
+  if (options::checkProofsNew())
   {
-    d_pfManager->checkProof(pePfn, *d_asserts);
+    d_pfManager->checkProof(pePfn, *d_asserts, *d_definedFunctions);
   }
 }
 
@@ -1429,9 +1427,21 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT/ENTAILED response.");
   }
-
-  d_proofManager->traceUnsatCore();  // just to trigger core creation
-  return UnsatCore(d_proofManager->extractUnsatCore());
+  // use old proof infrastructure
+  if (!d_pfManager)
+  {
+    d_proofManager->traceUnsatCore();  // just to trigger core creation
+    return UnsatCore(d_proofManager->extractUnsatCore());
+  }
+  // generate with new proofs
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
+  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
+      pe->getProof(), *d_asserts, *d_definedFunctions);
+  std::vector<Node> core;
+  d_ucManager->getUnsatCore(pfn, *d_asserts, core);
+  return UnsatCore(core);
 #else  /* IS_PROOFS_BUILD */
   throw ModalException(
       "This build of CVC4 doesn't have proof support (required for unsat "
@@ -1449,7 +1459,14 @@ void SmtEngine::checkUnsatCore() {
   // initialize the core checker
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
+  coreChecker->getOptions().set(options::unsatCores, false);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
+  // disable all proof options
+  coreChecker->getOptions().set(options::proofNew, false);
+  coreChecker->getOptions().set(options::proofNewReq, false);
+  coreChecker->getOptions().set(options::checkProofsNew, false);
+  coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
+  coreChecker->getOptions().set(options::proofNewEagerChecking, false);
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -1503,35 +1520,64 @@ void SmtEngine::checkModel(bool hardFailure) {
   d_checkModels->checkModel(m, al, hardFailure);
 }
 
-// TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
-  Trace("smt") << "SMT getUnsatCore()" << endl;
+  Trace("smt") << "SMT getUnsatCore()" << std::endl;
   SmtScope smts(this);
   finishInit();
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     getOutputManager().getPrinter().toStreamCmdGetUnsatCore(
         getOutputManager().getDumpOut());
   }
   return getUnsatCoreInternal();
 }
 
-void SmtEngine::printProof()
+void SmtEngine::getRelevantInstantiationTermVectors(
+    std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
-  if (d_pfManager == nullptr)
-  {
-    throw RecoverableModalException("Cannot print proof, no proof manager.");
-  }
-  if (getSmtMode() != SmtMode::UNSAT)
-  {
-    throw RecoverableModalException(
-        "Cannot print proof unless immediately preceded by "
-        "UNSAT/ENTAILED.");
-  }
+  Assert(options::unsatCores());
+  Assert(d_state->getMode() == SmtMode::UNSAT);
+  // generate with new proofs
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
+  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
+      pe->getProof(), *d_asserts, *d_definedFunctions);
+  d_ucManager->getRelevantInstantiations(pfn, insts);
+}
+
+std::string SmtEngine::getProof()
+{
+  Trace("smt") << "SMT getProof()\n";
+  SmtScope smts(this);
+  finishInit();
+  if (Dump.isOn("benchmark"))
+  {
+    getOutputManager().getPrinter().toStreamCmdGetProof(
+        getOutputManager().getDumpOut());
+  }
+#if IS_PROOFS_BUILD
+  if (!options::proofNew())
+  {
+    throw ModalException("Cannot get a proof when proof-new option is off.");
+  }
+  if (d_state->getMode() != SmtMode::UNSAT)
+  {
+    throw RecoverableModalException(
+        "Cannot get a proof unless immediately preceded by "
+        "UNSAT/ENTAILED response.");
+  }
   // the prop engine has the proof of false
-  d_pfManager->printProof(pe->getProof(), *d_asserts);
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
+  Assert(d_pfManager);
+  std::ostringstream ss;
+  d_pfManager->printProof(ss, pe->getProof(), *d_asserts, *d_definedFunctions);
+  return ss.str();
+#else  /* IS_PROOFS_BUILD */
+  throw ModalException("This build of CVC4 doesn't have proof support.");
+#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
@@ -1544,10 +1590,88 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->printInstantiations(out);
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+
+  // First, extract and print the skolemizations
+  bool printed = false;
+  bool reqNames = !options::printInstFull();
+  // only print when in list mode
+  if (options::printInstMode() == options::PrintInstMode::LIST)
+  {
+    std::map<Node, std::vector<Node>> sks;
+    qe->getSkolemTermVectors(sks);
+    for (const std::pair<const Node, std::vector<Node>>& s : sks)
+    {
+      Node name;
+      if (!qe->getNameForQuant(s.first, name, reqNames))
+      {
+        // did not have a name and we are only printing formulas with names
+        continue;
+      }
+      SkolemList slist(name, s.second);
+      out << slist;
+      printed = true;
+    }
+  }
+
+  // Second, extract and print the instantiations
+  std::map<Node, std::vector<std::vector<Node>>> insts;
+  getInstantiationTermVectors(insts);
+  for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
+  {
+    if (i.second.empty())
+    {
+      // no instantiations, skip
+      continue;
+    }
+    Node name;
+    if (!qe->getNameForQuant(i.first, name, reqNames))
+    {
+      // did not have a name and we are only printing formulas with names
+      continue;
+    }
+    // must have a name
+    if (options::printInstMode() == options::PrintInstMode::NUM)
+    {
+      out << "(num-instantiations " << name << " " << i.second.size() << ")"
+          << std::endl;
+    }
+    else
+    {
+      Assert(options::printInstMode() == options::PrintInstMode::LIST);
+      InstantiationList ilist(name, i.second);
+      out << ilist;
+    }
+    printed = true;
+  }
+  // if we did not print anything, we indicate this
+  if (!printed)
+  {
+    out << "No instantiations" << std::endl;
+  }
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
     out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
+  }
+}
+
+void SmtEngine::getInstantiationTermVectors(
+    std::map<Node, std::vector<std::vector<Node>>>& insts)
+{
+  SmtScope smts(this);
+  finishInit();
+  if (options::proofNew() && getSmtMode() == SmtMode::UNSAT)
+  {
+    // minimize instantiations based on proof manager
+    getRelevantInstantiationTermVectors(insts);
+  }
+  else
+  {
+    TheoryEngine* te = getTheoryEngine();
+    Assert(te != nullptr);
+    QuantifiersEngine* qe = te->getQuantifiersEngine();
+    // otherwise, just get the list of all instantiations
+    qe->getInstantiationTermVectors(insts);
   }
 }
 
@@ -1573,7 +1697,8 @@ Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
-  return d_quantElimSolver->getQuantifierElimination(*d_asserts, q, doFull);
+  return d_quantElimSolver->getQuantifierElimination(
+      *d_asserts, q, doFull, d_isInternalSubsolver);
 }
 
 bool SmtEngine::getInterpol(const Node& conj,
@@ -1619,7 +1744,8 @@ void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->getInstantiatedQuantifiedFormulas(qs);
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  qe->getInstantiatedQuantifiedFormulas(qs);
 }
 
 void SmtEngine::getInstantiationTermVectors(
@@ -1628,7 +1754,8 @@ void SmtEngine::getInstantiationTermVectors(
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->getInstantiationTermVectors(q, tvecs);
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  qe->getInstantiationTermVectors(q, tvecs);
 }
 
 std::vector<Node> SmtEngine::getAssertions()
@@ -1783,7 +1910,15 @@ SExpr SmtEngine::getStatistic(std::string name) const
   return d_statisticsRegistry->getStatistic(name);
 }
 
-void SmtEngine::safeFlushStatistics(int fd) const {
+void SmtEngine::flushStatistics(std::ostream& out) const
+{
+  d_nodeManager->getStatisticsRegistry()->flushInformation(out);
+  d_statisticsRegistry->flushInformation(out);
+}
+
+void SmtEngine::safeFlushStatistics(int fd) const
+{
+  d_nodeManager->getStatisticsRegistry()->safeFlushInformation(fd);
   d_statisticsRegistry->safeFlushInformation(fd);
 }
 

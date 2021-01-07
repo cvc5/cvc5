@@ -2,7 +2,7 @@
 /*! \file factoring_check.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -55,6 +55,10 @@ class FactoringCheck
   Node d_zero;
   Node d_one;
 
+  /**
+   * Introduces a new purification skolem k for n and adds k=n as lemma.
+   * If proof is not nullptr, it proves this lemma via MACRO_SR_PRED_INTRO.
+   */
   Node getFactorSkolem(Node n, CDProof* proof);
 };
 

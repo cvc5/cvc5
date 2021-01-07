@@ -26,10 +26,13 @@
 #include <iosfwd>
 #include <unordered_set>
 
+#include "context/cdhashmap.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "prop/sat_solver.h"
 #include "theory/theory.h"
+#include "theory/theory_preprocessor.h"
+#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
@@ -53,7 +56,9 @@ class TheoryProxy
               TheoryEngine* theoryEngine,
               DecisionEngine* decisionEngine,
               context::Context* context,
-              CnfStream* cnfStream);
+              context::UserContext* userContext,
+              CnfStream* cnfStream,
+              ProofNodeManager* pnm);
 
   ~TheoryProxy();
 
@@ -90,6 +95,23 @@ class TheoryProxy
 
   CnfStream* getCnfStream();
 
+  /**
+   * Call the preprocessor on node, return trust node corresponding to the
+   * rewrite.
+   */
+  theory::TrustNode preprocessLemma(theory::TrustNode trn,
+                                    std::vector<theory::TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems,
+                                    bool doTheoryPreprocess);
+  /**
+   * Call the preprocessor on node, return trust node corresponding to the
+   * rewrite.
+   */
+  theory::TrustNode preprocess(TNode node,
+                               std::vector<theory::TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems,
+                               bool doTheoryPreprocess);
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
@@ -111,6 +133,9 @@ class TheoryProxy
    * all imported and exported lemmas.
    */
   std::unordered_set<Node, NodeHashFunction> d_shared;
+
+  /** The theory preprocessor */
+  theory::TheoryPreprocessor d_tpp;
 }; /* class TheoryProxy */
 
 }/* CVC4::prop namespace */

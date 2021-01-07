@@ -68,11 +68,12 @@ void InferenceManager::addPendingArithLemma(const ArithLemma& lemma,
 void InferenceManager::addPendingArithLemma(const Node& lemma,
                                             InferenceId inftype,
                                             ProofGenerator* pg,
-                                            bool isWaiting)
+                                            bool isWaiting,
+                                            LemmaProperty p)
 {
-  addPendingArithLemma(std::unique_ptr<ArithLemma>(new ArithLemma(
-                           lemma, LemmaProperty::NONE, pg, inftype)),
-                       isWaiting);
+  addPendingArithLemma(
+      std::unique_ptr<ArithLemma>(new ArithLemma(lemma, p, pg, inftype)),
+      isWaiting);
 }
 
 void InferenceManager::flushWaitingLemmas()

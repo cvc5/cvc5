@@ -102,12 +102,16 @@ libcvc4_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
+  preprocessing/passes/foreign_theory_rewrite.cpp
+  preprocessing/passes/foreign_theory_rewrite.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
   preprocessing/passes/synth_rew_rules.cpp
   preprocessing/passes/synth_rew_rules.h
   preprocessing/passes/theory_preprocess.cpp
   preprocessing/passes/theory_preprocess.h
+  preprocessing/passes/theory_rewrite_eq.cpp
+  preprocessing/passes/theory_rewrite_eq.h
   preprocessing/passes/unconstrained_simplifier.cpp
   preprocessing/passes/unconstrained_simplifier.h
   preprocessing/preprocessing_pass.cpp
@@ -122,8 +126,6 @@ libcvc4_add_sources(
   printer/ast/ast_printer.h
   printer/cvc/cvc_printer.cpp
   printer/cvc/cvc_printer.h
-  printer/dagification_visitor.cpp
-  printer/dagification_visitor.h
   printer/let_binding.cpp
   printer/let_binding.h
   printer/printer.cpp
@@ -135,28 +137,28 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
-  proof/proof_manager.cpp
-  proof/proof_manager.h
   proof/lean/lean_post_processor.cpp
   proof/lean/lean_post_processor.h
   proof/lean/lean_printer.h
-  proof/verit/verit_post_processor.cpp
-  proof/verit/verit_post_processor.h
-  proof/verit/verit_printer.h
-  proof/lfsc/letify.cpp
-  proof/lfsc/letify.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
   proof/lfsc/lfsc_printer.cpp
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
+  proof/proof_letify.cpp
+  proof/proof_letify.h
+  proof/proof_manager.cpp
+  proof/proof_manager.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/term_processor.cpp
   proof/term_processor.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/verit/verit_post_processor.cpp
+  proof/verit/verit_post_processor.h
+  proof/verit/verit_printer.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
@@ -292,6 +294,8 @@ libcvc4_add_sources(
   smt/term_formula_removal.h
   smt/theory_rewrite_rcons.cpp
   smt/theory_rewrite_rcons.h
+  smt/unsat_core_manager.cpp
+  smt/unsat_core_manager.h
   smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
@@ -399,8 +403,8 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/iand_table.cpp
-  theory/arith/nl/iand_table.h
+  theory/arith/nl/iand_utils.cpp
+  theory/arith/nl/iand_utils.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
@@ -415,6 +419,8 @@ libcvc4_add_sources(
   theory/arith/nl/strategy.h
   theory/arith/nl/transcendental/exponential_solver.cpp
   theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/proof_checker.cpp
+  theory/arith/nl/transcendental/proof_checker.h
   theory/arith/nl/transcendental/sine_solver.cpp
   theory/arith/nl/transcendental/sine_solver.h
   theory/arith/nl/transcendental/taylor_generator.cpp
@@ -650,8 +656,6 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h
   theory/quantifiers/cegqi/ceg_dt_instantiator.cpp
   theory/quantifiers/cegqi/ceg_dt_instantiator.h
-  theory/quantifiers/cegqi/ceg_epr_instantiator.cpp
-  theory/quantifiers/cegqi/ceg_epr_instantiator.h
   theory/quantifiers/cegqi/ceg_instantiator.cpp
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
@@ -676,6 +680,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/instantiation_engine.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
+  theory/quantifiers/ematching/trigger_trie.cpp
+  theory/quantifiers/ematching/trigger_trie.h
   theory/quantifiers/equality_infer.cpp
   theory/quantifiers/equality_infer.h
   theory/quantifiers/equality_query.cpp
@@ -708,14 +714,14 @@ libcvc4_add_sources(
   theory/quantifiers/sygus_inst.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
+  theory/quantifiers/instantiation_list.cpp
+  theory/quantifiers/instantiation_list.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
-  theory/quantifiers/quant_epr.cpp
-  theory/quantifiers/quant_epr.h
   theory/quantifiers/quant_relevance.cpp
   theory/quantifiers/quant_relevance.h
   theory/quantifiers/quant_rep_bound_ext.cpp
@@ -804,6 +810,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_unif_rl.h
   theory/quantifiers/sygus/sygus_unif_strat.cpp
   theory/quantifiers/sygus/sygus_unif_strat.h
+  theory/quantifiers/sygus/sygus_utils.cpp
+  theory/quantifiers/sygus/sygus_utils.h
   theory/quantifiers/sygus/synth_conjecture.cpp
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
@@ -1177,7 +1185,6 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
-          expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
           expr/emptyset.h

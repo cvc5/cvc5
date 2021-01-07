@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Term processing utilities
+ ** \brief Term processor utility
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__PROOF__LFSC__TERM_PROCESSOR_H
-#define CVC4__PROOF__LFSC__TERM_PROCESSOR_H
+#ifndef CVC4__PROOF__TERM_PROCESSOR_H
+#define CVC4__PROOF__TERM_PROCESSOR_H
 
 #include <iostream>
 #include <map>
@@ -27,87 +27,55 @@ namespace CVC4 {
 namespace proof {
 
 /**
- * Generic term processor callback. This is a postrewrite callback that
- * converts terms into an "internal" form.
- */
-class TermProcessCallback
-{
- public:
-  TermProcessCallback() {}
-  virtual ~TermProcessCallback() {}
-  /** Convert to/from internal */
-  Node convert(Node n, bool toInternal);
-  /**
-   * Convert internal, where n is a term of the form:
-   *   (f i_1 ... i_m)
-   * where i_1, ..., i_m are "internal" terms. In particular, these terms
-   * have been returned by this class on a previous call to convertInternal.
-   */
-  virtual Node convertInternal(Node n);
-  /**
-   * Intended to perform the inverse of the above transformation.
-   * Convert external, where n is a term of the form:
-   *   (f e_1 ... e_m)
-   * where e_1, ..., e_m are "external" terms. In particular, these terms
-   * have been returned by this class on a previous call to convertExternal.
-   *
-   * This method is optional.
-   */
-  virtual Node convertExternal(Node n);
-  /** Same as above, for types. */
-  TypeNode convertType(TypeNode n, bool toInternal);
-  /** Convert type to internal representation */
-  virtual TypeNode convertInternalType(TypeNode n);
-  /** Convert type to external representation */
-  virtual TypeNode convertExternalType(TypeNode n);
-};
-
-/**
- * A term processor for terms and types. Implements a term traversal,
- * calling the provided process callback at postrewrite (at post-traversal).
+ * A term processor for terms and types. Implements term/type traversals,
+ * calling the provided implementations of conversion methods (runConvert and
+ * runConvertType) at post-traversal.
+ *
+ * This class can be used as a generic method for converting terms/types.
  */
 class TermProcessor
 {
  public:
-  TermProcessor(TermProcessCallback* cb);
-  ~TermProcessor() {}
-  /** convert to internal
-   *
-   * This converts the node n to the internal shape that it would be in
-   * LFSC printer. This means that n-ary applications are converted
-   * to (left-associative) chains.
+  TermProcessor();
+  virtual ~TermProcessor() {}
+  /**
+   * This converts node n based on the runConvert method that can be overriden
+   * by instances of this class.
    */
-  Node toInternal(Node n);
-  /** convert to external
-   *
-   * Inverse of the above translation
-   */
-  Node toExternal(Node n);
+  Node convert(Node n);
 
-  /** convert to internal
-   *
-   * This converts the type node tn to the internal shape that it would be in
-   * LFSC printer. This means that n-ary applications (e.g. of function type)
-   * are converted to (left-associative) chains.
+  /**
+   * This converts type node n based on the runConvertType method that can be
+   * overriden by instances of this class.
    */
-  TypeNode toInternalType(TypeNode tn);
-  /** convert to external
-   *
-   * Inverse of the above translation
-   */
-  TypeNode toExternalType(TypeNode tn);
+  TypeNode convertType(TypeNode tn);
 
+ protected:
+  //------------------------- virtual interface
+  /** Should we traverse n? */
+  virtual bool shouldTraverse(Node n);
+  /**
+   * Run the conversion, where n is a term of the form:
+   *   (f i_1 ... i_m)
+   * where i_1, ..., i_m are terms that have been returned by previous calls
+   * to runConvert.
+   */
+  virtual Node runConvert(Node n);
+  /**
+   * Run the conversion, same as above, but for type nodes, which notice can
+   * be built from children similar to Node.
+   */
+  virtual TypeNode runConvertType(TypeNode n);
+  //------------------------- end virtual interface
  private:
   /** convert */
-  Node convert(Node n, bool toInternal);
+  Node convertInternal(Node n);
   /** convert */
-  TypeNode convertType(TypeNode tn, bool toInternal);
-  /** The callback */
-  TermProcessCallback* d_cb;
+  TypeNode convertTypeInternal(TypeNode tn);
   /** Node caches */
-  std::unordered_map<Node, Node, NodeHashFunction> d_cache[2];
+  std::unordered_map<Node, Node, NodeHashFunction> d_cache;
   /** TypeNode caches */
-  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tcache[2];
+  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tcache;
 };
 
 }  // namespace proof

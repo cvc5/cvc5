@@ -277,14 +277,6 @@ header = "options/smt_options.h"
   help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
 
 [[option]]
-  name       = "dumpSynth"
-  category   = "regular"
-  long       = "dump-synth"
-  type       = "bool"
-  default    = "false"
-  help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
-
-[[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
@@ -298,6 +290,13 @@ header = "options/smt_options.h"
   long       = "check-unsat-cores"
   type       = "bool"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
+
+[[option]]
+  name       = "checkUnsatCoresNew"
+  category   = "regular"
+  long       = "check-unsat-cores-new"
+  type       = "bool"
+  help       = "after UNSAT/VALID, produce and check an unsat core (expensive) using the new proof infrastructure"
 
 [[option]]
   name       = "dumpUnsatCores"
@@ -406,6 +405,14 @@ header = "options/smt_options.h"
   help       = "enables compressing ites after ite simplification"
 
 [[option]]
+  name       = "earlyIteRemoval"
+  category   = "experimental"
+  long       = "early-ite-removal"
+  type       = "bool"
+  default    = "false"
+  help       = "remove ITEs early in preprocessing"
+
+[[option]]
   name       = "unconstrainedSimp"
   category   = "regular"
   long       = "unconstrained-simp"
@@ -461,7 +468,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "model-u-print=MODE"
   type       = "ModelUninterpPrintMode"
-  default    = "DeclFun"
+  default    = "None"
   read_only  = true
   help       = "determines how to print uninterpreted elements in models"
   help_mode  = "uninterpreted elements in models printing  modes."
@@ -473,7 +480,11 @@ header = "options/smt_options.h"
   help = "print uninterpreted elements declare-fun, and also include a declare-sort for the sort"
 [[option.mode.DeclFun]]
   name = "decl-fun"
-  help = "(default) print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+  help = "print uninterpreted elements declare-fun, but don't include a declare-sort for the sort"
+[[option.mode.None]]
+  name = "none"
+  help = "(default) do not print declarations of uninterpreted elements in models."
+
 
 [[option]]
   name       = "modelWitnessValue"

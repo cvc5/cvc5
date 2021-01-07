@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file template_infer.cpp 
+/*! \file template_infer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
@@ -163,7 +164,7 @@ void SygusTemplateInfer::initialize(Node q)
   Assert(!templ.isNull());
 
   // get the variables
-  Node sfvl = CegGrammarConstructor::getSygusVarList(prog);
+  Node sfvl = SygusUtils::getSygusArgumentListForSynthFun(prog);
   if (!sfvl.isNull())
   {
     std::vector<Node> prog_vars(sfvl.begin(), sfvl.end());

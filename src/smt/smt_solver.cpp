@@ -50,7 +50,6 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   d_theoryEngine.reset(new TheoryEngine(d_smt.getContext(),
                                         d_smt.getUserContext(),
                                         d_rm,
-                                        d_pp.getTermFormulaRemover(),
                                         logicInfo,
                                         d_smt.getOutputManager(),
                                         d_pnm));
@@ -226,14 +225,11 @@ void SmtSolver::processAssertions(Assertions& as)
   // process the assertions with the preprocessor
   bool noConflict = d_pp.process(as);
 
-  // notify theory engine new preprocessed assertions
-  d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
-
   // Push the formula to decision engine
   if (noConflict)
   {
-    Chat() << "pushing to decision engine..." << endl;
-    d_propEngine->addAssertionsToDecisionEngine(ap);
+    Chat() << "notifying theory engine and decision engine..." << std::endl;
+    d_propEngine->notifyPreprocessedAssertions(ap);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or

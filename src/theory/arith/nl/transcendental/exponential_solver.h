@@ -2,7 +2,7 @@
 /*! \file exponential_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -49,9 +49,11 @@ class ExponentialSolver
   ExponentialSolver(TranscendentalState* tstate);
   ~ExponentialSolver();
 
-  void initLastCall(const std::vector<Node>& assertions,
-                    const std::vector<Node>& false_asserts,
-                    const std::vector<Node>& xts);
+  /**
+   * Ensures that new_a is properly registered as a term where new_a is the
+   * purified version of a, y being the new skolem used for purification.
+   */
+  void doPurification(TNode a, TNode new_a, TNode y);
 
   /**
    * check initial refine
@@ -83,16 +85,20 @@ class ExponentialSolver
    */
   void checkMonotonic();
 
-  /** Sent tangent lemma around c for e */
-  void doTangentLemma(TNode e, TNode c, TNode poly_approx);
+  /** Send tangent lemma around c for e */
+  void doTangentLemma(TNode e, TNode c, TNode poly_approx, std::uint64_t d);
 
-  /** Sent secant lemmas around c for e */
-  void doSecantLemmas(
-      TNode e, TNode poly_approx, TNode c, TNode poly_approx_c, unsigned d);
+  /** Send secant lemmas around c for e */
+  void doSecantLemmas(TNode e,
+                      TNode poly_approx,
+                      TNode center,
+                      TNode cval,
+                      unsigned d,
+                      unsigned actual_d);
 
  private:
   /** Generate bounds for secant lemmas */
-  std::pair<Node, Node> getSecantBounds(TNode e, TNode c, unsigned d);
+  std::pair<Node, Node> getSecantBounds(TNode e, TNode center, unsigned d);
 
   /** Holds common state for transcendental solvers */
   TranscendentalState* d_data;

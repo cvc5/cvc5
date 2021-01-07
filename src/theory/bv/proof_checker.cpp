@@ -18,8 +18,6 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-BVProofRuleChecker::BVProofRuleChecker() : d_bb(new BBSimple(nullptr)) {}
-
 void BVProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::BV_BITBLAST, this);
@@ -32,11 +30,12 @@ Node BVProofRuleChecker::checkInternal(PfRule id,
 {
   if (id == PfRule::BV_BITBLAST)
   {
+    BBSimple bb(nullptr);
     Assert(children.empty());
     Assert(args.size() == 1);
-    d_bb->bbAtom(args[0]);
-    Node bb = d_bb->getStoredBBAtom(args[0]);
-    return args[0].eqNode(bb);
+    bb.bbAtom(args[0]);
+    Node n = bb.getStoredBBAtom(args[0]);
+    return args[0].eqNode(n);
   }
   else if (id == PfRule::BV_EAGER_ATOM)
   {

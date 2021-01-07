@@ -2,7 +2,7 @@
 /*! \file inst_strategy_cegqi.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -21,7 +21,6 @@
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
@@ -115,33 +114,6 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
       registerCounterexampleLemma( q, lem );
       
-      //totality lemmas for EPR
-      QuantEPR * qepr = d_quantEngine->getQuantEPR();
-      if( qepr!=NULL ){   
-        for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-          TypeNode tn = q[0][i].getType();
-          if( tn.isSort() ){
-            if( qepr->isEPR( tn ) ){
-              //add totality lemma
-              std::map< TypeNode, std::vector< Node > >::iterator itc = qepr->d_consts.find( tn );
-              if( itc!=qepr->d_consts.end() ){
-                Assert(!itc->second.empty());
-                Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
-                std::vector< Node > disj;
-                for( unsigned j=0; j<itc->second.size(); j++ ){
-                  disj.push_back( ic.eqNode( itc->second[j] ) );
-                }
-                Node tlem = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
-                Trace("cegqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
-                d_quantEngine->getOutputChannel().lemma( tlem );
-              }else{
-                Assert(false);
-              }                  
-            }
-          }
-        }
-      }      
-      
       //compute dependencies between quantified formulas
       std::vector<Node> ics;
       TermUtil::computeInstConstContains(q, ics);
@@ -156,7 +128,11 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         {
           d_parent_quant[q].push_back(qi);
           d_children_quant[qi].push_back(q);
-          Assert(hasAddedCbqiLemma(qi));
+          // may not have added the CEX lemma, but the literal is created by
+          // the following call regardless. One rare case where this can happen
+          // is if both sygus-inst and CEGQI are being run in parallel, and
+          // a parent quantified formula is not handled by CEGQI, but a child
+          // is.
           Node qicel = getCounterexampleLiteral(qi);
           dep.push_back(qi);
           dep.push_back(qicel);
@@ -164,6 +140,9 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       }
       if (!dep.empty())
       {
+        // This lemma states that if the child is active, then the parent must
+        // be asserted, in particular G => Q where G is the CEX literal for the
+        // child and Q is the parent.
         Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
         Trace("cegqi-lemma")
             << "Counterexample dependency lemma : " << dep_lemma << std::endl;
@@ -346,11 +325,6 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
       // will process using nested quantifier elimination
       return;
     }
-    // get the instantiator
-    if (options::cegqiPreRegInst())
-    {
-      getInstantiator(q);
-    }
     // register the cbqi lemma
     if( registerCbqiLemma( q ) ){
       Trace("cegqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
@@ -529,18 +503,6 @@ VtsTermCache* InstStrategyCegqi::getVtsTermCache() const
 BvInverter* InstStrategyCegqi::getBvInverter() const
 {
   return d_bv_invert.get();
-}
-
-void InstStrategyCegqi::presolve() {
-  if (!options::cegqiPreRegInst())
-  {
-    return;
-  }
-  for (std::pair<const Node, std::unique_ptr<CegInstantiator>>& ci : d_cinst)
-  {
-    Trace("cegqi-presolve") << "Presolve " << ci.first << std::endl;
-    ci.second->presolve(ci.first);
-  }
 }
 
 bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)

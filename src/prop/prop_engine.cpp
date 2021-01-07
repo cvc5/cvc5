@@ -23,7 +23,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
-#include "expr/expr.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -36,6 +35,7 @@
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/output_channel.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
@@ -80,7 +80,6 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
       d_ppm(nullptr),
-      d_proof(pnm, userContext, "CDProof::PropEngine"),
       d_interrupted(false),
       d_resourceManager(rm),
       d_outMgr(outMgr)
@@ -90,13 +89,19 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
 
-  d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
+  d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::CnfStream(
-      d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
-  d_theoryProxy = new TheoryProxy(
-      this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
+      d_satSolver, d_registrar, userContext, &d_outMgr, rm, FormulaLitPolicy::TRACK);
+
+  d_theoryProxy = new TheoryProxy(this,
+                                  d_theoryEngine,
+                                  d_decisionEngine.get(),
+                                  d_context,
+                                  userContext,
+                                  d_cnfStream,
+                                  pnm);
   d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -104,11 +109,14 @@ PropEngine::PropEngine(TheoryEngine* te,
   if (pnm)
   {
     d_pfCnfStream.reset(new ProofCnfStream(
-        userContext, *d_cnfStream, d_satSolver->getProofManager(), pnm));
-    d_ppm.reset(new PropPfManager(
-        userContext, pnm, d_satSolver->getProofManager(), d_pfCnfStream.get()));
+        userContext,
+        *d_cnfStream,
+        static_cast<MinisatSatSolver*>(d_satSolver)->getProofManager(),
+        pnm));
+    d_ppm.reset(
+        new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
-  if (options::unsatCores())
+  else if (options::unsatCores())
   {
     ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
   }
@@ -122,9 +130,11 @@ void PropEngine::finishInit()
   // CNF stream will ignore it since the SAT solver already had it registered,
   // thus not having True as an assumption for the SAT proof. To solve this
   // issue we track it directly here
-  if (d_pfCnfStream)
+  if (isProofEnabled())
   {
-    d_satSolver->getProofManager()->registerSatAssumptions({nm->mkConst(true)});
+    static_cast<MinisatSatSolver*>(d_satSolver)
+        ->getProofManager()
+        ->registerSatAssumptions({nm->mkConst(true)});
   }
   d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
@@ -139,11 +149,42 @@ PropEngine::~PropEngine() {
   delete d_theoryProxy;
 }
 
+theory::TrustNode PropEngine::preprocess(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems,
+    bool doTheoryPreprocess)
+{
+  return d_theoryProxy->preprocess(
+      node, newLemmas, newSkolems, doTheoryPreprocess);
+}
+
+void PropEngine::notifyPreprocessedAssertions(
+    const preprocessing::AssertionPipeline& ap)
+{
+  // notify the theory engine of preprocessed assertions
+  d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
+
+  // Add assertions to decision engine, which manually extracts what assertions
+  // corresponded to term formula removal. Note that alternatively we could
+  // delay all theory preprocessing and term formula removal to this point, in
+  // which case this method could simply take a vector of Node and not rely on
+  // assertion pipeline or its ITE skolem map.
+  std::vector<Node> ppLemmas;
+  std::vector<Node> ppSkolems;
+  for (const std::pair<const Node, unsigned>& i : ap.getIteSkolemMap())
+  {
+    Assert(i.second >= ap.getRealAssertionsEnd() && i.second < ap.size());
+    ppSkolems.push_back(i.first);
+    ppLemmas.push_back(ap[i.second]);
+  }
+  d_decisionEngine->addAssertions(ap.ref(), ppLemmas, ppSkolems);
+}
+
 void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
-  // Assert as non-removable
-  if (d_pfCnfStream)
+  if (isProofEnabled())
   {
     d_pfCnfStream->convertAndAssert(node, false, false, nullptr);
     // register in proof manager
@@ -155,13 +196,85 @@ void PropEngine::assertFormula(TNode node) {
   }
 }
 
-void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
+Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
+{
+  bool removable = isLemmaPropertyRemovable(p);
+  bool preprocess = isLemmaPropertyPreprocess(p);
+
+  // call preprocessor
+  std::vector<theory::TrustNode> ppLemmas;
+  std::vector<Node> ppSkolems;
+  theory::TrustNode tplemma =
+      d_theoryProxy->preprocessLemma(tlemma, ppLemmas, ppSkolems, preprocess);
+
+  Assert(ppSkolems.size() == ppLemmas.size());
+
+  // do final checks on the lemmas we are about to send
+  if (isProofEnabled() && options::proofNewEagerChecking())
+  {
+    Assert(tplemma.getGenerator() != nullptr);
+    // ensure closed, make the proof node eagerly here to debug
+    tplemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
+    for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+    {
+      Assert(ppLemmas[i].getGenerator() != nullptr);
+      ppLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+    }
+  }
+
+  if (Trace.isOn("te-lemma"))
+  {
+    Trace("te-lemma") << "Lemma, output: " << tplemma.getProven() << std::endl;
+    for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+    {
+      Trace("te-lemma") << "Lemma, new lemma: " << ppLemmas[i].getProven()
+                        << " (skolem is " << ppSkolems[i] << ")" << std::endl;
+    }
+  }
+
+  // now, assert the lemmas
+  assertLemmaInternal(tplemma, removable);
+  for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+  {
+    assertLemmaInternal(ppLemmas[i], removable);
+  }
+
+  // assert to decision engine
+  if (!removable)
+  {
+    // also add to the decision engine, where notice we don't need proofs
+    std::vector<Node> assertions;
+    assertions.push_back(tplemma.getProven());
+    std::vector<Node> ppLemmasF;
+    for (const theory::TrustNode& tnl : ppLemmas)
+    {
+      ppLemmasF.push_back(tnl.getProven());
+    }
+    d_decisionEngine->addAssertions(assertions, ppLemmasF, ppSkolems);
+  }
+
+  // make the return lemma, which the theory engine will use
+  Node retLemma = tplemma.getProven();
+  if (!ppLemmas.empty())
+  {
+    std::vector<Node> lemmas{retLemma};
+    for (const theory::TrustNode& tnl : ppLemmas)
+    {
+      lemmas.push_back(tnl.getProven());
+    }
+    // the returned lemma is the conjunction of all additional lemmas.
+    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas);
+  }
+  return retLemma;
+}
+
+void PropEngine::assertLemmaInternal(theory::TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
   // Assert as (possibly) removable
-  if (d_pfCnfStream)
+  if (isProofEnabled())
   {
     Assert(trn.getGenerator());
     d_pfCnfStream->convertAndAssert(
@@ -171,12 +284,6 @@ void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
   {
     d_cnfStream->convertAndAssert(node, removable, negated);
   }
-}
-
-void PropEngine::addAssertionsToDecisionEngine(
-    const preprocessing::AssertionPipeline& assertions)
-{
-  d_decisionEngine->addAssertions(assertions);
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
@@ -313,7 +420,25 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
   d_cnfStream->getBooleanVariables(outputVariables);
 }
 
-void PropEngine::ensureLiteral(TNode n) { d_cnfStream->ensureLiteral(n); }
+Node PropEngine::ensureLiteral(TNode n)
+{
+  // must preprocess
+  std::vector<theory::TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  theory::TrustNode tpn =
+      d_theoryProxy->preprocess(n, newLemmas, newSkolems, true);
+  // send lemmas corresponding to the skolems introduced by preprocessing n
+  for (const theory::TrustNode& tnl : newLemmas)
+  {
+    Trace("ensureLiteral") << "  lemma: " << tnl.getNode() << std::endl;
+    assertLemma(tnl, theory::LemmaProperty::NONE);
+  }
+  Node preprocessed = tpn.isNull() ? Node(n) : tpn.getNode();
+  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
+                         << std::endl;
+  d_cnfStream->ensureLiteral(preprocessed);
+  return preprocessed;
+}
 
 void PropEngine::push()
 {
@@ -428,6 +553,8 @@ void PropEngine::checkProof(context::CDList<Node>* assertions)
   return d_ppm->checkProof(assertions);
 }
 
+ProofCnfStream* PropEngine::getProofCnfStream() { return d_pfCnfStream.get(); }
+
 std::shared_ptr<ProofNode> PropEngine::getProof()
 {
   if (!d_pnm)
@@ -436,6 +563,8 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   }
   return d_ppm->getProof();
 }
+
+bool PropEngine::isProofEnabled() const { return d_pfCnfStream != nullptr; }
 
 }  // namespace prop
 }  // namespace CVC4

@@ -172,8 +172,8 @@ void Assertions::addFormula(
     }
   }
 
-  // Give it to proof manager
-  if (options::unsatCores())
+  // Give it to the old proof manager
+  if (options::unsatCores() && !isProofEnabled())
   {
     if (inInput)
     {  // n is an input assertion

@@ -24,12 +24,11 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/term_canonize.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
@@ -88,8 +87,6 @@ class QuantifiersEngine {
   EqualityQuery* getEqualityQuery() const;
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get utility for EPR */
-  quantifiers::QuantEPR* getQuantEPR() const;
   /** get model */
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database */
@@ -269,11 +266,19 @@ public:
   * guided instantiation.
   */
  Node getInternalRepresentative(Node a, Node q, int index);
+ /**
+  * Get quantifiers name, which returns a variable corresponding to the name of
+  * quantified formula q if q has a name, or otherwise returns q itself.
+  */
+ Node getNameForQuant(Node q) const;
+ /**
+  * Get name for quantified formula. Returns true if q has a name or if req
+  * is false. Sets name to the result of the above method.
+  */
+ bool getNameForQuant(Node q, Node& name, bool req = true) const;
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print instantiations */
- void printInstantiations(std::ostream& out);
  /** print solution for synthesis conjectures */
  void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */
@@ -283,6 +288,12 @@ public:
                                   std::vector<std::vector<Node> >& tvecs);
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
+ /**
+  * Get skolemization vectors, where for each quantified formula that was
+  * skolemized, this is the list of skolems that were used to witness the
+  * negation of that quantified formula.
+  */
+ void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
 
  /** get synth solutions
   *
@@ -355,8 +366,6 @@ public:
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** utility for effectively propositional logic */
-  std::unique_ptr<quantifiers::QuantEPR> d_qepr;
   /** term utilities */
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term utilities */

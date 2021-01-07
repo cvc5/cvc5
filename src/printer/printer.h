@@ -2,7 +2,7 @@
 /*! \file printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Tim King, Aina Niemetz
+ **   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -32,8 +32,9 @@ namespace CVC4 {
 
 class Command;
 class CommandStatus;
-class NodeCommand;
 class UnsatCore;
+class InstantiationList;
+class SkolemList;
 
 class Printer
 {
@@ -61,6 +62,12 @@ class Printer
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
+
+  /** Write an instantiation list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const InstantiationList& is) const;
+
+  /** Write an skolem list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const SkolemList& sks) const;
 
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,
@@ -131,11 +138,10 @@ class Printer
 
   /** Print synth-fun command */
   virtual void toStreamCmdSynthFun(std::ostream& out,
-                                   const std::string& sym,
+                                   Node f,
                                    const std::vector<Node>& vars,
-                                   TypeNode range,
                                    bool isInv,
-                                   TypeNode sygusType) const;
+                                   TypeNode sygusType = TypeNode::null()) const;
 
   /** Print constraint command */
   virtual void toStreamCmdConstraint(std::ostream& out, Node n) const;

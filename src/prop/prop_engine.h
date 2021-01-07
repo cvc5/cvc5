@@ -52,7 +52,7 @@ namespace theory {
 namespace prop {
 
 class CnfStream;
-class DPLLSatSolverInterface;
+class CDCLTSatSolverInterface;
 
 class PropEngine;
 
@@ -95,6 +95,30 @@ class PropEngine
   void shutdown() {}
 
   /**
+   * Preprocess the given node. Return the REWRITE trust node corresponding to
+   * rewriting node. New lemmas and skolems are added to ppLemmas and
+   * ppSkolems respectively.
+   *
+   * @param node The assertion to preprocess,
+   * @param ppLemmas The lemmas to add to the set of assertions,
+   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @param doTheoryPreprocess whether to run theory-specific preprocessing.
+   * @return The (REWRITE) trust node corresponding to rewritten node via
+   * preprocessing.
+   */
+  theory::TrustNode preprocess(TNode node,
+                               std::vector<theory::TrustNode>& ppLemmas,
+                               std::vector<Node>& ppSkolems,
+                               bool doTheoryPreprocess);
+
+  /**
+   * Notify preprocessed assertions. This method is called just before the
+   * assertions are asserted to this prop engine. This method notifies the
+   * decision engine and the theory engine of the assertions in ap.
+   */
+  void notifyPreprocessedAssertions(const preprocessing::AssertionPipeline& ap);
+
+  /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
    * The formula is asserted permanently for the current context.
    * @param node the formula to assert
@@ -107,15 +131,10 @@ class PropEngine
    * than the (SAT and SMT) level at which it was asserted.
    *
    * @param trn the trust node storing the formula to assert
-   * @param removable whether this lemma can be quietly removed based
-   * on an activity heuristic (or not)
+   * @param p the properties of the lemma
+   * @return the (preprocessed) lemma
    */
-  void assertLemma(theory::TrustNode trn, bool removable);
-  /**
-   * Pass a list of assertions from an AssertionPipeline to the decision engine.
-   */
-  void addAssertionsToDecisionEngine(
-      const preprocessing::AssertionPipeline& assertions);
+  Node assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -166,10 +185,11 @@ class PropEngine
 
   /**
    * Ensure that the given node will have a designated SAT literal
-   * that is definitionally equal to it.  The result of this function
-   * is that the Node can be queried via getSatValue().
+   * that is definitionally equal to it. Note that theory preprocessing is
+   * applied to n. The node returned by this method can be subsequently queried
+   * via getSatValue().
    */
-  void ensureLiteral(TNode n);
+  Node ensureLiteral(TNode n);
 
   /**
    * Push the context level.
@@ -223,18 +243,37 @@ class PropEngine
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  ProofCnfStream* getProofCnfStream() { return d_pfCnfStream.get(); }
-
-  /** pieces together the prop engine proof and produce it */
-  std::shared_ptr<ProofNode> getProof();
+  /** Retrieve this modules proof CNF stream. */
+  ProofCnfStream* getProofCnfStream();
 
   /** Checks that the proof is closed w.r.t. asserted formulas to this engine as
    * well as to the given assertions. */
   void checkProof(context::CDList<Node>* assertions);
 
+  /**
+   * Return the prop engine proof. This should be called only when proofs are
+   * enabled. Returns a proof of false whose free assumptions are the
+   * preprocessed assertions.
+   */
+  std::shared_ptr<ProofNode> getProof();
+
+  /** Is proof enabled? */
+  bool isProofEnabled() const;
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
+
+  /**
+   * Converts the given formula to CNF and asserts the CNF to the SAT solver.
+   * The formula can be removed by the SAT solver after backtracking lower
+   * than the (SAT and SMT) level at which it was asserted.
+   *
+   * @param trn the trust node storing the formula to assert
+   * @param removable whether this lemma can be quietly removed based
+   * on an activity heuristic
+   */
+  void assertLemmaInternal(theory::TrustNode trn, bool removable);
+
   /**
    * Indicates that the SAT solver is currently solving something and we should
    * not mess with it's internal state.
@@ -254,7 +293,7 @@ class PropEngine
   TheoryProxy* d_theoryProxy;
 
   /** The SAT solver proxy */
-  MinisatSatSolver* d_satSolver;
+  CDCLTSatSolverInterface* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
@@ -262,6 +301,7 @@ class PropEngine
   /** Theory registrar; kept around for destructor cleanup */
   theory::TheoryRegistrar* d_registrar;
 
+  /** A pointer to the proof node maneger to be used by this engine. */
   ProofNodeManager* d_pnm;
 
   /** The CNF converter in use */
@@ -271,8 +311,6 @@ class PropEngine
 
   /** The proof manager for prop engine */
   std::unique_ptr<PropPfManager> d_ppm;
-
-  CDProof d_proof;
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;

@@ -14,10 +14,12 @@
 
 #include "smt/quant_elim_solver.h"
 
+#include "expr/skolem_manager.h"
 #include "expr/subs.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
@@ -33,7 +35,8 @@ QuantElimSolver::~QuantElimSolver() {}
 
 Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                                                Node q,
-                                               bool doFull)
+                                               bool doFull,
+                                               bool isInternalSubsolver)
 {
   Trace("smt-qe") << "QuantElimSolver: get qe : " << q << std::endl;
   if (q.getKind() != EXISTS && q.getKind() != FORALL)
@@ -41,11 +44,13 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     throw ModalException(
         "Expecting a quantified formula as argument to get-qe.");
   }
+  NodeManager* nm = NodeManager::currentNM();
+  // ensure the body is rewritten
+  q = nm->mkNode(q.getKind(), q[0], Rewriter::rewrite(q[1]));
   // do nested quantifier elimination if necessary
   q = quantifiers::NestedQe::doNestedQe(q, true);
   Trace("smt-qe") << "QuantElimSolver: after nested quantifier elimination : "
                   << q << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();
   Node n_attr = nm->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
@@ -54,6 +59,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Assert(te != nullptr);
   te->setUserAttribute(
       doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
   n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
   std::vector<Node> children;
@@ -84,7 +90,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // that the (single) quantified formula is preprocessed, rewritten
     // version of the input quantified formula q.
     std::vector<Node> inst_qs;
-    te->getInstantiatedQuantifiedFormulas(inst_qs);
+    qe->getInstantiatedQuantifiedFormulas(inst_qs);
     Assert(inst_qs.size() <= 1);
     Node ret;
     if (inst_qs.size() == 1)
@@ -94,7 +100,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
       std::vector<std::vector<Node>> insts;
-      te->getInstantiationTermVectors(topq, insts);
+      qe->getInstantiationTermVectors(topq, insts);
       std::vector<Node> vars(ne[0].begin(), ne[0].end());
       std::vector<Node> conjs;
       // apply the instantiation on the original body
@@ -121,6 +127,12 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // do extended rewrite to minimize the size of the formula aggressively
     theory::quantifiers::ExtendedRewriter extr(true);
     ret = extr.extendedRewrite(ret);
+    // if we are not an internal subsolver, convert to witness form, since
+    // internally generated skolems should not escape
+    if (!isInternalSubsolver)
+    {
+      ret = SkolemManager::getWitnessForm(ret);
+    }
     return ret;
   }
   // otherwise, just true/false

@@ -2,7 +2,7 @@
 /*! \file theory_sep.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -24,7 +24,6 @@
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -755,7 +754,7 @@ void TheorySep::postCheck(Effort level)
 
       // get model values
       std::map<int, Node> mvals;
-      for (const std::pair<int, Node>& sub_element : d_label_map[satom][slbl])
+      for (const std::pair<const int, Node>& sub_element : d_label_map[satom][slbl])
       {
         int sub_index = sub_element.first;
         Node sub_lbl = sub_element.second;
@@ -990,22 +989,6 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
       d_loc_to_data_type[d_type_ref] = d_type_data;
     }
   }
-  // initialize the EPR utility
-  QuantifiersEngine* qe = getQuantifiersEngine();
-  if (qe != nullptr)
-  {
-    quantifiers::QuantEPR* qepr = qe->getQuantEPR();
-    if (qepr != nullptr)
-    {
-      for (const Node& a : assertions)
-      {
-        qepr->registerAssertion(a);
-      }
-      // must handle sources of other new constants e.g. separation logic
-      initializeBounds();
-      qepr->finishInit();
-    }
-  }
 }
 
 //return cardinality
@@ -1030,13 +1013,10 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
       if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
         TypeNode tn1 = n[0].getType();
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
-          if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
-            // still valid : bound on heap models will include Herbrand universe of n[0].getType()
-            d_bound_kind[tn1] = bound_herbrand;
-          }else{
-            d_bound_kind[tn1] = bound_invalid;
-            Trace("sep-bound") << "reference cannot be bound (due to quantified pto)." << std::endl;
-          }
+          d_bound_kind[tn1] = bound_invalid;
+          Trace("sep-bound")
+              << "reference cannot be bound (due to quantified pto)."
+              << std::endl;
         }
       }else{
         references[index][n].push_back( n[0] );
@@ -1204,24 +1184,6 @@ void TheorySep::initializeBounds() {
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
-      quantifiers::QuantEPR* qepr = getLogicInfo().isQuantified()
-                                        ? getQuantifiersEngine()->getQuantEPR()
-                                        : NULL;
-      //if pto had free variable reference      
-      if( d_bound_kind[tn]==bound_herbrand ){
-        //include Herbrand universe of tn
-        if( qepr && qepr->isEPR( tn ) ){
-          for( unsigned j=0; j<qepr->d_consts[tn].size(); j++ ){
-            Node k = qepr->d_consts[tn][j];
-            if( std::find( d_type_references[tn].begin(), d_type_references[tn].end(), k )==d_type_references[tn].end() ){
-              d_type_references[tn].push_back( k );
-            }
-          }
-        }else{
-          d_bound_kind[tn] = bound_invalid;
-          Trace("sep-bound") << "reference cannot be bound (due to non-EPR variable)." << std::endl;
-        }
-      }
       unsigned n_emp = 0;
       if( d_bound_kind[tn] != bound_invalid ){
         n_emp = d_card_max[tn];  
@@ -1236,18 +1198,7 @@ void TheorySep::initializeBounds() {
         Node e = NodeManager::currentNM()->mkSkolem( "e", tn, "cardinality bound element for seplog" );
         d_type_references_card[tn].push_back( e );
         d_type_ref_card_id[e] = r;
-        //must include this constant back into EPR handling
-        if( qepr && qepr->isEPR( tn ) ){
-          qepr->addEPRConstant( tn, e );
-        }
       }
-      //EPR must include nil ref    
-      if( qepr && qepr->isEPR( tn ) ){
-        Node nr = getNilRef( tn );
-        if( !qepr->isEPRConstant( tn, nr ) ){
-          qepr->addEPRConstant( tn, nr );
-        }
-      }      
     }
   }
 }

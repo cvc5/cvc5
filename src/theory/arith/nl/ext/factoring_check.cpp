@@ -2,7 +2,7 @@
 /*! \file factoring_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -161,7 +161,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
           Trace("nl-ext-factor") << "...lemma is " << flem << std::endl;
           if (d_data->isProofEnabled())
           {
-            Node k_eq = Rewriter::rewrite(kf.eqNode(sum));
+            Node k_eq = kf.eqNode(sum);
             Node split = nm->mkNode(Kind::OR, lit, lit.notNode());
             proof->addStep(split, PfRule::SPLIT, {}, {lit});
             proof->addStep(
@@ -182,7 +182,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
   {
     NodeManager* nm = NodeManager::currentNM();
     Node k = nm->getSkolemManager()->mkPurifySkolem(n, "kf");
-    Node k_eq = Rewriter::rewrite(k.eqNode(n));
+    Node k_eq = k.eqNode(n);
     Trace("nl-ext-factor") << "...adding factor skolem " << k << " == " << n
                            << std::endl;
     if (d_data->isProofEnabled())

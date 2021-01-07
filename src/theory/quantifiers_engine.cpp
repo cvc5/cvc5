@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers_engine.h"
 
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
@@ -43,7 +44,6 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
-      d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
       d_term_canon(new expr::TermCanonize),
       d_term_db(new quantifiers::TermDb(d_context, d_userContext, this)),
@@ -86,10 +86,6 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
-  if( options::quantEpr() ){
-    Assert(!options::incrementalSolving());
-    d_qepr.reset(new quantifiers::QuantEPR);
-  }
   //---- end utilities
 
   //allow theory combination to go first, once initially
@@ -182,10 +178,6 @@ EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
-}
-quantifiers::QuantEPR* QuantifiersEngine::getQuantEPR() const
-{
-  return d_qepr.get();
 }
 quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 {
@@ -336,6 +328,8 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
+  d_lemmas_waiting.clear();
+  d_phase_req_waiting.clear();
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
@@ -355,7 +349,7 @@ void QuantifiersEngine::ppNotifyAssertions(
     const std::vector<Node>& assertions) {
   Trace("quant-engine-proc")
       << "ppNotifyAssertions in QE, #assertions = " << assertions.size()
-      << " check epr = " << (d_qepr != NULL) << std::endl;
+      << std::endl;
   if (options::instLevelInputOnly() && options::instMaxLevel() != -1)
   {
     for (const Node& a : assertions)
@@ -992,14 +986,16 @@ void QuantifiersEngine::flushLemmas(){
       const Node& lemw = d_lemmas_waiting[i];
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
       itp = d_lemmasWaitingPg.find(lemw);
+      LemmaProperty p =
+          LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY;
       if (itp != d_lemmasWaitingPg.end())
       {
         TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
-        out.trustedLemma(tlemw, LemmaProperty::PREPROCESS);
+        out.trustedLemma(tlemw, p);
       }
       else
       {
-        out.lemma(lemw, LemmaProperty::PREPROCESS);
+        out.lemma(lemw, p);
       }
     }
     d_lemmas_waiting.clear();
@@ -1021,26 +1017,6 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
   d_instantiate->getInstantiationTermVectors(insts);
 }
 
-void QuantifiersEngine::printInstantiations( std::ostream& out ) {
-  bool printed = false;
-  // print the skolemizations
-  if (options::printInstMode() == options::PrintInstMode::LIST)
-  {
-    if (d_skolemize->printSkolemization(out))
-    {
-      printed = true;
-    }
-  }
-  // print the instantiations
-  if (d_instantiate->printInstantiations(out))
-  {
-    printed = true;
-  }
-  if( !printed ){
-    out << "No instantiations" << std::endl;
-  }
-}
-
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   if (d_qmodules->d_synth_e)
   {
@@ -1050,8 +1026,15 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
+void QuantifiersEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
+{
   d_instantiate->getInstantiatedQuantifiedFormulas(qs);
+}
+
+void QuantifiersEngine::getSkolemTermVectors(
+    std::map<Node, std::vector<Node> >& sks) const
+{
+  d_skolemize->getSkolemTermVectors(sks);
 }
 
 QuantifiersEngine::Statistics::Statistics()
@@ -1128,6 +1111,23 @@ eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   return d_eq_query->getInternalRepresentative(a, q, index);
+}
+
+Node QuantifiersEngine::getNameForQuant(Node q) const
+{
+  Node name = d_quant_attr->getQuantName(q);
+  if (!name.isNull())
+  {
+    return name;
+  }
+  return q;
+}
+
+bool QuantifiersEngine::getNameForQuant(Node q, Node& name, bool req) const
+{
+  name = getNameForQuant(q);
+  // if we have a name, or we did not require one
+  return name != q || !req;
 }
 
 bool QuantifiersEngine::getSynthSolutions(

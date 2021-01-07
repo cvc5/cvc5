@@ -721,15 +721,20 @@ class Theory {
                                   TrustSubstitutionMap& outSubstitutions);
 
   /**
-   * Given an atom of the theory coming from the input formula, this
-   * method can be overridden in a theory implementation to rewrite
-   * the atom into an equivalent form.  This is only called just
-   * before an input atom to the engine. This method returns a TrustNode of
-   * kind TrustNodeKind::REWRITE, which carries information about the proof
-   * generator for the rewrite. Similarly to expandDefinition, this method may
-   * return the null TrustNode if atom is unchanged.
+   * Given a term of the theory coming from the input formula or
+   * from a lemma generated during solving, this method can be overridden in a
+   * theory implementation to rewrite the term into an equivalent form.
+   *
+   * This method returns a TrustNode of kind TrustNodeKind::REWRITE, which
+   * carries information about the proof generator for the rewrite, which can
+   * be the null TrustNode if n is unchanged.
+   *
+   * Notice this method is used both in the "theory rewrite equalities"
+   * preprocessing pass, where n is an equality from the input formula,
+   * and in theory preprocessing, where n is a (non-equality) term occurring
+   * in the input or generated in a lemma.
    */
-  virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
+  virtual TrustNode ppRewrite(TNode n) { return TrustNode::null(); }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

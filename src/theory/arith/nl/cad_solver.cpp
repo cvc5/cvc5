@@ -88,6 +88,10 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
 void CadSolver::checkFull()
 {
 #ifdef CVC4_POLY_IMP
+  if (d_CAC.getConstraints().getConstraints().empty()) {
+    Trace("nl-cad") << "No constraints. Return." << std::endl;
+    return;
+  }
   d_CAC.startNewProof();
   auto covering = d_CAC.getUnsatCover();
   if (covering.empty())
@@ -116,6 +120,10 @@ void CadSolver::checkFull()
 void CadSolver::checkPartial()
 {
 #ifdef CVC4_POLY_IMP
+  if (d_CAC.getConstraints().getConstraints().empty()) {
+    Trace("nl-cad") << "No constraints. Return." << std::endl;
+    return;
+  }
   auto covering = d_CAC.getUnsatCover(0, true);
   if (covering.empty())
   {
