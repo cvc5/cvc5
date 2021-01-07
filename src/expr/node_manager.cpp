@@ -887,8 +887,7 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   return type;
 }
 
-TypeNode NodeManager::mkSortConstructor(const std::string& name,
-                                        size_t arity)
+TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity)
 {
   Assert(arity > 0);
   NodeBuilder<> nb(this, kind::SORT_TYPE);
@@ -903,7 +902,8 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   return type;
 }
 
-Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
+Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
+{
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
@@ -914,8 +914,8 @@ Node NodeManager::mkVar(const std::string& name, const TypeNode& type) {
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const std::string& name,
-                            const TypeNode& type) {
+Node* NodeManager::mkVarPtr(const std::string& name, const TypeNode& type)
+{
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
@@ -1045,7 +1045,8 @@ Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
   return mkNode(kind::AND, cchildren);
 }
 
-Node NodeManager::mkVar(const TypeNode& type) {
+Node NodeManager::mkVar(const TypeNode& type)
+{
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
@@ -1055,7 +1056,8 @@ Node NodeManager::mkVar(const TypeNode& type) {
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const TypeNode& type) {
+Node* NodeManager::mkVarPtr(const TypeNode& type)
+{
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);

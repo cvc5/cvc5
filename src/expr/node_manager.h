@@ -366,7 +366,6 @@ class NodeManager {
 
   void init();
 
-
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
@@ -1034,11 +1033,12 @@ class NodeManager {
   inline TypeNode mkTesterType(TypeNode domain);
 
   /** Bits for use in mkSort() flags. */
-  enum {
+  enum
+  {
     SORT_FLAG_NONE = 0,
     SORT_FLAG_PLACEHOLDER = 1
-  };/* enum */
-  
+  }; /* enum */
+
   /** Make a new (anonymous) sort of arity 0. */
   TypeNode mkSort(uint32_t flags = SORT_FLAG_NONE);
 
