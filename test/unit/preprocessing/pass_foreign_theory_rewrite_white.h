@@ -41,16 +41,6 @@ using namespace CVC4::smt;
 
 class ForeignTheoryRewriteWhite : public CxxTest::TestSuite
 {
-  ExprManager* d_em;
-  NodeManager* d_nm;
-  SmtEngine* d_smt;
-  SmtScope* d_scope;
-  CircuitPropagator* d_cp;
-  ProofNodeManager* d_pnm;
-  PreprocessingPassContext* d_ppc;
-  PreprocessingPassRegistry* d_ppr;
-  ForeignTheoryRewrite* d_foreignTheoryRewritePP;
-
  public:
   ForeignTheoryRewriteWhite() {}
 
@@ -65,13 +55,7 @@ class ForeignTheoryRewriteWhite : public CxxTest::TestSuite
     d_pnm = new ProofNodeManager();
     d_ppc = new PreprocessingPassContext(d_smt, d_cp, d_pnm);
     d_ppr = &PreprocessingPassRegistry::getInstance();
-
-    // workaround: avoiding assertion errors
-    // for existing statistics
-    d_smt->d_pp->d_processor.cleanup();
-
-    d_foreignTheoryRewritePP = (ForeignTheoryRewrite*)d_ppr->createPass(
-        d_ppc, "foreign-theory-rewrite");
+    d_foreignTheoryRewritePP = static_cast<ForeignTheoryRewrite*>(d_smt->d_pp->d_processor.d_passes["foreign-theory-rewrite"].get());
   }
 
   void tearDown() override
@@ -112,4 +96,15 @@ class ForeignTheoryRewriteWhite : public CxxTest::TestSuite
     Node expected = d_nm->mkNode(kind::AND, simplified1, simplified2);
     TS_ASSERT_EQUALS(simplified3, expected);
   }
+ 
+ private:
+  ExprManager* d_em;
+  NodeManager* d_nm;
+  SmtEngine* d_smt;
+  SmtScope* d_scope;
+  CircuitPropagator* d_cp;
+  ProofNodeManager* d_pnm;
+  PreprocessingPassContext* d_ppc;
+  PreprocessingPassRegistry* d_ppr;
+  ForeignTheoryRewrite* d_foreignTheoryRewritePP;
 };
