@@ -1033,21 +1033,27 @@ class NodeManager {
   /** Make a type representing a tester with given parameterization */
   inline TypeNode mkTesterType(TypeNode domain);
 
+  /** Bits for use in mkSort() flags. */
+  enum {
+    SORT_FLAG_NONE = 0,
+    SORT_FLAG_PLACEHOLDER = 1
+  };/* enum */
+  
   /** Make a new (anonymous) sort of arity 0. */
-  TypeNode mkSort(uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSort(uint32_t flags = SORT_FLAG_NONE);
 
   /** Make a new sort with the given name of arity 0. */
-  TypeNode mkSort(const std::string& name, uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE);
 
   /** Make a new sort by parameterizing the given sort constructor. */
   TypeNode mkSort(TypeNode constructor,
                   const std::vector<TypeNode>& children,
-                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
+                  uint32_t flags = SORT_FLAG_NONE);
 
   /** Make a new sort with the given name and arity. */
   TypeNode mkSortConstructor(const std::string& name,
                              size_t arity,
-                             uint32_t flags = ExprManager::SORT_FLAG_NONE);
+                             uint32_t flags = SORT_FLAG_NONE);
 
   /**
    * Get the type for the given node and optionally do type checking.

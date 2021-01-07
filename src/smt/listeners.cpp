@@ -45,7 +45,7 @@ SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm,
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {
   DeclareTypeNodeCommand c(tn.getAttribute(expr::VarNameAttr()), 0, tn);
-  if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+  if ((flags & NodeManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
     d_dm.addToDump(c);
   }
@@ -57,7 +57,7 @@ void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn,
   DeclareTypeNodeCommand c(tn.getAttribute(expr::VarNameAttr()),
                            tn.getAttribute(expr::SortArityAttr()),
                            tn);
-  if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+  if ((flags & NodeManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
     d_dm.addToDump(c);
   }
@@ -84,7 +84,7 @@ void SmtNodeManagerListener::nmNotifyNewVar(TNode n)
 {
   DeclareFunctionNodeCommand c(
       n.getAttribute(expr::VarNameAttr()), n, n.getType());
-  d_dm.addToDump(c, flags);
+  d_dm.addToDump(c);
 }
 
 void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,

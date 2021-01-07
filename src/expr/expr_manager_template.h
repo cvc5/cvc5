@@ -352,19 +352,13 @@ class CVC4_PUBLIC ExprManager {
   /** Make the type of sequence with the given parameterization. */
   SequenceType mkSequenceType(Type elementType) const;
 
-  /** Bits for use in mkSort() flags. */
-  enum {
-    SORT_FLAG_NONE = 0,
-    SORT_FLAG_PLACEHOLDER = 1
-  };/* enum */
-
   /** Make a new sort with the given name. */
-  SortType mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE) const;
+  SortType mkSort(const std::string& name, uint32_t flags) const;
 
   /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,
                                         size_t arity,
-                                        uint32_t flags = SORT_FLAG_NONE) const;
+                                        uint32_t flags) const;
 
   /**
    * Get the type of an expression.
