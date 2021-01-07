@@ -167,7 +167,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getDumpProofs() && isResultUnsat)
+    // for now we print the proof in a hardcoded manner
+    if (false && d_options.getDumpProofs() && isResultUnsat)
     {
       getterCommands.emplace_back(new GetProofCommand());
     }
