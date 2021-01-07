@@ -29,6 +29,42 @@ ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocCont
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
       d_cache(preprocContext->getUserContext()){};
 
+Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
+{
+  Assert(d_cache.find(n[0]) != d_cache.end());
+  Assert(d_cache.find(n[1]) != d_cache.end());
+  // check if the node can be simplified to true
+  if (theory::strings::ArithEntail::check(d_cache[n[0]], d_cache[n[1]], false))
+  {
+    d_cache[n] = NodeManager::currentNM()->mkConst<bool>(true);
+  }
+  else
+  {
+    d_cache[n] = n;
+  }
+  return d_cache[n];
+}
+
+Node ForeignTheoryRewrite::simplifyToFixPoint(Node n)
+{
+  Node simplified = simplify(n);
+  while (true)
+  {
+    if (d_cache.find(simplified) == d_cache.end())
+    {
+      d_cache[simplified] = simplify(simplified);
+    }
+    if (simplified == d_cache[simplified].get())
+    {
+      return simplified;
+    }
+    else
+    {
+      simplified = d_cache[simplified];
+    }
+  }
+}
+
 Node ForeignTheoryRewrite::simplify(Node n)
 {
   // first make sure the node is rewritten
@@ -48,18 +84,7 @@ Node ForeignTheoryRewrite::simplify(Node n)
     // for GEQ, we check whether the node can be simplified
     if (current.getKind() == kind::GEQ)
     {
-      Assert(d_cache.find(current[0]) != d_cache.end());
-      Assert(d_cache.find(current[1]) != d_cache.end());
-      // check if the node can be simplified to true
-      if (theory::strings::ArithEntail::check(
-              d_cache[current[0]], d_cache[current[1]], false))
-      {
-        d_cache[current] = NodeManager::currentNM()->mkConst<bool>(true);
-      }
-      else
-      {
-        d_cache[current] = current;
-      }
+      rewriteStringsGeq(current);
     }
     else
     {
@@ -102,7 +127,7 @@ PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(
-        i, Rewriter::rewrite(simplify((*assertionsToPreprocess)[i])));
+        i, Rewriter::rewrite(simplifyToFixPoint((*assertionsToPreprocess)[i])));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

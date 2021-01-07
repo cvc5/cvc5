@@ -41,6 +41,11 @@ class ForeignTheoryRewrite : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
   // the main function that simplifies n
   Node simplify(Node n);
+  // call simplify until a fixpoint is reached
+  Node simplifyToFixPoint(Node n);
+  // A simplification function specific for GEQ
+  // constraints in strings
+  Node rewriteStringsGeq(Node n);
   // A cache to store the simplified nodes
   CDNodeMap d_cache;
 };
