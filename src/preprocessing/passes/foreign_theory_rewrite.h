@@ -39,12 +39,17 @@ class ForeignTheoryRewrite : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-  // the main function that simplifies n
+  /* the main function that simplifies n.
+   * does a traversal on n and call rewriting fucntions.
+   */
   Node simplify(Node n);
-  // A simplification function specific for GEQ
-  // constraints in strings
+  /* A specific simplification function specific for GEQ
+   * constraints in strings.
+   */
   static Node rewriteStringsGeq(Node n);
+  // invoke rewrite functions for n
   static Node foreignRewrite(Node n);
+  // reconstruct a node with different children
   static Node reconstructNode(Node originalNode, vector<Node> newChildren);
   // A cache to store the simplified nodes
   CDNodeMap d_cache;
