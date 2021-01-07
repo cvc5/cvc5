@@ -28,32 +28,36 @@ ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocCont
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
       d_cache(preprocContext->getUserContext()){};
 
-
 Node ForeignTheoryRewrite::simplify(Node n)
 {
   vector<Node> toVisit;
   n = Rewriter::rewrite(n);
   toVisit.push_back(n);
   // traverse n and rewrite until fixpoint
-  while (!toVisit.empty()) {
+  while (!toVisit.empty())
+  {
     Node current = toVisit.back();
     // split according to three cases:
     // 1. We have not visited this node
     // 2. We visited it but did not process it
-    // 3. We already processed and cached the node   
-    if (d_cache.find(current) == d_cache.end()) {
+    // 3. We already processed and cached the node
+    if (d_cache.find(current) == d_cache.end())
+    {
       // current is seen for the first time.
       // mark it by assigning a null node
       // and add its children to toVisit
       d_cache[current] = Node();
       toVisit.insert(toVisit.end(), current.begin(), current.end());
-    } else if (d_cache[current].get().isNull()) {
+    }
+    else if (d_cache[current].get().isNull())
+    {
       // current was seen but was not processed.
       // (a) remove from toVisit
       toVisit.pop_back();
       // (b) Reconstruct it with processed children
       vector<Node> processedChildren;
-      for (Node child : current) {
+      for (Node child : current)
+      {
         Assert(d_cache.find(child) != d_cache.end());
         Assert(!d_cache[child].get().isNull());
         processedChildren.push_back(d_cache[child]);
@@ -64,29 +68,34 @@ Node ForeignTheoryRewrite::simplify(Node n)
       d_cache[current] = result;
       // (d) the result to toVisit
       toVisit.push_back(result);
-    } else {
-       // current was already processed
-       // remove from toVisit and skip
-       toVisit.pop_back();
-       continue;
+    }
+    else
+    {
+      // current was already processed
+      // remove from toVisit and skip
+      toVisit.pop_back();
+      continue;
     }
   }
   return d_cache[n];
 }
 
-Node ForeignTheoryRewrite::foreignRewrite(Node n) {
-    // n is a rewritten node, and so GT, LT, LEQ
-    // should have been eliminated
-    Assert(n.getKind() != kind::GT);
-    Assert(n.getKind() != kind::LT);
-    Assert(n.getKind() != kind::LEQ);
-    // apply rewrites according to the structure of n
-    if (n.getKind() == kind::GEQ)
-    {
-      return rewriteStringsGeq(n);
-    } else {
-      return n;
-    }
+Node ForeignTheoryRewrite::foreignRewrite(Node n)
+{
+  // n is a rewritten node, and so GT, LT, LEQ
+  // should have been eliminated
+  Assert(n.getKind() != kind::GT);
+  Assert(n.getKind() != kind::LT);
+  Assert(n.getKind() != kind::LEQ);
+  // apply rewrites according to the structure of n
+  if (n.getKind() == kind::GEQ)
+  {
+    return rewriteStringsGeq(n);
+  }
+  else
+  {
+    return n;
+  }
 }
 
 Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
@@ -102,27 +111,32 @@ Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
   }
 }
 
-Node ForeignTheoryRewrite::reconstructNode(Node originalNode, vector<Node> newChildren) {
-      // Nodes with no children are reconstructed to themselves
-      if (originalNode.getNumChildren() == 0) {
-        Assert(newChildren.empty());
-        return originalNode;
-      } else {
-        // re-build the node with the same kind and new children
-        kind::Kind_t k = originalNode.getKind();
-        NodeBuilder<> builder(k);
-        // special case for parameterized nodes
-        if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          builder << originalNode.getOperator();
-        }
-        // reconstruction
-        for (Node child : newChildren)
-        {
-          builder << child;
-        }
-        return builder.constructNode();
-      }
+Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
+                                           vector<Node> newChildren)
+{
+  // Nodes with no children are reconstructed to themselves
+  if (originalNode.getNumChildren() == 0)
+  {
+    Assert(newChildren.empty());
+    return originalNode;
+  }
+  else
+  {
+    // re-build the node with the same kind and new children
+    kind::Kind_t k = originalNode.getKind();
+    NodeBuilder<> builder(k);
+    // special case for parameterized nodes
+    if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      builder << originalNode.getOperator();
+    }
+    // reconstruction
+    for (Node child : newChildren)
+    {
+      builder << child;
+    }
+    return builder.constructNode();
+  }
 }
 
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
