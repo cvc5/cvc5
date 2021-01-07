@@ -887,8 +887,9 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
   return type;
 }
 
-TypeNode NodeManager::mkSortConstructor(const std::string& name, size_t arity,
-                             uint32_t flags)
+TypeNode NodeManager::mkSortConstructor(const std::string& name,
+                                        size_t arity,
+                                        uint32_t flags)
 {
   Assert(arity > 0);
   NodeBuilder<> nb(this, kind::SORT_TYPE);
