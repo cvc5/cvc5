@@ -53,7 +53,6 @@ class DumpManager
    * that should be reported during a get-model call.
    */
   void addToModelCommandAndDump(const NodeCommand& c,
-                                uint32_t flags = 0,
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 

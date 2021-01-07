@@ -50,7 +50,6 @@ void DumpManager::resetAssertions()
 }
 
 void DumpManager::addToModelCommandAndDump(const NodeCommand& c,
-                                           uint32_t flags,
                                            bool userVisible,
                                            const char* dumpTag)
 {

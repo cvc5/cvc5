@@ -89,8 +89,8 @@ class NodeManager {
   friend class expr::TypeChecker;
 
   // friends so they can access mkVar() here, which is private
-  friend Expr ExprManager::mkVar(const std::string&, Type, uint32_t flags);
-  friend Expr ExprManager::mkVar(Type, uint32_t flags);
+  friend Expr ExprManager::mkVar(const std::string&, Type);
+  friend Expr ExprManager::mkVar(Type);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -366,6 +366,7 @@ class NodeManager {
 
   void init();
 
+
   /**
    * Create a variable with the given name and type.  NOTE that no
    * lookup is done on the name.  If you mkVar("a", type) and then
@@ -373,12 +374,12 @@ class NodeManager {
    * version of this is private to avoid internal uses of mkVar() from
    * within CVC4.  Such uses should employ mkSkolem() instead.
    */
-  Node mkVar(const std::string& name, const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  Node* mkVarPtr(const std::string& name, const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
+  Node mkVar(const std::string& name, const TypeNode& type);
+  Node* mkVarPtr(const std::string& name, const TypeNode& type);
 
   /** Create a variable with the given type. */
-  Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
+  Node mkVar(const TypeNode& type);
+  Node* mkVarPtr(const TypeNode& type);
 
  public:
 
