@@ -703,6 +703,11 @@ class CVC4_PUBLIC SmtEngine
    */
   UnsatCore getUnsatCore();
 
+  /**
+   * Get a refutation proof (only if immediately preceded by an UNSAT or
+   * ENTAILED query). Only permitted if CVC4 was built with proof support and
+   * proof-new is on. */
+  std::string getProof();
 
   /**
    * Get the current set of assertions.  Only permitted if the

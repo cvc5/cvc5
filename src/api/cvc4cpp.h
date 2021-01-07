@@ -3162,6 +3162,15 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get the refutation proof
+   * SMT-LIB: ( get-proof )
+   * Requires to enable option 'proof-new'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
+
+  /**
    * Get the value of the given term.
    * SMT-LIB: ( get-value ( <term> ) )
    * @param term the term for which the value is queried
