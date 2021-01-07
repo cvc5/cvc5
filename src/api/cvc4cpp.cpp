@@ -2473,7 +2473,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  
+
   NodeManager* nm = d_solver->getNodeManager();
   Node ret =
       nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
@@ -5265,6 +5265,21 @@ std::vector<Term> Solver::getUnsatCore(void) const
     res.push_back(Term(this, e));
   }
   return res;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+/**
+ *  ( get-proof )
+ */
+std::string Solver::getProof(void) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::proofNew])
+      << "Cannot get proof explicitly enabled (try --proof-new)";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+      << "Cannot get proof unless in unsat mode.";
+  return d_smtEngine->getProof();
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
