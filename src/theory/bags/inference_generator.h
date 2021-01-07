@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "infer_info.h"
+#include "theory/bags/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,7 +35,7 @@ namespace bags {
 class InferenceGenerator
 {
  public:
-  InferenceGenerator(NodeManager* nm);
+  InferenceGenerator(SolverState* state);
   /**
    * @param n is (= A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E
@@ -136,16 +137,18 @@ class InferenceGenerator
    */
   InferInfo duplicateRemoval(Node n, Node e);
 
- private:
   /**
    * @param element of type T
    * @param bag of type (bag T)
+   * @param inferInfo to store new skolem
    * @return  a skolem for (bag.count element bag)
    */
-  Node getMultiplicitySkolem(Node element, Node bag);
+  Node getMultiplicitySkolem(Node element, Node bag, InferInfo& inferInfo);
 
+ private:
   NodeManager* d_nm;
   SkolemManager* d_sm;
+  SolverState* d_state;
   Node d_true;
   Node d_zero;
   Node d_one;

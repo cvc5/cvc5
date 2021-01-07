@@ -58,7 +58,7 @@ void BagSolver::checkUnionDisjoint(const Node& n)
   TypeNode elementType = n.getType().getBagElementType();
   for (const Node& e : d_state.getElements(elementType))
   {
-    InferenceGenerator ig(NodeManager::currentNM());
+    InferenceGenerator ig(&d_state);
     InferInfo i = ig.unionDisjoint(n, e);
     i.process(&d_im, true);
     Trace("bags::BagSolver::postCheck") << i << endl;
@@ -71,7 +71,7 @@ void BagSolver::checkUnionMax(const Node& n)
   TypeNode elementType = n.getType().getBagElementType();
   for (const Node& e : d_state.getElements(elementType))
   {
-    InferenceGenerator ig(NodeManager::currentNM());
+    InferenceGenerator ig(&d_state);
     InferInfo i = ig.unionMax(n, e);
     i.process(&d_im, true);
     Trace("bags::BagSolver::postCheck") << i << endl;
@@ -84,7 +84,7 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   TypeNode elementType = n.getType().getBagElementType();
   for (const Node& e : d_state.getElements(elementType))
   {
-    InferenceGenerator ig(NodeManager::currentNM());
+    InferenceGenerator ig(&d_state);
     InferInfo i = ig.differenceSubtract(n, e);
     i.process(&d_im, true);
     Trace("bags::BagSolver::postCheck") << i << endl;

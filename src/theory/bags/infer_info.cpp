@@ -24,6 +24,16 @@ const char* toString(Inference i)
 {
   switch (i)
   {
+    case Inference::NONE: return "NONE";
+    case Inference::BAG_EQUALITY: return "BAG_EQUALITY";
+    case Inference::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
+    case Inference::BAG_EMPTY: return "BAG_EMPTY";
+    case Inference::BAG_UNION_DISJOINT: return "BAG_UNION_DISJOINT";
+    case Inference::BAG_UNION_MAX: return "BAG_UNION_MAX";
+    case Inference::BAG_INTERSECTION_MIN: return "BAG_INTERSECTION_MIN";
+    case Inference::BAG_DIFFERENCE_SUBTRACT: return "BAG_DIFFERENCE_SUBTRACT";
+    case Inference::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
+    case Inference::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
     default: return "?";
   }
 }
