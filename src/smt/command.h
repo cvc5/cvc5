@@ -1025,6 +1025,7 @@ class CVC4_PUBLIC GetProofCommand : public Command
       int toDepth = -1,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
+
  private:
   /** the result of the getProof call */
   std::string d_result;
