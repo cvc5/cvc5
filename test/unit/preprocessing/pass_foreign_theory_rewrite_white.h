@@ -15,29 +15,13 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <iostream>
-#include <vector>
-
-#include "context/context.h"
-#include "expr/node.h"
 #include "expr/node_manager.h"
 #include "preprocessing/passes/foreign_theory_rewrite.h"
-#include "preprocessing/preprocessing_pass_registry.h"
-#include "smt/preprocessor.h"
-#include "smt/process_assertions.h"
 #include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "test_utils.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/rewriter.h"
 
 using namespace CVC4;
-using namespace CVC4::preprocessing;
 using namespace CVC4::preprocessing::passes;
-using namespace CVC4::theory;
-using namespace CVC4::theory::booleans;
-using namespace CVC4::smt;
 
 class ForeignTheoryRewriteWhite : public CxxTest::TestSuite
 {
