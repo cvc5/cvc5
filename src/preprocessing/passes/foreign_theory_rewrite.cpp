@@ -47,19 +47,24 @@ Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
 
 Node ForeignTheoryRewrite::simplifyToFixPoint(Node n)
 {
+  // simplify n
   Node simplified = simplify(n);
   while (true)
   {
+    // if the simplification is not in the case, add it
     if (d_cache.find(simplified) == d_cache.end())
     {
       d_cache[simplified] = simplify(simplified);
     }
+    // if we have reached a fixpoint, return it
     if (simplified == d_cache[simplified].get())
     {
       return simplified;
     }
     else
     {
+      // we have not reached a fixpoint.
+      // continue to next iteration
       simplified = d_cache[simplified];
     }
   }
