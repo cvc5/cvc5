@@ -49,11 +49,10 @@ void DumpManager::resetAssertions()
   // currently, do nothing
 }
 
-void DumpManager::addToModelCommandAndDump(const NodeCommand& c,
-                                           bool userVisible,
+void DumpManager::addToDump(const NodeCommand& c,
                                            const char* dumpTag)
 {
-  Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << std::endl;
+  Trace("smt") << "SMT addToDump(" << c << ")" << std::endl;
   if (Dump.isOn(dumpTag))
   {
     if (d_fullyInited)

@@ -47,7 +47,7 @@ void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
   DeclareTypeNodeCommand c(tn.getAttribute(expr::VarNameAttr()), 0, tn);
   if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
-    d_dm.addToModelCommandAndDump(c, flags);
+    d_dm.addToDump(c);
   }
 }
 
@@ -59,7 +59,7 @@ void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn,
                            tn);
   if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
-    d_dm.addToModelCommandAndDump(c);
+    d_dm.addToDump(c);
   }
 }
 
@@ -76,18 +76,20 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
       }
     }
     DeclareDatatypeNodeCommand c(dtts);
-    d_dm.addToModelCommandAndDump(c);
+    d_dm.addToDump(c);
   }
 }
 
 void SmtNodeManagerListener::nmNotifyNewVar(TNode n, uint32_t flags)
 {
+  /*
   DeclareFunctionNodeCommand c(
       n.getAttribute(expr::VarNameAttr()), n, n.getType());
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {
-    d_dm.addToModelCommandAndDump(c, flags);
+    d_dm.addToDump(c, flags);
   }
+  */
 }
 
 void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
@@ -101,10 +103,12 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
     d_outMgr.getPrinter().toStreamCmdComment(d_outMgr.getDumpOut(),
                                              id + " is " + comment);
   }
+  /*
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {
-    d_dm.addToModelCommandAndDump(c, flags, false, "skolems");
+    d_dm.addToDump(c, "skolems");
   }
+  */
 }
 
 }  // namespace smt
