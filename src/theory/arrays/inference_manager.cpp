@@ -114,7 +114,10 @@ void InferenceManager::convert(PfRule& id,
       break;
     case PfRule::ARRAYS_EXT: children.push_back(exp); break;
     default:
-      Assert(false) << "Unknown rule " << id << "\n";
+      if (id != PfRule::ARRAYS_TRUST)
+      {
+        Assert(false) << "Unknown rule " << id << "\n";
+      }
       children.push_back(exp);
       args.push_back(conc);
       id = PfRule::ARRAYS_TRUST;
