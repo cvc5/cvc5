@@ -192,8 +192,11 @@ void TheoryBags::preRegisterTerm(TNode n)
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
     case DUPLICATE_REMOVAL:
-      Unimplemented() << ": " << n.getKind()
-                      << " operator is not supported yet";
+    {
+      std::stringstream ss;
+      ss << "Term of kind " << n.getKind() << " is not supported yet";
+      throw LogicException(ss.str());
+    }
     default: break;
   }
 }
