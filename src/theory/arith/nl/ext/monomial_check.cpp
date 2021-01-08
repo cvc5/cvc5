@@ -295,7 +295,16 @@ int MonomialCheck::compareSign(
     {
       Node lemma =
           nm->mkAnd(exp).impNode(mkLit(oa, d_data->d_zero, status * 2));
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        std::vector<Node> args = exp;
+        args.emplace_back(oa);
+        proof->addStep(lemma, PfRule::ARITH_MULT_SIGN, {}, args);
+      }
+      d_data->d_im.addPendingArithLemma(
+          lemma, InferenceId::NL_SIGN, proof);
     }
     return status;
   }
