@@ -684,6 +684,8 @@ set(regress_0_tests
   regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
   regress0/nl/issue5534-no-assertions.smt2
+  regress0/nl/issue5726-downpolys.smt2
+  regress0/nl/issue5726-sqfactor.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
