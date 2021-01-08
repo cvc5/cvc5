@@ -108,7 +108,8 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
+void PfManager::printProof(std::ostream& out,
+                           std::shared_ptr<ProofNode> pfn,
                            Assertions& as,
                            DefinedFunctionMap& df)
 {
@@ -116,7 +117,6 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  std::ostream& out = *options::out();
   out << "(proof\n";
   out << *fp;
   out << "\n)\n";
