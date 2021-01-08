@@ -41,6 +41,8 @@ BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
     : d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();
+  d_zero = d_nm->mkConst(Rational(0));
+  d_one = d_nm->mkConst(Rational(1));
 }
 
 RewriteResponse BagsRewriter::postRewrite(TNode n)
@@ -51,7 +53,7 @@ RewriteResponse BagsRewriter::postRewrite(TNode n)
     // no need to rewrite n if it is already in a normal form
     response = BagsRewriteResponse(n, Rewrite::NONE);
   }
-  else if(n.getKind() == EQUAL)
+  else if (n.getKind() == EQUAL)
   {
     response = postRewriteEqual(n);
   }
@@ -162,12 +164,11 @@ BagsRewriteResponse BagsRewriter::rewriteBagCount(const TNode& n) const
   if (n[1].isConst() && n[1].getKind() == EMPTYBAG)
   {
     // (bag.count x emptybag) = 0
-    return BagsRewriteResponse(d_nm->mkConst(Rational(0)),
-                               Rewrite::COUNT_EMPTY);
+    return BagsRewriteResponse(d_zero, Rewrite::COUNT_EMPTY);
   }
   if (n[1].getKind() == MK_BAG && n[0] == n[1][0])
   {
-    // (bag.count x (mkBag x c) = c where c > 0 is a constant
+    // (bag.count x (mkBag x c) = c
     return BagsRewriteResponse(n[1][1], Rewrite::COUNT_MK_BAG);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -181,8 +182,7 @@ BagsRewriteResponse BagsRewriter::rewriteDuplicateRemoval(const TNode& n) const
   {
     // (duplicate_removal (mkBag x n)) = (mkBag x 1)
     //  where n is a positive constant
-    Node one = NodeManager::currentNM()->mkConst(Rational(1));
-    Node bag = d_nm->mkBag(n[0][0].getType(), n[0][0], one);
+    Node bag = d_nm->mkBag(n[0][0].getType(), n[0][0], d_one);
     return BagsRewriteResponse(bag, Rewrite::DUPLICATE_REMOVAL_MK_BAG);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -444,8 +444,7 @@ BagsRewriteResponse BagsRewriter::rewriteIsSingleton(const TNode& n) const
   if (n[0].getKind() == MK_BAG)
   {
     // (bag.is_singleton (mkBag x c)) = (c == 1)
-    Node one = d_nm->mkConst(Rational(1));
-    Node equal = n[0][1].eqNode(one);
+    Node equal = n[0][1].eqNode(d_one);
     return BagsRewriteResponse(equal, Rewrite::IS_SINGLETON_MK_BAG);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -457,9 +456,8 @@ BagsRewriteResponse BagsRewriter::rewriteFromSet(const TNode& n) const
   if (n[0].getKind() == SINGLETON)
   {
     // (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
-    Node one = d_nm->mkConst(Rational(1));
     TypeNode type = n[0].getType().getSetElementType();
-    Node bag = d_nm->mkBag(type, n[0][0], one);
+    Node bag = d_nm->mkBag(type, n[0][0], d_one);
     return BagsRewriteResponse(bag, Rewrite::FROM_SINGLETON);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
@@ -484,20 +482,20 @@ BagsRewriteResponse BagsRewriter::postRewriteEqual(const TNode& n) const
   Assert(n.getKind() == kind::EQUAL);
   if (n[0] == n[1])
   {
-    Node ret = NodeManager::currentNM()->mkConst(true);
+    Node ret = d_nm->mkConst(true);
     return BagsRewriteResponse(ret, Rewrite::EQ_REFL);
   }
 
   if (n[0].isConst() && n[1].isConst())
   {
-    Node ret = NodeManager::currentNM()->mkConst(false);
+    Node ret = d_nm->mkConst(false);
     return BagsRewriteResponse(ret, Rewrite::EQ_CONST_FALSE);
   }
 
   // standard ordering
   if (n[0] > n[1])
   {
-    Node ret = NodeManager::currentNM()->mkNode(kind::EQUAL, n[1], n[0]);
+    Node ret = d_nm->mkNode(kind::EQUAL, n[1], n[0]);
     return BagsRewriteResponse(ret, Rewrite::EQ_SYM);
   }
   return BagsRewriteResponse(n, Rewrite::NONE);
