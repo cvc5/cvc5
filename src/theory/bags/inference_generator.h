@@ -36,6 +36,17 @@ class InferenceGenerator
 {
  public:
   InferenceGenerator(SolverState* state);
+
+  /**
+   * @param n is (bag x c) of type (Bag E)
+   * @param e is a node of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   true
+   *   (= (bag.count e (bag x c)) (ite (= e x) c 0)))
+   */
+  InferInfo mkBag(Node n, Node e);
+
   /**
    * @param n is (= A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E

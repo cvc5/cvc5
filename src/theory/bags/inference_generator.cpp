@@ -32,6 +32,34 @@ InferenceGenerator::InferenceGenerator(SolverState* state) : d_state(state)
   d_one = d_nm->mkConst(Rational(1));
 }
 
+InferInfo InferenceGenerator::mkBag(Node n, Node e)
+{
+  Assert(n.getKind() == kind::MK_BAG);
+  Assert(e.getType() == n.getType().getBagElementType());
+
+  InferInfo inferInfo;
+  inferInfo.d_id = Inference::BAG_MK_BAG;
+  Node count = getMultiplicitySkolem(e, n, inferInfo);
+  if (n[0] == e)
+  {
+    // TODO: refactor this with the rewriter
+    // (=> true (= (bag.count e (bag e c)) c))
+    inferInfo.d_conclusion = count.eqNode(n[1]);
+  }
+  else
+  {
+    // (=>
+    //   true
+    //   (= (bag.count e (bag x c)) (ite (= e x) c 0)))
+
+    Node same = d_nm->mkNode(kind::EQUAL, n[0], e);
+    Node ite = d_nm->mkNode(kind::ITE, same, n[1], d_zero);
+    Node equal = count.eqNode(ite);
+    inferInfo.d_conclusion = equal;
+  }
+  return inferInfo;
+}
+
 InferInfo InferenceGenerator::bagEquality(Node n, Node e)
 {
   Assert(n.getKind() == kind::EQUAL && n[0].getType().isBag());
@@ -77,10 +105,10 @@ InferInfo InferenceGenerator::bagDisequality(Node n)
                    "bag_disequal",
                    "an extensional lemma for disequality of two bags");
 
-  Node countA = d_nm->mkNode(kind::BAG_COUNT, skolem, A);
-  Node countB = d_nm->mkNode(kind::BAG_COUNT, skolem, B);
-
   inferInfo.d_newSkolem.push_back(skolem);
+
+  Node countA = getMultiplicitySkolem(skolem, A, inferInfo);
+  Node countB = getMultiplicitySkolem(skolem, B, inferInfo);
 
   Node disEqual = countA.eqNode(countB).notNode();
 

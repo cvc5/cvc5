@@ -41,8 +41,12 @@ class BagSolver
   void postCheck();
 
  private:
+  /** apply inference rules for MK_BAG operator */
+  void checkMkBag(const Node& n);
   /** apply inference rules for union disjoint */
   void checkUnionDisjoint(const Node& n);
+  /** apply inference rules for union max */
+  void checkUnionMax(const Node& n);
   /** apply inference rules for difference subtract */
   void checkDifferenceSubtract(const Node& n);
 
@@ -57,7 +61,6 @@ class BagSolver
   Node d_false;
   Node d_zero;
   Node d_one;
-  void checkUnionMax(const Node& n);
 }; /* class BagSolver */
 
 }  // namespace bags

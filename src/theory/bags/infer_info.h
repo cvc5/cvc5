@@ -33,6 +33,7 @@ namespace bags {
 enum class Inference : uint32_t
 {
   NONE,
+  BAG_MK_BAG,
   BAG_EQUALITY,
   BAG_DISEQUALITY,
   BAG_EMPTY,

@@ -25,6 +25,7 @@ const char* toString(Inference i)
   switch (i)
   {
     case Inference::NONE: return "NONE";
+    case Inference::BAG_MK_BAG: return "BAG_MK_BAG";
     case Inference::BAG_EQUALITY: return "BAG_EQUALITY";
     case Inference::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
     case Inference::BAG_EMPTY: return "BAG_EMPTY";

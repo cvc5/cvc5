@@ -44,6 +44,7 @@ void BagSolver::postCheck()
     Kind k = n.getKind();
     switch (k)
     {
+      case kind::MK_BAG: checkMkBag(n); break;
       case kind::UNION_DISJOINT: checkUnionDisjoint(n); break;
       case kind::UNION_MAX: checkUnionMax(n); break;
       case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
@@ -86,6 +87,18 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.differenceSubtract(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+}
+void BagSolver::checkMkBag(const Node& n)
+{
+  Assert(n.getKind() == MK_BAG);
+  TypeNode elementType = n.getType().getBagElementType();
+  for (const Node& e : d_state.getElements(elementType))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.mkBag(n, e);
     i.process(&d_im, true);
     Trace("bags::BagSolver::postCheck") << i << endl;
   }
