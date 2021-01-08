@@ -631,9 +631,9 @@ void TheoryStrings::notifyFact(TNode atom,
     InferInfo iiPendingConf;
     d_state.getPendingConflict(iiPendingConf);
     Trace("strings-pending")
-        << "Process pending conflict " << iiPendingConf.d_ant << std::endl;
+        << "Process pending conflict " << iiPendingConf.d_premises << std::endl;
     Trace("strings-conflict")
-        << "CONFLICT: Eager : " << iiPendingConf.d_ant << std::endl;
+        << "CONFLICT: Eager : " << iiPendingConf.d_premises << std::endl;
     ++(d_statistics.d_conflictsEager);
     // call the inference manager to send the conflict
     d_im.processConflict(iiPendingConf);
