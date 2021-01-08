@@ -80,7 +80,7 @@ class BagsRewriter : public TheoryRewriter
   /**
    * rewrites for n include:
    * - (bag.count x emptybag) = 0
-   * - (bag.count x (mkBag x c) = c where c > 0 is a constant
+   * - (bag.count x (bag x c) = c
    * - otherwise = n
    */
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
@@ -213,6 +213,8 @@ class BagsRewriter : public TheoryRewriter
  private:
   /** Reference to the rewriter statistics. */
   NodeManager* d_nm;
+  Node d_zero;
+  Node d_one;
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */
