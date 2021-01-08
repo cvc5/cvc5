@@ -289,14 +289,14 @@ class PropEngine
   /** The context */
   context::Context* d_context;
 
+  /** SAT solver's proxy back to theories; kept around for dtor cleanup */
+  TheoryProxy* d_theoryProxy;
+
   /** The SAT solver proxy */
   CDCLTSatSolverInterface* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
-
-  /** Theory registrar; kept around for destructor cleanup */
-  theory::TheoryRegistrar* d_registrar;
 
   /** A pointer to the proof node maneger to be used by this engine. */
   ProofNodeManager* d_pnm;
