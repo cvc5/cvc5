@@ -14,6 +14,8 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "theory/theory_model.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -28,10 +30,13 @@ TheoryBags::TheoryBags(context::Context* c,
                        ProofNodeManager* pnm)
     : Theory(THEORY_BAGS, c, u, out, valuation, logicInfo, pnm),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_im(*this, d_state, nullptr),
+      d_ig(&d_state),
       d_notify(*this, d_im),
       d_statistics(),
-      d_rewriter(&d_statistics.d_rewrites)
+      d_rewriter(&d_statistics.d_rewrites),
+      d_termReg(d_state, d_im),
+      d_solver(d_state, d_im, d_termReg)
 {
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
@@ -70,7 +75,60 @@ void TheoryBags::finishInit()
   d_equalityEngine->addFunctionKind(BAG_TO_SET);
 }
 
-void TheoryBags::postCheck(Effort level) {}
+void TheoryBags::postCheck(Effort effort)
+{
+  d_im.doPendingFacts();
+  // TODO: clean this before merge Assert(d_strat.isStrategyInit());
+  if (!d_state.isInConflict() && !d_valuation.needCheck())
+  // TODO: clean this before merge && d_strat.hasStrategyEffort(e))
+  {
+    Trace("bags::TheoryBags::postCheck") << "effort: " << std::endl;
+
+    // TODO: clean this before merge ++(d_statistics.d_checkRuns);
+    bool sentLemma = false;
+    bool hadPending = false;
+    Trace("bags-check") << "Full effort check..." << std::endl;
+    do
+    {
+      d_im.reset();
+      // TODO: clean this before merge ++(d_statistics.d_strategyRuns);
+      Trace("bags-check") << "  * Run strategy..." << std::endl;
+      // TODO: clean this before merge runStrategy(e);
+
+      d_solver.postCheck();
+
+      // remember if we had pending facts or lemmas
+      hadPending = d_im.hasPending();
+      // Send the facts *and* the lemmas. We send lemmas regardless of whether
+      // we send facts since some lemmas cannot be dropped. Other lemmas are
+      // otherwise avoided by aborting the strategy when a fact is ready.
+      d_im.doPending();
+      // Did we successfully send a lemma? Notice that if hasPending = true
+      // and sentLemma = false, then the above call may have:
+      // (1) had no pending lemmas, but successfully processed pending facts,
+      // (2) unsuccessfully processed pending lemmas.
+      // In either case, we repeat the strategy if we are not in conflict.
+      sentLemma = d_im.hasSentLemma();
+      if (Trace.isOn("bags-check"))
+      {
+        // TODO: clean this Trace("bags-check") << "  ...finish run strategy: ";
+        Trace("bags-check") << (hadPending ? "hadPending " : "");
+        Trace("bags-check") << (sentLemma ? "sentLemma " : "");
+        Trace("bags-check") << (d_state.isInConflict() ? "conflict " : "");
+        if (!hadPending && !sentLemma && !d_state.isInConflict())
+        {
+          Trace("bags-check") << "(none)";
+        }
+        Trace("bags-check") << std::endl;
+      }
+      // repeat if we did not add a lemma or conflict, and we had pending
+      // facts or lemmas.
+    } while (!d_state.isInConflict() && !sentLemma && hadPending);
+  }
+  Trace("bags-check") << "Theory of bags, done check : " << effort << std::endl;
+  Assert(!d_im.hasPendingFact());
+  Assert(!d_im.hasPendingLemma());
+}
 
 void TheoryBags::notifyFact(TNode atom,
                             bool polarity,
@@ -80,8 +138,43 @@ void TheoryBags::notifyFact(TNode atom,
 }
 
 bool TheoryBags::collectModelValues(TheoryModel* m,
-                                    const std::set<Node>& termBag)
+                                    const std::set<Node>& termSet)
 {
+  Trace("bags-model") << "TheoryBags : Collect model values" << std::endl;
+
+  Trace("bags-model") << "Term set: " << termSet << std::endl;
+
+  // get the relevant bag equivalence classes
+  for (const Node& n : termSet)
+  {
+    TypeNode tn = n.getType();
+    if (!tn.isBag())
+    {
+      continue;
+    }
+    Node r = d_state.getRepresentative(n);
+    std::map<Node, Node> elements = d_state.getBagElements(r);
+    Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
+                        << elements << std::endl;
+    std::map<Node, Node> elementReps;
+    for (std::pair<Node, Node> pair : elements)
+    {
+      Node key = d_state.getRepresentative(pair.first);
+      Node value = d_state.getRepresentative(pair.second);
+      elementReps[key] = value;
+    }
+    Node rep = NormalForm::constructBagFromElements(tn, elementReps);
+    rep = Rewriter::rewrite(rep);
+
+    Trace("bags-model") << "rep of " << n << " is: " << rep << std::endl;
+    for (std::pair<Node, Node> pair : elementReps)
+    {
+      m->assertSkeleton(pair.first);
+      m->assertSkeleton(pair.second);
+    }
+    m->assertEquality(rep, n, true);
+    m->assertSkeleton(rep);
+  }
   return true;
 }
 
@@ -101,41 +194,73 @@ void TheoryBags::presolve() {}
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode t)
+void TheoryBags::eqNotifyNewClass(TNode n)
 {
-  Assert(false) << "Not implemented yet" << std::endl;
+  Kind k = n.getKind();
+  d_state.registerClass(n);
+  if (n.getKind() == MK_BAG)
+  {
+    // TODO: refactor this before merge
+    /*
+     * (bag x m) generates the lemma (and (= s (count x (bag x m))) (= s m))
+     * where s is a fresh skolem variable
+     */
+    NodeManager* nm = NodeManager::currentNM();
+    Node count = nm->mkNode(BAG_COUNT, n[0], n);
+    Node skolem = d_state.registerBagElement(count);
+    Node countSkolem = count.eqNode(skolem);
+    Node skolemMultiplicity = n[1].eqNode(skolem);
+    Node lemma = countSkolem.andNode(skolemMultiplicity);
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+    d_im.trustedLemma(trustedLemma);
+  }
+  if (k == BAG_COUNT)
+  {
+    /*
+     * (count x A) generates the lemma (= s (count x A))
+     * where s is a fresh skolem variable
+     */
+    Node skolem = d_state.registerBagElement(n);
+    Node lemma = n.eqNode(skolem);
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+    d_im.trustedLemma(trustedLemma);
+  }
 }
 
-void TheoryBags::eqNotifyMerge(TNode t1, TNode t2)
+void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
+
+void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 {
-  Assert(false) << "Not implemented yet" << std::endl;
+  TypeNode t1 = n1.getType();
+  if (t1.isBag())
+  {
+    InferInfo info = d_ig.bagDisequality(n1.eqNode(n2).notNode());
+    Node lemma = reason.impNode(info.d_conclusion);
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+    d_im.trustedLemma(trustedLemma);
+  }
 }
 
-void TheoryBags::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-  Assert(false) << "Not implemented yet" << std::endl;
-}
-
-void TheoryBags::NotifyClass::eqNotifyNewClass(TNode t)
+void TheoryBags::NotifyClass::eqNotifyNewClass(TNode n)
 {
   Debug("bags-eq") << "[bags-eq] eqNotifyNewClass:"
-                   << " t = " << t << std::endl;
-  d_theory.eqNotifyNewClass(t);
+                   << " n = " << n << std::endl;
+  d_theory.eqNotifyNewClass(n);
 }
 
-void TheoryBags::NotifyClass::eqNotifyMerge(TNode t1, TNode t2)
+void TheoryBags::NotifyClass::eqNotifyMerge(TNode n1, TNode n2)
 {
   Debug("bags-eq") << "[bags-eq] eqNotifyMerge:"
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyMerge(t1, t2);
+                   << " n1 = " << n1 << " n2 = " << n2 << std::endl;
+  d_theory.eqNotifyMerge(n1, n2);
 }
 
-void TheoryBags::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+void TheoryBags::NotifyClass::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 {
   Debug("bags-eq") << "[bags-eq] eqNotifyDisequal:"
-                   << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
+                   << " n1 = " << n1 << " n2 = " << n2 << " reason = " << reason
                    << std::endl;
-  d_theory.eqNotifyDisequal(t1, t2, reason);
+  d_theory.eqNotifyDisequal(n1, n2, reason);
 }
 
 }  // namespace bags

@@ -225,7 +225,7 @@ class BaseSolver
    *
    * This set contains a set of nodes that are not representatives of their
    * congruence class. This set is used to skip reasoning about terms in
-   * various inference schemas implemnted by this class.
+   * various inference schemas implemented by this class.
    */
   NodeSet d_congruent;
   /**

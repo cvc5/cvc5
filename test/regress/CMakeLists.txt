@@ -684,6 +684,8 @@ set(regress_0_tests
   regress0/nl/issue3991.smt2
   regress0/nl/issue4007-rint-uf.smt2
   regress0/nl/issue5534-no-assertions.smt2
+  regress0/nl/issue5726-downpolys.smt2
+  regress0/nl/issue5726-sqfactor.smt2
   regress0/nl/magnitude-wrong-1020-m.smt2
   regress0/nl/mult-po.smt2
   regress0/nl/nia-wrong-tl.smt2
@@ -1413,6 +1415,12 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/disequality.smt2
+  regress1/bags/subbag1.smt2
+  regress1/bags/subbag2.smt2
+  regress1/bags/union_disjoint.smt2
+  regress1/bags/union_max1.smt2
+  regress1/bags/union_max2.smt2
   regress1/bv/bench_38.delta.smt2
   regress1/bv/bug787.smt2
   regress1/bv/bug_extract_mult_leading_bit.smt2
