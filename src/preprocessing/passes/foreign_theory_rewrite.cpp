@@ -30,7 +30,7 @@ ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocCont
 
 Node ForeignTheoryRewrite::simplify(Node n)
 {
-  vector<Node> toVisit;
+  std::vector<Node> toVisit;
   n = Rewriter::rewrite(n);
   toVisit.push_back(n);
   // traverse n and rewrite until fixpoint
@@ -55,7 +55,7 @@ Node ForeignTheoryRewrite::simplify(Node n)
       // (a) remove from toVisit
       toVisit.pop_back();
       // (b) Reconstruct it with processed children
-      vector<Node> processedChildren;
+      std::vector<Node> processedChildren;
       for (Node child : current)
       {
         Assert(d_cache.find(child) != d_cache.end());
@@ -108,7 +108,7 @@ Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
 }
 
 Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
-                                           vector<Node> newChildren)
+                                           std::vector<Node> newChildren)
 {
   // Nodes with no children are reconstructed to themselves
   if (originalNode.getNumChildren() == 0)
