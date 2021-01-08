@@ -1106,6 +1106,34 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+  //======== Multiplication sign inference
+  // Children: none
+  // Arguments: (f1, ..., fk, m)
+  // ---------------------
+  // Conclusion: (=> (and f1 ... fk) (~ m 0))
+  // Where f1, ..., fk are variables compared to zero (less, greater or not
+  // equal), m is a monomial from these variables, and ~ is the comparison (less
+  // or greater) that results from the signs of the variables. All variables
+  // with even exponent in m should be given as not equal to zero while all
+  // variables with odd exponent in m should be given as less or greater than
+  // zero.
+  ARITH_MULT_SIGN,
+  //======== Multiplication with positive factor
+  // Children: none
+  // Arguments: (m, orig, lhs, rel, rhs)
+  // ---------------------
+  // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
+  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
+  // symbol.
+  ARITH_MULT_POS,
+  //======== Multiplication with negative factor
+  // Children: none
+  // Arguments: (m, orig, (rel lhs rhs))
+  // ---------------------
+  // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
+  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
+  // symbol and rel_inv the inverted relation symbol.
+  ARITH_MULT_NEG,
   //======== Multiplication tangent plane
   // Children: none
   // Arguments: (t, x, y, a, b, sgn)
