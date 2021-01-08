@@ -182,7 +182,21 @@ TrustNode TheoryBags::explain(TNode node) { return d_im.explainLit(node); }
 
 Node TheoryBags::getModelValue(TNode node) { return Node::null(); }
 
-void TheoryBags::preRegisterTerm(TNode node) {}
+void TheoryBags::preRegisterTerm(TNode n)
+{
+  Trace("bags::TheoryBags::preRegisterTerm") << n << std::endl;
+  switch (n.getKind())
+  {
+    case BAG_CARD:
+    case BAG_FROM_SET:
+    case BAG_TO_SET:
+    case BAG_IS_SINGLETON:
+    case DUPLICATE_REMOVAL:
+      Unimplemented() << ": " << n.getKind()
+                      << " operator is not supported yet";
+    default: break;
+  }
+}
 
 TrustNode TheoryBags::expandDefinition(Node n)
 {
