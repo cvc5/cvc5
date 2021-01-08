@@ -91,17 +91,19 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
-  d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::CnfStream(
-      d_satSolver, d_registrar, userContext, &d_outMgr, rm, FormulaLitPolicy::TRACK);
-
+  // CNF stream and theory proxy required pointers to each other, make the theory proxy first
   d_theoryProxy = new TheoryProxy(this,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
-                                  d_context,
+                                  satContext,
                                   userContext,
-                                  d_cnfStream,
                                   pnm);
+  d_cnfStream = new CVC4::prop::CnfStream(
+      d_satSolver, d_theoryProxy, userContext, &d_outMgr, rm, FormulaLitPolicy::TRACK);
+  
+  // connect theory proxy
+  d_theoryProxy->finishInit(d_cnfStream);
+  // connect SAT solver
   d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -144,7 +146,6 @@ PropEngine::~PropEngine() {
   d_decisionEngine->shutdown();
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
-  delete d_registrar;
   delete d_satSolver;
   delete d_theoryProxy;
 }

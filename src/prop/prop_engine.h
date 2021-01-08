@@ -289,9 +289,6 @@ class PropEngine
   /** The context */
   context::Context* d_context;
 
-  /** SAT solver's proxy back to theories; kept around for dtor cleanup */
-  TheoryProxy* d_theoryProxy;
-
   /** The SAT solver proxy */
   CDCLTSatSolverInterface* d_satSolver;
 
