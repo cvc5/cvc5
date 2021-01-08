@@ -37,7 +37,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 
