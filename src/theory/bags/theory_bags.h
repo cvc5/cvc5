@@ -19,9 +19,11 @@
 
 #include <memory>
 
+#include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
 #include "theory/bags/inference_manager.h"
+#include "theory/bags/inference_generator.h"
 #include "theory/bags/solver_state.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -58,7 +60,7 @@ class TheoryBags : public Theory
 
   //--------------------------------- standard check
   /** Post-check, called after the fact queue of the theory is processed. */
-  void postCheck(Effort level) override;
+  void postCheck(Effort effort) override;
   /** Notify fact */
   void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
   //--------------------------------- end standard check
@@ -82,9 +84,9 @@ class TheoryBags : public Theory
         : TheoryEqNotifyClass(inferenceManager), d_theory(theory)
     {
     }
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyMerge(TNode t1, TNode t2) override;
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
+    void eqNotifyNewClass(TNode n) override;
+    void eqNotifyMerge(TNode n1, TNode n2) override;
+    void eqNotifyDisequal(TNode n1, TNode n2, TNode reason) override;
 
    private:
     TheoryBags& d_theory;
@@ -94,15 +96,21 @@ class TheoryBags : public Theory
   SolverState d_state;
   /** The inference manager */
   InferenceManager d_im;
+  /** The inference generator */
+  InferenceGenerator d_ig;
   /** Instance of the above class */
   NotifyClass d_notify;
   /** Statistics for the theory of bags. */
   BagsStatistics d_statistics;
   /** The theory rewriter for this theory. */
   BagsRewriter d_rewriter;
+  /** The term registry for this theory */
+  TermRegistry d_termReg;
+  /** the main solver for bags */
+  BagSolver d_solver;
 
-  void eqNotifyNewClass(TNode t);
-  void eqNotifyMerge(TNode t1, TNode t2);
+  void eqNotifyNewClass(TNode n);
+  void eqNotifyMerge(TNode n1, TNode n2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 }; /* class TheoryBags */
 

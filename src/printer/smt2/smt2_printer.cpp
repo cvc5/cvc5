@@ -813,7 +813,30 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
   // bags
-  case kind::BAG_TYPE:  out << smtKindString(k, d_variant) << " "; break;
+  case kind::BAG_TYPE:
+  case kind::UNION_MAX:
+  case kind::UNION_DISJOINT:
+  case kind::INTERSECTION_MIN:
+  case kind::DIFFERENCE_SUBTRACT:
+  case kind::DIFFERENCE_REMOVE:
+  case kind::SUBBAG:
+  case kind::BAG_COUNT:
+  case kind::DUPLICATE_REMOVAL:
+  case kind::BAG_CARD:
+  case kind::BAG_CHOOSE:
+  case kind::BAG_IS_SINGLETON:
+  case kind::BAG_FROM_SET:
+  case kind::BAG_TO_SET: out << smtKindString(k, d_variant) << " "; break;
+  case kind::MK_BAG:
+  {
+    // print (bag (mkBag_op Real) 1 3) as (bag 1.0 3)
+    out << smtKindString(k, d_variant) << " ";
+    TypeNode elemType = n.getType().getBagElementType();
+    toStreamCastToType(
+        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    out << " " << n[1] << ")";
+    return;
+  }
 
     // fp theory
   case kind::FLOATINGPOINT_FP:
@@ -1170,6 +1193,20 @@ static string smtKindString(Kind k, Variant v)
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
+  case kind::UNION_MAX: return "union_max";
+  case kind::UNION_DISJOINT: return "union_disjoint";
+  case kind::INTERSECTION_MIN: return "intersection_min";
+  case kind::DIFFERENCE_SUBTRACT: return "difference_subtract";
+  case kind::DIFFERENCE_REMOVE: return "difference_remove";
+  case kind::SUBBAG: return "subbag";
+  case kind::BAG_COUNT: return "bag.count";
+  case kind::DUPLICATE_REMOVAL: return "duplicate_removal";
+  case kind::MK_BAG: return "bag";
+  case kind::BAG_CARD: return "bag.card";
+  case kind::BAG_CHOOSE: return "bag.choose";
+  case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
+  case kind::BAG_FROM_SET: return "bag.from_set";
+  case kind::BAG_TO_SET: return "bag.to_set";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
