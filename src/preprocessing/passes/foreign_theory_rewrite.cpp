@@ -94,10 +94,7 @@ Node ForeignTheoryRewrite::foreignRewrite(Node n)
   {
     return rewriteStringsGeq(n);
   }
-  else
-  {
-    return n;
-  }
+  return n;
 }
 
 Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
@@ -107,10 +104,7 @@ Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
   {
     return NodeManager::currentNM()->mkConst(true);
   }
-  else
-  {
-    return n;
-  }
+  return n;
 }
 
 Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
@@ -122,23 +116,20 @@ Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
     Assert(newChildren.empty());
     return originalNode;
   }
-  else
+  // re-build the node with the same kind and new children
+  kind::Kind_t k = originalNode.getKind();
+  NodeBuilder<> builder(k);
+  // special case for parameterized nodes
+  if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
-    // re-build the node with the same kind and new children
-    kind::Kind_t k = originalNode.getKind();
-    NodeBuilder<> builder(k);
-    // special case for parameterized nodes
-    if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
-    {
-      builder << originalNode.getOperator();
-    }
-    // reconstruction
-    for (Node child : newChildren)
-    {
-      builder << child;
-    }
-    return builder.constructNode();
+    builder << originalNode.getOperator();
   }
+  // reconstruction
+  for (Node child : newChildren)
+  {
+    builder << child;
+  }
+  return builder.constructNode();
 }
 
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
