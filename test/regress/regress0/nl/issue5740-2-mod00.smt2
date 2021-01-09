@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ext-rewrite-quant
+; COMMAND-LINE: --ext-rewrite-quant --sygus-inst -q
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
