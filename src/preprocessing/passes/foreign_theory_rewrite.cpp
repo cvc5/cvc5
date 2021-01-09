@@ -24,12 +24,113 @@ namespace preprocessing {
 namespace passes {
 
 using namespace CVC4::theory;
-
 ForeignTheoryRewrite::ForeignTheoryRewrite(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "foreign-theory-rewrite"),
       d_cache(preprocContext->getUserContext()){};
 
-Node ForeignTheoryRewrite::simplify(Node n) { assert(false); }
+Node ForeignTheoryRewrite::simplify(Node n)
+{
+  std::vector<Node> toVisit;
+  n = Rewriter::rewrite(n);
+  toVisit.push_back(n);
+  // traverse n and rewrite until fixpoint
+  while (!toVisit.empty())
+  {
+    Node current = toVisit.back();
+    // split according to three cases:
+    // 1. We have not visited this node
+    // 2. We visited it but did not process it
+    // 3. We already processed and cached the node
+    if (d_cache.find(current) == d_cache.end())
+    {
+      // current is seen for the first time.
+      // mark it by assigning a null node
+      // and add its children to toVisit
+      d_cache[current] = Node();
+      toVisit.insert(toVisit.end(), current.begin(), current.end());
+    }
+    else if (d_cache[current].get().isNull())
+    {
+      // current was seen but was not processed.
+      // (a) remove from toVisit
+      toVisit.pop_back();
+      // (b) Reconstruct it with processed children
+      std::vector<Node> processedChildren;
+      for (Node child : current)
+      {
+        Assert(d_cache.find(child) != d_cache.end());
+        Assert(!d_cache[child].get().isNull());
+        processedChildren.push_back(d_cache[child]);
+      }
+      Node reconstruction = reconstructNode(current, processedChildren);
+      // (c) process the node and store the result in the cache
+      Node result = foreignRewrite(reconstruction);
+      d_cache[current] = result;
+      // (d) add the result to toVisit, unless it is the same as current
+      if (current != result)
+      {
+        toVisit.push_back(result);
+      }
+    }
+    else
+    {
+      // current was already processed
+      // remove from toVisit and skip
+      toVisit.pop_back();
+    }
+  }
+  return d_cache[n];
+}
+
+Node ForeignTheoryRewrite::foreignRewrite(Node n)
+{
+  // n is a rewritten node, and so GT, LT, LEQ
+  // should have been eliminated
+  Assert(n.getKind() != kind::GT);
+  Assert(n.getKind() != kind::LT);
+  Assert(n.getKind() != kind::LEQ);
+  // apply rewrites according to the structure of n
+  if (n.getKind() == kind::GEQ)
+  {
+    return rewriteStringsGeq(n);
+  }
+  return n;
+}
+
+Node ForeignTheoryRewrite::rewriteStringsGeq(Node n)
+{
+  // check if the node can be simplified to true
+  if (theory::strings::ArithEntail::check(n[0], n[1], false))
+  {
+    return NodeManager::currentNM()->mkConst(true);
+  }
+  return n;
+}
+
+Node ForeignTheoryRewrite::reconstructNode(Node originalNode,
+                                           std::vector<Node> newChildren)
+{
+  // Nodes with no children are reconstructed to themselves
+  if (originalNode.getNumChildren() == 0)
+  {
+    Assert(newChildren.empty());
+    return originalNode;
+  }
+  // re-build the node with the same kind and new children
+  kind::Kind_t k = originalNode.getKind();
+  NodeBuilder<> builder(k);
+  // special case for parameterized nodes
+  if (originalNode.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    builder << originalNode.getOperator();
+  }
+  // reconstruction
+  for (Node child : newChildren)
+  {
+    builder << child;
+  }
+  return builder.constructNode();
+}
 
 PreprocessingPassResult ForeignTheoryRewrite::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
