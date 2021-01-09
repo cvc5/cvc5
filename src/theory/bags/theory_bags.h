@@ -22,8 +22,8 @@
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
-#include "theory/bags/inference_manager.h"
 #include "theory/bags/inference_generator.h"
+#include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
@@ -70,7 +70,7 @@ class TheoryBags : public Theory
   TrustNode explain(TNode) override;
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_BAGS"; }
-  void preRegisterTerm(TNode node) override;
+  void preRegisterTerm(TNode n) override;
   TrustNode expandDefinition(Node n) override;
   void presolve() override;
 
