@@ -49,7 +49,7 @@ class PfManager
   PfManager(context::UserContext* u, SmtEngine* smte);
   ~PfManager();
   /**
-   * Print the proof on the output channel of the current options in scope.
+   * Print the proof on the given output stream.
    *
    * The argument pfn is the proof for false in the current context.
    *
@@ -58,7 +58,8 @@ class PfManager
    * function map correspond to equalities of the form (= f (lambda (...) t)),
    * which are considered assertions in the final proof.
    */
-  void printProof(std::shared_ptr<ProofNode> pfn,
+  void printProof(std::ostream& out,
+                  std::shared_ptr<ProofNode> pfn,
                   Assertions& as,
                   DefinedFunctionMap& df);
   /**
