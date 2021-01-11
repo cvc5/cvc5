@@ -647,8 +647,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // get the literals in the chain conclusion
     std::vector<Node> chainConclusionLits{chainConclusion.begin(),
                                           chainConclusion.end()};
-    std::unordered_set<Node, NodeHashFunction> chainConclusionLitsSet{
-        chainConclusion.begin(), chainConclusion.end()};
+    std::set<Node> chainConclusionLitsSet{chainConclusion.begin(),
+                                          chainConclusion.end()};
     // is args[0] a unit clause? If it's not an OR node, then yes. Otherwise,
     // it's only a unit if it occurs in chainConclusionLitsSet
     std::vector<Node> conclusionLits;
@@ -663,14 +663,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       conclusionLits.insert(
           conclusionLits.end(), args[0].begin(), args[0].end());
     }
-    std::unordered_set<Node, NodeHashFunction> conclusionLitsSet{
-        conclusionLits.begin(), conclusionLits.end()};
-    // Sets are the same: FACTORING on conclusion; otherwise there are crowding
-    // lits. Note that this assertion is not considering reordering.
-    Assert(chainConclusionLitsSet != conclusionLitsSet
-           || chainConclusionLits.size() != conclusionLits.size());
-    // there are "crowding" literals, i.e. literals that were removed by
-    // implicit multi-usage of premises in the resolution chain.
+    std::set<Node> conclusionLitsSet{conclusionLits.begin(),
+                                     conclusionLits.end()};
+    // If the sets are different, there are "crowding" literals, i.e. literals
+    // that were removed by implicit multi-usage of premises in the resolution
+    // chain.
     if (chainConclusionLitsSet != conclusionLitsSet)
     {
       chainConclusion = eliminateCrowdingLits(
