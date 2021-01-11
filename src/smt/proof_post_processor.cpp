@@ -139,7 +139,6 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
 {
   NodeManager* nm = NodeManager::currentNM();
   Node trueNode = nm->mkConst(true);
-  Node falseNode = nm->mkConst(false);
   // get crowding lits and the position of the last clause that includes
   // them. The factoring step must be added after the last inclusion and before
   // its elimination.
