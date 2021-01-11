@@ -257,7 +257,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   //   end_0 = eliminators[0] - 1
   //   start_i+1 = nextGuardedElimPos - 1
   //
-  // The important point is how end_i+1 is computed. It is based on what we cann
+  // The important point is how end_i+1 is computed. It is based on what we call
   // the "nextGuardedElimPos", i.e., the next elimination position that requires
   // removal of duplicates. The intuition is that a factoring step may eliminate
   // the duplicates of crowding literals l1 and l2. If the last inclusion of l2
