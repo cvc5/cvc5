@@ -217,7 +217,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   Assert(!lastInclusion.empty());
   // order map so that we process crowding literals in the order of the clauses
   // that last introduce them
-  auto cmp = [=](std::pair<Node, size_t>& a, std::pair<Node, size_t>& b) {
+  auto cmp = [](std::pair<Node, size_t>& a, std::pair<Node, size_t>& b) {
     return a.second < b.second;
   };
   std::sort(lastInclusion.begin(), lastInclusion.end(), cmp);
