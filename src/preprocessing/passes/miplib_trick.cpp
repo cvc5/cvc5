@@ -156,7 +156,7 @@ MipLibTrick::~MipLibTrick()
   }
 }
 
-void MipLibTrick::nmNotifyNewVar(TNode n, uint32_t flags)
+void MipLibTrick::nmNotifyNewVar(TNode n)
 {
   if (n.getType().isBoolean())
   {
