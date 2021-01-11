@@ -355,7 +355,7 @@ class InferenceManager;
  * send a fact, lemma, or conflict that is waiting to be asserted to the
  * equality engine or sent on the output channel.
  *
- * For the sake of proofs, the antecedents in InferInfo have a particular
+ * For the sake of proofs, the premises in InferInfo have a particular
  * ordering for many of the core strings rules, which is expected by
  * InferProofCons for constructing proofs of F_CONST, F_UNIFY, N_CONST, etc.
  * which apply to a pair of string terms t and s. At a high level, the ordering
@@ -365,7 +365,7 @@ class InferenceManager;
  * (3) (optionally) a length constraint.
  * For example, say we have:
  *   { x ++ y ++ v1 = z ++ w ++ v2, x = z ++ u, u = "", len(y) = len(w) }
- * We can conclude y = w by the N_UNIFY rule from the left side. The antecedent
+ * We can conclude y = w by the N_UNIFY rule from the left side. The premise
  * has the following form:
  * - (prefix up to y/w equal) x = z ++ u, u = "",
  * - (main equality) x ++ y ++ v1 = z ++ w ++ v2,
@@ -387,15 +387,15 @@ class InferInfo : public TheoryInference
   /** The conclusion */
   Node d_conc;
   /**
-   * The antecedent(s) of the inference, interpreted conjunctively. These are
+   * The premise(s) of the inference, interpreted conjunctively. These are
    * literals that currently hold in the equality engine.
    */
-  std::vector<Node> d_ant;
+  std::vector<Node> d_premises;
   /**
-   * The "new literal" antecedent(s) of the inference, interpreted
+   * The "new literal" premise(s) of the inference, interpreted
    * conjunctively. These are literals that were needed to show the conclusion
    * but do not currently hold in the equality engine. These should be a subset
-   * of d_ant. In other words, antecedents that are not explained are stored
+   * of d_ant. In other words, premises that are not explained are stored
    * in *both* d_ant and d_noExplain.
    */
   std::vector<Node> d_noExplain;
@@ -404,22 +404,22 @@ class InferInfo : public TheoryInference
    * are mapped to by a length status, indicating the length constraint that
    * can be assumed for them.
    */
-  std::map<LengthStatus, std::vector<Node> > d_new_skolem;
+  std::map<LengthStatus, std::vector<Node> > d_newSkolem;
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**
    * Does this infer info correspond to a conflict? True if d_conc is false
-   * and it has no new antecedents (d_noExplain).
+   * and it has no new premises (d_noExplain).
    */
   bool isConflict() const;
   /**
    * Does this infer info correspond to a "fact". A fact is an inference whose
    * conclusion should be added as an equality or predicate to the equality
-   * engine with no new external antecedents (d_noExplain).
+   * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
-  /** Get antecedent */
-  Node getAntecedent() const;
+  /** Get premises */
+  Node getPremises() const;
 };
 
 /**
