@@ -151,12 +151,12 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
       TypeNode tnc = getArrayConstituentType();
       if (!tnc.isFiniteInternal(usortFinite))
       {
-        // arrays with consistuent type that is infinite are infinite
+        // arrays with constituent type that is infinite are infinite
         ret = false;
       }
       else if (getArrayIndexType().isFiniteInternal(usortFinite))
       {
-        // arrays with both finite consistuent and index types are finite
+        // arrays with both finite constituent and index types are finite
         ret = true;
       }
       else
@@ -169,6 +169,11 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     else if (isSet())
     {
       ret = getSetElementType().isFiniteInternal(usortFinite);
+    }
+    else if (isBag())
+    {
+      // there are infinite bags for all element types
+      ret = false;
     }
     else if (isFunction())
     {
