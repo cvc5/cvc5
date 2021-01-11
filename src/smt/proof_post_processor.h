@@ -153,9 +153,9 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /**
    * When given children and args lead to different sets of literals in a
    * conclusion depending on whether macro resolution or chain resolution is
-   * applied, the literals in the difference of the second from the first, from
-   * now on "crowding literals", are literals removed implicitly by macro
-   * resolution. For example
+   * applied, the literals that appear in the chain resolution result, but not
+   * in the macro resolution result, from now on "crowding literals", are
+   * literals removed implicitly by macro resolution. For example
    *
    *      l0 v l0 v l0 v l1 v l2    ~l0 v l1   ~l1
    * (1)  ----------------------------------------- MACRO_RES
@@ -207,6 +207,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * while the former the literals from a direct application of CHAIN_RES). Then
    * it builds a proof such as (4) and adds the steps to cdp. The final
    * conclusion is returned.
+   *
+   * Note that in the example the CHAIN_RES steps introduced had only two
+   * premises, and could thus be replaced by a RESOLUTION step, but since we
+   * general there can be more than two premises we always use CHAIN_RES.
    *
    * @param clauseLits literals in the conclusion of a CHAIN_RESOLUTION step
    * with children and args[1:]
