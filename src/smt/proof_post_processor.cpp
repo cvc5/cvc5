@@ -180,9 +180,10 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
       Trace("smt-proof-pp-debug2") << "last inc " << j - 1 << "\n";
       // get elimination position, starting from the following link as the last
-      // inclusion one. The result is the last resolution link that eliminates
-      // the crowding literal. A literal l is eliminated by a link if it
-      // contains a literal l' with opposite polarity to l.
+      // inclusion one. The result is the last (in the chain, but first from
+      // this point on) resolution link that eliminates the crowding literal. A
+      // literal l is eliminated by a link if it contains a literal l' with
+      // opposite polarity to l.
       for (; j < children.size(); ++j)
       {
         bool posFirst = args[(2 * j) - 1] == trueNode;
