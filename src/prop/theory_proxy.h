@@ -29,6 +29,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
+#include "prop/registrar.h"
 #include "prop/sat_solver.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
@@ -49,7 +50,7 @@ class CnfStream;
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
-class TheoryProxy
+class TheoryProxy : public Registrar
 {
  public:
   TheoryProxy(PropEngine* propEngine,
@@ -57,10 +58,12 @@ class TheoryProxy
               DecisionEngine* decisionEngine,
               context::Context* context,
               context::UserContext* userContext,
-              CnfStream* cnfStream,
               ProofNodeManager* pnm);
 
   ~TheoryProxy();
+
+  /** Finish initialize */
+  void finishInit(CnfStream* cnfStream);
 
   void theoryCheck(theory::Theory::Effort effort);
 
@@ -111,6 +114,8 @@ class TheoryProxy
                                std::vector<theory::TrustNode>& newLemmas,
                                std::vector<Node>& newSkolems,
                                bool doTheoryPreprocess);
+  /** Preregister term */
+  void preRegister(Node n) override;
 
  private:
   /** The prop engine we are using. */

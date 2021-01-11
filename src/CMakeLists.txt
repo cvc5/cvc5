@@ -954,7 +954,6 @@ libcvc4_add_sources(
   theory/theory_proof_step_buffer.h
   theory/theory_rewriter.cpp
   theory/theory_rewriter.h
-  theory/theory_registrar.h
   theory/theory_state.cpp
   theory/theory_state.h
   theory/theory_test_utils.h

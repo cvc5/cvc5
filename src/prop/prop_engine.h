@@ -298,9 +298,6 @@ class PropEngine
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
 
-  /** Theory registrar; kept around for destructor cleanup */
-  theory::TheoryRegistrar* d_registrar;
-
   /** A pointer to the proof node maneger to be used by this engine. */
   ProofNodeManager* d_pnm;
 

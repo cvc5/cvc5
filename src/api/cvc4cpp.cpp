@@ -3730,7 +3730,7 @@ Sort Solver::mkParamSort(const std::string& symbol) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(
       this,
-      getNodeManager()->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER));
+      getNodeManager()->mkSort(symbol, NodeManager::SORT_FLAG_PLACEHOLDER));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
