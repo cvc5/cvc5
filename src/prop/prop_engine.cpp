@@ -96,7 +96,7 @@ PropEngine::PropEngine(TheoryEngine* te,
                                   satContext,
                                   userContext,
                                   pnm);
-  d_cnfStream = new CVC4::prop::CnfStream(
+  d_cnfStream = new CnfStream(
       d_satSolver, d_theoryProxy, userContext, &d_outMgr, rm, FormulaLitPolicy::TRACK);
   
   // connect theory proxy

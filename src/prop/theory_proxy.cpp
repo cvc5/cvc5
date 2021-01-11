@@ -37,7 +37,7 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          context::UserContext* userContext,
                          ProofNodeManager* pnm)
     : d_propEngine(propEngine),
-      d_cnfStream(NULL),
+      d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_queue(context),
