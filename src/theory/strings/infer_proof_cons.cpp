@@ -987,7 +987,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   TheoryProofStepBuffer psb(d_pnm->getChecker());
   std::shared_ptr<InferInfo> ii = (*it).second;
   // run the conversion
-  convert(ii->d_id, ii->d_idRev, ii->d_conc, ii->d_ant, ps, psb, useBuffer);
+  convert(ii->d_id, ii->d_idRev, ii->d_conc, ii->d_premises, ps, psb, useBuffer);
   // make the proof based on the step or the buffer
   if (useBuffer)
   {
