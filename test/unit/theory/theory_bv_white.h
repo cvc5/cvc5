@@ -27,6 +27,7 @@
 #include "theory/bv/bitblast/eager_bitblaster.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/theory.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_test_utils.h"
 
 using namespace CVC4;
