@@ -176,7 +176,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         }
       }
       Assert(j > 0);
-      lastInclusion.push_back(std::make_pair(crowdLit, j - 1));
+      lastInclusion.emplace_back(crowdLit, j - 1);
       Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
       Trace("smt-proof-pp-debug2") << "last inc " << j - 1 << "\n";
       // get elimination position, starting from the following link as the last
