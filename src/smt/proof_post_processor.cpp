@@ -197,11 +197,10 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         // - crowdLit is the same as the pivot and posFirst is true, which means
         //   that the clause contains its negation and eliminates it
         //
-        // - the pivot is equal to crowdLit negated and posFirst is false, which
-        //   means that the clause contains the negation of crowdLit
-        //
         // - crowdLit is the negation of the pivot and posFirst is false, so the
-        //   clause contains the node whose negation is crowdLit
+        //   clause contains the node whose negation is crowdLit. Note that this
+        //   case may either be crowdLit.notNode() == pivot or crowdLit ==
+        //   pivot.notNode().
         if ((crowdLit == pivot && posFirst)
             || (crowdLit.notNode() == pivot && !posFirst)
             || (pivot.notNode() == crowdLit && !posFirst))
