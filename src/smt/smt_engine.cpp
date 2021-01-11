@@ -675,8 +675,7 @@ void SmtEngine::defineFunction(Node func,
   }
 
   DefineFunctionNodeCommand nc(ss.str(), func, nFormals, formula);
-  d_dumpm->addToModelCommandAndDump(
-      nc, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
+  d_dumpm->addToDump(nc, "declarations");
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
