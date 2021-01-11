@@ -89,16 +89,21 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
-  // CNF stream and theory proxy required pointers to each other, make the theory proxy first
+  // CNF stream and theory proxy required pointers to each other, make the
+  // theory proxy first
   d_theoryProxy = new TheoryProxy(this,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
                                   satContext,
                                   userContext,
                                   pnm);
-  d_cnfStream = new CnfStream(
-      d_satSolver, d_theoryProxy, userContext, &d_outMgr, rm, FormulaLitPolicy::TRACK);
-  
+  d_cnfStream = new CnfStream(d_satSolver,
+                              d_theoryProxy,
+                              userContext,
+                              &d_outMgr,
+                              rm,
+                              FormulaLitPolicy::TRACK);
+
   // connect theory proxy
   d_theoryProxy->finishInit(d_cnfStream);
   // connect SAT solver

@@ -61,10 +61,10 @@ class TheoryProxy : public Registrar
               ProofNodeManager* pnm);
 
   ~TheoryProxy();
-  
-	  /** Finish initialize */
+
+  /** Finish initialize */
   void finishInit(CnfStream* cnfStream);
-  
+
   void theoryCheck(theory::Theory::Effort effort);
 
   void explainPropagation(SatLiteral l, SatClause& explanation);
@@ -116,6 +116,7 @@ class TheoryProxy : public Registrar
                                bool doTheoryPreprocess);
   /** Preregister term */
   void preRegister(Node n) override;
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
