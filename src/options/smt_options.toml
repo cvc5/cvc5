@@ -683,7 +683,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "foreignTheoryRewrite"
   category   = "regular"
-  long       = "foreign-theory-rewritey"
+  long       = "foreign-theory-rewrite"
   type       = "bool"
   default    = "false"
   read_only  = true
