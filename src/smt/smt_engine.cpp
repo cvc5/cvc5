@@ -1535,7 +1535,6 @@ UnsatCore SmtEngine::getUnsatCore() {
 void SmtEngine::getRelevantInstantiationTermVectors(
     std::map<Node, std::vector<std::vector<Node>>>& insts)
 {
-  Assert(options::unsatCores());
   Assert(d_state->getMode() == SmtMode::UNSAT);
   // generate with new proofs
   PropEngine* pe = getPropEngine();
