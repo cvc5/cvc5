@@ -226,7 +226,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   if (Trace.isOn("smt-proof-pp-debug"))
   {
     Trace("smt-proof-pp-debug") << "crowding lits last inclusion:\n";
-    for (const std::pair<const Node&, size_t>& pair : lastInclusion)
+    for (const auto& pair : lastInclusion)
     {
       Trace("smt-proof-pp-debug")
           << "\t- [" << pair.second << "] : " << pair.first << "\n";
