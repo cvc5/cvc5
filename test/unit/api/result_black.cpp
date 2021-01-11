@@ -50,8 +50,8 @@ TEST_F(TestApiResultBlack, eq)
   CVC4::api::Result res2 = d_solver.checkSat();
   CVC4::api::Result res3 = d_solver.checkSat();
   res = res2;
-  EXPECT_EQ(res, res2);
-  EXPECT_EQ(res3, res2);
+  ASSERT_EQ(res, res2);
+  ASSERT_EQ(res3, res2);
 }
 
 TEST_F(TestApiResultBlack, isSat)
@@ -115,7 +115,7 @@ TEST_F(TestApiResultBlack, isEntailmentUnknown)
   CVC4::api::Result res = d_solver.checkEntailed(x.eqTerm(x));
   ASSERT_FALSE(res.isEntailed());
   ASSERT_TRUE(res.isEntailmentUnknown());
-  EXPECT_EQ(res.getUnknownExplanation(), "UNKNOWN_REASON");
+  ASSERT_EQ(res.getUnknownExplanation(), "UNKNOWN_REASON");
 }
 }  // namespace test
 }  // namespace CVC4
