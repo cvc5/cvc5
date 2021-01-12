@@ -31,10 +31,7 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
 {
   VeritRule id =
       static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()));
-  if (id == VeritRule::ANCHOR_SUBPROOF)
-  {
-    return true;
-  }
+
 
   Node res = pfn->getArguments()[2];
   NodeManager* nm = NodeManager::currentNM();
@@ -53,12 +50,17 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
 
   switch (id)
   {
-    case VeritRule::ANCHOR:
+    case VeritRule::ANCHOR: //TODO
     {
-      return true;
+	    std::cout << "sdf" << std::endl;
+      return false;
     }
     case VeritRule::ASSUME:
     {
+      if (res[0].toString() == cl.toString())
+      {
+        return false;
+      }
       return true;
     }
     case VeritRule::ANCHOR_SUBPROOF:
@@ -104,7 +106,7 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     {
       bool equal = true;
       bool neg = true;
-      for (auto i = 0; i < res[1].end() - res[1].end(); i++)
+      for (auto i = 0; i < res[1].end() - res[1].begin(); i++)
       {
         if (res[1][i] != res[i + 2][0])
         {
@@ -120,7 +122,7 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::OR_POS:
     {
       bool equal = true;
-      for (auto i = 0; i < res[1][0].end() - res[1][0].end(); i++)
+      for (auto i = 0; i < res[1][0].end() - res[1][0].begin(); i++)
       {
         if (res[1][0][i] != res[i + 2])
         {
@@ -306,8 +308,53 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     /* Leave out rules 28-38 */
     case VeritRule::RESOLUTION:
-    {  // TODO
-      return true;
+    {  // This is not a real resolution check, but should be good enough. The problem is that the order is unimportant here.
+      if (res[0].toString() != cl.toString())
+      {
+        return false;
+      }
+      std::vector<Node> clauses;
+ 
+      for(int j = 0; j < (new_children.end()-new_children.begin());j++){
+	      std::cout << "new_children[j] " <<  new_children[j] << std::endl;
+      }
+      for(int j = 1; j < (new_children[0].end()-new_children[0].begin());j++){
+         std::cout << "push to clauses " << new_children[0][j] << std::endl;
+	  clauses.push_back(new_children[0][j]);
+      }
+      for (int i = 1; i < (new_children.end() - new_children.begin());
+           i++)
+      {
+        for(int j = 1; j < (new_children[i].end()-new_children[i].begin());j++){
+	  bool new_clause = true;
+          for(int k = 0; k < (clauses.end()-clauses.begin());k++){
+	     if(new_children[i][j] == clauses[k].notNode()){
+		std::cout << "erease from clauses " << clauses[k] << std::endl;
+		clauses.erase(clauses.begin()+k);
+		new_clause = false;
+		break;
+	     }
+	  }
+	  if(new_clause){
+	    clauses.push_back(new_children[i][j]);
+            std::cout << "push to clauses " << new_children[i][j] << std::endl;
+	  }
+	}
+      }
+      for(int i = 1; i < (res.end()-res.begin());i++){
+		std::cout << "check against clauses	" << res[i] << std::endl;
+        for(int k = 0; k < (clauses.end()-clauses.begin());k++){
+	     if(res[i] == clauses[k]){
+		std::cout << "erease from clauses " << clauses[k] << std::endl;
+		clauses.erase(clauses.begin()+k);
+		break;
+	     }
+	}
+      }
+      if(clauses.empty()){ //TODO: Should be result
+        return true;
+      }
+      return false;
     }
     case VeritRule::REFL:
     {  // TODO
@@ -513,7 +560,7 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     default:
     {
-      return true;  // TODO: Change to false
+      return false;
     }
   }
 }
@@ -551,7 +598,7 @@ static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
   }
   for (auto child : pfn->getChildren())
   {
-    veritProofChecker(child);
+    success &= veritProofChecker(child);
   }
   return success;
 }
