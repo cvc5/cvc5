@@ -112,9 +112,8 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
 
   if (options::arithRewriteEq())
   {
-    if (atom.getKind() == kind::EQUAL)
+    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
     {
-      Assert(atom[0].getType().isReal());
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
       TrustNode tleq = ppRewriteTerms(leq);
