@@ -183,11 +183,7 @@ PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
 {
   Assert(!intervals.empty()) << "A covering can not be empty";
   Trace("cdcac") << "Constructing characterization now" << std::endl;
-<<<<<<< HEAD
-  std::vector<poly::Polynomial> res;
-=======
   PolyVector res;
->>>>>>> a38a642eab886d298ea3b658c9823544c3a35f27
 
   for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
   {

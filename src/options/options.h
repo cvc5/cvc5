@@ -165,7 +165,6 @@ public:
   bool getMemoryMap() const;
   bool getParseOnly() const;
   bool getProduceModels() const;
-  bool getProofNew() const;
   bool getSegvSpin() const;
   bool getSemanticChecks() const;
   bool getStatistics() const;
