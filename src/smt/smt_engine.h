@@ -706,7 +706,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Get a refutation proof (only if immediately preceded by an UNSAT or
    * ENTAILED query). Only permitted if CVC4 was built with proof support and
-   * proof-new is on. */
+   * the proof option is on. */
   std::string getProof();
 
   /**

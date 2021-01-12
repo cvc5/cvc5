@@ -243,11 +243,7 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     }
     Trace("q-ext-rewrite-debug") << "theoryOf( " << ret << " )= " << tid
                                  << std::endl;
-    if (tid == THEORY_ARITH)
-    {
-      new_ret = extendedRewriteArith(ret);
-    }
-    else if (tid == THEORY_STRINGS)
+    if (tid == THEORY_STRINGS)
     {
       new_ret = extendedRewriteStrings(ret);
     }
@@ -1693,41 +1689,6 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     return true;
   }
   return false;
-}
-
-Node ExtendedRewriter::extendedRewriteArith(Node ret)
-{
-  Kind k = ret.getKind();
-  NodeManager* nm = NodeManager::currentNM();
-  Node new_ret;
-  if (k == DIVISION || k == INTS_DIVISION || k == INTS_MODULUS)
-  {
-    // rewrite as though total
-    std::vector<Node> children;
-    bool all_const = true;
-    for (unsigned i = 0, size = ret.getNumChildren(); i < size; i++)
-    {
-      if (ret[i].isConst())
-      {
-        children.push_back(ret[i]);
-      }
-      else
-      {
-        all_const = false;
-        break;
-      }
-    }
-    if (all_const)
-    {
-      Kind new_k = (ret.getKind() == DIVISION ? DIVISION_TOTAL
-                                              : (ret.getKind() == INTS_DIVISION
-                                                     ? INTS_DIVISION_TOTAL
-                                                     : INTS_MODULUS_TOTAL));
-      new_ret = nm->mkNode(new_k, children);
-      debugExtendedRewrite(ret, new_ret, "total-interpretation");
-    }
-  }
-  return new_ret;
 }
 
 Node ExtendedRewriter::extendedRewriteStrings(Node ret)

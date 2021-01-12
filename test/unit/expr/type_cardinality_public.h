@@ -203,7 +203,7 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
   }
 
   void testUndefinedSorts() {
-    Type foo = d_em->mkSort("foo");
+    Type foo = d_em->mkSort("foo", NodeManager::SORT_FLAG_NONE);
     // We've currently assigned them a specific Beth number, which
     // isn't really correct, but...
     TS_ASSERT( !foo.getCardinality().isFinite() );
