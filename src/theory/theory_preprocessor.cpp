@@ -490,7 +490,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   // be theory-preprocessed or not.
   if (term.getKind() == kind::EQUAL)
   {
-    return term;
+    //return term;
   }
   // call ppRewrite for the given theory
   TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
