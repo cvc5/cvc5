@@ -130,7 +130,7 @@ bool ProofPostproccessCallback::updateInternal(Node res,
   return update(res, id, children, args, cdp, continueUpdate);
 }
 
-Node ProofPostprocessCallback::eliminateCrowdingLits(
+Node ProofPostproccessCallback::eliminateCrowdingLits(
     const std::vector<Node>& clauseLits,
     const std::vector<Node>& targetClauseLits,
     const std::vector<Node>& children,
@@ -379,7 +379,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   return lastClause;
 }
 
-Node ProofPostprocessCallback::expandMacros(PfRule id,
+Node ProofPostproccessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
                                             CDProof* cdp)

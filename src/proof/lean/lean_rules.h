@@ -16,7 +16,9 @@ enum class LeanRule : uint32_t
   SMTSYMM_NEG,
   TRUST,
   ASSUME,
-  SCOPE
+  SCOPE,
+  CHAIN_RESOLUTION,
+  UNKNOWN
 };
 }
 }

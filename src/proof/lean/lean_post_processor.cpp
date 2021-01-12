@@ -22,24 +22,24 @@ namespace CVC4 {
 
 namespace proof {
 
-LeanProofPostproccessCallback::LeanProofPostproccessCallback(
+LeanProofPostprocessCallback::LeanProofPostprocessCallback(
     ProofNodeManager* pnm)
     : d_pnm(pnm)
 {
 }
 
-LeanProofPostproccess::LeanProofPostproccess(ProofNodeManager* pnm)
-    : d_cb(new proof::LeanProofPostproccessCallback(pnm)), d_pnm(pnm)
+LeanProofPostprocess::LeanProofPostprocess(ProofNodeManager* pnm)
+    : d_cb(new proof::LeanProofPostprocessCallback(pnm)), d_pnm(pnm)
 {
 }
 
-bool LeanProofPostproccessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 bool& continueUpdate)
 {
-  return true;
+  return (pn->getRule() != PfRule::LEAN_RULE);
 };
 
-bool LeanProofPostproccessCallback::update(Node res,
+bool LeanProofPostprocessCallback::update(Node res,
                                           PfRule id,
                                           const std::vector<Node>& children,
                                           const std::vector<Node>& args,
@@ -48,6 +48,7 @@ bool LeanProofPostproccessCallback::update(Node res,
 {
   NodeManager* nm = NodeManager::currentNM();
   // change to case
+  //Trace("Hello") << id << "\n";
   switch (id)
   {
     case PfRule::REFL:
@@ -55,6 +56,7 @@ bool LeanProofPostproccessCallback::update(Node res,
       Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::SMTREFL));
       std::vector<Node> lean_args;
       lean_args.push_back(lean_id);
+      lean_args.push_back(res);
       lean_args.insert(lean_args.end(), args.begin(), args.end());
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
       break;
@@ -64,6 +66,7 @@ bool LeanProofPostproccessCallback::update(Node res,
           static_cast<unsigned>(proof::LeanRule::SCOPE));
       std::vector<Node> lean_args;
       lean_args.push_back(lean_id);
+      lean_args.push_back(res);
       lean_args.insert(lean_args.end(), args.begin(), args.end());
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
       break;
@@ -73,8 +76,32 @@ bool LeanProofPostproccessCallback::update(Node res,
           static_cast<unsigned>(proof::LeanRule::TRUST));
       std::vector<Node> lean_args;
       lean_args.push_back(lean_id);
+      lean_args.push_back(res);
       lean_args.push_back(args[0]);
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
+      break;
+    }
+    case (PfRule::CHAIN_RESOLUTION):
+    {
+      Node lean_id = nm->mkConst<Rational>(
+          static_cast<unsigned>(LeanRule::CHAIN_RESOLUTION));
+      // need to add several steps, like resolution
+      // by looking through arguments <-- will need to build intermediate conclusions
+      std::vector<Node> lean_args;
+      lean_args.push_back(lean_id);
+      lean_args.push_back(res);
+      lean_args.insert(lean_args.end(), args.begin(), args.end());
+      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
+      break;
+    }
+    case PfRule::ASSUME:
+    {
+      Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::ASSUME));
+      std::vector<Node> lean_args;
+      lean_args.push_back(lean_id);
+      lean_args.push_back(res);
+      lean_args.insert(lean_args.end(), args.begin(), args.end());
+      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
       break;
     }
 
@@ -171,25 +198,21 @@ bool LeanProofPostproccessCallback::update(Node res,
       cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  // add child
       break;
     }
-    case (PfRule::CHAIN_RESOLUTION): { // not sure here
-      // proof::LeanRule::CNF_IMPLIES
-      Node new_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(proof::LeanRule::CNF_IMPLIES));
-      // need to add several steps, like resolution
-      // by looking through arguments <-- will need to build intermediate
-    conclusions cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  //
-    add child break;
-    }
     */
     default:
       {
         return false;
       }
   };
+
   return true;
 }  // namespace proof
 
-void LeanProofPostproccess::process(std::shared_ptr<ProofNode> pf){};
+void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf)
+{
+  ProofNodeUpdater updater(d_pnm, *(d_cb.get()));
+  updater.process(pf);
+};
+
 }  // namespace proof
 }  // namespace CVC4
-

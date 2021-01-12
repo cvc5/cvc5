@@ -30,10 +30,10 @@ namespace proof {
  * A callback class used by the Lean convereter for post-proccessing proof nodes
  * by replacing internal rules by the rules in the Lean calculus.
  */
-class LeanProofPostproccessCallback : public ProofNodeUpdaterCallback
+class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  LeanProofPostproccessCallback(ProofNodeManager* pnm);
+  LeanProofPostprocessCallback(ProofNodeManager* pnm);
   /**
    * Initialize, called once for each new ProofNode to proccess. This initializes
    * static information to be used by successive calls to update.
@@ -58,16 +58,16 @@ class LeanProofPostproccessCallback : public ProofNodeUpdaterCallback
  * The proof postproccessor module. This postproccesses a proof node into one
  * using the rules from the Lean calculus.
  */
-class LeanProofPostproccess
+class LeanProofPostprocess
 {
  public:
-  LeanProofPostproccess(ProofNodeManager* pnm);
+  LeanProofPostprocess(ProofNodeManager* pnm);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
   /** The post process callback */
-  std::unique_ptr<LeanProofPostproccessCallback> d_cb;
+  std::unique_ptr<LeanProofPostprocessCallback> d_cb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 };
