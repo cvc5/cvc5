@@ -59,7 +59,7 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
-      if (cur.getKind() == kind::EQUAL)
+      if (cur.getKind() == kind::EQUAL && !cur[0].getType().isBoolean())
       {
         // For example, (= x y) ---> (and (>= x y) (<= x y))
         theory::TrustNode trn = te->ppRewriteEquality(cur);
