@@ -46,10 +46,10 @@ TEST_F(TestApiTermBlack, getId)
   Term x = d_solver.mkVar(d_solver.getIntegerSort(), "x");
   ASSERT_NO_THROW(x.getId());
   Term y = x;
-  EXPECT_EQ(x.getId(), y.getId());
+  ASSERT_EQ(x.getId(), y.getId());
 
   Term z = d_solver.mkVar(d_solver.getIntegerSort(), "z");
-  EXPECT_NE(x.getId(), z.getId());
+  ASSERT_NE(x.getId(), z.getId());
 }
 
 TEST_F(TestApiTermBlack, getKind)
@@ -91,7 +91,7 @@ TEST_F(TestApiTermBlack, getKind)
   Sort seqSort = d_solver.mkSequenceSort(intSort);
   Term s = d_solver.mkConst(seqSort, "s");
   Term ss = d_solver.mkTerm(SEQ_CONCAT, s, s);
-  EXPECT_EQ(ss.getKind(), SEQ_CONCAT);
+  ASSERT_EQ(ss.getKind(), SEQ_CONCAT);
 }
 
 TEST_F(TestApiTermBlack, getSort)
@@ -106,37 +106,37 @@ TEST_F(TestApiTermBlack, getSort)
   ASSERT_THROW(n.getSort(), CVC4ApiException);
   Term x = d_solver.mkVar(bvSort, "x");
   ASSERT_NO_THROW(x.getSort());
-  EXPECT_EQ(x.getSort(), bvSort);
+  ASSERT_EQ(x.getSort(), bvSort);
   Term y = d_solver.mkVar(bvSort, "y");
   ASSERT_NO_THROW(y.getSort());
-  EXPECT_EQ(y.getSort(), bvSort);
+  ASSERT_EQ(y.getSort(), bvSort);
 
   Term f = d_solver.mkVar(funSort1, "f");
   ASSERT_NO_THROW(f.getSort());
-  EXPECT_EQ(f.getSort(), funSort1);
+  ASSERT_EQ(f.getSort(), funSort1);
   Term p = d_solver.mkVar(funSort2, "p");
   ASSERT_NO_THROW(p.getSort());
-  EXPECT_EQ(p.getSort(), funSort2);
+  ASSERT_EQ(p.getSort(), funSort2);
 
   Term zero = d_solver.mkInteger(0);
   ASSERT_NO_THROW(zero.getSort());
-  EXPECT_EQ(zero.getSort(), intSort);
+  ASSERT_EQ(zero.getSort(), intSort);
 
   Term f_x = d_solver.mkTerm(APPLY_UF, f, x);
   ASSERT_NO_THROW(f_x.getSort());
-  EXPECT_EQ(f_x.getSort(), intSort);
+  ASSERT_EQ(f_x.getSort(), intSort);
   Term f_y = d_solver.mkTerm(APPLY_UF, f, y);
   ASSERT_NO_THROW(f_y.getSort());
-  EXPECT_EQ(f_y.getSort(), intSort);
+  ASSERT_EQ(f_y.getSort(), intSort);
   Term sum = d_solver.mkTerm(PLUS, f_x, f_y);
   ASSERT_NO_THROW(sum.getSort());
-  EXPECT_EQ(sum.getSort(), intSort);
+  ASSERT_EQ(sum.getSort(), intSort);
   Term p_0 = d_solver.mkTerm(APPLY_UF, p, zero);
   ASSERT_NO_THROW(p_0.getSort());
-  EXPECT_EQ(p_0.getSort(), boolSort);
+  ASSERT_EQ(p_0.getSort(), boolSort);
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   ASSERT_NO_THROW(p_f_y.getSort());
-  EXPECT_EQ(p_f_y.getSort(), boolSort);
+  ASSERT_EQ(p_f_y.getSort(), boolSort);
 }
 
 TEST_F(TestApiTermBlack, getOp)
@@ -158,13 +158,13 @@ TEST_F(TestApiTermBlack, getOp)
   Term extb = d_solver.mkTerm(ext, b);
 
   ASSERT_TRUE(ab.hasOp());
-  EXPECT_EQ(ab.getOp(), Op(&d_solver, SELECT));
+  ASSERT_EQ(ab.getOp(), Op(&d_solver, SELECT));
   ASSERT_FALSE(ab.getOp().isIndexed());
   // can compare directly to a Kind (will invoke Op constructor)
-  EXPECT_EQ(ab.getOp(), Op(&d_solver, SELECT));
+  ASSERT_EQ(ab.getOp(), Op(&d_solver, SELECT));
   ASSERT_TRUE(extb.hasOp());
   ASSERT_TRUE(extb.getOp().isIndexed());
-  EXPECT_EQ(extb.getOp(), ext);
+  ASSERT_EQ(extb.getOp(), ext);
 
   Term f = d_solver.mkConst(funsort, "f");
   Term fx = d_solver.mkTerm(APPLY_UF, f, x);
@@ -172,10 +172,10 @@ TEST_F(TestApiTermBlack, getOp)
   ASSERT_FALSE(f.hasOp());
   ASSERT_THROW(f.getOp(), CVC4ApiException);
   ASSERT_TRUE(fx.hasOp());
-  EXPECT_EQ(fx.getOp(), Op(&d_solver, APPLY_UF));
+  ASSERT_EQ(fx.getOp(), Op(&d_solver, APPLY_UF));
   std::vector<Term> children(fx.begin(), fx.end());
   // testing rebuild from op and children
-  EXPECT_EQ(fx, d_solver.mkTerm(fx.getOp(), children));
+  ASSERT_EQ(fx, d_solver.mkTerm(fx.getOp(), children));
 
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
@@ -208,15 +208,15 @@ TEST_F(TestApiTermBlack, getOp)
   ASSERT_TRUE(headTerm.hasOp());
   ASSERT_TRUE(tailTerm.hasOp());
 
-  EXPECT_EQ(nilTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-  EXPECT_EQ(consTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-  EXPECT_EQ(headTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
-  EXPECT_EQ(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
+  ASSERT_EQ(nilTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  ASSERT_EQ(consTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  ASSERT_EQ(headTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
+  ASSERT_EQ(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 
   // Test rebuilding
   children.clear();
   children.insert(children.begin(), headTerm.begin(), headTerm.end());
-  EXPECT_EQ(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
+  ASSERT_EQ(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
 }
 
 TEST_F(TestApiTermBlack, isNull)
@@ -635,7 +635,7 @@ TEST_F(TestApiTermBlack, termAssignment)
   Term t1 = d_solver.mkInteger(1);
   Term t2 = t1;
   t2 = d_solver.mkInteger(2);
-  EXPECT_EQ(t1, d_solver.mkInteger(1));
+  ASSERT_EQ(t1, d_solver.mkInteger(1));
 }
 
 TEST_F(TestApiTermBlack, termCompare)
@@ -654,8 +654,8 @@ TEST_F(TestApiTermBlack, termChildren)
   // simple term 2+3
   Term two = d_solver.mkInteger(2);
   Term t1 = d_solver.mkTerm(PLUS, two, d_solver.mkInteger(3));
-  EXPECT_EQ(t1[0], two);
-  EXPECT_EQ(t1.getNumChildren(), 2);
+  ASSERT_EQ(t1[0], two);
+  ASSERT_EQ(t1.getNumChildren(), 2);
   Term tnull;
   ASSERT_THROW(tnull.getNumChildren(), CVC4ApiException);
 
@@ -666,8 +666,8 @@ TEST_F(TestApiTermBlack, termChildren)
   Term t2 = d_solver.mkTerm(APPLY_UF, f, two);
   // due to our higher-order view of terms, we treat f as a child of APPLY_UF
   ASSERT_EQ(t2.getNumChildren(), 2);
-  EXPECT_EQ(t2[0], f);
-  EXPECT_EQ(t2[1], two);
+  ASSERT_EQ(t2[0], f);
+  ASSERT_EQ(t2[1], two);
   ASSERT_THROW(tnull[0], CVC4ApiException);
 }
 
@@ -685,64 +685,64 @@ TEST_F(TestApiTermBlack, getInteger)
   Term int10 = d_solver.mkInteger("18446744073709551615");
   Term int11 = d_solver.mkInteger("18446744073709551616");
 
-  EXPECT_TRUE(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64()
+  ASSERT_TRUE(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64()
               && !int1.isUInt64() && int1.isInteger());
-  EXPECT_EQ(int1.getInteger(), "-18446744073709551616");
-  EXPECT_TRUE(!int2.isInt32() && !int2.isUInt32() && !int2.isInt64()
+  ASSERT_EQ(int1.getInteger(), "-18446744073709551616");
+  ASSERT_TRUE(!int2.isInt32() && !int2.isUInt32() && !int2.isInt64()
               && !int2.isUInt64() && int2.isInteger());
-  EXPECT_EQ(int2.getInteger(), "-18446744073709551615");
-  EXPECT_TRUE(!int3.isInt32() && !int3.isUInt32() && int3.isInt64()
+  ASSERT_EQ(int2.getInteger(), "-18446744073709551615");
+  ASSERT_TRUE(!int3.isInt32() && !int3.isUInt32() && int3.isInt64()
               && !int3.isUInt64() && int3.isInteger());
-  EXPECT_EQ(int3.getInt64(), -4294967296);
-  EXPECT_EQ(int3.getInteger(), "-4294967296");
-  EXPECT_TRUE(!int4.isInt32() && !int4.isUInt32() && int4.isInt64()
+  ASSERT_EQ(int3.getInt64(), -4294967296);
+  ASSERT_EQ(int3.getInteger(), "-4294967296");
+  ASSERT_TRUE(!int4.isInt32() && !int4.isUInt32() && int4.isInt64()
               && !int4.isUInt64() && int4.isInteger());
-  EXPECT_EQ(int4.getInt64(), -4294967295);
-  EXPECT_EQ(int4.getInteger(), "-4294967295");
-  EXPECT_TRUE(int5.isInt32() && !int5.isUInt32() && int5.isInt64()
+  ASSERT_EQ(int4.getInt64(), -4294967295);
+  ASSERT_EQ(int4.getInteger(), "-4294967295");
+  ASSERT_TRUE(int5.isInt32() && !int5.isUInt32() && int5.isInt64()
               && !int5.isUInt64() && int5.isInteger());
-  EXPECT_EQ(int5.getInt32(), -10);
-  EXPECT_EQ(int5.getInt64(), -10);
-  EXPECT_EQ(int5.getInteger(), "-10");
-  EXPECT_TRUE(int6.isInt32() && int6.isUInt32() && int6.isInt64()
+  ASSERT_EQ(int5.getInt32(), -10);
+  ASSERT_EQ(int5.getInt64(), -10);
+  ASSERT_EQ(int5.getInteger(), "-10");
+  ASSERT_TRUE(int6.isInt32() && int6.isUInt32() && int6.isInt64()
               && int6.isUInt64() && int6.isInteger());
-  EXPECT_EQ(int6.getInt32(), 0);
-  EXPECT_EQ(int6.getUInt32(), 0);
-  EXPECT_EQ(int6.getInt64(), 0);
-  EXPECT_EQ(int6.getUInt64(), 0);
-  EXPECT_EQ(int6.getInteger(), "0");
-  EXPECT_TRUE(int7.isInt32() && int7.isUInt32() && int7.isInt64()
+  ASSERT_EQ(int6.getInt32(), 0);
+  ASSERT_EQ(int6.getUInt32(), 0);
+  ASSERT_EQ(int6.getInt64(), 0);
+  ASSERT_EQ(int6.getUInt64(), 0);
+  ASSERT_EQ(int6.getInteger(), "0");
+  ASSERT_TRUE(int7.isInt32() && int7.isUInt32() && int7.isInt64()
               && int7.isUInt64() && int7.isInteger());
-  EXPECT_EQ(int7.getInt32(), 10);
-  EXPECT_EQ(int7.getUInt32(), 10);
-  EXPECT_EQ(int7.getInt64(), 10);
-  EXPECT_EQ(int7.getUInt64(), 10);
-  EXPECT_EQ(int7.getInteger(), "10");
-  EXPECT_TRUE(!int8.isInt32() && int8.isUInt32() && int8.isInt64()
+  ASSERT_EQ(int7.getInt32(), 10);
+  ASSERT_EQ(int7.getUInt32(), 10);
+  ASSERT_EQ(int7.getInt64(), 10);
+  ASSERT_EQ(int7.getUInt64(), 10);
+  ASSERT_EQ(int7.getInteger(), "10");
+  ASSERT_TRUE(!int8.isInt32() && int8.isUInt32() && int8.isInt64()
               && int8.isUInt64() && int8.isInteger());
-  EXPECT_EQ(int8.getUInt32(), 4294967295);
-  EXPECT_EQ(int8.getInt64(), 4294967295);
-  EXPECT_EQ(int8.getUInt64(), 4294967295);
-  EXPECT_EQ(int8.getInteger(), "4294967295");
-  EXPECT_TRUE(!int9.isInt32() && !int9.isUInt32() && int9.isInt64()
+  ASSERT_EQ(int8.getUInt32(), 4294967295);
+  ASSERT_EQ(int8.getInt64(), 4294967295);
+  ASSERT_EQ(int8.getUInt64(), 4294967295);
+  ASSERT_EQ(int8.getInteger(), "4294967295");
+  ASSERT_TRUE(!int9.isInt32() && !int9.isUInt32() && int9.isInt64()
               && int9.isUInt64() && int9.isInteger());
-  EXPECT_EQ(int9.getInt64(), 4294967296);
-  EXPECT_EQ(int9.getUInt64(), 4294967296);
-  EXPECT_EQ(int9.getInteger(), "4294967296");
-  EXPECT_TRUE(!int10.isInt32() && !int10.isUInt32() && !int10.isInt64()
+  ASSERT_EQ(int9.getInt64(), 4294967296);
+  ASSERT_EQ(int9.getUInt64(), 4294967296);
+  ASSERT_EQ(int9.getInteger(), "4294967296");
+  ASSERT_TRUE(!int10.isInt32() && !int10.isUInt32() && !int10.isInt64()
               && int10.isUInt64() && int10.isInteger());
-  EXPECT_EQ(int10.getUInt64(), 18446744073709551615ull);
-  EXPECT_EQ(int10.getInteger(), "18446744073709551615");
-  EXPECT_TRUE(!int11.isInt32() && !int11.isUInt32() && !int11.isInt64()
+  ASSERT_EQ(int10.getUInt64(), 18446744073709551615ull);
+  ASSERT_EQ(int10.getInteger(), "18446744073709551615");
+  ASSERT_TRUE(!int11.isInt32() && !int11.isUInt32() && !int11.isInt64()
               && !int11.isUInt64() && int11.isInteger());
-  EXPECT_EQ(int11.getInteger(), "18446744073709551616");
+  ASSERT_EQ(int11.getInteger(), "18446744073709551616");
 }
 
 TEST_F(TestApiTermBlack, getString)
 {
   Term s1 = d_solver.mkString("abcde");
-  EXPECT_TRUE(s1.isString());
-  EXPECT_EQ(s1.getString(), L"abcde");
+  ASSERT_TRUE(s1.isString());
+  ASSERT_EQ(s1.getString(), L"abcde");
 }
 
 TEST_F(TestApiTermBlack, substitute)
@@ -753,8 +753,8 @@ TEST_F(TestApiTermBlack, substitute)
   Term xpx = d_solver.mkTerm(PLUS, x, x);
   Term onepone = d_solver.mkTerm(PLUS, one, one);
 
-  EXPECT_EQ(xpx.substitute(x, one), onepone);
-  EXPECT_EQ(onepone.substitute(one, x), xpx);
+  ASSERT_EQ(xpx.substitute(x, one), onepone);
+  ASSERT_EQ(onepone.substitute(one, x), xpx);
   // incorrect due to type
   ASSERT_THROW(xpx.substitute(one, ttrue), CVC4ApiException);
 
@@ -768,7 +768,7 @@ TEST_F(TestApiTermBlack, substitute)
   rs.push_back(y);
   es.push_back(y);
   rs.push_back(one);
-  EXPECT_EQ(xpy.substitute(es, rs), xpone);
+  ASSERT_EQ(xpy.substitute(es, rs), xpone);
 
   // incorrect substitution due to arity
   rs.pop_back();
@@ -804,8 +804,8 @@ TEST_F(TestApiTermBlack, constArray)
   Term one = d_solver.mkInteger(1);
   Term constarr = d_solver.mkConstArray(arrsort, one);
 
-  EXPECT_EQ(constarr.getKind(), CONST_ARRAY);
-  EXPECT_EQ(constarr.getConstArrayBase(), one);
+  ASSERT_EQ(constarr.getKind(), CONST_ARRAY);
+  ASSERT_EQ(constarr.getConstArrayBase(), one);
   ASSERT_THROW(a.getConstArrayBase(), CVC4ApiException);
 
   arrsort =
@@ -825,7 +825,7 @@ TEST_F(TestApiTermBlack, constSequenceElements)
   Sort seqsort = d_solver.mkSequenceSort(realsort);
   Term s = d_solver.mkEmptySequence(seqsort);
 
-  EXPECT_EQ(s.getKind(), CONST_SEQUENCE);
+  ASSERT_EQ(s.getKind(), CONST_SEQUENCE);
   // empty sequence has zero elements
   std::vector<Term> cs = s.getConstSequenceElements();
   ASSERT_TRUE(cs.empty());
@@ -840,9 +840,9 @@ TEST_F(TestApiTermBlack, termScopedToString)
 {
   Sort intsort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intsort, "x");
-  EXPECT_EQ(x.toString(), "x");
+  ASSERT_EQ(x.toString(), "x");
   Solver solver2;
-  EXPECT_EQ(x.toString(), "x");
+  ASSERT_EQ(x.toString(), "x");
 }
 }  // namespace test
 }  // namespace CVC4

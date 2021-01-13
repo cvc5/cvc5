@@ -20,7 +20,6 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h"                     // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "options/language.h"  // for LANG_AST

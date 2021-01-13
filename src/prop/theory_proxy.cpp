@@ -35,10 +35,9 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          DecisionEngine* decisionEngine,
                          context::Context* context,
                          context::UserContext* userContext,
-                         CnfStream* cnfStream,
                          ProofNodeManager* pnm)
     : d_propEngine(propEngine),
-      d_cnfStream(cnfStream),
+      d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_queue(context),
@@ -49,6 +48,8 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
+
+void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -188,6 +189,8 @@ theory::TrustNode TheoryProxy::preprocess(
       d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess, true);
   return pnode;
 }
+
+void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

@@ -464,7 +464,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       Node bvl;
       std::string veName("_virtual_enum_grammar");
       SygusDatatype sdt(veName);
-      TypeNode u = nm->mkSort(veName, ExprManager::SORT_FLAG_PLACEHOLDER);
+      TypeNode u = nm->mkSort(veName, NodeManager::SORT_FLAG_PLACEHOLDER);
       std::set<TypeNode> unresolvedTypes;
       unresolvedTypes.insert(u);
       std::vector<TypeNode> cargsEmpty;

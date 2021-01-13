@@ -43,8 +43,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols1)
   Node n = d_nodeManager->mkNode(NOT, x);
   std::unordered_set<Node, NodeHashFunction> syms;
   getSymbols(n, syms);
-  EXPECT_EQ(syms.size(), 1);
-  EXPECT_NE(syms.find(x), syms.end());
+  ASSERT_EQ(syms.size(), 1);
+  ASSERT_NE(syms.find(x), syms.end());
 }
 
 TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
@@ -74,10 +74,10 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_symbols2)
   getSymbols(res, syms);
 
   // assertions
-  EXPECT_EQ(syms.size(), 2);
-  EXPECT_NE(syms.find(x), syms.end());
-  EXPECT_NE(syms.find(y), syms.end());
-  EXPECT_EQ(syms.find(var), syms.end());
+  ASSERT_EQ(syms.size(), 2);
+  ASSERT_NE(syms.find(x), syms.end());
+  ASSERT_NE(syms.find(y), syms.end());
+  ASSERT_EQ(syms.find(var), syms.end());
 }
 
 TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
@@ -104,34 +104,34 @@ TEST_F(TestNodeBlackNodeAlgorithm, get_operators_map)
 
   // Verify result
   // We should have only integer, bv and boolean as types
-  EXPECT_EQ(result.size(), 3);
-  EXPECT_NE(result.find(*d_intTypeNode), result.end());
-  EXPECT_NE(result.find(*d_boolTypeNode), result.end());
-  EXPECT_NE(result.find(*d_bvTypeNode), result.end());
+  ASSERT_EQ(result.size(), 3);
+  ASSERT_NE(result.find(*d_intTypeNode), result.end());
+  ASSERT_NE(result.find(*d_boolTypeNode), result.end());
+  ASSERT_NE(result.find(*d_bvTypeNode), result.end());
 
   // in integers, we should only have plus and mult as operators
-  EXPECT_EQ(result[*d_intTypeNode].size(), 2);
-  EXPECT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(PLUS)),
+  ASSERT_EQ(result[*d_intTypeNode].size(), 2);
+  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(PLUS)),
             result[*d_intTypeNode].end());
-  EXPECT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(MULT)),
+  ASSERT_NE(result[*d_intTypeNode].find(d_nodeManager->operatorOf(MULT)),
             result[*d_intTypeNode].end());
 
   // in booleans, we should only have "=" and "and" as an operator.
-  EXPECT_EQ(result[*d_boolTypeNode].size(), 2);
-  EXPECT_NE(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(EQUAL)),
+  ASSERT_EQ(result[*d_boolTypeNode].size(), 2);
+  ASSERT_NE(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(EQUAL)),
             result[*d_boolTypeNode].end());
-  EXPECT_NE(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(AND)),
+  ASSERT_NE(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(AND)),
             result[*d_boolTypeNode].end());
 
   // in bv, we should only have "extract" as an operator.
-  EXPECT_EQ(result[*d_boolTypeNode].size(), 2);
+  ASSERT_EQ(result[*d_boolTypeNode].size(), 2);
   Node extractOp1 =
       d_nodeManager->mkConst<BitVectorExtract>(BitVectorExtract(1, 0));
   Node extractOp2 =
       d_nodeManager->mkConst<BitVectorExtract>(BitVectorExtract(3, 2));
-  EXPECT_NE(result[*d_bvTypeNode].find(extractOp1),
+  ASSERT_NE(result[*d_bvTypeNode].find(extractOp1),
             result[*d_bvTypeNode].end());
-  EXPECT_NE(result[*d_bvTypeNode].find(extractOp2),
+  ASSERT_NE(result[*d_bvTypeNode].find(extractOp2),
             result[*d_bvTypeNode].end());
 }
 
@@ -150,15 +150,15 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
 
   // check reflexivity
   ASSERT_TRUE(match(n1, n1, subs));
-  EXPECT_EQ(subs.size(), 0);
+  ASSERT_EQ(subs.size(), 0);
 
   Node n2 = d_nodeManager->mkNode(MULT, two, a);
   subs.clear();
 
   // check instance
   ASSERT_TRUE(match(n1, n2, subs));
-  EXPECT_EQ(subs.size(), 1);
-  EXPECT_EQ(subs[x], a);
+  ASSERT_EQ(subs.size(), 1);
+  ASSERT_EQ(subs[x], a);
 
   // should return false for flipped arguments (match is not symmetric)
   ASSERT_FALSE(match(n2, n1, subs));
@@ -195,8 +195,8 @@ TEST_F(TestNodeBlackNodeAlgorithm, match)
 
   // implementation: check if the cache works correctly
   ASSERT_TRUE(match(n1, n2, subs));
-  EXPECT_EQ(subs.size(), 1);
-  EXPECT_EQ(subs[x], a);
+  ASSERT_EQ(subs.size(), 1);
+  ASSERT_EQ(subs[x], a);
 }
 }  // namespace test
 }  // namespace CVC4

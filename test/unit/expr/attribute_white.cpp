@@ -80,33 +80,33 @@ TEST_F(TestExprWhiteAttribute, attribute_ids)
   // those that have already been assigned.
 
   unsigned lastId = attr::LastAttributeId<std::string, false>::getId();
-  EXPECT_LT(VarNameAttr::s_id, lastId);
-  EXPECT_LT(TestStringAttr1::s_id, lastId);
-  EXPECT_LT(TestStringAttr2::s_id, lastId);
+  ASSERT_LT(VarNameAttr::s_id, lastId);
+  ASSERT_LT(TestStringAttr1::s_id, lastId);
+  ASSERT_LT(TestStringAttr2::s_id, lastId);
 
-  EXPECT_NE(VarNameAttr::s_id, TestStringAttr1::s_id);
-  EXPECT_NE(VarNameAttr::s_id, TestStringAttr2::s_id);
-  EXPECT_NE(TestStringAttr1::s_id, TestStringAttr2::s_id);
+  ASSERT_NE(VarNameAttr::s_id, TestStringAttr1::s_id);
+  ASSERT_NE(VarNameAttr::s_id, TestStringAttr2::s_id);
+  ASSERT_NE(TestStringAttr1::s_id, TestStringAttr2::s_id);
 
   lastId = attr::LastAttributeId<bool, false>::getId();
-  EXPECT_LT(TestFlag1::s_id, lastId);
-  EXPECT_LT(TestFlag2::s_id, lastId);
-  EXPECT_LT(TestFlag3::s_id, lastId);
-  EXPECT_LT(TestFlag4::s_id, lastId);
-  EXPECT_LT(TestFlag5::s_id, lastId);
-  EXPECT_NE(TestFlag1::s_id, TestFlag2::s_id);
-  EXPECT_NE(TestFlag1::s_id, TestFlag3::s_id);
-  EXPECT_NE(TestFlag1::s_id, TestFlag4::s_id);
-  EXPECT_NE(TestFlag1::s_id, TestFlag5::s_id);
-  EXPECT_NE(TestFlag2::s_id, TestFlag3::s_id);
-  EXPECT_NE(TestFlag2::s_id, TestFlag4::s_id);
-  EXPECT_NE(TestFlag2::s_id, TestFlag5::s_id);
-  EXPECT_NE(TestFlag3::s_id, TestFlag4::s_id);
-  EXPECT_NE(TestFlag3::s_id, TestFlag5::s_id);
-  EXPECT_NE(TestFlag4::s_id, TestFlag5::s_id);
+  ASSERT_LT(TestFlag1::s_id, lastId);
+  ASSERT_LT(TestFlag2::s_id, lastId);
+  ASSERT_LT(TestFlag3::s_id, lastId);
+  ASSERT_LT(TestFlag4::s_id, lastId);
+  ASSERT_LT(TestFlag5::s_id, lastId);
+  ASSERT_NE(TestFlag1::s_id, TestFlag2::s_id);
+  ASSERT_NE(TestFlag1::s_id, TestFlag3::s_id);
+  ASSERT_NE(TestFlag1::s_id, TestFlag4::s_id);
+  ASSERT_NE(TestFlag1::s_id, TestFlag5::s_id);
+  ASSERT_NE(TestFlag2::s_id, TestFlag3::s_id);
+  ASSERT_NE(TestFlag2::s_id, TestFlag4::s_id);
+  ASSERT_NE(TestFlag2::s_id, TestFlag5::s_id);
+  ASSERT_NE(TestFlag3::s_id, TestFlag4::s_id);
+  ASSERT_NE(TestFlag3::s_id, TestFlag5::s_id);
+  ASSERT_NE(TestFlag4::s_id, TestFlag5::s_id);
 
   lastId = attr::LastAttributeId<TypeNode, false>::getId();
-  EXPECT_LT(TypeAttr::s_id, lastId);
+  ASSERT_LT(TypeAttr::s_id, lastId);
 }
 
 TEST_F(TestExprWhiteAttribute, attributes)
@@ -305,25 +305,25 @@ TEST_F(TestExprWhiteAttribute, attributes)
   Debug("boolattr") << "set flag 5 on unnamed to T\n";
   unnamed.setAttribute(TestFlag5(), true);
 
-  EXPECT_EQ(a.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "");
+  ASSERT_EQ(a.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "a");
-  EXPECT_EQ(b.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "a");
+  ASSERT_EQ(b.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "b");
-  EXPECT_EQ(c.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "b");
+  ASSERT_EQ(c.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "c");
-  EXPECT_EQ(unnamed.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "c");
+  ASSERT_EQ(unnamed.getAttribute(VarNameAttr()), "");
 
   ASSERT_FALSE(unnamed.hasAttribute(VarNameAttr()));
 
@@ -386,25 +386,25 @@ TEST_F(TestExprWhiteAttribute, attributes)
   b.setAttribute(TestStringAttr1(), "bar");
   c.setAttribute(TestStringAttr1(), "baz");
 
-  EXPECT_EQ(a.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "");
+  ASSERT_EQ(a.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "a");
-  EXPECT_EQ(b.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "a");
+  ASSERT_EQ(b.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "b");
-  EXPECT_EQ(c.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "b");
+  ASSERT_EQ(c.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "c");
-  EXPECT_EQ(unnamed.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "c");
+  ASSERT_EQ(unnamed.getAttribute(VarNameAttr()), "");
 
   ASSERT_FALSE(unnamed.hasAttribute(VarNameAttr()));
 
@@ -422,25 +422,25 @@ TEST_F(TestExprWhiteAttribute, attributes)
   b.setAttribute(VarNameAttr(), "c");
   c.setAttribute(VarNameAttr(), "a");
 
-  EXPECT_EQ(c.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(c.getAttribute(VarNameAttr()), "");
+  ASSERT_EQ(c.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(c.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "a");
-  EXPECT_EQ(a.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(a.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "a");
+  ASSERT_EQ(a.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(a.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "b");
-  EXPECT_EQ(b.getAttribute(VarNameAttr()), "c");
-  EXPECT_NE(b.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "b");
+  ASSERT_EQ(b.getAttribute(VarNameAttr()), "c");
+  ASSERT_NE(b.getAttribute(VarNameAttr()), "");
 
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "a");
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "b");
-  EXPECT_NE(unnamed.getAttribute(VarNameAttr()), "c");
-  EXPECT_EQ(unnamed.getAttribute(VarNameAttr()), "");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "a");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "b");
+  ASSERT_NE(unnamed.getAttribute(VarNameAttr()), "c");
+  ASSERT_EQ(unnamed.getAttribute(VarNameAttr()), "");
 
   ASSERT_FALSE(unnamed.hasAttribute(VarNameAttr()));
 }

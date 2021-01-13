@@ -252,7 +252,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     std::stringstream ss;
     ss << "T" << i;
     std::string tname = ss.str();
-    TypeNode tnu = nm->mkSort(tname, ExprManager::SORT_FLAG_PLACEHOLDER);
+    TypeNode tnu = nm->mkSort(tname, NodeManager::SORT_FLAG_PLACEHOLDER);
     cterm_to_utype[ct] = tnu;
     unres.insert(tnu);
     sdts.push_back(SygusDatatype(tname));
