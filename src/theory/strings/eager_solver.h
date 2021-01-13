@@ -44,6 +44,7 @@ class EagerSolver
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** notify fact, called when a fact is asserted to theory of strings */
   void notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal);
+
  private:
   /** add endpoints to eqc info
    *
