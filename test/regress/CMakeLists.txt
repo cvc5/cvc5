@@ -59,6 +59,7 @@ set(regress_0_tests
   regress0/arith/issue4367.smt2
   regress0/arith/issue4525.smt2
   regress0/arith/issue5219-conflict-rewrite.smt2
+  regress0/arith/issue5761-ppr.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -965,6 +966,7 @@ set(regress_0_tests
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
   regress0/seq/issue5547-small-seq-len-unit.smt2
+  regress0/seq/len_simplify.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
