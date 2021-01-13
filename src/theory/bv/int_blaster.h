@@ -68,9 +68,11 @@
 #define __CVC4__THEORY__BV__INT_BLASTER__H
 
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "theory/arith/nl/iand_utils.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 
@@ -79,7 +81,18 @@ using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 class IntBlaster 
 {
  public:
-  IntBlaster();
+  IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode);
+
+  /**
+   * The result is an integer term and is computed
+   * according to the translation specified above.
+   * @param n is a bit-vector term or formula to be translated.
+   * @return integer node that corresponds to n.
+   */
+  Node intBlast(Node n);
+
+  // NOTE: this will return all range assertions for the beginning of life of this object.
+  Node conjoinRangeAssertions(); 
 
  protected:
   
@@ -107,13 +120,6 @@ class IntBlaster
    */
   Node createBVNotNode(Node n, uint64_t bvsize);
 
-  /**
-   * The result is an integer term and is computed
-   * according to the translation specified above.
-   * @param n is a bit-vector term or formula to be translated.
-   * @return integer node that corresponds to n.
-   */
-  Node IntBlast(Node n);
 
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
@@ -268,6 +274,10 @@ class IntBlaster
   
   /** helper class for handeling bvand translation */
   theory::arith::nl::IAndUtils d_iandUtils;
+
+  options::SolveBVAsIntMode d_mode;
+
+  SmtEngine* d_se;
 };
 
 }  // namespace CVC4
