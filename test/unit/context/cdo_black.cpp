@@ -37,14 +37,14 @@ TEST_F(TestContextCDOBlack, cdo)
   // Test that push/pop maintains the original value
   CDO<int> a1(d_context.get());
   a1 = 5;
-  EXPECT_EQ(d_context->getLevel(), 0);
+  ASSERT_EQ(d_context->getLevel(), 0);
   d_context->push();
   a1 = 10;
-  EXPECT_EQ(d_context->getLevel(), 1);
-  EXPECT_EQ(a1, 10);
+  ASSERT_EQ(d_context->getLevel(), 1);
+  ASSERT_EQ(a1, 10);
   d_context->pop();
-  EXPECT_EQ(d_context->getLevel(), 0);
-  EXPECT_EQ(a1, 5);
+  ASSERT_EQ(d_context->getLevel(), 0);
+  ASSERT_EQ(a1, 5);
 }
 
 }  // namespace test

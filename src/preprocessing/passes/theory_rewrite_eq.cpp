@@ -59,6 +59,7 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
+      // don't consider Boolean equality
       if (cur.getKind() == kind::EQUAL && !cur[0].getType().isBoolean())
       {
         // For example, (= x y) ---> (and (>= x y) (<= x y))

@@ -117,10 +117,10 @@ TEST_F(TestContextBlack, pre_post_notify)
   {
     MyContextNotifyObj c(d_context.get(), true), d(d_context.get(), false);
 
-    EXPECT_EQ(a.d_ncalls, 0);
-    EXPECT_EQ(b.d_ncalls, 0);
-    EXPECT_EQ(c.d_ncalls, 0);
-    EXPECT_EQ(d.d_ncalls, 0);
+    ASSERT_EQ(a.d_ncalls, 0);
+    ASSERT_EQ(b.d_ncalls, 0);
+    ASSERT_EQ(c.d_ncalls, 0);
+    ASSERT_EQ(d.d_ncalls, 0);
 
     MyContextObj w(d_context.get(), a);
     MyContextObj x(d_context.get(), b);
@@ -134,15 +134,15 @@ TEST_F(TestContextBlack, pre_post_notify)
     y.makeCurrent();
     z.makeCurrent();
 
-    EXPECT_EQ(a.d_ncalls, 0);
-    EXPECT_EQ(b.d_ncalls, 0);
-    EXPECT_EQ(c.d_ncalls, 0);
-    EXPECT_EQ(d.d_ncalls, 0);
+    ASSERT_EQ(a.d_ncalls, 0);
+    ASSERT_EQ(b.d_ncalls, 0);
+    ASSERT_EQ(c.d_ncalls, 0);
+    ASSERT_EQ(d.d_ncalls, 0);
 
-    EXPECT_EQ(w.d_ncalls, 0);
-    EXPECT_EQ(x.d_ncalls, 0);
-    EXPECT_EQ(y.d_ncalls, 0);
-    EXPECT_EQ(z.d_ncalls, 0);
+    ASSERT_EQ(w.d_ncalls, 0);
+    ASSERT_EQ(x.d_ncalls, 0);
+    ASSERT_EQ(y.d_ncalls, 0);
+    ASSERT_EQ(z.d_ncalls, 0);
 
     d_context->push();
 
@@ -151,39 +151,39 @@ TEST_F(TestContextBlack, pre_post_notify)
     y.makeCurrent();
     z.makeCurrent();
 
-    EXPECT_EQ(a.d_ncalls, 0);
-    EXPECT_EQ(b.d_ncalls, 0);
-    EXPECT_EQ(c.d_ncalls, 0);
-    EXPECT_EQ(d.d_ncalls, 0);
+    ASSERT_EQ(a.d_ncalls, 0);
+    ASSERT_EQ(b.d_ncalls, 0);
+    ASSERT_EQ(c.d_ncalls, 0);
+    ASSERT_EQ(d.d_ncalls, 0);
 
-    EXPECT_EQ(w.d_ncalls, 0);
-    EXPECT_EQ(x.d_ncalls, 0);
-    EXPECT_EQ(y.d_ncalls, 0);
-    EXPECT_EQ(z.d_ncalls, 0);
-
-    d_context->pop();
-
-    EXPECT_EQ(a.d_ncalls, 1);
-    EXPECT_EQ(b.d_ncalls, 1);
-    EXPECT_EQ(c.d_ncalls, 1);
-    EXPECT_EQ(d.d_ncalls, 1);
-
-    EXPECT_EQ(w.d_ncalls, 1);
-    EXPECT_EQ(x.d_ncalls, 0);
-    EXPECT_EQ(y.d_ncalls, 1);
-    EXPECT_EQ(z.d_ncalls, 0);
+    ASSERT_EQ(w.d_ncalls, 0);
+    ASSERT_EQ(x.d_ncalls, 0);
+    ASSERT_EQ(y.d_ncalls, 0);
+    ASSERT_EQ(z.d_ncalls, 0);
 
     d_context->pop();
 
-    EXPECT_EQ(a.d_ncalls, 2);
-    EXPECT_EQ(b.d_ncalls, 2);
-    EXPECT_EQ(c.d_ncalls, 2);
-    EXPECT_EQ(d.d_ncalls, 2);
+    ASSERT_EQ(a.d_ncalls, 1);
+    ASSERT_EQ(b.d_ncalls, 1);
+    ASSERT_EQ(c.d_ncalls, 1);
+    ASSERT_EQ(d.d_ncalls, 1);
 
-    EXPECT_EQ(w.d_ncalls, 2);
-    EXPECT_EQ(x.d_ncalls, 1);
-    EXPECT_EQ(y.d_ncalls, 2);
-    EXPECT_EQ(z.d_ncalls, 1);
+    ASSERT_EQ(w.d_ncalls, 1);
+    ASSERT_EQ(x.d_ncalls, 0);
+    ASSERT_EQ(y.d_ncalls, 1);
+    ASSERT_EQ(z.d_ncalls, 0);
+
+    d_context->pop();
+
+    ASSERT_EQ(a.d_ncalls, 2);
+    ASSERT_EQ(b.d_ncalls, 2);
+    ASSERT_EQ(c.d_ncalls, 2);
+    ASSERT_EQ(d.d_ncalls, 2);
+
+    ASSERT_EQ(w.d_ncalls, 2);
+    ASSERT_EQ(x.d_ncalls, 1);
+    ASSERT_EQ(y.d_ncalls, 2);
+    ASSERT_EQ(z.d_ncalls, 1);
   }
   catch (Exception& e)
   {
@@ -211,28 +211,28 @@ TEST_F(TestContextBlack, top_scope_context_obj)
   MyContextObj x(true, d_context.get(), n);
   MyContextObj y(false, d_context.get(), n);
 
-  EXPECT_EQ(x.d_nsaves, 0);
-  EXPECT_EQ(y.d_nsaves, 0);
+  ASSERT_EQ(x.d_nsaves, 0);
+  ASSERT_EQ(y.d_nsaves, 0);
 
   x.makeCurrent();
   y.makeCurrent();
 
-  EXPECT_EQ(x.d_nsaves, 0);
-  EXPECT_EQ(y.d_nsaves, 1);
+  ASSERT_EQ(x.d_nsaves, 0);
+  ASSERT_EQ(y.d_nsaves, 1);
 
   d_context->push();
 
   x.makeCurrent();
   y.makeCurrent();
 
-  EXPECT_EQ(x.d_nsaves, 1);
-  EXPECT_EQ(y.d_nsaves, 2);
+  ASSERT_EQ(x.d_nsaves, 1);
+  ASSERT_EQ(y.d_nsaves, 2);
 
   d_context->pop();
   d_context->pop();
 
-  EXPECT_EQ(x.d_nsaves, 1);
-  EXPECT_EQ(y.d_nsaves, 2);
+  ASSERT_EQ(x.d_nsaves, 1);
+  ASSERT_EQ(y.d_nsaves, 2);
 }
 
 }  // namespace test

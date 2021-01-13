@@ -57,16 +57,16 @@ class TestExprBlackKind : public TestExprBlack
 
 TEST_F(TestExprBlackKind, equality)
 {
-  EXPECT_EQ(undefined, UNDEFINED_KIND);
-  EXPECT_EQ(last, LAST_KIND);
+  ASSERT_EQ(undefined, UNDEFINED_KIND);
+  ASSERT_EQ(last, LAST_KIND);
 }
 
 TEST_F(TestExprBlackKind, order)
 {
-  EXPECT_LT((int32_t)undefined, (int32_t)null);
-  EXPECT_LT((int32_t)null, (int32_t)last);
-  EXPECT_LT((int32_t)undefined, (int32_t)last);
-  EXPECT_LT((int32_t)last, (int32_t)unknown);
+  ASSERT_LT((int32_t)undefined, (int32_t)null);
+  ASSERT_LT((int32_t)null, (int32_t)last);
+  ASSERT_LT((int32_t)undefined, (int32_t)last);
+  ASSERT_LT((int32_t)last, (int32_t)unknown);
 }
 
 TEST_F(TestExprBlackKind, output)
@@ -84,7 +84,7 @@ TEST_F(TestExprBlackKind, output_concat)
       << "NULL"
       << "LAST_KIND"
       << "?";
-  EXPECT_EQ(act.str(), exp.str());
+  ASSERT_EQ(act.str(), exp.str());
 }
 }  // namespace test
 }  // namespace CVC4

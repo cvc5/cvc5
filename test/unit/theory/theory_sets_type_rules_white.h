@@ -64,7 +64,7 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
     //    (singleton (singleton_op Int) 1)
     //    (as emptyset (Set Real)))
     TS_ASSERT_THROWS(d_slv->mkTerm(UNION, singletonInt, emptyReal),
-                     CVC4ApiException);
+                     CVC4ApiException&);
     // (union
     //    (singleton (singleton_op Real) 1)
     //    (as emptyset (Set Real)))
