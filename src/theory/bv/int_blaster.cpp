@@ -42,11 +42,13 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 void IntBlaster::addRangeConstraint(Node node,
                                     uint64_t size,
-                                    std::vector<Node> lemmas)
+                                    std::vector<Node> & lemmas)
 {
   Node rangeConstraint = mkRangeConstraint(node, size);
-  if (d_rangeAssertions.find(rangeConstraint) != d_rangeAssertions.end())
+  Trace("int-blaster-debug") << "range constraint computed: " << rangeConstraint << std::endl;
+  if (d_rangeAssertions.find(rangeConstraint) == d_rangeAssertions.end())
   {
+    Trace("int-blaster-debug") << "range constraint added to cache and lemmas " << std::endl;
     d_rangeAssertions.insert(rangeConstraint);
     lemmas.push_back(rangeConstraint);
   }

@@ -113,7 +113,7 @@ class IntBlaster
                        uint64_t bvsize,
                        bool isLeftShift);
 
-  void addRangeConstraint(Node node, uint64_t size, std::vector<Node> lemmas);
+  void addRangeConstraint(Node node, uint64_t size, std::vector<Node> & lemmas);
 
   /**
    * Returns a node that represents the bitwise negation of n.
