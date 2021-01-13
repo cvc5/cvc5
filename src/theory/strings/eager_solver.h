@@ -28,7 +28,8 @@ namespace theory {
 namespace strings {
 
 /**
- * Eager solver
+ * Eager solver, which is responsible for tracking of eager information and
+ * reporting conflicts to the solver state.
  */
 class EagerSolver
 {
@@ -43,7 +44,6 @@ class EagerSolver
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** notify fact, called when a fact is assert to theory of strings */
   void notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal);
-
  private:
   /** add endpoints to eqc info
    *
