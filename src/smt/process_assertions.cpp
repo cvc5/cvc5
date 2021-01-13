@@ -317,13 +317,6 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     d_passes["ho-elim"]->apply(&assertions);
   }
-
-  // rewrite equalities based on theory-specific rewriting
-  if (!options::tppEq())
-  {
-    d_passes["rewrite"]->apply(&assertions);
-    d_passes["theory-rewrite-eq"]->apply(&assertions);
-  }
   
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
@@ -336,6 +329,11 @@ bool ProcessAssertions::apply(Assertions& as)
 
   // ensure rewritten
   d_passes["rewrite"]->apply(&assertions);
+  // rewrite equalities based on theory-specific rewriting
+  if (!options::tppEq())
+  {
+    d_passes["theory-rewrite-eq"]->apply(&assertions);
+  }
   // apply theory preprocess, which includes ITE removal
   d_passes["theory-preprocess"]->apply(&assertions);
   // This is needed because when solving incrementally, removeITEs may
