@@ -51,23 +51,15 @@ class SolverState : public TheoryState
               context::UserContext* u,
               Valuation& v);
   ~SolverState();
-  //-------------------------------------- equality information
+  //-------------------------------------- disequality information
   /**
    * Get the list of disequalities that are currently asserted to the equality
    * engine.
    */
   const context::CDList<Node>& getDisequalityList() const;
-  /** add string equality */
-  void addStringDisequality(TNode t1, TNode t2);
-  //-------------------------------------- end equality information
-  //-------------------------------------- notifications for equalities
-  /** called when a new equivalence class is created */
-  void eqNotifyNewClass(TNode t);
-  /** called when two equivalence classes merge */
-  void eqNotifyMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  //-------------------------------------- end notifications for equalities
+  /** add equality */
+  void addDisequality(TNode t1, TNode t2);
+  //-------------------------------------- end disequality information
   //------------------------------------------ conflicts
   /** set pending prefix conflict
    *

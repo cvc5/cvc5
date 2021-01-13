@@ -102,7 +102,7 @@ void EagerSolver::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
   {
     // store disequalities between strings, may need to check if their lengths
     // are equal/disequal
-    d_state.addStringDisequality(t1, t2);
+    d_state.addDisequality(t1, t2);
   }
 }
 
