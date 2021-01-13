@@ -1251,7 +1251,18 @@ TEST_F(TestApiSolverBlack, getInfo)
 
 TEST_F(TestApiSolverBlack, getInterpolant)
 {
-  // TODO issue #5593
+  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("incremental", "false");
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term one = d_solver.mkInteger(1);
+  Term a = d_solver.mkConst(intSort, "a");
+  d_solver.assertFormula(d_solver.mkTerm(GT, a, zero));
+  Term conj = d_solver.mkTerm(GT, a, zero);
+  Term output;
+  d_solver.getInterpolant(conj, output);
+  Term alter = d_solver.mkTerm(GEQ, a, one);
+  ASSERT_TRUE(output == conj || output == alter);
 }
 
 TEST_F(TestApiSolverBlack, getOp)
