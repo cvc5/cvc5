@@ -429,13 +429,13 @@ Node IntBlaster::translateWithChildren(
       // operators)
       // 3. translating into a sum
       uint64_t bvsize = original[0].getType().getBitVectorSize();
-      if (options::solveBVAsInt() == options::SolveBVAsIntMode::IAND)
+      if (d_mode == options::SolveBVAsIntMode::IAND)
       {
         Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
         returnNode = d_nm->mkNode(
             kind::IAND, iAndOp, translated_children[0], translated_children[1]);
       }
-      else if (options::solveBVAsInt() == options::SolveBVAsIntMode::BV)
+      else if (d_mode == options::SolveBVAsIntMode::BV)
       {
         // translate the children back to BV
         Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
@@ -450,14 +450,14 @@ Node IntBlaster::translateWithChildren(
       }
       else
       {
-        Assert(options::solveBVAsInt() == options::SolveBVAsIntMode::SUM);
+        Assert(d_mode == options::SolveBVAsIntMode::SUM);
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode =
             d_iandUtils.createSumNode(translated_children[0],
                                       translated_children[1],
                                       bvsize,
-                                      options::BVAndIntegerGranularity());
+                                      d_granularity);
       }
       break;
     }
@@ -930,13 +930,14 @@ Node IntBlaster::reconstructNode(Node originalNode,
   return reconstruction;
 }
 
-IntBlaster::IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode)
+IntBlaster::IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode, uint64_t granularity)
     : d_binarizeCache(se->getUserContext()),
       d_eliminationCache(se->getUserContext()),
       d_rebuildCache(se->getUserContext()),
       d_intblastCache(se->getUserContext()),
       d_rangeAssertions(se->getUserContext()),
       d_mode(mode),
+      d_granularity(granularity),
       d_se(se)
 {
   d_nm = NodeManager::currentNM();

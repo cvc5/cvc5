@@ -81,7 +81,7 @@ using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 class IntBlaster
 {
  public:
-  IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode);
+  IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode, uint64_t granluarity = 1);
 
   /**
    * The result is an integer term and is computed
@@ -285,8 +285,13 @@ class IntBlaster
   /** helper class for handeling bvand translation */
   theory::arith::nl::IAndUtils d_iandUtils;
 
+  /** the mode for translation to integers */
   options::SolveBVAsIntMode d_mode;
 
+  /** the granularity to use in the translation */
+  uint64_t d_granularity;
+  
+  /** an SmtEngine for context */
   SmtEngine* d_se;
 };
 
