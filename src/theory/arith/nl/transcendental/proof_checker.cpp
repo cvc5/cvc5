@@ -88,9 +88,15 @@ Node TranscendentalProofRuleChecker::checkInternal(
   auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   auto mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-trans-checker") << "Checking " << id << std::endl;
+  Trace("nl-trans-checker") << "Children:" << std::endl;
   for (const auto& c : children)
   {
     Trace("nl-trans-checker") << "\t" << c << std::endl;
+  }
+  Trace("nl-trans-checker") << "Args:" << std::endl;
+  for (const auto& a : args)
+  {
+    Trace("nl-trans-checker") << "\t" << a << std::endl;
   }
   if (id == PfRule::ARITH_TRANS_PI)
   {
