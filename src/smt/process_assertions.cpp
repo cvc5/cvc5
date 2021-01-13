@@ -319,8 +319,11 @@ bool ProcessAssertions::apply(Assertions& as)
   }
 
   // rewrite equalities based on theory-specific rewriting
-  d_passes["theory-rewrite-eq"]->apply(&assertions);
-
+  if (!options::tppEq())
+  {
+    d_passes["theory-rewrite-eq"]->apply(&assertions);
+  }
+  
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
