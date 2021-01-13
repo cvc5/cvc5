@@ -42,11 +42,9 @@ class EagerSolver
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** notify fact, called when a fact is assert to theory of strings */
-  void notifyFact(TNode atom,
-                               bool polarity,
-                               TNode fact,
-                               bool isInternal);
-private:
+  void notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal);
+
+ private:
   /** add endpoints to eqc info
    *
    * This method is called when term t is the explanation for why equivalence

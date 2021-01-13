@@ -31,7 +31,7 @@ void EagerSolver::eqNotifyNewClass(TNode t)
   Kind k = t.getKind();
   if (k == STRING_LENGTH || k == STRING_TO_CODE)
   {
-    eq::EqualityEngine * ee = d_state.getEqualityEngine();
+    eq::EqualityEngine* ee = d_state.getEqualityEngine();
     Node r = ee->getRepresentative(t[0]);
     EqcInfo* ei = d_state.getOrMakeEqcInfo(r);
     if (k == STRING_LENGTH)
@@ -61,7 +61,7 @@ void EagerSolver::eqNotifyNewClass(TNode t)
 void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
 {
   EqcInfo* e2 = d_state.getOrMakeEqcInfo(t2, false);
-  if (e2==nullptr)
+  if (e2 == nullptr)
   {
     return;
   }
@@ -94,7 +94,6 @@ void EagerSolver::eqNotifyMerge(TNode t1, TNode t2)
   {
     e1->d_normalizedLength.set(e2->d_normalizedLength);
   }
-  
 }
 
 void EagerSolver::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
@@ -132,15 +131,15 @@ void EagerSolver::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 }
 
 void EagerSolver::notifyFact(TNode atom,
-                              bool polarity,
-                              TNode fact,
-                              bool isInternal)
+                             bool polarity,
+                             TNode fact,
+                             bool isInternal)
 {
   if (atom.getKind() == STRING_IN_REGEXP)
   {
     if (polarity && atom[1].getKind() == REGEXP_CONCAT)
     {
-      eq::EqualityEngine * ee = d_state.getEqualityEngine();
+      eq::EqualityEngine* ee = d_state.getEqualityEngine();
       Node eqc = ee->getRepresentative(atom[0]);
       addEndpointsToEqcInfo(atom, atom[1], eqc);
     }

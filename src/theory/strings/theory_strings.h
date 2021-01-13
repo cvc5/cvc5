@@ -28,6 +28,7 @@
 #include "theory/ext_theory.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
+#include "theory/strings/eager_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -42,7 +43,6 @@
 #include "theory/strings/strings_fmf.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/term_registry.h"
-#include "theory/strings/eager_solver.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -125,14 +125,18 @@ class TheoryStrings : public Theory {
   /** NotifyClass for equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
   public:
-   NotifyClass(TheoryStrings& ts) : d_str(ts), d_eagerSolver(ts.d_eagerSolver) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_str.propagateLit(predicate);
-      }
-      return d_str.propagateLit(predicate.notNode());
+   NotifyClass(TheoryStrings& ts) : d_str(ts), d_eagerSolver(ts.d_eagerSolver)
+   {
+   }
+   bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+   {
+     Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate
+                      << ", " << (value ? "true" : "false") << ")" << std::endl;
+     if (value)
+     {
+       return d_str.propagateLit(predicate);
+     }
+     return d_str.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
