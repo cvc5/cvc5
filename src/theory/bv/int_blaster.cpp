@@ -252,6 +252,15 @@ Node IntBlaster::eliminationPass(Node n)
   return d_rebuildCache[eliminated];
 }
 
+
+Node IntBlaster::intBlastWithRanges(Node n) {
+  Node ib = intBlast(n);
+  Node ranges = conjoinRangeAssertions();
+  Node result = d_nm->mkNode(kind::AND, ib, ranges);
+  return result;
+}
+
+
 /**
  * Translate n to Integers via post-order traversal.
  */

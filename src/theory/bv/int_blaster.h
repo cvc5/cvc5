@@ -91,6 +91,8 @@ class IntBlaster
    */
   Node intBlast(Node n);
 
+  Node intBlastWithRanges(Node n);
+
   // NOTE: this will return all range assertions for the beginning of life of this object.
   Node conjoinRangeAssertions(); 
 

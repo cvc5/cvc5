@@ -22,6 +22,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
@@ -72,6 +73,13 @@ public:
     Node x_shl_one = d_nm->mkNode(kind::BITVECTOR_SHL, x, one);
     Node eq = d_nm->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
     Node not_x_eq_y = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, y));
+    d_smt->finishInit();
+    IntBlaster* ib = new IntBlaster(d_smt, options::SolveBVAsIntMode::IAND);
+    Node translation = ib->intBlastWithRanges(not_x_eq_y);
+    std::cout << "original: " << not_x_eq_y << std::endl;
+    std::cout << "translation: " << translation<< std::endl;
+
+    delete ib;
   }
 
 };/* class TheoryBVIntBlastWhite */
