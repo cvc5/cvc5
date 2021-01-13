@@ -125,7 +125,7 @@ class TheoryStrings : public Theory {
   /** NotifyClass for equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
   public:
-   NotifyClass(TheoryStrings& ts) : d_str(ts), d_state(ts.d_state) {}
+   NotifyClass(TheoryStrings& ts) : d_str(ts), d_eagerSolver(ts.d_eagerSolver) {}
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
@@ -159,19 +159,19 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
                        << std::endl;
-      d_state.eqNotifyMerge(t1, t2);
+      d_eagerSolver.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
       Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_state.eqNotifyDisequal(t1, t2, reason);
+      d_eagerSolver.eqNotifyDisequal(t1, t2, reason);
     }
 
    private:
     /** The theory of strings object to notify */
     TheoryStrings& d_str;
-    /** The solver state of the theory of strings */
-    SolverState& d_state;
+    /** The eager solver of the theory of strings */
+    EagerSolver& d_eagerSolver;
   };/* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;

@@ -57,6 +57,8 @@ class SolverState : public TheoryState
    * engine.
    */
   const context::CDList<Node>& getDisequalityList() const;
+  /** add string equality */
+  void addStringDisequality(TNode t1, TNode t2);
   //-------------------------------------- end equality information
   //-------------------------------------- notifications for equalities
   /** called when a new equivalence class is created */
@@ -128,18 +130,6 @@ class SolverState : public TheoryState
   EqcInfo* getOrMakeEqcInfo(Node eqc, bool doMake = true);
   /** Get pointer to the model object of the Valuation object */
   TheoryModel* getModel();
-
-  /** add endpoints to eqc info
-   *
-   * This method is called when term t is the explanation for why equivalence
-   * class eqc may have a constant endpoint due to a concatentation term concat.
-   * For example, we may call this method on:
-   *   t := (str.++ x y), concat := (str.++ x y), eqc
-   * for some eqc that is currently equal to t. Another example is:
-   *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
-   * for some eqc that is currently equal to z.
-   */
-  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
   /** Entailment check
    *
    * This calls entailmentCheck on the Valuation object of theory of strings.

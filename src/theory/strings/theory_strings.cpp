@@ -618,14 +618,7 @@ void TheoryStrings::notifyFact(TNode atom,
                                TNode fact,
                                bool isInternal)
 {
-  if (atom.getKind() == STRING_IN_REGEXP)
-  {
-    if (polarity && atom[1].getKind() == REGEXP_CONCAT)
-    {
-      Node eqc = d_equalityEngine->getRepresentative(atom[0]);
-      d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
-    }
-  }
+  d_eagerSolver.notifyFact(atom, polarity, fact, isInternal);
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
@@ -766,7 +759,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
     //we care about the length of this string
     d_termReg.registerTerm(t[0], 1);
   }
-  d_state.eqNotifyNewClass(t);
+  d_eagerSolver.eqNotifyNewClass(t);
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,

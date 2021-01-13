@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "theory/strings/eqc_info.h"
+#include "theory/strings/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -40,7 +41,23 @@ class EagerSolver
   void eqNotifyMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  /** notify fact, called when a fact is assert to theory of strings */
+  void notifyFact(TNode atom,
+                               bool polarity,
+                               TNode fact,
+                               bool isInternal);
 private:
+  /** add endpoints to eqc info
+   *
+   * This method is called when term t is the explanation for why equivalence
+   * class eqc may have a constant endpoint due to a concatentation term concat.
+   * For example, we may call this method on:
+   *   t := (str.++ x y), concat := (str.++ x y), eqc
+   * for some eqc that is currently equal to t. Another example is:
+   *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
+   * for some eqc that is currently equal to z.
+   */
+  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
   /** Reference to the solver state */
   SolverState& d_state;
 };
