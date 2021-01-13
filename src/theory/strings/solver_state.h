@@ -57,7 +57,10 @@ class SolverState : public TheoryState
    * engine.
    */
   const context::CDList<Node>& getDisequalityList() const;
-  /** add equality */
+  /** 
+   * notify the state that disequality (not (= t1 t2)) holds in the current
+   * context. This will be included in the return of the above method.
+   */
   void addDisequality(TNode t1, TNode t2);
   //-------------------------------------- end disequality information
   //------------------------------------------ conflicts
