@@ -1251,7 +1251,30 @@ TEST_F(TestApiSolverBlack, getInfo)
 
 TEST_F(TestApiSolverBlack, getInterpolant)
 {
-  // TODO issue #5593
+  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("incremental", "false");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term z = d_solver.mkConst(intSort, "z");
+
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  d_solver.assertFormula(
+      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+  // Conjecture for interpolation: y + z > 0 /\ z < 0
+  Term conj =
+      d_solver.mkTerm(OR,
+                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(LT, z, zero));
+  Term output;
+  // Call the interpolation api, while the resulting interpolant is the output
+  d_solver.getInterpolant(conj, output);
+
+  // We expect the resulting output to be a boolean formula
+  ASSERT_TRUE(output.getSort().isBoolean());
 }
 
 TEST_F(TestApiSolverBlack, getOp)
