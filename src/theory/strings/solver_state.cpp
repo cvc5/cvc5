@@ -47,7 +47,7 @@ const context::CDList<Node>& SolverState::getDisequalityList() const
   return d_eeDisequalities;
 }
 
-void SolverState::addStringDisequality(TNode t1, TNode t2)
+void SolverState::addDisequality(TNode t1, TNode t2)
 {
   d_eeDisequalities.push_back(t1.eqNode(t2));
 }

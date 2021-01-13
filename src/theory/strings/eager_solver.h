@@ -42,7 +42,7 @@ class EagerSolver
   void eqNotifyMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** notify fact, called when a fact is assert to theory of strings */
+  /** notify fact, called when a fact is asserted to theory of strings */
   void notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal);
  private:
   /** add endpoints to eqc info
