@@ -1259,12 +1259,16 @@ TEST_F(TestApiSolverBlack, getInterpolant)
   Term x = d_solver.mkConst(intSort, "x");
   Term y = d_solver.mkConst(intSort, "y");
   Term z = d_solver.mkConst(intSort, "z");
-  
+
   // Assumptions for interpolation: x + y > 0 /\ x < 0
-  d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(
+      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
   d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
   // Conjecture for interpolation: y + z > 0 /\ z < 0
-  Term conj = d_solver.mkTerm(OR, d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero), d_solver.mkTerm(LT, z, zero));
+  Term conj =
+      d_solver.mkTerm(OR,
+                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(LT, z, zero));
   Term output;
   // Call the interpolation api, while the resulting interpolant is the output
   d_solver.getInterpolant(conj, output);
