@@ -321,6 +321,7 @@ bool ProcessAssertions::apply(Assertions& as)
   // rewrite equalities based on theory-specific rewriting
   if (!options::tppEq())
   {
+    d_passes["rewrite"]->apply(&assertions);
     d_passes["theory-rewrite-eq"]->apply(&assertions);
   }
   
