@@ -24,8 +24,8 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
-#include "options/uf_options.h"
 #include "options/smt_options.h"
+#include "options/uf_options.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
@@ -37,11 +37,9 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-to-int"), d_intBlaster(preprocContext->getSmt(), options::solveBVAsInt())
-{
-};
+    : PreprocessingPass(preprocContext, "bv-to-int"),
+      d_intBlaster(preprocContext->getSmt(), options::solveBVAsInt()){};
 
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)

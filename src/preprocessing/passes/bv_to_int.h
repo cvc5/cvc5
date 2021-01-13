@@ -40,7 +40,7 @@ class BVToInt : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
-  
+
   IntBlaster d_intBlaster;
 };
 

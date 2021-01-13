@@ -36,12 +36,9 @@ using namespace CVC4::theory::bv;
 
 namespace {
 
-Rational intpow2(uint64_t b)
-{
-  return Rational(Integer(2).pow(b), Integer(1));
-}
+Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
-} //end empty namespace
+}  // namespace
 
 Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
 {
@@ -236,7 +233,8 @@ Node IntBlaster::eliminationPass(Node n)
           {
             Assert(d_eliminationCache.find(child) != d_eliminationCache.end());
             Node eliminatedChild = d_eliminationCache[child];
-            Assert(d_rebuildCache.find(eliminatedChild) != d_eliminationCache.end());
+            Assert(d_rebuildCache.find(eliminatedChild)
+                   != d_eliminationCache.end());
             Assert(!d_rebuildCache[eliminatedChild].get().isNull());
             builder << d_rebuildCache[eliminatedChild].get();
           }
@@ -252,14 +250,14 @@ Node IntBlaster::eliminationPass(Node n)
   return d_rebuildCache[eliminated];
 }
 
-
-Node IntBlaster::intBlastWithRanges(Node n) {
+Node IntBlaster::intBlastWithRanges(Node n)
+{
+  Assert(n.getType().isBoolean());
   Node ib = intBlast(n);
   Node ranges = conjoinRangeAssertions();
   Node result = d_nm->mkNode(kind::AND, ib, ranges);
   return result;
 }
-
 
 /**
  * Translate n to Integers via post-order traversal.
@@ -347,8 +345,8 @@ Node IntBlaster::intBlast(Node n)
   return d_intblastCache[n].get();
 }
 
-Node IntBlaster::translateWithChildren(Node original,
-                                    const std::vector<Node>& translated_children)
+Node IntBlaster::translateWithChildren(
+    Node original, const std::vector<Node>& translated_children)
 {
   // The translation of the original node is determined by the kind of
   // the node.
@@ -508,8 +506,9 @@ Node IntBlaster::translateWithChildren(Node original,
       Node condition =
           d_nm->mkNode(kind::LT, translated_children[0], signed_min);
       Node thenNode = createShiftNode(translated_children, bvsize, false);
-      std::vector<Node> children = {createBVNotNode(translated_children[0], bvsize),
-                               translated_children[1]};
+      std::vector<Node> children = {
+          createBVNotNode(translated_children[0], bvsize),
+          translated_children[1]};
       Node elseNode =
           createBVNotNode(createShiftNode(children, bvsize, false), bvsize);
       returnNode = d_nm->mkNode(kind::ITE, condition, thenNode, elseNode);
@@ -744,7 +743,7 @@ Node IntBlaster::translateNoChildren(Node original)
       else
       {
         // New integer variables  that are not bound (symbolic constants)
-        // are added together with range constraints induced by the 
+        // are added together with range constraints induced by the
         // bit-width of the original bit-vector variables.
         Node newVar = d_nm->mkSkolem("__intblast__var",
                                      d_nm->integerType(),
@@ -826,13 +825,16 @@ void IntBlaster::defineBVUFAsIntUF(Node bvUF, Node intUF)
   TypeNode resultType;
   // symbolic arguments of original function
   std::vector<Node> args;
-  if (!bvUF.getType().isFunction()) {
+  if (!bvUF.getType().isFunction())
+  {
     // bvUF is a variable.
     // in this case, the result is just the original term
     // (it will be casted later if needed)
     result = intUF;
     resultType = bvUF.getType();
-  } else {
+  }
+  else
+  {
     // bvUF is a function with arguments
     // The arguments need to be casted as well.
     TypeNode tn = bvUF.getType();
@@ -904,8 +906,8 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
 }
 
 Node IntBlaster::reconstructNode(Node originalNode,
-                              TypeNode resultType,
-                              const std::vector<Node>& translated_children)
+                                 TypeNode resultType,
+                                 const std::vector<Node>& translated_children)
 {
   // first, we adjust the children of the node as needed.
   // re-construct the term with the adjusted children.
@@ -928,13 +930,13 @@ Node IntBlaster::reconstructNode(Node originalNode,
   return reconstruction;
 }
 
-IntBlaster::IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode) :
-      d_binarizeCache(se->getUserContext()),
+IntBlaster::IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode)
+    : d_binarizeCache(se->getUserContext()),
       d_eliminationCache(se->getUserContext()),
       d_rebuildCache(se->getUserContext()),
       d_intblastCache(se->getUserContext()),
       d_rangeAssertions(se->getUserContext()),
-      d_mode(mode), 
+      d_mode(mode),
       d_se(se)
 {
   d_nm = NodeManager::currentNM();
@@ -942,18 +944,19 @@ IntBlaster::IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode) :
   d_one = d_nm->mkConst<Rational>(1);
 };
 
-Node IntBlaster::conjoinRangeAssertions() {
+Node IntBlaster::conjoinRangeAssertions()
+{
   std::vector<Node> vec_range;
-    vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
-    // conjoin all range assertions and add the conjunction
-    // as a new assertion
-    Node result = Rewriter::rewrite(d_nm->mkAnd(vec_range));
-    return result;
+  vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
+  // conjoin all range assertions and add the conjunction
+  // as a new assertion
+  Node result = Rewriter::rewrite(d_nm->mkAnd(vec_range));
+  return result;
 }
 
 Node IntBlaster::createShiftNode(std::vector<Node> children,
-                              uint64_t bvsize,
-                              bool isLeftShift)
+                                 uint64_t bvsize,
+                                 bool isLeftShift)
 {
   /**
    * from SMT-LIB:

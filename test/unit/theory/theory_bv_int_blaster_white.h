@@ -25,8 +25,8 @@
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/theory.h"
 #include "theory/bv/int_blaster.h"
+#include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_test_utils.h"
 
@@ -38,15 +38,14 @@ using namespace CVC4::smt;
 
 using namespace std;
 
-class TheoryBVIntBlastWhite : public CxxTest::TestSuite {
-
+class TheoryBVIntBlastWhite : public CxxTest::TestSuite
+{
   ExprManager* d_em;
   NodeManager* d_nm;
   SmtEngine* d_smt;
   SmtScope* d_scope;
 
-public:
-
+ public:
   TheoryBVIntBlastWhite() {}
 
   void setUp() override
@@ -63,8 +62,9 @@ public:
     delete d_smt;
     delete d_em;
   }
- 
-  void testBitblasterCore() {
+
+  void testBitblasterCore()
+  {
     d_smt->setLogic("QF_BV");
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
     Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
@@ -77,9 +77,9 @@ public:
     IntBlaster* ib = new IntBlaster(d_smt, options::SolveBVAsIntMode::IAND);
     Node translation = ib->intBlastWithRanges(not_x_eq_y);
     std::cout << "original: " << not_x_eq_y << std::endl;
-    std::cout << "translation: " << translation<< std::endl;
+    std::cout << "translation: " << translation << std::endl;
 
     delete ib;
   }
 
-};/* class TheoryBVIntBlastWhite */
+}; /* class TheoryBVIntBlastWhite */

@@ -71,14 +71,14 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "context/context.h"
-#include "theory/arith/nl/iand_utils.h"
 #include "options/smt_options.h"
+#include "theory/arith/nl/iand_utils.h"
 
 namespace CVC4 {
 
 using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 
-class IntBlaster 
+class IntBlaster
 {
  public:
   IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode);
@@ -91,13 +91,22 @@ class IntBlaster
    */
   Node intBlast(Node n);
 
+  /**
+   * @param n is a BV formula (type BOOL)
+   * @return is the translation using intBlast +
+   * the required range constraints that are induced by
+   * the BV variables inside n.
+   */
   Node intBlastWithRanges(Node n);
 
-  // NOTE: this will return all range assertions for the beginning of life of this object.
-  Node conjoinRangeAssertions(); 
+  /**
+   * Creates a conjunction from d_rangeAssertions.
+   * IMPORTANT: d_rangeAssertions is never cleared,
+   * so it has assertions from the beginning of the object.
+   */
+  Node conjoinRangeAssertions();
 
  protected:
-  
   /**
    * A generic function that creates a logical shift node (either left or
    * right). a << b gets translated to a * 2^b mod 2^k, where k is the bit
@@ -122,7 +131,6 @@ class IntBlaster
    */
   Node createBVNotNode(Node n, uint64_t bvsize);
 
-
   /**
    * Whenever we introduce an integer variable that represents a bit-vector
    * variable, we need to guard the range of the newly introduced variable.
@@ -143,7 +151,7 @@ class IntBlaster
   /**
    * Some bit-vector operators (e.g., bvadd, bvand) are binary, but allow more
    * than two arguments as a syntactic sugar.
-   * For example, we can have a node for (bvand x y z), 
+   * For example, we can have a node for (bvand x y z),
    * that represents (bvand (x (bvand y z))).
    * This function makes all such operators strictly binary.
    */
@@ -273,7 +281,7 @@ class IntBlaster
    */
   Node d_zero;
   Node d_one;
-  
+
   /** helper class for handeling bvand translation */
   theory::arith::nl::IAndUtils d_iandUtils;
 
