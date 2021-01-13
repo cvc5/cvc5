@@ -44,14 +44,6 @@ header = "options/theory_options.h"
   help       = "enable analysis of relevance of asserted literals with respect to the input formula"
 
 [[option]]
-  name       = "tppEq"
-  category   = "regular"
-  long       = "tpp-eq"
-  type       = "bool"
-  default    = "false"
-  help       = "run theory preprocess on equalities"
-
-[[option]]
   name       = "eeMode"
   category   = "expert"
   long       = "ee-mode=MODE"
