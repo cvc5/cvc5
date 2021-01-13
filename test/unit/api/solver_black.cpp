@@ -1253,16 +1253,20 @@ TEST_F(TestApiSolverBlack, getInterpolant)
 {
   d_solver.setOption("produce-interpols", "default");
   d_solver.setOption("incremental", "false");
+
   Sort intSort = d_solver.getIntegerSort();
   Term zero = d_solver.mkInteger(0);
-  Term one = d_solver.mkInteger(1);
-  Term a = d_solver.mkConst(intSort, "a");
-  d_solver.assertFormula(d_solver.mkTerm(GT, a, zero));
-  Term conj = d_solver.mkTerm(GT, a, zero);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term z = d_solver.mkConst(intSort, "z");
+  
+  d_solver.assertFormula(d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+  Term conj = d_solver.mkTerm(OR, d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero), d_solver.mkTerm(LT, z, zero));
   Term output;
   d_solver.getInterpolant(conj, output);
-  Term alter = d_solver.mkTerm(GEQ, a, one);
-  ASSERT_TRUE(output == conj || output == alter);
+
+  ASSERT_TRUE(output.getSort().isBoolean());
 }
 
 TEST_F(TestApiSolverBlack, getOp)
