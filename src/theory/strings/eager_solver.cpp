@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file eager_solver.h
+/*! \file eager_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
