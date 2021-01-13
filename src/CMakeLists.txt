@@ -872,6 +872,8 @@ libcvc4_add_sources(
   theory/strings/base_solver.h
   theory/strings/core_solver.cpp
   theory/strings/core_solver.h
+  theory/strings/eager_solver.cpp
+  theory/strings/eager_solver.h
   theory/strings/extf_solver.cpp
   theory/strings/extf_solver.h
   theory/strings/eqc_info.cpp

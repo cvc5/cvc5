@@ -42,6 +42,7 @@
 #include "theory/strings/strings_fmf.h"
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/term_registry.h"
+#include "theory/strings/eager_solver.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -255,6 +256,8 @@ class TheoryStrings : public Theory {
   SequencesStatistics d_statistics;
   /** The solver state object */
   SolverState d_state;
+  /** The eager solver */
+  EagerSolver d_eagerSolver;
   /** The term registry for this theory */
   TermRegistry d_termReg;
   /** The extended theory callback */

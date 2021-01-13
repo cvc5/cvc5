@@ -172,7 +172,7 @@ class SolverState : public TheoryState
   InferInfo d_pendingConflict;
   /** Map from representatives to their equivalence class information */
   std::map<Node, EqcInfo*> d_eqcInfo;
-}; /* class TheoryStrings */
+};
 
 }  // namespace strings
 }  // namespace theory
