@@ -40,6 +40,18 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 }  // namespace
 
+void IntBlaster::addRangeConstraint(Node node,
+                                    uint64_t size,
+                                    std::vector<Node> lemmas)
+{
+  Node rangeConstraint = mkRangeConstraint(node, size);
+  if (d_rangeAssertions.find(rangeConstraint) != d_rangeAssertions.end())
+  {
+    d_rangeAssertions.insert(rangeConstraint);
+    lemmas.push_back(rangeConstraint);
+  }
+}
+
 Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
 {
   Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
@@ -250,19 +262,10 @@ Node IntBlaster::eliminationPass(Node n)
   return d_rebuildCache[eliminated];
 }
 
-Node IntBlaster::intBlastWithRanges(Node n)
-{
-  Assert(n.getType().isBoolean());
-  Node ib = intBlast(n);
-  Node ranges = conjoinRangeAssertions();
-  Node result = d_nm->mkNode(kind::AND, ib, ranges);
-  return result;
-}
-
 /**
  * Translate n to Integers via post-order traversal.
  */
-Node IntBlaster::intBlast(Node n)
+Node IntBlaster::intBlast(Node n, std::vector<Node>& lemmas)
 {
   // make sure the node is re-written before processing it.
   n = Rewriter::rewrite(n);
@@ -309,7 +312,7 @@ Node IntBlaster::intBlast(Node n)
         Node translation;
         if (currentNumChildren == 0)
         {
-          translation = translateNoChildren(current);
+          translation = translateNoChildren(current, lemmas);
         }
         else
         {
@@ -332,7 +335,8 @@ Node IntBlaster::intBlast(Node n)
           {
             translated_children.push_back(d_intblastCache[current[i]]);
           }
-          translation = translateWithChildren(current, translated_children);
+          translation =
+              translateWithChildren(current, translated_children, lemmas);
         }
         // Map the current node to its translation in the cache.
         d_intblastCache[current] = translation;
@@ -346,7 +350,9 @@ Node IntBlaster::intBlast(Node n)
 }
 
 Node IntBlaster::translateWithChildren(
-    Node original, const std::vector<Node>& translated_children)
+    Node original,
+    const std::vector<Node>& translated_children,
+    std::vector<Node>& lemmas)
 {
   // The translation of the original node is determined by the kind of
   // the node.
@@ -677,8 +683,8 @@ Node IntBlaster::translateWithChildren(
       // bitwidth.
       if (original.getType().isBitVector())
       {
-        d_rangeAssertions.insert(mkRangeConstraint(
-            returnNode, original.getType().getBitVectorSize()));
+        addRangeConstraint(
+            returnNode, original.getType().getBitVectorSize(), lemmas);
       }
       break;
     }
@@ -723,7 +729,7 @@ Node IntBlaster::translateWithChildren(
   return returnNode;
 }
 
-Node IntBlaster::translateNoChildren(Node original)
+Node IntBlaster::translateNoChildren(Node original, std::vector<Node>& lemmas)
 {
   Node translation;
   Assert(original.isVar() || original.isConst());
@@ -752,7 +758,7 @@ Node IntBlaster::translateNoChildren(Node original)
                                          + original.toString());
         uint64_t bvsize = original.getType().getBitVectorSize();
         translation = newVar;
-        d_rangeAssertions.insert(mkRangeConstraint(newVar, bvsize));
+        addRangeConstraint(newVar, bvsize, lemmas);
         defineBVUFAsIntUF(original, newVar);
       }
     }
@@ -944,16 +950,6 @@ IntBlaster::IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode, uint64_t g
   d_zero = d_nm->mkConst<Rational>(0);
   d_one = d_nm->mkConst<Rational>(1);
 };
-
-Node IntBlaster::conjoinRangeAssertions()
-{
-  std::vector<Node> vec_range;
-  vec_range.assign(d_rangeAssertions.key_begin(), d_rangeAssertions.key_end());
-  // conjoin all range assertions and add the conjunction
-  // as a new assertion
-  Node result = Rewriter::rewrite(d_nm->mkAnd(vec_range));
-  return result;
-}
 
 Node IntBlaster::createShiftNode(std::vector<Node> children,
                                  uint64_t bvsize,

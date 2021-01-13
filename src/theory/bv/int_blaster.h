@@ -87,24 +87,11 @@ class IntBlaster
    * The result is an integer term and is computed
    * according to the translation specified above.
    * @param n is a bit-vector term or formula to be translated.
+   * @param lemmas additional lemmas that are needd for the translation
+   * to be sound. These are range constraints on introduced variables.
    * @return integer node that corresponds to n.
    */
-  Node intBlast(Node n);
-
-  /**
-   * @param n is a BV formula (type BOOL)
-   * @return is the translation using intBlast +
-   * the required range constraints that are induced by
-   * the BV variables inside n.
-   */
-  Node intBlastWithRanges(Node n);
-
-  /**
-   * Creates a conjunction from d_rangeAssertions.
-   * IMPORTANT: d_rangeAssertions is never cleared,
-   * so it has assertions from the beginning of the object.
-   */
-  Node conjoinRangeAssertions();
+  Node intBlast(Node n, std::vector<Node>& lemmas);
 
  protected:
   /**
@@ -125,6 +112,8 @@ class IntBlaster
   Node createShiftNode(std::vector<Node> children,
                        uint64_t bvsize,
                        bool isLeftShift);
+
+  void addRangeConstraint(Node node, uint64_t size, std::vector<Node> lemmas);
 
   /**
    * Returns a node that represents the bitwise negation of n.
@@ -248,14 +237,15 @@ class IntBlaster
    * that have children.
    */
   Node translateWithChildren(Node original,
-                             const std::vector<Node>& translated_children);
+                             const std::vector<Node>& translated_children,
+                             std::vector<Node>& lemmas);
 
   /**
    * Performs the actual translation to integers for nodes
    * that don't have children (variables, constants, uninterpreted function
    * symbols).
    */
-  Node translateNoChildren(Node original);
+  Node translateNoChildren(Node original, std::vector<Node>& lemmas);
 
   /**
    * Caches for the different functions

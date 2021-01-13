@@ -44,30 +44,30 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  std::vector<Node> rangeConstraints;
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node bvNode = (*assertionsToPreprocess)[i];
-    Node intNode = d_intBlaster.intBlast(bvNode);
+    Node intNode = d_intBlaster.intBlast(bvNode, rangeConstraints);
     Node rwNode = Rewriter::rewrite(intNode);
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
     Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
     assertionsToPreprocess->replace(i, rwNode);
   }
-  addFinalizeRangeAssertions(assertionsToPreprocess);
+  addFinalizeRangeAssertions(assertionsToPreprocess, rangeConstraints);
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
 void BVToInt::addFinalizeRangeAssertions(
-    AssertionPipeline* assertionsToPreprocess)
+    AssertionPipeline* assertionsToPreprocess,
+    std::vector<Node> rangeConstraints)
 {
-  // collect the range assertions from d_rangeAssertions
-  // (which is a context-dependent set)
-  // into a vector.
-  Node rangeAssertions = d_intBlaster.conjoinRangeAssertions();
-  assertionsToPreprocess->push_back(rangeAssertions);
-  Trace("bv-to-int-debug") << "range constraints: "
-                           << rangeAssertions.toString() << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
+  Node rangeLemma = nm->mkAnd(rangeConstraints);
+  assertionsToPreprocess->push_back(rangeLemma);
+  Trace("bv-to-int-debug") << "range constraints: " << rangeLemma.toString()
+                           << std::endl;
 }
 
 }  // namespace passes

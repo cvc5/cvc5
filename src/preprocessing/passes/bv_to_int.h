@@ -39,7 +39,8 @@ class BVToInt : public PreprocessingPass
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 
-  void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
+  void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess,
+                                  std::vector<Node> rangeConstraints);
 
   IntBlaster d_intBlaster;
 };
