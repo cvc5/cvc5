@@ -45,10 +45,11 @@ PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   std::vector<Node> rangeConstraints;
+  std::map<Node, Node> skolems;
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node bvNode = (*assertionsToPreprocess)[i];
-    Node intNode = d_intBlaster.intBlast(bvNode, rangeConstraints);
+    Node intNode = d_intBlaster.intBlast(bvNode, rangeConstraints, skolems);
     Node rwNode = Rewriter::rewrite(intNode);
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;

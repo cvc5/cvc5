@@ -267,7 +267,7 @@ Node IntBlaster::eliminationPass(Node n)
 /**
  * Translate n to Integers via post-order traversal.
  */
-Node IntBlaster::intBlast(Node n, std::vector<Node>& lemmas)
+Node IntBlaster::intBlast(Node n, std::vector<Node>& lemmas, std::map<Node, Node> & skolems)
 {
   // make sure the node is re-written before processing it.
   n = Rewriter::rewrite(n);

@@ -91,7 +91,7 @@ class IntBlaster
    * to be sound. These are range constraints on introduced variables.
    * @return integer node that corresponds to n.
    */
-  Node intBlast(Node n, std::vector<Node>& lemmas);
+  Node intBlast(Node n, std::vector<Node>& lemmas, std::map<Node, Node> & skolems);
 
  protected:
   /**
