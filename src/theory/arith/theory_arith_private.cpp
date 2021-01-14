@@ -3752,6 +3752,13 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
     Node right = nm->mkNode(kind::OR, ub, lb);
     Node eq = Rewriter::rewrite(
         nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
+    // Also preprocess it before we send it out. This is important since
+    // arithmetic may prefer eliminating equalities.
+    if (Theory::theoryOf(eq) == THEORY_ARITH)
+    {
+      TrustNode teq = d_containing.ppRewrite(eq);
+      eq = teq.isNull() ? eq : teq.getNode();
+    }
     Node literal = d_containing.getValuation().ensureLiteral(eq);
     Trace("integers") << "eq: " << eq << "\nto: " << literal << endl;
     d_containing.getOutputChannel().requirePhase(literal, true);
