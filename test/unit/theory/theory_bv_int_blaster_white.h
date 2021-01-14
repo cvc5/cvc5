@@ -74,7 +74,8 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     Node eq = d_nm->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
     Node not_x_eq_y = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, y));
     d_smt->finishInit();
-    IntBlaster* ib = new IntBlaster(d_smt->getUserContext(), options::SolveBVAsIntMode::IAND);
+    IntBlaster* ib = new IntBlaster(d_smt->getUserContext(),
+                                    options::SolveBVAsIntMode::IAND);
     vector<Node> lemmas;
     std::map<Node, Node> skolems;
     Node translation = ib->intBlast(not_x_eq_y, lemmas, skolems);

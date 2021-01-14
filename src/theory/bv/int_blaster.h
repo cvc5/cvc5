@@ -86,9 +86,13 @@ class IntBlaster
    * @param context user context
    * @param mode bv-to-int translation mode
    * @param granularity bv-to-int translation granularity
-   * @param supportNoBV determines if the translation supports nodes that are not purely bit-vector nodes.
+   * @param supportNoBV determines if the translation supports nodes that are
+   * not purely bit-vector nodes.
    */
-  IntBlaster(context::Context* context, options::SolveBVAsIntMode mode, uint64_t granluarity = 1, bool supportNoBV = true);
+  IntBlaster(context::Context* context,
+             options::SolveBVAsIntMode mode,
+             uint64_t granluarity = 1,
+             bool supportNoBV = true);
 
   /**
    * The result is an integer term and is computed
@@ -96,10 +100,12 @@ class IntBlaster
    * @param n is a bit-vector term or formula to be translated.
    * @param lemmas additional lemmas that are needd for the translation
    * to be sound. These are range constraints on introduced variables.
-   * @return integer node that corresponds to n, or a null node if d_supportNoBV is set
-   * to false and n is note purely BV.
+   * @return integer node that corresponds to n, or a null node if d_supportNoBV
+   * is set to false and n is note purely BV.
    */
-  Node intBlast(Node n, std::vector<Node>& lemmas, std::map<Node, Node> & skolems);
+  Node intBlast(Node n,
+                std::vector<Node>& lemmas,
+                std::map<Node, Node>& skolems);
 
  protected:
   /**
@@ -121,7 +127,7 @@ class IntBlaster
                        uint64_t bvsize,
                        bool isLeftShift);
 
-  void addRangeConstraint(Node node, uint64_t size, std::vector<Node> & lemmas);
+  void addRangeConstraint(Node node, uint64_t size, std::vector<Node>& lemmas);
 
   /**
    * Returns a node that represents the bitwise negation of n.
@@ -221,13 +227,13 @@ class IntBlaster
 
   /**
    * When a UF f is translated to a UF g,
-   * we compute a definition 
+   * we compute a definition
    * to relate between f and g.
    * We do the same when f and g are just variables.
    * This is useful, for example, when asking
    * for a model-value of a term that includes the
    * original UF f.
-   * 
+   *
    * For example: if bvUF is a BV variable x and
    * intUF is an integer variable xx,
    * the return value is ((_ nat2bv k) xx),
@@ -235,7 +241,7 @@ class IntBlaster
    *
    * For another example: if bvUF is a BV to BV function
    * f and intUF is an integer to integer function ff,
-   * the return value is: 
+   * the return value is:
    * lambda x : BV[k]. ((_ nat2bv k) (ff (bv2nat x))),
    * where k is the bit-width of the co-domain of f.
    *
@@ -250,7 +256,7 @@ class IntBlaster
      by replacing every argument of type BV to an argument of type Integer,
      and the return type becomes integer in case it was BV.
    */
-  Node translateFunctionSymbol(Node bvUF, std::map<Node, Node> & skolems);
+  Node translateFunctionSymbol(Node bvUF, std::map<Node, Node>& skolems);
 
   /**
    * Performs the actual translation to integers for nodes
@@ -265,7 +271,9 @@ class IntBlaster
    * that don't have children (variables, constants, uninterpreted function
    * symbols).
    */
-  Node translateNoChildren(Node original, std::vector<Node>& lemmas, std::map<Node, Node> & skolems);
+  Node translateNoChildren(Node original,
+                           std::vector<Node>& lemmas,
+                           std::map<Node, Node>& skolems);
 
   /**
    * Caches for the different functions
@@ -300,12 +308,12 @@ class IntBlaster
 
   /** the granularity to use in the translation */
   uint64_t d_granularity;
-  
+
   /** an SmtEngine for context */
   context::Context* d_context;
 
-   /** true iff the translator supports non-pure BV nodes */
-   bool d_supportNoBV;
+  /** true iff the translator supports non-pure BV nodes */
+  bool d_supportNoBV;
 };
 
 }  // namespace CVC4

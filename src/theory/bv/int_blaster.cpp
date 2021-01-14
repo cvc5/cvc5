@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/skolem_manager.h"
 #include "expr/node_traversal.h"
+#include "expr/skolem_manager.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
@@ -43,13 +43,15 @@ Rational intpow2(uint64_t b) { return Rational(Integer(2).pow(b), Integer(1)); }
 
 void IntBlaster::addRangeConstraint(Node node,
                                     uint64_t size,
-                                    std::vector<Node> & lemmas)
+                                    std::vector<Node>& lemmas)
 {
   Node rangeConstraint = mkRangeConstraint(node, size);
-  Trace("int-blaster-debug") << "range constraint computed: " << rangeConstraint << std::endl;
+  Trace("int-blaster-debug")
+      << "range constraint computed: " << rangeConstraint << std::endl;
   if (d_rangeAssertions.find(rangeConstraint) == d_rangeAssertions.end())
   {
-    Trace("int-blaster-debug") << "range constraint added to cache and lemmas " << std::endl;
+    Trace("int-blaster-debug")
+        << "range constraint added to cache and lemmas " << std::endl;
     d_rangeAssertions.insert(rangeConstraint);
     lemmas.push_back(rangeConstraint);
   }
@@ -268,7 +270,9 @@ Node IntBlaster::eliminationPass(Node n)
 /**
  * Translate n to Integers via post-order traversal.
  */
-Node IntBlaster::intBlast(Node n, std::vector<Node>& lemmas, std::map<Node, Node> & skolems)
+Node IntBlaster::intBlast(Node n,
+                          std::vector<Node>& lemmas,
+                          std::map<Node, Node>& skolems)
 {
   // make sure the node is re-written before processing it.
   n = Rewriter::rewrite(n);
@@ -462,11 +466,10 @@ Node IntBlaster::translateWithChildren(
         Assert(d_mode == options::SolveBVAsIntMode::SUM);
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
-        returnNode =
-            d_iandUtils.createSumNode(translated_children[0],
-                                      translated_children[1],
-                                      bvsize,
-                                      d_granularity);
+        returnNode = d_iandUtils.createSumNode(translated_children[0],
+                                               translated_children[1],
+                                               bvsize,
+                                               d_granularity);
       }
       break;
     }
@@ -732,7 +735,9 @@ Node IntBlaster::translateWithChildren(
   return returnNode;
 }
 
-Node IntBlaster::translateNoChildren(Node original, std::vector<Node>& lemmas, std::map<Node, Node>  & skolems)
+Node IntBlaster::translateNoChildren(Node original,
+                                     std::vector<Node>& lemmas,
+                                     std::map<Node, Node>& skolems)
 {
   Node translation;
   Assert(original.isVar() || original.isConst());
@@ -755,19 +760,23 @@ Node IntBlaster::translateNoChildren(Node original, std::vector<Node>& lemmas, s
         // are added together with range constraints induced by the
         // bit-width of the original bit-vector variables.
         Node intCast = castToType(original, d_nm->integerType());
-        Node newVar = d_nm->getSkolemManager()->mkPurifySkolem(intCast,
-                                     "__intblast__var",
-                                     "Variable introduced in intblasting"
-                                     "pass instead of original variable "
-                                         + original.toString());
+        Node newVar = d_nm->getSkolemManager()->mkPurifySkolem(
+            intCast,
+            "__intblast__var",
+            "Variable introduced in intblasting"
+            "pass instead of original variable "
+                + original.toString());
         uint64_t bvsize = original.getType().getBitVectorSize();
         translation = newVar;
         addRangeConstraint(newVar, bvsize, lemmas);
         // put new definition of old variable in skolems
         Node bvCast = defineBVUFAsIntUF(original, newVar);
-        if (skolems.find(original) == skolems.end()) {
+        if (skolems.find(original) == skolems.end())
+        {
           skolems[original] = bvCast;
-        } else {
+        }
+        else
+        {
           Assert(skolems[original] == bvCast);
         }
       }
@@ -854,7 +863,8 @@ Node IntBlaster::defineBVUFAsIntUF(Node bvUF, Node intUF)
   return result;
 }
 
-Node IntBlaster::translateFunctionSymbol(Node bvUF, std::map<Node, Node> & skolems)
+Node IntBlaster::translateFunctionSymbol(Node bvUF,
+                                         std::map<Node, Node>& skolems)
 {
   // construct the new function symbol.
   Node intUF;
@@ -880,14 +890,16 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF, std::map<Node, Node> & skole
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
   // add definition of old function symbol to skolems
   Node lambda = defineBVUFAsIntUF(bvUF, intUF);
-  if (skolems.find(bvUF) == skolems.end()) {
+  if (skolems.find(bvUF) == skolems.end())
+  {
     skolems[bvUF] = lambda;
-  } else {
+  }
+  else
+  {
     Assert(skolems[bvUF] == lambda);
   }
   return intUF;
 }
-
 
 bool IntBlaster::childrenTypesChanged(Node n)
 {
@@ -914,7 +926,8 @@ Node IntBlaster::castToType(Node n, TypeNode tn)
     return n;
   }
   // We only case int to bv or vice verse.
-  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn << std::endl;
+  Trace("int-blaster") << "castToType from " << n.getType() << " to " << tn
+                       << std::endl;
   Assert((n.getType().isBitVector() && tn.isInteger())
          || (n.getType().isInteger() && tn.isBitVector()));
   if (n.getType().isInteger())
@@ -954,7 +967,10 @@ Node IntBlaster::reconstructNode(Node originalNode,
   return reconstruction;
 }
 
-IntBlaster::IntBlaster(context::Context* c, options::SolveBVAsIntMode mode, uint64_t granularity, bool supportNoBV)
+IntBlaster::IntBlaster(context::Context* c,
+                       options::SolveBVAsIntMode mode,
+                       uint64_t granularity,
+                       bool supportNoBV)
     : d_binarizeCache(c),
       d_eliminationCache(c),
       d_rebuildCache(c),

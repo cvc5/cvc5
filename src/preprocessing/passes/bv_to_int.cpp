@@ -39,7 +39,9 @@ using namespace CVC4::theory::bv;
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
-      d_intBlaster(preprocContext->getSmt()->getUserContext(), options::solveBVAsInt(), options::BVAndIntegerGranularity()){};
+      d_intBlaster(preprocContext->getSmt()->getUserContext(),
+                   options::solveBVAsInt(),
+                   options::BVAndIntegerGranularity()){};
 
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
@@ -61,7 +63,8 @@ PreprocessingPassResult BVToInt::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-void BVToInt::addSkolemDefinitions(std::map<Node, Node> skolems) {
+void BVToInt::addSkolemDefinitions(std::map<Node, Node> skolems)
+{
   map<Node, Node>::iterator it;
   for (it = skolems.begin(); it != skolems.end(); it++)
   {
@@ -69,13 +72,17 @@ void BVToInt::addSkolemDefinitions(std::map<Node, Node> skolems) {
     Node definition = it->second;
     std::vector<Node> args;
     Node body;
-    if (definition.getType().isFunction()) {
-      args.insert(args.end(), definition[0].begin(), definition[0].end()); 
+    if (definition.getType().isFunction())
+    {
+      args.insert(args.end(), definition[0].begin(), definition[0].end());
       body = definition[1];
-    } else {
+    }
+    else
+    {
       body = definition;
     }
-    d_preprocContext->getSmt()->defineFunction(originalSkolem, args, body, true);
+    d_preprocContext->getSmt()->defineFunction(
+        originalSkolem, args, body, true);
   }
 }
 
