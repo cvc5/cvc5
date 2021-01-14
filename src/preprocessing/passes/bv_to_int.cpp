@@ -57,7 +57,26 @@ PreprocessingPassResult BVToInt::applyInternal(
     assertionsToPreprocess->replace(i, rwNode);
   }
   addFinalizeRangeAssertions(assertionsToPreprocess, rangeConstraints);
+  addSkolemDefinitions(skolems);
   return PreprocessingPassResult::NO_CONFLICT;
+}
+
+void BVToInt::addSkolemDefinitions(std::map<Node, Node> skolems) {
+  map<Node, Node>::iterator it;
+  for (it = skolems.begin(); it != skolems.end(); it++)
+  {
+    Node originalSkolem = it->first;
+    Node definition = it->second;
+    std::vector<Node> args;
+    Node body;
+    if (definition.getType().isFunction()) {
+      args.insert(args.end(), definition[0].begin(), definition[0].end()); 
+      body = definition[1];
+    } else {
+      body = definition;
+    }
+    d_preprocContext->getSmt()->defineFunction(originalSkolem, args, body, true);
+  }
 }
 
 void BVToInt::addFinalizeRangeAssertions(
@@ -70,6 +89,7 @@ void BVToInt::addFinalizeRangeAssertions(
   Trace("bv-to-int-debug") << "range constraints: " << rangeLemma.toString()
                            << std::endl;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

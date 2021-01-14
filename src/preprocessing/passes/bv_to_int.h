@@ -41,6 +41,8 @@ class BVToInt : public PreprocessingPass
 
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess,
                                   std::vector<Node> rangeConstraints);
+  void addSkolemDefinitions(std::map<Node, Node> skolems);
+  void defineBVUFAsIntUF(Node bvUF, Node intUF);
 
   IntBlaster d_intBlaster;
 };

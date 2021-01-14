@@ -222,7 +222,7 @@ class IntBlaster
    * @param bvUF the original function or variable
    * @param intUF the translated function or variable
    */
-  void defineBVUFAsIntUF(Node bvUF, Node intUF);
+  Node defineBVUFAsIntUF(Node bvUF, Node intUF);
 
   /**
    * @param bvUF is an uninterpreted function symbol from the original formula
@@ -230,7 +230,7 @@ class IntBlaster
      by replacing every argument of type BV to an argument of type Integer,
      and the return type becomes integer in case it was BV.
    */
-  Node translateFunctionSymbol(Node bvUF);
+  Node translateFunctionSymbol(Node bvUF, std::map<Node, Node> & skolems);
 
   /**
    * Performs the actual translation to integers for nodes
@@ -245,7 +245,7 @@ class IntBlaster
    * that don't have children (variables, constants, uninterpreted function
    * symbols).
    */
-  Node translateNoChildren(Node original, std::vector<Node>& lemmas);
+  Node translateNoChildren(Node original, std::vector<Node>& lemmas, std::map<Node, Node> & skolems);
 
   /**
    * Caches for the different functions
