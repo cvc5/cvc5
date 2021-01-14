@@ -59,13 +59,9 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
-      // don't consider Boolean equality
-      if (cur.getKind() == kind::EQUAL && !cur[0].getType().isBoolean())
+      if (cur.getNumChildren()==0)
       {
-        // For example, (= x y) ---> (and (>= x y) (<= x y))
-        theory::TrustNode trn = te->ppRewriteEquality(cur);
-        // can make proof producing by using proof generator from trn
-        visited[cur] = trn.isNull() ? Node(cur) : trn.getNode();
+        visited[cur] = cur;
       }
       else
       {
@@ -94,6 +90,13 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
+      }
+      if (ret.getKind() == kind::EQUAL && !ret[0].getType().isBoolean())
+      {
+        // For example, (= x y) ---> (and (>= x y) (<= x y))
+        theory::TrustNode trn = te->ppRewriteEquality(ret);
+        // can make proof producing by using proof generator from trn
+        ret = trn.isNull() ? Node(ret) : trn.getNode();
       }
       visited[cur] = ret;
     }

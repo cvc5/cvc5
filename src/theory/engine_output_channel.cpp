@@ -69,7 +69,7 @@ void EngineOutputChannel::safePoint(ResourceManager::Resource r)
 
 theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
 {
-  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
+  Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
                          << lemma << ")"
                          << ", properties = " << p << std::endl;
   ++d_statistics.lemmas;
@@ -86,12 +86,12 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
 
 theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
 {
-  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
+  Trace("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
                          << lemma << ")" << std::endl;
   ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-  Debug("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
+  Trace("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
                        << std::endl;
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   LemmaProperty p = removable ? LemmaProperty::REMOVABLE : LemmaProperty::NONE;
@@ -101,7 +101,7 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
 
 bool EngineOutputChannel::propagate(TNode literal)
 {
-  Debug("theory::propagate") << "EngineOutputChannel<" << d_theory
+  Trace("theory::propagate") << "EngineOutputChannel<" << d_theory
                              << ">::propagate(" << literal << ")" << std::endl;
   ++d_statistics.propagations;
   d_engine->d_outputChannelUsed = true;
@@ -134,7 +134,7 @@ void EngineOutputChannel::demandRestart()
 
 void EngineOutputChannel::requirePhase(TNode n, bool phase)
 {
-  Debug("theory") << "EngineOutputChannel::requirePhase(" << n << ", " << phase
+  Trace("theory") << "EngineOutputChannel::requirePhase(" << n << ", " << phase
                   << ")" << std::endl;
   ++d_statistics.requirePhase;
   d_engine->getPropEngine()->requirePhase(n, phase);
@@ -174,7 +174,7 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
 
 LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
 {
-  Debug("theory::lemma") << "EngineOutputChannel<" << d_theory
+  Trace("theory::lemma") << "EngineOutputChannel<" << d_theory
                          << ">::trustedLemma(" << plem << ")" << std::endl;
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   if (plem.getGenerator() != nullptr)
