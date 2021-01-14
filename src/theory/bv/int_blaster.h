@@ -213,12 +213,24 @@ class IntBlaster
 
   /**
    * When a UF f is translated to a UF g,
-   * we add a define-fun command to the smt-engine
+   * we compute a definition 
    * to relate between f and g.
    * We do the same when f and g are just variables.
    * This is useful, for example, when asking
    * for a model-value of a term that includes the
    * original UF f.
+   * 
+   * For example: if bvUF is a BV variable x and
+   * intUF is an integer variable xx,
+   * the return value is ((_ nat2bv k) xx),
+   * where k is the width of k.
+   *
+   * For another example: if bvUF is a BV to BV function
+   * f and intUF is an integer to integer function ff,
+   * the return value is: 
+   * lambda x : BV[k]. ((_ nat2bv k) (ff (bv2nat x))),
+   * where k is the bit-width of the co-domain of f.
+   *
    * @param bvUF the original function or variable
    * @param intUF the translated function or variable
    */

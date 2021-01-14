@@ -763,7 +763,7 @@ Node IntBlaster::translateNoChildren(Node original, std::vector<Node>& lemmas, s
         uint64_t bvsize = original.getType().getBitVectorSize();
         translation = newVar;
         addRangeConstraint(newVar, bvsize, lemmas);
-
+        // put new definition of old variable in skolems
         Node bvCast = defineBVUFAsIntUF(original, newVar);
         if (skolems.find(original) == skolems.end()) {
           skolems[original] = bvCast;
@@ -816,9 +816,8 @@ Node IntBlaster::defineBVUFAsIntUF(Node bvUF, Node intUF)
     // bvUF is a variable.
     // in this case, the result is just the original term
     // casted back if needed
-    result = intUF;
     resultType = bvUF.getType();
-    result = castToType(result, resultType);
+    result = castToType(intUF, resultType);
   }
   else
   {
@@ -879,14 +878,12 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF, std::map<Node, Node> & skole
   os << "__intblast_fun_" << bvUF << "_int";
   intUF = d_nm->mkSkolem(
       os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function");
-  // introduce a `define-fun` in the smt-engine to keep
-  // the correspondence between the original
-  // function symbol and the new one.
+  // add definition of old function symbol to skolems
+  Node lambda = defineBVUFAsIntUF(bvUF, intUF);
   if (skolems.find(bvUF) == skolems.end()) {
-    Node lambda = defineBVUFAsIntUF(bvUF, intUF);
     skolems[bvUF] = lambda;
   } else {
-    Assert(skolems[bvUF] == intUF);
+    Assert(skolems[bvUF] == lambda);
   }
   return intUF;
 }
