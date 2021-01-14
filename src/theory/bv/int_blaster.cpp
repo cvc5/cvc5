@@ -954,15 +954,16 @@ Node IntBlaster::reconstructNode(Node originalNode,
   return reconstruction;
 }
 
-IntBlaster::IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode, uint64_t granularity)
-    : d_binarizeCache(se->getUserContext()),
-      d_eliminationCache(se->getUserContext()),
-      d_rebuildCache(se->getUserContext()),
-      d_intblastCache(se->getUserContext()),
-      d_rangeAssertions(se->getUserContext()),
+IntBlaster::IntBlaster(context::Context* c, options::SolveBVAsIntMode mode, uint64_t granularity, bool supportNoBV)
+    : d_binarizeCache(c),
+      d_eliminationCache(c),
+      d_rebuildCache(c),
+      d_intblastCache(c),
+      d_rangeAssertions(c),
       d_mode(mode),
       d_granularity(granularity),
-      d_se(se)
+      d_context(c),
+      d_supportNoBV(supportNoBV)
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConst<Rational>(0);

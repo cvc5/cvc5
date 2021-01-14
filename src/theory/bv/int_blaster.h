@@ -81,7 +81,14 @@ using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 class IntBlaster
 {
  public:
-  IntBlaster(SmtEngine* se, options::SolveBVAsIntMode mode, uint64_t granluarity = 1);
+  /**
+   * Constructor.
+   * @param context user context
+   * @param mode bv-to-int translation mode
+   * @param granularity bv-to-int translation granularity
+   * @param supportNoBV determines if the translation supports nodes that are not purely bit-vector nodes.
+   */
+  IntBlaster(context::Context* context, options::SolveBVAsIntMode mode, uint64_t granluarity = 1, bool supportNoBV = true);
 
   /**
    * The result is an integer term and is computed
@@ -89,7 +96,8 @@ class IntBlaster
    * @param n is a bit-vector term or formula to be translated.
    * @param lemmas additional lemmas that are needd for the translation
    * to be sound. These are range constraints on introduced variables.
-   * @return integer node that corresponds to n.
+   * @return integer node that corresponds to n, or a null node if d_supportNoBV is set
+   * to false and n is note purely BV.
    */
   Node intBlast(Node n, std::vector<Node>& lemmas, std::map<Node, Node> & skolems);
 
@@ -294,7 +302,10 @@ class IntBlaster
   uint64_t d_granularity;
   
   /** an SmtEngine for context */
-  SmtEngine* d_se;
+  context::Context* d_context;
+
+   /** true iff the translator supports non-pure BV nodes */
+   bool d_supportNoBV;
 };
 
 }  // namespace CVC4
