@@ -1032,31 +1032,6 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
       atomRet = ret.getNode();
     }
   }
-  if( !options::stringLazyPreproc() ){
-    //eager preprocess here
-    std::vector< Node > new_nodes;
-    StringsPreprocess* p = d_esolver.getPreprocess();
-    Node pret = p->processAssertion(atomRet, new_nodes);
-    if (pret != atomRet)
-    {
-      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << pret
-                           << ", with " << new_nodes.size() << " lemmas."
-                           << std::endl;
-      for (const Node& lem : new_nodes)
-      {
-        Trace("strings-ppr") << "    lemma : " << lem << std::endl;
-        ++(d_statistics.d_lemmasEagerPreproc);
-        d_out->lemma(lem);
-      }
-      atomRet = pret;
-      // Don't support proofs yet, thus we must return nullptr. This is the
-      // case even if we had proven the elimination via regexp elimination
-      // above.
-      ret = TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
-    }else{
-      Assert(new_nodes.empty());
-    }
-  }
   return ret;
 }
 
