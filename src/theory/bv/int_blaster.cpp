@@ -716,7 +716,8 @@ Node IntBlaster::translateWithChildren(
     }
     default:
     {
-      if (!d_supportNoBV)
+      if (!d_supportNoBV && !original.getType().isBitVector()
+          && !original.getType().isBoolean())
       {
         return Node();
       }
@@ -748,8 +749,15 @@ Node IntBlaster::translateNoChildren(Node original,
                                      std::vector<Node>& lemmas,
                                      std::map<Node, Node>& skolems)
 {
-  if (!original.getType().isBitVector() && !d_supportNoBV)
+  Trace("int-blaster-debug")
+      << "translating leaf: " << original << "; of type: " << original.getType()
+      << std::endl;
+  if (!original.getType().isBitVector() && !original.getType().isBoolean()
+      && !d_supportNoBV)
   {
+    Trace("int-blaster") << "The type " << original.getType()
+                         << " is not supported when supportNoBF is false"
+                         << std::endl;
     return Node();
   }
   Node translation;
@@ -906,10 +914,6 @@ Node IntBlaster::translateFunctionSymbol(Node bvUF,
   if (skolems.find(bvUF) == skolems.end())
   {
     skolems[bvUF] = lambda;
-  }
-  else
-  {
-    Assert(skolems[bvUF] == lambda);
   }
   return intUF;
 }

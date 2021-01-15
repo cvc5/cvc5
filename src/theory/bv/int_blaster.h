@@ -100,6 +100,14 @@ class IntBlaster
    * @param n is a bit-vector term or formula to be translated.
    * @param lemmas additional lemmas that are needd for the translation
    * to be sound. These are range constraints on introduced variables.
+   * @param skolems a map in which the following information will be stored
+   * during the run of intBlast: for each BV variable n, skolems[n] is its new
+   * definition: ((_ nat2bv k) nn), where k is the bit-width of n, and nn is the
+   * integer variable that corresponds to n.
+   * For each UF f from BV to BV, skolems[f] is lambda x : BV[k] . ((_ nat2bv i)
+   * ff((bv2nat x))), where k is the bit-width of the domain of f, i is the
+   * bit-width of its range, and ff is a Int->Int function that corresponds to
+   * f. For functions with other signatures this is similar
    * @return integer node that corresponds to n, or a null node if d_supportNoBV
    * is set to false and n is note purely BV.
    */
