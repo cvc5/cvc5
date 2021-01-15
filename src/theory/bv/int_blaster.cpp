@@ -320,6 +320,10 @@ Node IntBlaster::intBlast(Node n,
         if (currentNumChildren == 0)
         {
           translation = translateNoChildren(current, lemmas, skolems);
+          if (translation.isNull())
+          {
+            return Node();
+          }
         }
         else
         {
@@ -344,7 +348,12 @@ Node IntBlaster::intBlast(Node n,
           }
           translation =
               translateWithChildren(current, translated_children, lemmas);
+          if (translation.isNull())
+          {
+            return Node();
+          }
         }
+        Assert(!translation.isNull());
         // Map the current node to its translation in the cache.
         d_intblastCache[current] = translation;
         // Also map the translation to itself.
@@ -648,6 +657,10 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::APPLY_UF:
     {
+      if (!d_supportNoBV)
+      {
+        return Node();
+      }
       /**
        * higher order logic allows comparing between functions
        * The translation does not support this,
@@ -676,21 +689,37 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BOUND_VAR_LIST:
     {
+      if (!d_supportNoBV)
+      {
+        return Node();
+      }
       returnNode = d_nm->mkNode(oldKind, translated_children);
       break;
     }
     case kind::FORALL:
     {
+      if (!d_supportNoBV)
+      {
+        return Node();
+      }
       returnNode = translateQuantifiedFormula(original);
       break;
     }
     case kind::EXISTS:
     {
+      if (!d_supportNoBV)
+      {
+        return Node();
+      }
       // Exists is eliminated by the rewriter.
       Assert(false);
     }
     default:
     {
+      if (!d_supportNoBV)
+      {
+        return Node();
+      }
       // In the default case, we have reached an operator that we do not
       // translate directly to integers. The children whose types have
       // changed from bv to int should be adjusted back to bv and then
@@ -719,6 +748,10 @@ Node IntBlaster::translateNoChildren(Node original,
                                      std::vector<Node>& lemmas,
                                      std::map<Node, Node>& skolems)
 {
+  if (!original.getType().isBitVector() && !d_supportNoBV)
+  {
+    return Node();
+  }
   Node translation;
   Assert(original.isVar() || original.isConst());
   if (original.isVar())

@@ -97,7 +97,6 @@ void BVToInt::addFinalizeRangeAssertions(
                            << std::endl;
 }
 
-
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4
