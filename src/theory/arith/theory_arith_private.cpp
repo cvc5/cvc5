@@ -3750,13 +3750,14 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
     Node lb = Rewriter::rewrite(
         nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
     Node right = nm->mkNode(kind::OR, ub, lb);
-    Node eq = Rewriter::rewrite(
-        nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
+    Node rawEq = nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest));
+    Node eq = Rewriter::rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
+    TrustNode teq;
     if (Theory::theoryOf(eq) == THEORY_ARITH)
     {
-      TrustNode teq = d_containing.ppRewrite(eq);
+      teq = d_containing.ppRewrite(eq);
       eq = teq.isNull() ? eq : teq.getNode();
     }
     Node literal = d_containing.getValuation().ensureLiteral(eq);
@@ -3769,16 +3770,24 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
       Node less = nm->mkNode(kind::LT, var, mkRationalNode(nearest));
       Node greater = nm->mkNode(kind::GT, var, mkRationalNode(nearest));
       // TODO: justify. Thread proofs through *ensureLiteral*.
-      Pf pfEq = literal == eq
-                    ? d_pnm->mkAssume(eq.negate())
-                    : d_pnm->mkNode(PfRule::INT_TRUST,
-                                    {d_pnm->mkAssume(literal.negate())},
-                                    {eq.negate()});
-
+      Debug("integers::pf") << "less: " << less << endl;
+      Debug("integers::pf") << "greater: " << greater << endl;
+      Debug("integers::pf") << "literal: " << literal << endl;
+      Debug("integers::pf") << "eq: " << eq << endl;
+      Debug("integers::pf") << "rawEq: " << rawEq << endl;
+      Pf pfNotLit = d_pnm->mkAssume(literal.negate());
+      // rewrite notLiteral to notRawEq, using teq.
+      Pf pfNotRawEq =
+          literal == rawEq
+              ? pfNotLit
+              : d_pnm->mkNode(
+                  PfRule::MACRO_SR_PRED_TRANSFORM,
+                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
+                  {rawEq.negate()});
       Pf pfBot =
           d_pnm->mkNode(PfRule::CONTRA,
                         {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
-                                       {d_pnm->mkAssume(less.negate()), pfEq},
+                                       {d_pnm->mkAssume(less.negate()), pfNotRawEq},
                                        {greater}),
                          d_pnm->mkAssume(greater.negate())},
                         {});
