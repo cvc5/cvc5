@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-strings-lazy-pp
+; COMMAND-LINE: --no-strings-lazy-pp -i
 ; EXPECT: unsat
 (set-logic QF_S)
 (declare-fun _substvar_18_ () String)

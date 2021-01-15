@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-strings-lazy-pp
+; COMMAND-LINE: --no-strings-lazy-pp -i
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
