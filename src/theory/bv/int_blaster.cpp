@@ -641,26 +641,6 @@ Node IntBlaster::translateWithChildren(
       returnNode = d_nm->mkNode(kind::GEQ, translated_children);
       break;
     }
-    case kind::LT:
-    {
-      returnNode = d_nm->mkNode(kind::LT, translated_children);
-      break;
-    }
-    case kind::LEQ:
-    {
-      returnNode = d_nm->mkNode(kind::LEQ, translated_children);
-      break;
-    }
-    case kind::GT:
-    {
-      returnNode = d_nm->mkNode(kind::GT, translated_children);
-      break;
-    }
-    case kind::GEQ:
-    {
-      returnNode = d_nm->mkNode(kind::GEQ, translated_children);
-      break;
-    }
     case kind::ITE:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
