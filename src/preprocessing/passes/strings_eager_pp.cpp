@@ -15,6 +15,7 @@
 #include "preprocessing/passes/strings_eager_pp.h"
 
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::theory;
 
@@ -46,7 +47,7 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
     }
     if (prev != rew)
     {
-      assertionsToPreprocess->replace(i, rew);
+      assertionsToPreprocess->replace(i, theory::Rewriter::rewrite(rew));
     }
   }
 
