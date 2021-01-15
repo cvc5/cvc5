@@ -14,13 +14,13 @@
 
 #include "preprocessing/passes/strings_eager_pp.h"
 
+#include "theory/strings/theory_strings_preprocess.h"
 
 using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
-
 
 StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "strings-eager-pp"){};
@@ -29,9 +29,24 @@ StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult StringsEagerPp::applyInternal(
   AssertionPipeline* assertionsToPreprocess)
 {	
-  strings::SkolemCache skc(false);
+  NodeManager * nm = NodeManager::currentNM();
+  theory::strings::SkolemCache skc(false);
+  theory::strings::StringsPreprocess pp(&skc);
   for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts; ++i) {
-    
+    Node prev = (*assertionsToPreprocess)[i];
+    std::vector<Node> asserts;
+    Node rew = pp.processAssertion(prev, asserts);
+    if (!asserts.empty())
+    {
+      std::vector<Node> conj;
+      conj.push_back(rew);
+      conj.insert(conj.end(), asserts.begin(), asserts.end());
+      rew = nm->mkAnd(conj);
+    }
+    if (prev!=rew)
+    {
+      assertionsToPreprocess->replace(i, rew);
+    }
   }
 
   return PreprocessingPassResult::NO_CONFLICT;

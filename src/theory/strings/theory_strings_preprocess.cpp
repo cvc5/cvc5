@@ -41,8 +41,8 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     SequencesStatistics& stats)
-    : d_sc(sc), d_statistics(stats)
+                    HistogramStat<Kind>* statReductions)
+    : d_sc(sc), d_statReductions(statReductions)
 {
 }
 
@@ -937,7 +937,10 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
         Trace("strings-preprocess") << "   " << asserts[i] << std::endl;
       }
     }
-    d_statistics.d_reductions << t.getKind();
+    if (d_statReductions!=nullptr)
+    {
+      (*d_statReductions) << t.getKind();
+    }
   }
   else
   {
@@ -948,11 +951,10 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
 }
 
 Node StringsPreprocess::simplifyRec(Node t,
-                                    std::vector<Node>& asserts,
-                                    std::map<Node, Node>& visited)
+                                    std::vector<Node>& asserts)
 {
-  std::map< Node, Node >::iterator it = visited.find(t);
-  if( it!=visited.end() ){
+  std::map< Node, Node >::iterator it = d_visited.find(t);
+  if( it!=d_visited.end() ){
     return it->second;
   }else{
     Node retNode = t;
@@ -967,7 +969,7 @@ Node StringsPreprocess::simplifyRec(Node t,
         cc.push_back( t.getOperator() );
       }
       for(unsigned i=0; i<t.getNumChildren(); i++) {
-        Node s = simplifyRec(t[i], asserts, visited);
+        Node s = simplifyRec(t[i], asserts);
         cc.push_back( s );
         if( s!=t[i] ) {
           changed = true;
@@ -979,22 +981,21 @@ Node StringsPreprocess::simplifyRec(Node t,
       }
       retNode = simplify(tmp, asserts);
     }
-    visited[t] = retNode;
+    d_visited[t] = retNode;
     return retNode;
   }
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
 {
-  std::map< Node, Node > visited;
   std::vector<Node> asserts_curr;
-  Node ret = simplifyRec(n, asserts_curr, visited);
+  Node ret = simplifyRec(n, asserts_curr);
   while (!asserts_curr.empty())
   {
     Node curr = asserts_curr.back();
     asserts_curr.pop_back();
     std::vector<Node> asserts_tmp;
-    curr = simplifyRec(curr, asserts_tmp, visited);
+    curr = simplifyRec(curr, asserts_tmp);
     asserts_curr.insert(
         asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end());
     asserts.push_back(curr);

@@ -56,6 +56,7 @@
 #include "preprocessing/passes/theory_preprocess.h"
 #include "preprocessing/passes/theory_rewrite_eq.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
+#include "preprocessing/passes/strings_eager_pp.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace CVC4 {
@@ -153,6 +154,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("ho-elim", callCtor<HoElim>);
   registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
   registerPassInfo("theory-rewrite-eq", callCtor<TheoryRewriteEq>);
+  registerPassInfo("strings-eager-pp", callCtor<StringsEagerPp>);
 }
 
 }  // namespace preprocessing
