@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-/** 
+/**
  * Eliminate all extended string functions in the input problem using
  * reductions to bounded string quantifiers.
  */
@@ -43,4 +43,3 @@ class StringsEagerPp : public PreprocessingPass
 }  // namespace CVC4
 
 #endif /* CVC4__PREPROCESSING__PASSES__STRINGS_EAGER_PP_H */
-

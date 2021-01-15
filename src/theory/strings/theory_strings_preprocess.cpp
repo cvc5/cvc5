@@ -41,7 +41,7 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                    HistogramStat<Kind>* statReductions)
+                                     HistogramStat<Kind>* statReductions)
     : d_sc(sc), d_statReductions(statReductions)
 {
 }
@@ -937,7 +937,7 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
         Trace("strings-preprocess") << "   " << asserts[i] << std::endl;
       }
     }
-    if (d_statReductions!=nullptr)
+    if (d_statReductions != nullptr)
     {
       (*d_statReductions) << t.getKind();
     }
@@ -950,11 +950,11 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
   return retNode;
 }
 
-Node StringsPreprocess::simplifyRec(Node t,
-                                    std::vector<Node>& asserts)
+Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 {
-  std::map< Node, Node >::iterator it = d_visited.find(t);
-  if( it!=d_visited.end() ){
+  std::map<Node, Node>::iterator it = d_visited.find(t);
+  if (it != d_visited.end())
+  {
     return it->second;
   }else{
     Node retNode = t;

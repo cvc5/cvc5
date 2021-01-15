@@ -85,14 +85,13 @@ class StringsPreprocess {
   /** Reference to the statistics for the theory of strings/sequences. */
   HistogramStat<Kind>* d_statReductions;
   /** visited cache */
-  std::map< Node, Node > d_visited;
+  std::map<Node, Node> d_visited;
   /**
    * Applies simplify to all top-level extended function subterms of t. New
    * assertions created in this reduction are added to asserts. The argument
    * visited stores a cache of previous results.
    */
-  Node simplifyRec(Node t,
-                   std::vector<Node>& asserts);
+  Node simplifyRec(Node t, std::vector<Node>& asserts);
   /**
    * Make internal quantified formula with bound variable list bvl and body.
    * Internally, we get a node corresponding to marking a quantified formula as

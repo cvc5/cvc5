@@ -25,14 +25,15 @@ namespace passes {
 StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "strings-eager-pp"){};
 
-
 PreprocessingPassResult StringsEagerPp::applyInternal(
-  AssertionPipeline* assertionsToPreprocess)
-{	
-  NodeManager * nm = NodeManager::currentNM();
+    AssertionPipeline* assertionsToPreprocess)
+{
+  NodeManager* nm = NodeManager::currentNM();
   theory::strings::SkolemCache skc(false);
   theory::strings::StringsPreprocess pp(&skc);
-  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts; ++i) {
+  for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts;
+       ++i)
+  {
     Node prev = (*assertionsToPreprocess)[i];
     std::vector<Node> asserts;
     Node rew = pp.processAssertion(prev, asserts);
@@ -43,7 +44,7 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
       conj.insert(conj.end(), asserts.begin(), asserts.end());
       rew = nm->mkAnd(conj);
     }
-    if (prev!=rew)
+    if (prev != rew)
     {
       assertionsToPreprocess->replace(i, rew);
     }
@@ -51,7 +52,6 @@ PreprocessingPassResult StringsEagerPp::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
 
 }  // namespace passes
 }  // namespace preprocessing
