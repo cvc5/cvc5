@@ -41,7 +41,6 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     context::UserContext* u,
                                      SequencesStatistics& stats)
     : d_sc(sc), d_statistics(stats)
 {
@@ -1001,38 +1000,6 @@ Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
     asserts.push_back(curr);
   }
   return ret;
-}
-
-void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
-  std::map< Node, Node > visited;
-  for( unsigned i=0; i<vec_node.size(); i++ ){
-    Trace("strings-preprocess-debug") << "Preprocessing assertion " << vec_node[i] << std::endl;
-    //preprocess until fixed point
-    std::vector<Node> asserts;
-    std::vector<Node> asserts_curr;
-    asserts_curr.push_back(vec_node[i]);
-    while (!asserts_curr.empty())
-    {
-      Node curr = asserts_curr.back();
-      asserts_curr.pop_back();
-      std::vector<Node> asserts_tmp;
-      curr = simplifyRec(curr, asserts_tmp, visited);
-      asserts_curr.insert(
-          asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end());
-      asserts.push_back(curr);
-    }
-    Node res = asserts.size() == 1
-                   ? asserts[0]
-                   : NodeManager::currentNM()->mkNode(kind::AND, asserts);
-    if( res!=vec_node[i] ){
-      res = Rewriter::rewrite( res );
-      if (options::unsatCores() && !options::proofNew())
-      {
-        ProofManager::currentPM()->addDependence(res, vec_node[i]);
-      }
-      vec_node[i] = res;
-    }
-  }
 }
 
 Node StringsPreprocess::mkForallInternal(Node bvl, Node body)

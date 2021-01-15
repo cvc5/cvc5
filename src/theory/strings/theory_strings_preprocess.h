@@ -41,7 +41,6 @@ namespace strings {
 class StringsPreprocess {
  public:
   StringsPreprocess(SkolemCache* sc,
-                    context::UserContext* u,
                     SequencesStatistics& stats);
   ~StringsPreprocess();
   /** The reduce routine
@@ -79,13 +78,6 @@ class StringsPreprocess {
    * asserts.
    */
   Node processAssertion(Node t, std::vector<Node>& asserts);
-  /**
-   * Replaces all formulas t in vec_node with an equivalent formula t' that
-   * contains no free instances of extended functions (that is, extended
-   * functions may only appear beneath quantifiers). This applies simplifyRec
-   * on each assertion in vec_node until a fixed point is reached.
-   */
-  void processAssertions(std::vector<Node>& vec_node);
 
  private:
   /** pointer to the skolem cache used by this class */

@@ -15,11 +15,11 @@
 #include "preprocessing/passes/strings_eager_pp.h"
 
 
+using namespace CVC4::theory;
+
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
-
-using namespace CVC4::theory;
 
 
 StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
@@ -29,6 +29,7 @@ StringsEagerPp::StringsEagerPp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult StringsEagerPp::applyInternal(
   AssertionPipeline* assertionsToPreprocess)
 {	
+  strings::SkolemCache skc(false);
   for (size_t i = 0, nasserts = assertionsToPreprocess->size(); i < nasserts; ++i) {
     
   }
