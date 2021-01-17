@@ -386,9 +386,11 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     }
     else
     {
-      d_sol->preregisterConjecture(d_orig_conjecture, stn);
       d_sygus_solution =
-          d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
+          d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
+      //d_sol->preregisterConjecture(d_orig_conjecture, stn);
+      //d_sygus_solution =
+      //    d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
     }
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;

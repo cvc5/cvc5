@@ -1,0 +1,14 @@
+; COMMAND-LINE: --sygus-si=all
+; EXPECT: unsat
+; EXPECT: (define-fun f () Bool (ite true true false))
+; Test ensures that the solution does not contain a random variable
+
+(set-logic UF)
+
+(synth-fun f () Bool
+  ((Start Bool))
+  ((Start Bool (false (ite true true Start)))))
+
+(constraint (= f true))
+
+(check-synth)

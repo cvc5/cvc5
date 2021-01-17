@@ -1952,6 +1952,8 @@ set(regress_1_tests
   regress1/sygus/abduction_1255.corecstrs.readable.smt2
   regress1/sygus/abduction_streq.readable.smt2
   regress1/sygus/abv.sy
+  regress1/sygus/array_search_2.sy
+  regress1/sygus/array_sum_2_5.sy
   regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/bvudiv-by-2.sy
   regress1/sygus/cegar1.sy
@@ -1969,6 +1971,7 @@ set(regress_1_tests
   regress1/sygus/constant.sy
   regress1/sygus/crci-ssb-unk.sy
   regress1/sygus/crcy-si.sy
+  regress1/sygus/crcy-si-rcons.sy
   regress1/sygus/cube-nia.sy
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
@@ -2035,6 +2038,14 @@ set(regress_1_tests
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
   regress1/sygus/multi-fun-polynomial2.sy
+  regress1/sygus/new/complex-no-rewrite.sy
+  regress1/sygus/new/complex-rewrite-in-db.sy
+  regress1/sygus/new/simple-no-rewrite.sy
+  regress1/sygus/new/simple-not-in-grammar.sy
+  regress1/sygus/new/simple-random-const.sy
+  regress1/sygus/new/simple-rewrite-in_db.sy
+  regress1/sygus/new/simple-rewrite-not-in-db.sy
+  regress1/sygus/new/no-var-in-sol.sy
   regress1/sygus/nflat-fwd-3.sy
   regress1/sygus/nflat-fwd.sy
   regress1/sygus/nia-max-square-ns.sy

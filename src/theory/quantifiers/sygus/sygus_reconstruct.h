@@ -30,148 +30,94 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-struct Obligation
-{
-  Node d_builtinTerm;
-  TypeNode d_sygusType;
-  Obligation(Node builtinTerm, TypeNode sygusType)
-      : d_builtinTerm(builtinTerm), d_sygusType(sygusType)
-  {
-  }
-
-  Node builtinTerm() const { return d_builtinTerm; }
-
-  TypeNode sygusType() const { return d_sygusType; }
-};
-
-struct ObligationInfo
-{
-  Node d_var;
-  Node d_sol;
-  std::vector<Node> d_eqClass;
-
-  ObligationInfo() : d_var(Node::null()), d_sol(Node::null()), d_eqClass() {}
-
-  explicit ObligationInfo(Node var)
-      : d_var(var), d_sol(Node::null()), d_eqClass()
-  {
-  }
-
-  Node var() const { return d_var; }
-  Node sol() const { return d_sol; }
-  void setSol(Node sol) { d_sol = sol; }
-  std::vector<Node>& eqClass() { return d_eqClass; }
-  const std::vector<Node>& eqClass() const { return d_eqClass; }
-
-  void addToEqClass(Node n) { d_eqClass.push_back(n); }
-
-  bool isSatisfied() const { return d_sol != Node::null(); }
-};
-
-inline bool operator<(const Obligation& left, const Obligation& right)
-{
-  return left.builtinTerm() < right.builtinTerm()
-         || (!(right.builtinTerm() < left.builtinTerm())
-             && left.sygusType() < right.sygusType());
-}
-
-inline bool operator==(const Obligation& left, const Obligation& right)
-{
-  return left.builtinTerm() == right.builtinTerm()
-         && left.sygusType() == right.sygusType();
-}
-
-inline std::ostream& operator<<(std::ostream& out, Obligation ob)
-{
-  out << "ob<" << ob.builtinTerm() << ", " << ob.sygusType() << ">";
-  return out;
-}
-
 /** SygusReconstruct
- * TODO(abdoo8080): add documentation
- * This class implements an algorithm for reconstruction...
  *
+ * This class implements an algorithm for reconstructing a given term such that
+ * the reconstructed term is equivalent to the original term and its syntax
+ * matches a specified grammar.
  *
+ * Goal: find a term g in sygus type T that is equivalent to builtin term t.
  *
-
-Goal: find a term g in sygus type T that is equivalent to builtin term t.
-
-rcons( t, T )
-{
-
-  // a list of labeled terms to reconstruct into Sygus type T, where
-  // a labelled term is of the form "k : t" where k is a skolem of type T, and
-  // t is a builtin term of the type encoded by T.
-  Obs<T>
-
-  CandSols<k> : a list of possible solutions, for each label k. Whenever there is a successful match, it's added to this list.
-  Pool<T> : a list of enumerated terms for each sygus type
-
-  let k be a fresh skolem of sygus type T
-
-  Obs<T> += {k : t}
-
-  for each T
-    Pool<T> = ... initial set of terms corresponding to generalizations of each
-rule in T...
-
-  while true
-    // enumeration phase
-    for each T
-      s[z] = nextEnum(T_{z})
-      if s[z] is not subsumed (there is no s' in Pool<T> such that s' * sigma = s)
-        if there exists an r in pool<T> s.t. |=_T s[z] = r
-          CandSol<s[z]> ~ CandSol<r>
-        pool<T> += s[z]
-        for each k : t in Obs<T>
-          Obs' += matchNewObs(k : t, s[z])
-    // match phase
-    while Obs' != {}
-      Obs'' = {}
-      for each T, for each k : t in Obs'<T>
-        Obs<T> += k
-        for each s[z] in Pool<T>
-          Obs'' += matchNewObs(k:t, s[z])
-      Obs' = Obs''
-
-}
-
-matchNewObs(k : t, s[z]) : Obs'
-{
-  u = rewrite(toBuiltIn(s[z]))
-  if u = t // u is a ground term (only concrete variables)
-    markSolved( k, s[z] )
-    if (Sol<k_0> != null)
-      exit with Sol<k_0>
-  else if match(u, t) == {toBuiltin(z) -> t'}
-    let k' be a new variable of type : typeOf(z)
-    CandSol<k> += s[k']
-    Obs'<typeOf(z)> += k' : t' // could be duplicate
-}
-
-Sol<k> : solution for label k, null otherwise
-
-markSolved ( k, s )
-{
-  Sol<k> = s
-  S = {k}      // a stack to process
-  while S != {}
-    k' = pop(S)
-    for all k'' in CandSol keys
-      for all s'[k'] in CandSol<k''>
-        s'{k' -> Sol<k'>}
-        if s' is ground
-          Sol<k''> = s'
-          push(S, k'')
-}
-
+ * rcons(t, T) : Sol<k_0>
+ * {
+ *   // a list of triples to reconstruct into Sygus type T, where
+ *   // a labeled term is of the form (k, t, s), where k is a skolem of type T,
+ *   // t is a builtin term of the type encoded by T, and s is a possibly null
+ *   // sygus term of type T representing the solution.
+ *   Obs<T>
  *
+ *   // We define Term<k> and Sol<k> for each skolem k such that Obs<T> contains
+ *   // entries (k, Term<k>, Sol<k>)
+ *
+ *   CandSol<k> : a list of possible solutions, for each label k. Whenever there
+ *                is a successful match, it's added to this list.
+ *   Pool<T> : a list of enumerated terms for each sygus type
+ *
+ *   let k_0 be a fresh skolem of sygus type T
+ *
+ *   Obs<T> += {(k_0, t, null)}
+ *
+ *   Pool<T> = {}
+ *
+ *   while Sol<k_0> != null
+ *     // enumeration phase
+ *     for each T
+ *       s[z] = nextEnum(T_{z})
+ *       if (s[z] is ground)
+ *         if exists (k, t, null) in Obs<T> s.t. |=_X t = toBuiltIn(s[z])
+ *           markSolved(k, s[z])
+ *         else
+ *           let k be a new variable of type : T
+ *           Obs'<T> += (k, toBuiltIn(s[z]), s[z])
+ *       else if no s' in Pool<T> s.t. s' * sigma = s)
+ *           pool<T> += s[z]
+ *           for each (k, t, null) in Obs<T>
+ *             Obs' += matchNewObs(k, s[z])
+ *     // match phase
+ *     while Obs' != {}
+ *       Obs'' = {}
+ *           Obs<T> += (k, t, s)
+ *           for each s[z] in Pool<T>
+ *             Obs'' += matchNewObs(k, s[z])
+ *       Obs' = Obs''
+ * }
+ *
+ * matchNewObs(k, s[z]) : Obs'
+ * {
+ *   u = rewrite(toBuiltIn(s[z]))
+ *   if u = t // u is a ground term (only concrete variables)
+ *   else if match(u, t) == {toBuiltin(z) -> t'}
+ *     if forall t' exists (k'', t'', null) in Obs<T> s.t. |=_X t'' = t'
+ *       markSolved(k, s[z])
+ *     else
+ *       let k' be a new variable of type : typeOf(z)
+ *       CandSol<k> += s[k']
+ *       Obs'<typeOf(z)> += (k', t', null)
+ * }
+ *
+ * markSolved(k, s)
+ * {
+ *   if s is not ground
+ *     instantiate s with arbitrary sygus datatype values
+ *   Sol<k> = s
+ *   CandSols<k> += s
+ *   S = {k}      // a stack to process
+ *   while S != {}
+ *     k' = pop(S)
+ *     for all k'' in CandSols keys
+ *       for all s'[k'] in CandSols<k''>
+ *         s'{k' -> Sol<k'>}
+ *         if s' is ground
+ *           Sol<k''> = s'
+ *           push(S, k'')
+ * }
  */
 class SygusReconstruct : public expr::NotifyMatch
 {
  public:
   SygusReconstruct(TermDbSygus* tds, SygusStatistics& s);
   ~SygusReconstruct() {}
+
   /** reconstruct solution
    *
    * Returns (if possible) a sygus encoding of a node that is equivalent to sol
@@ -179,19 +125,19 @@ class SygusReconstruct : public expr::NotifyMatch
    * The value reconstructed is set to 1 if we successfully return a node,
    * otherwise it is set to -1.
    *
-   * @param sol The target term.
-   * @param stn The sygus datatype type encoding the syntax restrictions,
-   * @param reconstructed The flag to update, indicating the status of the
-   * reconstruciton,
-   * @param enumLimit A value to limit the effort spent by this class (roughly
-   * equal to the number of intermediate terms to try).
-   * @return The reconstructed sygus term.
-   *
    * For example, given:
    *   sol = (* 2 x)
    *   stn = A sygus datatype encoding the grammar
    *           Start -> (c_PLUS Start Start) | c_x | c_0 | c_1
    * This method may return (c_PLUS c_x c_x) and set reconstructed to 1.
+   *
+   * @param sol The target term
+   * @param stn The sygus datatype type encoding the syntax restrictions
+   * @param reconstructed The flag to update, indicating the status of the
+   * reconstruciton
+   * @param enumLimit A value to limit the effort spent by this class (roughly
+   * equal to the number of intermediate terms to try)
+   * @return The reconstructed sygus term
    */
   Node reconstructSolution(Node sol,
                            TypeNode stn,
@@ -199,83 +145,168 @@ class SygusReconstruct : public expr::NotifyMatch
                            int enumLimit);
 
  private:
-  void cleanup();
+  std::unordered_map<TypeNode,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     TypeNodeHashFunction>
+  matchNewObs(Node ob, Node sz);
 
-  // void init(TypeNode stn, std::map<TypeNode, std::vector<Node>>& pool);
-
-  std::map<TypeNode, std::set<Node>> matchNewObs(Obligation ob, Node sz);
-
-  void substituteOb(Obligation ob, Node sol);
-
-  /** \brief mark obligation ob as solved.
+  /** mark obligation `k` as solved
    *
-   * \par This function first marks `sol` as the complete/constant solution for
+   * This function first marks `s` as the complete/constant solution for
    * `ob`. Then it substitutes all instances of `ob` in partial solutions to
-   * other obligations with `sol`. The function repeats those two steps for each
+   * other obligations with `s`. The function repeats those two steps for each
    * partial solution that gets completed because of the second step. For
    * example, given:
    *
-   * \note example uses builtin terms instead of sygus terms for simplicity
-   *
-   * \code{.unparsed}
-   * CandSol = {
-   *  main_ob -> {(+ z1 1)},
+   * CandSols = {
+   *  mainOb -> {(+ z1 1)},
    *  z1 -> {(* z2 x)},
    *  z2 -> {2}
    * }
    * Sol = {z2 -> 2}
-   * \endcode
    *
-   * \par Then calling markSolved(z2, 2) will result in:
+   * Then calling markSolved(z2, 2) will result in:
    *
-   * \code{.unparsed}
-   * CandSol = {
-   *  main_ob -> {(+ z1 1), (+ (* 2 x) 1)},
+   * CandSols = {
+   *  mainOb -> {(+ z1 1), (+ (* 2 x) 1)},
    *  z1 -> {(* z2 x), (* 2 x)},
    *  z2 -> {2}
    * }
-   * Sol = {main_ob -> (+ (* 2 x) 1), z1 -> (* 2 x), z2 -> 2}
-   * \endcode
+   * Sol = {mainOb -> (+ (* 2 x) 1), z1 -> (* 2 x), z2 -> 2}
+   *
+   * Note: example uses builtin terms instead of sygus terms for simplicity.
    *
    * @param ob free var to mark as solved and substitute
    * @param sol constant solution to `ob`
    */
-  void markSolved(Obligation ob, Node sol);
+  void markSolved(Node k, Node s);
 
-  void printEqClasses();
+  /**
+   * Initialize a sygus enumerator and a candidate rewrite database for each
+   * sygus datatype type.
+   *
+   * @param stn The sygus datatype type encoding the syntax
+   * restrictions
+   */
+  void initializeEnumeratorsAndDatabases(TypeNode stn);
 
-  void printPool(std::map<TypeNode, std::vector<Node>> pool);
-
-  // TypeNode clone(TypeNode stn);
-
+  /**
+   * Returns the next enumerated term for the given sygus datatype type.
+   *
+   * @param stn The sygus datatype type to enumerate a term for
+   * @return The enumerated sygus term
+   */
   Node nextEnum(TypeNode stn);
 
+  /**
+   * Remove solved obligations from `d_unsolvedObs.
+   */
+  void removeSolvedObs();
+
+  /**
+   * Replace all bound variables in `n` with ground values of the type.
+   *
+   * @param n A term containing bound variables
+   * @return `n` with all vars in `n` replaced with ground values
+   */
+  Node replaceVarsWithGroundValues(Node n);
+
+  /**
+   * A notification that s is equal to n * { vars -> subs }. This function
+   * should return false if we do not wish to be notified of further matches.
+   */
   bool notify(Node s,
               Node n,
               std::vector<Node>& vars,
               std::vector<Node>& subs) override;
+
+  /**
+   * Reset the state of this SygusReconstruct object
+   */
+  void reset();
+
+  /**
+   * Return a string representation of an obligation.
+   *
+   * @param k An obligation
+   * @return A string representation of `k`
+   */
+  std::string ob(Node k);
+
+  /**
+   * Print all reachable obligations and their candidate solutions from
+   * the `root` obligation and its candidate solutions.
+   *
+   * \note requires enabling "sygus-rcons" trace
+   *
+   * @param root The root obligation to start from
+   */
+  void printCandSols(const Node& mainOb);
+
+  /**
+   * Print the pool of patterns/shape used in the matching phase.
+   *
+   * \note requires enabling "sygus-rcons" trace
+   *
+   * @param pool a pool of patterns/shapes to print
+   */
+  void printPool(const std::unordered_map<TypeNode,
+                                          std::vector<Node>,
+                                          TypeNodeHashFunction>& pool);
 
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
 
-  std::map<Node, Node> d_subs;
+  /** a set of obligations that are not yet satisfied for each sygus datatype */
+  std::unordered_map<TypeNode,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     TypeNodeHashFunction>
+      d_unsolvedObs;
+  /** a map from an obligation to the intended builtin term */
+  std::unordered_map<Node, Node, NodeHashFunction> d_builtinTerm;
+  /** a map from a builtin term to its obligation (inverse of above map). Unlike
+   * in the map above, the sygus type of the obligation is needed */
+  std::unordered_map<TypeNode,
+                     std::unordered_map<Node, Node, NodeHashFunction>,
+                     TypeNodeHashFunction>
+      d_ob;
+  /** a map from an obligation to its sygus solution (if it exists) */
+  std::unordered_map<TNode, TNode, TNodeHashFunction> d_sol;
+  /** a map from an obligation to a set of its candidate sygus solutions */
+  std::unordered_map<Node,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     NodeHashFunction>
+      d_candSols;
 
-  std::map<Obligation, std::set<Node>> d_watchSet;
-  /** a mapping from a obligations (encoded as free vars) to their sygus
-   * solution representing `Sol` in the algorithm at the top */
-  std::unordered_map<Node, Node, NodeHashFunction> d_sol;
+  /** a map from a candidate solution to its sub-obligations */
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_subObs;
+  /** a map from a candidate solution to its parent obligation */
+  std::unordered_map<Node, Node, NodeHashFunction> d_parentOb;
+  /** a map from a sub-obligation to its parent candidate solution */
+  std::unordered_map<Node,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     NodeHashFunction>
+      d_watchSet;
 
-  // std::map<TypeNode, std::set<Node>> d_activeObs;
-  /** Sygus terms enumerator for each Sygus type (grammar non-terminal) */
-  std::map<TypeNode, std::unique_ptr<SygusEnumerator>> d_enumerators;
-  std::map<Obligation, ObligationInfo> d_obInfos;
-  std::map<TypeNode, std::set<Node>> d_obs;
-  /** an always up to date version of d_obs. Used to ensure the same obligation
-   is not generated more than once between consequtive calls to matchNewObs. */
-  std::map<TypeNode, std::set<Node>> d_obDb;
-  std::map<Node, std::vector<Obligation>> d_children;
+  /** a cache of sygus variables treated as ground terms by unification */
+  std::unordered_map<Node, Node, NodeHashFunction> d_groundVars;
+
+  /** Sygus terms enumerator for each Sygus datatype type */
+  std::unordered_map<TypeNode,
+                     std::unique_ptr<SygusEnumerator>,
+                     TypeNodeHashFunction>
+      d_enumerators;
+  /** Candidate rewrite database for each sgyus datatype type */
+  std::unordered_map<TypeNode,
+                     std::unique_ptr<CandidateRewriteDatabase>,
+                     TypeNodeHashFunction>
+      d_crds;
+  /** Sygus samplers needed for initializing the candidate rewrite databases */
+  std::vector<SygusSampler> d_sygusSamplers;
+
+  /** A trie for filtering out redundant terms from the paterns pool */
   expr::MatchTrie d_poolTrie;
 };
 
@@ -283,4 +314,4 @@ class SygusReconstruct : public expr::NotifyMatch
 }  // namespace theory
 }  // namespace CVC4
 
-#endif
+#endif  // CVC4__THEORY__QUANTIFIERS__SYGUS_RECONSTRUCT_H

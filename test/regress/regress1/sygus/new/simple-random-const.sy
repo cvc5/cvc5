@@ -1,0 +1,12 @@
+; COMMAND-LINE: --sygus-si=all  --sygus-out=status
+; EXPECT: unsat
+
+(set-logic LIA)
+
+(synth-fun f () Int
+  ((Start Int))
+  ((Start Int (0 1 (+ Start Start)))))
+
+(constraint (= f 1000))
+
+(check-synth)
