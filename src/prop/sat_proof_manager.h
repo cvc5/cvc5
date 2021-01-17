@@ -5,7 +5,7 @@
  **   Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -19,7 +19,6 @@
 
 #include "context/cdhashset.h"
 #include "expr/buffered_proof_generator.h"
-#include "expr/expr.h"
 #include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
 #include "expr/proof.h"
@@ -296,7 +295,8 @@ class SatProofManager
    * level, and the literal, at the node level, as the pivot.
    *
    * @param clause the clause being resolved against
-   * @param lit the pivot of the resolution step
+   * @param lit the literal occurring in clause to be the pivot of the
+   * resolution step
    */
   void addResolutionStep(const Minisat::Clause& clause, Minisat::Lit lit);
   /** Adds a resolution step with a unit clause
@@ -529,13 +529,16 @@ class SatProofManager
   ProofNodeManager* d_pnm;
   /** Resolution steps (links) accumulator for chain resolution.
    *
-   * Each pair has a clause and the pivot for the resolution step it is involved
-   * on. The pivot occurs positively in the clause yielded by the resolution up
-   * to the previous link and negatively in this link. The first link has a null
-   * pivot. Links are kept at the node level.
+   * Each tuple has a clause and the pivot for the resolution step it is
+   * involved on, as well as whether the pivot occurs positively/negatively or
+   * negatively/positively in the clauses being resolved. If the third argument
+   * is true (resp. false), the pivot occurs positively (negatively) in the
+   * clause yielded by the resolution up to the previous link and negatively
+   * (positively) in this link. The first link has a null pivot. Links are kept
+   * at the node level.
    *
    * This accumulator is reset after each chain resolution. */
-  std::vector<std::pair<Node, Node>> d_resLinks;
+  std::vector<std::tuple<Node, Node, bool>> d_resLinks;
 
   /** Redundant literals removed from the resolution chain's conclusion.
    *

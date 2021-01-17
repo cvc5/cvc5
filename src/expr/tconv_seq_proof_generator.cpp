@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file tconv_seq_proof_generator.h
+/*! \file tconv_seq_proof_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds

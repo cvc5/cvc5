@@ -33,6 +33,7 @@
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
+#include "preprocessing/passes/foreign_theory_rewrite.h"
 #include "preprocessing/passes/fun_def_fmf.h"
 #include "preprocessing/passes/global_negate.h"
 #include "preprocessing/passes/ho_elim.h"
@@ -50,9 +51,11 @@
 #include "preprocessing/passes/sep_skolem_emp.h"
 #include "preprocessing/passes/sort_infer.h"
 #include "preprocessing/passes/static_learning.h"
+#include "preprocessing/passes/strings_eager_pp.h"
 #include "preprocessing/passes/sygus_inference.h"
 #include "preprocessing/passes/synth_rew_rules.h"
 #include "preprocessing/passes/theory_preprocess.h"
+#include "preprocessing/passes/theory_rewrite_eq.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 
@@ -123,6 +126,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("global-negate", callCtor<GlobalNegate>);
   registerPassInfo("int-to-bv", callCtor<IntToBV>);
   registerPassInfo("bv-to-int", callCtor<BVToInt>);
+  registerPassInfo("foreign-theory-rewrite", callCtor<ForeignTheoryRewrite>);
   registerPassInfo("synth-rr", callCtor<SynthRewRulesPass>);
   registerPassInfo("real-to-int", callCtor<RealToInt>);
   registerPassInfo("sygus-infer", callCtor<SygusInference>);
@@ -149,6 +153,8 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
   registerPassInfo("ho-elim", callCtor<HoElim>);
   registerPassInfo("fun-def-fmf", callCtor<FunDefFmf>);
+  registerPassInfo("theory-rewrite-eq", callCtor<TheoryRewriteEq>);
+  registerPassInfo("strings-eager-pp", callCtor<StringsEagerPp>);
 }
 
 }  // namespace preprocessing

@@ -155,20 +155,12 @@ class QuantifiersRewriter : public TheoryRewriter
   static Node computeProcessTerms2(Node body,
                                    std::map<Node, Node>& cache,
                                    std::vector<Node>& new_vars,
-                                   std::vector<Node>& new_conds,
-                                   bool elimExtArith);
+                                   std::vector<Node>& new_conds);
   static void computeDtTesterIteSplit(
       Node n,
       std::map<Node, Node>& pcons,
       std::map<Node, std::map<int, Node> >& ncons,
       std::vector<Node>& conj);
-  /** datatype expand
-   *
-   * If v occurs in args and has a datatype type whose index^th constructor is
-   * C, this method returns a node of the form C( x1, ..., xn ), removes v from
-   * args and adds x1...xn to args.
-   */
-  static Node datatypeExpand(unsigned index, Node v, std::vector<Node>& args);
 
   //-------------------------------------variable elimination
   /** compute variable elimination
@@ -233,7 +225,10 @@ class QuantifiersRewriter : public TheoryRewriter
   //------------------------------------- end extended rewrite
  public:
   static Node computeElimSymbols( Node body );
-  static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
+  /**
+   * Compute miniscoping in quantified formula q with attributes in qa.
+   */
+  static Node computeMiniscoping(Node q, QAttributes& qa);
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   /**
    * This function removes top-level quantifiers from subformulas of body
@@ -251,7 +246,12 @@ class QuantifiersRewriter : public TheoryRewriter
    *   (or (P x z) (not (Q y z)))
    * and add {x} to args, and {y} to nargs.
    */
-  static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
+  static Node computePrenex(Node q,
+                            Node body,
+                            std::vector<Node>& args,
+                            std::vector<Node>& nargs,
+                            bool pol,
+                            bool prenexAgg);
   /**
    * Apply prenexing aggressively. Returns the prenex normal form of n.
    */

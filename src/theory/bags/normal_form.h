@@ -5,7 +5,7 @@
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -61,8 +61,18 @@ class NormalForm
    *        multiplicities
    * @return a constant bag that contains
    */
-  static Node constructBagFromElements(
+  static Node constructConstantBagFromElements(
       TypeNode t, const std::map<Node, Rational>& elements);
+
+  /**
+   * construct a constant bag from node elements
+   * @param t the type of the returned bag
+   * @param elements a map whose keys are constant elements and values are
+   *        multiplicities
+   * @return a constant bag that contains
+   */
+  static Node constructBagFromElements(TypeNode t,
+                                       const std::map<Node, Node>& elements);
 
  private:
   /**

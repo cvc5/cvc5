@@ -178,14 +178,6 @@ header = "options/quantifiers_options.h"
   help       = "eliminate tautological disjuncts of quantified formulas"
 
 [[option]]
-  name       = "elimExtArithQuant"
-  category   = "regular"
-  long       = "elim-ext-arith-quant"
-  type       = "bool"
-  default    = "true"
-  help       = "eliminate extended arithmetic symbols in quantified formulas"
-
-[[option]]
   name       = "extRewriteQuant"
   category   = "regular"
   long       = "ext-rewrite-quant"
@@ -270,14 +262,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1"
-
-[[option]]
-  name       = "purifyDtTriggers"
-  category   = "regular"
-  long       = "purify-dt-triggers"
-  type       = "bool"
-  default    = "false"
-  help       = "purify dt triggers, match all constructors of correct form instead of selectors"
 
 [[option]]
   name       = "pureThTriggers"
@@ -1684,14 +1668,6 @@ header = "options/quantifiers_options.h"
   help       = "use real infinity for vts in counterexample-based quantifier instantiation"
 
 [[option]]
-  name       = "cegqiPreRegInst"
-  category   = "regular"
-  long       = "cegqi-prereg-inst"
-  type       = "bool"
-  default    = "false"
-  help       = "preregister ground instantiations in counterexample-based quantifier instantiation"
-
-[[option]]
   name       = "cegqiMinBounds"
   category   = "regular"
   long       = "cegqi-min-bounds"
@@ -1725,25 +1701,6 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = true
   help       = "non-optimal bounds for counterexample-based quantifier instantiation"
-
-# CEGQI for EPR
-
-[[option]]
-  name       = "quantEpr"
-  category   = "regular"
-  long       = "quant-epr"
-  type       = "bool"
-  default    = "false"
-  help       = "infer whether in effectively propositional fragment, use for cegqi"
-
-[[option]]
-  name       = "quantEprMatching"
-  category   = "regular"
-  long       = "quant-epr-match"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "use matching heuristics for EPR instantiation"
 
 # CEGQI for BV
 

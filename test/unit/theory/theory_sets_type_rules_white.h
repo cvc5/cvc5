@@ -2,10 +2,10 @@
 /*! \file theory_sets_type_rules_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -64,7 +64,7 @@ class SetsTypeRuleWhite : public CxxTest::TestSuite
     //    (singleton (singleton_op Int) 1)
     //    (as emptyset (Set Real)))
     TS_ASSERT_THROWS(d_slv->mkTerm(UNION, singletonInt, emptyReal),
-                     CVC4ApiException);
+                     CVC4ApiException&);
     // (union
     //    (singleton (singleton_op Real) 1)
     //    (as emptyset (Set Real)))

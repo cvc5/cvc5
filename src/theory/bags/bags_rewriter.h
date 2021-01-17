@@ -5,7 +5,7 @@
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -80,7 +80,7 @@ class BagsRewriter : public TheoryRewriter
   /**
    * rewrites for n include:
    * - (bag.count x emptybag) = 0
-   * - (bag.count x (mkBag x c) = c where c > 0 is a constant
+   * - (bag.count x (bag x c) = c
    * - otherwise = n
    */
   BagsRewriteResponse rewriteBagCount(const TNode& n) const;
@@ -213,6 +213,8 @@ class BagsRewriter : public TheoryRewriter
  private:
   /** Reference to the rewriter statistics. */
   NodeManager* d_nm;
+  Node d_zero;
+  Node d_one;
   /** Reference to the rewriter statistics. */
   HistogramStat<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */

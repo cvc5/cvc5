@@ -49,23 +49,25 @@ static DoubleOption opt_simp_garbage_frac(_cat, "simp-gc-frac", "The fraction of
 
 SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy,
                        CVC4::context::Context* context,
+                       CVC4::context::UserContext* userContext,
+                       ProofNodeManager* pnm,
                        bool enableIncremental)
-    : Solver(proxy, context, enableIncremental),
+    : Solver(proxy, context, userContext, pnm, enableIncremental),
       grow(opt_grow),
       clause_lim(opt_clause_lim),
       subsumption_lim(opt_subsumption_lim),
       simp_garbage_frac(opt_simp_garbage_frac),
       use_asymm(opt_use_asymm),
-      use_rcheck(opt_use_rcheck),
+      // make sure this is not enabled if unsat cores or proofs are on
+      use_rcheck(opt_use_rcheck && !options::unsatCores() && !pnm),
       use_elim(options::minisatUseElim() && !enableIncremental),
       merges(0),
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
-      use_simplification(
-          !enableIncremental
-          && !options::unsatCores())  // TODO: turn off simplifications if
-                                      // proofs are on initially
+      use_simplification(!enableIncremental && !options::unsatCores()
+                         && !pnm)  // TODO: turn off simplifications if
+                                   // proofs are on initially
       ,
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),
@@ -732,7 +734,6 @@ void SimpSolver::cleanUpClauses()
             clauses_persistent[j++] = clauses_persistent[i];
     clauses_persistent.shrink(i - j);
 }
-
 
 //=================================================================================================
 // Garbage Collection methods:

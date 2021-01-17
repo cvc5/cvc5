@@ -2,7 +2,7 @@
 /*! \file theory_preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -26,13 +26,12 @@ namespace CVC4 {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
-                                       RemoveTermFormulas& tfr,
                                        context::UserContext* userContext,
                                        ProofNodeManager* pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
       d_ppCache(userContext),
-      d_tfr(tfr),
+      d_tfr(userContext, pnm),
       d_tpg(pnm ? new TConvProofGenerator(
                       pnm,
                       userContext,
@@ -85,7 +84,8 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<TrustNode>& newLemmas,
                                          std::vector<Node>& newSkolems,
-                                         bool doTheoryPreprocess)
+                                         bool doTheoryPreprocess,
+                                         bool fixedPoint)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
 
@@ -101,14 +101,13 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     ppNode = tpp.getNode();
   }
 
-  // Remove the ITEs
-  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, false);
-  Node rtfNode = ttfr.getNode();
+  // Remove the ITEs, fixed point
+  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, fixedPoint);
+  Node rtfNode = ttfr.isNull() ? ppNode : ttfr.getNode();
 
   if (Debug.isOn("lemma-ites"))
   {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << ttfr.getNode()
-                        << endl;
+    Debug("lemma-ites") << "removed ITEs from lemma: " << rtfNode << endl;
     Debug("lemma-ites") << " + now have the following " << newLemmas.size()
                         << " lemma(s):" << endl;
     for (size_t i = 0, lsize = newLemmas.size(); i <= lsize; ++i)
@@ -222,6 +221,75 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
   return tret;
+}
+
+TrustNode TheoryPreprocessor::preprocess(TNode node, bool doTheoryPreprocess)
+{
+  // ignore lemmas, no fixed point
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  return preprocess(node, newLemmas, newSkolems, doTheoryPreprocess, false);
+}
+
+TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
+                                              std::vector<TrustNode>& newLemmas,
+                                              std::vector<Node>& newSkolems,
+                                              bool doTheoryPreprocess,
+                                              bool fixedPoint)
+{
+  // what was originally proven
+  Node lemma = node.getProven();
+  TrustNode tplemma =
+      preprocess(lemma, newLemmas, newSkolems, doTheoryPreprocess, fixedPoint);
+  if (tplemma.isNull())
+  {
+    // no change needed
+    return node;
+  }
+  Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
+  // what it was preprocessed to
+  Node lemmap = tplemma.getNode();
+  Assert(lemmap != node.getProven());
+  // process the preprocessing
+  if (isProofEnabled())
+  {
+    Assert(d_lp != nullptr);
+    // add the original proof to the lazy proof
+    d_lp->addLazyStep(node.getProven(), node.getGenerator());
+    // only need to do anything if lemmap changed in a non-trivial way
+    if (!CDProof::isSame(lemmap, lemma))
+    {
+      d_lp->addLazyStep(tplemma.getProven(),
+                        tplemma.getGenerator(),
+                        PfRule::PREPROCESS_LEMMA,
+                        true,
+                        "TheoryEngine::lemma_pp");
+      // ---------- from node -------------- from theory preprocess
+      // lemma                lemma = lemmap
+      // ------------------------------------------ EQ_RESOLVE
+      // lemmap
+      std::vector<Node> pfChildren;
+      pfChildren.push_back(lemma);
+      pfChildren.push_back(tplemma.getProven());
+      d_lp->addStep(lemmap, PfRule::EQ_RESOLVE, pfChildren, {});
+    }
+  }
+  return TrustNode::mkTrustLemma(lemmap, d_lp.get());
+}
+
+TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
+                                              bool doTheoryPreprocess)
+{
+  // ignore lemmas, no fixed point
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  return preprocessLemma(
+      node, newLemmas, newSkolems, doTheoryPreprocess, false);
+}
+
+RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()
+{
+  return d_tfr;
 }
 
 struct preprocess_stack_element
@@ -407,6 +475,23 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   // be steps from the same term to multiple rewritten forms, which would be
   // the case if we registered a preprocessing step for a non-rewritten term.
   Assert(term == Rewriter::rewrite(term));
+  // We never call ppRewrite on equalities here, since equalities have a
+  // special status. In particular, notice that theory preprocessing can be
+  // called on all formulas asserted to theory engine, including those generated
+  // as new literals appearing in lemmas. Calling ppRewrite on equalities is
+  // incompatible with theory combination where a split on equality requested
+  // by a theory could be preprocessed to something else, thus making theory
+  // combination either non-terminating or result in solution soundness.
+  // Notice that an alternative solution is to ensure that certain lemmas
+  // (e.g. splits from theory combination) can never have theory preprocessing
+  // applied to them. However, it is more uniform to say that theory
+  // preprocessing is applied to all formulas. This makes it so that e.g.
+  // theory solvers do not need to specify whether they want their lemmas to
+  // be theory-preprocessed or not.
+  if (term.getKind() == kind::EQUAL)
+  {
+    return term;
+  }
   // call ppRewrite for the given theory
   TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
   if (trn.isNull())

@@ -1,8 +1,8 @@
 /*********************                                                        */
-/*! \file shared_check_data.h
+/*! \file ext_state.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Gereon Kremer, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "expr/proof_set.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/arith/nl/nl_model.h"
@@ -30,9 +30,21 @@ namespace nl {
 
 struct ExtState
 {
-  ExtState(InferenceManager& im, NlModel& model, context::Context* c);
+  ExtState(InferenceManager& im,
+           NlModel& model,
+           ProofNodeManager* pnm,
+           context::UserContext* c);
 
   void init(const std::vector<Node>& xts);
+
+  /**
+   * Checks whether proofs are enabled.
+   */
+  bool isProofEnabled() const;
+  /**
+   * Creates and returns a new LazyCDProof that can be used to prove some lemma.
+   */
+  CDProof* getProof();
 
   Node d_false;
   Node d_true;
@@ -44,6 +56,17 @@ struct ExtState
   InferenceManager& d_im;
   /** Reference to the non-linear model object */
   NlModel& d_model;
+  /**
+   * Pointer to the current proof node manager. nullptr, if proofs are
+   * disabled.
+   */
+  ProofNodeManager* d_pnm;
+  /** The user context. */
+  context::UserContext* d_ctx;
+  /**
+   * A CDProofSet that hands out CDProof objects for lemmas.
+   */
+  std::unique_ptr<CDProofSet<CDProof>> d_proof;
 
   // information about monomials
   std::vector<Node> d_ms;

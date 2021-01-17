@@ -2,7 +2,7 @@
 /*! \file tangent_plane_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -132,8 +132,22 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                           Kind::AND, nm->mkNode(Kind::GEQ, a, a_v), b2)));
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
+              CDProof* proof = nullptr;
+              if (d_data->isProofEnabled())
+              {
+                proof = d_data->getProof();
+                proof->addStep(tlem,
+                               PfRule::ARITH_MULT_TANGENT,
+                               {},
+                               {t,
+                                a,
+                                b,
+                                a_v,
+                                b_v,
+                                nm->mkConst(Rational(d == 0 ? -1 : 1))});
+              }
               d_data->d_im.addPendingArithLemma(
-                  tlem, InferenceId::NL_TANGENT_PLANE, nullptr, asWaitingLemmas);
+                  tlem, InferenceId::NL_TANGENT_PLANE, proof, asWaitingLemmas);
             }
           }
         }

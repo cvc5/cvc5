@@ -30,7 +30,6 @@
 #include "options/language.h"
 #include "options/printer_options.h"
 #include "options/smt_options.h"
-#include "printer/dagification_visitor.h"
 #include "printer/let_binding.h"
 #include "proof/unsat_core.h"
 #include "smt/command.h"
@@ -40,7 +39,6 @@
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
 
@@ -311,8 +309,8 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
       std::stringstream ss;
-      ss << '@' << uc;
-      out << CVC4::quoteSymbol(ss.str());
+      ss << "(as @" << uc << " " << n.getType() << ")";
+      out << ss.str();
       break;
     }
 
@@ -815,7 +813,30 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
   // bags
-  case kind::BAG_TYPE:  out << smtKindString(k, d_variant) << " "; break;
+  case kind::BAG_TYPE:
+  case kind::UNION_MAX:
+  case kind::UNION_DISJOINT:
+  case kind::INTERSECTION_MIN:
+  case kind::DIFFERENCE_SUBTRACT:
+  case kind::DIFFERENCE_REMOVE:
+  case kind::SUBBAG:
+  case kind::BAG_COUNT:
+  case kind::DUPLICATE_REMOVAL:
+  case kind::BAG_CARD:
+  case kind::BAG_CHOOSE:
+  case kind::BAG_IS_SINGLETON:
+  case kind::BAG_FROM_SET:
+  case kind::BAG_TO_SET: out << smtKindString(k, d_variant) << " "; break;
+  case kind::MK_BAG:
+  {
+    // print (bag (mkBag_op Real) 1 3) as (bag 1.0 3)
+    out << smtKindString(k, d_variant) << " ";
+    TypeNode elemType = n.getType().getBagElementType();
+    toStreamCastToType(
+        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    out << " " << n[1] << ")";
+    return;
+  }
 
     // fp theory
   case kind::FLOATINGPOINT_FP:
@@ -904,15 +925,17 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::WITNESS:
   {
     out << smtKindString(k, d_variant) << " ";
+    toStream(out, n[0], toDepth, lbind);
+    out << " ";
     if (n.getNumChildren() == 3)
     {
       out << "(! ";
     }
-    out << n[0] << " ";
     toStreamWithLetify(out, n[1], toDepth - 1, lbind);
     if (n.getNumChildren() == 3)
     {
-      out << n[2];
+      out << " ";
+      toStream(out, n[2], toDepth, lbind);
       out << ")";
     }
     out << ")";
@@ -1170,6 +1193,20 @@ static string smtKindString(Kind k, Variant v)
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
+  case kind::UNION_MAX: return "union_max";
+  case kind::UNION_DISJOINT: return "union_disjoint";
+  case kind::INTERSECTION_MIN: return "intersection_min";
+  case kind::DIFFERENCE_SUBTRACT: return "difference_subtract";
+  case kind::DIFFERENCE_REMOVE: return "difference_remove";
+  case kind::SUBBAG: return "subbag";
+  case kind::BAG_COUNT: return "bag.count";
+  case kind::DUPLICATE_REMOVAL: return "duplicate_removal";
+  case kind::MK_BAG: return "bag";
+  case kind::BAG_CARD: return "bag.card";
+  case kind::BAG_CHOOSE: return "bag.choose";
+  case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
+  case kind::BAG_FROM_SET: return "bag.from_set";
+  case kind::BAG_TO_SET: return "bag.to_set";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1405,7 +1442,14 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   {
     if (trn.isVar())
     {
-      out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")" << endl;
+      if (options::modelUninterpPrint()
+              == options::ModelUninterpPrintMode::DeclSortAndFun
+          || options::modelUninterpPrint()
+                 == options::ModelUninterpPrintMode::DeclFun)
+      {
+        out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
+            << endl;
+      }
     }
     else
     {
@@ -2009,14 +2053,15 @@ static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
 }
 
 void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
-                                      const std::string& sym,
+                                      Node f,
                                       const std::vector<Node>& vars,
-                                      TypeNode range,
                                       bool isInv,
                                       TypeNode sygusType) const
 {
-  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << CVC4::quoteSymbol(sym)
-      << ' ';
+  std::stringstream sym;
+  sym << f;
+  out << '(' << (isInv ? "synth-inv " : "synth-fun ")
+      << CVC4::quoteSymbol(sym.str()) << ' ';
   out << '(';
   if (!vars.empty())
   {
@@ -2034,11 +2079,13 @@ void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
   // if not invariant-to-synthesize, print return type
   if (!isInv)
   {
+    TypeNode ftn = f.getType();
+    TypeNode range = ftn.isFunction() ? ftn.getRangeType() : ftn;
     out << ' ' << range;
   }
   out << '\n';
   // print grammar, if any
-  if (sygusType != TypeNode::null())
+  if (!sygusType.isNull())
   {
     toStreamSygusGrammar(out, sygusType);
   }

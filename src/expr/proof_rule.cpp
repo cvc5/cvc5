@@ -40,6 +40,7 @@ const char* toString(PfRule id)
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
+    case PfRule::THEORY_EXPAND_DEF: return "THEORY_EXPAND_DEF";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::TRUST_REWRITE: return "TRUST_REWRITE";
     case PfRule::TRUST_SUBS: return "TRUST_SUBS";
@@ -114,6 +115,9 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
     case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
+    //================================================= Bit-Vector rules
+    case PfRule::BV_BITBLAST: return "BV_BITBLAST";
+    case PfRule::BV_EAGER_ATOM: return "BV_EAGER_ATOM";
     //================================================= Datatype rules
     case PfRule::DT_UNIF: return "DT_UNIF";
     case PfRule::DT_INST: return "DT_INST";
@@ -154,7 +158,10 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
+    case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

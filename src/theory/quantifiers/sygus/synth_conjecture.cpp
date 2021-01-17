@@ -977,7 +977,6 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  // this output stream should coincide with wherever --dump-synth is output on
   Options& sopts = smt::currentSmtEngine()->getOptions();
   printSynthSolution(*sopts.getOut());
   excludeCurrentSolution(enums, values);

@@ -231,6 +231,9 @@ enum class PfRule : uint32_t
   THEORY_PREPROCESS,
   // where F was added as a new assertion by theory preprocessing.
   THEORY_PREPROCESS_LEMMA,
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on theory expand definitions.
+  THEORY_EXPAND_DEF,
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
@@ -248,16 +251,17 @@ enum class PfRule : uint32_t
   // ======== Resolution
   // Children:
   //  (P1:C1, P2:C2)
-  // Arguments: (id, L)
+  // Arguments: (pol, L)
   // ---------------------
   // Conclusion: C
   // where
   //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
   //     each children viewed as a literal or a node viewed as a literal. Note
   //     that an OR node could also be a literal.
-  //   - id is either true or false
+  //   - pol is either true or false, representing the polarity of the pivot on
+  //     the first clause
   //   - L is the pivot of the resolution, which occurs as is (resp. under a
-  //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
+  //     NOT) in C1 and negatively (as is) in C2 if pol = true (pol = false).
   //   C is a clause resulting from collecting all the literals in C1, minus the
   //   first occurrence of the pivot or its negation, and C2, minus the first
   //   occurrence of the pivot or its negation, according to the policy above.
@@ -270,15 +274,18 @@ enum class PfRule : uint32_t
   //   to resolution but rather to a weakening of the clause that did not have a
   //   literal eliminated.
   RESOLUTION,
-  // ======== Chain Resolution
-  // Children: (P1:(or F_{1,1} ... F_{1,n1}), ..., Pm:(or F_{m,1} ... F_{m,nm}))
-  // Arguments: (L_1, ..., L_{m-1})
+  // ======== N-ary Resolution
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (pol_1, L_1, ..., pol_{n-1}, L_{n-1})
   // ---------------------
-  // Conclusion: C_m'
+  // Conclusion: C
   // where
-  //   let "C_1 <>_l C_2" represent the resolution of C_1 with C_2 with pivot l,
-  //   let C_1' = C_1 (from P_1),
-  //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
+  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and polarity pol, as defined above
+  //   - let C_1' = C_1 (from P1),
+  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
+  //   The result of the chain resolution is C = C_n'
   CHAIN_RESOLUTION,
   // ======== Factoring
   // Children: (P:C1)
@@ -298,6 +305,21 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+  // ======== N-ary Resolution + Factoring + Reordering
+  // Children: (P1:C_1, ..., Pm:C_n)
+  // Arguments: (C, pol_1, L_1, ..., pol_{n-1}, L_{n-1})
+  // ---------------------
+  // Conclusion: C
+  // where
+  //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
+  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and polarity pol, as defined in RESOLUTION
+  //   - let C_1' be equal, in its set representation, to C_1 (from P1),
+  //   - for each i > 1, let C_i' be equal, it its set representation, to
+  //     C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
+  //   The result of the chain resolution is C, which is equal, in its set
+  //   representation, to C_n'
+  MACRO_RESOLUTION,
 
   // ======== Split
   // Children: none
@@ -674,7 +696,22 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: F
   ARRAYS_TRUST,
-  
+
+  //================================================= Bit-Vector rules
+  // ======== Bitblast
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t bitblast(t))
+  BV_BITBLAST,
+  // ======== Eager Atom
+  // Children: none
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: (= F F[0])
+  // where F is of kind BITVECTOR_EAGER_ATOM
+  BV_EAGER_ATOM,
+
   //================================================= Datatype rules
   // ======== Unification
   // Children: (P:(= (C t1 ... tn) (C s1 ... sn)))
@@ -959,11 +996,13 @@ enum class PfRule : uint32_t
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
   // ======== Regular expression elimination
-  // Children: (P:F)
-  // Arguments: none
+  // Children: none
+  // Arguments: (F, b)
   // ---------------------
-  // Conclusion: R
-  // where R = strings::RegExpElimination::eliminate(F).
+  // Conclusion: (= F strings::RegExpElimination::eliminate(F, b))
+  // where b is a Boolean indicating whether we are using aggressive
+  // eliminations. Notice this rule concludes (= F F) if no eliminations
+  // are performed for F.
   RE_ELIM,
   //======================== Code points
   // Children: none
@@ -1052,6 +1091,40 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+
+  //======== Multiplication tangent plane
+  // Children: none
+  // Arguments: (t, x, y, a, b, sgn)
+  // ---------------------
+  // Conclusion:
+  //   sgn=-1: (= (<= t tplane) (or (and (<= x a) (>= y b)) (and (>= x a) (<= y b)))
+  //   sgn= 1: (= (>= t tplane) (or (and (<= x a) (<= y b)) (and (>= x a) (>= y b)))
+  // Where x,y are real terms (variables or extended terms), t = (* x y)
+  // (possibly under rewriting), a,b are real constants, and sgn is either -1
+  // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
+  ARITH_MULT_TANGENT,
+
+  // ================ Lemmas for transcendentals
+  //======== Assert bounds on PI
+  // Children: none
+  // Arguments: (l, u)
+  // ---------------------
+  // Conclusion: (and (>= real.pi l) (<= real.pi u))
+  // Where l (u) is a valid lower (upper) bound on pi.
+  ARITH_TRANS_PI,
+  //======== Sine arg shifted to -pi..pi
+  // Children: none
+  // Arguments: (x, y, s)
+  // ---------------------
+  // Conclusion: (and
+  //   (<= -pi y pi)
+  //   (= (sin y) (sin x))
+  //   (ite (<= -pi x pi) (= x y) (= x (+ y (* 2 pi s))))
+  // )
+  // Where x is the argument to sine, y is a new real skolem that is x shifted
+  // into -pi..pi and s is a new integer skolem that is the number of phases y
+  // is shifted.
+  ARITH_TRANS_SINE_SHIFT,
 
   //================================================= Unknown rule
   UNKNOWN,

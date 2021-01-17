@@ -47,82 +47,9 @@ const context::CDList<Node>& SolverState::getDisequalityList() const
   return d_eeDisequalities;
 }
 
-void SolverState::eqNotifyNewClass(TNode t)
+void SolverState::addDisequality(TNode t1, TNode t2)
 {
-  Kind k = t.getKind();
-  if (k == STRING_LENGTH || k == STRING_TO_CODE)
-  {
-    Node r = d_ee->getRepresentative(t[0]);
-    EqcInfo* ei = getOrMakeEqcInfo(r);
-    if (k == STRING_LENGTH)
-    {
-      ei->d_lengthTerm = t[0];
-    }
-    else
-    {
-      ei->d_codeTerm = t[0];
-    }
-  }
-  else if (t.isConst())
-  {
-    if (t.getType().isStringLike())
-    {
-      EqcInfo* ei = getOrMakeEqcInfo(t);
-      ei->d_prefixC = t;
-      ei->d_suffixC = t;
-    }
-  }
-  else if (k == STRING_CONCAT)
-  {
-    addEndpointsToEqcInfo(t, t, t);
-  }
-}
-
-void SolverState::eqNotifyMerge(TNode t1, TNode t2)
-{
-  EqcInfo* e2 = getOrMakeEqcInfo(t2, false);
-  if (e2)
-  {
-    Assert(t1.getType().isStringLike());
-    EqcInfo* e1 = getOrMakeEqcInfo(t1);
-    // add information from e2 to e1
-    if (!e2->d_lengthTerm.get().isNull())
-    {
-      e1->d_lengthTerm.set(e2->d_lengthTerm);
-    }
-    if (!e2->d_codeTerm.get().isNull())
-    {
-      e1->d_codeTerm.set(e2->d_codeTerm);
-    }
-    if (!e2->d_prefixC.get().isNull())
-    {
-      setPendingPrefixConflictWhen(
-          e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
-    }
-    if (!e2->d_suffixC.get().isNull())
-    {
-      setPendingPrefixConflictWhen(
-          e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
-    }
-    if (e2->d_cardinalityLemK.get() > e1->d_cardinalityLemK.get())
-    {
-      e1->d_cardinalityLemK.set(e2->d_cardinalityLemK);
-    }
-    if (!e2->d_normalizedLength.get().isNull())
-    {
-      e1->d_normalizedLength.set(e2->d_normalizedLength);
-    }
-  }
-}
-
-void SolverState::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
-{
-  if (t1.getType().isStringLike())
-  {
-    // store disequalities between strings, may need to check if their lengths
-    // are equal/disequal
-    d_eeDisequalities.push_back(t1.eqNode(t2));
-  }
+  d_eeDisequalities.push_back(t1.eqNode(t2));
 }
 
 EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
@@ -142,30 +69,6 @@ EqcInfo* SolverState::getOrMakeEqcInfo(Node eqc, bool doMake)
 }
 
 TheoryModel* SolverState::getModel() { return d_valuation.getModel(); }
-
-void SolverState::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
-{
-  Assert(concat.getKind() == STRING_CONCAT
-         || concat.getKind() == REGEXP_CONCAT);
-  EqcInfo* ei = nullptr;
-  // check each side
-  for (unsigned r = 0; r < 2; r++)
-  {
-    unsigned index = r == 0 ? 0 : concat.getNumChildren() - 1;
-    Node c = utils::getConstantComponent(concat[index]);
-    if (!c.isNull())
-    {
-      if (ei == nullptr)
-      {
-        ei = getOrMakeEqcInfo(eqc);
-      }
-      Trace("strings-eager-pconf-debug")
-          << "New term: " << concat << " for " << t << " with prefix " << c
-          << " (" << (r == 1) << ")" << std::endl;
-      setPendingPrefixConflictWhen(ei->addEndpointConst(t, c, r == 1));
-    }
-  }
-}
 
 Node SolverState::getLengthExp(Node t, std::vector<Node>& exp, Node te)
 {
@@ -237,7 +140,7 @@ void SolverState::setPendingPrefixConflictWhen(Node conf)
   InferInfo iiPrefixConf;
   iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
   iiPrefixConf.d_conc = d_false;
-  utils::flattenOp(AND, conf, iiPrefixConf.d_ant);
+  utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);
 }
 

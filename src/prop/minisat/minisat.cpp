@@ -102,8 +102,11 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theoryProxy) {
-
+void MinisatSatSolver::initialize(context::Context* context,
+                                  TheoryProxy* theoryProxy,
+                                  context::UserContext* userContext,
+                                  ProofNodeManager* pnm)
+{
   d_context = context;
 
   if (options::decisionMode() != options::DecisionMode::INTERNAL)
@@ -116,6 +119,8 @@ void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theory
   d_minisat = new Minisat::SimpSolver(
       theoryProxy,
       d_context,
+      userContext,
+      pnm,
       options::incrementalSolving()
           || options::decisionMode() != options::DecisionMode::INTERNAL);
 
@@ -154,7 +159,9 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
     return ClauseIdUndef;
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
-  Assert(!CVC4::options::unsatCores() || clause_id != ClauseIdError);
+  // FIXME: to be deleted when we kill old proof code for unsat cores
+  Assert(!options::unsatCores() || options::proofNew()
+         || clause_id != ClauseIdError);
   return clause_id;
 }
 
@@ -218,6 +225,16 @@ bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
 }
 
+SatProofManager* MinisatSatSolver::getProofManager()
+{
+  return d_minisat->getProofManager();
+}
+
+std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
+{
+  return d_minisat->getProof();
+}
+
 /** Incremental interface */
 
 unsigned MinisatSatSolver::getAssertionLevel() const {
@@ -271,16 +288,16 @@ MinisatSatSolver::Statistics::~Statistics() {
   d_registry->unregisterStat(&d_statTotLiterals);
 }
 
-void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* d_minisat){
-  d_statStarts.setData(d_minisat->starts);
-  d_statDecisions.setData(d_minisat->decisions);
-  d_statRndDecisions.setData(d_minisat->rnd_decisions);
-  d_statPropagations.setData(d_minisat->propagations);
-  d_statConflicts.setData(d_minisat->conflicts);
-  d_statClausesLiterals.setData(d_minisat->clauses_literals);
-  d_statLearntsLiterals.setData(d_minisat->learnts_literals);
-  d_statMaxLiterals.setData(d_minisat->max_literals);
-  d_statTotLiterals.setData(d_minisat->tot_literals);
+void MinisatSatSolver::Statistics::init(Minisat::SimpSolver* minisat){
+  d_statStarts.setData(minisat->starts);
+  d_statDecisions.setData(minisat->decisions);
+  d_statRndDecisions.setData(minisat->rnd_decisions);
+  d_statPropagations.setData(minisat->propagations);
+  d_statConflicts.setData(minisat->conflicts);
+  d_statClausesLiterals.setData(minisat->clauses_literals);
+  d_statLearntsLiterals.setData(minisat->learnts_literals);
+  d_statMaxLiterals.setData(minisat->max_literals);
+  d_statTotLiterals.setData(minisat->tot_literals);
 }
 
 } /* namespace CVC4::prop */

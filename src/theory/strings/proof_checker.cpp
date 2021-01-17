@@ -438,9 +438,20 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::RE_ELIM)
   {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    return RegExpElimination::eliminate(children[0]);
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    bool isAgg;
+    if (!getBool(args[1], isAgg))
+    {
+      return Node::null();
+    }
+    Node ea = RegExpElimination::eliminate(args[0], isAgg);
+    // if we didn't eliminate, then this trivially proves the reflexive equality
+    if (ea.isNull())
+    {
+      ea = args[0];
+    }
+    return args[0].eqNode(ea);
   }
   else if (id == PfRule::STRING_CODE_INJ)
   {

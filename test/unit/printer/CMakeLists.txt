@@ -1,7 +1,7 @@
 #####################
 ## CMakeLists.txt
 ## Top contributors (to current version):
-##   Andres Noetzli
+##   Andres Noetzli, Aina Niemetz
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
@@ -11,4 +11,4 @@
 #-----------------------------------------------------------------------------#
 # Add unit tests
 
-cvc4_add_unit_test_black(smt2_printer_black printer)
+cvc4_add_cxx_unit_test_black(smt2_printer_black printer)

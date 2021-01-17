@@ -434,13 +434,13 @@ class CVC4_PUBLIC SmtEngine
    * which a function is being synthesized. Thus declared functions should use
    * this method as well.
    */
-  void declareSygusVar(const std::string& id, Node var, TypeNode type);
+  void declareSygusVar(Node var);
 
   /**
    * Add a function-to-synthesize declaration.
    *
-   * The given type may not correspond to the actual function type but to a
-   * datatype encoding the syntax restrictions for the
+   * The given sygusType may not correspond to the actual function type of func
+   * but to a datatype encoding the syntax restrictions for the
    * function-to-synthesize. In this case this information is stored to be used
    * during solving.
    *
@@ -451,11 +451,14 @@ class CVC4_PUBLIC SmtEngine
    * invariant. This information is necessary if we are dumping a command
    * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(const std::string& id,
-                       Node func,
-                       TypeNode type,
+  void declareSynthFun(Node func,
+                       TypeNode sygusType,
                        bool isInv,
                        const std::vector<Node>& vars);
+  /**
+   * Same as above, without a sygus type.
+   */
+  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint.*/
   void assertSygusConstraint(Node constraint);
@@ -510,12 +513,15 @@ class CVC4_PUBLIC SmtEngine
   Node simplify(const Node& e);
 
   /**
-   * Expand the definitions in a term or formula.  No other
-   * simplification or normalization is done.
+   * Expand the definitions in a term or formula.
+   *
+   * @param n The node to expand
+   * @param expandOnly if true, then the expandDefinitions function of
+   * TheoryEngine is not called on subterms of n.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Node expandDefinitions(const Node& e);
+  Node expandDefinitions(const Node& n, bool expandOnly = true);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -534,7 +540,13 @@ class CVC4_PUBLIC SmtEngine
 
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
-
+  /**
+   * Print the current proof. This method should be called after an UNSAT
+   * response. It gets the proof of false from the PropEngine and passes
+   * it to the ProofManager, which post-processes the proof and prints it
+   * in the proper format.
+   */
+  void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
@@ -672,6 +684,12 @@ class CVC4_PUBLIC SmtEngine
   UnsatCore getUnsatCore();
 
   /**
+   * Get a refutation proof (only if immediately preceded by an UNSAT or
+   * ENTAILED query). Only permitted if CVC4 was built with proof support and
+   * the proof option is on. */
+  std::string getProof();
+
+  /**
    * Get the current set of assertions.  Only permitted if the
    * SmtEngine is set to operate interactively.
    */
@@ -795,7 +813,13 @@ class CVC4_PUBLIC SmtEngine
   /** Get the value of one named statistic from this SmtEngine. */
   SExpr getStatistic(std::string name) const;
 
-  /** Flush statistic from this SmtEngine. Safe to use in a signal handler. */
+  /** Flush statistics from this SmtEngine and the NodeManager it uses. */
+  void flushStatistics(std::ostream& out) const;
+
+  /**
+   * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
+   * use in a signal handler.
+   */
   void safeFlushStatistics(int fd) const;
 
   /**
@@ -870,6 +894,9 @@ class CVC4_PUBLIC SmtEngine
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
+  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
+  smt::PfManager* getPfManager() { return d_pfManager.get(); };
+
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
   {
@@ -883,6 +910,14 @@ class CVC4_PUBLIC SmtEngine
    * command.
    */
   UnsatCore getUnsatCoreInternal();
+
+  /**
+   * Check that a generated proof checks. This method is the same as printProof,
+   * but does not print the proof. Like that method, it should be called
+   * after an UNSAT response. It ensures that a well-formed proof of false
+   * can be constructed by the combination of the PropEngine and ProofManager.
+   */
+  void checkProof();
 
   /**
    * Check that an unsatisfiable core is indeed unsatisfiable.

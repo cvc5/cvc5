@@ -2,7 +2,7 @@
 /*! \file theory_datatypes.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -104,8 +104,6 @@ private:
 private:
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
-  /** map from nodes to their instantiated equivalent for each constructor type */
-  std::map< Node, std::map< int, Node > > d_inst_map;
   //---------------------------------labels
   /** labels for each equivalence class
    *

@@ -153,7 +153,6 @@ public:
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
-  bool getDumpSynth() const;
   bool getDumpUnsatCores() const;
   bool getEarlyExit() const;
   bool getFilesystemAccess() const;
@@ -190,7 +189,6 @@ public:
   void setOut(std::ostream*);
   void setOutputLanguage(OutputLanguage);
 
-  bool wasSetByUserDumpSynth() const;
   bool wasSetByUserEarlyExit() const;
   bool wasSetByUserForceLogicString() const;
   bool wasSetByUserIncrementalSolving() const;

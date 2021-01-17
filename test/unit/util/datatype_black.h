@@ -243,10 +243,10 @@ class DatatypeBlack : public CxxTest::TestSuite {
      */
     std::set<TypeNode> unresolvedTypes;
     TypeNode unresList =
-        d_nm->mkSort("list", ExprManager::SORT_FLAG_PLACEHOLDER);
+        d_nm->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
     unresolvedTypes.insert(unresList);
     TypeNode unresTree =
-        d_nm->mkSort("tree", ExprManager::SORT_FLAG_PLACEHOLDER);
+        d_nm->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
     unresolvedTypes.insert(unresTree);
 
     DType tree("tree");
@@ -309,10 +309,10 @@ class DatatypeBlack : public CxxTest::TestSuite {
   {
     std::set<TypeNode> unresolvedTypes;
     TypeNode unresList =
-        d_nm->mkSort("list", ExprManager::SORT_FLAG_PLACEHOLDER);
+        d_nm->mkSort("list", NodeManager::SORT_FLAG_PLACEHOLDER);
     unresolvedTypes.insert(unresList);
     TypeNode unresTree =
-        d_nm->mkSort("tree", ExprManager::SORT_FLAG_PLACEHOLDER);
+        d_nm->mkSort("tree", NodeManager::SORT_FLAG_PLACEHOLDER);
     unresolvedTypes.insert(unresTree);
 
     DType tree("tree");

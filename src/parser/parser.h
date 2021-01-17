@@ -127,16 +127,6 @@ private:
   */
  size_t d_assertionLevel;
 
- /**
-  * Maintains a list of reserved symbols at the assertion level that might
-  * not occur in our symbol table.  This is necessary to e.g. support the
-  * proper behavior of the :named annotation in SMT-LIBv2 when used under
-  * a let or a quantifier, since inside a let/quant body the declaration
-  * scope is that of the let/quant body, but the defined name should be
-  * reserved at the assertion level.
-  */
- std::set<std::string> d_reservedSymbols;
-
  /** How many anonymous functions we've created. */
  size_t d_anonymousFunctionCount;
 
@@ -395,11 +385,6 @@ public:
                         std::string notes = "");
 
   /**
-   * Reserve a symbol at the assertion level.
-   */
-  void reserveSymbolAtAssertionLevel(const std::string& name);
-
-  /**
    * Checks whether the given expression is function-like, i.e.
    * it expects arguments. This is checked by looking at the type 
    * of fun. Examples of function types are function, constructor,
@@ -410,33 +395,35 @@ public:
    */
   void checkFunctionLike(api::Term fun);
 
-  /** Create a new CVC4 variable expression of the given type. 
+  /** Create a new CVC4 variable expression of the given type.
    *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
    *
    * If a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   api::Term bindVar(const std::string& name,
                     const api::Sort& type,
-                    uint32_t flags = ExprManager::VAR_FLAG_NONE,
+                    bool levelZero = false,
                     bool doOverload = false);
 
   /**
    * Create a set of new CVC4 variable expressions of the given type.
    *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
+   * It is inserted at context level zero in the symbol table if levelZero is
+   * true, or if we are using global declarations.
    *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
-   *  else if doOverload is false, the existing expression is shadowed by the new expression.
+   *  else if doOverload is false, the existing expression is shadowed by the
+   * new expression.
    */
   std::vector<api::Term> bindVars(const std::vector<std::string> names,
                                   const api::Sort& type,
-                                  uint32_t flags = ExprManager::VAR_FLAG_NONE,
+                                  bool levelZero = false,
                                   bool doOverload = false);
 
   /**
@@ -455,27 +442,12 @@ public:
   /**
    * Create a set of new CVC4 bound variable expressions of the given type.
    *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
-   *
    * For each name, if a symbol with name already exists,
    *  then if doOverload is true, we create overloaded operators.
    *  else if doOverload is false, the existing expression is shadowed by the new expression.
    */
   std::vector<api::Term> bindBoundVars(const std::vector<std::string> names,
                                        const api::Sort& type);
-
-  /**
-   * Create a new CVC4 function expression of the given type,
-   * appending a unique index to its name.  (That's the ONLY
-   * difference between mkAnonymousFunction() and mkVar()).
-   *
-   * flags specify information about the variable, e.g. whether it is global or defined
-   *   (see enum in expr_manager_template.h).
-   */
-  api::Term mkAnonymousFunction(const std::string& prefix,
-                                const api::Sort& type,
-                                uint32_t flags = ExprManager::VAR_FLAG_NONE);
 
   /** Create a new variable definition (e.g., from a let binding). 
    * levelZero is set if the binding must be done at level 0.
@@ -526,15 +498,12 @@ public:
   /**
    * Creates a new sort with the given name.
    */
-  api::Sort mkSort(const std::string& name,
-                   uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  api::Sort mkSort(const std::string& name);
 
   /**
    * Creates a new sort constructor with the given name and arity.
    */
-  api::Sort mkSortConstructor(const std::string& name,
-                              size_t arity,
-                              uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  api::Sort mkSortConstructor(const std::string& name, size_t arity);
 
   /**
    * Creates a new "unresolved type," used only during parsing.
@@ -667,15 +636,6 @@ public:
    */
   api::Term applyTypeAscription(api::Term t, api::Sort s);
 
-  //!!!!!!!!!!! temporary
-  /**
-   * Make var, with flags required by the ExprManager, see ExprManager::mkVar.
-   */
-  api::Term mkVar(const std::string& name,
-                  const api::Sort& type,
-                  uint32_t flags);
-  //!!!!!!!!!!! temporary
-
   /**
    * Add an operator to the current legal set.
    *
@@ -803,7 +763,6 @@ public:
    */
   api::Term mkStringConstant(const std::string& s);
 
- private:
   /** ad-hoc string escaping
    *
    * Returns the (internal) vector of code points corresponding to processing

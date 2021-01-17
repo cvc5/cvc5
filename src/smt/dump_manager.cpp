@@ -2,7 +2,7 @@
 /*! \file dump_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ **   Andrew Reynolds, Gereon Kremer, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -14,7 +14,6 @@
 
 #include "smt/dump_manager.h"
 
-#include "expr/expr_manager.h"
 #include "options/smt_options.h"
 #include "smt/dump.h"
 #include "smt/node_command.h"
@@ -50,12 +49,9 @@ void DumpManager::resetAssertions()
   // currently, do nothing
 }
 
-void DumpManager::addToModelCommandAndDump(const NodeCommand& c,
-                                           uint32_t flags,
-                                           bool userVisible,
-                                           const char* dumpTag)
+void DumpManager::addToDump(const NodeCommand& c, const char* dumpTag)
 {
-  Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << std::endl;
+  Trace("smt") << "SMT addToDump(" << c << ")" << std::endl;
   if (Dump.isOn(dumpTag))
   {
     if (d_fullyInited)

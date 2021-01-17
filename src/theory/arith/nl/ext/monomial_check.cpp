@@ -2,7 +2,7 @@
 /*! \file monomial_check.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -311,8 +311,17 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
-      Node lemma = av.eqNode(d_data->d_zero).impNode(oa.eqNode(d_data->d_zero));
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
+      Node prem = av.eqNode(d_data->d_zero);
+      Node conc = oa.eqNode(d_data->d_zero);
+      Node lemma = prem.impNode(conc);
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
+      }
+      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN, proof);
     }
     return 0;
   }

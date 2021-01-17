@@ -58,7 +58,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
       ss << "_" << std::to_string(op_pos[i]);
     }
     d_unres_tn = NodeManager::currentNM()->mkSort(
-        ss.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+        ss.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
     Trace("sygus-grammar-normalize-trie")
         << "\tCreating type " << d_unres_tn << "\n";
     unres_tn = d_unres_tn;
