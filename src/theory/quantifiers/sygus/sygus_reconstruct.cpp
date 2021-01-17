@@ -2,15 +2,14 @@
 /*! \file sygus_reconstruct.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief utility for reconstruct
- **
+ ** \brief implementation for reconstruct
  **/
 
 #include "theory/quantifiers/sygus/sygus_reconstruct.h"
@@ -60,13 +59,13 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   d_ob[stn][sol] = mainOb;
 
   // We need to add the main obligation to the crd in case it cannot be broken
-  // down by unification. By doing so, we can solve the obligation using
+  // down by matching. By doing so, we can solve the obligation using
   // enumeration and crd (if it is in the grammar)
   std::stringstream out;
   d_crds[stn]->addTerm(sol, false, out);
 
   // the set of unique (up to rewriting) patterns/shapes in the grammar used by
-  // unification
+  // matching
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction> pool;
 
   size_t count = 0;
@@ -124,7 +123,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
           if (d_sol[k] == Node::null())
           {
             Trace("sygus-rcons") << "ob: " << ob(k) << std::endl;
-            // try to match/unify obligation k with the enumerated term sz
+            // try to match obligation k with the enumerated term sz
             std::unordered_map<TypeNode,
                                std::unordered_set<Node, NodeHashFunction>,
                                TypeNodeHashFunction>
@@ -161,7 +160,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
             Trace("sygus-rcons") << "ob: " << ob(k) << std::endl;
             for (Node sz : pool[pair.first])
             {
-              // try to match/unify each newly generated and cached obligation
+              // try to match each newly generated and cached obligation
               // with patterns in pool
               std::unordered_map<TypeNode,
                                  std::unordered_set<Node, NodeHashFunction>,
@@ -227,7 +226,7 @@ SygusReconstruct::matchNewObs(Node k, Node sz)
   // terms. So, we add redundant substitutions
   candObs.insert(d_groundVars.cbegin(), d_groundVars.cend());
 
-  // try to match/unify the obligation's builtin term with the pattern sz
+  // try to match the obligation's builtin term with the pattern sz
   if (expr::match(Rewriter::rewrite(datatypes::utils::sygusToBuiltin(sz)),
                   d_builtinTerm[k],
                   candObs))
@@ -298,7 +297,7 @@ SygusReconstruct::matchNewObs(Node k, Node sz)
 
     if (isSolved)
     {
-      Node s = sz.substitute(d_sol.cbegin(), d_sol.cend());
+      Node s = sz.substitute(d_sol);
       markSolved(k, s);
     }
     else
@@ -471,7 +470,7 @@ void SygusReconstruct::removeSolvedObs()
   }
 }
 
-Node SygusReconstruct::replaceVarsWithGroundValues(Node n)
+Node SygusReconstruct::replaceVarsWithGroundValues(Node n) const
 {
   // get the set of bound variables in n
   std::unordered_set<TNode, TNodeHashFunction> vars;
@@ -527,13 +526,40 @@ void SygusReconstruct::reset()
   d_poolTrie.clear();
 }
 
-std::string SygusReconstruct::ob(Node k)
+void SygusReconstruct::debugTermSize(Node sol, int& t_size, int& num_ite) const
 {
-  return "ob<" + d_builtinTerm[k].toString() + ", " + k.getType().toString()
+  std::unordered_map<Node, int, NodeHashFunction>::iterator it =
+      d_dtermSize.find(sol);
+  if (it == d_dtermSize.cend())
+  {
+    int prev = t_size;
+    int prev_ite = num_ite;
+    t_size++;
+    if (sol.getKind() == ITE)
+    {
+      num_ite++;
+    }
+    for (unsigned i = 0; i < sol.getNumChildren(); i++)
+    {
+      debugTermSize(sol[i], t_size, num_ite);
+    }
+    d_dtermSize[sol] = t_size - prev;
+    d_dtermIteSize[sol] = num_ite - prev_ite;
+  }
+  else
+  {
+    t_size += it->second;
+    num_ite += d_dtermIteSize[sol];
+  }
+}
+
+std::string SygusReconstruct::ob(Node k) const
+{
+  return "ob<" + d_builtinTerm.at(k).toString() + ", " + k.getType().toString()
          + ">";
 }
 
-void SygusReconstruct::printCandSols(const Node& mainOb)
+void SygusReconstruct::printCandSols(const Node& mainOb) const
 {
   std::unordered_set<Node, NodeHashFunction> visited;
   std::vector<Node> stack;
@@ -551,7 +577,7 @@ void SygusReconstruct::printCandSols(const Node& mainOb)
                          << datatypes::utils::sygusToBuiltin(k) << " " << ob(k)
                          << ":\n [";
 
-    for (const Node& j : d_candSols[k])
+    for (const Node& j : d_candSols.at(k))
     {
       Trace("sygus-rcons") << datatypes::utils::sygusToBuiltin(j) << " ";
       std::unordered_set<TNode, TNodeHashFunction> subObs;
@@ -572,7 +598,7 @@ void SygusReconstruct::printCandSols(const Node& mainOb)
 
 void SygusReconstruct::printPool(
     const std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>&
-        pool)
+        pool) const
 {
   Trace("sygus-rcons") << "\nPool:\n[";
 

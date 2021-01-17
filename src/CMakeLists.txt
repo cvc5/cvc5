@@ -714,8 +714,6 @@ libcvc4_add_sources(
   theory/quantifiers/solution_filter.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
-  theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
-  theory/quantifiers/sygus/ce_guided_single_inv_sol.h
   theory/quantifiers/sygus/cegis.cpp
   theory/quantifiers/sygus/cegis.h
   theory/quantifiers/sygus/cegis_core_connective.cpp

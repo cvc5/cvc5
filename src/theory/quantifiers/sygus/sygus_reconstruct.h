@@ -2,9 +2,9 @@
 /*! \file sygus_reconstruct.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -116,7 +116,6 @@ class SygusReconstruct : public expr::NotifyMatch
 {
  public:
   SygusReconstruct(TermDbSygus* tds, SygusStatistics& s);
-  ~SygusReconstruct() {}
 
   /** reconstruct solution
    *
@@ -144,7 +143,44 @@ class SygusReconstruct : public expr::NotifyMatch
                            int& reconstructed,
                            int enumLimit);
 
+  /**
+   * Compute the size of `sol` and the number of 'ite's it contains
+   *
+   * @param sol term to analyze
+   * @param t_size size of `sol`
+   * @param num_ite number of 'ite's in `sol`
+   */
+  void debugTermSize(Node sol, int& t_size, int& num_ite) const;
+
  private:
+  /** match obligation `k`'s builtin term with pattern `sz`
+   *
+   * This function matches the builtin term corresponding to the obligation `k`
+   * with the pattern `sz`. If the match succeeds, `sz` is added to the set of
+   * candidate solutions for `k` and A set of new sub-obligations to satisfy is
+   * returned. If there are no sub-obligations are they are all satisfied, then
+   * `sz` is considered a solution to obligation `k` and `matchNewObs(k, s)` is
+   * called, where `s = s * {z -> sol[z]}`. For example, given:
+   *
+   * Term = {c_z1 -> (+ 1 1)}
+   * CandSols = {}
+   * Sol = {}
+   *
+   * Then calling `matchNewObs(c_z1, (+ c_z2 c_z3))` will result in:
+   *
+   * Term = {c_z1 -> (+ 1 1), c_z2 -> 1}
+   * CandSols = {c_z1 -> {(+ c_z2 c_z2)}, c_z2 -> {}}
+   * Sol = {}
+   *
+   * and will return `{typeOf(c_z2) -> {c_z2}}`.
+   *
+   * Notice that `c_z3` is replaced by `c_z2` because it has the same
+   * corresponding builtin term.
+   *
+   * @param ob free var whose builtin term we need to match
+   * @param sz a pattern to match `ob`s builtin term with
+   * @return a set of new obligations to satisfy if the match succeeds
+   */
   std::unordered_map<TypeNode,
                      std::unordered_set<Node, NodeHashFunction>,
                      TypeNodeHashFunction>
@@ -165,7 +201,7 @@ class SygusReconstruct : public expr::NotifyMatch
    * }
    * Sol = {z2 -> 2}
    *
-   * Then calling markSolved(z2, 2) will result in:
+   * Then calling `markSolved(z2, 2)` will result in:
    *
    * CandSols = {
    *  mainOb -> {(+ z1 1), (+ (* 2 x) 1)},
@@ -209,7 +245,7 @@ class SygusReconstruct : public expr::NotifyMatch
    * @param n A term containing bound variables
    * @return `n` with all vars in `n` replaced with ground values
    */
-  Node replaceVarsWithGroundValues(Node n);
+  Node replaceVarsWithGroundValues(Node n) const;
 
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
@@ -231,7 +267,7 @@ class SygusReconstruct : public expr::NotifyMatch
    * @param k An obligation
    * @return A string representation of `k`
    */
-  std::string ob(Node k);
+  std::string ob(Node k) const;
 
   /**
    * Print all reachable obligations and their candidate solutions from
@@ -241,7 +277,7 @@ class SygusReconstruct : public expr::NotifyMatch
    *
    * @param root The root obligation to start from
    */
-  void printCandSols(const Node& mainOb);
+  void printCandSols(const Node& mainOb) const;
 
   /**
    * Print the pool of patterns/shape used in the matching phase.
@@ -252,7 +288,7 @@ class SygusReconstruct : public expr::NotifyMatch
    */
   void printPool(const std::unordered_map<TypeNode,
                                           std::vector<Node>,
-                                          TypeNodeHashFunction>& pool);
+                                          TypeNodeHashFunction>& pool) const;
 
   /** pointer to the sygus term database */
   TermDbSygus* d_tds;
@@ -290,7 +326,7 @@ class SygusReconstruct : public expr::NotifyMatch
                      NodeHashFunction>
       d_watchSet;
 
-  /** a cache of sygus variables treated as ground terms by unification */
+  /** a cache of sygus variables treated as ground terms by matching */
   std::unordered_map<Node, Node, NodeHashFunction> d_groundVars;
 
   /** Sygus terms enumerator for each Sygus datatype type */
@@ -308,6 +344,11 @@ class SygusReconstruct : public expr::NotifyMatch
 
   /** A trie for filtering out redundant terms from the paterns pool */
   expr::MatchTrie d_poolTrie;
+
+  /** a map from a term to its size */
+  mutable std::unordered_map<Node, int, NodeHashFunction> d_dtermSize;
+  /** a map from a term to the number of 'ite's it contains */
+  mutable std::unordered_map<Node, int, NodeHashFunction> d_dtermIteSize;
 };
 
 }  // namespace quantifiers

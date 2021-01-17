@@ -38,7 +38,6 @@ namespace quantifiers {
 CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SygusStatistics& s)
     : d_qe(qe),
       d_sip(new SingleInvocationPartition),
-      d_sol(new CegSingleInvSol(qe)),
       d_srcons(new SygusReconstruct(qe->getTermDatabaseSygus(), s)),
       d_isSolved(false),
       d_single_invocation(false)
@@ -47,7 +46,6 @@ CegSingleInv::CegSingleInv(QuantifiersEngine* qe, SygusStatistics& s)
 
 CegSingleInv::~CegSingleInv()
 {
-  delete d_sol;  // (new CegSingleInvSol(qe)),
   delete d_sip;  // d_sip(new SingleInvocationPartition),
 }
 
@@ -278,7 +276,6 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                int& reconstructed,
                                bool rconsSygus)
 {
-  Assert(d_sol != NULL);
   const DType& dt = stn.getDType();
   Node varList = dt.getSygusVarList();
   Node prog = d_quant[0][sol_index];
@@ -378,20 +375,8 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     {
       enumLimit = options::cegqiSingleInvReconstructLimit();
     }
-    if (options::sygusSiReconstructNew())
-    {
-      // new implementation
-      d_sygus_solution =
-          d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
-    }
-    else
-    {
-      d_sygus_solution =
-          d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
-      //d_sol->preregisterConjecture(d_orig_conjecture, stn);
-      //d_sygus_solution =
-      //    d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
-    }
+    d_sygus_solution =
+        d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;
     }
@@ -406,32 +391,26 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     }
   }
 
-  // debug solution
-  if (!d_sol->debugSolution(d_solution))
+  if (Trace.isOn("cegqi-stats"))
   {
-    // This can happen if we encountered free variables in either the
-    // instantiation terms, or in the instantiation lemmas after postprocessing.
-    // In this case, we fail, since the solution is not valid.
-    Trace("csi-sol") << "FAIL : solution " << d_solution
-                     << " contains free constants." << std::endl;
-    Warning() <<
-        "Cannot get synth function: free constants encountered in synthesis "
-        "solution.";
-    reconstructed = -1;
-  }
-  if( Trace.isOn("cegqi-stats") ){
     int tsize, itesize;
-    tsize = 0;itesize = 0;
-    d_sol->debugTermSize( d_orig_solution, tsize, itesize );
+    tsize = 0;
+    itesize = 0;
+    d_srcons->debugTermSize(d_orig_solution, tsize, itesize);
     Trace("cegqi-stats") << tsize << " " << itesize << " ";
-    tsize = 0;itesize = 0;
-    d_sol->debugTermSize( d_solution, tsize, itesize );
+    tsize = 0;
+    itesize = 0;
+    d_srcons->debugTermSize(d_solution, tsize, itesize);
     Trace("cegqi-stats") << tsize << " " << itesize << " ";
-    if( !d_sygus_solution.isNull() ){
-      tsize = 0;itesize = 0;
-      d_sol->debugTermSize( d_sygus_solution, tsize, itesize );
+    if (!d_sygus_solution.isNull())
+    {
+      tsize = 0;
+      itesize = 0;
+      d_srcons->debugTermSize(d_sygus_solution, tsize, itesize);
       Trace("cegqi-stats") << tsize << " - ";
-    }else{
+    }
+    else
+    {
       Trace("cegqi-stats") << "null ";
     }
     Trace("cegqi-stats") << std::endl;

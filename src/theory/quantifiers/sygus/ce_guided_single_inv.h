@@ -21,7 +21,6 @@
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 
 namespace CVC4 {
@@ -55,9 +54,7 @@ class CegSingleInv
   QuantifiersEngine* d_qe;
   // single invocation inference utility
   SingleInvocationPartition* d_sip;
-  // solution reconstruction
-  CegSingleInvSol* d_sol;
-  /** new version of solution reconstruction */
+  /** solution reconstruction */
   std::unique_ptr<SygusReconstruct> d_srcons;
 
   // list of skolems for each argument of programs

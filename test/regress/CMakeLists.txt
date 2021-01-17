@@ -2043,7 +2043,7 @@ set(regress_1_tests
   regress1/sygus/new/simple-no-rewrite.sy
   regress1/sygus/new/simple-not-in-grammar.sy
   regress1/sygus/new/simple-random-const.sy
-  regress1/sygus/new/simple-rewrite-in_db.sy
+  regress1/sygus/new/simple-rewrite-in-db.sy
   regress1/sygus/new/simple-rewrite-not-in-db.sy
   regress1/sygus/new/no-var-in-sol.sy
   regress1/sygus/nflat-fwd-3.sy
