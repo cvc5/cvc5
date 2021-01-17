@@ -250,16 +250,16 @@ if (WIN32)
 endif ()
 
 #-----------------------------------------------------------------------------#
-# Use ld.gold if available
+# Use ld.lld if available
 
 execute_process(COMMAND ${CMAKE_C_COMPILER}
-                -fuse-ld=gold
+                -fuse-ld=lld
                 -Wl,--version ERROR_QUIET OUTPUT_VARIABLE LD_VERSION)
-if ("${LD_VERSION}" MATCHES "GNU gold")
-  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=gold")
-  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=gold")
-  message(STATUS "Using GNU gold linker.")
+if ("${LD_VERSION}" MATCHES "LLD")
+  string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=lld")
+  string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=lld")
+  string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=lld")
+  message(STATUS "Using lld linker.")
 endif ()
 
 #-----------------------------------------------------------------------------#
@@ -435,7 +435,7 @@ if(ENABLE_DEBUG_CONTEXT_MM)
 endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
-  add_check_c_cxx_flag("-ggdb3")
+  add_check_c_cxx_flag("-glldb")
 endif()
 
 if(ENABLE_COMP_INC_TRACK)
