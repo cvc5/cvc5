@@ -56,8 +56,23 @@ void BagSolver::postCheck()
 void BagSolver::checkUnionDisjoint(const Node& n)
 {
   Assert(n.getKind() == UNION_DISJOINT);
-  TypeNode elementType = n.getType().getBagElementType();
-  for (const Node& e : d_state.getElements(elementType))
+  for (const Node& e : d_state.getElements(n))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.unionDisjoint(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+
+  for (const Node& e : d_state.getElements(n[0]))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.unionDisjoint(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+
+  for (const Node& e : d_state.getElements(n[1]))
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.unionDisjoint(n, e);
@@ -69,8 +84,23 @@ void BagSolver::checkUnionDisjoint(const Node& n)
 void BagSolver::checkUnionMax(const Node& n)
 {
   Assert(n.getKind() == UNION_MAX);
-  TypeNode elementType = n.getType().getBagElementType();
-  for (const Node& e : d_state.getElements(elementType))
+  for (const Node& e : d_state.getElements(n))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.unionMax(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+
+  for (const Node& e : d_state.getElements(n[0]))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.unionMax(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+
+  for (const Node& e : d_state.getElements(n[1]))
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.unionMax(n, e);
@@ -82,8 +112,23 @@ void BagSolver::checkUnionMax(const Node& n)
 void BagSolver::checkDifferenceSubtract(const Node& n)
 {
   Assert(n.getKind() == DIFFERENCE_SUBTRACT);
-  TypeNode elementType = n.getType().getBagElementType();
-  for (const Node& e : d_state.getElements(elementType))
+  for (const Node& e : d_state.getElements(n))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.differenceSubtract(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+
+  for (const Node& e : d_state.getElements(n[0]))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.differenceSubtract(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+
+  for (const Node& e : d_state.getElements(n[1]))
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.differenceSubtract(n, e);
@@ -94,8 +139,7 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
 void BagSolver::checkMkBag(const Node& n)
 {
   Assert(n.getKind() == MK_BAG);
-  TypeNode elementType = n.getType().getBagElementType();
-  for (const Node& e : d_state.getElements(elementType))
+  for (const Node& e : d_state.getElements(n))
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.mkBag(n, e);

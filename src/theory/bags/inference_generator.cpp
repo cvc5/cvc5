@@ -261,7 +261,7 @@ Node InferenceGenerator::getMultiplicitySkolem(Node element,
                                                InferInfo& inferInfo)
 {
   Node count = d_nm->mkNode(kind::BAG_COUNT, element, bag);
-  Node skolem = d_state->registerBagElement(count);
+  Node skolem = d_state->registerCountTerm(count);
   eq::EqualityEngine* ee = d_state->getEqualityEngine();
   ee->assertEquality(skolem.eqNode(count), true, d_nm->mkConst(true));
   inferInfo.d_newSkolem.push_back(skolem);

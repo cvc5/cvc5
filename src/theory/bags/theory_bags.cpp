@@ -153,14 +153,16 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       continue;
     }
     Node r = d_state.getRepresentative(n);
-    std::map<Node, Node> elements = d_state.getBagElements(r);
+    std::set<Node> elements = d_state.getElements(r);
     Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
                         << elements << std::endl;
     std::map<Node, Node> elementReps;
-    for (std::pair<Node, Node> pair : elements)
+    for (const Node& e : elements)
     {
-      Node key = d_state.getRepresentative(pair.first);
-      Node value = d_state.getRepresentative(pair.second);
+      Node key = d_state.getRepresentative(e);
+      Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
+      Node skolem = d_state.getCountSkolem(countTerm);
+      Node value = d_state.getRepresentative(skolem);
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
@@ -213,9 +215,12 @@ void TheoryBags::presolve() {}
 
 void TheoryBags::eqNotifyNewClass(TNode n)
 {
+  if (n.getType().isBag())
+  {
+    d_state.registerBag(n);
+  }
   Kind k = n.getKind();
-  d_state.registerClass(n);
-  if (n.getKind() == MK_BAG)
+  if (k == MK_BAG)
   {
     // TODO: refactor this before merge
     /*
@@ -224,7 +229,7 @@ void TheoryBags::eqNotifyNewClass(TNode n)
      */
     NodeManager* nm = NodeManager::currentNM();
     Node count = nm->mkNode(BAG_COUNT, n[0], n);
-    Node skolem = d_state.registerBagElement(count);
+    Node skolem = d_state.registerCountTerm(count);
     Node countSkolem = count.eqNode(skolem);
     Node skolemMultiplicity = n[1].eqNode(skolem);
     Node lemma = countSkolem.andNode(skolemMultiplicity);
@@ -237,14 +242,20 @@ void TheoryBags::eqNotifyNewClass(TNode n)
      * (count x A) generates the lemma (= s (count x A))
      * where s is a fresh skolem variable
      */
-    Node skolem = d_state.registerBagElement(n);
+    Node skolem = d_state.registerCountTerm(n);
     Node lemma = n.eqNode(skolem);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
     d_im.trustedLemma(trustedLemma);
   }
 }
 
-void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
+void TheoryBags::eqNotifyMerge(TNode n1, TNode n2)
+{
+  if (n1.getType().isBag())
+  {
+    d_state.mergeBags(n1, n2);
+  }
+}
 
 void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 {

@@ -40,23 +40,18 @@ struct BagsCountAttributeId
 };
 typedef expr::Attribute<BagsCountAttributeId, Node> BagsCountAttribute;
 
-void SolverState::registerClass(TNode n)
+void SolverState::registerBag(TNode n)
 {
-  TypeNode t = n.getType();
-  if (!t.isBag())
-  {
-    return;
-  }
+  Assert(n.getType().isBag());
   d_bags.insert(n);
 }
 
-Node SolverState::registerBagElement(TNode n)
+Node SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
   Node element = n[0];
-  TypeNode elementType = element.getType();
   Node bag = n[1];
-  d_elements[elementType].insert(element);
+  d_bagElements[bag].insert(element);
   NodeManager* nm = NodeManager::currentNM();
   BoundVarManager* bvm = nm->getBoundVarManager();
   Node multiplicity = bvm->mkBoundVar<BagsCountAttribute>(n, nm->integerType());
@@ -67,18 +62,56 @@ Node SolverState::registerBagElement(TNode n)
       equal,
       "bag_multiplicity",
       "an extensional lemma for multiplicity of an element in a bag");
-  d_count[bag][element] = skolem;
-  Trace("bags::SolverState::registerBagElement")
+  d_countSkolems[n] = skolem;
+  Trace("bags::SolverState::registerCountTerm")
       << "New skolem: " << skolem << " for " << n << std::endl;
 
   return skolem;
 }
 
-std::set<Node>& SolverState::getBags() { return d_bags; }
+const std::set<Node>& SolverState::getBags() { return d_bags; }
 
-std::set<Node>& SolverState::getElements(TypeNode t) { return d_elements[t]; }
+const std::set<Node>& SolverState::getElements(Node B)
+{
+  return d_bagElements[B];
+}
 
-std::map<Node, Node>& SolverState::getBagElements(Node B) { return d_count[B]; }
+Node SolverState::getCountSkolem(const Node& countTerm)
+{
+  Assert(countTerm.getKind() == BAG_COUNT);
+  return d_countSkolems[countTerm];
+}
+
+void SolverState::reset()
+{
+  d_countSkolems.clear();
+  d_bagElements.clear();
+  d_bags.clear();
+}
+
+void SolverState::mergeBags(TNode n1, TNode n2)
+{
+  // merge the count terms of the two equivalent bags
+  const std::set<Node>& terms1 = d_bagElements[n1];
+  const std::set<Node>& terms2 = d_bagElements[n2];
+
+  std::set<Node> merge;
+  set_union(terms1.begin(),
+            terms1.end(),
+            terms2.begin(),
+            terms2.end(),
+            std::inserter(merge, merge.begin()));
+  d_bagElements[n1] = merge;
+  d_bagElements[n2] = merge;
+  Trace("bags::SolverState::mergeBags")
+      << "[SolverState::mergeBags] n1: " << n1 << ", count terms1: " << terms1
+      << std::endl;
+  Trace("bags::SolverState::mergeBags")
+      << "[SolverState::mergeBags] n2: " << n2 << ", count terms2: " << terms2
+      << std::endl;
+  Trace("bags::SolverState::mergeBags")
+      << "[SolverState::mergeBags] merge: " << merge << std::endl;
+}
 
 }  // namespace bags
 }  // namespace theory

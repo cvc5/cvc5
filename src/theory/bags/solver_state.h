@@ -31,24 +31,47 @@ class SolverState : public TheoryState
  public:
   SolverState(context::Context* c, context::UserContext* u, Valuation val);
 
-  void registerClass(TNode n);
+  void registerBag(TNode n);
 
-  Node registerBagElement(TNode n);
+  /**
+   * @param n has the form (bag.count e A)
+   * @pre bag A needs is already registered using registerBag(A)
+   * @return a unique skolem for (bag.count e A)
+   */
+  Node registerCountTerm(TNode n);
+  /** get all bag terms */
+  const std::set<Node>& getBags();
+  /**
+   * @pre B is a registered bag
+   * @return all elements associated with bag B so far
+   * Note that associated elements are not necessarily elements in B
+   * Example:
+   * (assert (= 1 (bag.count x (difference_remove A B))))
+   * element x is associated with bags A, B, (difference_remove A B)
+   * albeit x is definitely not in B.
+   */
+  const std::set<Node>& getElements(Node B);
+  /**
+   * @param countTerm has the form (bag.count e A)
+   * @return a unique skolem for countTerm
+   */
+  Node getCountSkolem(const Node& countTerm);
 
-  std::set<Node>& getBags();
+  /** clear all bags data structures */
+  void reset();
 
-  std::set<Node>& getElements(TypeNode t);
-
-  std::map<Node, Node>& getBagElements(Node B);
+  /** merge the elements of the two registered bags n1, n2 */
+  void mergeBags(TNode n1, TNode n2);
 
  private:
   /** constants */
   Node d_true;
   Node d_false;
   std::set<Node> d_bags;
-  std::map<TypeNode, std::set<Node>> d_elements;
-  /** bag -> element -> multiplicity */
-  std::map<Node, std::map<Node, Node>> d_count;
+  /** bag -> associated elements */
+  std::map<Node, std::set<Node>> d_bagElements;
+  /** countTerm -> multiplicity skolem*/
+  std::map<Node, Node> d_countSkolems;
 }; /* class SolverState */
 
 }  // namespace bags
