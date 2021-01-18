@@ -16,6 +16,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <optional>
 
 #include "cvc4_private.h"
 #include "expr/proof_node_updater.h"
@@ -31,7 +32,6 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
 {
   VeritRule id =
       static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()));
-
 
   Node res = pfn->getArguments()[2];
   NodeManager* nm = NodeManager::currentNM();
@@ -57,9 +57,11 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::ASSUME:
     {
-      if (res[0].toString() == cl.toString())
-      {
-        return false;
+      if(res.end()-res.begin() > 0){
+        if (res[0].toString() == cl.toString())
+        {
+          return false;
+        }
       }
       return true;
     }
@@ -307,6 +309,15 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
           && res[n - 1][0].getOperator() == res[n - 1][0].getOperator());
     }
     /* Leave out rules 28-38 */
+    case VeritRule::FORALL_INST:{//TODO
+					bool success = false;
+					//std::cout << res[1][0][0]<< std::endl;
+					//std::cout << res[1][1] << std::endl;
+      return res[0].toString() == cl.toString()
+	  && res[1].getKind() == kind::OR
+	  && res[1][0].getKind() == kind::NOT
+	  && success;
+    }
     case VeritRule::RESOLUTION:
     {  // This is not a real resolution check, but should be good enough. The problem is that the order is unimportant here.
       if (res[0].toString() != cl.toString())
@@ -314,13 +325,10 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
         return false;
       }
       std::vector<Node> clauses;
- 
-      for(int j = 0; j < (new_children.end()-new_children.begin());j++){
-	      std::cout << "new_children[j] " <<  new_children[j] << std::endl;
-      }
+
       for(int j = 1; j < (new_children[0].end()-new_children[0].begin());j++){
-         std::cout << "push to clauses " << new_children[0][j] << std::endl;
-	  clauses.push_back(new_children[0][j]);
+	 clauses.push_back(new_children[0][j]);
+	 //std::cout << "added 1" << new_children[0][j] << std::endl;
       }
       for (int i = 1; i < (new_children.end() - new_children.begin());
            i++)
@@ -328,8 +336,10 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
         for(int j = 1; j < (new_children[i].end()-new_children[i].begin());j++){
 	  bool new_clause = true;
           for(int k = 0; k < (clauses.end()-clauses.begin());k++){
-	     if(new_children[i][j] == clauses[k].notNode()){
-		std::cout << "erease from clauses " << clauses[k] << std::endl;
+	     //std::cout << "new_children[i][j] " << new_children[i][j] << std::endl;
+	     //std::cout << "clauses[k].negate() " << clauses[k].notNode() << std::endl;
+	     if(new_children[i][j] == clauses[k].notNode() || new_children[i][j].notNode() == clauses[k]){
+	        //std::cout << "deleted " << clauses[k] << std::endl;
 		clauses.erase(clauses.begin()+k);
 		new_clause = false;
 		break;
@@ -337,21 +347,20 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
 	  }
 	  if(new_clause){
 	    clauses.push_back(new_children[i][j]);
-            std::cout << "push to clauses " << new_children[i][j] << std::endl;
+	    //std::cout << "added " << new_children[i][j] << std::endl;
 	  }
 	}
       }
       for(int i = 1; i < (res.end()-res.begin());i++){
-		std::cout << "check against clauses	" << res[i] << std::endl;
         for(int k = 0; k < (clauses.end()-clauses.begin());k++){
 	     if(res[i] == clauses[k]){
-		std::cout << "erease from clauses " << clauses[k] << std::endl;
+	        //std::cout << "deleted " << res[i]  << std::endl;
 		clauses.erase(clauses.begin()+k);
 		break;
 	     }
 	}
       }
-      if(clauses.empty()){ //TODO: Should be result
+      if(clauses.empty()||(clauses.size()==1 && clauses[0]==nm->mkConst(false))){
         return true;
       }
       return false;
@@ -472,29 +481,29 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::NOT_OR:
     {
-      //Special case if the child is an assume
+      //Special case if the child is an assume TESTED
       if (static_cast<VeritRule>(std::stoul(pfn->getChildren()[0]->getArguments()[0].toString())) == VeritRule::ASSUME)
       {
         bool equal = false;
         for (int i = 0;
-             i < (new_children[0][0].end() - new_children[0][0].end());
+             i < (new_children[0][1].end() - new_children[0][1].begin()+1);
              i++)
         {
-          if (new_children[0][0][i] == res[1].negate())
+          if (new_children[0][1][0][i] == res[1].negate())
           {
             equal = true;
           }
         }
         return (res[0].toString() == cl.toString()
-            && new_children[0].getKind() == kind::NOT
-            && new_children[0][0].getKind() == kind::OR && equal);
+            && new_children[0][1].getKind() == kind::NOT
+            && new_children[0][1][0].getKind() == kind::OR && equal);
       }
-      //Otherwise
+      //Otherwise TODO test
       bool equal = false;
       for (int i = 0;
-           i < (new_children[0][1][0].end() - new_children[0][1][0].begin());
+           i < (new_children[0][1][0].end() - new_children[0][1][0].begin()+1);
            i++)
-      {
+      { std::cout << "Sfsdsdf" << std::endl;
         if (new_children[0][1][0][i] == res[1].negate())
         {
           equal = true;
@@ -525,34 +534,38 @@ static bool checkInternal(std::shared_ptr<ProofNode> pfn)
               && new_children[0][0].toString() == cl.toString()
               && new_children[0][1].getKind() == kind::OR && equal);
     }
+    //TODO: rules missing
+    case VeritRule::IMPLIES://tested
+    {
+      bool equal;
+      return new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::IMPLIES
+	     && new_children[0][1][0] == res[1][0]
+	     && res[1].getKind() == kind::NOT
+	     && new_children[0][1][1] == res[2]
+	     && res[0].toString() == cl.toString();
+    }
     case VeritRule::DUPLICATED_LITERALS:
-    {  // TODO: could be better
+    {  // tested. Assumes that all duplicates are deleted.
       std::vector<Node> resVec;
-      for (int i = 1; i < (res.end() - res.begin()); i++)
-      {
-        resVec.push_back(res[i]);
-      }
-      std::set<Node> s1(resVec.begin(), resVec.end());
-      std::vector<Node> childVec;
-      for (int i = 1; i < (new_children[0].end() - new_children[0].begin());
-           i++)
-      {
-        childVec.push_back(new_children[0][i]);
-      }
-      std::set<Node> s2(childVec.begin(), childVec.end());
+      resVec.insert(resVec.begin(),res.begin()+1,res.end()); //TODO: DO THIS EVERYWHERE INSTEAD OF FOR LOOP
 
-      int j = 1;
-      for (int i = 1; i < (new_children[0].end() - new_children[0].begin())
-                      && j < (res.end() - res.begin());
-           i++)
-      {
-        if (new_children[0][i] == res[j])
-        {
-          j++;
-        }
+      std::vector<Node> childVec;
+      childVec.insert(childVec.begin(),new_children[0].begin()+1, new_children[0].end());
+
+      std::vector<Node> childVec2;
+      Node lastElement;
+      for(Node child : childVec){
+	if(lastElement != child){
+          childVec2.push_back(child);
+	}
+	lastElement = child;
       }
-      if (j == (new_children[0][1].end() - new_children[0][1].begin()) - 1
-          && s1.size() == s2.size())
+
+      if (childVec2 == resVec
+          && childVec2.size() == resVec.size()
+	  && new_children[0][0].toString() == cl.toString()
+	  && res[0].toString() == cl.toString())
       {
         return true;
       }
@@ -571,7 +584,7 @@ static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
    //std::cout  << pfn->getResult() << " ";
    //std::cout<<veritRuletoString(static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString())))
    //<< std::endl;
-  bool success;
+  bool success = true;
 
   VeritRule id = static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()));
   Node res = pfn->getArguments()[2];  //Give this as arguments to veritProofChecker

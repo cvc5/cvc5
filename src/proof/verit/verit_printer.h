@@ -237,7 +237,12 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   bool check;
   std::cin >> check;
   if(check){
-   veritProofChecker(pfn);
+   if(veritProofChecker(pfn)){
+     out << "Proof check suceeded." << "\n";
+   }
+   else{
+     out << "Proof check failed." << "\n";
+   }
   }
   out << "\n";
   out << "\n";

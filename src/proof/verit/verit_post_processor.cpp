@@ -21,6 +21,7 @@
 
 #include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
+#include "theory/theory_id.h"
 
 namespace CVC4 {
 
@@ -77,7 +78,7 @@ bool VeritProofPostprocessCallback::addVeritStep(Node res,
   new_args.push_back(res);
   new_args.push_back(conclusion);
   new_args.insert(new_args.end(),args.begin(),args.end());
-  Trace("verit-proof") << "... add veriT step t" << res << " " << children
+  Trace("verit-proof") << "... add veriT step " << res << " " << children
                        << " / " << new_args << std::endl;
   return cdp.addStep(res,PfRule::VERIT_RULE,children,new_args);
 }
@@ -154,6 +155,8 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof rule: assume
     // proof node: (VP:F)
     // proof term: F
+    // premises: ()
+    // args: ()
     case PfRule::ASSUME:
     {
       if(res.getKind() == kind::OR){
@@ -356,14 +359,35 @@ bool VeritProofPostprocessCallback::update(Node res,
     // correctness, since theory rewriter methods are not static. For example,
     // the quantifiers rewriter involves constructing new bound variables that are
     // not guaranteed to be consistent on each call.
-    /*case PfRule::THEORY_REWRITE:{
+    case PfRule::THEORY_REWRITE:{
+      theory::TheoryId tid = static_cast<theory::TheoryId>(std::stoul(args[1].toString()));
+      VeritRule vrule = VeritRule::UNDEFINED;
+      switch (tid){
+        case theory::TheoryId::THEORY_BUILTIN:{}
+	case theory::TheoryId::THEORY_BOOL:{ vrule = VeritRule::BOOL_SIMPLIFY; break; }
+        case theory::TheoryId::THEORY_UF:{break;}
+        case theory::TheoryId::THEORY_ARITH:{
+	 //div_simplify, prod_simplify, unary_minus_simplify, minus_simplify, sum_simplify
+	 //look at first symbol 
+					    break;}
+        case theory::TheoryId::THEORY_BV:{break;}
+        case theory::TheoryId::THEORY_FP:{break;}
+        case theory::TheoryId::THEORY_ARRAYS:{break;}
+        case theory::TheoryId::THEORY_DATATYPES:{break;}
+        case theory::TheoryId::THEORY_SEP:{break;}
+        case theory::TheoryId::THEORY_SETS:{break;}
+        case theory::TheoryId::THEORY_BAGS:{break;}
+        case theory::TheoryId::THEORY_STRINGS:{break;}
+	case theory::TheoryId::THEORY_QUANTIFIERS:{ vrule = VeritRule::QUANTIFIER_SIMPLIFY; break;}
+        case theory::TheoryId::THEORY_LAST:{break;}
+      }
       return addVeritStep(res,
-                          VeritRule::EQ_SIMPLIFY, //TODO
+                          vrule,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
                           children,
                           {},
                           *cdp);
-    }*/
+    }
     //================================================= Boolean rules
     // ======== Resolution
     // Children:
@@ -1002,7 +1026,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // Children: (P1:F1 ... Pn:Fn))
     // Arguments: ()
     // ---------------------
-    // Conclusion: (and P1 ... Pn)
+    // Conclusion: (and F1 ... Fn)
     //
     // proof rule: and_neg
     // proof node: (VP1:(cl (and F1 ... Fn) (not F1) ... (not Fn)))
@@ -2141,24 +2165,35 @@ void VeritProofPostprocess::processFirstScope(std::shared_ptr<ProofNode> pf,
 
   std::vector<Node> andNegs;
   andNegs.push_back(vp1);
-  for (Node arg : args)
+
+  std::vector<Node> args2;
+  for (int i = 0; i < args.size(); i++)
   {
-    new_args.clear();
-    new_args.push_back(
-        nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::ASSUME)));
-    new_args.push_back(arg);
-    new_args.push_back(arg);
-    success &= cdp->addStep(arg, PfRule::VERIT_RULE, {}, new_args);
+    auto arg = args[i];
+    if (arg.getKind() == kind::OR){
+      args2.push_back(pf->getChildren()[0]->getChildren()[i]->getResult());
+    }
+    else{
+      new_args.clear();
+      new_args.push_back(
+          nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::ASSUME)));
+      new_args.push_back(arg);
+      new_args.push_back(arg);
+      success &= cdp->addStep(arg, PfRule::VERIT_RULE, {}, new_args);
+      args2.push_back(arg);
+    }
     Trace("verit-proof") << "... add veriT step " << arg << " " << "{}"
-                       << " / " << new_args << std::endl;
+                           << " / " << new_args << std::endl;
+
   }
-  args.push_back(vp1);
+  args2.push_back(vp1);
+
   new_args.clear();
   new_args.push_back(
       nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::RESOLUTION)));
   new_args.push_back(res);
   new_args.push_back(nm->mkNode(kind::SEXPR, cl));
-  success &= cdp->addStep(res, PfRule::VERIT_RULE, args, new_args);
+  success &= cdp->addStep(res, PfRule::VERIT_RULE, args2, new_args);
   Trace("verit-proof") << "... add veriT step " << res << " " << args
                        << " / " << new_args << std::endl;
 
