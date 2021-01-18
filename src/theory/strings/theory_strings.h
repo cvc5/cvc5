@@ -28,6 +28,7 @@
 #include "theory/ext_theory.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
+#include "theory/strings/eager_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
@@ -124,14 +125,18 @@ class TheoryStrings : public Theory {
   /** NotifyClass for equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
   public:
-   NotifyClass(TheoryStrings& ts) : d_str(ts), d_state(ts.d_state) {}
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
-      if (value) {
-        return d_str.propagateLit(predicate);
-      }
-      return d_str.propagateLit(predicate.notNode());
+   NotifyClass(TheoryStrings& ts) : d_str(ts), d_eagerSolver(ts.d_eagerSolver)
+   {
+   }
+   bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+   {
+     Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate
+                      << ", " << (value ? "true" : "false") << ")" << std::endl;
+     if (value)
+     {
+       return d_str.propagateLit(predicate);
+     }
+     return d_str.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -158,19 +163,19 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
                        << std::endl;
-      d_state.eqNotifyMerge(t1, t2);
+      d_eagerSolver.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
       Debug("strings") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << std::endl;
-      d_state.eqNotifyDisequal(t1, t2, reason);
+      d_eagerSolver.eqNotifyDisequal(t1, t2, reason);
     }
 
    private:
     /** The theory of strings object to notify */
     TheoryStrings& d_str;
-    /** The solver state of the theory of strings */
-    SolverState& d_state;
+    /** The eager solver of the theory of strings */
+    EagerSolver& d_eagerSolver;
   };/* class TheoryStrings::NotifyClass */
   /** compute care graph */
   void computeCareGraph() override;
@@ -255,6 +260,8 @@ class TheoryStrings : public Theory {
   SequencesStatistics d_statistics;
   /** The solver state object */
   SolverState d_state;
+  /** The eager solver */
+  EagerSolver d_eagerSolver;
   /** The term registry for this theory */
   TermRegistry d_termReg;
   /** The extended theory callback */
