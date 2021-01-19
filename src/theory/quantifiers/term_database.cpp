@@ -168,7 +168,7 @@ Node TermDb::getMatchOperator( Node n ) {
   //datatype operators may be parametric, always assume they are
   if (k == SELECT || k == STORE || k == UNION || k == INTERSECTION
       || k == SUBSET || k == SETMINUS || k == MEMBER || k == SINGLETON
-      || k == APPLY_SELECTOR_TOTAL || k == APPLY_TESTER || k == SEP_PTO
+      || k == APPLY_SELECTOR_TOTAL || k == APPLY_SELECTOR || k == APPLY_TESTER || k == SEP_PTO
       || k == HO_APPLY || k == SEQ_NTH)
   {
     //since it is parametric, use a particular one as op
