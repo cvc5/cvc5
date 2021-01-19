@@ -1,3 +1,7 @@
+; COMMAND-LINE: --sygus-inst -q
+; EXPECT: sat
+(set-logic ALL)
+(set-info :status sat)
 (declare-datatypes ((a 0))
   (((b (c a) (d a)) (n (o a)) (e (f a) (g a)) (h (i (_ BitVec 1))))))
 (declare-fun j (a) Bool)
