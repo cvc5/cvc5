@@ -153,7 +153,14 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       continue;
     }
     Node r = d_state.getRepresentative(n);
-    std::set<Node> elements = d_state.getElements(r);
+    std::set<Node> solverElements = d_state.getElements(r);
+    std::set<Node> elements;
+    // only consider terms in termSet and ignore other elements in the solver
+    std::set_intersection(termSet.begin(),
+                          termSet.end(),
+                          solverElements.begin(),
+                          solverElements.end(),
+                          std::inserter(elements, elements.begin()));
     Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
                         << elements << std::endl;
     std::map<Node, Node> elementReps;
