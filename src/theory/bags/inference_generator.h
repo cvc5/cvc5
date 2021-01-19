@@ -64,7 +64,7 @@ class InferenceGenerator
    *   (not (= (count e A) (count e B))))
    *   where e is a fresh skolem of type E
    */
-  InferInfo bagDisequality(Node n);
+  InferInfo bagDisequality(Node n, Node reason);
   /**
    * @param e is a node of Type E
    * @return an inference that represents the following implication

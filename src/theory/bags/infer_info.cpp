@@ -49,42 +49,50 @@ InferInfo::InferInfo() : d_id(Inference::NONE) {}
 
 bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 {
-  Node lemma = d_conclusion;
-  if (d_premises.size() >= 2)
+  for (const Node& conclusion : d_conclusions)
   {
-    Node andNode = NodeManager::currentNM()->mkNode(kind::AND, d_premises);
-    lemma = andNode.impNode(lemma);
-  }
-  else if (d_premises.size() == 1)
-  {
-    lemma = d_premises[0].impNode(lemma);
-  }
-  if (asLemma)
-  {
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    return im->trustedLemma(trustedLemma);
+    Node lemma = conclusion;
+    if (d_premises.size() >= 2)
+    {
+      Node andNode = NodeManager::currentNM()->mkNode(kind::AND, d_premises);
+      lemma = andNode.impNode(lemma);
+    }
+    else if (d_premises.size() == 1)
+    {
+      lemma = d_premises[0].impNode(lemma);
+    }
+    if (asLemma)
+    {
+      TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
+      return im->trustedLemma(trustedLemma);
+    }
   }
   Unimplemented();
 }
 
 bool InferInfo::isTrivial() const
 {
-  Assert(!d_conclusion.isNull());
-  return d_conclusion.isConst() && d_conclusion.getConst<bool>();
+  return std::all_of(d_conclusions.begin(), d_conclusions.end(), [](Node n) {
+    Assert(!n.isNull());
+    return n.isConst() && n.getConst<bool>();
+  });
 }
 
 bool InferInfo::isConflict() const
 {
-  Assert(!d_conclusion.isNull());
-  return d_conclusion.isConst() && !d_conclusion.getConst<bool>();
+  return std::all_of(d_conclusions.begin(), d_conclusions.end(), [](Node n) {
+    Assert(!n.isNull());
+    return n.isConst() && !n.getConst<bool>();
+  });
 }
 
 bool InferInfo::isFact() const
 {
-  Assert(!d_conclusion.isNull());
-  TNode atom =
-      d_conclusion.getKind() == kind::NOT ? d_conclusion[0] : d_conclusion;
-  return !atom.isConst() && atom.getKind() != kind::OR;
+  return std::all_of(d_conclusions.begin(), d_conclusions.end(), [](Node n) {
+    Assert(!n.isNull());
+    TNode atom = n.getKind() == kind::NOT ? n[0] : n;
+    return !atom.isConst() && atom.getKind() != kind::OR;
+  });
 }
 
 Node InferInfo::getPremises() const
@@ -96,10 +104,11 @@ Node InferInfo::getPremises() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer " << ii.d_id << " " << ii.d_conclusion << std::endl;
+  out << "(infer " << ii.d_id << std::endl
+      << " :conclusions" << ii.d_conclusions << std::endl;
   if (!ii.d_premises.empty())
   {
-    out << " :premise (" << ii.d_premises << ")" << std::endl;
+    out << " :premises (" << ii.d_premises << ")" << std::endl;
   }
 
   out << ")";

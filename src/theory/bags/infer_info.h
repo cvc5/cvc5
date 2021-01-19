@@ -81,8 +81,8 @@ class InferInfo : public TheoryInference
   bool process(TheoryInferenceManager* im, bool asLemma) override;
   /** The inference identifier */
   Inference d_id;
-  /** The conclusion */
-  Node d_conclusion;
+  /** The conclusions */
+  std::vector<Node> d_conclusions;
   /**
    * The premise(s) of the inference, interpreted conjunctively. These are
    * literals that currently hold in the equality engine.
