@@ -46,27 +46,12 @@ void SolverState::registerBag(TNode n)
   d_bags.insert(n);
 }
 
-Node SolverState::registerCountTerm(TNode n)
+void SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
   Node element = n[0];
   Node bag = n[1];
   d_bagElements[bag].insert(element);
-  NodeManager* nm = NodeManager::currentNM();
-  BoundVarManager* bvm = nm->getBoundVarManager();
-  Node multiplicity = bvm->mkBoundVar<BagsCountAttribute>(n, nm->integerType());
-  Node equal = n.eqNode(multiplicity);
-  SkolemManager* sm = nm->getSkolemManager();
-  Node skolem = sm->mkSkolem(
-      multiplicity,
-      equal,
-      "bag_multiplicity",
-      "an extensional lemma for multiplicity of an element in a bag");
-  d_countSkolems[n] = skolem;
-  Trace("bags::SolverState::registerCountTerm")
-      << "New skolem: " << skolem << " for " << n << std::endl;
-
-  return skolem;
 }
 
 const std::set<Node>& SolverState::getBags() { return d_bags; }
@@ -76,15 +61,13 @@ const std::set<Node>& SolverState::getElements(Node B)
   return d_bagElements[B];
 }
 
-Node SolverState::getCountSkolem(const Node& countTerm)
+Node SolverState::getBagSkolem(const Node& bagTerm)
 {
-  Assert(countTerm.getKind() == BAG_COUNT);
-  return d_countSkolems[countTerm];
+  return d_bagSkolems[bagTerm];
 }
 
 void SolverState::reset()
 {
-  d_countSkolems.clear();
   d_bagElements.clear();
   d_bags.clear();
 }

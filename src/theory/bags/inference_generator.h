@@ -38,6 +38,16 @@ class InferenceGenerator
   InferenceGenerator(SolverState* state);
 
   /**
+   * @param A is a bag of type (Bag E)
+   * @param e is a node of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   true
+   *   (>= (bag.count e A) 0)
+   */
+  InferInfo count(Node n, Node e);
+
+  /**
    * @param n is (bag x c) of type (Bag E)
    * @param e is a node of type E
    * @return an inference that represents the following implication
@@ -154,9 +164,12 @@ class InferenceGenerator
    * @param inferInfo to store new skolem
    * @return  a skolem for (bag.count element bag)
    */
-  Node getMultiplicitySkolem(Node element, Node bag, InferInfo& inferInfo);
+  Node getMultiplicityTerm(Node element, Node bag);
 
  private:
+  template <class T>
+  Node getSkolem(Node& n, InferInfo& inferInfo);
+
   NodeManager* d_nm;
   SkolemManager* d_sm;
   SolverState* d_state;

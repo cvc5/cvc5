@@ -33,6 +33,7 @@ namespace bags {
 enum class Inference : uint32_t
 {
   NONE,
+  BAG_COUNT,
   BAG_MK_BAG,
   BAG_EQUALITY,
   BAG_DISEQUALITY,
@@ -82,7 +83,7 @@ class InferInfo : public TheoryInference
   /** The inference identifier */
   Inference d_id;
   /** The conclusions */
-  std::vector<Node> d_conclusions;
+  Node d_conclusion;
   /**
    * The premise(s) of the inference, interpreted conjunctively. These are
    * literals that currently hold in the equality engine.

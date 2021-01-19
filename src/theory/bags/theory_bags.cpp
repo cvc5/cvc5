@@ -168,8 +168,7 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
     {
       Node key = d_state.getRepresentative(e);
       Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
-      Node skolem = d_state.getCountSkolem(countTerm);
-      Node value = d_state.getRepresentative(skolem);
+      Node value = d_state.getRepresentative(countTerm);
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
@@ -229,30 +228,13 @@ void TheoryBags::eqNotifyNewClass(TNode n)
   Kind k = n.getKind();
   if (k == MK_BAG)
   {
-    // TODO: refactor this before merge
-    /*
-     * (bag x m) generates the lemma (and (= s (count x (bag x m))) (= s m))
-     * where s is a fresh skolem variable
-     */
     NodeManager* nm = NodeManager::currentNM();
     Node count = nm->mkNode(BAG_COUNT, n[0], n);
-    Node skolem = d_state.registerCountTerm(count);
-    Node countSkolem = count.eqNode(skolem);
-    Node skolemMultiplicity = n[1].eqNode(skolem);
-    Node lemma = countSkolem.andNode(skolemMultiplicity);
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    d_im.trustedLemma(trustedLemma);
+    d_state.registerCountTerm(count);
   }
   if (k == BAG_COUNT)
   {
-    /*
-     * (count x A) generates the lemma (= s (count x A))
-     * where s is a fresh skolem variable
-     */
-    Node skolem = d_state.registerCountTerm(n);
-    Node lemma = n.eqNode(skolem);
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    d_im.trustedLemma(trustedLemma);
+    d_state.registerCountTerm(n);
   }
 }
 

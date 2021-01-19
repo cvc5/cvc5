@@ -38,7 +38,7 @@ class SolverState : public TheoryState
    * @pre bag A needs is already registered using registerBag(A)
    * @return a unique skolem for (bag.count e A)
    */
-  Node registerCountTerm(TNode n);
+  void registerCountTerm(TNode n);
   /** get all bag terms */
   const std::set<Node>& getBags();
   /**
@@ -55,7 +55,7 @@ class SolverState : public TheoryState
    * @param countTerm has the form (bag.count e A)
    * @return a unique skolem for countTerm
    */
-  Node getCountSkolem(const Node& countTerm);
+  Node getBagSkolem(const Node& bagTerm);
 
   /** clear all bags data structures */
   void reset();
@@ -70,8 +70,8 @@ class SolverState : public TheoryState
   std::set<Node> d_bags;
   /** bag -> associated elements */
   std::map<Node, std::set<Node>> d_bagElements;
-  /** countTerm -> multiplicity skolem*/
-  std::map<Node, Node> d_countSkolems;
+  /** bag term -> skolem*/
+  std::map<Node, Node> d_bagSkolems;
 }; /* class SolverState */
 
 }  // namespace bags

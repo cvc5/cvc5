@@ -51,6 +51,14 @@ void BagSolver::postCheck()
       default: break;
     }
   }
+
+  for (const Node& n : d_state.getBags())
+  {
+    for (const Node& e : d_state.getElements(n))
+    {
+      checkCountTerms(n, e);
+    }
+  }
 }
 
 set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
@@ -117,6 +125,13 @@ void BagSolver::checkMkBag(const Node& n)
     i.process(&d_im, true);
     Trace("bags::BagSolver::postCheck") << i << endl;
   }
+}
+void BagSolver::checkCountTerms(const Node& bag, const Node& element)
+{
+  InferenceGenerator ig(&d_state);
+  InferInfo i = ig.count(bag, element);
+  i.process(&d_im, true);
+  Trace("bags::BagSolver::postCheck") << i << endl;
 }
 
 }  // namespace bags

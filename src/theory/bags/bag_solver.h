@@ -66,6 +66,7 @@ class BagSolver
   Node d_false;
   Node d_zero;
   Node d_one;
+  void checkCountTerms(const Node& bag, const Node& element);
 }; /* class BagSolver */
 
 }  // namespace bags
