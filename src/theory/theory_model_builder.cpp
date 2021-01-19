@@ -784,11 +784,11 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
           }
           else if (t.isSort() || !t.isInterpretedFinite())
           {
-            // If its infinite, we get a fresh value that does not occur in
-            // the model.
+            // If its interpreted as infinite, we get a fresh value that does
+            // not occur in the model.
             // Note we also consider uninterpreted sorts to be infinite here
             // regardless of whether isInterpretedFinite is true (which is true
-            // for uninterpreted sorts when finite model finding is enabled).
+            // for uninterpreted sorts iff finite model finding is enabled).
             // This is required because the UF solver does not explicitly
             // assign uninterpreted constants to equivalence classes in its
             // collectModelValues method. Doing so would have the same effect
