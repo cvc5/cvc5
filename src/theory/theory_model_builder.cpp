@@ -782,7 +782,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (!t.isFinite())
+          else if (t.isSort() || !t.isInterpretedFinite())
           {
             // if its infinite, we get a fresh value that does not occur in
             // the model.
