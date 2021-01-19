@@ -23,11 +23,6 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-struct BagsAttributeId
-{
-};
-typedef expr::Attribute<BagsAttributeId, Node> BagsAttribute;
-
 InferenceGenerator::InferenceGenerator(SolverState* state) : d_state(state)
 {
   d_nm = NodeManager::currentNM();
@@ -58,7 +53,7 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
 
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_MK_BAG;
-  Node skolem = getSkolem<BagsAttribute>(n, inferInfo);
+  Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
   if (n[0] == e)
   {
@@ -134,12 +129,9 @@ InferInfo InferenceGenerator::bagDisequality(Node n, Node reason)
   return inferInfo;
 }
 
-template <class T>
 Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
 {
-  BoundVarManager* bvm = d_nm->getBoundVarManager();
-  Node bag = bvm->mkBoundVar<T>(n, n.getType());
-  Node skolem = d_sm->mkSkolem(bag, d_true, "skolem_bag", "skolem bag");
+  Node skolem = d_sm->mkPurifySkolem(n, "skolem_bag", "skolem bag");
   inferInfo.d_newSkolem.push_back(skolem.eqNode(n));
   return skolem;
 }
@@ -170,7 +162,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
 
-  Node skolem = getSkolem<BagsAttribute>(n, inferInfo);
+  Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
   Node sum = d_nm->mkNode(kind::PLUS, countA, countB);
@@ -193,7 +185,7 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
 
-  Node skolem = getSkolem<BagsAttribute>(n, inferInfo);
+  Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
   Node gt = d_nm->mkNode(kind::GT, countA, countB);
@@ -216,7 +208,7 @@ InferInfo InferenceGenerator::intersection(Node n, Node e)
 
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
-  Node skolem = getSkolem<BagsAttribute>(n, inferInfo);
+  Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
   Node lt = d_nm->mkNode(kind::LT, countA, countB);
@@ -238,7 +230,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
 
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
-  Node skolem = getSkolem<BagsAttribute>(n, inferInfo);
+  Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
   Node subtract = d_nm->mkNode(kind::MINUS, countA, countB);
@@ -262,7 +254,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
 
-  Node skolem = getSkolem<BagsAttribute>(n, inferInfo);
+  Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
   Node notInB = d_nm->mkNode(kind::EQUAL, countB, d_zero);
@@ -282,7 +274,7 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
   inferInfo.d_id = Inference::BAG_DUPLICATE_REMOVAL;
 
   Node countA = getMultiplicityTerm(e, A);
-  Node skolem = getSkolem<BagsAttribute>(n, inferInfo);
+  Node skolem = getSkolem(n, inferInfo);
   Node count = getMultiplicityTerm(e, skolem);
 
   Node gte = d_nm->mkNode(kind::GEQ, countA, d_one);

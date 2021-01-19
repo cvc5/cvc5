@@ -167,7 +167,6 @@ class InferenceGenerator
   Node getMultiplicityTerm(Node element, Node bag);
 
  private:
-  template <class T>
   Node getSkolem(Node& n, InferInfo& inferInfo);
 
   NodeManager* d_nm;
