@@ -53,26 +53,27 @@ void BagSolver::postCheck()
   }
 }
 
+set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
+{
+  set<Node> elements;
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards0 = d_state.getElements(n[0]);
+  const set<Node>& upwards1 = d_state.getElements(n[1]);
+
+  set_union(downwards.begin(),
+            downwards.end(),
+            upwards0.begin(),
+            upwards0.end(),
+            inserter(elements, elements.begin()));
+  elements.insert(upwards1.begin(), upwards1.end());
+  return elements;
+}
+
 void BagSolver::checkUnionDisjoint(const Node& n)
 {
   Assert(n.getKind() == UNION_DISJOINT);
-  for (const Node& e : d_state.getElements(n))
-  {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.unionDisjoint(n, e);
-    i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
-  }
-
-  for (const Node& e : d_state.getElements(n[0]))
-  {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.unionDisjoint(n, e);
-    i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
-  }
-
-  for (const Node& e : d_state.getElements(n[1]))
+  set<Node> elements = getElementsForBinaryOperator(n);
+  for (const Node& e : elements)
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.unionDisjoint(n, e);
@@ -84,23 +85,8 @@ void BagSolver::checkUnionDisjoint(const Node& n)
 void BagSolver::checkUnionMax(const Node& n)
 {
   Assert(n.getKind() == UNION_MAX);
-  for (const Node& e : d_state.getElements(n))
-  {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.unionMax(n, e);
-    i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
-  }
-
-  for (const Node& e : d_state.getElements(n[0]))
-  {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.unionMax(n, e);
-    i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
-  }
-
-  for (const Node& e : d_state.getElements(n[1]))
+  set<Node> elements = getElementsForBinaryOperator(n);
+  for (const Node& e : elements)
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.unionMax(n, e);
@@ -112,23 +98,8 @@ void BagSolver::checkUnionMax(const Node& n)
 void BagSolver::checkDifferenceSubtract(const Node& n)
 {
   Assert(n.getKind() == DIFFERENCE_SUBTRACT);
-  for (const Node& e : d_state.getElements(n))
-  {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.differenceSubtract(n, e);
-    i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
-  }
-
-  for (const Node& e : d_state.getElements(n[0]))
-  {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.differenceSubtract(n, e);
-    i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
-  }
-
-  for (const Node& e : d_state.getElements(n[1]))
+  set<Node> elements = getElementsForBinaryOperator(n);
+  for (const Node& e : elements)
   {
     InferenceGenerator ig(&d_state);
     InferInfo i = ig.differenceSubtract(n, e);

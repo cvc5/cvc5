@@ -43,6 +43,11 @@ class BagSolver
  private:
   /** apply inference rules for MK_BAG operator */
   void checkMkBag(const Node& n);
+  /**
+   * @param n is a bag that has the form (op A B)
+   * @return the set union of known elements in (op A B) , A, and B.
+   */
+  std::set<Node> getElementsForBinaryOperator(const Node& n);
   /** apply inference rules for union disjoint */
   void checkUnionDisjoint(const Node& n);
   /** apply inference rules for union max */
