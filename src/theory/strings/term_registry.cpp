@@ -590,7 +590,7 @@ void TermRegistry::inferSubstitutionProxyVars(Node n,
   Node ns = Rewriter::rewrite(n);
   if (ns.getKind() == EQUAL)
   {
-    for (unsigned i = 0; i < 2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
       // determine whether this side has a proxy variable
       if (ns[i].getAttribute(StringsProxyVarAttribute()))
