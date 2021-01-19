@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --no-sygus-repair-const
 ; ERROR-SCRUBBER: grep -o "Symbol 'div' not declared as a variable"
 ; EXPECT-ERROR: Symbol 'div' not declared as a variable

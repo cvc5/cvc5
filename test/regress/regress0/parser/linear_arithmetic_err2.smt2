@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; SCRUBBER: grep -o "Symbol 'mod' not declared as a variable"
 ; EXPECT: Symbol 'mod' not declared as a variable
 ; EXIT: 1
