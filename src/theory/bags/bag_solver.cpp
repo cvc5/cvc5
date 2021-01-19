@@ -72,7 +72,7 @@ set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
 void BagSolver::checkUnionDisjoint(const Node& n)
 {
   Assert(n.getKind() == UNION_DISJOINT);
-  set<Node> elements = getElementsForBinaryOperator(n);
+  std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
     InferenceGenerator ig(&d_state);
@@ -85,7 +85,7 @@ void BagSolver::checkUnionDisjoint(const Node& n)
 void BagSolver::checkUnionMax(const Node& n)
 {
   Assert(n.getKind() == UNION_MAX);
-  set<Node> elements = getElementsForBinaryOperator(n);
+  std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
     InferenceGenerator ig(&d_state);
@@ -98,7 +98,7 @@ void BagSolver::checkUnionMax(const Node& n)
 void BagSolver::checkDifferenceSubtract(const Node& n)
 {
   Assert(n.getKind() == DIFFERENCE_SUBTRACT);
-  set<Node> elements = getElementsForBinaryOperator(n);
+  std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
     InferenceGenerator ig(&d_state);
