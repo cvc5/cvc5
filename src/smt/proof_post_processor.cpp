@@ -805,7 +805,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
-            tcg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+            tcg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
           }
           // get the proof for the update to the current substitution
           Node seqss = subs.eqNode(ss);
@@ -850,7 +850,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                true);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
-        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
       }
       // add the proof constructed by the term conversion utility
       std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);

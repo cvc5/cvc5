@@ -386,7 +386,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                                  cached,
                                  PfRule::TRUST_REWRITE,
                                  {},
-                                 {eq});
+                                 {eq}, false);
             // don't overwrite the cache, should be the same
             rewriteStackTop.d_node = cached;
           }
@@ -485,12 +485,14 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
                            proven[1],
                            PfRule::THEORY_REWRITE,
                            {},
-                           {proven, tidn, rid});
+                           {proven, tidn, rid},
+                          isPre
+                          );
     }
     else
     {
       // store proven rewrite step
-      tcpg->addRewriteStep(proven[0], proven[1], pg);
+      tcpg->addRewriteStep(proven[0], proven[1], pg, isPre);
     }
   }
   return RewriteResponse(tresponse.d_status, trn.getNode());
