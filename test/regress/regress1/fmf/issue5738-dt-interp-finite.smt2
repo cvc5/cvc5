@@ -1,4 +1,5 @@
 (set-logic UFLIA)
+(set-info :status sat)
 (set-option :finite-model-find true)
 (declare-sort a 0)
 (declare-sort b 0)
