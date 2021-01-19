@@ -330,6 +330,6 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   }
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
