@@ -65,11 +65,17 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
     im->trustedLemma(trustedLemma);
   }
-  for (const Node & n : d_newSkolem)
+  else
   {
+    Unimplemented();
+  }
+  for (const auto& pair : d_skolems)
+  {
+    Node n = pair.first.eqNode(pair.second);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
     im->trustedLemma(trustedLemma);
   }
+  return true;
 }
 
 bool InferInfo::isTrivial() const

@@ -91,11 +91,10 @@ class InferInfo : public TheoryInference
   std::vector<Node> d_premises;
 
   /**
-   * A list of new skolems introduced as a result of this inference. They
-   * are mapped to by a length status, indicating the length constraint that
-   * can be assumed for them.
+   * A map of nodes to their skolem variables introduced as a result of this
+   * inference.
    */
-  std::vector<Node> d_newSkolem;
+  std::map<Node, Node> d_skolems;
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**

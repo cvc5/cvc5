@@ -132,7 +132,7 @@ InferInfo InferenceGenerator::bagDisequality(Node n, Node reason)
 Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
 {
   Node skolem = d_sm->mkPurifySkolem(n, "skolem_bag", "skolem bag");
-  inferInfo.d_newSkolem.push_back(skolem.eqNode(n));
+  inferInfo.d_skolems[n] = skolem;
   return skolem;
 }
 
