@@ -263,10 +263,11 @@ Node InferenceGenerator::getMultiplicitySkolem(Node element,
 {
   Node count = d_nm->mkNode(kind::BAG_COUNT, element, bag);
   Node skolem = d_state->registerCountTerm(count);
-  eq::EqualityEngine* ee = d_state->getEqualityEngine();
-  ee->assertEquality(skolem.eqNode(count), true, d_nm->mkConst(true));
-  // inferInfo.d_conclusions.push_back(skolem.eqNode(count));
+  inferInfo.d_conclusions.push_back(skolem.eqNode(count));
   inferInfo.d_newSkolem.push_back(skolem);
+  // multiplicity is >= zero
+  Node gte = d_nm->mkNode(kind::GEQ, skolem, d_zero);
+  inferInfo.d_conclusions.push_back(gte);
   return skolem;
 }
 
