@@ -108,8 +108,6 @@ class InferInfo : public TheoryInference
    * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
-  /** Get premises */
-  Node getPremises() const;
 };
 
 /**

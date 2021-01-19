@@ -98,13 +98,6 @@ bool InferInfo::isFact() const
   return !atom.isConst() && atom.getKind() != kind::OR;
 }
 
-Node InferInfo::getPremises() const
-{
-  // d_noExplain is a subset of d_ant
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkAnd(d_premises);
-}
-
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
   out << "(infer " << ii.d_id << " " << ii.d_conclusion << std::endl;
