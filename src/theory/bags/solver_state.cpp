@@ -61,11 +61,6 @@ const std::set<Node>& SolverState::getElements(Node B)
   return d_bagElements[B];
 }
 
-Node SolverState::getBagSkolem(const Node& bagTerm)
-{
-  return d_bagSkolems[bagTerm];
-}
-
 void SolverState::reset()
 {
   d_bagElements.clear();

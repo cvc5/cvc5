@@ -51,12 +51,6 @@ class SolverState : public TheoryState
    * albeit x is definitely not in B.
    */
   const std::set<Node>& getElements(Node B);
-  /**
-   * @param countTerm has the form (bag.count e A)
-   * @return a unique skolem for countTerm
-   */
-  Node getBagSkolem(const Node& bagTerm);
-
   /** clear all bags data structures */
   void reset();
 
@@ -70,8 +64,6 @@ class SolverState : public TheoryState
   std::set<Node> d_bags;
   /** bag -> associated elements */
   std::map<Node, std::set<Node>> d_bagElements;
-  /** bag term -> skolem*/
-  std::map<Node, Node> d_bagSkolems;
 }; /* class SolverState */
 
 }  // namespace bags
