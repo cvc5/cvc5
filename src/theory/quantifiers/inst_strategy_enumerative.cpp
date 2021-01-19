@@ -314,7 +314,9 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                   << std::endl;
             }
             Assert(terms[i].isNull()
-                   || terms[i].getType().isComparableTo(ftypes[i])) << "Incompatible type " << f << ", " << terms[i].getType() << ", " << ftypes[i] << std::endl;
+                   || terms[i].getType().isComparableTo(ftypes[i]))
+                << "Incompatible type " << f << ", " << terms[i].getType()
+                << ", " << ftypes[i] << std::endl;
           }
           if (ie->addInstantiation(f, terms))
           {

@@ -261,7 +261,9 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
             Node var2;
             bool hasNonVar = false;
             for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-              if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT && tu->getInstConstAttr(it->first)==q){
+              if (!it->first.isNull() && it->first.getKind() == INST_CONSTANT
+                  && tu->getInstConstAttr(it->first) == q)
+              {
                 if( var.isNull() ){
                   var = it->first;
                 }else if( var2.isNull() ){
