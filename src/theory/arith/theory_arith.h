@@ -47,7 +47,6 @@ class TheoryArith : public Theory {
 
   /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;
-  ProofNodeManager* d_pnm;
 
  public:
   TheoryArith(context::Context* c,
@@ -157,10 +156,6 @@ class TheoryArith : public Theory {
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
 
-  /**
-   * Proofs enabled?
-   */
-  bool proofsEnabled() const;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

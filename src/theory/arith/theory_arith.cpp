@@ -44,7 +44,6 @@ TheoryArith::TheoryArith(context::Context* c,
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
-      d_pnm(pnm),
       d_astate(*d_internal, c, u, valuation),
       d_inferenceManager(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
@@ -315,11 +314,6 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
   return d_inferenceManager.getProofEqEngine();
-}
-
-bool TheoryArith::proofsEnabled() const
-{
-  return d_pnm != nullptr;
 }
 
 }/* CVC4::theory::arith namespace */
