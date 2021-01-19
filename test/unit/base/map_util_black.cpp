@@ -66,13 +66,13 @@ TEST_F(TestMapBlack, map)
   ASSERT_TRUE(CVC4::ContainsKey(map, "key"));
   ASSERT_FALSE(CVC4::ContainsKey(map, "non key"));
 
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
   if (std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
     *found_value = "new value";
   }
-  EXPECT_EQ(FindOrDie(map, "other"), "new value");
+  ASSERT_EQ(FindOrDie(map, "other"), "new value");
 }
 
 TEST_F(TestMapBlack, constant_map)
@@ -83,10 +83,10 @@ TEST_F(TestMapBlack, constant_map)
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
   }
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
-  EXPECT_EQ(FindOrDie(map, "other"), "entry");
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrDie(map, "other"), "entry");
   ASSERT_DEATH(FindOrDie(map, "asdf"), "The map does not contain the key.");
 }
 
@@ -97,13 +97,13 @@ TEST_F(TestMapBlack, unordered_map)
   ASSERT_TRUE(CVC4::ContainsKey(map, "key"));
   ASSERT_FALSE(CVC4::ContainsKey(map, "non key"));
 
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
   if (std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
     *found_value = "new value";
   }
-  EXPECT_EQ(FindOrDie(map, "other"), "new value");
+  ASSERT_EQ(FindOrDie(map, "other"), "new value");
 }
 
 TEST_F(TestMapBlack, const_unordered_map)
@@ -115,10 +115,10 @@ TEST_F(TestMapBlack, const_unordered_map)
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
   }
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
-  EXPECT_EQ(FindOrDie(map, "other"), "entry");
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrDie(map, "other"), "entry");
   ASSERT_DEATH(FindOrDie(map, "asdf"), "The map does not contain the key.");
 }
 
@@ -155,10 +155,10 @@ TEST_F(TestMapBlack, CDHashMap)
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
   }
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
-  EXPECT_EQ(FindOrDie(map, "other"), "entry");
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrDie(map, "other"), "entry");
 }
 
 TEST_F(TestMapBlack, const_CDHashMap)
@@ -173,10 +173,10 @@ TEST_F(TestMapBlack, const_CDHashMap)
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
   }
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
-  EXPECT_EQ(FindOrDie(map, "other"), "entry");
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrDie(map, "other"), "entry");
 }
 
 TEST_F(TestMapBlack, CDInsertHashMap)
@@ -190,10 +190,10 @@ TEST_F(TestMapBlack, CDInsertHashMap)
 
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
   }
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
-  EXPECT_EQ(FindOrDie(map, "other"), "entry");
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrDie(map, "other"), "entry");
 }
 
 TEST_F(TestMapBlack, const_CDInsertHashMap)
@@ -207,10 +207,10 @@ TEST_F(TestMapBlack, const_CDInsertHashMap)
   ASSERT_FALSE(CVC4::ContainsKey(map, "non key"));
   if (const std::string* found_value = FindOrNull(map, "other"))
   {
-    EXPECT_EQ(*found_value, "entry");
+    ASSERT_EQ(*found_value, "entry");
   }
-  EXPECT_EQ(FindOrNull(map, "non key"), nullptr);
-  EXPECT_EQ(FindOrDie(map, "other"), "entry");
+  ASSERT_EQ(FindOrNull(map, "non key"), nullptr);
+  ASSERT_EQ(FindOrDie(map, "other"), "entry");
 }
 }  // namespace test
 }  // namespace CVC4

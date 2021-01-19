@@ -681,6 +681,16 @@ header = "options/smt_options.h"
   help       = "Force no CPU limit when dumping models and proofs"
 
 [[option]]
+  name       = "foreignTheoryRewrite"
+  category   = "regular"
+  long       = "foreign-theory-rewrite"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "Cross-theory rewrites"
+
+
+[[option]]
   name       = "solveBVAsInt"
   category   = "undocumented"
   long       = "solve-bv-as-int=MODE"

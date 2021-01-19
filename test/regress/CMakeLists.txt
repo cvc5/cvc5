@@ -59,6 +59,7 @@ set(regress_0_tests
   regress0/arith/issue4367.smt2
   regress0/arith/issue4525.smt2
   regress0/arith/issue5219-conflict-rewrite.smt2
+  regress0/arith/issue5761-ppr.smt2
   regress0/arith/ite-lift.smt2
   regress0/arith/leq.01.smtv1.smt2
   regress0/arith/miplib.cvc
@@ -965,6 +966,7 @@ set(regress_0_tests
   regress0/seq/issue5543-unit-cmv.smt2
   regress0/seq/issue5547-seq-len-unit.smt2
   regress0/seq/issue5547-small-seq-len-unit.smt2
+  regress0/seq/len_simplify.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -1099,6 +1101,10 @@ set(regress_0_tests
   regress0/strings/issue5384-double-conflict.smt2
   regress0/strings/issue5428-re-diff-assoc.smt2
   regress0/strings/issue5542-strings-seq-mix.smt2
+  regress0/strings/issue5608-eager-pp.smt2
+  regress0/strings/issue5745-eager-pp.smt2
+  regress0/strings/issue5767-eager-pp.smt2
+  regress0/strings/issue5771-eager-pp.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1986,6 +1992,7 @@ set(regress_1_tests
   regress1/strings/issue5330.smt2
   regress1/strings/issue5330_2.smt2
   regress1/strings/issue5374-proxy-i.smt2
+  regress1/strings/issue5406-eager-pp.smt2
   regress1/strings/issue5483-pp-leq.smt2
   regress1/strings/issue5510-re-consume.smt2
   regress1/strings/issue5520-re-consume.smt2
