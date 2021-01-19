@@ -286,6 +286,7 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersEngine* qe,
   }
   else
   {
+    // corner case of a wrongly applied selector as a trigger
     Assert(mpatExp.getKind() == APPLY_UF);
     d_ufOp = qe->getTermDatabase()->getMatchOperator(mpatExp);
   }
