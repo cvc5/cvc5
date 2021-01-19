@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --no-sygus-repair-const
-; SCRUBBER: grep -o "Symbol 'div' not declared as a variable"
-; EXPECT: Symbol 'div' not declared as a variable
+; ERROR-SCRUBBER: grep -o "Symbol 'div' not declared as a variable"
+; EXPECT-ERROR: Symbol 'div' not declared as a variable
 ; EXIT: 1
 (set-logic LIA)
 (declare-var n Int)
