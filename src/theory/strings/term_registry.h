@@ -206,8 +206,6 @@ class TermRegistry
    * assumed to hold globally.
    */
   void inferSubstitutionProxyVars(Node n,
-                                  std::vector<Node>& vars,
-                                  std::vector<Node>& subs,
                                   std::vector<Node>& unproc) const;
   //---------------------------- end proxy variables
  private:
