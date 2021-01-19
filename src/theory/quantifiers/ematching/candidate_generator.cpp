@@ -279,11 +279,15 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersEngine* qe,
     d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp[1]);
     d_ufOp = qe->getTermDatabase()->getMatchOperator(mpatExp[2]);
   }
-  else
+  else if (mpatExp.getKind() == APPLY_SELECTOR_TOTAL)
   {
     // corner case of datatype with one constructor
-    Assert(mpatExp.getKind() == APPLY_SELECTOR_TOTAL);
     d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp);
+  }
+  else
+  {
+    Assert(mpatExp.getKind() == APPLY_UF);
+    d_ufOp = qe->getTermDatabase()->getMatchOperator(mpatExp);
   }
   Assert(d_selOp != d_ufOp);
 }
@@ -291,8 +295,15 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersEngine* qe,
 void CandidateGeneratorSelector::reset(Node eqc)
 {
   Trace("sel-trigger-debug") << "Reset in eqc=" << eqc << std::endl;
-  // start with d_selOp
-  resetForOperator(eqc, d_selOp);
+  // start with d_selOp, if it exists
+  if (!d_selOp.isNull())
+  {
+    resetForOperator(eqc, d_selOp);
+  }
+  else
+  {
+    resetForOperator(d_eqc, d_ufOp);
+  }
 }
 
 Node CandidateGeneratorSelector::getNextCandidate()
