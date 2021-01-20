@@ -69,12 +69,9 @@ theory::TrustNode RemoveTermFormulas::run(
   if (fixedPoint)
   {
     size_t i = 0;
-    std::unordered_set<Node, NodeHashFunction> processed;
     while (i < newAsserts.size())
     {
       theory::TrustNode trn = newAsserts[i];
-      AlwaysAssert(processed.find(trn.getProven()) == processed.end());
-      processed.insert(trn.getProven());
       // do not run to fixed point on subcall, since we are processing all
       // lemmas in this loop
       newAsserts[i] = runLemma(trn, newAsserts, newSkolems, false);
