@@ -22,6 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
+#include "theory/quantifiers/sygus/obligation_info.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -59,7 +60,7 @@ namespace quantifiers {
  *
  *   Pool<T> = {}
  *
- *   while Sol<k_0> != null
+ *   while Sol<k_0> == null
  *     // enumeration phase
  *     for each T
  *       s[z] = nextEnum(T_{z})
@@ -142,15 +143,6 @@ class SygusReconstruct : public expr::NotifyMatch
                            TypeNode stn,
                            int& reconstructed,
                            int enumLimit);
-
-  /**
-   * Compute the size of `sol` and the number of 'ite's it contains
-   *
-   * @param sol term to analyze
-   * @param t_size size of `sol`
-   * @param num_ite number of 'ite's in `sol`
-   */
-  void debugTermSize(Node sol, int& t_size, int& num_ite) const;
 
  private:
   /** match obligation `k`'s builtin term with pattern `sz`
@@ -300,31 +292,22 @@ class SygusReconstruct : public expr::NotifyMatch
                      std::unordered_set<Node, NodeHashFunction>,
                      TypeNodeHashFunction>
       d_unsolvedObs;
-  /** a map from an obligation to the intended builtin term */
-  std::unordered_map<Node, Node, NodeHashFunction> d_builtinTerm;
-  /** a map from a builtin term to its obligation (inverse of above map). Unlike
-   * in the map above, the sygus type of the obligation is needed */
+  /** a map from an obligation to its info */
+  std::unordered_map<Node, ObligationInfo, NodeHashFunction> d_info;
+  /** a map from a builtin term to its obligation. The sygus type of the
+   * obligation is needed as different sygus types may have obligations to
+   * reconstruct the same builtin term */
   std::unordered_map<TypeNode,
                      std::unordered_map<Node, Node, NodeHashFunction>,
                      TypeNodeHashFunction>
       d_ob;
   /** a map from an obligation to its sygus solution (if it exists) */
   std::unordered_map<TNode, TNode, TNodeHashFunction> d_sol;
-  /** a map from an obligation to a set of its candidate sygus solutions */
-  std::unordered_map<Node,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     NodeHashFunction>
-      d_candSols;
 
   /** a map from a candidate solution to its sub-obligations */
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction> d_subObs;
   /** a map from a candidate solution to its parent obligation */
   std::unordered_map<Node, Node, NodeHashFunction> d_parentOb;
-  /** a map from a sub-obligation to its parent candidate solution */
-  std::unordered_map<Node,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     NodeHashFunction>
-      d_watchSet;
 
   /** a cache of sygus variables treated as ground terms by matching */
   std::unordered_map<Node, Node, NodeHashFunction> d_groundVars;
@@ -344,11 +327,6 @@ class SygusReconstruct : public expr::NotifyMatch
 
   /** A trie for filtering out redundant terms from the paterns pool */
   expr::MatchTrie d_poolTrie;
-
-  /** a map from a term to its size */
-  mutable std::unordered_map<Node, int, NodeHashFunction> d_dtermSize;
-  /** a map from a term to the number of 'ite's it contains */
-  mutable std::unordered_map<Node, int, NodeHashFunction> d_dtermIteSize;
 };
 
 }  // namespace quantifiers

@@ -391,30 +391,6 @@ Node CegSingleInv::reconstructToSyntax(Node s,
     }
   }
 
-  if (Trace.isOn("cegqi-stats"))
-  {
-    int tsize, itesize;
-    tsize = 0;
-    itesize = 0;
-    d_srcons->debugTermSize(d_orig_solution, tsize, itesize);
-    Trace("cegqi-stats") << tsize << " " << itesize << " ";
-    tsize = 0;
-    itesize = 0;
-    d_srcons->debugTermSize(d_solution, tsize, itesize);
-    Trace("cegqi-stats") << tsize << " " << itesize << " ";
-    if (!d_sygus_solution.isNull())
-    {
-      tsize = 0;
-      itesize = 0;
-      d_srcons->debugTermSize(d_sygus_solution, tsize, itesize);
-      Trace("cegqi-stats") << tsize << " - ";
-    }
-    else
-    {
-      Trace("cegqi-stats") << "null ";
-    }
-    Trace("cegqi-stats") << std::endl;
-  }
   Node sol;
   if( reconstructed==1 ){
     sol = d_sygus_solution;

@@ -2031,12 +2031,12 @@ set(regress_1_tests
   regress1/sygus/max.sy
   regress1/sygus/max2-bv.sy
   regress1/sygus/multi-fun-polynomial2.sy
-  regress1/sygus/new/complex-no-rewrite.sy
-  regress1/sygus/new/complex-rewrite-in-db.sy
-  regress1/sygus/new/no-var-in-sol.sy
-  regress1/sygus/new/simple-no-rewrite.sy
-  regress1/sygus/new/simple-rewrite-in-db.sy
-  regress1/sygus/new/simple-rewrite-not-in-db.sy
+  regress1/sygus/complex-no-rewrite.sy
+  regress1/sygus/complex-rewrite-in-db.sy
+  regress1/sygus/no-var-in-sol.sy
+  regress1/sygus/simple-no-rewrite.sy
+  regress1/sygus/simple-rewrite-in-db.sy
+  regress1/sygus/simple-rewrite-not-in-db.sy
   regress1/sygus/nflat-fwd-3.sy
   regress1/sygus/nflat-fwd.sy
   regress1/sygus/nia-max-square-ns.sy
@@ -2602,7 +2602,7 @@ set(regression_disabled_tests
   # returns wrong answer
   regress1/sygus/array_search_5-Q-easy.sy
   # term not in grammar. Should better answer
-  regress1/sygus/new/simple-not-in-grammar.sy
+  regress1/sygus/simple-not-in-grammar.sy
   # previously sygus inference did not apply, now (correctly) times out
   regress1/sygus/issue3498.smt2
   # currently slow at c9fd28a

@@ -1448,6 +1448,7 @@ template <bool ref_count>
 inline Node NodeTemplate<ref_count>::substitute(
     std::unordered_map<TNode, TNode, TNodeHashFunction>& subs) const
 {
+  // since all substitutions are cached, we don't need to iterate over them
   return substitute(subs.cend(), subs.cend(), subs);
 }
 
