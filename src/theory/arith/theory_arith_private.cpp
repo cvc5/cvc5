@@ -3093,7 +3093,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
       if(!isSatLiteral(rwbranch)){
-        d_approxCuts.push_back(branch.getNode());
+        d_approxCuts.push_back(branch);
         return true;
       }
     }

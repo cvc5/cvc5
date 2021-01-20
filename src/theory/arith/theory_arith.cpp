@@ -316,11 +316,6 @@ eq::ProofEqEngine* TheoryArith::getProofEqEngine()
   return d_inferenceManager.getProofEqEngine();
 }
 
-bool TheoryArith::proofsEnabled() const
-{
-  return d_pnm != nullptr;
-}
-
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
