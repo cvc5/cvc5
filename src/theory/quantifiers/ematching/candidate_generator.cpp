@@ -297,14 +297,7 @@ void CandidateGeneratorSelector::reset(Node eqc)
 {
   Trace("sel-trigger-debug") << "Reset in eqc=" << eqc << std::endl;
   // start with d_selOp, if it exists
-  if (!d_selOp.isNull())
-  {
-    resetForOperator(eqc, d_selOp);
-  }
-  else
-  {
-    resetForOperator(d_eqc, d_ufOp);
-  }
+  resetForOperator(eqc, !d_selOp.isNull()? d_selOp : d_ufOp);
 }
 
 Node CandidateGeneratorSelector::getNextCandidate()
