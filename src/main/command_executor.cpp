@@ -2,7 +2,7 @@
 /*! \file command_executor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Tim King
+ **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -66,14 +66,14 @@ CommandExecutor::~CommandExecutor()
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
-  d_solver->getExprManager()->getStatistics().flushInformation(out);
-  d_smtEngine->getStatistics().flushInformation(out);
+  // SmtEngine + node manager flush statistics is part of the call below
+  d_smtEngine->flushStatistics(out);
   d_stats.flushInformation(out);
 }
 
 void CommandExecutor::safeFlushStatistics(int fd) const
 {
-  d_solver->getExprManager()->safeFlushStatistics(fd);
+  // SmtEngine + node manager flush statistics is part of the call below
   d_smtEngine->safeFlushStatistics(fd);
   d_stats.safeFlushInformation(fd);
 }
@@ -136,13 +136,15 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(cs != nullptr) {
     d_result = res = cs->getResult();
   }
+  const CheckSatAssumingCommand* csa =
+      dynamic_cast<const CheckSatAssumingCommand*>(cmd);
+  if (csa != nullptr)
+  {
+    d_result = res = csa->getResult();
+  }
   const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
   if(q != nullptr) {
     d_result = res = q->getResult();
-  }
- const  CheckSynthCommand* csy = dynamic_cast<const CheckSynthCommand*>(cmd);
-  if(csy != nullptr) {
-    d_result = res = csy->getResult();
   }
 
   if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
@@ -152,6 +154,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     printStatsIncremental(err, d_lastStatistics, ossCurStats.str());
     d_lastStatistics = ossCurStats.str();
   }
+
+  bool isResultUnsat = res.isUnsat() || res.isEntailed();
 
   // dump the model/proof/unsat core if option is set
   if (status) {
@@ -163,7 +167,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getDumpProofs() && res.isUnsat())
+    if (d_options.getDumpProofs() && isResultUnsat)
     {
       getterCommands.emplace_back(new GetProofCommand());
     }
@@ -173,17 +177,12 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
              && (res.isSat()
                  || (res.isSatUnknown()
                      && res.getResult().whyUnknown() == Result::INCOMPLETE)))
-            || res.isUnsat()))
+            || isResultUnsat))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if (d_options.getDumpSynth() && res.isUnsat())
-    {
-      getterCommands.emplace_back(new GetSynthSolutionCommand());
-    }
-
-    if (d_options.getDumpUnsatCores() && res.isUnsat())
+    if (d_options.getDumpUnsatCores() && isResultUnsat)
     {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }

@@ -2,7 +2,7 @@
 /*! \file taylor_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -79,11 +79,13 @@ class TaylorGenerator
    * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ) where
    * c>0, we return the P_u+[x] from the function above for the minimum degree
    * d' >= d such that (1-c^{2*d'+1}/(2*d'+1)!) is positive.
+   * @return the actual degree of the polynomial approximations (which may be
+   * larger than d).
    */
-  void getPolynomialApproximationBoundForArg(Kind k,
-                                             Node c,
-                                             unsigned d,
-                                             std::vector<Node>& pbounds);
+  unsigned getPolynomialApproximationBoundForArg(Kind k,
+                                                 Node c,
+                                                 unsigned d,
+                                                 std::vector<Node>& pbounds);
 
   /** get transcendental function model bounds
    *

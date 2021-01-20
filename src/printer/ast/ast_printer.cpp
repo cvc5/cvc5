@@ -2,7 +2,7 @@
 /*! \file ast_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Abdalrhman Mohamed, Tim King
+ **   Morgan Deters, Abdalrhman Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -20,14 +20,12 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h"                     // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "options/language.h"  // for LANG_AST
-#include "printer/dagification_visitor.h"
+#include "printer/let_binding.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
-#include "theory/substitutions.h"
 
 using namespace std;
 
@@ -41,38 +39,17 @@ void AstPrinter::toStream(std::ostream& out,
                           size_t dag) const
 {
   if(dag != 0) {
-    DagificationVisitor dv(dag);
-    NodeVisitor<DagificationVisitor> visitor;
-    visitor.run(dv, n);
-    const theory::SubstitutionMap& lets = dv.getLets();
-    if(!lets.empty()) {
-      out << "(LET ";
-      bool first = true;
-      for(theory::SubstitutionMap::const_iterator i = lets.begin();
-          i != lets.end();
-          ++i) {
-        if(! first) {
-          out << ", ";
-        } else {
-          first = false;
-        }
-        toStream(out, (*i).second, toDepth, false);
-        out << " := ";
-        toStream(out, (*i).first, toDepth, false);
-      }
-      out << " IN ";
-    }
-    Node body = dv.getDagifiedBody();
-    toStream(out, body, toDepth);
-    if(!lets.empty()) {
-      out << ')';
-    }
+    LetBinding lbind(dag + 1);
+    toStreamWithLetify(out, n, toDepth, &lbind);
   } else {
     toStream(out, n, toDepth);
   }
 }
 
-void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth) const
+void AstPrinter::toStream(std::ostream& out,
+                          TNode n,
+                          int toDepth,
+                          LetBinding* lbind) const
 {
   // null
   if(n.getKind() == kind::NULL_EXPR) {
@@ -96,12 +73,28 @@ void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth) const
     // constant
     out << ' ';
     kind::metakind::NodeValueConstPrinter::toStream(out, n);
-  } else {
+  }
+  else if (n.isClosure())
+  {
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      // body is re-letified
+      if (i == 1)
+      {
+        toStreamWithLetify(out, n[i], toDepth, lbind);
+        continue;
+      }
+      toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - 1, lbind);
+    }
+  }
+  else
+  {
     // operator
     if(n.getMetaKind() == kind::metakind::PARAMETERIZED) {
       out << ' ';
       if(toDepth != 0) {
-        toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1);
+        toStream(
+            out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
       } else {
         out << "(...)";
       }
@@ -114,7 +107,7 @@ void AstPrinter::toStream(std::ostream& out, TNode n, int toDepth) const
         out << ' ';
       }
       if(toDepth != 0) {
-        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1);
+        toStream(out, *i, toDepth < 0 ? toDepth : toDepth - 1, lbind);
       } else {
         out << "(...)";
       }
@@ -392,6 +385,50 @@ void AstPrinter::toStreamCmdComment(std::ostream& out,
                                     const std::string& comment) const
 {
   out << "CommentCommand([" << comment << "])" << std::endl;
+}
+
+void AstPrinter::toStreamWithLetify(std::ostream& out,
+                                    Node n,
+                                    int toDepth,
+                                    LetBinding* lbind) const
+{
+  if (lbind == nullptr)
+  {
+    toStream(out, n, toDepth);
+    return;
+  }
+  std::stringstream cparen;
+  std::vector<Node> letList;
+  lbind->letify(n, letList);
+  if (!letList.empty())
+  {
+    std::map<Node, uint32_t>::const_iterator it;
+    out << "(LET ";
+    cparen << ")";
+    bool first = true;
+    for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
+    {
+      if (!first)
+      {
+        out << ", ";
+      }
+      else
+      {
+        first = false;
+      }
+      Node nl = letList[i];
+      uint32_t id = lbind->getId(nl);
+      out << "_let_" << id << " := ";
+      Node nlc = lbind->convert(nl, "_let_", false);
+      toStream(out, nlc, toDepth, lbind);
+    }
+    out << " IN ";
+  }
+  Node nc = lbind->convert(n, "_let_");
+  // print the body, passing the lbind object
+  toStream(out, nc, toDepth, lbind);
+  out << cparen.str();
+  lbind->popScope();
 }
 
 template <class T>

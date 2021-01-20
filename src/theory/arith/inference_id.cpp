@@ -2,7 +2,7 @@
 /*! \file inference_id.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Gereon Kremer, Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -41,6 +41,7 @@ const char* toString(InferenceId i)
     case InferenceId::NL_IAND_INIT_REFINE: return "IAND_INIT_REFINE";
     case InferenceId::NL_IAND_VALUE_REFINE: return "IAND_VALUE_REFINE";
     case InferenceId::NL_IAND_SUM_REFINE: return "IAND_SUM_REFINE";
+    case InferenceId::NL_IAND_BITWISE_REFINE: return "IAND_BITWISE_REFINE";
     case InferenceId::NL_CAD_CONFLICT: return "CAD_CONFLICT";
     case InferenceId::NL_CAD_EXCLUDED_INTERVAL: return "CAD_EXCLUDED_INTERVAL";
     case InferenceId::NL_ICP_CONFLICT: return "ICP_CONFLICT";

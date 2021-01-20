@@ -2,7 +2,7 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -158,10 +158,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           tid = Theory::theoryOf(node.getType());
         }
       }
-      else if (node.isConst())
-      {
-        tid = Theory::theoryOf(node.getType());
-      }
       else if (node.getKind() == kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
@@ -169,7 +165,9 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind. Notice that constants are a
+        // special case here, where the theory of the kind of a constant
+        // always coincides with the type of that constant.
         tid = kindToTheoryId(node.getKind());
       }
       break;
@@ -195,11 +193,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
             tid = THEORY_BOOL;
           }
         }
-      }
-      else if (node.isConst())
-      {
-        // Constants go to the theory of the type
-        tid = Theory::theoryOf(node.getType());
       }
       else if (node.getKind() == kind::EQUAL)
       {  // Equality
@@ -260,7 +253,8 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind, which includes constants as a
+        // special case.
         tid = kindToTheoryId(node.getKind());
       }
     break;

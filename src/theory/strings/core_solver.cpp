@@ -525,6 +525,7 @@ Node CoreSolver::checkCycles( Node eqc, std::vector< Node >& curr, std::vector< 
       ++eqc_i;
     }
     curr.pop_back();
+    Trace("strings-eqc") << "* add string eqc: " << eqc << std::endl;
     //now we can add it to the list of equivalence classes
     d_strings_eqc.push_back( eqc );
   }else{
@@ -651,8 +652,7 @@ void CoreSolver::normalizeEquivalenceClass(Node eqc, TypeNode stype)
     d_normal_form[eqc] = normal_forms[nf_index];
     Trace("strings-process-debug")
         << "Return process equivalence class " << eqc
-        << " : returned, size = " << d_normal_form[eqc].d_nf.size()
-        << std::endl;
+        << " : returned = " << d_normal_form[eqc].d_nf << std::endl;
   }
 }
 
@@ -896,7 +896,9 @@ void CoreSolver::getNormalForms(Node eqc,
             // get the normal form for the component
             NormalForm& nfr = getNormalForm(nr);
             std::vector<Node>& nfrv = nfr.d_nf;
-            Trace("strings-process-debug") << "Normalizing subterm " << n[i] << " = "  << nr << std::endl;
+            Trace("strings-process-debug")
+                << "Normalizing subterm " << n[i] << " = " << nr
+                << ", which is " << nfrv << std::endl;
             unsigned orig_size = nf_curr.d_nf.size();
             unsigned add_size = nfrv.size();
             //if not the empty string, add to current normal form
@@ -992,6 +994,12 @@ void CoreSolver::getNormalForms(Node eqc,
       }else{
         eqc_non_c = n;
       }
+    }
+    else
+    {
+      Trace("strings-process-debug")
+          << "Get Normal Form : term " << n << " in eqc " << eqc
+          << " is congruent" << std::endl;
     }
     ++eqc_i;
   }
@@ -1359,6 +1367,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         }
         eqn[r] = utils::mkNConcat(eqnc, stype);
       }
+      Trace("strings-solve-debug")
+          << "Endpoint eq check: " << eqn[0] << " " << eqn[1] << std::endl;
       if (!d_state.areEqual(eqn[0], eqn[1]))
       {
         std::vector<Node> antec;
@@ -1474,7 +1484,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (!isRev)
       {
         // add temporarily to the antecedant of iinfo.
-        NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, iinfo.d_ant);
+        NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, iinfo.d_premises);
         ProcessLoopResult plr =
             processLoop(lhsLoopIdx != -1 ? nfi : nfj,
                         lhsLoopIdx != -1 ? nfj : nfi,
@@ -1492,7 +1502,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         }
         Assert(plr == ProcessLoopResult::SKIPPED);
         // not processing an inference here, undo changes to ant
-        iinfo.d_ant.clear();
+        iinfo.d_premises.clear();
       }
     }
 
@@ -1573,8 +1583,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         if (p > 1)
         {
           NormalForm::getExplanationForPrefixEq(
-              nfc, nfnc, cIndex, ncIndex, iinfo.d_ant);
-          iinfo.d_ant.push_back(expNonEmpty);
+              nfc, nfnc, cIndex, ncIndex, iinfo.d_premises);
+          iinfo.d_premises.push_back(expNonEmpty);
           // make the conclusion
           SkolemCache* skc = d_termReg.getSkolemCache();
           Node xcv =
@@ -1583,7 +1593,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           iinfo.d_conc = getConclusion(
               xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
           Assert(newSkolems.size() == 1);
-          iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
+          iinfo.d_newSkolem[LENGTH_SPLIT].push_back(newSkolems[0]);
           iinfo.d_id = Inference::SSPLIT_CST_PROP;
           iinfo.d_idRev = isRev;
           pinfer.push_back(info);
@@ -1600,10 +1610,10 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_conc = getConclusion(
           nc, nfcv[index], PfRule::CONCAT_CSPLIT, isRev, skc, newSkolems);
       NormalForm::getExplanationForPrefixEq(
-          nfi, nfj, index, index, iinfo.d_ant);
-      iinfo.d_ant.push_back(expNonEmpty);
+          nfi, nfj, index, index, iinfo.d_premises);
+      iinfo.d_premises.push_back(expNonEmpty);
       Assert(newSkolems.size() == 1);
-      iinfo.d_new_skolem[LENGTH_SPLIT].push_back(newSkolems[0]);
+      iinfo.d_newSkolem[LENGTH_SPLIT].push_back(newSkolems[0]);
       iinfo.d_id = Inference::SSPLIT_CST;
       iinfo.d_idRev = isRev;
       pinfer.push_back(info);
@@ -1671,7 +1681,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       utils::flattenOp(AND, lenConstraint, lcVec);
     }
 
-    NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
+    NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_premises);
     // Add premises for x != "" ^ y != ""
     for (unsigned xory = 0; xory < 2; xory++)
     {
@@ -1699,7 +1709,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (options::stringUnifiedVSpt() && !options::stringLenConc())
       {
         Assert(newSkolems.size() == 1);
-        iinfo.d_new_skolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
+        iinfo.d_newSkolem[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
       }
     }
     else if (lentTestSuccess == 0)
@@ -1717,7 +1727,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     }
     // add the length constraint(s) as the last antecedant
     Node lc = utils::mkAnd(lcVec);
-    iinfo.d_ant.push_back(lc);
+    iinfo.d_premises.push_back(lc);
     iinfo.d_idRev = isRev;
     pinfer.push_back(info);
     break;
@@ -1825,7 +1835,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
       d_im.sendInference(
-          iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, false, true);
+          iinfo.d_premises, conc, Inference::FLOOP_CONFLICT, false, true);
       return ProcessLoopResult::CONFLICT;
     }
   }
@@ -1843,7 +1853,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       if (expNonEmpty.isNull())
       {
         // no antecedants necessary
-        iinfo.d_ant.clear();
+        iinfo.d_premises.clear();
         // try to make t equal to empty to avoid loop
         iinfo.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
         iinfo.d_id = Inference::LEN_SPLIT_EMP;
@@ -1851,7 +1861,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       }
       else
       {
-        iinfo.d_ant.push_back(expNonEmpty);
+        iinfo.d_premises.push_back(expNonEmpty);
       }
     }
     else
@@ -2251,10 +2261,16 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       //      x = "" ^ ...
       Trace("strings-solve-debug")
           << "Disequality normalize empty" << std::endl;
+      // the antecedant
       std::vector<Node> ant;
+      // the antecedant that is not explainable in this context
+      std::vector<Node> antn;
       Node niLenTerm = d_state.getLengthExp(ni, ant, nfni.d_base);
       Node njLenTerm = d_state.getLengthExp(nj, ant, nfnj.d_base);
-      ant.push_back(niLenTerm.eqNode(njLenTerm));
+      // length is not guaranteed to hold
+      Node leq = niLenTerm.eqNode(njLenTerm);
+      ant.push_back(leq);
+      antn.push_back(leq);
       ant.insert(ant.end(), nfni.d_exp.begin(), nfni.d_exp.end());
       ant.insert(ant.end(), nfnj.d_exp.begin(), nfnj.d_exp.end());
       std::vector<Node> cc;
@@ -2266,7 +2282,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       Node conc = cc.size() == 1
                       ? cc[0]
                       : NodeManager::currentNM()->mkNode(kind::AND, cc);
-      d_im.sendInference(ant, conc, Inference::DEQ_NORM_EMP, isRev, true);
+      d_im.sendInference(ant, antn, conc, Inference::DEQ_NORM_EMP, isRev, true);
       return true;
     }
 
@@ -2575,7 +2591,7 @@ bool CoreSolver::processInferInfo(CoreInferInfo& cii)
     addNormalFormPair(cii.d_nfPair[0], cii.d_nfPair[1]);
   }
   // send phase requirements
-  for (const std::pair<const Node, bool> pp : cii.d_pendingPhase)
+  for (const std::pair<const Node, bool>& pp : cii.d_pendingPhase)
   {
     Node ppr = Rewriter::rewrite(pp.first);
     d_im.addPendingPhaseRequirement(ppr, pp.second);

@@ -2,7 +2,7 @@
 /*! \file ite_simp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Tim King, Mathias Preiner
+ **   Aina Niemetz, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -114,13 +114,7 @@ ITESimp::Statistics::~Statistics()
 
 bool ITESimp::doneSimpITE(AssertionPipeline* assertionsToPreprocess)
 {
-  // This pass does not support dependency tracking yet
-  // (learns substitutions from all assertions so just
-  // adding addDependence is not enough)
-  if (options::unsatCores())
-  {
-    return true;
-  }
+  Assert(!options::unsatCores());
   bool result = true;
   bool simpDidALotOfWork = d_iteUtilities.simpIteDidALotOfWorkHeuristic();
   if (simpDidALotOfWork)

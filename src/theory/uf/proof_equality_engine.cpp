@@ -518,7 +518,7 @@ void ProofEqEngine::explainWithProof(Node lit,
   }
   Trace("pfee-proof") << "...got " << tassumps << std::endl;
   // avoid duplicates
-  for (const TNode a : tassumps)
+  for (TNode a : tassumps)
   {
     if (a == lit)
     {

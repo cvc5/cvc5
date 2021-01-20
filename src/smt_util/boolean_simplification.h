@@ -23,7 +23,6 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/expr_manager_scope.h"
 #include "expr/node.h"
 
 namespace CVC4 {

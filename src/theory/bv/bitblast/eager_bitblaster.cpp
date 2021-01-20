@@ -18,6 +18,7 @@
 
 #include "cvc4_private.h"
 #include "options/bv_options.h"
+#include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_engine.h"
@@ -74,7 +75,7 @@ EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
                                         d_nullContext.get(),
                                         nullptr,
                                         rm,
-                                        false,
+                                        prop::FormulaLitPolicy::INTERNAL,
                                         "EagerBitblaster"));
 }
 

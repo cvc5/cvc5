@@ -2,7 +2,7 @@
 /*! \file trust_substitutions.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -40,7 +40,7 @@ class TrustSubstitutionMap
   TrustSubstitutionMap(context::Context* c,
                        ProofNodeManager* pnm,
                        std::string name = "TrustSubstitutionMap",
-                       PfRule trustId = PfRule::TRUST_SUBS_MAP,
+                       PfRule trustId = PfRule::PREPROCESS_LEMMA,
                        MethodId ids = MethodId::SB_DEFAULT);
   /** Gets a reference to the underlying substitution map */
   SubstitutionMap& get();

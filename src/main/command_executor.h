@@ -2,7 +2,7 @@
 /*! \file command_executor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Kshitij Bansal, Morgan Deters
+ **   Andrew Reynolds, Kshitij Bansal, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -19,7 +19,6 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr_manager.h"
 #include "expr/symbol_manager.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"

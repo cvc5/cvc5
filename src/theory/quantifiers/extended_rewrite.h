@@ -239,12 +239,6 @@ class ExtendedRewriter
   //--------------------------------------end generic utilities
 
   //--------------------------------------theory-specific top-level calls
-  /** extended rewrite arith
-   *
-   * If this method returns a non-null node ret', then ret is equivalent to
-   * ret'.
-   */
-  Node extendedRewriteArith(Node ret);
   /** extended rewrite strings
    *
    * If this method returns a non-null node ret', then ret is equivalent to

@@ -2,7 +2,7 @@
 /*! \file theory_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -82,7 +82,7 @@ void TheoryArith::finishInit()
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension.reset(
-        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine));
+        new nl::NonlinearExtension(*this, d_astate, d_equalityEngine, d_pnm));
   }
   // finish initialize internally
   d_internal->finishInit();
@@ -97,6 +97,12 @@ void TheoryArith::preRegisterTerm(TNode n)
   d_internal->preRegisterTerm(n);
 }
 
+TrustNode TheoryArith::expandDefinition(Node node)
+{
+  // call eliminate operators, to eliminate partial operators only
+  return d_arithPreproc.eliminate(node, true);
+}
+
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)
@@ -106,8 +112,9 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
 
   if (options::arithRewriteEq())
   {
-    if (atom.getKind() == kind::EQUAL && atom[0].getType().isReal())
+    if (atom.getKind() == kind::EQUAL)
     {
+      Assert(atom[0].getType().isReal());
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
       TrustNode tleq = ppRewriteTerms(leq);
@@ -132,16 +139,14 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
 
 TrustNode TheoryArith::ppRewriteTerms(TNode n)
 {
-  if (Theory::theoryOf(n) != THEORY_ARITH)
-  {
-    return TrustNode::null();
-  }
+  Assert(Theory::theoryOf(n) == THEORY_ARITH);
   // Eliminate operators recursively. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
-  // call eliminate operators
-  return d_arithPreproc.eliminate(n);
+  // call eliminate operators. In contrast to expandDefinitions, we eliminate
+  // *all* extended arithmetic operators here, including total ones.
+  return d_arithPreproc.eliminate(n, false);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(

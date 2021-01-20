@@ -24,7 +24,6 @@
 #include "base/output.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/sat_solver_types.h"
@@ -47,7 +46,7 @@ class DecisionEngine {
 
   // PropEngine* d_propEngine;
   CnfStream* d_cnfStream;
-  DPLLSatSolverInterface* d_satSolver;
+  CDCLTSatSolverInterface* d_satSolver;
 
   context::Context* d_satContext;
   context::UserContext* d_userContext;
@@ -76,7 +75,8 @@ class DecisionEngine {
     Trace("decision") << "Destroying decision engine" << std::endl;
   }
 
-  void setSatSolver(DPLLSatSolverInterface* ss) {
+  void setSatSolver(CDCLTSatSolverInterface* ss)
+  {
     // setPropEngine should not be called more than once
     Assert(d_satSolver == NULL);
     Assert(ss != NULL);
@@ -142,9 +142,12 @@ class DecisionEngine {
   // External World helping us help the Strategies
 
   /**
-   * Add a list of assertions from an AssertionPipeline.
+   * Add a list of assertions, as well as lemmas coming from preprocessing
+   * (ppLemmas) and pairwise the skolems they constrain (ppSkolems).
    */
-  void addAssertions(const preprocessing::AssertionPipeline& assertions);
+  void addAssertions(const std::vector<Node>& assertions,
+                     const std::vector<Node>& ppLemmas,
+                     const std::vector<Node>& ppSkolems);
 
   // Interface for Strategies to use stuff stored in Decision Engine
   // (which was possibly requested by them on initialization)
