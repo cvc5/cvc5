@@ -3093,7 +3093,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
       if(!isSatLiteral(rwbranch)){
-        d_approxCuts.push_back(branch);
+        d_approxCuts.push_back(branch.getNode());
         return true;
       }
     }
@@ -3769,7 +3769,7 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
     {
       Node less = nm->mkNode(kind::LT, var, mkRationalNode(nearest));
       Node greater = nm->mkNode(kind::GT, var, mkRationalNode(nearest));
-      // TODO: justify. Thread proofs through *ensureLiteral*.
+      // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
       Debug("integers::pf") << "less: " << less << endl;
       Debug("integers::pf") << "greater: " << greater << endl;
       Debug("integers::pf") << "literal: " << literal << endl;

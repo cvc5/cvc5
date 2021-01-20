@@ -45,9 +45,8 @@ class TheoryArith : public Theory {
 
   TimerStat d_ppRewriteTimer;
 
-  // Used to prove pp-rewrites
+  /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;
-  ProofNodeManager* d_pnm;
 
  public:
   TheoryArith(context::Context* c,
@@ -157,10 +156,13 @@ class TheoryArith : public Theory {
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
 
+<<<<<<< HEAD
   /**
    * Proofs enabled?
    */
   bool proofsEnabled() const;
+=======
+>>>>>>> master
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

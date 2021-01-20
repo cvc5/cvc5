@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --tlimit 1000
 ; EXPECT: unknown
-(set-logic AUFLIA)
+(set-logic AUFNIA)
 (declare-fun f (Int) Int)
 
 
