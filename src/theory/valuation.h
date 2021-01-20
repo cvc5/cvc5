@@ -140,8 +140,7 @@ public:
    * as well as CNF conversion
    */
   Node ensureLiteral(TNode n) CVC4_WARN_UNUSED_RESULT;
-  
-  
+
   Node ensureTerm(TNode n);
 
   /**

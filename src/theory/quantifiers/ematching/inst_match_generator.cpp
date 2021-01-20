@@ -1057,14 +1057,17 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
   Assert(Trigger::isSimpleTrigger(d_match_pattern));
   Valuation& val = qe->getValuation();
   std::vector<Node> mpChildren;
-  if (d_match_pattern.getMetaKind()==metakind::PARAMETERIZED)
+  if (d_match_pattern.getMetaKind() == metakind::PARAMETERIZED)
   {
     mpChildren.push_back(d_match_pattern.getOperator());
   }
-  for( size_t i=0; i<d_match_pattern.getNumChildren(); i++ ){
+  for (size_t i = 0; i < d_match_pattern.getNumChildren(); i++)
+  {
     Node t = d_match_pattern[i];
-    if( t.getKind()==INST_CONSTANT ){
-      if( quantifiers::TermUtil::getInstConstAttr(t)==q ){
+    if (t.getKind() == INST_CONSTANT)
+    {
+      if (quantifiers::TermUtil::getInstConstAttr(t) == q)
+      {
         d_var_num[i] = t.getAttribute(InstVarNumAttribute());
       }else{
         d_var_num[i] = -1;
@@ -1077,9 +1080,10 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
       t = val.ensureTerm(t);
     }
     mpChildren.push_back(t);
-    d_match_pattern_arg_types.push_back( t.getType() );
+    d_match_pattern_arg_types.push_back(t.getType());
   }
-  d_match_pattern = NodeManager::currentNM()->mkNode(d_match_pattern.getKind(), mpChildren);
+  d_match_pattern =
+      NodeManager::currentNM()->mkNode(d_match_pattern.getKind(), mpChildren);
   d_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
 }
 

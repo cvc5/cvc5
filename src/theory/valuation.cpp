@@ -159,7 +159,8 @@ Node Valuation::ensureLiteral(TNode n) {
   return d_engine->ensureLiteral(n);
 }
 
-Node Valuation::ensureTerm(TNode n) {
+Node Valuation::ensureTerm(TNode n)
+{
   Assert(d_engine != nullptr);
   return d_engine->ensureTerm(n);
 }
