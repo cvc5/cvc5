@@ -311,8 +311,17 @@ int MonomialCheck::compareSign(
   {
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
-      Node lemma = av.eqNode(d_data->d_zero).impNode(oa.eqNode(d_data->d_zero));
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN);
+      Node prem = av.eqNode(d_data->d_zero);
+      Node conc = oa.eqNode(d_data->d_zero);
+      Node lemma = prem.impNode(conc);
+      CDProof* proof = nullptr;
+      if (d_data->isProofEnabled())
+      {
+        proof = d_data->getProof();
+        proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
+        proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
+      }
+      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN, proof);
     }
     return 0;
   }

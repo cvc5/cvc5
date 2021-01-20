@@ -550,9 +550,12 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true, true);
       addArithmeticOperators();
-      addOperator(api::INTS_DIVISION, "div");
-      addOperator(api::INTS_MODULUS, "mod");
-      addOperator(api::ABS, "abs");
+      if (!d_logic.isLinear())
+      {
+        addOperator(api::INTS_DIVISION, "div");
+        addOperator(api::INTS_MODULUS, "mod");
+        addOperator(api::ABS, "abs");
+      }
       addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
     }
 
@@ -642,7 +645,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::INTERSECTION_MIN, "intersection_min");
     addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
     addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::SUBBAG, "bag.is_included");
+    addOperator(api::SUBBAG, "subbag");
     addOperator(api::BAG_COUNT, "bag.count");
     addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
     addOperator(api::MK_BAG, "bag");

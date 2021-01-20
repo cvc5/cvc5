@@ -69,10 +69,16 @@ class TheoryPreprocessor
   TrustNode preprocess(TNode node,
                        std::vector<TrustNode>& newLemmas,
                        std::vector<Node>& newSkolems,
-                       bool doTheoryPreprocess);
+                       bool doTheoryPreprocess,
+                       bool fixedPoint);
+  /**
+   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
+   * can be extracted from the RemoveTermFormulas utility.
+   */
+  TrustNode preprocess(TNode node, bool doTheoryPreprocess);
   /**
    * Same as above, but transforms the proof of node into a proof of the
-   * preprocessed node.
+   * preprocessed node and returns the LEMMA trust node.
    *
    * @param node The assertion to preprocess,
    * @param newLemmas The lemmas to add to the set of assertions,
@@ -84,15 +90,23 @@ class TheoryPreprocessor
   TrustNode preprocessLemma(TrustNode node,
                             std::vector<TrustNode>& newLemmas,
                             std::vector<Node>& newSkolems,
-                            bool doTheoryPreprocess);
+                            bool doTheoryPreprocess,
+                            bool fixedPoint);
   /**
-   * Runs theory specific preprocessing on the non-Boolean parts of
-   * the formula.  This is only called on input assertions, after ITEs
-   * have been removed.
+   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
+   * can be extracted from the RemoveTermFormulas utility.
    */
-  TrustNode theoryPreprocess(TNode node);
+  TrustNode preprocessLemma(TrustNode node, bool doTheoryPreprocess);
+
+  /** Get the term formula removal utility */
+  RemoveTermFormulas& getRemoveTermFormulas();
 
  private:
+  /**
+   * Runs theory specific preprocessing (Theory::ppRewrite) on the non-Boolean
+   * parts of the node.
+   */
+  TrustNode theoryPreprocess(TNode node);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
   /** Logic info of theory engine */

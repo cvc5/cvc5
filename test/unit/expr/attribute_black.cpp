@@ -64,7 +64,7 @@ TEST_F(TestExprBlackAttribute, ints)
   ASSERT_FALSE(node->getAttribute(attr, data0));
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }
@@ -82,7 +82,7 @@ TEST_F(TestExprBlackAttribute, tnodes)
   ASSERT_FALSE(node->getAttribute(attr, data0));
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }
@@ -100,7 +100,7 @@ TEST_F(TestExprBlackAttribute, strings)
   ASSERT_FALSE(node->getAttribute(attr, data0));
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }
@@ -116,10 +116,10 @@ TEST_F(TestExprBlackAttribute, bools)
 
   BoolAttribute attr;
   ASSERT_TRUE(node->getAttribute(attr, data0));
-  EXPECT_EQ(false, data0);
+  ASSERT_EQ(false, data0);
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }

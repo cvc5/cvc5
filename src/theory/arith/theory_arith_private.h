@@ -552,9 +552,11 @@ private:
    * Returns a cut for a lemma.
    * If there is an integer model, this returns Node::null().
    */
-  Node roundRobinBranch();
+  TrustNode roundRobinBranch();
 
-public:
+  bool proofsEnabled() const { return d_pnm; }
+
+ public:
   /**
    * This requests a new unique ArithVar value for x.
    * This also does initial (not context dependent) set up for a variable,
@@ -709,7 +711,7 @@ private:
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  Node branchIntegerVariable(ArithVar x) const;
+  TrustNode branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;
