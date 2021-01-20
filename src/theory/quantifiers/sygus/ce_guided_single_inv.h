@@ -119,12 +119,14 @@ class CegSingleInv
    * Get solution for the sol_index^th function to synthesize of the conjecture
    * this class was assigned.
    *
-   * @param sol_index The index of the function-to-synthesize
+   * @param sol_index The index of the function to synthesize
    * @param stn The sygus type of the solution, which corresponds to syntactic
    * restrictions
    * @param reconstructed Set to the status of reconstructing the solution,
-   * where 1 = success, 0 = no reconstruction specified, -1 = faled
-   * @param rconsSygus Whether to apply sygus reconstruction techniques
+   * where 1 = success, 0 = no reconstruction specified, -1 = failed
+   * @param rconsSygus Whether to apply sygus reconstruction techniques based
+   * on the underlying reconstruction module. If this is false, then the
+   * solution does not necessarily fit the grammar.
    * @return the solution for the sol_index^th function to synthesize of the
    * conjecture assigned to this class.
    */
@@ -156,7 +158,7 @@ class CegSingleInv
   Node getSolutionFromInst(size_t index);
   /**
    * Set solution, which sets the d_solutions / d_rcSolutions fields based on
-   * calls to the above method.
+   * calls to the above method getSolutionFromInst.
    */
   void setSolution();
   /** The conjecture */

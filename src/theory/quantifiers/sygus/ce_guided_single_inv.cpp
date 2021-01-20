@@ -69,11 +69,11 @@ void CegSingleInv::initialize(Node q)
   // infer single invocation-ness
 
   // get the variables
-  std::map<Node, std::vector<Node> > prog_vars;
+  std::map<Node, std::vector<Node> > progVars;
   for (const Node& sf : q[0])
   {
     // get its argument list
-    SygusUtils::getSygusArgumentListForSynthFun(sf, prog_vars[sf]);
+    SygusUtils::getSygusArgumentListForSynthFun(sf, progVars[sf]);
   }
   // compute single invocation partition
   Node qq;
