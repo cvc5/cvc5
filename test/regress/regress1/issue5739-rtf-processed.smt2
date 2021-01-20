@@ -1,3 +1,5 @@
+; COMMAND-LINE: --cegqi-full
+; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
 (assert
