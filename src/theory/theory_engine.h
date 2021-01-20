@@ -658,6 +658,7 @@ class TheoryEngine {
    */
   Node ensureLiteral(TNode n);
 
+  Node ensureTerm(TNode n);
   /**
    * Print all instantiations made by the quantifiers module.
    */

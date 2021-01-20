@@ -190,6 +190,8 @@ class PropEngine
    * via getSatValue().
    */
   Node ensureLiteral(TNode n);
+  
+  Node ensureTerm(TNode n);
 
   /**
    * Push the context level.

@@ -1055,16 +1055,31 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
     Assert(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
   }
   Assert(Trigger::isSimpleTrigger(d_match_pattern));
-  for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
-    if( d_match_pattern[i].getKind()==INST_CONSTANT ){
-      if( !options::cegqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
-        d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
+  Valuation& val = qe->getValuation();
+  std::vector<Node> mpChildren;
+  if (d_match_pattern.getMetaKind()==metakind::PARAMETERIZED)
+  {
+    mpChildren.push_back(d_match_pattern.getOperator());
+  }
+  for( size_t i=0; i<d_match_pattern.getNumChildren(); i++ ){
+    Node t = d_match_pattern[i];
+    if( t.getKind()==INST_CONSTANT ){
+      if( quantifiers::TermUtil::getInstConstAttr(t)==q ){
+        d_var_num[i] = t.getAttribute(InstVarNumAttribute());
       }else{
         d_var_num[i] = -1;
       }
     }
-    d_match_pattern_arg_types.push_back( d_match_pattern[i].getType() );
+    else
+    {
+      // must ensure term is preprocessed
+      Assert(!quantifiers::TermUtil::hasInstConstAttr(t));
+      t = val.ensureTerm(t);
+    }
+    mpChildren.push_back(t);
+    d_match_pattern_arg_types.push_back( t.getType() );
   }
+  d_match_pattern = NodeManager::currentNM()->mkNode(d_match_pattern.getKind(), mpChildren);
   d_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
 }
 
