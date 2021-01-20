@@ -1504,6 +1504,7 @@ set(regress_1_tests
   regress1/fmf/issue3689.smt2
   regress1/fmf/issue4068-si-qf.smt2
   regress1/fmf/issue4225-univ-fun.smt2
+  regress1/fmf/issue5738-dt-interp-finite.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
