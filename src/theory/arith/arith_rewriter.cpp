@@ -376,11 +376,11 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
 RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
 {
   Assert(t.getKind() == kind::IAND);
+  size_t bsize = t.getOperator().getConst<IntAnd>().d_size;
   NodeManager* nm = NodeManager::currentNM();
   // if constant, we eliminate
   if (t[0].isConst() && t[1].isConst())
   {
-    size_t bsize = t.getOperator().getConst<IntAnd>().d_size;
     Node iToBvop = nm->mkConst(IntToBitVector(bsize));
     Node arg1 = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvop, t[0]);
     Node arg2 = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvop, t[1]);
@@ -410,6 +410,11 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
     {
       // ((_ iand k) 0 y) ---> 0
       return RewriteResponse(REWRITE_DONE, t[i]);
+    }
+    if (t[i].getConst<Rational>().getNumerator() == Integer(2).pow(bsize) - 1)
+    {
+      // ((_ iand k) 111...1 y) ---> y
+      return RewriteResponse(REWRITE_DONE, t[i == 0 ? 1 : 0]);
     }
   }
   return RewriteResponse(REWRITE_DONE, t);
