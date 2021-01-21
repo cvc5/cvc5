@@ -189,14 +189,14 @@ class Trigger {
   */
   virtual int addInstantiations();
   /** Return whether this is a multi-trigger. */
-  bool isMultiTrigger() { return d_nodes.size()>1; }
+  bool isMultiTrigger() const { return d_nodes.size()>1; }
   /** Get instantiation pattern list associated with this trigger.
    *
   * An instantiation pattern list is the node representation of a trigger, in
   * particular, it is the third argument of quantified formulas which have user
   * (! ... :pattern) attributes.
   */
-  Node getInstPattern();
+  Node getInstPattern() const;
   /* A heuristic value indicating how active this generator is.
    *
   * This returns the number of ground terms for the match operators in terms
@@ -435,6 +435,8 @@ class Trigger {
   virtual bool sendInstantiation(InstMatch& m);
   /** The nodes comprising this trigger. */
   std::vector< Node > d_nodes;
+  /** The preprocessed ground terms in the nodes of the trigger */
+  std::vector< Node > d_groundTerms;
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
   /** The quantified formula this trigger is for. */

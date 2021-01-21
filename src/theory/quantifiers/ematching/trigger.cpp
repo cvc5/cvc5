@@ -26,6 +26,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
+#include "expr/skolem_manager.h"
 #include "util/hash.h"
 
 using namespace std;
@@ -35,6 +36,65 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace inst {
+
+Node ensureGroundTermPreprocessed( Valuation& val, Node n, std::vector<Node>& gts ){
+  NodeManager * nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do 
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end()) 
+    {
+      if (cur.getNumChildren()==0)
+      {
+        visited[cur] = cur;
+      }
+      else if (!quantifiers::TermUtil::hasInstConstAttr(cur))
+      {
+        Node vcur = val.ensureTerm(cur);
+        gts.push_back(vcur);
+        visited[cur] =vcur;
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.insert(visit.end(),cur.begin(),cur.end());
+      }
+    } 
+    else if (it->second.isNull()) 
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur )
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) 
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
+}
 
 void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
   if( d_fv.empty() ){
@@ -53,7 +113,14 @@ void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
 Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     : d_quantEngine(qe), d_quant(q)
 {
-  d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
+  // We must ensure that the ground subterms of the trigger have been
+  // preprocessed.
+  Valuation& val = qe->getValuation();
+  for (const Node& n : nodes)
+  {
+    Node np = ensureGroundTermPreprocessed(val, n, d_groundTerms);
+    d_nodes.push_back(np);
+  }
   if (Trace.isOn("trigger"))
   {
     quantifiers::QuantAttributes* qa = d_quantEngine->getQuantAttributes();
@@ -67,8 +134,10 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
   if( d_nodes.size()==1 ){
     if( isSimpleTrigger( d_nodes[0] ) ){
       d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qe);
+      ++(qe->d_statistics.d_triggers);
     }else{
       d_mg = InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qe);
+      ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
@@ -76,22 +145,16 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     }else{
       d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(q, d_nodes, qe);
     }
-  }
-  if( d_nodes.size()==1 ){
-    if( isSimpleTrigger( d_nodes[0] ) ){
-      ++(qe->d_statistics.d_triggers);
-    }else{
-      ++(qe->d_statistics.d_simple_triggers);
-    }
-  }else{
-    Trace("multi-trigger") << "Trigger for " << q << ": " << std::endl;
-    for( unsigned i=0; i<d_nodes.size(); i++ ){
-      Trace("multi-trigger") << "   " << d_nodes[i] << std::endl;
+    if (Trace.isOn("multi-trigger"))
+    {
+      Trace("multi-trigger") << "Trigger for " << q << ": " << std::endl;
+      for( const Node& nc : d_nodes ){
+        Trace("multi-trigger") << "   " << nc << std::endl;
+      }
     }
     ++(qe->d_statistics.d_multi_triggers);
   }
 
-  // Notice() << "Trigger : " << (*this) << "  for " << q << std::endl;
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
 }
 
@@ -107,13 +170,36 @@ void Trigger::reset( Node eqc ){
   d_mg->reset( eqc, d_quantEngine );
 }
 
-Node Trigger::getInstPattern(){
+Node Trigger::getInstPattern() const{
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
 int Trigger::addInstantiations()
 {
-  int addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
+  int addedLemmas = 0;
+  if (!d_groundTerms.empty())
+  {
+    // for each ground term that does not exist in the equality engine, we
+    // add a purification lemma.
+    eq::EqualityEngine* ee = d_quantEngine->getEqualityQuery()->getEngine();
+    for (const Node& gt : d_groundTerms)
+    {
+      if (!ee->hasTerm(gt))
+      {
+        SkolemManager * sm = NodeManager::currentNM()->getSkolemManager();
+        Node k = sm->mkPurifySkolem(gt, "gt");
+        Node eq = k.eqNode(gt);
+        Trace("trigger-gt-lemma") << "Trigger: ground term purify lemma: " << eq << std::endl;
+        d_quantEngine->addLemma(eq);
+        addedLemmas++;
+      }
+    }
+    if (addedLemmas>0)
+    {
+      return addedLemmas;
+    }
+  }
+  addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
   if( addedLemmas>0 ){
     if (Debug.isOn("inst-trigger"))
     {
