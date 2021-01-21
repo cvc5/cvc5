@@ -131,7 +131,11 @@ bool Trigger::sendInstantiation(InstMatch& m)
   return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
 }
 
-bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, nvars n_vars, std::vector< Node >& trNodes ) {
+bool Trigger::mkTriggerTerms(Node q,
+                             std::vector<Node>& nodes,
+                             nvars n_vars,
+                             std::vector<Node>& trNodes)
+{
   //only take nodes that contribute variables to the trigger when added
   std::vector< Node > temp;
   temp.insert( temp.begin(), nodes.begin(), nodes.end() );
@@ -144,7 +148,8 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, nvars n_vars, 
     quantifiers::TermUtil::computeInstConstContainsForQuant(
         q, pat, varContains[pat]);
   }
-  for (const Node& t : temp){
+  for (const Node& t : temp)
+  {
     std::vector<Node>& vct = varContains[t];
     bool foundVar = false;
     for (const Node& v : vct)
@@ -157,10 +162,10 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, nvars n_vars, 
       }
     }
     if( foundVar ){
-      trNodes.push_back( t );
+      trNodes.push_back(t);
       for (const Node& v : vct)
       {
-        patterns[ v ].push_back( t );
+        patterns[v].push_back(t);
       }
     }
     if( varCount==n_vars ){
@@ -192,13 +197,12 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, nvars n_vars, 
       // remove from pattern vector
       for (const Node& v : vcn)
       {
-        std::vector< Node >& pv : patterns[v];
+        std::vector<Node>& pv : patterns[v];
         for (size_t k = 0, pvsize = pv.size(); k < pvsize; k++)
         {
           if (pv[k] == n)
           {
-            pv.erase(pv.begin() + k,
-                              pv.begin() + k + 1);
+            pv.erase(pv.begin() + k, pv.begin() + k + 1);
             break;
           }
         }
@@ -212,11 +216,18 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, nvars n_vars, 
   return true;
 }
 
-Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >& nodes, bool keepAll, int trOption, size_t useNVars ){
+Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
+                            Node f,
+                            std::vector<Node>& nodes,
+                            bool keepAll,
+                            int trOption,
+                            size_t useNVars)
+{
   std::vector< Node > trNodes;
   if( !keepAll ){
-    size_t nvars = useNVars==0 ? f[0].getNumChildren() : useNVars;
-    if( !mkTriggerTerms( f, nodes, nvars, trNodes ) ){
+    size_t nvars = useNVars == 0 ? f[0].getNumChildren() : useNVars;
+    if (!mkTriggerTerms(f, nodes, nvars, trNodes))
+    {
       return nullptr;
     }
   }else{
@@ -257,10 +268,16 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
   return t;
 }
 
-Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, bool keepAll, int trOption, size_t useNVars ){
+Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
+                            Node f,
+                            Node n,
+                            bool keepAll,
+                            int trOption,
+                            size_t useNVars)
+{
   std::vector< Node > nodes;
   nodes.push_back( n );
-  return mkTrigger( qe, f, nodes, keepAll, trOption, useNVars );
+  return mkTrigger(qe, f, nodes, keepAll, trOption, useNVars);
 }
 
 bool Trigger::isUsable( Node n, Node q ){
