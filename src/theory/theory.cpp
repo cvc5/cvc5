@@ -424,6 +424,11 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   d_careGraph = NULL;
 }
 
+bool Theory::proofsEnabled() const
+{
+  return d_pnm != nullptr;
+}
+
 EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
 {
   // if not using an equality engine, then by default we don't know the status

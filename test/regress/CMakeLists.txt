@@ -722,6 +722,9 @@ set(regress_0_tests
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/issue5163.smt2
+  regress0/parser/linear_arithmetic_err1.smt2
+  regress0/parser/linear_arithmetic_err2.smt2
+  regress0/parser/linear_arithmetic_err3.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -1501,6 +1504,7 @@ set(regress_1_tests
   regress1/fmf/issue3689.smt2
   regress1/fmf/issue4068-si-qf.smt2
   regress1/fmf/issue4225-univ-fun.smt2
+  regress1/fmf/issue5738-dt-interp-finite.smt2
   regress1/fmf/issue916-fmf-or.smt2
   regress1/fmf/jasmin-cdt-crash.smt2
   regress1/fmf/ko-bound-set.cvc
@@ -1538,6 +1542,7 @@ set(regress_1_tests
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
   regress1/issue4335-unsat-core.smt2
+  regress1/issue5739-rtf-processed.smt2 
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
@@ -1749,6 +1754,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5484b-qe.smt2
   regress1/quantifiers/issue5506-qe.smt2
   regress1/quantifiers/issue5507-qe.smt2
+  regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lia-witness-div-pp.smt2
