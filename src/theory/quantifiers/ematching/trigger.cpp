@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
@@ -26,7 +27,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
-#include "expr/skolem_manager.h"
 #include "util/hash.h"
 
 using namespace std;
@@ -37,21 +37,24 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-Node ensureGroundTermPreprocessed( Valuation& val, Node n, std::vector<Node>& gts ){
-  NodeManager * nm = NodeManager::currentNM();
+Node ensureGroundTermPreprocessed(Valuation& val,
+                                  Node n,
+                                  std::vector<Node>& gts)
+{
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do 
+  do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
-      if (cur.getNumChildren()==0)
+      if (cur.getNumChildren() == 0)
       {
         visited[cur] = cur;
       }
@@ -59,24 +62,25 @@ Node ensureGroundTermPreprocessed( Valuation& val, Node n, std::vector<Node>& gt
       {
         Node vcur = val.ensureTerm(cur);
         gts.push_back(vcur);
-        visited[cur] =vcur;
+        visited[cur] = vcur;
       }
       else
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-    } 
-    else if (it->second.isNull()) 
+    }
+    else if (it->second.isNull())
     {
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         it = visited.find(cn);
         Assert(it != visited.end());
@@ -84,7 +88,7 @@ Node ensureGroundTermPreprocessed( Valuation& val, Node n, std::vector<Node>& gt
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) 
+      if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
@@ -148,7 +152,8 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     if (Trace.isOn("multi-trigger"))
     {
       Trace("multi-trigger") << "Trigger for " << q << ": " << std::endl;
-      for( const Node& nc : d_nodes ){
+      for (const Node& nc : d_nodes)
+      {
         Trace("multi-trigger") << "   " << nc << std::endl;
       }
     }
@@ -170,7 +175,8 @@ void Trigger::reset( Node eqc ){
   d_mg->reset( eqc, d_quantEngine );
 }
 
-Node Trigger::getInstPattern() const{
+Node Trigger::getInstPattern() const
+{
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
@@ -186,15 +192,16 @@ int Trigger::addInstantiations()
     {
       if (!ee->hasTerm(gt))
       {
-        SkolemManager * sm = NodeManager::currentNM()->getSkolemManager();
+        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
         Node k = sm->mkPurifySkolem(gt, "gt");
         Node eq = k.eqNode(gt);
-        Trace("trigger-gt-lemma") << "Trigger: ground term purify lemma: " << eq << std::endl;
+        Trace("trigger-gt-lemma")
+            << "Trigger: ground term purify lemma: " << eq << std::endl;
         d_quantEngine->addLemma(eq);
         addedLemmas++;
       }
     }
-    if (addedLemmas>0)
+    if (addedLemmas > 0)
     {
       return addedLemmas;
     }
