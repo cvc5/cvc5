@@ -53,7 +53,7 @@ void QuantRelevance::computeSymbols(Node n, std::vector<Node>& syms)
 size_t QuantRelevance::getNumQuantifiersForSymbol(Node s) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_syms_quants.find(s);
-  if (it==d_syms_quants.end())
+  if (it == d_syms_quants.end())
   {
     return 0;
   }
