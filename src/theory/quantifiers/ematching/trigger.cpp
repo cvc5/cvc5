@@ -133,7 +133,7 @@ bool Trigger::sendInstantiation(InstMatch& m)
 
 bool Trigger::mkTriggerTerms(Node q,
                              std::vector<Node>& nodes,
-                             nvars n_vars,
+                             size_t nvars,
                              std::vector<Node>& trNodes)
 {
   //only take nodes that contribute variables to the trigger when added
@@ -168,11 +168,11 @@ bool Trigger::mkTriggerTerms(Node q,
         patterns[v].push_back(t);
       }
     }
-    if( varCount==n_vars ){
+    if( varCount==nvars ){
       break;
     }
   }
-  if( varCount<n_vars ){
+  if( varCount<nvars ){
     Trace("trigger-debug") << "Don't consider trigger since it does not contain specified number of variables." << std::endl;
     Trace("trigger-debug") << nodes << std::endl;
     //do not generate multi-trigger if it does not contain all variables
@@ -197,7 +197,7 @@ bool Trigger::mkTriggerTerms(Node q,
       // remove from pattern vector
       for (const Node& v : vcn)
       {
-        std::vector<Node>& pv : patterns[v];
+        std::vector<Node>& pv = patterns[v];
         for (size_t k = 0, pvsize = pv.size(); k < pvsize; k++)
         {
           if (pv[k] == n)
@@ -212,7 +212,6 @@ bool Trigger::mkTriggerTerms(Node q,
       i--;
     }
   }
-
   return true;
 }
 
@@ -520,6 +519,7 @@ void Trigger::collectPatTerms2(Node q,
   Kind nk = n.getKind();
   if (nk == FORALL || nk == INST_CONSTANT)
   {
+    // do not traverse beneath quantified formulas
     return;
   }
   Node nu;
@@ -528,7 +528,7 @@ void Trigger::collectPatTerms2(Node q,
   {
     nu = n;
   }
-  else if (n.getKind() != NOT
+  else if (nk != NOT
            && std::find(exclude.begin(), exclude.end(), n) == exclude.end())
   {
     nu = getIsUsableTrigger(n, q);
@@ -749,8 +749,8 @@ void Trigger::collectPatTerms(Node q,
   }
   std::vector< Node > added;
   collectPatTerms2( q, n, visited, tinfo, tstrt, exclude, added, true, true, false, true );
-  for( std::map< Node, TriggerTermInfo >::iterator it = tinfo.begin(); it != tinfo.end(); ++it ){
-    patTerms.push_back( it->first );
+  for( const std::pair< const Node, TriggerTermInfo >& t : tinfo){
+    patTerms.push_back( t.first );
   }
 }
 
@@ -808,42 +808,40 @@ int Trigger::isTriggerInstanceOf(Node n1,
           subs_vars.insert(cur1[i]);
         }
       }
+      continue;
     }
-    else
+    bool success = false;
+    // check if we are in a unifiable instance case
+    // must be only this case
+    for (unsigned r = 0; r < 2; r++)
     {
-      bool success = false;
-      // check if we are in a unifiable instance case
-      // must be only this case
-      for (unsigned r = 0; r < 2; r++)
+      if (status == 0 || ((status == 1) == (r == 0)))
       {
-        if (status == 0 || ((status == 1) == (r == 0)))
+        TNode curi = r == 0 ? cur1 : cur2;
+        if (curi.getKind() == INST_CONSTANT
+            && subs_vars.find(curi) == subs_vars.end())
         {
-          TNode curi = r == 0 ? cur1 : cur2;
-          if (curi.getKind() == INST_CONSTANT
-              && subs_vars.find(curi) == subs_vars.end())
+          TNode curj = r == 0 ? cur2 : cur1;
+          // RHS must be a simple trigger
+          if (getTriggerWeight(curj) == 0)
           {
-            TNode curj = r == 0 ? cur2 : cur1;
-            // RHS must be a simple trigger
-            if (getTriggerWeight(curj) == 0)
+            // must occur in the free variables in the other
+            const std::vector<Node>& free_vars = r == 0 ? fv2 : fv1;
+            if (std::find(free_vars.begin(), free_vars.end(), curi)
+                != free_vars.end())
             {
-              // must occur in the free variables in the other
-              const std::vector<Node>& free_vars = r == 0 ? fv2 : fv1;
-              if (std::find(free_vars.begin(), free_vars.end(), curi)
-                  != free_vars.end())
-              {
-                status = r == 0 ? 1 : -1;
-                subs_vars.insert(curi);
-                success = true;
-                break;
-              }
+              status = r == 0 ? 1 : -1;
+              subs_vars.insert(curi);
+              success = true;
+              break;
             }
           }
         }
       }
-      if (!success)
-      {
-        return 0;
-      }
+    }
+    if (!success)
+    {
+      return 0;
     }
   } while (!visit.empty());
   return status;
