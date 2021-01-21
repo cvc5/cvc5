@@ -45,15 +45,14 @@ struct sortQuantifiersForSymbol {
   QuantRelevance* d_quant_rel;
   std::map< Node, Node > d_op_map;
   bool operator() (Node i, Node j) {
-    int nqfsi = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[i]);
-    int nqfsj = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[j]);
+    size_t nqfsi = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[i]);
+    size_t nqfsj = d_quant_rel->getNumQuantifiersForSymbol(d_op_map[j]);
     if( nqfsi<nqfsj ){
       return true;
     }else if( nqfsi>nqfsj ){
       return false;
-    }else{
-      return false;
     }
+    return false;
   }
 };
 
@@ -72,10 +71,10 @@ struct sortTriggers {
 void InstStrategyUserPatterns::processResetInstantiationRound( Theory::Effort effort ){
   Trace("inst-alg-debug") << "reset user triggers" << std::endl;
   //reset triggers
-  for( std::map< Node, std::vector< Trigger* > >::iterator it = d_user_gen.begin(); it != d_user_gen.end(); ++it ){
-    for( unsigned i=0; i<it->second.size(); i++ ){
-      it->second[i]->resetInstantiationRound();
-      it->second[i]->reset( Node::null() );
+  for( std::pair< Node, std::vector< Trigger* > >& u : d_user_gen ){
+    for( Trigger* t : u.second){
+      t->resetInstantiationRound();
+      t->reset( Node::null() );
     }
   }
   Trace("inst-alg-debug") << "done reset user triggers" << std::endl;
@@ -84,81 +83,81 @@ void InstStrategyUserPatterns::processResetInstantiationRound( Theory::Effort ef
 int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
   if( e==0 ){
     return STATUS_UNFINISHED;
-  }else{
-    int peffort =
-        d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT ? 2
-                                                                            : 1;
-    if( e<peffort ){
-      return STATUS_UNFINISHED;
-    }else if( e==peffort ){
-      d_counter[f]++;
+  }
+  options::UserPatMode upm = d_quantEngine->getInstUserPatMode();
+  int peffort =
+      upm == options::UserPatMode::RESORT ? 2
+                                                                          : 1;
+  if( e<peffort ){
+    return STATUS_UNFINISHED;
+  }
+  if( e!=peffort ){
+    return STATUS_UNKNOWN;
+  }
+  d_counter[f]++;
 
-      Trace("inst-alg") << "-> User-provided instantiate " << f << "..." << std::endl;
-      if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
-      {
-        for( unsigned i=0; i<d_user_gen_wait[f].size(); i++ ){
-          Trigger * t = Trigger::mkTrigger( d_quantEngine, f, d_user_gen_wait[f][i], true, Trigger::TR_RETURN_NULL );
-          if( t ){
-            d_user_gen[f].push_back( t );
-          }
-        }
-        d_user_gen_wait[f].clear();
-      }
-
-      for( unsigned i=0; i<d_user_gen[f].size(); i++ ){
-        bool processTrigger = true;
-        if( processTrigger ){
-          Trace("process-trigger") << "  Process (user) ";
-          d_user_gen[f][i]->debugPrint("process-trigger");
-          Trace("process-trigger") << "..." << std::endl;
-          int numInst = d_user_gen[f][i]->addInstantiations();
-          Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
-          d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
-          if( d_user_gen[f][i]->isMultiTrigger() ){
-            d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-          }
-          if( d_quantEngine->inConflict() ){
-            break;
-          }
-        }
+  Trace("inst-alg") << "-> User-provided instantiate " << f << "..." << std::endl;
+  if (upm == options::UserPatMode::RESORT)
+  {
+    std::vector< std::vector< Node > >& ugw = d_user_gen_wait[f];
+    for( unsigned i=0; i<ugw.size(); i++ ){
+      Trigger * t = Trigger::mkTrigger( d_quantEngine, f, ugw[i], true, Trigger::TR_RETURN_NULL );
+      if( t ){
+        d_user_gen[f].push_back( t );
       }
     }
+    ugw.clear();
   }
+
+  std::vector< inst::Trigger* >& ug = d_user_gen[f];
+  for (Trigger* t : ug){
+    Trace("process-trigger") << "  Process (user) ";
+    t->debugPrint("process-trigger");
+    Trace("process-trigger") << "..." << std::endl;
+    unsigned numInst = t->addInstantiations();
+    Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
+    d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
+    if( t->isMultiTrigger() ){
+      d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
+    }
+    if( d_quantEngine->inConflict() ){
+      break;
+    }
+  }
+  
+
   return STATUS_UNKNOWN;
 }
 
 void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
   Assert(pat.getKind() == INST_PATTERN);
   //add to generators
-  bool usable = true;
   std::vector< Node > nodes;
-  for( unsigned i=0; i<pat.getNumChildren(); i++ ){
-    Node pat_use = Trigger::getIsUsableTrigger( pat[i], q );
+  for (const Node& p : pat){
+    Node pat_use = Trigger::getIsUsableTrigger( p, q );
     if( pat_use.isNull() ){
-      Trace("trigger-warn") << "User-provided trigger is not usable : " << pat << " because of " << pat[i] << std::endl;
-      usable = false;
-      break;
+      Trace("trigger-warn") << "User-provided trigger is not usable : " << pat << " because of " << p << std::endl;
+      return;
     }else{
       nodes.push_back( pat_use );
     }
   }
-  if( usable ){
-    Trace("user-pat") << "Add user pattern: " << pat << " for " << q << std::endl;
-    //check match option
-    if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
-    {
-      d_user_gen_wait[q].push_back( nodes );
-    }
-    else
-    {
-      Trigger * t = Trigger::mkTrigger( d_quantEngine, q, nodes, true, Trigger::TR_MAKE_NEW );
-      if( t ){
-        d_user_gen[q].push_back( t );
-      }else{
-        Trace("trigger-warn") << "Failed to construct trigger : " << pat << " due to variable mismatch" << std::endl;
-      }
+  Trace("user-pat") << "Add user pattern: " << pat << " for " << q << std::endl;
+  //check match option
+  if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
+  {
+    d_user_gen_wait[q].push_back( nodes );
+  }
+  else
+  {
+    Trigger * t = Trigger::mkTrigger( d_quantEngine, q, nodes, true, Trigger::TR_MAKE_NEW );
+    if( t ){
+      d_user_gen[q].push_back( t );
+    }else{
+      Trace("trigger-warn") << "Failed to construct trigger : " << pat << " due to variable mismatch" << std::endl;
     }
   }
+  
 }
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
@@ -181,10 +180,11 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
   Trace("inst-alg-debug") << "reset auto-gen triggers" << std::endl;
   //reset triggers
   for( unsigned r=0; r<2; r++ ){
-    for( std::map< Node, std::map< Trigger*, bool > >::iterator it = d_auto_gen_trigger[r].begin(); it != d_auto_gen_trigger[r].end(); ++it ){
-      for( std::map< Trigger*, bool >::iterator itt = it->second.begin(); itt != it->second.end(); ++itt ){
-        itt->first->resetInstantiationRound();
-        itt->first->reset( Node::null() );
+    std::map<Node, std::map<inst::Trigger*, bool> >& agts = d_auto_gen_trigger[r];
+    for( std::pair< const Node, std::map< Trigger*, bool > >& agt : agts){
+      for( std::pair< const Trigger*, bool >& t : agt){
+        t.first->resetInstantiationRound();
+        t.first->reset( Node::null() );
       }
     }
   }
@@ -198,101 +198,91 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
   {
     return STATUS_UNKNOWN;
   }
-  else
-  {
-    int peffort = (hasUserPatterns(f) && upMode != options::UserPatMode::IGNORE
-                   && upMode != options::UserPatMode::RESORT)
-                      ? 2
-                      : 1;
-    if( e<peffort ){
-      return STATUS_UNFINISHED;
+  int peffort = (hasUserPatterns(f) && upMode != options::UserPatMode::IGNORE
+                  && upMode != options::UserPatMode::RESORT)
+                    ? 2
+                    : 1;
+  if( e<peffort ){
+    return STATUS_UNFINISHED;
+  }
+  Trace("inst-alg") << "-> Auto-gen instantiate " << f << "..." << std::endl;
+  bool gen = false;
+  if( e==peffort ){
+    if( d_counter.find( f )==d_counter.end() ){
+      d_counter[f] = 0;
+      gen = true;
     }else{
-      Trace("inst-alg") << "-> Auto-gen instantiate " << f << "..." << std::endl;
-      bool gen = false;
-      if( e==peffort ){
-        if( d_counter.find( f )==d_counter.end() ){
-          d_counter[f] = 0;
-          gen = true;
-        }else{
-          d_counter[f]++;
-          gen = d_regenerate && d_counter[f]%d_regenerate_frequency==0;
-        }
-      }else{
-        gen = true;
-      }
-      if( gen ){
-        generateTriggers( f );
-        if( d_counter[f]==0 && d_auto_gen_trigger[0][f].empty() && d_auto_gen_trigger[1][f].empty() && f.getNumChildren()==2 ){
-          Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
-        }
-      }
-
-      //if( e==4 ){
-      //  d_processed_trigger.clear();
-      //  d_quantEngine->getEqualityQuery()->setLiberal( true );
-      //}
-      if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)
+      d_counter[f]++;
+      gen = d_regenerate && d_counter[f]%d_regenerate_frequency==0;
+    }
+  }else{
+    gen = true;
+  }
+  if( gen ){
+    generateTriggers( f );
+    if( d_counter[f]==0 && d_auto_gen_trigger[0][f].empty() && d_auto_gen_trigger[1][f].empty() && f.getNumChildren()==2 ){
+      Trace("trigger-warn") << "Could not find trigger for " << f << std::endl;
+    }
+  }
+  if (options::triggerActiveSelMode() != options::TriggerActiveSelMode::ALL)
+  {
+    int max_score = -1;
+    Trigger * max_trigger = NULL;
+    std::map< Trigger*, bool >& agt = d_auto_gen_trigger[0][f];
+    for( std::pair< const Trigger*, bool >& t : agt ){
+      int score = t.first->getActiveScore();
+      if (options::triggerActiveSelMode()
+          == options::TriggerActiveSelMode::MIN)
       {
-        int max_score = -1;
-        Trigger * max_trigger = NULL;
-        for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[0][f].begin(); itt != d_auto_gen_trigger[0][f].end(); ++itt ){
-          int score = itt->first->getActiveScore();
-          if (options::triggerActiveSelMode()
-              == options::TriggerActiveSelMode::MIN)
-          {
-            if( score>=0 && ( score<max_score || max_score<0 ) ){
-              max_score = score;
-              max_trigger = itt->first;
-            }
-          }
-          else
-          {
-            if( score>max_score ){
-              max_score = score;
-              max_trigger = itt->first;
-            }
-          }
-          d_auto_gen_trigger[0][f][itt->first] = false;
-        }
-        if( max_trigger!=NULL ){
-          d_auto_gen_trigger[0][f][max_trigger] = true;
+        if( score>=0 && ( score<max_score || max_score<0 ) ){
+          max_score = score;
+          max_trigger = itt->first;
         }
       }
-
-      bool hasInst = false;
-      for( unsigned r=0; r<2; r++ ){
-        for( std::map< Trigger*, bool >::iterator itt = d_auto_gen_trigger[r][f].begin(); itt != d_auto_gen_trigger[r][f].end(); ++itt ){
-          Trigger* tr = itt->first;
-          if( tr ){
-            bool processTrigger = itt->second;
-            if( processTrigger && d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
-              d_processed_trigger[f][tr] = true;
-              Trace("process-trigger") << "  Process ";
-              tr->debugPrint("process-trigger");
-              Trace("process-trigger") << "..." << std::endl;
-              int numInst = tr->addInstantiations();
-              hasInst = numInst>0 || hasInst;
-              Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
-              d_quantEngine->d_statistics.d_instantiations_auto_gen += numInst;
-              if( r==1 ){
-                d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-              }
-              if( d_quantEngine->inConflict() ){
-                break;
-              }
-            }
-          }
+      else
+      {
+        if( score>max_score ){
+          max_score = score;
+          max_trigger = itt->first;
         }
-        if( d_quantEngine->inConflict() || ( hasInst && options::multiTriggerPriority() ) ){
+      }
+      agt[t.first] = false;
+    }
+    if( max_trigger!=NULL ){
+      agt[max_trigger] = true;
+    }
+  }
+
+  bool hasInst = false;
+  for( unsigned r=0; r<2; r++ ){
+    std::map< Trigger*, bool >& agt = d_auto_gen_trigger[r][f];
+    for( std::pair< const Trigger*, bool >& t : agt ){
+      Trigger* tr = itt->first;
+      if( tr==nullptr || !t.second){
+        continue;
+      }
+      if( d_processed_trigger[f].find( tr )==d_processed_trigger[f].end() ){
+        d_processed_trigger[f][tr] = true;
+        Trace("process-trigger") << "  Process ";
+        tr->debugPrint("process-trigger");
+        Trace("process-trigger") << "..." << std::endl;
+        int numInst = tr->addInstantiations();
+        hasInst = numInst>0 || hasInst;
+        Trace("process-trigger") << "  Done, numInst = " << numInst << "." << std::endl;
+        d_quantEngine->d_statistics.d_instantiations_auto_gen += numInst;
+        if( r==1 ){
+          d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
+        }
+        if( d_quantEngine->inConflict() ){
           break;
         }
       }
-      //if( e==4 ){
-      //  d_quantEngine->getEqualityQuery()->setLiberal( false );
-      //}
-      return STATUS_UNKNOWN;
+    }
+    if( d_quantEngine->inConflict() || ( hasInst && options::multiTriggerPriority() ) ){
+      break;
     }
   }
+  return STATUS_UNKNOWN;
 }
 
 void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
@@ -572,65 +562,68 @@ void InstStrategyAutoGenTriggers::addPatternToPool( Node q, Node pat, unsigned n
 
 
 void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
-  if( tr ){
-    if( d_num_trigger_vars[q]<q[0].getNumChildren() ){
-      //partial trigger : generate implication to mark user pattern
-      Node pat =
-          d_quantEngine->getTermUtil()->substituteInstConstantsToBoundVariables(
-              tr->getInstPattern(), q);
-      Node ipl = NodeManager::currentNM()->mkNode(INST_PATTERN_LIST, pat);
-      Node qq = NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[1][q], NodeManager::currentNM()->mkNode( FORALL, d_vc_partition[0][q], q[1] ), ipl );
-      Trace("auto-gen-trigger-partial") << "Make partially specified user pattern: " << std::endl;
-      Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
-      Node lem = NodeManager::currentNM()->mkNode( OR, q.negate(), qq );
-      d_quantEngine->addLemma( lem );
-    }else{
-      unsigned tindex;
-      if( tr->isMultiTrigger() ){
-        //disable all other multi triggers
-        for( std::map< Trigger*, bool >::iterator it = d_auto_gen_trigger[1][q].begin(); it != d_auto_gen_trigger[1][q].end(); ++it ){
-          d_auto_gen_trigger[1][q][ it->first ] = false;
-        }
-        tindex = 1;
-      }else{
-        tindex = 0;
-      }
-      //making it during an instantiation round, so must reset
-      if( d_auto_gen_trigger[tindex][q].find( tr )==d_auto_gen_trigger[tindex][q].end() ){
-        tr->resetInstantiationRound();
-        tr->reset( Node::null() );
-      }
-      d_auto_gen_trigger[tindex][q][tr] = true;
-    }
+  if( tr==nullptr ){
+    return;
   }
+  if( d_num_trigger_vars[q]<q[0].getNumChildren() ){
+    NodeManager * nm = NodeManager::currentNM();
+    //partial trigger : generate implication to mark user pattern
+    Node pat =
+        d_quantEngine->getTermUtil()->substituteInstConstantsToBoundVariables(
+            tr->getInstPattern(), q);
+    Node ipl = nm->mkNode(INST_PATTERN_LIST, pat);
+    Node qq = nm->mkNode( FORALL, d_vc_partition[1][q], nm->mkNode( FORALL, d_vc_partition[0][q], q[1] ), ipl );
+    Trace("auto-gen-trigger-partial") << "Make partially specified user pattern: " << std::endl;
+    Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
+    Node lem = nm->mkNode( OR, q.negate(), qq );
+    d_quantEngine->addLemma( lem );
+    return;
+  }
+  unsigned tindex;
+  if( tr->isMultiTrigger() ){
+    //disable all other multi triggers
+    std::map< Trigger*, bool >& agt = d_auto_gen_trigger[1][q];
+    for( std::pair< const Trigger*, bool >& t : agt ){
+      agt[ t.first ] = false;
+    }
+    tindex = 1;
+  }else{
+    tindex = 0;
+  }
+  //making it during an instantiation round, so must reset
+    std::map< Trigger*, bool >& agt = d_auto_gen_trigger[tindex][q];
+  if( agt.find( tr )==agt.end() ){
+    tr->resetInstantiationRound();
+    tr->reset( Node::null() );
+  }
+  agt[tr] = true;
 }
 
 bool InstStrategyAutoGenTriggers::hasUserPatterns( Node q ) {
-  if( q.getNumChildren()==3 ){
-    std::map< Node, bool >::iterator it = d_hasUserPatterns.find( q );
-    if( it==d_hasUserPatterns.end() ){
-      bool hasPat = false;
-      for( unsigned i=0; i<q[2].getNumChildren(); i++ ){
-        if( q[2][i].getKind()==INST_PATTERN ){
-          hasPat = true;
-          break;
-        }
-      }
-      d_hasUserPatterns[q] = hasPat;
-      return hasPat;
-    }else{
-      return it->second;
-    }
-  }else{
+  if( q.getNumChildren()!=3 ){
     return false;
   }
+  std::map< Node, bool >::iterator it = d_hasUserPatterns.find( q );
+  if( it!=d_hasUserPatterns.end() ){
+    return it->second;
+  }
+  bool hasPat = false;
+  for (const Node& ip : q[2]){
+    if( ip.getKind()==INST_PATTERN ){
+      hasPat = true;
+      break;
+    }
+  }
+  d_hasUserPatterns[q] = hasPat;
+  return hasPat;
 }
 
 void InstStrategyAutoGenTriggers::addUserNoPattern( Node q, Node pat ) {
   Assert(pat.getKind() == INST_NO_PATTERN && pat.getNumChildren() == 1);
-  if( std::find( d_user_no_gen[q].begin(), d_user_no_gen[q].end(), pat[0] )==d_user_no_gen[q].end() ){
+  std::vector<Node>& ung = d_user_no_gen[q];
+  if( std::find( ung.begin(), ung.end(), pat[0] )==ung.end() ){
     Trace("user-pat") << "Add user no-pattern: " << pat[0] << " for " << q << std::endl;
-    d_user_no_gen[q].push_back( pat[0] );
+    ung.push_back( pat[0] );
   }
 }
 
