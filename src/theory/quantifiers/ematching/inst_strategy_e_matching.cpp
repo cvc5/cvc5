@@ -308,7 +308,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       Trace("process-trigger") << "  Process ";
       tr->debugPrint("process-trigger");
       Trace("process-trigger") << "..." << std::endl;
-      int numInst = tr->addInstantiations();
+      unsigned numInst = tr->addInstantiations();
       hasInst = numInst > 0 || hasInst;
       Trace("process-trigger")
           << "  Done, numInst = " << numInst << "." << std::endl;
