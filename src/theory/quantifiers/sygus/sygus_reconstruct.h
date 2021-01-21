@@ -22,7 +22,7 @@
 
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
-#include "theory/quantifiers/sygus/obligation_info.h"
+#include "theory/quantifiers/sygus/rcons_obligation_info.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -50,8 +50,8 @@ namespace quantifiers {
  *   // We define Term<k> and Sol<k> for each skolem k such that Obs<T> contains
  *   // entries (k, Term<k>, Sol<k>)
  *
- *   CandSol<k> : a list of possible solutions, for each label k. Whenever there
- *                is a successful match, it's added to this list.
+ *   CandSols<k> : a list of possible solutions, for each label k. Whenever
+ *                 there is a successful match, it's added to this list.
  *   Pool<T> : a list of enumerated terms for each sygus type
  *
  *   let k_0 be a fresh skolem of sygus type T
@@ -65,39 +65,41 @@ namespace quantifiers {
  *     for each T
  *       s[z] = nextEnum(T_{z})
  *       if (s[z] is ground)
- *         if exists (k, t, null) in Obs<T> s.t. |=_X t = toBuiltIn(s[z])
- *           markSolved(k, s[z])
+ *         if exists (k', t', s') in Obs<T> s.t. |=_X t = toBuiltIn(s[z])
+ *           markSolved(k', s[z])
  *         else
  *           let k be a new variable of type : T
  *           Obs'<T> += (k, toBuiltIn(s[z]), s[z])
- *       else if no s' in Pool<T> s.t. s' * sigma = s)
+ *       else if no s' in Pool<T> s.t. s' * sigma = s
  *           pool<T> += s[z]
  *           for each (k, t, null) in Obs<T>
  *             Obs' += matchNewObs(k, s[z])
  *     // match phase
  *     while Obs' != {}
  *       Obs'' = {}
- *           Obs<T> += (k, t, s)
- *           for each s[z] in Pool<T>
- *             Obs'' += matchNewObs(k, s[z])
+ *       for each (k, t, null) in Obs' // s = null for all triples in Obs'
+ *         Obs<T> += (k, t, null)
+ *         for each s[z] in Pool<T>
+ *           Obs'' += matchNewObs(k, s[z])
  *       Obs' = Obs''
  * }
  *
  * matchNewObs(k, s[z]) : Obs'
  * {
  *   u = rewrite(toBuiltIn(s[z]))
- *   if u = t // u is a ground term (only concrete variables)
- *   else if match(u, t) == {toBuiltin(z) -> t'}
- *     if forall t' exists (k'', t'', null) in Obs<T> s.t. |=_X t'' = t'
- *       markSolved(k, s[z])
+ *   if match(u, t) == {toBuiltin(z) -> t'}
+ *     if forall t' exists (k'', t'', s'') in Obs<T> s.t. |=_X t'' = t'
+ *       markSolved(k, s{z -> s''})
  *     else
  *       let k' be a new variable of type : typeOf(z)
- *       CandSol<k> += s[k']
+ *       CandSol<k> += s{z -> k'}
  *       Obs'<typeOf(z)> += (k', t', null)
  * }
  *
  * markSolved(k, s)
  * {
+ *   if Sol<k> != null
+ *     return
  *   if s is not ground
  *     instantiate s with arbitrary sygus datatype values
  *   Sol<k> = s
@@ -108,6 +110,8 @@ namespace quantifiers {
  *     for all k'' in CandSols keys
  *       for all s'[k'] in CandSols<k''>
  *         s'{k' -> Sol<k'>}
+ *         if s' contains free variables not in Obs
+ *           instantiate s with arbitrary sygus datatype values
  *         if s' is ground
  *           Sol<k''> = s'
  *           push(S, k'')

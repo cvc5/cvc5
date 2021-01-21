@@ -329,10 +329,8 @@ void SygusReconstruct::markSolved(Node k, Node s)
   // ground values.
   if (!s.isConst())
   {
-    Trace("sygus-rcons") << datatypes::utils::sygusToBuiltin(s) << std::endl;
     s = replaceVarsWithGroundValues(s);
   }
-  Assert(s.isConst());
 
   // First, mark `k` as solved
   d_info[k].addCandidateSolution(s);
@@ -364,6 +362,12 @@ void SygusReconstruct::markSolved(Node k, Node s)
         // then it is completely solved and can be used as a solution of its
         // corresponding obligation
         Node parentSol = parent.substitute(d_sol);
+        // but first, make sure that all free variables eliminated by the
+        // rewriter are replaced with ground values
+        if (!parentSol.isConst())
+        {
+          parentSol = replaceVarsWithGroundValues(parentSol);
+        }
         Node parentOb = d_parentOb[parent];
         // proceed only if parent obligation is not already solved
         if (d_sol[parentOb] == Node::null())
@@ -555,7 +559,8 @@ void SygusReconstruct::printCandSols(const Node& mainOb) const
       expr::getVariables(j, subObs);
       for (const TNode& l : subObs)
       {
-        if (visited.find(l) == visited.cend())
+        if (visited.find(l) == visited.cend()
+            && d_info.find(l) != d_info.cend())
         {
           stack.push_back(l);
         }

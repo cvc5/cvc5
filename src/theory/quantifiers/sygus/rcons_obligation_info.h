@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_reconstruct.h
+/*! \file rcons_obligation_info.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__OBLIGATION_INFO_H
-#define CVC4__THEORY__QUANTIFIERS__OBLIGATION_INFO_H
+#ifndef CVC4__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H
+#define CVC4__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H
 
 #include "expr/node.h"
 
@@ -83,4 +83,4 @@ class ObligationInfo
 }  // namespace theory
 }  // namespace CVC4
 
-#endif  // CVC4__THEORY__QUANTIFIERS__OBLIGATION_INFO_H
+#endif  // CVC4__THEORY__QUANTIFIERS__RCONS_OBLIGATION_INFO_H

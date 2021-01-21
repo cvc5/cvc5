@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sygus_reconstruct.h
+/*! \file rcons_obligation_info.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed
@@ -12,7 +12,7 @@
  ** \brief Obligation Info class implementation
  **/
 
-#include "obligation_info.h"
+#include "rcons_obligation_info.h"
 
 namespace CVC4 {
 namespace theory {
