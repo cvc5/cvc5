@@ -98,7 +98,7 @@ void InstMatchGenerator::initialize(Node q,
 {
   if (d_pattern.isNull())
   {
-    gens.insert( gens.end(), d_children.begin(), d_children.end() );
+    gens.insert(gens.end(), d_children.begin(), d_children.end());
     return;
   }
   Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern
@@ -584,7 +584,8 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti( Node q, std::
   Assert(gens.size() == pats.size());
   std::vector< Node > patsn;
   std::map< Node, InstMatchGenerator * > pat_map_init;
-  for (InstMatchGenerator* g : gens){
+  for (InstMatchGenerator* g : gens)
+  {
     Node pn = g->d_match_pattern;
     patsn.push_back( pn );
     pat_map_init[pn] = g;
@@ -706,7 +707,8 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
         q, pat, var_contains[pat]);
   }
   std::map< Node, std::vector< Node > > var_to_node;
-  for( std::pair< const Node, std::vector< Node > >& vc : var_contains ){
+  for (std::pair<const Node, std::vector<Node> >& vc : var_contains)
+  {
     for (const Node& n : vc.second)
     {
       var_to_node[n].push_back(vc.first);
@@ -751,7 +753,8 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
     //update the variable bounds
     Node mp = pats[score_index];
     std::vector<Node>& vcm = var_contains[mp];
-    for (const Node& vc : vcm){
+    for (const Node& vc : vcm)
+    {
       var_bound[vc] = true;
     }
     pats_ordered.push_back( mp );
@@ -813,7 +816,8 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q,
     Trace("multi-trigger-linear") << "Successful multi-trigger instantiation." << std::endl;
     if( options::multiTriggerLinear() ){
       // now, restrict everyone
-      for( size_t i=0, csize = d_children.size(); i<csize; i++ ){
+      for (size_t i = 0, csize = d_children.size(); i < csize; i++)
+      {
         Node mi = d_children[i]->getCurrentMatch();
         Trace("multi-trigger-linear") << "   child " << i << " match : " << mi << std::endl;
         d_children[i]->excludeMatch( mi );
@@ -838,13 +842,15 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
         q, pat, var_contains[pat]);
   }
   //convert to indicies
-  for( std::pair< const Node, std::vector< Node > >& vc : var_contains ){
+  for (std::pair<const Node, std::vector<Node> >& vc : var_contains)
+  {
     Trace("multi-trigger-cache") << "Pattern " << vc.first << " contains: ";
-    for (const Node& vcn : vc.second){
+    for (const Node& vcn : vc.second)
+    {
       Trace("multi-trigger-cache") << vcn << " ";
       uint64_t index = vcn.getAttribute(InstVarNumAttribute());
-      d_var_contains[ vc.first ].push_back( index );
-      d_var_to_node[ index ].push_back( vc.first );
+      d_var_contains[vc.first].push_back(index);
+      d_var_to_node[index].push_back(vc.first);
     }
     Trace("multi-trigger-cache") << std::endl;
   }
@@ -858,8 +864,8 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
     img->setActiveAdd(false);
     d_children.push_back(img);
     //compute unique/shared variables
-    std::vector< uint64_t > unique_vars;
-    std::map< uint64_t, bool > shared_vars;
+    std::vector<uint64_t> unique_vars;
+    std::map<uint64_t, bool> shared_vars;
     unsigned numSharedVars = 0;
     std::vector<uint64_t>& vctn = d_var_contains[n];
     for (size_t j = 0, vctnSize = vctn.size(); j < vctnSize; j++)
@@ -875,10 +881,13 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
       }
     }
     //we use the latest shared variables, then unique variables
-    std::vector< uint64_t > vars;
+    std::vector<uint64_t> vars;
     size_t index = i == 0 ? pats.size() - 1 : (i - 1);
     while( numSharedVars>0 && index!=i ){
-      for( std::map< uint64_t, bool >::iterator it = shared_vars.begin(); it != shared_vars.end(); ++it ){
+      for (std::map<uint64_t, bool>::iterator it = shared_vars.begin();
+           it != shared_vars.end();
+           ++it)
+      {
         if( it->second ){
           std::vector<uint64_t>& vctni = d_var_contains[pats[index]];
           if (std::find(vctni.begin(), vctni.end(), it->first) != vctni.end())
@@ -895,7 +904,8 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
     if (Trace.isOn("multi-trigger-cache"))
     {
       Trace("multi-trigger-cache") << "   Index[" << i << "]: ";
-      for( uint64_t v : vars ){
+      for (uint64_t v : vars)
+      {
         Trace("multi-trigger-cache") << v << " ";
       }
       Trace("multi-trigger-cache") << std::endl;

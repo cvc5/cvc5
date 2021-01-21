@@ -567,9 +567,9 @@ class InstMatchGeneratorMulti : public IMGenerator {
                                 size_t endChildIndex,
                                 bool modEq);
   /** Map from pattern nodes to indices of variables they contain. */
-  std::map< Node, std::vector< uint64_t > > d_var_contains;
+  std::map<Node, std::vector<uint64_t> > d_var_contains;
   /** Map from variable indices to pattern nodes that contain them. */
-  std::map< uint64_t, std::vector< Node > > d_var_to_node;
+  std::map<uint64_t, std::vector<Node> > d_var_to_node;
   /** quantified formula we are producing matches for */
   Node d_quant;
   /** children generators
