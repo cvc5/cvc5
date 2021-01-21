@@ -884,16 +884,14 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
     std::vector<uint64_t> vars;
     size_t index = i == 0 ? pats.size() - 1 : (i - 1);
     while( numSharedVars>0 && index!=i ){
-      for (std::map<uint64_t, bool>::iterator it = shared_vars.begin();
-           it != shared_vars.end();
-           ++it)
+      for (std::pair<const uint64_t, bool>& sv : shared_vars)
       {
-        if( it->second ){
+        if( sv.second ){
           std::vector<uint64_t>& vctni = d_var_contains[pats[index]];
-          if (std::find(vctni.begin(), vctni.end(), it->first) != vctni.end())
+          if (std::find(vctni.begin(), vctni.end(), sv.first) != vctni.end())
           {
-            vars.push_back( it->first );
-            shared_vars[ it->first ] = false;
+            vars.push_back( sv.first );
+            shared_vars[ sv.first ] = false;
             numSharedVars--;
           }
         }
