@@ -204,6 +204,8 @@ class Trigger {
   *   --trigger-active-sel.
   */
   int getActiveScore();
+  /** print debug information for the trigger */
+  void debugPrint(const char* c) const;
   /** mkTrigger method
    *
    * This makes an instance of a trigger object.

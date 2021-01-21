@@ -905,6 +905,11 @@ int Trigger::getActiveScore() {
   return d_mg->getActiveScore( d_quantEngine );
 }
 
+void Trigger::debugPrint(const char* c) const
+{
+  Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
+}
+
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
