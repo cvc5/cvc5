@@ -168,11 +168,13 @@ bool Trigger::mkTriggerTerms(Node q,
         patterns[v].push_back(t);
       }
     }
-    if( varCount==nvars ){
+    if (varCount == nvars)
+    {
       break;
     }
   }
-  if( varCount<nvars ){
+  if (varCount < nvars)
+  {
     Trace("trigger-debug") << "Don't consider trigger since it does not contain specified number of variables." << std::endl;
     Trace("trigger-debug") << nodes << std::endl;
     //do not generate multi-trigger if it does not contain all variables
@@ -749,8 +751,9 @@ void Trigger::collectPatTerms(Node q,
   }
   std::vector< Node > added;
   collectPatTerms2( q, n, visited, tinfo, tstrt, exclude, added, true, true, false, true );
-  for( const std::pair< const Node, TriggerTermInfo >& t : tinfo){
-    patTerms.push_back( t.first );
+  for (const std::pair<const Node, TriggerTermInfo>& t : tinfo)
+  {
+    patTerms.push_back(t.first);
   }
 }
 
