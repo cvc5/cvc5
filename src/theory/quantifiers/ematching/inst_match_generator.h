@@ -91,8 +91,8 @@ public:
   * Instantiate::addInstantiation(...).
   */
   virtual unsigned addInstantiations(Node q,
-                                QuantifiersEngine* qe,
-                                Trigger* tparent)
+                                     QuantifiersEngine* qe,
+                                     Trigger* tparent)
   {
     return 0;
   }
@@ -204,8 +204,8 @@ class InstMatchGenerator : public IMGenerator {
                    Trigger* tparent) override;
   /** Add instantiations. */
   unsigned addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
+                             QuantifiersEngine* qe,
+                             Trigger* tparent) override;
 
   /** set active add flag (true by default)
    *
@@ -529,14 +529,14 @@ class InstMatchGeneratorMulti : public IMGenerator {
   bool reset(Node eqc, QuantifiersEngine* qe) override;
   /** Add instantiations. */
   unsigned addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
+                             QuantifiersEngine* qe,
+                             Trigger* tparent) override;
 
  private:
   /** indexed trie */
   typedef std::pair< std::pair< int, int >, InstMatchTrie* > IndexedTrie;
   /** process new match
-   * 
+   *
    * Called during addInstantiations(...).
    * Indicates we produced a match m for child fromChildIndex
    * addedLemmas is how many instantiations we succesfully send
@@ -615,8 +615,8 @@ class InstMatchGeneratorSimple : public IMGenerator {
   void resetInstantiationRound(QuantifiersEngine* qe) override;
   /** Add instantiations. */
   unsigned addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
+                             QuantifiersEngine* qe,
+                             Trigger* tparent) override;
   /** Get active score. */
   int getActiveScore(QuantifiersEngine* qe) override;
 
