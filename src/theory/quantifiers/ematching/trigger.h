@@ -215,8 +215,8 @@ class Trigger {
    *  keepAll: don't remove unneeded patterns;
    *  trOption : policy for dealing with triggers that already exist
    *             (see below)
-   *  use_n_vars : number of variables that should be bound by the trigger
-   *               typically, the number of quantified variables in q.
+   *  useNVars : number of variables that should be bound by the trigger
+   *             typically, the number of quantified variables in q.
    */
   enum{
     TR_MAKE_NEW,    //make new trigger even if it already may exist
@@ -228,14 +228,14 @@ class Trigger {
                             std::vector<Node>& nodes,
                             bool keepAll = true,
                             int trOption = TR_MAKE_NEW,
-                            unsigned use_n_vars = 0);
+                            size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
                             Node q,
                             Node n,
                             bool keepAll = true,
                             int trOption = TR_MAKE_NEW,
-                            unsigned use_n_vars = 0);
+                            size_t useNVars = 0);
   /** make trigger terms
    *
    * This takes a set of eligible trigger terms and stores a subset of them in
@@ -247,7 +247,7 @@ class Trigger {
    */
   static bool mkTriggerTerms(Node q,
                              std::vector<Node>& nodes,
-                             unsigned n_vars,
+                             size_t nvars,
                              std::vector<Node>& trNodes);
   /** collect pattern terms
    *
