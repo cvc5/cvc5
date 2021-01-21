@@ -92,8 +92,14 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   /** process functions */
   void processResetInstantiationRound(Theory::Effort effort) override;
   int process(Node q, Theory::Effort effort, int e) override;
-  /** generate triggers */
+  /** 
+   * Generate triggers for quantified formula q.
+   */
   void generateTriggers(Node q);
+  /** 
+   * Generate pattern terms for quantified formula q.
+   */
+  bool generatePatternTerms(Node q);
   void addPatternToPool(Node q, Node pat, unsigned num_fv, Node mpat);
   void addTrigger(inst::Trigger* tr, Node f);
   /** has user patterns */
