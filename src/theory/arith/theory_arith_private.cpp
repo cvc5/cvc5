@@ -1574,7 +1574,8 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
   return Comparison::mkComparison(EQUAL, varAsPolynomial, betaAsPolynomial);
 }
 
-Node TheoryArithPrivate::dioCutting(){
+TrustNode TheoryArithPrivate::dioCutting()
+{
   context::Context::ScopedPush speculativePush(getSatContext());
   //DO NOT TOUCH THE OUTPUTSTREAM
 
@@ -1599,7 +1600,7 @@ Node TheoryArithPrivate::dioCutting(){
 
   SumPair plane = d_diosolver.processEquationsForCut();
   if(plane.isZero()){
-    return Node::null();
+    return TrustNode::null();
   }else{
     Polynomial p = plane.getPolynomial();
     Polynomial c = Polynomial::mkPolynomial(plane.getConstant() * Constant::mkConstant(-1));
@@ -1618,7 +1619,36 @@ Node TheoryArithPrivate::dioCutting(){
     Debug("arith::dio") << "dioCutting found the plane: " << plane.getNode() << endl;
     Debug("arith::dio") << "resulting in the cut: " << lemma << endl;
     Debug("arith::dio") << "rewritten " << rewrittenLemma << endl;
-    return rewrittenLemma;
+    if (proofsEnabled())
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      Node gt = nm->mkNode(kind::GT, p.getNode(), c.getNode());
+      Node lt = nm->mkNode(kind::LT, p.getNode(), c.getNode());
+
+      Pf pfNotLeq = d_pnm->mkAssume(leq.getNode().negate());
+      Pf pfGt =
+          d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotLeq}, {gt});
+      Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
+      Pf pfLt =
+          d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
+      Pf pfSum =
+          d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+                        {pfGt, pfLt},
+                        {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
+      Pf pfBot = d_pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
+      std::vector<Node> assumptions = {leq.getNode().negate(),
+                                       geq.getNode().negate()};
+      Pf pfNotAndNot = d_pnm->mkScope(pfBot, assumptions);
+      Pf pfOr = d_pnm->mkNode(PfRule::NOT_AND, {pfNotAndNot}, {});
+      Pf pfRewritten = d_pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pfOr}, {rewrittenLemma});
+      return d_pfGen->mkTrustNode(rewrittenLemma, pfRewritten);
+    }
+    else
+    {
+      return TrustNode::mkTrustLemma(rewrittenLemma, nullptr);
+    }
   }
 }
 
@@ -3608,13 +3638,13 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
     if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut && options::arithDioSolver()){
       if(getDioCuttingResource()){
-        Node possibleLemma = dioCutting();
+        TrustNode possibleLemma = dioCutting();
         if(!possibleLemma.isNull()){
           emmittedConflictOrSplit = true;
           d_hasDoneWorkSinceCut = false;
           d_cutCount = d_cutCount + 1;
           Debug("arith::lemma") << "dio cut   " << possibleLemma << endl;
-          outputLemma(possibleLemma);
+          outputTrustedLemma(possibleLemma);
         }
       }
     }
