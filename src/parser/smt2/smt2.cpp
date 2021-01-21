@@ -550,7 +550,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true, true);
       addArithmeticOperators();
-      if (!d_logic.isLinear())
+      if (!strictModeEnabled() || !d_logic.isLinear())
       {
         addOperator(api::INTS_DIVISION, "div");
         addOperator(api::INTS_MODULUS, "mod");
