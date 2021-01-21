@@ -107,9 +107,10 @@ void Trigger::reset( Node eqc ){
   d_mg->reset( eqc, d_quantEngine );
 }
 
-bool Trigger::isMultiTrigger() const { return d_nodes.size()>1; }
+bool Trigger::isMultiTrigger() const { return d_nodes.size() > 1; }
 
-Node Trigger::getInstPattern() const {
+Node Trigger::getInstPattern() const
+{
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
@@ -118,7 +119,8 @@ unsigned Trigger::addInstantiations()
   unsigned addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
   if (Debug.isOn("inst-trigger"))
   {
-    if( addedLemmas>0 ){
+    if (addedLemmas > 0)
+    {
       Debug("inst-trigger") << "Added " << addedLemmas
                             << " lemmas, trigger was " << d_nodes << std::endl;
     }
@@ -145,9 +147,10 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_var
         q, pat, varContains[pat]);
   }
   for( unsigned i=0; i<temp.size(); i++ ){
-    std::vector<Node>& vct = varContains[ temp[i] ];
+    std::vector<Node>& vct = varContains[temp[i]];
     bool foundVar = false;
-    for (const Node& v : vct){
+    for (const Node& v : vct)
+    {
       Assert(quantifiers::TermUtil::getInstConstAttr(v) == q);
       if( vars.find( v )==vars.end() ){
         varCount++;
@@ -157,7 +160,8 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_var
     }
     if( foundVar ){
       trNodes.push_back( temp[i] );
-      for (const Node& v : vct){
+      for (const Node& v : vct)
+      {
         patterns[ v ].push_back( temp[i] );
       }
     }
@@ -175,33 +179,41 @@ bool Trigger::mkTriggerTerms( Node q, std::vector< Node >& nodes, unsigned n_var
     //do not generate multi-trigger if it does not contain all variables
     return false;
   }
-  //now, minimize the trigger
-  for( size_t i=0, tsize = trNodes.size(); i<tsize; i++ ){
+  // now, minimize the trigger
+  for (size_t i = 0, tsize = trNodes.size(); i < tsize; i++)
+  {
     bool keepPattern = false;
     Node n = trNodes[i];
-    std::vector<Node>& vcn = varContains[ n ];
-    for (const Node& v : vcn){
-      if( patterns[v].size()==1 ){
+    std::vector<Node>& vcn = varContains[n];
+    for (const Node& v : vcn)
+    {
+      if (patterns[v].size() == 1)
+      {
         keepPattern = true;
         break;
       }
     }
-    if( !keepPattern ){
-      //remove from pattern vector
-      for (const Node& v : vcn){
-        for( unsigned k=0; k<patterns[v].size(); k++ ){
-          if( patterns[v][k]==n ){
-            patterns[v].erase( patterns[v].begin() + k, patterns[v].begin() + k + 1 );
+    if (!keepPattern)
+    {
+      // remove from pattern vector
+      for (const Node& v : vcn)
+      {
+        for (unsigned k = 0; k < patterns[v].size(); k++)
+        {
+          if (patterns[v][k] == n)
+          {
+            patterns[v].erase(patterns[v].begin() + k,
+                              patterns[v].begin() + k + 1);
             break;
           }
         }
       }
-      //remove from trigger nodes
-      trNodes.erase( trNodes.begin() + i, trNodes.begin() + i + 1 );
+      // remove from trigger nodes
+      trNodes.erase(trNodes.begin() + i, trNodes.begin() + i + 1);
       i--;
     }
   }
-  
+
   return true;
 }
 
@@ -257,24 +269,31 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, Node n, bool keepAll
 }
 
 bool Trigger::isUsable( Node n, Node q ){
-  if( quantifiers::TermUtil::getInstConstAttr(n)!=q ){
+  if (quantifiers::TermUtil::getInstConstAttr(n) != q)
+  {
     return true;
   }
-  if( isAtomicTrigger( n ) ){
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( !isUsable( n[i], q ) ){
+  if (isAtomicTrigger(n))
+  {
+    for (unsigned i = 0; i < n.getNumChildren(); i++)
+    {
+      if (!isUsable(n[i], q))
+      {
         return false;
       }
     }
     return true;
-  }else if( n.getKind()==INST_CONSTANT ){
+  }
+  else if (n.getKind() == INST_CONSTANT)
+  {
     return true;
   }
-  std::map< Node, Node > coeffs;
+  std::map<Node, Node> coeffs;
   if (options::purifyTriggers())
   {
-    Node x = getInversionVariable( n );
-    if( !x.isNull() ){
+    Node x = getInversionVariable(n);
+    if (!x.isNull())
+    {
       return true;
     }
   }
@@ -283,7 +302,8 @@ bool Trigger::isUsable( Node n, Node q ){
 
 Node Trigger::getIsUsableEq( Node q, Node n ) {
   Assert(isRelationalTrigger(n));
-  for( size_t i=0; i<2; i++) {
+  for (size_t i = 0; i < 2; i++)
+  {
     if( isUsableEqTerms( q, n[i], n[1-i] ) ){
       if( i==1 && n.getKind()==EQUAL && !quantifiers::TermUtil::hasInstConstAttr(n[0]) ){
         return NodeManager::currentNM()->mkNode( n.getKind(), n[1], n[0] );  
@@ -342,9 +362,9 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
     pol = !pol;
     n = n[0];
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if( n.getKind()==INST_CONSTANT ){
-    return pol ? n : nm->mkNode( EQUAL, n, nm->mkConst( true ) ).notNode();
+    return pol ? n : nm->mkNode(EQUAL, n, nm->mkConst(true)).notNode();
   }else if( isRelationalTrigger( n ) ){
     Node rtr = getIsUsableEq( q, n );
     if( rtr.isNull() && n[0].getType().isReal() ){
@@ -384,9 +404,13 @@ Node Trigger::getIsUsableTrigger( Node n, Node q ) {
     }
     return Node::null();
   }
-  Trace("trigger-debug") << n << " usable : " << ( quantifiers::TermUtil::getInstConstAttr(n)==q ) << " " << isAtomicTrigger( n ) << " " << isUsable( n, q ) << std::endl;
-  if( isUsableAtomicTrigger( n, q ) ){
-    return pol ? n : nm->mkNode( EQUAL, n, nm->mkConst( true ) ).notNode();
+  Trace("trigger-debug") << n << " usable : "
+                         << (quantifiers::TermUtil::getInstConstAttr(n) == q)
+                         << " " << isAtomicTrigger(n) << " " << isUsable(n, q)
+                         << std::endl;
+  if (isUsableAtomicTrigger(n, q))
+  {
+    return pol ? n : nm->mkNode(EQUAL, n, nm->mkConst(true)).notNode();
   }
   return Node::null();
 }
@@ -431,11 +455,15 @@ bool Trigger::isSimpleTrigger( Node n ){
       t = t[0];
     }
   }
-  if( !isAtomicTrigger( t ) ){
+  if (!isAtomicTrigger(t))
+  {
     return false;
   }
-  for (const Node& tc : t){
-    if( tc.getKind()!=INST_CONSTANT && quantifiers::TermUtil::hasInstConstAttr(tc) ){
+  for (const Node& tc : t)
+  {
+    if (tc.getKind() != INST_CONSTANT
+        && quantifiers::TermUtil::hasInstConstAttr(tc))
+    {
       return false;
     }
   }
@@ -461,92 +489,135 @@ void Trigger::collectPatTerms2(Node q,
                                bool knowIsUsable)
 {
   std::map< Node, std::vector< Node > >::iterator itv = visited.find( n );
-  if( itv!=visited.end() ){
+  if (itv != visited.end())
+  {
     // already visited
-    for (const Node& t : itv->second){
-      if( std::find( added.begin(), added.end(), t )==added.end() ){
-        added.push_back( t );
+    for (const Node& t : itv->second)
+    {
+      if (std::find(added.begin(), added.end(), t) == added.end())
+      {
+        added.push_back(t);
       }
     }
     return;
   }
-  visited[ n ].clear();
-  Trace("auto-gen-trigger-debug2") << "Collect pat terms " << n << " " << pol << " " << hasPol << " " << epol << " " << hasEPol << std::endl;
+  visited[n].clear();
+  Trace("auto-gen-trigger-debug2")
+      << "Collect pat terms " << n << " " << pol << " " << hasPol << " " << epol
+      << " " << hasEPol << std::endl;
   Kind nk = n.getKind();
-  if (nk==FORALL || nk==INST_CONSTANT)
+  if (nk == FORALL || nk == INST_CONSTANT)
   {
     return;
   }
   Node nu;
   bool nu_single = false;
-  if( knowIsUsable ){
+  if (knowIsUsable)
+  {
     nu = n;
-  }else if( n.getKind()!=NOT && std::find( exclude.begin(), exclude.end(), n )==exclude.end() ){
-    nu = getIsUsableTrigger( n, q );
-    if( !nu.isNull() && nu!=n ){
-      collectPatTerms2( q, nu, visited, tinfo, tstrt, exclude, added, pol, hasPol, epol, hasEPol, true );
+  }
+  else if (n.getKind() != NOT
+           && std::find(exclude.begin(), exclude.end(), n) == exclude.end())
+  {
+    nu = getIsUsableTrigger(n, q);
+    if (!nu.isNull() && nu != n)
+    {
+      collectPatTerms2(q,
+                       nu,
+                       visited,
+                       tinfo,
+                       tstrt,
+                       exclude,
+                       added,
+                       pol,
+                       hasPol,
+                       epol,
+                       hasEPol,
+                       true);
       // copy to n
-      visited[n].insert( visited[n].end(), added.begin(), added.end() );
+      visited[n].insert(visited[n].end(), added.begin(), added.end());
       return;
     }
   }
-  if( !nu.isNull() ){
+  if (!nu.isNull())
+  {
     Assert(nu == n);
     Assert(nu.getKind() != NOT);
-    Trace("auto-gen-trigger-debug2") << "...found usable trigger : " << nu << std::endl;
+    Trace("auto-gen-trigger-debug2")
+        << "...found usable trigger : " << nu << std::endl;
     Node reqEq;
-    if( nu.getKind()==EQUAL ){
-      if( isAtomicTrigger( nu[0] ) && !quantifiers::TermUtil::hasInstConstAttr(nu[1]) ){
-        if( hasPol ){
+    if (nu.getKind() == EQUAL)
+    {
+      if (isAtomicTrigger(nu[0])
+          && !quantifiers::TermUtil::hasInstConstAttr(nu[1]))
+      {
+        if (hasPol)
+        {
           reqEq = nu[1];
         }
         nu = nu[0];
       }
     }
-    Assert(reqEq.isNull()
-            || !quantifiers::TermUtil::hasInstConstAttr(reqEq));
+    Assert(reqEq.isNull() || !quantifiers::TermUtil::hasInstConstAttr(reqEq));
     Assert(isUsableTrigger(nu, q));
-    //tinfo.find( nu )==tinfo.end()
-    Trace("auto-gen-trigger-debug2") << "...add usable trigger : " << nu << std::endl;
-    tinfo[ nu ].init( q, nu, hasEPol ? ( epol ? 1 : -1 ) : 0, reqEq );
-    nu_single = tinfo[ nu ].d_fv.size()==q[0].getNumChildren();
+    // tinfo.find( nu )==tinfo.end()
+    Trace("auto-gen-trigger-debug2")
+        << "...add usable trigger : " << nu << std::endl;
+    tinfo[nu].init(q, nu, hasEPol ? (epol ? 1 : -1) : 0, reqEq);
+    nu_single = tinfo[nu].d_fv.size() == q[0].getNumChildren();
   }
   Node nrec = nu.isNull() ? n : nu;
-  std::vector< Node > added2;
-  for( size_t i=0, nrecc = nrec.getNumChildren(); i<nrecc; i++ ){
+  std::vector<Node> added2;
+  for (size_t i = 0, nrecc = nrec.getNumChildren(); i < nrecc; i++)
+  {
     bool newHasPol, newPol;
     bool newHasEPol, newEPol;
-    QuantPhaseReq::getPolarity( nrec, i, hasPol, pol, newHasPol, newPol );
-    QuantPhaseReq::getEntailPolarity( nrec, i, hasEPol, epol, newHasEPol, newEPol );
-    collectPatTerms2( q, nrec[i], visited, tinfo, tstrt, exclude, added2, newPol, newHasPol, newEPol, newHasEPol );
+    QuantPhaseReq::getPolarity(nrec, i, hasPol, pol, newHasPol, newPol);
+    QuantPhaseReq::getEntailPolarity(
+        nrec, i, hasEPol, epol, newHasEPol, newEPol);
+    collectPatTerms2(q,
+                     nrec[i],
+                     visited,
+                     tinfo,
+                     tstrt,
+                     exclude,
+                     added2,
+                     newPol,
+                     newHasPol,
+                     newEPol,
+                     newHasEPol);
   }
-  // if this is not a usable trigger, don't worry about caching the results, since triggers do not contain non-usable subterms
-  if( nu.isNull() ){
+  // if this is not a usable trigger, don't worry about caching the results,
+  // since triggers do not contain non-usable subterms
+  if (nu.isNull())
+  {
     return;
   }
   bool rm_nu = false;
-  for( size_t i=0, asize = added2.size(); i<asize; i++ ){
-    Trace("auto-gen-trigger-debug2") << "..." << nu << " added child " << i << " : " << added2[i] << std::endl;
+  for (size_t i = 0, asize = added2.size(); i < asize; i++)
+  {
+    Trace("auto-gen-trigger-debug2") << "..." << nu << " added child " << i
+                                     << " : " << added2[i] << std::endl;
     Assert(added2[i] != nu);
     // if child was not already removed
-    if( tinfo.find( added2[i] )!=tinfo.end() ){
+    if (tinfo.find(added2[i]) != tinfo.end())
+    {
       if (tstrt == options::TriggerSelMode::MAX
-          || (tstrt == options::TriggerSelMode::MIN_SINGLE_MAX
-              && !nu_single))
+          || (tstrt == options::TriggerSelMode::MIN_SINGLE_MAX && !nu_single))
       {
         // discard all subterms
         // do not remove if it has smaller weight
         if (tinfo[nu].d_weight <= tinfo[added2[i]].d_weight)
         {
-          Trace("auto-gen-trigger-debug2")
-              << "......remove it." << std::endl;
+          Trace("auto-gen-trigger-debug2") << "......remove it." << std::endl;
           visited[added2[i]].clear();
           tinfo.erase(added2[i]);
         }
       }
       else
       {
-        if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
+        if (tinfo[nu].d_fv.size() == tinfo[added2[i]].d_fv.size())
+        {
           if (tinfo[nu].d_weight >= tinfo[added2[i]].d_weight)
           {
             // discard if we added a subterm as a trigger with all
@@ -557,39 +628,41 @@ void Trigger::collectPatTerms2(Node q,
             rm_nu = true;
           }
         }
-        if( std::find( added.begin(), added.end(), added2[i] )==added.end() ){
-          added.push_back( added2[i] );
+        if (std::find(added.begin(), added.end(), added2[i]) == added.end())
+        {
+          added.push_back(added2[i]);
         }
       }
     }
   }
   if (rm_nu
       && (tstrt == options::TriggerSelMode::MIN
-          || (tstrt == options::TriggerSelMode::MIN_SINGLE_ALL
-              && nu_single)))
+          || (tstrt == options::TriggerSelMode::MIN_SINGLE_ALL && nu_single)))
   {
-    tinfo.erase( nu );
+    tinfo.erase(nu);
   }
   else
   {
-    if( std::find( added.begin(), added.end(), nu )==added.end() ){
-      added.push_back( nu );
+    if (std::find(added.begin(), added.end(), nu) == added.end())
+    {
+      added.push_back(nu);
     }
   }
-  visited[n].insert( visited[n].end(), added.begin(), added.end() );  
+  visited[n].insert(visited[n].end(), added.begin(), added.end());
 }
 
 bool Trigger::isPureTheoryTrigger( Node n ) {
   if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){  //|| !quantifiers::TermUtil::hasInstConstAttr( n ) ){
     return false;
   }
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    if( !isPureTheoryTrigger( n[i] ) ){
+  for (unsigned i = 0; i < n.getNumChildren(); i++)
+  {
+    if (!isPureTheoryTrigger(n[i]))
+    {
       return false;
     }
   }
   return true;
-
 }
 
 int Trigger::getTriggerWeight( Node n ) {
@@ -704,7 +777,7 @@ int Trigger::isTriggerInstanceOf(Node n1,
     if (cur1.hasOperator() && cur2.hasOperator()
         && cur1.getNumChildren() == cur2.getNumChildren()
         && cur1.getOperator() == cur2.getOperator()
-        && cur1.getOperator().getKind()!=INST_CONSTANT)
+        && cur1.getOperator().getKind() != INST_CONSTANT)
     {
       visit.push_back(std::pair<TNode, TNode>(cur1, cur2));
       for (size_t i = 0, size = cur1.getNumChildren(); i < size; i++)
@@ -789,15 +862,15 @@ void Trigger::filterTriggerInstances(std::vector<Node>& nodes)
       int result = isTriggerInstanceOf(nodes[i], nodes[j], fvsi, fvs[j]);
       if (result == 1)
       {
-        Trace("filter-instances") << nodes[j] << " is an instance of "
-                                  << nodes[i] << std::endl;
+        Trace("filter-instances")
+            << nodes[j] << " is an instance of " << nodes[i] << std::endl;
         active[i] = false;
         break;
       }
       else if (result == -1)
       {
-        Trace("filter-instances") << nodes[i] << " is an instance of "
-                                  << nodes[j] << std::endl;
+        Trace("filter-instances")
+            << nodes[i] << " is an instance of " << nodes[j] << std::endl;
         active[j] = false;
       }
     }
@@ -816,14 +889,19 @@ void Trigger::filterTriggerInstances(std::vector<Node>& nodes)
 
 Node Trigger::getInversionVariable( Node n ) {
   Kind nk = n.getKind();
-  if( nk==INST_CONSTANT ){
+  if (nk == INST_CONSTANT)
+  {
     return n;
-  }else if( nk==PLUS || nk==MULT ){
+  }
+  else if (nk == PLUS || nk == MULT)
+  {
     Node ret;
-    for (const Node& nc : n){
-      if( quantifiers::TermUtil::hasInstConstAttr(nc) ){
+    for (const Node& nc : n)
+    {
+      if (quantifiers::TermUtil::hasInstConstAttr(nc))
+      {
         if( ret.isNull() ){
-          ret = getInversionVariable( nc );
+          ret = getInversionVariable(nc);
           if( ret.isNull() ){
             Trace("var-trigger-debug") << "No : multiple variables " << n << std::endl;
             return Node::null();
@@ -831,8 +909,11 @@ Node Trigger::getInversionVariable( Node n ) {
         }else{
           return Node::null();
         }
-      }else if( nk==MULT ){
-        if( !nc.isConst() ){
+      }
+      else if (nk == MULT)
+      {
+        if (!nc.isConst())
+        {
           Trace("var-trigger-debug") << "No : non-linear coefficient " << n << std::endl;
           return Node::null();
         }
@@ -840,36 +921,47 @@ Node Trigger::getInversionVariable( Node n ) {
     }
     return ret;
   }
-  Trace("var-trigger-debug") << "No : unsupported operator " << n << "." << std::endl;
+  Trace("var-trigger-debug")
+      << "No : unsupported operator " << n << "." << std::endl;
   return Node::null();
 }
 
 Node Trigger::getInversion( Node n, Node x ) {
   Kind nk = n.getKind();
-  if( nk==INST_CONSTANT ){
+  if (nk == INST_CONSTANT)
+  {
     return x;
-  }else if( nk==PLUS || nk==MULT ){
-    NodeManager * nm = NodeManager::currentNM();
+  }
+  else if (nk == PLUS || nk == MULT)
+  {
+    NodeManager* nm = NodeManager::currentNM();
     int cindex = -1;
     bool cindexSet = false;
-    for (size_t i=0, nchild = n.getNumChildren(); i<nchild; i++){
+    for (size_t i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+    {
       Node nc = n[i];
-      if( !quantifiers::TermUtil::hasInstConstAttr(nc) ){
-        if( nk==PLUS ){
-          x = nm->mkNode( MINUS, x, nc );
-        }else if( nk==MULT ){
+      if (!quantifiers::TermUtil::hasInstConstAttr(nc))
+      {
+        if (nk == PLUS)
+        {
+          x = nm->mkNode(MINUS, x, nc);
+        }
+        else if (nk == MULT)
+        {
           Assert(nc.isConst());
           if( x.getType().isInteger() ){
-            Node coeff = nm->mkConst( nc.getConst<Rational>().abs() );
-            if( !nc.getConst<Rational>().abs().isOne() ){
-              x = nm->mkNode( INTS_DIVISION_TOTAL, x, coeff );
+            Node coeff = nm->mkConst(nc.getConst<Rational>().abs());
+            if (!nc.getConst<Rational>().abs().isOne())
+            {
+              x = nm->mkNode(INTS_DIVISION_TOTAL, x, coeff);
             }
-            if( nc.getConst<Rational>().sgn()<0 ){
-              x = nm->mkNode( UMINUS, x );
+            if (nc.getConst<Rational>().sgn() < 0)
+            {
+              x = nm->mkNode(UMINUS, x);
             }
           }else{
-            Node coeff = nm->mkConst( Rational(1) / nc.getConst<Rational>() );
-            x = nm->mkNode( MULT, x, coeff );
+            Node coeff = nm->mkConst(Rational(1) / nc.getConst<Rational>());
+            x = nm->mkNode(MULT, x, coeff);
           }
         }
         x = Rewriter::rewrite( x );
