@@ -61,7 +61,7 @@ struct sortTriggers {
     if( wi==wj ){
       return i<j;
     }
-    return wi<wj;
+    return wi < wj;
   }
 };
 
@@ -534,8 +534,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
         Trace("auto-gen-trigger-debug") << "   " << p << std::endl;
         Trace("auto-gen-trigger-debug2")
             << "     info = [" << tinfo[p].d_reqPol << ", "
-            << tinfo[p].d_reqPolEq << ", "
-            << tinfo[p].d_fv.size() << "]" << std::endl;
+            << tinfo[p].d_reqPolEq << ", " << tinfo[p].d_fv.size() << "]"
+            << std::endl;
       }
       Trace("auto-gen-trigger-debug") << std::endl;
     }
@@ -632,7 +632,9 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       if (Trigger::isRelationalTrigger(pat))
       {
         pat = rpol == -1 ? pat.negate() : pat;
-      }else{
+      }
+      else
+      {
         Assert(Trigger::isAtomicTrigger(pat));
         if (pat.getType().isBoolean() && rpoleq.isNull())
         {
