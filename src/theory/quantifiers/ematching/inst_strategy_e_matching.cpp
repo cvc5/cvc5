@@ -22,8 +22,6 @@
 #include "theory/theory_engine.h"
 #include "util/random.h"
 
-using namespace std;
-
 namespace CVC4 {
 
 using namespace kind;
@@ -62,9 +60,8 @@ struct sortTriggers {
     int wj = Trigger::getTriggerWeight( j );
     if( wi==wj ){
       return i<j;
-    }else{
-      return wi<wj;
     }
+    return wi<wj;
   }
 };
 
@@ -134,6 +131,7 @@ int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
     }
     if (d_quantEngine->inConflict())
     {
+      // we are already in conflict
       break;
     }
   }
@@ -530,14 +528,14 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       Trace("auto-gen-trigger-debug")
           << "Collected pat terms for " << bd
           << ", no-patterns : " << d_user_no_gen[f].size() << std::endl;
-      for (unsigned i = 0; i < patTermsF.size(); i++)
+      for (const Node& p : patTermsF)
       {
-        Assert(tinfo.find(patTermsF[i]) != tinfo.end());
-        Trace("auto-gen-trigger-debug") << "   " << patTermsF[i] << std::endl;
+        Assert(tinfo.find(p) != tinfo.end());
+        Trace("auto-gen-trigger-debug") << "   " << p << std::endl;
         Trace("auto-gen-trigger-debug2")
-            << "     info = [" << tinfo[patTermsF[i]].d_reqPol << ", "
-            << tinfo[patTermsF[i]].d_reqPolEq << ", "
-            << tinfo[patTermsF[i]].d_fv.size() << "]" << std::endl;
+            << "     info = [" << tinfo[p].d_reqPol << ", "
+            << tinfo[p].d_reqPolEq << ", "
+            << tinfo[p].d_fv.size() << "]" << std::endl;
       }
       Trace("auto-gen-trigger-debug") << std::endl;
     }
@@ -595,12 +593,12 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     if (options::partialTriggers() && qa.isStandard())
     {
       std::vector<Node> vcs[2];
-      for (unsigned i = 0; i < f[0].getNumChildren(); i++)
+      for (size_t i = 0, nchild = f[0].getNumChildren(); i < nchild; i++)
       {
         Node ic = tu->getInstantiationConstant(f, i);
         vcs[vcMap.find(ic) == vcMap.end() ? 0 : 1].push_back(f[0][i]);
       }
-      for (unsigned i = 0; i < 2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
         d_vc_partition[i][f] = nm->mkNode(BOUND_VAR_LIST, vcs[i]);
       }
@@ -624,7 +622,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     Assert(tinfo.find(pat) != tinfo.end());
     int rpol = tinfo[pat].d_reqPol;
     Node rpoleq = tinfo[pat].d_reqPolEq;
-    unsigned num_fv = tinfo[pat].d_fv.size();
+    size_t num_fv = tinfo[pat].d_fv.size();
     Trace("auto-gen-trigger-debug")
         << "...required polarity for " << pat << " is " << rpol
         << ", eq=" << rpoleq << std::endl;
