@@ -90,7 +90,7 @@ public:
   * It returns the number of instantiations added using calls to calls to
   * Instantiate::addInstantiation(...).
   */
-  virtual int addInstantiations(Node q,
+  virtual unsigned addInstantiations(Node q,
                                 QuantifiersEngine* qe,
                                 Trigger* tparent)
   {
@@ -203,7 +203,7 @@ class InstMatchGenerator : public IMGenerator {
                    QuantifiersEngine* qe,
                    Trigger* tparent) override;
   /** Add instantiations. */
-  int addInstantiations(Node q,
+  unsigned addInstantiations(Node q,
                         QuantifiersEngine* qe,
                         Trigger* tparent) override;
 
@@ -528,7 +528,7 @@ class InstMatchGeneratorMulti : public IMGenerator {
   /** Reset. */
   bool reset(Node eqc, QuantifiersEngine* qe) override;
   /** Add instantiations. */
-  int addInstantiations(Node q,
+  unsigned addInstantiations(Node q,
                         QuantifiersEngine* qe,
                         Trigger* tparent) override;
 
@@ -536,7 +536,7 @@ class InstMatchGeneratorMulti : public IMGenerator {
   /** indexed trie */
   typedef std::pair< std::pair< int, int >, InstMatchTrie* > IndexedTrie;
   /** process new match
-   *
+   * 
    * Called during addInstantiations(...).
    * Indicates we produced a match m for child fromChildIndex
    * addedLemmas is how many instantiations we succesfully send
@@ -545,8 +545,8 @@ class InstMatchGeneratorMulti : public IMGenerator {
   void processNewMatch(QuantifiersEngine* qe,
                        Trigger* tparent,
                        InstMatch& m,
-                       int fromChildIndex,
-                       int& addedLemmas);
+                       size_t fromChildIndex,
+                       unsigned& addedLemmas);
   /** helper for process new match
    * tr is the inst match trie (term index) we are currently traversing.
    * trieIndex is depth we are in trie tr.
@@ -560,11 +560,11 @@ class InstMatchGeneratorMulti : public IMGenerator {
   void processNewInstantiations(QuantifiersEngine* qe,
                                 Trigger* tparent,
                                 InstMatch& m,
-                                int& addedLemmas,
+                                unsigned& addedLemmas,
                                 InstMatchTrie* tr,
-                                int trieIndex,
-                                int childIndex,
-                                int endChildIndex,
+                                size_t trieIndex,
+                                size_t childIndex,
+                                size_t endChildIndex,
                                 bool modEq);
   /** Map from pattern nodes to indices of variables they contain. */
   std::map< Node, std::vector< int > > d_var_contains;
@@ -614,7 +614,7 @@ class InstMatchGeneratorSimple : public IMGenerator {
   /** Reset instantiation round. */
   void resetInstantiationRound(QuantifiersEngine* qe) override;
   /** Add instantiations. */
-  int addInstantiations(Node q,
+  unsigned addInstantiations(Node q,
                         QuantifiersEngine* qe,
                         Trigger* tparent) override;
   /** Get active score. */
@@ -658,7 +658,7 @@ class InstMatchGeneratorSimple : public IMGenerator {
    */
   void addInstantiations(InstMatch& m,
                          QuantifiersEngine* qe,
-                         int& addedLemmas,
+                         unsigned& addedLemmas,
                          unsigned argIndex,
                          TNodeTrie* tat);
 };/* class InstMatchGeneratorSimple */
