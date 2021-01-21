@@ -665,20 +665,6 @@ void Trigger::collectPatTerms2(Node q,
   visited[n].insert(visited[n].end(), added.begin(), added.end());
 }
 
-bool Trigger::isPureTheoryTrigger( Node n ) {
-  if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){  //|| !quantifiers::TermUtil::hasInstConstAttr( n ) ){
-    return false;
-  }
-  for (unsigned i = 0; i < n.getNumChildren(); i++)
-  {
-    if (!isPureTheoryTrigger(n[i]))
-    {
-      return false;
-    }
-  }
-  return true;
-}
-
 int Trigger::getTriggerWeight( Node n ) {
   if (n.getKind() == APPLY_UF)
   {

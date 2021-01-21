@@ -561,7 +561,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
 void InstStrategyAutoGenTriggers::addPatternToPool( Node q, Node pat, unsigned num_fv, Node mpat ) {
   d_pat_to_mpat[pat] = mpat;
   unsigned num_vars = options::partialTriggers() ? d_num_trigger_vars[q] : q[0].getNumChildren();
-  if( num_fv==num_vars && ( options::pureThTriggers() || !Trigger::isPureTheoryTrigger( pat ) ) ){
+  if( num_fv==num_vars ){
     d_patTerms[0][q].push_back( pat );
     d_is_single_trigger[ pat ] = true;
   }else{

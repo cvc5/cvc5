@@ -307,8 +307,6 @@ class Trigger {
   static bool isRelationalTriggerKind( Kind k );
   /** is n a simple trigger (see inst_match_generator.h)? */
   static bool isSimpleTrigger( Node n );
-  /** is n a pure theory trigger, e.g. head( x )? */
-  static bool isPureTheoryTrigger( Node n );
   /** get trigger weight
    *
    * Intutively, this function classifies how difficult it is to handle the
