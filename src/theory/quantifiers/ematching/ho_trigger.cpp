@@ -186,12 +186,12 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
   }
 }
 
-int HigherOrderTrigger::addInstantiations()
+unsigned HigherOrderTrigger::addInstantiations()
 {
   // call the base class implementation
-  int addedFoLemmas = Trigger::addInstantiations();
+  unsigned addedFoLemmas = Trigger::addInstantiations();
   // also adds predicate lemms to force app completion
-  int addedHoLemmas = addHoTypeMatchPredicateLemmas();
+  unsigned addedHoLemmas = addHoTypeMatchPredicateLemmas();
   return addedHoLemmas + addedFoLemmas;
 }
 
@@ -460,7 +460,7 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
   }
 }
 
-int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
+unsigned HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
 {
   if (d_ho_var_types.empty())
   {

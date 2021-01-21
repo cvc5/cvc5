@@ -187,16 +187,16 @@ class Trigger {
   * produce instantiations beyond what is produced by the match generator
   * (for example, see theory/quantifiers/ematching/ho_trigger.h).
   */
-  virtual int addInstantiations();
+  virtual unsigned addInstantiations();
   /** Return whether this is a multi-trigger. */
-  bool isMultiTrigger() { return d_nodes.size()>1; }
+  bool isMultiTrigger() const;
   /** Get instantiation pattern list associated with this trigger.
    *
   * An instantiation pattern list is the node representation of a trigger, in
   * particular, it is the third argument of quantified formulas which have user
   * (! ... :pattern) attributes.
   */
-  Node getInstPattern();
+  Node getInstPattern() const;
   /* A heuristic value indicating how active this generator is.
    *
   * This returns the number of ground terms for the match operators in terms
@@ -204,20 +204,6 @@ class Trigger {
   *   --trigger-active-sel.
   */
   int getActiveScore();
-  /** print debug information for the trigger */
-  void debugPrint(const char* c)
-  {
-    Trace(c) << "TRIGGER( ";
-    for (int i = 0; i < (int)d_nodes.size(); i++)
-    {
-      if (i > 0)
-      {
-        Trace(c) << ", ";
-      }
-      Trace(c) << d_nodes[i];
-    }
-    Trace(c) << " )";
-  }
   /** mkTrigger method
    *
    * This makes an instance of a trigger object.
@@ -331,11 +317,6 @@ class Trigger {
    * Returns 2 otherwise.
    */
   static int getTriggerWeight( Node n );
-  /** Returns whether n is a trigger term with a local theory extension
-  * property from Bansal et al., CAV 2015.
-  */
-  static bool isLocalTheoryExt( Node n, std::vector< Node >& vars,
-                                std::vector< Node >& patTerms );
   /** get the variable associated with an inversion for n
    *
    * A term n with an inversion variable x has the following property :
@@ -422,8 +403,8 @@ class Trigger {
    */
   static int isTriggerInstanceOf(Node n1,
                                  Node n2,
-                                 std::vector<Node>& fv1,
-                                 std::vector<Node>& fv2);
+                                 const std::vector<Node>& fv1,
+                                 const std::vector<Node>& fv2);
 
   /** add an instantiation (called by InstMatchGenerator)
    *
