@@ -886,12 +886,13 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
     while( numSharedVars>0 && index!=i ){
       for (std::pair<const uint64_t, bool>& sv : shared_vars)
       {
-        if( sv.second ){
+        if (sv.second)
+        {
           std::vector<uint64_t>& vctni = d_var_contains[pats[index]];
           if (std::find(vctni.begin(), vctni.end(), sv.first) != vctni.end())
           {
-            vars.push_back( sv.first );
-            shared_vars[ sv.first ] = false;
+            vars.push_back(sv.first);
+            shared_vars[sv.first] = false;
             numSharedVars--;
           }
         }
