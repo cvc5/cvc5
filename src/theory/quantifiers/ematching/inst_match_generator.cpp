@@ -98,6 +98,7 @@ void InstMatchGenerator::initialize(Node q,
 {
   if (d_pattern.isNull())
   {
+    gens.insert( gens.end(), d_children.begin(), d_children.end() );
     return;
   }
   Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern
