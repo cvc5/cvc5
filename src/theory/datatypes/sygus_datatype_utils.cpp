@@ -670,7 +670,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   std::stringstream ssutn0;
   ssutn0 << sdtd.getName() << "_s";
   TypeNode abdTNew =
-      nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+      nm->mkSort(ssutn0.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
   unres.insert(abdTNew);
   dtProcessed[sdt] = abdTNew;
 
@@ -712,7 +712,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
             std::stringstream ssutn;
             ssutn << argt.getDType().getName() << "_s";
             argtNew =
-                nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+                nm->mkSort(ssutn.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
             unres.insert(argtNew);

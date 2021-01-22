@@ -679,18 +679,20 @@ Type ExprManager::getType(Expr expr, bool check)
   return t;
 }
 
-Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
+Expr ExprManager::mkVar(const std::string& name, Type type)
+{
   NodeManagerScope nms(d_nodeManager);
-  Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, flags);
+  Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
   INC_STAT_VAR(type, false);
   return Expr(this, n);
 }
 
-Expr ExprManager::mkVar(Type type, uint32_t flags) {
+Expr ExprManager::mkVar(Type type)
+{
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, false);
-  return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, flags));
+  return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode));
 }
 
 Expr ExprManager::mkBoundVar(const std::string& name, Type type) {

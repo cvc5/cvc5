@@ -25,11 +25,12 @@
 
 #include "expr/node.h"
 #include "prop/bv_sat_solver_notify.h"
+#include "prop/cnf_stream.h"
+#include "prop/registrar.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
-#include "theory/theory_registrar.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 
