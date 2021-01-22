@@ -654,13 +654,14 @@ class TheoryEngine {
   /**
    * Takes a literal and returns an equivalent literal that is guaranteed to be
    * a SAT literal. This rewrites and preprocesses n, which notice may involve
-   * sending lemmas if preprocessing n involves introducing new skolems.
+   * adding clauses to the SAT solver if preprocessing n involves introducing
+   * new skolems.
    */
   Node ensureLiteral(TNode n);
   /**
    * This returns the theory-preprocessed form of term n. This rewrites and
-   * preprocesses n, which notice may involve sending lemmas if preprocessing n
-   * involves introducing new skolems.
+   * preprocesses n, which notice may involve adding clauses to the SAT solver
+   * if preprocessing n involves introducing new skolems.
    */
   Node getPreprocessedTerm(TNode n);
   /**
