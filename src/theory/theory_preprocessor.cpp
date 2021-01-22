@@ -365,10 +365,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
       }
       // Mark the substitution and continue
       Node result = builder;
-      if (result != current)
-      {
-        result = rewriteWithProof(result);
-      }
+      // always rewrite here, since current may not be in rewritten form
+      result = rewriteWithProof(result);
       Trace("theory::preprocess-debug")
           << "TheoryPreprocessor::theoryPreprocess(" << assertion
           << "): setting " << current << " -> " << result << endl;
