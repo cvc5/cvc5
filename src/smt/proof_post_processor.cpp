@@ -237,6 +237,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     }
     Trace("smt-proof-pp-debug") << "\n";
   }
+  // TODO (cvc4-wishues/issues/77): implement also simpler version and compare
+  //
   // We now start to break the chain, one step at a time. Naively this breaking
   // down would be one resolution/factoring to each crowding literal, but we can
   // merge some of the cases. Effectively we do the following:
