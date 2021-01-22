@@ -34,6 +34,7 @@
 #include "expr/node_builder.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
+#include "expr/proof_rule.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"  // for incrementalSolving()
@@ -1573,7 +1574,8 @@ Comparison TheoryArithPrivate::mkIntegerEqualityFromAssignment(ArithVar v){
   return Comparison::mkComparison(EQUAL, varAsPolynomial, betaAsPolynomial);
 }
 
-Node TheoryArithPrivate::dioCutting(){
+TrustNode TheoryArithPrivate::dioCutting()
+{
   context::Context::ScopedPush speculativePush(getSatContext());
   //DO NOT TOUCH THE OUTPUTSTREAM
 
@@ -1598,7 +1600,7 @@ Node TheoryArithPrivate::dioCutting(){
 
   SumPair plane = d_diosolver.processEquationsForCut();
   if(plane.isZero()){
-    return Node::null();
+    return TrustNode::null();
   }else{
     Polynomial p = plane.getPolynomial();
     Polynomial c = Polynomial::mkPolynomial(plane.getConstant() * Constant::mkConstant(-1));
@@ -1617,7 +1619,36 @@ Node TheoryArithPrivate::dioCutting(){
     Debug("arith::dio") << "dioCutting found the plane: " << plane.getNode() << endl;
     Debug("arith::dio") << "resulting in the cut: " << lemma << endl;
     Debug("arith::dio") << "rewritten " << rewrittenLemma << endl;
-    return rewrittenLemma;
+    if (proofsEnabled())
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      Node gt = nm->mkNode(kind::GT, p.getNode(), c.getNode());
+      Node lt = nm->mkNode(kind::LT, p.getNode(), c.getNode());
+
+      Pf pfNotLeq = d_pnm->mkAssume(leq.getNode().negate());
+      Pf pfGt =
+          d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotLeq}, {gt});
+      Pf pfNotGeq = d_pnm->mkAssume(geq.getNode().negate());
+      Pf pfLt =
+          d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
+      Pf pfSum =
+          d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+                        {pfGt, pfLt},
+                        {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
+      Pf pfBot = d_pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pfSum}, {nm->mkConst<bool>(false)});
+      std::vector<Node> assumptions = {leq.getNode().negate(),
+                                       geq.getNode().negate()};
+      Pf pfNotAndNot = d_pnm->mkScope(pfBot, assumptions);
+      Pf pfOr = d_pnm->mkNode(PfRule::NOT_AND, {pfNotAndNot}, {});
+      Pf pfRewritten = d_pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pfOr}, {rewrittenLemma});
+      return d_pfGen->mkTrustNode(rewrittenLemma, pfRewritten);
+    }
+    else
+    {
+      return TrustNode::mkTrustLemma(rewrittenLemma, nullptr);
+    }
   }
 }
 
@@ -3033,11 +3064,11 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
     ArithVar canBranch = nextIntegerViolatation(false);
     if(canBranch != ARITHVAR_SENTINEL){
       ++d_statistics.d_panicBranches;
-      Node branch = branchIntegerVariable(canBranch);
-      Assert(branch.getKind() == kind::OR);
-      Node rwbranch = Rewriter::rewrite(branch[0]);
+      TrustNode branch = branchIntegerVariable(canBranch);
+      Assert(branch.getNode().getKind() == kind::OR);
+      Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
       if(!isSatLiteral(rwbranch)){
-        d_approxCuts.push_back(branch);
+        d_approxCuts.push_back(branch.getNode());
         return true;
       }
     }
@@ -3607,27 +3638,27 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
     if(!emmittedConflictOrSplit && d_hasDoneWorkSinceCut && options::arithDioSolver()){
       if(getDioCuttingResource()){
-        Node possibleLemma = dioCutting();
+        TrustNode possibleLemma = dioCutting();
         if(!possibleLemma.isNull()){
           emmittedConflictOrSplit = true;
           d_hasDoneWorkSinceCut = false;
           d_cutCount = d_cutCount + 1;
           Debug("arith::lemma") << "dio cut   " << possibleLemma << endl;
-          outputLemma(possibleLemma);
+          outputTrustedLemma(possibleLemma);
         }
       }
     }
 
     if(!emmittedConflictOrSplit) {
-      Node possibleLemma = roundRobinBranch();
-      if(!possibleLemma.isNull()){
+      TrustNode possibleLemma = roundRobinBranch();
+      if (!possibleLemma.getNode().isNull())
+      {
         ++(d_statistics.d_externalBranchAndBounds);
         d_cutCount = d_cutCount + 1;
         emmittedConflictOrSplit = true;
         Debug("arith::lemma") << "rrbranch lemma"
                               << possibleLemma << endl;
-        outputLemma(possibleLemma);
-
+        outputTrustedLemma(possibleLemma);
       }
     }
 
@@ -3662,7 +3693,8 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
 
 bool TheoryArithPrivate::foundNonlinear() const { return d_foundNl; }
 
-Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
+TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
+{
   const DeltaRational& d = d_partialModel.getAssignment(x);
   Assert(!d.isIntegral());
   const Rational& r = d.getNoninfinitesimalPart();
@@ -3674,7 +3706,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
   TNode var = d_partialModel.asNode(x);
   Integer floor_d = d.floor();
 
-  Node lem;
+  TrustNode lem = TrustNode::null();
   NodeManager* nm = NodeManager::currentNM();
   if (options::brabTest())
   {
@@ -3691,38 +3723,102 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
         nm->mkNode(kind::LEQ, var, mkRationalNode(nearest - 1)));
     Node lb = Rewriter::rewrite(
         nm->mkNode(kind::GEQ, var, mkRationalNode(nearest + 1)));
-    lem = nm->mkNode(kind::OR, ub, lb);
-    Node eq = Rewriter::rewrite(
-        nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest)));
+    Node right = nm->mkNode(kind::OR, ub, lb);
+    Node rawEq = nm->mkNode(kind::EQUAL, var, mkRationalNode(nearest));
+    Node eq = Rewriter::rewrite(rawEq);
     // Also preprocess it before we send it out. This is important since
     // arithmetic may prefer eliminating equalities.
+    TrustNode teq;
     if (Theory::theoryOf(eq) == THEORY_ARITH)
     {
-      TrustNode teq = d_containing.ppRewrite(eq);
+      teq = d_containing.ppRewrite(eq);
       eq = teq.isNull() ? eq : teq.getNode();
     }
     Node literal = d_containing.getValuation().ensureLiteral(eq);
+    Trace("integers") << "eq: " << eq << "\nto: " << literal << endl;
     d_containing.getOutputChannel().requirePhase(literal, true);
-    lem = nm->mkNode(kind::OR, literal, lem);
+    Node l = nm->mkNode(kind::OR, literal, right);
+    Trace("integers") << "l: " << l << endl;
+    if (proofsEnabled())
+    {
+      Node less = nm->mkNode(kind::LT, var, mkRationalNode(nearest));
+      Node greater = nm->mkNode(kind::GT, var, mkRationalNode(nearest));
+      // TODO (project #37): justify. Thread proofs through *ensureLiteral*.
+      Debug("integers::pf") << "less: " << less << endl;
+      Debug("integers::pf") << "greater: " << greater << endl;
+      Debug("integers::pf") << "literal: " << literal << endl;
+      Debug("integers::pf") << "eq: " << eq << endl;
+      Debug("integers::pf") << "rawEq: " << rawEq << endl;
+      Pf pfNotLit = d_pnm->mkAssume(literal.negate());
+      // rewrite notLiteral to notRawEq, using teq.
+      Pf pfNotRawEq =
+          literal == rawEq
+              ? pfNotLit
+              : d_pnm->mkNode(
+                  PfRule::MACRO_SR_PRED_TRANSFORM,
+                  {pfNotLit, teq.getGenerator()->getProofFor(teq.getProven())},
+                  {rawEq.negate()});
+      Pf pfBot =
+          d_pnm->mkNode(PfRule::CONTRA,
+                        {d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
+                                       {d_pnm->mkAssume(less.negate()), pfNotRawEq},
+                                       {greater}),
+                         d_pnm->mkAssume(greater.negate())},
+                        {});
+      std::vector<Node> assumptions = {
+          literal.negate(), less.negate(), greater.negate()};
+      // Proof of (not (and (not (= v i)) (not (< v i)) (not (> v i))))
+      Pf pfNotAnd = d_pnm->mkScope(pfBot, assumptions);
+      Pf pfL = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                             {d_pnm->mkNode(PfRule::NOT_AND, {pfNotAnd}, {})},
+                             {l});
+      lem = d_pfGen->mkTrustNode(l, pfL);
+    }
+    else
+    {
+      lem = TrustNode::mkTrustLemma(l, nullptr);
+    }
   }
   else
   {
     Node ub =
         Rewriter::rewrite(nm->mkNode(kind::LEQ, var, mkRationalNode(floor_d)));
     Node lb = ub.notNode();
-    lem = nm->mkNode(kind::OR, ub, lb);
+    if (proofsEnabled())
+    {
+      lem = d_pfGen->mkTrustNode(
+          nm->mkNode(kind::OR, ub, lb), PfRule::SPLIT, {}, {ub});
+    }
+    else
+    {
+      lem = TrustNode::mkTrustLemma(nm->mkNode(kind::OR, ub, lb), nullptr);
+    }
   }
 
   Trace("integers") << "integers: branch & bound: " << lem << endl;
-  if(isSatLiteral(lem[0])) {
-    Debug("integers") << "    " << lem[0] << " == " << getSatValue(lem[0]) << endl;
-  } else {
-    Debug("integers") << "    " << lem[0] << " is not assigned a SAT literal" << endl;
-  }
-  if(isSatLiteral(lem[1])) {
-    Debug("integers") << "    " << lem[1] << " == " << getSatValue(lem[1]) << endl;
-    } else {
-    Debug("integers") << "    " << lem[1] << " is not assigned a SAT literal" << endl;
+  if (Debug.isOn("integers"))
+  {
+    Node l = lem.getNode();
+    if (isSatLiteral(l[0]))
+    {
+      Debug("integers") << "    " << l[0] << " == " << getSatValue(l[0])
+                        << endl;
+    }
+    else
+    {
+      Debug("integers") << "    " << l[0] << " is not assigned a SAT literal"
+                        << endl;
+    }
+    if (isSatLiteral(l[1]))
+    {
+      Debug("integers") << "    " << l[1] << " == " << getSatValue(l[1])
+                        << endl;
+    }
+    else
+    {
+      Debug("integers") << "    " << l[1] << " is not assigned a SAT literal"
+                        << endl;
+    }
   }
   return lem;
 }
@@ -3748,9 +3844,10 @@ std::vector<ArithVar> TheoryArithPrivate::cutAllBounded() const{
 }
 
 /** Returns true if the roundRobinBranching() issues a lemma. */
-Node TheoryArithPrivate::roundRobinBranch(){
+TrustNode TheoryArithPrivate::roundRobinBranch()
+{
   if(hasIntegerModel()){
-    return Node::null();
+    return TrustNode::null();
   }else{
     ArithVar v = d_nextIntegerCheckVar;
 

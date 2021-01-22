@@ -17,6 +17,7 @@
 
 #include "theory/arith/theory_arith.h"
 
+#include "expr/proof_rule.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"
@@ -42,6 +43,7 @@ TheoryArith::TheoryArith(context::Context* c,
       d_internal(
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
       d_inferenceManager(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
@@ -131,7 +133,17 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
       Debug("arith::preprocess")
           << "arith::preprocess() : returning " << rewritten << endl;
       // don't need to rewrite terms since rewritten is not a non-standard op
-      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
+      if (proofsEnabled())
+      {
+        return d_ppPfGen.mkTrustedRewrite(
+            atom,
+            rewritten,
+            d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
+      }
+      else
+      {
+        return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
+      }
     }
   }
   return ppRewriteTerms(atom);
