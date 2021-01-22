@@ -33,12 +33,8 @@ SolverState::SolverState(context::Context* c,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
+  d_nm = NodeManager::currentNM();
 }
-
-struct BagsCountAttributeId
-{
-};
-typedef expr::Attribute<BagsCountAttributeId, Node> BagsCountAttribute;
 
 void SolverState::registerBag(TNode n)
 {
@@ -49,8 +45,8 @@ void SolverState::registerBag(TNode n)
 void SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
-  Node element = n[0];
-  Node bag = n[1];
+  Node element = getRepresentative(n[0]);
+  Node bag = getRepresentative(n[1]);
   d_bagElements[bag].insert(element);
 }
 
@@ -58,6 +54,7 @@ const std::set<Node>& SolverState::getBags() { return d_bags; }
 
 const std::set<Node>& SolverState::getElements(Node B)
 {
+  Node bag = getRepresentative(B);
   return d_bagElements[B];
 }
 
@@ -67,28 +64,57 @@ void SolverState::reset()
   d_bags.clear();
 }
 
-void SolverState::mergeBags(TNode n1, TNode n2)
+void SolverState::initialize()
 {
-  // merge the count terms of the two equivalent bags
-  const std::set<Node>& terms1 = d_bagElements[n1];
-  const std::set<Node>& terms2 = d_bagElements[n2];
+  reset();
+  collectBagsAndCountTerms();
+}
 
-  std::set<Node> merge;
-  set_union(terms1.begin(),
-            terms1.end(),
-            terms2.begin(),
-            terms2.end(),
-            std::inserter(merge, merge.begin()));
-  d_bagElements[n1] = merge;
-  d_bagElements[n2] = merge;
-  Trace("bags::SolverState::mergeBags")
-      << "[SolverState::mergeBags] n1: " << n1 << ", count terms1: " << terms1
-      << std::endl;
-  Trace("bags::SolverState::mergeBags")
-      << "[SolverState::mergeBags] n2: " << n2 << ", count terms2: " << terms2
-      << std::endl;
-  Trace("bags::SolverState::mergeBags")
-      << "[SolverState::mergeBags] merge: " << merge << std::endl;
+void SolverState::collectBagsAndCountTerms()
+{
+  Trace("SolverState::collectBagsAndCountTerms")
+      << "SolverState::collectBagsAndCountTerms start" << endl;
+  eq::EqClassesIterator repIt = eq::EqClassesIterator(d_ee);
+  while (!repIt.isFinished())
+  {
+    Node eqc = (*repIt);
+    Trace("SolverState::collectBagsAndCountTerms")
+        << "[" << eqc << "]: " << endl;
+
+    if (eqc.getType().isBag())
+    {
+      registerBag(eqc);
+    }
+
+    eq::EqClassIterator it = eq::EqClassIterator(eqc, d_ee);
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      Kind k = n.getKind();
+      if (k == MK_BAG)
+      {
+        // for terms (bag x c) we need to store x by registering the count term
+        // (bag.count x (bag x c))
+        Node count = d_nm->mkNode(BAG_COUNT, n[0], n);
+        registerCountTerm(count);
+        Trace("SolverState::collectBagsAndCountTerms")
+            << "registered " << count << endl;
+      }
+      if (k == BAG_COUNT)
+      {
+        // this takes care of all count terms in each equivalent class
+        registerCountTerm(n);
+        Trace("SolverState::collectBagsAndCountTerms")
+            << "registered " << n << endl;
+      }
+      ++it;
+    }
+
+    ++repIt;
+  }
+
+  Trace("SolverState::collectBagsAndCountTerms")
+      << "SolverState::collectBagsAndCountTerms end" << endl;
 }
 
 }  // namespace bags

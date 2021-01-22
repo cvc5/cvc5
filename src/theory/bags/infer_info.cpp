@@ -25,7 +25,7 @@ const char* toString(Inference i)
   switch (i)
   {
     case Inference::NONE: return "NONE";
-    case Inference::BAG_COUNT: return "BAG_COUNT";
+    case Inference::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
     case Inference::BAG_MK_BAG: return "BAG_MK_BAG";
     case Inference::BAG_EQUALITY: return "BAG_EQUALITY";
     case Inference::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
@@ -100,12 +100,13 @@ bool InferInfo::isFact() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer " << ii.d_id << " " << ii.d_conclusion << std::endl;
+  out << "(infer :id " << ii.d_id << std::endl;
+  out << ":conclusion " << ii.d_conclusion << std::endl;
   if (!ii.d_premises.empty())
   {
     out << " :premise (" << ii.d_premises << ")" << std::endl;
   }
-
+  out << ":skolems " << ii.d_skolems << std::endl;
   out << ")";
   return out;
 }

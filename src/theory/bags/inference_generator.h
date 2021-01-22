@@ -45,7 +45,7 @@ class InferenceGenerator
    *   true
    *   (>= (bag.count e A) 0)
    */
-  InferInfo count(Node n, Node e);
+  InferInfo nonNegativeCount(Node n, Node e);
 
   /**
    * @param n is (bag x c) of type (Bag E)
@@ -53,7 +53,8 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (bag.count e (bag x c)) (ite (= e x) c 0)))
+   *   (= (bag.count e skolem_{(bag x c)}) (ite (= e x) c 0)))
+   *   where skolem is fresh variable equals (bag x c)
    */
   InferInfo mkBag(Node n, Node e);
 

@@ -51,16 +51,20 @@ class SolverState : public TheoryState
    * albeit x is definitely not in B.
    */
   const std::set<Node>& getElements(Node B);
-  /** clear all bags data structures */
-  void reset();
-
-  /** merge the elements of the two registered bags n1, n2 */
-  void mergeBags(TNode n1, TNode n2);
+  /** initialize bag and count terms */
+  void initialize();
 
  private:
+  /** clear all bags data structures */
+  void reset();
+  /** collect bags' representatives and all count terms */
+  void collectBagsAndCountTerms();
   /** constants */
   Node d_true;
   Node d_false;
+  /** node manager for this solver state */
+  NodeManager* d_nm;
+  /** collection of bag representatives */
   std::set<Node> d_bags;
   /** bag -> associated elements */
   std::map<Node, std::set<Node>> d_bagElements;

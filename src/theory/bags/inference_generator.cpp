@@ -32,13 +32,13 @@ InferenceGenerator::InferenceGenerator(SolverState* state) : d_state(state)
   d_one = d_nm->mkConst(Rational(1));
 }
 
-InferInfo InferenceGenerator::count(Node n, Node e)
+InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
 {
   Assert(n.getType().isBag());
   Assert(e.getType() == n.getType().getBagElementType());
 
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_COUNT;
+  inferInfo.d_id = Inference::BAG_NON_NEGATIVE_COUNT;
   Node count = d_nm->mkNode(kind::BAG_COUNT, e, n);
 
   Node gte = d_nm->mkNode(kind::GEQ, count, d_zero);

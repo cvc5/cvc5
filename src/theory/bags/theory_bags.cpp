@@ -238,13 +238,7 @@ void TheoryBags::eqNotifyNewClass(TNode n)
   }
 }
 
-void TheoryBags::eqNotifyMerge(TNode n1, TNode n2)
-{
-  if (n1.getType().isBag())
-  {
-    d_state.mergeBags(n1, n2);
-  }
-}
+void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
 
 void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
 {

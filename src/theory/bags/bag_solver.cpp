@@ -39,24 +39,37 @@ BagSolver::~BagSolver() {}
 
 void BagSolver::postCheck()
 {
-  for (const Node& n : d_state.getBags())
+  d_state.initialize();
+
+  // At this point, all bag and count representatives should be in the solver
+  // state.
+  for (const Node& bag : d_state.getBags())
   {
-    Kind k = n.getKind();
-    switch (k)
+    // iterate through all bags terms in each equivalent class
+    eq::EqClassIterator it =
+        eq::EqClassIterator(bag, d_state.getEqualityEngine());
+    while (!it.isFinished())
     {
-      case kind::MK_BAG: checkMkBag(n); break;
-      case kind::UNION_DISJOINT: checkUnionDisjoint(n); break;
-      case kind::UNION_MAX: checkUnionMax(n); break;
-      case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
-      default: break;
+      Node n = (*it);
+      Kind k = n.getKind();
+      switch (k)
+      {
+        case kind::MK_BAG: checkMkBag(n); break;
+        case kind::UNION_DISJOINT: checkUnionDisjoint(n); break;
+        case kind::UNION_MAX: checkUnionMax(n); break;
+        case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
+        default: break;
+      }
+      it++;
     }
   }
 
+  // add non negative constraints for all multiplicities
   for (const Node& n : d_state.getBags())
   {
     for (const Node& e : d_state.getElements(n))
     {
-      checkCountTerms(n, e);
+      checkNonNegativeCountTerms(n, e);
     }
   }
 }
@@ -118,6 +131,9 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
 void BagSolver::checkMkBag(const Node& n)
 {
   Assert(n.getKind() == MK_BAG);
+  Trace("bags::BagSolver::postCheck")
+      << "BagSolver::checkMkBag Elements of " << n
+      << " are: " << d_state.getElements(n) << std::endl;
   for (const Node& e : d_state.getElements(n))
   {
     InferenceGenerator ig(&d_state);
@@ -126,10 +142,10 @@ void BagSolver::checkMkBag(const Node& n)
     Trace("bags::BagSolver::postCheck") << i << endl;
   }
 }
-void BagSolver::checkCountTerms(const Node& bag, const Node& element)
+void BagSolver::checkNonNegativeCountTerms(const Node& bag, const Node& element)
 {
   InferenceGenerator ig(&d_state);
-  InferInfo i = ig.count(bag, element);
+  InferInfo i = ig.nonNegativeCount(bag, element);
   i.process(&d_im, true);
   Trace("bags::BagSolver::postCheck") << i << endl;
 }
