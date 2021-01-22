@@ -657,8 +657,12 @@ class TheoryEngine {
    * sending lemmas if preprocessing n involves introducing new skolems.
    */
   Node ensureLiteral(TNode n);
-
-  Node ensureTerm(TNode n);
+  /** 
+   * This returns the theory-preprocessed form of term n. This rewrites and
+   * preprocesses n, which notice may involve sending lemmas if preprocessing n
+   * involves introducing new skolems.
+   */
+  Node getPreprocessedTerm(TNode n);
   /**
    * Print all instantiations made by the quantifiers module.
    */

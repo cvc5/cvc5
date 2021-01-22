@@ -1174,10 +1174,10 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   return d_propEngine->ensureLiteral(rewritten);
 }
 
-Node TheoryEngine::ensureTerm(TNode n)
+Node TheoryEngine::getPreprocessedTerm(TNode n)
 {
   Node rewritten = Rewriter::rewrite(n);
-  return d_propEngine->ensureTerm(rewritten);
+  return d_propEngine->getPreprocessedTerm(rewritten);
 }
 
 void TheoryEngine::printInstantiations( std::ostream& out ) {

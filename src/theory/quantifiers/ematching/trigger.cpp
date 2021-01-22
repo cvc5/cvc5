@@ -60,7 +60,7 @@ Node ensureGroundTermPreprocessed(Valuation& val,
       }
       else if (!quantifiers::TermUtil::hasInstConstAttr(cur))
       {
-        Node vcur = val.ensureTerm(cur);
+        Node vcur = val.getPreprocessedTerm(cur);
         gts.push_back(vcur);
         visited[cur] = vcur;
       }

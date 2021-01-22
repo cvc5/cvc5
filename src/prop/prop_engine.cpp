@@ -427,14 +427,14 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
 Node PropEngine::ensureLiteral(TNode n)
 {
   // must preprocess
-  Node preprocessed = ensureTerm(n);
+  Node preprocessed = getPreprocessedTerm(n);
   Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
                          << std::endl;
   d_cnfStream->ensureLiteral(preprocessed);
   return preprocessed;
 }
 
-Node PropEngine::ensureTerm(TNode n)
+Node PropEngine::getPreprocessedTerm(TNode n)
 {
   // must preprocess
   std::vector<theory::TrustNode> newLemmas;
@@ -444,7 +444,6 @@ Node PropEngine::ensureTerm(TNode n)
   // send lemmas corresponding to the skolems introduced by preprocessing n
   for (const theory::TrustNode& tnl : newLemmas)
   {
-    Trace("ensureLiteral") << "  lemma: " << tnl.getNode() << std::endl;
     assertLemma(tnl, theory::LemmaProperty::NONE);
   }
   return tpn.isNull() ? Node(n) : tpn.getNode();
