@@ -134,7 +134,7 @@ public:
    * Ensure that the given node will have a designated SAT literal
    * that is definitionally equal to it.  The result of this function
    * is a Node that can be queried via getSatValue().
-   * 
+   *
    * Note that this call may add lemmas to the SAT solver corresponding to the
    * definition of subterms eliminated by preprocessing.
    *
@@ -144,17 +144,17 @@ public:
    */
   Node ensureLiteral(TNode n) CVC4_WARN_UNUSED_RESULT;
 
-  /** 
+  /**
    * This returns the theory-preprocessed form of term n. The theory
    * preprocessed form of a term t is one returned by
    * TheoryPreprocess::preprocess (see theory/theory_preprocess.h). In
    * particular, the returned term has syntax sugar symbols eliminated
    * (e.g. div, mod, partial datatype selectors), has term formulas (e.g. ITE
    * terms eliminated) and has been rewritten.
-   * 
+   *
    * Note that this call may add lemmas to the SAT solver corresponding to the
    * definition of subterms eliminated by preprocessing.
-   * 
+   *
    * @param n The node to preprocess
    * @return The preprocessed form of n
    */

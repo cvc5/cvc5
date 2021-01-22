@@ -190,7 +190,7 @@ class PropEngine
    * via getSatValue().
    */
   Node ensureLiteral(TNode n);
-  /** 
+  /**
    * This returns the theory-preprocessed form of term n. This rewrites and
    * preprocesses n, which notice may involve sending lemmas if preprocessing n
    * involves introducing new skolems.
