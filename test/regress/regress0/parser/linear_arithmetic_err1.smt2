@@ -1,4 +1,5 @@
 ; REQUIRES: no-competition
+; COMMAND-LINE: --strict-parsing
 ; SCRUBBER: grep -o "Symbol 'div' not declared as a variable"
 ; EXPECT: Symbol 'div' not declared as a variable
 ; EXIT: 1

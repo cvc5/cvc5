@@ -237,6 +237,14 @@ private:
   context::CDQueue<ArithVar> d_constantIntegerVariables;
 
   Node callDioSolver();
+  /**
+   * Produces lemmas of the form (or (>= f 0) (<= f 0)),
+   * where f is a plane that the diophantine solver is interested in.
+   *
+   * More precisely, produces lemmas of the form (or (>= lc -c) (<= lc -c))
+   * where lc is a linear combination of variables, c is a constant, and lc + c
+   * is the plane.
+   */
   TrustNode dioCutting();
 
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
