@@ -1427,6 +1427,7 @@ set(regress_1_tests
   regress1/bug681.smt2
   regress1/bug694-Unapply1.scala-0.smt2
   regress1/bug800.smt2
+  regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
   regress1/bags/issue5759.smt2
   regress1/bags/subbag1.smt2

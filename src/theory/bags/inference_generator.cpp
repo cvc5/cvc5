@@ -75,24 +75,6 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
   return inferInfo;
 }
 
-InferInfo InferenceGenerator::bagEquality(Node n, Node e)
-{
-  Assert(n.getKind() == kind::EQUAL && n[0].getType().isBag());
-  Assert(e.getType() == n[0].getType().getBagElementType());
-
-  Node A = n[0];
-  Node B = n[1];
-  InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_EQUALITY;
-  inferInfo.d_premises.push_back(n);
-  Node countA = getMultiplicityTerm(e, A);
-  Node countB = getMultiplicityTerm(e, B);
-
-  Node equal = countA.eqNode(countB);
-  inferInfo.d_conclusion = equal;
-  return inferInfo;
-}
-
 struct BagsDeqAttributeId
 {
 };

@@ -57,16 +57,6 @@ class InferenceGenerator
    *   where skolem is fresh variable equals (bag x c)
    */
   InferInfo mkBag(Node n, Node e);
-
-  /**
-   * @param n is (= A B) where A, B are bags of type (Bag E)
-   * @param e is a node of Type E
-   * @return an inference that represents the following implication
-   * (=>
-   *   (= A B)
-   *   (= (count e A) (count e B)))
-   */
-  InferInfo bagEquality(Node n, Node e);
   /**
    * @param n is (not (= A B)) where A, B are bags of type (Bag E)
    * @return an inference that represents the following implication
@@ -168,6 +158,7 @@ class InferenceGenerator
   Node getMultiplicityTerm(Node element, Node bag);
 
  private:
+  /** generate skolem variable for node n and add it to inferInfo */
   Node getSkolem(Node& n, InferInfo& inferInfo);
 
   NodeManager* d_nm;
