@@ -236,7 +236,8 @@ TrustNode ExpandDefs::expandDefinitions(
                                 instance,
                                 PfRule::MACRO_SR_PRED_INTRO,
                                 pfExpChildren,
-                                {conc}, true);
+                                {conc},
+                                true);
           }
         }
         // now, call expand definitions again on the result

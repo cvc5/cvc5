@@ -303,8 +303,7 @@ int MonomialCheck::compareSign(
         args.emplace_back(oa);
         proof->addStep(lemma, PfRule::ARITH_MULT_SIGN, {}, args);
       }
-      d_data->d_im.addPendingArithLemma(
-          lemma, InferenceId::NL_SIGN, proof);
+      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN, proof);
     }
     return status;
   }

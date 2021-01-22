@@ -386,7 +386,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                                  cached,
                                  PfRule::TRUST_REWRITE,
                                  {},
-                                 {eq}, false);
+                                 {eq},
+                                 false);
             // don't overwrite the cache, should be the same
             rewriteStackTop.d_node = cached;
           }
@@ -486,8 +487,7 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
                            PfRule::THEORY_REWRITE,
                            {},
                            {proven, tidn, rid},
-                          isPre
-                          );
+                           isPre);
     }
     else
     {

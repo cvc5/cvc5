@@ -328,10 +328,8 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                   {},
                   {mult, d_ci_exp[x][coeff][rhs], nm->mkNode(type, t, rhs)});
             }
-            d_data->d_im.addPendingArithLemma(iblem,
-                                              InferenceId::NL_INFER_BOUNDS_NT,
-                                              proof,
-                                              introNewTerms);
+            d_data->d_im.addPendingArithLemma(
+                iblem, InferenceId::NL_INFER_BOUNDS_NT, proof, introNewTerms);
           }
         }
       }

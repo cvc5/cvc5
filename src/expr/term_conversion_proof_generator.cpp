@@ -65,7 +65,8 @@ TConvProofGenerator::~TConvProofGenerator() {}
 
 void TConvProofGenerator::addRewriteStep(Node t,
                                          Node s,
-                                         ProofGenerator* pg, bool isPre,
+                                         ProofGenerator* pg,
+                                         bool isPre,
                                          PfRule trustId,
                                          bool isClosed,
                                          uint32_t tctx)
@@ -77,10 +78,8 @@ void TConvProofGenerator::addRewriteStep(Node t,
   }
 }
 
-void TConvProofGenerator::addRewriteStep(Node t,
-                                         Node s,
-                                         ProofStep ps, bool isPre,
-                                         uint32_t tctx)
+void TConvProofGenerator::addRewriteStep(
+    Node t, Node s, ProofStep ps, bool isPre, uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx, isPre);
   if (!eq.isNull())
@@ -93,7 +92,8 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          Node s,
                                          PfRule id,
                                          const std::vector<Node>& children,
-                                         const std::vector<Node>& args, bool isPre,
+                                         const std::vector<Node>& args,
+                                         bool isPre,
                                          uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx, isPre);
@@ -103,12 +103,16 @@ void TConvProofGenerator::addRewriteStep(Node t,
   }
 }
 
-bool TConvProofGenerator::hasRewriteStep(Node t, uint32_t tctx, bool isPre) const
+bool TConvProofGenerator::hasRewriteStep(Node t,
+                                         uint32_t tctx,
+                                         bool isPre) const
 {
   return !getRewriteStep(t, tctx, isPre).isNull();
 }
 
-Node TConvProofGenerator::getRewriteStep(Node t, uint32_t tctx, bool isPre) const
+Node TConvProofGenerator::getRewriteStep(Node t,
+                                         uint32_t tctx,
+                                         bool isPre) const
 {
   Node thash = t;
   if (d_tcontext != nullptr)
@@ -118,7 +122,10 @@ Node TConvProofGenerator::getRewriteStep(Node t, uint32_t tctx, bool isPre) cons
   return getRewriteStepInternal(thash, isPre);
 }
 
-Node TConvProofGenerator::registerRewriteStep(Node t, Node s, uint32_t tctx, bool isPre)
+Node TConvProofGenerator::registerRewriteStep(Node t,
+                                              Node s,
+                                              uint32_t tctx,
+                                              bool isPre)
 {
   if (t == s)
   {
@@ -198,13 +205,13 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
       if (debugTraceEnabled)
       {
         Trace("tconv-pf-gen-debug") << "Printing rewrite steps..." << std::endl;
-        for (size_t r=0; r<2; r++)
+        for (size_t r = 0; r < 2; r++)
         {
-          const NodeNodeMap& rm = r==0 ? d_preRewriteMap : d_postRewriteMap;
-          serr << "Rewrite steps (" << (r==0? "pre" : "post") << "):" << std::endl;
-          for (NodeNodeMap::const_iterator it = rm.begin();
-              it != rm.end();
-              ++it)
+          const NodeNodeMap& rm = r == 0 ? d_preRewriteMap : d_postRewriteMap;
+          serr << "Rewrite steps (" << (r == 0 ? "pre" : "post")
+               << "):" << std::endl;
+          for (NodeNodeMap::const_iterator it = rm.begin(); it != rm.end();
+               ++it)
           {
             serr << (*it).first << " -> " << (*it).second << std::endl;
           }

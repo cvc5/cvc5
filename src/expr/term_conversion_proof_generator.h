@@ -157,26 +157,29 @@ class TConvProofGenerator : public ProofGenerator
    */
   void addRewriteStep(Node t,
                       Node s,
-                      ProofGenerator* pg, bool isPre=false,
+                      ProofGenerator* pg,
+                      bool isPre = false,
                       PfRule trustId = PfRule::ASSUME,
                       bool isClosed = false,
                       uint32_t tctx = 0);
   /** Same as above, for a single step */
-  void addRewriteStep(Node t, Node s, ProofStep ps, bool isPre=false, uint32_t tctx = 0);
+  void addRewriteStep(
+      Node t, Node s, ProofStep ps, bool isPre = false, uint32_t tctx = 0);
   /** Same as above, with explicit arguments */
   void addRewriteStep(Node t,
                       Node s,
                       PfRule id,
                       const std::vector<Node>& children,
-                      const std::vector<Node>& args, bool isPre=false,
+                      const std::vector<Node>& args,
+                      bool isPre = false,
                       uint32_t tctx = 0);
   /** Has rewrite step for term t */
-  bool hasRewriteStep(Node t, uint32_t tctx = 0, bool isPre=false) const;
+  bool hasRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /** 
    * Get rewrite step for term t, returns the s provided in a call to
    * addRewriteStep if one exists, or null otherwise.
    */
-  Node getRewriteStep(Node t, uint32_t tctx = 0, bool isPre=false) const;
+  Node getRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /**
    * Get the proof for formula f. It should be the case that f is of the form
    * t = t', where t' is the result of rewriting t based on the rewrite steps
