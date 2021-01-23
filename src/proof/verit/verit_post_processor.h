@@ -12,14 +12,10 @@
  ** \brief The module for processing proof nodes into veriT proof nodes
  **/
 
-#include <memory>
 #include "cvc4_private.h"
 
 #ifndef CVC4__PROOF__VERIT_PROOF_PROCESSOR_H
 #define CVC4__PROOF__VERIT_PROOF_PROCESSOR_H
-
-#include <map>
-#include <unordered_set>
 
 #include "expr/proof_node_updater.h"
 #include "proof/verit/verit_proof_rule.h"
@@ -32,7 +28,7 @@ namespace proof {
  * A callback class used by the veriT converter for post-processing proof nodes
  * by replacing internal rules by the rules in the veriT calculus.
  */
-class VeritProofPostprocessCallback
+class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
   VeritProofPostprocessCallback(ProofNodeManager* pnm);
@@ -40,8 +36,16 @@ class VeritProofPostprocessCallback
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
+   *
+   * @param extended indicates whether the extended veriT format should be used or not
    */
   void initializeUpdate(bool extended);
+  /** Should proof pn be updated?
+   *
+   * @param pn the proof node that maybe should be updated
+   * @param continueUpdate indicates whether we should continue recursively updating pn
+   * @return whether we should run the update method on pn
+   */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     bool& continueUpdate);
   /**
@@ -57,7 +61,7 @@ class VeritProofPostprocessCallback
    */
   bool update(Node res,
               PfRule id,
-	      const std::vector<std::shared_ptr<ProofNode>>& pf_children,
+	      const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate);
@@ -68,7 +72,7 @@ class VeritProofPostprocessCallback
   NodeManager* d_nm;
   /** The variable cl **/
   Node d_cl;
-  /** Flag to indicate whether proof format should be extended */
+  /** Flag to indicate whether the veriT proof format should be extended */
   bool d_extended;
   /**
    * This method adds a new step to the proof applying the VERIT_RULE. It adds
@@ -105,13 +109,6 @@ class VeritProofPostprocessCallback
 		    const std::vector<Node>& children,
 		    const std::vector<Node>& args,
 		    CDProof& cdp);
-  // TODO
-  bool addVeritStepOr(Node res,
-                      VeritRule rule,
-                      const std::vector<Node>& children,
-                      const std::vector<Node>& args,
-                      CDProof& cdp);
-
   /**
    * This method adds a new step to the proof applying the veriT rule while
    * replacing the outermost or by cl, i.e. (cl F1 ... Fn). The kind of the
@@ -124,15 +121,11 @@ class VeritProofPostprocessCallback
    * @param cdp The proof to add to
    * @return True if the step could be added, or false if not.
   */
-
   bool addVeritStepFromOr(Node res,
                           VeritRule rule,
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof& cdp);
-  // TODO:Add comment
-  Node mkClNode(std::vector<Node> clauses);
-  bool addClProof(Node res, VeritRule rule, const std::vector<Node>& children, const std::vector<Node>& args,CDProof* cdp);
 };
 
 /**
@@ -154,8 +147,7 @@ class VeritProofPostprocess
   ProofNodeManager* d_pnm;
   /** Internal processing for a proof node*/
   void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdp);
-  /** Special processing for the first scope*/
-  void processFirstScope(std::shared_ptr<ProofNode> pf, CDProof* cdp);
+  /** Special processing for SYMM rules*/
   void processSYMM(std::shared_ptr<ProofNode> pf, CDProof *cdp);
   /** Flag to indicate whether proof format should be extended */
   bool d_extended;
