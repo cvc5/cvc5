@@ -29,7 +29,6 @@ namespace quantifiers {
 
 class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
-class InstStrategyFreeVariable;
 
 class InstantiationEngine : public QuantifiersModule {
  private:

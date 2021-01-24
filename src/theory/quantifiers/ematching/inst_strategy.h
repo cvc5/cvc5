@@ -28,7 +28,9 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
-/** instantiation strategy class */
+/**
+ * A base class for instantiation strategies within E-matching.
+ */
 class InstStrategy
 {
  public:
