@@ -269,8 +269,6 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
 Node InferenceGenerator::getMultiplicityTerm(Node element, Node bag)
 {
   Node count = d_nm->mkNode(kind::BAG_COUNT, element, bag);
-  d_state->registerCountTerm(count);
-  // multiplicity is >= zero
   return count;
 }
 
