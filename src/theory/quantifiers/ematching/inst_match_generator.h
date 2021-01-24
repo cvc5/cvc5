@@ -90,9 +90,9 @@ public:
   * It returns the number of instantiations added using calls to calls to
   * Instantiate::addInstantiation(...).
   */
-  virtual int addInstantiations(Node q,
-                                QuantifiersEngine* qe,
-                                Trigger* tparent)
+  virtual uint64_t addInstantiations(Node q,
+                                     QuantifiersEngine* qe,
+                                     Trigger* tparent)
   {
     return 0;
   }
@@ -203,9 +203,9 @@ class InstMatchGenerator : public IMGenerator {
                    QuantifiersEngine* qe,
                    Trigger* tparent) override;
   /** Add instantiations. */
-  int addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
+  uint64_t addInstantiations(Node q,
+                             QuantifiersEngine* qe,
+                             Trigger* tparent) override;
 
   /** set active add flag (true by default)
    *
@@ -327,7 +327,7 @@ class InstMatchGenerator : public IMGenerator {
    * in the example (EX1) above, indicating it is the 2nd child
    * of the term.
    */
-  std::vector<int> d_children_index;
+  std::vector<size_t> d_children_index;
   /** children types
    *
    * If d_match_pattern is an instantiation constant, then this is a singleton
@@ -338,7 +338,7 @@ class InstMatchGenerator : public IMGenerator {
    *   -1 : ground term,
    *   -2 : child term.
    */
-  std::vector<int> d_children_types;
+  std::vector<int64_t> d_children_types;
   /** The next generator in the linked list
    * that this generator is a part of.
    */
@@ -528,13 +528,11 @@ class InstMatchGeneratorMulti : public IMGenerator {
   /** Reset. */
   bool reset(Node eqc, QuantifiersEngine* qe) override;
   /** Add instantiations. */
-  int addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
+  uint64_t addInstantiations(Node q,
+                             QuantifiersEngine* qe,
+                             Trigger* tparent) override;
 
  private:
-  /** indexed trie */
-  typedef std::pair< std::pair< int, int >, InstMatchTrie* > IndexedTrie;
   /** process new match
    *
    * Called during addInstantiations(...).
@@ -545,8 +543,8 @@ class InstMatchGeneratorMulti : public IMGenerator {
   void processNewMatch(QuantifiersEngine* qe,
                        Trigger* tparent,
                        InstMatch& m,
-                       int fromChildIndex,
-                       int& addedLemmas);
+                       size_t fromChildIndex,
+                       uint64_t& addedLemmas);
   /** helper for process new match
    * tr is the inst match trie (term index) we are currently traversing.
    * trieIndex is depth we are in trie tr.
@@ -560,16 +558,16 @@ class InstMatchGeneratorMulti : public IMGenerator {
   void processNewInstantiations(QuantifiersEngine* qe,
                                 Trigger* tparent,
                                 InstMatch& m,
-                                int& addedLemmas,
+                                uint64_t& addedLemmas,
                                 InstMatchTrie* tr,
-                                int trieIndex,
-                                int childIndex,
-                                int endChildIndex,
+                                size_t trieIndex,
+                                size_t childIndex,
+                                size_t endChildIndex,
                                 bool modEq);
   /** Map from pattern nodes to indices of variables they contain. */
-  std::map< Node, std::vector< int > > d_var_contains;
+  std::map<Node, std::vector<uint64_t> > d_var_contains;
   /** Map from variable indices to pattern nodes that contain them. */
-  std::map< int, std::vector< Node > > d_var_to_node;
+  std::map<uint64_t, std::vector<Node> > d_var_to_node;
   /** quantified formula we are producing matches for */
   Node d_quant;
   /** children generators
@@ -580,7 +578,7 @@ class InstMatchGeneratorMulti : public IMGenerator {
    * Stores a heuristically determined variable ordering (unique
    * variables first) for each term in the multi trigger.
    */
-  std::map< unsigned, InstMatchTrie::ImtIndexOrder* > d_imtio;
+  std::map<size_t, InstMatchTrie::ImtIndexOrder*> d_imtio;
   /** inst match tries for each child node
    * This data structure stores all InstMatch objects generated
    * by matching for each term in the multi trigger.
@@ -614,9 +612,9 @@ class InstMatchGeneratorSimple : public IMGenerator {
   /** Reset instantiation round. */
   void resetInstantiationRound(QuantifiersEngine* qe) override;
   /** Add instantiations. */
-  int addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
+  uint64_t addInstantiations(Node q,
+                             QuantifiersEngine* qe,
+                             Trigger* tparent) override;
   /** Get active score. */
   int getActiveScore(QuantifiersEngine* qe) override;
 
@@ -646,7 +644,7 @@ class InstMatchGeneratorSimple : public IMGenerator {
    * Map from child number of d_match_pattern to variable index, or -1 if the
    * child is not a variable.
    */
-  std::map<unsigned, int> d_var_num;
+  std::map<size_t, int> d_var_num;
   /** add instantiations, helper function.
    *
    * m is the current match we are building,
@@ -658,8 +656,8 @@ class InstMatchGeneratorSimple : public IMGenerator {
    */
   void addInstantiations(InstMatch& m,
                          QuantifiersEngine* qe,
-                         int& addedLemmas,
-                         unsigned argIndex,
+                         uint64_t& addedLemmas,
+                         size_t argIndex,
                          TNodeTrie* tat);
 };/* class InstMatchGeneratorSimple */
 }
