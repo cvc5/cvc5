@@ -45,6 +45,52 @@ using namespace std;
 
 namespace CVC4 {
 
+/** is the wide character a printable code point? This is true for Unicode 32
+ * (' ') to 126 ('~').
+ *
+ * @param character the character to test
+ * @return whether `character` is printable or not
+ */
+bool isPrintable(wchar_t character)
+{
+  // Unicode 0x00020 (' ') to 0x0007E ('~')
+  return 32 <= character && character <= 126;
+}
+
+/**
+ * Convert std::wstring to a std::string.
+ *
+ * The unprintable characters are converted to unicode escape sequences.
+ *
+ * If useEscSequences is false, the string's printable characters are
+ * printed as characters.
+ *
+ * @param s the std::wstring to convert to a std::string
+ * @param useEscSequences whether to use escape sequences for all characters
+ * @return the converted std::wstring
+ */
+std::string toString(std::wstring s, bool useEscSequences = false)
+{
+  std::stringstream str;
+  for (unsigned int i = 0; i < s.length(); ++i)
+  {
+    // we always print backslash as a code point so that it cannot be
+    // interpreted as specifying part of a code point, e.g. the string '\' +
+    // 'u' + '0' of length three.
+    if (isPrintable(s[i]) && s[i] != '\\' && !useEscSequences)
+    {
+      str << static_cast<char>(s[i]);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << std::hex << s[i];
+      str << "\\u{" << ss.str() << "}";
+    }
+  }
+  return str.str();
+}
+
 std::string sexprToString(api::Term sexpr)
 {
   // if sexpr is a spec constant and not a string, return the result of calling
@@ -56,11 +102,10 @@ std::string sexprToString(api::Term sexpr)
     return sexpr.toString();
   }
 
-  // if sexpr is a constant string, return the result of calling Term::toString.
-  // However, strip the surrounding quotes
-  if (sexpr.getKind() == api::CONST_STRING)
+  // if sexpr is a constant string, return the stored constant string
+  if (sexpr.isString())
   {
-    return sexpr.toString().substr(1, sexpr.toString().length() - 2);
+    return toString(sexpr.getString());
   }
 
   // if sexpr is not a spec constant, make sure it is an array of sub-sexprs
@@ -1101,9 +1146,7 @@ std::string DeclarationDefinitionCommand::getSymbol() const { return d_symbol; }
 DeclareFunctionCommand::DeclareFunctionCommand(const std::string& id,
                                                api::Term func,
                                                api::Sort sort)
-    : DeclarationDefinitionCommand(id),
-      d_func(func),
-      d_sort(sort)
+    : DeclarationDefinitionCommand(id), d_func(func), d_sort(sort)
 {
 }
 
