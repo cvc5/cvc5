@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \breif  simple inst match generator class
+ ** \brief  simple inst match generator class
  **/
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 
@@ -168,7 +168,6 @@ int InstMatchGeneratorSimple::getActiveScore( QuantifiersEngine * qe ) {
   Trace("trigger-active-sel-debug") << "Number of ground terms for (simple) " << f << " is " << ngt << std::endl;
   return static_cast<int>(ngt);
 }
-
 
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */

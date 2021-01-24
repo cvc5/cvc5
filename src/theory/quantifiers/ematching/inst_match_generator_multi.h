@@ -28,13 +28,10 @@ namespace inst {
 
 /** InstMatchGeneratorMulti
 *
-* This is an earlier implementation of multi-triggers
-* that is enabled by --multi-trigger-cache.
-* This generator takes the product of instantiations
-* found by single trigger matching, and does
-* not have the guarantee that the number of
-* instantiations is polynomial wrt the number of
-* ground terms.
+* This is an earlier implementation of multi-triggers that is enabled by
+* --multi-trigger-cache. This generator takes the product of instantiations
+* found by single trigger matching, and does not have the guarantee that the
+* number of instantiations is polynomial wrt the number of ground terms.
 */
 class InstMatchGeneratorMulti : public IMGenerator {
  public:
@@ -106,7 +103,7 @@ class InstMatchGeneratorMulti : public IMGenerator {
    * by matching for each term in the multi trigger.
    */
   std::vector< InstMatchTrieOrdered > d_children_trie;
-};/* class InstMatchGeneratorMulti */
+};
 
 }
 }
