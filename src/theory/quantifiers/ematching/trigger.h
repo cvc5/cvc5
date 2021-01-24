@@ -187,7 +187,7 @@ class Trigger {
   * produce instantiations beyond what is produced by the match generator
   * (for example, see theory/quantifiers/ematching/ho_trigger.h).
   */
-  virtual unsigned addInstantiations();
+  virtual uint64_t addInstantiations();
   /** Return whether this is a multi-trigger. */
   bool isMultiTrigger() const;
   /** Get instantiation pattern list associated with this trigger.

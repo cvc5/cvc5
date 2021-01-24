@@ -112,9 +112,9 @@ Node Trigger::getInstPattern() const
   return NodeManager::currentNM()->mkNode( INST_PATTERN, d_nodes );
 }
 
-unsigned Trigger::addInstantiations()
+uint64_t Trigger::addInstantiations()
 {
-  unsigned addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
+  uint64_t addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
   if (Debug.isOn("inst-trigger"))
   {
     if (addedLemmas > 0)
@@ -150,7 +150,7 @@ bool Trigger::mkTriggerTerms(Node q,
   }
   for (const Node& t : temp)
   {
-    std::vector<Node>& vct = varContains[t];
+    const std::vector<Node>& vct = varContains[t];
     bool foundVar = false;
     for (const Node& v : vct)
     {
@@ -185,7 +185,7 @@ bool Trigger::mkTriggerTerms(Node q,
   {
     bool keepPattern = false;
     Node n = trNodes[i];
-    std::vector<Node>& vcn = varContains[n];
+    const std::vector<Node>& vcn = varContains[n];
     for (const Node& v : vcn)
     {
       if (patterns[v].size() == 1)
