@@ -25,35 +25,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-//instantiation strategies
-
-class InstStrategyUserPatterns : public InstStrategy{
-private:
-  /** explicitly provided patterns */
-  std::map< Node, std::vector< inst::Trigger* > > d_user_gen;
-  /** waiting to be generated patterns */
-  std::map< Node, std::vector< std::vector< Node > > > d_user_gen_wait;
-  /** counter for quantifiers */
-  std::map< Node, int > d_counter;
-  /** process functions */
-  void processResetInstantiationRound(Theory::Effort effort) override;
-  int process(Node f, Theory::Effort effort, int e) override;
-
- public:
-  InstStrategyUserPatterns( QuantifiersEngine* ie ) :
-      InstStrategy( ie ){}
-  ~InstStrategyUserPatterns(){}
-public:
-  /** add pattern */
-  void addUserPattern( Node q, Node pat );
-  /** get num patterns */
-  size_t getNumUserGenerators(Node q) { return d_user_gen[q].size(); }
-  /** get user pattern */
-  inst::Trigger* getUserGenerator(Node q, size_t i) { return d_user_gen[q][i]; }
-  /** identify */
-  std::string identify() const override { return std::string("UserPatterns"); }
-};/* class InstStrategyUserPatterns */
-
 class InstStrategyAutoGenTriggers : public InstStrategy
 {
  public:

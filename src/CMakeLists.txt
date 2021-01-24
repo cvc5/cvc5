@@ -660,6 +660,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/inst_match_generator.h
   theory/quantifiers/ematching/inst_strategy_e_matching.cpp
   theory/quantifiers/ematching/inst_strategy_e_matching.h
+  theory/quantifiers/ematching/inst_strategy_e_matching_user.cpp
+  theory/quantifiers/ematching/inst_strategy_e_matching_user.h
   theory/quantifiers/ematching/instantiation_engine.cpp
   theory/quantifiers/ematching/instantiation_engine.h
   theory/quantifiers/ematching/trigger.cpp
