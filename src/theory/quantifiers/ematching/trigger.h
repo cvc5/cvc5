@@ -431,7 +431,7 @@ class Trigger {
    */
   static Node ensureGroundTermPreprocessed(Valuation& val,
                                            Node n,
-                                           std::vector<Node>& gts)
+                                           std::vector<Node>& gts);
       /** The nodes comprising this trigger. */
       std::vector<Node> d_nodes;
   /**
