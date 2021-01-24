@@ -41,7 +41,15 @@ class BagSolver
   void postCheck();
 
  private:
-  /** apply inference rules for MK_BAG operator */
+  /**
+   * apply inference rules for MK_BAG operator.
+   * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
+   * and (bag.count y n).
+   * This function will add inferences for the count terms as documented in
+   * InferenceGenerator::mkBag.
+   * Note that element y may not be in bag n. See the documentation of
+   * SolverState::getElements.
+   */
   void checkMkBag(const Node& n);
   /**
    * @param n is a bag that has the form (op A B)
