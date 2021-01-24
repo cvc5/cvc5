@@ -453,7 +453,19 @@ class Trigger {
                                            std::vector<Node>& gts)
       /** The nodes comprising this trigger. */
       std::vector<Node> d_nodes;
-  /** The preprocessed ground terms in the nodes of the trigger */
+  /** 
+   * The preprocessed ground terms in the nodes of the trigger, which as an
+   * optimization omits variables and constant subterms. These terms are
+   * important since we must ensure that the quantifier-free solvers are
+   * aware of these terms. In particular, when adding instantiations for
+   * a trigger P(f(a), x), we first check if f(a) is a term in the master
+   * equality engine. If it is not, then we add the lemma k = f(a) where k
+   * is the purification skolem for f(a). This ensures that f(a) will be
+   * registered as a term in the master equality engine on the next
+   * instantiation round. This is particularly important for cases where
+   * P(f(a), x) is matched with P(f(b), c), where a=b in the current context.
+   * This example would fail to match when f(a) is not registered.
+   */
   std::vector<Node> d_groundTerms;
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
