@@ -24,6 +24,7 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -243,7 +244,10 @@ bool ProcessAssertions::apply(Assertions& as)
       d_passes["fun-def-fmf"]->apply(&assertions);
     }
   }
-
+  if (!options::stringLazyPreproc())
+  {
+    d_passes["strings-eager-pp"]->apply(&assertions);
+  }
   if (options::sortInference() || options::ufssFairnessMonotone())
   {
     d_passes["sort-inference"]->apply(&assertions);
@@ -317,10 +321,7 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     d_passes["ho-elim"]->apply(&assertions);
   }
-
-  // rewrite equalities based on theory-specific rewriting
-  d_passes["theory-rewrite-eq"]->apply(&assertions);
-
+  
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
@@ -332,6 +333,8 @@ bool ProcessAssertions::apply(Assertions& as)
 
   // ensure rewritten
   d_passes["rewrite"]->apply(&assertions);
+  // rewrite equalities based on theory-specific rewriting
+  d_passes["theory-rewrite-eq"]->apply(&assertions);
   // apply theory preprocess, which includes ITE removal
   d_passes["theory-preprocess"]->apply(&assertions);
   // This is needed because when solving incrementally, removeITEs may

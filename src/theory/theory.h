@@ -238,6 +238,13 @@ class Theory {
   ProofNodeManager* d_pnm;
 
   /**
+   * Are proofs enabled?
+   *
+   * They are considered enabled if the ProofNodeManager is non-null.
+   */
+  bool proofsEnabled() const;
+
+  /**
    * Returns the next assertion in the assertFact() queue.
    *
    * @return the next assertion in the assertFact() queue

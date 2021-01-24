@@ -19,12 +19,11 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 void RelevantDomain::RDomain::merge( RDomain * r ) {
   Assert(!d_parent);
@@ -261,7 +260,9 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
             Node var2;
             bool hasNonVar = false;
             for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
-              if( !it->first.isNull() && it->first.getKind()==INST_CONSTANT ){
+              if (!it->first.isNull() && it->first.getKind() == INST_CONSTANT
+                  && tu->getInstConstAttr(it->first) == q)
+              {
                 if( var.isNull() ){
                   var = it->first;
                 }else if( var2.isNull() ){
@@ -329,3 +330,6 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
   }
 }
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

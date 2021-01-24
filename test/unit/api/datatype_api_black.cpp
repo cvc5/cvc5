@@ -38,7 +38,7 @@ TEST_F(TestApiDatatypeBlack, mkDatatypeSort)
   Datatype d = listSort.getDatatype();
   DatatypeConstructor consConstr = d[0];
   DatatypeConstructor nilConstr = d[1];
-  EXPECT_THROW(d[2], CVC4ApiException);
+  ASSERT_THROW(d[2], CVC4ApiException);
   ASSERT_NO_THROW(consConstr.getConstructorTerm());
   ASSERT_NO_THROW(nilConstr.getConstructorTerm());
 }
@@ -88,24 +88,24 @@ TEST_F(TestApiDatatypeBlack, mkDatatypeSorts)
   for (size_t i = 0, ndecl = dtdecls.size(); i < ndecl; i++)
   {
     ASSERT_TRUE(dtsorts[i].isDatatype());
-    EXPECT_FALSE(dtsorts[i].getDatatype().isFinite());
-    EXPECT_EQ(dtsorts[i].getDatatype().getName(), dtdecls[i].getName());
+    ASSERT_FALSE(dtsorts[i].getDatatype().isFinite());
+    ASSERT_EQ(dtsorts[i].getDatatype().getName(), dtdecls[i].getName());
   }
   // verify the resolution was correct
   Datatype dtTree = dtsorts[0].getDatatype();
   DatatypeConstructor dtcTreeNode = dtTree[0];
-  EXPECT_EQ(dtcTreeNode.getName(), "node");
+  ASSERT_EQ(dtcTreeNode.getName(), "node");
   DatatypeSelector dtsTreeNodeLeft = dtcTreeNode[0];
-  EXPECT_EQ(dtsTreeNodeLeft.getName(), "left");
+  ASSERT_EQ(dtsTreeNodeLeft.getName(), "left");
   // argument type should have resolved to be recursive
-  EXPECT_TRUE(dtsTreeNodeLeft.getRangeSort().isDatatype());
-  EXPECT_EQ(dtsTreeNodeLeft.getRangeSort(), dtsorts[0]);
+  ASSERT_TRUE(dtsTreeNodeLeft.getRangeSort().isDatatype());
+  ASSERT_EQ(dtsTreeNodeLeft.getRangeSort(), dtsorts[0]);
 
   // fails due to empty datatype
   std::vector<DatatypeDecl> dtdeclsBad;
   DatatypeDecl emptyD = d_solver.mkDatatypeDecl("emptyD");
   dtdeclsBad.push_back(emptyD);
-  EXPECT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC4ApiException);
 }
 
 TEST_F(TestApiDatatypeBlack, datatypeStructs)
@@ -119,21 +119,21 @@ TEST_F(TestApiDatatypeBlack, datatypeStructs)
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
   Sort nullSort;
-  EXPECT_THROW(cons.addSelector("null", nullSort), CVC4ApiException);
+  ASSERT_THROW(cons.addSelector("null", nullSort), CVC4ApiException);
   dtypeSpec.addConstructor(cons);
   DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
-  EXPECT_FALSE(dt.isCodatatype());
-  EXPECT_FALSE(dt.isTuple());
-  EXPECT_FALSE(dt.isRecord());
-  EXPECT_FALSE(dt.isFinite());
-  EXPECT_TRUE(dt.isWellFounded());
+  ASSERT_FALSE(dt.isCodatatype());
+  ASSERT_FALSE(dt.isTuple());
+  ASSERT_FALSE(dt.isRecord());
+  ASSERT_FALSE(dt.isFinite());
+  ASSERT_TRUE(dt.isWellFounded());
   // get constructor
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
-  EXPECT_EQ(dcons.getNumSelectors(), 2);
+  ASSERT_EQ(dcons.getNumSelectors(), 2);
 
   // create datatype sort to test
   DatatypeDecl dtypeSpecEnum = d_solver.mkDatatypeDecl("enum");
@@ -145,8 +145,8 @@ TEST_F(TestApiDatatypeBlack, datatypeStructs)
   dtypeSpecEnum.addConstructor(cc);
   Sort dtypeSortEnum = d_solver.mkDatatypeSort(dtypeSpecEnum);
   Datatype dtEnum = dtypeSortEnum.getDatatype();
-  EXPECT_FALSE(dtEnum.isTuple());
-  EXPECT_TRUE(dtEnum.isFinite());
+  ASSERT_FALSE(dtEnum.isTuple());
+  ASSERT_TRUE(dtEnum.isFinite());
 
   // create codatatype
   DatatypeDecl dtypeSpecStream = d_solver.mkDatatypeDecl("stream", true);
@@ -157,29 +157,29 @@ TEST_F(TestApiDatatypeBlack, datatypeStructs)
   dtypeSpecStream.addConstructor(consStream);
   Sort dtypeSortStream = d_solver.mkDatatypeSort(dtypeSpecStream);
   Datatype dtStream = dtypeSortStream.getDatatype();
-  EXPECT_TRUE(dtStream.isCodatatype());
-  EXPECT_FALSE(dtStream.isFinite());
+  ASSERT_TRUE(dtStream.isCodatatype());
+  ASSERT_FALSE(dtStream.isFinite());
   // codatatypes may be well-founded
-  EXPECT_TRUE(dtStream.isWellFounded());
+  ASSERT_TRUE(dtStream.isWellFounded());
 
   // create tuple
   Sort tupSort = d_solver.mkTupleSort({boolSort});
   Datatype dtTuple = tupSort.getDatatype();
-  EXPECT_TRUE(dtTuple.isTuple());
-  EXPECT_FALSE(dtTuple.isRecord());
-  EXPECT_TRUE(dtTuple.isFinite());
-  EXPECT_TRUE(dtTuple.isWellFounded());
+  ASSERT_TRUE(dtTuple.isTuple());
+  ASSERT_FALSE(dtTuple.isRecord());
+  ASSERT_TRUE(dtTuple.isFinite());
+  ASSERT_TRUE(dtTuple.isWellFounded());
 
   // create record
   std::vector<std::pair<std::string, Sort>> fields = {
       std::make_pair("b", boolSort), std::make_pair("i", intSort)};
   Sort recSort = d_solver.mkRecordSort(fields);
-  EXPECT_TRUE(recSort.isDatatype());
+  ASSERT_TRUE(recSort.isDatatype());
   Datatype dtRecord = recSort.getDatatype();
-  EXPECT_FALSE(dtRecord.isTuple());
-  EXPECT_TRUE(dtRecord.isRecord());
-  EXPECT_FALSE(dtRecord.isFinite());
-  EXPECT_TRUE(dtRecord.isWellFounded());
+  ASSERT_FALSE(dtRecord.isTuple());
+  ASSERT_TRUE(dtRecord.isRecord());
+  ASSERT_FALSE(dtRecord.isFinite());
+  ASSERT_TRUE(dtRecord.isWellFounded());
 }
 
 TEST_F(TestApiDatatypeBlack, datatypeNames)
@@ -189,7 +189,7 @@ TEST_F(TestApiDatatypeBlack, datatypeNames)
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   ASSERT_NO_THROW(dtypeSpec.getName());
-  EXPECT_EQ(dtypeSpec.getName(), std::string("list"));
+  ASSERT_EQ(dtypeSpec.getName(), std::string("list"));
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
@@ -198,22 +198,22 @@ TEST_F(TestApiDatatypeBlack, datatypeNames)
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
-  EXPECT_EQ(dt.getName(), std::string("list"));
+  ASSERT_EQ(dt.getName(), std::string("list"));
   ASSERT_NO_THROW(dt.getConstructor("nil"));
   ASSERT_NO_THROW(dt["cons"]);
   ASSERT_THROW(dt.getConstructor("head"), CVC4ApiException);
   ASSERT_THROW(dt.getConstructor(""), CVC4ApiException);
 
   DatatypeConstructor dcons = dt[0];
-  EXPECT_EQ(dcons.getName(), std::string("cons"));
+  ASSERT_EQ(dcons.getName(), std::string("cons"));
   ASSERT_NO_THROW(dcons.getSelector("head"));
   ASSERT_NO_THROW(dcons["tail"]);
   ASSERT_THROW(dcons.getSelector("cons"), CVC4ApiException);
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
-  EXPECT_EQ(dselTail.getName(), std::string("tail"));
-  EXPECT_EQ(dselTail.getRangeSort(), dtypeSort);
+  ASSERT_EQ(dselTail.getName(), std::string("tail"));
+  ASSERT_EQ(dselTail.getRangeSort(), dtypeSort);
 
   // possible to construct null datatype declarations if not using solver
   ASSERT_THROW(DatatypeDecl().getName(), CVC4ApiException);
@@ -236,7 +236,7 @@ TEST_F(TestApiDatatypeBlack, parametricDatatype)
 
   Sort pairType = d_solver.mkDatatypeSort(pairSpec);
 
-  EXPECT_TRUE(pairType.getDatatype().isParametric());
+  ASSERT_TRUE(pairType.getDatatype().isParametric());
 
   v.clear();
   v.push_back(d_solver.getIntegerSort());
@@ -255,46 +255,46 @@ TEST_F(TestApiDatatypeBlack, parametricDatatype)
   v.push_back(d_solver.getRealSort());
   Sort pairIntReal = pairType.instantiate(v);
 
-  EXPECT_NE(pairIntInt, pairRealReal);
-  EXPECT_NE(pairIntReal, pairRealReal);
-  EXPECT_NE(pairRealInt, pairRealReal);
-  EXPECT_NE(pairIntInt, pairIntReal);
-  EXPECT_NE(pairIntInt, pairRealInt);
-  EXPECT_NE(pairIntReal, pairRealInt);
+  ASSERT_NE(pairIntInt, pairRealReal);
+  ASSERT_NE(pairIntReal, pairRealReal);
+  ASSERT_NE(pairRealInt, pairRealReal);
+  ASSERT_NE(pairIntInt, pairIntReal);
+  ASSERT_NE(pairIntInt, pairRealInt);
+  ASSERT_NE(pairIntReal, pairRealInt);
 
-  EXPECT_TRUE(pairRealReal.isComparableTo(pairRealReal));
-  EXPECT_FALSE(pairIntReal.isComparableTo(pairRealReal));
-  EXPECT_FALSE(pairRealInt.isComparableTo(pairRealReal));
-  EXPECT_FALSE(pairIntInt.isComparableTo(pairRealReal));
-  EXPECT_FALSE(pairRealReal.isComparableTo(pairRealInt));
-  EXPECT_FALSE(pairIntReal.isComparableTo(pairRealInt));
-  EXPECT_TRUE(pairRealInt.isComparableTo(pairRealInt));
-  EXPECT_FALSE(pairIntInt.isComparableTo(pairRealInt));
-  EXPECT_FALSE(pairRealReal.isComparableTo(pairIntReal));
-  EXPECT_TRUE(pairIntReal.isComparableTo(pairIntReal));
-  EXPECT_FALSE(pairRealInt.isComparableTo(pairIntReal));
-  EXPECT_FALSE(pairIntInt.isComparableTo(pairIntReal));
-  EXPECT_FALSE(pairRealReal.isComparableTo(pairIntInt));
-  EXPECT_FALSE(pairIntReal.isComparableTo(pairIntInt));
-  EXPECT_FALSE(pairRealInt.isComparableTo(pairIntInt));
-  EXPECT_TRUE(pairIntInt.isComparableTo(pairIntInt));
+  ASSERT_TRUE(pairRealReal.isComparableTo(pairRealReal));
+  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealReal));
+  ASSERT_FALSE(pairRealInt.isComparableTo(pairRealReal));
+  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealReal));
+  ASSERT_FALSE(pairRealReal.isComparableTo(pairRealInt));
+  ASSERT_FALSE(pairIntReal.isComparableTo(pairRealInt));
+  ASSERT_TRUE(pairRealInt.isComparableTo(pairRealInt));
+  ASSERT_FALSE(pairIntInt.isComparableTo(pairRealInt));
+  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntReal));
+  ASSERT_TRUE(pairIntReal.isComparableTo(pairIntReal));
+  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntReal));
+  ASSERT_FALSE(pairIntInt.isComparableTo(pairIntReal));
+  ASSERT_FALSE(pairRealReal.isComparableTo(pairIntInt));
+  ASSERT_FALSE(pairIntReal.isComparableTo(pairIntInt));
+  ASSERT_FALSE(pairRealInt.isComparableTo(pairIntInt));
+  ASSERT_TRUE(pairIntInt.isComparableTo(pairIntInt));
 
-  EXPECT_TRUE(pairRealReal.isSubsortOf(pairRealReal));
-  EXPECT_FALSE(pairIntReal.isSubsortOf(pairRealReal));
-  EXPECT_FALSE(pairRealInt.isSubsortOf(pairRealReal));
-  EXPECT_FALSE(pairIntInt.isSubsortOf(pairRealReal));
-  EXPECT_FALSE(pairRealReal.isSubsortOf(pairRealInt));
-  EXPECT_FALSE(pairIntReal.isSubsortOf(pairRealInt));
-  EXPECT_TRUE(pairRealInt.isSubsortOf(pairRealInt));
-  EXPECT_FALSE(pairIntInt.isSubsortOf(pairRealInt));
-  EXPECT_FALSE(pairRealReal.isSubsortOf(pairIntReal));
-  EXPECT_TRUE(pairIntReal.isSubsortOf(pairIntReal));
-  EXPECT_FALSE(pairRealInt.isSubsortOf(pairIntReal));
-  EXPECT_FALSE(pairIntInt.isSubsortOf(pairIntReal));
-  EXPECT_FALSE(pairRealReal.isSubsortOf(pairIntInt));
-  EXPECT_FALSE(pairIntReal.isSubsortOf(pairIntInt));
-  EXPECT_FALSE(pairRealInt.isSubsortOf(pairIntInt));
-  EXPECT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
+  ASSERT_TRUE(pairRealReal.isSubsortOf(pairRealReal));
+  ASSERT_FALSE(pairIntReal.isSubsortOf(pairRealReal));
+  ASSERT_FALSE(pairRealInt.isSubsortOf(pairRealReal));
+  ASSERT_FALSE(pairIntInt.isSubsortOf(pairRealReal));
+  ASSERT_FALSE(pairRealReal.isSubsortOf(pairRealInt));
+  ASSERT_FALSE(pairIntReal.isSubsortOf(pairRealInt));
+  ASSERT_TRUE(pairRealInt.isSubsortOf(pairRealInt));
+  ASSERT_FALSE(pairIntInt.isSubsortOf(pairRealInt));
+  ASSERT_FALSE(pairRealReal.isSubsortOf(pairIntReal));
+  ASSERT_TRUE(pairIntReal.isSubsortOf(pairIntReal));
+  ASSERT_FALSE(pairRealInt.isSubsortOf(pairIntReal));
+  ASSERT_FALSE(pairIntInt.isSubsortOf(pairIntReal));
+  ASSERT_FALSE(pairRealReal.isSubsortOf(pairIntInt));
+  ASSERT_FALSE(pairIntReal.isSubsortOf(pairIntInt));
+  ASSERT_FALSE(pairRealInt.isSubsortOf(pairIntInt));
+  ASSERT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
 }
 
 TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
@@ -346,12 +346,12 @@ TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
   std::vector<Sort> dtsorts;
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 3);
-  EXPECT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[2].getDatatype().isWellFounded());
-  EXPECT_FALSE(dtsorts[0].getDatatype().hasNestedRecursion());
-  EXPECT_FALSE(dtsorts[1].getDatatype().hasNestedRecursion());
-  EXPECT_FALSE(dtsorts[2].getDatatype().hasNestedRecursion());
+  ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[2].getDatatype().isWellFounded());
+  ASSERT_FALSE(dtsorts[0].getDatatype().hasNestedRecursion());
+  ASSERT_FALSE(dtsorts[1].getDatatype().hasNestedRecursion());
+  ASSERT_FALSE(dtsorts[2].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -378,10 +378,10 @@ TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 1);
   ASSERT_TRUE(dtsorts[0].getDatatype()[0][0].getRangeSort().isArray());
-  EXPECT_EQ(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort(),
+  ASSERT_EQ(dtsorts[0].getDatatype()[0][0].getRangeSort().getArrayElementSort(),
             dtsorts[0]);
-  EXPECT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
+  ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -416,10 +416,10 @@ TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
   // both are well-founded and have nested recursion
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 2);
-  EXPECT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  EXPECT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
+  ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
+  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -454,10 +454,10 @@ TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
   // both are well-founded and have nested recursion
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 2);
-  EXPECT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[1].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
-  EXPECT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
+  ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[1].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
+  ASSERT_TRUE(dtsorts[1].getDatatype().hasNestedRecursion());
 
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
@@ -492,8 +492,8 @@ TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
   // well-founded and has nested recursion
   ASSERT_NO_THROW(dtsorts = d_solver.mkDatatypeSorts(dtdecls, unresTypes));
   ASSERT_EQ(dtsorts.size(), 1);
-  EXPECT_TRUE(dtsorts[0].getDatatype().isWellFounded());
-  EXPECT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
+  ASSERT_TRUE(dtsorts[0].getDatatype().isWellFounded());
+  ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 }
 
 TEST_F(TestApiDatatypeBlack, datatypeSpecializedCons)
@@ -542,9 +542,9 @@ TEST_F(TestApiDatatypeBlack, datatypeSpecializedCons)
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
   ASSERT_NO_THROW(testConsTerm = nilc.getSpecializedConstructorTerm(listInt));
-  EXPECT_NE(testConsTerm, nilc.getConstructorTerm());
+  ASSERT_NE(testConsTerm, nilc.getConstructorTerm());
   // error to get the specialized constructor term for Int
-  EXPECT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException);
+  ASSERT_THROW(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException);
 }
 }  // namespace test
 }  // namespace CVC4

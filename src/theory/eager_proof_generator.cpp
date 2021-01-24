@@ -120,6 +120,18 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
 }
 
+TrustNode EagerProofGenerator::mkTrustedRewrite(
+    Node a, Node b, std::shared_ptr<ProofNode> pf)
+{
+  if (pf == nullptr)
+  {
+    return TrustNode::null();
+  }
+  Node eq = a.eqNode(b);
+  setProofFor(eq, pf);
+  return TrustNode::mkTrustRewrite(a, b, this);
+}
+
 TrustNode EagerProofGenerator::mkTrustedPropagation(
     Node n, Node exp, std::shared_ptr<ProofNode> pf)
 {

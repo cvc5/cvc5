@@ -45,6 +45,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_statistics(),
       d_state(c, u, d_valuation),
+      d_eagerSolver(d_state),
       d_termReg(d_state, out, d_statistics, pnm),
       d_extTheoryCb(),
       d_extTheory(d_extTheoryCb, c, u, out),
@@ -617,14 +618,7 @@ void TheoryStrings::notifyFact(TNode atom,
                                TNode fact,
                                bool isInternal)
 {
-  if (atom.getKind() == STRING_IN_REGEXP)
-  {
-    if (polarity && atom[1].getKind() == REGEXP_CONCAT)
-    {
-      Node eqc = d_equalityEngine->getRepresentative(atom[0]);
-      d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
-    }
-  }
+  d_eagerSolver.notifyFact(atom, polarity, fact, isInternal);
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
@@ -765,7 +759,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
     //we care about the length of this string
     d_termReg.registerTerm(t[0], 1);
   }
-  d_state.eqNotifyNewClass(t);
+  d_eagerSolver.eqNotifyNewClass(t);
 }
 
 void TheoryStrings::addCarePairs(TNodeTrie* t1,
@@ -1036,31 +1030,6 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
                            << " via regular expression elimination."
                            << std::endl;
       atomRet = ret.getNode();
-    }
-  }
-  if( !options::stringLazyPreproc() ){
-    //eager preprocess here
-    std::vector< Node > new_nodes;
-    StringsPreprocess* p = d_esolver.getPreprocess();
-    Node pret = p->processAssertion(atomRet, new_nodes);
-    if (pret != atomRet)
-    {
-      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << pret
-                           << ", with " << new_nodes.size() << " lemmas."
-                           << std::endl;
-      for (const Node& lem : new_nodes)
-      {
-        Trace("strings-ppr") << "    lemma : " << lem << std::endl;
-        ++(d_statistics.d_lemmasEagerPreproc);
-        d_out->lemma(lem);
-      }
-      atomRet = pret;
-      // Don't support proofs yet, thus we must return nullptr. This is the
-      // case even if we had proven the elimination via regexp elimination
-      // above.
-      ret = TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
-    }else{
-      Assert(new_nodes.empty());
     }
   }
   return ret;
