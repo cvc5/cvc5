@@ -18,14 +18,11 @@
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
+using namespace CVC4::kind;
+using namespace CVC4::theory::inst;
+
 namespace CVC4 {
-
-using namespace kind;
-
 namespace theory {
-
-using namespace inst;
-
 namespace quantifiers {
 
 //priority levels :
