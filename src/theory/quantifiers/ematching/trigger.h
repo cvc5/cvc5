@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/inst_match.h"
 #include "options/quantifiers_options.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
