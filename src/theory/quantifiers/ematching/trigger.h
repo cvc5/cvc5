@@ -434,7 +434,7 @@ class Trigger {
                                            std::vector<Node>& gts)
       /** The nodes comprising this trigger. */
       std::vector<Node> d_nodes;
-  /** 
+  /**
    * The preprocessed ground terms in the nodes of the trigger, which as an
    * optimization omits variables and constant subterms. These terms are
    * important since we must ensure that the quantifier-free solvers are

@@ -150,7 +150,7 @@ uint64_t Trigger::addInstantiations()
                             << " lemmas, trigger was " << d_nodes << std::endl;
     }
   }
-  return gtAddedLemmas+addedLemmas;
+  return gtAddedLemmas + addedLemmas;
 }
 
 bool Trigger::sendInstantiation(InstMatch& m)
