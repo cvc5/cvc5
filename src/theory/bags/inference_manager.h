@@ -45,7 +45,7 @@ class InferenceManager : public InferenceManagerBuffered
    * process the pending lemmas and then the pending phase requirements.
    * Notice that we process the pending lemmas even if there were facts.
    */
-  // TODO: refactor this before merge with theory of strings
+  // TODO issue #78: refactor this with theory of strings
   void doPending();
 
  private:

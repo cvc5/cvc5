@@ -57,7 +57,7 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
   Node count = getMultiplicityTerm(e, skolem);
   if (n[0] == e)
   {
-    // TODO: refactor this with the rewriter
+    // TODO issue #78: refactor this with BagRewriter
     // (=> true (= (bag.count e (bag e c)) c))
     inferInfo.d_conclusion = count.eqNode(n[1]);
   }

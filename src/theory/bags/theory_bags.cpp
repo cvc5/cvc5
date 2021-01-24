@@ -78,22 +78,22 @@ void TheoryBags::finishInit()
 void TheoryBags::postCheck(Effort effort)
 {
   d_im.doPendingFacts();
-  // TODO: clean this before merge Assert(d_strat.isStrategyInit());
+  // TODO issue #78: add Assert(d_strat.isStrategyInit());
   if (!d_state.isInConflict() && !d_valuation.needCheck())
-  // TODO: clean this before merge && d_strat.hasStrategyEffort(e))
+  // TODO issue #78:  add && d_strat.hasStrategyEffort(e))
   {
     Trace("bags::TheoryBags::postCheck") << "effort: " << std::endl;
 
-    // TODO: clean this before merge ++(d_statistics.d_checkRuns);
+    // TODO issue #78: add ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
     bool hadPending = false;
     Trace("bags-check") << "Full effort check..." << std::endl;
     do
     {
       d_im.reset();
-      // TODO: clean this before merge ++(d_statistics.d_strategyRuns);
+      // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
-      // TODO: clean this before merge runStrategy(e);
+      // TODO issue #78: add runStrategy(e);
 
       d_solver.postCheck();
 
