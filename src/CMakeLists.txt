@@ -694,10 +694,10 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
-  theory/quantifiers/sygus_inst.cpp
-  theory/quantifiers/sygus_inst.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
+  theory/quantifiers/instantiation_list.cpp
+  theory/quantifiers/instantiation_list.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/proof_checker.cpp
@@ -808,6 +808,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/type_node_id_trie.h
   theory/quantifiers/sygus/transition_inference.cpp
   theory/quantifiers/sygus/transition_inference.h
+  theory/quantifiers/sygus_inst.cpp
+  theory/quantifiers/sygus_inst.h
   theory/quantifiers/sygus_sampler.cpp
   theory/quantifiers/sygus_sampler.h
   theory/quantifiers/term_database.cpp
