@@ -433,6 +433,24 @@ class Trigger {
    * Instantiate::addInstantiation(...).
    */
   virtual bool sendInstantiation(InstMatch& m);
+  /** 
+   * Ensure that all ground subterms of n have been preprocessed. This makes
+   * calls to the provided valuation to obtain the preprocessed form of these
+   * terms. The preprocessed form of each ground subterm is added to gts.
+   * 
+   * As an optimization, this method does not preprocess terms with no
+   * arguments, e.g. variables and constants are not preprocessed (as they
+   * should not change after preprocessing), nor are they added to gts.
+   * 
+   * @param val The valuation to use for looking up preprocessed terms.
+   * @param n The node to process
+   * @param gts The set of preprocessed ground subterms of n.
+   * @return The converted form of n where all ground subterms have been
+   * replaced by their preprocessed form.
+   */
+  static Node ensureGroundTermPreprocessed(Valuation& val,
+                                  Node n,
+                                  std::vector<Node>& gts)
   /** The nodes comprising this trigger. */
   std::vector< Node > d_nodes;
   /** The preprocessed ground terms in the nodes of the trigger */
