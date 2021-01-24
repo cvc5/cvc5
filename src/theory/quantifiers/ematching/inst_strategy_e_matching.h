@@ -47,9 +47,9 @@ public:
   /** add pattern */
   void addUserPattern( Node q, Node pat );
   /** get num patterns */
-  int getNumUserGenerators( Node q ) { return (int)d_user_gen[q].size(); }
+  size_t getNumUserGenerators(Node q) { return d_user_gen[q].size(); }
   /** get user pattern */
-  inst::Trigger* getUserGenerator( Node q, int i ) { return d_user_gen[q][ i ]; }
+  inst::Trigger* getUserGenerator(Node q, size_t i) { return d_user_gen[q][i]; }
   /** identify */
   std::string identify() const override { return std::string("UserPatterns"); }
 };/* class InstStrategyUserPatterns */
@@ -92,8 +92,14 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   /** process functions */
   void processResetInstantiationRound(Theory::Effort effort) override;
   int process(Node q, Theory::Effort effort, int e) override;
-  /** generate triggers */
+  /**
+   * Generate triggers for quantified formula q.
+   */
   void generateTriggers(Node q);
+  /**
+   * Generate pattern terms for quantified formula q.
+   */
+  bool generatePatternTerms(Node q);
   void addPatternToPool(Node q, Node pat, unsigned num_fv, Node mpat);
   void addTrigger(inst::Trigger* tr, Node f);
   /** has user patterns */
