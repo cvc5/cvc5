@@ -190,6 +190,12 @@ class PropEngine
    * via getSatValue().
    */
   Node ensureLiteral(TNode n);
+  /**
+   * This returns the theory-preprocessed form of term n. This rewrites and
+   * preprocesses n, which notice may involve adding clauses to the SAT solver
+   * if preprocessing n involves introducing new skolems.
+   */
+  Node getPreprocessedTerm(TNode n);
 
   /**
    * Push the context level.
