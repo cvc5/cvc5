@@ -219,24 +219,7 @@ void TheoryBags::presolve() {}
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode n)
-{
-  if (n.getType().isBag())
-  {
-    d_state.registerBag(n);
-  }
-  Kind k = n.getKind();
-  if (k == MK_BAG)
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    Node count = nm->mkNode(BAG_COUNT, n[0], n);
-    d_state.registerCountTerm(count);
-  }
-  if (k == BAG_COUNT)
-  {
-    d_state.registerCountTerm(n);
-  }
-}
+void TheoryBags::eqNotifyNewClass(TNode n) {}
 
 void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
 

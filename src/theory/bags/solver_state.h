@@ -46,9 +46,8 @@ class SolverState : public TheoryState
    * @return all elements associated with bag B so far
    * Note that associated elements are not necessarily elements in B
    * Example:
-   * (assert (= 1 (bag.count x (difference_remove A B))))
-   * element x is associated with bags A, B, (difference_remove A B)
-   * albeit x is definitely not in B.
+   * (assert (= 0 (bag.count x B)))
+   * element x is associated with bag B, albeit x is definitely not in B.
    */
   const std::set<Node>& getElements(Node B);
   /** initialize bag and count terms */
