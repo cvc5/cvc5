@@ -25,9 +25,11 @@ using namespace inst;
 
 namespace quantifiers {
 
-void InstStrategyUserPatterns::processResetInstantiationRound( Theory::Effort effort ){
+void InstStrategyUserPatterns::processResetInstantiationRound(
+    Theory::Effort effort)
+{
   Trace("inst-alg-debug") << "reset user triggers" << std::endl;
-  //reset triggers
+  // reset triggers
   for (std::pair<const Node, std::vector<Trigger*> >& u : d_user_gen)
   {
     for (Trigger* t : u.second)
@@ -39,8 +41,10 @@ void InstStrategyUserPatterns::processResetInstantiationRound( Theory::Effort ef
   Trace("inst-alg-debug") << "done reset user triggers" << std::endl;
 }
 
-int InstStrategyUserPatterns::process( Node q, Theory::Effort effort, int e ){
-  if( e==0 ){
+int InstStrategyUserPatterns::process(Node q, Theory::Effort effort, int e)
+{
+  if (e == 0)
+  {
     return STATUS_UNFINISHED;
   }
   options::UserPatMode upm = d_quantEngine->getInstUserPatMode();
@@ -98,19 +102,21 @@ int InstStrategyUserPatterns::process( Node q, Theory::Effort effort, int e ){
   return STATUS_UNKNOWN;
 }
 
-void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
+void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
+{
   Assert(pat.getKind() == INST_PATTERN);
-  //add to generators
-  std::vector< Node > nodes;
+  // add to generators
+  std::vector<Node> nodes;
   for (const Node& p : pat)
   {
     Node pat_use = Trigger::getIsUsableTrigger(p, q);
-    if( pat_use.isNull() ){
+    if (pat_use.isNull())
+    {
       Trace("trigger-warn") << "User-provided trigger is not usable : " << pat
                             << " because of " << p << std::endl;
       return;
     }
-    nodes.push_back( pat_use );
+    nodes.push_back(pat_use);
   }
   Trace("user-pat") << "Add user pattern: " << pat << " for " << q << std::endl;
   // check match option
@@ -130,9 +136,8 @@ void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
     Trace("trigger-warn") << "Failed to construct trigger : " << pat
                           << " due to variable mismatch" << std::endl;
   }
-  
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
