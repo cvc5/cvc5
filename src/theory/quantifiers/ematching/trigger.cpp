@@ -972,10 +972,9 @@ int Trigger::getActiveScore() {
   return d_mg->getActiveScore( d_quantEngine );
 }
 
-
 Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
-                                  Node n,
-                                  std::vector<Node>& gts)
+                                           Node n,
+                                           std::vector<Node>& gts)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
