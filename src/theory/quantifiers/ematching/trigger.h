@@ -20,8 +20,8 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/quantifiers/inst_match.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/valuation.h"
 
 namespace CVC4 {
@@ -433,8 +433,8 @@ class Trigger {
   static Node ensureGroundTermPreprocessed(Valuation& val,
                                            Node n,
                                            std::vector<Node>& gts);
-      /** The nodes comprising this trigger. */
-      std::vector<Node> d_nodes;
+  /** The nodes comprising this trigger. */
+  std::vector<Node> d_nodes;
   /**
    * The preprocessed ground terms in the nodes of the trigger, which as an
    * optimization omits variables and constant subterms. These terms are
