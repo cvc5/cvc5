@@ -24,11 +24,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace theory {
@@ -295,7 +291,7 @@ int InstMatchGenerator::getMatch(
   Trace("matching-debug2") << "Setting immediate matches..." << std::endl;
   for (size_t i = 0, size = d_match_pattern.getNumChildren(); i < size; i++)
   {
-    int ct = d_children_types[i];
+    int64_t ct = d_children_types[i];
     if (ct >= 0)
     {
       Trace("matching-debug2")
@@ -539,12 +535,12 @@ int InstMatchGenerator::getNextMatch(Node f,
   return success;
 }
 
-unsigned InstMatchGenerator::addInstantiations(Node f,
+uint64_t InstMatchGenerator::addInstantiations(Node f,
                                                QuantifiersEngine* qe,
                                                Trigger* tparent)
 {
   //try to add instantiation for each match produced
-  unsigned addedLemmas = 0;
+  uint64_t addedLemmas = 0;
   InstMatch m( f );
   while (getNextMatch(f, m, qe, tparent) > 0)
   {
@@ -922,7 +918,7 @@ InstMatchGeneratorMulti::~InstMatchGeneratorMulti()
   {
     delete d_children[i];
   }
-  for (std::pair<const unsigned, InstMatchTrie::ImtIndexOrder*>& i : d_imtio)
+  for (std::pair<const size_t, InstMatchTrie::ImtIndexOrder*>& i : d_imtio)
   {
     delete i.second;
   }
@@ -948,11 +944,11 @@ bool InstMatchGeneratorMulti::reset( Node eqc, QuantifiersEngine* qe ){
   return true;
 }
 
-unsigned InstMatchGeneratorMulti::addInstantiations(Node q,
+uint64_t InstMatchGeneratorMulti::addInstantiations(Node q,
                                                     QuantifiersEngine* qe,
                                                     Trigger* tparent)
 {
-  unsigned addedLemmas = 0;
+  uint64_t addedLemmas = 0;
   Trace("multi-trigger-cache") << "Process smart multi trigger" << std::endl;
   for (size_t i = 0, csize = d_children.size(); i < csize; i++)
   {
@@ -982,7 +978,7 @@ void InstMatchGeneratorMulti::processNewMatch(QuantifiersEngine* qe,
                                               Trigger* tparent,
                                               InstMatch& m,
                                               size_t fromChildIndex,
-                                              unsigned& addedLemmas)
+                                              uint64_t& addedLemmas)
 {
   //see if these produce new matches
   d_children_trie[fromChildIndex].addInstMatch(qe, d_quant, m);
@@ -1006,7 +1002,7 @@ void InstMatchGeneratorMulti::processNewMatch(QuantifiersEngine* qe,
 void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                                        Trigger* tparent,
                                                        InstMatch& m,
-                                                       unsigned& addedLemmas,
+                                                       uint64_t& addedLemmas,
                                                        InstMatchTrie* tr,
                                                        size_t trieIndex,
                                                        size_t childIndex,
@@ -1133,7 +1129,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
     Assert(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
   }
   Assert(Trigger::isSimpleTrigger(d_match_pattern));
-  for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
+  for( size_t i=0, nchild = d_match_pattern.getNumChildren(); i<nchild; i++ ){
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){
       if( !options::cegqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
@@ -1149,11 +1145,11 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
 void InstMatchGeneratorSimple::resetInstantiationRound( QuantifiersEngine* qe ) {
   
 }
-unsigned InstMatchGeneratorSimple::addInstantiations(Node q,
+uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
                                                      QuantifiersEngine* qe,
                                                      Trigger* tparent)
 {
-  unsigned addedLemmas = 0;
+  uint64_t addedLemmas = 0;
   TNodeTrie* tat;
   if( d_eqc.isNull() ){
     tat = qe->getTermDatabase()->getTermArgTrie( d_op );
@@ -1192,8 +1188,8 @@ unsigned InstMatchGeneratorSimple::addInstantiations(Node q,
 
 void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
                                                  QuantifiersEngine* qe,
-                                                 unsigned& addedLemmas,
-                                                 unsigned argIndex,
+                                                 uint64_t& addedLemmas,
+                                                 size_t argIndex,
                                                  TNodeTrie* tat)
 {
   Debug("simple-trigger-debug") << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
