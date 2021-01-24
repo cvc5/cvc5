@@ -45,7 +45,10 @@ class SolverState : public TheoryState
    * @return a unique skolem for (bag.count e A)
    */
   void registerCountTerm(TNode n);
-  /** get all bag terms */
+  /** get all bag terms that are representatives in the equality engine.
+   * This function is valid after the current solver is initialized during
+   * postCheck. See SolverState::initialize and BagSolver::postCheck
+   */
   const std::set<Node>& getBags();
   /**
    * @pre B is a registered bag
