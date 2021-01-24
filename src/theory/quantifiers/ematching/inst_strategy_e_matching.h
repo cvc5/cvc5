@@ -17,7 +17,7 @@
 #ifndef CVC4__INST_STRATEGY_E_MATCHING_H
 #define CVC4__INST_STRATEGY_E_MATCHING_H
 
-#include "theory/quantifiers/ematching/instantiation_engine.h"
+#include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_relevance.h"
 
@@ -25,6 +25,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** 
+ * This class is responsible for instantiating quantifiers based on
+ * automatically generated triggers. It selects pattern terms, generates
+ * and manages triggers, and uses a strategy for processing them.
+ */
 class InstStrategyAutoGenTriggers : public InstStrategy
 {
  public:
@@ -82,7 +87,6 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   InstStrategyAutoGenTriggers(QuantifiersEngine* qe, QuantRelevance* qr);
   ~InstStrategyAutoGenTriggers() {}
 
- public:
   /** get auto-generated trigger */
   inst::Trigger* getAutoGenTrigger(Node q);
   /** identify */
