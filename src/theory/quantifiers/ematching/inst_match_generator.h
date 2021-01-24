@@ -578,7 +578,7 @@ class InstMatchGeneratorMulti : public IMGenerator {
    * Stores a heuristically determined variable ordering (unique
    * variables first) for each term in the multi trigger.
    */
-  std::map< size_t, InstMatchTrie::ImtIndexOrder* > d_imtio;
+  std::map<size_t, InstMatchTrie::ImtIndexOrder*> d_imtio;
   /** inst match tries for each child node
    * This data structure stores all InstMatch objects generated
    * by matching for each term in the multi trigger.

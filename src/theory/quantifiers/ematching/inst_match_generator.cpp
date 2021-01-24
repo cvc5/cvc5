@@ -1129,7 +1129,8 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
     Assert(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
   }
   Assert(Trigger::isSimpleTrigger(d_match_pattern));
-  for( size_t i=0, nchild = d_match_pattern.getNumChildren(); i<nchild; i++ ){
+  for (size_t i = 0, nchild = d_match_pattern.getNumChildren(); i < nchild; i++)
+  {
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){
       if( !options::cegqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
