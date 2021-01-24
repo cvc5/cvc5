@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * This class is responsible for instantiating quantifiers based on
  * automatically generated triggers. It selects pattern terms, generates
  * and manages triggers, and uses a strategy for processing them.

@@ -25,30 +25,41 @@ using namespace inst;
 
 namespace quantifiers {
 
-InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie) : InstStrategy(ie) {}
+InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie)
+    : InstStrategy(ie)
+{
+}
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
 
-size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const{ 
-  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it = d_user_gen.find(q);
-  if (it==d_user_gen.end())
+size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
+{
+  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it =
+      d_user_gen.find(q);
+  if (it == d_user_gen.end())
   {
     return 0;
   }
   return it->second.size();
 }
 
-inst::Trigger* InstStrategyUserPatterns::getUserGenerator(Node q, size_t i) const{ 
-  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it = d_user_gen.find(q);
-  if (it==d_user_gen.end())
+inst::Trigger* InstStrategyUserPatterns::getUserGenerator(Node q,
+                                                          size_t i) const
+{
+  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it =
+      d_user_gen.find(q);
+  if (it == d_user_gen.end())
   {
     return nullptr;
   }
-  Assert (i< it->second.size());
+  Assert(i < it->second.size());
   return it->second[i];
 }
 
-std::string InstStrategyUserPatterns::identify() const { return std::string("UserPatterns"); }
-  
+std::string InstStrategyUserPatterns::identify() const
+{
+  return std::string("UserPatterns");
+}
+
 void InstStrategyUserPatterns::processResetInstantiationRound(
     Theory::Effort effort)
 {

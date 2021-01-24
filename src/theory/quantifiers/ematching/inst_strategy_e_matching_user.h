@@ -19,8 +19,8 @@
 
 #include <map>
 #include "expr/node.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/ematching/inst_strategy.h"
+#include "theory/quantifiers/ematching/trigger.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,6 +43,7 @@ class InstStrategyUserPatterns : public InstStrategy
   inst::Trigger* getUserGenerator(Node q, size_t i) const;
   /** identify */
   std::string identify() const override;
+
  private:
   /** reset instantiation round for the given effort */
   void processResetInstantiationRound(Theory::Effort effort) override;

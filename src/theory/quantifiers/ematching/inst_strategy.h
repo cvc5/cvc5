@@ -23,36 +23,39 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 class QuantifiersEngine;
 
 namespace quantifiers {
-  
+
 /** instantiation strategy class */
-class InstStrategy {
-public:
-  enum Status {
+class InstStrategy
+{
+ public:
+  enum Status
+  {
     STATUS_UNFINISHED,
     STATUS_UNKNOWN,
-  };/* enum Status */
-protected:
+  }; /* enum Status */
+ protected:
   /** reference to the instantiation engine */
   QuantifiersEngine* d_quantEngine;
-public:
-  InstStrategy( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
-  virtual ~InstStrategy(){}
+
+ public:
+  InstStrategy(QuantifiersEngine* qe) : d_quantEngine(qe) {}
+  virtual ~InstStrategy() {}
   /** presolve */
   virtual void presolve() {}
   /** reset instantiation */
-  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
+  virtual void processResetInstantiationRound(Theory::Effort effort) = 0;
   /** process method, returns a status */
-  virtual int process( Node f, Theory::Effort effort, int e ) = 0;
+  virtual int process(Node f, Theory::Effort effort, int e) = 0;
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
-};/* class InstStrategy */
+}; /* class InstStrategy */
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATION_ENGINE_H */
