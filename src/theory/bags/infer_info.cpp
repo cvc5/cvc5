@@ -26,6 +26,7 @@ const char* toString(Inference i)
   {
     case Inference::NONE: return "NONE";
     case Inference::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
+    case Inference::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
     case Inference::BAG_MK_BAG: return "BAG_MK_BAG";
     case Inference::BAG_EQUALITY: return "BAG_EQUALITY";
     case Inference::BAG_DISEQUALITY: return "BAG_DISEQUALITY";

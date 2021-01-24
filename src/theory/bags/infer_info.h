@@ -34,6 +34,7 @@ enum class Inference : uint32_t
 {
   NONE,
   BAG_NON_NEGATIVE_COUNT,
+  BAG_MK_BAG_SAME_ELEMENT,
   BAG_MK_BAG,
   BAG_EQUALITY,
   BAG_DISEQUALITY,
