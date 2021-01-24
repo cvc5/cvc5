@@ -26,6 +26,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
+#include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
 
@@ -109,6 +110,33 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const
     out << std::endl;
   }
 }/* Printer::toStream(UnsatCore) */
+
+void Printer::toStream(std::ostream& out, const InstantiationList& is) const
+{
+  out << "(instantiations " << is.d_quant << std::endl;
+  for (const std::vector<Node>& i : is.d_inst)
+  {
+    out << "  ( ";
+    for (const Node& n : i)
+    {
+      out << n << " ";
+    }
+    out << ")" << std::endl;
+  }
+  out << ")" << std::endl;
+}
+
+void Printer::toStream(std::ostream& out, const SkolemList& sks) const
+{
+  out << "(skolem " << sks.d_quant << std::endl;
+  out << "  ( ";
+  for (const Node& n : sks.d_sks)
+  {
+    out << n << " ";
+  }
+  out << ")" << std::endl;
+  out << ")" << std::endl;
+}
 
 Printer* Printer::getPrinter(OutputLanguage lang)
 {
