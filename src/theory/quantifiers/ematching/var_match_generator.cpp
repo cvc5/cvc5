@@ -21,8 +21,9 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs( Node var, Node subs ) :
-  InstMatchGenerator(), d_var( var ), d_subs( subs ), d_rm_prev( false ){
+VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Node var, Node subs)
+    : InstMatchGenerator(), d_var(var), d_subs(subs), d_rm_prev(false)
+{
   d_children_types.push_back(d_var.getAttribute(InstVarNumAttribute()));
   d_var_type = d_var.getType();
 }
@@ -39,32 +40,39 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
                                             Trigger* tparent)
 {
   int ret_val = -1;
-  if( !d_eq_class.isNull() ){
-    Trace("var-trigger-matching") << "Matching " << d_eq_class << " against " << d_var << " in " << d_subs << std::endl;
+  if (!d_eq_class.isNull())
+  {
+    Trace("var-trigger-matching") << "Matching " << d_eq_class << " against "
+                                  << d_var << " in " << d_subs << std::endl;
     TNode tvar = d_var;
     Node s = d_subs.substitute(tvar, d_eq_class);
-    s = Rewriter::rewrite( s );
-    Trace("var-trigger-matching") << "...got " << s << ", " << s.getKind() << std::endl;
+    s = Rewriter::rewrite(s);
+    Trace("var-trigger-matching")
+        << "...got " << s << ", " << s.getKind() << std::endl;
     d_eq_class = Node::null();
-    //if( s.getType().isSubtypeOf( d_var_type ) ){
+    // if( s.getType().isSubtypeOf( d_var_type ) ){
     d_rm_prev = m.get(d_children_types[0]).isNull();
     if (!m.set(qe->getEqualityQuery(), d_children_types[0], s))
     {
       return -1;
-    }else{
+    }
+    else
+    {
       ret_val = continueNextMatch(q, m, qe, tparent);
-      if( ret_val>0 ){
+      if (ret_val > 0)
+      {
         return ret_val;
       }
     }
   }
-  if( d_rm_prev ){
+  if (d_rm_prev)
+  {
     m.d_vals[d_children_types[0]] = Node::null();
     d_rm_prev = false;
   }
   return -1;
 }
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4

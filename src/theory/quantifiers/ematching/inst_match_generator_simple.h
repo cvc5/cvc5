@@ -28,24 +28,25 @@ namespace theory {
 namespace inst {
 
 /** InstMatchGeneratorSimple class
-*
-* This is the default generator class for simple single triggers.
-* For example, { f( x, a ) }, { f( x, x ) } and { f( x, y ) } are simple single
-* triggers. In practice, around 70-90% of triggers are simple single triggers.
-*
-* Notice that simple triggers also can have an attached polarity.
-* For example, { P( x ) = false }, { f( x, y ) = a } and { ~f( a, x ) = b } are
-* simple single triggers.
-*
-* The implementation traverses the term indices in TermDatabase for adding
-* instantiations, which is more efficient than the techniques required for
-* handling non-simple single triggers.
-*
-* In contrast to other instantiation generators, it does not call
-* IMGenerator::sendInstantiation and for performance reasons instead calls
-* qe->getInstantiate()->addInstantiation(...) directly.
-*/
-class InstMatchGeneratorSimple : public IMGenerator {
+ *
+ * This is the default generator class for simple single triggers.
+ * For example, { f( x, a ) }, { f( x, x ) } and { f( x, y ) } are simple single
+ * triggers. In practice, around 70-90% of triggers are simple single triggers.
+ *
+ * Notice that simple triggers also can have an attached polarity.
+ * For example, { P( x ) = false }, { f( x, y ) = a } and { ~f( a, x ) = b } are
+ * simple single triggers.
+ *
+ * The implementation traverses the term indices in TermDatabase for adding
+ * instantiations, which is more efficient than the techniques required for
+ * handling non-simple single triggers.
+ *
+ * In contrast to other instantiation generators, it does not call
+ * IMGenerator::sendInstantiation and for performance reasons instead calls
+ * qe->getInstantiate()->addInstantiation(...) directly.
+ */
+class InstMatchGeneratorSimple : public IMGenerator
+{
  public:
   /** constructors */
   InstMatchGeneratorSimple(Node q, Node pat, QuantifiersEngine* qe);
@@ -66,19 +67,19 @@ class InstMatchGeneratorSimple : public IMGenerator {
   Node d_match_pattern;
   /** equivalence class polarity information
    *
-  * This stores the required polarity/equivalence class with this trigger.
-  * If d_eqc is non-null, we only produce matches { x->t } such that
-  * our context does not entail
-  *   ( d_match_pattern*{ x->t } = d_eqc) if d_pol = true, or
-  *   ( d_match_pattern*{ x->t } != d_eqc) if d_pol = false.
-  * where * denotes application of substitution.
-  */
+   * This stores the required polarity/equivalence class with this trigger.
+   * If d_eqc is non-null, we only produce matches { x->t } such that
+   * our context does not entail
+   *   ( d_match_pattern*{ x->t } = d_eqc) if d_pol = true, or
+   *   ( d_match_pattern*{ x->t } != d_eqc) if d_pol = false.
+   * where * denotes application of substitution.
+   */
   bool d_pol;
   Node d_eqc;
   /** Match pattern arg types.
    * Cached values of d_match_pattern[i].getType().
    */
-  std::vector< TypeNode > d_match_pattern_arg_types;
+  std::vector<TypeNode> d_match_pattern_arg_types;
   /** The match operator d_match_pattern (see TermDb::getMatchOperator). */
   Node d_op;
   /**
@@ -102,8 +103,8 @@ class InstMatchGeneratorSimple : public IMGenerator {
                          TNodeTrie* tat);
 };
 
-}
-}
-}
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4
 
 #endif

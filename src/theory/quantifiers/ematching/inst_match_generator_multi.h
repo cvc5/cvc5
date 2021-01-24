@@ -27,13 +27,14 @@ namespace theory {
 namespace inst {
 
 /** InstMatchGeneratorMulti
-*
-* This is an earlier implementation of multi-triggers that is enabled by
-* --multi-trigger-cache. This generator takes the product of instantiations
-* found by single trigger matching, and does not have the guarantee that the
-* number of instantiations is polynomial wrt the number of ground terms.
-*/
-class InstMatchGeneratorMulti : public IMGenerator {
+ *
+ * This is an earlier implementation of multi-triggers that is enabled by
+ * --multi-trigger-cache. This generator takes the product of instantiations
+ * found by single trigger matching, and does not have the guarantee that the
+ * number of instantiations is polynomial wrt the number of ground terms.
+ */
+class InstMatchGeneratorMulti : public IMGenerator
+{
  public:
   /** constructors */
   InstMatchGeneratorMulti(Node q,
@@ -92,7 +93,7 @@ class InstMatchGeneratorMulti : public IMGenerator {
   /** children generators
    * These are inst match generators for each term in the multi trigger.
    */
-  std::vector< InstMatchGenerator* > d_children;
+  std::vector<InstMatchGenerator*> d_children;
   /** variable orderings
    * Stores a heuristically determined variable ordering (unique
    * variables first) for each term in the multi trigger.
@@ -102,11 +103,11 @@ class InstMatchGeneratorMulti : public IMGenerator {
    * This data structure stores all InstMatch objects generated
    * by matching for each term in the multi trigger.
    */
-  std::vector< InstMatchTrieOrdered > d_children_trie;
+  std::vector<InstMatchTrieOrdered> d_children_trie;
 };
 
-}
-}
-}
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4
 
 #endif

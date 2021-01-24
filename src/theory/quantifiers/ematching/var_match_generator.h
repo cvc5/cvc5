@@ -26,12 +26,13 @@ namespace theory {
 namespace inst {
 
 /** match generator for purified terms
-* This handles the special case of invertible terms like x+1 (see
-* Trigger::getTermInversionVariable).
-*/
-class VarMatchGeneratorTermSubs : public InstMatchGenerator {
-public:
-  VarMatchGeneratorTermSubs( Node var, Node subs );
+ * This handles the special case of invertible terms like x+1 (see
+ * Trigger::getTermInversionVariable).
+ */
+class VarMatchGeneratorTermSubs : public InstMatchGenerator
+{
+ public:
+  VarMatchGeneratorTermSubs(Node var, Node subs);
 
   /** Reset */
   bool reset(Node eqc, QuantifiersEngine* qe) override;
@@ -52,8 +53,8 @@ public:
   bool d_rm_prev;
 };
 
-}
-}
-}
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4
 
 #endif

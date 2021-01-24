@@ -26,13 +26,17 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
                                                    QuantifiersEngine* qe)
     : d_quant(q), d_match_pattern(pat)
 {
-  if( d_match_pattern.getKind()==NOT ){
+  if (d_match_pattern.getKind() == NOT)
+  {
     d_match_pattern = d_match_pattern[0];
     d_pol = false;
-  }else{
+  }
+  else
+  {
     d_pol = true;
   }
-  if( d_match_pattern.getKind()==EQUAL ){
+  if (d_match_pattern.getKind() == EQUAL)
+  {
     d_eqc = d_match_pattern[1];
     d_match_pattern = d_match_pattern[0];
     Assert(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
@@ -40,35 +44,44 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
   Assert(Trigger::isSimpleTrigger(d_match_pattern));
   for (size_t i = 0, nchild = d_match_pattern.getNumChildren(); i < nchild; i++)
   {
-    if( d_match_pattern[i].getKind()==INST_CONSTANT ){
-      if( !options::cegqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
+    if (d_match_pattern[i].getKind() == INST_CONSTANT)
+    {
+      if (!options::cegqi()
+          || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i]) == q)
+      {
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
-      }else{
+      }
+      else
+      {
         d_var_num[i] = -1;
       }
     }
-    d_match_pattern_arg_types.push_back( d_match_pattern[i].getType() );
+    d_match_pattern_arg_types.push_back(d_match_pattern[i].getType());
   }
-  d_op = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
+  d_op = qe->getTermDatabase()->getMatchOperator(d_match_pattern);
 }
 
-void InstMatchGeneratorSimple::resetInstantiationRound( QuantifiersEngine* qe ) {
-  
-}
+void InstMatchGeneratorSimple::resetInstantiationRound(QuantifiersEngine* qe) {}
 uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
                                                      QuantifiersEngine* qe,
                                                      Trigger* tparent)
 {
   uint64_t addedLemmas = 0;
   TNodeTrie* tat;
-  if( d_eqc.isNull() ){
-    tat = qe->getTermDatabase()->getTermArgTrie( d_op );
-  }else{
-    if( d_pol ){
-      tat = qe->getTermDatabase()->getTermArgTrie( d_eqc, d_op );
-    }else{
-      //iterate over all classes except r
-      tat = qe->getTermDatabase()->getTermArgTrie( Node::null(), d_op );
+  if (d_eqc.isNull())
+  {
+    tat = qe->getTermDatabase()->getTermArgTrie(d_op);
+  }
+  else
+  {
+    if (d_pol)
+    {
+      tat = qe->getTermDatabase()->getTermArgTrie(d_eqc, d_op);
+    }
+    else
+    {
+      // iterate over all classes except r
+      tat = qe->getTermDatabase()->getTermArgTrie(Node::null(), d_op);
       if (tat && !qe->inConflict())
       {
         Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
@@ -76,9 +89,10 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
         {
           if (t.first != r)
           {
-            InstMatch m( q );
+            InstMatch m(q);
             addInstantiations(m, qe, addedLemmas, 0, &(t.second));
-            if( qe->inConflict() ){
+            if (qe->inConflict())
+            {
               break;
             }
           }
@@ -87,11 +101,13 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
       tat = nullptr;
     }
   }
-  Debug("simple-trigger-debug") << "Adding instantiations based on " << tat << " from " << d_op << " " << d_eqc << std::endl;
+  Debug("simple-trigger-debug")
+      << "Adding instantiations based on " << tat << " from " << d_op << " "
+      << d_eqc << std::endl;
   if (tat && !qe->inConflict())
   {
-    InstMatch m( q );
-    addInstantiations( m, qe, addedLemmas, 0, tat );
+    InstMatch m(q);
+    addInstantiations(m, qe, addedLemmas, 0, tat);
   }
   return addedLemmas;
 }
@@ -102,13 +118,14 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
                                                  size_t argIndex,
                                                  TNodeTrie* tat)
 {
-  Debug("simple-trigger-debug") << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
+  Debug("simple-trigger-debug")
+      << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
   if (argIndex == d_match_pattern.getNumChildren())
   {
     Assert(!tat->d_data.empty());
     TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
-    //convert to actual used terms
+    // convert to actual used terms
     for (const std::pair<unsigned, int>& v : d_var_num)
     {
       if (v.second >= 0)
@@ -162,13 +179,15 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
   }
 }
 
-int InstMatchGeneratorSimple::getActiveScore( QuantifiersEngine * qe ) {
-  Node f = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
+int InstMatchGeneratorSimple::getActiveScore(QuantifiersEngine* qe)
+{
+  Node f = qe->getTermDatabase()->getMatchOperator(d_match_pattern);
   size_t ngt = qe->getTermDatabase()->getNumGroundTerms(f);
-  Trace("trigger-active-sel-debug") << "Number of ground terms for (simple) " << f << " is " << ngt << std::endl;
+  Trace("trigger-active-sel-debug") << "Number of ground terms for (simple) "
+                                    << f << " is " << ngt << std::endl;
   return static_cast<int>(ngt);
 }
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4
