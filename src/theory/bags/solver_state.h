@@ -31,6 +31,12 @@ class SolverState : public TheoryState
  public:
   SolverState(context::Context* c, context::UserContext* u, Valuation val);
 
+  /**
+   * This function adds the bag representative n to the set d_bags if it is not
+   * already there. This function is called during postCheck to collect bag
+   * terms in the equality engine. See the documentation of
+   * @link SolverState::collectBagsAndCountTerms
+   */
   void registerBag(TNode n);
 
   /**
@@ -56,7 +62,8 @@ class SolverState : public TheoryState
  private:
   /** clear all bags data structures */
   void reset();
-  /** collect bags' representatives and all count terms */
+  /** collect bags' representatives and all count terms.
+   * This function is called during postCheck */
   void collectBagsAndCountTerms();
   /** constants */
   Node d_true;
