@@ -21,6 +21,7 @@
 #include "expr/attribute.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -54,7 +55,7 @@ typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 class FirstOrderModel : public TheoryModel
 {
  public:
-  FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
+  FirstOrderModel(QuantifiersEngine* qe, QuantifiersState& qs, std::string name);
 
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
   /** assert quantifier */
@@ -198,7 +199,7 @@ class FirstOrderModelFmc : public FirstOrderModel
   void processInitializeModelForTerm(Node n) override;
 
  public:
-  FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
+  FirstOrderModelFmc(QuantifiersEngine * qe, QuantifiersState& qs, std::string name);
   ~FirstOrderModelFmc() override;
   FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
   // initialize the model
