@@ -74,7 +74,9 @@ void InstStrategyUserPatterns::processResetInstantiationRound(
   Trace("inst-alg-debug") << "done reset user triggers" << std::endl;
 }
 
-InstStrategyStatus InstStrategyUserPatterns::process(Node q, Theory::Effort effort, int e)
+InstStrategyStatus InstStrategyUserPatterns::process(Node q,
+                                                     Theory::Effort effort,
+                                                     int e)
 {
   if (e == 0)
   {

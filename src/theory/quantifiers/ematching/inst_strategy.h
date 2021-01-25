@@ -27,7 +27,7 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
-  
+
 /** A status response to process */
 enum class InstStrategyStatus
 {
@@ -53,6 +53,7 @@ class InstStrategy
   virtual InstStrategyStatus process(Node f, Theory::Effort effort, int e) = 0;
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
+
  protected:
   /** reference to the instantiation engine */
   QuantifiersEngine* d_quantEngine;

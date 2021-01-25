@@ -94,7 +94,10 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
   Trace("inst-alg-debug") << "done reset auto-gen triggers" << std::endl;
 }
 
-InstStrategyStatus InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
+InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
+                                                        Theory::Effort effort,
+                                                        int e)
+{
   options::UserPatMode upMode = d_quantEngine->getInstUserPatMode();
   if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
   {
