@@ -25,6 +25,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -80,6 +81,8 @@ class TheoryQuantifiers : public Theory {
   QuantifiersProofRuleChecker d_qChecker;
   /** The quantifiers state */
   QuantifiersState d_qstate;
+  /** The quantifiers engine */
+  QuantifiersEngine d_qengine;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

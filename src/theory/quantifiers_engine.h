@@ -29,6 +29,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
@@ -59,20 +60,14 @@ class QuantifiersEngine {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
+  QuantifiersEngine(quantifiers::QuantifiersState& qstate,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
-  /** finish initialize */
-  void finishInit();
   //---------------------- external interface
   /** get theory engine */
   TheoryEngine* getTheoryEngine() const;
   /** Get the decision manager */
   DecisionManager* getDecisionManager();
-  /** get default sat context for quantifiers engine */
-  context::Context* getSatContext();
-  /** get default sat context for quantifiers engine */
-  context::UserContext* getUserContext();
   /** get default output channel for the quantifiers engine */
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
@@ -110,8 +105,10 @@ class QuantifiersEngine {
   //---------------------- end utilities
  private:
   //---------------------- private initialization
-  /** Set the master equality engine */
-  void setMasterEqualityEngine(eq::EqualityEngine* mee);
+  /**
+   * Finish initialize
+   */
+  void finishInit(TheoryEngine* te, DecisionManager& dm, eq::EqualityEngine* mee);
   //---------------------- end private initialization
   /**
    * Maps quantified formulas to the module that owns them, if any module has
@@ -329,14 +326,12 @@ public:
   Statistics d_statistics;
 
  private:
+  /** The quantifiers state object */
+  QuantifiersState& d_qstate;
   /** Pointer to theory engine object */
   TheoryEngine* d_te;
-  /** The SAT context */
-  context::Context* d_context;
-  /** The user context */
-  context::UserContext* d_userContext;
   /** Reference to the decision manager of the theory engine */
-  DecisionManager& d_decManager;
+  DecisionManager* d_decManager;
   /** Pointer to the master equality engine */
   eq::EqualityEngine* d_masterEqualityEngine;
   /** vector of utilities for quantifiers */

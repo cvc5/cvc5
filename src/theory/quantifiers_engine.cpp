@@ -30,13 +30,11 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
-                                     DecisionManager& dm,
+QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
                                      ProofNodeManager* pnm)
-    : d_te(te),
-      d_context(te->getSatContext()),
-      d_userContext(te->getUserContext()),
-      d_decManager(dm),
+    : d_qstate(qstate),
+      d_te(nullptr),
+      d_decManager(nullptr),
       d_masterEqualityEngine(nullptr),
       d_eq_query(
           new quantifiers::EqualityQueryQuantifiersEngine(d_context, this)),
@@ -123,8 +121,11 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
-void QuantifiersEngine::finishInit()
+void finishInit(TheoryEngine* te, DecisionManager* dm, eq::EqualityEngine* mee)
 {
+  d_te = te;
+  d_decManager = dm;
+  d_masterEqualityEngine = mee;
   // Initialize the modules and the utilities here. We delay their
   // initialization to here, since this is after TheoryQuantifiers finishInit,
   // which has initialized the state and inference manager of this engine.
@@ -136,16 +137,11 @@ void QuantifiersEngine::finishInit()
   }
 }
 
-void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
-{
-  d_masterEqualityEngine = mee;
-}
-
 TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
 
 DecisionManager* QuantifiersEngine::getDecisionManager()
 {
-  return &d_decManager;
+  return d_decManager;
 }
 
 context::Context* QuantifiersEngine::getSatContext() { return d_context; }
