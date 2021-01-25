@@ -2829,7 +2829,7 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
 
         Node implication = asLemma.impNode(implied);
         // DO NOT CALL OUTPUT LEMMA!
-        // TODO: justify
+        // TODO (project #37): justify
         d_approxCuts.push_back(TrustNode::mkTrustLemma(implication, nullptr));
         Debug("approx::lemmas") << "cut["<<i<<"] " << implication << endl;
         ++(d_statistics.d_mipExternalCuts);
@@ -3655,7 +3655,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       if(possibleConflict != Node::null()){
         revertOutOfConflict();
         Debug("arith::conflict") << "dio conflict   " << possibleConflict << endl;
-        // TODO: justify (proofs in the DIO solver)
+        // TODO (project #37): justify (proofs in the DIO solver)
         raiseBlackBoxConflict(possibleConflict);
         outputConflicts();
         emmittedConflictOrSplit = true;
