@@ -94,11 +94,11 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
   Trace("inst-alg-debug") << "done reset auto-gen triggers" << std::endl;
 }
 
-int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
+InstStrategyStatus InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
   options::UserPatMode upMode = d_quantEngine->getInstUserPatMode();
   if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
   {
-    return STATUS_UNKNOWN;
+    return InstStrategyStatus::STATUS_UNKNOWN;
   }
   int peffort = (hasUserPatterns(f) && upMode != options::UserPatMode::IGNORE
                  && upMode != options::UserPatMode::RESORT)
@@ -106,7 +106,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
                     : 1;
   if (e < peffort)
   {
-    return STATUS_UNFINISHED;
+    return InstStrategyStatus::STATUS_UNFINISHED;
   }
   Trace("inst-alg") << "-> Auto-gen instantiate " << f << "..." << std::endl;
   bool gen = false;
@@ -210,7 +210,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       break;
     }
   }
-  return STATUS_UNKNOWN;
+  return InstStrategyStatus::STATUS_UNKNOWN;
 }
 
 void InstStrategyAutoGenTriggers::generateTriggers( Node f ){

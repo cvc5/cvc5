@@ -74,21 +74,21 @@ void InstStrategyUserPatterns::processResetInstantiationRound(
   Trace("inst-alg-debug") << "done reset user triggers" << std::endl;
 }
 
-int InstStrategyUserPatterns::process(Node q, Theory::Effort effort, int e)
+InstStrategyStatus InstStrategyUserPatterns::process(Node q, Theory::Effort effort, int e)
 {
   if (e == 0)
   {
-    return STATUS_UNFINISHED;
+    return InstStrategyStatus::STATUS_UNFINISHED;
   }
   options::UserPatMode upm = d_quantEngine->getInstUserPatMode();
   int peffort = upm == options::UserPatMode::RESORT ? 2 : 1;
   if (e < peffort)
   {
-    return STATUS_UNFINISHED;
+    return InstStrategyStatus::STATUS_UNFINISHED;
   }
   if (e != peffort)
   {
-    return STATUS_UNKNOWN;
+    return InstStrategyStatus::STATUS_UNKNOWN;
   }
   d_counter[q]++;
 
@@ -132,7 +132,7 @@ int InstStrategyUserPatterns::process(Node q, Theory::Effort effort, int e)
       break;
     }
   }
-  return STATUS_UNKNOWN;
+  return InstStrategyStatus::STATUS_UNKNOWN;
 }
 
 void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)

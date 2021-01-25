@@ -27,22 +27,21 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
+  
+/** A status response to process */
+enum class InstStrategyStatus
+{
+  // the strategy is not finished
+  STATUS_UNFINISHED,
+  // the status of the strategy is unknown
+  STATUS_UNKNOWN,
+};
 
 /**
  * A base class for instantiation strategies within E-matching.
  */
 class InstStrategy
 {
- public:
-  enum Status
-  {
-    STATUS_UNFINISHED,
-    STATUS_UNKNOWN,
-  }; /* enum Status */
- protected:
-  /** reference to the instantiation engine */
-  QuantifiersEngine* d_quantEngine;
-
  public:
   InstStrategy(QuantifiersEngine* qe) : d_quantEngine(qe) {}
   virtual ~InstStrategy() {}
@@ -51,9 +50,12 @@ class InstStrategy
   /** reset instantiation */
   virtual void processResetInstantiationRound(Theory::Effort effort) = 0;
   /** process method, returns a status */
-  virtual int process(Node f, Theory::Effort effort, int e) = 0;
+  virtual InstStrategyStatus process(Node f, Theory::Effort effort, int e) = 0;
   /** identify */
   virtual std::string identify() const { return std::string("Unknown"); }
+ protected:
+  /** reference to the instantiation engine */
+  QuantifiersEngine* d_quantEngine;
 }; /* class InstStrategy */
 
 }  // namespace quantifiers
