@@ -103,14 +103,17 @@ class TriggerTermInfo
 class PatternTermSelector
 {
  public:
-  PatternTermSelector(Node q);
+  /**
+   * @param q The quantified formula we are selecting pattern terms for
+   * @param exc The set of terms we are excluding as pattern terms.
+   */
+  PatternTermSelector(Node q, const std::vector<Node>& exc);
   ~PatternTermSelector();
   /** collect pattern terms
    *
    * This collects all terms that are eligible for triggers for the quantified
    * formula of this class in term n and adds them to patTerms.
    *   tstrt : the selection strategy (see options/quantifiers_mode.h),
-   *   exclude :  a set of terms that *cannot* be selected as triggers,
    *   tinfo : stores the result of the collection, mapping terms to the
    *           information they are associated with,
    *   filterInst : flag that when true, we discard terms that have instances
@@ -120,7 +123,6 @@ class PatternTermSelector
   void collectTerms(Node n,
                     std::vector<Node>& patTerms,
                     options::TriggerSelMode tstrt,
-                    std::vector<Node>& exclude,
                     std::map<Node, TriggerTermInfo>& tinfo,
                     bool filterInst = false);
   /** Is n a usable trigger in quantified formula q?
@@ -211,7 +213,6 @@ class PatternTermSelector
    *   visited : cache of the trigger terms collected for each visited node,
    *   tinfo : cache of trigger term info for each visited node,
    *   tstrat : the selection strategy (see options/quantifiers_mode.h)
-   *   exclude :  a set of terms that *cannot* be selected as triggers
    *   pol/hasPol : the polarity of node n in q
    *                (see QuantPhaseReq theory/quantifiers/quant_util.h)
    *   epol/hasEPol : the entailed polarity of node n in q
@@ -224,7 +225,6 @@ class PatternTermSelector
                             std::map<Node, std::vector<Node> >& visited,
                             std::map<Node, TriggerTermInfo>& tinfo,
                             options::TriggerSelMode tstrt,
-                            std::vector<Node>& exclude,
                             std::vector<Node>& added,
                             bool pol,
                             bool hasPol,
@@ -232,13 +232,13 @@ class PatternTermSelector
                             bool hasEPol,
                             bool knowIsUsable = false);
 
-  /** filter all nodes that have trigger instances
+  /** filter all nodes that have instances
    *
    * This is used during collectModelInfo to filter certain trigger terms,
    * stored in nodes. This updates nodes so that no pairs of distinct nodes
    * (i,j) is such that i is a trigger instance of j or vice versa (see below).
    */
-  static void filterTriggerInstances(std::vector<Node>& nodes);
+  static void filterInstances(std::vector<Node>& nodes);
 
   /** is instance of
    *
@@ -255,16 +255,18 @@ class PatternTermSelector
    * restrictive (criteria (1)) and serve to bind the same variables (criteria
    * (2)) as another trigger t. This often helps avoiding matching loops.
    */
-  static int isTriggerInstanceOf(Node n1,
+  static int isInstanceOf(Node n1,
                                  Node n2,
                                  const std::vector<Node>& fv1,
                                  const std::vector<Node>& fv2);
   /** The quantified formula this trigger is for. */
   Node d_quant;
-}; /* class Trigger */
+  /** The set of terms to exclude */
+  std::vector<Node> d_excluded;
+};
 
 }  // namespace inst
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TRIGGER_H */
+#endif

@@ -45,7 +45,7 @@ void TriggerTermInfo::init(Node q, Node n, int reqPol, Node reqPolEq)
   d_weight = PatternTermSelector::getTriggerWeight(n);
 }
 
-PatternTermSelector::PatternTermSelector(Node q) : d_quant(q) {}
+PatternTermSelector::PatternTermSelector(Node q, const std::vector<Node>& exc) : d_quant(q), d_excluded(exc) {}
 
 PatternTermSelector::~PatternTermSelector() {}
 
@@ -299,7 +299,6 @@ void PatternTermSelector::collectTermsInternal(
     std::map<Node, std::vector<Node> >& visited,
     std::map<Node, TriggerTermInfo>& tinfo,
     options::TriggerSelMode tstrt,
-    std::vector<Node>& exclude,
     std::vector<Node>& added,
     bool pol,
     bool hasPol,
@@ -337,7 +336,7 @@ void PatternTermSelector::collectTermsInternal(
     nu = n;
   }
   else if (nk != NOT
-           && std::find(exclude.begin(), exclude.end(), n) == exclude.end())
+           && std::find(d_excluded.begin(), d_excluded.end(), n) == d_excluded.end())
   {
     nu = getIsUsableTrigger(n, d_quant);
     if (!nu.isNull() && nu != n)
@@ -346,7 +345,6 @@ void PatternTermSelector::collectTermsInternal(
                            visited,
                            tinfo,
                            tstrt,
-                           exclude,
                            added,
                            pol,
                            hasPol,
@@ -397,7 +395,6 @@ void PatternTermSelector::collectTermsInternal(
                          visited,
                          tinfo,
                          tstrt,
-                         exclude,
                          added2,
                          newPol,
                          newHasPol,
@@ -484,7 +481,6 @@ int PatternTermSelector::getTriggerWeight(Node n)
 void PatternTermSelector::collectTerms(Node n,
                                        std::vector<Node>& patTerms,
                                        options::TriggerSelMode tstrt,
-                                       std::vector<Node>& exclude,
                                        std::map<Node, TriggerTermInfo>& tinfo,
                                        bool filterInst)
 {
@@ -496,10 +492,10 @@ void PatternTermSelector::collectTerms(Node n,
     std::vector<Node> patTerms2;
     std::map<Node, TriggerTermInfo> tinfo2;
     collectTerms(
-        n, patTerms2, options::TriggerSelMode::ALL, exclude, tinfo2, false);
+        n, patTerms2, options::TriggerSelMode::ALL, tinfo2, false);
     std::vector<Node> temp;
     temp.insert(temp.begin(), patTerms2.begin(), patTerms2.end());
-    filterTriggerInstances(temp);
+    filterInstances(temp);
     if (Trace.isOn("trigger-filter-instance"))
     {
       if (temp.size() != patTerms2.size())
@@ -547,14 +543,14 @@ void PatternTermSelector::collectTerms(Node n,
   }
   std::vector<Node> added;
   collectTermsInternal(
-      n, visited, tinfo, tstrt, exclude, added, true, true, false, true);
+      n, visited, tinfo, tstrt, added, true, true, false, true);
   for (const std::pair<const Node, TriggerTermInfo>& t : tinfo)
   {
     patTerms.push_back(t.first);
   }
 }
 
-int PatternTermSelector::isTriggerInstanceOf(Node n1,
+int PatternTermSelector::isInstanceOf(Node n1,
                                              Node n2,
                                              const std::vector<Node>& fv1,
                                              const std::vector<Node>& fv2)
@@ -645,7 +641,7 @@ int PatternTermSelector::isTriggerInstanceOf(Node n1,
   return status;
 }
 
-void PatternTermSelector::filterTriggerInstances(std::vector<Node>& nodes)
+void PatternTermSelector::filterInstances(std::vector<Node>& nodes)
 {
   std::map<unsigned, std::vector<Node> > fvs;
   for (size_t i = 0, size = nodes.size(); i < size; i++)
@@ -667,7 +663,7 @@ void PatternTermSelector::filterTriggerInstances(std::vector<Node>& nodes)
       {
         continue;
       }
-      int result = isTriggerInstanceOf(nodes[i], nodes[j], fvsi, fvs[j]);
+      int result = isInstanceOf(nodes[i], nodes[j], fvsi, fvs[j]);
       if (result == 1)
       {
         Trace("filter-instances")
@@ -804,12 +800,12 @@ void PatternTermSelector::getTriggerVariables(Node n,
                                               Node q,
                                               std::vector<Node>& tvars)
 {
-  PatternTermSelector pts(q);
+  std::vector<Node> exclude;
+  PatternTermSelector pts(q, exclude);
   std::vector<Node> patTerms;
   std::map<Node, TriggerTermInfo> tinfo;
   // collect all patterns from n
-  std::vector<Node> exclude;
-  pts.collectTerms(n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
+  pts.collectTerms(n, patTerms, options::TriggerSelMode::ALL, tinfo);
   // collect all variables from all patterns in patTerms, add to tvars
   for (const Node& pat : patTerms)
   {
