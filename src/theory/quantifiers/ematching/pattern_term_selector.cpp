@@ -197,8 +197,8 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q)
   }
   Trace("trigger-debug") << n << " usable : "
                          << (quantifiers::TermUtil::getInstConstAttr(n) == q)
-                         << " " << TriggerTermInfo::isAtomicTrigger(n) << " " << isUsable(n, q)
-                         << std::endl;
+                         << " " << TriggerTermInfo::isAtomicTrigger(n) << " "
+                         << isUsable(n, q) << std::endl;
   if (isUsableAtomicTrigger(n, q))
   {
     return pol ? n : nm->mkNode(EQUAL, n, nm->mkConst(true)).notNode();
@@ -208,8 +208,8 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q)
 
 bool PatternTermSelector::isUsableAtomicTrigger(Node n, Node q)
 {
-  return quantifiers::TermUtil::getInstConstAttr(n) == q && TriggerTermInfo::isAtomicTrigger(n)
-         && isUsable(n, q);
+  return quantifiers::TermUtil::getInstConstAttr(n) == q
+         && TriggerTermInfo::isAtomicTrigger(n) && isUsable(n, q);
 }
 
 bool PatternTermSelector::isUsableTrigger(Node n, Node q)
