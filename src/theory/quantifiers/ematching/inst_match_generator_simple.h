@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inst_match_generator.h
+/*! \file inst_match_generator_simple.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
