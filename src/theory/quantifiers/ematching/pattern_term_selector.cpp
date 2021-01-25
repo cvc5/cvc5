@@ -27,24 +27,6 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-void TriggerTermInfo::init(Node q, Node n, int reqPol, Node reqPolEq)
-{
-  if (d_fv.empty())
-  {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(q, n, d_fv);
-  }
-  if (d_reqPol == 0)
-  {
-    d_reqPol = reqPol;
-    d_reqPolEq = reqPolEq;
-  }
-  else
-  {
-    // determined a ground (dis)equality must hold or else q is a tautology?
-  }
-  d_weight = PatternTermSelector::getTriggerWeight(n);
-}
-
 PatternTermSelector::PatternTermSelector(Node q, const std::vector<Node>& exc)
     : d_quant(q), d_excluded(exc)
 {
