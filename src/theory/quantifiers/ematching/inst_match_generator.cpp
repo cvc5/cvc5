@@ -17,10 +17,10 @@
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
-#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/ematching/var_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
@@ -78,7 +78,9 @@ void InstMatchGenerator::setActiveAdd(bool val){
 int InstMatchGenerator::getActiveScore( QuantifiersEngine * qe ) {
   if( d_match_pattern.isNull() ){
     return -1;
-  }else if( PatternTermSelector::isAtomicTrigger( d_match_pattern ) ){
+  }
+  else if (PatternTermSelector::isAtomicTrigger(d_match_pattern))
+  {
     Node f = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
     unsigned ngt = qe->getTermDatabase()->getNumGroundTerms( f );
     Trace("trigger-active-sel-debug") << "Number of ground terms for " << f << " is " << ngt << std::endl;

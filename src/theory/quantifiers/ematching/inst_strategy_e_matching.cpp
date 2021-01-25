@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
-#include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
@@ -49,8 +49,8 @@ struct sortQuantifiersForSymbol {
 
 struct sortTriggers {
   bool operator() (Node i, Node j) {
-    int wi = PatternTermSelector::getTriggerWeight( i );
-    int wj = PatternTermSelector::getTriggerWeight( j );
+    int wi = PatternTermSelector::getTriggerWeight(i);
+    int wj = PatternTermSelector::getTriggerWeight(j);
     if( wi==wj ){
       return i<j;
     }
@@ -403,7 +403,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   {
     Node bd = tu->getInstConstantBody(f);
     PatternTermSelector pts(f);
-    pts.collectTerms(bd, patTermsF, d_tr_strategy, d_user_no_gen[f], tinfo, true);
+    pts.collectTerms(
+        bd, patTermsF, d_tr_strategy, d_user_no_gen[f], tinfo, true);
     if (ntrivTriggers)
     {
       sortTriggers st;

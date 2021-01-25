@@ -313,7 +313,9 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
-  return d_quantEngine->getTermDatabase()->isTermActive( n ) && inst::PatternTermSelector::isAtomicTrigger( n ) && ( n.getKind()!=APPLY_UF || n.getOperator().getKind()!=SKOLEM );
+  return d_quantEngine->getTermDatabase()->isTermActive(n)
+         && inst::PatternTermSelector::isAtomicTrigger(n)
+         && (n.getKind() != APPLY_UF || n.getOperator().getKind() != SKOLEM);
 }
 
 Node ConjectureGenerator::getGroundEqc( TNode r ) {

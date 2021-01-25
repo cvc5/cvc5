@@ -184,7 +184,9 @@ Node TermDb::getMatchOperator( Node n ) {
     Trace("par-op") << "Parametric operator : " << k << ", " << n.getOperator() << ", " << tn << " : " << n << std::endl;
     d_par_op_map[op][tn] = n;
     return n;
-  }else if( inst::PatternTermSelector::isAtomicTriggerKind( k ) ){
+  }
+  else if (inst::PatternTermSelector::isAtomicTriggerKind(k))
+  {
     return n.getOperator();
   }else{
     return Node::null();

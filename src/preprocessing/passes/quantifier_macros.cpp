@@ -191,7 +191,8 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
   return pol && n.getKind()==EQUAL;
 }
 
-bool QuantifierMacros::isGroundUfTerm( Node q, Node n ) {
+bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
+{
   Node icn = d_preprocContext->getTheoryEngine()
                  ->getQuantifiersEngine()
                  ->getTermUtil()
@@ -201,7 +202,7 @@ bool QuantifierMacros::isGroundUfTerm( Node q, Node n ) {
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
-  inst::PatternTermSelector::getTriggerVariables( icn, q, trigger_var );
+  inst::PatternTermSelector::getTriggerVariables(icn, q, trigger_var);
   Trace("macros-debug2") << "Done." << std::endl;
   //only if all variables are also trigger variables
   return trigger_var.size()>=var.size();

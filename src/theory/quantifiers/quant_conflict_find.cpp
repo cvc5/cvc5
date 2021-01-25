@@ -1811,7 +1811,7 @@ bool MatchGen::isHandledUfTerm( TNode n ) {
   //       n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
   //TODO : treat APPLY_TESTER as a T-constraint instead of matching (currently leads to overabundance of instantiations)
   //return inst::Trigger::isAtomicTriggerKind( n.getKind() ) && ( !options::qcfTConstraint() || n.getKind()!=APPLY_TESTER );
-  return inst::PatternTermSelector::isAtomicTriggerKind( n.getKind() );
+  return inst::PatternTermSelector::isAtomicTriggerKind(n.getKind());
 }
 
 Node MatchGen::getMatchOperator( QuantConflictFind * p, Node n ) {

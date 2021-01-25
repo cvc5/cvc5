@@ -16,8 +16,8 @@
 
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -263,10 +263,13 @@ bool PatternTermSelector::isRelationalTriggerKind(Kind k)
   return k == EQUAL || k == GEQ;
 }
 
-bool PatternTermSelector::isSimpleTrigger( Node n ){
-  Node t = n.getKind()==NOT ? n[0] : n;
-  if( t.getKind()==EQUAL ){
-    if( !quantifiers::TermUtil::hasInstConstAttr( t[1] ) ){
+bool PatternTermSelector::isSimpleTrigger(Node n)
+{
+  Node t = n.getKind() == NOT ? n[0] : n;
+  if (t.getKind() == EQUAL)
+  {
+    if (!quantifiers::TermUtil::hasInstConstAttr(t[1]))
+    {
       t = t[0];
     }
   }
@@ -797,15 +800,17 @@ Node PatternTermSelector::getInversion(Node n, Node x)
   return Node::null();
 }
 
-void PatternTermSelector::getTriggerVariables(Node n, Node q, std::vector<Node>& tvars)
+void PatternTermSelector::getTriggerVariables(Node n,
+                                              Node q,
+                                              std::vector<Node>& tvars)
 {
   PatternTermSelector pts(q);
-  std::vector< Node > patTerms;
-  std::map< Node, TriggerTermInfo > tinfo;
+  std::vector<Node> patTerms;
+  std::map<Node, TriggerTermInfo> tinfo;
   // collect all patterns from n
-  std::vector< Node > exclude;
+  std::vector<Node> exclude;
   pts.collectTerms(n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
-  //collect all variables from all patterns in patTerms, add to tvars
+  // collect all variables from all patterns in patTerms, add to tvars
   for (const Node& pat : patTerms)
   {
     quantifiers::TermUtil::computeInstConstContainsForQuant(q, pat, tvars);

@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ematching/trigger.h"
 
+#include "expr/skolem_manager.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
@@ -24,7 +25,6 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers_engine.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -57,7 +57,8 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     }
   }
   if( d_nodes.size()==1 ){
-    if( PatternTermSelector::isSimpleTrigger( d_nodes[0] ) ){
+    if (PatternTermSelector::isSimpleTrigger(d_nodes[0]))
+    {
       d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qe);
       ++(qe->d_statistics.d_triggers);
     }else{
