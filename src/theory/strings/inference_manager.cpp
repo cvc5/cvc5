@@ -412,7 +412,7 @@ bool InferenceManager::processLemma(InferInfo& ii)
   // (lazily), since this is the moment when we have decided to process the
   // inference.
   for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-       ii.d_newSkolem)
+       ii.d_skolems)
   {
     for (const Node& n : sks.second)
     {
