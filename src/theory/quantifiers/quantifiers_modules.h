@@ -55,6 +55,7 @@ class QuantifiersModules
   void initialize(QuantifiersEngine* qe,
                   QuantifiersState& qs,
                   std::vector<QuantifiersModule*>& modules);
+
  private:
   //------------------------------ quantifier utilities
   /** relevant domain */

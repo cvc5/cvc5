@@ -36,8 +36,7 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
       d_te(nullptr),
       d_decManager(nullptr),
       d_masterEqualityEngine(nullptr),
-      d_eq_query(
-          new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
@@ -105,8 +104,7 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
           this, qstate, "FirstOrderModelFmc"));
-      d_builder.reset(
-          new quantifiers::fmcheck::FullModelChecker(qstate, this));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(qstate, this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(

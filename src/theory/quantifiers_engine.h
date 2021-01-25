@@ -29,9 +29,9 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
@@ -108,7 +108,9 @@ class QuantifiersEngine {
   /**
    * Finish initialize
    */
-  void finishInit(TheoryEngine* te, DecisionManager& dm, eq::EqualityEngine* mee);
+  void finishInit(TheoryEngine* te,
+                  DecisionManager& dm,
+                  eq::EqualityEngine* mee);
   //---------------------- end private initialization
   /**
    * Maps quantified formulas to the module that owns them, if any module has

@@ -85,7 +85,8 @@ QuantAntiSkolem::CDSkQuantCache::~CDSkQuantCache() {
 }
 
 QuantAntiSkolem::QuantAntiSkolem(QuantifiersState& qs, QuantifiersEngine* qe)
-    : QuantifiersModule(qs, qe) {
+    : QuantifiersModule(qs, qe)
+{
   d_sqc = new CDSkQuantCache(qs.getUserContext());
 }
 
@@ -160,7 +161,8 @@ void QuantAntiSkolem::check(Theory::Effort e, QEffort quant_e)
 bool QuantAntiSkolem::sendAntiSkolemizeLemma( std::vector< Node >& quants, bool pconnected ) {
   Assert(!quants.empty());
   std::sort( quants.begin(), quants.end() );
-  if( d_sqc->add( d_qstate.getUserContext(), quants ) ){
+  if (d_sqc->add(d_qstate.getUserContext(), quants))
+  {
     //partition into connected components
     if( pconnected && quants.size()>1 ){
       Trace("anti-sk-debug") << "Partition into connected components..." << std::endl;

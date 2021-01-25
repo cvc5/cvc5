@@ -1837,7 +1837,8 @@ bool MatchGen::isHandled( TNode n ) {
   return true;
 }
 
-QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe, QuantifiersState& qs)
+QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
+                                     QuantifiersState& qs)
     : QuantifiersModule(qs, qe),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),

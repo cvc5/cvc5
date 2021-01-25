@@ -33,29 +33,29 @@ namespace quantifiers {
 
 class QuantAntiSkolem : public QuantifiersModule {
 public:
-  QuantAntiSkolem( QuantifiersState& qs, QuantifiersEngine * qe );
-  virtual ~QuantAntiSkolem();
+ QuantAntiSkolem(QuantifiersState& qs, QuantifiersEngine* qe);
+ virtual ~QuantAntiSkolem();
 
-  bool sendAntiSkolemizeLemma( std::vector< Node >& quants,
-                               bool pconnected = true );
+ bool sendAntiSkolemizeLemma(std::vector<Node>& quants, bool pconnected = true);
 
-  /* Call during quantifier engine's check */
-  void check(Theory::Effort e, QEffort quant_e) override;
-  /* Called for new quantifiers */
-  void registerQuantifier(Node q) override {}
-  void assertNode(Node n) override {}
-  /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() const override { return "QuantAntiSkolem"; }
+ /* Call during quantifier engine's check */
+ void check(Theory::Effort e, QEffort quant_e) override;
+ /* Called for new quantifiers */
+ void registerQuantifier(Node q) override {}
+ void assertNode(Node n) override {}
+ /** Identify this module (for debugging, dynamic configuration, etc..) */
+ std::string identify() const override { return "QuantAntiSkolem"; }
 
- private:
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+private:
+ typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
-  std::map< Node, bool > d_quant_processed;
-  std::map< Node, SingleInvocationPartition > d_quant_sip;
-  std::map< Node, std::vector< TypeNode > > d_ask_types;
-  std::map< Node, std::vector< unsigned > > d_ask_types_index;
-  
-  class SkQuantTypeCache {
+ std::map<Node, bool> d_quant_processed;
+ std::map<Node, SingleInvocationPartition> d_quant_sip;
+ std::map<Node, std::vector<TypeNode> > d_ask_types;
+ std::map<Node, std::vector<unsigned> > d_ask_types_index;
+
+ class SkQuantTypeCache
+ {
   public:
     std::map< TypeNode, SkQuantTypeCache > d_children;
     std::vector< Node > d_quants;

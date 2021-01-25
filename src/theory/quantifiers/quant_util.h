@@ -21,9 +21,9 @@
 #include <map>
 #include <vector>
 
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -58,7 +58,7 @@ class QuantifiersModule {
   };
 
  public:
-  QuantifiersModule( quantifiers::QuantifiersState& qs, QuantifiersEngine* qe );
+  QuantifiersModule(quantifiers::QuantifiersState& qs, QuantifiersEngine* qe);
   virtual ~QuantifiersModule(){}
   /** Presolve.
    *
@@ -256,8 +256,6 @@ enum BoundVarType
   // a bound has not been inferred for the variable
   BOUND_NONE
 };
-
-
 }
 }
 

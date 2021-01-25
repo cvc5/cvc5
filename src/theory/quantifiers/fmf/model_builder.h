@@ -39,13 +39,15 @@ protected:
   unsigned d_addedLemmas;
   unsigned d_triedLemmas;
 public:
-  QModelBuilder( QuantifiersEngine* qe, QuantifiersState& qs );
+ QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs);
 
-  //do exhaustive instantiation  
-  // 0 :  failed, but resorting to true exhaustive instantiation may work
-  // >0 : success
-  // <0 : failed
-  virtual int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
+ // do exhaustive instantiation
+ // 0 :  failed, but resorting to true exhaustive instantiation may work
+ // >0 : success
+ // <0 : failed
+ virtual int doExhaustiveInstantiation(FirstOrderModel* fm, Node f, int effort)
+ {
+   return false; }
   //whether to construct model
   virtual bool optUseModel();
   /** exist instantiation ? */

@@ -169,7 +169,8 @@ void TheoryEngine::finishInit()
   // initialize the quantifiers engine
   if (d_logicInfo.isQuantified())
   {
-    // get the quantifiers engine, which is initialized by the quantifiers theory
+    // get the quantifiers engine, which is initialized by the quantifiers
+    // theory
     d_quantEngine = d_theoryTable[THEORY_QUANTIFIERS]->getQuantifiersEngine();
   }
   // initialize the theory combination manager, which decides and allocates the
@@ -181,7 +182,8 @@ void TheoryEngine::finishInit()
   // finish initializing the quantifiers engine
   if (d_logicInfo.isQuantified())
   {
-    d_quantEngine->finishInit(this, *d_decManager.get(), d_tc->getCoreEqualityEngine());
+    d_quantEngine->finishInit(
+        this, *d_decManager.get(), d_tc->getCoreEqualityEngine());
   }
 
   // finish initializing the theories by linking them with the appropriate

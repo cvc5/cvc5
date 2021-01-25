@@ -160,73 +160,77 @@ private:
   };
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 public:
-  BoundedIntegers( QuantifiersEngine* qe, QuantifiersState& qs );
-  virtual ~BoundedIntegers();
+ BoundedIntegers(QuantifiersEngine* qe, QuantifiersState& qs);
+ virtual ~BoundedIntegers();
 
-  void presolve() override;
-  bool needsCheck(Theory::Effort e) override;
-  void check(Theory::Effort e, QEffort quant_e) override;
-  void checkOwnership(Node q) override;
-  /**
-   * Is v a variable of quantified formula q that this class has inferred to
-   * have a finite bound?
-   */
-  bool isBound(Node q, Node v) const;
-  /**
-   * Get the type of bound that was inferred for variable v of quantified
-   * formula q, or BOUND_NONE if no bound was inferred.
-   */
-  BoundVarType getBoundVarType(Node q, Node v) const;
-  /**
-   * Get the indices of bound variables, in the order they should be processed
-   * in a RepSetIterator. For example, for q:
-   *   forall xyz. 0 <= x < 5 ^ 0 <= z <= x+7 => P(x,y,z)
-   * this would add {1,3} to the vector indices, indicating that x has a finite
-   * bound, z has a finite bound assuming x has a finite bound, and y does not
-   * have a finite bound.
-   */
-  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
-  /**
-   * Get bound elements
-   *
-   * This gets the (finite) enumeration of the range of variable v of quantified
-   * formula q and adds it into the vector elements in the context of the
-   * iteration being performed by rsi. It returns true if it could successfully
-   * determine this range.
-   *
-   * This method determines the range of a variable depending on the current
-   * state of the iterator rsi and flag initial (which is true when rsi is
-   * being initialized). For example, if q is:
-   *   forall xy. 0 <= x < 5 ^ 0 <= y <= x+7 => P(x,y)
-   * v is y, and rsi currently maps x to 4, then we add the elements 0...11 to
-   * the vector elements.
-   */
-  bool getBoundElements(RepSetIterator* rsi,
-                        bool initial,
-                        Node q,
+ void presolve() override;
+ bool needsCheck(Theory::Effort e) override;
+ void check(Theory::Effort e, QEffort quant_e) override;
+ void checkOwnership(Node q) override;
+ /**
+  * Is v a variable of quantified formula q that this class has inferred to
+  * have a finite bound?
+  */
+ bool isBound(Node q, Node v) const;
+ /**
+  * Get the type of bound that was inferred for variable v of quantified
+  * formula q, or BOUND_NONE if no bound was inferred.
+  */
+ BoundVarType getBoundVarType(Node q, Node v) const;
+ /**
+  * Get the indices of bound variables, in the order they should be processed
+  * in a RepSetIterator. For example, for q:
+  *   forall xyz. 0 <= x < 5 ^ 0 <= z <= x+7 => P(x,y,z)
+  * this would add {1,3} to the vector indices, indicating that x has a finite
+  * bound, z has a finite bound assuming x has a finite bound, and y does not
+  * have a finite bound.
+  */
+ void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
+ /**
+  * Get bound elements
+  *
+  * This gets the (finite) enumeration of the range of variable v of quantified
+  * formula q and adds it into the vector elements in the context of the
+  * iteration being performed by rsi. It returns true if it could successfully
+  * determine this range.
+  *
+  * This method determines the range of a variable depending on the current
+  * state of the iterator rsi and flag initial (which is true when rsi is
+  * being initialized). For example, if q is:
+  *   forall xy. 0 <= x < 5 ^ 0 <= y <= x+7 => P(x,y)
+  * v is y, and rsi currently maps x to 4, then we add the elements 0...11 to
+  * the vector elements.
+  */
+ bool getBoundElements(RepSetIterator* rsi,
+                       bool initial,
+                       Node q,
+                       Node v,
+                       std::vector<Node>& elements);
+ /** Identify this module */
+ std::string identify() const override { return "BoundedIntegers"; }
+
+private:
+ /**
+  * Set that variable v of quantified formula q has a finite bound, where
+  * bound_type indicates how that bound was inferred.
+  */
+ void setBoundedVar(Node f, Node v, BoundVarType bound_type);
+ // for integer range
+ Node getLowerBound(Node q, Node v) { return d_bounds[0][q][v]; }
+ Node getUpperBound(Node q, Node v) { return d_bounds[1][q][v]; }
+ void getBounds(Node f, Node v, RepSetIterator* rsi, Node& l, Node& u);
+ void getBoundValues(Node f, Node v, RepSetIterator* rsi, Node& l, Node& u);
+ bool isGroundRange(Node f, Node v);
+ // for set range
+ Node getSetRange(Node q, Node v, RepSetIterator* rsi);
+ Node getSetRangeValue(Node q, Node v, RepSetIterator* rsi);
+ Node matchBoundVar(Node v, Node t, Node e);
+
+ bool getRsiSubsitution(Node q,
                         Node v,
-                        std::vector<Node>& elements);
-  /** Identify this module */
-  std::string identify() const override { return "BoundedIntegers"; }
-
- private:
-  /**
-   * Set that variable v of quantified formula q has a finite bound, where
-   * bound_type indicates how that bound was inferred.
-   */
-  void setBoundedVar(Node f, Node v, BoundVarType bound_type);
-  //for integer range
-  Node getLowerBound( Node q, Node v ){ return d_bounds[0][q][v]; }
-  Node getUpperBound( Node q, Node v ){ return d_bounds[1][q][v]; }
-  void getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
-  void getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
-  bool isGroundRange(Node f, Node v);
-  //for set range
-  Node getSetRange( Node q, Node v, RepSetIterator * rsi );
-  Node getSetRangeValue( Node q, Node v, RepSetIterator * rsi );
-  Node matchBoundVar( Node v, Node t, Node e );
-  
-  bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
+                        std::vector<Node>& vars,
+                        std::vector<Node>& subs,
+                        RepSetIterator* rsi);
 };
 
 }

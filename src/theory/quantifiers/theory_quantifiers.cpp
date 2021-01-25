@@ -60,7 +60,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   }
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;
-  
+
   // Set the pointer to the quantifiers engine, which this theory owns. This
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
