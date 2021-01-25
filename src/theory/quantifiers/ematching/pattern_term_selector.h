@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief trigger class
+ ** \brief pattern term selector class
  **/
 
 #include "cvc4_private.h"
@@ -92,7 +92,9 @@ class TriggerTermInfo {
 };
 
 /**
-*
+* Pattern term selector, which is responsible for constructing a pool of terms,
+* generally based on the body of a quantified formula, which is then used for
+* selecting triggers.
 */
 class PatternTermSelector {
  public:
@@ -100,8 +102,8 @@ class PatternTermSelector {
   ~PatternTermSelector();
   /** collect pattern terms
    *
-   * This collects all terms that are eligible for triggers for quantified
-   * formula q in term n and adds them to patTerms.
+   * This collects all terms that are eligible for triggers for the quantified
+   * formula of this class in term n and adds them to patTerms.
    *   tstrt : the selection strategy (see options/quantifiers_mode.h),
    *   exclude :  a set of terms that *cannot* be selected as triggers,
    *   tinfo : stores the result of the collection, mapping terms to the
@@ -110,7 +112,7 @@ class PatternTermSelector {
    *     in the vector we are returning, e.g. we do not return f( x ) if we are
    *     also returning f( f( x ) ). TODO: revisit this (issue #1211)
    */
-  static void collectPatTerms(Node q,
+  static void collectPatTerms(
                               Node n,
                               std::vector<Node>& patTerms,
                               options::TriggerSelMode tstrt,

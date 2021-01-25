@@ -12,7 +12,7 @@
  ** \brief Implementation of trigger class
  **/
 
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
@@ -425,7 +425,7 @@ int PatternTermSelector::getTriggerWeight( Node n ) {
   return 2;
 }
 
-void PatternTermSelector::collectPatTerms(Node q,
+void PatternTermSelector::collectTerms(
                               Node n,
                               std::vector<Node>& patTerms,
                               options::TriggerSelMode tstrt,
@@ -438,8 +438,8 @@ void PatternTermSelector::collectPatTerms(Node q,
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
     std::map< Node, TriggerTermInfo > tinfo2;
-    collectPatTerms(
-        q, n, patTerms2, options::TriggerSelMode::ALL, exclude, tinfo2, false);
+    collectTerms(
+        n, patTerms2, options::TriggerSelMode::ALL, exclude, tinfo2, false);
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
     filterTriggerInstances(temp);
@@ -484,7 +484,7 @@ void PatternTermSelector::collectPatTerms(Node q,
     }
   }
   std::vector< Node > added;
-  collectTermsInternal( q, n, visited, tinfo, tstrt, exclude, added, true, true, false, true );
+  collectTermsInternal( n, visited, tinfo, tstrt, exclude, added, true, true, false, true );
   for (const std::pair<const Node, TriggerTermInfo>& t : tinfo)
   {
     patTerms.push_back(t.first);
@@ -732,7 +732,7 @@ void PatternTermSelector::getTriggerVariables(Node n, Node q, std::vector<Node>&
   std::map< Node, TriggerTermInfo > tinfo;
   // collect all patterns from n
   std::vector< Node > exclude;
-  collectPatTerms(q, n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
+  collectTerms(q, n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
   //collect all variables from all patterns in patTerms, add to t_vars
   for (const Node& pat : patTerms)
   {
