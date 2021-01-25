@@ -33,11 +33,11 @@ namespace quantifiers {
 
 class QuantAntiSkolem : public QuantifiersModule {
  public:
-  QuantAntiSkolem(QuantifiersEngine* qe, QuantifiersState& qs);
+  QuantAntiSkolem( QuantifiersEngine * qe, QuantifiersState& qs );
   virtual ~QuantAntiSkolem();
 
-  bool sendAntiSkolemizeLemma(std::vector<Node>& quants,
-                              bool pconnected = true);
+  bool sendAntiSkolemizeLemma( std::vector< Node >& quants,
+                               bool pconnected = true );
 
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
@@ -50,14 +50,13 @@ class QuantAntiSkolem : public QuantifiersModule {
  private:
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
-  std::map<Node, bool> d_quant_processed;
-  std::map<Node, SingleInvocationPartition> d_quant_sip;
-  std::map<Node, std::vector<TypeNode> > d_ask_types;
-  std::map<Node, std::vector<unsigned> > d_ask_types_index;
-
-  class SkQuantTypeCache
-  {
-   public:
+  std::map< Node, bool > d_quant_processed;
+  std::map< Node, SingleInvocationPartition > d_quant_sip;
+  std::map< Node, std::vector< TypeNode > > d_ask_types;
+  std::map< Node, std::vector< unsigned > > d_ask_types_index;
+  
+  class SkQuantTypeCache {
+  public:
     std::map< TypeNode, SkQuantTypeCache > d_children;
     std::vector< Node > d_quants;
     void add( std::vector< TypeNode >& typs, Node q, unsigned index = 0 );

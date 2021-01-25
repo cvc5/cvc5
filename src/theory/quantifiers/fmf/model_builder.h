@@ -29,7 +29,7 @@ namespace quantifiers {
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
-protected:
+ protected:
   //quantifiers engine
   QuantifiersEngine* d_qe;
   // must call preProcessBuildModelStd
@@ -38,32 +38,23 @@ protected:
   /** number of lemmas generated while building model */
   unsigned d_addedLemmas;
   unsigned d_triedLemmas;
-public:
- QModelBuilder(QuantifiersEngine* qe);
+ public:
+  QModelBuilder(QuantifiersEngine* qe );
 
- // do exhaustive instantiation
- // 0 :  failed, but resorting to true exhaustive instantiation may work
- // >0 : success
- // <0 : failed
- virtual int doExhaustiveInstantiation(FirstOrderModel* fm, Node f, int effort)
- {
-   return false;
- }
- // whether to construct model
- virtual bool optUseModel();
- /** exist instantiation ? */
- virtual bool existsInstantiation(Node f,
-                                  InstMatch& m,
-                                  bool modEq = true,
-                                  bool modInst = false)
- {
-   return false;
- }
- // debug model
- void debugModel(TheoryModel* m) override;
- // statistics
- unsigned getNumAddedLemmas() { return d_addedLemmas; }
- unsigned getNumTriedLemmas() { return d_triedLemmas; }
+  //do exhaustive instantiation  
+  // 0 :  failed, but resorting to true exhaustive instantiation may work
+  // >0 : success
+  // <0 : failed
+  virtual int doExhaustiveInstantiation( FirstOrderModel * fm, Node f, int effort ) { return false; }
+  //whether to construct model
+  virtual bool optUseModel();
+  /** exist instantiation ? */
+  virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
+  //debug model
+  void debugModel(TheoryModel* m) override;
+  //statistics 
+  unsigned getNumAddedLemmas() { return d_addedLemmas; }
+  unsigned getNumTriedLemmas() { return d_triedLemmas; }
 };
 
 }/* CVC4::theory::quantifiers namespace */
