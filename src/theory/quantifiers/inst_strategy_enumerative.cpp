@@ -32,7 +32,7 @@ using namespace inst;
 
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersState& qs, QuantifiersEngine* qe, RelevantDomain* rd)
+InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, QuantifiersState& qs, RelevantDomain* rd)
     : QuantifiersModule(qs, qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }

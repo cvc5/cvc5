@@ -128,7 +128,7 @@ void finishInit(TheoryEngine* te, DecisionManager* dm, eq::EqualityEngine* mee)
   // initialization to here, since this is after TheoryQuantifiers finishInit,
   // which has initialized the state and inference manager of this engine.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_context, d_modules);
+  d_qmodules->initialize(this, qs, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());

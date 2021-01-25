@@ -92,13 +92,13 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new AlphaEquivalence(qe, qs));
+    d_alpha_equiv.reset(new AlphaEquivalence(qe));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
-    d_rel_dom.reset(new RelevantDomain(qe, qs));
-    d_fs.reset(new InstStrategyEnum(qe, d_rel_dom.get()));
+    d_rel_dom.reset(new RelevantDomain(qe));
+    d_fs.reset(new InstStrategyEnum(qe, qs, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }
   if (options::sygusInst())

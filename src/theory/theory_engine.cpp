@@ -279,8 +279,6 @@ TheoryEngine::~TheoryEngine() {
     }
   }
 
-  delete d_quantEngine;
-
   smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
   smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }

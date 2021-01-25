@@ -202,7 +202,7 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 class CegisUnif : public Cegis
 {
  public:
-  CegisUnif(QuantifiersEngine* qe, SynthConjecture* p);
+  CegisUnif(QuantifiersEngine* qe, QuantifiersState& qs, SynthConjecture* p);
   ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions
    *

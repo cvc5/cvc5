@@ -62,7 +62,7 @@ namespace quantifiers {
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersState& qs, QuantifiersEngine* qe, RelevantDomain* rd);
+  InstStrategyEnum(QuantifiersEngine* qe, QuantifiersState& qs, RelevantDomain* rd);
   ~InstStrategyEnum() {}
   /** Presolve */
   void presolve() override;
