@@ -97,7 +97,7 @@ bool TriggerTermInfo::isSimpleTrigger(Node n)
   return true;
 }
 
-int TriggerTermInfo::getTriggerWeight(Node n)
+int32_t TriggerTermInfo::getTriggerWeight(Node n)
 {
   if (n.getKind() == APPLY_UF)
   {

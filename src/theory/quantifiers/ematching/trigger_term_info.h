@@ -84,8 +84,8 @@ class TriggerTermInfo
    *   d_reqPolEq = false
    */
   Node d_reqPolEq;
-  /** the weight of the trigger (see Trigger::getTriggerWeight). */
-  int d_weight;
+  /** the weight of the trigger (see getTriggerWeight). */
+  int32_t d_weight;
   /** Initialize this information class (can be called more than once).
    * q is the quantified formula that n is a trigger term for
    * n is the trigger term
@@ -117,7 +117,7 @@ class TriggerTermInfo
    * Returns 1 for other triggers whose kind is atomic.
    * Returns 2 otherwise.
    */
-  static int getTriggerWeight(Node n);
+  static int32_t getTriggerWeight(Node n);
 };
 
 }  // namespace inst

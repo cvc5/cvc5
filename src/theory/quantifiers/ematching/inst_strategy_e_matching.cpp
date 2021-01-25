@@ -49,8 +49,8 @@ struct sortQuantifiersForSymbol {
 
 struct sortTriggers {
   bool operator() (Node i, Node j) {
-    int wi = TriggerTermInfo::getTriggerWeight(i);
-    int wj = TriggerTermInfo::getTriggerWeight(j);
+    int32_t wi = TriggerTermInfo::getTriggerWeight(i);
+    int32_t wj = TriggerTermInfo::getTriggerWeight(j);
     if( wi==wj ){
       return i<j;
     }
@@ -430,7 +430,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   // considered
   std::map<Node, bool> vcMap;
   std::map<Node, bool> rmPatTermsF;
-  int last_weight = -1;
+  int32_t last_weight = -1;
   for (const Node& p : patTermsF)
   {
     Assert(p.getKind() != NOT);
@@ -444,7 +444,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
         newVar = true;
       }
     }
-    int curr_w = TriggerTermInfo::getTriggerWeight(p);
+    int32_t curr_w = TriggerTermInfo::getTriggerWeight(p);
     // triggers whose value is maximum (2) are considered expendable.
     if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
         && curr_w >= 2)
