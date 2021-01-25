@@ -1046,6 +1046,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
       }
       else if (!quantifiers::TermUtil::hasInstConstAttr(cur))
       {
+        // cur has no INST_CONSTANT, thus is ground.
         Node vcur = val.getPreprocessedTerm(cur);
         gts.push_back(vcur);
         visited[cur] = vcur;

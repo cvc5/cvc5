@@ -425,7 +425,8 @@ class Trigger {
    * should not change after preprocessing), nor are they added to gts.
    *
    * @param val The valuation to use for looking up preprocessed terms.
-   * @param n The node to process
+   * @param n The node to process, which is in inst-constant form (free
+   * variables have been substituted by corresponding INST_CONSTANT).
    * @param gts The set of preprocessed ground subterms of n.
    * @return The converted form of n where all ground subterms have been
    * replaced by their preprocessed form.
