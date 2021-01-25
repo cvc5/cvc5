@@ -84,7 +84,7 @@ QuantAntiSkolem::CDSkQuantCache::~CDSkQuantCache() {
   }
 }
 
-QuantAntiSkolem::QuantAntiSkolem(QuantifiersState& qs, QuantifiersEngine* qe)
+QuantAntiSkolem::QuantAntiSkolem(QuantifiersEngine* qe, QuantifiersState& qs)
     : QuantifiersModule(qs, qe)
 {
   d_sqc = new CDSkQuantCache(qs.getUserContext());

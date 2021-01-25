@@ -398,8 +398,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
-    QuantifiersEngine* qe, SynthConjecture* parent)
-    : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
+    QuantifiersEngine* qe, QuantifiersState& qs, SynthConjecture* parent)
+    : DecisionStrategyFmf(qs.getSatContext(), qe->getValuation()),
       d_qe(qe),
       d_parent(parent)
 {

@@ -34,7 +34,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstantiationEngine::InstantiationEngine(QuantifiersState& qs, QuantifiersEngine* qe)
+InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe, QuantifiersState& qs)
     : QuantifiersModule(qs, qe),
       d_instStrategies(),
       d_isup(),
