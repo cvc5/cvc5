@@ -25,8 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-PatternTermSelector::PatternTermSelector(Node q, options::TriggerSelMode tstrt, const std::vector<Node>& exc,
-                    bool filterInst)
+PatternTermSelector::PatternTermSelector(Node q,
+                                         options::TriggerSelMode tstrt,
+                                         const std::vector<Node>& exc,
+                                         bool filterInst)
     : d_quant(q), d_tstrt(tstrt), d_excluded(exc), d_filterInst(filterInst)
 {
 }
@@ -386,18 +388,19 @@ void PatternTermSelector::collectTermsInternal(
 }
 
 void PatternTermSelector::collect(Node n,
-                                       std::vector<Node>& patTerms,
-                                       std::map<Node, TriggerTermInfo>& tinfo)
+                                  std::vector<Node>& patTerms,
+                                  std::map<Node, TriggerTermInfo>& tinfo)
 {
   collectInternal(n, patTerms, tinfo, d_tstrt, d_filterInst);
 }
 
-void PatternTermSelector::collectInternal(Node n,
-                  std::vector<Node>& patTerms,
-                  std::map<Node, TriggerTermInfo>& tinfo,
-                          options::TriggerSelMode tstrt,
-                  bool filterInst
-                    ){
+void PatternTermSelector::collectInternal(
+    Node n,
+    std::vector<Node>& patTerms,
+    std::map<Node, TriggerTermInfo>& tinfo,
+    options::TriggerSelMode tstrt,
+    bool filterInst)
+{
   std::map<Node, std::vector<Node> > visited;
   if (filterInst)
   {
@@ -433,9 +436,8 @@ void PatternTermSelector::collectInternal(Node n,
       for (const Node& t : temp)
       {
         // copy information
-        tinfo[t].d_fv.insert(tinfo[t].d_fv.end(),
-                                   tinfo2[t].d_fv.begin(),
-                                   tinfo2[t].d_fv.end());
+        tinfo[t].d_fv.insert(
+            tinfo[t].d_fv.end(), tinfo2[t].d_fv.begin(), tinfo2[t].d_fv.end());
         tinfo[t].d_reqPol = tinfo2[t].d_reqPol;
         tinfo[t].d_reqPolEq = tinfo2[t].d_reqPolEq;
         patTerms.push_back(t);
@@ -450,7 +452,6 @@ void PatternTermSelector::collectInternal(Node n,
         visited[t].clear();
       }
     }
-    
   }
   std::vector<Node> added;
   collectTermsInternal(

@@ -43,8 +43,11 @@ class PatternTermSelector
    * in the pattern terms we are return, e.g. we do not return f(x) if we are
    * also returning f(f(x)).
    */
-  PatternTermSelector(Node q, options::TriggerSelMode tstrt = options::TriggerSelMode::ALL, const std::vector<Node>& exc = {},
-                    bool filterInst = false);
+  PatternTermSelector(
+      Node q,
+      options::TriggerSelMode tstrt = options::TriggerSelMode::ALL,
+      const std::vector<Node>& exc = {},
+      bool filterInst = false);
   ~PatternTermSelector();
   /** collect pattern terms
    *
@@ -54,8 +57,8 @@ class PatternTermSelector
    *           information they are associated with,
    */
   void collect(Node n,
-                    std::vector<Node>& patTerms,
-                    std::map<Node, TriggerTermInfo>& tinfo);
+               std::vector<Node>& patTerms,
+               std::map<Node, TriggerTermInfo>& tinfo);
   /** Is n a usable trigger in quantified formula q?
    *
    * A usable trigger is one that is matchable and contains free variables only
@@ -113,11 +116,10 @@ class PatternTermSelector
   static bool isUsableEqTerms(Node q, Node n1, Node n2);
   /** Helper for collect, with a fixed strategy for selection and filtering */
   void collectInternal(Node n,
-                    std::vector<Node>& patTerms,
-                    std::map<Node, TriggerTermInfo>& tinfo,
-                            options::TriggerSelMode tstrt,
-                    bool filterInst
-                      );
+                       std::vector<Node>& patTerms,
+                       std::map<Node, TriggerTermInfo>& tinfo,
+                       options::TriggerSelMode tstrt,
+                       bool filterInst);
   /** recursive helper function for collectPatTerms
    *
    * This collects the usable trigger terms in the subterm n of the body of
