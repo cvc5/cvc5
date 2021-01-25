@@ -271,6 +271,7 @@ private:
  std::map<Node, int> d_quant_id;
  void debugPrintQuant(const char* c, Node q);
  void debugPrintQuantBody(const char* c, Node q, Node n, bool doVarNum = true);
+
 public:
   /** statistics class */
   class Statistics {

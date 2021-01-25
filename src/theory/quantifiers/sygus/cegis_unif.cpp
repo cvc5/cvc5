@@ -29,7 +29,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe, QuantifiersState& qs, SynthConjecture* p)
+CegisUnif::CegisUnif(QuantifiersEngine* qe,
+                     QuantifiersState& qs,
+                     SynthConjecture* p)
     : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, qs, p)
 {
 }

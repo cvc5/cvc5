@@ -148,32 +148,32 @@ private:
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 public:
-  FullModelChecker(QuantifiersEngine* qe );
+ FullModelChecker(QuantifiersEngine* qe);
 
-  void debugPrintCond(const char * tr, Node n, bool dispStar = false);
-  void debugPrint(const char * tr, Node n, bool dispStar = false);
+ void debugPrintCond(const char* tr, Node n, bool dispStar = false);
+ void debugPrint(const char* tr, Node n, bool dispStar = false);
 
-  int doExhaustiveInstantiation(FirstOrderModel* fm,
-                                Node f,
-                                int effort) override;
+ int doExhaustiveInstantiation(FirstOrderModel* fm,
+                               Node f,
+                               int effort) override;
 
-  Node getFunctionValue(FirstOrderModelFmc * fm, Node op, const char* argPrefix );
+ Node getFunctionValue(FirstOrderModelFmc* fm, Node op, const char* argPrefix);
 
-  /** process build model */
-  bool preProcessBuildModel(TheoryModel* m) override;
-  bool processBuildModel(TheoryModel* m) override;
+ /** process build model */
+ bool preProcessBuildModel(TheoryModel* m) override;
+ bool processBuildModel(TheoryModel* m) override;
 
-  bool useSimpleModels();
+ bool useSimpleModels();
 
- private:
-  /**
-   * Register quantified formula.
-   * This checks whether q can be handled by model-based instantiation and
-   * initializes the necessary information if so.
-   */
-  void registerQuantifiedFormula(Node q);
-  /** Is quantified formula q handled by model-based instantiation? */
-  bool isHandled(Node q) const;
+private:
+ /**
+  * Register quantified formula.
+  * This checks whether q can be handled by model-based instantiation and
+  * initializes the necessary information if so.
+  */
+ void registerQuantifiedFormula(Node q);
+ /** Is quantified formula q handled by model-based instantiation? */
+ bool isHandled(Node q) const;
 };/* class FullModelChecker */
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */

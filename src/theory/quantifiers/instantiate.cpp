@@ -39,7 +39,7 @@ Instantiate::Instantiate(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          ProofNodeManager* pnm)
     : d_qe(qe),
-    d_qstate(qs),
+      d_qstate(qs),
       d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),

@@ -280,9 +280,8 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-
-FullModelChecker::FullModelChecker(QuantifiersEngine* qe) :
-QModelBuilder( qe ){
+FullModelChecker::FullModelChecker(QuantifiersEngine* qe) : QModelBuilder(qe)
+{
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }

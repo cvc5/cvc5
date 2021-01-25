@@ -47,11 +47,17 @@ public:
  // <0 : failed
  virtual int doExhaustiveInstantiation(FirstOrderModel* fm, Node f, int effort)
  {
+   return false;
+ }
+ // whether to construct model
+ virtual bool optUseModel();
+ /** exist instantiation ? */
+ virtual bool existsInstantiation(Node f,
+                                  InstMatch& m,
+                                  bool modEq = true,
+                                  bool modInst = false)
+ {
    return false; }
-  //whether to construct model
-  virtual bool optUseModel();
-  /** exist instantiation ? */
-  virtual bool existsInstantiation( Node f, InstMatch& m, bool modEq = true, bool modInst = false ) { return false; }
   //debug model
   void debugModel(TheoryModel* m) override;
   //statistics 

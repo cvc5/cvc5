@@ -25,10 +25,9 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-
-QuantDSplit::QuantDSplit( QuantifiersEngine * qe, QuantifiersState& qs ) :
-QuantifiersModule( qs, qe ), d_added_split( qs.getUserContext() ){
-
+QuantDSplit::QuantDSplit(QuantifiersEngine* qe, QuantifiersState& qs)
+    : QuantifiersModule(qs, qe), d_added_split(qs.getUserContext())
+{
 }
 
 void QuantDSplit::checkOwnership(Node q)

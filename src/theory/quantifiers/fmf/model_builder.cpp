@@ -33,7 +33,9 @@ QModelBuilder::QModelBuilder(QuantifiersEngine* qe)
     : TheoryEngineModelBuilder(qe->getTheoryEngine()),
       d_qe(qe),
       d_addedLemmas(0),
-      d_triedLemmas(0) {}
+      d_triedLemmas(0)
+{
+}
 
 bool QModelBuilder::optUseModel() {
   return options::mbqiMode() != options::MbqiMode::NONE || options::fmfBound();

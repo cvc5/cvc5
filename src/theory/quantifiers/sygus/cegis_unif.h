@@ -47,7 +47,9 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, QuantifiersState& qs, SynthConjecture* parent);
+  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe,
+                                QuantifiersState& qs,
+                                SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
    * This call may add new lemmas of the form described above

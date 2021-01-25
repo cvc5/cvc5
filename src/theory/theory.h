@@ -233,7 +233,7 @@ class Theory {
    * supported or not enabled). Not owned by the theory.
    */
   QuantifiersEngine* d_quantEngine;
-  
+
   /** Pointer to proof node manager */
   ProofNodeManager* d_pnm;
 

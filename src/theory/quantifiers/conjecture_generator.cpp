@@ -89,7 +89,8 @@ ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
                                          QuantifiersState& qs)
     : QuantifiersModule(qs, qe),
       d_notify(*this),
-      d_uequalityEngine(d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
+      d_uequalityEngine(
+          d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
       d_ee_conjectures(qs.getSatContext()),
       d_conj_count(0),
       d_subs_confirmCount(0),
@@ -163,7 +164,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
   if( eqc_i!=d_eqc_info.end() ){
     return eqc_i->second;
   }else if( doMake ){
-    EqcInfo* ei = new EqcInfo( d_qstate.getSatContext() );
+    EqcInfo* ei = new EqcInfo(d_qstate.getSatContext());
     d_eqc_info[n] = ei;
     return ei;
   }else{
