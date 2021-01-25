@@ -1714,7 +1714,6 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
                || (!reEq.getConst<bool>() && !isDistinct));
         if (proofsEnabled())
         {
-          // TODO: test
           Pf assume = d_pnm->mkAssume(assertion);
           std::vector<Node> assumptions = {assertion};
           Pf pf = d_pnm->mkScope(d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
