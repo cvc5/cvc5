@@ -658,6 +658,12 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/ho_trigger.h
   theory/quantifiers/ematching/inst_match_generator.cpp
   theory/quantifiers/ematching/inst_match_generator.h
+  theory/quantifiers/ematching/inst_match_generator_multi.cpp
+  theory/quantifiers/ematching/inst_match_generator_multi.h
+  theory/quantifiers/ematching/inst_match_generator_multi_linear.cpp
+  theory/quantifiers/ematching/inst_match_generator_multi_linear.h
+  theory/quantifiers/ematching/inst_match_generator_simple.cpp
+  theory/quantifiers/ematching/inst_match_generator_simple.h
   theory/quantifiers/ematching/inst_strategy.h
   theory/quantifiers/ematching/inst_strategy_e_matching.cpp
   theory/quantifiers/ematching/inst_strategy_e_matching.h
@@ -669,6 +675,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/trigger.h
   theory/quantifiers/ematching/trigger_trie.cpp
   theory/quantifiers/ematching/trigger_trie.h
+  theory/quantifiers/ematching/var_match_generator.cpp
+  theory/quantifiers/ematching/var_match_generator.h
   theory/quantifiers/equality_infer.cpp
   theory/quantifiers/equality_infer.h
   theory/quantifiers/equality_query.cpp
