@@ -59,12 +59,6 @@ class PatternTermSelector
   void collect(Node n,
                std::vector<Node>& patTerms,
                std::map<Node, TriggerTermInfo>& tinfo);
-  /** Is n a usable trigger in quantified formula q?
-   *
-   * A usable trigger is one that is matchable and contains free variables only
-   * from q.
-   */
-  static bool isUsableTrigger(Node n, Node q);
   /** get is usable trigger
    *
    * Return the associated node of n that is a usable trigger in quantified
@@ -75,12 +69,6 @@ class PatternTermSelector
    *      getIsUsableTrigger( (= (+ x a) 5), q ) may return (= x (- 5 a)).
    */
   static Node getIsUsableTrigger(Node n, Node q);
-  /** Is n a usable atomic trigger?
-   *
-   * A usable atomic trigger is a term that is both a useable trigger and an
-   * atomic trigger.
-   */
-  static bool isUsableAtomicTrigger(Node n, Node q);
   /** get the variable associated with an inversion for n
    *
    * A term n with an inversion variable x has the following property :
@@ -106,6 +94,18 @@ class PatternTermSelector
   static void getTriggerVariables(Node n, Node q, std::vector<Node>& tvars);
 
  protected:
+  /** Is n a usable trigger in quantified formula q?
+   *
+   * A usable trigger is one that is matchable and contains free variables only
+   * from q.
+   */
+  static bool isUsableTrigger(Node n, Node q);
+  /** Is n a usable atomic trigger?
+   *
+   * A usable atomic trigger is a term that is both a useable trigger and an
+   * atomic trigger.
+   */
+  static bool isUsableAtomicTrigger(Node n, Node q);
   /** is subterm of trigger usable (helper function for isUsableTrigger) */
   static bool isUsable(Node n, Node q);
   /** returns an equality that is equivalent to the equality eq and
