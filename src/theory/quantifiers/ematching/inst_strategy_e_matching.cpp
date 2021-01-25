@@ -13,24 +13,16 @@
  **/
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
-#include "theory/quantifiers/ematching/inst_match_generator.h"
+
 #include "theory/quantifiers/quant_relevance.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 #include "util/random.h"
 
+using namespace CVC4::kind;
+using namespace CVC4::theory::inst;
+
 namespace CVC4 {
-
-using namespace kind;
-using namespace context;
-
 namespace theory {
-
-using namespace inst;
-
 namespace quantifiers {
 
 //priority levels :
@@ -64,116 +56,6 @@ struct sortTriggers {
     return wi < wj;
   }
 };
-
-void InstStrategyUserPatterns::processResetInstantiationRound( Theory::Effort effort ){
-  Trace("inst-alg-debug") << "reset user triggers" << std::endl;
-  //reset triggers
-  for (std::pair<const Node, std::vector<Trigger*> >& u : d_user_gen)
-  {
-    for (Trigger* t : u.second)
-    {
-      t->resetInstantiationRound();
-      t->reset(Node::null());
-    }
-  }
-  Trace("inst-alg-debug") << "done reset user triggers" << std::endl;
-}
-
-int InstStrategyUserPatterns::process( Node f, Theory::Effort effort, int e ){
-  if( e==0 ){
-    return STATUS_UNFINISHED;
-  }
-  options::UserPatMode upm = d_quantEngine->getInstUserPatMode();
-  int peffort = upm == options::UserPatMode::RESORT ? 2 : 1;
-  if (e < peffort)
-  {
-    return STATUS_UNFINISHED;
-  }
-  if (e != peffort)
-  {
-    return STATUS_UNKNOWN;
-  }
-  d_counter[f]++;
-
-  Trace("inst-alg") << "-> User-provided instantiate " << f << "..."
-                    << std::endl;
-  if (upm == options::UserPatMode::RESORT)
-  {
-    std::vector<std::vector<Node> >& ugw = d_user_gen_wait[f];
-    for (size_t i = 0, usize = ugw.size(); i < usize; i++)
-    {
-      Trigger* t = Trigger::mkTrigger(
-          d_quantEngine, f, ugw[i], true, Trigger::TR_RETURN_NULL);
-      if (t)
-      {
-        d_user_gen[f].push_back(t);
-      }
-    }
-    ugw.clear();
-  }
-
-  std::vector<inst::Trigger*>& ug = d_user_gen[f];
-  for (Trigger* t : ug)
-  {
-    if (Trace.isOn("process-trigger"))
-    {
-      Trace("process-trigger") << "  Process (user) ";
-      t->debugPrint("process-trigger");
-      Trace("process-trigger") << "..." << std::endl;
-    }
-    unsigned numInst = t->addInstantiations();
-    Trace("process-trigger")
-        << "  Done, numInst = " << numInst << "." << std::endl;
-    d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
-    if (t->isMultiTrigger())
-    {
-      d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-    }
-    if (d_quantEngine->inConflict())
-    {
-      // we are already in conflict
-      break;
-    }
-  }
-  return STATUS_UNKNOWN;
-}
-
-void InstStrategyUserPatterns::addUserPattern( Node q, Node pat ){
-  Assert(pat.getKind() == INST_PATTERN);
-  //add to generators
-  std::vector< Node > nodes;
-  for (const Node& p : pat)
-  {
-    Node pat_use = Trigger::getIsUsableTrigger(p, q);
-    if( pat_use.isNull() ){
-      Trace("trigger-warn") << "User-provided trigger is not usable : " << pat
-                            << " because of " << p << std::endl;
-      return;
-    }else{
-      nodes.push_back( pat_use );
-    }
-  }
-  Trace("user-pat") << "Add user pattern: " << pat << " for " << q << std::endl;
-  // check match option
-  if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
-  {
-    d_user_gen_wait[q].push_back(nodes);
-  }
-  else
-  {
-    Trigger* t =
-        Trigger::mkTrigger(d_quantEngine, q, nodes, true, Trigger::TR_MAKE_NEW);
-    if (t)
-    {
-      d_user_gen[q].push_back(t);
-    }
-    else
-    {
-      Trace("trigger-warn") << "Failed to construct trigger : " << pat
-                            << " due to variable mismatch" << std::endl;
-    }
-  }
-}
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
                                                          QuantRelevance* qr)
@@ -212,11 +94,14 @@ void InstStrategyAutoGenTriggers::processResetInstantiationRound( Theory::Effort
   Trace("inst-alg-debug") << "done reset auto-gen triggers" << std::endl;
 }
 
-int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e ){
+InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
+                                                        Theory::Effort effort,
+                                                        int e)
+{
   options::UserPatMode upMode = d_quantEngine->getInstUserPatMode();
   if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
   {
-    return STATUS_UNKNOWN;
+    return InstStrategyStatus::STATUS_UNKNOWN;
   }
   int peffort = (hasUserPatterns(f) && upMode != options::UserPatMode::IGNORE
                  && upMode != options::UserPatMode::RESORT)
@@ -224,7 +109,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
                     : 1;
   if (e < peffort)
   {
-    return STATUS_UNFINISHED;
+    return InstStrategyStatus::STATUS_UNFINISHED;
   }
   Trace("inst-alg") << "-> Auto-gen instantiate " << f << "..." << std::endl;
   bool gen = false;
@@ -328,7 +213,7 @@ int InstStrategyAutoGenTriggers::process( Node f, Theory::Effort effort, int e )
       break;
     }
   }
-  return STATUS_UNKNOWN;
+  return InstStrategyStatus::STATUS_UNKNOWN;
 }
 
 void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
