@@ -32,7 +32,7 @@ namespace theory {
 namespace quantifiers {
 
 class QuantAntiSkolem : public QuantifiersModule {
-public:
+ public:
  QuantAntiSkolem(QuantifiersEngine* qe, QuantifiersState& qs);
  virtual ~QuantAntiSkolem();
 

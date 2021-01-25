@@ -159,7 +159,7 @@ private:
     }
   };
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
-public:
+ public:
  BoundedIntegers(QuantifiersEngine* qe, QuantifiersState& qs);
  virtual ~BoundedIntegers();
 
