@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file trigger.cpp
+/*! \file pattern_term_selector.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of trigger class
+ ** \brief Implementation of pattern term selector class
  **/
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
