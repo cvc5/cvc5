@@ -335,9 +335,11 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
   return n.getAttribute(ModelBasisArgAttribute());
 }
 
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine * qe, QuantifiersState& qs, std::string name) :
-FirstOrderModel(qe, qs, name){
-
+FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
+                                       QuantifiersState& qs,
+                                       std::string name)
+    : FirstOrderModel(qe, qs, name)
+{
 }
 
 FirstOrderModelFmc::~FirstOrderModelFmc()

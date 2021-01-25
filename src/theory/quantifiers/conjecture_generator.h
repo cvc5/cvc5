@@ -433,27 +433,28 @@ private:  //information about ground equivalence classes
   bool d_hasAddedLemma;
   //flush the waiting conjectures
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
+
  public:
- ConjectureGenerator(QuantifiersEngine* qe, QuantifiersState& qs);
- ~ConjectureGenerator();
+  ConjectureGenerator(QuantifiersEngine* qe, QuantifiersState& qs);
+  ~ConjectureGenerator();
 
- /* needs check */
- bool needsCheck(Theory::Effort e) override;
- /* reset at a round */
- void reset_round(Theory::Effort e) override;
- /* Call during quantifier engine's check */
- void check(Theory::Effort e, QEffort quant_e) override;
- /** Identify this module (for debugging, dynamic configuration, etc..) */
- std::string identify() const override { return "ConjectureGenerator"; }
- // options
+  /* needs check */
+  bool needsCheck(Theory::Effort e) override;
+  /* reset at a round */
+  void reset_round(Theory::Effort e) override;
+  /* Call during quantifier engine's check */
+  void check(Theory::Effort e, QEffort quant_e) override;
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  std::string identify() const override { return "ConjectureGenerator"; }
+  // options
  private:
- bool optReqDistinctVarPatterns();
- bool optFilterUnknown();
- int optFilterScoreThreshold();
- unsigned optFullCheckFrequency();
- unsigned optFullCheckConjectures();
+  bool optReqDistinctVarPatterns();
+  bool optFilterUnknown();
+  int optFilterScoreThreshold();
+  unsigned optFullCheckFrequency();
+  unsigned optFullCheckConjectures();
 
- bool optStatsOnly();
+  bool optStatsOnly();
 };
 
 

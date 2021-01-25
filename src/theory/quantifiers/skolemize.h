@@ -64,9 +64,7 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersEngine* qe,
-            QuantifiersState& qs,
-            ProofNodeManager* pnm);
+  Skolemize(QuantifiersEngine* qe, QuantifiersState& qs, ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust

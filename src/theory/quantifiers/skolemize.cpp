@@ -35,7 +35,8 @@ Skolemize::Skolemize(QuantifiersEngine* qe,
       d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(pnm, qs.getUserContext(), "Skolemize::epg"))
+                           : new EagerProofGenerator(
+                                 pnm, qs.getUserContext(), "Skolemize::epg"))
 {
 }
 

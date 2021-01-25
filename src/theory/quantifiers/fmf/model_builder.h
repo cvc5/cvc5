@@ -57,12 +57,13 @@ public:
                                   bool modEq = true,
                                   bool modInst = false)
  {
-   return false; }
-  //debug model
-  void debugModel(TheoryModel* m) override;
-  //statistics 
-  unsigned getNumAddedLemmas() { return d_addedLemmas; }
-  unsigned getNumTriedLemmas() { return d_triedLemmas; }
+   return false;
+ }
+ // debug model
+ void debugModel(TheoryModel* m) override;
+ // statistics
+ unsigned getNumAddedLemmas() { return d_addedLemmas; }
+ unsigned getNumTriedLemmas() { return d_triedLemmas; }
 };
 
 }/* CVC4::theory::quantifiers namespace */

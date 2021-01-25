@@ -48,7 +48,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
 
 TermDbSygus::TermDbSygus(QuantifiersEngine* qe, QuantifiersState& qs)
     : d_quantEngine(qe),
-    d_qstate(qs),
+      d_qstate(qs),
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
