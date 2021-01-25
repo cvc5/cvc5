@@ -172,7 +172,7 @@ void TheoryEngine::finishInit()
     // get the quantifiers engine, which is initialized by the quantifiers
     // theory
     d_quantEngine = d_theoryTable[THEORY_QUANTIFIERS]->getQuantifiersEngine();
-    Assert (d_quantEngine!=nullptr);
+    Assert(d_quantEngine != nullptr);
   }
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.

@@ -33,7 +33,7 @@ namespace quantifiers {
 
 class QuantAntiSkolem : public QuantifiersModule {
  public:
-  QuantAntiSkolem( QuantifiersEngine * qe, QuantifiersState& qs );
+  QuantAntiSkolem(QuantifiersEngine* qe, QuantifiersState& qs);
   virtual ~QuantAntiSkolem();
 
   bool sendAntiSkolemizeLemma( std::vector< Node >& quants,
