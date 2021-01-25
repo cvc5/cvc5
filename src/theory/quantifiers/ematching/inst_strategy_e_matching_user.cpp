@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory::inst;
@@ -144,7 +145,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   std::vector<Node> nodes;
   for (const Node& p : pat)
   {
-    Node pat_use = Trigger::getIsUsableTrigger(p, q);
+    Node pat_use = PatternTermSelector::getIsUsableTrigger(p, q);
     if (pat_use.isNull())
     {
       Trace("trigger-warn") << "User-provided trigger is not usable : " << pat

@@ -20,9 +20,11 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers_engine.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -55,7 +57,7 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     }
   }
   if( d_nodes.size()==1 ){
-    if( isSimpleTrigger( d_nodes[0] ) ){
+    if( PatternTermSelector::isSimpleTrigger( d_nodes[0] ) ){
       d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qe);
       ++(qe->d_statistics.d_triggers);
     }else{
@@ -288,46 +290,6 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
   std::vector< Node > nodes;
   nodes.push_back( n );
   return mkTrigger(qe, f, nodes, keepAll, trOption, useNVars);
-}
-
-bool Trigger::isSimpleTrigger( Node n ){
-  Node t = n.getKind()==NOT ? n[0] : n;
-  if( t.getKind()==EQUAL ){
-    if( !quantifiers::TermUtil::hasInstConstAttr( t[1] ) ){
-      t = t[0];
-    }
-  }
-  if (!isAtomicTrigger(t))
-  {
-    return false;
-  }
-  for (const Node& tc : t)
-  {
-    if (tc.getKind() != INST_CONSTANT
-        && quantifiers::TermUtil::hasInstConstAttr(tc))
-    {
-      return false;
-    }
-  }
-  if (t.getKind() == HO_APPLY && t[0].getKind() == INST_CONSTANT)
-  {
-    return false;
-  }
-  return true;
-}
-
-void Trigger::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
-{
-  std::vector< Node > patTerms;
-  std::map< Node, TriggerTermInfo > tinfo;
-  // collect all patterns from n
-  std::vector< Node > exclude;
-  collectPatTerms(q, n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
-  //collect all variables from all patterns in patTerms, add to t_vars
-  for (const Node& pat : patTerms)
-  {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(q, pat, t_vars);
-  }
 }
 
 int Trigger::getActiveScore() {

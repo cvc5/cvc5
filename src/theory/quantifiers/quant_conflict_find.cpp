@@ -19,7 +19,7 @@
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
@@ -1811,7 +1811,7 @@ bool MatchGen::isHandledUfTerm( TNode n ) {
   //       n.getKind()==APPLY_CONSTRUCTOR || n.getKind()==APPLY_SELECTOR_TOTAL || n.getKind()==APPLY_TESTER;
   //TODO : treat APPLY_TESTER as a T-constraint instead of matching (currently leads to overabundance of instantiations)
   //return inst::Trigger::isAtomicTriggerKind( n.getKind() ) && ( !options::qcfTConstraint() || n.getKind()!=APPLY_TESTER );
-  return inst::Trigger::isAtomicTriggerKind( n.getKind() );
+  return inst::PatternTermSelector::isAtomicTriggerKind( n.getKind() );
 }
 
 Node MatchGen::getMatchOperator( QuantConflictFind * p, Node n ) {

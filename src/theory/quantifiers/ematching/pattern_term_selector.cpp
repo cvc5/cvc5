@@ -263,6 +263,32 @@ bool PatternTermSelector::isRelationalTriggerKind(Kind k)
   return k == EQUAL || k == GEQ;
 }
 
+bool PatternTermSelector::isSimpleTrigger( Node n ){
+  Node t = n.getKind()==NOT ? n[0] : n;
+  if( t.getKind()==EQUAL ){
+    if( !quantifiers::TermUtil::hasInstConstAttr( t[1] ) ){
+      t = t[0];
+    }
+  }
+  if (!isAtomicTrigger(t))
+  {
+    return false;
+  }
+  for (const Node& tc : t)
+  {
+    if (tc.getKind() != INST_CONSTANT
+        && quantifiers::TermUtil::hasInstConstAttr(tc))
+    {
+      return false;
+    }
+  }
+  if (t.getKind() == HO_APPLY && t[0].getKind() == INST_CONSTANT)
+  {
+    return false;
+  }
+  return true;
+}
+
 // store triggers in reqPol, indicating their polarity (if any) they must appear
 // to falsify the quantified formula
 void PatternTermSelector::collectTermsInternal(
@@ -769,6 +795,21 @@ Node PatternTermSelector::getInversion(Node n, Node x)
     }
   }
   return Node::null();
+}
+
+void PatternTermSelector::getTriggerVariables(Node n, Node q, std::vector<Node>& tvars)
+{
+  PatternTermSelector pts(q);
+  std::vector< Node > patTerms;
+  std::map< Node, TriggerTermInfo > tinfo;
+  // collect all patterns from n
+  std::vector< Node > exclude;
+  pts.collectTerms(n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
+  //collect all variables from all patterns in patTerms, add to tvars
+  for (const Node& pat : patTerms)
+  {
+    quantifiers::TermUtil::computeInstConstContainsForQuant(q, pat, tvars);
+  }
 }
 
 }  // namespace inst

@@ -159,6 +159,8 @@ class PatternTermSelector
   static bool isRelationalTrigger(Node n);
   /** Is k a relational trigger kind? */
   static bool isRelationalTriggerKind(Kind k);
+  /** is n a simple trigger (see inst_match_generator.h)? */
+  static bool isSimpleTrigger( Node n );
   /** get trigger weight
    *
    * Intutively, this function classifies how difficult it is to handle the
@@ -184,6 +186,14 @@ class PatternTermSelector
    */
   static Node getInversion(Node n, Node y);
 
+  /** 
+   * get all variables that E-matching can instantiate from a subterm n in
+   * quantified formula q.
+   *
+   * This returns the union of all free variables in usable triggers that are
+   * subterms of n.
+   */
+  static void getTriggerVariables(Node n, Node q, std::vector<Node>& tvars);
  protected:
   /** is subterm of trigger usable (helper function for isUsableTrigger) */
   static bool isUsable(Node n, Node q);

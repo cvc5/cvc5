@@ -184,16 +184,8 @@ class Trigger {
                              std::vector<Node>& nodes,
                              size_t nvars,
                              std::vector<Node>& trNodes);
-  /** get all variables that E-matching can instantiate from a subterm n.
-   *
-   * This returns the union of all free variables in usable triggers that are
-   * subterms of n.
-   */
-  static void getTriggerVariables(Node n, Node f, std::vector<Node>& t_vars);
 
  protected:
-  /** is n a simple trigger (see inst_match_generator.h)? */
-  static bool isSimpleTrigger( Node n );
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
   Trigger(QuantifiersEngine* ie, Node q, std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
