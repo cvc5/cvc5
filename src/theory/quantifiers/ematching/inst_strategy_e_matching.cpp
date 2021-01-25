@@ -402,8 +402,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   if (patTermsF.empty())
   {
     Node bd = tu->getInstConstantBody(f);
-    PatternTermSelector pts(f, d_user_no_gen[f]);
-    pts.collectTerms(bd, patTermsF, d_tr_strategy, tinfo, true);
+    PatternTermSelector pts(f, d_tr_strategy, d_user_no_gen[f], true);
+    pts.collect(bd, patTermsF, tinfo);
     if (ntrivTriggers)
     {
       sortTriggers st;

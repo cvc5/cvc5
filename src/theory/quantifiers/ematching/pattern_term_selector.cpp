@@ -25,8 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-PatternTermSelector::PatternTermSelector(Node q, const std::vector<Node>& exc)
-    : d_quant(q), d_excluded(exc)
+PatternTermSelector::PatternTermSelector(Node q, options::TriggerSelMode tstrt, const std::vector<Node>& exc,
+                    bool filterInst)
+    : d_quant(q), d_tstrt(tstrt), d_excluded(exc), d_filterInst(filterInst)
 {
 }
 
@@ -384,12 +385,19 @@ void PatternTermSelector::collectTermsInternal(
   visited[n].insert(visited[n].end(), added.begin(), added.end());
 }
 
-void PatternTermSelector::collectTerms(Node n,
+void PatternTermSelector::collect(Node n,
                                        std::vector<Node>& patTerms,
-                                       options::TriggerSelMode tstrt,
-                                       std::map<Node, TriggerTermInfo>& tinfo,
-                                       bool filterInst)
+                                       std::map<Node, TriggerTermInfo>& tinfo)
 {
+  collectInternal(n, patTerms, tinfo, d_tstrt, d_filterInst);
+}
+
+void PatternTermSelector::collectInternal(Node n,
+                  std::vector<Node>& patTerms,
+                  std::map<Node, TriggerTermInfo>& tinfo,
+                          options::TriggerSelMode tstrt,
+                  bool filterInst
+                    ){
   std::map<Node, std::vector<Node> > visited;
   if (filterInst)
   {
@@ -397,7 +405,7 @@ void PatternTermSelector::collectTerms(Node n,
     // instance of t
     std::vector<Node> patTerms2;
     std::map<Node, TriggerTermInfo> tinfo2;
-    collectTerms(n, patTerms2, options::TriggerSelMode::ALL, tinfo2, false);
+    collectInternal(n, patTerms2, tinfo2, options::TriggerSelMode::ALL, false);
     std::vector<Node> temp;
     temp.insert(temp.begin(), patTerms2.begin(), patTerms2.end());
     filterInstances(temp);
@@ -422,29 +430,27 @@ void PatternTermSelector::collectTerms(Node n,
     }
     if (tstrt == options::TriggerSelMode::ALL)
     {
-      for (unsigned i = 0; i < temp.size(); i++)
+      for (const Node& t : temp)
       {
         // copy information
-        tinfo[temp[i]].d_fv.insert(tinfo[temp[i]].d_fv.end(),
-                                   tinfo2[temp[i]].d_fv.begin(),
-                                   tinfo2[temp[i]].d_fv.end());
-        tinfo[temp[i]].d_reqPol = tinfo2[temp[i]].d_reqPol;
-        tinfo[temp[i]].d_reqPolEq = tinfo2[temp[i]].d_reqPolEq;
-        patTerms.push_back(temp[i]);
+        tinfo[t].d_fv.insert(tinfo[t].d_fv.end(),
+                                   tinfo2[t].d_fv.begin(),
+                                   tinfo2[t].d_fv.end());
+        tinfo[t].d_reqPol = tinfo2[t].d_reqPol;
+        tinfo[t].d_reqPolEq = tinfo2[t].d_reqPolEq;
+        patTerms.push_back(t);
       }
       return;
     }
-    else
+    // do not consider terms that have instances
+    for (const Node& t : patTerms2)
     {
-      // do not consider terms that have instances
-      for (unsigned i = 0; i < patTerms2.size(); i++)
+      if (std::find(temp.begin(), temp.end(), t) == temp.end())
       {
-        if (std::find(temp.begin(), temp.end(), patTerms2[i]) == temp.end())
-        {
-          visited[patTerms2[i]].clear();
-        }
+        visited[t].clear();
       }
     }
+    
   }
   std::vector<Node> added;
   collectTermsInternal(
@@ -705,12 +711,11 @@ void PatternTermSelector::getTriggerVariables(Node n,
                                               Node q,
                                               std::vector<Node>& tvars)
 {
-  std::vector<Node> exclude;
-  PatternTermSelector pts(q, exclude);
+  PatternTermSelector pts(q);
   std::vector<Node> patTerms;
   std::map<Node, TriggerTermInfo> tinfo;
   // collect all patterns from n
-  pts.collectTerms(n, patTerms, options::TriggerSelMode::ALL, tinfo);
+  pts.collect(n, patTerms, tinfo);
   // collect all variables from all patterns in patTerms, add to tvars
   for (const Node& pat : patTerms)
   {
