@@ -327,7 +327,7 @@ public:
 
  private:
   /** The quantifiers state object */
-  QuantifiersState& d_qstate;
+  quantifiers::QuantifiersState& d_qstate;
   /** Pointer to theory engine object */
   TheoryEngine* d_te;
   /** Reference to the decision manager of the theory engine */

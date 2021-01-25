@@ -39,7 +39,7 @@ protected:
   unsigned d_addedLemmas;
   unsigned d_triedLemmas;
 public:
-  QModelBuilder( context::Context* c, QuantifiersEngine* qe );
+  QModelBuilder( QuantifiersEngine* qe, QuantifiersState& qs );
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work

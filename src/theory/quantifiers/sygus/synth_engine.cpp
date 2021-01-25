@@ -30,8 +30,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
-    : QuantifiersModule(qe),
+SynthEngine::SynthEngine(QuantifiersEngine* qe, QuantifiersState& qs)
+    : QuantifiersModule(qs, qe),
       d_tds(qe->getTermDatabaseSygus()),
       d_conj(nullptr),
       d_sqp(qe)

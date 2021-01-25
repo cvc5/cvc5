@@ -33,8 +33,8 @@ namespace theory {
 namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
-    context::Context* c, QuantifiersEngine* qe)
-    : d_qe(qe), d_eqi_counter(c), d_reset_count(0)
+    QuantifiersState& qs, QuantifiersEngine* qe)
+    : d_qe(qe), d_eqi_counter(qs.getSatContext()), d_reset_count(0)
 {
 }
 

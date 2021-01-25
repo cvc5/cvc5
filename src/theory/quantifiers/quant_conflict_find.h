@@ -231,7 +231,7 @@ private:  //for equivalence classes
   bool areMatchEqual( TNode n1, TNode n2 );
   bool areMatchDisequal( TNode n1, TNode n2 );
 public:
-  QuantConflictFind( QuantifiersEngine * qe, context::Context* c );
+  QuantConflictFind( QuantifiersEngine * qe, QuantifiersState& qs);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;
