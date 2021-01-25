@@ -65,7 +65,7 @@ class Skolemize
 
  public:
   Skolemize(QuantifiersEngine* qe,
-            context::UserContext* u,
+            QuantifiersState& qs,
             ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q

@@ -29,13 +29,13 @@ namespace theory {
 namespace quantifiers {
 
 Skolemize::Skolemize(QuantifiersEngine* qe,
-                     context::UserContext* u,
+                     QuantifiersState& qs,
                      ProofNodeManager* pnm)
     : d_quantEngine(qe),
-      d_skolemized(u),
+      d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
+                           : new EagerProofGenerator(pnm, qs.getUserContext(), "Skolemize::epg"))
 {
 }
 

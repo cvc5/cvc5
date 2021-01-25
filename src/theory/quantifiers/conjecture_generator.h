@@ -433,7 +433,7 @@ private:  //information about ground equivalence classes
   bool d_hasAddedLemma;
   //flush the waiting conjectures
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
-public:
+ public:
  ConjectureGenerator(QuantifiersEngine* qe, QuantifiersState& qs);
  ~ConjectureGenerator();
 
@@ -446,7 +446,7 @@ public:
  /** Identify this module (for debugging, dynamic configuration, etc..) */
  std::string identify() const override { return "ConjectureGenerator"; }
  // options
-private:
+ private:
  bool optReqDistinctVarPatterns();
  bool optFilterUnknown();
  int optFilterScoreThreshold();

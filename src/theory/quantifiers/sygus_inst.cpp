@@ -518,7 +518,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   DecisionStrategy* ds =
       new DecisionStrategySingleton("CeLiteral",
                                     lit,
-                                    d_quantEngine->getSatContext(),
+                                    d_qstate.getSatContext(),
                                     d_quantEngine->getValuation());
 
   d_dstrat[q].reset(ds);

@@ -216,22 +216,18 @@ private:
    * bound_type indicates how that bound was inferred.
    */
   void setBoundedVar(Node f, Node v, BoundVarType bound_type);
-  // for integer range
-  Node getLowerBound(Node q, Node v) { return d_bounds[0][q][v]; }
-  Node getUpperBound(Node q, Node v) { return d_bounds[1][q][v]; }
-  void getBounds(Node f, Node v, RepSetIterator* rsi, Node& l, Node& u);
-  void getBoundValues(Node f, Node v, RepSetIterator* rsi, Node& l, Node& u);
+  //for integer range
+  Node getLowerBound( Node q, Node v ){ return d_bounds[0][q][v]; }
+  Node getUpperBound( Node q, Node v ){ return d_bounds[1][q][v]; }
+  void getBounds( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
+  void getBoundValues( Node f, Node v, RepSetIterator * rsi, Node & l, Node & u );
   bool isGroundRange(Node f, Node v);
-  // for set range
-  Node getSetRange(Node q, Node v, RepSetIterator* rsi);
-  Node getSetRangeValue(Node q, Node v, RepSetIterator* rsi);
-  Node matchBoundVar(Node v, Node t, Node e);
-
-  bool getRsiSubsitution(Node q,
-                         Node v,
-                         std::vector<Node>& vars,
-                         std::vector<Node>& subs,
-                         RepSetIterator* rsi);
+  //for set range
+  Node getSetRange( Node q, Node v, RepSetIterator * rsi );
+  Node getSetRangeValue( Node q, Node v, RepSetIterator * rsi );
+  Node matchBoundVar( Node v, Node t, Node e );
+  
+  bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
 };
 
 }
