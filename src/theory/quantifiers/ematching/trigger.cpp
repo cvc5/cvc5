@@ -26,9 +26,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -57,7 +55,7 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     }
   }
   if( d_nodes.size()==1 ){
-    if (PatternTermSelector::isSimpleTrigger(d_nodes[0]))
+    if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
       d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qe);
       ++(qe->d_statistics.d_triggers);

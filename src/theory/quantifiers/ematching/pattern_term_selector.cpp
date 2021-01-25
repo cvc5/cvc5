@@ -19,9 +19,7 @@
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -40,7 +38,7 @@ bool PatternTermSelector::isUsable(Node n, Node q)
   {
     return true;
   }
-  if (isAtomicTrigger(n))
+  if (TriggerTermInfo::isAtomicTrigger(n))
   {
     for (const Node& nc : n)
     {
@@ -69,7 +67,7 @@ bool PatternTermSelector::isUsable(Node n, Node q)
 
 Node PatternTermSelector::getIsUsableEq(Node q, Node n)
 {
-  Assert(isRelationalTrigger(n));
+  Assert(TriggerTermInfo::isRelationalTrigger(n));
   for (size_t i = 0; i < 2; i++)
   {
     if (isUsableEqTerms(q, n[i], n[1 - i]))
@@ -147,7 +145,7 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q)
   {
     return pol ? n : nm->mkNode(EQUAL, n, nm->mkConst(true)).notNode();
   }
-  else if (isRelationalTrigger(n))
+  else if (TriggerTermInfo::isRelationalTrigger(n))
   {
     Node rtr = getIsUsableEq(q, n);
     if (rtr.isNull() && n[0].getType().isReal())
@@ -199,7 +197,7 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q)
   }
   Trace("trigger-debug") << n << " usable : "
                          << (quantifiers::TermUtil::getInstConstAttr(n) == q)
-                         << " " << isAtomicTrigger(n) << " " << isUsable(n, q)
+                         << " " << TriggerTermInfo::isAtomicTrigger(n) << " " << isUsable(n, q)
                          << std::endl;
   if (isUsableAtomicTrigger(n, q))
   {
@@ -210,7 +208,7 @@ Node PatternTermSelector::getIsUsableTrigger(Node n, Node q)
 
 bool PatternTermSelector::isUsableAtomicTrigger(Node n, Node q)
 {
-  return quantifiers::TermUtil::getInstConstAttr(n) == q && isAtomicTrigger(n)
+  return quantifiers::TermUtil::getInstConstAttr(n) == q && TriggerTermInfo::isAtomicTrigger(n)
          && isUsable(n, q);
 }
 
@@ -218,63 +216,6 @@ bool PatternTermSelector::isUsableTrigger(Node n, Node q)
 {
   Node nu = getIsUsableTrigger(n, q);
   return !nu.isNull();
-}
-
-bool PatternTermSelector::isAtomicTrigger(Node n)
-{
-  return isAtomicTriggerKind(n.getKind());
-}
-
-bool PatternTermSelector::isAtomicTriggerKind(Kind k)
-{
-  // we use both APPLY_SELECTOR and APPLY_SELECTOR_TOTAL since this
-  // method is used both for trigger selection and for ground term registration,
-  // where these two things require those kinds respectively.
-  return k == APPLY_UF || k == SELECT || k == STORE || k == APPLY_CONSTRUCTOR
-         || k == APPLY_SELECTOR || k == APPLY_SELECTOR_TOTAL
-         || k == APPLY_TESTER || k == UNION || k == INTERSECTION || k == SUBSET
-         || k == SETMINUS || k == MEMBER || k == SINGLETON || k == SEP_PTO
-         || k == BITVECTOR_TO_NAT || k == INT_TO_BITVECTOR || k == HO_APPLY
-         || k == STRING_LENGTH || k == SEQ_NTH;
-}
-
-bool PatternTermSelector::isRelationalTrigger(Node n)
-{
-  return isRelationalTriggerKind(n.getKind());
-}
-
-bool PatternTermSelector::isRelationalTriggerKind(Kind k)
-{
-  return k == EQUAL || k == GEQ;
-}
-
-bool PatternTermSelector::isSimpleTrigger(Node n)
-{
-  Node t = n.getKind() == NOT ? n[0] : n;
-  if (t.getKind() == EQUAL)
-  {
-    if (!quantifiers::TermUtil::hasInstConstAttr(t[1]))
-    {
-      t = t[0];
-    }
-  }
-  if (!isAtomicTrigger(t))
-  {
-    return false;
-  }
-  for (const Node& tc : t)
-  {
-    if (tc.getKind() != INST_CONSTANT
-        && quantifiers::TermUtil::hasInstConstAttr(tc))
-    {
-      return false;
-    }
-  }
-  if (t.getKind() == HO_APPLY && t[0].getKind() == INST_CONSTANT)
-  {
-    return false;
-  }
-  return true;
 }
 
 // store triggers in reqPol, indicating their polarity (if any) they must appear
@@ -343,7 +284,7 @@ void PatternTermSelector::collectTermsInternal(
     Node reqEq;
     if (nu.getKind() == EQUAL)
     {
-      if (isAtomicTrigger(nu[0])
+      if (TriggerTermInfo::isAtomicTrigger(nu[0])
           && !quantifiers::TermUtil::hasInstConstAttr(nu[1]))
       {
         if (hasPol)
@@ -441,19 +382,6 @@ void PatternTermSelector::collectTermsInternal(
     }
   }
   visited[n].insert(visited[n].end(), added.begin(), added.end());
-}
-
-int PatternTermSelector::getTriggerWeight(Node n)
-{
-  if (n.getKind() == APPLY_UF)
-  {
-    return 0;
-  }
-  if (isAtomicTrigger(n))
-  {
-    return 1;
-  }
-  return 2;
 }
 
 void PatternTermSelector::collectTerms(Node n,
@@ -594,7 +522,7 @@ int PatternTermSelector::isInstanceOf(Node n1,
         {
           TNode curj = r == 0 ? cur2 : cur1;
           // RHS must be a simple trigger
-          if (getTriggerWeight(curj) == 0)
+          if (TriggerTermInfo::getTriggerWeight(curj) == 0)
           {
             // must occur in the free variables in the other
             const std::vector<Node>& free_vars = r == 0 ? fv2 : fv1;

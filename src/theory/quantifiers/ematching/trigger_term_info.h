@@ -92,6 +92,32 @@ class TriggerTermInfo
    * reqPol/reqPolEq are described above
    */
   void init(Node q, Node n, int reqPol = 0, Node reqPolEq = Node::null());
+  /** is n an atomic trigger?
+   *
+   * An atomic trigger is one whose kind is an atomic trigger kind.
+   */
+  static bool isAtomicTrigger(Node n);
+  /** Is k an atomic trigger kind?
+   *
+   * An atomic trigger kind is one for which term indexing/matching is possible.
+   */
+  static bool isAtomicTriggerKind(Kind k);
+  /** is n a relational trigger, e.g. like x >= a ? */
+  static bool isRelationalTrigger(Node n);
+  /** Is k a relational trigger kind? */
+  static bool isRelationalTriggerKind(Kind k);
+  /** is n a simple trigger (see inst_match_generator.h)? */
+  static bool isSimpleTrigger(Node n);
+  /** get trigger weight
+   *
+   * Intutively, this function classifies how difficult it is to handle the
+   * trigger term n, where the smaller the value, the easier.
+   *
+   * Returns 0 for triggers that are APPLY_UF terms.
+   * Returns 1 for other triggers whose kind is atomic.
+   * Returns 2 otherwise.
+   */
+  static int getTriggerWeight(Node n);
 };
 
 }  // namespace inst

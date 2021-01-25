@@ -13,7 +13,7 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 
-#include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -42,7 +42,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
     d_match_pattern = d_match_pattern[0];
     Assert(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
   }
-  Assert(PatternTermSelector::isSimpleTrigger(d_match_pattern));
+  Assert(TriggerTermInfo::isSimpleTrigger(d_match_pattern));
   for (size_t i = 0, nchild = d_match_pattern.getNumChildren(); i < nchild; i++)
   {
     if (d_match_pattern[i].getKind() == INST_CONSTANT)

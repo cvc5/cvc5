@@ -79,7 +79,7 @@ int InstMatchGenerator::getActiveScore( QuantifiersEngine * qe ) {
   if( d_match_pattern.isNull() ){
     return -1;
   }
-  else if (PatternTermSelector::isAtomicTrigger(d_match_pattern))
+  else if (TriggerTermInfo::isAtomicTrigger(d_match_pattern))
   {
     Node f = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
     unsigned ngt = qe->getTermDatabase()->getNumGroundTerms( f );
@@ -212,7 +212,7 @@ void InstMatchGenerator::initialize(Node q,
     // applied selectors
     d_cg = new inst::CandidateGeneratorSelector(qe, d_match_pattern);
   }
-  else if (PatternTermSelector::isAtomicTriggerKind(mpk))
+  else if (TriggerTermInfo::isAtomicTriggerKind(mpk))
   {
     if (mpk == APPLY_CONSTRUCTOR)
     {

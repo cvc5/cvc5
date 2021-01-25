@@ -49,8 +49,8 @@ struct sortQuantifiersForSymbol {
 
 struct sortTriggers {
   bool operator() (Node i, Node j) {
-    int wi = PatternTermSelector::getTriggerWeight(i);
-    int wj = PatternTermSelector::getTriggerWeight(j);
+    int wi = TriggerTermInfo::getTriggerWeight(i);
+    int wj = TriggerTermInfo::getTriggerWeight(j);
     if( wi==wj ){
       return i<j;
     }
@@ -444,7 +444,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
         newVar = true;
       }
     }
-    int curr_w = PatternTermSelector::getTriggerWeight(p);
+    int curr_w = TriggerTermInfo::getTriggerWeight(p);
     // triggers whose value is maximum (2) are considered expendable.
     if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
         && curr_w >= 2)
@@ -515,13 +515,13 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     if (rpol != 0)
     {
       Assert(rpol == 1 || rpol == -1);
-      if (PatternTermSelector::isRelationalTrigger(pat))
+      if (TriggerTermInfo::isRelationalTrigger(pat))
       {
         pat = rpol == -1 ? pat.negate() : pat;
       }
       else
       {
-        Assert(PatternTermSelector::isAtomicTrigger(pat));
+        Assert(TriggerTermInfo::isAtomicTrigger(pat));
         if (pat.getType().isBoolean() && rpoleq.isNull())
         {
           if (options::literalMatchMode() == options::LiteralMatchMode::USE)
@@ -559,7 +559,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     }
     else
     {
-      if (PatternTermSelector::isRelationalTrigger(pat))
+      if (TriggerTermInfo::isRelationalTrigger(pat))
       {
         // consider both polarities
         addPatternToPool(f, pat.negate(), num_fv, mpat);

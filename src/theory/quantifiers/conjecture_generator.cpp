@@ -16,7 +16,7 @@
 #include "theory/quantifiers/conjecture_generator.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
@@ -314,7 +314,7 @@ Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
   return d_quantEngine->getTermDatabase()->isTermActive(n)
-         && inst::PatternTermSelector::isAtomicTrigger(n)
+         && inst::TriggerTermInfo::isAtomicTrigger(n)
          && (n.getKind() != APPLY_UF || n.getOperator().getKind() != SKOLEM);
 }
 

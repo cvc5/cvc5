@@ -18,7 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -185,7 +185,7 @@ Node TermDb::getMatchOperator( Node n ) {
     d_par_op_map[op][tn] = n;
     return n;
   }
-  else if (inst::PatternTermSelector::isAtomicTriggerKind(k))
+  else if (inst::TriggerTermInfo::isAtomicTriggerKind(k))
   {
     return n.getOperator();
   }else{
@@ -211,7 +211,7 @@ void TermDb::addTerm(Node n,
       Trace("term-db-debug") << "register term : " << n << std::endl;
       d_type_map[n.getType()].push_back(n);
       // if this is an atomic trigger, consider adding it
-      if (inst::PatternTermSelector::isAtomicTrigger(n))
+      if (inst::TriggerTermInfo::isAtomicTrigger(n))
       {
         Trace("term-db") << "register term in db " << n << std::endl;
 
