@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
@@ -56,7 +57,14 @@ void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
 Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     : d_quantEngine(qe), d_quant(q)
 {
-  d_nodes.insert( d_nodes.begin(), nodes.begin(), nodes.end() );
+  // We must ensure that the ground subterms of the trigger have been
+  // preprocessed.
+  Valuation& val = qe->getValuation();
+  for (const Node& n : nodes)
+  {
+    Node np = ensureGroundTermPreprocessed(val, n, d_groundTerms);
+    d_nodes.push_back(np);
+  }
   if (Trace.isOn("trigger"))
   {
     quantifiers::QuantAttributes* qa = d_quantEngine->getQuantAttributes();
@@ -92,7 +100,6 @@ Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
     ++(qe->d_statistics.d_multi_triggers);
   }
 
-  // Notice() << "Trigger : " << (*this) << "  for " << q << std::endl;
   Trace("trigger-debug") << "Finished making trigger." << std::endl;
 }
 
@@ -117,6 +124,26 @@ Node Trigger::getInstPattern() const
 
 uint64_t Trigger::addInstantiations()
 {
+  uint64_t gtAddedLemmas = 0;
+  if (!d_groundTerms.empty())
+  {
+    // for each ground term t that does not exist in the equality engine, we
+    // add a purification lemma of the form (k = t).
+    eq::EqualityEngine* ee = d_quantEngine->getEqualityQuery()->getEngine();
+    for (const Node& gt : d_groundTerms)
+    {
+      if (!ee->hasTerm(gt))
+      {
+        SkolemManager* sm = NodeManager::currentNM()->getSkolemManager();
+        Node k = sm->mkPurifySkolem(gt, "gt");
+        Node eq = k.eqNode(gt);
+        Trace("trigger-gt-lemma")
+            << "Trigger: ground term purify lemma: " << eq << std::endl;
+        d_quantEngine->addLemma(eq);
+        gtAddedLemmas++;
+      }
+    }
+  }
   uint64_t addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
   if (Debug.isOn("inst-trigger"))
   {
@@ -126,7 +153,7 @@ uint64_t Trigger::addInstantiations()
                             << " lemmas, trigger was " << d_nodes << std::endl;
     }
   }
-  return addedLemmas;
+  return gtAddedLemmas + addedLemmas;
 }
 
 bool Trigger::sendInstantiation(InstMatch& m)
@@ -997,6 +1024,70 @@ void Trigger::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
 
 int Trigger::getActiveScore() {
   return d_mg->getActiveScore( d_quantEngine );
+}
+
+Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
+                                           Node n,
+                                           std::vector<Node>& gts)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      if (cur.getNumChildren() == 0)
+      {
+        visited[cur] = cur;
+      }
+      else if (!quantifiers::TermUtil::hasInstConstAttr(cur))
+      {
+        // cur has no INST_CONSTANT, thus is ground.
+        Node vcur = val.getPreprocessedTerm(cur);
+        gts.push_back(vcur);
+        visited[cur] = vcur;
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur)
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged)
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 void Trigger::debugPrint(const char* c) const

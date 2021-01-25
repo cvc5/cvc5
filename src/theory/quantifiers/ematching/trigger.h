@@ -20,8 +20,9 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/quantifiers/inst_match.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
@@ -414,8 +415,41 @@ class Trigger {
    * Instantiate::addInstantiation(...).
    */
   virtual bool sendInstantiation(InstMatch& m);
+  /**
+   * Ensure that all ground subterms of n have been preprocessed. This makes
+   * calls to the provided valuation to obtain the preprocessed form of these
+   * terms. The preprocessed form of each ground subterm is added to gts.
+   *
+   * As an optimization, this method does not preprocess terms with no
+   * arguments, e.g. variables and constants are not preprocessed (as they
+   * should not change after preprocessing), nor are they added to gts.
+   *
+   * @param val The valuation to use for looking up preprocessed terms.
+   * @param n The node to process, which is in inst-constant form (free
+   * variables have been substituted by corresponding INST_CONSTANT).
+   * @param gts The set of preprocessed ground subterms of n.
+   * @return The converted form of n where all ground subterms have been
+   * replaced by their preprocessed form.
+   */
+  static Node ensureGroundTermPreprocessed(Valuation& val,
+                                           Node n,
+                                           std::vector<Node>& gts);
   /** The nodes comprising this trigger. */
-  std::vector< Node > d_nodes;
+  std::vector<Node> d_nodes;
+  /**
+   * The preprocessed ground terms in the nodes of the trigger, which as an
+   * optimization omits variables and constant subterms. These terms are
+   * important since we must ensure that the quantifier-free solvers are
+   * aware of these terms. In particular, when adding instantiations for
+   * a trigger P(f(a), x), we first check if f(a) is a term in the master
+   * equality engine. If it is not, then we add the lemma k = f(a) where k
+   * is the purification skolem for f(a). This ensures that f(a) will be
+   * registered as a term in the master equality engine on the next
+   * instantiation round. This is particularly important for cases where
+   * P(f(a), x) is matched with P(f(b), c), where a=b in the current context.
+   * This example would fail to match when f(a) is not registered.
+   */
+  std::vector<Node> d_groundTerms;
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
   /** The quantified formula this trigger is for. */
