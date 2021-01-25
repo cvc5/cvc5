@@ -148,7 +148,7 @@ private:
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 public:
-  FullModelChecker( context::Context* c, QuantifiersEngine* qe );
+  FullModelChecker(QuantifiersEngine* qe );
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);

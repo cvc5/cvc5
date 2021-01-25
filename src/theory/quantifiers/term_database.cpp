@@ -33,10 +33,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermDb::TermDb(context::Context* c, context::UserContext* u,
+TermDb::TermDb(QuantifiersState& qs,
                QuantifiersEngine* qe)
     : d_quantEngine(qe),
-      d_inactive_map(c) {
+      d_inactive_map(qs.getSatContext()) {
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

@@ -281,8 +281,8 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
 }
 
 
-FullModelChecker::FullModelChecker(context::Context* c, QuantifiersEngine* qe) :
-QModelBuilder( c, qe ){
+FullModelChecker::FullModelChecker(QuantifiersEngine* qe) :
+QModelBuilder( qe ){
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }

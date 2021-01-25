@@ -89,7 +89,7 @@ class Instantiate : public QuantifiersUtil
 
  public:
   Instantiate(QuantifiersEngine* qe,
-              context::UserContext* u,
+              QuantifiersState& qs,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
