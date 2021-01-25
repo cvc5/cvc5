@@ -1174,6 +1174,12 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   return d_propEngine->ensureLiteral(rewritten);
 }
 
+Node TheoryEngine::getPreprocessedTerm(TNode n)
+{
+  Node rewritten = Rewriter::rewrite(n);
+  return d_propEngine->getPreprocessedTerm(rewritten);
+}
+
 void TheoryEngine::printSynthSolution( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printSynthSolution( out );
