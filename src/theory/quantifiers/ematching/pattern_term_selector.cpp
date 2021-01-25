@@ -281,7 +281,7 @@ bool PatternTermSelector::isRelationalTriggerKind( Kind k ) {
   else if (nk != NOT
            && std::find(exclude.begin(), exclude.end(), n) == exclude.end())
   {
-    nu = getIsUsableTrigger(n, q);
+    nu = getIsUsableTrigger(n, d_quant);
     if (!nu.isNull() && nu != n)
     {
       collectTermsInternal(
@@ -321,12 +321,11 @@ bool PatternTermSelector::isRelationalTriggerKind( Kind k ) {
       }
     }
     Assert(reqEq.isNull() || !quantifiers::TermUtil::hasInstConstAttr(reqEq));
-    Assert(isUsableTrigger(nu, q));
-    // tinfo.find( nu )==tinfo.end()
+    Assert(isUsableTrigger(nu, d_quant));
     Trace("auto-gen-trigger-debug2")
         << "...add usable trigger : " << nu << std::endl;
     tinfo[nu].init(d_quant, nu, hasEPol ? (epol ? 1 : -1) : 0, reqEq);
-    nu_single = tinfo[nu].d_fv.size() == q[0].getNumChildren();
+    nu_single = tinfo[nu].d_fv.size() == d_quant[0].getNumChildren();
   }
   Node nrec = nu.isNull() ? n : nu;
   std::vector<Node> added2;
@@ -724,29 +723,6 @@ Node PatternTermSelector::getInversion( Node n, Node x ) {
     }
   }
   return Node::null();
-}
-
-void PatternTermSelector::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
-{
-  std::vector< Node > patTerms;
-  std::map< Node, TriggerTermInfo > tinfo;
-  // collect all patterns from n
-  std::vector< Node > exclude;
-  collectTerms(q, n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
-  //collect all variables from all patterns in patTerms, add to t_vars
-  for (const Node& pat : patTerms)
-  {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(q, pat, t_vars);
-  }
-}
-
-int PatternTermSelector::getActiveScore() {
-  return d_mg->getActiveScore( d_quantEngine );
-}
-
-void PatternTermSelector::debugPrint(const char* c) const
-{
-  Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
 }
 
 }/* CVC4::theory::inst namespace */

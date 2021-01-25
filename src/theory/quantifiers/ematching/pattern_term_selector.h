@@ -20,6 +20,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -112,7 +113,7 @@ class PatternTermSelector {
    *     in the vector we are returning, e.g. we do not return f( x ) if we are
    *     also returning f( f( x ) ). TODO: revisit this (issue #1211)
    */
-  static void collectPatTerms(
+  void collectTerms(
                               Node n,
                               std::vector<Node>& patTerms,
                               options::TriggerSelMode tstrt,
@@ -184,10 +185,16 @@ class PatternTermSelector {
  protected:
   /** is subterm of trigger usable (helper function for isUsableTrigger) */
   static bool isUsable( Node n, Node q );
+  /** returns an equality that is equivalent to the equality eq and
+  * is a usable trigger for q if one exists, otherwise returns Node::null().
+  */
+  static Node getIsUsableEq( Node q, Node eq );
+  /** returns whether n1 == n2 is a usable (relational) trigger for q. */
+  static bool isUsableEqTerms( Node q, Node n1, Node n2 );
   /** recursive helper function for collectPatTerms
    *
    * This collects the usable trigger terms in the subterm n of the body of
-   * quantified formula q.
+   * quantified formula of this class.
    *   visited : cache of the trigger terms collected for each visited node,
    *   tinfo : cache of trigger term info for each visited node,
    *   tstrat : the selection strategy (see options/quantifiers_mode.h)
@@ -200,7 +207,7 @@ class PatternTermSelector {
    *
    * We add the triggers we collected recursively in n into added.
    */
-  static void collectPatTerms2(Node q,
+  void collectTermsInternal(
                                Node n,
                                std::map<Node, std::vector<Node> >& visited,
                                std::map<Node, TriggerTermInfo>& tinfo,
