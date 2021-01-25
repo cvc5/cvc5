@@ -110,7 +110,7 @@ class QuantifiersEngine {
    * engine needs but were not available when it was created. This is
    * called after theories have been created but before they have finished
    * initialization.
-   * 
+   *
    * @param te The theory engine
    * @param dm The decision manager of the theory engine
    * @param mee The master equality engine of the theory engine

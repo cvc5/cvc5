@@ -119,7 +119,9 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
-void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm, eq::EqualityEngine* mee)
+void QuantifiersEngine::finishInit(TheoryEngine* te,
+                                   DecisionManager* dm,
+                                   eq::EqualityEngine* mee)
 {
   d_te = te;
   d_decManager = dm;
