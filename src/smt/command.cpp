@@ -69,7 +69,7 @@ bool isPrintable(wchar_t character)
  * @param useEscSequences whether to use escape sequences for all characters
  * @return the converted std::wstring
  */
-std::string toString(std::wstring s, bool useEscSequences = false)
+std::string wstringToString(std::wstring s, bool useEscSequences = false)
 {
   std::stringstream str;
   for (unsigned int i = 0; i < s.length(); ++i)
@@ -105,7 +105,7 @@ std::string sexprToString(api::Term sexpr)
   // if sexpr is a constant string, return the stored constant string
   if (sexpr.isString())
   {
-    return toString(sexpr.getString());
+    return wstringToString(sexpr.getString());
   }
 
   // if sexpr is not a spec constant, make sure it is an array of sub-sexprs
