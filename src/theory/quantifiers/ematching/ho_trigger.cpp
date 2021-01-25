@@ -186,12 +186,12 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
   }
 }
 
-int HigherOrderTrigger::addInstantiations()
+uint64_t HigherOrderTrigger::addInstantiations()
 {
   // call the base class implementation
-  int addedFoLemmas = Trigger::addInstantiations();
+  uint64_t addedFoLemmas = Trigger::addInstantiations();
   // also adds predicate lemms to force app completion
-  int addedHoLemmas = addHoTypeMatchPredicateLemmas();
+  uint64_t addedHoLemmas = addHoTypeMatchPredicateLemmas();
   return addedHoLemmas + addedFoLemmas;
 }
 
@@ -460,14 +460,14 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
   }
 }
 
-int HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
+uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
 {
   if (d_ho_var_types.empty())
   {
     return 0;
   }
   Trace("ho-quant-trigger") << "addHoTypeMatchPredicateLemmas..." << std::endl;
-  unsigned numLemmas = 0;
+  uint64_t numLemmas = 0;
   // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
   quantifiers::TermDb* tdb = d_quantEngine->getTermDatabase();
   unsigned size = tdb->getNumOperators();
