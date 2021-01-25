@@ -36,26 +36,30 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-void TriggerTermInfo::init( Node q, Node n, int reqPol, Node reqPolEq ){
-  if( d_fv.empty() ){
+void TriggerTermInfo::init(Node q, Node n, int reqPol, Node reqPolEq)
+{
+  if (d_fv.empty())
+  {
     quantifiers::TermUtil::computeInstConstContainsForQuant(q, n, d_fv);
   }
-  if( d_reqPol==0 ){
+  if (d_reqPol == 0)
+  {
     d_reqPol = reqPol;
     d_reqPolEq = reqPolEq;
-  }else{
-    //determined a ground (dis)equality must hold or else q is a tautology?
+  }
+  else
+  {
+    // determined a ground (dis)equality must hold or else q is a tautology?
   }
   d_weight = PatternTermSelector::getTriggerWeight(n);
 }
 
-PatternTermSelector::PatternTermSelector(Node q) : d_quant(q) {
-}
+PatternTermSelector::PatternTermSelector(Node q) : d_quant(q) {}
 
-PatternTermSelector::~PatternTermSelector() {
-}
+PatternTermSelector::~PatternTermSelector() {}
 
-bool PatternTermSelector::isUsable( Node n, Node q ){
+bool PatternTermSelector::isUsable(Node n, Node q)
+{
   if (quantifiers::TermUtil::getInstConstAttr(n) != q)
   {
     return true;
@@ -87,14 +91,20 @@ bool PatternTermSelector::isUsable( Node n, Node q ){
   return false;
 }
 
-Node PatternTermSelector::getIsUsableEq( Node q, Node n ) {
+Node PatternTermSelector::getIsUsableEq(Node q, Node n)
+{
   Assert(isRelationalTrigger(n));
   for (size_t i = 0; i < 2; i++)
   {
-    if( isUsableEqTerms( q, n[i], n[1-i] ) ){
-      if( i==1 && n.getKind()==EQUAL && !quantifiers::TermUtil::hasInstConstAttr(n[0]) ){
-        return NodeManager::currentNM()->mkNode( n.getKind(), n[1], n[0] );  
-      }else{
+    if (isUsableEqTerms(q, n[i], n[1 - i]))
+    {
+      if (i == 1 && n.getKind() == EQUAL
+          && !quantifiers::TermUtil::hasInstConstAttr(n[0]))
+      {
+        return NodeManager::currentNM()->mkNode(n.getKind(), n[1], n[0]);
+      }
+      else
+      {
         return n;
       }
     }
@@ -102,9 +112,12 @@ Node PatternTermSelector::getIsUsableEq( Node q, Node n ) {
   return Node::null();
 }
 
-bool PatternTermSelector::isUsableEqTerms( Node q, Node n1, Node n2 ) {
-  if( n1.getKind()==INST_CONSTANT ){
-    if( options::relationalTriggers() ){
+bool PatternTermSelector::isUsableEqTerms(Node q, Node n1, Node n2)
+{
+  if (n1.getKind() == INST_CONSTANT)
+  {
+    if (options::relationalTriggers())
+    {
       Node q1 = quantifiers::TermUtil::getInstConstAttr(n1);
       if (q1 != q)
       {
@@ -125,7 +138,9 @@ bool PatternTermSelector::isUsableEqTerms( Node q, Node n1, Node n2 ) {
       // we dont check x = f(y), which is handled symmetrically below
       // when n1 and n2 are swapped
     }
-  }else if( isUsableAtomicTrigger( n1, q ) ){
+  }
+  else if (isUsableAtomicTrigger(n1, q))
+  {
     if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
         && quantifiers::TermUtil::getInstConstAttr(n2) == q
         && !expr::hasSubterm(n1, n2))
@@ -142,48 +157,63 @@ bool PatternTermSelector::isUsableEqTerms( Node q, Node n1, Node n2 ) {
   return false;
 }
 
-Node PatternTermSelector::getIsUsableTrigger( Node n, Node q ) {
+Node PatternTermSelector::getIsUsableTrigger(Node n, Node q)
+{
   bool pol = true;
   Trace("trigger-debug") << "Is " << n << " a usable trigger?" << std::endl;
-  if( n.getKind()==NOT ){
+  if (n.getKind() == NOT)
+  {
     pol = !pol;
     n = n[0];
   }
   NodeManager* nm = NodeManager::currentNM();
-  if( n.getKind()==INST_CONSTANT ){
+  if (n.getKind() == INST_CONSTANT)
+  {
     return pol ? n : nm->mkNode(EQUAL, n, nm->mkConst(true)).notNode();
-  }else if( isRelationalTrigger( n ) ){
-    Node rtr = getIsUsableEq( q, n );
-    if( rtr.isNull() && n[0].getType().isReal() ){
-      //try to solve relation
-      std::map< Node, Node > m;
+  }
+  else if (isRelationalTrigger(n))
+  {
+    Node rtr = getIsUsableEq(q, n);
+    if (rtr.isNull() && n[0].getType().isReal())
+    {
+      // try to solve relation
+      std::map<Node, Node> m;
       if (ArithMSum::getMonomialSumLit(n, m))
       {
-        for( std::map< Node, Node >::iterator it = m.begin(); it!=m.end(); ++it ){
+        for (std::map<Node, Node>::iterator it = m.begin(); it != m.end(); ++it)
+        {
           bool trySolve = false;
-          if( !it->first.isNull() ){
-            if( it->first.getKind()==INST_CONSTANT ){
+          if (!it->first.isNull())
+          {
+            if (it->first.getKind() == INST_CONSTANT)
+            {
               trySolve = options::relationalTriggers();
-            }else if( isUsableTrigger( it->first, q ) ){
+            }
+            else if (isUsableTrigger(it->first, q))
+            {
               trySolve = true;
             }
           }
-          if( trySolve ){
-            Trace("trigger-debug") << "Try to solve for " << it->first << std::endl;
+          if (trySolve)
+          {
+            Trace("trigger-debug")
+                << "Try to solve for " << it->first << std::endl;
             Node veq;
             if (ArithMSum::isolate(it->first, m, veq, n.getKind()) != 0)
             {
-              rtr = getIsUsableEq( q, veq );
+              rtr = getIsUsableEq(q, veq);
             }
-            //either all solves will succeed or all solves will fail
+            // either all solves will succeed or all solves will fail
             break;
           }
         }
       }
     }
-    if( !rtr.isNull() ){
+    if (!rtr.isNull())
+    {
       Trace("relational-trigger") << "Relational trigger : " << std::endl;
-      Trace("relational-trigger") << "    " << rtr << " (from " << n << ")" << std::endl;
+      Trace("relational-trigger")
+          << "    " << rtr << " (from " << n << ")" << std::endl;
       Trace("relational-trigger") << "    in quantifier " << q << std::endl;
       Node rtr2 = pol ? rtr : rtr.negate();
       Trace("relational-trigger") << "    return : " << rtr2 << std::endl;
@@ -202,20 +232,25 @@ Node PatternTermSelector::getIsUsableTrigger( Node n, Node q ) {
   return Node::null();
 }
 
-bool PatternTermSelector::isUsableAtomicTrigger( Node n, Node q ) {
-  return quantifiers::TermUtil::getInstConstAttr( n )==q && isAtomicTrigger( n ) && isUsable( n, q );
+bool PatternTermSelector::isUsableAtomicTrigger(Node n, Node q)
+{
+  return quantifiers::TermUtil::getInstConstAttr(n) == q && isAtomicTrigger(n)
+         && isUsable(n, q);
 }
 
-bool PatternTermSelector::isUsableTrigger( Node n, Node q ){
-  Node nu = getIsUsableTrigger( n, q );
+bool PatternTermSelector::isUsableTrigger(Node n, Node q)
+{
+  Node nu = getIsUsableTrigger(n, q);
   return !nu.isNull();
 }
 
-bool PatternTermSelector::isAtomicTrigger( Node n ){
-  return isAtomicTriggerKind( n.getKind() );
+bool PatternTermSelector::isAtomicTrigger(Node n)
+{
+  return isAtomicTriggerKind(n.getKind());
 }
 
-bool PatternTermSelector::isAtomicTriggerKind( Kind k ) {
+bool PatternTermSelector::isAtomicTriggerKind(Kind k)
+{
   // we use both APPLY_SELECTOR and APPLY_SELECTOR_TOTAL since this
   // method is used both for trigger selection and for ground term registration,
   // where these two things require those kinds respectively.
@@ -227,29 +262,32 @@ bool PatternTermSelector::isAtomicTriggerKind( Kind k ) {
          || k == STRING_LENGTH || k == SEQ_NTH;
 }
 
-bool PatternTermSelector::isRelationalTrigger( Node n ) {
-  return isRelationalTriggerKind( n.getKind() );
-}
-
-bool PatternTermSelector::isRelationalTriggerKind( Kind k ) {
-  return k==EQUAL || k==GEQ;
-}
-
-//store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula
-  void PatternTermSelector::collectTermsInternal(
-                               Node n,
-                               std::map<Node, std::vector<Node> >& visited,
-                               std::map<Node, TriggerTermInfo>& tinfo,
-                               options::TriggerSelMode tstrt,
-                               std::vector<Node>& exclude,
-                               std::vector<Node>& added,
-                               bool pol,
-                               bool hasPol,
-                               bool epol,
-                               bool hasEPol,
-                               bool knowIsUsable)
+bool PatternTermSelector::isRelationalTrigger(Node n)
 {
-  std::map< Node, std::vector< Node > >::iterator itv = visited.find( n );
+  return isRelationalTriggerKind(n.getKind());
+}
+
+bool PatternTermSelector::isRelationalTriggerKind(Kind k)
+{
+  return k == EQUAL || k == GEQ;
+}
+
+// store triggers in reqPol, indicating their polarity (if any) they must appear
+// to falsify the quantified formula
+void PatternTermSelector::collectTermsInternal(
+    Node n,
+    std::map<Node, std::vector<Node> >& visited,
+    std::map<Node, TriggerTermInfo>& tinfo,
+    options::TriggerSelMode tstrt,
+    std::vector<Node>& exclude,
+    std::vector<Node>& added,
+    bool pol,
+    bool hasPol,
+    bool epol,
+    bool hasEPol,
+    bool knowIsUsable)
+{
+  std::map<Node, std::vector<Node> >::iterator itv = visited.find(n);
   if (itv != visited.end())
   {
     // already visited
@@ -284,18 +322,17 @@ bool PatternTermSelector::isRelationalTriggerKind( Kind k ) {
     nu = getIsUsableTrigger(n, d_quant);
     if (!nu.isNull() && nu != n)
     {
-      collectTermsInternal(
-                       nu,
-                       visited,
-                       tinfo,
-                       tstrt,
-                       exclude,
-                       added,
-                       pol,
-                       hasPol,
-                       epol,
-                       hasEPol,
-                       true);
+      collectTermsInternal(nu,
+                           visited,
+                           tinfo,
+                           tstrt,
+                           exclude,
+                           added,
+                           pol,
+                           hasPol,
+                           epol,
+                           hasEPol,
+                           true);
       // copy to n
       visited[n].insert(visited[n].end(), added.begin(), added.end());
       return;
@@ -336,17 +373,16 @@ bool PatternTermSelector::isRelationalTriggerKind( Kind k ) {
     QuantPhaseReq::getPolarity(nrec, i, hasPol, pol, newHasPol, newPol);
     QuantPhaseReq::getEntailPolarity(
         nrec, i, hasEPol, epol, newHasEPol, newEPol);
-    collectTermsInternal(
-                     nrec[i],
-                     visited,
-                     tinfo,
-                     tstrt,
-                     exclude,
-                     added2,
-                     newPol,
-                     newHasPol,
-                     newEPol,
-                     newHasEPol);
+    collectTermsInternal(nrec[i],
+                         visited,
+                         tinfo,
+                         tstrt,
+                         exclude,
+                         added2,
+                         newPol,
+                         newHasPol,
+                         newEPol,
+                         newHasEPol);
   }
   // if this is not a usable trigger, don't worry about caching the results,
   // since triggers do not contain non-usable subterms
@@ -412,7 +448,8 @@ bool PatternTermSelector::isRelationalTriggerKind( Kind k ) {
   visited[n].insert(visited[n].end(), added.begin(), added.end());
 }
 
-int PatternTermSelector::getTriggerWeight( Node n ) {
+int PatternTermSelector::getTriggerWeight(Node n)
+{
   if (n.getKind() == APPLY_UF)
   {
     return 0;
@@ -424,30 +461,31 @@ int PatternTermSelector::getTriggerWeight( Node n ) {
   return 2;
 }
 
-void PatternTermSelector::collectTerms(
-                              Node n,
-                              std::vector<Node>& patTerms,
-                              options::TriggerSelMode tstrt,
-                              std::vector<Node>& exclude,
-                              std::map<Node, TriggerTermInfo>& tinfo,
-                              bool filterInst)
+void PatternTermSelector::collectTerms(Node n,
+                                       std::vector<Node>& patTerms,
+                                       options::TriggerSelMode tstrt,
+                                       std::vector<Node>& exclude,
+                                       std::map<Node, TriggerTermInfo>& tinfo,
+                                       bool filterInst)
 {
-  std::map< Node, std::vector< Node > > visited;
-  if( filterInst ){
-    //immediately do not consider any term t for which another term is an instance of t
-    std::vector< Node > patTerms2;
-    std::map< Node, TriggerTermInfo > tinfo2;
+  std::map<Node, std::vector<Node> > visited;
+  if (filterInst)
+  {
+    // immediately do not consider any term t for which another term is an
+    // instance of t
+    std::vector<Node> patTerms2;
+    std::map<Node, TriggerTermInfo> tinfo2;
     collectTerms(
         n, patTerms2, options::TriggerSelMode::ALL, exclude, tinfo2, false);
-    std::vector< Node > temp;
-    temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
+    std::vector<Node> temp;
+    temp.insert(temp.begin(), patTerms2.begin(), patTerms2.end());
     filterTriggerInstances(temp);
     if (Trace.isOn("trigger-filter-instance"))
     {
       if (temp.size() != patTerms2.size())
       {
-        Trace("trigger-filter-instance") << "Filtered an instance: "
-                                         << std::endl;
+        Trace("trigger-filter-instance")
+            << "Filtered an instance: " << std::endl;
         Trace("trigger-filter-instance") << "Old: ";
         for (unsigned i = 0; i < patTerms2.size(); i++)
         {
@@ -463,27 +501,33 @@ void PatternTermSelector::collectTerms(
     }
     if (tstrt == options::TriggerSelMode::ALL)
     {
-      for( unsigned i=0; i<temp.size(); i++ ){
-        //copy information
-        tinfo[temp[i]].d_fv.insert( tinfo[temp[i]].d_fv.end(), tinfo2[temp[i]].d_fv.begin(), tinfo2[temp[i]].d_fv.end() );
+      for (unsigned i = 0; i < temp.size(); i++)
+      {
+        // copy information
+        tinfo[temp[i]].d_fv.insert(tinfo[temp[i]].d_fv.end(),
+                                   tinfo2[temp[i]].d_fv.begin(),
+                                   tinfo2[temp[i]].d_fv.end());
         tinfo[temp[i]].d_reqPol = tinfo2[temp[i]].d_reqPol;
         tinfo[temp[i]].d_reqPolEq = tinfo2[temp[i]].d_reqPolEq;
-        patTerms.push_back( temp[i] );
+        patTerms.push_back(temp[i]);
       }
       return;
     }
     else
     {
-      //do not consider terms that have instances
-      for( unsigned i=0; i<patTerms2.size(); i++ ){
-        if( std::find( temp.begin(), temp.end(), patTerms2[i] )==temp.end() ){
-          visited[ patTerms2[i] ].clear();
+      // do not consider terms that have instances
+      for (unsigned i = 0; i < patTerms2.size(); i++)
+      {
+        if (std::find(temp.begin(), temp.end(), patTerms2[i]) == temp.end())
+        {
+          visited[patTerms2[i]].clear();
         }
       }
     }
   }
-  std::vector< Node > added;
-  collectTermsInternal( n, visited, tinfo, tstrt, exclude, added, true, true, false, true );
+  std::vector<Node> added;
+  collectTermsInternal(
+      n, visited, tinfo, tstrt, exclude, added, true, true, false, true);
   for (const std::pair<const Node, TriggerTermInfo>& t : tinfo)
   {
     patTerms.push_back(t.first);
@@ -491,18 +535,16 @@ void PatternTermSelector::collectTerms(
 }
 
 int PatternTermSelector::isTriggerInstanceOf(Node n1,
-                                 Node n2,
-                                 const std::vector<Node>& fv1,
-                                 const std::vector<Node>& fv2)
+                                             Node n2,
+                                             const std::vector<Node>& fv1,
+                                             const std::vector<Node>& fv2)
 {
   Assert(n1 != n2);
   int status = 0;
   std::unordered_set<TNode, TNodeHashFunction> subs_vars;
-  std::unordered_set<std::pair<TNode, TNode>,
-                     PairHashFunction<TNode,
-                                      TNode,
-                                      TNodeHashFunction,
-                                      TNodeHashFunction> >
+  std::unordered_set<
+      std::pair<TNode, TNode>,
+      PairHashFunction<TNode, TNode, TNodeHashFunction, TNodeHashFunction> >
       visited;
   std::vector<std::pair<TNode, TNode> > visit;
   std::pair<TNode, TNode> cur;
@@ -633,7 +675,8 @@ void PatternTermSelector::filterTriggerInstances(std::vector<Node>& nodes)
   nodes.insert(nodes.begin(), temp.begin(), temp.end());
 }
 
-Node PatternTermSelector::getInversionVariable( Node n ) {
+Node PatternTermSelector::getInversionVariable(Node n)
+{
   Kind nk = n.getKind();
   if (nk == INST_CONSTANT)
   {
@@ -646,13 +689,18 @@ Node PatternTermSelector::getInversionVariable( Node n ) {
     {
       if (quantifiers::TermUtil::hasInstConstAttr(nc))
       {
-        if( ret.isNull() ){
+        if (ret.isNull())
+        {
           ret = getInversionVariable(nc);
-          if( ret.isNull() ){
-            Trace("var-trigger-debug") << "No : multiple variables " << n << std::endl;
+          if (ret.isNull())
+          {
+            Trace("var-trigger-debug")
+                << "No : multiple variables " << n << std::endl;
             return Node::null();
           }
-        }else{
+        }
+        else
+        {
           return Node::null();
         }
       }
@@ -660,7 +708,8 @@ Node PatternTermSelector::getInversionVariable( Node n ) {
       {
         if (!nc.isConst())
         {
-          Trace("var-trigger-debug") << "No : non-linear coefficient " << n << std::endl;
+          Trace("var-trigger-debug")
+              << "No : non-linear coefficient " << n << std::endl;
           return Node::null();
         }
       }
@@ -672,7 +721,8 @@ Node PatternTermSelector::getInversionVariable( Node n ) {
   return Node::null();
 }
 
-Node PatternTermSelector::getInversion( Node n, Node x ) {
+Node PatternTermSelector::getInversion(Node n, Node x)
+{
   Kind nk = n.getKind();
   if (nk == INST_CONSTANT)
   {
@@ -695,7 +745,8 @@ Node PatternTermSelector::getInversion( Node n, Node x ) {
         else if (nk == MULT)
         {
           Assert(nc.isConst());
-          if( x.getType().isInteger() ){
+          if (x.getType().isInteger())
+          {
             Node coeff = nm->mkConst(nc.getConst<Rational>().abs());
             if (!nc.getConst<Rational>().abs().isOne())
             {
@@ -705,13 +756,17 @@ Node PatternTermSelector::getInversion( Node n, Node x ) {
             {
               x = nm->mkNode(UMINUS, x);
             }
-          }else{
+          }
+          else
+          {
             Node coeff = nm->mkConst(Rational(1) / nc.getConst<Rational>());
             x = nm->mkNode(MULT, x, coeff);
           }
         }
-        x = Rewriter::rewrite( x );
-      }else{
+        x = Rewriter::rewrite(x);
+      }
+      else
+      {
         Assert(!cindexSet);
         cindex = i;
         cindexSet = true;
@@ -725,6 +780,6 @@ Node PatternTermSelector::getInversion( Node n, Node x ) {
   return Node::null();
 }
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace theory
+}  // namespace CVC4

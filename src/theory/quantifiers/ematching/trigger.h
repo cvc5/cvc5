@@ -20,9 +20,9 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/quantifiers/inst_match.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/inst_match.h"
 
 namespace CVC4 {
 namespace theory {
