@@ -81,7 +81,7 @@ class TheoryQuantifiers : public Theory {
   QuantifiersProofRuleChecker d_qChecker;
   /** The quantifiers state */
   QuantifiersState d_qstate;
-  /** The quantifiers engine */
+  /** The quantifiers engine, which lives here */
   QuantifiersEngine d_qengine;
 };/* class TheoryQuantifiers */
 

@@ -106,10 +106,17 @@ class QuantifiersEngine {
  private:
   //---------------------- private initialization
   /**
-   * Finish initialize
+   * Finish initialize, which passes pointers to the objects that quantifiers
+   * engine needs but were not available when it was created. This is
+   * called after theories have been created but before they have finished
+   * initialization.
+   * 
+   * @param te The theory engine
+   * @param dm The decision manager of the theory engine
+   * @param mee The master equality engine of the theory engine
    */
   void finishInit(TheoryEngine* te,
-                  DecisionManager& dm,
+                  DecisionManager* dm,
                   eq::EqualityEngine* mee);
   //---------------------- end private initialization
   /**

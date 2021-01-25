@@ -68,7 +68,7 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(qstate, this));
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(this, qstate));
   }
 
   d_util.push_back(d_instantiate.get());
@@ -119,16 +119,14 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
-void finishInit(TheoryEngine* te, DecisionManager* dm, eq::EqualityEngine* mee)
+void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm, eq::EqualityEngine* mee)
 {
   d_te = te;
   d_decManager = dm;
   d_masterEqualityEngine = mee;
-  // Initialize the modules and the utilities here. We delay their
-  // initialization to here, since this is after TheoryQuantifiers finishInit,
-  // which has initialized the state and inference manager of this engine.
+  // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_quantState, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
