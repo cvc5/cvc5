@@ -45,7 +45,10 @@ void TriggerTermInfo::init(Node q, Node n, int reqPol, Node reqPolEq)
   d_weight = PatternTermSelector::getTriggerWeight(n);
 }
 
-PatternTermSelector::PatternTermSelector(Node q, const std::vector<Node>& exc) : d_quant(q), d_excluded(exc) {}
+PatternTermSelector::PatternTermSelector(Node q, const std::vector<Node>& exc)
+    : d_quant(q), d_excluded(exc)
+{
+}
 
 PatternTermSelector::~PatternTermSelector() {}
 
@@ -336,21 +339,14 @@ void PatternTermSelector::collectTermsInternal(
     nu = n;
   }
   else if (nk != NOT
-           && std::find(d_excluded.begin(), d_excluded.end(), n) == d_excluded.end())
+           && std::find(d_excluded.begin(), d_excluded.end(), n)
+                  == d_excluded.end())
   {
     nu = getIsUsableTrigger(n, d_quant);
     if (!nu.isNull() && nu != n)
     {
-      collectTermsInternal(nu,
-                           visited,
-                           tinfo,
-                           tstrt,
-                           added,
-                           pol,
-                           hasPol,
-                           epol,
-                           hasEPol,
-                           true);
+      collectTermsInternal(
+          nu, visited, tinfo, tstrt, added, pol, hasPol, epol, hasEPol, true);
       // copy to n
       visited[n].insert(visited[n].end(), added.begin(), added.end());
       return;
@@ -491,8 +487,7 @@ void PatternTermSelector::collectTerms(Node n,
     // instance of t
     std::vector<Node> patTerms2;
     std::map<Node, TriggerTermInfo> tinfo2;
-    collectTerms(
-        n, patTerms2, options::TriggerSelMode::ALL, tinfo2, false);
+    collectTerms(n, patTerms2, options::TriggerSelMode::ALL, tinfo2, false);
     std::vector<Node> temp;
     temp.insert(temp.begin(), patTerms2.begin(), patTerms2.end());
     filterInstances(temp);
@@ -551,9 +546,9 @@ void PatternTermSelector::collectTerms(Node n,
 }
 
 int PatternTermSelector::isInstanceOf(Node n1,
-                                             Node n2,
-                                             const std::vector<Node>& fv1,
-                                             const std::vector<Node>& fv2)
+                                      Node n2,
+                                      const std::vector<Node>& fv1,
+                                      const std::vector<Node>& fv2)
 {
   Assert(n1 != n2);
   int status = 0;

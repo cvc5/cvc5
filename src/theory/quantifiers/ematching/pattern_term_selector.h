@@ -256,9 +256,9 @@ class PatternTermSelector
    * (2)) as another trigger t. This often helps avoiding matching loops.
    */
   static int isInstanceOf(Node n1,
-                                 Node n2,
-                                 const std::vector<Node>& fv1,
-                                 const std::vector<Node>& fv2);
+                          Node n2,
+                          const std::vector<Node>& fv1,
+                          const std::vector<Node>& fv2);
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** The set of terms to exclude */
