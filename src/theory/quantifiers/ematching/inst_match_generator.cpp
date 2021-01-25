@@ -18,7 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -74,7 +74,7 @@ void InstMatchGenerator::setActiveAdd(bool val){
 int InstMatchGenerator::getActiveScore( QuantifiersEngine * qe ) {
   if( d_match_pattern.isNull() ){
     return -1;
-  }else if( Trigger::isAtomicTrigger( d_match_pattern ) ){
+  }else if( PatternTermSelector::isAtomicTrigger( d_match_pattern ) ){
     Node f = qe->getTermDatabase()->getMatchOperator( d_match_pattern );
     unsigned ngt = qe->getTermDatabase()->getNumGroundTerms( f );
     Trace("trigger-active-sel-debug") << "Number of ground terms for " << f << " is " << ngt << std::endl;
@@ -206,7 +206,7 @@ void InstMatchGenerator::initialize(Node q,
     // applied selectors
     d_cg = new inst::CandidateGeneratorSelector(qe, d_match_pattern);
   }
-  else if (Trigger::isAtomicTriggerKind(mpk))
+  else if (PatternTermSelector::isAtomicTriggerKind(mpk))
   {
     if (mpk == APPLY_CONSTRUCTOR)
     {
@@ -634,7 +634,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
     Node x;
     if (options::purifyTriggers())
     {
-      Node xi = Trigger::getInversionVariable(n);
+      Node xi = PatternTermSelector::getInversionVariable(n);
       if (!xi.isNull())
       {
         Node qa = quantifiers::TermUtil::getInstConstAttr(xi);
@@ -646,7 +646,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
     }
     if (!x.isNull())
     {
-      Node s = Trigger::getInversion(n, x);
+      Node s = PatternTermSelector::getInversion(n, x);
       VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s);
       Trace("var-trigger") << "Term substitution trigger : " << n
                            << ", var = " << x << ", subs = " << s << std::endl;

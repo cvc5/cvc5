@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
 #include "theory/quantifiers/quant_relevance.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
@@ -401,8 +402,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   if (patTermsF.empty())
   {
     Node bd = tu->getInstConstantBody(f);
-    Trigger::collectPatTerms(
-        f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], tinfo, true);
+    PatternTermSelector pts(f);
+    pts.collectTerms(bd, patTermsF, d_tr_strategy, d_user_no_gen[f], tinfo, true);
     if (ntrivTriggers)
     {
       sortTriggers st;

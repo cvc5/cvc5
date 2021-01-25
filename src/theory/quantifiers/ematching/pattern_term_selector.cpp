@@ -16,17 +16,8 @@
 
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/ematching/candidate_generator.h"
-#include "theory/quantifiers/ematching/ho_trigger.h"
-#include "theory/quantifiers/ematching/inst_match_generator.h"
-#include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
-#include "util/hash.h"
+#include "theory/quantifiers/quant_util.h"
 
 using namespace std;
 using namespace CVC4::kind;

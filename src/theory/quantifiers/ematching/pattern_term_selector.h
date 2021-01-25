@@ -159,8 +159,6 @@ class PatternTermSelector
   static bool isRelationalTrigger(Node n);
   /** Is k a relational trigger kind? */
   static bool isRelationalTriggerKind(Kind k);
-  /** is n a simple trigger (see inst_match_generator.h)? */
-  static bool isSimpleTrigger(Node n);
   /** get trigger weight
    *
    * Intutively, this function classifies how difficult it is to handle the
