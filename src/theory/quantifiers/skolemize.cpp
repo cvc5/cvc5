@@ -377,29 +377,20 @@ bool Skolemize::isInductionTerm(Node n)
   return false;
 }
 
-bool Skolemize::printSkolemization(std::ostream& out)
+void Skolemize::getSkolemTermVectors(
+    std::map<Node, std::vector<Node> >& sks) const
 {
-  bool printed = false;
-  for (NodeNodeMap::iterator it = d_skolemized.begin();
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
+      itk;
+  for (NodeNodeMap::const_iterator it = d_skolemized.begin();
        it != d_skolemized.end();
        ++it)
   {
-    Node q = (*it).first;
-    printed = true;
-    out << "(skolem " << q << std::endl;
-    out << "  ( ";
-    for (unsigned i = 0; i < d_skolem_constants[q].size(); i++)
-    {
-      if (i > 0)
-      {
-        out << " ";
-      }
-      out << d_skolem_constants[q][i];
-    }
-    out << " )" << std::endl;
-    out << ")" << std::endl;
+    Node q = it->first;
+    itk = d_skolem_constants.find(q);
+    Assert(itk != d_skolem_constants.end());
+    sks[q].insert(sks[q].end(), itk->second.begin(), itk->second.end());
   }
-  return printed;
 }
 
 bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }
