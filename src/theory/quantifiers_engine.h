@@ -29,7 +29,6 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
@@ -88,8 +87,6 @@ class QuantifiersEngine {
   EqualityQuery* getEqualityQuery() const;
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get utility for EPR */
-  quantifiers::QuantEPR* getQuantEPR() const;
   /** get model */
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database */
@@ -355,8 +352,6 @@ public:
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** utility for effectively propositional logic */
-  std::unique_ptr<quantifiers::QuantEPR> d_qepr;
   /** term utilities */
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term utilities */

@@ -30,6 +30,20 @@ InferenceManager::InferenceManager(Theory& t,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
+void InferenceManager::doPending()
+{
+  doPendingFacts();
+  if (d_state.isInConflict())
+  {
+    // just clear the pending vectors, nothing else to do
+    clearPendingLemmas();
+    clearPendingPhaseRequirements();
+    return;
+  }
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+}
+
 }  // namespace bags
 }  // namespace theory
 }  // namespace CVC4

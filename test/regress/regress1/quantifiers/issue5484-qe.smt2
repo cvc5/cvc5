@@ -1,7 +1,8 @@
+; COMMAND-LINE: -q
 ; SCRUBBER: sed 's/(.*)/()/g'
 ; EXPECT: ()
 ; EXIT: 0
-(set-logic LIA)
+(set-logic NIA)
 (declare-fun v9 () Bool)
 (declare-fun v18 () Bool)
 (declare-fun i2 () Int)

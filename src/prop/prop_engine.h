@@ -190,6 +190,12 @@ class PropEngine
    * via getSatValue().
    */
   Node ensureLiteral(TNode n);
+  /**
+   * This returns the theory-preprocessed form of term n. This rewrites and
+   * preprocesses n, which notice may involve adding clauses to the SAT solver
+   * if preprocessing n involves introducing new skolems.
+   */
+  Node getPreprocessedTerm(TNode n);
 
   /**
    * Push the context level.
@@ -297,9 +303,6 @@ class PropEngine
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
-
-  /** Theory registrar; kept around for destructor cleanup */
-  theory::TheoryRegistrar* d_registrar;
 
   /** A pointer to the proof node maneger to be used by this engine. */
   ProofNodeManager* d_pnm;

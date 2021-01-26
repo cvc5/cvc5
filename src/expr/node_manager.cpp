@@ -904,27 +904,26 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   return type;
 }
 
-Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t flags) {
+Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
+{
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, flags);
+    (*i)->nmNotifyNewVar(n);
   }
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const std::string& name,
-                            const TypeNode& type, uint32_t flags) {
+Node* NodeManager::mkVarPtr(const std::string& name, const TypeNode& type)
+{
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
   setAttribute(*n, expr::VarNameAttr(), name);
-  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, flags);
+    (*i)->nmNotifyNewVar(*n);
   }
   return n;
 }
@@ -1048,24 +1047,24 @@ Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
   return mkNode(kind::AND, cchildren);
 }
 
-Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
+Node NodeManager::mkVar(const TypeNode& type)
+{
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, flags);
+    (*i)->nmNotifyNewVar(n);
   }
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const TypeNode& type, uint32_t flags) {
+Node* NodeManager::mkVarPtr(const TypeNode& type)
+{
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
-  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, flags);
+    (*i)->nmNotifyNewVar(*n);
   }
   return n;
 }

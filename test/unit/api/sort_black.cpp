@@ -56,7 +56,7 @@ TEST_F(TestApiSortBlack, datatypeSorts)
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
-  EXPECT_FALSE(dtypeSort.isConstructor());
+  ASSERT_FALSE(dtypeSort.isConstructor());
   ASSERT_THROW(dtypeSort.getConstructorCodomainSort(), CVC4ApiException);
   ASSERT_THROW(dtypeSort.getConstructorDomainSorts(), CVC4ApiException);
   ASSERT_THROW(dtypeSort.getConstructorArity(), CVC4ApiException);
@@ -65,30 +65,30 @@ TEST_F(TestApiSortBlack, datatypeSorts)
   DatatypeConstructor dcons = dt[0];
   Term consTerm = dcons.getConstructorTerm();
   Sort consSort = consTerm.getSort();
-  EXPECT_TRUE(consSort.isConstructor());
-  EXPECT_FALSE(consSort.isTester());
-  EXPECT_FALSE(consSort.isSelector());
-  EXPECT_EQ(consSort.getConstructorArity(), 2);
+  ASSERT_TRUE(consSort.isConstructor());
+  ASSERT_FALSE(consSort.isTester());
+  ASSERT_FALSE(consSort.isSelector());
+  ASSERT_EQ(consSort.getConstructorArity(), 2);
   std::vector<Sort> consDomSorts = consSort.getConstructorDomainSorts();
-  EXPECT_EQ(consDomSorts[0], intSort);
-  EXPECT_EQ(consDomSorts[1], dtypeSort);
-  EXPECT_EQ(consSort.getConstructorCodomainSort(), dtypeSort);
+  ASSERT_EQ(consDomSorts[0], intSort);
+  ASSERT_EQ(consDomSorts[1], dtypeSort);
+  ASSERT_EQ(consSort.getConstructorCodomainSort(), dtypeSort);
 
   // get tester
   Term isConsTerm = dcons.getTesterTerm();
-  EXPECT_TRUE(isConsTerm.getSort().isTester());
-  EXPECT_EQ(isConsTerm.getSort().getTesterDomainSort(), dtypeSort);
+  ASSERT_TRUE(isConsTerm.getSort().isTester());
+  ASSERT_EQ(isConsTerm.getSort().getTesterDomainSort(), dtypeSort);
   Sort booleanSort = d_solver.getBooleanSort();
-  EXPECT_EQ(isConsTerm.getSort().getTesterCodomainSort(), booleanSort);
+  ASSERT_EQ(isConsTerm.getSort().getTesterCodomainSort(), booleanSort);
   ASSERT_THROW(booleanSort.getTesterDomainSort(), CVC4ApiException);
   ASSERT_THROW(booleanSort.getTesterCodomainSort(), CVC4ApiException);
 
   // get selector
   DatatypeSelector dselTail = dcons[1];
   Term tailTerm = dselTail.getSelectorTerm();
-  EXPECT_TRUE(tailTerm.getSort().isSelector());
-  EXPECT_EQ(tailTerm.getSort().getSelectorDomainSort(), dtypeSort);
-  EXPECT_EQ(tailTerm.getSort().getSelectorCodomainSort(), dtypeSort);
+  ASSERT_TRUE(tailTerm.getSort().isSelector());
+  ASSERT_EQ(tailTerm.getSort().getSelectorDomainSort(), dtypeSort);
+  ASSERT_EQ(tailTerm.getSort().getSelectorCodomainSort(), dtypeSort);
   ASSERT_THROW(booleanSort.getSelectorDomainSort(), CVC4ApiException);
   ASSERT_THROW(booleanSort.getSelectorCodomainSort(), CVC4ApiException);
 }
@@ -170,7 +170,7 @@ TEST_F(TestApiSortBlack, getSetElementSort)
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   ASSERT_NO_THROW(setSort.getSetElementSort());
   Sort elementSort = setSort.getSetElementSort();
-  EXPECT_EQ(elementSort, d_solver.getIntegerSort());
+  ASSERT_EQ(elementSort, d_solver.getIntegerSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getSetElementSort(), CVC4ApiException);
 }
@@ -180,7 +180,7 @@ TEST_F(TestApiSortBlack, getBagElementSort)
   Sort bagSort = d_solver.mkBagSort(d_solver.getIntegerSort());
   ASSERT_NO_THROW(bagSort.getBagElementSort());
   Sort elementSort = bagSort.getBagElementSort();
-  EXPECT_EQ(elementSort, d_solver.getIntegerSort());
+  ASSERT_EQ(elementSort, d_solver.getIntegerSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getBagElementSort(), CVC4ApiException);
 }
@@ -188,10 +188,10 @@ TEST_F(TestApiSortBlack, getBagElementSort)
 TEST_F(TestApiSortBlack, getSequenceElementSort)
 {
   Sort seqSort = d_solver.mkSequenceSort(d_solver.getIntegerSort());
-  EXPECT_TRUE(seqSort.isSequence());
+  ASSERT_TRUE(seqSort.isSequence());
   ASSERT_NO_THROW(seqSort.getSequenceElementSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);
-  EXPECT_FALSE(bvSort.isSequence());
+  ASSERT_FALSE(bvSort.isSequence());
   ASSERT_THROW(bvSort.getSequenceElementSort(), CVC4ApiException);
 }
 
@@ -206,7 +206,7 @@ TEST_F(TestApiSortBlack, getUninterpretedSortName)
 TEST_F(TestApiSortBlack, isUninterpretedSortParameterized)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
-  EXPECT_FALSE(uSort.isUninterpretedSortParameterized());
+  ASSERT_FALSE(uSort.isUninterpretedSortParameterized());
   Sort sSort = d_solver.mkSortConstructorSort("s", 1);
   Sort siSort = sSort.instantiate({uSort});
   ASSERT_TRUE(siSort.isUninterpretedSortParameterized());
@@ -220,7 +220,7 @@ TEST_F(TestApiSortBlack, getUninterpretedSortParamSorts)
   ASSERT_NO_THROW(uSort.getUninterpretedSortParamSorts());
   Sort sSort = d_solver.mkSortConstructorSort("s", 2);
   Sort siSort = sSort.instantiate({uSort, uSort});
-  EXPECT_EQ(siSort.getUninterpretedSortParamSorts().size(), 2);
+  ASSERT_EQ(siSort.getUninterpretedSortParamSorts().size(), 2);
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_THROW(bvSort.getUninterpretedSortParamSorts(), CVC4ApiException);
 }
@@ -345,24 +345,24 @@ TEST_F(TestApiSortBlack, sortSubtyping)
 {
   Sort intSort = d_solver.getIntegerSort();
   Sort realSort = d_solver.getRealSort();
-  EXPECT_TRUE(intSort.isSubsortOf(realSort));
-  EXPECT_FALSE(realSort.isSubsortOf(intSort));
-  EXPECT_TRUE(intSort.isComparableTo(realSort));
-  EXPECT_TRUE(realSort.isComparableTo(intSort));
+  ASSERT_TRUE(intSort.isSubsortOf(realSort));
+  ASSERT_FALSE(realSort.isSubsortOf(intSort));
+  ASSERT_TRUE(intSort.isComparableTo(realSort));
+  ASSERT_TRUE(realSort.isComparableTo(intSort));
 
   Sort arraySortII = d_solver.mkArraySort(intSort, intSort);
   Sort arraySortIR = d_solver.mkArraySort(intSort, realSort);
-  EXPECT_FALSE(arraySortII.isComparableTo(intSort));
+  ASSERT_FALSE(arraySortII.isComparableTo(intSort));
   // we do not support subtyping for arrays
-  EXPECT_FALSE(arraySortII.isComparableTo(arraySortIR));
+  ASSERT_FALSE(arraySortII.isComparableTo(arraySortIR));
 
   Sort setSortI = d_solver.mkSetSort(intSort);
   Sort setSortR = d_solver.mkSetSort(realSort);
   // we don't support subtyping for sets
-  EXPECT_FALSE(setSortI.isComparableTo(setSortR));
-  EXPECT_FALSE(setSortI.isSubsortOf(setSortR));
-  EXPECT_FALSE(setSortR.isComparableTo(setSortI));
-  EXPECT_FALSE(setSortR.isSubsortOf(setSortI));
+  ASSERT_FALSE(setSortI.isComparableTo(setSortR));
+  ASSERT_FALSE(setSortI.isSubsortOf(setSortR));
+  ASSERT_FALSE(setSortR.isComparableTo(setSortI));
+  ASSERT_FALSE(setSortR.isSubsortOf(setSortI));
 }
 
 TEST_F(TestApiSortBlack, sortScopedToString)
@@ -370,11 +370,11 @@ TEST_F(TestApiSortBlack, sortScopedToString)
   std::string name = "uninterp-sort";
   Sort bvsort8 = d_solver.mkBitVectorSort(8);
   Sort uninterp_sort = d_solver.mkUninterpretedSort(name);
-  EXPECT_EQ(bvsort8.toString(), "(_ BitVec 8)");
-  EXPECT_EQ(uninterp_sort.toString(), name);
+  ASSERT_EQ(bvsort8.toString(), "(_ BitVec 8)");
+  ASSERT_EQ(uninterp_sort.toString(), name);
   Solver solver2;
-  EXPECT_EQ(bvsort8.toString(), "(_ BitVec 8)");
-  EXPECT_EQ(uninterp_sort.toString(), name);
+  ASSERT_EQ(bvsort8.toString(), "(_ BitVec 8)");
+  ASSERT_EQ(uninterp_sort.toString(), name);
 }
 
 }  // namespace test

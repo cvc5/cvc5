@@ -59,7 +59,7 @@ class SmtNodeManagerListener : public NodeManagerListener
   void nmNotifyNewDatatypes(const std::vector<TypeNode>& dtts,
                             uint32_t flags) override;
   /** Notify when new variable is created */
-  void nmNotifyNewVar(TNode n, uint32_t flags) override;
+  void nmNotifyNewVar(TNode n) override;
   /** Notify when new skolem is created */
   void nmNotifyNewSkolem(TNode n,
                          const std::string& comment,

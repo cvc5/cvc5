@@ -852,6 +852,12 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
   return solveStatus;
 }
 
+theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
+{
+  Assert(eq.getKind() == kind::EQUAL);
+  return theoryOf(eq)->ppRewrite(eq);
+}
+
 void TheoryEngine::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions) {
   // call all the theories
@@ -1168,6 +1174,11 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   return d_propEngine->ensureLiteral(rewritten);
 }
 
+Node TheoryEngine::getPreprocessedTerm(TNode n)
+{
+  Node rewritten = Rewriter::rewrite(n);
+  return d_propEngine->getPreprocessedTerm(rewritten);
+}
 
 void TheoryEngine::printInstantiations( std::ostream& out ) {
   if( d_quantEngine ){

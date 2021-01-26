@@ -35,10 +35,9 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          DecisionEngine* decisionEngine,
                          context::Context* context,
                          context::UserContext* userContext,
-                         CnfStream* cnfStream,
                          ProofNodeManager* pnm)
     : d_propEngine(propEngine),
-      d_cnfStream(cnfStream),
+      d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_queue(context),
@@ -49,6 +48,8 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
+
+void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -83,11 +84,12 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  if (options::unsatCores())
+  else if (options::unsatCores())
   {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }
-  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
+  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation
+                        << std::endl;
   explanation.push_back(l);
   if (theoryExplanation.getKind() == kind::AND)
   {
@@ -173,7 +175,8 @@ theory::TrustNode TheoryProxy::preprocessLemma(
     std::vector<Node>& newSkolems,
     bool doTheoryPreprocess)
 {
-  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems, doTheoryPreprocess);
+  return d_tpp.preprocessLemma(
+      trn, newLemmas, newSkolems, doTheoryPreprocess, true);
 }
 
 theory::TrustNode TheoryProxy::preprocess(
@@ -183,9 +186,11 @@ theory::TrustNode TheoryProxy::preprocess(
     bool doTheoryPreprocess)
 {
   theory::TrustNode pnode =
-      d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess);
+      d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess, true);
   return pnode;
 }
+
+void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

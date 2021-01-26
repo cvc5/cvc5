@@ -675,8 +675,7 @@ void SmtEngine::defineFunction(Node func,
   }
 
   DefineFunctionNodeCommand nc(ss.str(), func, nFormals, formula);
-  d_dumpm->addToModelCommandAndDump(
-      nc, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
+  d_dumpm->addToDump(nc, "declarations");
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
@@ -952,12 +951,6 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
-
-    if (options::dumpProofs() && options::proofNew()
-        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      printProof();
-    }
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
@@ -1496,23 +1489,38 @@ UnsatCore SmtEngine::getUnsatCore() {
   return getUnsatCoreInternal();
 }
 
-void SmtEngine::printProof()
+std::string SmtEngine::getProof()
 {
-  if (d_pfManager == nullptr)
+  Trace("smt") << "SMT getProof()\n";
+  SmtScope smts(this);
+  finishInit();
+  if (Dump.isOn("benchmark"))
   {
-    throw RecoverableModalException("Cannot print proof, no proof manager.");
+    getOutputManager().getPrinter().toStreamCmdGetProof(
+        getOutputManager().getDumpOut());
   }
-  if (getSmtMode() != SmtMode::UNSAT)
+#if IS_PROOFS_BUILD
+  if (!options::proofNew())
+  {
+    throw ModalException("Cannot get a proof when proof-new option is off.");
+  }
+  if (d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
-        "Cannot print proof unless immediately preceded by "
-        "UNSAT/ENTAILED.");
+        "Cannot get a proof unless immediately preceded by "
+        "UNSAT/ENTAILED response.");
   }
+  // the prop engine has the proof of false
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
-  // the prop engine has the proof of false
-  d_pfManager->printProof(pe->getProof(), *d_asserts, *d_definedFunctions);
+  Assert(d_pfManager);
+  std::ostringstream ss;
+  d_pfManager->printProof(ss, pe->getProof(), *d_asserts, *d_definedFunctions);
+  return ss.str();
+#else  /* IS_PROOFS_BUILD */
+  throw ModalException("This build of CVC4 doesn't have proof support.");
+#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {

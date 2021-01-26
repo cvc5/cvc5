@@ -23,7 +23,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
-#include "expr/expr.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -38,7 +37,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 
@@ -76,7 +74,6 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_context(satContext),
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
-      d_registrar(nullptr),
       d_pnm(pnm),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
@@ -92,17 +89,24 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
-  d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::CnfStream(
-      d_satSolver, d_registrar, userContext, &d_outMgr, rm, true);
-
+  // CNF stream and theory proxy required pointers to each other, make the
+  // theory proxy first
   d_theoryProxy = new TheoryProxy(this,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
-                                  d_context,
+                                  satContext,
                                   userContext,
-                                  d_cnfStream,
                                   pnm);
+  d_cnfStream = new CnfStream(d_satSolver,
+                              d_theoryProxy,
+                              userContext,
+                              &d_outMgr,
+                              rm,
+                              FormulaLitPolicy::TRACK);
+
+  // connect theory proxy
+  d_theoryProxy->finishInit(d_cnfStream);
+  // connect SAT solver
   d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -117,7 +121,7 @@ PropEngine::PropEngine(TheoryEngine* te,
     d_ppm.reset(
         new PropPfManager(userContext, pnm, d_satSolver, d_pfCnfStream.get()));
   }
-  if (options::unsatCores())
+  else if (options::unsatCores())
   {
     ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
   }
@@ -145,7 +149,6 @@ PropEngine::~PropEngine() {
   d_decisionEngine->shutdown();
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
-  delete d_registrar;
   delete d_satSolver;
   delete d_theoryProxy;
 }
@@ -424,6 +427,16 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
 Node PropEngine::ensureLiteral(TNode n)
 {
   // must preprocess
+  Node preprocessed = getPreprocessedTerm(n);
+  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
+                         << std::endl;
+  d_cnfStream->ensureLiteral(preprocessed);
+  return preprocessed;
+}
+
+Node PropEngine::getPreprocessedTerm(TNode n)
+{
+  // must preprocess
   std::vector<theory::TrustNode> newLemmas;
   std::vector<Node> newSkolems;
   theory::TrustNode tpn =
@@ -431,14 +444,9 @@ Node PropEngine::ensureLiteral(TNode n)
   // send lemmas corresponding to the skolems introduced by preprocessing n
   for (const theory::TrustNode& tnl : newLemmas)
   {
-    Trace("ensureLiteral") << "  lemma: " << tnl.getNode() << std::endl;
     assertLemma(tnl, theory::LemmaProperty::NONE);
   }
-  Node preprocessed = tpn.isNull() ? Node(n) : tpn.getNode();
-  Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
-                         << std::endl;
-  d_cnfStream->ensureLiteral(preprocessed);
-  return preprocessed;
+  return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 
 void PropEngine::push()

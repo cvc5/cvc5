@@ -91,10 +91,16 @@ class RemoveTermFormulas {
    * right hand side is assertion after removing term formulas, and the proof
    * generator (if provided) that can prove the equivalence.
    */
-  theory::TrustNode run(Node assertion,
+  theory::TrustNode run(TNode assertion,
                         std::vector<theory::TrustNode>& newAsserts,
                         std::vector<Node>& newSkolems,
                         bool fixedPoint = false);
+  /**
+   * Same as above, but does not track lemmas, and does not run to fixed point.
+   * The relevant lemmas can be extracted by the caller later using getSkolems
+   * and getLemmaForSkolem.
+   */
+  theory::TrustNode run(TNode assertion);
   /**
    * Same as above, but transforms a lemma, returning a LEMMA trust node that
    * proves the same formula as lem with term formulas removed.
@@ -119,6 +125,24 @@ class RemoveTermFormulas {
    *   (ite n1 (= (ite n1 n2 n3) n2) (= (ite n1 n2 n3) n3))
    */
   static Node getAxiomFor(Node n);
+
+  /**
+   * Get the set of skolems introduced by this class that occur in node n,
+   * add them to skolems.
+   *
+   * This method uses an optimization that returns false immediately if n
+   * was unchanged by term formula removal, based on the initial context.
+   *
+   * Return true if any nodes were added to skolems.
+   */
+  bool getSkolems(TNode n,
+                  std::unordered_set<Node, NodeHashFunction>& skolems) const;
+
+  /**
+   * Get the lemma for the skolem, or the null node if k is not a skolem this
+   * class introduced.
+   */
+  theory::TrustNode getLemmaForSkolem(TNode k) const;
 
  private:
   typedef context::CDInsertHashMap<
@@ -153,6 +177,11 @@ class RemoveTermFormulas {
    *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
    */
   context::CDInsertHashMap<Node, Node, NodeHashFunction> d_skolem_cache;
+  /**
+   * Mapping from skolems to their corresponding lemma.
+   */
+  context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>
+      d_lemmaCache;
 
   /** gets the skolem for node
    *
@@ -186,7 +215,7 @@ class RemoveTermFormulas {
    * This uses a term-context-sensitive stack to process assertion. It returns
    * the version of assertion with all term formulas removed.
    */
-  Node runInternal(Node assertion,
+  Node runInternal(TNode assertion,
                    std::vector<theory::TrustNode>& newAsserts,
                    std::vector<Node>& newSkolems);
   /**

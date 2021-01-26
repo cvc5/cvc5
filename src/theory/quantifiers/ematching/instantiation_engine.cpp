@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
+#include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -91,11 +92,16 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         for( unsigned j=0; j<d_instStrategies.size(); j++ ){
           InstStrategy* is = d_instStrategies[j];
           Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
-          int quantStatus = is->process( q, effort, e_use );
-          Trace("inst-engine-debug") << " -> status is " << quantStatus << ", conflict=" << d_quantEngine->inConflict() << std::endl;
+          InstStrategyStatus quantStatus = is->process(q, effort, e_use);
+          Trace("inst-engine-debug")
+              << " -> unfinished= "
+              << (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
+              << ", conflict=" << d_quantEngine->inConflict() << std::endl;
           if( d_quantEngine->inConflict() ){
             return;
-          }else if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+          }
+          else if (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
+          {
             finished = false;
           }
         }

@@ -20,8 +20,9 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/quantifiers/inst_match.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/inst_match.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
@@ -187,16 +188,16 @@ class Trigger {
   * produce instantiations beyond what is produced by the match generator
   * (for example, see theory/quantifiers/ematching/ho_trigger.h).
   */
-  virtual int addInstantiations();
+  virtual uint64_t addInstantiations();
   /** Return whether this is a multi-trigger. */
-  bool isMultiTrigger() { return d_nodes.size()>1; }
+  bool isMultiTrigger() const;
   /** Get instantiation pattern list associated with this trigger.
    *
   * An instantiation pattern list is the node representation of a trigger, in
   * particular, it is the third argument of quantified formulas which have user
   * (! ... :pattern) attributes.
   */
-  Node getInstPattern();
+  Node getInstPattern() const;
   /* A heuristic value indicating how active this generator is.
    *
   * This returns the number of ground terms for the match operators in terms
@@ -205,19 +206,7 @@ class Trigger {
   */
   int getActiveScore();
   /** print debug information for the trigger */
-  void debugPrint(const char* c)
-  {
-    Trace(c) << "TRIGGER( ";
-    for (int i = 0; i < (int)d_nodes.size(); i++)
-    {
-      if (i > 0)
-      {
-        Trace(c) << ", ";
-      }
-      Trace(c) << d_nodes[i];
-    }
-    Trace(c) << " )";
-  }
+  void debugPrint(const char* c) const;
   /** mkTrigger method
    *
    * This makes an instance of a trigger object.
@@ -227,8 +216,8 @@ class Trigger {
    *  keepAll: don't remove unneeded patterns;
    *  trOption : policy for dealing with triggers that already exist
    *             (see below)
-   *  use_n_vars : number of variables that should be bound by the trigger
-   *               typically, the number of quantified variables in q.
+   *  useNVars : number of variables that should be bound by the trigger
+   *             typically, the number of quantified variables in q.
    */
   enum{
     TR_MAKE_NEW,    //make new trigger even if it already may exist
@@ -240,14 +229,14 @@ class Trigger {
                             std::vector<Node>& nodes,
                             bool keepAll = true,
                             int trOption = TR_MAKE_NEW,
-                            unsigned use_n_vars = 0);
+                            size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
                             Node q,
                             Node n,
                             bool keepAll = true,
                             int trOption = TR_MAKE_NEW,
-                            unsigned use_n_vars = 0);
+                            size_t useNVars = 0);
   /** make trigger terms
    *
    * This takes a set of eligible trigger terms and stores a subset of them in
@@ -259,7 +248,7 @@ class Trigger {
    */
   static bool mkTriggerTerms(Node q,
                              std::vector<Node>& nodes,
-                             unsigned n_vars,
+                             size_t nvars,
                              std::vector<Node>& trNodes);
   /** collect pattern terms
    *
@@ -319,8 +308,6 @@ class Trigger {
   static bool isRelationalTriggerKind( Kind k );
   /** is n a simple trigger (see inst_match_generator.h)? */
   static bool isSimpleTrigger( Node n );
-  /** is n a pure theory trigger, e.g. head( x )? */
-  static bool isPureTheoryTrigger( Node n );
   /** get trigger weight
    *
    * Intutively, this function classifies how difficult it is to handle the
@@ -331,11 +318,6 @@ class Trigger {
    * Returns 2 otherwise.
    */
   static int getTriggerWeight( Node n );
-  /** Returns whether n is a trigger term with a local theory extension
-  * property from Bansal et al., CAV 2015.
-  */
-  static bool isLocalTheoryExt( Node n, std::vector< Node >& vars,
-                                std::vector< Node >& patTerms );
   /** get the variable associated with an inversion for n
    *
    * A term n with an inversion variable x has the following property :
@@ -422,8 +404,8 @@ class Trigger {
    */
   static int isTriggerInstanceOf(Node n1,
                                  Node n2,
-                                 std::vector<Node>& fv1,
-                                 std::vector<Node>& fv2);
+                                 const std::vector<Node>& fv1,
+                                 const std::vector<Node>& fv2);
 
   /** add an instantiation (called by InstMatchGenerator)
    *
@@ -433,8 +415,41 @@ class Trigger {
    * Instantiate::addInstantiation(...).
    */
   virtual bool sendInstantiation(InstMatch& m);
+  /**
+   * Ensure that all ground subterms of n have been preprocessed. This makes
+   * calls to the provided valuation to obtain the preprocessed form of these
+   * terms. The preprocessed form of each ground subterm is added to gts.
+   *
+   * As an optimization, this method does not preprocess terms with no
+   * arguments, e.g. variables and constants are not preprocessed (as they
+   * should not change after preprocessing), nor are they added to gts.
+   *
+   * @param val The valuation to use for looking up preprocessed terms.
+   * @param n The node to process, which is in inst-constant form (free
+   * variables have been substituted by corresponding INST_CONSTANT).
+   * @param gts The set of preprocessed ground subterms of n.
+   * @return The converted form of n where all ground subterms have been
+   * replaced by their preprocessed form.
+   */
+  static Node ensureGroundTermPreprocessed(Valuation& val,
+                                           Node n,
+                                           std::vector<Node>& gts);
   /** The nodes comprising this trigger. */
-  std::vector< Node > d_nodes;
+  std::vector<Node> d_nodes;
+  /**
+   * The preprocessed ground terms in the nodes of the trigger, which as an
+   * optimization omits variables and constant subterms. These terms are
+   * important since we must ensure that the quantifier-free solvers are
+   * aware of these terms. In particular, when adding instantiations for
+   * a trigger P(f(a), x), we first check if f(a) is a term in the master
+   * equality engine. If it is not, then we add the lemma k = f(a) where k
+   * is the purification skolem for f(a). This ensures that f(a) will be
+   * registered as a term in the master equality engine on the next
+   * instantiation round. This is particularly important for cases where
+   * P(f(a), x) is matched with P(f(b), c), where a=b in the current context.
+   * This example would fail to match when f(a) is not registered.
+   */
+  std::vector<Node> d_groundTerms;
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
   /** The quantified formula this trigger is for. */

@@ -352,19 +352,13 @@ class CVC4_PUBLIC ExprManager {
   /** Make the type of sequence with the given parameterization. */
   SequenceType mkSequenceType(Type elementType) const;
 
-  /** Bits for use in mkSort() flags. */
-  enum {
-    SORT_FLAG_NONE = 0,
-    SORT_FLAG_PLACEHOLDER = 1
-  };/* enum */
-
   /** Make a new sort with the given name. */
-  SortType mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE) const;
+  SortType mkSort(const std::string& name, uint32_t flags) const;
 
   /** Make a sort constructor from a name and arity. */
   SortConstructorType mkSortConstructor(const std::string& name,
                                         size_t arity,
-                                        uint32_t flags = SORT_FLAG_NONE) const;
+                                        uint32_t flags) const;
 
   /**
    * Get the type of an expression.
@@ -373,13 +367,6 @@ class CVC4_PUBLIC ExprManager {
    * computed.
    */
   Type getType(Expr e, bool check = false);
-
-  /** Bits for use in mkVar() flags. */
-  enum {
-    VAR_FLAG_NONE = 0,
-    VAR_FLAG_GLOBAL = 1,
-    VAR_FLAG_DEFINED = 2
-  };/* enum */
 
   /**
    * Create a new, fresh variable.  This variable is guaranteed to be
@@ -390,33 +377,16 @@ class CVC4_PUBLIC ExprManager {
    *
    * @param name a name to associate to the fresh new variable
    * @param type the type for the new variable
-   * @param flags - VAR_FLAG_NONE - no flags;
-   * VAR_FLAG_GLOBAL - whether this variable is to be
-   * considered "global" or not.  Note that this information isn't
-   * used by the ExprManager, but is passed on to the ExprManager's
-   * event subscribers like the model-building service; if isGlobal
-   * is true, this newly-created variable will still available in
-   * models generated after an intervening pop.
-   * VAR_FLAG_DEFINED - if this is to be a "defined" symbol, e.g., for
-   * use with SmtEngine::defineFunction().  This keeps a declaration
-   * from being emitted in API dumps (since a subsequent definition is
-   * expected to be dumped instead).
    */
-  Expr mkVar(const std::string& name, Type type, uint32_t flags = VAR_FLAG_NONE);
+  Expr mkVar(const std::string& name, Type type);
 
   /**
    * Create a (nameless) new, fresh variable.  This variable is guaranteed
    * to be distinct from every variable thus far in the ExprManager.
    *
    * @param type the type for the new variable
-   * @param flags - VAR_FLAG_GLOBAL - whether this variable is to be considered "global"
-   * or not.  Note that this information isn't used by the ExprManager,
-   * but is passed on to the ExprManager's event subscribers like the
-   * model-building service; if isGlobal is true, this newly-created
-   * variable will still available in models generated after an
-   * intervening pop.
    */
-  Expr mkVar(Type type, uint32_t flags = VAR_FLAG_NONE);
+  Expr mkVar(Type type);
 
   /**
    * Create a new, fresh variable for use in a binder expression

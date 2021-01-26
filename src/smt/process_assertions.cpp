@@ -24,6 +24,7 @@
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
+#include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -204,13 +205,14 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
+  if (options::foreignTheoryRewrite())
+  {
+    d_passes["foreign-theory-rewrite"]->apply(&assertions);
+  }
 
   // Since this pass is not robust for the information tracking necessary for
   // unsat cores, it's only applied if we are not doing unsat core computation
-  if (!options::unsatCores())
-  {
-    d_passes["apply-substs"]->apply(&assertions);
-  }
+  d_passes["apply-substs"]->apply(&assertions);
 
   // Assertions MUST BE guaranteed to be rewritten by this point
   d_passes["rewrite"]->apply(&assertions);
@@ -242,7 +244,10 @@ bool ProcessAssertions::apply(Assertions& as)
       d_passes["fun-def-fmf"]->apply(&assertions);
     }
   }
-
+  if (!options::stringLazyPreproc())
+  {
+    d_passes["strings-eager-pp"]->apply(&assertions);
+  }
   if (options::sortInference() || options::ufssFairnessMonotone())
   {
     d_passes["sort-inference"]->apply(&assertions);
@@ -316,7 +321,7 @@ bool ProcessAssertions::apply(Assertions& as)
   {
     d_passes["ho-elim"]->apply(&assertions);
   }
-
+  
   // begin: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
@@ -328,6 +333,8 @@ bool ProcessAssertions::apply(Assertions& as)
 
   // ensure rewritten
   d_passes["rewrite"]->apply(&assertions);
+  // rewrite equalities based on theory-specific rewriting
+  d_passes["theory-rewrite-eq"]->apply(&assertions);
   // apply theory preprocess, which includes ITE removal
   d_passes["theory-preprocess"]->apply(&assertions);
   // This is needed because when solving incrementally, removeITEs may
@@ -358,15 +365,12 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
-      if (!options::unsatCores())
+      // Perform non-clausal simplification
+      PreprocessingPassResult res =
+          d_passes["non-clausal-simp"]->apply(&assertions);
+      if (res == PreprocessingPassResult::CONFLICT)
       {
-        // Perform non-clausal simplification
-        PreprocessingPassResult res =
-            d_passes["non-clausal-simp"]->apply(&assertions);
-        if (res == PreprocessingPassResult::CONFLICT)
-        {
-          return false;
-        }
+        return false;
       }
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
@@ -412,8 +416,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
     }
 
     if (options::repeatSimp()
-        && options::simplificationMode() != options::SimplificationMode::NONE
-        && !options::unsatCores())
+        && options::simplificationMode() != options::SimplificationMode::NONE)
     {
       PreprocessingPassResult res =
           d_passes["non-clausal-simp"]->apply(&assertions);
