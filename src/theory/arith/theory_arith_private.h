@@ -713,8 +713,8 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
-  context::CDQueue<Node> d_approxCuts;
-  std::vector<Node> d_acTmp;
+  context::CDQueue<TrustNode> d_approxCuts;
+  std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
