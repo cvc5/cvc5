@@ -44,7 +44,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      ProofNodeManager* pnm)
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
       d_qstate(c, u, valuation),
-      d_qim(this, d_qstate, pnm),
+      d_qim(*this, d_qstate, pnm),
       d_qengine(d_qstate, d_qim, pnm)
 {
   out.handleUserAttribute( "fun-def", this );

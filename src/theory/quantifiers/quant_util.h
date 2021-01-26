@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -58,7 +59,8 @@ class QuantifiersModule {
   };
 
  public:
-  QuantifiersModule(quantifiers::QuantifiersState& qs, QuantifiersEngine* qe);
+  QuantifiersModule(quantifiers::QuantifiersState& qs,
+                    quantifiers::QuantifiersInferenceManager& qim, QuantifiersEngine* qe);
   virtual ~QuantifiersModule(){}
   /** Presolve.
    *
@@ -159,6 +161,8 @@ class QuantifiersModule {
   QuantifiersEngine* d_quantEngine;
   /** The state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
 };/* class QuantifiersModule */
 
 /** Quantifiers utility
