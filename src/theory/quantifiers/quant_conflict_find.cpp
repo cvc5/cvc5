@@ -2085,7 +2085,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
   }
 
   Trace("qcf-check-debug") << "Reset round..." << std::endl;
-  TermDatabase * tdb = getTermDatabase();
+  TermDb * tdb = getTermDatabase();
   if (!qi->reset_round(tdb, d_qstate))
   {
     // it is typically the case that another conflict (e.g. in the term
