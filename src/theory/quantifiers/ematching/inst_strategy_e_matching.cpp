@@ -202,12 +202,12 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
       {
         d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
       }
-      if (d_quantEngine->inConflict())
+      if (d_qstate.isInConflict())
       {
         break;
       }
     }
-    if (d_quantEngine->inConflict()
+    if (d_qstate.isInConflict()
         || (hasInst && options::multiTriggerPriority()))
     {
       break;

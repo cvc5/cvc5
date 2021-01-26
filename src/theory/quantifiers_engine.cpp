@@ -51,7 +51,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
-      d_conflict_c(qstate.getSatContext(), false),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext()),
       d_lemmas_produced_c(qstate.getUserContext()),
@@ -77,7 +76,6 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(d_instantiate.get());
 
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
-  d_conflict = false;
   d_hasAddedLemma = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_util->d_true] = true;
@@ -107,12 +105,12 @@ QuantifiersEngine::QuantifiersEngine(
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
           this, qstate, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this, qstate));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(
           new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(this));
+      d_builder.reset(new quantifiers::QModelBuilder(this, qstate));
     }
   }else{
     d_model.reset(
@@ -372,7 +370,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
-  if (d_conflict_c.get())
+  if (d_qstate.isInConflict())
   {
     if (e < Theory::EFFORT_LAST_CALL)
     {
@@ -417,7 +415,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
   }
 
-  d_conflict = false;
   d_hasAddedLemma = false;
   bool setIncomplete = false;
 
@@ -452,7 +449,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug")
-          << "  In conflict : " << d_conflict << std::endl;
+          << "  In conflict : " << d_qstate.isInConflict() << std::endl;
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
@@ -538,7 +535,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                                       << " at effort " << quant_e << "..."
                                       << std::endl;
           mdl->check(e, quant_e);
-          if( d_conflict ){
+          if( d_qstate.isInConflict() ){
             Trace("quant-engine-debug") << "...conflict!" << std::endl;
             break;
           }
@@ -550,7 +547,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if( d_hasAddedLemma ){
         break;
       }else{
-        Assert(!d_conflict);
+        Assert(!d_qstate.isInConflict());
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
           if( e==Theory::EFFORT_FULL ){
@@ -578,7 +575,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 setIncomplete = true;
               }
             }
-            if (d_conflict_c.get())
+            if (d_qstate.isInConflict())
             {
               // we reported a conflicting lemma, should return
               setIncomplete = true;
@@ -900,19 +897,10 @@ void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
+
 bool QuantifiersEngine::hasAddedLemma() const
 {
   return !d_lemmas_waiting.empty() || d_hasAddedLemma;
-}
-bool QuantifiersEngine::theoryEngineNeedsCheck() const
-{
-  return d_te->needCheck();
-}
-
-void QuantifiersEngine::setConflict()
-{
-  d_conflict = true;
-  d_conflict_c = true;
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {

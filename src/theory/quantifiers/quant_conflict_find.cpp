@@ -637,7 +637,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
     }
   }
   // spurious if quantifiers engine is in conflict
-  return p->d_quantEngine->inConflict();
+  return p->d_qstate.isInConflict();
 }
 
 bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
@@ -1185,7 +1185,7 @@ void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars
   }
 }
 
-bool MatchGen::reset_round(QuantConflictFind* p)
+bool MatchGen::reset_round(TermDb* tdb, QuantifiersState& qs)
 {
   d_wasSet = false;
   for( unsigned i=0; i<d_children.size(); i++ ){
@@ -1202,28 +1202,24 @@ bool MatchGen::reset_round(QuantConflictFind* p)
     //  d_ground_eval[0] = p->d_false;
     //}
     // modified
-    TermDb* tdb = p->getTermDatabase();
-    QuantifiersEngine* qe = p->getQuantifiersEngine();
     for (unsigned i = 0; i < 2; i++)
     {
       if (tdb->isEntailed(d_n, i == 0))
       {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
       }
-      if (qe->inConflict())
+      if (qs.isInConflict())
       {
         return false;
       }
     }
   }else if( d_type==typ_eq ){
-    TermDb* tdb = p->getTermDatabase();
-    QuantifiersEngine* qe = p->getQuantifiersEngine();
     for (unsigned i = 0, size = d_n.getNumChildren(); i < size; i++)
     {
       if (!expr::hasBoundVar(d_n[i]))
       {
         TNode t = tdb->getEntailedTerm(d_n[i]);
-        if (qe->inConflict())
+        if (qs.isInConflict())
         {
           return false;
         }
@@ -2027,7 +2023,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
       {
         // check this quantified formula
         checkQuantifiedFormula(q, isConflict, addedLemmas);
-        if (d_conflict || d_quantEngine->inConflict())
+        if (d_conflict || d_qstate.isInConflict())
         {
           break;
         }
@@ -2036,7 +2032,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     // We are done if we added a lemma, or discovered a conflict in another
     // way. An example of the latter case is when two disequal congruent terms
     // are discovered during term indexing.
-    if (addedLemmas > 0 || d_quantEngine->inConflict())
+    if (addedLemmas > 0 || d_qstate.isInConflict())
     {
       break;
     }
@@ -2089,7 +2085,8 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
   }
 
   Trace("qcf-check-debug") << "Reset round..." << std::endl;
-  if (!qi->reset_round(this))
+  TermDatabase * tdb = getTermDatabase();
+  if (!qi->reset_round(tdb, d_qstate))
   {
     // it is typically the case that another conflict (e.g. in the term
     // database) was discovered if we fail here.
@@ -2100,7 +2097,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
   Instantiate* qinst = d_quantEngine->getInstantiate();
   while (qi->getNextMatch(this))
   {
-    if (d_quantEngine->inConflict())
+    if (d_qstate.isInConflict())
     {
       Trace("qcf-check") << "   ... Quantifiers engine discovered conflict, ";
       Trace("qcf-check") << "probably related to disequal congruent terms in "

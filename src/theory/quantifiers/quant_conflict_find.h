@@ -95,7 +95,7 @@ public:
    * processing this match generator. This method returns false if the reset
    * failed, e.g. if a conflict was encountered during term indexing.
    */
-  bool reset_round(QuantConflictFind* p);
+  bool reset_round(TermDb* tdb, QuantifiersState& qs);
   void reset( QuantConflictFind * p, bool tgt, QuantInfo * qi );
   bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
   bool isValid() { return d_type!=typ_invalid; }
