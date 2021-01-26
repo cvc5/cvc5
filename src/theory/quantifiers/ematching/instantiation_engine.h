@@ -48,7 +48,7 @@ class InstantiationEngine : public QuantifiersModule {
   void doInstantiationRound(Theory::Effort effort);
 
  public:
-  InstantiationEngine(QuantifiersEngine* qe);
+  InstantiationEngine(QuantifiersEngine* qe, QuantifiersState& qs);
   ~InstantiationEngine();
   void presolve() override;
   bool needsCheck(Theory::Effort e) override;

@@ -43,8 +43,9 @@ private:
   int d_triedLemmas;
   int d_totalLemmas;
 public:
-  ModelEngine( context::Context* c, QuantifiersEngine* qe );
-  virtual ~ModelEngine();
+ ModelEngine(QuantifiersEngine* qe, QuantifiersState& qs);
+ virtual ~ModelEngine();
+
 public:
  bool needsCheck(Theory::Effort e) override;
  QEffort needsModel(Theory::Effort e) override;

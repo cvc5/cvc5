@@ -18,12 +18,16 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
+
+QuantifiersModule::QuantifiersModule(quantifiers::QuantifiersState& qs,
+                                     QuantifiersEngine* qe)
+    : d_quantEngine(qe), d_qstate(qs)
+{
+}
 
 QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
 {

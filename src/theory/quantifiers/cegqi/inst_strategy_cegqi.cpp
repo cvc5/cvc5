@@ -49,12 +49,13 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
-InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
-    : QuantifiersModule(qe),
+InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
+                                     QuantifiersState& qs)
+    : QuantifiersModule(qs, qe),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
-      d_added_cbqi_lemma(qe->getUserContext()),
+      d_added_cbqi_lemma(qs.getUserContext()),
       d_vtsCache(new VtsTermCache(qe)),
       d_bv_invert(nullptr)
 {
@@ -68,7 +69,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
   }
   if (options::cegqiNestedQE())
   {
-    d_nestedQe.reset(new NestedQe(qe->getUserContext()));
+    d_nestedQe.reset(new NestedQe(qs.getUserContext()));
   }
 }
 
@@ -168,7 +169,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       d_dstrat[q].reset(
           new DecisionStrategySingleton("CexLiteral",
                                         ceLit,
-                                        d_quantEngine->getSatContext(),
+                                        d_qstate.getSatContext(),
                                         d_quantEngine->getValuation()));
       dlds = d_dstrat[q].get();
     }

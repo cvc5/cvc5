@@ -21,6 +21,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,7 +44,7 @@ namespace quantifiers {
 class EqualityQueryQuantifiersEngine : public EqualityQuery
 {
  public:
-  EqualityQueryQuantifiersEngine(context::Context* c, QuantifiersEngine* qe);
+  EqualityQueryQuantifiersEngine(QuantifiersState& qs, QuantifiersEngine* qe);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   bool reset(Theory::Effort e) override;

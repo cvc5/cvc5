@@ -43,7 +43,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      const LogicInfo& logicInfo,
                                      ProofNodeManager* pnm)
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
-      d_qstate(c, u, valuation)
+      d_qstate(c, u, valuation),
+      d_qengine(d_qstate, pnm)
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute("qid", this);
@@ -59,6 +60,11 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   }
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;
+
+  // Set the pointer to the quantifiers engine, which this theory owns. This
+  // pointer will be retreived by TheoryEngine and set to all theories
+  // post-construction.
+  d_quantEngine = &d_qengine;
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {

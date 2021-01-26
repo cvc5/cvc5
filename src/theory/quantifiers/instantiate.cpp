@@ -36,14 +36,15 @@ namespace theory {
 namespace quantifiers {
 
 Instantiate::Instantiate(QuantifiersEngine* qe,
-                         context::UserContext* u,
+                         QuantifiersState& qs,
                          ProofNodeManager* pnm)
     : d_qe(qe),
+      d_qstate(qs),
       d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),
-      d_total_inst_debug(u),
-      d_c_inst_match_trie_dom(u),
+      d_total_inst_debug(qs.getUserContext()),
+      d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
 }
@@ -429,7 +430,7 @@ bool Instantiate::existsInstantiation(Node q,
     if (it != d_c_inst_match_trie.end())
     {
       return it->second->existsInstMatch(
-          d_qe, q, terms, d_qe->getUserContext(), modEq);
+          d_qe, q, terms, d_qstate.getUserContext(), modEq);
     }
   }
   else
@@ -524,11 +525,11 @@ bool Instantiate::recordInstantiationInternal(Node q,
     }
     else
     {
-      imt = new inst::CDInstMatchTrie(d_qe->getUserContext());
+      imt = new inst::CDInstMatchTrie(d_qstate.getUserContext());
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qe, q, terms, d_qe->getUserContext(), modEq);
+    return imt->addInstMatch(d_qe, q, terms, d_qstate.getUserContext(), modEq);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   return d_inst_match_trie[q].addInstMatch(d_qe, q, terms, modEq);

@@ -33,7 +33,7 @@ class SynthEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  public:
-  SynthEngine(QuantifiersEngine* qe, context::Context* c);
+  SynthEngine(QuantifiersEngine* qe, QuantifiersState& qs);
   ~SynthEngine();
   /** presolve
    *

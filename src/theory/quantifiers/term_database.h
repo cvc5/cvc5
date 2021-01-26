@@ -76,7 +76,7 @@ class TermDb : public QuantifiersUtil {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  public:
-  TermDb(context::Context* c, context::UserContext* u, QuantifiersEngine* qe);
+  TermDb(QuantifiersState& qs, QuantifiersEngine* qe);
   ~TermDb();
   /** presolve (called once per user check-sat) */
   void presolve();

@@ -35,12 +35,12 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 //Model Engine constructor
-ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
-QuantifiersModule( qe ),
-d_incomplete_check(true),
-d_addedLemmas(0),
-d_triedLemmas(0),
-d_totalLemmas(0)
+ModelEngine::ModelEngine(QuantifiersEngine* qe, QuantifiersState& qs)
+    : QuantifiersModule(qs, qe),
+      d_incomplete_check(true),
+      d_addedLemmas(0),
+      d_triedLemmas(0),
+      d_totalLemmas(0)
 {
 
 }

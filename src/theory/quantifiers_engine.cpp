@@ -30,37 +30,34 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
-                                     DecisionManager& dm,
+QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
                                      ProofNodeManager* pnm)
-    : d_te(te),
-      d_context(te->getSatContext()),
-      d_userContext(te->getUserContext()),
-      d_decManager(dm),
+    : d_qstate(qstate),
+      d_te(nullptr),
+      d_decManager(nullptr),
       d_masterEqualityEngine(nullptr),
-      d_eq_query(
-          new quantifiers::EqualityQueryQuantifiersEngine(d_context, this)),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
       d_term_canon(new expr::TermCanonize),
-      d_term_db(new quantifiers::TermDb(d_context, d_userContext, this)),
+      d_term_db(new quantifiers::TermDb(qstate, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(new quantifiers::Instantiate(this, d_userContext, pnm)),
-      d_skolemize(new quantifiers::Skolemize(this, d_userContext, pnm)),
+      d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
+      d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
-      d_conflict_c(d_context, false),
-      d_quants_prereg(d_userContext),
-      d_quants_red(d_userContext),
-      d_lemmas_produced_c(d_userContext),
-      d_ierCounter_c(d_context),
-      d_presolve(d_userContext, true),
-      d_presolve_in(d_userContext),
-      d_presolve_cache(d_userContext),
-      d_presolve_cache_wq(d_userContext),
-      d_presolve_cache_wic(d_userContext)
+      d_conflict_c(qstate.getSatContext(), false),
+      d_quants_prereg(qstate.getUserContext()),
+      d_quants_red(qstate.getUserContext()),
+      d_lemmas_produced_c(qstate.getUserContext()),
+      d_ierCounter_c(qstate.getSatContext()),
+      d_presolve(qstate.getUserContext(), true),
+      d_presolve_in(qstate.getUserContext()),
+      d_presolve_cache(qstate.getUserContext()),
+      d_presolve_cache_wq(qstate.getUserContext()),
+      d_presolve_cache_wic(qstate.getUserContext())
 {
   //---- utilities
   d_util.push_back(d_eq_query.get());
@@ -71,7 +68,7 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(this, qstate));
   }
 
   d_util.push_back(d_instantiate.get());
@@ -106,53 +103,43 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te,
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, d_context, "FirstOrderModelFmc"));
-      d_builder.reset(
-          new quantifiers::fmcheck::FullModelChecker(d_context, this));
+          this, qstate, "FirstOrderModelFmc"));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(
-          new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(d_context, this));
+          new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(this));
     }
   }else{
     d_model.reset(
-        new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
+        new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
   }
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
-void QuantifiersEngine::finishInit()
+void QuantifiersEngine::finishInit(TheoryEngine* te,
+                                   DecisionManager* dm,
+                                   eq::EqualityEngine* mee)
 {
-  // Initialize the modules and the utilities here. We delay their
-  // initialization to here, since this is after TheoryQuantifiers finishInit,
-  // which has initialized the state and inference manager of this engine.
+  d_te = te;
+  d_decManager = dm;
+  d_masterEqualityEngine = mee;
+  // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_context, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
 }
 
-void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
-{
-  d_masterEqualityEngine = mee;
-}
-
 TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
 
 DecisionManager* QuantifiersEngine::getDecisionManager()
 {
-  return &d_decManager;
-}
-
-context::Context* QuantifiersEngine::getSatContext() { return d_context; }
-
-context::UserContext* QuantifiersEngine::getUserContext()
-{
-  return d_userContext;
+  return d_decManager;
 }
 
 OutputChannel& QuantifiersEngine::getOutputChannel()
