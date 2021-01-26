@@ -115,7 +115,6 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
 
 void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 {
-  Assert(d_quantEngine == nullptr);
   // quantifiers engine may be null if not in quantified logic
   d_quantEngine = qe;
 }
