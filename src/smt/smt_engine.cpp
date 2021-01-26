@@ -53,10 +53,12 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
+#include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
 
