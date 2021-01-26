@@ -1688,7 +1688,8 @@ void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->getInstantiatedQuantifiedFormulas(qs);
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  qe->getInstantiatedQuantifiedFormulas(qs);
 }
 
 void SmtEngine::getInstantiationTermVectors(
@@ -1697,7 +1698,8 @@ void SmtEngine::getInstantiationTermVectors(
   SmtScope smts(this);
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->getInstantiationTermVectors(q, tvecs);
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  qe->getInstantiationTermVectors(q, tvecs);
 }
 
 std::vector<Node> SmtEngine::getAssertions()
