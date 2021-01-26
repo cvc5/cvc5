@@ -700,8 +700,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
                   gsubs_vars.push_back(
-                      d_termCanon.getCanonicalFreeVar(
-                          it->first, i));
+                      d_termCanon.getCanonicalFreeVar(it->first, i));
                 }
               }
             }
