@@ -70,8 +70,8 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    * rewrites for n include:
-   * - (mkBag x 0) = (emptybag T) where T is the type of x
-   * - (mkBag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
+   * - (bag x 0) = (emptybag T) where T is the type of x
+   * - (bag x (-c)) = (emptybag T) where T is the type of x, and c > 0 is a
    *   constant
    * - otherwise = n
    */
@@ -87,7 +87,7 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    *  rewrites for n include:
-   *  - (duplicate_removal (mkBag x n)) = (mkBag x 1)
+   *  - (duplicate_removal (bag x n)) = (bag x 1)
    *     where n is a positive constant
    */
   BagsRewriteResponse rewriteDuplicateRemoval(const TNode& n) const;
@@ -171,13 +171,13 @@ class BagsRewriter : public TheoryRewriter
   BagsRewriteResponse rewriteDifferenceRemove(const TNode& n) const;
   /**
    * rewrites for n include:
-   * - (bag.choose (mkBag x c)) = x where c is a constant > 0
+   * - (bag.choose (bag x c)) = x where c is a constant > 0
    * - otherwise = n
    */
   BagsRewriteResponse rewriteChoose(const TNode& n) const;
   /**
    * rewrites for n include:
-   * - (bag.card (mkBag x c)) = c where c is a constant > 0
+   * - (bag.card (bag x c)) = c where c is a constant > 0
    * - (bag.card (union-disjoint A B)) = (+ (bag.card A) (bag.card B))
    * - otherwise = n
    */
@@ -185,19 +185,19 @@ class BagsRewriter : public TheoryRewriter
 
   /**
    * rewrites for n include:
-   * - (bag.is_singleton (mkBag x c)) = (c == 1)
+   * - (bag.is_singleton (bag x c)) = (c == 1)
    */
   BagsRewriteResponse rewriteIsSingleton(const TNode& n) const;
 
   /**
    *  rewrites for n include:
-   *  - (bag.from_set (singleton (singleton_op Int) x)) = (mkBag x 1)
+   *  - (bag.from_set (singleton (singleton_op Int) x)) = (bag x 1)
    */
   BagsRewriteResponse rewriteFromSet(const TNode& n) const;
 
   /**
    *  rewrites for n include:
-   *  - (bag.to_set (mkBag x n)) = (singleton (singleton_op T) x)
+   *  - (bag.to_set (bag x n)) = (singleton (singleton_op T) x)
    *     where n is a positive constant and T is the type of the bag's elements
    */
   BagsRewriteResponse rewriteToSet(const TNode& n) const;
