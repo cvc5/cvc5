@@ -278,9 +278,9 @@ class TheoryEngine {
    * @param from the theory that sent the lemma
    */
   void lemma(theory::TrustNode node,
-                            theory::LemmaProperty p,
-                            theory::TheoryId atomsTo = theory::THEORY_LAST,
-                            theory::TheoryId from = theory::THEORY_LAST);
+             theory::LemmaProperty p,
+             theory::TheoryId atomsTo = theory::THEORY_LAST,
+             theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);

@@ -1367,9 +1367,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 }
 
 void TheoryEngine::lemma(theory::TrustNode tlemma,
-                                        theory::LemmaProperty p,
-                                        theory::TheoryId atomsTo,
-                                        theory::TheoryId from)
+                         theory::LemmaProperty p,
+                         theory::TheoryId atomsTo,
+                         theory::TheoryId from)
 {
   // For resource-limiting (also does a time check).
   // spendResource();

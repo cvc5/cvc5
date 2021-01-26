@@ -76,11 +76,10 @@ void EngineOutputChannel::lemma(TNode lemma, LemmaProperty p)
   d_engine->d_outputChannelUsed = true;
 
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
-  d_engine->lemma(
-      tlem,
-      p,
-      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
-      d_theory);
+  d_engine->lemma(tlem,
+                  p,
+                  isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
+                  d_theory);
 }
 
 void EngineOutputChannel::splitLemma(TNode lemma, bool removable)
@@ -182,11 +181,10 @@ void EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
   ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
   // now, call the normal interface for lemma
-  d_engine->lemma(
-      plem,
-      p,
-      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
-      d_theory);
+  d_engine->lemma(plem,
+                  p,
+                  isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST,
+                  d_theory);
 }
 
 }  // namespace theory

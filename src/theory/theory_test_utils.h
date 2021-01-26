@@ -77,10 +77,7 @@ public:
     return true;
   }
 
-  void lemma(TNode n, LemmaProperty p) override
-  {
-    push(LEMMA, n);
-  }
+  void lemma(TNode n, LemmaProperty p) override { push(LEMMA, n); }
 
   void trustedLemma(TrustNode n, LemmaProperty p) override
   {
@@ -91,9 +88,7 @@ public:
   void setIncomplete() override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
-  void splitLemma(TNode n, bool removable = false) override {
-    push(LEMMA, n);
-  }
+  void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }
 
   void clear() { d_callHistory.clear(); }
 

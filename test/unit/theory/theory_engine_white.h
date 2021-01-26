@@ -56,8 +56,7 @@ using namespace std;
 class FakeOutputChannel : public OutputChannel {
   void conflict(TNode n) override { Unimplemented(); }
   bool propagate(TNode n) override { Unimplemented(); }
-  void lemma(TNode n,
-                    LemmaProperty p = LemmaProperty::NONE) override
+  void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) override
   {
     Unimplemented();
   }

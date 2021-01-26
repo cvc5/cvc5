@@ -84,10 +84,7 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
   return out;
 }
 
-void OutputChannel::split(TNode n)
-{
-  splitLemma(n.orNode(n.notNode()));
-}
+void OutputChannel::split(TNode n) { splitLemma(n.orNode(n.notNode())); }
 
 void OutputChannel::trustedConflict(TrustNode pconf)
 {

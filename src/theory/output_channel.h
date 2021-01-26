@@ -203,7 +203,7 @@ class OutputChannel {
    * the same as OutputChannel.
    */
   virtual void trustedLemma(TrustNode lem,
-                                   LemmaProperty p = LemmaProperty::NONE);
+                            LemmaProperty p = LemmaProperty::NONE);
   //---------------------------- end new proof
 }; /* class OutputChannel */
 

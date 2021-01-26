@@ -48,8 +48,7 @@ class EngineOutputChannel : public theory::OutputChannel
   void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
-  void lemma(TNode lemma,
-                            LemmaProperty p = LemmaProperty::NONE) override;
+  void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
   void splitLemma(TNode lemma, bool removable = false) override;
 
@@ -77,7 +76,7 @@ class EngineOutputChannel : public theory::OutputChannel
    * the same as calling OutputChannel::lemma on lem.
    */
   void trustedLemma(TrustNode plem,
-                           LemmaProperty p = LemmaProperty::NONE) override;
+                    LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**
