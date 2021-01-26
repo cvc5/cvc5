@@ -132,9 +132,8 @@ class PropEngine
    *
    * @param trn the trust node storing the formula to assert
    * @param p the properties of the lemma
-   * @return the (preprocessed) lemma
    */
-  Node assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This

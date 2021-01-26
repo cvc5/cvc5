@@ -54,16 +54,14 @@ class TestOutputChannel : public OutputChannel {
     return true;
   }
 
-  LemmaStatus lemma(TNode n,
+  void lemma(TNode n,
                     LemmaProperty p = LemmaProperty::NONE) override
   {
     push(LEMMA, n);
-    return LemmaStatus(Node::null(), 0);
   }
 
-  LemmaStatus splitLemma(TNode n, bool removable) override {
+  void splitLemma(TNode n, bool removable) override {
     push(LEMMA, n);
-    return LemmaStatus(Node::null(), 0);
   }
 
   void requirePhase(TNode, bool) override { Unreachable(); }

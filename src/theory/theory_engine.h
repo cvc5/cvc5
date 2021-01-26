@@ -276,10 +276,8 @@ class TheoryEngine {
    * @param p the properties of the lemma.
    * @param atomsTo the theory that atoms of the lemma should be sent to
    * @param from the theory that sent the lemma
-   * @return a lemma status, containing the lemma and context information
-   * about when it was sent.
    */
-  theory::LemmaStatus lemma(theory::TrustNode node,
+  void lemma(theory::TrustNode node,
                             theory::LemmaProperty p,
                             theory::TheoryId atomsTo = theory::THEORY_LAST,
                             theory::TheoryId from = theory::THEORY_LAST);

@@ -1366,7 +1366,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
+void TheoryEngine::lemma(theory::TrustNode tlemma,
                                         theory::LemmaProperty p,
                                         theory::TheoryId atomsTo,
                                         theory::TheoryId from)
@@ -1419,7 +1419,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     printer.toStreamCmdCheckSat(out, n);
   }
 
-  Node retLemma = d_propEngine->assertLemma(tlemma, p);
+  // assert the lemma
+  d_propEngine->assertLemma(tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
   // justified, where note we pass all auxiliary lemmas in lemmas, since these
@@ -1431,8 +1432,6 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
 
   // Mark that we added some lemmas
   d_lemmasAdded = true;
-
-  return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
 
 void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)

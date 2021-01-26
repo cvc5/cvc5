@@ -201,7 +201,7 @@ void PropEngine::assertFormula(TNode node) {
   }
 }
 
-Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
+void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
   bool preprocess = isLemmaPropertyPreprocess(p);
@@ -257,20 +257,6 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
     }
     d_decisionEngine->addAssertions(assertions, ppLemmasF, ppSkolems);
   }
-
-  // make the return lemma, which the theory engine will use
-  Node retLemma = tplemma.getProven();
-  if (!ppLemmas.empty())
-  {
-    std::vector<Node> lemmas{retLemma};
-    for (const theory::TrustNode& tnl : ppLemmas)
-    {
-      lemmas.push_back(tnl.getProven());
-    }
-    // the returned lemma is the conjunction of all additional lemmas.
-    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas);
-  }
-  return retLemma;
 }
 
 void PropEngine::assertLemmaInternal(theory::TrustNode trn, bool removable)

@@ -77,25 +77,22 @@ public:
     return true;
   }
 
-  LemmaStatus lemma(TNode n, LemmaProperty p) override
+  void lemma(TNode n, LemmaProperty p) override
   {
     push(LEMMA, n);
-    return LemmaStatus(Node::null(), 0);
   }
 
-  LemmaStatus trustedLemma(TrustNode n, LemmaProperty p) override
+  void trustedLemma(TrustNode n, LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
-    return LemmaStatus(Node::null(), 0);
   }
 
   void requirePhase(TNode, bool) override {}
   void setIncomplete() override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
-  LemmaStatus splitLemma(TNode n, bool removable = false) override {
+  void splitLemma(TNode n, bool removable = false) override {
     push(LEMMA, n);
-    return LemmaStatus(Node::null(), 0);
   }
 
   void clear() { d_callHistory.clear(); }

@@ -84,18 +84,9 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
   return out;
 }
 
-LemmaStatus::LemmaStatus(TNode rewrittenLemma, unsigned level)
-    : d_rewrittenLemma(rewrittenLemma), d_level(level)
+void OutputChannel::split(TNode n)
 {
-}
-
-TNode LemmaStatus::getRewrittenLemma() const { return d_rewrittenLemma; }
-
-unsigned LemmaStatus::getLevel() const { return d_level; }
-
-LemmaStatus OutputChannel::split(TNode n)
-{
-  return splitLemma(n.orNode(n.notNode()));
+  splitLemma(n.orNode(n.notNode()));
 }
 
 void OutputChannel::trustedConflict(TrustNode pconf)
@@ -104,7 +95,7 @@ void OutputChannel::trustedConflict(TrustNode pconf)
                 << std::endl;
 }
 
-LemmaStatus OutputChannel::trustedLemma(TrustNode lem, LemmaProperty p)
+void OutputChannel::trustedLemma(TrustNode lem, LemmaProperty p)
 {
   Unreachable() << "OutputChannel::trustedLemma: no implementation"
                 << std::endl;
