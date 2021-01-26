@@ -312,7 +312,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
+  return d_termCanon->getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){

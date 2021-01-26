@@ -21,6 +21,7 @@
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/type_enumerator.h"
+#include "expr/term_canonize.h"
 
 namespace CVC4 {
 namespace theory {
@@ -457,6 +458,8 @@ private:  //information about ground equivalence classes
   unsigned optFullCheckConjectures();
 
   bool optStatsOnly();
+  /** term canonizer */
+  expr::TermCanonize d_termCanon;
 };
 
 
