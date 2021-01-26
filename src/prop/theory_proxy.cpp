@@ -195,10 +195,8 @@ void TheoryProxy::getSkolems(TNode node,
                              std::vector<Node>& sks)
 {
   RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
-  // get the skolems, fixed point
   std::unordered_set<Node, NodeHashFunction> skolems;
-  rtf.getSkolems(node, skolems, true);
-  std::vector<Node> lemmas{node};
+  rtf.getSkolems(node, skolems);
   for (const Node& k : skolems)
   {
     sks.push_back(k);

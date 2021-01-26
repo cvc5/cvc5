@@ -132,15 +132,9 @@ class RemoveTermFormulas {
    *
    * @param n The node to traverse
    * @param skolems The set where the skolems are added
-   * @param fixedPoint Also include skolems that occur in the definition lemma
-   * for all skolems in the above set. For example, if k1 has definition
-   * (ite A (= k1 k2) (= k1 x)) where k2 is another skolem, then calling this
-   * method on (P k1) will include {k1} only if fixedPoint is false, and
-   * {k1, k2} if fixed point is true.
    */
   void getSkolems(TNode n,
-                  std::unordered_set<Node, NodeHashFunction>& skolems,
-                  bool fixedPoint = false) const;
+                  std::unordered_set<Node, NodeHashFunction>& skolems) const;
 
   /**
    * Get the lemma for the skolem, or the null node if k is not a skolem this

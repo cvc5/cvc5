@@ -198,7 +198,13 @@ class PropEngine
   Node getPreprocessedTerm(TNode n);
   /**
    * Same as above, but also compute the skolems in n and the lemmas
-   * corresponding to their definition.
+   * corresponding to their definition. 
+   * 
+   * Note this will include skolems that occur in the definition lemma
+   * for all skolems in sks. This is run until a fixed point is reached.
+   * For example, if k1 has definition (ite A (= k1 k2) (= k1 x)) where k2 is
+   * another skolem introduced by term formula removal, then calling this
+   * method on (P k1) will include both k1 and k2.
    */
   Node getPreprocessedTerm(TNode n,
                            std::vector<Node>& skAsserts,

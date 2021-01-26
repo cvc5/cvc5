@@ -455,14 +455,32 @@ Node PropEngine::getPreprocessedTerm(TNode n,
                                      std::vector<Node>& skAsserts,
                                      std::vector<Node>& sks)
 {
+  // get the preprocessed form of the term
   Node pn = getPreprocessedTerm(n);
-  std::vector<theory::TrustNode> tskAsserts;
-  d_theoryProxy->getSkolems(pn, tskAsserts, sks);
-  // must preprocess the lemmas in skAsserts as well
-  for (const theory::TrustNode& t : tskAsserts)
+  // initialize the set of skolems and assertions to process
+  std::vector<theory::TrustNode> toProcessAsserts;
+  std::vector<Node> toProcess;
+  d_theoryProxy->getSkolems(pn, toProcessAsserts, toProcess);
+  size_t index = 0;
+  // until fixed point is reached
+  while (index<toProcess.size())
   {
-    skAsserts.push_back(getPreprocessedTerm(t.getProven()));
+    theory::TrustNode ka = toProcessAsserts[index];
+    Node k = toProcess[index];
+    index++;
+    if (std::find(sks.begin(), sks.end(), k)!=sks.end())
+    {
+      // already added the skolem to the list
+      continue;
+    }
+    // must preprocess lemmas as well
+    Node kap = getPreprocessedTerm(ka.getProven());
+    skAsserts.push_back(kap);
+    sks.push_back(k);
+    // get the skolems in the preprocessed form of the lemma ka
+    d_theoryProxy->getSkolems(kap, toProcessAsserts, toProcess);
   }
+  // return the preprocessed term
   return pn;
 }
 

@@ -519,8 +519,7 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
 
 void RemoveTermFormulas::getSkolems(
     TNode n,
-    std::unordered_set<Node, NodeHashFunction>& skolems,
-    bool fixedPoint) const
+    std::unordered_set<Node, NodeHashFunction>& skolems) const
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
@@ -543,11 +542,6 @@ void RemoveTermFormulas::getSkolems(
         if (itl != d_lemmaCache.end())
         {
           skolems.insert(cur);
-          if (fixedPoint)
-          {
-            // also visit the definition for the skolem if fixed point is true
-            visit.push_back((*itl).second.getProven());
-          }
         }
       }
       else
