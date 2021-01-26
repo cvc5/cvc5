@@ -164,7 +164,7 @@ public:
    * definitions in sks and skAsserts respectively.
    */
   Node getPreprocessedTerm(TNode n,
-                           std::vector<theory::TrustNode>& skAsserts,
+                           std::vector<Node>& skAsserts,
                            std::vector<Node>& sks);
 
   /**

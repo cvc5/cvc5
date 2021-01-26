@@ -518,22 +518,14 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
 }
 
 bool RemoveTermFormulas::getSkolems(
-    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
+    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems,
+                             bool fixedPoint) const
 {
-  // if n was unchanged by term formula removal, just return immediately
-  std::pair<Node, uint32_t> initial(n, d_rtfc.initialValue());
-  TermFormulaCache::const_iterator itc = d_tfCache.find(initial);
-  if (itc != d_tfCache.end())
-  {
-    if (itc->second == n)
-    {
-      return false;
-    }
-  }
-  // otherwise, traverse it
   bool ret = false;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>::
+      const_iterator itl;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -547,15 +539,24 @@ bool RemoveTermFormulas::getSkolems(
       visited.insert(cur);
       if (cur.isVar())
       {
-        if (d_lemmaCache.find(cur) != d_lemmaCache.end())
+        itl = d_lemmaCache.find(cur);
+        if (itl != d_lemmaCache.end())
         {
           // technically could already be in skolems if skolems was non-empty,
           // regardless set return value to true.
           skolems.insert(cur);
           ret = true;
+          if (fixedPoint)
+          {
+            // also visit the definition for the skolem
+            visit.push_back((*itl).second.getProven());
+          }
         }
       }
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      else
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
   } while (!visit.empty());
   return ret;

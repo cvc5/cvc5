@@ -37,6 +37,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
 #include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 
@@ -436,7 +437,7 @@ Node PropEngine::ensureLiteral(TNode n)
 
 Node PropEngine::getPreprocessedTerm(TNode n)
 {
-  Node rewritten = Rewriter::rewrite(n);
+  Node rewritten = theory::Rewriter::rewrite(n);
   // must preprocess
   std::vector<theory::TrustNode> newLemmas;
   std::vector<Node> newSkolems;
@@ -451,11 +452,17 @@ Node PropEngine::getPreprocessedTerm(TNode n)
 }
 
 Node PropEngine::getPreprocessedTerm(TNode n,
-                                     std::vector<theory::TrustNode>& skAsserts,
+                                     std::vector<Node>& skAsserts,
                                      std::vector<Node>& sks)
 {
   Node pn = getPreprocessedTerm(n);
-  d_theoryProxy->getSkolems(pn, skAsserts, sks);
+  std::vector<theory::TrustNode> tskAsserts;
+  d_theoryProxy->getSkolems(pn, tskAsserts, sks);
+  // must preprocess the lemmas in skAsserts as well
+  for (const theory::TrustNode& t : tskAsserts)
+  {
+    skAsserts.push_back(getPreprocessedTerm(t.getProven()));
+  }
   return pn;
 }
 

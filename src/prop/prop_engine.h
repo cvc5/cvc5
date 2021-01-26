@@ -201,7 +201,7 @@ class PropEngine
    * corresponding to their definition.
    */
   Node getPreprocessedTerm(TNode n,
-                           std::vector<theory::TrustNode>& skAsserts,
+                           std::vector<Node>& skAsserts,
                            std::vector<Node>& sks);
 
   /**
