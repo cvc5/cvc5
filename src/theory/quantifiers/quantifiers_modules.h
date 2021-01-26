@@ -18,7 +18,6 @@
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
@@ -81,8 +80,6 @@ class QuantifiersModules
   std::unique_ptr<InstStrategyCegqi> d_i_cbqi;
   /** quantifiers splitting */
   std::unique_ptr<QuantDSplit> d_qsplit;
-  /** quantifiers anti-skolemization */
-  std::unique_ptr<QuantAntiSkolem> d_anti_skolem;
   /** SyGuS instantiation engine */
   std::unique_ptr<SygusInst> d_sygus_inst;
 };
