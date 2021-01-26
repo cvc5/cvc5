@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_INFERENCE_MANAGER_H
 
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/inference_manager_buffered.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,8 +31,8 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
 {
  public:
   QuantifiersInferenceManager(Theory& t,
-                           QuantifiersState& state,
-                           ProofNodeManager* pnm);
+                              QuantifiersState& state,
+                              ProofNodeManager* pnm);
   ~QuantifiersInferenceManager();
 };
 

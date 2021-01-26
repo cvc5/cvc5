@@ -54,7 +54,9 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
-  TermDbSygus(QuantifiersEngine* qe, QuantifiersState& qs, QuantifiersInferenceManager& qim);
+  TermDbSygus(QuantifiersEngine* qe,
+              QuantifiersState& qs,
+              QuantifiersInferenceManager& qim);
   ~TermDbSygus() {}
   /** Reset this utility */
   bool reset(Theory::Effort e);

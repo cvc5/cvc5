@@ -23,9 +23,10 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-QuantifiersModule::QuantifiersModule(quantifiers::QuantifiersState& qs,
-                    quantifiers::QuantifiersInferenceManager& qim,
-                                     QuantifiersEngine* qe)
+QuantifiersModule::QuantifiersModule(
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
     : d_quantEngine(qe), d_qstate(qs), d_qim(qim)
 {
 }

@@ -30,11 +30,12 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
-                    quantifiers::QuantifiersInferenceManager& qim,
-                                     ProofNodeManager* pnm)
+QuantifiersEngine::QuantifiersEngine(
+    quantifiers::QuantifiersState& qstate,
+    quantifiers::QuantifiersInferenceManager& qim,
+    ProofNodeManager* pnm)
     : d_qstate(qstate),
-    d_qim(qim),
+      d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
       d_masterEqualityEngine(nullptr),

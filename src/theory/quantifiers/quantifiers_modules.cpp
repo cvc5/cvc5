@@ -38,7 +38,8 @@ QuantifiersModules::QuantifiersModules()
 }
 QuantifiersModules::~QuantifiersModules() {}
 void QuantifiersModules::initialize(QuantifiersEngine* qe,
-                                    QuantifiersState& qs,QuantifiersInferenceManager& qim,
+                                    QuantifiersState& qs,
+                                    QuantifiersInferenceManager& qim,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules

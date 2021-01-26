@@ -18,13 +18,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+QuantifiersInferenceManager::QuantifiersInferenceManager(
+    Theory& t, QuantifiersState& state, ProofNodeManager* pnm)
+    : InferenceManagerBuffered(t, state, pnm)
+{
+}
 
-QuantifiersInferenceManager::QuantifiersInferenceManager(Theory& t,
-                          QuantifiersState& state,
-                          ProofNodeManager* pnm) : InferenceManagerBuffered(t, state, pnm){}
-                          
 QuantifiersInferenceManager::~QuantifiersInferenceManager() {}
-
 
 }  // namespace quantifiers
 }  // namespace theory

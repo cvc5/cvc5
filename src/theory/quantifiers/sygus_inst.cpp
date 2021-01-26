@@ -180,7 +180,9 @@ void addSpecialValues(
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersEngine* qe, QuantifiersState& qs, QuantifiersInferenceManager& qim)
+SygusInst::SygusInst(QuantifiersEngine* qe,
+                     QuantifiersState& qs,
+                     QuantifiersInferenceManager& qim)
     : QuantifiersModule(qs, qim, qe),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),

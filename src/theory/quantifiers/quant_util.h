@@ -21,8 +21,8 @@
 #include <map>
 #include <vector>
 
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -60,7 +60,8 @@ class QuantifiersModule {
 
  public:
   QuantifiersModule(quantifiers::QuantifiersState& qs,
-                    quantifiers::QuantifiersInferenceManager& qim, QuantifiersEngine* qe);
+                    quantifiers::QuantifiersInferenceManager& qim,
+                    QuantifiersEngine* qe);
   virtual ~QuantifiersModule(){}
   /** Presolve.
    *

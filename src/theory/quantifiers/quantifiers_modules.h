@@ -53,7 +53,7 @@ class QuantifiersModules
    */
   void initialize(QuantifiersEngine* qe,
                   QuantifiersState& qs,
-QuantifiersInferenceManager& qim,
+                  QuantifiersInferenceManager& qim,
                   std::vector<QuantifiersModule*>& modules);
 
  private:

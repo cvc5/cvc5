@@ -43,7 +43,9 @@ private:
   int d_triedLemmas;
   int d_totalLemmas;
 public:
- ModelEngine(QuantifiersEngine* qe, QuantifiersState& qs, QuantifiersInferenceManager& qim);
+ ModelEngine(QuantifiersEngine* qe,
+             QuantifiersState& qs,
+             QuantifiersInferenceManager& qim);
  virtual ~ModelEngine();
 
 public:
