@@ -200,9 +200,9 @@ class PropEngine
    * Same as above, but also compute the skolems in n and the lemmas
    * corresponding to their definition.
    */
-  Node getPreprocessedTerm(TNode n, 
-                             std::vector<theory::TrustNode>& skAsserts,
-                             std::vector<Node>& sks);
+  Node getPreprocessedTerm(TNode n,
+                           std::vector<theory::TrustNode>& skAsserts,
+                           std::vector<Node>& sks);
 
   /**
    * Push the context level.

@@ -450,9 +450,9 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 
-Node PropEngine::getPreprocessedTerm(TNode n, 
-                             std::vector<theory::TrustNode>& skAsserts,
-                             std::vector<Node>& sks)
+Node PropEngine::getPreprocessedTerm(TNode n,
+                                     std::vector<theory::TrustNode>& skAsserts,
+                                     std::vector<Node>& sks)
 {
   Node pn = getPreprocessedTerm(n);
   d_theoryProxy->getSkolems(pn, skAsserts, sks);

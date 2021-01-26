@@ -119,8 +119,8 @@ class TheoryProxy : public Registrar
    * them in skAsserts and sks respectively.
    */
   void getSkolems(TNode node,
-                             std::vector<theory::TrustNode>& skAsserts,
-                             std::vector<Node>& sks);
+                  std::vector<theory::TrustNode>& skAsserts,
+                  std::vector<Node>& sks);
   /** Preregister term */
   void preRegister(Node n) override;
 

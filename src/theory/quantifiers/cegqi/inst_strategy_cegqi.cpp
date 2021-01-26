@@ -375,7 +375,8 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   Node ppLem = status.getRewrittenLemma();
   std::vector<Node> skolems;
   std::vector<TrustNode> skAsserts;
-  Node ppLem2 = d_quantEngine->getValuation().getPreprocessedTerm(lem, skAsserts, skolems);
+  Node ppLem2 = d_quantEngine->getValuation().getPreprocessedTerm(
+      lem, skAsserts, skolems);
   std::vector<Node> lemp{ppLem2};
   for (const TrustNode& trn : skAsserts)
   {

@@ -190,9 +190,9 @@ theory::TrustNode TheoryProxy::preprocess(
   return pnode;
 }
 
-  void TheoryProxy::getSkolems(TNode node,
-                            std::vector<theory::TrustNode>& skAsserts,
-                            std::vector<Node>& sks)
+void TheoryProxy::getSkolems(TNode node,
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks)
 {
   RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
   std::unordered_set<Node, NodeHashFunction> skolems;

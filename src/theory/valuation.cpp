@@ -166,14 +166,14 @@ Node Valuation::getPreprocessedTerm(TNode n)
   return d_engine->getPropEngine()->getPreprocessedTerm(rewritten);
 }
 
-Node Valuation::getPreprocessedTerm(TNode n, 
-                            std::vector<theory::TrustNode>& skAsserts,
-                            std::vector<Node>& sks)
+Node Valuation::getPreprocessedTerm(TNode n,
+                                    std::vector<theory::TrustNode>& skAsserts,
+                                    std::vector<Node>& sks)
 {
   Assert(d_engine != nullptr);
-  return d_engine->getPropEngine()->getPreprocessedTerm(rewritten, skAsserts, sks);
+  return d_engine->getPropEngine()->getPreprocessedTerm(
+      rewritten, skAsserts, sks);
 }
-
 
 bool Valuation::isDecision(Node lit) const {
   Assert(d_engine != nullptr);
