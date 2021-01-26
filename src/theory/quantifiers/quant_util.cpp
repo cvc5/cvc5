@@ -71,12 +71,12 @@ quantifiers::TermUtil* QuantifiersModule::getTermUtil() const
   return d_quantEngine->getTermUtil();
 }
 
-quantifiers::QuantifiersState& getState()
+quantifiers::QuantifiersState& QuantifiersModule::getState()
 {
   return d_qstate;
 }
 
-quantifiers::QuantifiersInferenceManager& getInferenceManager()
+quantifiers::QuantifiersInferenceManager& QuantifiersModule::getInferenceManager()
 {
   return d_qim;
 }

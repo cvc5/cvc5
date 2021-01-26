@@ -1210,7 +1210,7 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
       }
-      if (qs->inConflict())
+      if (qs.isInConflict())
       {
         return false;
       }
@@ -1223,7 +1223,7 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       if (!expr::hasBoundVar(d_n[i]))
       {
         TNode t = tdb->getEntailedTerm(d_n[i]);
-        if (qs->inConflict())
+        if (qs.isInConflict())
         {
           return false;
         }
