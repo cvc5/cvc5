@@ -172,22 +172,27 @@ CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 theory::TrustNode TheoryProxy::preprocessLemma(
     theory::TrustNode trn,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  return d_tpp.preprocessLemma(
-      trn, newLemmas, newSkolems, doTheoryPreprocess, true);
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems, true);
 }
 
 theory::TrustNode TheoryProxy::preprocess(
     TNode node,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  theory::TrustNode pnode =
-      d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess, true);
+  theory::TrustNode pnode = d_tpp.preprocess(node, newLemmas, newSkolems, true);
   return pnode;
+}
+
+theory::TrustNode TheoryProxy::removeItes(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  return rtf.run(node, newLemmas, newSkolems, true);
 }
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
