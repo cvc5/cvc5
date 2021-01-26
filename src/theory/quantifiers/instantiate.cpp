@@ -556,7 +556,7 @@ Node Instantiate::getTermForType(TypeNode tn)
   {
     return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
   }
-  return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
+  return d_qe->getModel()->getOrMakeTypeGroundTerm(tn);
 }
 
 bool Instantiate::printInstantiations(std::ostream& out)
