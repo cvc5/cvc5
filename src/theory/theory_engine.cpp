@@ -1427,7 +1427,11 @@ void TheoryEngine::lemma(theory::TrustNode tlemma,
   // by extension must be justified as well.
   if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
   {
+    std::vector<Node> skAsserts;
+    std::vector<Node> sks;
+    Node retLemma = d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
     d_relManager->notifyPreprocessedAssertion(retLemma);
+    d_relManager->notifyPreprocessedAssertions(skAsserts);
   }
 
   // Mark that we added some lemmas

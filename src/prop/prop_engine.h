@@ -203,7 +203,8 @@ class PropEngine
    * for all skolems in sks. This is run until a fixed point is reached.
    * For example, if k1 has definition (ite A (= k1 k2) (= k1 x)) where k2 is
    * another skolem introduced by term formula removal, then calling this
-   * method on (P k1) will include both k1 and k2.
+   * method on (P k1) will include both k1 and k2 in sks, and their definitions
+   * in skAsserts.
    */
   Node getPreprocessedTerm(TNode n,
                            std::vector<Node>& skAsserts,
