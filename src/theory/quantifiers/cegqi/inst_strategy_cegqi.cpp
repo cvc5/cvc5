@@ -374,7 +374,9 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
       d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
   Node ppLem = status.getRewrittenLemma();
   Node ppLem2 = d_quantEngine->getValuation().getPreprocessedTerm(lem);
-  AlwaysAssert(ppLem==ppLem2) << "Mismatched Lemmas = " << std::endl << ppLem << std::endl << ppLem2 << std::endl;
+  AlwaysAssert(ppLem == ppLem2) << "Mismatched Lemmas = " << std::endl
+                                << ppLem << std::endl
+                                << ppLem2 << std::endl;
   Trace("cegqi-debug") << "Counterexample lemma (post-preprocess): " << ppLem
                        << std::endl;
   std::vector<Node> auxLems;

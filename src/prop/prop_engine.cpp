@@ -449,7 +449,7 @@ Node PropEngine::getPreprocessedTerm(TNode n, bool incSkolemDefs)
   Node retTerm = tpn.isNull() ? Node(n) : tpn.getNode();
   if (!newLemmas.empty())
   {
-    Assert (retTerm.getType().isBoolean());
+    Assert(retTerm.getType().isBoolean());
     std::vector<Node> lemmas{retTerm};
     for (const theory::TrustNode& tnl : newLemmas)
     {

@@ -162,7 +162,7 @@ public:
    * n should have Boolean type.
    * @return The preprocessed form of n
    */
-  Node getPreprocessedTerm(TNode n, bool incSkolemDefs=false);
+  Node getPreprocessedTerm(TNode n, bool incSkolemDefs = false);
 
   /**
    * Returns whether the given lit (which must be a SAT literal) is a decision

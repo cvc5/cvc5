@@ -196,7 +196,7 @@ class PropEngine
    * if preprocessing n involves introducing new skolems. If incSkolemDefs is
    * true, we conjoin formulas to the returned node for skolem definitions.
    */
-  Node getPreprocessedTerm(TNode n, bool incSkolemDefs=false);
+  Node getPreprocessedTerm(TNode n, bool incSkolemDefs = false);
 
   /**
    * Push the context level.

@@ -164,7 +164,8 @@ Node Valuation::getPreprocessedTerm(TNode n, bool incSkolemDefs)
 {
   Assert(d_engine != nullptr);
   Node rewritten = Rewriter::rewrite(n);
-  return d_engine->getPropEngine()->getPreprocessedTerm(rewritten, incSkolemDefs);
+  return d_engine->getPropEngine()->getPreprocessedTerm(rewritten,
+                                                        incSkolemDefs);
 }
 
 bool Valuation::isDecision(Node lit) const {
