@@ -78,7 +78,6 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // run theory preprocessing
   TrustNode tpp = theoryPreprocess(node);
   Node ppNode = tpp.getNode();
-  
 
   // Remove the ITEs, fixed point
   TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, fixedPoint);
@@ -200,8 +199,7 @@ TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
 {
   // what was originally proven
   Node lemma = node.getProven();
-  TrustNode tplemma =
-      preprocess(lemma, newLemmas, newSkolems, fixedPoint);
+  TrustNode tplemma = preprocess(lemma, newLemmas, newSkolems, fixedPoint);
   if (tplemma.isNull())
   {
     // no change needed
@@ -243,8 +241,7 @@ TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node)
   // ignore lemmas, no fixed point
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  return preprocessLemma(
-      node, newLemmas, newSkolems, false);
+  return preprocessLemma(node, newLemmas, newSkolems, false);
 }
 
 RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()

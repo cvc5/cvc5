@@ -158,16 +158,15 @@ theory::TrustNode PropEngine::preprocess(
     std::vector<theory::TrustNode>& newLemmas,
     std::vector<Node>& newSkolems)
 {
-  return d_theoryProxy->preprocess(
-      node, newLemmas, newSkolems);
+  return d_theoryProxy->preprocess(node, newLemmas, newSkolems);
 }
 
-theory::TrustNode PropEngine::removeItes(TNode node,
-                              std::vector<theory::TrustNode>& newLemmas,
-                              std::vector<Node>& newSkolems)
+theory::TrustNode PropEngine::removeItes(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
 {
-  return d_theoryProxy->removeItes(
-      node, newLemmas, newSkolems);
+  return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
 }
 
 void PropEngine::notifyPreprocessedAssertions(
@@ -445,8 +444,7 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   // must preprocess
   std::vector<theory::TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  theory::TrustNode tpn =
-      d_theoryProxy->preprocess(n, newLemmas, newSkolems);
+  theory::TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas, newSkolems);
   // send lemmas corresponding to the skolems introduced by preprocessing n
   for (const theory::TrustNode& tnl : newLemmas)
   {
