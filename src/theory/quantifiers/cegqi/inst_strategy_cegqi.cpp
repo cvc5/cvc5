@@ -373,7 +373,15 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   LemmaStatus status =
       d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
   Node ppLem = status.getRewrittenLemma();
-  Node ppLem2 = d_quantEngine->getValuation().getPreprocessedTerm(lem);
+  std::vector<Node> skolems;
+  std::vector<TrustNode> skAsserts;
+  Node ppLem2 = d_quantEngine->getValuation().getPreprocessedTerm(lem, skAsserts, skolems);
+  std::vector<Node> lemp{ppLem2};
+  for (const TrustNode& trn : skAsserts)
+  {
+    lemp.push_back(trn.getProven());
+  }
+  ppLem2 = NodeManager::currNM()->mkAnd(lemp);
   AlwaysAssert(ppLem == ppLem2) << "Mismatched Lemmas = " << std::endl
                                 << ppLem << std::endl
                                 << ppLem2 << std::endl;

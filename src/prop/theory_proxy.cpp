@@ -190,6 +190,21 @@ theory::TrustNode TheoryProxy::preprocess(
   return pnode;
 }
 
+  void TheoryProxy::getSkolems(TNode node,
+                            std::vector<theory::TrustNode>& skAsserts,
+                            std::vector<Node>& sks)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  std::unordered_set<Node, NodeHashFunction> skolems;
+  rtf.getSkolems(n, skolems);
+  std::vector<Node> lemmas{n};
+  for (const Node& k : skolems)
+  {
+    sks.push_back(k);
+    skAsserts.push_back(rtf.getLemmaForSkolem(k));
+  }
+}
+
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 }/* CVC4::prop namespace */

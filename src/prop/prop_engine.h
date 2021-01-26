@@ -193,10 +193,16 @@ class PropEngine
   /**
    * This returns the theory-preprocessed form of term n. This rewrites and
    * preprocesses n, which notice may involve adding clauses to the SAT solver
-   * if preprocessing n involves introducing new skolems. If incSkolemDefs is
-   * true, we conjoin formulas to the returned node for skolem definitions.
+   * if preprocessing n involves introducing new skolems.
    */
-  Node getPreprocessedTerm(TNode n, bool incSkolemDefs = false);
+  Node getPreprocessedTerm(TNode n);
+  /**
+   * Same as above, but also compute the skolems in n and the lemmas
+   * corresponding to their definition.
+   */
+  Node getPreprocessedTerm(TNode n, 
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks);
 
   /**
    * Push the context level.

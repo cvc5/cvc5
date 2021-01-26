@@ -434,8 +434,9 @@ Node PropEngine::ensureLiteral(TNode n)
   return preprocessed;
 }
 
-Node PropEngine::getPreprocessedTerm(TNode n, bool incSkolemDefs)
+Node PropEngine::getPreprocessedTerm(TNode n)
 {
+  Node rewritten = Rewriter::rewrite(n);
   // must preprocess
   std::vector<theory::TrustNode> newLemmas;
   std::vector<Node> newSkolems;
@@ -446,19 +447,16 @@ Node PropEngine::getPreprocessedTerm(TNode n, bool incSkolemDefs)
   {
     assertLemma(tnl, theory::LemmaProperty::NONE);
   }
-  Node retTerm = tpn.isNull() ? Node(n) : tpn.getNode();
-  if (!newLemmas.empty())
-  {
-    Assert(retTerm.getType().isBoolean());
-    std::vector<Node> lemmas{retTerm};
-    for (const theory::TrustNode& tnl : newLemmas)
-    {
-      lemmas.push_back(tnl.getProven());
-    }
-    // the returned lemma is the conjunction of all additional lemmas.
-    retTerm = NodeManager::currentNM()->mkAnd(lemmas);
-  }
-  return retTerm;
+  return tpn.isNull() ? Node(n) : tpn.getNode();
+}
+
+Node PropEngine::getPreprocessedTerm(TNode n, 
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks)
+{
+  Node pn = getPreprocessedTerm(n);
+  d_theoryProxy->getSkolems(pn, skAsserts, sks);
+  return pn;
 }
 
 void PropEngine::push()

@@ -114,6 +114,13 @@ class TheoryProxy : public Registrar
                                std::vector<theory::TrustNode>& newLemmas,
                                std::vector<Node>& newSkolems,
                                bool doTheoryPreprocess);
+  /**
+   * Get the skolems within node and their corresponding definitions, store
+   * them in skAsserts and sks respectively.
+   */
+  void getSkolems(TNode node,
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks);
   /** Preregister term */
   void preRegister(Node n) override;
 
