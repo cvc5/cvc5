@@ -115,9 +115,10 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
-      std::cout << "s " << d_smt->getValue(d_s.toExpr()) << std::endl;
-      std::cout << "t " << d_smt->getValue(d_t.toExpr()) << std::endl;
-      std::cout << "x " << d_smt->getValue(d_x.toExpr()) << std::endl;
+      std::cout << "Failed for " << a << std::endl;
+      //std::cout << "s " << d_smt->getValue(d_s.toExpr()) << std::endl;
+      //std::cout << "t " << d_smt->getValue(d_t.toExpr()) << std::endl;
+      //std::cout << "x " << d_smt->getValue(d_x.toExpr()) << std::endl;
     }
     TS_ASSERT(res.d_sat == Result::UNSAT);
   }
@@ -170,12 +171,15 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
+      std::cout << "Failed for " << a << std::endl;
+      /*
       if (!s1.isNull())
         std::cout << "s1 " << d_smt->getValue(s1.toExpr()) << std::endl;
       if (!s2.isNull())
         std::cout << "s2 " << d_smt->getValue(s2.toExpr()) << std::endl;
       std::cout << "t " << d_smt->getValue(t.toExpr()) << std::endl;
       std::cout << "x " << d_smt->getValue(x.toExpr()) << std::endl;
+      */
     }
     TS_ASSERT(res.d_sat == Result::UNSAT);
   }
@@ -208,9 +212,10 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     Result res = d_smt->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
-      std::cout << std::endl;
-      std::cout << "t " << d_smt->getValue(t.toExpr()) << std::endl;
-      std::cout << "x " << d_smt->getValue(x.toExpr()) << std::endl;
+      std::cout << "Failed for " << a << std::endl;
+      //std::cout << std::endl;
+      //std::cout << "t " << d_smt->getValue(t.toExpr()) << std::endl;
+      //std::cout << "x " << d_smt->getValue(x.toExpr()) << std::endl;
     }
     TS_ASSERT(res.d_sat == Result::UNSAT);
   }
