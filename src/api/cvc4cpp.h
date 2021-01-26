@@ -477,6 +477,21 @@ class CVC4_PUBLIC Sort
   Sort instantiate(const std::vector<Sort>& params) const;
 
   /**
+   * Substitution of Sorts.
+   * @param sort the subsort to be substituted within this sort.
+   * @param replacement the sort replacing the substituted subsort.
+   */
+  Sort substitute(const Sort& sort, const Sort& replacement) const;
+
+  /**
+   * Simultaneous substitution of Sorts.
+   * @param sorts the subsorts to be substituted within this sort.
+   * @param replacements the sort replacing the substituted subsorts.
+   */
+  Sort substitute(const std::vector<Sort>& sorts,
+                  const std::vector<Sort>& replacements) const;
+
+  /**
    * Output a string representation of this sort to a given stream.
    * @param out the output stream
    */
