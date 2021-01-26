@@ -473,11 +473,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (trusted) "
                          << term << " -> " << termr << std::endl;
       // small step trust
-      d_tpg->addRewriteStep(term,
-                            termr,
-                            PfRule::THEORY_PREPROCESS,
-                            {},
-                            {term.eqNode(termr)});
+      d_tpg->addRewriteStep(
+          term, termr, PfRule::THEORY_PREPROCESS, {}, {term.eqNode(termr)});
     }
   }
   termr = rewriteWithProof(termr);
