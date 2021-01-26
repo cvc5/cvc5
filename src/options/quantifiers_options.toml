@@ -1829,14 +1829,6 @@ header = "options/quantifiers_options.h"
   name = "agg"
   help = "Aggressively split quantified formulas."
 
-[[option]]
-  name       = "quantAntiSkolem"
-  category   = "regular"
-  long       = "quant-anti-skolem"
-  type       = "bool"
-  default    = "false"
-  help       = "perform anti-skolemization for quantified formulas"
-
 ### Higher-order options
 
 [[option]]
