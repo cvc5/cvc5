@@ -1167,19 +1167,6 @@ Node TheoryEngine::getModelValue(TNode var) {
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
-
-Node TheoryEngine::ensureLiteral(TNode n) {
-  Trace("ensureLiteral") << "ensureLiteral rewriting: " << n << std::endl;
-  Node rewritten = Rewriter::rewrite(n);
-  return d_propEngine->ensureLiteral(rewritten);
-}
-
-Node TheoryEngine::getPreprocessedTerm(TNode n)
-{
-  Node rewritten = Rewriter::rewrite(n);
-  return d_propEngine->getPreprocessedTerm(rewritten);
-}
-
 void TheoryEngine::printInstantiations( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printInstantiations( out );

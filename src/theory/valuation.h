@@ -156,9 +156,13 @@ public:
    * definition of subterms eliminated by preprocessing.
    *
    * @param n The node to preprocess
+   * @param incSkolemDefs If this flag is true, we conjoin formulas
+   * for skolem definitions, e.g. for (= (ite A 0 1) x), we return
+   * (and (= k x) (ite A (= k 0) (= k 1))). Note that if this flag is true,
+   * n should have Boolean type.
    * @return The preprocessed form of n
    */
-  Node getPreprocessedTerm(TNode n);
+  Node getPreprocessedTerm(TNode n, bool incSkolemDefs=false);
 
   /**
    * Returns whether the given lit (which must be a SAT literal) is a decision

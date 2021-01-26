@@ -193,9 +193,10 @@ class PropEngine
   /**
    * This returns the theory-preprocessed form of term n. This rewrites and
    * preprocesses n, which notice may involve adding clauses to the SAT solver
-   * if preprocessing n involves introducing new skolems.
+   * if preprocessing n involves introducing new skolems. If incSkolemDefs is
+   * true, we conjoin formulas to the returned node for skolem definitions.
    */
-  Node getPreprocessedTerm(TNode n);
+  Node getPreprocessedTerm(TNode n, bool incSkolemDefs=false);
 
   /**
    * Push the context level.

@@ -650,20 +650,6 @@ class TheoryEngine {
    * has (or null if none);
    */
   Node getModelValue(TNode var);
-
-  /**
-   * Takes a literal and returns an equivalent literal that is guaranteed to be
-   * a SAT literal. This rewrites and preprocesses n, which notice may involve
-   * adding clauses to the SAT solver if preprocessing n involves introducing
-   * new skolems.
-   */
-  Node ensureLiteral(TNode n);
-  /**
-   * This returns the theory-preprocessed form of term n. This rewrites and
-   * preprocesses n, which notice may involve adding clauses to the SAT solver
-   * if preprocessing n involves introducing new skolems.
-   */
-  Node getPreprocessedTerm(TNode n);
   /**
    * Print all instantiations made by the quantifiers module.
    */

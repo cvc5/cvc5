@@ -156,13 +156,15 @@ void Valuation::setIrrelevantKind(Kind k)
 
 Node Valuation::ensureLiteral(TNode n) {
   Assert(d_engine != nullptr);
-  return d_engine->ensureLiteral(n);
+  Node rewritten = Rewriter::rewrite(n);
+  return d_engine->getPropEngine()->ensureLiteral(n);
 }
 
-Node Valuation::getPreprocessedTerm(TNode n)
+Node Valuation::getPreprocessedTerm(TNode n, bool incSkolemDefs)
 {
   Assert(d_engine != nullptr);
-  return d_engine->getPreprocessedTerm(n);
+  Node rewritten = Rewriter::rewrite(n);
+  return d_engine->getPropEngine()->getPreprocessedTerm(rewritten, incSkolemDefs);
 }
 
 bool Valuation::isDecision(Node lit) const {
