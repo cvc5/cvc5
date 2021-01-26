@@ -463,12 +463,12 @@ Node PropEngine::getPreprocessedTerm(TNode n,
   d_theoryProxy->getSkolems(pn, toProcessAsserts, toProcess);
   size_t index = 0;
   // until fixed point is reached
-  while (index<toProcess.size())
+  while (index < toProcess.size())
   {
     theory::TrustNode ka = toProcessAsserts[index];
     Node k = toProcess[index];
     index++;
-    if (std::find(sks.begin(), sks.end(), k)!=sks.end())
+    if (std::find(sks.begin(), sks.end(), k) != sks.end())
     {
       // already added the skolem to the list
       continue;
