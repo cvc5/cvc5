@@ -75,10 +75,14 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
                                            int i,
                                            int h)
 {
-   //std::cout << " verit rule " <<
-   //veritRuletoString(static_cast<VeritRule>(
-   //std::stoul(pfn->getArguments()[0].toString())));
-   //std::cout << " res " << pfn->getResult() << std::endl;
+  if(pfn->getRule()!=PfRule::VERIT_RULE){
+    std::cout<< "Not translated yet, rule is: " << pfn->getRule()<<std::endl;
+    return {i,h};
+  }
+  //std::cout << " verit rule " <<
+  //veritRuletoString(static_cast<VeritRule>(
+  //std::stoul(pfn->getArguments()[0].toString())));
+  //std::cout << " res " << pfn->getResult() << std::endl;
   // The id of the current proof node
   int current_i = i;
   // The id of the latest assumption

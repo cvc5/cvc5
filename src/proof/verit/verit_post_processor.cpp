@@ -14,14 +14,7 @@
 
 #include "proof/verit/verit_post_processor.h"
 
-#include <cstdlib>
-#include <functional>
-#include <memory>
 #include <vector>
-
-#include "expr/proof_ensure_closed.h"
-#include "expr/proof_node_algorithm.h"
-#include "theory/theory_id.h"
 
 namespace CVC4 {
 
@@ -1916,118 +1909,40 @@ VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,
 
 VeritProofPostprocess::~VeritProofPostprocess() {}
 
-/*void VeritProofPostprocess::processFirstScope(std::shared_ptr<ProofNode> pf,
-                                              CDProof* cdp)
-{
-
-  Trace("verit-proof") << "- veriT proof postprocess " << pf->getResult()
-                       << " " << pf->getRule() << " / " << pf->getArguments()
-                       << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  Node cl = nm->mkBoundVar("cl", nm->stringType());
-  std::vector<Node> children;
-  for (const std::shared_ptr<ProofNode>& child : pf->getChildren())
-  {
-    children.push_back(child->getResult());
-  }
-  std::vector<Node> args = pf->getArguments();
-  Node res = pf->getResult();
-
-  bool success = true;
-
-  std::vector<Node> negNode;
-  for (Node arg : args)
-  {
-    negNode.push_back(arg.notNode());
-  }
-  negNode.push_back(children[0]);
-
-  negNode.insert(negNode.begin(), cl);
-  Node vp1 = nm->mkNode(kind::SEXPR, negNode);
-
-  std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(
-      nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::ANCHOR_SUBPROOF)));
-  new_args.push_back(vp1);
-  new_args.push_back(vp1);
-  new_args.insert(new_args.end(), args.begin(), args.end());
-  success &= cdp->addStep(vp1, PfRule::VERIT_RULE, children, new_args);
-  Trace("verit-proof") << "... add veriT step " << vp1 << " " << children
-                       << " / " << new_args << std::endl;
-
-  std::vector<Node> andNegs;
-  andNegs.push_back(vp1);
-
-  std::vector<Node> args2;
-  for (int i = 0; i < args.size(); i++)
-  {
-    auto arg = args[i];
-    if (arg.getKind() == kind::OR){
-      args2.push_back(pf->getChildren()[0]->getChildren()[i]->getResult());
-    }
-    else{
-      new_args.clear();
-      new_args.push_back(
-          nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::ASSUME)));
-      new_args.push_back(arg);
-      new_args.push_back(arg);
-      success &= cdp->addStep(arg, PfRule::VERIT_RULE, {}, new_args);
-      args2.push_back(arg);
-    }
-    Trace("verit-proof") << "... add veriT step " << arg << " " << "{}"
-                           << " / " << new_args << std::endl;
-
-  }
-  args2.push_back(vp1);
-
-  new_args.clear();
-  new_args.push_back(
-      nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::RESOLUTION)));
-  new_args.push_back(res);
-  new_args.push_back(nm->mkNode(kind::SEXPR, cl));
-  success &= cdp->addStep(res, PfRule::VERIT_RULE, args2, new_args);
-  Trace("verit-proof") << "... add veriT step " << res << " " << args
-                       << " / " << new_args << std::endl;
-
-  d_pnm->updateNode(pf.get(), cdp->getProofFor(pf->getResult()).get());
-}*/
 
 void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   CDProof* cdp = new CDProof(d_pnm);
 
   processInternal(pf, cdp);
-  //processFirstScope(pf, cdp);
-  //processSYMM(pf,cdp);
+  processSYMM(pf,cdp);
 }
 
-/*void VeritProofPostprocess::processSYMM(std::shared_ptr<ProofNode> pf, CDProof *cdp){
-	NodeManager* nm = NodeManager::currentNM();
+//TEMP: Traverses entire proof node again, should be incoperated below. Find out why update does not do this, maybe SYMM steps are added later?
+void VeritProofPostprocess::processSYMM(std::shared_ptr<ProofNode> pf, CDProof *cdp){
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<std::shared_ptr<ProofNode>> new_children;
   for (const std::shared_ptr<ProofNode>& child :pf->getChildren()){
-    if(child->getRule() == PfRule::SYMM){
-      std::vector<Node> new_args = std::vector<Node>();
-      new_args.push_back(nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::SYMM)));
-      new_args.push_back(child->getResult());
-      new_args.push_back(child->getResult());
-      std::vector<Node> new_children;
-      for(auto cchild : child->getChildren()){
-        new_children.push_back(cchild->getResult());
-      }
-      std::cout << child->getResult() << " " << child->getRule() << " " << new_children <<std::endl;
-      cdp->addStep(child->getResult(), PfRule::VERIT_RULE, new_children, new_args);
-      d_pnm->updateNode(child.get(), cdp->getProofFor(child->getResult()).get());
-    }
     processSYMM(child,cdp);
+    new_children.push_back(child);
+    cdp->addProof(child);
   }
 
-};*/
+  if(pf->getRule() == PfRule::SYMM){
+      std::vector<Node> new_args = std::vector<Node>();
+      new_args.push_back(nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::SYMM)));
+      new_args.push_back(pf->getResult());
+      new_args.push_back(pf->getResult());
+      d_pnm->updateNode(pf.get(),PfRule::VERIT_RULE,new_children,new_args);
+  }
+
+};
 
 
 void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
                                             CDProof* cdp)//TODO: Change this to &?
 {
-	//TODO: check this out
-  std::vector<std::shared_ptr<ProofNode>> new_children;
+  std::vector<Node> children;
 
   //First, update children
   for (const std::shared_ptr<ProofNode>& child :pf->getChildren()){
@@ -2044,17 +1959,14 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
       }
     }
     processInternal(next_child, cdp);
-    new_children.push_back(next_child);
+    children.push_back(next_child->getResult());
     cdp->addProof(next_child);
   }
 
-  std::vector<Node> children;
-  for(auto child : new_children){children.push_back(child->getResult());}//bring in right order
-
+  //Then, update proof node
   bool continueUpdate = true;
   if (d_cb->shouldUpdate(pf, continueUpdate))
   {
-    //update node
     if (d_cb->update(pf->getResult(),
                      pf->getRule(),
 		     children,
@@ -2068,7 +1980,8 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
     }
     else
     {
-      // Add Trace
+      Trace("verit-proof") << "... error updating proof for " << pf->getResult()
+                           << std::endl;
     }
   }
 }
