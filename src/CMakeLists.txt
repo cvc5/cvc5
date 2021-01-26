@@ -622,8 +622,6 @@ libcvc4_add_sources(
   theory/output_channel.h
   theory/quantifiers/alpha_equivalence.cpp
   theory/quantifiers/alpha_equivalence.h
-  theory/quantifiers/anti_skolem.cpp
-  theory/quantifiers/anti_skolem.h
   theory/quantifiers/bv_inverter.cpp
   theory/quantifiers/bv_inverter.h
   theory/quantifiers/bv_inverter_utils.cpp
@@ -725,6 +723,8 @@ libcvc4_add_sources(
   theory/quantifiers/quant_util.h
   theory/quantifiers/quantifiers_attributes.cpp
   theory/quantifiers/quantifiers_attributes.h
+  theory/quantifiers/quantifiers_inference_manager.cpp
+  theory/quantifiers/quantifiers_inference_manager.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
   theory/quantifiers/quantifiers_rewriter.cpp

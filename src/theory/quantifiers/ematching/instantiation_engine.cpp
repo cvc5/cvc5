@@ -35,8 +35,9 @@ namespace theory {
 namespace quantifiers {
 
 InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
-                                         QuantifiersState& qs)
-    : QuantifiersModule(qs, qe),
+                                         QuantifiersState& qs, 
+                                    QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),

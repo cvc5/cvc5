@@ -162,7 +162,7 @@ class QuantifiersModule {
   /** The state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
-  QuantifiersInferenceManager& d_qim;
+  quantifiers::QuantifiersInferenceManager& d_qim;
 };/* class QuantifiersModule */
 
 /** Quantifiers utility

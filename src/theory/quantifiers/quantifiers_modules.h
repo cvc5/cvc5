@@ -18,7 +18,6 @@
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_MODULES_H
 
 #include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"

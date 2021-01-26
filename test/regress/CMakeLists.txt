@@ -1695,7 +1695,6 @@ set(regress_1_tests
   regress1/quantifiers/RNDPRE_4_1-dd-nqe.smt2
   regress1/quantifiers/RND_4_1-existing-inst.smt2
   regress1/quantifiers/RND_4_16.smt2
-  regress1/quantifiers/anti-sk-simp.smt2
   regress1/quantifiers/ari118-bv-2occ-x.smt2
   regress1/quantifiers/arith-rec-fun.smt2
   regress1/quantifiers/array-unsat-simp3.smt2
