@@ -85,11 +85,6 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     d_qsplit.reset(new QuantDSplit(qe, qs));
     modules.push_back(d_qsplit.get());
   }
-  if (options::quantAntiSkolem())
-  {
-    d_anti_skolem.reset(new QuantAntiSkolem(qe, qs));
-    modules.push_back(d_anti_skolem.get());
-  }
   if (options::quantAlphaEquiv())
   {
     d_alpha_equiv.reset(new AlphaEquivalence(qe));
