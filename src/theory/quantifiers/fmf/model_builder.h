@@ -29,7 +29,7 @@ namespace quantifiers {
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
-protected:
+ protected:
   //quantifiers engine
   QuantifiersEngine* d_qe;
   // must call preProcessBuildModelStd
@@ -38,8 +38,9 @@ protected:
   /** number of lemmas generated while building model */
   unsigned d_addedLemmas;
   unsigned d_triedLemmas;
-public:
-  QModelBuilder( context::Context* c, QuantifiersEngine* qe );
+
+ public:
+  QModelBuilder(QuantifiersEngine* qe);
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work

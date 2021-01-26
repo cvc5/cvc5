@@ -30,14 +30,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
-    : QuantifiersModule(qe),
+SynthEngine::SynthEngine(QuantifiersEngine* qe,
+                         QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
       d_tds(qe->getTermDatabaseSygus()),
       d_conj(nullptr),
       d_sqp(qe)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, d_statistics)));
+      new SynthConjecture(d_quantEngine, qs, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -159,7 +161,7 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, d_statistics)));
+        new SynthConjecture(d_quantEngine, d_qstate, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }

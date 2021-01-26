@@ -84,8 +84,10 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
   return lem;
 }
 
-BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe)
-    : QuantifiersModule(qe)
+BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
+                                 QuantifiersState& qs,
+                                 QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe)
 {
 }
 
@@ -493,8 +495,8 @@ void BoundedIntegers::checkOwnership(Node f)
             d_ranges.push_back( r );
             d_rms[r].reset(
                 new IntRangeDecisionHeuristic(r,
-                                              d_quantEngine->getSatContext(),
-                                              d_quantEngine->getUserContext(),
+                                              d_qstate.getSatContext(),
+                                              d_qstate.getUserContext(),
                                               d_quantEngine->getValuation(),
                                               isProxy));
             d_quantEngine->getTheoryEngine()

@@ -433,8 +433,11 @@ private:  //information about ground equivalence classes
   bool d_hasAddedLemma;
   //flush the waiting conjectures
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
-public:
-  ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
+
+ public:
+  ConjectureGenerator(QuantifiersEngine* qe,
+                      QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim);
   ~ConjectureGenerator();
 
   /* needs check */

@@ -70,11 +70,8 @@ class TermUtil : public QuantifiersUtil
   friend class ::CVC4::theory::QuantifiersEngine;
   friend class Instantiate;
 
- private:
-  /** reference to the quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
-public:
-  TermUtil(QuantifiersEngine * qe);
+ public:
+  TermUtil();
   ~TermUtil();
   /** boolean terms */
   Node d_true;

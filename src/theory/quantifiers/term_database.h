@@ -76,7 +76,9 @@ class TermDb : public QuantifiersUtil {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  public:
-  TermDb(context::Context* c, context::UserContext* u, QuantifiersEngine* qe);
+  TermDb(QuantifiersState& qs,
+         QuantifiersInferenceManager& qim,
+         QuantifiersEngine* qe);
   ~TermDb();
   /** presolve (called once per user check-sat) */
   void presolve();
@@ -303,6 +305,10 @@ class TermDb : public QuantifiersUtil {
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
+  /** The quantifiers state object */
+  QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** terms processed */
   std::unordered_set< Node, NodeHashFunction > d_processed;
   /** terms processed */
