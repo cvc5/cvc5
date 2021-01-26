@@ -1185,7 +1185,7 @@ void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars
   }
 }
 
-bool MatchGen::reset_round(TermDb* tdb, QuantifiersState& qs)
+bool MatchGen::reset_round(QuantConflictFind* p)
 {
   d_wasSet = false;
   for( unsigned i=0; i<d_children.size(); i++ ){
@@ -1202,24 +1202,28 @@ bool MatchGen::reset_round(TermDb* tdb, QuantifiersState& qs)
     //  d_ground_eval[0] = p->d_false;
     //}
     // modified
+    TermDb* tdb = p->getTermDatabase();
+    QuantifiersState& qs = p->getState();
     for (unsigned i = 0; i < 2; i++)
     {
       if (tdb->isEntailed(d_n, i == 0))
       {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
       }
-      if (qs.isInConflict())
+      if (qs->inConflict())
       {
         return false;
       }
     }
   }else if( d_type==typ_eq ){
+    TermDb* tdb = p->getTermDatabase();
+    QuantifiersState& qs = p->getState();
     for (unsigned i = 0, size = d_n.getNumChildren(); i < size; i++)
     {
       if (!expr::hasBoundVar(d_n[i]))
       {
         TNode t = tdb->getEntailedTerm(d_n[i]);
-        if (qs.isInConflict())
+        if (qs->inConflict())
         {
           return false;
         }
@@ -2085,8 +2089,7 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
   }
 
   Trace("qcf-check-debug") << "Reset round..." << std::endl;
-  TermDb * tdb = getTermDatabase();
-  if (!qi->reset_round(tdb, d_qstate))
+  if (!qi->reset_round(this))
   {
     // it is typically the case that another conflict (e.g. in the term
     // database) was discovered if we fail here.

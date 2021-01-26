@@ -156,6 +156,10 @@ class QuantifiersModule {
   quantifiers::TermDb* getTermDatabase() const;
   /** get currently used term utility object */
   quantifiers::TermUtil* getTermUtil() const;
+  /** get the quantifiers state */
+  quantifiers::QuantifiersState& getState();
+  /** get the quantifiers state */
+  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   //----------------------------end general queries
  protected:
   /** pointer to the quantifiers engine that owns this module */
