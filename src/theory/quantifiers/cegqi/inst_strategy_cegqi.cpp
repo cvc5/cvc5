@@ -274,7 +274,9 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
           break;
         }
       }
-      if( d_qstate.isInConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+      if (d_qstate.isInConflict()
+          || d_quantEngine->getNumLemmasWaiting() > lastWaiting)
+      {
         break;
       }
     }

@@ -58,7 +58,7 @@ struct sortTriggers {
 };
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
-                      QuantifiersState& qs,
+                                                         QuantifiersState& qs,
                                                          QuantRelevance* qr)
     : InstStrategy(qe, qs), d_quant_rel(qr)
 {
@@ -208,8 +208,7 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
         break;
       }
     }
-    if (d_qstate.isInConflict()
-        || (hasInst && options::multiTriggerPriority()))
+    if (d_qstate.isInConflict() || (hasInst && options::multiTriggerPriority()))
     {
       break;
     }

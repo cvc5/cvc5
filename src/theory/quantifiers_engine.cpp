@@ -148,10 +148,7 @@ OutputChannel& QuantifiersEngine::getOutputChannel()
   return d_te->theoryOf(THEORY_QUANTIFIERS)->getOutputChannel();
 }
 /** get default valuation for the quantifiers engine */
-Valuation& QuantifiersEngine::getValuation()
-{
-  return d_qstate.getValuation();
-}
+Valuation& QuantifiersEngine::getValuation() { return d_qstate.getValuation(); }
 
 const LogicInfo& QuantifiersEngine::getLogicInfo() const
 {
@@ -445,8 +442,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
       Trace("quant-engine-debug")
-          << "  Theory engine finished : " << !d_qstate.getValuation().needCheck()
-          << std::endl;
+          << "  Theory engine finished : "
+          << !d_qstate.getValuation().needCheck() << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug")
           << "  In conflict : " << d_qstate.isInConflict() << std::endl;
@@ -535,7 +532,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
                                       << " at effort " << quant_e << "..."
                                       << std::endl;
           mdl->check(e, quant_e);
-          if( d_qstate.isInConflict() ){
+          if (d_qstate.isInConflict())
+          {
             Trace("quant-engine-debug") << "...conflict!" << std::endl;
             break;
           }
@@ -903,10 +901,7 @@ bool QuantifiersEngine::hasAddedLemma() const
   return !d_lemmas_waiting.empty() || d_hasAddedLemma;
 }
 
-bool QuantifiersEngine::inConflict() const
-{
-  return d_qstate.isInConflict();
-}
+bool QuantifiersEngine::inConflict() const { return d_qstate.isInConflict(); }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
@@ -918,7 +913,8 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
   {
-    performCheck = (e >= Theory::EFFORT_FULL) && !d_qstate.getValuation().needCheck();
+    performCheck =
+        (e >= Theory::EFFORT_FULL) && !d_qstate.getValuation().needCheck();
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
   {
@@ -927,9 +923,10 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   else if (options::instWhenMode()
            == options::InstWhenMode::FULL_DELAY_LAST_CALL)
   {
-    performCheck = ((e == Theory::EFFORT_FULL && !d_qstate.getValuation().needCheck()
-                     && d_ierCounter % d_inst_when_phase != 0)
-                    || e == Theory::EFFORT_LAST_CALL);
+    performCheck =
+        ((e == Theory::EFFORT_FULL && !d_qstate.getValuation().needCheck()
+          && d_ierCounter % d_inst_when_phase != 0)
+         || e == Theory::EFFORT_LAST_CALL);
   }
   else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
   {

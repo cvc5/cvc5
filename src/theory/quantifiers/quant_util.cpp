@@ -76,7 +76,8 @@ quantifiers::QuantifiersState& QuantifiersModule::getState()
   return d_qstate;
 }
 
-quantifiers::QuantifiersInferenceManager& QuantifiersModule::getInferenceManager()
+quantifiers::QuantifiersInferenceManager&
+QuantifiersModule::getInferenceManager()
 {
   return d_qim;
 }

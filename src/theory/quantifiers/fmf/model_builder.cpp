@@ -29,8 +29,7 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(QuantifiersEngine* qe,
-             QuantifiersState& qs)
+QModelBuilder::QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs)
     : TheoryEngineModelBuilder(qe->getTheoryEngine()),
       d_qe(qe),
       d_addedLemmas(0),

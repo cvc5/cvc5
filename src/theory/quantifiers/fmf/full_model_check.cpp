@@ -280,8 +280,8 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-FullModelChecker::FullModelChecker(QuantifiersEngine* qe,
-             QuantifiersState& qs) : QModelBuilder(qe, qs)
+FullModelChecker::FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs)
+    : QModelBuilder(qe, qs)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -851,7 +851,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if( d_qstate.isInConflict() || options::fmfOneInstPerRound() ){
+          if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+          {
             break;
           }
         }else{

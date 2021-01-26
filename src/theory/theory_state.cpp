@@ -137,10 +137,7 @@ bool TheoryState::hasSatValue(TNode n, bool& value) const
   return d_valuation.hasSatValue(n, value);
 }
 
-Valuation& TheoryState::getValuation()
-{
-  return d_valuation;
-}
+Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory
 }  // namespace CVC4

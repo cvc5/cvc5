@@ -82,7 +82,7 @@ class TheoryState
 
   /** Returns true if n has a current SAT assignment and stores it in value. */
   virtual bool hasSatValue(TNode n, bool& value) const;
-  
+
   /** Get the underlying valuation class */
   Valuation& getValuation();
 

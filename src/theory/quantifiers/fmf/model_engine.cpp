@@ -233,7 +233,8 @@ int ModelEngine::checkModel(){
   }
 
   //print debug information
-  if( d_qstate.isInConflict() ){
+  if (d_qstate.isInConflict())
+  {
     Trace("model-engine") << "Conflict, added lemmas = ";
   }else{
     Trace("model-engine") << "Added Lemmas = ";
@@ -293,7 +294,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           if (inst->addInstantiation(f, m, true))
           {
             addedLemmas++;
-            if( d_qstate.isInConflict() ){
+            if (d_qstate.isInConflict())
+            {
               break;
             }
           }else{
