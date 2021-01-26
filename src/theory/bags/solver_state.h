@@ -31,24 +31,52 @@ class SolverState : public TheoryState
  public:
   SolverState(context::Context* c, context::UserContext* u, Valuation val);
 
-  void registerClass(TNode n);
+  /**
+   * This function adds the bag representative n to the set d_bags if it is not
+   * already there. This function is called during postCheck to collect bag
+   * terms in the equality engine. See the documentation of
+   * @link SolverState::collectBagsAndCountTerms
+   */
+  void registerBag(TNode n);
 
-  Node registerBagElement(TNode n);
-
-  std::set<Node>& getBags();
-
-  std::set<Node>& getElements(TypeNode t);
-
-  std::map<Node, Node>& getBagElements(Node B);
+  /**
+   * @param n has the form (bag.count e A)
+   * @pre bag A needs is already registered using registerBag(A)
+   * @return a unique skolem for (bag.count e A)
+   */
+  void registerCountTerm(TNode n);
+  /** get all bag terms that are representatives in the equality engine.
+   * This function is valid after the current solver is initialized during
+   * postCheck. See SolverState::initialize and BagSolver::postCheck
+   */
+  const std::set<Node>& getBags();
+  /**
+   * @pre B is a registered bag
+   * @return all elements associated with bag B so far
+   * Note that associated elements are not necessarily elements in B
+   * Example:
+   * (assert (= 0 (bag.count x B)))
+   * element x is associated with bag B, albeit x is definitely not in B.
+   */
+  const std::set<Node>& getElements(Node B);
+  /** initialize bag and count terms */
+  void initialize();
 
  private:
+  /** clear all bags data structures */
+  void reset();
+  /** collect bags' representatives and all count terms.
+   * This function is called during postCheck */
+  void collectBagsAndCountTerms();
   /** constants */
   Node d_true;
   Node d_false;
+  /** node manager for this solver state */
+  NodeManager* d_nm;
+  /** collection of bag representatives */
   std::set<Node> d_bags;
-  std::map<TypeNode, std::set<Node>> d_elements;
-  /** bag -> element -> multiplicity */
-  std::map<Node, std::map<Node, Node>> d_count;
+  /** bag -> associated elements */
+  std::map<Node, std::set<Node>> d_bagElements;
 }; /* class SolverState */
 
 }  // namespace bags

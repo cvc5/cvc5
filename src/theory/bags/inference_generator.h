@@ -38,33 +38,38 @@ class InferenceGenerator
   InferenceGenerator(SolverState* state);
 
   /**
+   * @param A is a bag of type (Bag E)
+   * @param e is a node of type E
+   * @return an inference that represents the following implication
+   * (=>
+   *   true
+   *   (>= (bag.count e A) 0)
+   */
+  InferInfo nonNegativeCount(Node n, Node e);
+
+  /**
    * @param n is (bag x c) of type (Bag E)
    * @param e is a node of type E
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (bag.count e (bag x c)) (ite (= e x) c 0)))
+   *   (= (bag.count e skolem) c))
+   *   if e is exactly node x. Node skolem is a fresh variable equals (bag x c).
+   *   Otherwise the following inference is returned
+   * (=>
+   *   true
+   *   (= (bag.count e skolem) (ite (= e x) c 0)))
    */
   InferInfo mkBag(Node n, Node e);
-
-  /**
-   * @param n is (= A B) where A, B are bags of type (Bag E)
-   * @param e is a node of Type E
-   * @return an inference that represents the following implication
-   * (=>
-   *   (= A B)
-   *   (= (count e A) (count e B)))
-   */
-  InferInfo bagEquality(Node n, Node e);
   /**
    * @param n is (not (= A B)) where A, B are bags of type (Bag E)
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
    *   (not (= (count e A) (count e B))))
-   *   where e is a fresh skolem of type E
+   *   where e is a fresh skolem of type E.
    */
-  InferInfo bagDisequality(Node n);
+  InferInfo bagDisequality(Node n, Node reason);
   /**
    * @param e is a node of Type E
    * @return an inference that represents the following implication
@@ -79,10 +84,9 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e k_{(union_disjoint A B)})
+   *   (= (count e skolem)
    *      (+ (count e A) (count e B))))
-   *  where k_{(union_disjoint A B)} is a unique purification skolem
-   *  for (union_disjoint A B)
+   *  where skolem is a fresh variable equals (union_disjoint A B)
    */
   InferInfo unionDisjoint(Node n, Node e);
   /**
@@ -91,11 +95,13 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e (union_max A B))
+   *   (=
+   *     (count e skolem)
    *     (ite
-   *     (> (count e A) (count e B))
-   *     (count e A)
-   *     (count e B)))))
+   *       (> (count e A) (count e B))
+   *       (count e A)
+   *       (count e B)))))
+   * where skolem is a fresh variable equals (union_max A B)
    */
   InferInfo unionMax(Node n, Node e);
   /**
@@ -104,11 +110,13 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e (intersection_min A B))
+   *   (=
+   *     (count e skolem)
    *     (ite(
-   *     (< (count e A) (count e B))
-   *     (count e A)
-   *     (count e B)))))
+   *       (< (count e A) (count e B))
+   *       (count e A)
+   *       (count e B)))))
+   * where skolem is a fresh variable equals (intersection_min A B)
    */
   InferInfo intersection(Node n, Node e);
   /**
@@ -117,11 +125,13 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e (difference_subtract A B))
+   *   (=
+   *     (count e skolem)
    *     (ite
-   *        (>= (count e A) (count e B))
-   *        (- (count e A) (count e B))
-   *        0))))
+   *       (>= (count e A) (count e B))
+   *       (- (count e A) (count e B))
+   *       0))))
+   * where skolem is a fresh variable equals (difference_subtract A B)
    */
   InferInfo differenceSubtract(Node n, Node e);
   /**
@@ -130,11 +140,13 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e (difference_remove A B))
+   *   (=
+   *     (count e skolem)
    *     (ite
-   *        (= (count e B) 0)
-   *        (count e A)
-   *        0))))
+   *       (= (count e B) 0)
+   *       (count e A)
+   *       0))))
+   * where skolem is a fresh variable equals (difference_remove A B)
    */
   InferInfo differenceRemove(Node n, Node e);
   /**
@@ -143,20 +155,24 @@ class InferenceGenerator
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= (count e (duplicate_removal A))
-   *     (ite (>= (count e A) 1) 1 0))))
+   *   (=
+   *    (count e skolem)
+   *    (ite (>= (count e A) 1) 1 0))))
+   * where skolem is a fresh variable equals (duplicate_removal A)
    */
   InferInfo duplicateRemoval(Node n, Node e);
 
   /**
    * @param element of type T
    * @param bag of type (bag T)
-   * @param inferInfo to store new skolem
-   * @return  a skolem for (bag.count element bag)
+   * @return  a count term (bag.count element bag)
    */
-  Node getMultiplicitySkolem(Node element, Node bag, InferInfo& inferInfo);
+  Node getMultiplicityTerm(Node element, Node bag);
 
  private:
+  /** generate skolem variable for node n and add it to inferInfo */
+  Node getSkolem(Node& n, InferInfo& inferInfo);
+
   NodeManager* d_nm;
   SkolemManager* d_sm;
   SolverState* d_state;

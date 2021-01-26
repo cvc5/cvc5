@@ -4054,15 +4054,17 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
       outputPropagate(toProp);
     }else if(constraint->negationHasProof()){
+      // The congruence manager can prove: antecedents => toProp,
+      // ergo. antecedents ^ ~toProp is a conflict.
       TrustNode exp = d_congruenceManager.explain(toProp);
       Node notNormalized = normalized.negate();
       std::vector<Node> ants(exp.getNode().begin(), exp.getNode().end());
       ants.push_back(notNormalized);
       Node lp = safeConstructNary(kind::AND, ants);
-      // Node lp = flattenAnd(exp.getNode().andNode(notNormalized));
       Debug("arith::prop") << "propagate conflict" <<  lp << endl;
       if (proofsEnabled())
       {
+        // Assume all of antecedents and ~toProp (rewritten)
         std::vector<Pf> pfAntList;
         for (size_t i = 0; i < ants.size(); ++i)
         {
@@ -4071,13 +4073,16 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
         Pf pfAnt = pfAntList.size() > 1
                        ? d_pnm->mkNode(PfRule::AND_INTRO, pfAntList, {})
                        : pfAntList[0];
+        // Use modus ponens to get toProp (un rewritten)
         Pf pfConc = d_pnm->mkNode(
             PfRule::MODUS_PONENS,
             {pfAnt, exp.getGenerator()->getProofFor(exp.getProven())},
             {});
+        // prove toProp (rewritten)
         Pf pfConcRewritten = d_pnm->mkNode(
             PfRule::MACRO_SR_PRED_TRANSFORM, {pfConc}, {normalized});
         Pf pfNotNormalized = d_pnm->mkAssume(notNormalized);
+        // prove bottom from toProp and ~toProp
         Pf pfBot;
         if (normalized.getKind() == kind::NOT)
         {
@@ -4089,8 +4094,8 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
           pfBot = d_pnm->mkNode(
               PfRule::CONTRA, {pfConcRewritten, pfNotNormalized}, {});
         }
+        // close scope
         Pf pfNotAnd = d_pnm->mkScope(pfBot, ants);
-        // TODO: test
         raiseBlackBoxConflict(lp, pfNotAnd);
       }
       else
