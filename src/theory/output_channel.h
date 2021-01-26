@@ -127,8 +127,6 @@ class OutputChannel {
    *
    * @param n - a theory lemma valid at decision level 0
    * @param p The properties of the lemma
-   * @return the "status" of the lemma, including user level at which
-   * the lemma resides; the lemma will be removed when this user level pops
    */
   virtual void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
 
