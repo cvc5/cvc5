@@ -73,8 +73,6 @@ class QuantifiersEngine {
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
-  /** get the logic info for the quantifiers engine */
-  const LogicInfo& getLogicInfo() const;
   //---------------------- end external interface
   //---------------------- utilities
   /** get the master equality engine */
@@ -188,8 +186,6 @@ class QuantifiersEngine {
    * that are pre-registered to the quantifiers theory.
    */
   void preRegisterQuantifier(Node q);
-  /** register quantifier */
-  void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
   void assertQuantifier( Node q, bool pol );
 private:

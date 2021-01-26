@@ -154,11 +154,6 @@ Valuation& QuantifiersEngine::getValuation()
   return d_te->theoryOf(THEORY_QUANTIFIERS)->getValuation();
 }
 
-const LogicInfo& QuantifiersEngine::getLogicInfo() const
-{
-  return d_te->getLogicInfo();
-}
-
 EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 {
   return d_eq_query.get();
@@ -771,13 +766,6 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
   // flush the lemmas
   flushLemmas();
   Trace("quant-debug") << "...finish pre-register " << q << "..." << std::endl;
-}
-
-void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
-  for(std::vector<Node>::iterator p = pattern.begin(); p != pattern.end(); ++p){
-    std::set< Node > added;
-    getTermDatabase()->addTerm( *p, added );
-  }
 }
 
 void QuantifiersEngine::assertQuantifier( Node f, bool pol ){

@@ -312,7 +312,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_termCanon->getCanonicalFreeVar(tn, i);
+  return d_termCanon.getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
@@ -545,7 +545,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
+                eq = d_termCanon.getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -700,7 +700,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
                   gsubs_vars.push_back(
-                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
+                      d_termCanon.getCanonicalFreeVar(
                           it->first, i));
                 }
               }
