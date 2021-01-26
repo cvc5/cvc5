@@ -34,6 +34,7 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
                     quantifiers::QuantifiersInferenceManager& qim,
                                      ProofNodeManager* pnm)
     : d_qstate(qstate),
+    d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
       d_masterEqualityEngine(nullptr),
@@ -129,7 +130,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te,
   d_masterEqualityEngine = mee;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());

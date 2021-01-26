@@ -33,7 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermDb::TermDb(QuantifiersState& qs, QuantInferenceManager& qim, QuantifiersEngine* qe)
+TermDb::TermDb(QuantifiersState& qs, QuantifiersInferenceManager& qim, QuantifiersEngine* qe)
     : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_inactive_map(qs.getSatContext())
 {
   d_consistent_ee = true;
