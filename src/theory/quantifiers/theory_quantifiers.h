@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/proof_checker.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers_engine.h"
@@ -81,6 +82,8 @@ class TheoryQuantifiers : public Theory {
   QuantifiersProofRuleChecker d_qChecker;
   /** The quantifiers state */
   QuantifiersState d_qstate;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager d_qim;
   /** The quantifiers engine, which lives here */
   QuantifiersEngine d_qengine;
 };/* class TheoryQuantifiers */

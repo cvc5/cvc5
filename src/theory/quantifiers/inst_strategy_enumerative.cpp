@@ -34,8 +34,9 @@ namespace quantifiers {
 
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
                                    QuantifiersState& qs,
+                                   QuantifiersInferenceManager& qim,
                                    RelevantDomain* rd)
-    : QuantifiersModule(qs, qe), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(qs, qim, qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()

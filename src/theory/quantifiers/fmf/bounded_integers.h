@@ -161,7 +161,9 @@ private:
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 
  public:
-  BoundedIntegers(QuantifiersEngine* qe, QuantifiersState& qs);
+  BoundedIntegers(QuantifiersEngine* qe,
+                  QuantifiersState& qs,
+                  QuantifiersInferenceManager& qim);
   virtual ~BoundedIntegers();
 
   void presolve() override;

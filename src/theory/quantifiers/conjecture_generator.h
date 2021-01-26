@@ -435,7 +435,9 @@ private:  //information about ground equivalence classes
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
 
  public:
-  ConjectureGenerator(QuantifiersEngine* qe, QuantifiersState& qs);
+  ConjectureGenerator(QuantifiersEngine* qe,
+                      QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim);
   ~ConjectureGenerator();
 
   /* needs check */

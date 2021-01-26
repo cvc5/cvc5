@@ -30,9 +30,12 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
-                                     ProofNodeManager* pnm)
+QuantifiersEngine::QuantifiersEngine(
+    quantifiers::QuantifiersState& qstate,
+    quantifiers::QuantifiersInferenceManager& qim,
+    ProofNodeManager* pnm)
     : d_qstate(qstate),
+      d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
       d_masterEqualityEngine(nullptr),
@@ -40,9 +43,9 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
-      d_term_util(new quantifiers::TermUtil(this)),
+      d_term_util(new quantifiers::TermUtil),
       d_term_canon(new expr::TermCanonize),
-      d_term_db(new quantifiers::TermDb(qstate, this)),
+      d_term_db(new quantifiers::TermDb(qstate, qim, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
@@ -68,7 +71,7 @@ QuantifiersEngine::QuantifiersEngine(quantifiers::QuantifiersState& qstate,
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(this, qstate));
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(this, qstate, qim));
   }
 
   d_util.push_back(d_instantiate.get());
@@ -128,7 +131,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te,
   d_masterEqualityEngine = mee;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());

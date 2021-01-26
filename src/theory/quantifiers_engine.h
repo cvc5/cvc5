@@ -31,6 +31,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -61,6 +62,7 @@ class QuantifiersEngine {
 
  public:
   QuantifiersEngine(quantifiers::QuantifiersState& qstate,
+                    quantifiers::QuantifiersInferenceManager& qim,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
@@ -337,6 +339,8 @@ public:
  private:
   /** The quantifiers state object */
   quantifiers::QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
   /** Pointer to theory engine object */
   TheoryEngine* d_te;
   /** Reference to the decision manager of the theory engine */
