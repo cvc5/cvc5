@@ -28,6 +28,7 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
                                      const std::vector<Theory*>& paraTheories,
                                      ProofNodeManager* pnm)
     : d_te(te),
+    d_valuation(&te),
       d_pnm(pnm),
       d_logicInfo(te.getLogicInfo()),
       d_paraTheories(paraTheories),
