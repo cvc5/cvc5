@@ -23,8 +23,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie)
-    : InstStrategy(ie)
+InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie,
+                      QuantifiersState& qs)
+    : InstStrategy(ie, qs)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}

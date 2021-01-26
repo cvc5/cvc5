@@ -27,6 +27,8 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
+  
+class QuantifiersState;
 
 /** A status response to process */
 enum class InstStrategyStatus
@@ -43,7 +45,7 @@ enum class InstStrategyStatus
 class InstStrategy
 {
  public:
-  InstStrategy(QuantifiersEngine* qe) : d_quantEngine(qe) {}
+  InstStrategy(QuantifiersEngine* qe) : d_quantEngine(qe), d_qstate(qs) {}
   virtual ~InstStrategy() {}
   /** presolve */
   virtual void presolve() {}
@@ -57,6 +59,8 @@ class InstStrategy
  protected:
   /** reference to the instantiation engine */
   QuantifiersEngine* d_quantEngine;
+  /** The quantifiers state object */
+  QuantifiersState& d_qstate;
 }; /* class InstStrategy */
 
 }  // namespace quantifiers

@@ -150,7 +150,7 @@ OutputChannel& QuantifiersEngine::getOutputChannel()
 /** get default valuation for the quantifiers engine */
 Valuation& QuantifiersEngine::getValuation()
 {
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getValuation();
+  return d_qstate.getValuation();
 }
 
 const LogicInfo& QuantifiersEngine::getLogicInfo() const
@@ -445,7 +445,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
       }
       Trace("quant-engine-debug")
-          << "  Theory engine finished : " << !theoryEngineNeedsCheck()
+          << "  Theory engine finished : " << !d_qstate.getValuation().needCheck()
           << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
       Trace("quant-engine-debug")
@@ -903,6 +903,11 @@ bool QuantifiersEngine::hasAddedLemma() const
   return !d_lemmas_waiting.empty() || d_hasAddedLemma;
 }
 
+bool QuantifiersEngine::inConflict() const
+{
+  return d_qstate.isInConflict();
+}
+
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
   //determine if we should perform check, based on instWhenMode
@@ -913,7 +918,7 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
   {
-    performCheck = (e >= Theory::EFFORT_FULL) && !theoryEngineNeedsCheck();
+    performCheck = (e >= Theory::EFFORT_FULL) && !d_qstate.getValuation().needCheck();
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
   {
@@ -922,7 +927,7 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   else if (options::instWhenMode()
            == options::InstWhenMode::FULL_DELAY_LAST_CALL)
   {
-    performCheck = ((e == Theory::EFFORT_FULL && !theoryEngineNeedsCheck()
+    performCheck = ((e == Theory::EFFORT_FULL && !d_qstate.getValuation().needCheck()
                      && d_ierCounter % d_inst_when_phase != 0)
                     || e == Theory::EFFORT_LAST_CALL);
   }

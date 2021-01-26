@@ -80,7 +80,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     }
     if (options::fullSaturateQuant() && !doCheck)
     {
-      if (!d_quantEngine->theoryEngineNeedsCheck())
+      if (!d_qstate.getValuation().needCheck())
       {
         doCheck = quant_e == QEFFORT_LAST_CALL;
         fullEffort = true;
