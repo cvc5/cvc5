@@ -170,8 +170,7 @@ Node Valuation::getPreprocessedTerm(TNode n,
                                     std::vector<Node>& sks)
 {
   Assert(d_engine != nullptr);
-  return d_engine->getPropEngine()->getPreprocessedTerm(
-      n, skAsserts, sks);
+  return d_engine->getPropEngine()->getPreprocessedTerm(n, skAsserts, sks);
 }
 
 bool Valuation::isDecision(Node lit) const {

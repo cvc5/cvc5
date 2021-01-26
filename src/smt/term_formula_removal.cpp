@@ -518,8 +518,9 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
 }
 
 bool RemoveTermFormulas::getSkolems(
-    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems,
-                             bool fixedPoint) const
+    TNode n,
+    std::unordered_set<Node, NodeHashFunction>& skolems,
+    bool fixedPoint) const
 {
   bool ret = false;
   std::unordered_set<TNode, TNodeHashFunction> visited;

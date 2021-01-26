@@ -36,8 +36,8 @@
 #include "prop/theory_proxy.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
-#include "theory/theory_engine.h"
 #include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 

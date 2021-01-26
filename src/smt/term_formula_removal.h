@@ -129,7 +129,7 @@ class RemoveTermFormulas {
   /**
    * Get the set of skolems introduced by this class that occur in node n,
    * add them to skolems.
-   * 
+   *
    * @param n The node to traverse
    * @param skolems The set where the skolems are added
    * @param fixedPoint Also include skolems that occur in the definition lemma
@@ -141,7 +141,7 @@ class RemoveTermFormulas {
    */
   bool getSkolems(TNode n,
                   std::unordered_set<Node, NodeHashFunction>& skolems,
-                             bool fixedPoint = false) const;
+                  bool fixedPoint = false) const;
 
   /**
    * Get the lemma for the skolem, or the null node if k is not a skolem this
