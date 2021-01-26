@@ -41,17 +41,11 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     Node assertion = (*assertions)[i];
     std::vector<theory::TrustNode> newAsserts;
     std::vector<Node> newSkolems;
-    TrustNode trn =
-        propEngine->preprocess(assertion, newAsserts, newSkolems, true);
+    TrustNode trn = propEngine->preprocess(assertion, newAsserts, newSkolems);
     if (!trn.isNull())
     {
       // process
       assertions->replaceTrusted(i, trn);
-      // rewritten assertion has a dependence on the node (old pf architecture)
-      if (options::unsatCores())
-      {
-        ProofManager::currentPM()->addDependence(trn.getNode(), assertion);
-      }
     }
     Assert(newSkolems.size() == newAsserts.size());
     for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
