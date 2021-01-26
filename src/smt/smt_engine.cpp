@@ -1533,10 +1533,87 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
   TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
-  te->printInstantiations(out);
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+
+  // First, extract and print the skolemizations
+  bool printed = false;
+  bool reqNames = !options::printInstFull();
+  // only print when in list mode
+  if (options::printInstMode() == options::PrintInstMode::LIST)
+  {
+    std::map<Node, std::vector<Node>> sks;
+    qe->getSkolemTermVectors(sks);
+    for (const std::pair<const Node, std::vector<Node>>& s : sks)
+    {
+      Node name;
+      if (!qe->getNameForQuant(s.first, name, reqNames))
+      {
+        // did not have a name and we are only printing formulas with names
+        continue;
+      }
+      SkolemList slist(name, s.second);
+      out << slist;
+      printed = true;
+    }
+  }
+
+  // Second, extract and print the instantiations
+  std::map<Node, std::vector<std::vector<Node>>> insts;
+  getInstantiationTermVectors(insts);
+  for (const std::pair<const Node, std::vector<std::vector<Node>>>& i : insts)
+  {
+    if (i.second.empty())
+    {
+      // no instantiations, skip
+      continue;
+    }
+    Node name;
+    if (!qe->getNameForQuant(i.first, name, reqNames))
+    {
+      // did not have a name and we are only printing formulas with names
+      continue;
+    }
+    // must have a name
+    if (options::printInstMode() == options::PrintInstMode::NUM)
+    {
+      out << "(num-instantiations " << name << " " << i.second.size() << ")"
+          << std::endl;
+    }
+    else
+    {
+      Assert(options::printInstMode() == options::PrintInstMode::LIST);
+      InstantiationList ilist(name, i.second);
+      out << ilist;
+    }
+    printed = true;
+  }
+  // if we did not print anything, we indicate this
+  if (!printed)
+  {
+    out << "No instantiations" << std::endl;
+  }
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
     out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
+  }
+}
+
+void SmtEngine::getInstantiationTermVectors(
+    std::map<Node, std::vector<std::vector<Node>>>& insts)
+{
+  SmtScope smts(this);
+  finishInit();
+  if (options::proofNew() && getSmtMode() == SmtMode::UNSAT)
+  {
+    // TODO (project #37): minimize instantiations based on proof manager
+  }
+  else
+  {
+    TheoryEngine* te = getTheoryEngine();
+    Assert(te != nullptr);
+    QuantifiersEngine* qe = te->getQuantifiersEngine();
+    // otherwise, just get the list of all instantiations
+    qe->getInstantiationTermVectors(insts);
   }
 }
 
