@@ -33,7 +33,6 @@ QuantifiersModules::QuantifiersModules()
       d_fs(nullptr),
       d_i_cbqi(nullptr),
       d_qsplit(nullptr),
-      d_anti_skolem(nullptr),
       d_sygus_inst(nullptr)
 {
 }
