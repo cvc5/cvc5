@@ -517,12 +517,11 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
   return Node::null();
 }
 
-bool RemoveTermFormulas::getSkolems(
+void RemoveTermFormulas::getSkolems(
     TNode n,
     std::unordered_set<Node, NodeHashFunction>& skolems,
     bool fixedPoint) const
 {
-  bool ret = false;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>::
@@ -543,13 +542,10 @@ bool RemoveTermFormulas::getSkolems(
         itl = d_lemmaCache.find(cur);
         if (itl != d_lemmaCache.end())
         {
-          // technically could already be in skolems if skolems was non-empty,
-          // regardless set return value to true.
           skolems.insert(cur);
-          ret = true;
           if (fixedPoint)
           {
-            // also visit the definition for the skolem
+            // also visit the definition for the skolem if fixed point is true
             visit.push_back((*itl).second.getProven());
           }
         }
@@ -560,7 +556,6 @@ bool RemoveTermFormulas::getSkolems(
       }
     }
   } while (!visit.empty());
-  return ret;
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)
