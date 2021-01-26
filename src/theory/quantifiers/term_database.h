@@ -109,6 +109,18 @@ class TermDb : public QuantifiersUtil {
   * Returns the i^th ground term of type tn
   */
   Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
+  /** get or make ground term
+   *
+   * Returns the first ground term of type tn, or makes one if none exist. If
+   * reqVar is true, then the ground term must be a variable.
+   */
+  Node getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar = false);
+  /** make fresh variable
+  * Returns a fresh variable of type tn.
+  * This will return only a single fresh
+  * variable per type.
+  */
+  Node getOrMakeTypeFreshVariable(TypeNode tn);
   /** add a term to the database
   * withinQuant is whether n is within the body of a quantified formula
   * withinInstClosure is whether n is within an inst-closure operator (see
@@ -314,6 +326,8 @@ class TermDb : public QuantifiersUtil {
   std::map< Node, std::vector< Node > > d_op_map;
   /** map from type nodes to terms of that type */
   std::map< TypeNode, std::vector< Node > > d_type_map;
+  /** map from type nodes to a fresh variable we introduced */
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_fv;
   /** inactive map */
   NodeBoolMap d_inactive_map;
   /** count of the number of non-redundant ground terms per operator */

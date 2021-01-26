@@ -114,18 +114,6 @@ class FirstOrderModel : public TheoryModel
   unsigned getModelBasisArg(Node n);
   /** get some domain element */
   Node getSomeDomainElement(TypeNode tn);
-  /** get or make ground term
-   *
-   * Returns the first ground term of type tn, or makes one if none exist. If
-   * reqVar is true, then the ground term must be a variable.
-   */
-  Node getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar = false);
-  /** make fresh variable
-  * Returns a fresh variable of type tn.
-  * This will return only a single fresh
-  * variable per type.
-  */
-  Node getOrMakeTypeFreshVariable(TypeNode tn);
   /** initialize representative set for type
    *
    * This ensures that TheoryModel::d_rep_set
@@ -193,8 +181,6 @@ class FirstOrderModel : public TheoryModel
   std::map<Node, Node> d_model_basis_body;
   /** map from universal quantifiers to model basis terms */
   std::map<Node, std::vector<Node> > d_model_basis_terms;
-  /** map from type nodes to a fresh variable we introduced */
-  std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_typeFv;
   /** compute model basis arg */
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */

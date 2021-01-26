@@ -119,6 +119,54 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
   }
 }
 
+Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
+{
+  std::map<TypeNode, std::vector<Node> >::const_iterator it =
+      d_type_map.find(tn);
+  if (it != d_type_map.end())
+  {
+    Assert(!it->second.empty());
+    if (!reqVar)
+    {
+      return it->second[0];
+    }
+    for (const Node& v : it->second)
+    {
+      if (v.isVar())
+      {
+        return v;
+      }
+    }
+  }
+  return getOrMakeTypeFreshVariable(tn);
+}
+
+Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
+{
+  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
+      d_type_fv.find(tn);
+  if (it == d_type_fv.end())
+  {
+    std::stringstream ss;
+    ss << language::SetLanguage(options::outputLanguage());
+    ss << "e_" << tn;
+    Node k = NodeManager::currentNM()->mkSkolem(
+        ss.str(), tn, "is a termDb fresh variable");
+    Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
+                   << std::endl;
+    if (options::instMaxLevel() != -1)
+    {
+      QuantAttributes::setInstantiationLevelAttr(k, 0);
+    }
+    d_type_fv[tn] = k;
+    return k;
+  }
+  else
+  {
+    return it->second;
+  }
+}
+
 Node TermDb::getMatchOperator( Node n ) {
   Kind k = n.getKind();
   //datatype operators may be parametric, always assume they are

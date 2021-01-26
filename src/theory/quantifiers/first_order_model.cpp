@@ -242,7 +242,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
     {
       if (options::fmfFreshDistConst())
       {
-        mbt = getOrMakeTypeFreshVariable(tn);
+        mbt = d_qe->getTermDatabase()->getOrMakeTypeFreshVariable(tn);
       }
       else
       {
@@ -250,7 +250,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
         // may produce an inconsistent model by choosing an arbitrary
         // equivalence class for it. Hence, we require that it be an existing or
         // fresh variable.
-        mbt = getOrMakeTypeGroundTerm(tn, true);
+        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
       }
     }
     ModelBasisAttribute mba;
@@ -260,48 +260,6 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
                               << tn << std::endl;
   }
   return d_model_basis_term[tn];
-}
-
-Node FirstOrderModel::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
-{
-  std::map<TypeNode, std::vector<Node> >::const_iterator it =
-      d_type_map.find(tn);
-  if (it != d_type_map.end())
-  {
-    Assert(!it->second.empty());
-    if (!reqVar)
-    {
-      return it->second[0];
-    }
-    for (const Node& v : it->second)
-    {
-      if (v.isVar())
-      {
-        return v;
-      }
-    }
-  }
-  return getOrMakeTypeFreshVariable(tn);
-}
-
-Node FirstOrderModel::getOrMakeTypeFreshVariable(TypeNode tn)
-{
-  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
-      d_typeFv.find(tn);
-  if (it != d_typeFv.end())
-  {
-    return it->second;
-  }
-  Node k = NodeManager::currentNM()->mkSkolem(
-      "e", tn, "is a termDb fresh variable");
-  Trace("mkVar") << "TermDb:: Make variable " << k << " : " << tn
-                  << std::endl;
-  if (options::instMaxLevel() != -1)
-  {
-    QuantAttributes::setInstantiationLevelAttr(k, 0);
-  }
-  d_typeFv[tn] = k;
-  return k;
 }
 
 bool FirstOrderModel::isModelBasisTerm(Node n)
