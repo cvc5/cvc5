@@ -158,7 +158,7 @@ class QuantifiersModule {
   quantifiers::TermUtil* getTermUtil() const;
   /** get the quantifiers state */
   quantifiers::QuantifiersState& getState();
-  /** get the quantifiers state */
+  /** get the quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
   //----------------------------end general queries
  protected:
