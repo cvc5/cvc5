@@ -1429,7 +1429,8 @@ void TheoryEngine::lemma(theory::TrustNode tlemma,
   {
     std::vector<Node> skAsserts;
     std::vector<Node> sks;
-    Node retLemma = d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
+    Node retLemma =
+        d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
     d_relManager->notifyPreprocessedAssertion(retLemma);
     d_relManager->notifyPreprocessedAssertions(skAsserts);
   }
