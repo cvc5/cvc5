@@ -287,8 +287,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
       if (hasTermCurrent(n) && isTermActive(n))
       {
         computeArgReps(n);
-        TNode r =
-            ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
+        TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
         d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
@@ -1024,8 +1023,7 @@ bool TermDb::reset( Theory::Effort effort ){
     for (std::pair<const Node, Node>& pp : d_ho_purify_to_term)
     {
       if (ee->hasTerm(pp.second)
-          && (!ee->hasTerm(pp.first)
-              || !ee->areEqual(pp.second, pp.first)))
+          && (!ee->hasTerm(pp.first) || !ee->areEqual(pp.second, pp.first)))
       {
         Node eq;
         std::map<Node, Node>::iterator itpe = d_ho_purify_to_eq.find(pp.first);
