@@ -18,7 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -33,10 +33,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermDb::TermDb(context::Context* c, context::UserContext* u,
+TermDb::TermDb(QuantifiersState& qs,
+               QuantifiersInferenceManager& qim,
                QuantifiersEngine* qe)
     : d_quantEngine(qe),
-      d_inactive_map(c) {
+      d_qstate(qs),
+      d_qim(qim),
+      d_inactive_map(qs.getSatContext())
+{
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -184,7 +188,9 @@ Node TermDb::getMatchOperator( Node n ) {
     Trace("par-op") << "Parametric operator : " << k << ", " << n.getOperator() << ", " << tn << " : " << n << std::endl;
     d_par_op_map[op][tn] = n;
     return n;
-  }else if( inst::Trigger::isAtomicTriggerKind( k ) ){
+  }
+  else if (inst::TriggerTermInfo::isAtomicTriggerKind(k))
+  {
     return n.getOperator();
   }else{
     return Node::null();
@@ -209,7 +215,7 @@ void TermDb::addTerm(Node n,
       Trace("term-db-debug") << "register term : " << n << std::endl;
       d_type_map[n.getType()].push_back(n);
       // if this is an atomic trigger, consider adding it
-      if (inst::Trigger::isAtomicTrigger(n))
+      if (inst::TriggerTermInfo::isAtomicTrigger(n))
       {
         Trace("term-db") << "register term in db " << n << std::endl;
 
@@ -406,7 +412,7 @@ void TermDb::computeUfTerms( TNode f ) {
           {
             Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                    << n << "!!!!" << std::endl;
-            if (!d_quantEngine->theoryEngineNeedsCheck())
+            if (!d_qstate.getValuation().needCheck())
             {
               Trace("term-db-lemma") << "  all theories passed with no lemmas."
                                      << std::endl;
@@ -415,7 +421,7 @@ void TermDb::computeUfTerms( TNode f ) {
             Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
           }
           d_quantEngine->addLemma(lem);
-          d_quantEngine->setConflict();
+          d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return;
         }
@@ -991,7 +997,6 @@ bool TermDb::isInstClosure( Node r ) {
 
 void TermDb::setHasTerm( Node n ) {
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
-  //if( inst::Trigger::isAtomicTrigger( n ) ){
   if( d_has_map.find( n )==d_has_map.end() ){
     d_has_map[n] = true;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -1058,7 +1063,7 @@ bool TermDb::reset( Theory::Effort effort ){
           Trace("term-db-lemma")
               << "Purify equality lemma: " << eq << std::endl;
           d_quantEngine->addLemma(eq);
-          d_quantEngine->setConflict();
+          d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return false;
         }

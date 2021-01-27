@@ -404,7 +404,7 @@ class InferInfo : public TheoryInference
    * are mapped to by a length status, indicating the length constraint that
    * can be assumed for them.
    */
-  std::map<LengthStatus, std::vector<Node> > d_newSkolem;
+  std::map<LengthStatus, std::vector<Node> > d_skolems;
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**

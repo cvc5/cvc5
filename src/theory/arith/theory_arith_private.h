@@ -237,7 +237,15 @@ private:
   context::CDQueue<ArithVar> d_constantIntegerVariables;
 
   Node callDioSolver();
-  Node dioCutting();
+  /**
+   * Produces lemmas of the form (or (>= f 0) (<= f 0)),
+   * where f is a plane that the diophantine solver is interested in.
+   *
+   * More precisely, produces lemmas of the form (or (>= lc -c) (<= lc -c))
+   * where lc is a linear combination of variables, c is a constant, and lc + c
+   * is the plane.
+   */
+  TrustNode dioCutting();
 
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
@@ -705,8 +713,10 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
-  context::CDQueue<Node> d_approxCuts;
-  std::vector<Node> d_acTmp;
+  /** Used for replaying approximate simplex */
+  context::CDQueue<TrustNode> d_approxCuts;
+  /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */
+  std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;

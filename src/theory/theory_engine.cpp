@@ -169,8 +169,10 @@ void TheoryEngine::finishInit()
   // initialize the quantifiers engine
   if (d_logicInfo.isQuantified())
   {
-    // initialize the quantifiers engine
-    d_quantEngine = new QuantifiersEngine(this, *d_decManager.get(), d_pnm);
+    // get the quantifiers engine, which is initialized by the quantifiers
+    // theory
+    d_quantEngine = d_theoryTable[THEORY_QUANTIFIERS]->getQuantifiersEngine();
+    Assert(d_quantEngine != nullptr);
   }
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.
@@ -178,10 +180,11 @@ void TheoryEngine::finishInit()
   // get pointer to the shared solver
   d_sharedSolver = d_tc->getSharedSolver();
 
-  // set the core equality engine on quantifiers engine
+  // finish initializing the quantifiers engine
   if (d_logicInfo.isQuantified())
   {
-    d_quantEngine->setMasterEqualityEngine(d_tc->getCoreEqualityEngine());
+    d_quantEngine->finishInit(
+        this, d_decManager.get(), d_tc->getCoreEqualityEngine());
   }
 
   // finish initializing the theories by linking them with the appropriate
@@ -204,12 +207,6 @@ void TheoryEngine::finishInit()
     t->setDecisionManager(d_decManager.get());
     // finish initializing the theory
     t->finishInit();
-  }
-
-  // finish initializing the quantifiers engine
-  if (d_logicInfo.isQuantified())
-  {
-    d_quantEngine->finishInit();
   }
 }
 
@@ -282,8 +279,6 @@ TheoryEngine::~TheoryEngine() {
       delete d_theoryOut[theoryId];
     }
   }
-
-  delete d_quantEngine;
 
   smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
   smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
@@ -1174,14 +1169,10 @@ Node TheoryEngine::ensureLiteral(TNode n) {
   return d_propEngine->ensureLiteral(rewritten);
 }
 
-
-void TheoryEngine::printInstantiations( std::ostream& out ) {
-  if( d_quantEngine ){
-    d_quantEngine->printInstantiations( out );
-  }else{
-    out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
-    Assert(false);
-  }
+Node TheoryEngine::getPreprocessedTerm(TNode n)
+{
+  Node rewritten = Rewriter::rewrite(n);
+  return d_propEngine->getPreprocessedTerm(rewritten);
 }
 
 void TheoryEngine::printSynthSolution( std::ostream& out ) {
@@ -1189,30 +1180,6 @@ void TheoryEngine::printSynthSolution( std::ostream& out ) {
     d_quantEngine->printSynthSolution( out );
   }else{
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
-    Assert(false);
-  }
-}
-
-void TheoryEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiatedQuantifiedFormulas( qs );
-  }else{
-    Assert(false);
-  }
-}
-
-void TheoryEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiationTermVectors( q, tvecs );
-  }else{
-    Assert(false);
-  }
-}
-
-void TheoryEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiationTermVectors( insts );
-  }else{
     Assert(false);
   }
 }
