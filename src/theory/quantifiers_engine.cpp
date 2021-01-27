@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers_engine.h"
 
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
@@ -979,26 +980,6 @@ void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector
   d_instantiate->getInstantiationTermVectors(insts);
 }
 
-void QuantifiersEngine::printInstantiations( std::ostream& out ) {
-  bool printed = false;
-  // print the skolemizations
-  if (options::printInstMode() == options::PrintInstMode::LIST)
-  {
-    if (d_skolemize->printSkolemization(out))
-    {
-      printed = true;
-    }
-  }
-  // print the instantiations
-  if (d_instantiate->printInstantiations(out))
-  {
-    printed = true;
-  }
-  if( !printed ){
-    out << "No instantiations" << std::endl;
-  }
-}
-
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   if (d_qmodules->d_synth_e)
   {
@@ -1008,8 +989,15 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
   }
 }
 
-void QuantifiersEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
+void QuantifiersEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
+{
   d_instantiate->getInstantiatedQuantifiedFormulas(qs);
+}
+
+void QuantifiersEngine::getSkolemTermVectors(
+    std::map<Node, std::vector<Node> >& sks) const
+{
+  d_skolemize->getSkolemTermVectors(sks);
 }
 
 QuantifiersEngine::Statistics::Statistics()
@@ -1086,6 +1074,23 @@ eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   return d_eq_query->getInternalRepresentative(a, q, index);
+}
+
+Node QuantifiersEngine::getNameForQuant(Node q) const
+{
+  Node name = d_quant_attr->getQuantName(q);
+  if (!name.isNull())
+  {
+    return name;
+  }
+  return q;
+}
+
+bool QuantifiersEngine::getNameForQuant(Node q, Node& name, bool req) const
+{
+  name = getNameForQuant(q);
+  // if we have a name, or we did not require one
+  return name != q || !req;
 }
 
 bool QuantifiersEngine::getSynthSolutions(

@@ -19,6 +19,7 @@
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
@@ -58,6 +59,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   Assert(te != nullptr);
   te->setUserAttribute(
       doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
   n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
   std::vector<Node> children;
@@ -88,7 +90,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // that the (single) quantified formula is preprocessed, rewritten
     // version of the input quantified formula q.
     std::vector<Node> inst_qs;
-    te->getInstantiatedQuantifiedFormulas(inst_qs);
+    qe->getInstantiatedQuantifiedFormulas(inst_qs);
     Assert(inst_qs.size() <= 1);
     Node ret;
     if (inst_qs.size() == 1)
@@ -98,7 +100,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
       std::vector<std::vector<Node>> insts;
-      te->getInstantiationTermVectors(topq, insts);
+      qe->getInstantiationTermVectors(topq, insts);
       std::vector<Node> vars(ne[0].begin(), ne[0].end());
       std::vector<Node> conjs;
       // apply the instantiation on the original body

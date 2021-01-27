@@ -258,11 +258,19 @@ public:
   * guided instantiation.
   */
  Node getInternalRepresentative(Node a, Node q, int index);
+ /**
+  * Get quantifiers name, which returns a variable corresponding to the name of
+  * quantified formula q if q has a name, or otherwise returns q itself.
+  */
+ Node getNameForQuant(Node q) const;
+ /**
+  * Get name for quantified formula. Returns true if q has a name or if req
+  * is false. Sets name to the result of the above method.
+  */
+ bool getNameForQuant(Node q, Node& name, bool req = true) const;
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print instantiations */
- void printInstantiations(std::ostream& out);
  /** print solution for synthesis conjectures */
  void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */
@@ -272,6 +280,12 @@ public:
                                   std::vector<std::vector<Node> >& tvecs);
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
+ /**
+  * Get skolemization vectors, where for each quantified formula that was
+  * skolemized, this is the list of skolems that were used to witness the
+  * negation of that quantified formula.
+  */
+ void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
 
  /** get synth solutions
   *
