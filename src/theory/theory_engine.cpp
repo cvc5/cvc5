@@ -184,7 +184,7 @@ void TheoryEngine::finishInit()
   if (d_logicInfo.isQuantified())
   {
     d_quantEngine->finishInit(
-        this, d_decManager.get(), d_tc->getCoreEqualityEngine());
+        this, d_decManager.get());
   }
 
   // finish initializing the theories by linking them with the appropriate

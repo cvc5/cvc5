@@ -38,7 +38,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
-      d_masterEqualityEngine(nullptr),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
@@ -120,14 +119,10 @@ QuantifiersEngine::QuantifiersEngine(
 QuantifiersEngine::~QuantifiersEngine() {}
 
 void QuantifiersEngine::finishInit(TheoryEngine* te,
-                                   DecisionManager* dm,
-                                   eq::EqualityEngine* mee)
+                                   DecisionManager* dm)
 {
   d_te = te;
   d_decManager = dm;
-  d_masterEqualityEngine = mee;
-  // use the master equality engine in the quantifiers state
-  d_qstate.setEqualityEngine(mee);
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
   d_qmodules->initialize(this, d_qstate, d_qim, d_modules);
@@ -357,7 +352,7 @@ void QuantifiersEngine::ppNotifyAssertions(
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
-
+  Assert (d_qstate.getEqualityEngine()!=nullptr);
   if (!d_qstate.getEqualityEngine()->consistent())
   {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
@@ -1081,11 +1076,6 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_fmf_mbqi);
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_cbqi);
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_rr);
-}
-
-eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
-{
-  return d_masterEqualityEngine;
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){

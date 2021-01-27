@@ -85,7 +85,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
       tat = qe->getTermDatabase()->getTermArgTrie(Node::null(), d_op);
       if (tat && !qs.isInConflict())
       {
-        Node r = qe->getState().getRepresentative(d_eqc);
+        Node r = qs.getRepresentative(d_eqc);
         for (std::pair<const TNode, TNodeTrie>& t : tat->d_data)
         {
           if (t.first != r)

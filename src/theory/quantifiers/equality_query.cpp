@@ -184,7 +184,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
 }
 
 eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
-  return d_qe->getMasterEqualityEngine();
+  return d_qe->getState().getEqualityEngine();
 }
 
 //helper functions
