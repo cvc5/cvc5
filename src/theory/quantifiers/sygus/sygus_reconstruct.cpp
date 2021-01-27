@@ -49,12 +49,18 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   NodeManager* nm = NodeManager::currentNM();
 
+  /** a set of obligations that are not yet satisfied for each sygus datatype */
+  std::unordered_map<TypeNode,
+                     std::unordered_set<Node, NodeHashFunction>,
+                     TypeNodeHashFunction>
+      unsolvedObs;
+
   // paramaters sol and stn constitute the main obligation to satisfy
   Node mainOb = nm->mkSkolem("sygus_rcons", stn);
 
   // add the main obligation to the set of obligations that are not yet
   // satisfied
-  d_unsolvedObs[stn].emplace(mainOb);
+  unsolvedObs[stn].emplace(mainOb);
   d_obInfo.emplace(mainOb, RConsObligationInfo(sol));
   d_stnInfo[stn].setObligation(sol, mainOb);
 
@@ -82,7 +88,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         obsPrime;
     for (const std::pair<const TypeNode,
                          std::unordered_set<Node, NodeHashFunction>>& pair :
-         d_unsolvedObs)
+         unsolvedObs)
     {
       // enumerate a new term
       Trace("sygus-rcons") << "enum: " << stn << ": ";
@@ -155,7 +161,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
       {
         for (const Node& k : pair.second)
         {
-          d_unsolvedObs[pair.first].emplace(k);
+          unsolvedObs[pair.first].emplace(k);
           if (d_sol[k] == Node::null())
           {
             Trace("sygus-rcons") << "ob: " << ob(k) << std::endl;
@@ -181,8 +187,8 @@ Node SygusReconstruct::reconstructSolution(Node sol,
       }
       obsPrime = std::move(obsDPrime);
     }
-    // remove solved obligations from d_unsolvedObs
-    removeSolvedObs();
+    // remove solved obligations from unsolvedObs
+    removeSolvedObs(unsolvedObs);
     ++count;
   }
 
@@ -424,10 +430,13 @@ void SygusReconstruct::initialize(TypeNode stn)
   }
 }
 
-void SygusReconstruct::removeSolvedObs()
+void SygusReconstruct::removeSolvedObs(
+    std::unordered_map<TypeNode,
+                       std::unordered_set<Node, NodeHashFunction>,
+                       TypeNodeHashFunction>& unsolvedObs)
 {
   for (std::pair<const TypeNode, std::unordered_set<Node, NodeHashFunction>>&
-           tempPair : d_unsolvedObs)
+           tempPair : unsolvedObs)
   {
     std::unordered_set<Node, NodeHashFunction>::iterator it =
         tempPair.second.begin();
@@ -486,7 +495,6 @@ bool SygusReconstruct::notify(Node s,
 
 void SygusReconstruct::clear()
 {
-  d_unsolvedObs.clear();
   d_obInfo.clear();
   d_stnInfo.clear();
   d_sol.clear();

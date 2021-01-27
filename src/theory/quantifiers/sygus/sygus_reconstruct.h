@@ -228,9 +228,14 @@ class SygusReconstruct : public expr::NotifyMatch
   void initialize(TypeNode stn);
 
   /**
-   * Remove solved obligations from `d_unsolvedObs`.
+   * Remove solved obligations from the given set of obligations.
+   *
+   * @param unsolvedObs A set of obligations containing solved ones
    */
-  void removeSolvedObs();
+  void removeSolvedObs(
+      std::unordered_map<TypeNode,
+                         std::unordered_set<Node, NodeHashFunction>,
+                         TypeNodeHashFunction>& obs);
 
   /**
    * Replace all variables in `n` with ground values of the type.
@@ -287,12 +292,6 @@ class SygusReconstruct : public expr::NotifyMatch
   TermDbSygus* d_tds;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
-
-  /** a set of obligations that are not yet satisfied for each sygus datatype */
-  std::unordered_map<TypeNode,
-                     std::unordered_set<Node, NodeHashFunction>,
-                     TypeNodeHashFunction>
-      d_unsolvedObs;
 
   /** a map from an obligation to its reconstruction info */
   std::unordered_map<Node, RConsObligationInfo, NodeHashFunction> d_obInfo;
