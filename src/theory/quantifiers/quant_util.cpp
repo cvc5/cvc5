@@ -43,17 +43,17 @@ eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
 
 bool QuantifiersModule::areEqual(TNode n1, TNode n2) const
 {
-  return d_qstate.areEqual( n1, n2 );
+  return d_qstate.areEqual(n1, n2);
 }
 
 bool QuantifiersModule::areDisequal(TNode n1, TNode n2) const
 {
-  return d_qstate.areDisequal( n1, n2 );
+  return d_qstate.areDisequal(n1, n2);
 }
 
 TNode QuantifiersModule::getRepresentative(TNode n) const
 {
-  return d_qstate.getRepresentative( n );
+  return d_qstate.getRepresentative(n);
 }
 
 QuantifiersEngine* QuantifiersModule::getQuantifiersEngine() const

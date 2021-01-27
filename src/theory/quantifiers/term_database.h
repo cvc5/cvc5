@@ -199,43 +199,41 @@ class TermDb : public QuantifiersUtil {
                     bool reqHasTerm = false);
   /** get entailed term
    *
-  * If possible, returns a term n' such that:
-  * (1) n' exists in the current equality engine (as specified by the state),
-  * (2) n = n' is entailed in the current context.
-  * It returns null if no such term can be found.
-  * Wrt evaluateTerm, this version does not construct new terms, and
-  * thus is less aggressive.
-  */
+   * If possible, returns a term n' such that:
+   * (1) n' exists in the current equality engine (as specified by the state),
+   * (2) n = n' is entailed in the current context.
+   * It returns null if no such term can be found.
+   * Wrt evaluateTerm, this version does not construct new terms, and
+   * thus is less aggressive.
+   */
   TNode getEntailedTerm(TNode n);
   /** get entailed term
    *
-  * If possible, returns a term n' such that:
-  * (1) n' exists in the current equality engine (as specified by the state),
-  * (2) n * subs = n' is entailed in the current context, where * is denotes
-  * substitution application.
-  * It returns null if no such term can be found.
-  * subsRep is whether the substitution maps to terms that are representatives
-  * according to the quantifiers state.
-  * Wrt evaluateTerm, this version does not construct new terms, and
-  * thus is less aggressive.
-  */
-  TNode getEntailedTerm(TNode n,
-                        std::map<TNode, TNode>& subs,
-                        bool subsRep);
+   * If possible, returns a term n' such that:
+   * (1) n' exists in the current equality engine (as specified by the state),
+   * (2) n * subs = n' is entailed in the current context, where * is denotes
+   * substitution application.
+   * It returns null if no such term can be found.
+   * subsRep is whether the substitution maps to terms that are representatives
+   * according to the quantifiers state.
+   * Wrt evaluateTerm, this version does not construct new terms, and
+   * thus is less aggressive.
+   */
+  TNode getEntailedTerm(TNode n, std::map<TNode, TNode>& subs, bool subsRep);
   /** is entailed
-  * Checks whether the current context entails n with polarity pol, based on the
-  * equality information in the quantifiers state.
-  * Returns true if the entailment can be successfully shown.
-  */
+   * Checks whether the current context entails n with polarity pol, based on
+   * the equality information in the quantifiers state. Returns true if the
+   * entailment can be successfully shown.
+   */
   bool isEntailed(TNode n, bool pol);
   /** is entailed
    *
-  * Checks whether the current context entails ( n * subs ) with polarity pol,
-  * based on the equality information in the quantifiers state,
-  * where * denotes substitution application.
-  * subsRep is whether the substitution maps to terms that are representatives
-  * according to in the quantifiers state.
-  */
+   * Checks whether the current context entails ( n * subs ) with polarity pol,
+   * based on the equality information in the quantifiers state,
+   * where * denotes substitution application.
+   * subsRep is whether the substitution maps to terms that are representatives
+   * according to in the quantifiers state.
+   */
   bool isEntailed(TNode n,
                   std::map<TNode, TNode>& subs,
                   bool subsRep,
@@ -341,9 +339,16 @@ class TermDb : public QuantifiersUtil {
                      bool computeExp,
                      bool reqHasTerm);
   /** helper for get entailed term */
-  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs);
+  TNode getEntailedTerm2(TNode n,
+                         std::map<TNode, TNode>& subs,
+                         bool subsRep,
+                         bool hasSubs);
   /** helper for is entailed */
-  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol );
+  bool isEntailed2(TNode n,
+                   std::map<TNode, TNode>& subs,
+                   bool subsRep,
+                   bool hasSubs,
+                   bool pol);
   /** compute uf eqc terms :
   * Ensure entries for f are in d_func_map_eqc_trie for all equivalence classes
   */

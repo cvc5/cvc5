@@ -154,7 +154,8 @@ quantifiers::QuantifiersState& QuantifiersEngine::getState()
 {
   return d_qstate;
 }
-quantifiers::QuantifiersInferenceManager& QuantifiersEngine::getInferenceManager()
+quantifiers::QuantifiersInferenceManager&
+QuantifiersEngine::getInferenceManager()
 {
   return d_qim;
 }

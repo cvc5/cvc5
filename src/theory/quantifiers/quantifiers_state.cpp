@@ -25,18 +25,23 @@ QuantifiersState::QuantifiersState(context::Context* c,
 {
 }
 
-void QuantifiersState::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
-  if( d_ee->hasTerm( a ) ){
-    Node rep = d_ee->getRepresentative( a );
-    eq::EqClassIterator eqc_iter( rep, d_ee );
-    while( !eqc_iter.isFinished() ){
-      eqc.push_back( *eqc_iter );
+void QuantifiersState::getEquivalenceClass(Node a, std::vector<Node>& eqc)
+{
+  if (d_ee->hasTerm(a))
+  {
+    Node rep = d_ee->getRepresentative(a);
+    eq::EqClassIterator eqc_iter(rep, d_ee);
+    while (!eqc_iter.isFinished())
+    {
+      eqc.push_back(*eqc_iter);
       eqc_iter++;
     }
-  }else{
-    eqc.push_back( a );
   }
-  //a should be in its equivalence class
+  else
+  {
+    eqc.push_back(a);
+  }
+  // a should be in its equivalence class
   Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
 }
 

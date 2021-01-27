@@ -33,7 +33,10 @@ namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
     QuantifiersState& qs, QuantifiersEngine* qe)
-    : d_qe(qe), d_qstate(qs), d_eqi_counter(qs.getSatContext()), d_reset_count(0)
+    : d_qe(qe),
+      d_qstate(qs),
+      d_eqi_counter(qs.getSatContext()),
+      d_reset_count(0)
 {
 }
 
