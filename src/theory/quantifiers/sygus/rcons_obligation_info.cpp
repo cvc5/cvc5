@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Obligation Info class implementation
+ ** \brief Reconstruct Obligation Info class implementation
  **/
 
 #include "rcons_obligation_info.h"
@@ -18,28 +18,31 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ObligationInfo::ObligationInfo(const Node& builtin) : d_builtin(builtin) {}
+RConsObligationInfo::RConsObligationInfo(const Node& builtin)
+    : d_builtin(builtin)
+{
+}
 
-const Node& ObligationInfo::getBuiltin() const { return d_builtin; }
+const Node& RConsObligationInfo::getBuiltin() const { return d_builtin; }
 
-void ObligationInfo::addCandidateSolution(const Node& candSol)
+void RConsObligationInfo::addCandidateSolution(const Node& candSol)
 {
   d_candSols.emplace(candSol);
 }
 
 const std::unordered_set<Node, NodeHashFunction>&
-ObligationInfo::getCandidateSolutions() const
+RConsObligationInfo::getCandidateSolutions() const
 {
   return d_candSols;
 }
 
-void ObligationInfo::addCandidateSolutionToWatchSet(const Node& candSol)
+void RConsObligationInfo::addCandidateSolutionToWatchSet(const Node& candSol)
 {
   d_watchSet.emplace(candSol);
 }
 
-const std::unordered_set<Node, NodeHashFunction>& ObligationInfo::getWatchSet()
-    const
+const std::unordered_set<Node, NodeHashFunction>&
+RConsObligationInfo::getWatchSet() const
 {
   return d_watchSet;
 }

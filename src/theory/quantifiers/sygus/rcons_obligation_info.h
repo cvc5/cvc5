@@ -26,7 +26,7 @@ namespace quantifiers {
 /**
  * A utility class for Sygus Reconstruct obligations.
  */
-class ObligationInfo
+class RConsObligationInfo
 {
  public:
   /**
@@ -34,7 +34,7 @@ class ObligationInfo
    *
    * @param builtin builtin term to reconstruct
    */
-  explicit ObligationInfo(const Node& builtin = Node::null());
+  explicit RConsObligationInfo(const Node& builtin = Node::null());
 
   /**
    * @return builtin term to reconstruct for the corresponding obligation
@@ -70,12 +70,32 @@ class ObligationInfo
   const std::unordered_set<Node, NodeHashFunction>& getWatchSet() const;
 
  private:
-  /** builtin term to reconstruct for the corresponding obligation */
+  /**
+   * builtin term for the corresponding obligation. To solve the obligation,
+   * this builtin term must be reconstructed in the specified grammar (sygus
+   * datatype type).
+   */
   Node d_builtin;
-  /** a set of candidate solutions to the corresponding obligation */
+  /**
+   * a set of candidate solutions to the corresponding obligation. Each
+   * candidate solution is a sygus datatype term containing skolem subterms
+   * (sub-obligations). By Replacing all sub-obligations with their
+   * corresponding solution, we get a term whose builtin analog rewrites to
+   * `d_builtin` and hence solves this obligation. For example, given:
+   * d_builtin = (+ x y)
+   * a possible set of candidate solutions would be:
+   * d_candSols = {(c_+ c_z1 c_z2), (c_+ c_x c_z2), (c_+ c_z1 c_y),
+   *               (c_+ c_x c_y)}
+   * where c_z1 and c_z2 are skolems. Notice that `d_candSols` may contain a
+   * ground term that solves the obligation ((c_+ c_x c_y) in this example).
+   */
   std::unordered_set<Node, NodeHashFunction> d_candSols;
-  /** a set of candidate solutions waiting for the corresponding obligation to
-   * be solved */
+  /**
+   * a set of candidate solutions waiting for the corresponding obligation to
+   * be solved. In the example above, (c_+ c_z1 c_z2) and (c_+ c_x c_z2) are in
+   * the watch-set of c_z2. Similarly, (c_+ c_z1 c_z2) and (c_+ c_z1 c_y) are in
+   * the watch-set of c_z1.
+   */
   std::unordered_set<Node, NodeHashFunction> d_watchSet;
 };
 

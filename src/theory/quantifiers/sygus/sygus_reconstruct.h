@@ -23,6 +23,7 @@
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 #include "theory/quantifiers/sygus/rcons_obligation_info.h"
+#include "theory/quantifiers/sygus/rcons_type_info.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -65,13 +66,14 @@ namespace quantifiers {
  *     for each T
  *       s[z] = nextEnum(T_{z})
  *       if (s[z] is ground)
- *         if exists (k', t', s') in Obs<T> s.t. |=_X t = toBuiltIn(s[z])
+ *         if exists (k', t', s') in Obs<T> s.t. |=_X t' = toBuiltIn(s[z])
  *           markSolved(k', s[z])
  *         else
  *           let k be a new variable of type : T
- *           Obs'<T> += (k, toBuiltIn(s[z]), s[z])
- *       else if no s' in Pool<T> s.t. s' * sigma = s
- *           pool<T> += s[z]
+ *           Obs<T> += (k, toBuiltIn(s[z]), s[z])
+ *       else if no s' in Pool<T> s.t.
+ *             rewrite(toBuiltIn(s')) * sigma = rewrite(toBuiltIn(s))
+ *           Pool<T> += s[z]
  *           for each (k, t, null) in Obs<T>
  *             Obs' += matchNewObs(k, s[z])
  *     // match phase
@@ -120,6 +122,12 @@ namespace quantifiers {
 class SygusReconstruct : public expr::NotifyMatch
 {
  public:
+  /**
+   * Constructor.
+   *
+   * @param tds Database for sygus terms
+   * @param s Statistics managed for the synth engine
+   */
   SygusReconstruct(TermDbSygus* tds, SygusStatistics& s);
 
   /** reconstruct solution
@@ -217,31 +225,22 @@ class SygusReconstruct : public expr::NotifyMatch
    * Initialize a sygus enumerator and a candidate rewrite database for each
    * sygus datatype type.
    *
-   * @param stn The sygus datatype type encoding the syntax
-   * restrictions
+   * @param stn The sygus datatype type encoding the syntax restrictions
    */
-  void initializeEnumeratorsAndDatabases(TypeNode stn);
+  void initialize(TypeNode stn);
 
   /**
-   * Returns the next enumerated term for the given sygus datatype type.
-   *
-   * @param stn The sygus datatype type to enumerate a term for
-   * @return The enumerated sygus term
-   */
-  Node nextEnum(TypeNode stn);
-
-  /**
-   * Remove solved obligations from `d_unsolvedObs.
+   * Remove solved obligations from `d_unsolvedObs`.
    */
   void removeSolvedObs();
 
   /**
-   * Replace all bound variables in `n` with ground values of the type.
+   * Replace all variables in `n` with ground values of the type.
    *
-   * @param n A term containing bound variables
+   * @param n A term containing variables
    * @return `n` with all vars in `n` replaced with ground values
    */
-  Node replaceVarsWithGroundValues(Node n) const;
+  Node mkGround(Node n) const;
 
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
@@ -253,9 +252,9 @@ class SygusReconstruct : public expr::NotifyMatch
               std::vector<Node>& subs) override;
 
   /**
-   * Reset the state of this SygusReconstruct object
+   * Reset the state of this SygusReconstruct object.
    */
-  void reset();
+  void clear();
 
   /**
    * Return a string representation of an obligation.
@@ -296,15 +295,12 @@ class SygusReconstruct : public expr::NotifyMatch
                      std::unordered_set<Node, NodeHashFunction>,
                      TypeNodeHashFunction>
       d_unsolvedObs;
-  /** a map from an obligation to its info */
-  std::unordered_map<Node, ObligationInfo, NodeHashFunction> d_info;
-  /** a map from a builtin term to its obligation. The sygus type of the
-   * obligation is needed as different sygus types may have obligations to
-   * reconstruct the same builtin term */
-  std::unordered_map<TypeNode,
-                     std::unordered_map<Node, Node, NodeHashFunction>,
-                     TypeNodeHashFunction>
-      d_ob;
+
+  /** a map from an obligation to its reconstruction info */
+  std::unordered_map<Node, RConsObligationInfo, NodeHashFunction> d_obInfo;
+  /** a map from a sygus datatype type to its reconstruction info */
+  std::unordered_map<TypeNode, RConsTypeInfo, TypeNodeHashFunction> d_stnInfo;
+
   /** a map from an obligation to its sygus solution (if it exists) */
   std::unordered_map<TNode, TNode, TNodeHashFunction> d_sol;
 
@@ -315,19 +311,6 @@ class SygusReconstruct : public expr::NotifyMatch
 
   /** a cache of sygus variables treated as ground terms by matching */
   std::unordered_map<Node, Node, NodeHashFunction> d_groundVars;
-
-  /** Sygus terms enumerator for each Sygus datatype type */
-  std::unordered_map<TypeNode,
-                     std::unique_ptr<SygusEnumerator>,
-                     TypeNodeHashFunction>
-      d_enumerators;
-  /** Candidate rewrite database for each sgyus datatype type */
-  std::unordered_map<TypeNode,
-                     std::unique_ptr<CandidateRewriteDatabase>,
-                     TypeNodeHashFunction>
-      d_crds;
-  /** Sygus samplers needed for initializing the candidate rewrite databases */
-  std::vector<SygusSampler> d_sygusSamplers;
 
   /** A trie for filtering out redundant terms from the paterns pool */
   expr::MatchTrie d_poolTrie;
