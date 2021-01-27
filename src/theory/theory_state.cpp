@@ -119,7 +119,6 @@ bool TheoryState::areDisequal(TNode a, TNode b) const
   return d_ee->areDisequal(a, b, false);
 }
 
-
 void TheoryState::getEquivalenceClass(Node a, std::vector<Node>& eqc) const
 {
   if (d_ee->hasTerm(a))

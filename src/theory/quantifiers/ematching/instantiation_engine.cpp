@@ -99,7 +99,8 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
               << " -> unfinished= "
               << (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
               << ", conflict=" << d_qstate.isInConflict() << std::endl;
-          if( d_qstate.isInConflict() ){
+          if (d_qstate.isInConflict())
+          {
             return;
           }
           else if (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
