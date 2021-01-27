@@ -44,17 +44,16 @@ class PatternTermSelector
    * also returning f(f(x)). This is default true since it helps in practice
    * to filter trigger instances.
    */
-  PatternTermSelector(
-      Node q,
-      options::TriggerSelMode tstrt,
-      const std::vector<Node>& exc = {},
-      bool filterInst = true);
+  PatternTermSelector(Node q,
+                      options::TriggerSelMode tstrt,
+                      const std::vector<Node>& exc = {},
+                      bool filterInst = true);
   ~PatternTermSelector();
   /** collect pattern terms
    *
    * This collects all terms that are eligible for triggers for the quantified
    * formula of this class in term n and adds them to patTerms.
-   * 
+   *
    * @param n The node to collect pattern terms from
    * @param patTerm The vector to add pattern terms to
    * @param tinfo stores the result of the collection, mapping terms to the
