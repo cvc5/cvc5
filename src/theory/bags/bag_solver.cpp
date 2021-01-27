@@ -57,8 +57,10 @@ void BagSolver::postCheck()
         case kind::MK_BAG: checkMkBag(n); break;
         case kind::UNION_DISJOINT: checkUnionDisjoint(n); break;
         case kind::UNION_MAX: checkUnionMax(n); break;
+        case kind::INTERSECTION_MIN: checkIntersectionMin(n); break;
         case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
+        case kind::DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
         default: break;
       }
       it++;
@@ -117,6 +119,19 @@ void BagSolver::checkUnionMax(const Node& n)
   }
 }
 
+void BagSolver::checkIntersectionMin(const Node& n)
+{
+  Assert(n.getKind() == INTERSECTION_MIN);
+  std::set<Node> elements = getElementsForBinaryOperator(n);
+  for (const Node& e : elements)
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.intersection(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+}
+
 void BagSolver::checkDifferenceSubtract(const Node& n)
 {
   Assert(n.getKind() == DIFFERENCE_SUBTRACT);
@@ -164,6 +179,8 @@ void BagSolver::checkDifferenceRemove(const Node& n)
     Trace("bags::BagSolver::postCheck") << i << endl;
   }
 }
+
+void BagSolver::checkDuplicateRemoval(Node n) {}
 
 }  // namespace bags
 }  // namespace theory

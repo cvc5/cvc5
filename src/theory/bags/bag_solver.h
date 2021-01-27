@@ -60,10 +60,14 @@ class BagSolver
   void checkUnionDisjoint(const Node& n);
   /** apply inference rules for union max */
   void checkUnionMax(const Node& n);
+  /** apply inference rules for intersection_min operator */
+  void checkIntersectionMin(const Node& n);
   /** apply inference rules for difference subtract */
   void checkDifferenceSubtract(const Node& n);
   /** apply inference rules for difference remove */
   void checkDifferenceRemove(const Node& n);
+  /** apply inference rules for duplicate removal operator */
+  void checkDuplicateRemoval(Node n);
   /** apply non negative constraints for multiplicities */
   void checkNonNegativeCountTerms(const Node& bag, const Node& element);
 
