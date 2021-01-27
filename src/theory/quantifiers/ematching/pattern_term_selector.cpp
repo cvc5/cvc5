@@ -712,7 +712,7 @@ void PatternTermSelector::getTriggerVariables(Node n,
                                               Node q,
                                               std::vector<Node>& tvars)
 {
-  PatternTermSelector pts(q);
+  PatternTermSelector pts(q, options::TriggerSelMode::ALL);
   std::vector<Node> patTerms;
   std::map<Node, TriggerTermInfo> tinfo;
   // collect all patterns from n
