@@ -122,25 +122,26 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
-                           Assertions& as,
-                           DefinedFunctionMap& df)
+  void PfManager::printProof(std::ostream& out,
+                             std::shared_ptr<ProofNode> pfn,
+                             Assertions& as,
+                             DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  std::ostream& out = *options::out();
   if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
+    std::vector<Node> assertions;
+    getAssertions(as, df, assertions);
     d_lpfpp.reset(new proof::LeanProofPostprocess(d_pnm.get()));
-    Trace("Hello") << *fp.get() << "\n";
     d_lpfpp->process(fp);
-    Trace("Hello") << *fp.get() << "\n";
-    CVC4::proof::leanPrinter(out, fp);
+    CVC4::proof::leanPrinter(out, assertions, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
+
     d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get()));
     d_vpfpp->process(fp);
     proof::veritPrinter(out, fp);

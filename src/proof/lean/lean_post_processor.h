@@ -52,6 +52,7 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  ProofChecker* d_pc;
 };
 
 /**

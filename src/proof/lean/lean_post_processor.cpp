@@ -17,6 +17,7 @@
 #include "../../expr/proof_node_updater.h"
 #include "expr/lazy_proof.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_checker.h"
 
 namespace CVC4 {
 
@@ -24,7 +25,7 @@ namespace proof {
 
 LeanProofPostprocessCallback::LeanProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm)
+  : d_pnm(pnm), d_pc(pnm->getChecker())
 {
 }
 
@@ -81,17 +82,31 @@ bool LeanProofPostprocessCallback::update(Node res,
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
       break;
     }
-    case (PfRule::CHAIN_RESOLUTION):
+    case PfRule::CHAIN_RESOLUTION:
     {
-      Node lean_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(LeanRule::CHAIN_RESOLUTION));
-      // need to add several steps, like resolution
-      // by looking through arguments <-- will need to build intermediate conclusions
-      std::vector<Node> lean_args;
-      lean_args.push_back(lean_id);
-      lean_args.push_back(res);
-      lean_args.insert(lean_args.end(), args.begin(), args.end());
-      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
+      Node cur = children[0];
+      for (size_t i = 1, size = children.size(); i < size; i++)
+      {
+        std::vector<Node> newChildren{cur, children[i]};
+        std::vector<Node> newArgs{args[(i - 1) * 2], args[(i - 1) * 2 + 1]};
+
+        cur = d_pc->checkDebug(PfRule::RESOLUTION, newChildren, newArgs, Node(), "");
+        if (newArgs[0].getConst<bool>()) {
+          Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R1));
+          std::vector<Node> lean_args;
+          lean_args.push_back(lean_id);
+          lean_args.push_back(res);
+          lean_args.push_back(newArgs[1]);
+          cdp->addStep(cur, PfRule::LEAN_RULE, newChildren, lean_args);
+        } else {
+          Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R0));
+          std::vector<Node> lean_args;
+          lean_args.push_back(lean_id);
+          lean_args.push_back(res);
+          lean_args.push_back(newArgs[1]);
+          cdp->addStep(cur, PfRule::LEAN_RULE, newChildren, lean_args);
+        }
+      }
       break;
     }
     case PfRule::ASSUME:
@@ -201,10 +216,11 @@ bool LeanProofPostprocessCallback::update(Node res,
     */
     default:
       {
+        //Trace("Hello") << res << "\n";
         return false;
       }
   };
-
+  //Trace("Hello") << res << "\n";
   return true;
 }  // namespace proof
 

@@ -17,7 +17,6 @@ enum class LeanRule : uint32_t
   TRUST,
   ASSUME,
   SCOPE,
-  CHAIN_RESOLUTION,
   UNKNOWN
 };
 }
