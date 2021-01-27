@@ -29,11 +29,7 @@ namespace quantifiers {
 
 /** EqualityQueryQuantifiersEngine class
  *
- * This is a wrapper class around an equality engine that is used for
- * queries required by algorithms in the quantifiers theory. It uses an equality
- * engine, as determined by the quantifiers engine it points to.
- *
- * The main extension of this class wrt EqualityQuery is the function
+ * The main method of this class is the function
  * getInternalRepresentative, which is used by instantiation-based methods
  * that are agnostic with respect to choosing terms within an equivalence class.
  * Examples of such methods are finite model finding and enumerative
@@ -52,19 +48,6 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
   void registerQuantifier(Node q) override {}
   /** identify */
   std::string identify() const override { return "EqualityQueryQE"; }
-  /** does the equality engine have term a */
-  bool hasTerm(Node a);
-  /** get the representative of a */
-  Node getRepresentative(Node a);
-  /** are a and b equal? */
-  bool areEqual(Node a, Node b);
-  /** are a and b disequal? */
-  bool areDisequal(Node a, Node b);
-  /** get equality engine
-  * This may either be the master equality engine or the model's equality
-  * engine.
-  */
-  eq::EqualityEngine* getEngine();
   /** gets the current best representative in the equivalence
    * class of a, based on some heuristic. Currently, the default heuristic
    * chooses terms that were previously chosen as representatives

@@ -49,51 +49,12 @@ bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
   return true;
 }
 
-bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){
-  return getEngine()->hasTerm( a );
-}
-
-Node EqualityQueryQuantifiersEngine::getRepresentative( Node a ){
-  eq::EqualityEngine* ee = getEngine();
-  if( ee->hasTerm( a ) ){
-    return ee->getRepresentative( a );
-  }else{
-    return a;
-  }
-}
-
-bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
-  if( a==b ){
-    return true;
-  }else{
-    eq::EqualityEngine* ee = getEngine();
-    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      return ee->areEqual( a, b );
-    }else{
-      return false;
-    }
-  }
-}
-
-bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
-  if( a==b ){
-    return false;
-  }else{
-    eq::EqualityEngine* ee = getEngine();
-    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      return ee->areDisequal( a, b, false );
-    }else{
-      return a.isConst() && b.isConst();
-    }
-  }
-}
-
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
                                                                Node q,
                                                                int index)
 {
   Assert(q.isNull() || q.getKind() == FORALL);
-  Node r = getRepresentative( a );
+  Node r =  d_qstate.getRepresentative( a );
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
@@ -102,7 +63,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
         if (!tr.isNull())
         {
           r = tr;
-          r = getRepresentative( r );
+          r =  d_qstate.getRepresentative( r );
         }else{
           if( r.getType().isSort() ){
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
@@ -181,10 +142,6 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
     }
   }
   return r_best;
-}
-
-eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
-  return d_qe->getState().getEqualityEngine();
 }
 
 //helper functions
