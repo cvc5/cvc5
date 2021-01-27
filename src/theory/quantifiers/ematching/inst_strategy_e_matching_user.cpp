@@ -23,8 +23,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie)
-    : InstStrategy(ie)
+InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie,
+                                                   QuantifiersState& qs)
+    : InstStrategy(ie, qs)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
@@ -128,7 +129,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     {
       d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
     }
-    if (d_quantEngine->inConflict())
+    if (d_qstate.isInConflict())
     {
       // we are already in conflict
       break;

@@ -43,8 +43,10 @@ namespace theory {
 namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
+                                 QuantifiersState& qs,
                                  SygusStatistics& s)
     : d_qe(qe),
+      d_qstate(qs),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
@@ -56,7 +58,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
-      d_ceg_cegisUnif(new CegisUnif(qe, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, qs, this)),
       d_sygus_ccore(new CegisCoreConnective(qe, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
@@ -235,7 +237,7 @@ void SynthConjecture::assign(Node q)
   d_feasible_strategy.reset(
       new DecisionStrategySingleton("sygus_feasible",
                                     d_feasible_guard,
-                                    d_qe->getSatContext(),
+                                    d_qstate.getSatContext(),
                                     d_qe->getValuation()));
   d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());

@@ -89,7 +89,7 @@ class Instantiate : public QuantifiersUtil
 
  public:
   Instantiate(QuantifiersEngine* qe,
-              context::UserContext* u,
+              QuantifiersState& qs,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -324,6 +324,8 @@ class Instantiate : public QuantifiersUtil
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */

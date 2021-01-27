@@ -34,8 +34,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
-    : QuantifiersModule(qe),
+InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
+                                         QuantifiersState& qs,
+                                         QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
@@ -51,13 +53,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine));
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(
-        new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel.get()));
+        new InstStrategyAutoGenTriggers(d_quantEngine, qs, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }

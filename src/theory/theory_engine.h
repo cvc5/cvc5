@@ -156,9 +156,7 @@ class TheoryEngine {
   std::unique_ptr<theory::CombinationEngine> d_tc;
   /** The shared solver of the above combination engine. */
   theory::SharedSolver* d_sharedSolver;
-  /**
-   * The quantifiers engine
-   */
+  /** The quantifiers engine, which is owned by the quantifiers theory */
   theory::QuantifiersEngine* d_quantEngine;
   /**
    * The decision manager

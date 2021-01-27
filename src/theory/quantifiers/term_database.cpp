@@ -33,10 +33,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermDb::TermDb(context::Context* c, context::UserContext* u,
+TermDb::TermDb(QuantifiersState& qs,
+               QuantifiersInferenceManager& qim,
                QuantifiersEngine* qe)
     : d_quantEngine(qe),
-      d_inactive_map(c) {
+      d_qstate(qs),
+      d_qim(qim),
+      d_inactive_map(qs.getSatContext())
+{
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -406,7 +410,7 @@ void TermDb::computeUfTerms( TNode f ) {
           {
             Trace("term-db-lemma") << "Disequal congruent terms : " << at << " "
                                    << n << "!!!!" << std::endl;
-            if (!d_quantEngine->theoryEngineNeedsCheck())
+            if (!d_qstate.getValuation().needCheck())
             {
               Trace("term-db-lemma") << "  all theories passed with no lemmas."
                                      << std::endl;
@@ -415,7 +419,7 @@ void TermDb::computeUfTerms( TNode f ) {
             Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
           }
           d_quantEngine->addLemma(lem);
-          d_quantEngine->setConflict();
+          d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return;
         }
@@ -1058,7 +1062,7 @@ bool TermDb::reset( Theory::Effort effort ){
           Trace("term-db-lemma")
               << "Purify equality lemma: " << eq << std::endl;
           d_quantEngine->addLemma(eq);
-          d_quantEngine->setConflict();
+          d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return false;
         }
