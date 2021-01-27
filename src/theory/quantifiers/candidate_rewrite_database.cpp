@@ -35,7 +35,7 @@ namespace quantifiers {
 CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
                                                    bool rewAccel,
                                                    bool silent,
-                           bool filterPairs)
+                                                   bool filterPairs)
     : d_qe(nullptr),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),
