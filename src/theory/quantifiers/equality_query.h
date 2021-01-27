@@ -41,7 +41,7 @@ namespace quantifiers {
  * representative based on the internal heuristic, which is currently based on
  * choosing the term that was previously chosen as a representative earliest.
  */
-class EqualityQueryQuantifiersEngine : public EqualityQuery
+class EqualityQueryQuantifiersEngine
 {
  public:
   EqualityQueryQuantifiersEngine(QuantifiersState& qs, QuantifiersEngine* qe);
@@ -67,17 +67,6 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
   eq::EqualityEngine* getEngine() override;
   /** get list of members in the equivalence class of a */
   void getEquivalenceClass(Node a, std::vector<Node>& eqc) override;
-  /** get congruent term
-  * If possible, returns a term n such that:
-  * (1) n is a term in the equality engine from getEngine().
-  * (2) n is of the form f( t1, ..., tk ) where ti is in the equivalence class
-  * of args[i] for i=1...k
-  * Otherwise, returns the null node.
-  *
-  * Notice that f should be a "match operator", returned by
-  * TermDb::getMatchOperator.
-  */
-  TNode getCongruentTerm(Node f, std::vector<TNode>& args) override;
   /** gets the current best representative in the equivalence
    * class of a, based on some heuristic. Currently, the default heuristic
    * chooses terms that were previously chosen as representatives

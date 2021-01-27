@@ -626,7 +626,7 @@ Node TermDb::evaluateTerm2(TNode n,
       if (!f.isNull())
       {
         // if f is congruent to a term indexed by this class
-        TNode nn = qy->getCongruentTerm(f, args);
+        TNode nn = getCongruentTerm(f, args);
         Trace("term-db-eval") << "  got congruent term " << nn
                               << " from DB for " << n << std::endl;
         if (!nn.isNull())
@@ -762,7 +762,7 @@ TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool su
           Trace("term-db-entail") << "  child " << i << " : " << c << std::endl;
           args.push_back( c );
         }
-        TNode nn = qy->getCongruentTerm( f, args );
+        TNode nn = getCongruentTerm( f, args );
         Trace("term-db-entail") << "  got congruent term " << nn << " for " << n << std::endl;
         return nn;
       }
