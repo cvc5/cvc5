@@ -31,22 +31,9 @@ namespace theory {
 
 class QuantifiersEngine;
 
-namespace inst{
-  class Trigger;
-  class HigherOrderTrigger;
-}
-
 namespace quantifiers {
 
-namespace fmcheck {
-  class FullModelChecker;
-}
-
-class TermDbSygus;
-class QuantConflictFind;
-class RelevantDomain;
 class ConjectureGenerator;
-class TermGenerator;
 class TermGenEnv;
 
 /** Term Database
@@ -182,9 +169,9 @@ class TermDb : public QuantifiersUtil {
   /** evaluate term
    *
    * Returns a term n' such that n = n' is entailed based on the equality
-   * information qy.  This function may generate new terms. In particular,
+   * information ee.  This function may generate new terms. In particular,
    * we typically rewrite subterms of n of maximal size to terms that exist in
-   * the equality engine specified by qy.
+   * the equality engine specified by ee.
    *
    * useEntailmentTests is whether to call the theory engine's entailmentTest
    * on literals n for which this call fails to find a term n' that is
@@ -204,59 +191,59 @@ class TermDb : public QuantifiersUtil {
    */
   Node evaluateTerm(TNode n,
                     std::vector<Node>& exp,
-                    EqualityQuery* qy = NULL,
+                    eq::EqualityEngine * ee = nullptr,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
   /** same as above, without exp */
   Node evaluateTerm(TNode n,
-                    EqualityQuery* qy = NULL,
+                    eq::EqualityEngine * ee = nullptr,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
   /** get entailed term
    *
   * If possible, returns a term n' such that:
-  * (1) n' exists in the current equality engine (as specified by qy),
+  * (1) n' exists in the current equality engine (as specified by ee),
   * (2) n = n' is entailed in the current context.
   * It returns null if no such term can be found.
   * Wrt evaluateTerm, this version does not construct new terms, and
   * thus is less aggressive.
   */
-  TNode getEntailedTerm(TNode n, EqualityQuery* qy = NULL);
+  TNode getEntailedTerm(TNode n, eq::EqualityEngine * ee = nullptr);
   /** get entailed term
    *
   * If possible, returns a term n' such that:
-  * (1) n' exists in the current equality engine (as specified by qy),
+  * (1) n' exists in the current equality engine (as specified by ee),
   * (2) n * subs = n' is entailed in the current context, where * is denotes
   * substitution application.
   * It returns null if no such term can be found.
   * subsRep is whether the substitution maps to terms that are representatives
-  * according to qy.
+  * according to ee.
   * Wrt evaluateTerm, this version does not construct new terms, and
   * thus is less aggressive.
   */
   TNode getEntailedTerm(TNode n,
                         std::map<TNode, TNode>& subs,
                         bool subsRep,
-                        EqualityQuery* qy = NULL);
+                        eq::EqualityEngine * ee = nullptr);
   /** is entailed
   * Checks whether the current context entails n with polarity pol, based on the
-  * equality information qy.
+  * equality information ee.
   * Returns true if the entailment can be successfully shown.
   */
-  bool isEntailed(TNode n, bool pol, EqualityQuery* qy = NULL);
+  bool isEntailed(TNode n, bool pol, eq::EqualityEngine * ee = nullptr);
   /** is entailed
    *
   * Checks whether the current context entails ( n * subs ) with polarity pol,
-  * based on the equality information qy,
+  * based on the equality information ee,
   * where * denotes substitution application.
   * subsRep is whether the substitution maps to terms that are representatives
-  * according to qy.
+  * according to ee.
   */
   bool isEntailed(TNode n,
                   std::map<TNode, TNode>& subs,
                   bool subsRep,
                   bool pol,
-                  EqualityQuery* qy = NULL);
+                  eq::EqualityEngine* ee = nullptr);
   /** is the term n active in the current context?
    *
   * By default, all terms are active. A term is inactive if:
@@ -354,14 +341,14 @@ class TermDb : public QuantifiersUtil {
   Node evaluateTerm2(TNode n,
                      std::map<TNode, Node>& visited,
                      std::vector<Node>& exp,
-                     EqualityQuery* qy,
+                     eq::EqualityEngine* ee,
                      bool useEntailmentTests,
                      bool computeExp,
                      bool reqHasTerm);
   /** helper for get entailed term */
-  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
+  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, eq::EqualityEngine * ee );
   /** helper for is entailed */
-  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
+  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, eq::EqualityEngine * ee );
   /** compute uf eqc terms :
   * Ensure entries for f are in d_func_map_eqc_trie for all equivalence classes
   */

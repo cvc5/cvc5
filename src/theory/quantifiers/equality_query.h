@@ -47,26 +47,26 @@ class EqualityQueryQuantifiersEngine
   EqualityQueryQuantifiersEngine(QuantifiersState& qs, QuantifiersEngine* qe);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
-  bool reset(Theory::Effort e) override;
+  bool reset(Theory::Effort e);
   /* Called for new quantifiers */
-  void registerQuantifier(Node q) override {}
+  void registerQuantifier(Node q) {}
   /** identify */
-  std::string identify() const override { return "EqualityQueryQE"; }
+  std::string identify() const { return "EqualityQueryQE"; }
   /** does the equality engine have term a */
-  bool hasTerm(Node a) override;
+  bool hasTerm(Node a);
   /** get the representative of a */
-  Node getRepresentative(Node a) override;
+  Node getRepresentative(Node a);
   /** are a and b equal? */
-  bool areEqual(Node a, Node b) override;
+  bool areEqual(Node a, Node b);
   /** are a and b disequal? */
-  bool areDisequal(Node a, Node b) override;
+  bool areDisequal(Node a, Node b);
   /** get equality engine
   * This may either be the master equality engine or the model's equality
   * engine.
   */
-  eq::EqualityEngine* getEngine() override;
+  eq::EqualityEngine* getEngine();
   /** get list of members in the equivalence class of a */
-  void getEquivalenceClass(Node a, std::vector<Node>& eqc) override;
+  void getEquivalenceClass(Node a, std::vector<Node>& eqc);
   /** gets the current best representative in the equivalence
    * class of a, based on some heuristic. Currently, the default heuristic
    * chooses terms that were previously chosen as representatives
