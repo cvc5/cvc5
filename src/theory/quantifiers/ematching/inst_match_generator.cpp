@@ -465,7 +465,7 @@ bool InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
     // we did not properly initialize the candidate generator, thus we fail
     return false;
   }
-  eqc = qe->getState().getRepresentative( eqc );
+  eqc = qe->getState().getRepresentative(eqc);
   Trace("matching-debug2") << this << " reset " << eqc << "." << std::endl;
   if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()!=INST_CONSTANT ){
     d_eq_class = d_eq_class_rel;
@@ -521,7 +521,8 @@ int InstMatchGenerator::getNextMatch(Node f,
       }
       //get the next candidate term t
       if( success<0 ){
-        t = qe->getState().isInConflict() ? Node::null() : d_cg->getNextCandidate();
+        t = qe->getState().isInConflict() ? Node::null()
+                                          : d_cg->getNextCandidate();
       }else{
         d_curr_first_candidate = d_cg->getNextCandidate();
       }
@@ -552,13 +553,15 @@ uint64_t InstMatchGenerator::addInstantiations(Node f,
       if (sendInstantiation(tparent, m))
       {
         addedLemmas++;
-        if( qe->getState().isInConflict() ){
+        if (qe->getState().isInConflict())
+        {
           break;
         }
       }
     }else{
       addedLemmas++;
-      if( qe->getState().isInConflict() ){
+      if (qe->getState().isInConflict())
+      {
         break;
       }
     }
