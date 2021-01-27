@@ -90,25 +90,24 @@ class TheoryPreprocessor
    * parts of the node.
    */
   TrustNode theoryPreprocess(TNode node);
-  /** 
+  /**
    * Internal helper for preprocess, which also optionally preprocesses the
    * new lemmas generated until a fixed point is reached based on argument
    * procLemmas.
    */
   TrustNode preprocessInternal(TNode node,
-                       std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems,
-                       bool procLemmas
-                      );
-  /** 
+                               std::vector<TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems,
+                               bool procLemmas);
+  /**
    * Internal helper for preprocessLemma, which also optionally preprocesses the
    * new lemmas generated until a fixed point is reached based on argument
    * procLemmas.
    */
   TrustNode preprocessLemmaInternal(TrustNode node,
-                            std::vector<TrustNode>& newLemmas,
-                            std::vector<Node>& newSkolems,
-                       bool procLemmas);
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems,
+                                    bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
   /** Logic info of theory engine */

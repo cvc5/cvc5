@@ -73,11 +73,11 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   return preprocessInternal(node, newLemmas, newSkolems, true);
 }
 
-TrustNode TheoryPreprocessor::preprocessInternal(TNode node,
-                                         std::vector<TrustNode>& newLemmas,
-                                         std::vector<Node>& newSkolems,
-                                         bool procLemmas
-                                        )
+TrustNode TheoryPreprocessor::preprocessInternal(
+    TNode node,
+    std::vector<TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems,
+    bool procLemmas)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
 
@@ -193,10 +193,10 @@ TrustNode TheoryPreprocessor::preprocessInternal(TNode node,
   {
     // Also must preprocess the new lemmas. This is especially important for
     // formulas containing witness terms whose bodies are not in preprocessed
-    // form, as term formula removal introduces new lemmas for these that require
-    // theory-preprocessing.
-    size_t i=0;
-    while (i<newLemmas.size())
+    // form, as term formula removal introduces new lemmas for these that
+    // require theory-preprocessing.
+    size_t i = 0;
+    while (i < newLemmas.size())
     {
       TrustNode cur = newLemmas[i];
       newLemmas[i] = preprocessLemmaInternal(cur, newLemmas, newSkolems, false);
@@ -213,15 +213,16 @@ TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
   return preprocessLemmaInternal(node, newLemmas, newSkolems, true);
 }
 
-TrustNode TheoryPreprocessor::preprocessLemmaInternal(TrustNode node,
-                                              std::vector<TrustNode>& newLemmas,
-                                              std::vector<Node>& newSkolems,
-                                              bool procLemmas
-                                                     )
+TrustNode TheoryPreprocessor::preprocessLemmaInternal(
+    TrustNode node,
+    std::vector<TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems,
+    bool procLemmas)
 {
   // what was originally proven
   Node lemma = node.getProven();
-  TrustNode tplemma = preprocessInternal(lemma, newLemmas, newSkolems, procLemmas);
+  TrustNode tplemma =
+      preprocessInternal(lemma, newLemmas, newSkolems, procLemmas);
   if (tplemma.isNull())
   {
     // no change needed
