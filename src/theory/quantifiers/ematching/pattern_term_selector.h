@@ -41,20 +41,24 @@ class PatternTermSelector
    * @param exc The set of terms we are excluding as pattern terms.
    * @param filterInst when true, we discard terms that have instances
    * in the pattern terms we are return, e.g. we do not return f(x) if we are
-   * also returning f(f(x)).
+   * also returning f(f(x)). This is default true since it helps in practice
+   * to filter trigger instances.
    */
   PatternTermSelector(
       Node q,
-      options::TriggerSelMode tstrt = options::TriggerSelMode::ALL,
+      options::TriggerSelMode tstrt,
       const std::vector<Node>& exc = {},
-      bool filterInst = false);
+      bool filterInst = true);
   ~PatternTermSelector();
   /** collect pattern terms
    *
    * This collects all terms that are eligible for triggers for the quantified
    * formula of this class in term n and adds them to patTerms.
-   *   tinfo : stores the result of the collection, mapping terms to the
-   *           information they are associated with,
+   * 
+   * @param n The node to collect pattern terms from
+   * @param patTerm The vector to add pattern terms to
+   * @param tinfo stores the result of the collection, mapping terms to the
+   * information they are associated with.
    */
   void collect(Node n,
                std::vector<Node>& patTerms,
@@ -124,14 +128,14 @@ class PatternTermSelector
    *
    * This collects the usable trigger terms in the subterm n of the body of
    * quantified formula of this class.
-   *   visited : cache of the trigger terms collected for each visited node,
-   *   tinfo : cache of trigger term info for each visited node,
-   *   tstrat : the selection strategy (see options/quantifiers_mode.h)
-   *   pol/hasPol : the polarity of node n in q
-   *                (see QuantPhaseReq theory/quantifiers/quant_util.h)
-   *   epol/hasEPol : the entailed polarity of node n in q
-   *                  (see QuantPhaseReq theory/quantifiers/quant_util.h)
-   *   knowIsUsable : whether we know that n is a usable trigger.
+   * @param visited cache of the trigger terms collected for each visited node,
+   * @param tinfo cache of trigger term info for each visited node,
+   * @param tstrat the selection strategy (see options/quantifiers_mode.h)
+   * @param pol/hasPol the polarity of node n in q (see QuantPhaseReq
+   * theory/quantifiers/quant_util.h)
+   * @param epol/hasEPol the entailed polarity of node n in q (see
+   * QuantPhaseReq theory/quantifiers/quant_util.h)
+   * @param knowIsUsable whether we know that n is a usable trigger.
    *
    * We add the triggers we collected recursively in n into added.
    */
@@ -168,6 +172,8 @@ class PatternTermSelector
    * The motivation for this method is to discard triggers s that are less
    * restrictive (criteria (1)) and serve to bind the same variables (criteria
    * (2)) as another trigger t. This often helps avoiding matching loops.
+   *
+   * Notice that n1 and n2 are in instantiation constant form.
    */
   static int isInstanceOf(Node n1,
                           Node n2,
