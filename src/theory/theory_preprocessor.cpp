@@ -68,8 +68,16 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<TrustNode>& newLemmas,
+                                         std::vector<Node>& newSkolems)
+{
+  return preprocessInternal(node, newLemmas, newSkolems, true);
+}
+
+TrustNode TheoryPreprocessor::preprocessInternal(TNode node,
+                                         std::vector<TrustNode>& newLemmas,
                                          std::vector<Node>& newSkolems,
-                                         bool fixedPoint)
+                                         bool procLemmas
+                                        )
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
 
@@ -80,7 +88,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   Node ppNode = tpp.getNode();
 
   // Remove the ITEs, fixed point
-  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, fixedPoint);
+  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, true);
   Node rtfNode = ttfr.isNull() ? ppNode : ttfr.getNode();
 
   if (Debug.isOn("lemma-ites"))
@@ -181,25 +189,39 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   }
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
+  if (procLemmas)
+  {
+    // Also must preprocess the new lemmas. This is especially important for
+    // formulas containing witness terms whose bodies are not in preprocessed
+    // form, as term formula removal introduces new lemmas for these that require
+    // theory-preprocessing.
+    size_t i=0;
+    while (i<newLemmas.size())
+    {
+      TrustNode cur = newLemmas[i];
+      newLemmas[i] = preprocessLemmaInternal(cur, newLemmas, newSkolems, false);
+      i++;
+    }
+  }
   return tret;
-}
-
-TrustNode TheoryPreprocessor::preprocess(TNode node)
-{
-  // ignore lemmas, no fixed point
-  std::vector<TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  return preprocess(node, newLemmas, newSkolems, false);
 }
 
 TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
                                               std::vector<TrustNode>& newLemmas,
+                                              std::vector<Node>& newSkolems)
+{
+  return preprocessLemmaInternal(node, newLemmas, newSkolems, true);
+}
+
+TrustNode TheoryPreprocessor::preprocessLemmaInternal(TrustNode node,
+                                              std::vector<TrustNode>& newLemmas,
                                               std::vector<Node>& newSkolems,
-                                              bool fixedPoint)
+                                              bool procLemmas
+                                                     )
 {
   // what was originally proven
   Node lemma = node.getProven();
-  TrustNode tplemma = preprocess(lemma, newLemmas, newSkolems, fixedPoint);
+  TrustNode tplemma = preprocessInternal(lemma, newLemmas, newSkolems, procLemmas);
   if (tplemma.isNull())
   {
     // no change needed
@@ -234,14 +256,6 @@ TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
     }
   }
   return TrustNode::mkTrustLemma(lemmap, d_lp.get());
-}
-
-TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node)
-{
-  // ignore lemmas, no fixed point
-  std::vector<TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  return preprocessLemma(node, newLemmas, newSkolems, false);
 }
 
 RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()

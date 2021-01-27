@@ -174,7 +174,7 @@ theory::TrustNode TheoryProxy::preprocessLemma(
     std::vector<theory::TrustNode>& newLemmas,
     std::vector<Node>& newSkolems)
 {
-  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems, true);
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
 }
 
 theory::TrustNode TheoryProxy::preprocess(
@@ -182,8 +182,7 @@ theory::TrustNode TheoryProxy::preprocess(
     std::vector<theory::TrustNode>& newLemmas,
     std::vector<Node>& newSkolems)
 {
-  theory::TrustNode pnode = d_tpp.preprocess(node, newLemmas, newSkolems, true);
-  return pnode;
+  return d_tpp.preprocess(node, newLemmas, newSkolems);
 }
 
 theory::TrustNode TheoryProxy::removeItes(
