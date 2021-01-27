@@ -118,8 +118,7 @@ QuantifiersEngine::QuantifiersEngine(
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
-void QuantifiersEngine::finishInit(TheoryEngine* te,
-                                   DecisionManager* dm)
+void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
 {
   d_te = te;
   d_decManager = dm;
@@ -352,7 +351,7 @@ void QuantifiersEngine::ppNotifyAssertions(
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
-  Assert (d_qstate.getEqualityEngine()!=nullptr);
+  Assert(d_qstate.getEqualityEngine() != nullptr);
   if (!d_qstate.getEqualityEngine()->consistent())
   {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;

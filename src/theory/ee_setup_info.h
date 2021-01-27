@@ -37,7 +37,10 @@ class EqualityEngineNotify;
  */
 struct EeSetupInfo
 {
-  EeSetupInfo() : d_notify(nullptr), d_constantsAreTriggers(true), d_useMaster(false) {}
+  EeSetupInfo()
+      : d_notify(nullptr), d_constantsAreTriggers(true), d_useMaster(false)
+  {
+  }
   /** The notification class of the theory */
   eq::EqualityEngineNotify* d_notify;
   /** The name of the equality engine */

@@ -111,8 +111,7 @@ class QuantifiersEngine {
    * @param te The theory engine
    * @param dm The decision manager of the theory engine
    */
-  void finishInit(TheoryEngine* te,
-                  DecisionManager* dm);
+  void finishInit(TheoryEngine* te, DecisionManager* dm);
   //---------------------- end private initialization
   /**
    * Maps quantified formulas to the module that owns them, if any module has

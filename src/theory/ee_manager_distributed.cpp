@@ -90,7 +90,7 @@ void EqEngineManagerDistributed::initializeTheories()
     // the theory uses the equality engine
     eet.d_usedEe = eet.d_allocEe.get();
     // if there is a master equality engine
-    if (d_masterEqualityEngine!=nullptr)
+    if (d_masterEqualityEngine != nullptr)
     {
       // set the master equality engine of the theory's equality engine
       eet.d_allocEe->setMasterEqualityEngine(d_masterEqualityEngine.get());
