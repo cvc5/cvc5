@@ -234,17 +234,8 @@ public:
  void markRelevant(Node q);
  /** has added lemma */
  bool hasAddedLemma() const;
- /** theory engine needs check
-  *
-  * This is true if the theory engine has more constraints to process. When
-  * it is false, we are tentatively going to terminate solving with
-  * sat/unknown. For details, see TheoryEngine::needCheck.
-  */
- bool theoryEngineNeedsCheck() const;
  /** is in conflict */
- bool inConflict() { return d_conflict; }
- /** set conflict */
- void setConflict();
+ bool inConflict() const;
  /** get current q effort */
  QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */
@@ -384,9 +375,6 @@ public:
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
-  /** are we in conflict */
-  bool d_conflict;
-  context::CDO<bool> d_conflict_c;
   /** has added lemma this round */
   bool d_hasAddedLemma;
   //------------- end temporary information during check
