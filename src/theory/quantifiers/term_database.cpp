@@ -259,7 +259,7 @@ void TermDb::computeArgReps( TNode n ) {
     eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
     for (const TNode& nc : n)
     {
-      TNode r = d_qstate.hasTerm(nc) ? d_qstate.getRepresentative(nc) : nc;
+      TNode r = ee->hasTerm(nc) ? ee->getRepresentative(nc) : nc;
       d_arg_reps[n].push_back( r );
     }
   }
@@ -288,7 +288,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
       {
         computeArgReps(n);
         TNode r =
-            d_qstate.hasTerm(n) ? d_qstate.getRepresentative(n) : TNode(n);
+            ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
         d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
@@ -315,7 +315,6 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned nonCongruentCount = 0;
   unsigned alreadyCongruentCount = 0;
   unsigned relevantCount = 0;
-  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   for (TNode ff : ops)
   {
@@ -370,7 +369,7 @@ void TermDb::computeUfTerms( TNode f ) {
         congruentCount++;
         continue;
       }
-      if (d_qstate.areDisequal(at, n, false))
+      if (d_qstate.areDisequal(at, n))
       {
         std::vector<Node> lits;
         lits.push_back(nm->mkNode(EQUAL, at, n));
@@ -664,7 +663,7 @@ Node TermDb::evaluateTerm2(TNode n,
         ret = Rewriter::rewrite(ret);
         if (ret.getKind() == EQUAL)
         {
-          if (qy->areDisequal(ret[0], ret[1]))
+          if (d_qstate.areDisequal(ret[0], ret[1]))
           {
             ret = d_false;
           }
@@ -701,7 +700,7 @@ Node TermDb::evaluateTerm2(TNode n,
     if (k != OR && k != AND && k != EQUAL && k != ITE && k != NOT
         && k != FORALL)
     {
-      if (!qy->hasTerm(ret))
+      if (!d_qstate.hasTerm(ret))
       {
         ret = Node::null();
       }
@@ -723,7 +722,6 @@ TNode TermDb::getEntailedTerm2(TNode n,
                                bool subsRep,
                                bool hasSubs)
 {
-  Assert(!qy->extendsEngine());
   Trace("term-db-entail") << "get entailed term : " << n << std::endl;
   if (d_qstate.hasTerm(n))
   {
@@ -821,7 +819,7 @@ bool TermDb::isEntailed2(
           if( pol ){
             return d_qstate.areEqual(n1, n2);
           }else{
-            return d_qstate.areDisequal(n1, n2, false);
+            return d_qstate.areDisequal(n1, n2);
           }
         }
       }
@@ -873,11 +871,7 @@ bool TermDb::isEntailed2(
 
 bool TermDb::isEntailed(TNode n, bool pol)
 {
-  if (ee == nullptr)
-  {
-    Assert(d_consistent_ee);
-    ee = d_qstate.getEqualityEngine();
-  }
+  Assert(d_consistent_ee);
   std::map< TNode, TNode > subs;
   return isEntailed2(n, subs, false, false, pol);
 }
@@ -887,11 +881,7 @@ bool TermDb::isEntailed(TNode n,
                         bool subsRep,
                         bool pol)
 {
-  if (ee == nullptr)
-  {
-    Assert(d_consistent_ee);
-    ee = d_qstate.getEqualityEngine();
-  }
+  Assert(d_consistent_ee);
   return isEntailed2(n, subs, subsRep, true, pol);
 }
 
@@ -968,7 +958,7 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
     if( it==d_term_elig_eqc.end() ){
       Node h;
       eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(r);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
       while (!eqc_i.isFinished())
       {
         TNode n = (*eqc_i);
@@ -1024,7 +1014,7 @@ bool TermDb::reset( Theory::Effort effort ){
 
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
-  Assert(d_qstate.consistent());
+  Assert(ee->consistent());
   // if higher-order, add equalities for the purification terms now
   if (options::ufHo())
   {
@@ -1033,9 +1023,9 @@ bool TermDb::reset( Theory::Effort effort ){
         << std::endl;
     for (std::pair<const Node, Node>& pp : d_ho_purify_to_term)
     {
-      if (d_qstate.hasTerm(pp.second)
-          && (!d_qstate.hasTerm(pp.first)
-              || !d_qstate.areEqual(pp.second, pp.first)))
+      if (ee->hasTerm(pp.second)
+          && (!ee->hasTerm(pp.first)
+              || !ee->areEqual(pp.second, pp.first)))
       {
         Node eq;
         std::map<Node, Node>::iterator itpe = d_ho_purify_to_eq.find(pp.first);
@@ -1049,8 +1039,8 @@ bool TermDb::reset( Theory::Effort effort ){
           eq = itpe->second;
         }
         Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
-        d_qstate.assertEquality(eq, true, eq);
-        if (!d_qstate.consistent())
+        ee->assertEquality(eq, true, eq);
+        if (!ee->consistent())
         {
           // In some rare cases, purification functions (in the domain of
           // d_ho_purify_to_term) may escape the term database. For example,
@@ -1081,7 +1071,7 @@ bool TermDb::reset( Theory::Effort effort ){
       bool addedFirst = false;
       Node first;
       //TODO: ignoring singleton eqc isn't enough, need to ensure eqc are relevant
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(r);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
       while( !eqc_i.isFinished() ){
         TNode n = (*eqc_i);
         if( first.isNull() ){
@@ -1123,9 +1113,9 @@ bool TermDb::reset( Theory::Effort effort ){
   //explicitly add inst closure terms to the equality engine to ensure only EE terms are indexed
   for (const Node& n : d_iclosure_processed)
   {
-    if (!d_qstate.hasTerm(n))
+    if (!ee->hasTerm(n))
     {
-      d_qstate.addTerm(n);
+      ee->addTerm(n);
     }
   }
 
@@ -1140,7 +1130,7 @@ bool TermDb::reset( Theory::Effort effort ){
       if( r.getType().isFunction() ){
         Trace("quant-ho") << "  process function eqc " << r << std::endl;
         Node first;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator(r);
+        eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
         while( !eqc_i.isFinished() ){
           TNode n = (*eqc_i);
           Node n_use;

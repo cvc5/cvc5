@@ -59,7 +59,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
     if( isExcludedEqc( eqc ) ){
       d_mode = cand_term_none;
     }else{
-      eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
+      eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
       if( ee->hasTerm( eqc ) ){
         TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, op);
         if( tat ){
@@ -93,7 +93,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
-    eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
+    eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
@@ -144,7 +144,7 @@ CandidateGenerator( qe ), d_match_pattern( mpat ){
 }
 
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
-  eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
   Node falset = NodeManager::currentNM()->mkConst(false);
   d_eqc_false = eq::EqClassIterator(falset, ee);
 }
@@ -179,7 +179,7 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mp
 }
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
-  d_eq = eq::EqClassesIterator(d_qe->getMasterEqualityEngine());
+  d_eq = eq::EqClassesIterator(d_qe->getState().getEqualityEngine());
   d_firstTime = true;
 }
 

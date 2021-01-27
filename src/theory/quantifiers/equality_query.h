@@ -41,17 +41,17 @@ namespace quantifiers {
  * representative based on the internal heuristic, which is currently based on
  * choosing the term that was previously chosen as a representative earliest.
  */
-class EqualityQueryQuantifiersEngine
+class EqualityQueryQuantifiersEngine : public QuantifiersUtil
 {
  public:
   EqualityQueryQuantifiersEngine(QuantifiersState& qs, QuantifiersEngine* qe);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
-  bool reset(Theory::Effort e);
+  bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
-  void registerQuantifier(Node q) {}
+  void registerQuantifier(Node q) override {}
   /** identify */
-  std::string identify() const { return "EqualityQueryQE"; }
+  std::string identify() const override { return "EqualityQueryQE"; }
   /** does the equality engine have term a */
   bool hasTerm(Node a);
   /** get the representative of a */
