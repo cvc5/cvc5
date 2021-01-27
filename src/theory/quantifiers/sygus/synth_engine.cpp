@@ -136,8 +136,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     activeCheckConj.clear();
     activeCheckConj = acnext;
     acnext.clear();
-  } while (!activeCheckConj.empty()
-           && !d_quantEngine->theoryEngineNeedsCheck());
+  } while (!activeCheckConj.empty() && !d_qstate.getValuation().needCheck());
   Trace("sygus-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
