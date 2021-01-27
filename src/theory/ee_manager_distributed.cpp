@@ -98,6 +98,15 @@ void EqEngineManagerDistributed::initializeTheories()
   }
 }
 
+void EqEngineManagerDistributed::notifyModel(bool incomplete)
+{
+  // should have a consistent master equality engine
+  if (d_masterEqualityEngine.get() != nullptr)
+  {
+    AlwaysAssert(d_masterEqualityEngine->consistent());
+  }
+}
+
 void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
 {
   // adds t to the quantifiers term database
