@@ -127,7 +127,6 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned no change"
                        << std::endl;
     // no change
-    Assert(newLemmas.empty());
     return TrustNode::null();
   }
 
