@@ -231,7 +231,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     d_lchildren.clear();
     d_arg_to_arg_rep.clear();
     d_arg_vector.clear();
-    QuantifiersState& qs = d_quantEngine->getState();
+    quantifiers::QuantifiersState& qs = d_quantEngine->getState();
     for (std::pair<const TNode, std::vector<Node> >& ha : ho_var_apps_subs)
     {
       TNode var = ha.first;
@@ -318,7 +318,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
         {
           if (!itf->second.isNull())
           {
-            Node r = eq->getRepresentative(itf->second);
+            Node r = qs.getRepresentative(itf->second);
             std::map<Node, unsigned>::iterator itfr = arg_to_rep.find(r);
             if (itfr != arg_to_rep.end())
             {

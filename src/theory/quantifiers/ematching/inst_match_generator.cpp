@@ -283,7 +283,7 @@ int InstMatchGenerator::getMatch(
     Trace("matching-fail") << "Internal error for match generator." << std::endl;
     return -2;
   }
-  QuantifiersState& qs = qe->getState();
+  quantifiers::QuantifiersState& qs = qe->getState();
   bool success = true;
   std::vector<int> prev;
   // if t is null
@@ -333,7 +333,7 @@ int InstMatchGenerator::getMatch(
   if (d_match_pattern.getKind() == INST_CONSTANT)
   {
     bool addToPrev = m.get(d_children_types[0]).isNull();
-    if (!m.set(q, d_children_types[0], t))
+    if (!m.set(qs, d_children_types[0], t))
     {
       success = false;
     }
@@ -369,7 +369,7 @@ int InstMatchGenerator::getMatch(
       {
         if (t.getType().isBoolean())
         {
-          t_match = nm->mkConst(!q->areEqual(nm->mkConst(true), t));
+          t_match = nm->mkConst(!qs.areEqual(nm->mkConst(true), t));
         }
         else
         {
@@ -389,7 +389,7 @@ int InstMatchGenerator::getMatch(
     if (!t_match.isNull())
     {
       bool addToPrev = m.get(v).isNull();
-      if (!m.set(q, v, t_match))
+      if (!m.set(qs, v, t_match))
       {
         success = false;
       }
@@ -465,7 +465,7 @@ bool InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
     // we did not properly initialize the candidate generator, thus we fail
     return false;
   }
-  eqc = qe->getEqualityQuery()->getRepresentative( eqc );
+  eqc = qe->getState().getRepresentative( eqc );
   Trace("matching-debug2") << this << " reset " << eqc << "." << std::endl;
   if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()!=INST_CONSTANT ){
     d_eq_class = d_eq_class_rel;
@@ -507,7 +507,7 @@ int InstMatchGenerator::getNextMatch(Node f,
   Node t = d_curr_first_candidate;
   do{
     Trace("matching-debug2") << "Matching candidate : " << t << std::endl;
-    Assert(!qe->inConflict());
+    Assert(!qe->getState().isInConflict());
     //if t not null, try to fit it into match m
     if( !t.isNull() ){
       if( d_curr_exclude_match.find( t )==d_curr_exclude_match.end() ){
@@ -521,7 +521,7 @@ int InstMatchGenerator::getNextMatch(Node f,
       }
       //get the next candidate term t
       if( success<0 ){
-        t = qe->inConflict() ? Node::null() : d_cg->getNextCandidate();
+        t = qe->getState().isInConflict() ? Node::null() : d_cg->getNextCandidate();
       }else{
         d_curr_first_candidate = d_cg->getNextCandidate();
       }
@@ -552,13 +552,13 @@ uint64_t InstMatchGenerator::addInstantiations(Node f,
       if (sendInstantiation(tparent, m))
       {
         addedLemmas++;
-        if( qe->inConflict() ){
+        if( qe->getState().isInConflict() ){
           break;
         }
       }
     }else{
       addedLemmas++;
-      if( qe->inConflict() ){
+      if( qe->getState().isInConflict() ){
         break;
       }
     }

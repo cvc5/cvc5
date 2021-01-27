@@ -93,7 +93,7 @@ void InstMatch::setValue(size_t i, TNode n)
   Assert(i < d_vals.size());
   d_vals[i] = n;
 }
-bool InstMatch::set(QuantifiersState& qs, size_t i, TNode n)
+bool InstMatch::set(quantifiers::QuantifiersState& qs, size_t i, TNode n)
 {
   Assert(i < d_vals.size());
   if( !d_vals[i].isNull() ){

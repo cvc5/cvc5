@@ -175,7 +175,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q,
           << "...processing " << j << " / " << newMatches.size()
           << ", #lemmas = " << addedLemmas << std::endl;
       processNewMatch(qe, tparent, newMatches[j], i, addedLemmas);
-      if (qe->inConflict())
+      if (qe->getState().isInConflict())
       {
         return addedLemmas;
       }
@@ -222,7 +222,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                                        size_t endChildIndex,
                                                        bool modEq)
 {
-  Assert(!qe->inConflict());
+  Assert(!qe->getState().isInConflict());
   if (childIndex == endChildIndex)
   {
     // m is an instantiation
@@ -257,7 +257,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                  childIndex,
                                  endChildIndex,
                                  modEq);
-        if (qe->inConflict())
+        if (qe->getState().isInConflict())
         {
           break;
         }
@@ -305,7 +305,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                    childIndex,
                                    endChildIndex,
                                    modEq);
-          if (qe->inConflict())
+          if (qe->getState().isInConflict())
           {
             break;
           }
