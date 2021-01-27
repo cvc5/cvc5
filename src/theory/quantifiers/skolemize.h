@@ -113,7 +113,8 @@ class Skolemize
   /**
    * Get skolemization vectors, where for each quantified formula that was
    * skolemized, this is the list of skolems that were used to witness the
-   * negation of that quantified formula.
+   * negation of that quantified formula (which is equivalent to an existential
+   * one).
    *
    * This is used for the command line option
    *   --dump-instantiations
