@@ -29,7 +29,7 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
 
   d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
   d_enumerator->initialize(nm->mkSkolem("sygus_rcons", stn));
-  d_crd.reset(new CandidateRewriteDatabase(true, false, true));
+  d_crd.reset(new CandidateRewriteDatabase(true, false, true, false));
   d_sygusSampler.initialize(stn, builtinVars, 5);
   d_crd->initialize(builtinVars, &d_sygusSampler);
 }
@@ -61,7 +61,10 @@ Node RConsTypeInfo::addTerm(Node n)
   return d_crd->addTerm(n, false, out);
 }
 
-void RConsTypeInfo::setObligation(Node builtin, Node ob) { d_ob[builtin] = ob; }
+void RConsTypeInfo::setBuiltinToOb(Node builtin, Node ob)
+{
+  d_ob[builtin] = ob;
+}
 
 Node RConsTypeInfo::builtinToOb(Node builtin) { return d_ob[builtin]; }
 

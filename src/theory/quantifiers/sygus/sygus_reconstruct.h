@@ -20,13 +20,8 @@
 #include <map>
 #include <vector>
 
-#include "expr/node.h"
-#include "expr/sygus_datatype.h"
 #include "theory/quantifiers/sygus/rcons_obligation_info.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
-#include "theory/quantifiers/sygus/sygus_stats.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 
 namespace CVC4 {
 namespace theory {

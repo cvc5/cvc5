@@ -68,7 +68,7 @@ class RConsTypeInfo
    * @param builtin The builtin term
    * @param ob The corresponding obligation
    */
-  void setObligation(Node builtin, Node ob);
+  void setBuiltinToOb(Node builtin, Node ob);
 
   /**
    * Return the obligation responsible for solving the given builtin term.

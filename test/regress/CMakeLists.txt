@@ -2087,6 +2087,7 @@ set(regress_1_tests
   regress1/sygus/abduction_1255.corecstrs.readable.smt2
   regress1/sygus/abduction_streq.readable.smt2
   regress1/sygus/abv.sy
+  regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/bvudiv-by-2.sy
   regress1/sygus/cegar1.sy
   regress1/sygus/cegis-unif-inv-eq-fair.sy
@@ -2530,8 +2531,6 @@ set(regression_disabled_tests
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
   regress1/sygus/parity-si-rcons.sy
-  # new reconstruct algorithm (invoked with --sygus-si=all) returns wrong answer
-  regress1/sygus/array_search_5-Q-easy.sy
   # should print a better error message to indicate that a term is not in the
   # provided grammar
   regress1/sygus/simple-not-in-grammar.sy

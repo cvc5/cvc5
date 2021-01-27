@@ -36,12 +36,12 @@ class RConsObligationInfo
    *
    * @param builtin builtin term to reconstruct
    */
-  explicit RConsObligationInfo(const Node& builtin = Node::null());
+  explicit RConsObligationInfo(Node builtin = Node::null());
 
   /**
    * @return builtin term to reconstruct for the corresponding obligation
    */
-  const Node& getBuiltin() const;
+  Node getBuiltin() const;
 
   /**
    * Add candidate solution to the set of candidate solutions for the
@@ -49,7 +49,7 @@ class RConsObligationInfo
    *
    * @param candSol the candidate solution to add
    */
-  void addCandidateSolution(const Node& candSol);
+  void addCandidateSolution(Node candSol);
 
   /**
    * @return set of candidate solutions for the corresponding obligation
@@ -63,7 +63,7 @@ class RConsObligationInfo
    *
    * @param candSol the candidate solution to add to watch set
    */
-  void addCandidateSolutionToWatchSet(const Node& candSol);
+  void addCandidateSolutionToWatchSet(Node candSol);
 
   /**
    * @return set of candidate solutions waiting for the corresponding obligation

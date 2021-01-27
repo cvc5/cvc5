@@ -18,14 +18,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-RConsObligationInfo::RConsObligationInfo(const Node& builtin)
-    : d_builtin(builtin)
-{
-}
+RConsObligationInfo::RConsObligationInfo(Node builtin) : d_builtin(builtin) {}
 
-const Node& RConsObligationInfo::getBuiltin() const { return d_builtin; }
+Node RConsObligationInfo::getBuiltin() const { return d_builtin; }
 
-void RConsObligationInfo::addCandidateSolution(const Node& candSol)
+void RConsObligationInfo::addCandidateSolution(Node candSol)
 {
   d_candSols.emplace(candSol);
 }
@@ -36,7 +33,7 @@ RConsObligationInfo::getCandidateSolutions() const
   return d_candSols;
 }
 
-void RConsObligationInfo::addCandidateSolutionToWatchSet(const Node& candSol)
+void RConsObligationInfo::addCandidateSolutionToWatchSet(Node candSol)
 {
   d_watchSet.emplace(candSol);
 }

@@ -14,11 +14,9 @@
 
 #include "theory/quantifiers/sygus/sygus_reconstruct.h"
 
-#include "expr/match_trie.h"
 #include "expr/node_algorithm.h"
 #include "smt/command.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 using namespace CVC4::kind;
 
@@ -62,12 +60,11 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   // satisfied
   unsolvedObs[stn].emplace(mainOb);
   d_obInfo.emplace(mainOb, RConsObligationInfo(sol));
-  d_stnInfo[stn].setObligation(sol, mainOb);
+  d_stnInfo[stn].setBuiltinToOb(sol, mainOb);
 
   // We need to add the main obligation to the crd in case it cannot be broken
   // down by matching. By doing so, we can solve the obligation using
   // enumeration and crd (if it is in the grammar)
-  std::stringstream out;
   d_stnInfo[stn].addTerm(sol);
 
   // the set of unique (up to rewriting) patterns/shapes in the grammar used by
@@ -111,7 +108,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
           // the enumerated term
           k = nm->mkSkolem("sygus_rcons", pair.first);
           d_obInfo.emplace(k, RConsObligationInfo(builtin));
-          d_stnInfo[pair.first].setObligation(builtin, k);
+          d_stnInfo[pair.first].setBuiltinToOb(builtin, k);
         }
         // mark the obligation as solved
         markSolved(k, sz);
@@ -248,13 +245,11 @@ SygusReconstruct::matchNewObs(Node k, Node sz)
       candObs.erase(pair.first);
     }
     // for each candidate obligation
-    std::stringstream out;
     for (const std::pair<const Node, Node>& candOb : candObs)
     {
       TypeNode stn =
           datatypes::utils::builtinVarToSygus(candOb.first).getType();
       Node newVar;
-      // Question: should we consider equality by crd here too? (more efficient)
       // have we come across a similar obligation before?
       Node rep = d_stnInfo[stn].addTerm(candOb.second);
       if (d_stnInfo[stn].builtinToOb(rep) != Node::null())
@@ -267,7 +262,7 @@ SygusReconstruct::matchNewObs(Node k, Node sz)
         // otherwise, create a new obligation of the corresponding sygus type
         newVar = nm->mkSkolem("sygus_rcons", stn);
         d_obInfo.emplace(newVar, candOb.second);
-        d_stnInfo[stn].setObligation(candOb.second, newVar);
+        d_stnInfo[stn].setBuiltinToOb(candOb.second, newVar);
         // if the candidate obligation is a constant and the grammar allows
         // random constants
         if (candOb.second.isConst()
