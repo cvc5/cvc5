@@ -14,8 +14,6 @@
 
 #include "theory/quantifiers/quantifiers_state.h"
 
-#include "theory/uf/equality_engine.h"
-
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {

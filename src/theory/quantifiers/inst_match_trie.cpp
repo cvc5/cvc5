@@ -330,10 +330,11 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   if (modEq)
   {
     // check modulo equality if any other instantiation match exists
-    if (!n.isNull() && qe->getState().hasTerm(n))
+    quantifiers::QuantifiersState& qs = qe->getState();
+    if (!n.isNull() && qs.hasTerm(n))
     {
-      eq::EqClassIterator eqc(qe->getState().getRepresentative(n),
-                              qe->getState().getEqualityEngine());
+      eq::EqClassIterator eqc(qs.getRepresentative(n),
+                              qs.getEqualityEngine());
       while (!eqc.isFinished())
       {
         Node en = (*eqc);
