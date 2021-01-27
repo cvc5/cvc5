@@ -1840,14 +1840,7 @@ bool VeritProofPostprocessCallback::update(Node res,
   //                 note that "not" here denotes arithmetic negation, flipping
   //                 >= to <, etc.
   //
-  // If C = (= x c)
-  // then A B are (<= x c) and (>= x c) and comp_simplify (= (>= x c) (<= c x))
-  //
-  // If C = (> x c)
-  // in the end a comp_simplify has to be applied (= (x>c) (not (<= x c))) and
-  // A B are (>= x c) and (!= x c) and comp_simplify has to be applied
-  //
-  // If C = (< x c)
+  // If C = (= x c) or C = (> x c) pre-processing has to transform (>= x c) into (<= c x)
   //
   // proof rule: la_disequality
   // proof node: (VP1: (or (= x c) (not (<= x c)) (not (<= c x))))
@@ -1860,6 +1853,8 @@ bool VeritProofPostprocessCallback::update(Node res,
   // proof term: (cl (= x c) (not (<= x c)) (not (<= c x)))
   // premises: ()
   // args: ()
+  //
+  // If C = (> x c) or C = (< x c) post-processing has to be added. In these cases resolution on VP2 A B yields (not (<=x c)) or (not (<= c x)) and comp_simplify is used to transform it into C. Otherwise,
   //
   // proof rule: resolution
   // proof node: C
