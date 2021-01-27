@@ -159,10 +159,6 @@ QuantifiersEngine::getInferenceManager()
 {
   return d_qim;
 }
-EqualityQuery* QuantifiersEngine::getEqualityQuery() const
-{
-  return d_eq_query.get();
-}
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
@@ -362,7 +358,7 @@ void QuantifiersEngine::ppNotifyAssertions(
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
 
-  if (!getMasterEqualityEngine()->consistent())
+  if (!d_qstate.getEqualityEngine()->consistent())
   {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
@@ -1103,7 +1099,7 @@ bool QuantifiersEngine::getSynthSolutions(
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   std::map< TypeNode, int > typ_num;
   while( !eqcs_i.isFinished() ){

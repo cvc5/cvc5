@@ -80,7 +80,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
       tat = qe->getTermDatabase()->getTermArgTrie(d_eqc, d_op);
     }
     else
-    {);
+    {
       // iterate over all classes except r
       tat = qe->getTermDatabase()->getTermArgTrie(Node::null(), d_op);
       if (tat && !qs.isInConflict())

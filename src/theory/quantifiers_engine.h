@@ -81,8 +81,6 @@ class QuantifiersEngine {
   //---------------------- utilities
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() const;
-  /** get equality query */
-  EqualityQuery* getEqualityQuery() const;
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
   /** get model */

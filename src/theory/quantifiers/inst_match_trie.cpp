@@ -333,7 +333,7 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
     if (!n.isNull() && qe->getState().hasTerm(n))
     {
       eq::EqClassIterator eqc(qe->getState().getRepresentative(n),
-                              qe->getEqualityQuery()->getEngine());
+                              qe->getState().getEqualityEngine());
       while (!eqc.isFinished())
       {
         Node en = (*eqc);

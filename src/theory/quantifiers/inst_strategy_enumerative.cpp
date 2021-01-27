@@ -188,7 +188,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
   std::map<TypeNode, std::vector<Node> > term_db_list;
   std::vector<TypeNode> ftypes;
   TermDb* tdb = d_quantEngine->getTermDatabase();
-  QuantifiersState& qs = qe->getState();
+  QuantifiersState& qs = d_quantEngine->getState();
   // iterate over substitutions for variables
   for (unsigned i = 0; i < f[0].getNumChildren(); i++)
   {
