@@ -227,12 +227,6 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::EQUIV_POS2://DONE
     {
-      /*std::cout << (res.getKind() == kind::SEXPR)
-                << (res[0].toString() == cl.toString())
-                << (res[1].getKind() == kind::NOT)
-                << (res[1][0].getKind() == kind::EQUAL)
-                << (res[2].getKind() == kind::NOT)
-                << (res[1][0][0] == res[2][0]) << (res[1][0][1] == res[3]);*/
       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[2].getKind() == kind::NOT
           && res[1][0][0] == res[2][0] && res[1][0][1] == res[3]){return CheckResult::True;}
@@ -422,6 +416,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
 	     }
 	}
       }
+      //std::cout << "clauses "<< clauses << std::endl;
       if(clauses.empty()||(clauses.size()==1 && clauses[0]==nm->mkConst(false))){
         return CheckResult::True;
       }
