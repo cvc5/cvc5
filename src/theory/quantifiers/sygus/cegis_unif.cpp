@@ -29,8 +29,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe, SynthConjecture* p)
-    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, p)
+CegisUnif::CegisUnif(QuantifiersEngine* qe,
+                     QuantifiersState& qs,
+                     SynthConjecture* p)
+    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, qs, p)
 {
 }
 
@@ -398,8 +400,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
-    QuantifiersEngine* qe, SynthConjecture* parent)
-    : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
+    QuantifiersEngine* qe, QuantifiersState& qs, SynthConjecture* parent)
+    : DecisionStrategyFmf(qs.getSatContext(), qe->getValuation()),
       d_qe(qe),
       d_parent(parent)
 {

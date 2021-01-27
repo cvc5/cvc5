@@ -713,7 +713,9 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
+  /** Used for replaying approximate simplex */
   context::CDQueue<TrustNode> d_approxCuts;
+  /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */
   std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */

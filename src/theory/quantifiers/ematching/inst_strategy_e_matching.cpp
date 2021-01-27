@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
@@ -48,8 +49,8 @@ struct sortQuantifiersForSymbol {
 
 struct sortTriggers {
   bool operator() (Node i, Node j) {
-    int wi = Trigger::getTriggerWeight( i );
-    int wj = Trigger::getTriggerWeight( j );
+    int32_t wi = TriggerTermInfo::getTriggerWeight(i);
+    int32_t wj = TriggerTermInfo::getTriggerWeight(j);
     if( wi==wj ){
       return i<j;
     }
@@ -58,8 +59,9 @@ struct sortTriggers {
 };
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+                                                         QuantifiersState& qs,
                                                          QuantRelevance* qr)
-    : InstStrategy(qe), d_quant_rel(qr)
+    : InstStrategy(qe, qs), d_quant_rel(qr)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
@@ -202,13 +204,12 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
       {
         d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
       }
-      if (d_quantEngine->inConflict())
+      if (d_qstate.isInConflict())
       {
         break;
       }
     }
-    if (d_quantEngine->inConflict()
-        || (hasInst && options::multiTriggerPriority()))
+    if (d_qstate.isInConflict() || (hasInst && options::multiTriggerPriority()))
     {
       break;
     }
@@ -401,8 +402,8 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   if (patTermsF.empty())
   {
     Node bd = tu->getInstConstantBody(f);
-    Trigger::collectPatTerms(
-        f, bd, patTermsF, d_tr_strategy, d_user_no_gen[f], tinfo, true);
+    PatternTermSelector pts(f, d_tr_strategy, d_user_no_gen[f], true);
+    pts.collect(bd, patTermsF, tinfo);
     if (ntrivTriggers)
     {
       sortTriggers st;
@@ -429,7 +430,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   // considered
   std::map<Node, bool> vcMap;
   std::map<Node, bool> rmPatTermsF;
-  int last_weight = -1;
+  int32_t last_weight = -1;
   for (const Node& p : patTermsF)
   {
     Assert(p.getKind() != NOT);
@@ -443,7 +444,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
         newVar = true;
       }
     }
-    int curr_w = Trigger::getTriggerWeight(p);
+    int32_t curr_w = TriggerTermInfo::getTriggerWeight(p);
     // triggers whose value is maximum (2) are considered expendable.
     if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
         && curr_w >= 2)
@@ -514,13 +515,13 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     if (rpol != 0)
     {
       Assert(rpol == 1 || rpol == -1);
-      if (Trigger::isRelationalTrigger(pat))
+      if (TriggerTermInfo::isRelationalTrigger(pat))
       {
         pat = rpol == -1 ? pat.negate() : pat;
       }
       else
       {
-        Assert(Trigger::isAtomicTrigger(pat));
+        Assert(TriggerTermInfo::isAtomicTrigger(pat));
         if (pat.getType().isBoolean() && rpoleq.isNull())
         {
           if (options::literalMatchMode() == options::LiteralMatchMode::USE)
@@ -558,7 +559,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     }
     else
     {
-      if (Trigger::isRelationalTrigger(pat))
+      if (TriggerTermInfo::isRelationalTrigger(pat))
       {
         // consider both polarities
         addPatternToPool(f, pat.negate(), num_fv, mpat);

@@ -33,7 +33,7 @@ namespace quantifiers {
 class InstStrategyUserPatterns : public InstStrategy
 {
  public:
-  InstStrategyUserPatterns(QuantifiersEngine* qe);
+  InstStrategyUserPatterns(QuantifiersEngine* qe, QuantifiersState& qs);
   ~InstStrategyUserPatterns();
   /** add pattern */
   void addUserPattern(Node q, Node pat);

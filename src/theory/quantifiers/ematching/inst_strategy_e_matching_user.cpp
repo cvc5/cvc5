@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -23,8 +24,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie)
-    : InstStrategy(ie)
+InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie,
+                                                   QuantifiersState& qs)
+    : InstStrategy(ie, qs)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
@@ -128,7 +130,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     {
       d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
     }
-    if (d_quantEngine->inConflict())
+    if (d_qstate.isInConflict())
     {
       // we are already in conflict
       break;
@@ -144,7 +146,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   std::vector<Node> nodes;
   for (const Node& p : pat)
   {
-    Node pat_use = Trigger::getIsUsableTrigger(p, q);
+    Node pat_use = PatternTermSelector::getIsUsableTrigger(p, q);
     if (pat_use.isNull())
     {
       Trace("trigger-warn") << "User-provided trigger is not usable : " << pat

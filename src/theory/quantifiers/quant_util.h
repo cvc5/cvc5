@@ -21,6 +21,8 @@
 #include <map>
 #include <vector>
 
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -57,7 +59,9 @@ class QuantifiersModule {
   };
 
  public:
-  QuantifiersModule( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
+  QuantifiersModule(quantifiers::QuantifiersState& qs,
+                    quantifiers::QuantifiersInferenceManager& qim,
+                    QuantifiersEngine* qe);
   virtual ~QuantifiersModule(){}
   /** Presolve.
    *
@@ -152,10 +156,18 @@ class QuantifiersModule {
   quantifiers::TermDb* getTermDatabase() const;
   /** get currently used term utility object */
   quantifiers::TermUtil* getTermUtil() const;
+  /** get the quantifiers state */
+  quantifiers::QuantifiersState& getState();
+  /** get the quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   //----------------------------end general queries
  protected:
   /** pointer to the quantifiers engine that owns this module */
   QuantifiersEngine* d_quantEngine;
+  /** The state of the quantifiers engine */
+  quantifiers::QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
 };/* class QuantifiersModule */
 
 /** Quantifiers utility

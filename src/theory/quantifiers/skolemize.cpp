@@ -29,13 +29,14 @@ namespace theory {
 namespace quantifiers {
 
 Skolemize::Skolemize(QuantifiersEngine* qe,
-                     context::UserContext* u,
+                     QuantifiersState& qs,
                      ProofNodeManager* pnm)
     : d_quantEngine(qe),
-      d_skolemized(u),
+      d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
+                           : new EagerProofGenerator(
+                                 pnm, qs.getUserContext(), "Skolemize::epg"))
 {
 }
 
@@ -382,11 +383,9 @@ void Skolemize::getSkolemTermVectors(
 {
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
       itk;
-  for (NodeNodeMap::const_iterator it = d_skolemized.begin();
-       it != d_skolemized.end();
-       ++it)
+  for (const std::pair<const Node, Node>& p : d_skolemized)
   {
-    Node q = it->first;
+    Node q = p.first;
     itk = d_skolem_constants.find(q);
     Assert(itk != d_skolem_constants.end());
     sks[q].insert(sks[q].end(), itk->second.begin(), itk->second.end());
