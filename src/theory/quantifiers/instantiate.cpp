@@ -105,7 +105,7 @@ bool Instantiate::addInstantiation(
 {
   // For resource-limiting (also does a time check).
   d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
-  Assert(!d_qe->inConflict());
+  Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
   Assert(d_term_util != nullptr);

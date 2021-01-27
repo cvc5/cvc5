@@ -77,7 +77,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
-    Assert(!d_quantEngine->inConflict());
+    Assert(!d_qstate.isInConflict());
     int addedLemmas = 0;
 
     //the following will test that the model satisfies all asserted universal quantifiers by
@@ -217,7 +217,7 @@ int ModelEngine::checkModel(){
       //determine if we should check this quantifier
       if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
-        if (d_quantEngine->inConflict())
+        if (d_qstate.isInConflict())
         {
           break;
         }
@@ -228,12 +228,13 @@ int ModelEngine::checkModel(){
     if( d_addedLemmas>0 ){
       break;
     }else{
-      Assert(!d_quantEngine->inConflict());
+      Assert(!d_qstate.isInConflict());
     }
   }
 
   //print debug information
-  if( d_quantEngine->inConflict() ){
+  if (d_qstate.isInConflict())
+  {
     Trace("model-engine") << "Conflict, added lemmas = ";
   }else{
     Trace("model-engine") << "Added Lemmas = ";
@@ -293,7 +294,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           if (inst->addInstantiation(f, m, true))
           {
             addedLemmas++;
-            if( d_quantEngine->inConflict() ){
+            if (d_qstate.isInConflict())
+            {
               break;
             }
           }else{
