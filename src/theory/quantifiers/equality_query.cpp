@@ -54,7 +54,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
                                                                int index)
 {
   Assert(q.isNull() || q.getKind() == FORALL);
-  Node r =  d_qstate.getRepresentative( a );
+  Node r = d_qstate.getRepresentative(a);
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
@@ -63,7 +63,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
         if (!tr.isNull())
         {
           r = tr;
-          r =  d_qstate.getRepresentative( r );
+          r = d_qstate.getRepresentative(r);
         }else{
           if( r.getType().isSort() ){
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
