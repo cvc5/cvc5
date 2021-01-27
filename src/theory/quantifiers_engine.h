@@ -23,7 +23,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
-#include "expr/term_canonize.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -74,8 +73,6 @@ class QuantifiersEngine {
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
-  /** get the logic info for the quantifiers engine */
-  const LogicInfo& getLogicInfo() const;
   //---------------------- end external interface
   //---------------------- utilities
   /** get the master equality engine */
@@ -92,8 +89,6 @@ class QuantifiersEngine {
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
   /** get term utilities */
   quantifiers::TermUtil* getTermUtil() const;
-  /** get term canonizer */
-  expr::TermCanonize* getTermCanonize() const;
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
@@ -191,8 +186,6 @@ class QuantifiersEngine {
    * that are pre-registered to the quantifiers theory.
    */
   void preRegisterQuantifier(Node q);
-  /** register quantifier */
-  void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
   void assertQuantifier( Node q, bool pol );
 private:
@@ -353,8 +346,6 @@ public:
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** term utilities */
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
-  /** term utilities */
-  std::unique_ptr<expr::TermCanonize> d_term_canon;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** sygus term database */

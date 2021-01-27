@@ -44,7 +44,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_model(nullptr),
       d_builder(nullptr),
       d_term_util(new quantifiers::TermUtil),
-      d_term_canon(new expr::TermCanonize),
       d_term_db(new quantifiers::TermDb(qstate, qim, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
@@ -150,11 +149,6 @@ OutputChannel& QuantifiersEngine::getOutputChannel()
 /** get default valuation for the quantifiers engine */
 Valuation& QuantifiersEngine::getValuation() { return d_qstate.getValuation(); }
 
-const LogicInfo& QuantifiersEngine::getLogicInfo() const
-{
-  return d_te->getLogicInfo();
-}
-
 EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 {
   return d_eq_query.get();
@@ -178,10 +172,6 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
 {
   return d_term_util.get();
-}
-expr::TermCanonize* QuantifiersEngine::getTermCanonize() const
-{
-  return d_term_canon.get();
 }
 quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
 {
@@ -771,13 +761,6 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
   // flush the lemmas
   flushLemmas();
   Trace("quant-debug") << "...finish pre-register " << q << "..." << std::endl;
-}
-
-void QuantifiersEngine::registerPattern( std::vector<Node> & pattern) {
-  for(std::vector<Node>::iterator p = pattern.begin(); p != pattern.end(); ++p){
-    std::set< Node > added;
-    getTermDatabase()->addTerm( *p, added );
-  }
 }
 
 void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
