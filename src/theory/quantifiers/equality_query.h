@@ -65,8 +65,6 @@ class EqualityQueryQuantifiersEngine
   * engine.
   */
   eq::EqualityEngine* getEngine();
-  /** get list of members in the equivalence class of a */
-  void getEquivalenceClass(Node a, std::vector<Node>& eqc);
   /** gets the current best representative in the equivalence
    * class of a, based on some heuristic. Currently, the default heuristic
    * chooses terms that were previously chosen as representatives
@@ -86,6 +84,8 @@ class EqualityQueryQuantifiersEngine
  private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
+  /** the quantifiers state */
+  QuantifiersState& d_qstate;
   /** quantifiers equality inference */
   context::CDO< unsigned > d_eqi_counter;
   /** internal representatives */

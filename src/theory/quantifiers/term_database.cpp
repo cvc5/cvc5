@@ -256,10 +256,10 @@ void TermDb::addTerm(Node n,
 void TermDb::computeArgReps( TNode n ) {
   if (d_arg_reps.find(n) == d_arg_reps.end())
   {
-    eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+    eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
     for (const TNode& nc : n)
     {
-      TNode r = ee->hasTerm(nc) ? ee->getRepresentative(nc) : nc;
+      TNode r = d_qstate.hasTerm(nc) ? d_qstate.getRepresentative(nc) : nc;
       d_arg_reps[n].push_back( r );
     }
   }
@@ -279,7 +279,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     ops.insert(ops.end(), d_ho_op_slaves[f].begin(), d_ho_op_slaves[f].end());
   }
-  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   for (TNode ff : ops)
   {
     for (const Node& n : d_op_map[ff])
@@ -287,7 +287,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
       if (hasTermCurrent(n) && isTermActive(n))
       {
         computeArgReps(n);
-        TNode r = ee->hasTerm(n) ? ee->getRepresentative(n) : TNode(n);
+        TNode r = d_qstate.hasTerm(n) ? d_qstate.getRepresentative(n) : TNode(n);
         d_func_map_eqc_trie[f].d_data[r].addTerm(n, d_arg_reps[n]);
       }
     }
@@ -314,7 +314,7 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned nonCongruentCount = 0;
   unsigned alreadyCongruentCount = 0;
   unsigned relevantCount = 0;
-  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   for (TNode ff : ops)
   {
@@ -328,7 +328,7 @@ void TermDb::computeUfTerms( TNode f ) {
     for (const Node& n : it->second)
     {
       // to be added to term index, term must be relevant, and exist in EE
-      if (!hasTermCurrent(n) || !ee->hasTerm(n))
+      if (!hasTermCurrent(n) || !d_qstate.hasTerm(n))
       {
         Trace("term-db-debug") << n << " is not relevant." << std::endl;
         continue;
@@ -356,20 +356,20 @@ void TermDb::computeUfTerms( TNode f ) {
         }
       }
       Trace("term-db-debug") << std::endl;
-      Assert(ee->hasTerm(n));
-      Trace("term-db-debug") << "  and value : " << ee->getRepresentative(n)
+      Assert(d_qstate.hasTerm(n));
+      Trace("term-db-debug") << "  and value : " << d_qstate.getRepresentative(n)
                              << std::endl;
       Node at = d_func_map_trie[f].addOrGetTerm(n, d_arg_reps[n]);
-      Assert(ee->hasTerm(at));
+      Assert(d_qstate.hasTerm(at));
       Trace("term-db-debug2") << "...add term returned " << at << std::endl;
-      if (at != n && ee->areEqual(at, n))
+      if (at != n && d_qstate.areEqual(at, n))
       {
         setTermInactive(n);
         Trace("term-db-debug") << n << " is redundant." << std::endl;
         congruentCount++;
         continue;
       }
-      if (ee->areDisequal(at, n, false))
+      if (d_qstate.areDisequal(at, n, false))
       {
         std::vector<Node> lits;
         lits.push_back(nm->mkNode(EQUAL, at, n));
@@ -510,8 +510,8 @@ bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
     f = getOperatorRepresentative( f );
   }
   computeUfTerms( f );
-  Assert(!d_quantEngine->getMasterEqualityEngine()->hasTerm(r)
-         || d_quantEngine->getMasterEqualityEngine()->getRepresentative(r)
+  Assert(!d_qstate.getEqualityEngine()->hasTerm(r)
+         || d_qstate.getEqualityEngine()->getRepresentative(r)
                 == r);
   std::map< Node, std::map< unsigned, std::vector< Node > > >::iterator it = d_func_map_rel_dom.find( f );
   if( it != d_func_map_rel_dom.end() ){
@@ -529,7 +529,6 @@ bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
 Node TermDb::evaluateTerm2(TNode n,
                            std::map<TNode, Node>& visited,
                            std::vector<Node>& exp,
-                           eq::EqualityEngine * ee,
                            bool useEntailmentTests,
                            bool computeExp,
                            bool reqHasTerm)
@@ -544,10 +543,10 @@ Node TermDb::evaluateTerm2(TNode n,
   if( n.getKind()==FORALL || n.getKind()==BOUND_VARIABLE ){
     //do nothing
   }
-  else if (ee->hasTerm(n))
+  else if (d_qstate.hasTerm(n))
   {
     Trace("term-db-eval") << "...exists in ee, return rep" << std::endl;
-    ret = ee->getRepresentative(n);
+    ret = d_qstate.getRepresentative(n);
     if (computeExp)
     {
       if (n != ret)
@@ -568,7 +567,6 @@ Node TermDb::evaluateTerm2(TNode n,
       TNode c = evaluateTerm2(n[i],
                               visited,
                               tempExp,
-                              ee,
                               useEntailmentTests,
                               computeExp,
                               reqHasTerm);
@@ -593,7 +591,6 @@ Node TermDb::evaluateTerm2(TNode n,
           ret = evaluateTerm2(n[c == d_true ? 1 : 2],
                               visited,
                               tempExp,
-                              ee,
                               useEntailmentTests,
                               computeExp,
                               reqHasTerm);
@@ -642,7 +639,7 @@ Node TermDb::evaluateTerm2(TNode n,
               }
             }
           }
-          ret = ee->getRepresentative(nn);
+          ret = d_qstate.getRepresentative(nn);
           Trace("term-db-eval") << "return rep" << std::endl;
           ret_set = true;
           reqHasTerm = false;
@@ -722,10 +719,10 @@ Node TermDb::evaluateTerm2(TNode n,
 }
 
 
-TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, eq::EqualityEngine * ee ) {
+TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs ) {
   Assert(!qy->extendsEngine());
   Trace("term-db-entail") << "get entailed term : " << n << std::endl;
-  if( ee->hasTerm( n ) ){
+  if( d_qstate.hasTerm( n ) ){
     Trace("term-db-entail") << "...exists in ee, return rep " << std::endl;
     return n;
   }else if( n.getKind()==BOUND_VARIABLE ){
@@ -734,17 +731,17 @@ TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool su
       if( it!=subs.end() ){
         Trace("term-db-entail") << "...substitution is : " << it->second << std::endl;
         if( subsRep ){
-          Assert(ee->hasTerm(it->second));
-          Assert(ee->getRepresentative(it->second) == it->second);
+          Assert(d_qstate.hasTerm(it->second));
+          Assert(d_qstate.getRepresentative(it->second) == it->second);
           return it->second;
         }
-        return getEntailedTerm2( it->second, subs, subsRep, hasSubs, ee );
+        return getEntailedTerm2( it->second, subs, subsRep, hasSubs );
       }
     }
   }else if( n.getKind()==ITE ){
     for( unsigned i=0; i<2; i++ ){
-      if( isEntailed2( n[0], subs, subsRep, hasSubs, i==0, ee ) ){
-        return getEntailedTerm2( n[ i==0 ? 1 : 2 ], subs, subsRep, hasSubs, ee );
+      if( isEntailed2( n[0], subs, subsRep, hasSubs, i==0 ) ){
+        return getEntailedTerm2( n[ i==0 ? 1 : 2 ], subs, subsRep, hasSubs );
       }
     }
   }else{
@@ -753,11 +750,11 @@ TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool su
       if( !f.isNull() ){
         std::vector< TNode > args;
         for( unsigned i=0; i<n.getNumChildren(); i++ ){
-          TNode c = getEntailedTerm2( n[i], subs, subsRep, hasSubs, ee );
+          TNode c = getEntailedTerm2( n[i], subs, subsRep, hasSubs );
           if( c.isNull() ){
             return TNode::null();
           }
-          c = ee->getRepresentative( c );
+          c = d_qstate.getRepresentative( c );
           Trace("term-db-entail") << "  child " << i << " : " << c << std::endl;
           args.push_back( c );
         }
@@ -771,76 +768,61 @@ TNode TermDb::getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool su
 }
 
 Node TermDb::evaluateTerm(TNode n,
-                          eq::EqualityEngine * ee,
                           bool useEntailmentTests,
                           bool reqHasTerm)
 {
-  if( ee==nullptr ){
-    ee = d_quantEngine->getMasterEqualityEngine();
-  }
   std::map< TNode, Node > visited;
   std::vector<Node> exp;
   return evaluateTerm2(
-      n, visited, exp, ee, useEntailmentTests, false, reqHasTerm);
+      n, visited, exp, useEntailmentTests, false, reqHasTerm);
 }
 
 Node TermDb::evaluateTerm(TNode n,
                           std::vector<Node>& exp,
-                          eq::EqualityEngine * ee,
                           bool useEntailmentTests,
                           bool reqHasTerm)
 {
-  if (ee == nullptr)
-  {
-    ee = d_quantEngine->getMasterEqualityEngine();
-  }
   std::map<TNode, Node> visited;
   return evaluateTerm2(
-      n, visited, exp, ee, useEntailmentTests, true, reqHasTerm);
+      n, visited, exp, useEntailmentTests, true, reqHasTerm);
 }
 
-TNode TermDb::getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep, eq::EqualityEngine * ee ) {
-  if( ee==nullptr ){
-    ee = d_quantEngine->getMasterEqualityEngine();
-  }
-  return getEntailedTerm2( n, subs, subsRep, true, ee );
+TNode TermDb::getEntailedTerm( TNode n, std::map< TNode, TNode >& subs, bool subsRep ) {
+  return getEntailedTerm2( n, subs, subsRep, true );
 }
 
-TNode TermDb::getEntailedTerm( TNode n, EqualityQuery * ee ) {
-  if( ee==nullptr ){
-    ee = d_quantEngine->getMasterEqualityEngine();
-  }
+TNode TermDb::getEntailedTerm( TNode n ) {
   std::map< TNode, TNode > subs;
-  return getEntailedTerm2( n, subs, false, false, ee );
+  return getEntailedTerm2( n, subs, false, false );
 }
 
-bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, eq::EqualityEngine * ee ) {
+bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol ) {
   Trace("term-db-entail") << "Check entailed : " << n << ", pol = " << pol << std::endl;
   Assert(n.getType().isBoolean());
   if( n.getKind()==EQUAL && !n[0].getType().isBoolean() ){
-    TNode n1 = getEntailedTerm2( n[0], subs, subsRep, hasSubs, ee );
+    TNode n1 = getEntailedTerm2( n[0], subs, subsRep, hasSubs );
     if( !n1.isNull() ){
-      TNode n2 = getEntailedTerm2( n[1], subs, subsRep, hasSubs, ee );
+      TNode n2 = getEntailedTerm2( n[1], subs, subsRep, hasSubs );
       if( !n2.isNull() ){
         if( n1==n2 ){
           return pol;
         }else{
-          Assert(ee->hasTerm(n1));
-          Assert(ee->hasTerm(n2));
+          Assert(d_qstate.hasTerm(n1));
+          Assert(d_qstate.hasTerm(n2));
           if( pol ){
-            return ee->areEqual( n1, n2 );
+            return d_qstate.areEqual( n1, n2 );
           }else{
-            return ee->areDisequal( n1, n2, false );
+            return d_qstate.areDisequal( n1, n2, false );
           }
         }
       }
     }
   }else if( n.getKind()==NOT ){
-    return isEntailed2( n[0], subs, subsRep, hasSubs, !pol, ee );
+    return isEntailed2( n[0], subs, subsRep, hasSubs, !pol );
   }else if( n.getKind()==OR || n.getKind()==AND ){
     bool simPol = ( pol && n.getKind()==OR ) || ( !pol && n.getKind()==AND );
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( isEntailed2( n[i], subs, subsRep, hasSubs, pol, ee ) ){
+      if( isEntailed2( n[i], subs, subsRep, hasSubs, pol ) ){
         if( simPol ){
           return true;
         }
@@ -854,45 +836,45 @@ bool TermDb::isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep,
   //Boolean equality here
   }else if( n.getKind()==EQUAL || n.getKind()==ITE ){
     for( unsigned i=0; i<2; i++ ){
-      if( isEntailed2( n[0], subs, subsRep, hasSubs, i==0, ee ) ){
+      if( isEntailed2( n[0], subs, subsRep, hasSubs, i==0 ) ){
         unsigned ch = ( n.getKind()==EQUAL || i==0 ) ? 1 : 2;
         bool reqPol = ( n.getKind()==ITE || i==0 ) ? pol : !pol;
-        return isEntailed2( n[ch], subs, subsRep, hasSubs, reqPol, ee );
+        return isEntailed2( n[ch], subs, subsRep, hasSubs, reqPol );
       }
     }
   }else if( n.getKind()==APPLY_UF ){
-    TNode n1 = getEntailedTerm2( n, subs, subsRep, hasSubs, ee );
+    TNode n1 = getEntailedTerm2( n, subs, subsRep, hasSubs );
     if( !n1.isNull() ){
-      Assert(ee->hasTerm(n1));
+      Assert(d_qstate.hasTerm(n1));
       if( n1==d_true ){
         return pol;
       }else if( n1==d_false ){
         return !pol;
       }else{
-        return ee->getRepresentative( n1 ) == ( pol ? d_true : d_false );
+        return d_qstate.getRepresentative( n1 ) == ( pol ? d_true : d_false );
       }
     }
   }else if( n.getKind()==FORALL && !pol ){
-    return isEntailed2( n[1], subs, subsRep, hasSubs, pol, ee );
+    return isEntailed2( n[1], subs, subsRep, hasSubs, pol );
   }
   return false;
 }
 
-bool TermDb::isEntailed( TNode n, bool pol, eq::EqualityEngine * ee ) {
+bool TermDb::isEntailed( TNode n, bool pol ) {
   if( ee==nullptr ){
     Assert(d_consistent_ee);
-    ee = d_quantEngine->getMasterEqualityEngine();
+    ee = d_qstate.getEqualityEngine();
   }
   std::map< TNode, TNode > subs;
-  return isEntailed2( n, subs, false, false, pol, ee );
+  return isEntailed2( n, subs, false, false, pol );
 }
 
-bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol, eq::EqualityEngine * ee ) {
+bool TermDb::isEntailed( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool pol ) {
   if( ee==nullptr ){
     Assert(d_consistent_ee);
-    ee = d_quantEngine->getMasterEqualityEngine();
+    ee = d_qstate.getEqualityEngine();
   }
-  return isEntailed2( n, subs, subsRep, true, pol, ee );
+  return isEntailed2( n, subs, subsRep, true, pol );
 }
 
 bool TermDb::isTermActive( Node n ) {
@@ -967,8 +949,8 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
     std::map< Node, Node >::iterator it = d_term_elig_eqc.find( r );
     if( it==d_term_elig_eqc.end() ){
       Node h;
-      eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+      eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
+      eq::EqClassIterator eqc_i = eq::EqClassIterator( r );
       while (!eqc_i.isFinished())
       {
         TNode n = (*eqc_i);
@@ -1022,9 +1004,9 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_rel_dom.clear();
   d_consistent_ee = true;
 
-  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
 
-  Assert(ee->consistent());
+  Assert(d_qstate.consistent());
   // if higher-order, add equalities for the purification terms now
   if (options::ufHo())
   {
@@ -1033,8 +1015,8 @@ bool TermDb::reset( Theory::Effort effort ){
         << std::endl;
     for (std::pair<const Node, Node>& pp : d_ho_purify_to_term)
     {
-      if (ee->hasTerm(pp.second)
-          && (!ee->hasTerm(pp.first) || !ee->areEqual(pp.second, pp.first)))
+      if (d_qstate.hasTerm(pp.second)
+          && (!d_qstate.hasTerm(pp.first) || !d_qstate.areEqual(pp.second, pp.first)))
       {
         Node eq;
         std::map<Node, Node>::iterator itpe = d_ho_purify_to_eq.find(pp.first);
@@ -1048,8 +1030,8 @@ bool TermDb::reset( Theory::Effort effort ){
           eq = itpe->second;
         }
         Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
-        ee->assertEquality(eq, true, eq);
-        if (!ee->consistent())
+        d_qstate.assertEquality(eq, true, eq);
+        if (!d_qstate.consistent())
         {
           // In some rare cases, purification functions (in the domain of
           // d_ho_purify_to_term) may escape the term database. For example,
@@ -1080,7 +1062,7 @@ bool TermDb::reset( Theory::Effort effort ){
       bool addedFirst = false;
       Node first;
       //TODO: ignoring singleton eqc isn't enough, need to ensure eqc are relevant
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+      eq::EqClassIterator eqc_i = eq::EqClassIterator( r );
       while( !eqc_i.isFinished() ){
         TNode n = (*eqc_i);
         if( first.isNull() ){
@@ -1122,8 +1104,8 @@ bool TermDb::reset( Theory::Effort effort ){
   //explicitly add inst closure terms to the equality engine to ensure only EE terms are indexed
   for (const Node& n : d_iclosure_processed)
   {
-    if( !ee->hasTerm( n ) ){
-      ee->addTerm( n );
+    if( !d_qstate.hasTerm( n ) ){
+      d_qstate.addTerm( n );
     }
   }
 
@@ -1138,7 +1120,7 @@ bool TermDb::reset( Theory::Effort effort ){
       if( r.getType().isFunction() ){
         Trace("quant-ho") << "  process function eqc " << r << std::endl;
         Node first;
-        eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
+        eq::EqClassIterator eqc_i = eq::EqClassIterator( r );
         while( !eqc_i.isFinished() ){
           TNode n = (*eqc_i);
           Node n_use;

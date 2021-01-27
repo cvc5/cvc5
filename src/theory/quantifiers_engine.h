@@ -73,6 +73,10 @@ class QuantifiersEngine {
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
+  /** The quantifiers state object */
+  quantifiers::QuantifiersState& getState();
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the master equality engine */
@@ -227,8 +231,6 @@ public:
  void markRelevant(Node q);
  /** has added lemma */
  bool hasAddedLemma() const;
- /** is in conflict */
- bool inConflict() const;
  /** get current q effort */
  QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */

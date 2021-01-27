@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 using namespace CVC4::kind;
 
@@ -280,13 +281,13 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
     {
       return;
     }
-    eq::EqualityEngine* ee = qe->getEqualityQuery()->getEngine();
+    quantifiers::QuantifiersState& qs = qe->getState();
     // check modulo equality for other possible instantiations
-    if (!ee->hasTerm(n))
+    if (!qs.hasTerm(n))
     {
       return;
     }
-    eq::EqClassIterator eqc(ee->getRepresentative(n), ee);
+    eq::EqClassIterator eqc(qs.getRepresentative(n), qs.getEqualityEngine());
     while (!eqc.isFinished())
     {
       Node en = (*eqc);

@@ -26,6 +26,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 using namespace CVC4::kind;
 
@@ -282,7 +283,7 @@ int InstMatchGenerator::getMatch(
     Trace("matching-fail") << "Internal error for match generator." << std::endl;
     return -2;
   }
-  EqualityQuery* q = qe->getEqualityQuery();
+  QuantifiersState& qs = qe->getState();
   bool success = true;
   std::vector<int> prev;
   // if t is null
@@ -300,7 +301,7 @@ int InstMatchGenerator::getMatch(
       Trace("matching-debug2")
           << "Setting " << ct << " to " << t[i] << "..." << std::endl;
       bool addToPrev = m.get(ct).isNull();
-      if (!m.set(q, ct, t[i]))
+      if (!m.set(qs, ct, t[i]))
       {
         // match is in conflict
         Trace("matching-fail")
@@ -316,7 +317,7 @@ int InstMatchGenerator::getMatch(
     }
     else if (ct == -1)
     {
-      if (!q->areEqual(d_match_pattern[i], t[i]))
+      if (!qs.areEqual(d_match_pattern[i], t[i]))
       {
         Trace("matching-fail") << "Match fail arg: " << d_match_pattern[i]
                                << " and " << t[i] << std::endl;

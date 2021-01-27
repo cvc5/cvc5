@@ -33,7 +33,7 @@ namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
     QuantifiersState& qs, QuantifiersEngine* qe)
-    : d_qe(qe), d_eqi_counter(qs.getSatContext()), d_reset_count(0)
+    : d_qe(qe), d_qstate(qs), d_eqi_counter(qs.getSatContext()), d_reset_count(0)
 {
 }
 
@@ -129,7 +129,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   // find best selection for representative
   Node r_best;
   std::vector<Node> eqc;
-  getEquivalenceClass(r, eqc);
+  d_qstate.getEquivalenceClass(r, eqc);
   Trace("internal-rep-select")
       << "Choose representative for equivalence class : " << eqc
       << ", type = " << v_tn << std::endl;
@@ -182,26 +182,6 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
 
 eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
   return d_qe->getMasterEqualityEngine();
-}
-
-void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
-  eq::EqualityEngine* ee = getEngine();
-  if( ee->hasTerm( a ) ){
-    Node rep = ee->getRepresentative( a );
-    eq::EqClassIterator eqc_iter( rep, ee );
-    while( !eqc_iter.isFinished() ){
-      eqc.push_back( *eqc_iter );
-      eqc_iter++;
-    }
-  }else{
-    eqc.push_back( a );
-  }
-  //a should be in its equivalence class
-  Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
-}
-
-TNode EqualityQueryQuantifiersEngine::getCongruentTerm( Node f, std::vector< TNode >& args ) {
-  return d_qe->getTermDatabase()->getCongruentTerm( f, args );
 }
 
 //helper functions

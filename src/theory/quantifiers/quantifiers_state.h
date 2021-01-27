@@ -31,6 +31,8 @@ class QuantifiersState : public TheoryState
  public:
   QuantifiersState(context::Context* c, context::UserContext* u, Valuation val);
   ~QuantifiersState() {}
+  /** get list of members in the equivalence class of a */
+  void getEquivalenceClass(Node a, std::vector<Node>& eqc);
 };
 
 }  // namespace quantifiers

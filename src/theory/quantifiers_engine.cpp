@@ -126,6 +126,8 @@ void QuantifiersEngine::finishInit(TheoryEngine* te,
   d_te = te;
   d_decManager = dm;
   d_masterEqualityEngine = mee;
+  // use the master equality engine in the quantifiers state
+  d_qstate.setEqualityEngine(mee);
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
   d_qmodules->initialize(this, d_qstate, d_qim, d_modules);
@@ -146,9 +148,16 @@ OutputChannel& QuantifiersEngine::getOutputChannel()
 {
   return d_te->theoryOf(THEORY_QUANTIFIERS)->getOutputChannel();
 }
-/** get default valuation for the quantifiers engine */
 Valuation& QuantifiersEngine::getValuation() { return d_qstate.getValuation(); }
 
+quantifiers::QuantifiersState& QuantifiersEngine::getState()
+{
+  return d_qstate;
+}
+quantifiers::QuantifiersInferenceManager& QuantifiersEngine::getInferenceManager()
+{
+  return d_qim;
+}
 EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 {
   return d_eq_query.get();
@@ -883,8 +892,6 @@ bool QuantifiersEngine::hasAddedLemma() const
 {
   return !d_lemmas_waiting.empty() || d_hasAddedLemma;
 }
-
-bool QuantifiersEngine::inConflict() const { return d_qstate.isInConflict(); }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;

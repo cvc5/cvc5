@@ -231,7 +231,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     d_lchildren.clear();
     d_arg_to_arg_rep.clear();
     d_arg_vector.clear();
-    EqualityQuery* eq = d_quantEngine->getEqualityQuery();
+    QuantifiersState& qs = d_quantEngine->getState();
     for (std::pair<const TNode, std::vector<Node> >& ha : ho_var_apps_subs)
     {
       TNode var = ha.first;
@@ -283,10 +283,10 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
           }
           else if (!itf->second.isNull())
           {
-            if (!eq->areEqual(itf->second, args[k]))
+            if (!qs.areEqual(itf->second, args[k]))
             {
               if (!d_quantEngine->getTermDatabase()->isEntailed(
-                      itf->second.eqNode(args[k]), true, eq))
+                      itf->second.eqNode(args[k]), true))
               {
                 fixed_vals[k] = Node::null();
               }
