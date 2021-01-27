@@ -132,10 +132,8 @@ class SygusReconstruct : public expr::NotifyMatch
 
   /** reconstruct solution
    *
-   * Returns (if possible) a sygus encoding of a node that is equivalent to sol
+   * Return (if possible) a sygus encoding of a node that is equivalent to sol
    * and whose syntax matches the grammar corresponding to sygus datatype stn.
-   * The value reconstructed is set to 1 if we successfully return a node,
-   * otherwise it is set to -1.
    *
    * For example, given:
    *   sol = (* 2 x)
@@ -145,10 +143,10 @@ class SygusReconstruct : public expr::NotifyMatch
    *
    * @param sol The target term
    * @param stn The sygus datatype type encoding the syntax restrictions
-   * @param reconstructed The flag to update, indicating the status of the
-   * reconstruciton
+   * @param reconstructed The flag to update, set to 1 if we successfully return
+   *                      a node, otherwise it is set to -1
    * @param enumLimit A value to limit the effort spent by this class (roughly
-   * equal to the number of intermediate terms to try)
+   *                  equal to the number of intermediate terms to try)
    * @return The reconstructed sygus term
    */
   Node reconstructSolution(Node sol,

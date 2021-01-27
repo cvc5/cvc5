@@ -431,7 +431,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   Node sol = s;
   const DType& dt = stn.getDType();
 
-  //reconstruct the solution into sygus if necessary
+  // reconstruct the solution into sygus if necessary
   reconstructed = 0;
   if (options::cegqiSingleInvReconstruct()
           != options::CegqiSingleInvRconsMode::NONE
@@ -449,11 +449,14 @@ Node CegSingleInv::reconstructToSyntax(Node s,
       enumLimit = options::cegqiSingleInvReconstructLimit();
     }
     sol = d_srcons->reconstructSolution(s, stn, reconstructed, enumLimit);
-    if( reconstructed==1 ){
+    if (reconstructed == 1)
+    {
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << sol
                        << std::endl;
     }
-  }else{
+  }
+  else
+  {
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = sol;
     sol = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(sol);

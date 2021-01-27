@@ -2514,7 +2514,7 @@ set(regression_disabled_tests
   regress1/sygus/interpol_from_pono_3.smt2
   regress1/sygus/interpol_dt.smt2
   regress1/sygus/inv_gen_fig8.sy
-  # new algorithm is slow at reconstructing random constants
+  # new reconstruct algorithm is slow at reconstructing random constants
   regress0/sygus/c100.sy
   # terms require rewrites not in database and are too big to enumerate
   regress0/sygus/aig-si.sy
@@ -2523,9 +2523,10 @@ set(regression_disabled_tests
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
   regress1/sygus/parity-si-rcons.sy
-  # returns wrong answer
+  # new reconstruct algorithm (invoked with --sygus-si=all) returns wrong answer
   regress1/sygus/array_search_5-Q-easy.sy
-  # term not in grammar. Should better answer
+  # should print a better error message to indicate that a term is not in the
+  # provided grammar
   regress1/sygus/simple-not-in-grammar.sy
   # previously sygus inference did not apply, now (correctly) times out
   regress1/sygus/issue3498.smt2

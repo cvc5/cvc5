@@ -196,16 +196,16 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   if (d_sol[mainOb] != Node::null())
   {
     reconstructed = 1;
-    return d_sol[mainOb];
+  }
+  else
+  {
+    // we ran out of elements, return null
+    reconstructed = -1;
+    Warning() << CommandFailure(
+        "Cannot get synth function: reconstruction to syntax failed.");
   }
 
-  // we ran out of elements, return null
-  reconstructed = -1;
-  Warning() << CommandFailure(
-      "Cannot get synth function: reconstruction to syntax failed.");
-  // could return sol here, however, we choose to fail by returning null, since
-  // it indicates a failure.
-  return Node::null();
+  return d_sol[mainOb];
 }
 
 std::unordered_map<TypeNode,

@@ -24,7 +24,9 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * A utility class for Sygus Reconstruct obligations.
+ * A utility class for Sygus Reconstruct obligations. An obligation is a
+ * builtin term t and a SyGuS type T, and indicates that we are trying to build
+ * a term of type T whose builtin analog is equivalent to t.
  */
 class RConsObligationInfo
 {
