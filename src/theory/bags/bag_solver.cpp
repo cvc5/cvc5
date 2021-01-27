@@ -180,7 +180,24 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   }
 }
 
-void BagSolver::checkDuplicateRemoval(Node n) {}
+void BagSolver::checkDuplicateRemoval(Node n)
+{
+  Assert(n.getKind() == DUPLICATE_REMOVAL);
+  set<Node> elements;
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards = d_state.getElements(n[0]);
+
+  elements.insert(downwards.begin(), downwards.end());
+  elements.insert(upwards.begin(), upwards.end());
+
+  for (const Node& e : elements)
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.duplicateRemoval(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+}
 
 }  // namespace bags
 }  // namespace theory
