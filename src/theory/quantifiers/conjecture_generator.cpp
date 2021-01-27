@@ -85,11 +85,13 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
 }
 
 ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
-                                         context::Context* c)
-    : QuantifiersModule(qe),
+                                         QuantifiersState& qs,
+                                         QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
       d_notify(*this),
-      d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
-      d_ee_conjectures(c),
+      d_uequalityEngine(
+          d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
+      d_ee_conjectures(qs.getSatContext()),
       d_conj_count(0),
       d_subs_confirmCount(0),
       d_subs_unkCount(0),
@@ -162,7 +164,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
   if( eqc_i!=d_eqc_info.end() ){
     return eqc_i->second;
   }else if( doMake ){
-    EqcInfo* ei = new EqcInfo( d_quantEngine->getSatContext() );
+    EqcInfo* ei = new EqcInfo(d_qstate.getSatContext());
     d_eqc_info[n] = ei;
     return ei;
   }else{
@@ -309,7 +311,7 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
+  return d_termCanon.getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
@@ -544,7 +546,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
+                eq = d_termCanon.getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -699,8 +701,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
                   gsubs_vars.push_back(
-                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
-                          it->first, i));
+                      d_termCanon.getCanonicalFreeVar(it->first, i));
                 }
               }
             }

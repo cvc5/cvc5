@@ -180,11 +180,13 @@ void addSpecialValues(
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe),
-      d_ce_lemma_added(qe->getUserContext()),
-      d_global_terms(qe->getUserContext()),
-      d_notified_assertions(qe->getUserContext())
+SygusInst::SygusInst(QuantifiersEngine* qe,
+                     QuantifiersState& qs,
+                     QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
+      d_ce_lemma_added(qs.getUserContext()),
+      d_global_terms(qs.getUserContext()),
+      d_notified_assertions(qs.getUserContext())
 {
 }
 
@@ -518,7 +520,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   DecisionStrategy* ds =
       new DecisionStrategySingleton("CeLiteral",
                                     lit,
-                                    d_quantEngine->getSatContext(),
+                                    d_qstate.getSatContext(),
                                     d_quantEngine->getValuation());
 
   d_dstrat[q].reset(ds);

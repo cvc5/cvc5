@@ -33,6 +33,8 @@ namespace bags {
 enum class Inference : uint32_t
 {
   NONE,
+  BAG_NON_NEGATIVE_COUNT,
+  BAG_MK_BAG_SAME_ELEMENT,
   BAG_MK_BAG,
   BAG_EQUALITY,
   BAG_DISEQUALITY,
@@ -81,7 +83,7 @@ class InferInfo : public TheoryInference
   bool process(TheoryInferenceManager* im, bool asLemma) override;
   /** The inference identifier */
   Inference d_id;
-  /** The conclusion */
+  /** The conclusions */
   Node d_conclusion;
   /**
    * The premise(s) of the inference, interpreted conjunctively. These are
@@ -90,11 +92,10 @@ class InferInfo : public TheoryInference
   std::vector<Node> d_premises;
 
   /**
-   * A list of new skolems introduced as a result of this inference. They
-   * are mapped to by a length status, indicating the length constraint that
-   * can be assumed for them.
+   * A map of nodes to their skolem variables introduced as a result of this
+   * inference.
    */
-  std::vector<Node> d_newSkolem;
+  std::map<Node, Node> d_skolems;
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**
@@ -108,8 +109,6 @@ class InferInfo : public TheoryInference
    * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
-  /** Get premises */
-  Node getPremises() const;
 };
 
 /**

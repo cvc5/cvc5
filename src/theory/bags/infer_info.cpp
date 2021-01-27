@@ -25,6 +25,8 @@ const char* toString(Inference i)
   switch (i)
   {
     case Inference::NONE: return "NONE";
+    case Inference::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
+    case Inference::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
     case Inference::BAG_MK_BAG: return "BAG_MK_BAG";
     case Inference::BAG_EQUALITY: return "BAG_EQUALITY";
     case Inference::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
@@ -62,9 +64,19 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   if (asLemma)
   {
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    return im->trustedLemma(trustedLemma);
+    im->trustedLemma(trustedLemma);
   }
-  Unimplemented();
+  else
+  {
+    Unimplemented();
+  }
+  for (const auto& pair : d_skolems)
+  {
+    Node n = pair.first.eqNode(pair.second);
+    TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
+    im->trustedLemma(trustedLemma);
+  }
+  return true;
 }
 
 bool InferInfo::isTrivial() const
@@ -87,21 +99,15 @@ bool InferInfo::isFact() const
   return !atom.isConst() && atom.getKind() != kind::OR;
 }
 
-Node InferInfo::getPremises() const
-{
-  // d_noExplain is a subset of d_ant
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkAnd(d_premises);
-}
-
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer " << ii.d_id << " " << ii.d_conclusion << std::endl;
+  out << "(infer :id " << ii.d_id << std::endl;
+  out << ":conclusion " << ii.d_conclusion << std::endl;
   if (!ii.d_premises.empty())
   {
     out << " :premise (" << ii.d_premises << ")" << std::endl;
   }
-
+  out << ":skolems " << ii.d_skolems << std::endl;
   out << ")";
   return out;
 }

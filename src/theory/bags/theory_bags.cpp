@@ -78,22 +78,22 @@ void TheoryBags::finishInit()
 void TheoryBags::postCheck(Effort effort)
 {
   d_im.doPendingFacts();
-  // TODO: clean this before merge Assert(d_strat.isStrategyInit());
+  // TODO issue #78: add Assert(d_strat.isStrategyInit());
   if (!d_state.isInConflict() && !d_valuation.needCheck())
-  // TODO: clean this before merge && d_strat.hasStrategyEffort(e))
+  // TODO issue #78:  add && d_strat.hasStrategyEffort(e))
   {
     Trace("bags::TheoryBags::postCheck") << "effort: " << std::endl;
 
-    // TODO: clean this before merge ++(d_statistics.d_checkRuns);
+    // TODO issue #78: add ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
     bool hadPending = false;
     Trace("bags-check") << "Full effort check..." << std::endl;
     do
     {
       d_im.reset();
-      // TODO: clean this before merge ++(d_statistics.d_strategyRuns);
+      // TODO issue #78: add ++(d_statistics.d_strategyRuns);
       Trace("bags-check") << "  * Run strategy..." << std::endl;
-      // TODO: clean this before merge runStrategy(e);
+      // TODO issue #78: add runStrategy(e);
 
       d_solver.postCheck();
 
@@ -153,14 +153,22 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
       continue;
     }
     Node r = d_state.getRepresentative(n);
-    std::map<Node, Node> elements = d_state.getBagElements(r);
+    std::set<Node> solverElements = d_state.getElements(r);
+    std::set<Node> elements;
+    // only consider terms in termSet and ignore other elements in the solver
+    std::set_intersection(termSet.begin(),
+                          termSet.end(),
+                          solverElements.begin(),
+                          solverElements.end(),
+                          std::inserter(elements, elements.begin()));
     Trace("bags-model") << "Elements of bag " << n << " are: " << std::endl
                         << elements << std::endl;
     std::map<Node, Node> elementReps;
-    for (std::pair<Node, Node> pair : elements)
+    for (const Node& e : elements)
     {
-      Node key = d_state.getRepresentative(pair.first);
-      Node value = d_state.getRepresentative(pair.second);
+      Node key = d_state.getRepresentative(e);
+      Node countTerm = NodeManager::currentNM()->mkNode(BAG_COUNT, e, r);
+      Node value = d_state.getRepresentative(countTerm);
       elementReps[key] = value;
     }
     Node rep = NormalForm::constructBagFromElements(tn, elementReps);
@@ -211,38 +219,7 @@ void TheoryBags::presolve() {}
 
 /**************************** eq::NotifyClass *****************************/
 
-void TheoryBags::eqNotifyNewClass(TNode n)
-{
-  Kind k = n.getKind();
-  d_state.registerClass(n);
-  if (n.getKind() == MK_BAG)
-  {
-    // TODO: refactor this before merge
-    /*
-     * (bag x m) generates the lemma (and (= s (count x (bag x m))) (= s m))
-     * where s is a fresh skolem variable
-     */
-    NodeManager* nm = NodeManager::currentNM();
-    Node count = nm->mkNode(BAG_COUNT, n[0], n);
-    Node skolem = d_state.registerBagElement(count);
-    Node countSkolem = count.eqNode(skolem);
-    Node skolemMultiplicity = n[1].eqNode(skolem);
-    Node lemma = countSkolem.andNode(skolemMultiplicity);
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    d_im.trustedLemma(trustedLemma);
-  }
-  if (k == BAG_COUNT)
-  {
-    /*
-     * (count x A) generates the lemma (= s (count x A))
-     * where s is a fresh skolem variable
-     */
-    Node skolem = d_state.registerBagElement(n);
-    Node lemma = n.eqNode(skolem);
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    d_im.trustedLemma(trustedLemma);
-  }
-}
+void TheoryBags::eqNotifyNewClass(TNode n) {}
 
 void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
 
@@ -251,10 +228,8 @@ void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
   TypeNode t1 = n1.getType();
   if (t1.isBag())
   {
-    InferInfo info = d_ig.bagDisequality(n1.eqNode(n2).notNode());
-    Node lemma = reason.impNode(info.d_conclusion);
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    d_im.trustedLemma(trustedLemma);
+    InferInfo info = d_ig.bagDisequality(n1.eqNode(n2).notNode(), reason);
+    info.process(d_inferManager, true);
   }
 }
 

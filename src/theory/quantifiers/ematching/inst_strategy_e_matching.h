@@ -85,7 +85,9 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   std::map<Node, bool> d_hasUserPatterns;
 
  public:
-  InstStrategyAutoGenTriggers(QuantifiersEngine* qe, QuantRelevance* qr);
+  InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+                              QuantifiersState& qs,
+                              QuantRelevance* qr);
   ~InstStrategyAutoGenTriggers() {}
 
   /** get auto-generated trigger */
