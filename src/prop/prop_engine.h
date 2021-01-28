@@ -209,7 +209,7 @@ class PropEngine
    */
   Node getPreprocessedTerm(TNode n);
   /**
-   * Same as above, but also compute the skolems in n and the lemmas
+   * Same as above, but also compute the skolems in n and in the lemmas
    * corresponding to their definition.
    *
    * Note this will include skolems that occur in the definition lemma
