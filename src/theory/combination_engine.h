@@ -49,15 +49,8 @@ class CombinationEngine
   /** Finish initialization */
   void finishInit();
 
-  //-------------------------- equality engine
   /** Get equality engine theory information for theory with identifier tid. */
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-  /**
-   * Get the "core" equality engine. This is the equality engine that
-   * quantifiers should use.
-   */
-  eq::EqualityEngine* getCoreEqualityEngine();
-  //-------------------------- end equality engine
   //-------------------------- model
   /**
    * Reset the model maintained by this class. This resets all local information

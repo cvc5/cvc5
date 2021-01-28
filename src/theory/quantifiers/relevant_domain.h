@@ -84,7 +84,7 @@ class RelevantDomain : public QuantifiersUtil
     /** remove redundant terms for d_terms, removes
      * duplicates modulo equality.
      */
-    void removeRedundantTerms( QuantifiersEngine * qe );
+    void removeRedundantTerms(QuantifiersState& qs);
     /** is n in this relevant domain? */
     bool hasTerm( Node n ) { return std::find( d_terms.begin(), d_terms.end(), n )!=d_terms.end(); }
 
