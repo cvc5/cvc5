@@ -230,7 +230,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   std::map<Node, std::map<Node, Node>> sol_mapn;
   // fail if the theory engine does not have synthesis solutions
   QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe==nullptr || !qe->getSynthSolutions(sol_mapn))
+  if (qe == nullptr || !qe->getSynthSolutions(sol_mapn))
   {
     return false;
   }
