@@ -30,7 +30,7 @@ namespace quantifiers {
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
     QuantifiersState& qs, TermDb* tdb, FirstOrderModel* m)
     : d_qstate(qs),
-      d_tdb(t),
+      d_tdb(tdb),
       d_model(m),
       d_eqi_counter(qs.getSatContext()),
       d_reset_count(0)
