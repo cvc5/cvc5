@@ -128,18 +128,6 @@ class QuantifiersEngine {
    */
   std::map< Node, int > d_owner_priority;
  public:
-  /** get owner */
-  QuantifiersModule * getOwner( Node q );
-  /**
-   * Set owner of quantified formula q to module m with given priority. If
-   * the quantified formula has previously been assigned an owner with
-   * lower priority, that owner is overwritten.
-   */
-  void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
-  /** set owner of quantified formula q based on its attributes qa. */
-  void setOwner(Node q, quantifiers::QAttributes& qa);
-  /** considers */
-  bool hasOwnership( Node q, QuantifiersModule * m = NULL );
   /** does variable v of quantified formula q have a finite bound? */
   bool isFiniteBound(Node q, Node v) const;
   /** get bound var type

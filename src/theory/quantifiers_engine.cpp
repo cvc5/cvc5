@@ -195,49 +195,6 @@ inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
   return d_tr_trie.get();
 }
 
-QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
-  std::map< Node, QuantifiersModule * >::iterator it = d_owner.find( q );
-  if( it==d_owner.end() ){
-    return NULL;
-  }else{
-    return it->second;
-  }
-}
-
-void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) {
-  QuantifiersModule * mo = getOwner( q );
-  if( mo!=m ){
-    if( mo!=NULL ){
-      if( priority<=d_owner_priority[q] ){
-        Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << ( m ? m->identify() : "null" ) << ", but already has owner " << mo->identify() << " with higher priority!" << std::endl;
-        return;
-      }
-    }
-    d_owner[q] = m;
-    d_owner_priority[q] = priority;
-  }
-}
-
-void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
-{
-  if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
-  {
-    if (d_qmodules->d_synth_e.get() == nullptr)
-    {
-      Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
-                          << q << std::endl;
-    }
-    // set synth engine as owner since this is either a conjecture or a function
-    // definition to be used by sygus
-    setOwner(q, d_qmodules->d_synth_e.get(), 2);
-  }
-}
-
-bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
-  QuantifiersModule * mo = getOwner( q );
-  return mo==m || mo==NULL;
-}
-
 bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
 {
   quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
