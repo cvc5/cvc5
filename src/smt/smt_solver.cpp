@@ -260,10 +260,10 @@ prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
 
 theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
 {
-  Assert (d_theoryEngine!=nullptr);
+  Assert(d_theoryEngine != nullptr);
   return d_theoryEngine->getQuantifiersEngine();
 }
-  
+
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt

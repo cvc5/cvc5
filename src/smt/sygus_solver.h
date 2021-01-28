@@ -141,6 +141,7 @@ class SygusSolver
    * instantiation module.
    */
   void printSynthSolution(std::ostream& out);
+
  private:
   /**
    * Check that a solution to a synthesis conjecture is indeed a solution.

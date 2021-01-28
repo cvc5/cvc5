@@ -1534,7 +1534,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
         << std::endl;
   }
   QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  Assert (qe!=nullptr);
+  Assert(qe != nullptr);
 
   // First, extract and print the skolemizations
   bool printed = false;
@@ -1611,7 +1611,7 @@ void SmtEngine::getInstantiationTermVectors(
   else
   {
     QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-    Assert (qe!=nullptr);
+    Assert(qe != nullptr);
     // otherwise, just get the list of all instantiations
     qe->getInstantiationTermVectors(insts);
   }
@@ -1683,7 +1683,7 @@ void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   SmtScope smts(this);
   QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  Assert (qe!=nullptr);
+  Assert(qe != nullptr);
   qe->getInstantiatedQuantifiedFormulas(qs);
 }
 
@@ -1692,7 +1692,7 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  Assert (qe!=nullptr);
+  Assert(qe != nullptr);
   qe->getInstantiationTermVectors(q, tvecs);
 }
 

@@ -22,9 +22,9 @@
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
@@ -248,10 +248,11 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
 void SygusSolver::printSynthSolution(std::ostream& out)
 {
   QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if(qe == nullptr)
+  if (qe == nullptr)
   {
     InternalError()
-        << "SygusSolver::printSynthSolution(): Cannot print synth solution in the current logic, which does not include quantifiers";
+        << "SygusSolver::printSynthSolution(): Cannot print synth solution in "
+           "the current logic, which does not include quantifiers";
   }
   qe->printSynthSolution(out);
 }
@@ -264,7 +265,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   std::map<Node, std::map<Node, Node>> sol_map;
   // Get solutions and build auxiliary vectors for substituting
   QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
-  if (qe==nullptr || !qe->getSynthSolutions(sol_map))
+  if (qe == nullptr || !qe->getSynthSolutions(sol_map))
   {
     InternalError()
         << "SygusSolver::checkSynthSolution(): No solution to check!";
