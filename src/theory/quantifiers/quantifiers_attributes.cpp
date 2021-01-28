@@ -33,10 +33,8 @@ bool QAttributes::isStandard() const
          && !d_isInternal;
 }
 
-QuantAttributes::QuantAttributes() {
+QuantAttributes::QuantAttributes() {}
 
-}  
-  
 void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if (attr == "fun-def")

@@ -164,7 +164,7 @@ private:
   BoundedIntegers(QuantifiersEngine* qe,
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
-                                    QuantifiersRegistry& qr);
+                  QuantifiersRegistry& qr);
   virtual ~BoundedIntegers();
 
   void presolve() override;

@@ -37,7 +37,7 @@ namespace quantifiers {
 InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
-                                    QuantifiersRegistry& qr)
+                                         QuantifiersRegistry& qr)
     : QuantifiersModule(qs, qim, qr, qe),
       d_instStrategies(),
       d_isup(),
@@ -211,7 +211,7 @@ void InstantiationEngine::checkOwnership(Node q)
       }
     }
     if( hasPat ){
-      d_qreg.setOwner( q, this, 1 );
+      d_qreg.setOwner(q, this, 1);
     }
   }
 }

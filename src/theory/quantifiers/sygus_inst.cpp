@@ -183,7 +183,7 @@ void addSpecialValues(
 SygusInst::SygusInst(QuantifiersEngine* qe,
                      QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
-                                    QuantifiersRegistry& qr)
+                     QuantifiersRegistry& qr)
     : QuantifiersModule(qs, qim, qr, qe),
       d_ce_lemma_added(qs.getUserContext()),
       d_global_terms(qs.getUserContext()),

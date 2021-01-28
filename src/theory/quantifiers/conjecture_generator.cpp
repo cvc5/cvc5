@@ -87,7 +87,7 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
 ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
-                                    QuantifiersRegistry& qr)
+                                         QuantifiersRegistry& qr)
     : QuantifiersModule(qs, qim, qr, qe),
       d_notify(*this),
       d_uequalityEngine(

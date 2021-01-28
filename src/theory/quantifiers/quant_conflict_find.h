@@ -235,7 +235,7 @@ private:  //for equivalence classes
   QuantConflictFind(QuantifiersEngine* qe,
                     QuantifiersState& qs,
                     QuantifiersInferenceManager& qim,
-                                    QuantifiersRegistry& qr);
+                    QuantifiersRegistry& qr);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;

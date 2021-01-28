@@ -87,7 +87,7 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
 BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
-                                    QuantifiersRegistry& qr)
+                                 QuantifiersRegistry& qr)
     : QuantifiersModule(qs, qim, qr, qe)
 {
 }

@@ -50,18 +50,19 @@ class QuantifiersRegistry
    * that either q does not have an owner, or the owner is m.
    */
   bool hasOwnership(Node q, QuantifiersModule* m) const;
-private:
+
+ private:
   /**
    * Maps quantified formulas to the module that owns them, if any module has
    * specifically taken ownership of it.
    */
-  std::map< Node, QuantifiersModule * > d_owner;
+  std::map<Node, QuantifiersModule*> d_owner;
   /**
    * The priority value associated with the ownership of quantified formulas
    * in the domain of the above map, where higher values take higher
    * precendence.
    */
-  std::map< Node, int > d_owner_priority;
+  std::map<Node, int> d_owner_priority;
 };
 
 }  // namespace quantifiers
