@@ -41,27 +41,6 @@ void BagSolver::postCheck()
 {
   d_state.initialize();
 
-  if (Trace.isOn("bags-eqc"))
-  {
-    eq::EqualityEngine* ee = d_state.getEqualityEngine();
-    eq::EqClassesIterator repIt = eq::EqClassesIterator(ee);
-
-    while (!repIt.isFinished())
-    {
-      Node eqc = (*repIt);
-      Trace("bags-eqc") << "Eqc( " << eqc << " ) : { ";
-      eq::EqClassIterator it = eq::EqClassIterator(eqc, ee);
-      while (!it.isFinished())
-      {
-        Node n = (*it);
-        Trace("bags-eqc") << (*it) << " ";
-        ++it;
-      }
-      Trace("bags-eqc") << " } " << std::endl;
-      ++repIt;
-    }
-  }
-
   // At this point, all bag and count representatives should be in the solver
   // state.
   for (const Node& bag : d_state.getBags())

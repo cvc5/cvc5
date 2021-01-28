@@ -55,7 +55,7 @@ const std::set<Node>& SolverState::getBags() { return d_bags; }
 const std::set<Node>& SolverState::getElements(Node B)
 {
   Node bag = getRepresentative(B);
-  return d_bagElements[B];
+  return d_bagElements[bag];
 }
 
 void SolverState::reset()
@@ -72,14 +72,11 @@ void SolverState::initialize()
 
 void SolverState::collectBagsAndCountTerms()
 {
-  Trace("SolverState::collectBagsAndCountTerms")
-      << "SolverState::collectBagsAndCountTerms start" << endl;
   eq::EqClassesIterator repIt = eq::EqClassesIterator(d_ee);
   while (!repIt.isFinished())
   {
     Node eqc = (*repIt);
-    Trace("SolverState::collectBagsAndCountTerms")
-        << "[" << eqc << "]: " << endl;
+    Trace("bags-eqc") << "Eqc [ " << eqc << " ] = { ";
 
     if (eqc.getType().isBag())
     {
@@ -90,6 +87,7 @@ void SolverState::collectBagsAndCountTerms()
     while (!it.isFinished())
     {
       Node n = (*it);
+      Trace("bags-eqc") << (*it) << " ";
       Kind k = n.getKind();
       if (k == MK_BAG)
       {
@@ -109,12 +107,12 @@ void SolverState::collectBagsAndCountTerms()
       }
       ++it;
     }
-
+    Trace("bags-eqc") << " } " << std::endl;
     ++repIt;
   }
 
-  Trace("SolverState::collectBagsAndCountTerms")
-      << "SolverState::collectBagsAndCountTerms end" << endl;
+  Trace("bags-eqc") << "bag representatives: " << d_bags << endl;
+  Trace("bags-eqc") << "bag elements: " << d_bagElements << endl;
 }
 
 }  // namespace bags
