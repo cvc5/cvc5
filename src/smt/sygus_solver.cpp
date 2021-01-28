@@ -230,7 +230,9 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   // fail if the theory engine does not have synthesis solutions
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
   Assert(te != nullptr);
-  if (!te->getSynthSolutions(sol_mapn))
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  Assert(qe != nullptr);
+  if (!qe->getSynthSolutions(sol_mapn))
   {
     return false;
   }
@@ -242,6 +244,15 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
     }
   }
   return true;
+}
+
+void SygusSolver::printSynthSolution(std::ostream& out)
+{
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  Assert(qe != nullptr);
+  qe->printSynthSolution(out);
 }
 
 void SygusSolver::checkSynthSolution(Assertions& as)
