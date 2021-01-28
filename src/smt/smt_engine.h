@@ -127,6 +127,7 @@ ProofManager* currentProofManager();
 namespace theory {
   class TheoryModel;
   class Rewriter;
+  class QuantifiersEngine;
 }/* CVC4::theory namespace */
 
 
@@ -984,7 +985,7 @@ class CVC4_PUBLIC SmtEngine
    * @param c used for giving an error message to indicate the context
    * this method was called.
    */
-  QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
+  theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**
