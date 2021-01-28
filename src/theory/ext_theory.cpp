@@ -371,7 +371,7 @@ bool ExtTheory::sendLemma(Node lem, bool preprocess)
     if (d_pp_lemmas.find(lem) == d_pp_lemmas.end())
     {
       d_pp_lemmas.insert(lem);
-      d_out.lemma(lem, LemmaProperty::PREPROCESS);
+      d_out.lemma(lem);
       return true;
     }
   }
