@@ -52,7 +52,7 @@ class QuantDSplit : public QuantifiersModule {
   QuantDSplit(QuantifiersEngine* qe,
               QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
-                   QuantifiersRegistry& qr);
+              QuantifiersRegistry& qr);
   /** determine whether this quantified formula will be reduced */
   void checkOwnership(Node q) override;
   /* whether this module needs to check this round */

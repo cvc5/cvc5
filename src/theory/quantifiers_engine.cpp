@@ -547,7 +547,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
                   bool hasCompleteM = false;
                   Node q = d_model->getAssertedQuantifier( i );
-                  QuantifiersModule * qmd = d_qreg.getOwner( q );
+                  QuantifiersModule* qmd = d_qreg.getOwner(q);
                   if( qmd!=NULL ){
                     hasCompleteM = qmd->checkCompleteFor( q );
                   }else{

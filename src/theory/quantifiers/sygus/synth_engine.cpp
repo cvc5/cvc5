@@ -33,7 +33,7 @@ namespace quantifiers {
 SynthEngine::SynthEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-             QuantifiersRegistry& qr)
+                         QuantifiersRegistry& qr)
     : QuantifiersModule(qs, qim, qr, qe),
       d_tds(qe->getTermDatabaseSygus()),
       d_conj(nullptr),
