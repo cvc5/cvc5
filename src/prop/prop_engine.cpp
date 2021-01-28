@@ -36,6 +36,7 @@
 #include "prop/theory_proxy.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
+#include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
@@ -206,7 +207,7 @@ void PropEngine::assertFormula(TNode node) {
   }
 }
 
-Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
+void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
 
@@ -261,20 +262,6 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
     }
     d_decisionEngine->addAssertions(assertions, ppLemmasF, ppSkolems);
   }
-
-  // make the return lemma, which the theory engine will use
-  Node retLemma = tplemma.getProven();
-  if (!ppLemmas.empty())
-  {
-    std::vector<Node> lemmas{retLemma};
-    for (const theory::TrustNode& tnl : ppLemmas)
-    {
-      lemmas.push_back(tnl.getProven());
-    }
-    // the returned lemma is the conjunction of all additional lemmas.
-    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas);
-  }
-  return retLemma;
 }
 
 void PropEngine::assertLemmaInternal(theory::TrustNode trn, bool removable)
@@ -441,6 +428,7 @@ Node PropEngine::ensureLiteral(TNode n)
 
 Node PropEngine::getPreprocessedTerm(TNode n)
 {
+  Node rewritten = theory::Rewriter::rewrite(n);
   // must preprocess
   std::vector<theory::TrustNode> newLemmas;
   std::vector<Node> newSkolems;
@@ -451,6 +439,39 @@ Node PropEngine::getPreprocessedTerm(TNode n)
     assertLemma(tnl, theory::LemmaProperty::NONE);
   }
   return tpn.isNull() ? Node(n) : tpn.getNode();
+}
+
+Node PropEngine::getPreprocessedTerm(TNode n,
+                                     std::vector<Node>& skAsserts,
+                                     std::vector<Node>& sks)
+{
+  // get the preprocessed form of the term
+  Node pn = getPreprocessedTerm(n);
+  // initialize the set of skolems and assertions to process
+  std::vector<theory::TrustNode> toProcessAsserts;
+  std::vector<Node> toProcess;
+  d_theoryProxy->getSkolems(pn, toProcessAsserts, toProcess);
+  size_t index = 0;
+  // until fixed point is reached
+  while (index < toProcess.size())
+  {
+    theory::TrustNode ka = toProcessAsserts[index];
+    Node k = toProcess[index];
+    index++;
+    if (std::find(sks.begin(), sks.end(), k) != sks.end())
+    {
+      // already added the skolem to the list
+      continue;
+    }
+    // must preprocess lemmas as well
+    Node kap = getPreprocessedTerm(ka.getProven());
+    skAsserts.push_back(kap);
+    sks.push_back(k);
+    // get the skolems in the preprocessed form of the lemma ka
+    d_theoryProxy->getSkolems(kap, toProcessAsserts, toProcess);
+  }
+  // return the preprocessed term
+  return pn;
 }
 
 void PropEngine::push()
