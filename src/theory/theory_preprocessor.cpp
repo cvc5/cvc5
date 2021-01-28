@@ -41,6 +41,12 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                       &d_iqtc)
                 : nullptr),
       d_tspg(nullptr),
+            d_tpgRew(pnm ? new TConvProofGenerator(pnm,	
+                                             userContext,	
+                                             TConvPolicy::ONCE,	
+                                             TConvCachePolicy::NEVER,	
+                                             "TheoryPreprocessor::rewrite")	
+                   : nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
                                  userContext,
@@ -51,11 +57,13 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
   {
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
-    // (1) theory preprocessing+rewriting
-    // (2) term formula removal
-    // (3) rewriting
-    // Steps (1) and (3) use a common term conversion generator.
+    // (1) rewriting
+    // (2) theory preprocessing+rewriting
+    // (3) term formula removal
+    // (4) rewriting
+    // Steps (2) and (4) use a common term conversion generator.
     std::vector<ProofGenerator*> ts;
+    ts.push_back(d_tpgRew.get());
     ts.push_back(d_tpg.get());
     ts.push_back(d_tfr.getTConvProofGenerator());
     ts.push_back(d_tpg.get());
@@ -80,11 +88,29 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     bool procLemmas)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
-
+  
   Trace("tpp-debug") << "TheoryPreprocessor::preprocess: start " << node
                      << std::endl;
+
+  // We must rewrite before preprocessing, because some terms when rewritten
+  // may introduce new terms that are not top-level and require preprocessing.
+  // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
+  // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
+  // must be preprocessed as a child here.
+  Node irNode = Rewriter::rewrite(node);
+  // store rewrite step if tracking proofs and it rewrites
+  if (isProofEnabled())
+  {
+    // may rewrite the same term more than once, thus check hasRewriteStep
+    if (irNode != node)
+    {
+      // always use term context hash 0 (default)
+      d_tpgRew->addRewriteStep(node, irNode, PfRule::REWRITE, {}, {node}, false);
+    }
+  }
+
   // run theory preprocessing
-  TrustNode tpp = theoryPreprocess(node);
+  TrustNode tpp = theoryPreprocess(irNode);
   Node ppNode = tpp.getNode();
 
   // Remove the ITEs, fixed point
@@ -108,7 +134,11 @@ TrustNode TheoryPreprocessor::preprocessInternal(
 
   if (Trace.isOn("tpp-debug"))
   {
-    if (node != ppNode)
+    if (node != irNode)
+    {
+      Trace("tpp-debug") << "after initial rewriting : " << irNode << std::endl;
+    }
+    if (irNode != ppNode)
     {
       Trace("tpp-debug") << "after preprocessing : " << ppNode << std::endl;
     }
@@ -136,6 +166,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   {
     std::vector<Node> cterms;
     cterms.push_back(node);
+    cterms.push_back(irNode);
     cterms.push_back(ppNode);
     cterms.push_back(rtfNode);
     cterms.push_back(retNode);
@@ -391,22 +422,19 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   {
     return preprocessWithProof(term);
   }
+  // should be in rewritten form here
+  Assert (term==Rewriter::rewrite(term));
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
-  // We must rewrite before preprocessing, because some terms when rewritten
-  // may introduce new terms that are not top-level and require preprocessing.
-  // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
-  // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
-  // must be preprocessed as a child here.
-  Node newTerm = rewriteWithProof(term);
   // do not rewrite inside quantifiers
-  if (newTerm.getNumChildren() > 0 && !newTerm.isClosure())
+  Node newTerm = term;
+  if (!term.isClosure())
   {
-    NodeBuilder<> newNode(newTerm.getKind());
-    if (newTerm.getMetaKind() == kind::metakind::PARAMETERIZED)
+    NodeBuilder<> newNode(term.getKind());
+    if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
-      newNode << newTerm.getOperator();
+      newNode << term.getOperator();
     }
-    for (const Node& nt : newTerm)
+    for (const Node& nt : term)
     {
       newNode << ppTheoryRewrite(nt);
     }
