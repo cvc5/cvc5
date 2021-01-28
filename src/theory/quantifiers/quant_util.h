@@ -221,32 +221,6 @@ public:
   static void getEntailPolarity( Node n, int child, bool hasPol, bool pol, bool& newHasPol, bool& newPol );
 };
 
-/** EqualityQuery
-* This is a wrapper class around equality engine.
-*/
-class EqualityQuery : public QuantifiersUtil {
-public:
-  EqualityQuery(){}
-  virtual ~EqualityQuery(){};
-  /** extends engine */
-  virtual bool extendsEngine() { return false; }
-  /** contains term */
-  virtual bool hasTerm( Node a ) = 0;
-  /** get the representative of the equivalence class of a */
-  virtual Node getRepresentative( Node a ) = 0;
-  /** returns true if a and b are equal in the current context */
-  virtual bool areEqual( Node a, Node b ) = 0;
-  /** returns true is a and b are disequal in the current context */
-  virtual bool areDisequal( Node a, Node b ) = 0;
-  /** get the equality engine associated with this query */
-  virtual eq::EqualityEngine* getEngine() = 0;
-  /** get the equivalence class of a */
-  virtual void getEquivalenceClass( Node a, std::vector< Node >& eqc ) = 0;
-  /** get the term that exists in EE that is congruent to f with args (f is
-   * returned by TermDb::getMatchOperator(...)) */
-  virtual TNode getCongruentTerm( Node f, std::vector< TNode >& args ) = 0;
-};/* class EqualityQuery */
-
 /** Types of bounds that can be inferred for quantified formulas */
 enum BoundVarType
 {

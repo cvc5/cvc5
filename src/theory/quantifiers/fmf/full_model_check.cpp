@@ -358,7 +358,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Node r = fm->getRepresentative( it->second[a] );
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
-          d_qe->getEqualityQuery()->getEquivalenceClass( r, eqc );
+          d_qstate.getEquivalenceClass(r, eqc);
           Trace("fmc-model-debug") << "   " << (it->second[a]==r);
           Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
           //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";

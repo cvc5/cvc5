@@ -39,7 +39,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
-      d_masterEqualityEngine(nullptr),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
@@ -120,13 +119,10 @@ QuantifiersEngine::QuantifiersEngine(
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
-void QuantifiersEngine::finishInit(TheoryEngine* te,
-                                   DecisionManager* dm,
-                                   eq::EqualityEngine* mee)
+void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
 {
   d_te = te;
   d_decManager = dm;
-  d_masterEqualityEngine = mee;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
   d_qmodules->initialize(this, d_qstate, d_qim, d_modules);
@@ -147,12 +143,16 @@ OutputChannel& QuantifiersEngine::getOutputChannel()
 {
   return d_te->theoryOf(THEORY_QUANTIFIERS)->getOutputChannel();
 }
-/** get default valuation for the quantifiers engine */
 Valuation& QuantifiersEngine::getValuation() { return d_qstate.getValuation(); }
 
-EqualityQuery* QuantifiersEngine::getEqualityQuery() const
+quantifiers::QuantifiersState& QuantifiersEngine::getState()
 {
-  return d_eq_query.get();
+  return d_qstate;
+}
+quantifiers::QuantifiersInferenceManager&
+QuantifiersEngine::getInferenceManager()
+{
+  return d_qim;
 }
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
@@ -352,8 +352,8 @@ void QuantifiersEngine::ppNotifyAssertions(
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
-
-  if (!getMasterEqualityEngine()->consistent())
+  Assert(d_qstate.getEqualityEngine() != nullptr);
+  if (!d_qstate.getEqualityEngine()->consistent())
   {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
@@ -885,8 +885,6 @@ bool QuantifiersEngine::hasAddedLemma() const
   return !d_lemmas_waiting.empty() || d_hasAddedLemma;
 }
 
-bool QuantifiersEngine::inConflict() const { return d_qstate.isInConflict(); }
-
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
   //determine if we should perform check, based on instWhenMode
@@ -1067,11 +1065,6 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_instantiations_rr);
 }
 
-eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
-{
-  return d_masterEqualityEngine;
-}
-
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
   return d_eq_query->getInternalRepresentative(a, q, index);
 }
@@ -1100,7 +1093,7 @@ bool QuantifiersEngine::getSynthSolutions(
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   std::map< TypeNode, int > typ_num;
   while( !eqcs_i.isFinished() ){

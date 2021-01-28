@@ -274,13 +274,11 @@ class TheoryEngine {
    * @param p the properties of the lemma.
    * @param atomsTo the theory that atoms of the lemma should be sent to
    * @param from the theory that sent the lemma
-   * @return a lemma status, containing the lemma and context information
-   * about when it was sent.
    */
-  theory::LemmaStatus lemma(theory::TrustNode node,
-                            theory::LemmaProperty p,
-                            theory::TheoryId atomsTo = theory::THEORY_LAST,
-                            theory::TheoryId from = theory::THEORY_LAST);
+  void lemma(theory::TrustNode node,
+             theory::LemmaProperty p,
+             theory::TheoryId atomsTo = theory::THEORY_LAST,
+             theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -648,20 +646,6 @@ class TheoryEngine {
    * has (or null if none);
    */
   Node getModelValue(TNode var);
-
-  /**
-   * Takes a literal and returns an equivalent literal that is guaranteed to be
-   * a SAT literal. This rewrites and preprocesses n, which notice may involve
-   * adding clauses to the SAT solver if preprocessing n involves introducing
-   * new skolems.
-   */
-  Node ensureLiteral(TNode n);
-  /**
-   * This returns the theory-preprocessed form of term n. This rewrites and
-   * preprocesses n, which notice may involve adding clauses to the SAT solver
-   * if preprocessing n involves introducing new skolems.
-   */
-  Node getPreprocessedTerm(TNode n);
   /**
    * Print solution for synthesis conjectures found by ce_guided_instantiation module
    */

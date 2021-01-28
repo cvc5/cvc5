@@ -83,6 +83,13 @@ void TheoryQuantifiers::finishInit()
   d_valuation.setUnevaluatedKind(WITNESS);
 }
 
+bool TheoryQuantifiers::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // use the master equality engine
+  esi.d_useMaster = true;
+  return true;
+}
+
 void TheoryQuantifiers::preRegisterTerm(TNode n)
 {
   if (n.getKind() != FORALL)
@@ -164,7 +171,7 @@ bool TheoryQuantifiers::preNotifyFact(
     getQuantifiersEngine()->addTermToDatabase(atom[0], false, true);
     if (!options::lteRestrictInstClosure())
     {
-      getQuantifiersEngine()->getMasterEqualityEngine()->addTerm(atom[0]);
+      d_qstate.getEqualityEngine()->addTerm(atom[0]);
     }
   }
   else

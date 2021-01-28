@@ -102,15 +102,28 @@ class PropEngine
    * @param node The assertion to preprocess,
    * @param ppLemmas The lemmas to add to the set of assertions,
    * @param ppSkolems The skolems that newLemmas correspond to,
-   * @param doTheoryPreprocess whether to run theory-specific preprocessing.
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
   theory::TrustNode preprocess(TNode node,
                                std::vector<theory::TrustNode>& ppLemmas,
-                               std::vector<Node>& ppSkolems,
-                               bool doTheoryPreprocess);
-
+                               std::vector<Node>& ppSkolems);
+  /**
+   * Remove term ITEs (and more generally, term formulas) from the given node.
+   * Return the REWRITE trust node corresponding to rewriting node. New lemmas
+   * and skolems are added to ppLemmas and ppSkolems respectively. This can
+   * be seen a subset of the above preprocess method, which also does theory
+   * preprocessing and rewriting.
+   *
+   * @param node The assertion to preprocess,
+   * @param ppLemmas The lemmas to add to the set of assertions,
+   * @param ppSkolems The skolems that newLemmas correspond to,
+   * @return The (REWRITE) trust node corresponding to rewritten node via
+   * preprocessing.
+   */
+  theory::TrustNode removeItes(TNode node,
+                               std::vector<theory::TrustNode>& ppLemmas,
+                               std::vector<Node>& ppSkolems);
   /**
    * Notify preprocessed assertions. This method is called just before the
    * assertions are asserted to this prop engine. This method notifies the
@@ -132,9 +145,8 @@ class PropEngine
    *
    * @param trn the trust node storing the formula to assert
    * @param p the properties of the lemma
-   * @return the (preprocessed) lemma
    */
-  Node assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
+  void assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p);
 
   /**
    * If ever n is decided upon, it must be in the given phase.  This
@@ -196,6 +208,20 @@ class PropEngine
    * if preprocessing n involves introducing new skolems.
    */
   Node getPreprocessedTerm(TNode n);
+  /**
+   * Same as above, but also compute the skolems in n and in the lemmas
+   * corresponding to their definition.
+   *
+   * Note this will include skolems that occur in the definition lemma
+   * for all skolems in sks. This is run until a fixed point is reached.
+   * For example, if k1 has definition (ite A (= k1 k2) (= k1 x)) where k2 is
+   * another skolem introduced by term formula removal, then calling this
+   * method on (P k1) will include both k1 and k2 in sks, and their definitions
+   * in skAsserts.
+   */
+  Node getPreprocessedTerm(TNode n,
+                           std::vector<Node>& skAsserts,
+                           std::vector<Node>& sks);
 
   /**
    * Push the context level.

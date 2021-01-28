@@ -183,8 +183,7 @@ void TheoryEngine::finishInit()
   // finish initializing the quantifiers engine
   if (d_logicInfo.isQuantified())
   {
-    d_quantEngine->finishInit(
-        this, d_decManager.get(), d_tc->getCoreEqualityEngine());
+    d_quantEngine->finishInit(this, d_decManager.get());
   }
 
   // finish initializing the theories by linking them with the appropriate
@@ -1162,19 +1161,6 @@ Node TheoryEngine::getModelValue(TNode var) {
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
-
-Node TheoryEngine::ensureLiteral(TNode n) {
-  Trace("ensureLiteral") << "ensureLiteral rewriting: " << n << std::endl;
-  Node rewritten = Rewriter::rewrite(n);
-  return d_propEngine->ensureLiteral(rewritten);
-}
-
-Node TheoryEngine::getPreprocessedTerm(TNode n)
-{
-  Node rewritten = Rewriter::rewrite(n);
-  return d_propEngine->getPreprocessedTerm(rewritten);
-}
-
 void TheoryEngine::printSynthSolution( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printSynthSolution( out );
@@ -1341,10 +1327,10 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
-                                        theory::LemmaProperty p,
-                                        theory::TheoryId atomsTo,
-                                        theory::TheoryId from)
+void TheoryEngine::lemma(theory::TrustNode tlemma,
+                         theory::LemmaProperty p,
+                         theory::TheoryId atomsTo,
+                         theory::TheoryId from)
 {
   // For resource-limiting (also does a time check).
   // spendResource();
@@ -1394,20 +1380,24 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     printer.toStreamCmdCheckSat(out, n);
   }
 
-  Node retLemma = d_propEngine->assertLemma(tlemma, p);
+  // assert the lemma
+  d_propEngine->assertLemma(tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
-  // justified, where note we pass all auxiliary lemmas in lemmas, since these
-  // by extension must be justified as well.
+  // justified, where note we pass all auxiliary lemmas in skAsserts as well,
+  // since these by extension must be justified as well.
   if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
   {
+    std::vector<Node> skAsserts;
+    std::vector<Node> sks;
+    Node retLemma =
+        d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
     d_relManager->notifyPreprocessedAssertion(retLemma);
+    d_relManager->notifyPreprocessedAssertions(skAsserts);
   }
 
   // Mark that we added some lemmas
   d_lemmasAdded = true;
-
-  return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
 
 void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
