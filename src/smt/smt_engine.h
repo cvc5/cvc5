@@ -976,15 +976,15 @@ class CVC4_PUBLIC SmtEngine
    * this method was called.
    */
   smt::Model* getAvailableModel(const char* c) const;
-  /** 
+  /**
    * Get available quantifiers engine, which throws a modal exception if it
    * does not exist. This can happen if a quantifiers-specific call (e.g.
    * getInstantiatedQuantifiedFormulas) is called in a non-quantified logic.
-   * 
+   *
    * @param c used for giving an error message to indicate the context
    * this method was called.
    */
-  QuantifiersEngine * getAvailableQuantifiersEngine(const char* c) const;
+  QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**

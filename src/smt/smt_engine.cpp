@@ -844,10 +844,10 @@ Model* SmtEngine::getAvailableModel(const char* c) const
   return d_model.get();
 }
 
-QuantifiersEngine * SmtEngine::getAvailableQuantifiersEngine(const char* c) const
+QuantifiersEngine* SmtEngine::getAvailableQuantifiersEngine(const char* c) const
 {
   QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  if(qe == nullptr)
+  if (qe == nullptr)
   {
     std::stringstream ss;
     ss << "Cannot " << c << " when quantifiers are not present.";
@@ -1621,7 +1621,8 @@ void SmtEngine::getInstantiationTermVectors(
   }
   else
   {
-    QuantifiersEngine* qe = getAvailableQuantifiersEngine("getInstantiationTermVectors");
+    QuantifiersEngine* qe =
+        getAvailableQuantifiersEngine("getInstantiationTermVectors");
     // otherwise, just get the list of all instantiations
     qe->getInstantiationTermVectors(insts);
   }
@@ -1692,7 +1693,8 @@ bool SmtEngine::getAbduct(const Node& conj, Node& abd)
 void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   SmtScope smts(this);
-  QuantifiersEngine* qe = getAvailableQuantifiersEngine("getInstantiatedQuantifiedFormulas");
+  QuantifiersEngine* qe =
+      getAvailableQuantifiersEngine("getInstantiatedQuantifiedFormulas");
   qe->getInstantiatedQuantifiedFormulas(qs);
 }
 
@@ -1700,7 +1702,8 @@ void SmtEngine::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node>>& tvecs)
 {
   SmtScope smts(this);
-  QuantifiersEngine* qe = getAvailableQuantifiersEngine("getInstantiationTermVectors");
+  QuantifiersEngine* qe =
+      getAvailableQuantifiersEngine("getInstantiationTermVectors");
   qe->getInstantiationTermVectors(q, tvecs);
 }
 
