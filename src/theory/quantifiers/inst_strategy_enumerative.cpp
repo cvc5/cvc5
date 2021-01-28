@@ -188,7 +188,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
   std::map<TypeNode, std::vector<Node> > term_db_list;
   std::vector<TypeNode> ftypes;
   TermDb* tdb = d_quantEngine->getTermDatabase();
-  EqualityQuery* qy = d_quantEngine->getEqualityQuery();
+  QuantifiersState& qs = d_quantEngine->getState();
   // iterate over substitutions for variables
   for (unsigned i = 0; i < f[0].getNumChildren(); i++)
   {
@@ -212,7 +212,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           Node gt = tdb->getTypeGroundTerm(ftypes[i], j);
           if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
           {
-            Node rep = qy->getRepresentative(gt);
+            Node rep = qs.getRepresentative(gt);
             if (reps_found.find(rep) == reps_found.end())
             {
               reps_found[rep] = gt;

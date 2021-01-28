@@ -78,21 +78,11 @@ const EeTheoryInfo* CombinationEngine::getEeTheoryInfo(TheoryId tid) const
   return d_eemanager->getEeTheoryInfo(tid);
 }
 
-eq::EqualityEngine* CombinationEngine::getCoreEqualityEngine()
-{
-  return d_eemanager->getCoreEqualityEngine();
-}
-
 void CombinationEngine::resetModel() { d_mmanager->resetModel(); }
 
 void CombinationEngine::postProcessModel(bool incomplete)
 {
-  // should have a consistent core equality engine
-  eq::EqualityEngine* mee = d_eemanager->getCoreEqualityEngine();
-  if (mee != nullptr)
-  {
-    AlwaysAssert(mee->consistent());
-  }
+  d_eemanager->notifyModel(incomplete);
   // postprocess with the model
   d_mmanager->postProcessModel(incomplete);
 }

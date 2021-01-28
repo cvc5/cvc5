@@ -183,8 +183,7 @@ void TheoryEngine::finishInit()
   // finish initializing the quantifiers engine
   if (d_logicInfo.isQuantified())
   {
-    d_quantEngine->finishInit(
-        this, d_decManager.get(), d_tc->getCoreEqualityEngine());
+    d_quantEngine->finishInit(this, d_decManager.get());
   }
 
   // finish initializing the theories by linking them with the appropriate
