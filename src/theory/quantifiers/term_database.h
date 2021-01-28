@@ -211,7 +211,7 @@ class TermDb : public QuantifiersUtil {
    *
    * If possible, returns a term n' such that:
    * (1) n' exists in the current equality engine (as specified by the state),
-   * (2) n * subs = n' is entailed in the current context, where * is denotes
+   * (2) n * subs = n' is entailed in the current context, where * denotes
    * substitution application.
    * It returns null if no such term can be found.
    * subsRep is whether the substitution maps to terms that are representatives
