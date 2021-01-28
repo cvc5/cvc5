@@ -172,22 +172,26 @@ CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 theory::TrustNode TheoryProxy::preprocessLemma(
     theory::TrustNode trn,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  return d_tpp.preprocessLemma(
-      trn, newLemmas, newSkolems, doTheoryPreprocess, true);
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
 }
 
 theory::TrustNode TheoryProxy::preprocess(
     TNode node,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  theory::TrustNode pnode =
-      d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess, true);
-  return pnode;
+  return d_tpp.preprocess(node, newLemmas, newSkolems);
+}
+
+theory::TrustNode TheoryProxy::removeItes(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  return rtf.run(node, newLemmas, newSkolems, true);
 }
 
 void TheoryProxy::getSkolems(TNode node,

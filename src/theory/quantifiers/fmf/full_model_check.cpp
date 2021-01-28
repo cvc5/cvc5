@@ -280,9 +280,9 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-
-FullModelChecker::FullModelChecker(context::Context* c, QuantifiersEngine* qe) :
-QModelBuilder( c, qe ){
+FullModelChecker::FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs)
+    : QModelBuilder(qe, qs)
+{
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -594,7 +594,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
   // register the quantifier
   registerQuantifiedFormula(f);
-  Assert(!d_qe->inConflict());
+  Assert(!d_qstate.isInConflict());
   // we do not do model-based quantifier instantiation if the option
   // disables it, or if the quantified formula has an unhandled type.
   if (!optUseModel() || !isHandled(f))
@@ -709,7 +709,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
-        if (d_qe->inConflict() || options::fmfOneInstPerRound())
+        if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
         {
           break;
         }
@@ -851,7 +851,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
+          if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+          {
             break;
           }
         }else{

@@ -114,6 +114,8 @@ class AlphaEquivalence
   Node reduceQuantifier( Node q );
 
  private:
+  /** a term canonizer */
+  expr::TermCanonize d_termCanon;
   /** the database of quantified formulas registered to this class */
   AlphaEquivalenceDb d_aedb;
 };

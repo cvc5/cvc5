@@ -140,12 +140,6 @@ class Theory {
   /** The care graph the theory will use during combination. */
   CareGraph* d_careGraph;
 
-  /**
-   * Pointer to the quantifiers engine (or NULL, if quantifiers are not
-   * supported or not enabled). Not owned by the theory.
-   */
-  QuantifiersEngine* d_quantEngine;
-
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
 
@@ -233,6 +227,12 @@ class Theory {
    * the equality engine are used properly.
    */
   TheoryInferenceManager* d_inferManager;
+
+  /**
+   * Pointer to the quantifiers engine (or NULL, if quantifiers are not
+   * supported or not enabled). Not owned by the theory.
+   */
+  QuantifiersEngine* d_quantEngine;
 
   /** Pointer to proof node manager */
   ProofNodeManager* d_pnm;

@@ -1082,6 +1082,30 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
 }
 
+Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
+{
+  NodeManagerScope scope(d_solver->getNodeManager());
+  return Sort(
+      d_solver,
+      d_type->substitute(sort.getTypeNode(), replacement.getTypeNode()));
+}
+
+Sort Sort::substitute(const std::vector<Sort>& sorts,
+                      const std::vector<Sort>& replacements) const
+{
+  NodeManagerScope scope(d_solver->getNodeManager());
+
+  std::vector<CVC4::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
+                              tReplacements =
+                                  sortVectorToTypeNodes(replacements);
+
+  return Sort(d_solver,
+              d_type->substitute(tSorts.begin(),
+                                 tSorts.end(),
+                                 tReplacements.begin(),
+                                 tReplacements.end()));
+}
+
 std::string Sort::toString() const
 {
   if (d_solver != nullptr)

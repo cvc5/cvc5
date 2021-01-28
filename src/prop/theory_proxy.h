@@ -104,16 +104,20 @@ class TheoryProxy : public Registrar
    */
   theory::TrustNode preprocessLemma(theory::TrustNode trn,
                                     std::vector<theory::TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems,
-                                    bool doTheoryPreprocess);
+                                    std::vector<Node>& newSkolems);
   /**
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
   theory::TrustNode preprocess(TNode node,
                                std::vector<theory::TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems,
-                               bool doTheoryPreprocess);
+                               std::vector<Node>& newSkolems);
+  /**
+   * Remove ITEs from the node.
+   */
+  theory::TrustNode removeItes(TNode node,
+                               std::vector<theory::TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems);
   /**
    * Get the skolems within node and their corresponding definitions, store
    * them in skAsserts and sks respectively. Note that this method does not

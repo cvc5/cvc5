@@ -22,7 +22,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -191,17 +191,18 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
   return pol && n.getKind()==EQUAL;
 }
 
-bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
+bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
+{
   Node icn = d_preprocContext->getTheoryEngine()
                  ->getQuantifiersEngine()
                  ->getTermUtil()
-                 ->substituteBoundVariablesToInstConstants(n, f);
+                 ->substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
-  quantifiers::TermUtil::computeInstConstContainsForQuant(f, icn, var);
+  quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
-  inst::Trigger::getTriggerVariables( icn, f, trigger_var );
+  inst::PatternTermSelector::getTriggerVariables(icn, q, trigger_var);
   Trace("macros-debug2") << "Done." << std::endl;
   //only if all variables are also trigger variables
   return trigger_var.size()>=var.size();
