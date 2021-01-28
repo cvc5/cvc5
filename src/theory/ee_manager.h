@@ -73,17 +73,17 @@ class EqEngineManager
    * Get the equality engine theory information for theory with the given id.
    */
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-  /**
-   * Get the core equality engine, which is the equality engine that the
-   * quantifiers engine should use. This corresponds to the master equality
-   * engine if eeMode is distributed, or the central equality engine if eeMode
-   * is central.
-   */
-  virtual eq::EqualityEngine* getCoreEqualityEngine() = 0;
 
   /** Allocate equality engine that is context-dependent on c with info esi */
   eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
                                              context::Context* c);
+  /**
+   * Notify this class that we are about to terminate with a model. This method
+   * is for debugging only.
+   *
+   * @param incomplete Whether we are answering "unknown" instead of "sat".
+   */
+  virtual void notifyModel(bool incomplete) {}
 
  protected:
   /** Reference to the theory engine */
