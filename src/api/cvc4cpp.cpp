@@ -34,7 +34,6 @@
 #include "api/cvc4cpp.h"
 
 #include <cstring>
-#include <regex>
 #include <sstream>
 
 #include "base/check.h"
@@ -3924,11 +3923,41 @@ Term Solver::mkPi() const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+bool Solver::isValidInteger(const std::string& s) const
+{
+  if (s.length() == 0)
+  {
+    // string should not be empty
+    return false;
+  }
+
+  size_t index = 0;
+  if (s[index] == '-')
+  {
+    if (s.length() == 1)
+    {
+      // negative integers should contain at least one digit
+      return false;
+    }
+    index = 1;
+  }
+
+  // all remaining characters should be decimal digits
+  for (; index < s.length(); ++index)
+  {
+    if (!std::isdigit(s[index]))
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 Term Solver::mkInteger(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(std::regex_match(s, std::regex("-?\\d+")), s)
-      << " an integer ";
+  CVC4_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
   Term integer = mkRealFromStrHelper(s);
   CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " an integer";
