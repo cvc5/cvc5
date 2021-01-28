@@ -73,12 +73,12 @@ class QuantifiersEngine {
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
+  /** The quantifiers state object */
+  quantifiers::QuantifiersState& getState();
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   //---------------------- end external interface
   //---------------------- utilities
-  /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine() const;
-  /** get equality query */
-  EqualityQuery* getEqualityQuery() const;
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
   /** get model */
@@ -110,11 +110,8 @@ class QuantifiersEngine {
    *
    * @param te The theory engine
    * @param dm The decision manager of the theory engine
-   * @param mee The master equality engine of the theory engine
    */
-  void finishInit(TheoryEngine* te,
-                  DecisionManager* dm,
-                  eq::EqualityEngine* mee);
+  void finishInit(TheoryEngine* te, DecisionManager* dm);
   //---------------------- end private initialization
   /**
    * Maps quantified formulas to the module that owns them, if any module has
@@ -227,8 +224,6 @@ public:
  void markRelevant(Node q);
  /** has added lemma */
  bool hasAddedLemma() const;
- /** is in conflict */
- bool inConflict() const;
  /** get current q effort */
  QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */
@@ -343,8 +338,6 @@ public:
   TheoryEngine* d_te;
   /** Reference to the decision manager of the theory engine */
   DecisionManager* d_decManager;
-  /** Pointer to the master equality engine */
-  eq::EqualityEngine* d_masterEqualityEngine;
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */

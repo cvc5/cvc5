@@ -38,22 +38,22 @@ QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
 
 eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
 {
-  return d_quantEngine->getMasterEqualityEngine();
+  return d_qstate.getEqualityEngine();
 }
 
 bool QuantifiersModule::areEqual(TNode n1, TNode n2) const
 {
-  return d_quantEngine->getEqualityQuery()->areEqual( n1, n2 );
+  return d_qstate.areEqual(n1, n2);
 }
 
 bool QuantifiersModule::areDisequal(TNode n1, TNode n2) const
 {
-  return d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 );
+  return d_qstate.areDisequal(n1, n2);
 }
 
 TNode QuantifiersModule::getRepresentative(TNode n) const
 {
-  return d_quantEngine->getEqualityQuery()->getRepresentative( n );
+  return d_qstate.getRepresentative(n);
 }
 
 QuantifiersEngine* QuantifiersModule::getQuantifiersEngine() const

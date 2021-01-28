@@ -60,6 +60,8 @@ class TheoryState
    * returns true if the representative of a and b are distinct constants.
    */
   virtual bool areDisequal(TNode a, TNode b) const;
+  /** get list of members in the equivalence class of a */
+  virtual void getEquivalenceClass(Node a, std::vector<Node>& eqc) const;
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
   //-------------------------------------- end equality information

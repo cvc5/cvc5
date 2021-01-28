@@ -373,13 +373,20 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   {
     ce_vars.push_back(tutil->getInstantiationConstant(q, i));
   }
-  CegInstantiator* cinst = getInstantiator(q);
-  LemmaStatus status =
-      d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
-  Node ppLem = status.getRewrittenLemma();
+  // send the lemma
+  d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+  // get the preprocessed form of the lemma we just sent
+  std::vector<Node> skolems;
+  std::vector<Node> skAsserts;
+  Node ppLem = d_quantEngine->getValuation().getPreprocessedTerm(
+      lem, skAsserts, skolems);
+  std::vector<Node> lemp{ppLem};
+  lemp.insert(lemp.end(), skAsserts.begin(), skAsserts.end());
+  ppLem = NodeManager::currentNM()->mkAnd(lemp);
   Trace("cegqi-debug") << "Counterexample lemma (post-preprocess): " << ppLem
                        << std::endl;
   std::vector<Node> auxLems;
+  CegInstantiator* cinst = getInstantiator(q);
   cinst->registerCounterexampleLemma(ppLem, ce_vars, auxLems);
   for (unsigned i = 0, size = auxLems.size(); i < size; i++)
   {

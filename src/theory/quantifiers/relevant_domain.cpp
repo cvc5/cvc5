@@ -51,12 +51,13 @@ RelevantDomain::RDomain * RelevantDomain::RDomain::getParent() {
   }
 }
 
-void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
+void RelevantDomain::RDomain::removeRedundantTerms(QuantifiersState& qs)
+{
   std::map< Node, Node > rterms;
   for( unsigned i=0; i<d_terms.size(); i++ ){
     Node r = d_terms[i];
     if( !TermUtil::hasInstConstAttr( d_terms[i] ) ){
-      r = qe->getEqualityQuery()->getRepresentative( d_terms[i] );
+      r = qs.getRepresentative(d_terms[i]);
     }
     if( rterms.find( r )==rterms.end() ){
       rterms[r] = d_terms[i];
@@ -141,7 +142,7 @@ void RelevantDomain::compute(){
         RDomain * r = it2->second;
         RDomain * rp = r->getParent();
         if( r==rp ){
-          r->removeRedundantTerms( d_qe );
+          r->removeRedundantTerms(d_qe->getState());
           for( unsigned i=0; i<r->d_terms.size(); i++ ){
             Trace("rel-dom") << r->d_terms[i] << " ";
           }
