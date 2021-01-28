@@ -522,8 +522,6 @@ void RemoveTermFormulas::getSkolems(
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>::
-      const_iterator itl;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -537,8 +535,7 @@ void RemoveTermFormulas::getSkolems(
       visited.insert(cur);
       if (cur.isVar())
       {
-        itl = d_lemmaCache.find(cur);
-        if (itl != d_lemmaCache.end())
+        if (d_lemmaCache.find(cur) != d_lemmaCache.end())
         {
           skolems.insert(cur);
         }
