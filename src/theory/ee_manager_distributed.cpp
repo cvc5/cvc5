@@ -76,12 +76,12 @@ void EqEngineManagerDistributed::initializeTheories()
     EeSetupInfo esi;
     if (!t->needsEqualityEngine(esi))
     {
-      // theory said it doesn't need an equality engine, skip
+      // the theory said it doesn't need an equality engine, skip
       continue;
     }
     if (esi.d_useMaster)
     {
-      // they said they want to use the master equality engine
+      // the theory said it wants to use the master equality engine
       eet.d_usedEe = d_masterEqualityEngine.get();
       continue;
     }
