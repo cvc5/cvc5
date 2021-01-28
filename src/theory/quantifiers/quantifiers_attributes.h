@@ -174,72 +174,72 @@ struct QAttributes
 */
 class QuantAttributes
 {
-public:
- QuantAttributes();
- ~QuantAttributes() {}
- /** set user attribute
+ public:
+  QuantAttributes();
+  ~QuantAttributes(){}
+  /** set user attribute
   * This function applies an attribute
   * This can be called when we mark expressions with attributes, e.g. (! q
   * :attribute attr [node_values, str_value...]),
   * It can also be called internally in various ways (for SyGus, quantifier
   * elimination, etc.)
   */
- static void setUserAttribute(const std::string& attr,
-                              Node q,
-                              std::vector<Node>& node_values,
-                              std::string str_value);
+  static void setUserAttribute(const std::string& attr,
+                               Node q,
+                               std::vector<Node>& node_values,
+                               std::string str_value);
 
- /** compute quantifier attributes */
- static void computeQuantAttributes(Node q, QAttributes& qa);
- /** compute the attributes for q */
- void computeAttributes(Node q);
+  /** compute quantifier attributes */
+  static void computeQuantAttributes(Node q, QAttributes& qa);
+  /** compute the attributes for q */
+  void computeAttributes(Node q);
 
- /** is fun def */
- static bool checkFunDef(Node q);
- /** is fun def */
- static bool checkFunDefAnnotation(Node ipl);
- /** is sygus conjecture */
- static bool checkSygusConjecture(Node q);
- /** is sygus conjecture */
- static bool checkSygusConjectureAnnotation(Node ipl);
- /** get fun def body */
- static Node getFunDefHead(Node q);
- /** get fun def body */
- static Node getFunDefBody(Node q);
- /** is quant elim annotation */
- static bool checkQuantElimAnnotation(Node ipl);
+  /** is fun def */
+  static bool checkFunDef( Node q );
+  /** is fun def */
+  static bool checkFunDefAnnotation( Node ipl );
+  /** is sygus conjecture */
+  static bool checkSygusConjecture( Node q );
+  /** is sygus conjecture */
+  static bool checkSygusConjectureAnnotation( Node ipl );
+  /** get fun def body */
+  static Node getFunDefHead( Node q );
+  /** get fun def body */
+  static Node getFunDefBody( Node q );
+  /** is quant elim annotation */
+  static bool checkQuantElimAnnotation( Node ipl );
 
- /** is function definition */
- bool isFunDef(Node q);
- /** is sygus conjecture */
- bool isSygus(Node q);
- /** get instantiation level */
- int getQuantInstLevel(Node q);
- /** is quant elim */
- bool isQuantElim(Node q);
- /** is quant elim partial */
- bool isQuantElimPartial(Node q);
- /** is internal quantifier */
- bool isInternal(Node q) const;
- /** get quant name, which is used for :qid */
- Node getQuantName(Node q) const;
- /** Print quantified formula q, possibly using its name, if it has one */
- std::string quantToString(Node q) const;
- /** get (internal) quant id num */
- int getQuantIdNum(Node q);
- /** get (internal)quant id num */
- Node getQuantIdNumNode(Node q);
+  /** is function definition */
+  bool isFunDef( Node q );
+  /** is sygus conjecture */
+  bool isSygus( Node q );
+  /** get instantiation level */
+  int getQuantInstLevel( Node q );
+  /** is quant elim */
+  bool isQuantElim( Node q );
+  /** is quant elim partial */
+  bool isQuantElimPartial( Node q );
+  /** is internal quantifier */
+  bool isInternal(Node q) const;
+  /** get quant name, which is used for :qid */
+  Node getQuantName(Node q) const;
+  /** Print quantified formula q, possibly using its name, if it has one */
+  std::string quantToString(Node q) const;
+  /** get (internal) quant id num */
+  int getQuantIdNum( Node q );
+  /** get (internal)quant id num */
+  Node getQuantIdNumNode( Node q );
 
- /** set instantiation level attr */
- static void setInstantiationLevelAttr(Node n, uint64_t level);
- /** set instantiation level attr */
- static void setInstantiationLevelAttr(Node n, Node qn, uint64_t level);
+  /** set instantiation level attr */
+  static void setInstantiationLevelAttr(Node n, uint64_t level);
+  /** set instantiation level attr */
+  static void setInstantiationLevelAttr(Node n, Node qn, uint64_t level);
 
-private:
- /** cache of attributes */
- std::map<Node, QAttributes> d_qattr;
- /** function definitions */
- std::map<Node, bool> d_fun_defs;
+ private:
+  /** cache of attributes */
+  std::map< Node, QAttributes > d_qattr;
+  /** function definitions */
+  std::map< Node, bool > d_fun_defs;
 };
 
 }
