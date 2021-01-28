@@ -28,10 +28,10 @@ namespace theory {
 namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
-    QuantifiersState& qs, TermDb * tdb, FirstOrderModel * m)
+    QuantifiersState& qs, TermDb* tdb, FirstOrderModel* m)
     : d_qstate(qs),
-    d_tdb(t),
-    d_model(m),
+      d_tdb(t),
+      d_model(m),
       d_eqi_counter(qs.getSatContext()),
       d_reset_count(0)
 {
@@ -55,7 +55,8 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
-      if( d_model!=nullptr){
+      if (d_model != nullptr)
+      {
         Node tr = d_model->getRepSet()->getTermForRepresentative(r);
         if (!tr.isNull())
         {
@@ -170,7 +171,10 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
-  }else if( options::lteRestrictInstClosure() && ( !d_tdb->isInstClosure( n ) || !d_tdb->hasTermCurrent( n, false ) ) ){
+  }
+  else if (options::lteRestrictInstClosure()
+           && (!d_tdb->isInstClosure(n) || !d_tdb->hasTermCurrent(n, false)))
+  {
     return -1;
   }else if( options::instMaxLevel()!=-1 ){
     //score prefer lowest instantiation level

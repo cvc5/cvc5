@@ -114,7 +114,8 @@ QuantifiersEngine::QuantifiersEngine(
     d_model.reset(
         new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
   }
-  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_term_db.get(), d_model.get()));
+  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
+      qstate, d_term_db.get(), d_model.get()));
   d_util.insert(d_util.begin(), d_eq_query.get());
 }
 
