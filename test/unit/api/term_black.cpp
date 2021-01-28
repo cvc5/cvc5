@@ -685,6 +685,8 @@ TEST_F(TestApiTermBlack, getInteger)
   Term int10 = d_solver.mkInteger("18446744073709551615");
   Term int11 = d_solver.mkInteger("18446744073709551616");
   Term int12 = d_solver.mkInteger("-0");
+  Term int13 = d_solver.mkInteger("012");
+  Term int14 = d_solver.mkInteger("0000");
 
   ASSERT_THROW(d_solver.mkInteger(""), CVC4ApiException);
   ASSERT_THROW(d_solver.mkInteger("-"), CVC4ApiException);
