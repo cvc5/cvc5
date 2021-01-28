@@ -131,7 +131,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       for (unsigned i = 0; i < nquant; i++)
       {
         Node q = fm->getAssertedQuantifier(i, true);
-        bool doProcess = d_quantEngine->hasOwnership(q, this)
+        bool doProcess = d_qreg.hasOwnership(q, this)
                          && fm->isQuantifierActive(q)
                          && alreadyProc.find(q) == alreadyProc.end();
         if (doProcess)

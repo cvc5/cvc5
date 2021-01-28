@@ -165,6 +165,15 @@ void SynthEngine::assignConjecture(Node q)
   d_conjs.back()->assign(q);
 }
 
+void SynthEngine::checkOwnership(Node q)
+{
+  // take ownership of quantified formulas with sygus attribute
+  if (d_quantEngine->getQuantAttributes()->isSygus(q))
+  {
+    d_reg.setOwner(this);
+  }
+}
+
 void SynthEngine::registerQuantifier(Node q)
 {
   Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q

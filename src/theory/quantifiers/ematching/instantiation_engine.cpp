@@ -211,7 +211,7 @@ void InstantiationEngine::checkOwnership(Node q)
       }
     }
     if( hasPat ){
-      d_quantEngine->setOwner( q, this, 1 );
+      d_qreg.setOwner( q, this, 1 );
     }
   }
 }
@@ -261,7 +261,7 @@ void InstantiationEngine::addUserNoPattern(Node q, Node pat) {
 
 bool InstantiationEngine::shouldProcess(Node q)
 {
-  if (!d_quantEngine->hasOwnership(q, this))
+  if (!d_qreg.hasOwnership(q, this))
   {
     return false;
   }

@@ -190,7 +190,7 @@ int ModelEngine::checkModel(){
   if( Trace.isOn("model-engine") ){
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
-      if( d_quantEngine->getModel()->isQuantifierActive( f ) && d_quantEngine->hasOwnership( f, this ) ){
+      if( fm->isQuantifierActive( f ) && d_qreg.hasOwnership( f, this ) ){
         int totalInst = 1;
         for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
           TypeNode tn = f[0][j].getType();
@@ -216,7 +216,7 @@ int ModelEngine::checkModel(){
       Node q = fm->getAssertedQuantifier( i, true );
       Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << q << ", effort = " << e << "..." << std::endl;
       //determine if we should check this quantifier
-      if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
+      if( fm->isQuantifierActive( q ) && d_qreg.hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
         if (d_qstate.isInConflict())
         {
@@ -322,7 +322,7 @@ void ModelEngine::debugPrint( const char* c ){
   Trace( c ) << "Quantifiers: " << std::endl;
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-    if( d_quantEngine->hasOwnership( q, this ) ){
+    if( d_qreg.hasOwnership( q, this ) ){
       Trace( c ) << "   ";
       if( !d_quantEngine->getModel()->isQuantifierActive( q ) ){
         Trace( c ) << "*Inactive* ";
