@@ -26,6 +26,9 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+  
+class TermDb;
+class FirstOrderModel;
 
 /** EqualityQueryQuantifiersEngine class
  *
