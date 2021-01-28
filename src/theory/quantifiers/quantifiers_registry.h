@@ -21,7 +21,7 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 class QuantifiersModule;
 
 namespace quantifiers {
@@ -38,18 +38,18 @@ class QuantifiersRegistry
   QuantifiersRegistry();
   ~QuantifiersRegistry() {}
   /** get the owner of quantified formula q */
-  QuantifiersModule * getOwner( Node q );
+  QuantifiersModule* getOwner(Node q);
   /**
    * Set owner of quantified formula q to module m with given priority. If
    * the quantified formula has previously been assigned an owner with
    * lower priority, that owner is overwritten.
    */
-  void setOwner( Node q, QuantifiersModule * m, int32_t priority = 0 );
-  /** 
+  void setOwner(Node q, QuantifiersModule* m, int32_t priority = 0);
+  /**
    * Return true if module m has ownership of quantified formula q. This means
    * that either q does not have an owner, or the owner is m.
    */
-  bool hasOwnership( Node q, QuantifiersModule * m ) const;
+  bool hasOwnership(Node q, QuantifiersModule* m) const;
 };
 
 }  // namespace quantifiers
