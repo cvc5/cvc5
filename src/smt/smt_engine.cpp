@@ -1533,9 +1533,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     out << "% SZS output start Proof for " << d_state->getFilename()
         << std::endl;
   }
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+  Assert (qe!=nullptr);
 
   // First, extract and print the skolemizations
   bool printed = false;
@@ -1611,9 +1610,8 @@ void SmtEngine::getInstantiationTermVectors(
   }
   else
   {
-    TheoryEngine* te = getTheoryEngine();
-    Assert(te != nullptr);
-    QuantifiersEngine* qe = te->getQuantifiersEngine();
+    QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+    Assert (qe!=nullptr);
     // otherwise, just get the list of all instantiations
     qe->getInstantiationTermVectors(insts);
   }
@@ -1684,9 +1682,8 @@ bool SmtEngine::getAbduct(const Node& conj, Node& abd)
 void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   SmtScope smts(this);
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+  Assert (qe!=nullptr);
   qe->getInstantiatedQuantifiedFormulas(qs);
 }
 
@@ -1694,9 +1691,8 @@ void SmtEngine::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node>>& tvecs)
 {
   SmtScope smts(this);
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+  Assert (qe!=nullptr);
   qe->getInstantiationTermVectors(q, tvecs);
 }
 

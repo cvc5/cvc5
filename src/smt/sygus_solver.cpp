@@ -22,6 +22,7 @@
 #include "smt/preprocessor.h"
 #include "smt/smt_solver.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/smt_engine_subsolver.h"
@@ -228,9 +229,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
   std::map<Node, std::map<Node, Node>> sol_mapn;
   // fail if the theory engine does not have synthesis solutions
-  TheoryEngine* te = d_smtSolver.getTheoryEngine();
-  Assert(te != nullptr);
-  QuantifiersEngine* qe = te->getQuantifiersEngine();
+  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
   Assert(qe != nullptr);
   if (!qe->getSynthSolutions(sol_mapn))
   {
@@ -248,10 +247,12 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
 
 void SygusSolver::printSynthSolution(std::ostream& out)
 {
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  QuantifiersEngine* qe = te->getQuantifiersEngine();
-  Assert(qe != nullptr);
+  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
+  if(qe == nullptr)
+  {
+    InternalError()
+        << "SygusSolver::printSynthSolution(): Cannot print synth solution in the current logic, which does not include quantifiers";
+  }
   qe->printSynthSolution(out);
 }
 
@@ -262,8 +263,8 @@ void SygusSolver::checkSynthSolution(Assertions& as)
            << std::endl;
   std::map<Node, std::map<Node, Node>> sol_map;
   // Get solutions and build auxiliary vectors for substituting
-  TheoryEngine* te = d_smtSolver.getTheoryEngine();
-  if (!te->getSynthSolutions(sol_map))
+  QuantifiersEngine* qe = d_smtSolver.getQuantifiersEngine();
+  if (qe==nullptr || !qe->getSynthSolutions(sol_map))
   {
     InternalError()
         << "SygusSolver::checkSynthSolution(): No solution to check!";
