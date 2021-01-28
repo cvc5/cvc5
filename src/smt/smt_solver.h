@@ -34,6 +34,10 @@ namespace prop {
 class PropEngine;
 }
 
+namespace theory {
+class QuantifiersEngine;
+}
+
 namespace smt {
 
 class Assertions;
@@ -119,6 +123,8 @@ class SmtSolver
   TheoryEngine* getTheoryEngine();
   /** Get a pointer to the PropEngine owned by this solver. */
   prop::PropEngine* getPropEngine();
+  /** Get a pointer to the QuantifiersEngine owned by this solver. */
+  theory::QuantifiersEngine* getQuantifiersEngine();
   /** Get a pointer to the preprocessor */
   Preprocessor* getPreprocessor();
   //------------------------------------------ end access methods

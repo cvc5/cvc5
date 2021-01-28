@@ -258,6 +258,12 @@ TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
 prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
 
+theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
+{
+  Assert(d_theoryEngine != nullptr);
+  return d_theoryEngine->getQuantifiersEngine();
+}
+
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 
 }  // namespace smt
