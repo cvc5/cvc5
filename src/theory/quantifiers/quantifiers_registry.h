@@ -27,10 +27,8 @@ class QuantifiersModule;
 namespace quantifiers {
 
 /**
- * The quantifiers registry, which manages basic information about what
- * quantifiers are registered to quantifiers modules, which quantifiers
- * are reduced and which quantifiers modules have ownership of quantified
- * formulas.
+ * The quantifiers registry, which manages basic information about which
+ * quantifiers modules have ownership of quantified formulas.
  */
 class QuantifiersRegistry
 {
