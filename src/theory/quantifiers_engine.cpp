@@ -40,6 +40,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_te(nullptr),
       d_decManager(nullptr),
       d_masterEqualityEngine(nullptr),
+      d_qreg(),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
@@ -129,7 +130,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te,
   d_masterEqualityEngine = mee;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());

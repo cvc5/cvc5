@@ -36,8 +36,9 @@ namespace quantifiers {
 
 InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
-                                         QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                                         QuantifiersInferenceManager& qim,
+                                    QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),

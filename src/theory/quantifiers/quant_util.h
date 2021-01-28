@@ -23,6 +23,7 @@
 
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -61,6 +62,7 @@ class QuantifiersModule {
  public:
   QuantifiersModule(quantifiers::QuantifiersState& qs,
                     quantifiers::QuantifiersInferenceManager& qim,
+                    quantifiers::QuantifiersRegistry& qr,
                     QuantifiersEngine* qe);
   virtual ~QuantifiersModule(){}
   /** Presolve.
@@ -168,6 +170,8 @@ class QuantifiersModule {
   quantifiers::QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& d_qreg;
 };/* class QuantifiersModule */
 
 /** Quantifiers utility

@@ -116,17 +116,6 @@ class QuantifiersEngine {
                   DecisionManager* dm,
                   eq::EqualityEngine* mee);
   //---------------------- end private initialization
-  /**
-   * Maps quantified formulas to the module that owns them, if any module has
-   * specifically taken ownership of it.
-   */
-  std::map< Node, QuantifiersModule * > d_owner;
-  /**
-   * The priority value associated with the ownership of quantified formulas
-   * in the domain of the above map, where higher values take higher
-   * precendence.
-   */
-  std::map< Node, int > d_owner_priority;
  public:
   /** does variable v of quantified formula q have a finite bound? */
   bool isFiniteBound(Node q, Node v) const;
@@ -338,6 +327,8 @@ public:
   /** vector of modules for quantifiers */
   std::vector<QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry d_qreg;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** all triggers will be stored in this trie */
