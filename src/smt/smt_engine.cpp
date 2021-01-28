@@ -844,6 +844,18 @@ Model* SmtEngine::getAvailableModel(const char* c) const
   return d_model.get();
 }
 
+QuantifiersEngine * SmtEngine::getAvailableQuantifiersEngine(const char* c) const
+{
+  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
+  if(qe == nullptr)
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when quantifiers are not present.";
+    throw ModalException(ss.str().c_str());
+  }
+  return qe;
+}
+
 void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
 
 void SmtEngine::notifyPushPost()
@@ -1533,8 +1545,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     out << "% SZS output start Proof for " << d_state->getFilename()
         << std::endl;
   }
-  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  Assert(qe != nullptr);
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("printInstantiations");
 
   // First, extract and print the skolemizations
   bool printed = false;
@@ -1610,8 +1621,7 @@ void SmtEngine::getInstantiationTermVectors(
   }
   else
   {
-    QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-    Assert(qe != nullptr);
+    QuantifiersEngine* qe = getAvailableQuantifiersEngine("getInstantiationTermVectors");
     // otherwise, just get the list of all instantiations
     qe->getInstantiationTermVectors(insts);
   }
@@ -1682,8 +1692,7 @@ bool SmtEngine::getAbduct(const Node& conj, Node& abd)
 void SmtEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   SmtScope smts(this);
-  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  Assert(qe != nullptr);
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("getInstantiatedQuantifiedFormulas");
   qe->getInstantiatedQuantifiedFormulas(qs);
 }
 
@@ -1691,8 +1700,7 @@ void SmtEngine::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node>>& tvecs)
 {
   SmtScope smts(this);
-  QuantifiersEngine* qe = d_smtSolver->getQuantifiersEngine();
-  Assert(qe != nullptr);
+  QuantifiersEngine* qe = getAvailableQuantifiersEngine("getInstantiationTermVectors");
   qe->getInstantiationTermVectors(q, tvecs);
 }
 
