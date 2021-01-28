@@ -48,7 +48,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_term_util(new quantifiers::TermUtil),
       d_term_db(new quantifiers::TermDb(qstate, qim, this)),
       d_sygus_tdb(nullptr),
-      d_quant_attr(new quantifiers::QuantAttributes(this)),
+      d_quant_attr(new quantifiers::QuantAttributes),
       d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
@@ -547,7 +547,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
                   bool hasCompleteM = false;
                   Node q = d_model->getAssertedQuantifier( i );
-                  QuantifiersModule * qmd = getOwner( q );
+                  QuantifiersModule * qmd = d_qreg.getOwner( q );
                   if( qmd!=NULL ){
                     hasCompleteM = qmd->checkCompleteFor( q );
                   }else{
@@ -674,7 +674,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
                            << "..." << std::endl;
       mdl->checkOwnership(f);
     }
-    QuantifiersModule* qm = getOwner(f);
+    QuantifiersModule* qm = d_qreg.getOwner(f);
     Trace("quant") << " Owner : " << (qm == nullptr ? "[none]" : qm->identify())
                    << std::endl;
     // register with each module

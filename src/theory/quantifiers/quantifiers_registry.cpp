@@ -53,22 +53,6 @@ void QuantifiersRegistry::setOwner(Node q,
   d_owner[q] = m;
   d_owner_priority[q] = priority;
 }
-/*
-void QuantifiersRegistry::setOwner(Node q, quantifiers::QAttributes& qa)
-{
-  if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
-  {
-    if (d_qmodules->d_synth_e.get() == nullptr)
-    {
-      Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
-                          << q << std::endl;
-    }
-    // set synth engine as owner since this is either a conjecture or a function
-    // definition to be used by sygus
-    setOwner(q, d_qmodules->d_synth_e.get(), 2);
-  }
-}
-*/
 
 bool QuantifiersRegistry::hasOwnership(Node q, QuantifiersModule* m) const
 {

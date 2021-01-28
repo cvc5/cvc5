@@ -35,10 +35,10 @@ namespace quantifiers {
 class QuantifiersRegistry
 {
  public:
-  QuantifiersRegistry();
+  QuantifiersRegistry() {}
   ~QuantifiersRegistry() {}
   /** get the owner of quantified formula q */
-  QuantifiersModule* getOwner(Node q);
+  QuantifiersModule* getOwner(Node q) const;
   /**
    * Set owner of quantified formula q to module m with given priority. If
    * the quantified formula has previously been assigned an owner with
