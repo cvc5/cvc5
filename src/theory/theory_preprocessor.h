@@ -66,13 +66,7 @@ class TheoryPreprocessor
    */
   TrustNode preprocess(TNode node,
                        std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems,
-                       bool fixedPoint);
-  /**
-   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
-   * can be extracted from the RemoveTermFormulas utility.
-   */
-  TrustNode preprocess(TNode node);
+                       std::vector<Node>& newSkolems);
   /**
    * Same as above, but transforms the proof of node into a proof of the
    * preprocessed node and returns the LEMMA trust node.
@@ -85,13 +79,7 @@ class TheoryPreprocessor
    */
   TrustNode preprocessLemma(TrustNode node,
                             std::vector<TrustNode>& newLemmas,
-                            std::vector<Node>& newSkolems,
-                            bool fixedPoint);
-  /**
-   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
-   * can be extracted from the RemoveTermFormulas utility.
-   */
-  TrustNode preprocessLemma(TrustNode node);
+                            std::vector<Node>& newSkolems);
 
   /** Get the term formula removal utility */
   RemoveTermFormulas& getRemoveTermFormulas();
@@ -102,6 +90,24 @@ class TheoryPreprocessor
    * parts of the node.
    */
   TrustNode theoryPreprocess(TNode node);
+  /**
+   * Internal helper for preprocess, which also optionally preprocesses the
+   * new lemmas generated until a fixed point is reached based on argument
+   * procLemmas.
+   */
+  TrustNode preprocessInternal(TNode node,
+                               std::vector<TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems,
+                               bool procLemmas);
+  /**
+   * Internal helper for preprocessLemma, which also optionally preprocesses the
+   * new lemmas generated until a fixed point is reached based on argument
+   * procLemmas.
+   */
+  TrustNode preprocessLemmaInternal(TrustNode node,
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems,
+                                    bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
   /** Logic info of theory engine */
