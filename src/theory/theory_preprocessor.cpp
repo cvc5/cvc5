@@ -41,11 +41,11 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                       &d_iqtc)
                 : nullptr),
       d_tspg(nullptr),
-            d_tpgRew(pnm ? new TConvProofGenerator(pnm,	
-                                             userContext,	
-                                             TConvPolicy::ONCE,	
-                                             TConvCachePolicy::NEVER,	
-                                             "TheoryPreprocessor::rewrite")	
+      d_tpgRew(pnm ? new TConvProofGenerator(pnm,
+                                             userContext,
+                                             TConvPolicy::ONCE,
+                                             TConvCachePolicy::NEVER,
+                                             "TheoryPreprocessor::rewrite")
                    : nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
@@ -88,7 +88,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     bool procLemmas)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
-  
+
   Trace("tpp-debug") << "TheoryPreprocessor::preprocess: start " << node
                      << std::endl;
 
@@ -105,7 +105,8 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     if (irNode != node)
     {
       // always use term context hash 0 (default)
-      d_tpgRew->addRewriteStep(node, irNode, PfRule::REWRITE, {}, {node}, false);
+      d_tpgRew->addRewriteStep(
+          node, irNode, PfRule::REWRITE, {}, {node}, false);
     }
   }
 
@@ -423,7 +424,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     return preprocessWithProof(term);
   }
   // should be in rewritten form here
-  Assert (term==Rewriter::rewrite(term));
+  Assert(term == Rewriter::rewrite(term));
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
   // do not rewrite inside quantifiers
   Node newTerm = term;
@@ -515,8 +516,12 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (trusted) "
                          << term << " -> " << termr << std::endl;
       // small step trust
-      d_tpg->addRewriteStep(
-          term, termr, PfRule::THEORY_PREPROCESS, {}, {term.eqNode(termr)}, false);
+      d_tpg->addRewriteStep(term,
+                            termr,
+                            PfRule::THEORY_PREPROCESS,
+                            {},
+                            {term.eqNode(termr)},
+                            false);
     }
   }
   termr = rewriteWithProof(termr);

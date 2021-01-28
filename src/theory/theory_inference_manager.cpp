@@ -43,7 +43,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   d_ee = ee;
   // if proofs are enabled, also make a proof equality engine to wrap ee
   // if it is non-null
-  if (d_pnm != nullptr && d_ee!=nullptr)
+  if (d_pnm != nullptr && d_ee != nullptr)
   {
     d_pfee.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
                                        d_theoryState.getUserContext(),

@@ -61,7 +61,6 @@
 #include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/theory_engine.h"
-#include "theory/quantifiers_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
 
