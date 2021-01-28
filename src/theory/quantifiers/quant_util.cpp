@@ -71,6 +71,17 @@ quantifiers::TermUtil* QuantifiersModule::getTermUtil() const
   return d_quantEngine->getTermUtil();
 }
 
+quantifiers::QuantifiersState& QuantifiersModule::getState()
+{
+  return d_qstate;
+}
+
+quantifiers::QuantifiersInferenceManager&
+QuantifiersModule::getInferenceManager()
+{
+  return d_qim;
+}
+
 QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
   initialize( n, computeEq );
 }

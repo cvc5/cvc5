@@ -254,7 +254,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
 {
   if (quant_e == QEFFORT_STANDARD)
   {
-    Assert(!d_quantEngine->inConflict());
+    Assert(!d_qstate.isInConflict());
     double clSet = 0;
     if( Trace.isOn("cegqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -269,12 +269,14 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         Node q = it->first;
         Trace("cegqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
         process(q, e, ee);
-        if (d_quantEngine->inConflict())
+        if (d_qstate.isInConflict())
         {
           break;
         }
       }
-      if( d_quantEngine->inConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+      if (d_qstate.isInConflict()
+          || d_quantEngine->getNumLemmasWaiting() > lastWaiting)
+      {
         break;
       }
     }

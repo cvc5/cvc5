@@ -23,7 +23,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
-#include "expr/term_canonize.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -74,8 +73,6 @@ class QuantifiersEngine {
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
-  /** get the logic info for the quantifiers engine */
-  const LogicInfo& getLogicInfo() const;
   //---------------------- end external interface
   //---------------------- utilities
   /** get the master equality engine */
@@ -92,8 +89,6 @@ class QuantifiersEngine {
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
   /** get term utilities */
   quantifiers::TermUtil* getTermUtil() const;
-  /** get term canonizer */
-  expr::TermCanonize* getTermCanonize() const;
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
@@ -191,8 +186,6 @@ class QuantifiersEngine {
    * that are pre-registered to the quantifiers theory.
    */
   void preRegisterQuantifier(Node q);
-  /** register quantifier */
-  void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
   void assertQuantifier( Node q, bool pol );
 private:
@@ -234,17 +227,8 @@ public:
  void markRelevant(Node q);
  /** has added lemma */
  bool hasAddedLemma() const;
- /** theory engine needs check
-  *
-  * This is true if the theory engine has more constraints to process. When
-  * it is false, we are tentatively going to terminate solving with
-  * sat/unknown. For details, see TheoryEngine::needCheck.
-  */
- bool theoryEngineNeedsCheck() const;
  /** is in conflict */
- bool inConflict() { return d_conflict; }
- /** set conflict */
- void setConflict();
+ bool inConflict() const;
  /** get current q effort */
  QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */
@@ -274,11 +258,19 @@ public:
   * guided instantiation.
   */
  Node getInternalRepresentative(Node a, Node q, int index);
+ /**
+  * Get quantifiers name, which returns a variable corresponding to the name of
+  * quantified formula q if q has a name, or otherwise returns q itself.
+  */
+ Node getNameForQuant(Node q) const;
+ /**
+  * Get name for quantified formula. Returns true if q has a name or if req
+  * is false. Sets name to the result of the above method.
+  */
+ bool getNameForQuant(Node q, Node& name, bool req = true) const;
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print instantiations */
- void printInstantiations(std::ostream& out);
  /** print solution for synthesis conjectures */
  void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */
@@ -288,6 +280,12 @@ public:
                                   std::vector<std::vector<Node> >& tvecs);
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
+ /**
+  * Get skolemization vectors, where for each quantified formula that was
+  * skolemized, this is the list of skolems that were used to witness the
+  * negation of that quantified formula.
+  */
+ void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
 
  /** get synth solutions
   *
@@ -362,8 +360,6 @@ public:
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** term utilities */
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
-  /** term utilities */
-  std::unique_ptr<expr::TermCanonize> d_term_canon;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** sygus term database */
@@ -384,9 +380,6 @@ public:
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
-  /** are we in conflict */
-  bool d_conflict;
-  context::CDO<bool> d_conflict_c;
   /** has added lemma this round */
   bool d_hasAddedLemma;
   //------------- end temporary information during check
