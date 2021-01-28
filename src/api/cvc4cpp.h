@@ -3595,6 +3595,9 @@ class CVC4_PUBLIC Solver
                       bool isInv = false,
                       Grammar* g = nullptr) const;
 
+  /** check whether string s is a valid decimal integer */
+  bool isValidInteger(const std::string& s) const;
+
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
   /* The SMT engine of this solver. */
