@@ -1174,44 +1174,11 @@ Node TheoryEngine::getPreprocessedTerm(TNode n)
   return d_propEngine->getPreprocessedTerm(rewritten);
 }
 
-void TheoryEngine::printInstantiations( std::ostream& out ) {
-  if( d_quantEngine ){
-    d_quantEngine->printInstantiations( out );
-  }else{
-    out << "Internal error : instantiations not available when quantifiers are not present." << std::endl;
-    Assert(false);
-  }
-}
-
 void TheoryEngine::printSynthSolution( std::ostream& out ) {
   if( d_quantEngine ){
     d_quantEngine->printSynthSolution( out );
   }else{
     out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
-    Assert(false);
-  }
-}
-
-void TheoryEngine::getInstantiatedQuantifiedFormulas( std::vector< Node >& qs ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiatedQuantifiedFormulas( qs );
-  }else{
-    Assert(false);
-  }
-}
-
-void TheoryEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiationTermVectors( q, tvecs );
-  }else{
-    Assert(false);
-  }
-}
-
-void TheoryEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
-  if( d_quantEngine ){
-    d_quantEngine->getInstantiationTermVectors( insts );
-  }else{
     Assert(false);
   }
 }

@@ -18,7 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -188,7 +188,9 @@ Node TermDb::getMatchOperator( Node n ) {
     Trace("par-op") << "Parametric operator : " << k << ", " << n.getOperator() << ", " << tn << " : " << n << std::endl;
     d_par_op_map[op][tn] = n;
     return n;
-  }else if( inst::Trigger::isAtomicTriggerKind( k ) ){
+  }
+  else if (inst::TriggerTermInfo::isAtomicTriggerKind(k))
+  {
     return n.getOperator();
   }else{
     return Node::null();
@@ -213,7 +215,7 @@ void TermDb::addTerm(Node n,
       Trace("term-db-debug") << "register term : " << n << std::endl;
       d_type_map[n.getType()].push_back(n);
       // if this is an atomic trigger, consider adding it
-      if (inst::Trigger::isAtomicTrigger(n))
+      if (inst::TriggerTermInfo::isAtomicTrigger(n))
       {
         Trace("term-db") << "register term in db " << n << std::endl;
 
@@ -982,7 +984,6 @@ bool TermDb::isInstClosure( Node r ) {
 
 void TermDb::setHasTerm( Node n ) {
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
-  //if( inst::Trigger::isAtomicTrigger( n ) ){
   if( d_has_map.find( n )==d_has_map.end() ){
     d_has_map[n] = true;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){

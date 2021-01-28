@@ -223,13 +223,6 @@ class Instantiate : public QuantifiersUtil
   void debugPrintModel();
 
   //--------------------------------------user-level interface utilities
-  /** print instantiations
-   *
-   * Print all instantiations for all quantified formulas on out,
-   * returns true if at least one instantiation was printed. The type of output
-   * (list, num, etc.) is determined by printInstMode.
-   */
-  bool printInstantiations(std::ostream& out);
   /** get instantiated quantified formulas
    *
    * Get the list of quantified formulas that were instantiated in the current
@@ -274,11 +267,11 @@ class Instantiate : public QuantifiersUtil
   Node getInstantiatedConjunction(Node q);
   /** get unsat core lemmas
    *
-   * If this method returns true, then it appends to active_lemmas all lemmas
+   * If this method returns true, then it appends to activeLemmas all lemmas
    * that are in the unsat core that originated from the theory of quantifiers.
    * This method returns false if the unsat core is not available.
    */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
+  bool getUnsatCoreLemmas(std::vector<Node>& activeLemmas);
   /** get explanation for instantiation lemmas
    *
    *
@@ -328,16 +321,6 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
-  /** print instantiations in list format */
-  bool printInstantiationsList(std::ostream& out);
-  /** print instantiations in num format */
-  bool printInstantiationsNum(std::ostream& out);
-  /**
-   * Print quantified formula q on output out. If isFull is false, then we print
-   * the identifier of the quantified formula if it has one, or print
-   * nothing and return false otherwise.
-   */
-  bool printQuant(Node q, std::ostream& out, bool isFull);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
