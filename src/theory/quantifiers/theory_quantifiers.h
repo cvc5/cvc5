@@ -47,6 +47,8 @@ class TheoryQuantifiers : public Theory {
   TheoryRewriter* getTheoryRewriter() override;
   /** finish initialization */
   void finishInit() override;
+  /** needs equality engine */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
   //--------------------------------- end initialization
 
   void preRegisterTerm(TNode n) override;

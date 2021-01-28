@@ -156,13 +156,21 @@ void Valuation::setIrrelevantKind(Kind k)
 
 Node Valuation::ensureLiteral(TNode n) {
   Assert(d_engine != nullptr);
-  return d_engine->ensureLiteral(n);
+  return d_engine->getPropEngine()->ensureLiteral(n);
 }
 
 Node Valuation::getPreprocessedTerm(TNode n)
 {
   Assert(d_engine != nullptr);
-  return d_engine->getPreprocessedTerm(n);
+  return d_engine->getPropEngine()->getPreprocessedTerm(n);
+}
+
+Node Valuation::getPreprocessedTerm(TNode n,
+                                    std::vector<Node>& skAsserts,
+                                    std::vector<Node>& sks)
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getPreprocessedTerm(n, skAsserts, sks);
 }
 
 bool Valuation::isDecision(Node lit) const {

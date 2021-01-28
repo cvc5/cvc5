@@ -52,12 +52,11 @@ bool InstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   }
   if (modEq)
   {
+    quantifiers::QuantifiersState& qs = qe->getState();
     // check modulo equality if any other instantiation match exists
-    if (!n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm(n))
+    if (!n.isNull() && qs.hasTerm(n))
     {
-      eq::EqClassIterator eqc(
-          qe->getEqualityQuery()->getEngine()->getRepresentative(n),
-          qe->getEqualityQuery()->getEngine());
+      eq::EqClassIterator eqc(qs.getRepresentative(n), qs.getEqualityEngine());
       while (!eqc.isFinished())
       {
         Node en = (*eqc);
@@ -331,11 +330,10 @@ bool CDInstMatchTrie::addInstMatch(QuantifiersEngine* qe,
   if (modEq)
   {
     // check modulo equality if any other instantiation match exists
-    if (!n.isNull() && qe->getEqualityQuery()->getEngine()->hasTerm(n))
+    quantifiers::QuantifiersState& qs = qe->getState();
+    if (!n.isNull() && qs.hasTerm(n))
     {
-      eq::EqClassIterator eqc(
-          qe->getEqualityQuery()->getEngine()->getRepresentative(n),
-          qe->getEqualityQuery()->getEngine());
+      eq::EqClassIterator eqc(qs.getRepresentative(n), qs.getEqualityEngine());
       while (!eqc.isFinished())
       {
         Node en = (*eqc);

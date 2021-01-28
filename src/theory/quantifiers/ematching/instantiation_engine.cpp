@@ -98,8 +98,9 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
           Trace("inst-engine-debug")
               << " -> unfinished= "
               << (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
-              << ", conflict=" << d_quantEngine->inConflict() << std::endl;
-          if( d_quantEngine->inConflict() ){
+              << ", conflict=" << d_qstate.isInConflict() << std::endl;
+          if (d_qstate.isInConflict())
+          {
             return;
           }
           else if (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
@@ -165,7 +166,7 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   {
     unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
     doInstantiationRound(e);
-    if (d_quantEngine->inConflict())
+    if (d_qstate.isInConflict())
     {
       Assert(d_quantEngine->getNumLemmasWaiting() > lastWaiting);
       Trace("inst-engine") << "Conflict, added lemmas = "
