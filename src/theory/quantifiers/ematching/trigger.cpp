@@ -109,7 +109,7 @@ uint64_t Trigger::addInstantiations()
   {
     // for each ground term t that does not exist in the equality engine, we
     // add a purification lemma of the form (k = t).
-    eq::EqualityEngine* ee = d_quantEngine->getEqualityQuery()->getEngine();
+    eq::EqualityEngine* ee = d_quantEngine->getState().getEqualityEngine();
     for (const Node& gt : d_groundTerms)
     {
       if (!ee->hasTerm(gt))

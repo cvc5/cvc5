@@ -589,7 +589,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
           p->d_quantEngine->getInstantiate()->getInstantiation(d_q, terms);
       inst = Rewriter::rewrite(inst);
       Node inst_eval = p->getTermDatabase()->evaluateTerm(
-          inst, nullptr, options::qcfTConstraint(), true);
+          inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
