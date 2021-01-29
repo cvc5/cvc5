@@ -308,11 +308,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       toVisit.pop_back();
       continue;
     }
-    
+
     TheoryId tid = Theory::theoryOf(current);
 
-    if (!d_logicInfo.isTheoryEnabled(tid)
-        && tid != THEORY_SAT_SOLVER)
+    if (!d_logicInfo.isTheoryEnabled(tid) && tid != THEORY_SAT_SOLVER)
     {
       stringstream ss;
       ss << "The logic was specified as " << d_logicInfo.getLogicString()

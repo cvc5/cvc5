@@ -38,12 +38,12 @@ namespace theory {
 
 /**
  * The preprocessor used in TheoryEngine.
- * 
+ *
  * A summary of the steps taken by the method preprocess:
- * 
- * [1] 
+ *
+ * [1]
  * apply rewriter
- * [2] 
+ * [2]
  * TRAVERSE(
  *   prerewrite:
  *    if theory atom {
@@ -64,8 +64,8 @@ namespace theory {
  * )
  * [3]
  * apply rewriter
- * 
- * Note that the rewriter must be applied beforehand, since 
+ *
+ * Note that the rewriter must be applied beforehand, since
  */
 class TheoryPreprocessor
 {
@@ -142,7 +142,7 @@ class TheoryPreprocessor
   TheoryEngine& d_engine;
   /** Logic info of theory engine */
   const LogicInfo& d_logicInfo;
-  /** 
+  /**
    * Cache for theory-preprocessing of theory atoms. The domain of this map
    * are terms that appear within theory atoms given to this class.
    */
@@ -192,7 +192,7 @@ class TheoryPreprocessor
   /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
-   * 
+   *
    * @param term The term to rewrite
    * @param pg The proof generator to register to
    * @param isPre whether the rewrite is a pre-rewrite.
@@ -205,11 +205,11 @@ class TheoryPreprocessor
    * term is already in rewritten form.
    */
   Node preprocessWithProof(Node term);
-  /** 
+  /**
    * Register rewrite trn based on trust node into term conversion generator
    * pg, which uses THEORY_PREPROCESS as a step if no proof generator is
    * provided in trn.
-   * 
+   *
    * @param trn The REWRITE trust node
    * @param pg The proof generator to register to
    * @param isPre whether the rewrite is a pre-rewrite.
