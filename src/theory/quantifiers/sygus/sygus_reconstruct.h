@@ -35,7 +35,7 @@ namespace quantifiers {
  *
  * Goal: find a term g in sygus type T that is equivalent to builtin term t.
  *
- * rcons(t, T) : Sol<k_0>
+ * rcons(t, T) returns g
  * {
  *   // a list of triples to reconstruct into Sygus type T, where
  *   // a labeled term is of the form (k, t, s), where k is a skolem of type T,
@@ -79,9 +79,11 @@ namespace quantifiers {
  *         for each s[z] in Pool<T>
  *           Obs'' += matchNewObs(k, s[z])
  *       Obs' = Obs''
+ *
+ *   g = Sol<k_0>
  * }
  *
- * matchNewObs(k, s[z]) : Obs'
+ * matchNewObs(k, s[z]) returns Obs'
  * {
  *   u = rewrite(toBuiltIn(s[z]))
  *   if match(u, t) == {toBuiltin(z) -> t'}
@@ -97,21 +99,20 @@ namespace quantifiers {
  * {
  *   if Sol<k> != null
  *     return
- *   if s is not ground
- *     instantiate s with arbitrary sygus datatype values
+ *   instantiate free variables of s with arbitrary sygus datatype values
  *   Sol<k> = s
  *   CandSols<k> += s
- *   S = {k}      // a stack to process
+ *   Stack = {k}
  *   while S != {}
- *     k' = pop(S)
+ *     k' = pop(Stack)
  *     for all k'' in CandSols keys
  *       for all s'[k'] in CandSols<k''>
  *         s'{k' -> Sol<k'>}
- *         if s' contains free variables not in Obs
- *           instantiate s with arbitrary sygus datatype values
- *         if s' is ground
+ *         if s' does not contain free variables in Obs
+ *           instantiate free variables of s' with arbitrary sygus datatype
+ *             values
  *           Sol<k''> = s'
- *           push(S, k'')
+ *           push(Stack, k'')
  * }
  */
 class SygusReconstruct : public expr::NotifyMatch
