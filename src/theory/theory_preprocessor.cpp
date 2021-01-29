@@ -109,13 +109,13 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   // run theory preprocessing
   TrustNode tpp = theoryPreprocess(irNode, newLemmas, newSkolems);
   Node ppNode = tpp.getNode();
-  
+
   Node pprNode = rewriteWithProof(ppNode, d_tpgRew.get(), true);
 
-  AlwaysAssert (Rewriter::rewrite(pprNode)==pprNode);
-      TrustNode ttfr = d_tfr.run(pprNode, newLemmas, newSkolems, false);
-      AlwaysAssert( ttfr.isNull()) << "Non-tfr: " << ppNode << std::endl;
-      
+  AlwaysAssert(Rewriter::rewrite(pprNode) == pprNode);
+  TrustNode ttfr = d_tfr.run(pprNode, newLemmas, newSkolems, false);
+  AlwaysAssert(ttfr.isNull()) << "Non-tfr: " << ppNode << std::endl;
+
   if (Trace.isOn("tpp-debug"))
   {
     if (node != irNode)
@@ -124,7 +124,9 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     }
     if (irNode != ppNode)
     {
-      Trace("tpp-debug") << "after preprocessing + rewriting and term formula removal : " << ppNode << std::endl;
+      Trace("tpp-debug")
+          << "after preprocessing + rewriting and term formula removal : "
+          << ppNode << std::endl;
     }
     if (ppNode != pprNode)
     {
@@ -280,9 +282,10 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion,
-                                    std::vector<TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems)
+TrustNode TheoryPreprocessor::theoryPreprocess(
+    TNode assertion,
+    std::vector<TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
@@ -299,7 +302,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion,
     TNode current = stackHead.node;
 
     Trace("theory::preprocess-debug")
-        << "TheoryPreprocessor::theoryPreprocess processing " << current << endl;
+        << "TheoryPreprocessor::theoryPreprocess processing " << current
+        << endl;
 
     // If node already in the cache we're done, pop from the stack
     NodeMap::iterator find = d_rtfCache.find(current);
@@ -320,8 +324,9 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion,
          << current;
       throw LogicException(ss.str());
     }
-    
-    Trace("ajr-temp") << "Theoryof(" << current << ")=" << Theory::theoryOf(current)  << std::endl;
+
+    Trace("ajr-temp") << "Theoryof(" << current
+                      << ")=" << Theory::theoryOf(current) << std::endl;
 
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL)
@@ -329,13 +334,14 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion,
       Trace("ajr-temp") << "PP atom: " << current << std::endl;
       Node ppRewritten = ppTheoryRewrite(current);
       Trace("ajr-temp") << "PP pp: " << ppRewritten << std::endl;
-      Assert(Rewriter::rewrite(ppRewritten)== ppRewritten);
-      if (isProofEnabled() && ppRewritten!=current)
+      Assert(Rewriter::rewrite(ppRewritten) == ppRewritten);
+      if (isProofEnabled() && ppRewritten != current)
       {
-        TrustNode trn = TrustNode::mkTrustRewrite(current, ppRewritten, d_tpg.get());
+        TrustNode trn =
+            TrustNode::mkTrustRewrite(current, ppRewritten, d_tpg.get());
         registerTrustedRewrite(trn, d_tpgRtf.get(), true);
       }
-      
+
       // term formula removal without fixed point, followed by rewrite here
       TrustNode ttfr = d_tfr.run(ppRewritten, newLemmas, newSkolems, false);
       Node rtfNode = ppRewritten;
@@ -366,7 +372,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion,
       // Mark the substitution and continue
       Node result = builder;
       Trace("theory::preprocess-debug")
-          << "TheoryPreprocessor::theoryPreprocess setting " << current << " -> " << result << endl;
+          << "TheoryPreprocessor::theoryPreprocess setting " << current
+          << " -> " << result << endl;
       d_rtfCache[current] = result;
       toVisit.pop_back();
     }
@@ -393,13 +400,14 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion,
       {
         // No children, so we're done
         Trace("theory::preprocess-debug")
-            << "SubstitutionMap::internalSubstitute setting " << current << " -> " << current << endl;
+            << "SubstitutionMap::internalSubstitute setting " << current
+            << " -> " << current << endl;
         d_rtfCache[current] = current;
         toVisit.pop_back();
       }
     }
   }
-  Assert (d_rtfCache.find(assertion)!=d_rtfCache.end());
+  Assert(d_rtfCache.find(assertion) != d_rtfCache.end());
   // Return the substituted version
   Node res = d_rtfCache[assertion];
   return TrustNode::mkTrustRewrite(assertion, res, d_tpg.get());
@@ -442,7 +450,9 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   return newTerm;
 }
 
-Node TheoryPreprocessor::rewriteWithProof(Node term, TConvProofGenerator* pg, bool isPre)
+Node TheoryPreprocessor::rewriteWithProof(Node term,
+                                          TConvProofGenerator* pg,
+                                          bool isPre)
 {
   Node termr = Rewriter::rewrite(term);
   // store rewrite step if tracking proofs and it rewrites
@@ -503,22 +513,24 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
 
 bool TheoryPreprocessor::isProofEnabled() const { return d_tpg != nullptr; }
 
-void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn, TConvProofGenerator* pg, bool isPre)
+void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn,
+                                                TConvProofGenerator* pg,
+                                                bool isPre)
 {
   if (!isProofEnabled() || trn.isNull())
   {
     return;
   }
-  Assert (trn.getKind()==TrustNodeKind::REWRITE);
+  Assert(trn.getKind() == TrustNodeKind::REWRITE);
   Node eq = trn.getProven();
   Node term = eq[0];
   Node termr = eq[1];
   if (trn.getGenerator() != nullptr)
   {
     Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (generator) "
-                        << term << " -> " << termr << std::endl;
+                       << term << " -> " << termr << std::endl;
     trn.debugCheckClosed("tpp-debug",
-                          "TheoryPreprocessor::preprocessWithProof");
+                         "TheoryPreprocessor::preprocessWithProof");
     // always use term context hash 0 (default)
     pg->addRewriteStep(
         term, termr, trn.getGenerator(), isPre, PfRule::ASSUME, true);
@@ -526,14 +538,14 @@ void TheoryPreprocessor::registerTrustedRewrite(TrustNode trn, TConvProofGenerat
   else
   {
     Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (trusted) "
-                        << term << " -> " << termr << std::endl;
+                       << term << " -> " << termr << std::endl;
     // small step trust
     pg->addRewriteStep(term,
-                          termr,
-                          PfRule::THEORY_PREPROCESS,
-                          {},
-                          {term.eqNode(termr)},
-                          isPre);
+                       termr,
+                       PfRule::THEORY_PREPROCESS,
+                       {},
+                       {term.eqNode(termr)},
+                       isPre);
   }
 }
 

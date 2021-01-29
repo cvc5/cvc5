@@ -90,8 +90,8 @@ class TheoryPreprocessor
    * parts of the node.
    */
   TrustNode theoryPreprocess(TNode node,
-                                    std::vector<TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems);
+                             std::vector<TrustNode>& newLemmas,
+                             std::vector<Node>& newSkolems);
   /**
    * Internal helper for preprocess, which also optionally preprocesses the
    * new lemmas generated until a fixed point is reached based on argument
@@ -161,7 +161,9 @@ class TheoryPreprocessor
    */
   Node preprocessWithProof(Node term);
   /** register rewrite based on trust node */
-  void registerTrustedRewrite(TrustNode trn, TConvProofGenerator* pg, bool isPre);
+  void registerTrustedRewrite(TrustNode trn,
+                              TConvProofGenerator* pg,
+                              bool isPre);
   /** Proofs enabled */
   bool isProofEnabled() const;
 };
