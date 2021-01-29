@@ -58,16 +58,20 @@ const std::set<Node>& SolverState::getElements(Node B)
   return d_bagElements[bag];
 }
 
+const std::set<Node>& SolverState::getDisequalBagTerms() { return d_deq; }
+
 void SolverState::reset()
 {
   d_bagElements.clear();
   d_bags.clear();
+  d_deq.clear();
 }
 
 void SolverState::initialize()
 {
   reset();
   collectBagsAndCountTerms();
+  collectDisequalBagTerms();
 }
 
 void SolverState::collectBagsAndCountTerms()
@@ -113,6 +117,21 @@ void SolverState::collectBagsAndCountTerms()
 
   Trace("bags-eqc") << "bag representatives: " << d_bags << endl;
   Trace("bags-eqc") << "bag elements: " << d_bagElements << endl;
+}
+
+void SolverState::collectDisequalBagTerms()
+{
+  eq::EqClassIterator it = eq::EqClassIterator(d_false, d_ee);
+  while (!it.isFinished())
+  {
+    Node n = (*it);
+    if (n.getKind() == EQUAL && n[0].getType().isBag())
+    {
+      Trace("bags-eqc") << "Disequal terms: " << n << std::endl;
+      d_deq.insert(n);
+    }
+    ++it;
+  }
 }
 
 }  // namespace bags

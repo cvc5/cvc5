@@ -42,6 +42,8 @@ class BagSolver
   void postCheck();
 
  private:
+  /** apply inference rules for empty bags */
+  void checkEmpty(const Node& n);
   /**
    * apply inference rules for MK_BAG operator.
    * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
@@ -71,6 +73,8 @@ class BagSolver
   void checkDuplicateRemoval(Node n);
   /** apply non negative constraints for multiplicities */
   void checkNonNegativeCountTerms(const Node& bag, const Node& element);
+  /** apply inference rules for disequal bag terms */
+  void checkDisequalBagTerms();
 
   /** The solver state object */
   SolverState& d_state;
@@ -85,7 +89,6 @@ class BagSolver
   Node d_false;
   Node d_zero;
   Node d_one;
-  void checkEmpty(const Node& n);
 }; /* class BagSolver */
 
 }  // namespace bags

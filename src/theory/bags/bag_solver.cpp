@@ -41,6 +41,8 @@ void BagSolver::postCheck()
 {
   d_state.initialize();
 
+  checkDisequalBagTerms();
+
   // At this point, all bag and count representatives should be in the solver
   // state.
   for (const Node& bag : d_state.getBags())
@@ -191,6 +193,15 @@ void BagSolver::checkDuplicateRemoval(Node n)
   {
     InferInfo i = d_ig.duplicateRemoval(n, e);
     i.process(&d_im, true);
+  }
+}
+
+void BagSolver::checkDisequalBagTerms()
+{
+  for (const Node& n : d_state.getDisequalBagTerms())
+  {
+    InferInfo info = d_ig.bagDisequality(n.notNode(), d_true);
+    info.process(&d_im, true);
   }
 }
 

@@ -222,15 +222,7 @@ void TheoryBags::eqNotifyNewClass(TNode n) {}
 
 void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
 
-void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
-{
-  TypeNode t1 = n1.getType();
-  if (t1.isBag())
-  {
-    InferInfo info = d_ig.bagDisequality(n1.eqNode(n2).notNode(), reason);
-    info.process(d_inferManager, true);
-  }
-}
+void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason) {}
 
 void TheoryBags::NotifyClass::eqNotifyNewClass(TNode n)
 {
