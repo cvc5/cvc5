@@ -1456,7 +1456,6 @@ void SmtEngine::checkUnsatCore() {
   // initialize the core checker
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
-  coreChecker->getOptions().set(options::unsatCores, false);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
   coreChecker->getOptions().set(options::proofNew, false);
