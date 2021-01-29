@@ -112,10 +112,6 @@ TrustNode TheoryPreprocessor::preprocessInternal(
 
   Node pprNode = rewriteWithProof(ppNode, d_tpgRew.get(), true);
 
-  AlwaysAssert(Rewriter::rewrite(pprNode) == pprNode);
-  TrustNode ttfr = d_tfr.run(pprNode, newLemmas, newSkolems, false);
-  AlwaysAssert(ttfr.isNull()) << "Non-tfr: " << ppNode << std::endl;
-
   if (Trace.isOn("tpp-debug"))
   {
     if (node != irNode)
@@ -152,9 +148,9 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     cterms.push_back(ppNode);
     cterms.push_back(pprNode);
     // We have that:
-    // node -> ppNode via preprocessing + rewriting
-    // ppNode -> rtfNode via term formula removal
-    // rtfNode -> retNode via rewriting
+    // node -> irNode via rewriting
+    // irNode -> ppNode via theory-preprocessing + rewriting + tf removal
+    // ppNode -> pprNode via rewriting
     tret = d_tspg->mkTrustRewriteSequence(cterms);
     tret.debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_ret");
   }
@@ -312,28 +308,24 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       toVisit.pop_back();
       continue;
     }
+    
+    TheoryId tid = Theory::theoryOf(current);
 
-    if (!d_logicInfo.isTheoryEnabled(Theory::theoryOf(current))
-        && Theory::theoryOf(current) != THEORY_SAT_SOLVER)
+    if (!d_logicInfo.isTheoryEnabled(tid)
+        && tid != THEORY_SAT_SOLVER)
     {
       stringstream ss;
       ss << "The logic was specified as " << d_logicInfo.getLogicString()
-         << ", which doesn't include " << Theory::theoryOf(current)
+         << ", which doesn't include " << tid
          << ", but got a preprocessing-time fact for that theory." << endl
          << "The fact:" << endl
          << current;
       throw LogicException(ss.str());
     }
-
-    Trace("ajr-temp") << "Theoryof(" << current
-                      << ")=" << Theory::theoryOf(current) << std::endl;
-
     // If this is an atom, we preprocess its terms with the theory ppRewriter
-    if (Theory::theoryOf(current) != THEORY_BOOL)
+    if (tid != THEORY_BOOL)
     {
-      Trace("ajr-temp") << "PP atom: " << current << std::endl;
       Node ppRewritten = ppTheoryRewrite(current);
-      Trace("ajr-temp") << "PP pp: " << ppRewritten << std::endl;
       Assert(Rewriter::rewrite(ppRewritten) == ppRewritten);
       if (isProofEnabled() && ppRewritten != current)
       {
@@ -342,13 +334,14 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         registerTrustedRewrite(trn, d_tpgRtf.get(), true);
       }
 
-      // term formula removal without fixed point, followed by rewrite here
+      // Term formula removal without fixed point. We do not need to do fixed
+      // point since newLemmas are theory-preprocessed until fixed point in
+      // preprocessInternal (at top-level, when procLemmas=true).
       TrustNode ttfr = d_tfr.run(ppRewritten, newLemmas, newSkolems, false);
       Node rtfNode = ppRewritten;
       if (!ttfr.isNull())
       {
         rtfNode = ttfr.getNode();
-        Trace("ajr-temp") << "PP rtf: " << rtfNode << std::endl;
         registerTrustedRewrite(ttfr, d_tpgRtf.get(), true);
       }
       d_rtfCache[current] = rtfNode;
@@ -450,7 +443,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   return newTerm;
 }
 
-Node TheoryPreprocessor::rewriteWithProof(Node term,
+Node TheoryPreprocessor::rewriteWithProof(TNode term,
                                           TConvProofGenerator* pg,
                                           bool isPre)
 {
@@ -507,6 +500,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   {
     registerTrustedRewrite(trn, d_tpg.get(), false);
   }
+  // Rewrite again here, which notice is a *pre* rewrite.
   termr = rewriteWithProof(termr, d_tpg.get(), true);
   return ppTheoryRewrite(termr);
 }

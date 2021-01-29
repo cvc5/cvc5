@@ -38,6 +38,34 @@ namespace theory {
 
 /**
  * The preprocessor used in TheoryEngine.
+ * 
+ * A summary of the steps taken by the method preprocess:
+ * 
+ * [1] 
+ * apply rewriter
+ * [2] 
+ * TRAVERSE(
+ *   prerewrite:
+ *    if theory atom {
+ *      TRAVERSE(
+ *        prerewrite:
+ *          // nothing
+ *        postrewrite:
+ *          apply rewriter
+ *          apply ppRewrite
+ *            if changed
+ *              apply rewriter
+ *              REPEAT traversal
+ *      )
+ *      apply term formula removal
+ *    }
+ *  postrewrite: // for Boolean connectives
+ *    // nothing
+ * )
+ * [3]
+ * apply rewriter
+ * 
+ * Note that the rewriter must be applied beforehand, since 
  */
 class TheoryPreprocessor
 {
@@ -114,9 +142,16 @@ class TheoryPreprocessor
   TheoryEngine& d_engine;
   /** Logic info of theory engine */
   const LogicInfo& d_logicInfo;
-  /** Cache for theory-preprocessing of assertions */
+  /** 
+   * Cache for theory-preprocessing of theory atoms. The domain of this map
+   * are terms that appear within theory atoms given to this class.
+   */
   NodeMap d_ppCache;
-  /** Cache for theory-preprocessing + rtf of assertions */
+  /**
+   * Cache for theory-preprocessing + term formula removal of the Boolean
+   * structure of assertions. The domain of this map are the Boolean
+   * connectives and theory atoms given to this class.
+   */
   NodeMap d_rtfCache;
   /** The term formula remover */
   RemoveTermFormulas d_tfr;
@@ -124,33 +159,43 @@ class TheoryPreprocessor
   InQuantTermContext d_iqtc;
   /**
    * A term conversion proof generator storing preprocessing and rewriting
-   * steps.
+   * steps, which is done until fixed point in the inner traversal of this
+   * class for theory atoms in step [2] above.
    */
   std::unique_ptr<TConvProofGenerator> d_tpg;
   /**
-   * A term conversion proof generator storing term formula removal steps,
-   * and combined steps from above.
+   * A term conversion proof generator storing large steps from d_tpg (results
+   * of its fixed point) and term formula removal steps for the outer traversal
+   * of this class for theory atoms in step [2] above.
    */
   std::unique_ptr<TConvProofGenerator> d_tpgRtf;
   /**
    * A term conversion proof generator storing rewriting steps, which is used
-   * for calls to preprocess when doTheoryPreprocess is false. We store
-   * (top-level) rewrite steps only. Notice this is intentionally separate
-   * from d_tpg, which interleaves both preprocessing and rewriting.
+   * for top-level rewriting before and after the preprocessing pass, steps
+   * [1] and [3] above.
    */
   std::unique_ptr<TConvProofGenerator> d_tpgRew;
   /**
-   * A term conversion sequence generator, which applies theory preprocessing,
-   * term formula removal, and rewriting in sequence.
+   * A term conversion sequence generator, which applies rewriting,
+   * (theory-preprocessing + rewriting + term formula removal), rewriting again
+   * in sequence, given by d_tpgRew, d_tpgRtf, d_tppRew.
    */
   std::unique_ptr<TConvSeqProofGenerator> d_tspg;
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
-  /** Helper for theoryPreprocess */
+  /**
+   * Helper for theoryPreprocess, which traverses the provided term and
+   * applies ppRewrite and rewriting until fixed point on term using
+   * the method preprocessWithProof helper below.
+   */
   Node ppTheoryRewrite(TNode term);
   /**
-   * Rewrite with proof, which stores a REWRITE step in d_tpg if necessary
+   * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
+   * 
+   * @param term The term to rewrite
+   * @param pg The proof generator to register to
+   * @param isPre whether the rewrite is a pre-rewrite.
    */
   Node rewriteWithProof(Node term, TConvProofGenerator* pg, bool isPre);
   /**
@@ -160,7 +205,15 @@ class TheoryPreprocessor
    * term is already in rewritten form.
    */
   Node preprocessWithProof(Node term);
-  /** register rewrite based on trust node */
+  /** 
+   * Register rewrite trn based on trust node into term conversion generator
+   * pg, which uses THEORY_PREPROCESS as a step if no proof generator is
+   * provided in trn.
+   * 
+   * @param trn The REWRITE trust node
+   * @param pg The proof generator to register to
+   * @param isPre whether the rewrite is a pre-rewrite.
+   */
   void registerTrustedRewrite(TrustNode trn,
                               TConvProofGenerator* pg,
                               bool isPre);
