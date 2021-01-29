@@ -118,13 +118,15 @@ Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
   return skolem;
 }
 
-InferInfo InferenceGenerator::bagEmpty(Node e)
+InferInfo InferenceGenerator::empty(Node n, Node e)
 {
-  EmptyBag emptyBag = EmptyBag(d_nm->mkBagType(e.getType()));
-  Node empty = d_nm->mkConst(emptyBag);
+  Assert(n.getKind() == kind::EMPTYBAG);
+  Assert(e.getType() == n.getType().getBagElementType());
+
   InferInfo inferInfo;
+  Node skolem = getSkolem(n, inferInfo);
   inferInfo.d_id = Inference::BAG_EMPTY;
-  Node count = getMultiplicityTerm(e, empty);
+  Node count = getMultiplicityTerm(e, skolem);
 
   Node equal = count.eqNode(d_zero);
   inferInfo.d_conclusion = equal;

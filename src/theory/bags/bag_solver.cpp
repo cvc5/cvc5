@@ -54,6 +54,7 @@ void BagSolver::postCheck()
       Kind k = n.getKind();
       switch (k)
       {
+        case kind::EMPTYBAG: checkEmpty(n); break;
         case kind::MK_BAG: checkMkBag(n); break;
         case kind::UNION_DISJOINT: checkUnionDisjoint(n); break;
         case kind::UNION_MAX: checkUnionMax(n); break;
@@ -91,6 +92,18 @@ set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
             inserter(elements, elements.begin()));
   elements.insert(upwards1.begin(), upwards1.end());
   return elements;
+}
+
+void BagSolver::checkEmpty(const Node& n)
+{
+  Assert(n.getKind() == EMPTYBAG);
+  for (const Node& e : d_state.getElements(n))
+  {
+    InferenceGenerator ig(&d_state);
+    InferInfo i = ig.empty(n, e);
+    i.process(&d_im, true);
+    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
 }
 
 void BagSolver::checkUnionDisjoint(const Node& n)

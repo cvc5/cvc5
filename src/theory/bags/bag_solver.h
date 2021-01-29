@@ -82,6 +82,7 @@ class BagSolver
   Node d_false;
   Node d_zero;
   Node d_one;
+  void checkEmpty(const Node& n);
 }; /* class BagSolver */
 
 }  // namespace bags
