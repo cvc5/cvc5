@@ -34,7 +34,6 @@
 #include "api/cvc4cpp.h"
 
 #include <cstring>
-#include <regex>
 #include <sstream>
 
 #include "base/check.h"
@@ -1080,6 +1079,30 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   }
   Assert(d_type->isSortConstructor());
   return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
+}
+
+Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
+{
+  NodeManagerScope scope(d_solver->getNodeManager());
+  return Sort(
+      d_solver,
+      d_type->substitute(sort.getTypeNode(), replacement.getTypeNode()));
+}
+
+Sort Sort::substitute(const std::vector<Sort>& sorts,
+                      const std::vector<Sort>& replacements) const
+{
+  NodeManagerScope scope(d_solver->getNodeManager());
+
+  std::vector<CVC4::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
+                              tReplacements =
+                                  sortVectorToTypeNodes(replacements);
+
+  return Sort(d_solver,
+              d_type->substitute(tSorts.begin(),
+                                 tSorts.end(),
+                                 tReplacements.begin(),
+                                 tReplacements.end()));
 }
 
 std::string Sort::toString() const
@@ -3900,11 +3923,48 @@ Term Solver::mkPi() const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+bool Solver::isValidInteger(const std::string& s) const
+{
+  if (s.length() == 0)
+  {
+    // string should not be empty
+    return false;
+  }
+
+  size_t index = 0;
+  if (s[index] == '-')
+  {
+    if (s.length() == 1)
+    {
+      // negative integers should contain at least one digit
+      return false;
+    }
+    index = 1;
+  }
+
+  if (s[index] == '0' && s.length() > (index + 1))
+  {
+    // From SMT-Lib 2.6: A〈numeral〉is the digit 0 or a non-empty sequence of
+    // digits not starting with 0. So integers like 001, 000 are not allowed
+    return false;
+  }
+
+  // all remaining characters should be decimal digits
+  for (; index < s.length(); ++index)
+  {
+    if (!std::isdigit(s[index]))
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 Term Solver::mkInteger(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(std::regex_match(s, std::regex("-?\\d+")), s)
-      << " an integer ";
+  CVC4_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
   Term integer = mkRealFromStrHelper(s);
   CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " an integer";

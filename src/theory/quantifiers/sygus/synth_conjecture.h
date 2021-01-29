@@ -82,7 +82,9 @@ class EnumValGenerator
 class SynthConjecture
 {
  public:
-  SynthConjecture(QuantifiersEngine* qe, SygusStatistics& s);
+  SynthConjecture(QuantifiersEngine* qe,
+                  QuantifiersState& qs,
+                  SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
   void presolve();
@@ -199,6 +201,8 @@ class SynthConjecture
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */

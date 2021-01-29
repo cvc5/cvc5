@@ -127,6 +127,7 @@ ProofManager* currentProofManager();
 namespace theory {
   class TheoryModel;
   class Rewriter;
+  class QuantifiersEngine;
 }/* CVC4::theory namespace */
 
 
@@ -675,6 +676,14 @@ class CVC4_PUBLIC SmtEngine
    */
   void getInstantiationTermVectors(Node q,
                                    std::vector<std::vector<Node>>& tvecs);
+  /**
+   * Get instantiation term vectors, which maps each instantiated quantified
+   * formula to the list of instantiations for that quantified formula. This
+   * list is minimized if proofs are enabled, and this call is immediately
+   * preceded by an UNSAT or ENTAILED query
+   */
+  void getInstantiationTermVectors(
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
@@ -964,10 +973,19 @@ class CVC4_PUBLIC SmtEngine
    * by this class is currently available, which means that CVC4 is producing
    * models, and is in "SAT mode", otherwise a recoverable exception is thrown.
    *
-   * The flag c is used for giving an error message to indicate the context
+   * @param c used for giving an error message to indicate the context
    * this method was called.
    */
   smt::Model* getAvailableModel(const char* c) const;
+  /**
+   * Get available quantifiers engine, which throws a modal exception if it
+   * does not exist. This can happen if a quantifiers-specific call (e.g.
+   * getInstantiatedQuantifiedFormulas) is called in a non-quantified logic.
+   *
+   * @param c used for giving an error message to indicate the context
+   * this method was called.
+   */
+  theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**

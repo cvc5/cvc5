@@ -73,29 +73,6 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p);
 class Theory;
 
 /**
- * A LemmaStatus, returned from OutputChannel::lemma(), provides information
- * about the lemma added.  In particular, it contains the T-rewritten lemma
- * for inspection and the user-level at which the lemma will reside.
- */
-class LemmaStatus {
- public:
-  LemmaStatus(TNode rewrittenLemma, unsigned level);
-
-  /** Get the T-rewritten form of the lemma. */
-  TNode getRewrittenLemma() const;
-  /**
-   * Get the user-level at which the lemma resides.  After this user level
-   * is popped, the lemma is un-asserted from the SAT layer.  This level
-   * will be 0 if the lemma didn't reach the SAT layer at all.
-   */
-  unsigned getLevel() const;
-
- private:
-  Node d_rewrittenLemma;
-  unsigned d_level;
-}; /* class LemmaStatus */
-
-/**
  * Generic "theory output channel" interface.
  *
  * All methods can throw unrecoverable CVC4::Exception's unless otherwise
@@ -150,10 +127,8 @@ class OutputChannel {
    *
    * @param n - a theory lemma valid at decision level 0
    * @param p The properties of the lemma
-   * @return the "status" of the lemma, including user level at which
-   * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual LemmaStatus lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
+  virtual void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to
@@ -161,9 +136,9 @@ class OutputChannel {
    *
    * @param n - a theory atom; must be of Boolean type
    */
-  LemmaStatus split(TNode n);
+  void split(TNode n);
 
-  virtual LemmaStatus splitLemma(TNode n, bool removable = false) = 0;
+  virtual void splitLemma(TNode n, bool removable = false) = 0;
 
   /**
    * If a decision is made on n, it must be in the phase specified.
@@ -227,8 +202,8 @@ class OutputChannel {
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  virtual LemmaStatus trustedLemma(TrustNode lem,
-                                   LemmaProperty p = LemmaProperty::NONE);
+  virtual void trustedLemma(TrustNode lem,
+                            LemmaProperty p = LemmaProperty::NONE);
   //---------------------------- end new proof
 }; /* class OutputChannel */
 

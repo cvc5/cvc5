@@ -379,7 +379,7 @@ public:
     tryGoodExpr("1.5");
     tryGoodExpr("#xfab09c7");
     tryGoodExpr("#b0001011");
-    tryGoodExpr("(* 5 01)"); // '01' is OK in non-strict mode
+    tryGoodExpr("(* 5 1)");
   }
 
   void testBadSmt2Exprs() {

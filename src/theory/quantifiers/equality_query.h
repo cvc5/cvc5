@@ -21,6 +21,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -28,11 +29,7 @@ namespace quantifiers {
 
 /** EqualityQueryQuantifiersEngine class
  *
- * This is a wrapper class around an equality engine that is used for
- * queries required by algorithms in the quantifiers theory. It uses an equality
- * engine, as determined by the quantifiers engine it points to.
- *
- * The main extension of this class wrt EqualityQuery is the function
+ * The main method of this class is the function
  * getInternalRepresentative, which is used by instantiation-based methods
  * that are agnostic with respect to choosing terms within an equivalence class.
  * Examples of such methods are finite model finding and enumerative
@@ -40,10 +37,10 @@ namespace quantifiers {
  * representative based on the internal heuristic, which is currently based on
  * choosing the term that was previously chosen as a representative earliest.
  */
-class EqualityQueryQuantifiersEngine : public EqualityQuery
+class EqualityQueryQuantifiersEngine : public QuantifiersUtil
 {
  public:
-  EqualityQueryQuantifiersEngine(context::Context* c, QuantifiersEngine* qe);
+  EqualityQueryQuantifiersEngine(QuantifiersState& qs, QuantifiersEngine* qe);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   bool reset(Theory::Effort e) override;
@@ -51,32 +48,6 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
   void registerQuantifier(Node q) override {}
   /** identify */
   std::string identify() const override { return "EqualityQueryQE"; }
-  /** does the equality engine have term a */
-  bool hasTerm(Node a) override;
-  /** get the representative of a */
-  Node getRepresentative(Node a) override;
-  /** are a and b equal? */
-  bool areEqual(Node a, Node b) override;
-  /** are a and b disequal? */
-  bool areDisequal(Node a, Node b) override;
-  /** get equality engine
-  * This may either be the master equality engine or the model's equality
-  * engine.
-  */
-  eq::EqualityEngine* getEngine() override;
-  /** get list of members in the equivalence class of a */
-  void getEquivalenceClass(Node a, std::vector<Node>& eqc) override;
-  /** get congruent term
-  * If possible, returns a term n such that:
-  * (1) n is a term in the equality engine from getEngine().
-  * (2) n is of the form f( t1, ..., tk ) where ti is in the equivalence class
-  * of args[i] for i=1...k
-  * Otherwise, returns the null node.
-  *
-  * Notice that f should be a "match operator", returned by
-  * TermDb::getMatchOperator.
-  */
-  TNode getCongruentTerm(Node f, std::vector<TNode>& args) override;
   /** gets the current best representative in the equivalence
    * class of a, based on some heuristic. Currently, the default heuristic
    * chooses terms that were previously chosen as representatives
@@ -96,6 +67,8 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
  private:
   /** pointer to theory engine */
   QuantifiersEngine* d_qe;
+  /** the quantifiers state */
+  QuantifiersState& d_qstate;
   /** quantifiers equality inference */
   context::CDO< unsigned > d_eqi_counter;
   /** internal representatives */

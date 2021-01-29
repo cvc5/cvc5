@@ -503,35 +503,37 @@ api::Sort SymbolTable::Implementation::lookupType(
     PrettyCheckArgument(p.second.isUninterpretedSort(), name.c_str());
     return p.second;
   }
-  if (p.second.isSortConstructor()) {
-    if (Debug.isOn("sort")) {
-      Debug("sort") << "instantiating using a sort constructor" << endl;
-      Debug("sort") << "have formals [";
-      copy(p.first.begin(),
-           p.first.end() - 1,
-           ostream_iterator<api::Sort>(Debug("sort"), ", "));
-      Debug("sort") << p.first.back() << "]" << endl << "parameters   [";
-      copy(params.begin(),
-           params.end() - 1,
-           ostream_iterator<api::Sort>(Debug("sort"), ", "));
-      Debug("sort") << params.back() << "]" << endl
-                    << "type ctor    " << name << endl
-                    << "type is      " << p.second << endl;
-    }
-
-    api::Sort instantiation = p.second.instantiate(params);
-
-    Debug("sort") << "instance is  " << instantiation << endl;
-
-    return instantiation;
-  } else if (p.second.isDatatype()) {
+  if (p.second.isDatatype())
+  {
     PrettyCheckArgument(
         p.second.isParametricDatatype(), name, "expected parametric datatype");
     return p.second.instantiate(params);
   }
-  // failed to instantiate
-  Unhandled() << "Could not instantiate sort";
-  return p.second;
+  bool isSortConstructor = p.second.isSortConstructor();
+  if (Debug.isOn("sort"))
+  {
+    Debug("sort") << "instantiating using a sort "
+                  << (isSortConstructor ? "constructor" : "substitution")
+                  << std::endl;
+    Debug("sort") << "have formals [";
+    copy(p.first.begin(),
+         p.first.end() - 1,
+         ostream_iterator<api::Sort>(Debug("sort"), ", "));
+    Debug("sort") << p.first.back() << "]" << std::endl << "parameters   [";
+    copy(params.begin(),
+         params.end() - 1,
+         ostream_iterator<api::Sort>(Debug("sort"), ", "));
+    Debug("sort") << params.back() << "]" << endl
+                  << "type ctor    " << name << std::endl
+                  << "type is      " << p.second << std::endl;
+  }
+  api::Sort instantiation = isSortConstructor
+                                ? p.second.instantiate(params)
+                                : p.second.substitute(p.first, params);
+
+  Debug("sort") << "instance is  " << instantiation << std::endl;
+
+  return instantiation;
 }
 
 size_t SymbolTable::Implementation::lookupArity(const string& name) {

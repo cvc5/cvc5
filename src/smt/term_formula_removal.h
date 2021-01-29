@@ -130,12 +130,10 @@ class RemoveTermFormulas {
    * Get the set of skolems introduced by this class that occur in node n,
    * add them to skolems.
    *
-   * This method uses an optimization that returns false immediately if n
-   * was unchanged by term formula removal, based on the initial context.
-   *
-   * Return true if any nodes were added to skolems.
+   * @param n The node to traverse
+   * @param skolems The set where the skolems are added
    */
-  bool getSkolems(TNode n,
+  void getSkolems(TNode n,
                   std::unordered_set<Node, NodeHashFunction>& skolems) const;
 
   /**

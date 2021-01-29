@@ -156,9 +156,7 @@ class TheoryEngine {
   std::unique_ptr<theory::CombinationEngine> d_tc;
   /** The shared solver of the above combination engine. */
   theory::SharedSolver* d_sharedSolver;
-  /**
-   * The quantifiers engine
-   */
+  /** The quantifiers engine, which is owned by the quantifiers theory */
   theory::QuantifiersEngine* d_quantEngine;
   /**
    * The decision manager
@@ -276,13 +274,11 @@ class TheoryEngine {
    * @param p the properties of the lemma.
    * @param atomsTo the theory that atoms of the lemma should be sent to
    * @param from the theory that sent the lemma
-   * @return a lemma status, containing the lemma and context information
-   * about when it was sent.
    */
-  theory::LemmaStatus lemma(theory::TrustNode node,
-                            theory::LemmaProperty p,
-                            theory::TheoryId atomsTo = theory::THEORY_LAST,
-                            theory::TheoryId from = theory::THEORY_LAST);
+  void lemma(theory::TrustNode node,
+             theory::LemmaProperty p,
+             theory::TheoryId atomsTo = theory::THEORY_LAST,
+             theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -588,22 +584,6 @@ class TheoryEngine {
    */
   void setEagerModelBuilding() { d_eager_model_building = true; }
 
-  /** get synth solutions
-   *
-   * This method returns true if there is a synthesis solution available. This
-   * is the case if the last call to check satisfiability originated in a
-   * check-synth call, and the synthesis solver successfully found a solution
-   * for all active synthesis conjectures.
-   *
-   * This method adds entries to sol_map that map functions-to-synthesize with
-   * their solutions, for all active conjectures. This should be called
-   * immediately after the solver answers unsat for sygus input.
-   *
-   * For details on what is added to sol_map, see
-   * SynthConjecture::getSynthSolutions.
-   */
-  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-
   /**
    * Get the theory associated to a given Node.
    *
@@ -650,43 +630,6 @@ class TheoryEngine {
    * has (or null if none);
    */
   Node getModelValue(TNode var);
-
-  /**
-   * Takes a literal and returns an equivalent literal that is guaranteed to be
-   * a SAT literal. This rewrites and preprocesses n, which notice may involve
-   * adding clauses to the SAT solver if preprocessing n involves introducing
-   * new skolems.
-   */
-  Node ensureLiteral(TNode n);
-  /**
-   * This returns the theory-preprocessed form of term n. This rewrites and
-   * preprocesses n, which notice may involve adding clauses to the SAT solver
-   * if preprocessing n involves introducing new skolems.
-   */
-  Node getPreprocessedTerm(TNode n);
-  /**
-   * Print all instantiations made by the quantifiers module.
-   */
-  void printInstantiations( std::ostream& out );
-
-  /**
-   * Print solution for synthesis conjectures found by ce_guided_instantiation module
-   */
-  void printSynthSolution( std::ostream& out );
-
-  /**
-   * Get list of quantified formulas that were instantiated
-   */
-  void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
-
-  /**
-   * Get instantiation methods
-   *   the first given forall x.q[x] returns ( a, ..., z )
-   *   the second returns mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
-   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
-   */
-  void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
-  void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

@@ -13,6 +13,7 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -41,7 +42,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
     d_match_pattern = d_match_pattern[0];
     Assert(!quantifiers::TermUtil::hasInstConstAttr(d_eqc));
   }
-  Assert(Trigger::isSimpleTrigger(d_match_pattern));
+  Assert(TriggerTermInfo::isSimpleTrigger(d_match_pattern));
   for (size_t i = 0, nchild = d_match_pattern.getNumChildren(); i < nchild; i++)
   {
     if (d_match_pattern[i].getKind() == INST_CONSTANT)
@@ -66,6 +67,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
                                                      QuantifiersEngine* qe,
                                                      Trigger* tparent)
 {
+  quantifiers::QuantifiersState& qs = qe->getState();
   uint64_t addedLemmas = 0;
   TNodeTrie* tat;
   if (d_eqc.isNull())
@@ -82,16 +84,16 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
     {
       // iterate over all classes except r
       tat = qe->getTermDatabase()->getTermArgTrie(Node::null(), d_op);
-      if (tat && !qe->inConflict())
+      if (tat && !qs.isInConflict())
       {
-        Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
+        Node r = qs.getRepresentative(d_eqc);
         for (std::pair<const TNode, TNodeTrie>& t : tat->d_data)
         {
           if (t.first != r)
           {
             InstMatch m(q);
             addInstantiations(m, qe, addedLemmas, 0, &(t.second));
-            if (qe->inConflict())
+            if (qs.isInConflict())
             {
               break;
             }
@@ -104,7 +106,7 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
   Debug("simple-trigger-debug")
       << "Adding instantiations based on " << tat << " from " << d_op << " "
       << d_eqc << std::endl;
-  if (tat && !qe->inConflict())
+  if (tat && !qs.isInConflict())
   {
     InstMatch m(q);
     addInstantiations(m, qe, addedLemmas, 0, tat);
@@ -145,6 +147,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     return;
   }
+  quantifiers::QuantifiersState& qs = qe->getState();
   if (d_match_pattern[argIndex].getKind() == INST_CONSTANT)
   {
     int v = d_var_num[argIndex];
@@ -161,7 +164,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
           m.setValue(v, t);
           addInstantiations(m, qe, addedLemmas, argIndex + 1, &(tt.second));
           m.setValue(v, prev);
-          if (qe->inConflict())
+          if (qs.isInConflict())
           {
             break;
           }
@@ -171,7 +174,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // inst constant from another quantified formula, treat as ground term?
   }
-  Node r = qe->getEqualityQuery()->getRepresentative(d_match_pattern[argIndex]);
+  Node r = qs.getRepresentative(d_match_pattern[argIndex]);
   std::map<TNode, TNodeTrie>::iterator it = tat->d_data.find(r);
   if (it != tat->d_data.end())
   {

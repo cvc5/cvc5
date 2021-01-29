@@ -719,6 +719,7 @@ set(regress_0_tests
   regress0/parser/bv_nat.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
+  regress0/parser/define_sort.smt2
   regress0/parser/force_logic_set_logic.smt2
   regress0/parser/force_logic_success.smt2
   regress0/parser/issue5163.smt2
@@ -1552,7 +1553,7 @@ set(regress_1_tests
   regress1/issue3990-sort-inference.smt2
   regress1/issue4273-ext-rew-cache.smt2
   regress1/issue4335-unsat-core.smt2
-  regress1/issue5739-rtf-processed.smt2 
+  regress1/issue5739-rtf-processed.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smtv1.smt2
   regress1/lemmas/pursuit-safety-8.smtv1.smt2
   regress1/lemmas/simple_startup_9nodes.abstract.base.smtv1.smt2
@@ -1699,7 +1700,6 @@ set(regress_1_tests
   regress1/quantifiers/RNDPRE_4_1-dd-nqe.smt2
   regress1/quantifiers/RND_4_1-existing-inst.smt2
   regress1/quantifiers/RND_4_16.smt2
-  regress1/quantifiers/anti-sk-simp.smt2
   regress1/quantifiers/ari118-bv-2occ-x.smt2
   regress1/quantifiers/arith-rec-fun.smt2
   regress1/quantifiers/array-unsat-simp3.smt2
@@ -1716,7 +1716,6 @@ set(regress_1_tests
   regress1/quantifiers/constfunc.cvc
   regress1/quantifiers/dt-tc-opt-small.smt2
   regress1/quantifiers/dump-inst-i.smt2
-  regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
   regress1/quantifiers/eqrange_ex_1.smt2
   regress1/quantifiers/ext-ex-deq-trigger.smt2
@@ -1822,6 +1821,7 @@ set(regress_1_tests
   regress1/quantifiers/smtlibf957ea.smt2
   regress1/quantifiers/sygus-infer-nested.smt2
   regress1/quantifiers/symmetric_unsat_7.smt2
+  regress1/quantifiers/tpp-unit-fail-qbv.smt2
   regress1/quantifiers/var-eq-trigger.smt2
   regress1/quantifiers/var-eq-trigger-simple.smt2
   regress1/quantifiers/z3.620661-no-fv-trigger.smt2
@@ -2492,8 +2492,12 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # slow with sygus-inference after removing anti-skolemization
+  regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
   regress1/quantifiers/arith-snorm.smt2
+  # until we have support for minimizing instantiations based on unsat core
+  regress1/quantifiers/dump-inst-proof.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build, ok with other builds:
