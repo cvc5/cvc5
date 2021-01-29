@@ -1430,6 +1430,11 @@ set(regress_1_tests
   regress1/bug800.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
+  regress1/bags/duplicate_removal1.smt2
+  regress1/bags/duplicate_removal2.smt2
+  regress1/bags/emptybag1.smt2
+  regress1/bags/intersection_min1.smt2
+  regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
