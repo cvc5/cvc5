@@ -442,7 +442,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   return newTerm;
 }
 
-Node TheoryPreprocessor::rewriteWithProof(TNode term,
+Node TheoryPreprocessor::rewriteWithProof(Node term,
                                           TConvProofGenerator* pg,
                                           bool isPre)
 {
