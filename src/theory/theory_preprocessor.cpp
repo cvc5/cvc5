@@ -421,6 +421,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
 
 Node TheoryPreprocessor::rewriteWithProof(Node term)
 {
+  // FIXME (project #37): should properly distinguish pre vs post rewrite
   Node termr = Rewriter::rewrite(term);
   // store rewrite step if tracking proofs and it rewrites
   if (isProofEnabled())
@@ -431,7 +432,7 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
                          << term << " -> " << termr << std::endl;
       // always use term context hash 0 (default)
-      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
+      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, false);
     }
   }
   return termr;
@@ -470,6 +471,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   }
   Node termr = trn.getNode();
   Assert(term != termr);
+  // FIXME (project #37): should properly distinguish pre vs post rewrite
   if (isProofEnabled())
   {
     if (trn.getGenerator() != nullptr)
@@ -480,15 +482,19 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
                            "TheoryPreprocessor::preprocessWithProof");
       // always use term context hash 0 (default)
       d_tpg->addRewriteStep(
-          term, termr, trn.getGenerator(), PfRule::ASSUME, true);
+          term, termr, trn.getGenerator(), false, PfRule::ASSUME, true);
     }
     else
     {
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (trusted) "
                          << term << " -> " << termr << std::endl;
       // small step trust
-      d_tpg->addRewriteStep(
-          term, termr, PfRule::THEORY_PREPROCESS, {}, {term.eqNode(termr)});
+      d_tpg->addRewriteStep(term,
+                            termr,
+                            PfRule::THEORY_PREPROCESS,
+                            {},
+                            {term.eqNode(termr)},
+                            false);
     }
   }
   termr = rewriteWithProof(termr);
