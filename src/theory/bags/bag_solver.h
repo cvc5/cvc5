@@ -20,6 +20,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/bags/infer_info.h"
+#include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/normal_form.h"
 #include "theory/bags/solver_state.h"
@@ -73,6 +74,8 @@ class BagSolver
 
   /** The solver state object */
   SolverState& d_state;
+  /** The inference generator object*/
+  InferenceGenerator d_ig;
   /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
   /** Reference to the term registry of theory of bags */
