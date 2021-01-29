@@ -103,7 +103,7 @@ namespace quantifiers {
  *   Sol<k> = s
  *   CandSols<k> += s
  *   Stack = {k}
- *   while S != {}
+ *   while Stack != {}
  *     k' = pop(Stack)
  *     for all k'' in CandSols keys
  *       for all s'[k'] in CandSols<k''>
