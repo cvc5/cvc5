@@ -200,7 +200,7 @@ void BagSolver::checkDisequalBagTerms()
 {
   for (const Node& n : d_state.getDisequalBagTerms())
   {
-    InferInfo info = d_ig.bagDisequality(n.notNode(), d_true);
+    InferInfo info = d_ig.bagDisequality(n);
     info.process(&d_im, true);
   }
 }
