@@ -66,10 +66,9 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) rewriting
-    // (2) theory preprocessing+rewriting
-    // (3) term formula removal
-    // (4) rewriting
-    // Steps (2) and (4) use a common term conversion generator.
+    // (2) theory preprocessing+rewriting+term formula removal
+    // (3) rewriting
+    // Steps (1) and (3) use a common term conversion generator.
     std::vector<ProofGenerator*> ts;
     ts.push_back(d_tpgRew.get());
     ts.push_back(d_tpgRtf.get());
@@ -103,13 +102,16 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   // may introduce new terms that are not top-level and require preprocessing.
   // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
   // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
-  // must be preprocessed as a child here.
+  // must be preprocessed as a child here. Notice that we specify isPre = true
+  // here, since the rewrite steps are being applied to the top-level term only.
   Node irNode = rewriteWithProof(node, d_tpgRew.get(), true);
 
   // run theory preprocessing
   TrustNode tpp = theoryPreprocess(irNode, newLemmas, newSkolems);
   Node ppNode = tpp.getNode();
 
+  // rewrite again after theory preprocessing above, which is also isPre = true
+  // for the same reasons as above.
   Node pprNode = rewriteWithProof(ppNode, d_tpgRew.get(), true);
 
   if (Trace.isOn("tpp-debug"))
@@ -434,6 +436,8 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
       newNode << ppTheoryRewrite(nt);
     }
     newTerm = Node(newNode);
+    // rewriting during post-rewriting after reconstructing processed children,
+    // thus isPre = false.
     newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
   }
   newTerm = preprocessWithProof(newTerm);
@@ -442,7 +446,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   return newTerm;
 }
 
-Node TheoryPreprocessor::rewriteWithProof(TNode term,
+Node TheoryPreprocessor::rewriteWithProof(Node term,
                                           TConvProofGenerator* pg,
                                           bool isPre)
 {
@@ -499,7 +503,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   {
     registerTrustedRewrite(trn, d_tpg.get(), false);
   }
-  // Rewrite again here, which notice is a *pre* rewrite.
+  // Rewrite again here before restarting the traversal in ppRewrite, which
+  // notice is a pre-rewrite (isPre = true).
   termr = rewriteWithProof(termr, d_tpg.get(), true);
   return ppTheoryRewrite(termr);
 }
