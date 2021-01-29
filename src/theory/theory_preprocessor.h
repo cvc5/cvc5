@@ -89,7 +89,9 @@ class TheoryPreprocessor
    * Runs theory specific preprocessing (Theory::ppRewrite) on the non-Boolean
    * parts of the node.
    */
-  TrustNode theoryPreprocess(TNode node);
+  TrustNode theoryPreprocess(TNode node,
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems);
   /**
    * Internal helper for preprocess, which also optionally preprocesses the
    * new lemmas generated until a fixed point is reached based on argument
@@ -114,6 +116,8 @@ class TheoryPreprocessor
   const LogicInfo& d_logicInfo;
   /** Cache for theory-preprocessing of assertions */
   NodeMap d_ppCache;
+  /** Cache for theory-preprocessing + rtf of assertions */
+  NodeMap d_rtfCache;
   /** The term formula remover */
   RemoveTermFormulas d_tfr;
   /** The term context, which computes hash values for term contexts. */
@@ -124,10 +128,10 @@ class TheoryPreprocessor
    */
   std::unique_ptr<TConvProofGenerator> d_tpg;
   /**
-   * A term conversion sequence generator, which applies theory preprocessing,
-   * term formula removal, and rewriting in sequence.
+   * A term conversion proof generator storing term formula removal steps,
+   * and combined steps from above.
    */
-  std::unique_ptr<TConvSeqProofGenerator> d_tspg;
+  std::unique_ptr<TConvProofGenerator> d_tpgRtf;
   /**
    * A term conversion proof generator storing rewriting steps, which is used
    * for calls to preprocess when doTheoryPreprocess is false. We store
@@ -135,6 +139,11 @@ class TheoryPreprocessor
    * from d_tpg, which interleaves both preprocessing and rewriting.
    */
   std::unique_ptr<TConvProofGenerator> d_tpgRew;
+  /**
+   * A term conversion sequence generator, which applies theory preprocessing,
+   * term formula removal, and rewriting in sequence.
+   */
+  std::unique_ptr<TConvSeqProofGenerator> d_tspg;
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
   /** Helper for theoryPreprocess */
@@ -143,7 +152,7 @@ class TheoryPreprocessor
    * Rewrite with proof, which stores a REWRITE step in d_tpg if necessary
    * and returns the rewritten form of term.
    */
-  Node rewriteWithProof(Node term);
+  Node rewriteWithProof(Node term, TConvProofGenerator* pg, bool isPre);
   /**
    * Preprocess with proof, which calls the appropriate ppRewrite method,
    * stores the corresponding rewrite step in d_tpg if necessary and returns
@@ -151,6 +160,8 @@ class TheoryPreprocessor
    * term is already in rewritten form.
    */
   Node preprocessWithProof(Node term);
+  /** register rewrite based on trust node */
+  void registerTrustedRewrite(TrustNode trn, TConvProofGenerator* pg, bool isPre);
   /** Proofs enabled */
   bool isProofEnabled() const;
 };

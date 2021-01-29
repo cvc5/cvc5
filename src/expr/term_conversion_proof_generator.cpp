@@ -149,8 +149,7 @@ Node TConvProofGenerator::registerRewriteStep(Node t,
         << getRewriteStepInternal(thash, isPre);
     return Node::null();
   }
-  // FIXME
-  NodeNodeMap& rm = true ? d_preRewriteMap : d_postRewriteMap;
+  NodeNodeMap& rm = isPre ? d_preRewriteMap : d_postRewriteMap;
   rm[thash] = s;
   if (d_cpolicy == TConvCachePolicy::DYNAMIC)
   {
@@ -198,9 +197,9 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
         serr << " (see -t tconv-pf-gen-debug for details)";
       }
       serr << std::endl;
-      serr << "                  source: " << f[0] << std::endl;
-      serr << "expected after rewriting: " << f[1] << std::endl;
-      serr << "  actual after rewriting: " << conc[1] << std::endl;
+      serr << "                   source: " << f[0] << std::endl;
+      serr << "     requested conclusion: " << f[1] << std::endl;
+      serr << "conclusion from generator: " << conc[1] << std::endl;
 
       if (debugTraceEnabled)
       {
@@ -498,13 +497,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           retHash = TCtxNode::computeNodeHash(cur, curCVal);
         }
         // did we rewrite ret (at post-rewrite)?
-        Node rret;
-        // only if not ONCE policy, which only does pre-rewrite
-        if (d_policy != TConvPolicy::ONCE)
-        {
-          rret = getRewriteStepInternal(retHash, false);
-        }
-        if (!rret.isNull())
+        Node rret = getRewriteStepInternal(retHash, false);
+        if (!rret.isNull() && d_policy == TConvPolicy::FIXPOINT)
         {
           Trace("tconv-pf-gen-rewrite")
               << "*** " << retHash << " postrewrites to " << rret << std::endl;
@@ -533,6 +527,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         }
         else
         {
+          // take its rewrite if it rewrote and we have ONCE rewriting policy
+          ret = rret.isNull() ? ret : rret;
           Trace("tconv-pf-gen-rewrite")
               << "-> (postrewrite) " << curHash << " = " << ret << std::endl;
           // it is final
@@ -569,8 +565,7 @@ void TConvProofGenerator::doCache(Node curHash,
 
 Node TConvProofGenerator::getRewriteStepInternal(Node t, bool isPre) const
 {
-  // FIXME
-  const NodeNodeMap& rm = true ? d_preRewriteMap : d_postRewriteMap;
+  const NodeNodeMap& rm = isPre ? d_preRewriteMap : d_postRewriteMap;
   NodeNodeMap::const_iterator it = rm.find(t);
   if (it == rm.end())
   {
