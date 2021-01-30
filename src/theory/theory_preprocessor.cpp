@@ -66,13 +66,11 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) rewriting
-    // (2) theory preprocessing+rewriting+term formula removal
-    // (3) rewriting
-    // Steps (1) and (3) use a common term conversion generator.
+    // (2) (theory preprocessing+rewriting until fixed point)+term formula
+    // removal+rewriting.
     std::vector<ProofGenerator*> ts;
     ts.push_back(d_tpgRew.get());
     ts.push_back(d_tpgRtf.get());
-    ts.push_back(d_tpgRew.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext, "TheoryPreprocessor::sequence"));
   }
@@ -102,17 +100,12 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   // may introduce new terms that are not top-level and require preprocessing.
   // An example of this is (forall ((x Int)) (and (tail L) (P x))) which
   // rewrites to (and (tail L) (forall ((x Int)) (P x))). The subterm (tail L)
-  // must be preprocessed as a child here. Notice that we specify isPre = true
-  // here, since the rewrite steps are being applied to the top-level term only.
+  // must be preprocessed as a child here.
   Node irNode = rewriteWithProof(node, d_tpgRew.get(), true);
 
   // run theory preprocessing
   TrustNode tpp = theoryPreprocess(irNode, newLemmas, newSkolems);
   Node ppNode = tpp.getNode();
-
-  // rewrite again after theory preprocessing above, which is also isPre = true
-  // for the same reasons as above.
-  Node pprNode = rewriteWithProof(ppNode, d_tpgRew.get(), true);
 
   if (Trace.isOn("tpp-debug"))
   {
@@ -126,13 +119,9 @@ TrustNode TheoryPreprocessor::preprocessInternal(
           << "after preprocessing + rewriting and term formula removal : "
           << ppNode << std::endl;
     }
-    if (ppNode != pprNode)
-    {
-      Trace("tpp-debug") << "after rewriting again : " << pprNode << std::endl;
-    }
     Trace("tpp-debug") << "TheoryPreprocessor::preprocess: finish" << std::endl;
   }
-  if (node == pprNode)
+  if (node == ppNode)
   {
     Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned no change"
                        << std::endl;
@@ -148,17 +137,15 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     cterms.push_back(node);
     cterms.push_back(irNode);
     cterms.push_back(ppNode);
-    cterms.push_back(pprNode);
     // We have that:
     // node -> irNode via rewriting
     // irNode -> ppNode via theory-preprocessing + rewriting + tf removal
-    // ppNode -> pprNode via rewriting
     tret = d_tspg->mkTrustRewriteSequence(cterms);
     tret.debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_ret");
   }
   else
   {
-    tret = TrustNode::mkTrustRewrite(node, pprNode, nullptr);
+    tret = TrustNode::mkTrustRewrite(node, ppNode, nullptr);
   }
 
   // now, rewrite the lemmas
@@ -345,7 +332,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         rtfNode = ttfr.getNode();
         registerTrustedRewrite(ttfr, d_tpgRtf.get(), true);
       }
-      d_rtfCache[current] = rtfNode;
+      // Finish the conversion by rewriting. This is registered as a
+      // post-rewrite, since it is the last step applied for theory atoms.
+      Node retNode = rewriteWithProof(rtfNode, d_tpgRtf.get(), false);
+      d_rtfCache[current] = retNode;
       continue;
     }
 
@@ -365,6 +355,9 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       }
       // Mark the substitution and continue
       Node result = builder;
+      // always rewrite here, since current may not be in rewritten form after
+      // reconstruction
+      result = rewriteWithProof(result, d_tpgRtf.get(), false);
       Trace("theory::preprocess-debug")
           << "TheoryPreprocessor::theoryPreprocess setting " << current
           << " -> " << result << endl;
@@ -436,8 +429,6 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
       newNode << ppTheoryRewrite(nt);
     }
     newTerm = Node(newNode);
-    // rewriting during post-rewriting after reconstructing processed children,
-    // thus isPre = false.
     newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
   }
   newTerm = preprocessWithProof(newTerm);
@@ -503,8 +494,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   {
     registerTrustedRewrite(trn, d_tpg.get(), false);
   }
-  // Rewrite again here before restarting the traversal in ppRewrite, which
-  // notice is a pre-rewrite (isPre = true).
+  // Rewrite again here, which notice is a *pre* rewrite.
   termr = rewriteWithProof(termr, d_tpg.get(), true);
   return ppTheoryRewrite(termr);
 }

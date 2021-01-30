@@ -58,12 +58,11 @@ namespace theory {
  *              REPEAT traversal
  *      )
  *      apply term formula removal
+ *      apply rewriter
  *    }
  *  postrewrite: // for Boolean connectives
- *    // nothing
+ *    apply rewriter
  * )
- * [3]
- * apply rewriter
  *
  * Note that the rewriter must be applied beforehand, since
  */
@@ -171,14 +170,13 @@ class TheoryPreprocessor
   std::unique_ptr<TConvProofGenerator> d_tpgRtf;
   /**
    * A term conversion proof generator storing rewriting steps, which is used
-   * for top-level rewriting before and after the preprocessing pass, steps
-   * [1] and [3] above.
+   * for top-level rewriting before the preprocessing pass, step [1] above.
    */
   std::unique_ptr<TConvProofGenerator> d_tpgRew;
   /**
    * A term conversion sequence generator, which applies rewriting,
    * (theory-preprocessing + rewriting + term formula removal), rewriting again
-   * in sequence, given by d_tpgRew, d_tpgRtf, d_tppRew.
+   * in sequence, given by d_tpgRew and d_tpgRtf.
    */
   std::unique_ptr<TConvSeqProofGenerator> d_tspg;
   /** A lazy proof, for additional lemmas. */
