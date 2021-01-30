@@ -676,6 +676,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     }
   }
 
+  Trace("nl-ext") << "finished strategy" << std::endl;
   Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas()
                   << " waiting lemmas." << std::endl;
   Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
