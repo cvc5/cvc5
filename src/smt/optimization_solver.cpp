@@ -2,7 +2,7 @@
 /*! \file optimization_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Ying Sheng
+ **   Michael Chang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -18,72 +18,73 @@
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/smt_engine_subsolver.h"
-//#include <iostream>
 
 using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace smt {
 
-OptimizationSolver::OptimizationSolver(SmtEngine* parent) : d_parent(parent)
-{
-}
+OptimizationSolver::OptimizationSolver(SmtEngine* parent) : d_parent(parent) {}
 
 OptimizationSolver::~OptimizationSolver() {}
 
-bool OptimizationSolver::checkOpt(Result& r){
-    std::vector<Node> axioms = d_parent->getExpandedAssertions();
-    std::unique_ptr<SmtEngine> optChecker;
-    initializeSubsolver(optChecker);
+bool OptimizationSolver::checkOpt(Result& r)
+{
+  std::vector<Node> axioms = d_parent->getExpandedAssertions();
+  std::unique_ptr<SmtEngine> optChecker;
+  initializeSubsolver(optChecker);
 
-    optChecker->setOption("incremental", "true");
-    optChecker->setOption("produce-models", "true");
+  optChecker->setOption("incremental", "true");
+  optChecker->setOption("produce-models", "true");
 
-    for (const Node& e : axioms){
-        optChecker->assertFormula(e);
-    }
-    
-    NodeManager* nm = optChecker->getNodeManager();
+  for (const Node& e : axioms)
+  {
+    optChecker->assertFormula(e);
+  }
 
-    for (int i = 0; i < d_activatedObjectives.size(); i++)
+  NodeManager* nm = optChecker->getNodeManager();
+
+  for (int i = 0; i < d_activatedObjectives.size(); i++)
+  {
+    optChecker->push();
+    Objective o = d_activatedObjectives[i];
+
+    r = optChecker->checkSat();
+
+    Result loop_r = r;
+    Node value;
+    Node increment;
+
+    while (loop_r.isSat())
     {
-      optChecker->push();
-      Objective o = d_activatedObjectives[i];
-      // CVC4::Kind k = o.d_node.getKind();
-
-      r = optChecker->checkSat();
-
-      Result loop_r = r;
-
-      while (loop_r.isSat())
+      value = optChecker->getValue(o.d_node);
+      o.d_savedValue = value;
+      if (o.d_type == OBJECTIVE_MAXIMIZE)
       {
-        Node value = optChecker->getValue(o.d_node);
-        o.d_savedValue = value;
-        Node increment;
-        if (o.d_type == OBJECTIVE_MAXIMIZE)
-        {
-          increment = nm->mkNode(kind::GT, o.d_node, value);
-        }
-        else
-        {
-          increment = nm->mkNode(kind::LT, o.d_node, value);
-        }
-        optChecker->assertFormula(increment);
-        loop_r = optChecker->checkSat();
+        increment = nm->mkNode(kind::GT, o.d_node, value);
       }
-
-      d_activatedObjectives[i] = o;
-
-      optChecker->pop();
+      else
+      {
+        increment = nm->mkNode(kind::LT, o.d_node, value);
+      }
+      optChecker->assertFormula(increment);
+      loop_r = optChecker->checkSat();
     }
 
-    return true;
+    d_activatedObjectives[i] = o;
 
+    optChecker->pop();
+  }
+
+  return true;
 }
 
-void OptimizationSolver::activateObj(const Node& obj, const int& type, const int& result){
-    Objective o = Objective(obj, (ObjectiveType)type, (OptResult)result);
-    d_activatedObjectives.push_back(o);
+void OptimizationSolver::activateObj(const Node& obj,
+                                     const int& type,
+                                     const int& result)
+{
+  Objective o = Objective(obj, (ObjectiveType)type, (OptResult)result);
+  d_activatedObjectives.push_back(o);
 }
 
 OptimizationSolver::Objective::Objective(Node obj,

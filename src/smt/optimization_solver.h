@@ -2,7 +2,7 @@
 /*! \file optimization_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Ying Sheng
+ **   Michael Chang
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -37,18 +37,18 @@ namespace smt {
  */
 class OptimizationSolver
 {
-  enum CVC4_PUBLIC OptResult 
+  enum CVC4_PUBLIC OptResult
   {
-    OPT_UNKNOWN, 
-    OPT_UNSAT, 
-    OPT_SAT_PARTIAL, 
-    OPT_SAT_APPROX, 
-    OPT_OPTIMAL 
+    OPT_UNKNOWN,
+    OPT_UNSAT,
+    OPT_SAT_PARTIAL,
+    OPT_SAT_APPROX,
+    OPT_OPTIMAL
   };
 
-  enum CVC4_PUBLIC ObjectiveType 
+  enum CVC4_PUBLIC ObjectiveType
   {
-    OBJECTIVE_MINIMIZE, 
+    OBJECTIVE_MINIMIZE,
     OBJECTIVE_MAXIMIZE
   };
 
@@ -62,7 +62,7 @@ class OptimizationSolver
 
   class Objective
   {
-    public:
+   public:
     Objective(Node n, ObjectiveType type, OptResult result);
     //~Objective();
 
