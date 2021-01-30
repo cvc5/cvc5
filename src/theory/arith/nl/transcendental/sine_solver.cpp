@@ -93,9 +93,9 @@ void SineSolver::checkInitialRefine()
     {
       continue;
     }
-    Trace("nl-ext")
-        << "Get initial (sine) refinement lemmas for transcendental functions..."
-        << std::endl;
+    Trace("nl-ext") << "Get initial (sine) refinement lemmas for "
+                       "transcendental functions..."
+                    << std::endl;
     for (const Node& t : tfl.second)
     {
       // initial refinements
@@ -189,8 +189,9 @@ void SineSolver::checkMonotonic()
     Trace("nl-ext-exp") << "No sine terms" << std::endl;
     return;
   }
-  Trace("nl-ext") << "Get monotonicity lemmas for (sine) transcendental functions..."
-                  << std::endl;
+  Trace("nl-ext")
+      << "Get monotonicity lemmas for (sine) transcendental functions..."
+      << std::endl;
 
   // sort arguments of all transcendentals
   std::vector<Node> tf_args;

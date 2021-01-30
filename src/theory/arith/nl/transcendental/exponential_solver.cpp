@@ -115,8 +115,9 @@ void ExponentialSolver::checkMonotonic()
     return;
   }
 
-  Trace("nl-ext") << "Get monotonicity lemmas for (exp) transcendental functions..."
-                  << std::endl;
+  Trace("nl-ext")
+      << "Get monotonicity lemmas for (exp) transcendental functions..."
+      << std::endl;
   // sort arguments of all transcendentals
   std::vector<Node> tf_args;
   std::map<Node, Node> tf_arg_to_term;

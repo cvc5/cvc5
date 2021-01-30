@@ -197,8 +197,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
        ++it)
   {
     const Assertion& assertion = *it;
-    Trace("nl-ext-assert-debug") << "Loaded " << assertion.d_assertion << " from theory"
-                    << std::endl;
+    Trace("nl-ext-assert-debug")
+        << "Loaded " << assertion.d_assertion << " from theory" << std::endl;
     Node lit = assertion.d_assertion;
     if (useRelevance && !v.isRelevant(lit))
     {

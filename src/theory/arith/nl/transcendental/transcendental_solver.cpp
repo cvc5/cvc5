@@ -199,8 +199,9 @@ void TranscendentalSolver::checkTranscendentalTangentPlanes()
   {
     if (!d_tstate.d_funcMap.empty())
     {
-      Trace("nl-ext") << "Get tangent plane lemmas for transcendental functions..."
-                      << std::endl;
+      Trace("nl-ext")
+          << "Get tangent plane lemmas for transcendental functions..."
+          << std::endl;
     }
   }
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
