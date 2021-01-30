@@ -93,7 +93,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
-    QuantifiersState& qs = d_qe->getState();
+    quantifiers::QuantifiersState& qs = d_qe->getState();
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
