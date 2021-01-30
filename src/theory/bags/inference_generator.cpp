@@ -80,17 +80,15 @@ struct BagsDeqAttributeId
 };
 typedef expr::Attribute<BagsDeqAttributeId, Node> BagsDeqAttribute;
 
-InferInfo InferenceGenerator::bagDisequality(Node n, Node reason)
+InferInfo InferenceGenerator::bagDisequality(Node n)
 {
-  Assert(n.getKind() == kind::NOT && n[0].getKind() == kind::EQUAL);
-  Assert(n[0][0].getType().isBag());
+  Assert(n.getKind() == kind::EQUAL && n[0].getType().isBag());
 
-  Node A = n[0][0];
-  Node B = n[0][1];
+  Node A = n[0];
+  Node B = n[1];
 
   InferInfo inferInfo;
   inferInfo.d_id = Inference::BAG_DISEQUALITY;
-  inferInfo.d_premises.push_back(reason);
 
   TypeNode elementType = A.getType().getBagElementType();
   BoundVarManager* bvm = d_nm->getBoundVarManager();
@@ -106,7 +104,7 @@ InferInfo InferenceGenerator::bagDisequality(Node n, Node reason)
 
   Node disEqual = countA.eqNode(countB).notNode();
 
-  inferInfo.d_premises.push_back(n);
+  inferInfo.d_premises.push_back(n.notNode());
   inferInfo.d_conclusion = disEqual;
   return inferInfo;
 }
@@ -118,13 +116,15 @@ Node InferenceGenerator::getSkolem(Node& n, InferInfo& inferInfo)
   return skolem;
 }
 
-InferInfo InferenceGenerator::bagEmpty(Node e)
+InferInfo InferenceGenerator::empty(Node n, Node e)
 {
-  EmptyBag emptyBag = EmptyBag(d_nm->mkBagType(e.getType()));
-  Node empty = d_nm->mkConst(emptyBag);
+  Assert(n.getKind() == kind::EMPTYBAG);
+  Assert(e.getType() == n.getType().getBagElementType());
+
   InferInfo inferInfo;
+  Node skolem = getSkolem(n, inferInfo);
   inferInfo.d_id = Inference::BAG_EMPTY;
-  Node count = getMultiplicityTerm(e, empty);
+  Node count = getMultiplicityTerm(e, skolem);
 
   Node equal = count.eqNode(d_zero);
   inferInfo.d_conclusion = equal;

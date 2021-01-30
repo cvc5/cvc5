@@ -20,6 +20,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/bags/infer_info.h"
+#include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/normal_form.h"
 #include "theory/bags/solver_state.h"
@@ -41,6 +42,8 @@ class BagSolver
   void postCheck();
 
  private:
+  /** apply inference rules for empty bags */
+  void checkEmpty(const Node& n);
   /**
    * apply inference rules for MK_BAG operator.
    * Example: Suppose n = (bag x c), and we have two count terms (bag.count x n)
@@ -60,15 +63,23 @@ class BagSolver
   void checkUnionDisjoint(const Node& n);
   /** apply inference rules for union max */
   void checkUnionMax(const Node& n);
+  /** apply inference rules for intersection_min operator */
+  void checkIntersectionMin(const Node& n);
   /** apply inference rules for difference subtract */
   void checkDifferenceSubtract(const Node& n);
   /** apply inference rules for difference remove */
   void checkDifferenceRemove(const Node& n);
+  /** apply inference rules for duplicate removal operator */
+  void checkDuplicateRemoval(Node n);
   /** apply non negative constraints for multiplicities */
   void checkNonNegativeCountTerms(const Node& bag, const Node& element);
+  /** apply inference rules for disequal bag terms */
+  void checkDisequalBagTerms();
 
   /** The solver state object */
   SolverState& d_state;
+  /** The inference generator object*/
+  InferenceGenerator d_ig;
   /** Reference to the inference manager for the theory of bags */
   InferenceManager& d_im;
   /** Reference to the term registry of theory of bags */

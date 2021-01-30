@@ -76,6 +76,9 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
     TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
     im->trustedLemma(trustedLemma);
   }
+
+  Trace("bags::InferInfo::process") << (*this) << std::endl;
+
   return true;
 }
 
