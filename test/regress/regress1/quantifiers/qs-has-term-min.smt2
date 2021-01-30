@@ -1,6 +1,0 @@
-(set-logic ALL)
-(set-info :status unsat)
-(declare-fun init () Real)
-(declare-fun zpred_ds1_filter_init () (Array Int (Array Int Real)))
-(assert (and (forall ((?O_73 Int)) (forall ((?P_74 Int)) (= 0.0 (select (select zpred_ds1_filter_init ?O_73) ?P_74)))) (exists ((?A8_267 Int) (?B8_268 Int)) (and (= ?B8_268 0) (not (= init (select (select (store zpred_ds1_filter_init 1 (store (select (store zpred_ds1_filter_init 1 (store (select zpred_ds1_filter_init 1) 1 1.0)) 1) 0 init)) ?A8_267) ?B8_268)))))))
-(check-sat)
