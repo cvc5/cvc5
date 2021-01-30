@@ -66,14 +66,11 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     // Make the main term conversion sequence generator, which tracks up to
     // three conversions made in succession:
     // (1) rewriting
-    // (2) theory preprocessing+rewriting
-    // (3) term formula removal
-    // (4) rewriting
-    // Steps (2) and (4) use a common term conversion generator.
+    // (2) (theory preprocessing+rewriting until fixed point)+term formula
+    // removal+rewriting.
     std::vector<ProofGenerator*> ts;
     ts.push_back(d_tpgRew.get());
     ts.push_back(d_tpgRtf.get());
-    ts.push_back(d_tpgRew.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext, "TheoryPreprocessor::sequence"));
   }
@@ -110,8 +107,6 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   TrustNode tpp = theoryPreprocess(irNode, newLemmas, newSkolems);
   Node ppNode = tpp.getNode();
 
-  Node pprNode = rewriteWithProof(ppNode, d_tpgRew.get(), true);
-
   if (Trace.isOn("tpp-debug"))
   {
     if (node != irNode)
@@ -124,13 +119,9 @@ TrustNode TheoryPreprocessor::preprocessInternal(
           << "after preprocessing + rewriting and term formula removal : "
           << ppNode << std::endl;
     }
-    if (ppNode != pprNode)
-    {
-      Trace("tpp-debug") << "after rewriting again : " << pprNode << std::endl;
-    }
     Trace("tpp-debug") << "TheoryPreprocessor::preprocess: finish" << std::endl;
   }
-  if (node == pprNode)
+  if (node == ppNode)
   {
     Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned no change"
                        << std::endl;
@@ -146,17 +137,15 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     cterms.push_back(node);
     cterms.push_back(irNode);
     cterms.push_back(ppNode);
-    cterms.push_back(pprNode);
     // We have that:
     // node -> irNode via rewriting
     // irNode -> ppNode via theory-preprocessing + rewriting + tf removal
-    // ppNode -> pprNode via rewriting
     tret = d_tspg->mkTrustRewriteSequence(cterms);
     tret.debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_ret");
   }
   else
   {
-    tret = TrustNode::mkTrustRewrite(node, pprNode, nullptr);
+    tret = TrustNode::mkTrustRewrite(node, ppNode, nullptr);
   }
 
   // now, rewrite the lemmas
@@ -343,7 +332,10 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         rtfNode = ttfr.getNode();
         registerTrustedRewrite(ttfr, d_tpgRtf.get(), true);
       }
-      d_rtfCache[current] = rtfNode;
+      // Finish the conversion by rewriting. This is registered as a
+      // post-rewrite, since it is the last step applied for theory atoms.
+      Node retNode = rewriteWithProof(rtfNode, d_tpgRtf.get(), false);
+      d_rtfCache[current] = retNode;
       continue;
     }
 
@@ -363,6 +355,9 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
       }
       // Mark the substitution and continue
       Node result = builder;
+      // always rewrite here, since current may not be in rewritten form after
+      // reconstruction
+      result = rewriteWithProof(result, d_tpgRtf.get(), false);
       Trace("theory::preprocess-debug")
           << "TheoryPreprocessor::theoryPreprocess setting " << current
           << " -> " << result << endl;
