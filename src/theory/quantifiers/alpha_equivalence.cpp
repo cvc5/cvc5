@@ -30,60 +30,6 @@ struct sortTypeOrder {
   }
 };
 
-Node AlphaEquivalenceNode::registerNode(Node q, Node t)
-{
-  AlphaEquivalenceNode* aen = this;
-  std::vector<Node> tt;
-  std::vector<int> arg_index;
-  tt.push_back(t);
-  std::map< Node, bool > visited;
-  while( !tt.empty() ){
-    if( tt.size()==arg_index.size()+1 ){
-      Node tb = tt.back();
-      Node op;
-      if (tb.hasOperator())
-      {
-        if (visited.find(tb) == visited.end())
-        {
-          visited[tb] = true;
-          op = tb.getOperator();
-          arg_index.push_back( 0 );
-        }
-        else
-        {
-          op = tb;
-          arg_index.push_back( -1 );
-        }
-      }
-      else
-      {
-        op = tb;
-        arg_index.push_back( 0 );
-      }
-      Trace("aeq-debug") << op << " ";
-      aen = &(aen->d_children[op][tb.getNumChildren()]);
-    }else{
-      Node tb = tt.back();
-      int i = arg_index.back();
-      if (i == -1 || i == (int)tb.getNumChildren())
-      {
-        tt.pop_back();
-        arg_index.pop_back();
-      }
-      else
-      {
-        tt.push_back(tb[i]);
-        arg_index[arg_index.size()-1]++;
-      }
-    }
-  }
-  Trace("aeq-debug") << std::endl;
-  if( aen->d_quant.isNull() ){
-    aen->d_quant = q;
-  }
-  return aen->d_quant;
-}
-
 Node AlphaEquivalenceTypeNode::registerNode(Node q,
                                             Node t,
                                             std::vector<TypeNode>& typs,
@@ -100,7 +46,14 @@ Node AlphaEquivalenceTypeNode::registerNode(Node q,
     index = index + 1;
   }
   Trace("aeq-debug") << " : ";
-  return aetn->d_data.registerNode(q, t);
+  Node ret = aetn->d_data.registerNode(q, t);
+  std::map<Node, Node>::iterator it = aetn->d_quant.find(t);
+  if (it != aetn->d_quant.end())
+  {
+    return it->second;
+  }
+  aetn->d_quant[t] = q;
+  return q;
 }
 
 Node AlphaEquivalenceDb::addTerm(Node q)
