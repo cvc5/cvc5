@@ -246,7 +246,7 @@ BagsRewriteResponse BagsRewriter::rewriteUnionDisjoint(const TNode& n) const
     //         (union_disjoint A B) // sum(a,b) = max(a,b) + min(a,b)
     // check if the operands of union_max and intersection_min are the same
     std::set<Node> left(n[0].begin(), n[0].end());
-    std::set<Node> right(n[0].begin(), n[0].end());
+    std::set<Node> right(n[1].begin(), n[1].end());
     if (left == right)
     {
       Node rewritten = d_nm->mkNode(UNION_DISJOINT, n[0][0], n[0][1]);
