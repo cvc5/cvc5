@@ -65,11 +65,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
     options::dumpUnsatCores.set(true);
   }
-  if (options::checkUnsatCores() || options::dumpUnsatCores()
-      || options::unsatAssumptions())
+  if (options::checkUnsatCores() || options::checkUnsatCoresNew()
+      || options::dumpUnsatCores() || options::unsatAssumptions())
   {
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
+  }
+  if (options::checkUnsatCoresNew())
+  {
+    options::proofNew.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -245,6 +249,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
+
   if (options::arraysExp())
   {
     if (!logic.isQuantified())
