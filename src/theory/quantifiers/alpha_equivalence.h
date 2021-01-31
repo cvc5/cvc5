@@ -35,7 +35,7 @@ namespace quantifiers {
 class AlphaEquivalenceTypeNode {
 public:
  /** children of this node */
- std::map<TypeNode, std::map<int, AlphaEquivalenceTypeNode> > d_children;
+ std::map<std::pair<TypeNode, size_t >, AlphaEquivalenceTypeNode> d_children;
  /**
   * map from canonized quantifier bodies to a quantified formula whose
   * canonized body is that term.
@@ -44,12 +44,12 @@ public:
  /** register node
   *
   * This registers term q to this trie. The term t is the canonical form of
-  * q, typs/typ_count represent a multi-set of types of free variables in t.
+  * q, typs/typCount represent a multi-set of types of free variables in t.
   */
  Node registerNode(Node q,
                    Node t,
                    std::vector<TypeNode>& typs,
-                   std::map<TypeNode, int>& typ_count);
+                   std::map<TypeNode, size_t>& typCount);
 };
 
 /**
