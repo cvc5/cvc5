@@ -30,10 +30,11 @@ struct sortTypeOrder {
   }
 };
 
-Node AlphaEquivalenceTypeNode::registerNode(Node q,
-                                            Node t,
-                                            std::vector<TypeNode>& typs,
-                                            std::map<TypeNode, size_t>& typCount)
+Node AlphaEquivalenceTypeNode::registerNode(
+    Node q,
+    Node t,
+    std::vector<TypeNode>& typs,
+    std::map<TypeNode, size_t>& typCount)
 {
   AlphaEquivalenceTypeNode* aetn = this;
   size_t index = 0;
@@ -65,7 +66,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   Node t = d_tc->getCanonicalTerm(q[1], true);
   Trace("aeq") << "  canonical form: " << t << std::endl;
   //compute variable type counts
-  std::map< TypeNode, size_t > typCount;
+  std::map<TypeNode, size_t> typCount;
   std::vector< TypeNode > typs;
   for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
     TypeNode tn = q[0][i].getType();
