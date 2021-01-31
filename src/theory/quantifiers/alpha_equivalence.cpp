@@ -48,7 +48,6 @@ Node AlphaEquivalenceTypeNode::registerNode(
     index = index + 1;
   }
   Trace("aeq-debug") << " : ";
-  Node ret = aetn->d_data.registerNode(q, t);
   std::map<Node, Node>::iterator it = aetn->d_quant.find(t);
   if (it != aetn->d_quant.end())
   {
