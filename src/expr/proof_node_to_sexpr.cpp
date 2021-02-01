@@ -12,6 +12,7 @@
  ** \brief Implementation of proof node to s-expression
  **/
 
+#include "options/smt_options.h"
 #include "expr/proof_node_to_sexpr.h"
 
 #include <iostream>
@@ -24,6 +25,7 @@ ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> types;
+  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->mkSExprType(types));
   d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
 }
 
@@ -67,6 +69,11 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));
+      if (options::proofPrintConclusion())
+      {
+        children.push_back(d_conclusionMarker);
+        children.push_back(cur->getResult());
+      }
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
