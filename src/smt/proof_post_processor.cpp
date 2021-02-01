@@ -156,6 +156,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     {
       Node crowdLit = clauseLits[i];
       crowding.insert(crowdLit);
+      Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
       // found crowding lit, now get its last inclusion position, which is the
       // position of the last resolution link that introduces the crowding
       // literal. Note that this position has to be *before* the last link, as a
@@ -164,8 +165,16 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       for (j = children.size() - 1; j > 0; --j)
       {
         // notice that only non-unit clauses may be introducing the crowding
-        // literal, so we don't need to differentiate unit from non-unit
+        // literal, so we only care about non-unit OR nodes. We check then
+        // against the kind and whether the whole OR node occurs as a pivot of
+        // the respective resolution
         if (children[j - 1].getKind() != kind::OR)
+        {
+          continue;
+        }
+        uint64_t pivotIndex = 2 * (j - 1);
+        if (args[pivotIndex] == children[j - 1]
+            || args[pivotIndex].notNode() == children[j - 1])
         {
           continue;
         }
@@ -177,7 +186,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       }
       Assert(j > 0);
       lastInclusion.emplace_back(crowdLit, j - 1);
-      Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
+
       Trace("smt-proof-pp-debug2") << "last inc " << j - 1 << "\n";
       // get elimination position, starting from the following link as the last
       // inclusion one. The result is the last (in the chain, but first from
@@ -210,7 +219,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
           break;
         }
       }
-      Assert(j < children.size());
+      AlwaysAssert(j < children.size());
     }
   }
   Assert(!lastInclusion.empty());
