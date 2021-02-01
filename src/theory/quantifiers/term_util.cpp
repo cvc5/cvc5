@@ -36,7 +36,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermUtil::TermUtil(QuantifiersEngine* qe) : d_quantEngine(qe)
+TermUtil::TermUtil()
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

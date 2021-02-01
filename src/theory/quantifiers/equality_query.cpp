@@ -15,7 +15,6 @@
 #include "theory/quantifiers/equality_query.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
@@ -33,8 +32,11 @@ namespace theory {
 namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
-    context::Context* c, QuantifiersEngine* qe)
-    : d_qe(qe), d_eqi_counter(c), d_reset_count(0)
+    QuantifiersState& qs, QuantifiersEngine* qe)
+    : d_qe(qe),
+      d_qstate(qs),
+      d_eqi_counter(qs.getSatContext()),
+      d_reset_count(0)
 {
 }
 
@@ -47,51 +49,12 @@ bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
   return true;
 }
 
-bool EqualityQueryQuantifiersEngine::hasTerm( Node a ){
-  return getEngine()->hasTerm( a );
-}
-
-Node EqualityQueryQuantifiersEngine::getRepresentative( Node a ){
-  eq::EqualityEngine* ee = getEngine();
-  if( ee->hasTerm( a ) ){
-    return ee->getRepresentative( a );
-  }else{
-    return a;
-  }
-}
-
-bool EqualityQueryQuantifiersEngine::areEqual( Node a, Node b ){
-  if( a==b ){
-    return true;
-  }else{
-    eq::EqualityEngine* ee = getEngine();
-    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      return ee->areEqual( a, b );
-    }else{
-      return false;
-    }
-  }
-}
-
-bool EqualityQueryQuantifiersEngine::areDisequal( Node a, Node b ){
-  if( a==b ){
-    return false;
-  }else{
-    eq::EqualityEngine* ee = getEngine();
-    if( ee->hasTerm( a ) && ee->hasTerm( b ) ){
-      return ee->areDisequal( a, b, false );
-    }else{
-      return a.isConst() && b.isConst();
-    }
-  }
-}
-
 Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
                                                                Node q,
                                                                int index)
 {
   Assert(q.isNull() || q.getKind() == FORALL);
-  Node r = getRepresentative( a );
+  Node r = d_qstate.getRepresentative(a);
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
@@ -100,7 +63,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
         if (!tr.isNull())
         {
           r = tr;
-          r = getRepresentative( r );
+          r = d_qstate.getRepresentative(r);
         }else{
           if( r.getType().isSort() ){
             Trace("internal-rep-warn") << "No representative for UF constant." << std::endl;
@@ -130,7 +93,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   // find best selection for representative
   Node r_best;
   std::vector<Node> eqc;
-  getEquivalenceClass(r, eqc);
+  d_qstate.getEquivalenceClass(r, eqc);
   Trace("internal-rep-select")
       << "Choose representative for equivalence class : " << eqc
       << ", type = " << v_tn << std::endl;
@@ -179,30 +142,6 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
     }
   }
   return r_best;
-}
-
-eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
-  return d_qe->getMasterEqualityEngine();
-}
-
-void EqualityQueryQuantifiersEngine::getEquivalenceClass( Node a, std::vector< Node >& eqc ){
-  eq::EqualityEngine* ee = getEngine();
-  if( ee->hasTerm( a ) ){
-    Node rep = ee->getRepresentative( a );
-    eq::EqClassIterator eqc_iter( rep, ee );
-    while( !eqc_iter.isFinished() ){
-      eqc.push_back( *eqc_iter );
-      eqc_iter++;
-    }
-  }else{
-    eqc.push_back( a );
-  }
-  //a should be in its equivalence class
-  Assert(std::find(eqc.begin(), eqc.end(), a) != eqc.end());
-}
-
-TNode EqualityQueryQuantifiersEngine::getCongruentTerm( Node f, std::vector< TNode >& args ) {
-  return d_qe->getTermDatabase()->getCongruentTerm( f, args );
 }
 
 //helper functions

@@ -965,6 +965,19 @@ TEST_F(TestApiSolverBlack, declareSort)
   ASSERT_NO_THROW(d_solver.declareSort("", 2));
 }
 
+TEST_F(TestApiSolverBlack, defineSort)
+{
+  Sort sortVar0 = d_solver.mkParamSort("T0");
+  Sort sortVar1 = d_solver.mkParamSort("T1");
+  Sort intSort = d_solver.getIntegerSort();
+  Sort realSort = d_solver.getRealSort();
+  Sort arraySort0 = d_solver.mkArraySort(sortVar0, sortVar0);
+  Sort arraySort1 = d_solver.mkArraySort(sortVar0, sortVar1);
+  // Now create instantiations of the defined sorts
+  ASSERT_NO_THROW(arraySort0.substitute(sortVar0, intSort));
+  ASSERT_NO_THROW(arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
+}
+
 TEST_F(TestApiSolverBlack, defineFun)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);

@@ -144,6 +144,8 @@ class TConvProofGenerator : public ProofGenerator
   /**
    * Add rewrite step t --> s based on proof generator.
    *
+   * @param isPre Whether the rewrite is applied at prerewrite (pre-order
+   * traversal).
    * @param trustId If a null proof generator is provided, we add a step to
    * the proof that has trustId as the rule and expected as the sole argument.
    * @param isClosed whether to expect that pg can provide a closed proof for
@@ -156,25 +158,28 @@ class TConvProofGenerator : public ProofGenerator
   void addRewriteStep(Node t,
                       Node s,
                       ProofGenerator* pg,
+                      bool isPre = false,
                       PfRule trustId = PfRule::ASSUME,
                       bool isClosed = false,
                       uint32_t tctx = 0);
   /** Same as above, for a single step */
-  void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx = 0);
+  void addRewriteStep(
+      Node t, Node s, ProofStep ps, bool isPre = false, uint32_t tctx = 0);
   /** Same as above, with explicit arguments */
   void addRewriteStep(Node t,
                       Node s,
                       PfRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
+                      bool isPre = false,
                       uint32_t tctx = 0);
   /** Has rewrite step for term t */
-  bool hasRewriteStep(Node t, uint32_t tctx = 0) const;
+  bool hasRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /** 
    * Get rewrite step for term t, returns the s provided in a call to
    * addRewriteStep if one exists, or null otherwise.
    */
-  Node getRewriteStep(Node t, uint32_t tctx = 0) const;
+  Node getRewriteStep(Node t, uint32_t tctx = 0, bool isPre = false) const;
   /**
    * Get the proof for formula f. It should be the case that f is of the form
    * t = t', where t' is the result of rewriting t based on the rewrite steps
@@ -194,7 +199,8 @@ class TConvProofGenerator : public ProofGenerator
   /** The (lazy) context dependent proof object. */
   LazyCDProof d_proof;
   /** map to rewritten forms */
-  NodeNodeMap d_rewriteMap;
+  NodeNodeMap d_preRewriteMap;
+  NodeNodeMap d_postRewriteMap;
   /**
    * Policy for how rewrites are applied to terms. As a simple example, say we
    * have registered the rewrite steps:
@@ -220,7 +226,7 @@ class TConvProofGenerator : public ProofGenerator
    */
   bool d_rewriteOps;
   /** Get rewrite step for (hash value of) term. */
-  Node getRewriteStepInternal(Node thash) const;
+  Node getRewriteStepInternal(Node thash, bool isPre) const;
   /**
    * Adds a proof of t = t' to the proof pf where t' is the result of rewriting
    * t based on the rewrite steps registered to this class. This method then
@@ -231,7 +237,7 @@ class TConvProofGenerator : public ProofGenerator
    * Register rewrite step, returns the equality t=s if t is distinct from s
    * and a rewrite step has not already been registered for t.
    */
-  Node registerRewriteStep(Node t, Node s, uint32_t tctx);
+  Node registerRewriteStep(Node t, Node s, uint32_t tctx, bool isPre);
   /** cache that r is the rewritten form of cur, pf can provide a proof */
   void doCache(Node curHash, Node cur, Node r, LazyCDProof& pf);
   /** get debug information on this generator */

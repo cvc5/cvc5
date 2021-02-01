@@ -130,7 +130,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
 }
 
 AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe)
-    : d_aedb(qe->getTermCanonize())
+    : d_termCanon(), d_aedb(&d_termCanon)
 {
 }
 

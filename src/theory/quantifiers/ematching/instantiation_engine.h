@@ -19,6 +19,7 @@
 
 #include <vector>
 
+#include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quant_util.h"
 
@@ -28,30 +29,6 @@ namespace quantifiers {
 
 class InstStrategyUserPatterns;
 class InstStrategyAutoGenTriggers;
-class InstStrategyFreeVariable;
-
-/** instantiation strategy class */
-class InstStrategy {
-public:
-  enum Status {
-    STATUS_UNFINISHED,
-    STATUS_UNKNOWN,
-  };/* enum Status */
-protected:
-  /** reference to the instantiation engine */
-  QuantifiersEngine* d_quantEngine;
-public:
-  InstStrategy( QuantifiersEngine* qe ) : d_quantEngine( qe ){}
-  virtual ~InstStrategy(){}
-  /** presolve */
-  virtual void presolve() {}
-  /** reset instantiation */
-  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
-  /** process method, returns a status */
-  virtual int process( Node f, Theory::Effort effort, int e ) = 0;
-  /** identify */
-  virtual std::string identify() const { return std::string("Unknown"); }
-};/* class InstStrategy */
 
 class InstantiationEngine : public QuantifiersModule {
  private:
@@ -71,7 +48,9 @@ class InstantiationEngine : public QuantifiersModule {
   void doInstantiationRound(Theory::Effort effort);
 
  public:
-  InstantiationEngine(QuantifiersEngine* qe);
+  InstantiationEngine(QuantifiersEngine* qe,
+                      QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim);
   ~InstantiationEngine();
   void presolve() override;
   bool needsCheck(Theory::Effort e) override;

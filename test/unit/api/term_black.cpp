@@ -684,6 +684,17 @@ TEST_F(TestApiTermBlack, getInteger)
   Term int9 = d_solver.mkInteger("4294967296");
   Term int10 = d_solver.mkInteger("18446744073709551615");
   Term int11 = d_solver.mkInteger("18446744073709551616");
+  Term int12 = d_solver.mkInteger("-0");
+
+  ASSERT_THROW(d_solver.mkInteger(""), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("-"), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("-1-"), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("0.0"), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("-0.1"), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("012"), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("0000"), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("-01"), CVC4ApiException);
+  ASSERT_THROW(d_solver.mkInteger("-00"), CVC4ApiException);
 
   ASSERT_TRUE(!int1.isInt32() && !int1.isUInt32() && !int1.isInt64()
               && !int1.isUInt64() && int1.isInteger());

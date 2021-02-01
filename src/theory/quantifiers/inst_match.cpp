@@ -45,24 +45,6 @@ void InstMatch::add(InstMatch& m)
   }
 }
 
-bool InstMatch::merge( EqualityQuery* q, InstMatch& m ){
-  Assert(d_vals.size() == m.d_vals.size());
-  for (unsigned i = 0, size = d_vals.size(); i < size; i++)
-  {
-    if( !m.d_vals[i].isNull() ){
-      if( d_vals[i].isNull() ){
-        d_vals[i] = m.d_vals[i];
-      }else{
-        if( !q->areEqual( d_vals[i], m.d_vals[i]) ){
-          clear();
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-}
-
 void InstMatch::debugPrint( const char* c ){
   for (unsigned i = 0, size = d_vals.size(); i < size; i++)
   {
@@ -111,20 +93,14 @@ void InstMatch::setValue(size_t i, TNode n)
   Assert(i < d_vals.size());
   d_vals[i] = n;
 }
-bool InstMatch::set(EqualityQuery* q, size_t i, TNode n)
+bool InstMatch::set(quantifiers::QuantifiersState& qs, size_t i, TNode n)
 {
   Assert(i < d_vals.size());
   if( !d_vals[i].isNull() ){
-    if (q->areEqual(d_vals[i], n))
-    {
-      return true;
-    }else{
-      return false;
-    }
-  }else{
-    d_vals[i] = n;
-    return true;
+    return qs.areEqual(d_vals[i], n);
   }
+  d_vals[i] = n;
+  return true;
 }
 
 }/* CVC4::theory::inst namespace */

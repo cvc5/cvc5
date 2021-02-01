@@ -1704,12 +1704,28 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Node eq = (simpleKind == DISTINCT) ? assertion[0] : assertion;
     Assert(!isSetup(eq));
     Node reEq = Rewriter::rewrite(eq);
+    Debug("arith::distinct::const") << "Assertion: " << assertion << std::endl;
+    Debug("arith::distinct::const") << "Eq       : " << eq << std::endl;
+    Debug("arith::distinct::const") << "reEq     : " << reEq << std::endl;
     if(reEq.getKind() == CONST_BOOLEAN){
       if(reEq.getConst<bool>() == isDistinct){
         // if is (not true), or false
         Assert((reEq.getConst<bool>() && isDistinct)
                || (!reEq.getConst<bool>() && !isDistinct));
-        raiseBlackBoxConflict(assertion);
+        if (proofsEnabled())
+        {
+          Pf assume = d_pnm->mkAssume(assertion);
+          std::vector<Node> assumptions = {assertion};
+          Pf pf = d_pnm->mkScope(d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                                               {d_pnm->mkAssume(assertion)},
+                                               {}),
+                                 assumptions);
+          raiseBlackBoxConflict(assertion, pf);
+        }
+        else
+        {
+          raiseBlackBoxConflict(assertion);
+        }
       }
       return NullConstraint;
     }
@@ -1978,7 +1994,7 @@ void TheoryArithPrivate::outputConflicts(){
 void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  (d_containing.d_out)->lemma(lemma.getNode());
+  (d_containing.d_out)->trustedLemma(lemma);
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
@@ -1989,7 +2005,7 @@ void TheoryArithPrivate::outputLemma(TNode lem) {
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf)
 {
   Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
-  (d_containing.d_out)->conflict(conf.getNode());
+  (d_containing.d_out)->trustedConflict(conf);
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit) {
@@ -2663,7 +2679,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
         d_replayedLemmas = replayLemmas(approx);
         Assert(d_acTmp.empty());
         while(!d_approxCuts.empty()){
-          Node lem = d_approxCuts.front();
+          TrustNode lem = d_approxCuts.front();
           d_approxCuts.pop();
           d_acTmp.push_back(lem);
         }
@@ -2673,7 +2689,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
   /* move into the current context. */
   while(!d_acTmp.empty()){
-    Node lem = d_acTmp.back();
+    TrustNode lem = d_acTmp.back();
     d_acTmp.pop_back();
     d_approxCuts.push_back(lem);
   }
@@ -2812,7 +2828,8 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
 
         Node implication = asLemma.impNode(implied);
         // DO NOT CALL OUTPUT LEMMA!
-        d_approxCuts.push_back(implication);
+        // TODO (project #37): justify
+        d_approxCuts.push_back(TrustNode::mkTrustLemma(implication, nullptr));
         Debug("approx::lemmas") << "cut["<<i<<"] " << implication << endl;
         ++(d_statistics.d_mipExternalCuts);
       }
@@ -2822,7 +2839,14 @@ bool TheoryArithPrivate::replayLemmas(ApproximateSimplex* approx){
       if(!lit.isNull()){
         anythingnew = anythingnew || !isSatLiteral(lit);
         Node branch = lit.orNode(lit.notNode());
-        d_approxCuts.push_back(branch);
+        if (proofsEnabled())
+        {
+          d_pfGen->mkTrustNode(branch, PfRule::SPLIT, {}, {lit});
+        }
+        else
+        {
+          d_approxCuts.push_back(TrustNode::mkTrustLemma(branch, nullptr));
+        }
         ++(d_statistics.d_mipExternalBranch);
         Debug("approx::lemmas") << "branching "<< root <<" as " << branch << endl;
       }
@@ -3068,7 +3092,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
       if(!isSatLiteral(rwbranch)){
-        d_approxCuts.push_back(branch.getNode());
+        d_approxCuts.push_back(branch);
         return true;
       }
     }
@@ -3523,12 +3547,12 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   if(!d_approxCuts.empty()){
     bool anyFresh = false;
     while(!d_approxCuts.empty()){
-      Node lem = d_approxCuts.front();
+      TrustNode lem = d_approxCuts.front();
       d_approxCuts.pop();
       Debug("arith::approx::cuts") << "approximate cut:" << lem << endl;
-      anyFresh = anyFresh || hasFreshArithLiteral(lem);
+      anyFresh = anyFresh || hasFreshArithLiteral(lem.getNode());
       Debug("arith::lemma") << "approximate cut:" << lem << endl;
-      outputLemma(lem);
+      outputTrustedLemma(lem);
     }
     if(anyFresh){
       emmittedConflictOrSplit = true;
@@ -3630,6 +3654,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       if(possibleConflict != Node::null()){
         revertOutOfConflict();
         Debug("arith::conflict") << "dio conflict   " << possibleConflict << endl;
+        // TODO (project #37): justify (proofs in the DIO solver)
         raiseBlackBoxConflict(possibleConflict);
         outputConflicts();
         emmittedConflictOrSplit = true;
@@ -4028,12 +4053,54 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
       outputPropagate(toProp);
     }else if(constraint->negationHasProof()){
-      Node exp = d_congruenceManager.explain(toProp).getNode();
-      Node notNormalized = normalized.getKind() == NOT ?
-        normalized[0] : normalized.notNode();
-      Node lp = flattenAnd(exp.andNode(notNormalized));
+      // The congruence manager can prove: antecedents => toProp,
+      // ergo. antecedents ^ ~toProp is a conflict.
+      TrustNode exp = d_congruenceManager.explain(toProp);
+      Node notNormalized = normalized.negate();
+      std::vector<Node> ants(exp.getNode().begin(), exp.getNode().end());
+      ants.push_back(notNormalized);
+      Node lp = safeConstructNary(kind::AND, ants);
       Debug("arith::prop") << "propagate conflict" <<  lp << endl;
-      raiseBlackBoxConflict(lp);
+      if (proofsEnabled())
+      {
+        // Assume all of antecedents and ~toProp (rewritten)
+        std::vector<Pf> pfAntList;
+        for (size_t i = 0; i < ants.size(); ++i)
+        {
+          pfAntList.push_back(d_pnm->mkAssume(ants[i]));
+        }
+        Pf pfAnt = pfAntList.size() > 1
+                       ? d_pnm->mkNode(PfRule::AND_INTRO, pfAntList, {})
+                       : pfAntList[0];
+        // Use modus ponens to get toProp (un rewritten)
+        Pf pfConc = d_pnm->mkNode(
+            PfRule::MODUS_PONENS,
+            {pfAnt, exp.getGenerator()->getProofFor(exp.getProven())},
+            {});
+        // prove toProp (rewritten)
+        Pf pfConcRewritten = d_pnm->mkNode(
+            PfRule::MACRO_SR_PRED_TRANSFORM, {pfConc}, {normalized});
+        Pf pfNotNormalized = d_pnm->mkAssume(notNormalized);
+        // prove bottom from toProp and ~toProp
+        Pf pfBot;
+        if (normalized.getKind() == kind::NOT)
+        {
+          pfBot = d_pnm->mkNode(
+              PfRule::CONTRA, {pfNotNormalized, pfConcRewritten}, {});
+        }
+        else
+        {
+          pfBot = d_pnm->mkNode(
+              PfRule::CONTRA, {pfConcRewritten, pfNotNormalized}, {});
+        }
+        // close scope
+        Pf pfNotAnd = d_pnm->mkScope(pfBot, ants);
+        raiseBlackBoxConflict(lp, pfNotAnd);
+      }
+      else
+      {
+        raiseBlackBoxConflict(lp);
+      }
       outputConflicts();
       return;
     }else{

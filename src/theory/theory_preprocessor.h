@@ -56,26 +56,17 @@ class TheoryPreprocessor
    * additional lemmas in newLemmas, which are trust nodes of kind
    * TrustNodeKind::LEMMA. These correspond to e.g. lemmas corresponding to ITE
    * removal. For each lemma in newLemmas, we add the corresponding skolem that
-   * the lemma defines. The flag doTheoryPreprocess is whether we should run
-   * theory-specific preprocessing.
+   * the lemma defines.
    *
    * @param node The assertion to preprocess,
    * @param newLemmas The lemmas to add to the set of assertions,
    * @param newSkolems The skolems that newLemmas correspond to,
-   * @param doTheoryPreprocess whether to run theory-specific preprocessing.
    * @return The (REWRITE) trust node corresponding to rewritten node via
    * preprocessing.
    */
   TrustNode preprocess(TNode node,
                        std::vector<TrustNode>& newLemmas,
-                       std::vector<Node>& newSkolems,
-                       bool doTheoryPreprocess,
-                       bool fixedPoint);
-  /**
-   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
-   * can be extracted from the RemoveTermFormulas utility.
-   */
-  TrustNode preprocess(TNode node, bool doTheoryPreprocess);
+                       std::vector<Node>& newSkolems);
   /**
    * Same as above, but transforms the proof of node into a proof of the
    * preprocessed node and returns the LEMMA trust node.
@@ -83,20 +74,12 @@ class TheoryPreprocessor
    * @param node The assertion to preprocess,
    * @param newLemmas The lemmas to add to the set of assertions,
    * @param newSkolems The skolems that newLemmas correspond to,
-   * @param doTheoryPreprocess whether to run theory-specific preprocessing.
    * @return The (LEMMA) trust node corresponding to the proof of the rewritten
    * form of the proven field of node.
    */
   TrustNode preprocessLemma(TrustNode node,
                             std::vector<TrustNode>& newLemmas,
-                            std::vector<Node>& newSkolems,
-                            bool doTheoryPreprocess,
-                            bool fixedPoint);
-  /**
-   * Same as above, without lemma tracking or fixed point. Lemmas for skolems
-   * can be extracted from the RemoveTermFormulas utility.
-   */
-  TrustNode preprocessLemma(TrustNode node, bool doTheoryPreprocess);
+                            std::vector<Node>& newSkolems);
 
   /** Get the term formula removal utility */
   RemoveTermFormulas& getRemoveTermFormulas();
@@ -107,6 +90,24 @@ class TheoryPreprocessor
    * parts of the node.
    */
   TrustNode theoryPreprocess(TNode node);
+  /**
+   * Internal helper for preprocess, which also optionally preprocesses the
+   * new lemmas generated until a fixed point is reached based on argument
+   * procLemmas.
+   */
+  TrustNode preprocessInternal(TNode node,
+                               std::vector<TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems,
+                               bool procLemmas);
+  /**
+   * Internal helper for preprocessLemma, which also optionally preprocesses the
+   * new lemmas generated until a fixed point is reached based on argument
+   * procLemmas.
+   */
+  TrustNode preprocessLemmaInternal(TrustNode node,
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems,
+                                    bool procLemmas);
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
   /** Logic info of theory engine */
@@ -134,12 +135,6 @@ class TheoryPreprocessor
    * from d_tpg, which interleaves both preprocessing and rewriting.
    */
   std::unique_ptr<TConvProofGenerator> d_tpgRew;
-  /**
-   * A term conversion sequence generator, which applies term formula removal
-   * and rewriting in sequence. This is used for reconstruct proofs of
-   * calls to preprocess where doTheoryPreprocess is false.
-   */
-  std::unique_ptr<TConvSeqProofGenerator> d_tspgNoPp;
   /** A lazy proof, for additional lemmas. */
   std::unique_ptr<LazyCDProof> d_lp;
   /** Helper for theoryPreprocess */

@@ -59,7 +59,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
     if( isExcludedEqc( eqc ) ){
       d_mode = cand_term_none;
     }else{
-      eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
+      eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
       if( ee->hasTerm( eqc ) ){
         TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, op);
         if( tat ){
@@ -93,6 +93,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
+    quantifiers::QuantifiersState& qs = d_qe->getState();
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
@@ -103,7 +104,7 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
           if( d_exclude_eqc.empty() ){
             return n;
           }else{
-            Node r = d_qe->getEqualityQuery()->getRepresentative( n );
+            Node r = qs.getRepresentative(n);
             if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
               Debug("cand-gen-qe") << "...returning " << n << std::endl;
               return n;
@@ -143,8 +144,9 @@ CandidateGenerator( qe ), d_match_pattern( mpat ){
 }
 
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
-  Node false_term = d_qe->getEqualityQuery()->getEngine()->getRepresentative( NodeManager::currentNM()->mkConst<bool>(false) );
-  d_eqc_false = eq::EqClassIterator( false_term, d_qe->getEqualityQuery()->getEngine() );
+  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  Node falset = NodeManager::currentNM()->mkConst(false);
+  d_eqc_false = eq::EqClassIterator(falset, ee);
 }
 
 Node CandidateGeneratorQELitDeq::getNextCandidate(){
@@ -177,7 +179,7 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mp
 }
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
-  d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
+  d_eq = eq::EqClassesIterator(d_qe->getState().getEqualityEngine());
   d_firstTime = true;
 }
 
