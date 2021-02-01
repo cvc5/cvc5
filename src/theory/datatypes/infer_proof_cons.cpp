@@ -152,11 +152,6 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::LABEL_EXH:
-    {
-      // TODO: resolution
-    }
-    break;
     case InferId::COLLAPSE_SEL:
     {
       Assert(exp.getKind() == EQUAL);
@@ -224,6 +219,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
     }
     break;
     // inferences currently not supported
+    case InferId::LABEL_EXH:
     case InferId::BISIMILAR:
     case InferId::CYCLE:
     default:
