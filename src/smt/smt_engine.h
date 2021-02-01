@@ -118,6 +118,7 @@ struct SmtEngineStatistics;
 class SmtScope;
 class ProcessAssertions;
 class PfManager;
+class UnsatCoreManager;
 
 ProofManager* currentProofManager();
 }/* CVC4::smt namespace */
@@ -1099,6 +1100,11 @@ class CVC4_PUBLIC SmtEngine
    * processing, and printing proofs.
    */
   std::unique_ptr<smt::PfManager> d_pfManager;
+
+  /**
+   * The unsat core manager, which produces unsat cores and related information
+   * from refutations. */
+  std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
 
   /**
    * The rewriter associated with this SmtEngine. We have a different instance

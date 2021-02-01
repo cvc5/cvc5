@@ -53,6 +53,7 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
 #include "smt/sygus_solver.h"
+#include "smt/unsat_core_manager.h"
 #include "theory/quantifiers/instantiation_list.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/rewriter.h"
@@ -88,6 +89,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_model(nullptr),
       d_checkModels(nullptr),
       d_pfManager(nullptr),
+      d_ucManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
@@ -153,7 +155,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
 
   // d_proofManager must be created before Options has been finished
   // being parsed from the input file. Because of this, we cannot trust
-  // that options::proof() is set correctly yet.
+  // that options::unsatCores() is set correctly yet.
 #ifdef CVC4_PROOF
   d_proofManager.reset(new ProofManager(getUserContext()));
 #endif
@@ -224,6 +226,8 @@ void SmtEngine::finishInit()
   {
     d_pfManager.reset(new PfManager(getUserContext(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
+    // start the unsat core manager
+    d_ucManager.reset(new UnsatCoreManager());
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter
@@ -332,6 +336,7 @@ SmtEngine::~SmtEngine()
 #endif
     d_rewriter.reset(nullptr);
     d_pfManager.reset(nullptr);
+    d_ucManager.reset(nullptr);
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
@@ -988,8 +993,10 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate an unsat core correctly.
-    if(options::checkUnsatCores()) {
-      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+    if (options::checkUnsatCores() || options::checkUnsatCoresNew())
+    {
+      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      {
         TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
         checkUnsatCore();
       }
@@ -1417,9 +1424,21 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
         "Cannot get an unsat core unless immediately preceded by "
         "UNSAT/ENTAILED response.");
   }
-
-  d_proofManager->traceUnsatCore();  // just to trigger core creation
-  return UnsatCore(d_proofManager->extractUnsatCore());
+  // use old proof infrastructure
+  if (!d_pfManager)
+  {
+    d_proofManager->traceUnsatCore();  // just to trigger core creation
+    return UnsatCore(d_proofManager->extractUnsatCore());
+  }
+  // generate with new proofs
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
+  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
+      pe->getProof(), *d_asserts, *d_definedFunctions);
+  std::vector<Node> core;
+  d_ucManager->getUnsatCore(pfn, *d_asserts, core);
+  return UnsatCore(core);
 #else  /* IS_PROOFS_BUILD */
   throw ModalException(
       "This build of CVC4 doesn't have proof support (required for unsat "
@@ -1438,6 +1457,9 @@ void SmtEngine::checkUnsatCore() {
   std::unique_ptr<SmtEngine> coreChecker;
   initializeSubsolver(coreChecker);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
+  // disable all proof options
+  coreChecker->getOptions().set(options::proofNew, false);
+  coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -1491,12 +1513,12 @@ void SmtEngine::checkModel(bool hardFailure) {
   d_checkModels->checkModel(m, al, hardFailure);
 }
 
-// TODO(#1108): Simplify the error reporting of this method.
 UnsatCore SmtEngine::getUnsatCore() {
-  Trace("smt") << "SMT getUnsatCore()" << endl;
+  Trace("smt") << "SMT getUnsatCore()" << std::endl;
   SmtScope smts(this);
   finishInit();
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     getOutputManager().getPrinter().toStreamCmdGetUnsatCore(
         getOutputManager().getDumpOut());
   }

@@ -27,7 +27,7 @@ namespace theory {
 namespace bags {
 
 BagSolver::BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr)
-    : d_state(s), d_im(im), d_termReg(tr)
+    : d_state(s), d_ig(&d_state), d_im(im), d_termReg(tr)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -40,6 +40,8 @@ BagSolver::~BagSolver() {}
 void BagSolver::postCheck()
 {
   d_state.initialize();
+
+  checkDisequalBagTerms();
 
   // At this point, all bag and count representatives should be in the solver
   // state.
@@ -54,11 +56,14 @@ void BagSolver::postCheck()
       Kind k = n.getKind();
       switch (k)
       {
+        case kind::EMPTYBAG: checkEmpty(n); break;
         case kind::MK_BAG: checkMkBag(n); break;
         case kind::UNION_DISJOINT: checkUnionDisjoint(n); break;
         case kind::UNION_MAX: checkUnionMax(n); break;
+        case kind::INTERSECTION_MIN: checkIntersectionMin(n); break;
         case kind::DIFFERENCE_SUBTRACT: checkDifferenceSubtract(n); break;
         case kind::DIFFERENCE_REMOVE: checkDifferenceRemove(n); break;
+        case kind::DUPLICATE_REMOVAL: checkDuplicateRemoval(n); break;
         default: break;
       }
       it++;
@@ -91,16 +96,24 @@ set<Node> BagSolver::getElementsForBinaryOperator(const Node& n)
   return elements;
 }
 
+void BagSolver::checkEmpty(const Node& n)
+{
+  Assert(n.getKind() == EMPTYBAG);
+  for (const Node& e : d_state.getElements(n))
+  {
+    InferInfo i = d_ig.empty(n, e);
+    i.process(&d_im, true);
+  }
+}
+
 void BagSolver::checkUnionDisjoint(const Node& n)
 {
   Assert(n.getKind() == UNION_DISJOINT);
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.unionDisjoint(n, e);
+    InferInfo i = d_ig.unionDisjoint(n, e);
     i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
   }
 }
 
@@ -110,10 +123,19 @@ void BagSolver::checkUnionMax(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.unionMax(n, e);
+    InferInfo i = d_ig.unionMax(n, e);
     i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+}
+
+void BagSolver::checkIntersectionMin(const Node& n)
+{
+  Assert(n.getKind() == INTERSECTION_MIN);
+  std::set<Node> elements = getElementsForBinaryOperator(n);
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.intersection(n, e);
+    i.process(&d_im, true);
   }
 }
 
@@ -123,10 +145,8 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.differenceSubtract(n, e);
+    InferInfo i = d_ig.differenceSubtract(n, e);
     i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
   }
 }
 
@@ -138,18 +158,14 @@ void BagSolver::checkMkBag(const Node& n)
       << " are: " << d_state.getElements(n) << std::endl;
   for (const Node& e : d_state.getElements(n))
   {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.mkBag(n, e);
+    InferInfo i = d_ig.mkBag(n, e);
     i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
   }
 }
 void BagSolver::checkNonNegativeCountTerms(const Node& bag, const Node& element)
 {
-  InferenceGenerator ig(&d_state);
-  InferInfo i = ig.nonNegativeCount(bag, element);
+  InferInfo i = d_ig.nonNegativeCount(bag, element);
   i.process(&d_im, true);
-  Trace("bags::BagSolver::postCheck") << i << endl;
 }
 
 void BagSolver::checkDifferenceRemove(const Node& n)
@@ -158,10 +174,34 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   std::set<Node> elements = getElementsForBinaryOperator(n);
   for (const Node& e : elements)
   {
-    InferenceGenerator ig(&d_state);
-    InferInfo i = ig.differenceRemove(n, e);
+    InferInfo i = d_ig.differenceRemove(n, e);
     i.process(&d_im, true);
-    Trace("bags::BagSolver::postCheck") << i << endl;
+  }
+}
+
+void BagSolver::checkDuplicateRemoval(Node n)
+{
+  Assert(n.getKind() == DUPLICATE_REMOVAL);
+  set<Node> elements;
+  const set<Node>& downwards = d_state.getElements(n);
+  const set<Node>& upwards = d_state.getElements(n[0]);
+
+  elements.insert(downwards.begin(), downwards.end());
+  elements.insert(upwards.begin(), upwards.end());
+
+  for (const Node& e : elements)
+  {
+    InferInfo i = d_ig.duplicateRemoval(n, e);
+    i.process(&d_im, true);
+  }
+}
+
+void BagSolver::checkDisequalBagTerms()
+{
+  for (const Node& n : d_state.getDisequalBagTerms())
+  {
+    InferInfo info = d_ig.bagDisequality(n);
+    info.process(&d_im, true);
   }
 }
 
