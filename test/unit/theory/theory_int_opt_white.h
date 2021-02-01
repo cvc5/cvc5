@@ -23,12 +23,8 @@ class omt : public CxxTest::TestSuite {
  public:
   void setUp() override
   {
-    //d_optslv(nullptr)
-    //d_optslv.reset(new OptimizationSolver(this));
-
     d_slv = new api::Solver();
     d_smt = d_slv->getSmtEngine();
-    //d_nm = d_slv->getNodeManager();
     d_nm = NodeManager::currentNM();
     d_scope = new SmtScope(d_smt);
     d_optslv = new OptimizationSolver(d_smt);
@@ -39,7 +35,6 @@ class omt : public CxxTest::TestSuite {
   }
   void tearDown() override
   {
-    //delete d_nm;
     delete d_optslv;
     delete d_scope;
     delete d_slv;
@@ -48,31 +43,49 @@ class omt : public CxxTest::TestSuite {
   {
     Term ub = d_slv->mkReal(100);
     Term lb = d_slv->mkReal(0);
-    Term cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost");
-    Term cost2 = d_slv->mkConst(d_slv->getIntegerSort(), "cost2");
 
-    Term upb = d_slv->mkTerm(CVC4::api::Kind::GT, ub, cost);
-    Term lowb = d_slv->mkTerm(CVC4::api::Kind::GT, cost, lb);
-    Term upb2 = d_slv->mkTerm(CVC4::api::Kind::GT, ub, cost2);
-    Term lowb2 = d_slv->mkTerm(CVC4::api::Kind::GT, cost2, lb);
+    //Objectives to be optimized max_cost is max objective min_cost is min objective
+    Term max_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost");
+    Term min_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost2");
+
+    Term upb = d_slv->mkTerm(CVC4::api::Kind::GT, ub, max_cost);
+    Term lowb = d_slv->mkTerm(CVC4::api::Kind::GT, max_cost, lb);
+    Term upb2 = d_slv->mkTerm(CVC4::api::Kind::GT, ub, min_cost);
+    Term lowb2 = d_slv->mkTerm(CVC4::api::Kind::GT, min_cost, lb);
+
+    /* Result of asserts is:
+       0 < max_cost < 100
+       0 < min_cost < 100
+    */
     d_slv->assertFormula(upb);
     d_slv->assertFormula(lowb);
     d_slv->assertFormula(upb2);
-    d_slv->assertFormula(lowb2);
+    d_slv->assertFormula(lowb2);    
 
-    const int type = 1;
-    const int type2 = 0;
-    const int result = 0;
-    d_optslv->activateObj(*cost.d_node, type, result);
-    d_optslv->activateObj(*cost2.d_node, type2, result);
+    //max_type is 1, signifies max_objective
+    const int max_type = 1;
+    //min_type is 0, signifies min_objective
+    const int min_type = 0;
+
+    //reults will hold the result of the first sat call the subsolver makes
+    const int result1 = 0;
+    const int result2 = 0;
+
+    //We activate both of our objective so the subsolver knows to optimize them
+    d_optslv->activateObj(*max_cost.d_node, max_type, result1);
+    d_optslv->activateObj(*min_cost.d_node, min_type, result2);
 
     CVC4::Result r;
     d_optslv->checkOpt(r);
 
+    //We expect max_cost == 99 and min_cost == 1
+    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*max_cost.d_node), d_nm->mkConst(Rational(99))); 
+    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*min_cost.d_node), d_nm->mkConst(Rational(1))); 
+
     std::cout << "Result is :" << r << std::endl;
-    std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue(*cost.d_node)
+    std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue(*max_cost.d_node)
               << std::endl;
-    std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue(*cost2.d_node)
+    std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue(*min_cost.d_node)
               << std::endl;
   }
 };
