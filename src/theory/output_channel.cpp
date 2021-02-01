@@ -41,10 +41,6 @@ bool isLemmaPropertyRemovable(LemmaProperty p)
 {
   return (p & LemmaProperty::REMOVABLE) != LemmaProperty::NONE;
 }
-bool isLemmaPropertyPreprocess(LemmaProperty p)
-{
-  return (p & LemmaProperty::PREPROCESS) != LemmaProperty::NONE;
-}
 bool isLemmaPropertySendAtoms(LemmaProperty p)
 {
   return (p & LemmaProperty::SEND_ATOMS) != LemmaProperty::NONE;
@@ -66,10 +62,6 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     if (isLemmaPropertyRemovable(p))
     {
       out << " REMOVABLE";
-    }
-    if (isLemmaPropertyPreprocess(p))
-    {
-      out << " PREPROCESS";
     }
     if (isLemmaPropertySendAtoms(p))
     {

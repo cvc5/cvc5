@@ -49,7 +49,7 @@ bool ArithPreprocess::reduceAssertion(TNode atom)
   // tn is of kind REWRITE, turn this into a LEMMA here
   TrustNode tlem = TrustNode::mkTrustLemma(tn.getProven(), tn.getGenerator());
   // must preprocess
-  d_im.trustedLemma(tlem, LemmaProperty::PREPROCESS);
+  d_im.trustedLemma(tlem);
   // mark the atom as reduced
   d_reduced[atom] = true;
   return true;
