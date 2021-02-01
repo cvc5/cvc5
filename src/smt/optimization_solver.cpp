@@ -34,25 +34,26 @@ bool OptimizationSolver::checkOpt(Result& r)
   initializeSubsolver(optChecker);
   NodeManager* nm = optChecker->getNodeManager();
 
-  //we need to be in incremental mode for multiple objectives since we need to push pop
-  //we need to produce models to inrement on our objective
+  // we need to be in incremental mode for multiple objectives since we need to
+  // push pop we need to produce models to inrement on our objective
   optChecker->setOption("incremental", "true");
   optChecker->setOption("produce-models", "true");
 
-  //Move assertions from the parent solver to the subsolver
+  // Move assertions from the parent solver to the subsolver
   std::vector<Node> axioms = d_parent->getExpandedAssertions();
   for (const Node& e : axioms)
   {
     optChecker->assertFormula(e);
   }
 
-  //Loop through all activated objectives and optimize for each
+  // Loop through all activated objectives and optimize for each
   for (int i = 0; i < d_activatedObjectives.size(); i++)
   {
     optChecker->push();
     Objective o = d_activatedObjectives[i];
 
-    //We need to checksat once before the optimization loop so we have a baseline value to inrement
+    // We need to checksat once before the optimization loop so we have a
+    // baseline value to inrement
     r = optChecker->checkSat();
 
     Result loop_r = r;
@@ -61,14 +62,16 @@ bool OptimizationSolver::checkOpt(Result& r)
 
     /*Workhorse of linear optimization:
       This loop will keep incrmenting the objective until unsat
-      When unsat is hit, the optimized value is the model value just before the unsat call
+      When unsat is hit, the optimized value is the model value just before the
+      unsat call
     */
     while (loop_r.isSat())
     {
-      //get the model-value of objective in last sat call
+      // get the model-value of objective in last sat call
       value = optChecker->getValue(o.d_node);
 
-      //We need to save the value since we need the model value just before the unsat call
+      // We need to save the value since we need the model value just before the
+      // unsat call
       o.d_savedValue = value;
 
       /*increment on the model-value of objective:

@@ -44,7 +44,8 @@ class omt : public CxxTest::TestSuite {
     Term ub = d_slv->mkReal(100);
     Term lb = d_slv->mkReal(0);
 
-    //Objectives to be optimized max_cost is max objective min_cost is min objective
+    // Objectives to be optimized max_cost is max objective min_cost is min
+    // objective
     Term max_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost");
     Term min_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost2");
 
@@ -60,32 +61,34 @@ class omt : public CxxTest::TestSuite {
     d_slv->assertFormula(upb);
     d_slv->assertFormula(lowb);
     d_slv->assertFormula(upb2);
-    d_slv->assertFormula(lowb2);    
+    d_slv->assertFormula(lowb2);
 
-    //max_type is 1, signifies max_objective
+    // max_type is 1, signifies max_objective
     const int max_type = 1;
-    //min_type is 0, signifies min_objective
+    // min_type is 0, signifies min_objective
     const int min_type = 0;
 
-    //reults will hold the result of the first sat call the subsolver makes
+    // reults will hold the result of the first sat call the subsolver makes
     const int result1 = 0;
     const int result2 = 0;
 
-    //We activate both of our objective so the subsolver knows to optimize them
+    // We activate both of our objective so the subsolver knows to optimize them
     d_optslv->activateObj(*max_cost.d_node, max_type, result1);
     d_optslv->activateObj(*min_cost.d_node, min_type, result2);
 
     CVC4::Result r;
     d_optslv->checkOpt(r);
 
-    //We expect max_cost == 99 and min_cost == 1
-    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*max_cost.d_node), d_nm->mkConst(Rational(99))); 
-    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*min_cost.d_node), d_nm->mkConst(Rational(1))); 
+    // We expect max_cost == 99 and min_cost == 1
+    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*max_cost.d_node),
+                     d_nm->mkConst(Rational(99)));
+    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*min_cost.d_node),
+                     d_nm->mkConst(Rational(1)));
 
     std::cout << "Result is :" << r << std::endl;
-    std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue(*max_cost.d_node)
-              << std::endl;
-    std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue(*min_cost.d_node)
-              << std::endl;
+    std::cout << "Optimized max value is: "
+              << d_optslv->objectiveGetValue(*max_cost.d_node) << std::endl;
+    std::cout << "Optimized min value is: "
+              << d_optslv->objectiveGetValue(*min_cost.d_node) << std::endl;
   }
 };
