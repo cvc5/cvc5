@@ -374,7 +374,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
     ce_vars.push_back(tutil->getInstantiationConstant(q, i));
   }
   // send the lemma
-  d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+  d_quantEngine->getOutputChannel().lemma(lem);
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;
