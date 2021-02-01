@@ -510,7 +510,7 @@ Rational String::toNumber() const
 }
 
 std::ostream &operator<<(std::ostream &os, const String &s) {
-  return os << "\"" << s.toString(true) << "\"";
+  return os << "\"" << s.toString() << "\"";
 }
 
 }  // namespace CVC4

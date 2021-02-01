@@ -118,6 +118,17 @@ class TheoryProxy : public Registrar
   theory::TrustNode removeItes(TNode node,
                                std::vector<theory::TrustNode>& newLemmas,
                                std::vector<Node>& newSkolems);
+  /**
+   * Get the skolems within node and their corresponding definitions, store
+   * them in sks and skAsserts respectively. Note that this method does not
+   * necessary include all of the skolems in skAsserts. In other words, it
+   * collects from node only. To compute all skolems that node depends on
+   * requires calling this method again on each lemma in skAsserts until a
+   * fixed point is reached.
+   */
+  void getSkolems(TNode node,
+                  std::vector<theory::TrustNode>& skAsserts,
+                  std::vector<Node>& sks);
   /** Preregister term */
   void preRegister(Node n) override;
 
