@@ -35,8 +35,8 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   LeanProofPostprocessCallback(ProofNodeManager* pnm);
   /**
-   * Initialize, called once for each new ProofNode to proccess. This initializes
-   * static information to be used by successive calls to update.
+   * Initialize, called once for each new ProofNode to proccess. This
+   * initializes static information to be used by successive calls to update.
    */
   void initializeUpdate();
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,

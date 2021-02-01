@@ -18,16 +18,17 @@
 #define CVC4__PROOF__LEAN_PROOF_PRINTER_H
 
 #include <iostream>
+
 #include "expr/node_algorithm.h"
-#include "expr/proof_node.h"
 #include "expr/proof_checker.h"
+#include "expr/proof_node.h"
 #include "proof/lean/lean_rules.h"
 
 namespace CVC4 {
-  //static uint32_t getUInt32(TNode n)
-  //{
-  //  return n.getConst<Rational>().getNumerator().toUnsignedInt();
-  //  }
+// static uint32_t getUInt32(TNode n)
+//{
+//  return n.getConst<Rational>().getNumerator().toUnsignedInt();
+//  }
 
 namespace proof {
 
@@ -76,11 +77,11 @@ static std::string kindToLeanString(Kind k)
 {
   switch (k)
   {
-  case kind::EQUAL: return "mkEq";
-  case kind::AND: return "mkAnd";
-  case kind::OR: return "mkOr";
-  case kind::NOT: return "mkNot";
-  default: return "mkOther";
+    case kind::EQUAL: return "mkEq";
+    case kind::AND: return "mkAnd";
+    case kind::OR: return "mkOr";
+    case kind::NOT: return "mkNot";
+    default: return "mkOther";
   }
 }
 
@@ -88,16 +89,18 @@ static std::string nodeToLeanString(Node n)
 {
   Kind k = n.getKind();
   std::string kind_string = kindToLeanString(k);
-  if (k == kind::VARIABLE) {
+  if (k == kind::VARIABLE)
+  {
     return n.toString();
   }
   std::string s;
   s.append("(");
   s.append(kind_string);
   s.append(" ");
-  for(int i=0;i<n.getNumChildren();i++){
+  for (int i = 0; i < n.getNumChildren(); i++)
+  {
     s.append(nodeToLeanString(n[i]));
-    if(i!=(int)n.getNumChildren()-1) s.append(" ");
+    if (i != (int)n.getNumChildren() - 1) s.append(" ");
   }
   s.append(")");
   return s;
@@ -106,11 +109,17 @@ static std::string nodeToLeanString(Node n)
 static std::string nodeToLeanTypeStringAux(Node n)
 {
   Kind k = n.getKind();
-  if (k == kind::VARIABLE) {
+  if (k == kind::VARIABLE)
+  {
     return n.toString();
-  } else if (k == kind::AND) {
-    return nodeToLeanTypeStringAux(n[0]).append(" -> ").append(nodeToLeanTypeStringAux(n[1]));
-  } else {
+  }
+  else if (k == kind::AND)
+  {
+    return nodeToLeanTypeStringAux(n[0]).append(" -> ").append(
+        nodeToLeanTypeStringAux(n[1]));
+  }
+  else
+  {
     std::string s = "holds [";
     return s.append(nodeToLeanString(n)).append("]");
   }
@@ -121,9 +130,9 @@ static std::string nodeToLeanTypeString(Node n)
   return nodeToLeanTypeStringAux(n[0]).append(" -> holds []");
 }
 
-
-
-  static void leanPrinterInternal(std::ostream& out, std::shared_ptr<ProofNode> pfn, std::map<Node, std::string>& passumeMap)
+static void leanPrinterInternal(std::ostream& out,
+                                std::shared_ptr<ProofNode> pfn,
+                                std::map<Node, std::string>& passumeMap)
 {
   // should print preamble
   // should print sorts
@@ -133,9 +142,9 @@ static std::string nodeToLeanTypeString(Node n)
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
   for (std::shared_ptr<ProofNode> ch : children)
-    {
-      leanPrinterInternal(out, ch, passumeMap);
-    }
+  {
+    leanPrinterInternal(out, ch, passumeMap);
+  }
   LeanRule id = getLeanRule(args[0]);
 
   switch (id)
@@ -148,14 +157,17 @@ static std::string nodeToLeanTypeString(Node n)
     case LeanRule::ASSUME:
     {
       int var_index = passumeMap.size();
-      std::string var_string = ((std::string)"v").append(std::to_string(var_index));
+      std::string var_string =
+          ((std::string) "v").append(std::to_string(var_index));
       passumeMap[args[1]] = var_string;
-      out << "(assume (" << var_string  << " : holds [" << nodeToLeanString(args[1]) << "]),\n";
+      out << "(assume (" << var_string << " : holds ["
+          << nodeToLeanString(args[1]) << "]),\n";
       break;
     };
     case LeanRule::SCOPE:
     {
-      for (int i=2; i<args.size(); i++) {
+      for (int i = 2; i < args.size(); i++)
+      {
         out << ")";
       }
       break;
@@ -174,20 +186,21 @@ static std::string nodeToLeanTypeString(Node n)
       out << nodeToLeanString(children[1]->getArguments()[1]);
       break;
     }
-  default:
+    default:
     {
       out << " ?\n";
       break;
     }
-    out << ")";
+      out << ")";
   }
-    // should traverse proof node, print each as a proof step, according to the
+  // should traverse proof node, print each as a proof step, according to the
   // LEAN_RULE id in the LeanRule enum
-  //out << pfn;
+  // out << pfn;
 }
 
-
-  static void leanPrinter(std::ostream & out, const std::vector<Node>& assertions, std::shared_ptr<ProofNode> pfn)
+static void leanPrinter(std::ostream& out,
+                        const std::vector<Node>& assertions,
+                        std::shared_ptr<ProofNode> pfn)
 {
   std::map<Node, std::string> passumeMap;
   const std::vector<Node>& args = pfn->getArguments();
@@ -217,7 +230,8 @@ static std::string nodeToLeanTypeString(Node n)
     out << "def " << s << " := const " << sym_count << " " << st << std::endl;
     sym_count += 1;
   }
-  out << "noncomputable theorem th0 : " << nodeToLeanTypeString(args[1]) << " := \n";
+  out << "noncomputable theorem th0 : " << nodeToLeanTypeString(args[1])
+      << " := \n";
   leanPrinterInternal(out, pfn, passumeMap);
   out << "\n";
 }

@@ -1,6 +1,6 @@
-#include "cvc4_private.h"
-
 #include <iostream>
+
+#include "cvc4_private.h"
 
 namespace CVC4 {
 namespace proof {
@@ -20,4 +20,4 @@ enum class LeanRule : uint32_t
   UNKNOWN
 };
 }
-}
+}  // namespace CVC4
