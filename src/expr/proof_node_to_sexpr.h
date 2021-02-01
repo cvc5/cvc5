@@ -47,6 +47,8 @@ class ProofNodeToSExpr
   std::map<PfRule, Node> d_pfrMap;
   /** Dummy ":args" marker */
   Node d_argsMarker;
+  /** Dummy ":conclusion" marker */
+  Node d_conclusionMarker;
   /** map proof nodes to their s-expression */
   std::map<const ProofNode*, Node> d_pnMap;
   /**
