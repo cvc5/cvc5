@@ -363,9 +363,22 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::DISTINCT_ELIM:{return CheckResult::NoCheck;}
     case VeritRule::LA_GENERIC:{return CheckResult::NoCheck;}
+    case VeritRule::LIA_GENERIC:{return CheckResult::NoCheck;}
+    case VeritRule::LA_DISEQUALITY:{//Add that t1 t2 are numbers?
+      if(res[0].toString() == cl.toString() && res[1].getKind() == kind::OR && res[1][0].getKind() == kind::EQUAL
+      && res[1][1].getKind() == kind::NOT && res[1][1][0].getKind() == kind::LEQ
+      && res[1][2].getKind() == kind::NOT && res[1][2][0].getKind() == kind::LEQ
+      && res[1][0][0] == res[1][1][0][0] && res[1][0][0] == res[1][2][0][1]
+      && res[1][0][1] == res[1][1][0][1] && res[1][0][1] == res[1][2][0][0]){
+        return CheckResult::True;
+      }
+      else{
+        return CheckResult::False;
+      }
+    }
     /* Leave out rules 28-38 */
     case VeritRule::FORALL_INST:{//TODO: In the onomicon it seems as if there is an or instead of an cl
-      bool success = false;
+      bool success = true;
       //std::cout << res[1][0][0]<< std::endl;
       //std::cout << res[1][1] << std::endl;
       if  (res[0].toString() == cl.toString()
@@ -463,7 +476,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
         return CheckResult::False;
       }
 
-      for (int i = 2; i < new_children.size() - 1; i++)
+      for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
       {
         if (new_children[i][0].toString() != cl.toString()
             || new_children[i][1].getKind() != kind::EQUAL)
@@ -488,7 +501,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       }
       return CheckResult::False;
      }
-    case VeritRule::CONG://DONE
+    case VeritRule::CONG:
     {
       for (int i = 0; i < new_children.size(); i++)
       {
@@ -498,14 +511,14 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
           return CheckResult::False;
         }
         if (!(new_children[i][1][0] == res[1][0][i] && new_children[i][1][1] == res[1][1][i])
-	 && !(new_children[i][1][0] == res[1][1][i] && new_children[i][1][1] == res[1][1][i]))
+	 && !(new_children[i][1][0] == res[1][1][i] && new_children[i][1][1] == res[1][0][i]))
         {
           return CheckResult::False;
         }
 
       }
       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
-          && res[1][0].getKind() == res[1][1].getKind()
+          && res[1][0].getKind() == res[1][1].getKind() //TODO: check if function, seems to be APPLY_UF at least sometimes
           && res[1][0].getOperator() == res[1][1].getOperator()){return CheckResult::True;}
       return CheckResult::False;
     }
@@ -615,18 +628,119 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
         return CheckResult::True;
       }
       return CheckResult::False;
- 
     }
     case VeritRule::IMPLIES://tested
     {
-      bool equal;
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::IMPLIES
 	     && new_children[0][1][0] == res[1][0]
 	     && res[1].getKind() == kind::NOT
 	     && new_children[0][1][1] == res[2]
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
-	return CheckResult::False;
+      return CheckResult::False;
+    }
+    case VeritRule::NOT_IMPLIES1:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::NOT
+	     && new_children[0][1][0].getKind() == kind::IMPLIES
+	     && new_children[0][1][0][0] == res[1]
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::NOT_IMPLIES2:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::NOT
+	     && new_children[0][1][0].getKind() == kind::IMPLIES
+	     && new_children[0][1][0][1] == res[1][0]
+	     && res[1].getKind() == kind::NOT
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::EQUIV1:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::EQUAL
+	     && new_children[0][1][0] == res[1][0]
+	     && new_children[0][1][1] == res[2]
+	     && res[1].getKind() == kind::NOT
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::EQUIV2:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::EQUAL
+	     && new_children[0][1][0] == res[1]
+	     && new_children[0][1][1] == res[2][0]
+	     && res[2].getKind() == kind::NOT
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::NOT_EQUIV1:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::NOT
+	     && new_children[0][1][0].getKind() == kind::EQUAL
+	     && new_children[0][1][0][0] == res[1]
+	     && new_children[0][1][0][1] == res[2]
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::NOT_EQUIV2:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::NOT
+	     && new_children[0][1][0].getKind() == kind::EQUAL
+	     && new_children[0][1][0][0] == res[1][0]
+	     && new_children[0][1][0][1] == res[2][0]
+	     && res[1].getKind() == kind::NOT
+	     && res[2].getKind() == kind::NOT
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::ITE1:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::ITE
+	     && new_children[0][1][0] == res[1]
+	     && new_children[0][1][2] == res[2]
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::ITE2:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::ITE
+	     && new_children[0][1][0] == res[1][0]
+	     && new_children[0][1][1] == res[2]
+	     && res[1].getKind() == kind::NOT
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::NOT_ITE1:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::NOT
+	     && new_children[0][1][0].getKind() == kind::ITE
+	     && new_children[0][1][0][0] == res[1]
+	     && new_children[0][1][0][2] == res[2][0]
+	     && res[2].getKind() == kind::NOT
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
+    }
+    case VeritRule::NOT_ITE2:
+    {
+      if (new_children[0][0].toString() == cl.toString()
+	     && new_children[0][1].getKind() == kind::NOT
+	     && new_children[0][1][0].getKind() == kind::ITE
+	     && new_children[0][1][0][0] == res[1][0]
+	     && new_children[0][1][0][1] == res[2][0]
+	     && res[2].getKind() == kind::NOT
+	     && res[1].getKind() == kind::NOT
+	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+      return CheckResult::False;
     }
     case VeritRule::DUPLICATED_LITERALS:
     {  // tested. Assumes that all duplicates are deleted.
@@ -697,7 +811,7 @@ static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
         << "... check succeeded " << res << " " << veritRuletoString(id)
         << " " << new_children << std::endl;
   }
-  else if(checkInternal(pfn) == CheckResult::NotTranslated){
+  else if(checkInternal(pfn) == CheckResult::NoCheck){
     Trace("verit-checker")
         << "... check not translated yet " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
@@ -728,6 +842,11 @@ static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
     Trace("verit-checker-debug")
         << "... check manually " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
+
+    Trace("verit-checker-failed")
+        << "... check failed " << res << " " << veritRuletoString(id) << " "
+        << new_children << std::endl;
+    success = false;
   }
   for (auto child : pfn->getChildren())
   {

@@ -65,6 +65,11 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate);
+  bool finalResult(Node res,
+                                           PfRule id,
+				           const std::vector<Node>& children,
+                                           const std::vector<Node>& args,
+                                           CDProof* cdp);
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -126,6 +131,8 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof& cdp);
+
+
 };
 
 /**
