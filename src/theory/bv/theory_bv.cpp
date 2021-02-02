@@ -75,6 +75,45 @@ void TheoryBV::finishInit()
   getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
   getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
   d_internal->finishInit();
+
+  EeSetupInfo esi;  // hack
+  if (needsEqualityEngine(esi))
+  {
+    eq::EqualityEngine* ee = getEqualityEngine();
+    // The kinds we are treating as function application in congruence
+    ee->addFunctionKind(kind::BITVECTOR_CONCAT, true);
+    //    ee->addFunctionKind(kind::BITVECTOR_AND);
+    //    ee->addFunctionKind(kind::BITVECTOR_OR);
+    //    ee->addFunctionKind(kind::BITVECTOR_XOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_NOT);
+    //    ee->addFunctionKind(kind::BITVECTOR_NAND);
+    //    ee->addFunctionKind(kind::BITVECTOR_NOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_COMP);
+    ee->addFunctionKind(kind::BITVECTOR_MULT, true);
+    ee->addFunctionKind(kind::BITVECTOR_PLUS, true);
+    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
+    //    ee->addFunctionKind(kind::BITVECTOR_SUB);
+    //    ee->addFunctionKind(kind::BITVECTOR_NEG);
+    //    ee->addFunctionKind(kind::BITVECTOR_UDIV);
+    //    ee->addFunctionKind(kind::BITVECTOR_UREM);
+    //    ee->addFunctionKind(kind::BITVECTOR_SDIV);
+    //    ee->addFunctionKind(kind::BITVECTOR_SREM);
+    //    ee->addFunctionKind(kind::BITVECTOR_SMOD);
+    //    ee->addFunctionKind(kind::BITVECTOR_SHL);
+    //    ee->addFunctionKind(kind::BITVECTOR_LSHR);
+    //    ee->addFunctionKind(kind::BITVECTOR_ASHR);
+    //    ee->addFunctionKind(kind::BITVECTOR_ULT);
+    //    ee->addFunctionKind(kind::BITVECTOR_ULE);
+    //    ee->addFunctionKind(kind::BITVECTOR_UGT);
+    //    ee->addFunctionKind(kind::BITVECTOR_UGE);
+    //    ee->addFunctionKind(kind::BITVECTOR_SLT);
+    //    ee->addFunctionKind(kind::BITVECTOR_SLE);
+    //    ee->addFunctionKind(kind::BITVECTOR_SGT);
+    //    ee->addFunctionKind(kind::BITVECTOR_SGE);
+    ee->addFunctionKind(kind::BITVECTOR_TO_NAT);
+    ee->addFunctionKind(kind::INT_TO_BITVECTOR);
+  }
 }
 
 Node TheoryBV::getUFDivByZero(Kind k, unsigned width)
@@ -203,6 +242,11 @@ TrustNode TheoryBV::ppRewrite(TNode t)
 }
 
 void TheoryBV::presolve() { d_internal->presolve(); }
+
+EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
+{
+  d_internal->getEqualityStatus(a, b);
+}
 
 TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
 
