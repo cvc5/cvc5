@@ -66,7 +66,6 @@ OptResult OptimizationSolver::checkOpt()
 
   // We need to checksat once before the optimization loop so we have a
   // baseline value to increment
-
   Result loop_r = optChecker->checkSat();
 
   if (loop_r.isUnknown())
