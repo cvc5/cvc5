@@ -41,10 +41,6 @@ enum CVC4_PUBLIC ObjectiveType
  * An enum for optimization queries.
  *
  * Represents the result of a checkopt query
-
-
-
-
  * (unimplemented) OPT_OPTIMAL: if 
  * value was found
  */
