@@ -2493,6 +2493,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # waiting until we enable proofs in master
+  regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   # slow with sygus-inference after removing anti-skolemization
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
