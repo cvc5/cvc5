@@ -28,8 +28,7 @@ namespace smt {
 /**
  * An enum for optimization queries.
  *
- * Represenets whether an objective should be minimized: 0
- * or maximized: 1
+ * Represents whether an objective should be minimized or maximized
  */
 enum CVC4_PUBLIC ObjectiveType
 {
@@ -89,6 +88,7 @@ class Objective
   class OptimizationSolver
   {
    public:
+    /** parent is the smt_solver that the user added their assertions to **/
     OptimizationSolver(SmtEngine* parent);
     ~OptimizationSolver();
 

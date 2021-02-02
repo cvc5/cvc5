@@ -68,7 +68,9 @@ OptResult OptimizationSolver::checkOpt()
     return OPT_UNSAT;
   }
 
+  // Model-value of objective (used in optimization loop)
   Node value;
+  // asserts objective > old_value (used in optimization loop)
   Node increment;
 
   // Workhorse of linear optimization:
