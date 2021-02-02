@@ -48,7 +48,6 @@ class ResourceManager;
 class OutputManager;
 class TheoryEngineProofGenerator;
 
-
 /**
  * A pair of a theory and a node. This is used to mark the flow of
  * propagations between theories.
@@ -89,7 +88,7 @@ class RelevanceManager;
 }/* CVC4::theory namespace */
 
 namespace prop {
-class PropEngine;  
+class PropEngine;
 }
 
 /**

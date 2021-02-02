@@ -24,9 +24,10 @@
 #include "expr/node_visitor.h"
 #include "expr/proof_ensure_closed.h"
 #include "options/quantifiers_options.h"
-#include "options/theory_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "printer/printer.h"
+#include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
 #include "theory/combination_care_graph.h"
@@ -42,7 +43,6 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
-#include "prop/prop_engine.h"
 
 using namespace std;
 

@@ -14,6 +14,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/preprocessor.h"
@@ -21,7 +22,6 @@
 #include "smt/smt_engine_state.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
-#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace smt {
