@@ -76,10 +76,9 @@ void TheoryBV::finishInit()
   getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
   d_internal->finishInit();
 
-  EeSetupInfo esi;  // hack
-  if (needsEqualityEngine(esi))
+  eq::EqualityEngine* ee = getEqualityEngine();
+  if (ee)
   {
-    eq::EqualityEngine* ee = getEqualityEngine();
     // The kinds we are treating as function application in congruence
     ee->addFunctionKind(kind::BITVECTOR_CONCAT, true);
     //    ee->addFunctionKind(kind::BITVECTOR_AND);
@@ -245,7 +244,7 @@ void TheoryBV::presolve() { d_internal->presolve(); }
 
 EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
 {
-  d_internal->getEqualityStatus(a, b);
+  return d_internal->getEqualityStatus(a, b);
 }
 
 TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
