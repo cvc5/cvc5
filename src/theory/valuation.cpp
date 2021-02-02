@@ -18,6 +18,7 @@
 
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "prop/prop_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
