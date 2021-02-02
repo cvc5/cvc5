@@ -39,18 +39,49 @@ class omt : public CxxTest::TestSuite {
     delete d_scope;
     delete d_slv;
   }
-  void testOmt()
+  void testOmtMax()
+  {
+    Term ub = d_slv->mkReal(100);
+    Term lb = d_slv->mkReal(0);
+
+    // Objectives to be optimized max_cost is max objective
+    Term max_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost");
+
+    Term upb = d_slv->mkTerm(CVC4::api::Kind::GT, ub, max_cost);
+    Term lowb = d_slv->mkTerm(CVC4::api::Kind::GT, max_cost, lb);
+
+    /* Result of asserts is:
+       0 < max_cost < 100
+    */
+    d_slv->assertFormula(upb);
+    d_slv->assertFormula(lowb);
+
+    // max_type is 1, signifies max_objective
+    const int max_type = 1;
+
+    // We activate our objective so the subsolver knows to optimize it
+    d_optslv->activateObj(*max_cost.d_node, max_type);
+
+    OptResult r = d_optslv->checkOpt();
+
+    // We expect max_cost == 99
+    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*max_cost.d_node),
+                     d_nm->mkConst(Rational(99)));
+
+    std::cout << "Result is :" << r << std::endl;
+    std::cout << "Optimized max value is: "
+              << d_optslv->objectiveGetValue(*max_cost.d_node) << std::endl;
+  }
+  void testOmtMin()
   {
     Term ub = d_slv->mkReal(100);
     Term lb = d_slv->mkReal(0);
 
     // Objectives to be optimized max_cost is max objective min_cost is min
     // objective
-    Term max_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost");
+
     Term min_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost2");
 
-    Term upb = d_slv->mkTerm(CVC4::api::Kind::GT, ub, max_cost);
-    Term lowb = d_slv->mkTerm(CVC4::api::Kind::GT, max_cost, lb);
     Term upb2 = d_slv->mkTerm(CVC4::api::Kind::GT, ub, min_cost);
     Term lowb2 = d_slv->mkTerm(CVC4::api::Kind::GT, min_cost, lb);
 
@@ -58,37 +89,54 @@ class omt : public CxxTest::TestSuite {
        0 < max_cost < 100
        0 < min_cost < 100
     */
-    d_slv->assertFormula(upb);
-    d_slv->assertFormula(lowb);
     d_slv->assertFormula(upb2);
     d_slv->assertFormula(lowb2);
 
-    // max_type is 1, signifies max_objective
-    const int max_type = 1;
     // min_type is 0, signifies min_objective
     const int min_type = 0;
 
-    // reults will hold the result of the first sat call the subsolver makes
-    const int result1 = 0;
-    const int result2 = 0;
+    // We activate our objective so the subsolver knows to optimize it
+    d_optslv->activateObj(*min_cost.d_node, min_type);
 
-    // We activate both of our objective so the subsolver knows to optimize them
-    d_optslv->activateObj(*max_cost.d_node, max_type, result1);
-    d_optslv->activateObj(*min_cost.d_node, min_type, result2);
+    OptResult r = d_optslv->checkOpt();
 
-    CVC4::Result r;
-    d_optslv->checkOpt(r);
-
-    // We expect max_cost == 99 and min_cost == 1
-    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*max_cost.d_node),
-                     d_nm->mkConst(Rational(99)));
+    // We expect min_cost == 1
     TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*min_cost.d_node),
                      d_nm->mkConst(Rational(1)));
 
     std::cout << "Result is :" << r << std::endl;
-    std::cout << "Optimized max value is: "
-              << d_optslv->objectiveGetValue(*max_cost.d_node) << std::endl;
     std::cout << "Optimized min value is: "
               << d_optslv->objectiveGetValue(*min_cost.d_node) << std::endl;
+  }
+  void testOmtResult()
+  {
+    Term ub = d_slv->mkReal(100);
+    Term lb = d_slv->mkReal(0);
+
+    // Objectives to be optimized mmin_cost is min objective
+
+    Term min_cost = d_slv->mkConst(d_slv->getIntegerSort(), "cost2");
+
+    Term upb2 = d_slv->mkTerm(CVC4::api::Kind::GT, lb, min_cost);
+    Term lowb2 = d_slv->mkTerm(CVC4::api::Kind::GT, min_cost, ub);
+
+    /* Result of asserts is:
+       0 > min_cost >100
+    */
+    d_slv->assertFormula(upb2);
+    d_slv->assertFormula(lowb2);
+
+    // min_type is 0, signifies min_objective
+    const int min_type = 0;
+
+    // We activate our objective so the subsolver knows to optimize it
+    d_optslv->activateObj(*min_cost.d_node, min_type);
+
+    // This should return OPT_UNSAT since 0 > x > 100 is impossible.
+    OptResult r = d_optslv->checkOpt();
+
+    TS_ASSERT_EQUALS(r, OPT_UNSAT);
+
+    std::cout << "Result is :" << r << std::endl;
   }
 };

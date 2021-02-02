@@ -23,70 +23,90 @@
 #include "util/result.h"
 
 namespace CVC4 {
-
-class SmtEngine;
-
 namespace smt {
 
 /**
- * A solver for optimization queries.
+ * An enum for optimization queries.
  *
- * This class is responsible for responding to get-interpol commands. It spawns
- * a subsolver SmtEngine for a sygus conjecture that captures the interpolation
- * query, and implements supporting utility methods such as checkInterpol.
+ * Represenets whether an objective should be minimized: 0
+ * or maximized: 1
  */
-class OptimizationSolver
+enum CVC4_PUBLIC ObjectiveType
 {
-  enum CVC4_PUBLIC OptResult
-  {
-    OPT_UNKNOWN,
-    OPT_UNSAT,
-    OPT_SAT_PARTIAL,
-    OPT_SAT_APPROX,
-    OPT_OPTIMAL
-  };
+  OBJECTIVE_MINIMIZE,
+  OBJECTIVE_MAXIMIZE,
+  OBJECTIVE_UNDEFINED
+};
 
-  enum CVC4_PUBLIC ObjectiveType
-  {
-    OBJECTIVE_MINIMIZE,
-    OBJECTIVE_MAXIMIZE
-  };
+/**
+ * An enum for optimization queries.
+ *
+ * Represents the result of a checkopt query
+ * OPT_UNKNOWN: if the original set of assertions has result UNKNOWN
+ * OPT_UNSAT: if the original set of assertions has result UNSAT
+ * OPT_SAT_PARTIAL: if the optimized value is only partial (unimplemented)
+ * OPT_SAT_APPROX: if the solver halted early and value is only approximate
+ * (unimplemented) OPT_OPTIMAL: if the optimization loop finished and optimal
+ * value was found
+ */
+enum CVC4_PUBLIC OptResult
+{
+  OPT_UNKNOWN,
+  OPT_UNSAT,
+  OPT_SAT_PARTIAL,
+  OPT_SAT_APPROX,
+  OPT_OPTIMAL
+};
 
-  enum CVC4_PUBLIC ObjectiveValue
-  {
-    OPTIMUM,
-    FINAL_LOWER,
-    FINAL_UPPER,
-    FINAL_ERROR
-  };
-
-  class Objective
-  {
-   public:
-    Objective(Node n, ObjectiveType type, OptResult result);
-    //~Objective();
-
-    /*private:*/
-    ObjectiveType d_type;
-    OptResult d_result;
-    Node d_node;
-    Node d_savedValue;
-  };
-
+class Objective
+{
  public:
-  OptimizationSolver(SmtEngine* parent);
-  ~OptimizationSolver();
+  Objective(Node n, ObjectiveType type);
+  ~Objective(){};
 
-  bool checkOpt(Result& r);
-  void activateObj(const Node& obj, const int& type, const int& result);
-  Node objectiveGetValue(const Node& obj);
+  /** A getter for d_type **/
+  ObjectiveType getType();
+  /** A getter for d_node **/
+  Node getNode();
 
  private:
-  /** The parent SMT engine **/
-  SmtEngine* d_parent;
-  /** The objectives to optimize for **/
-  std::vector<Objective> d_activatedObjectives;
-};
+  /** The type of objective this is, either OBJECTIVE_MAXIMIZE OR
+   * OBJECTIVE_MINIMIZE  **/
+  ObjectiveType d_type;
+  /** The node associated to the term that was used to construc the objective.
+   * **/
+  Node d_node;
+  };
+
+  /**
+   * A solver for optimization queries.
+   *
+   * This class is responsible for responding to get-interpol commands. It
+   * spawns a subsolver SmtEngine for a sygus conjecture that captures the
+   * interpolation query, and implements supporting utility methods such as
+   * checkInterpol.
+   */
+  class OptimizationSolver
+  {
+   public:
+    OptimizationSolver(SmtEngine* parent);
+    ~OptimizationSolver();
+
+    /** Runs the optimization loop for the activated objective **/
+    OptResult checkOpt();
+    /** Activates an objective: will be optimized for **/
+    void activateObj(const Node& obj, const int& type);
+    /** Gets the value of the optimized objective after checkopt is called **/
+    Node objectiveGetValue(const Node& obj);
+
+   private:
+    /** The parent SMT engine **/
+    SmtEngine* d_parent;
+    /** The objectives to optimize for **/
+    Objective d_activatedObjective;
+    /** A saved value of the objective from the last sat call. **/
+    Node d_savedValue;
+  };
 
 }  // namespace smt
 }  // namespace CVC4
