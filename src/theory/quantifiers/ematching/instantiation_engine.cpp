@@ -16,13 +16,13 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
+#include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -33,8 +33,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
-    : QuantifiersModule(qe),
+InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
+                                         QuantifiersState& qs,
+                                         QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
@@ -50,13 +52,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine));
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(
-        new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel.get()));
+        new InstStrategyAutoGenTriggers(d_quantEngine, qs, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -91,11 +93,17 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         for( unsigned j=0; j<d_instStrategies.size(); j++ ){
           InstStrategy* is = d_instStrategies[j];
           Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
-          int quantStatus = is->process( q, effort, e_use );
-          Trace("inst-engine-debug") << " -> status is " << quantStatus << ", conflict=" << d_quantEngine->inConflict() << std::endl;
-          if( d_quantEngine->inConflict() ){
+          InstStrategyStatus quantStatus = is->process(q, effort, e_use);
+          Trace("inst-engine-debug")
+              << " -> unfinished= "
+              << (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
+              << ", conflict=" << d_qstate.isInConflict() << std::endl;
+          if (d_qstate.isInConflict())
+          {
             return;
-          }else if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+          }
+          else if (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
+          {
             finished = false;
           }
         }
@@ -157,7 +165,7 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   {
     unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
     doInstantiationRound(e);
-    if (d_quantEngine->inConflict())
+    if (d_qstate.isInConflict())
     {
       Assert(d_quantEngine->getNumLemmasWaiting() > lastWaiting);
       Trace("inst-engine") << "Conflict, added lemmas = "

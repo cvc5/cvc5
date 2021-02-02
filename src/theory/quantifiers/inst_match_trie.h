@@ -28,7 +28,6 @@ namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
-class EqualityQuery;
 
 namespace inst {
 

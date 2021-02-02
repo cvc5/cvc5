@@ -41,13 +41,6 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                       &d_iqtc)
                 : nullptr),
       d_tspg(nullptr),
-      d_tpgRew(pnm ? new TConvProofGenerator(pnm,
-                                             userContext,
-                                             TConvPolicy::FIXPOINT,
-                                             TConvCachePolicy::NEVER,
-                                             "TheoryPreprocessor::rewrite")
-                   : nullptr),
-      d_tspgNoPp(nullptr),
       d_lp(pnm ? new LazyCDProof(pnm,
                                  nullptr,
                                  userContext,
@@ -68,14 +61,6 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     ts.push_back(d_tpg.get());
     d_tspg.reset(new TConvSeqProofGenerator(
         pnm, ts, userContext, "TheoryPreprocessor::sequence"));
-    // Make the "no preprocess" term conversion sequence generator, which
-    // applies only steps (2) and (3), where notice (3) must use the
-    // "pure rewrite" term conversion (d_tpgRew).
-    std::vector<ProofGenerator*> tsNoPp;
-    tsNoPp.push_back(d_tfr.getTConvProofGenerator());
-    tsNoPp.push_back(d_tpgRew.get());
-    d_tspgNoPp.reset(new TConvSeqProofGenerator(
-        pnm, tsNoPp, userContext, "TheoryPreprocessor::sequence_no_pp"));
   }
 }
 
@@ -83,26 +68,27 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<TrustNode>& newLemmas,
-                                         std::vector<Node>& newSkolems,
-                                         bool doTheoryPreprocess,
-                                         bool fixedPoint)
+                                         std::vector<Node>& newSkolems)
+{
+  return preprocessInternal(node, newLemmas, newSkolems, true);
+}
+
+TrustNode TheoryPreprocessor::preprocessInternal(
+    TNode node,
+    std::vector<TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems,
+    bool procLemmas)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
 
   Trace("tpp-debug") << "TheoryPreprocessor::preprocess: start " << node
-                     << ", doTheoryPreprocess=" << doTheoryPreprocess
                      << std::endl;
-  // Run theory preprocessing, maybe
-  Node ppNode = node;
-  if (doTheoryPreprocess)
-  {
-    // run theory preprocessing
-    TrustNode tpp = theoryPreprocess(node);
-    ppNode = tpp.getNode();
-  }
+  // run theory preprocessing
+  TrustNode tpp = theoryPreprocess(node);
+  Node ppNode = tpp.getNode();
 
   // Remove the ITEs, fixed point
-  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, fixedPoint);
+  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, true);
   Node rtfNode = ttfr.isNull() ? ppNode : ttfr.getNode();
 
   if (Debug.isOn("lemma-ites"))
@@ -141,7 +127,6 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned no change"
                        << std::endl;
     // no change
-    Assert(newLemmas.empty());
     return TrustNode::null();
   }
 
@@ -151,31 +136,14 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   {
     std::vector<Node> cterms;
     cterms.push_back(node);
-    if (doTheoryPreprocess)
-    {
-      cterms.push_back(ppNode);
-    }
+    cterms.push_back(ppNode);
     cterms.push_back(rtfNode);
     cterms.push_back(retNode);
     // We have that:
-    // node -> ppNode via preprocessing + rewriting (if doTheoryPreprocess)
+    // node -> ppNode via preprocessing + rewriting
     // ppNode -> rtfNode via term formula removal
     // rtfNode -> retNode via rewriting
-    if (!doTheoryPreprocess)
-    {
-      // If preprocessing is not performed, we cannot use the main sequence
-      // generator, instead we use d_tspgNoPp.
-      // We register the top-level rewrite in the pure rewrite term converter.
-      d_tpgRew->addRewriteStep(
-          rtfNode, retNode, PfRule::REWRITE, {}, {rtfNode});
-      // Now get the trust node from the sequence generator
-      tret = d_tspgNoPp->mkTrustRewriteSequence(cterms);
-    }
-    else
-    {
-      // we wil use the sequence generator
-      tret = d_tspg->mkTrustRewriteSequence(cterms);
-    }
+    tret = d_tspg->mkTrustRewriteSequence(cterms);
     tret.debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_ret");
   }
   else
@@ -220,27 +188,40 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   }
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
+  if (procLemmas)
+  {
+    // Also must preprocess the new lemmas. This is especially important for
+    // formulas containing witness terms whose bodies are not in preprocessed
+    // form, as term formula removal introduces new lemmas for these that
+    // require theory-preprocessing.
+    size_t i = 0;
+    while (i < newLemmas.size())
+    {
+      TrustNode cur = newLemmas[i];
+      newLemmas[i] = preprocessLemmaInternal(cur, newLemmas, newSkolems, false);
+      i++;
+    }
+  }
   return tret;
-}
-
-TrustNode TheoryPreprocessor::preprocess(TNode node, bool doTheoryPreprocess)
-{
-  // ignore lemmas, no fixed point
-  std::vector<TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  return preprocess(node, newLemmas, newSkolems, doTheoryPreprocess, false);
 }
 
 TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
                                               std::vector<TrustNode>& newLemmas,
-                                              std::vector<Node>& newSkolems,
-                                              bool doTheoryPreprocess,
-                                              bool fixedPoint)
+                                              std::vector<Node>& newSkolems)
+{
+  return preprocessLemmaInternal(node, newLemmas, newSkolems, true);
+}
+
+TrustNode TheoryPreprocessor::preprocessLemmaInternal(
+    TrustNode node,
+    std::vector<TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems,
+    bool procLemmas)
 {
   // what was originally proven
   Node lemma = node.getProven();
   TrustNode tplemma =
-      preprocess(lemma, newLemmas, newSkolems, doTheoryPreprocess, fixedPoint);
+      preprocessInternal(lemma, newLemmas, newSkolems, procLemmas);
   if (tplemma.isNull())
   {
     // no change needed
@@ -275,16 +256,6 @@ TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
     }
   }
   return TrustNode::mkTrustLemma(lemmap, d_lp.get());
-}
-
-TrustNode TheoryPreprocessor::preprocessLemma(TrustNode node,
-                                              bool doTheoryPreprocess)
-{
-  // ignore lemmas, no fixed point
-  std::vector<TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  return preprocessLemma(
-      node, newLemmas, newSkolems, doTheoryPreprocess, false);
 }
 
 RemoveTermFormulas& TheoryPreprocessor::getRemoveTermFormulas()
@@ -365,10 +336,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
       }
       // Mark the substitution and continue
       Node result = builder;
-      if (result != current)
-      {
-        result = rewriteWithProof(result);
-      }
+      // always rewrite here, since current may not be in rewritten form
+      result = rewriteWithProof(result);
       Trace("theory::preprocess-debug")
           << "TheoryPreprocessor::theoryPreprocess(" << assertion
           << "): setting " << current << " -> " << result << endl;
@@ -452,6 +421,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
 
 Node TheoryPreprocessor::rewriteWithProof(Node term)
 {
+  // FIXME (project #37): should properly distinguish pre vs post rewrite
   Node termr = Rewriter::rewrite(term);
   // store rewrite step if tracking proofs and it rewrites
   if (isProofEnabled())
@@ -462,7 +432,7 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) "
                          << term << " -> " << termr << std::endl;
       // always use term context hash 0 (default)
-      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
+      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term}, false);
     }
   }
   return termr;
@@ -501,6 +471,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   }
   Node termr = trn.getNode();
   Assert(term != termr);
+  // FIXME (project #37): should properly distinguish pre vs post rewrite
   if (isProofEnabled())
   {
     if (trn.getGenerator() != nullptr)
@@ -511,15 +482,19 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
                            "TheoryPreprocessor::preprocessWithProof");
       // always use term context hash 0 (default)
       d_tpg->addRewriteStep(
-          term, termr, trn.getGenerator(), PfRule::ASSUME, true);
+          term, termr, trn.getGenerator(), false, PfRule::ASSUME, true);
     }
     else
     {
       Trace("tpp-debug") << "TheoryPreprocessor: addRewriteStep (trusted) "
                          << term << " -> " << termr << std::endl;
       // small step trust
-      d_tpg->addRewriteStep(
-          term, termr, PfRule::THEORY_PREPROCESS, {}, {term.eqNode(termr)});
+      d_tpg->addRewriteStep(term,
+                            termr,
+                            PfRule::THEORY_PREPROCESS,
+                            {},
+                            {term.eqNode(termr)},
+                            false);
     }
   }
   termr = rewriteWithProof(termr);

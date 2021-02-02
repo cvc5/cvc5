@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"

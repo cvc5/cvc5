@@ -34,11 +34,11 @@ namespace theory {
 namespace quantifiers {
 
 FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
-                                 context::Context* c,
+                                 QuantifiersState& qs,
                                  std::string name)
-    : TheoryModel(c, name, true),
+    : TheoryModel(qs.getSatContext(), name, true),
       d_qe(qe),
-      d_forall_asserts(c),
+      d_forall_asserts(qs.getSatContext()),
       d_forallRlvComputed(false)
 {
 }
@@ -335,9 +335,11 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
   return n.getAttribute(ModelBasisArgAttribute());
 }
 
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name) :
-FirstOrderModel(qe, c, name){
-
+FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
+                                       QuantifiersState& qs,
+                                       std::string name)
+    : FirstOrderModel(qe, qs, name)
+{
 }
 
 FirstOrderModelFmc::~FirstOrderModelFmc()
