@@ -18,7 +18,6 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "prop/prop_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -33,7 +32,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
-#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 using namespace std;
