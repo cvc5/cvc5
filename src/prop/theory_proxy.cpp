@@ -26,6 +26,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace prop {

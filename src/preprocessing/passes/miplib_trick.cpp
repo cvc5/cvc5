@@ -24,6 +24,7 @@
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace preprocessing {

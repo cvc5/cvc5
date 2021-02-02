@@ -17,6 +17,7 @@
 #include "preprocessing/passes/extended_rewriter_pass.h"
 
 #include "theory/quantifiers/extended_rewrite.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace preprocessing {

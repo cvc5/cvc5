@@ -28,6 +28,7 @@
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace preprocessing {

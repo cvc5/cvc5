@@ -17,6 +17,8 @@
 #include "options/theory_options.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
+#include "prop/prop_engine.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace theory {

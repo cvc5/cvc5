@@ -21,6 +21,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "prop/prop_engine.h"
 
 namespace CVC4 {
 namespace theory {

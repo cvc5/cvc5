@@ -19,6 +19,7 @@
 
 #include "theory/rewriter.h"
 #include "theory/theory_preprocessor.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace preprocessing {

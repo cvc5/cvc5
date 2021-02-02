@@ -26,6 +26,7 @@
 #include "expr/node_traversal.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace preprocessing {

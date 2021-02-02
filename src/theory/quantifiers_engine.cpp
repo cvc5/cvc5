@@ -17,6 +17,7 @@
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "options/smt_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/fmf/full_model_check.h"

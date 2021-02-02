@@ -19,6 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
+#include "options/smt_options.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

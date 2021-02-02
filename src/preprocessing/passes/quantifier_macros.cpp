@@ -27,6 +27,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
+#include "options/smt_options.h"
 
 using namespace std;
 using namespace CVC4::theory;

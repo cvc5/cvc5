@@ -14,6 +14,7 @@
 
 #include "theory/uf/cardinality_extension.h"
 
+#include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/equality_engine.h"

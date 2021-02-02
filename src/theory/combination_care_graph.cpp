@@ -17,6 +17,7 @@
 #include "expr/node_visitor.h"
 #include "theory/care_graph.h"
 #include "theory/theory_engine.h"
+#include "prop/prop_engine.h"
 
 namespace CVC4 {
 namespace theory {
