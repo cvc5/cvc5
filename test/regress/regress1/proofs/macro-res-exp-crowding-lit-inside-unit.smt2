@@ -1,4 +1,4 @@
-; COMMAND-LINE: --check-proofs-new
+; COMMAND-LINE: --proof-new --check-proofs-new
 ; EXPECT: unsat
 ;; comes from smtlib/QF_UF/QG-classification/qg5/iso_icl974.smt2
 (set-info :smt-lib-version 2.6)
