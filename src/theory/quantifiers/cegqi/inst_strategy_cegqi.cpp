@@ -15,7 +15,6 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "smt/term_formula_removal.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
@@ -26,7 +25,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -374,7 +372,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
     ce_vars.push_back(tutil->getInstantiationConstant(q, i));
   }
   // send the lemma
-  d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+  d_quantEngine->getOutputChannel().lemma(lem);
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;

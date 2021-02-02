@@ -19,20 +19,13 @@
 #ifndef CVC4__THEORY_ENGINE_H
 #define CVC4__THEORY_ENGINE_H
 
-#include <deque>
 #include <memory>
-#include <set>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "base/check.h"
-#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "options/options.h"
-#include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "prop/prop_engine.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
@@ -46,13 +39,13 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
+class OutputManager;
 class TheoryEngineProofGenerator;
 
 /**
@@ -92,10 +85,11 @@ class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
-namespace eq {
-class EqualityEngine;
-}  // namespace eq
 }/* CVC4::theory namespace */
+
+namespace prop {
+class PropEngine;
+}
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -584,22 +578,6 @@ class TheoryEngine {
    */
   void setEagerModelBuilding() { d_eager_model_building = true; }
 
-  /** get synth solutions
-   *
-   * This method returns true if there is a synthesis solution available. This
-   * is the case if the last call to check satisfiability originated in a
-   * check-synth call, and the synthesis solver successfully found a solution
-   * for all active synthesis conjectures.
-   *
-   * This method adds entries to sol_map that map functions-to-synthesize with
-   * their solutions, for all active conjectures. This should be called
-   * immediately after the solver answers unsat for sygus input.
-   *
-   * For details on what is added to sol_map, see
-   * SynthConjecture::getSynthSolutions.
-   */
-  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-
   /**
    * Get the theory associated to a given Node.
    *
@@ -646,10 +624,6 @@ class TheoryEngine {
    * has (or null if none);
    */
   Node getModelValue(TNode var);
-  /**
-   * Print solution for synthesis conjectures found by ce_guided_instantiation module
-   */
-  void printSynthSolution( std::ostream& out );
 
   /**
    * Forwards an entailment check according to the given theoryOfMode.

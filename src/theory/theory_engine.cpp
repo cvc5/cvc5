@@ -16,33 +16,23 @@
 
 #include "theory/theory_engine.h"
 
-#include <list>
-#include <vector>
-
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
 #include "expr/lazy_proof.h"
-#include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
 #include "expr/proof_ensure_closed.h"
-#include "options/bv_options.h"
-#include "options/options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
+#include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
-#include "smt/term_formula_removal.h"
-#include "theory/arith/arith_ite_utils.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/care_graph.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
@@ -692,17 +682,6 @@ bool TheoryEngine::buildModel()
   return d_tc->buildModel();
 }
 
-bool TheoryEngine::getSynthSolutions(
-    std::map<Node, std::map<Node, Node>>& sol_map)
-{
-  if (d_quantEngine)
-  {
-    return d_quantEngine->getSynthSolutions(sol_map);
-  }
-  // we are not in a quantified logic, there is no synthesis solution
-  return false;
-}
-
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
@@ -1159,15 +1138,6 @@ Node TheoryEngine::getModelValue(TNode var) {
   }
   Assert(d_sharedSolver->isShared(var));
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
-}
-
-void TheoryEngine::printSynthSolution( std::ostream& out ) {
-  if( d_quantEngine ){
-    d_quantEngine->printSynthSolution( out );
-  }else{
-    out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
-    Assert(false);
-  }
 }
 
 TrustNode TheoryEngine::getExplanation(TNode node)

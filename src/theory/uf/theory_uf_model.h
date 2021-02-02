@@ -17,6 +17,9 @@
 #ifndef CVC4__THEORY_UF_MODEL_H
 #define CVC4__THEORY_UF_MODEL_H
 
+#include <vector>
+
+#include "expr/node.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {

@@ -1430,6 +1430,11 @@ set(regress_1_tests
   regress1/bug800.smt2
   regress1/bags/difference_remove1.smt2
   regress1/bags/disequality.smt2
+  regress1/bags/duplicate_removal1.smt2
+  regress1/bags/duplicate_removal2.smt2
+  regress1/bags/emptybag1.smt2
+  regress1/bags/intersection_min1.smt2
+  regress1/bags/intersection_min2.smt2
   regress1/bags/issue5759.smt2
   regress1/bags/subbag1.smt2
   regress1/bags/subbag2.smt2
@@ -1798,6 +1803,7 @@ set(regress_1_tests
   regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
+  regress1/quantifiers/qs-has-term.smt2
   regress1/quantifiers/recfact.cvc
   regress1/quantifiers/repair-const-nterm.smt2
   regress1/quantifiers/rew-to-0211-dd.smt2
@@ -2486,6 +2492,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # waiting until we enable proofs in master
+  regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   # slow with sygus-inference after removing anti-skolemization
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
