@@ -52,7 +52,8 @@ enum CVC4_PUBLIC OptResult
   OPT_UNSAT,
   // the optimization loop finished and optimal
   OPT_OPTIMAL
-  // The last two values are here as a preparation for future work
+
+    // The last two values are here as a preparation for future work
   // in which partial and approximate optimizations will be supported.
 
    // if the optimized value is only partial
