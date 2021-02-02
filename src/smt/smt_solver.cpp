@@ -14,6 +14,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/preprocessor.h"

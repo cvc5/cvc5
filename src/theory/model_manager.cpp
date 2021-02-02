@@ -14,7 +14,9 @@
 
 #include "theory/model_manager.h"
 
+#include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "prop/prop_engine.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
