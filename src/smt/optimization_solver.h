@@ -41,20 +41,29 @@ enum CVC4_PUBLIC ObjectiveType
  * An enum for optimization queries.
  *
  * Represents the result of a checkopt query
- * OPT_UNKNOWN: if the original set of assertions has result UNKNOWN
- * OPT_UNSAT: if the original set of assertions has result UNSAT
- * OPT_SAT_PARTIAL: if the optimized value is only partial (unimplemented)
- * OPT_SAT_APPROX: if the solver halted early and value is only approximate
- * (unimplemented) OPT_OPTIMAL: if the optimization loop finished and optimal
+
+
+
+
+ * (unimplemented) OPT_OPTIMAL: if 
  * value was found
  */
 enum CVC4_PUBLIC OptResult
 {
+  // the original set of assertions has result UNKNOWN
   OPT_UNKNOWN,
+  // the original set of assertions has result UNSAT
   OPT_UNSAT,
-  OPT_SAT_PARTIAL,
-  OPT_SAT_APPROX,
+  // the optimization loop finished and optimal
   OPT_OPTIMAL
+  // The last two values are here as a preparation for future work
+  // in which partial and approximate optimizations will be supported.
+
+   // if the optimized value is only partial
+  OPT_SAT_PARTIAL,
+  // if the solver halted early and value is only approximate
+  OPT_SAT_APPROX,
+
 };
 
 class Objective
