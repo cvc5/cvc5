@@ -291,8 +291,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
         << endl;
 
     // If node already in the cache we're done, pop from the stack
-    NodeMap::iterator find = d_rtfCache.find(current);
-    if (find != d_rtfCache.end())
+    if (d_rtfCache.find(current) != d_rtfCache.end())
     {
       toVisit.pop_back();
       continue;
@@ -376,8 +375,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
              ++child_it)
         {
           TNode childNode = *child_it;
-          NodeMap::iterator childFind = d_rtfCache.find(childNode);
-          if (childFind == d_rtfCache.end())
+          if (d_rtfCache.find(childNode) == d_rtfCache.end())
           {
             toVisit.push_back(childNode);
           }

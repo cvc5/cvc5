@@ -16,6 +16,7 @@
 
 #include "preprocessing/passes/theory_preprocess.h"
 
+#include "options/smt_options.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
