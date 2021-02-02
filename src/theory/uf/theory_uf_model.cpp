@@ -17,8 +17,8 @@
 #include <stack>
 
 #include "expr/attribute.h"
-#include "theory/theory_model.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/theory_model.h"
 
 using namespace CVC4::kind;
 
@@ -61,9 +61,12 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
     std::vector<Node> caseArgs;
     std::map<Node, Node> caseValues;
 
-    for (std::pair<const Node, UfModelTreeNode>& p : d_data){
-      if(!p.first.isNull()) {
-        Node val = p.second.getFunctionValue(args, index + 1, defaultValue, simplify);
+    for (std::pair<const Node, UfModelTreeNode>& p : d_data)
+    {
+      if (!p.first.isNull())
+      {
+        Node val =
+            p.second.getFunctionValue(args, index + 1, defaultValue, simplify);
         caseArgs.push_back(p.first);
         caseValues[p.first] = val;
       }
@@ -233,6 +236,6 @@ Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
   return getFunctionValue( vars, simplify );
 }
 
-}
-}
-}
+}  // namespace uf
+}  // namespace theory
+}  // namespace CVC4

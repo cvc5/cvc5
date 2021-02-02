@@ -644,22 +644,28 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   Node rew = Rewriter::rewrite( lit );
   if (rew.isConst())
   {
-    Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to " << rew << "." << std::endl;
+    Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to "
+                                   << rew << "." << std::endl;
     return rew.getConst<bool>();
   }
-  //if checking for conflicts, we must be sure that the (negation of) constraint is (not) entailed 
-  if( !chEnt ){
-    rew = Rewriter::rewrite( rew.negate() );
+  // if checking for conflicts, we must be sure that the (negation of)
+  // constraint is (not) entailed
+  if (!chEnt)
+  {
+    rew = Rewriter::rewrite(rew.negate());
   }
-  //check if it is entailed
-  Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
-  std::pair<bool, Node> et =
-      p->getState().getValuation().entailmentCheck(
-          options::TheoryOfMode::THEORY_OF_TYPE_BASED, rew);
+  // check if it is entailed
+  Trace("qcf-tconstraint-debug")
+      << "Check entailment of " << rew << "..." << std::endl;
+  std::pair<bool, Node> et = p->getState().getValuation().entailmentCheck(
+      options::TheoryOfMode::THEORY_OF_TYPE_BASED, rew);
   ++(p->d_statistics.d_entailment_checks);
-  Trace("qcf-tconstraint-debug") << "ET result : " << et.first << " " << et.second << std::endl;
-  if( !et.first ){
-    Trace("qcf-tconstraint-debug") << "...cannot show entailment of " << rew << "." << std::endl;
+  Trace("qcf-tconstraint-debug")
+      << "ET result : " << et.first << " " << et.second << std::endl;
+  if (!et.first)
+  {
+    Trace("qcf-tconstraint-debug")
+        << "...cannot show entailment of " << rew << "." << std::endl;
     return !chEnt;
   }
   return chEnt;
