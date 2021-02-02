@@ -51,16 +51,15 @@ enum CVC4_PUBLIC OptResult
   // the original set of assertions has result UNSAT
   OPT_UNSAT,
   // the optimization loop finished and optimal
-  OPT_OPTIMAL
+  OPT_OPTIMAL,
 
-      // The last two values are here as a preparation for future work
-      // in which partial and approximate optimizations will be supported.
+  // The last two values are here as a preparation for future work
+  // in which partial and approximate optimizations will be supported.
 
-      // if the optimized value is only partial
-      OPT_SAT_PARTIAL,
+  // if the optimized value is only partial
+  OPT_SAT_PARTIAL,
   // if the solver halted early and value is only approximate
-  OPT_SAT_APPROX,
-
+  OPT_SAT_APPROX
 };
 
 class Objective
