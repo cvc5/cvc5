@@ -56,8 +56,7 @@ class omt : public CxxTest::TestSuite {
     d_slv->assertFormula(upb);
     d_slv->assertFormula(lowb);
 
-    // max_type is 1, signifies max_objective
-    const int max_type = 1;
+    const ObjectiveType max_type = OBJECTIVE_MAXIMIZE;
 
     // We activate our objective so the subsolver knows to optimize it
     d_optslv->activateObj(*max_cost.d_node, max_type);
@@ -92,8 +91,7 @@ class omt : public CxxTest::TestSuite {
     d_slv->assertFormula(upb2);
     d_slv->assertFormula(lowb2);
 
-    // min_type is 0, signifies min_objective
-    const int min_type = 0;
+    const ObjectiveType min_type = OBJECTIVE_MINIMIZE;
 
     // We activate our objective so the subsolver knows to optimize it
     d_optslv->activateObj(*min_cost.d_node, min_type);
@@ -126,8 +124,7 @@ class omt : public CxxTest::TestSuite {
     d_slv->assertFormula(upb2);
     d_slv->assertFormula(lowb2);
 
-    // min_type is 0, signifies min_objective
-    const int min_type = 0;
+    const ObjectiveType min_type = OBJECTIVE_MINIMIZE;
 
     // We activate our objective so the subsolver knows to optimize it
     d_optslv->activateObj(*min_cost.d_node, min_type);

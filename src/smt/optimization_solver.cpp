@@ -24,6 +24,13 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
+/**
+ * d_activatedObjective is initialized to a default objective:
+ * default objective constructed with Null Node and OBJECTIVE_UNDEFINED
+ *
+ * d_savedValue is initialized to a default node (Null Node)
+ */
+
 OptimizationSolver::OptimizationSolver(SmtEngine* parent)
     : d_parent(parent),
       d_activatedObjective(Node(), OBJECTIVE_UNDEFINED),
@@ -35,6 +42,7 @@ OptimizationSolver::~OptimizationSolver() {}
 
 OptResult OptimizationSolver::checkOpt()
 {
+  // Make sure that the objective is not the default one
   Assert(d_activatedObjective.getType() != OBJECTIVE_UNDEFINED);
   Assert(!d_activatedObjective.getNode().isNull());
 
