@@ -100,7 +100,6 @@ OptResult OptimizationSolver::checkOpt()
     // increment on the model-value of objective:
     // if we're maximizing increment = objective > old_objective value
     // if we're minimizing increment = objective < old_objective value
-
     if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
     {
       increment = nm->mkNode(kind::GT, d_activatedObjective.getNode(), value);
