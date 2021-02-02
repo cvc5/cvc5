@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"

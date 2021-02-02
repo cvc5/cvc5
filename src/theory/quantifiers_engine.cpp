@@ -16,6 +16,7 @@
 
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
@@ -781,8 +782,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().trustedLemma(
-          lem, LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY);
+      getOutputChannel().trustedLemma(lem, LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }
@@ -947,8 +947,7 @@ void QuantifiersEngine::flushLemmas(){
       const Node& lemw = d_lemmas_waiting[i];
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
       itp = d_lemmasWaitingPg.find(lemw);
-      LemmaProperty p =
-          LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY;
+      LemmaProperty p = LemmaProperty::NEEDS_JUSTIFY;
       if (itp != d_lemmasWaitingPg.end())
       {
         TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);

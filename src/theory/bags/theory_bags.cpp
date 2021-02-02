@@ -144,15 +144,26 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
   Trace("bags-model") << "Term set: " << termSet << std::endl;
 
+  std::set<Node> processedBags;
+
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
   {
     TypeNode tn = n.getType();
     if (!tn.isBag())
     {
+      // we are only concerned here about bag terms
       continue;
     }
     Node r = d_state.getRepresentative(n);
+    if (processedBags.find(r) != processedBags.end())
+    {
+      // skip bags whose representatives are already processed
+      continue;
+    }
+
+    processedBags.insert(r);
+
     std::set<Node> solverElements = d_state.getElements(r);
     std::set<Node> elements;
     // only consider terms in termSet and ignore other elements in the solver

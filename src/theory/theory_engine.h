@@ -19,20 +19,13 @@
 #ifndef CVC4__THEORY_ENGINE_H
 #define CVC4__THEORY_ENGINE_H
 
-#include <deque>
 #include <memory>
-#include <set>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "base/check.h"
-#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "options/options.h"
-#include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "prop/prop_engine.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
@@ -46,13 +39,13 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
+class OutputManager;
 class TheoryEngineProofGenerator;
 
 /**
@@ -92,10 +85,11 @@ class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
-namespace eq {
-class EqualityEngine;
-}  // namespace eq
 }/* CVC4::theory namespace */
+
+namespace prop {
+class PropEngine;
+}
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
