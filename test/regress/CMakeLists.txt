@@ -2500,6 +2500,7 @@ set(regression_disabled_tests
   regress1/nl/issue3307.smt2
   # waiting until we enable proofs in master
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
+  regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
   # slow with sygus-inference after removing anti-skolemization
   regress1/quantifiers/anti-sk-simp.smt2
   # no longer support snorm option
