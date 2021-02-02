@@ -25,7 +25,7 @@ namespace arith {
 InferenceManager::InferenceManager(TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(ta, astate, pnm), d_lemmasPp(ta.getUserContext())
+    : InferenceManagerBuffered(ta, astate, pnm)
 {
 }
 
@@ -110,25 +110,12 @@ std::size_t InferenceManager::numWaitingLemmas() const
 bool InferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
   Node rewritten = Rewriter::rewrite(lem);
-  if (isLemmaPropertyPreprocess(p))
-  {
-    return d_lemmasPp.find(rewritten) != d_lemmasPp.end();
-  }
   return TheoryInferenceManager::hasCachedLemma(rewritten, p);
 }
 
 bool InferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 {
   Node rewritten = Rewriter::rewrite(lem);
-  if (isLemmaPropertyPreprocess(p))
-  {
-    if (d_lemmasPp.find(rewritten) != d_lemmasPp.end())
-    {
-      return false;
-    }
-    d_lemmasPp.insert(rewritten);
-    return true;
-  }
   return TheoryInferenceManager::cacheLemma(rewritten, p);
 }
 
