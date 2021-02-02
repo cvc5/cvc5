@@ -1474,7 +1474,6 @@ set(regress_1_tests
   regress1/datatypes/non-simple-rec-param.smt2
   regress1/decision/error3.smtv1.smt2
   regress1/decision/quant-Arrays_Q1-noinfer.smt2
-  regress1/decision/quant-symmetric_unsat_7.smt2
   regress1/error.cvc
   regress1/errorcrash.smt2
   regress1/fmf-fun-dbu.smt2
