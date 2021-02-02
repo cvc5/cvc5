@@ -46,6 +46,8 @@ OptResult OptimizationSolver::checkOpt()
   Assert(d_activatedObjective.getType() != OBJECTIVE_UNDEFINED);
   Assert(!d_activatedObjective.getNode().isNull());
 
+  // the smt engine to which we send intermediate queries
+  // for the linear search.
   std::unique_ptr<SmtEngine> optChecker;
   initializeSubsolver(optChecker);
   NodeManager* nm = optChecker->getNodeManager();
