@@ -1,4 +1,3 @@
-; COMMAND-LINE: --proof-new --check-proofs-new
 ; EXPECT: unsat
 ;; comes from UFLIA/simplify2/front_end_suite/javafe.util.StackVector.012.smt2
 (set-info :smt-lib-version 2.6)
