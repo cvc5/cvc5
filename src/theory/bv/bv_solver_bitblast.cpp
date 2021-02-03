@@ -130,6 +130,7 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 Node BVSolverBitblast::getValueFromSatSolver(TNode node)
 {
+  /* If node was not bit-blasted return zero-initialized bit-vector. */
   if (!d_bitblaster->hasBBTerm(node))
   {
     return utils::mkConst(utils::getSize(node), 0u);
