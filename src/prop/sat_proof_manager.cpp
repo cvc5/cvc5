@@ -228,6 +228,17 @@ void SatProofManager::endResChain(Node conclusion,
                        << children[0] << "\n";
     return;
   }
+  // whether trivial cycle
+  for (const Node& child : children)
+  {
+    if (conclusion == child)
+    {
+      Trace("sat-proof")
+          << "SatProofManager::endResChain: no-op. The conclusion "
+          << conclusion << " is equal to a premise\n";
+      return;
+    }
+  }
   if (Trace.isOn("sat-proof") && d_resChains.hasGenerator(conclusion))
   {
     Trace("sat-proof") << "SatProofManager::endResChain: replacing proof of "
