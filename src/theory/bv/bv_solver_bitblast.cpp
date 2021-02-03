@@ -105,7 +105,7 @@ bool BVSolverBitblast::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   d_facts.push_back(fact);
-  return false;
+  return false;  // Return false to enable equality engine reasoning in Theory.
 }
 
 bool BVSolverBitblast::collectModelValues(TheoryModel* m,

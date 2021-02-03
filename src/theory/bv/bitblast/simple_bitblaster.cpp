@@ -51,13 +51,13 @@ void BBSimple::storeBBTerm(TNode node, const Bits& bits)
   d_termCache.emplace(node, bits);
 }
 
-bool BBSimple::hasBBAtom(TNode atom) const
+bool BBSimple::hasBBAtom(TNode lit) const
 {
-  if (atom.getKind() == kind::NOT)
+  if (lit.getKind() == kind::NOT)
   {
-    atom = atom[0];
+    lit = lit[0];
   }
-  return d_bbAtoms.find(atom) != d_bbAtoms.end();
+  return d_bbAtoms.find(lit) != d_bbAtoms.end();
 }
 
 void BBSimple::makeVariable(TNode var, Bits& bits)

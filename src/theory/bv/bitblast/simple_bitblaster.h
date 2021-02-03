@@ -58,6 +58,7 @@ class BBSimple : public TBitblaster<Node>
 
   prop::SatSolver* getSatSolver() override { Unreachable(); }
 
+  /** Checks whether node is a variable introduced via `makeVariable`.*/
   bool isVariable(TNode node);
 
  private:

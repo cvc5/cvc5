@@ -75,6 +75,10 @@ class CadicalSolver : public SatSolver
   void init();
 
   std::unique_ptr<CaDiCaL::Solver> d_solver;
+  /**
+   * Stores the current set of assumptions provided via solve() and is used to
+   * query the solver if a given assumption is false.
+   */
   std::vector<SatLiteral> d_assumptions;
 
   unsigned d_nextVarIdx;
