@@ -96,6 +96,19 @@ public:
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
 
+  /**
+   * Get list of unsatisfiable assumptions.
+   *
+   * The returned assumptions are a subset of the assumptions provided to
+   * the solve method.
+   * Can only be called if satisfiability check under assumptions was used and
+   * if it returned SAT_VALUE_FALSE.
+   */
+  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  {
+    Unimplemented() << "getUnsatAssumptions not implemented";
+  }
+
 };/* class SatSolver */
 
 
