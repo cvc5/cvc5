@@ -16,14 +16,13 @@
 #include "theory/quantifiers/conjecture_generator.h"
 #include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 #include "util/random.h"
 
 using namespace CVC4;
@@ -86,11 +85,13 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
 }
 
 ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
-                                         context::Context* c)
-    : QuantifiersModule(qe),
+                                         QuantifiersState& qs,
+                                         QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
       d_notify(*this),
-      d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
-      d_ee_conjectures(c),
+      d_uequalityEngine(
+          d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
+      d_ee_conjectures(qs.getSatContext()),
       d_conj_count(0),
       d_subs_confirmCount(0),
       d_subs_unkCount(0),
@@ -163,7 +164,7 @@ ConjectureGenerator::EqcInfo* ConjectureGenerator::getOrMakeEqcInfo( TNode n, bo
   if( eqc_i!=d_eqc_info.end() ){
     return eqc_i->second;
   }else if( doMake ){
-    EqcInfo* ei = new EqcInfo( d_quantEngine->getSatContext() );
+    EqcInfo* ei = new EqcInfo(d_qstate.getSatContext());
     d_eqc_info[n] = ei;
     return ei;
   }else{
@@ -310,11 +311,13 @@ Node ConjectureGenerator::getUniversalRepresentative(TNode n, bool add)
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
+  return d_termCanon.getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
-  return d_quantEngine->getTermDatabase()->isTermActive( n ) && inst::Trigger::isAtomicTrigger( n ) && ( n.getKind()!=APPLY_UF || n.getOperator().getKind()!=SKOLEM );
+  return d_quantEngine->getTermDatabase()->isTermActive(n)
+         && inst::TriggerTermInfo::isAtomicTrigger(n)
+         && (n.getKind() != APPLY_UF || n.getOperator().getKind() != SKOLEM);
 }
 
 Node ConjectureGenerator::getGroundEqc( TNode r ) {
@@ -543,7 +546,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
+                eq = d_termCanon.getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -698,8 +701,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
                   gsubs_vars.push_back(
-                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
-                          it->first, i));
+                      d_termCanon.getCanonicalFreeVar(it->first, i));
                 }
               }
             }

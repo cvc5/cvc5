@@ -264,14 +264,6 @@ header = "options/quantifiers_options.h"
   help       = "purify triggers, e.g. f( x+1 ) becomes f( y ), x mapsto y-1"
 
 [[option]]
-  name       = "pureThTriggers"
-  category   = "regular"
-  long       = "pure-th-triggers"
-  type       = "bool"
-  default    = "false"
-  help       = "use pure theory terms as single triggers"
-
-[[option]]
   name       = "partialTriggers"
   category   = "regular"
   long       = "partial-triggers"
@@ -1837,14 +1829,6 @@ header = "options/quantifiers_options.h"
   name = "agg"
   help = "Aggressively split quantified formulas."
 
-[[option]]
-  name       = "quantAntiSkolem"
-  category   = "regular"
-  long       = "quant-anti-skolem"
-  type       = "bool"
-  default    = "false"
-  help       = "perform anti-skolemization for quantified formulas"
-
 ### Higher-order options
 
 [[option]]
@@ -1903,29 +1887,6 @@ header = "options/quantifiers_options.h"
   help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
 
 ### Output options
-
-[[option]]
-  name       = "printInstMode"
-  category   = "regular"
-  long       = "print-inst=MODE"
-  type       = "PrintInstMode"
-  default    = "LIST"
-  help       = "print format for printing instantiations"
-  help_mode  = "Print format for printing instantiations."
-[[option.mode.LIST]]
-  name = "list"
-  help = "Print the list of instantiations per quantified formula, when non-empty."
-[[option.mode.NUM]]
-  name = "num"
-  help = "Print the total number of instantiations per quantified formula, when non-zero."
-
-[[option]]
-  name       = "printInstFull"
-  category   = "regular"
-  long       = "print-inst-full"
-  type       = "bool"
-  default    = "false"
-  help       = "print instantiations for formulas that do not have given identifiers"
 
 [[option]]
   name       = "debugInst"

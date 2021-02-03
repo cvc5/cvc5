@@ -916,11 +916,9 @@ void TheoryFp::preRegisterTerm(TNode node)
 
 void TheoryFp::handleLemma(Node node) {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-  // Preprocess has to be true because it contains embedded ITEs
-  d_out->lemma(node, LemmaProperty::PREPROCESS);
-  // Ignore the LemmaStatus structure for now...
-
-  return;
+  // will be preprocessed when sent, which is important because it contains
+  // embedded ITEs
+  d_out->lemma(node);
 }
 
 bool TheoryFp::propagateLit(TNode node)

@@ -33,52 +33,106 @@ SolverState::SolverState(context::Context* c,
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
+  d_nm = NodeManager::currentNM();
 }
 
-struct BagsCountAttributeId
+void SolverState::registerBag(TNode n)
 {
-};
-typedef expr::Attribute<BagsCountAttributeId, Node> BagsCountAttribute;
-
-void SolverState::registerClass(TNode n)
-{
-  TypeNode t = n.getType();
-  if (!t.isBag())
-  {
-    return;
-  }
+  Assert(n.getType().isBag());
   d_bags.insert(n);
 }
 
-Node SolverState::registerBagElement(TNode n)
+void SolverState::registerCountTerm(TNode n)
 {
   Assert(n.getKind() == BAG_COUNT);
-  Node element = n[0];
-  TypeNode elementType = element.getType();
-  Node bag = n[1];
-  d_elements[elementType].insert(element);
-  NodeManager* nm = NodeManager::currentNM();
-  BoundVarManager* bvm = nm->getBoundVarManager();
-  Node multiplicity = bvm->mkBoundVar<BagsCountAttribute>(n, nm->integerType());
-  Node equal = n.eqNode(multiplicity);
-  SkolemManager* sm = nm->getSkolemManager();
-  Node skolem = sm->mkSkolem(
-      multiplicity,
-      equal,
-      "bag_multiplicity",
-      "an extensional lemma for multiplicity of an element in a bag");
-  d_count[bag][element] = skolem;
-  Trace("bags::SolverState::registerBagElement")
-      << "New skolem: " << skolem << " for " << n << std::endl;
-
-  return skolem;
+  Node element = getRepresentative(n[0]);
+  Node bag = getRepresentative(n[1]);
+  d_bagElements[bag].insert(element);
 }
 
-std::set<Node>& SolverState::getBags() { return d_bags; }
+const std::set<Node>& SolverState::getBags() { return d_bags; }
 
-std::set<Node>& SolverState::getElements(TypeNode t) { return d_elements[t]; }
+const std::set<Node>& SolverState::getElements(Node B)
+{
+  Node bag = getRepresentative(B);
+  return d_bagElements[bag];
+}
 
-std::map<Node, Node>& SolverState::getBagElements(Node B) { return d_count[B]; }
+const std::set<Node>& SolverState::getDisequalBagTerms() { return d_deq; }
+
+void SolverState::reset()
+{
+  d_bagElements.clear();
+  d_bags.clear();
+  d_deq.clear();
+}
+
+void SolverState::initialize()
+{
+  reset();
+  collectBagsAndCountTerms();
+  collectDisequalBagTerms();
+}
+
+void SolverState::collectBagsAndCountTerms()
+{
+  eq::EqClassesIterator repIt = eq::EqClassesIterator(d_ee);
+  while (!repIt.isFinished())
+  {
+    Node eqc = (*repIt);
+    Trace("bags-eqc") << "Eqc [ " << eqc << " ] = { ";
+
+    if (eqc.getType().isBag())
+    {
+      registerBag(eqc);
+    }
+
+    eq::EqClassIterator it = eq::EqClassIterator(eqc, d_ee);
+    while (!it.isFinished())
+    {
+      Node n = (*it);
+      Trace("bags-eqc") << (*it) << " ";
+      Kind k = n.getKind();
+      if (k == MK_BAG)
+      {
+        // for terms (bag x c) we need to store x by registering the count term
+        // (bag.count x (bag x c))
+        Node count = d_nm->mkNode(BAG_COUNT, n[0], n);
+        registerCountTerm(count);
+        Trace("SolverState::collectBagsAndCountTerms")
+            << "registered " << count << endl;
+      }
+      if (k == BAG_COUNT)
+      {
+        // this takes care of all count terms in each equivalent class
+        registerCountTerm(n);
+        Trace("SolverState::collectBagsAndCountTerms")
+            << "registered " << n << endl;
+      }
+      ++it;
+    }
+    Trace("bags-eqc") << " } " << std::endl;
+    ++repIt;
+  }
+
+  Trace("bags-eqc") << "bag representatives: " << d_bags << endl;
+  Trace("bags-eqc") << "bag elements: " << d_bagElements << endl;
+}
+
+void SolverState::collectDisequalBagTerms()
+{
+  eq::EqClassIterator it = eq::EqClassIterator(d_false, d_ee);
+  while (!it.isFinished())
+  {
+    Node n = (*it);
+    if (n.getKind() == EQUAL && n[0].getType().isBag())
+    {
+      Trace("bags-eqc") << "Disequal terms: " << n << std::endl;
+      d_deq.insert(n);
+    }
+    ++it;
+  }
+}
 
 }  // namespace bags
 }  // namespace theory

@@ -69,12 +69,9 @@ theory::TrustNode RemoveTermFormulas::run(
   if (fixedPoint)
   {
     size_t i = 0;
-    std::unordered_set<Node, NodeHashFunction> processed;
     while (i < newAsserts.size())
     {
       theory::TrustNode trn = newAsserts[i];
-      AlwaysAssert(processed.find(trn.getProven()) == processed.end());
-      processed.insert(trn.getProven());
       // do not run to fixed point on subcall, since we are processing all
       // lemmas in this loop
       newAsserts[i] = runLemma(trn, newAsserts, newSkolems, false);
@@ -465,6 +462,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
                             PfRule::MACRO_SR_PRED_INTRO,
                             {},
                             {node.eqNode(skolem)},
+                            true,
                             cval);
     }
 
@@ -520,21 +518,9 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
   return Node::null();
 }
 
-bool RemoveTermFormulas::getSkolems(
+void RemoveTermFormulas::getSkolems(
     TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
 {
-  // if n was unchanged by term formula removal, just return immediately
-  std::pair<Node, uint32_t> initial(n, d_rtfc.initialValue());
-  TermFormulaCache::const_iterator itc = d_tfCache.find(initial);
-  if (itc != d_tfCache.end())
-  {
-    if (itc->second == n)
-    {
-      return false;
-    }
-  }
-  // otherwise, traverse it
-  bool ret = false;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -552,16 +538,15 @@ bool RemoveTermFormulas::getSkolems(
       {
         if (d_lemmaCache.find(cur) != d_lemmaCache.end())
         {
-          // technically could already be in skolems if skolems was non-empty,
-          // regardless set return value to true.
           skolems.insert(cur);
-          ret = true;
         }
       }
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      else
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
   } while (!visit.empty());
-  return ret;
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)

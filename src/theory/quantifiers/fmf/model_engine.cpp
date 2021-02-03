@@ -23,8 +23,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
 
 using namespace std;
 using namespace CVC4;
@@ -35,12 +33,14 @@ using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::inst;
 
 //Model Engine constructor
-ModelEngine::ModelEngine( context::Context* c, QuantifiersEngine* qe ) :
-QuantifiersModule( qe ),
-d_incomplete_check(true),
-d_addedLemmas(0),
-d_triedLemmas(0),
-d_totalLemmas(0)
+ModelEngine::ModelEngine(QuantifiersEngine* qe,
+                         QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim)
+    : QuantifiersModule(qs, qim, qe),
+      d_incomplete_check(true),
+      d_addedLemmas(0),
+      d_triedLemmas(0),
+      d_totalLemmas(0)
 {
 
 }
@@ -75,7 +75,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
     doCheck = quant_e == QEFFORT_MODEL;
   }
   if( doCheck ){
-    Assert(!d_quantEngine->inConflict());
+    Assert(!d_qstate.isInConflict());
     int addedLemmas = 0;
 
     //the following will test that the model satisfies all asserted universal quantifiers by
@@ -215,7 +215,7 @@ int ModelEngine::checkModel(){
       //determine if we should check this quantifier
       if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
         exhaustiveInstantiate( q, e );
-        if (d_quantEngine->inConflict())
+        if (d_qstate.isInConflict())
         {
           break;
         }
@@ -226,12 +226,13 @@ int ModelEngine::checkModel(){
     if( d_addedLemmas>0 ){
       break;
     }else{
-      Assert(!d_quantEngine->inConflict());
+      Assert(!d_qstate.isInConflict());
     }
   }
 
   //print debug information
-  if( d_quantEngine->inConflict() ){
+  if (d_qstate.isInConflict())
+  {
     Trace("model-engine") << "Conflict, added lemmas = ";
   }else{
     Trace("model-engine") << "Added Lemmas = ";
@@ -276,14 +277,13 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       if( !riter.isIncomplete() ){
         int triedLemmas = 0;
         int addedLemmas = 0;
-        EqualityQuery* qy = d_quantEngine->getEqualityQuery();
         Instantiate* inst = d_quantEngine->getInstantiate();
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
           for (unsigned i = 0; i < riter.getNumTerms(); i++)
           {
-            m.set(qy, i, riter.getCurrentTerm(i));
+            m.set(d_qstate, i, riter.getCurrentTerm(i));
           }
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
@@ -291,7 +291,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           if (inst->addInstantiation(f, m, true))
           {
             addedLemmas++;
-            if( d_quantEngine->inConflict() ){
+            if (d_qstate.isInConflict())
+            {
               break;
             }
           }else{
