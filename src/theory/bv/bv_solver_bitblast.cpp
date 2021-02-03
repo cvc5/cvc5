@@ -16,12 +16,12 @@
 
 #include "theory/bv/bv_solver_bitblast.h"
 
+#include "options/bv_options.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
-#include "options/bv_options.h"
 
 namespace CVC4 {
 namespace theory {

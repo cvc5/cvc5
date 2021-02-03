@@ -190,7 +190,8 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
   return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 
-void CryptoMinisatSolver::getUnsatAssumptions(std::vector<SatLiteral>& assumptions)
+void CryptoMinisatSolver::getUnsatAssumptions(
+    std::vector<SatLiteral>& assumptions)
 {
   for (const CMSat::Lit& lit : d_solver->get_conflict())
   {
