@@ -21,6 +21,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "options/bv_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,8 +43,16 @@ BVSolverBitblast::BVSolverBitblast(TheoryState* s,
     d_bvProofChecker.registerTo(pnm->getChecker());
   }
 
-  d_satSolver.reset(prop::SatSolverFactory::createCadical(
-      smtStatisticsRegistry(), "BVSolverBitblast"));
+  switch (options::bvSatSolver())
+  {
+    case options::SatSolverMode::CRYPTOMINISAT:
+      d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
+          smtStatisticsRegistry(), "BVSolverBitblast"));
+      break;
+    default:
+      d_satSolver.reset(prop::SatSolverFactory::createCadical(
+          smtStatisticsRegistry(), "BVSolverBitblast"));
+  }
   d_cnfStream.reset(new prop::CnfStream(d_satSolver.get(),
                                         d_nullRegistrar.get(),
                                         d_nullContext.get(),
@@ -79,15 +88,15 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   {
     std::vector<prop::SatLiteral> unsat_assumptions;
     d_satSolver->getUnsatAssumptions(unsat_assumptions);
-    std::vector<Node> conflict;
+    Assert(unsat_assumptions.size() > 0);
 
+    std::vector<Node> conflict;
     for (const prop::SatLiteral& lit : unsat_assumptions)
     {
       conflict.push_back(node_map[lit]);
     }
 
     NodeManager* nm = NodeManager::currentNM();
-    Assert(unsat_assumptions.size() > 0);
     d_inferManager.conflict(nm->mkAnd(conflict));
   }
 }
