@@ -26,6 +26,7 @@
 #include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "options/options.h"
+#include "options/smt_options.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

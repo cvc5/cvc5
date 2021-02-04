@@ -19,8 +19,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/hash.h"
 
@@ -231,7 +229,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     d_lchildren.clear();
     d_arg_to_arg_rep.clear();
     d_arg_vector.clear();
-    EqualityQuery* eq = d_quantEngine->getEqualityQuery();
+    quantifiers::QuantifiersState& qs = d_quantEngine->getState();
     for (std::pair<const TNode, std::vector<Node> >& ha : ho_var_apps_subs)
     {
       TNode var = ha.first;
@@ -283,10 +281,10 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
           }
           else if (!itf->second.isNull())
           {
-            if (!eq->areEqual(itf->second, args[k]))
+            if (!qs.areEqual(itf->second, args[k]))
             {
               if (!d_quantEngine->getTermDatabase()->isEntailed(
-                      itf->second.eqNode(args[k]), true, eq))
+                      itf->second.eqNode(args[k]), true))
               {
                 fixed_vals[k] = Node::null();
               }
@@ -318,7 +316,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
         {
           if (!itf->second.isNull())
           {
-            Node r = eq->getRepresentative(itf->second);
+            Node r = qs.getRepresentative(itf->second);
             std::map<Node, unsigned>::iterator itfr = arg_to_rep.find(r);
             if (itfr != arg_to_rep.end())
             {

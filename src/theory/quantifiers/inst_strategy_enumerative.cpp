@@ -32,8 +32,11 @@ using namespace inst;
 
 namespace quantifiers {
 
-InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd)
-    : QuantifiersModule(qe), d_rd(rd), d_fullSaturateLimit(-1)
+InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
+                                   QuantifiersState& qs,
+                                   QuantifiersInferenceManager& qim,
+                                   RelevantDomain* rd)
+    : QuantifiersModule(qs, qim, qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
@@ -77,7 +80,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     }
     if (options::fullSaturateQuant() && !doCheck)
     {
-      if (!d_quantEngine->theoryEngineNeedsCheck())
+      if (!d_qstate.getValuation().needCheck())
       {
         doCheck = quant_e == QEFFORT_LAST_CALL;
         fullEffort = true;
@@ -88,7 +91,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
-  Assert(!d_quantEngine->inConflict());
+  Assert(!d_qstate.isInConflict());
   double clSet = 0;
   if (Trace.isOn("fs-engine"))
   {
@@ -142,13 +145,13 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
             // added lemma
             addedLemmas++;
           }
-          if (d_quantEngine->inConflict())
+          if (d_qstate.isInConflict())
           {
             break;
           }
         }
       }
-      if (d_quantEngine->inConflict()
+      if (d_qstate.isInConflict()
           || (addedLemmas > 0 && options::fullSaturateStratify()))
       {
         // we break if we are in conflict, or if we added any lemma at this
@@ -185,7 +188,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
   std::map<TypeNode, std::vector<Node> > term_db_list;
   std::vector<TypeNode> ftypes;
   TermDb* tdb = d_quantEngine->getTermDatabase();
-  EqualityQuery* qy = d_quantEngine->getEqualityQuery();
+  QuantifiersState& qs = d_quantEngine->getState();
   // iterate over substitutions for variables
   for (unsigned i = 0; i < f[0].getNumChildren(); i++)
   {
@@ -209,7 +212,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           Node gt = tdb->getTypeGroundTerm(ftypes[i], j);
           if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
           {
-            Node rep = qy->getRepresentative(gt);
+            Node rep = qs.getRepresentative(gt);
             if (reps_found.find(rep) == reps_found.end())
             {
               reps_found[rep] = gt;
@@ -328,7 +331,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           {
             index--;
           }
-          if (d_quantEngine->inConflict())
+          if (d_qstate.isInConflict())
           {
             // could be conflicting for an internal reason (such as term
             // indices computed in above calls)

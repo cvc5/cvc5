@@ -14,6 +14,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/preprocessor.h"
@@ -257,6 +258,12 @@ void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
 prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
+
+theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
+{
+  Assert(d_theoryEngine != nullptr);
+  return d_theoryEngine->getQuantifiersEngine();
+}
 
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 

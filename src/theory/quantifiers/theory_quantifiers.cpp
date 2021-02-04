@@ -43,7 +43,9 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      const LogicInfo& logicInfo,
                                      ProofNodeManager* pnm)
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
-      d_qstate(c, u, valuation)
+      d_qstate(c, u, valuation),
+      d_qim(*this, d_qstate, pnm),
+      d_qengine(d_qstate, d_qim, pnm)
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute("qid", this);
@@ -59,6 +61,13 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   }
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;
+  // use the inference manager as the official inference manager
+  d_inferManager = &d_qim;
+
+  // Set the pointer to the quantifiers engine, which this theory owns. This
+  // pointer will be retreived by TheoryEngine and set to all theories
+  // post-construction.
+  d_quantEngine = &d_qengine;
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
@@ -72,6 +81,13 @@ void TheoryQuantifiers::finishInit()
   d_valuation.setUnevaluatedKind(FORALL);
   // witness is used in several instantiation strategies
   d_valuation.setUnevaluatedKind(WITNESS);
+}
+
+bool TheoryQuantifiers::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // use the master equality engine
+  esi.d_useMaster = true;
+  return true;
 }
 
 void TheoryQuantifiers::preRegisterTerm(TNode n)
@@ -155,7 +171,7 @@ bool TheoryQuantifiers::preNotifyFact(
     getQuantifiersEngine()->addTermToDatabase(atom[0], false, true);
     if (!options::lteRestrictInstClosure())
     {
-      getQuantifiersEngine()->getMasterEqualityEngine()->addTerm(atom[0]);
+      d_qstate.getEqualityEngine()->addTerm(atom[0]);
     }
   }
   else

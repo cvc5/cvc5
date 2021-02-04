@@ -258,6 +258,13 @@ header = "options/smt_options.h"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
 [[option]]
+  name       = "checkUnsatCoresNew"
+  category   = "regular"
+  long       = "check-unsat-cores-new"
+  type       = "bool"
+  help       = "after UNSAT/VALID, produce and check an unsat core (expensive) using the new proof infrastructure"
+
+[[option]]
   name       = "dumpUnsatCores"
   category   = "regular"
   long       = "dump-unsat-cores"

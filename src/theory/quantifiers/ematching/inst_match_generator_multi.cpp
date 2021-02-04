@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -174,7 +175,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q,
           << "...processing " << j << " / " << newMatches.size()
           << ", #lemmas = " << addedLemmas << std::endl;
       processNewMatch(qe, tparent, newMatches[j], i, addedLemmas);
-      if (qe->inConflict())
+      if (qe->getState().isInConflict())
       {
         return addedLemmas;
       }
@@ -221,7 +222,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                                        size_t endChildIndex,
                                                        bool modEq)
 {
-  Assert(!qe->inConflict());
+  Assert(!qe->getState().isInConflict());
   if (childIndex == endChildIndex)
   {
     // m is an instantiation
@@ -256,7 +257,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                  childIndex,
                                  endChildIndex,
                                  modEq);
-        if (qe->inConflict())
+        if (qe->getState().isInConflict())
         {
           break;
         }
@@ -280,13 +281,13 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
     {
       return;
     }
-    eq::EqualityEngine* ee = qe->getEqualityQuery()->getEngine();
+    quantifiers::QuantifiersState& qs = qe->getState();
     // check modulo equality for other possible instantiations
-    if (!ee->hasTerm(n))
+    if (!qs.hasTerm(n))
     {
       return;
     }
-    eq::EqClassIterator eqc(ee->getRepresentative(n), ee);
+    eq::EqClassIterator eqc(qs.getRepresentative(n), qs.getEqualityEngine());
     while (!eqc.isFinished())
     {
       Node en = (*eqc);
@@ -304,7 +305,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                    childIndex,
                                    endChildIndex,
                                    modEq);
-          if (qe->inConflict())
+          if (qe->getState().isInConflict())
           {
             break;
           }

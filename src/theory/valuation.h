@@ -159,6 +159,13 @@ public:
    * @return The preprocessed form of n
    */
   Node getPreprocessedTerm(TNode n);
+  /**
+   * Same as above, but also tracks the skolems and their corresponding
+   * definitions in sks and skAsserts respectively.
+   */
+  Node getPreprocessedTerm(TNode n,
+                           std::vector<Node>& skAsserts,
+                           std::vector<Node>& sks);
 
   /**
    * Returns whether the given lit (which must be a SAT literal) is a decision
