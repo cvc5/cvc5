@@ -661,8 +661,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                           chainConclusion.end()};
     std::set<Node> chainConclusionLitsSet{chainConclusion.begin(),
                                           chainConclusion.end()};
-    // is args[0] a singleton clause? If it's not an OR node, then yes. Otherwise,
-    // it's only a singleton if it occurs in chainConclusionLitsSet
+    // is args[0] a singleton clause? If it's not an OR node, then yes.
+    // Otherwise, it's only a singleton if it occurs in chainConclusionLitsSet
     std::vector<Node> conclusionLits;
     // whether conclusion is singleton
     if (chainConclusionLitsSet.count(args[0]))
