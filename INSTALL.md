@@ -22,6 +22,8 @@ using Mingw-w64.  We recommend a 64-bit operating system.
 On macOS, we recommend using Homebrew (https://brew.sh/) to install the
 dependencies.  We also have a Homebrew Tap available at
 https://github.com/CVC4/homebrew-cvc4 .
+To build a static binary for macOS, use:
+`./configure.sh --static --no-static-binary`.
 
 ### Cross-compiling for Windows
 
@@ -29,7 +31,7 @@ Cross-compiling CVC4 with Mingw-w64 can be done as follows:
 
 ```
   HOST=x86_64-w64-mingw32 ./contrib/get-win-dependencies
-  ./configure --win64 --static <configure options...>
+  ./configure.sh --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads

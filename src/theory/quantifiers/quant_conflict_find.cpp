@@ -1840,8 +1840,9 @@ bool MatchGen::isHandled( TNode n ) {
 
 QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
-                                     QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                                     QuantifiersInferenceManager& qim,
+                                     QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
@@ -1852,7 +1853,8 @@ QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
 //-------------------------------------------------- registration
 
 void QuantConflictFind::registerQuantifier( Node q ) {
-  if( d_quantEngine->hasOwnership( q, this ) ){
+  if (d_qreg.hasOwnership(q, this))
+  {
     d_quants.push_back( q );
     d_quant_id[q] = d_quants.size();
     if( Trace.isOn("qcf-qregister") ){
@@ -2022,7 +2024,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     for (unsigned i = 0; i < nquant; i++)
     {
       Node q = fm->getAssertedQuantifier(i, true);
-      if (d_quantEngine->hasOwnership(q, this)
+      if (d_qreg.hasOwnership(q, this)
           && d_irr_quant.find(q) == d_irr_quant.end()
           && fm->isQuantifierActive(q))
       {
