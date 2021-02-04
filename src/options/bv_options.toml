@@ -239,6 +239,9 @@ header = "options/bv_options.h"
 [[option.mode.BITBLAST]]
   name = "bitblast"
   help = "Enables bitblasting solver."
+[[option.mode.INTBLAST]]
+  name = "intblast"
+  help = "Enables int-blasting solver."
 [[option.mode.LAZY]]
   name = "lazy"
   help = "Enables the lazy BV solver infrastructure."
