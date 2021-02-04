@@ -27,6 +27,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class TermDb;
+class FirstOrderModel;
+
 /** EqualityQueryQuantifiersEngine class
  *
  * The main method of this class is the function
@@ -40,7 +43,9 @@ namespace quantifiers {
 class EqualityQueryQuantifiersEngine : public QuantifiersUtil
 {
  public:
-  EqualityQueryQuantifiersEngine(QuantifiersState& qs, QuantifiersEngine* qe);
+  EqualityQueryQuantifiersEngine(QuantifiersState& qs,
+                                 TermDb* tdb,
+                                 FirstOrderModel* m);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
   bool reset(Theory::Effort e) override;
@@ -65,10 +70,12 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
   Node getInternalRepresentative(Node a, Node q, int index);
 
  private:
-  /** pointer to theory engine */
-  QuantifiersEngine* d_qe;
   /** the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Pointer to the term database */
+  TermDb* d_tdb;
+  /** Pointer to the model */
+  FirstOrderModel* d_model;
   /** quantifiers equality inference */
   context::CDO< unsigned > d_eqi_counter;
   /** internal representatives */
