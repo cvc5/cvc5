@@ -31,8 +31,9 @@ namespace quantifiers {
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                         QuantifiersInferenceManager& qim,
+                         QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_tds(qe->getTermDatabaseSygus()),
       d_conj(nullptr),
       d_sqp(qe)
@@ -164,11 +165,22 @@ void SynthEngine::assignConjecture(Node q)
   d_conjs.back()->assign(q);
 }
 
+void SynthEngine::checkOwnership(Node q)
+{
+  // take ownership of quantified formulas with sygus attribute, and function
+  // definitions when options::sygusRecFun is true.
+  QuantAttributes* qa = d_quantEngine->getQuantAttributes();
+  if (qa->isSygus(q) || (options::sygusRecFun() && qa->isFunDef(q)))
+  {
+    d_qreg.setOwner(q, this, 2);
+  }
+}
+
 void SynthEngine::registerQuantifier(Node q)
 {
   Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
                        << std::endl;
-  if (d_quantEngine->getOwner(q) != this)
+  if (d_qreg.getOwner(q) != this)
   {
     return;
   }
