@@ -16,6 +16,7 @@
 
 #include "options/printer_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
@@ -40,12 +41,12 @@ QuantifiersEngine::QuantifiersEngine(
       d_te(nullptr),
       d_decManager(nullptr),
       d_qreg(),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
       d_term_util(new quantifiers::TermUtil),
       d_term_db(new quantifiers::TermDb(qstate, qim, this)),
+      d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes),
       d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
@@ -62,7 +63,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_presolve_cache_wic(qstate.getUserContext())
 {
   //---- utilities
-  d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
@@ -116,6 +116,9 @@ QuantifiersEngine::QuantifiersEngine(
     d_model.reset(
         new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
   }
+  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
+      qstate, d_term_db.get(), d_model.get()));
+  d_util.insert(d_util.begin(), d_eq_query.get());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
@@ -739,8 +742,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().trustedLemma(
-          lem, LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY);
+      getOutputChannel().trustedLemma(lem, LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }
@@ -905,8 +907,7 @@ void QuantifiersEngine::flushLemmas(){
       const Node& lemw = d_lemmas_waiting[i];
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
       itp = d_lemmasWaitingPg.find(lemw);
-      LemmaProperty p =
-          LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY;
+      LemmaProperty p = LemmaProperty::NEEDS_JUSTIFY;
       if (itp != d_lemmasWaitingPg.end())
       {
         TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);

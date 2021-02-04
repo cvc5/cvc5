@@ -65,11 +65,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting dumpUnsatCores" << std::endl;
     options::dumpUnsatCores.set(true);
   }
-  if (options::checkUnsatCores() || options::dumpUnsatCores()
-      || options::unsatAssumptions())
+  if (options::checkUnsatCores() || options::checkUnsatCoresNew()
+      || options::dumpUnsatCores() || options::unsatAssumptions())
   {
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
+  }
+  if (options::checkUnsatCoresNew())
+  {
+    options::proofNew.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -113,11 +117,16 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
           "Incremental eager bit-blasting is currently "
           "only supported for QF_BV. Try --bitblast=lazy.");
     }
+
+    // Force lazy solver since we don't handle EAGER_ATOMS in the
+    // BVSolver::BITBLAST solver.
+    options::bvSolver.set(options::BVSolver::LAZY);
   }
 
-  /* BVSolver::SIMPLE does not natively support int2bv and nat2bv, they need to
-   * to be eliminated eagerly. */
-  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  /* Only BVSolver::LAZY natively supports int2bv and nat2bv, for other solvers
+   * we need to eagerly eliminate the operators. */
+  if (options::bvSolver() == options::BVSolver::SIMPLE
+      || options::bvSolver() == options::BVSolver::BITBLAST)
   {
     options::bvLazyReduceExtf.set(false);
     options::bvLazyRewriteExtf.set(false);
@@ -245,6 +254,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
+
   if (options::arraysExp())
   {
     if (!logic.isQuantified())

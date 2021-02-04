@@ -22,8 +22,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/theory_uf.h"
 
 using namespace CVC4::kind;
 
@@ -93,7 +91,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
-    eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+    quantifiers::QuantifiersState& qs = d_qe->getState();
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
@@ -104,7 +102,7 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
           if( d_exclude_eqc.empty() ){
             return n;
           }else{
-            Node r = ee->getRepresentative(n);
+            Node r = qs.getRepresentative(n);
             if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
               Debug("cand-gen-qe") << "...returning " << n << std::endl;
               return n;

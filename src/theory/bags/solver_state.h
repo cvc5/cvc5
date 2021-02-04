@@ -61,13 +61,21 @@ class SolverState : public TheoryState
   const std::set<Node>& getElements(Node B);
   /** initialize bag and count terms */
   void initialize();
+  /** return disequal bag terms */
+  const std::set<Node>& getDisequalBagTerms();
 
  private:
   /** clear all bags data structures */
   void reset();
-  /** collect bags' representatives and all count terms.
-   * This function is called during postCheck */
+  /**
+   * collect bags' representatives and all count terms.
+   * This function is called during postCheck
+   */
   void collectBagsAndCountTerms();
+  /**
+   * collect disequal bag terms. This function is called during postCheck.
+   */
+  void collectDisequalBagTerms();
   /** constants */
   Node d_true;
   Node d_false;
@@ -77,6 +85,8 @@ class SolverState : public TheoryState
   std::set<Node> d_bags;
   /** bag -> associated elements */
   std::map<Node, std::set<Node>> d_bagElements;
+  /** Disequal bag terms */
+  std::set<Node> d_deq;
 }; /* class SolverState */
 
 }  // namespace bags

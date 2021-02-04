@@ -29,7 +29,8 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
-  --static-binary          enable/disable static binaries
+  --static-binary          statically link against system libraries
+                           (must be disabled for static macOS builds) [default=yes]
   --proofs                 support for proof generation
   --optimized              optimize the build
   --debug-symbols          include debug symbols

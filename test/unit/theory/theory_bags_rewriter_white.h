@@ -280,16 +280,20 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
   void testUnionDisjoint()
   {
     int n = 3;
-    vector<Node> elements = getNStrings(2);
+    vector<Node> elements = getNStrings(3);
     Node emptyBag =
         d_nm->mkConst(EmptyBag(d_nm->mkBagType(d_nm->stringType())));
     Node A = d_nm->mkBag(
         d_nm->stringType(), elements[0], d_nm->mkConst(Rational(n)));
     Node B = d_nm->mkBag(
         d_nm->stringType(), elements[1], d_nm->mkConst(Rational(n + 1)));
+    Node C = d_nm->mkBag(
+        d_nm->stringType(), elements[2], d_nm->mkConst(Rational(n + 2)));
+
     Node unionDisjointAB = d_nm->mkNode(UNION_DISJOINT, A, B);
     Node unionDisjointBA = d_nm->mkNode(UNION_DISJOINT, B, A);
     Node unionMaxAB = d_nm->mkNode(UNION_MAX, A, B);
+    Node unionMaxAC = d_nm->mkNode(UNION_MAX, A, C);
     Node unionMaxBA = d_nm->mkNode(UNION_MAX, B, A);
     Node intersectionAB = d_nm->mkNode(INTERSECTION_MIN, A, B);
     Node intersectionBA = d_nm->mkNode(INTERSECTION_MIN, B, A);
@@ -321,6 +325,14 @@ class BagsTypeRuleWhite : public CxxTest::TestSuite
     RewriteResponse response4 = d_rewriter->postRewrite(unionDisjoint4);
     TS_ASSERT(response4.d_node == unionDisjointBA
               && response4.d_status == REWRITE_AGAIN_FULL);
+
+    // (union_disjoint (intersection_min B A)) (union_max A B) =
+    //          (union_disjoint B A) // sum(a,b) = max(a,b) + min(a,b)
+    Node unionDisjoint5 =
+        d_nm->mkNode(UNION_DISJOINT, unionMaxAC, intersectionAB);
+    RewriteResponse response5 = d_rewriter->postRewrite(unionDisjoint5);
+    TS_ASSERT(response5.d_node == unionDisjoint5
+              && response5.d_status == REWRITE_DONE);
   }
 
   void testIntersectionMin()

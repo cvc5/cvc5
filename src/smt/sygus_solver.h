@@ -136,6 +136,11 @@ class SygusSolver
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& sol_map);
+  /**
+   * Print solution for synthesis conjectures found by counter-example guided
+   * instantiation module.
+   */
+  void printSynthSolution(std::ostream& out);
 
  private:
   /**

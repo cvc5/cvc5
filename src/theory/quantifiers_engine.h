@@ -322,8 +322,6 @@ public:
   //------------- quantifiers utilities
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry d_qreg;
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
@@ -334,6 +332,8 @@ public:
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
+  /** equality query class */
+  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** sygus term database */
   std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
   /** quantifiers attributes */

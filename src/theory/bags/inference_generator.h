@@ -62,22 +62,25 @@ class InferenceGenerator
    */
   InferInfo mkBag(Node n, Node e);
   /**
-   * @param n is (not (= A B)) where A, B are bags of type (Bag E)
+   * @param n is (= A B) where A, B are bags of type (Bag E), and
+   * (not (= A B)) is an assertion in the equality engine
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
    *   (not (= (count e A) (count e B))))
    *   where e is a fresh skolem of type E.
    */
-  InferInfo bagDisequality(Node n, Node reason);
+  InferInfo bagDisequality(Node n);
   /**
+   * @param n is (as emptybag (Bag E))
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= 0 (count e (as emptybag (Bag E)))))
+   *   (= 0 (count e skolem)))
+   *   where skolem = (as emptybag (Bag String))
    */
-  InferInfo bagEmpty(Node e);
+  InferInfo empty(Node n, Node e);
   /**
    * @param n is (union_disjoint A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E
