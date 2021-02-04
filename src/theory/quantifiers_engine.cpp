@@ -40,12 +40,12 @@ QuantifiersEngine::QuantifiersEngine(
       d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
       d_term_util(new quantifiers::TermUtil),
       d_term_db(new quantifiers::TermDb(qstate, qim, this)),
+      d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
@@ -62,7 +62,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_presolve_cache_wic(qstate.getUserContext())
 {
   //---- utilities
-  d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
@@ -116,6 +115,9 @@ QuantifiersEngine::QuantifiersEngine(
     d_model.reset(
         new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
   }
+  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
+      qstate, d_term_db.get(), d_model.get()));
+  d_util.insert(d_util.begin(), d_eq_query.get());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}

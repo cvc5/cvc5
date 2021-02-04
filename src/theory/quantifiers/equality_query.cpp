@@ -19,9 +19,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -32,9 +29,10 @@ namespace theory {
 namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
-    QuantifiersState& qs, QuantifiersEngine* qe)
-    : d_qe(qe),
-      d_qstate(qs),
+    QuantifiersState& qs, TermDb* tdb, FirstOrderModel* m)
+    : d_qstate(qs),
+      d_tdb(tdb),
+      d_model(m),
       d_eqi_counter(qs.getSatContext()),
       d_reset_count(0)
 {
@@ -58,8 +56,9 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
   if( options::finiteModelFind() ){
     if( r.isConst() && quantifiers::TermUtil::containsUninterpretedConstant( r ) ){
       //map back from values assigned by model, if any
-      if( d_qe->getModel() ){
-        Node tr = d_qe->getModel()->getRepSet()->getTermForRepresentative(r);
+      if (d_model != nullptr)
+      {
+        Node tr = d_model->getRepSet()->getTermForRepresentative(r);
         if (!tr.isNull())
         {
           r = tr;
@@ -173,7 +172,10 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
-  }else if( options::lteRestrictInstClosure() && ( !d_qe->getTermDatabase()->isInstClosure( n ) || !d_qe->getTermDatabase()->hasTermCurrent( n, false ) ) ){
+  }
+  else if (options::lteRestrictInstClosure()
+           && (!d_tdb->isInstClosure(n) || !d_tdb->hasTermCurrent(n, false)))
+  {
     return -1;
   }else if( options::instMaxLevel()!=-1 ){
     //score prefer lowest instantiation level
