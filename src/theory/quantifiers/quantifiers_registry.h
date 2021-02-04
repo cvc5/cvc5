@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -44,8 +44,7 @@ class QuantifiersRegistry
    */
   void setOwner(Node q, QuantifiersModule* m, int32_t priority = 0);
   /**
-   * Return true if module m has ownership of quantified formula q. This means
-   * that either q does not have an owner, or the owner is m.
+   * Return true if module q has no owner registered or if its registered owner is m.
    */
   bool hasOwnership(Node q, QuantifiersModule* m) const;
 
@@ -60,7 +59,7 @@ class QuantifiersRegistry
    * in the domain of the above map, where higher values take higher
    * precendence.
    */
-  std::map<Node, int> d_owner_priority;
+  std::map<Node, int32_t> d_owner_priority;
 };
 
 }  // namespace quantifiers
