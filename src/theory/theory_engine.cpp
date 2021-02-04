@@ -16,33 +16,23 @@
 
 #include "theory/theory_engine.h"
 
-#include <list>
-#include <vector>
-
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
 #include "expr/lazy_proof.h"
-#include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_visitor.h"
 #include "expr/proof_ensure_closed.h"
-#include "options/bv_options.h"
-#include "options/options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
+#include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
-#include "smt/term_formula_removal.h"
-#include "theory/arith/arith_ite_utils.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/care_graph.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
@@ -692,17 +682,6 @@ bool TheoryEngine::buildModel()
   return d_tc->buildModel();
 }
 
-bool TheoryEngine::getSynthSolutions(
-    std::map<Node, std::map<Node, Node>>& sol_map)
-{
-  if (d_quantEngine)
-  {
-    return d_quantEngine->getSynthSolutions(sol_map);
-  }
-  // we are not in a quantified logic, there is no synthesis solution
-  return false;
-}
-
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
@@ -1161,28 +1140,6 @@ Node TheoryEngine::getModelValue(TNode var) {
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
-
-Node TheoryEngine::ensureLiteral(TNode n) {
-  Trace("ensureLiteral") << "ensureLiteral rewriting: " << n << std::endl;
-  Node rewritten = Rewriter::rewrite(n);
-  return d_propEngine->ensureLiteral(rewritten);
-}
-
-Node TheoryEngine::getPreprocessedTerm(TNode n)
-{
-  Node rewritten = Rewriter::rewrite(n);
-  return d_propEngine->getPreprocessedTerm(rewritten);
-}
-
-void TheoryEngine::printSynthSolution( std::ostream& out ) {
-  if( d_quantEngine ){
-    d_quantEngine->printSynthSolution( out );
-  }else{
-    out << "Internal error : synth solution not available when quantifiers are not present." << std::endl;
-    Assert(false);
-  }
-}
-
 TrustNode TheoryEngine::getExplanation(TNode node)
 {
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
@@ -1340,10 +1297,10 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
-                                        theory::LemmaProperty p,
-                                        theory::TheoryId atomsTo,
-                                        theory::TheoryId from)
+void TheoryEngine::lemma(theory::TrustNode tlemma,
+                         theory::LemmaProperty p,
+                         theory::TheoryId atomsTo,
+                         theory::TheoryId from)
 {
   // For resource-limiting (also does a time check).
   // spendResource();
@@ -1393,20 +1350,24 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     printer.toStreamCmdCheckSat(out, n);
   }
 
-  Node retLemma = d_propEngine->assertLemma(tlemma, p);
+  // assert the lemma
+  d_propEngine->assertLemma(tlemma, p);
 
   // If specified, we must add this lemma to the set of those that need to be
-  // justified, where note we pass all auxiliary lemmas in lemmas, since these
-  // by extension must be justified as well.
+  // justified, where note we pass all auxiliary lemmas in skAsserts as well,
+  // since these by extension must be justified as well.
   if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
   {
+    std::vector<Node> skAsserts;
+    std::vector<Node> sks;
+    Node retLemma =
+        d_propEngine->getPreprocessedTerm(tlemma.getProven(), skAsserts, sks);
     d_relManager->notifyPreprocessedAssertion(retLemma);
+    d_relManager->notifyPreprocessedAssertions(skAsserts);
   }
 
   // Mark that we added some lemmas
   d_lemmasAdded = true;
-
-  return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
 
 void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
@@ -1661,6 +1622,9 @@ theory::TrustNode TheoryEngine::getExplanation(
       Trace("te-proof-exp")
           << "- t-explained[" << toExplain.d_theory << "]: " << toExplain.d_node
           << " by " << texplanation.getNode() << std::endl;
+      // should prove the propagation we asked for
+      Assert(texplanation.getKind() == TrustNodeKind::PROP_EXP
+             && texplanation.getProven()[1] == toExplain.d_node);
       // if not a trivial explanation
       if (!CDProof::isSame(texplanation.getNode(), toExplain.d_node))
       {

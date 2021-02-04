@@ -144,15 +144,26 @@ bool TheoryBags::collectModelValues(TheoryModel* m,
 
   Trace("bags-model") << "Term set: " << termSet << std::endl;
 
+  std::set<Node> processedBags;
+
   // get the relevant bag equivalence classes
   for (const Node& n : termSet)
   {
     TypeNode tn = n.getType();
     if (!tn.isBag())
     {
+      // we are only concerned here about bag terms
       continue;
     }
     Node r = d_state.getRepresentative(n);
+    if (processedBags.find(r) != processedBags.end())
+    {
+      // skip bags whose representatives are already processed
+      continue;
+    }
+
+    processedBags.insert(r);
+
     std::set<Node> solverElements = d_state.getElements(r);
     std::set<Node> elements;
     // only consider terms in termSet and ignore other elements in the solver
@@ -199,7 +210,6 @@ void TheoryBags::preRegisterTerm(TNode n)
     case BAG_FROM_SET:
     case BAG_TO_SET:
     case BAG_IS_SINGLETON:
-    case DUPLICATE_REMOVAL:
     {
       std::stringstream ss;
       ss << "Term of kind " << n.getKind() << " is not supported yet";
@@ -223,15 +233,7 @@ void TheoryBags::eqNotifyNewClass(TNode n) {}
 
 void TheoryBags::eqNotifyMerge(TNode n1, TNode n2) {}
 
-void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason)
-{
-  TypeNode t1 = n1.getType();
-  if (t1.isBag())
-  {
-    InferInfo info = d_ig.bagDisequality(n1.eqNode(n2).notNode(), reason);
-    info.process(d_inferManager, true);
-  }
-}
+void TheoryBags::eqNotifyDisequal(TNode n1, TNode n2, TNode reason) {}
 
 void TheoryBags::NotifyClass::eqNotifyNewClass(TNode n)
 {

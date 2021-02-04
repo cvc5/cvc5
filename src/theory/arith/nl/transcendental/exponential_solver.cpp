@@ -45,23 +45,22 @@ void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  NlLemma nlem(
-      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
+  NlLemma nlem(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_PURIFY_ARG);
   d_data->d_im.addPendingArithLemma(nlem);
 }
 
 void ExponentialSolver::checkInitialRefine()
 {
   NodeManager* nm = NodeManager::currentNM();
-  Trace("nl-ext")
-      << "Get initial refinement lemmas for transcendental functions..."
-      << std::endl;
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_data->d_funcMap)
   {
     if (tfl.first != Kind::EXPONENTIAL)
     {
       continue;
     }
+    Trace("nl-ext")
+        << "Get initial (exp) refinement lemmas for transcendental functions..."
+        << std::endl;
     Assert(tfl.first == Kind::EXPONENTIAL);
     for (const Node& t : tfl.second)
     {
@@ -108,9 +107,6 @@ void ExponentialSolver::checkInitialRefine()
 
 void ExponentialSolver::checkMonotonic()
 {
-  Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
-                  << std::endl;
-
   auto it = d_data->d_funcMap.find(Kind::EXPONENTIAL);
   if (it == d_data->d_funcMap.end())
   {
@@ -118,6 +114,9 @@ void ExponentialSolver::checkMonotonic()
     return;
   }
 
+  Trace("nl-ext")
+      << "Get monotonicity lemmas for (exp) transcendental functions..."
+      << std::endl;
   // sort arguments of all transcendentals
   std::vector<Node> tf_args;
   std::map<Node, Node> tf_arg_to_term;

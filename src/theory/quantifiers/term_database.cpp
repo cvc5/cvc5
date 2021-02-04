@@ -16,6 +16,7 @@
 
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"

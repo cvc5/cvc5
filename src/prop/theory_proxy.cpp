@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "options/decision_options.h"
+#include "options/smt_options.h"
 #include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -192,6 +193,20 @@ theory::TrustNode TheoryProxy::removeItes(
 {
   RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
   return rtf.run(node, newLemmas, newSkolems, true);
+}
+
+void TheoryProxy::getSkolems(TNode node,
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  std::unordered_set<Node, NodeHashFunction> skolems;
+  rtf.getSkolems(node, skolems);
+  for (const Node& k : skolems)
+  {
+    sks.push_back(k);
+    skAsserts.push_back(rtf.getLemmaForSkolem(k));
+  }
 }
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
