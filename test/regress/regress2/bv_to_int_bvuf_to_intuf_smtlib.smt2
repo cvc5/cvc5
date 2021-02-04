@@ -1,4 +1,4 @@
-;COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1 --no-produce-unsat-cores
+;COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1 --no-check-unsat-cores
 ;EXPECT: unsat
 (set-logic QF_UFBV)
 (declare-fun z$n0s32 () (_ BitVec 32))

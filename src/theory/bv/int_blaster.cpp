@@ -353,6 +353,7 @@ Node IntBlaster::intBlast(Node n,
             return Node();
           }
         }
+
         Assert(!translation.isNull());
         // Map the current node to its translation in the cache.
         d_intblastCache[current] = translation;
@@ -457,6 +458,13 @@ Node IntBlaster::translateWithChildren(
       // In this case, we already translated the child to integer.
       // So the result is the translated child.
       returnNode = translated_children[0];
+      break;
+    }
+    case kind::INT_TO_BITVECTOR:
+    {
+      returnNode =
+          modpow2(original[0],
+                  original.getOperator().getConst<IntToBitVector>().d_size);
       break;
     }
     case kind::BITVECTOR_AND:
@@ -754,7 +762,7 @@ Node IntBlaster::translateWithChildren(
     {
       // first, verify that we haven't missed
       // any bv operator
-      Assert(Theory::theoryOf(original) != THEORY_BV);
+      Assert(theory::kindToTheoryId(oldKind) != THEORY_BV);
 
       // return a null node if non-bv operators
       // are not supported.
