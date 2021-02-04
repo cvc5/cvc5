@@ -462,6 +462,8 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::INT_TO_BITVECTOR:
     {
+      // In this case we take the original integer,
+      // modulo 2 to the power of the bit-width
       returnNode =
           modpow2(original[0],
                   original.getOperator().getConst<IntToBitVector>().d_size);
