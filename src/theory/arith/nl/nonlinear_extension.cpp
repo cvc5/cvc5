@@ -176,7 +176,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
 
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
-  Trace("nl-ext") << "Getting assertions..." << std::endl;
+  Trace("nl-ext-assert-debug") << "Getting assertions..." << std::endl;
   bool useRelevance = false;
   if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
   {
@@ -197,8 +197,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
        ++it)
   {
     const Assertion& assertion = *it;
-    Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
-                    << std::endl;
+    Trace("nl-ext-assert-debug")
+        << "Loaded " << assertion.d_assertion << " from theory" << std::endl;
     Node lit = assertion.d_assertion;
     if (useRelevance && !v.isRelevant(lit))
     {
@@ -234,7 +234,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     auto iait = init_assertions.find(lit);
     if (iait != init_assertions.end())
     {
-      Trace("nl-ext") << "Adding " << lit << std::endl;
+      Trace("nl-ext-assert-debug") << "Adding " << lit << std::endl;
       assertions.push_back(lit);
       init_assertions.erase(iait);
     }
@@ -243,7 +243,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   // function by the code above.
   for (const Node& a : init_assertions)
   {
-    Trace("nl-ext") << "Adding " << a << std::endl;
+    Trace("nl-ext-assert-debug") << "Adding " << a << std::endl;
     assertions.push_back(a);
   }
   Trace("nl-ext") << "...keep " << assertions.size() << " / "
@@ -599,11 +599,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 {
   ++(d_stats.d_checkRuns);
 
-  if (Trace.isOn("nl-ext"))
+  if (Trace.isOn("nl-strategy"))
   {
     for (const auto& a : assertions)
     {
-      Trace("nl-ext") << "Input assertion: " << a << std::endl;
+      Trace("nl-strategy") << "Input assertion: " << a << std::endl;
     }
   }
   if (!d_strategy.isStrategyInit())
@@ -616,7 +616,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
   while (!stop && steps.hasNext())
   {
     InferStep step = steps.next();
-    Trace("nl-ext") << "Step " << step << std::endl;
+    Trace("nl-strategy") << "Step " << step << std::endl;
     switch (step)
     {
       case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
@@ -676,6 +676,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     }
   }
 
+  Trace("nl-ext") << "finished strategy" << std::endl;
   Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas()
                   << " waiting lemmas." << std::endl;
   Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()
