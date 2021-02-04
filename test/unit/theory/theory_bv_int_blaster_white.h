@@ -53,10 +53,15 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     d_scope = new SmtScope(d_smt);
     // d_smt->setLogic("QF_BV");
     d_smt->finishInit();
+    d_true = d_nm->mkConst<bool>(true);
+    d_one = d_nm->mkConst<Rational>(Rational(1));
   }
 
   void tearDown() override
   {
+    d_true = Node::null();
+    d_one = Node::null();
+
     delete d_scope;
     delete d_smt;
     delete d_em;
@@ -224,6 +229,65 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     }
   }
 
+  // tests that SLTBV and ULTBV
+  // work as expected
+  void testSLTBVULTBV()
+  {
+    IntBlaster* ib = new IntBlaster(
+        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, false);
+
+    // create the terms:
+    // (slt x y), (sltbv x y), (ult x y), (ultbv x y)
+    Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
+    Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
+    Node x_slt_y = d_nm->mkNode(kind::BITVECTOR_SLT, x, y);
+    Node x_sltbv_y = d_nm->mkNode(kind::BITVECTOR_SLTBV, x, y);
+    Node x_ult_y = d_nm->mkNode(kind::BITVECTOR_ULT, x, y);
+    Node x_ultbv_y = d_nm->mkNode(kind::BITVECTOR_ULTBV, x, y);
+
+    // create lemmas and skolems.
+    vector<Node> lemmas;
+    std::map<Node, Node> skolems;
+
+    // translate to integers
+    Node int_x_slt_y = ib->intBlast(x_slt_y, lemmas, skolems);
+    Node int_x_sltbv_y = ib->intBlast(x_sltbv_y, lemmas, skolems);
+    Node int_x_ult_y = ib->intBlast(x_ult_y, lemmas, skolems);
+    Node int_x_ultbv_y = ib->intBlast(x_ultbv_y, lemmas, skolems);
+
+    // create equivalence assertions
+    Node sltTrue = d_nm->mkNode(kind::EQUAL, int_x_slt_y, d_true);
+    Node ultTrue = d_nm->mkNode(kind::EQUAL, int_x_ult_y, d_true);
+    Node sltOne = d_nm->mkNode(kind::EQUAL, int_x_sltbv_y, d_one);
+    Node ultOne = d_nm->mkNode(kind::EQUAL, int_x_ultbv_y, d_one);
+    Node assertion1 = d_nm->mkNode(kind::DISTINCT, sltTrue, sltOne);
+    Node assertion2 = d_nm->mkNode(kind::DISTINCT, ultTrue, ultOne);
+
+    // asserting all range lemmas to the solver
+    Node allLemmas = d_nm->mkAnd(lemmas);
+    d_smt->assertFormula(allLemmas);
+
+    Result r;
+
+    // verifying that the translations of slt and sltbv are equivalent
+    d_smt->push();
+    d_smt->assertFormula(assertion1);
+    r = d_smt->checkSat();
+    std::cout << "result: " << r << std::endl;
+    TS_ASSERT(r == Result::UNSAT);
+    d_smt->pop();
+
+    // verifying that the translations of ult and ultbv are equivalent
+    d_smt->push();
+    d_smt->assertFormula(assertion2);
+    r = d_smt->checkSat();
+    std::cout << "result: " << r << std::endl;
+    TS_ASSERT(r == Result::UNSAT);
+    d_smt->pop();
+
+    delete ib;
+  }
+
   void testSkolems()
   {
     // an int-blaster that supports QF_BV only
@@ -268,5 +332,7 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
   SmtScope* d_scope;
   IntBlaster* d_ibGeneral;
   IntBlaster* d_ibQF_BV;
+  Node d_true;
+  Node d_one;
 
 }; /* class TheoryBVIntBlastWhite */

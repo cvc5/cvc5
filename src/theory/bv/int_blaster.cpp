@@ -369,12 +369,12 @@ Node IntBlaster::intBlast(Node n,
 // b, there is an integer m with signed binary representation
 // b. m:=2*(n mod 2^{k-1}) - n, with k being the size
 // of the binary representations.
-Node IntBlaster::unsignedTosigned(Node n)
+Node IntBlaster::unsignedTosigned(Node n, uint64_t bw)
 {
   Assert(n.getType().isInteger());
-  Node modNode = modpow2(n, n.getType().getBitVectorSize() - 1);
+  Node modNode = modpow2(n, bw - 1);
   Node mulNode =
-      d_nm->mkNode(kind::MULT, d_nm->mkConst<Rational>(intpow2(1)), n);
+      d_nm->mkNode(kind::MULT, d_nm->mkConst<Rational>(Rational(2)), modNode);
   Node result = d_nm->mkNode(kind::MINUS, mulNode, n);
   return result;
 }
@@ -676,13 +676,14 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BITVECTOR_SLTBV:
     {
-      returnNode =
-          d_nm->mkNode(kind::ITE,
-                       d_nm->mkNode(kind::LT,
-                                    unsignedTosigned(translated_children[0]),
-                                    unsignedTosigned(translated_children[1])),
-                       d_one,
-                       d_zero);
+      uint64_t bvsize = original[0].getType().getBitVectorSize();
+      returnNode = d_nm->mkNode(
+          kind::ITE,
+          d_nm->mkNode(kind::LT,
+                       unsignedTosigned(translated_children[0], bvsize),
+                       unsignedTosigned(translated_children[1], bvsize)),
+          d_one,
+          d_zero);
       break;
     }
     case kind::ITE:
@@ -751,11 +752,18 @@ Node IntBlaster::translateWithChildren(
     }
     default:
     {
+      // first, verify that we haven't missed
+      // any bv operator
+      Assert(Theory::theoryOf(original) != THEORY_BV);
+
+      // return a null node if non-bv operators
+      // are not supported.
       if (!d_supportNoBV && !original.getType().isBitVector()
           && !original.getType().isBoolean())
       {
         return Node();
       }
+
       // In the default case, we have reached an operator that we do not
       // translate directly to integers. The children whose types have
       // changed from bv to int should be adjusted back to bv and then

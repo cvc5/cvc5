@@ -271,7 +271,7 @@ class IntBlaster
    * binary representation of n is the same as the
    * signed binary representation of m.
    */
-  Node unsignedTosigned(Node n);
+  Node unsignedTosigned(Node n, uint64_t bvsize);
 
   /**
    * Performs the actual translation to integers for nodes
