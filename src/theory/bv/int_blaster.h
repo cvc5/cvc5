@@ -267,6 +267,13 @@ class IntBlaster
   Node translateFunctionSymbol(Node bvUF, std::map<Node, Node>& skolems);
 
   /**
+   * returns an integer m such that the unsigned
+   * binary representation of n is the same as the
+   * signed binary representation of m.
+   */
+  Node unsignedTosigned(Node n);
+
+  /**
    * Performs the actual translation to integers for nodes
    * that have children.
    */

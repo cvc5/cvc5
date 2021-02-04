@@ -365,6 +365,20 @@ Node IntBlaster::intBlast(Node n,
   return d_intblastCache[n].get();
 }
 
+// given an integer n with unsigned binary representation
+// b, there is an integer m with signed binary representation
+// b. m:=2*(n mod 2^{k-1}) - n, with k being the size
+// of the binary representations.
+Node IntBlaster::unsignedTosigned(Node n)
+{
+  Assert(n.getType().isInteger());
+  Node modNode = modpow2(n, n.getType().getBitVectorSize() - 1);
+  Node mulNode =
+      d_nm->mkNode(kind::MULT, d_nm->mkConst<Rational>(intpow2(1)), n);
+  Node result = d_nm->mkNode(kind::MINUS, mulNode, n);
+  return result;
+}
+
 Node IntBlaster::translateWithChildren(
     Node original,
     const std::vector<Node>& translated_children,
@@ -373,9 +387,11 @@ Node IntBlaster::translateWithChildren(
   // The translation of the original node is determined by the kind of
   // the node.
   kind::Kind_t oldKind = original.getKind();
-  // ultbv and sltbv were supposed to be eliminated before this point.
-  Assert(oldKind != kind::BITVECTOR_ULTBV);
-  Assert(oldKind != kind::BITVECTOR_SLTBV);
+  // signed comparisons were supposed to be eliminated by this point.
+  Assert(oldKind != kind::BITVECTOR_SLT);
+  Assert(oldKind != kind::BITVECTOR_SGT);
+  Assert(oldKind != kind::BITVECTOR_SLE);
+  Assert(oldKind != kind::BITVECTOR_SGE);
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
@@ -648,6 +664,25 @@ Node IntBlaster::translateWithChildren(
     case kind::BITVECTOR_UGE:
     {
       returnNode = d_nm->mkNode(kind::GEQ, translated_children);
+      break;
+    }
+    case kind::BITVECTOR_ULTBV:
+    {
+      returnNode = d_nm->mkNode(kind::ITE,
+                                d_nm->mkNode(kind::LT, translated_children),
+                                d_one,
+                                d_zero);
+      break;
+    }
+    case kind::BITVECTOR_SLTBV:
+    {
+      returnNode =
+          d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::LT,
+                                    unsignedTosigned(translated_children[0]),
+                                    unsignedTosigned(translated_children[1])),
+                       d_one,
+                       d_zero);
       break;
     }
     case kind::ITE:
