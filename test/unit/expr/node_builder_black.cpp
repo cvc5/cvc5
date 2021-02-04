@@ -25,7 +25,6 @@
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "test_node.h"
-#include "test_utils.h"
 #include "util/rational.h"
 
 #define K 30u
