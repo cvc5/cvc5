@@ -227,10 +227,11 @@ bv-rewrites\n\
 theory::fullcheck\n\
 + Output completeness queries for all full-check effort-level theory checks\n\
 \n\
-Dump modes can be combined with multiple uses of --dump.  Generally you want\n\
-raw-benchmark or, alternatively, one from the assertions category (either\n\
-assertions or clauses), and perhaps one or more other modes\n\
-for checking correctness and completeness of decision procedure implementations.\n\
+Dump modes can be combined by concatenating the above values with \",\" in\n\
+between them.  Generally you want raw-benchmark or, alternatively, one from\n\
+the assertions category (either assertions or clauses), and perhaps one or more\n\
+other modes for checking correctness and completeness of decision procedure\n\
+implementations.\n\
 \n\
 The --output-language option controls the language used for dumping, and\n\
 this allows you to connect CVC4 to another solver implementation via a UNIX\n\
