@@ -258,7 +258,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
   RtfTermContext::getFlags(curr.second, inQuant, inTerm);
   Debug("ite") << "removeITEs(" << node << ")"
                << " " << inQuant << " " << inTerm << std::endl;
-  Assert (!inQuant);
+  Assert(!inQuant);
 
   NodeManager *nodeManager = NodeManager::currentNM();
 
@@ -318,7 +318,6 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
         newAssertionPg = d_lp.get();
       }
     }
-    
   }
   else if (node.getKind() == kind::LAMBDA)
   {
