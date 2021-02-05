@@ -31,8 +31,8 @@
 
 namespace CVC4 {
 
-using namespace CVC4::kind;
-using namespace CVC4::context;
+using namespace kind;
+using namespace context;
 
 namespace test {
 
