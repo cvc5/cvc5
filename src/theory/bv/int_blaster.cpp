@@ -703,10 +703,6 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::APPLY_UF:
     {
-      if (!d_supportNoBV)
-      {
-        return Node();
-      }
       /**
        * higher order logic allows comparing between functions
        * The translation does not support this,
@@ -735,28 +731,16 @@ Node IntBlaster::translateWithChildren(
     }
     case kind::BOUND_VAR_LIST:
     {
-      if (!d_supportNoBV)
-      {
-        return Node();
-      }
       returnNode = d_nm->mkNode(oldKind, translated_children);
       break;
     }
     case kind::FORALL:
     {
-      if (!d_supportNoBV)
-      {
-        return Node();
-      }
       returnNode = translateQuantifiedFormula(original);
       break;
     }
     case kind::EXISTS:
     {
-      if (!d_supportNoBV)
-      {
-        return Node();
-      }
       // Exists is eliminated by the rewriter.
       Assert(false);
     }
@@ -765,14 +749,6 @@ Node IntBlaster::translateWithChildren(
       // first, verify that we haven't missed
       // any bv operator
       Assert(theory::kindToTheoryId(oldKind) != THEORY_BV);
-
-      // return a null node if non-bv operators
-      // are not supported.
-      if (!d_supportNoBV && !original.getType().isBitVector()
-          && !original.getType().isBoolean())
-      {
-        return Node();
-      }
 
       // In the default case, we have reached an operator that we do not
       // translate directly to integers. The children whose types have
@@ -805,14 +781,6 @@ Node IntBlaster::translateNoChildren(Node original,
   Trace("int-blaster-debug")
       << "translating leaf: " << original << "; of type: " << original.getType()
       << std::endl;
-  if (!original.getType().isBitVector() && !original.getType().isBoolean()
-      && !d_supportNoBV)
-  {
-    Trace("int-blaster") << "The type " << original.getType()
-                         << " is not supported when supportNoBF is false"
-                         << std::endl;
-    return Node();
-  }
   Node translation;
   Assert(original.isVar() || original.isConst());
   if (original.isVar())
@@ -830,21 +798,39 @@ Node IntBlaster::translateNoChildren(Node original,
       }
       else
       {
-        // New integer variables  that are not bound (symbolic constants)
-        // are added together with range constraints induced by the
-        // bit-width of the original bit-vector variables.
+        // original is a bit-vector variable (symbolic constant).
+        // Either we translate it to a fresh integer variable,
+        // or we translate it to (bv2nat original).
+        // In the former case, we must include range lemmas, while in the
+        // latter we don't.
+        // This is determined by the option bv-to-int-fresh-vars
+        
+        // intCast and bvCast are used for models:
+        // even if we introduce a fresh variable,
+        // it is associated with intCast (which is (bv2nat original)).
+        // bvCast is either ( (_ nat2bv k) original) or just original.
         Node intCast = castToType(original, d_nm->integerType());
-        Node newVar = d_nm->getSkolemManager()->mkPurifySkolem(
+        Node bvCast;
+        if (d_introduceFreshIntVars) {
+          // we introduce a fresh variable, add range constraints, and save the connection between original and the new variable.
+          translation = d_nm->getSkolemManager()->mkPurifySkolem(
             intCast,
             "__intblast__var",
             "Variable introduced in intblasting"
             "pass instead of original variable "
                 + original.toString());
-        uint64_t bvsize = original.getType().getBitVectorSize();
-        translation = newVar;
-        addRangeConstraint(newVar, bvsize, lemmas);
-        // put new definition of old variable in skolems
-        Node bvCast = defineBVUFAsIntUF(original, newVar);
+          uint64_t bvsize = original.getType().getBitVectorSize();
+          addRangeConstraint(translation, bvsize, lemmas);
+          // put new definition of old variable in skolems
+          bvCast = defineBVUFAsIntUF(original, translation);
+        } else {
+          // we just translate original to (bv2nat original)
+          translation = intCast;
+          // no need to do any casting back to bit-vector in tis case.
+          bvCast = original;
+        }
+
+        // add bvCast to skolems if it is not already ther.
         if (skolems.find(original) == skolems.end())
         {
           skolems[original] = bvCast;
@@ -1040,7 +1026,7 @@ Node IntBlaster::reconstructNode(Node originalNode,
 IntBlaster::IntBlaster(context::Context* c,
                        options::SolveBVAsIntMode mode,
                        uint64_t granularity,
-                       bool supportNoBV)
+                       bool introduceFreshIntVars)
     : d_binarizeCache(c),
       d_eliminationCache(c),
       d_rebuildCache(c),
@@ -1049,7 +1035,7 @@ IntBlaster::IntBlaster(context::Context* c,
       d_mode(mode),
       d_granularity(granularity),
       d_context(c),
-      d_supportNoBV(supportNoBV)
+      d_introduceFreshIntVars(introduceFreshIntVars)
 {
   d_nm = NodeManager::currentNM();
   d_zero = d_nm->mkConst<Rational>(0);

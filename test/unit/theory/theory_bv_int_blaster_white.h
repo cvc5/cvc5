@@ -94,9 +94,9 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     // 1. A user context
     // 2. A translation mode (we chose IAND)
     // 3. A granularity (we chose 1)
-    // 4. Whether to support non-bv literals (we chose not to)
+    // 4. Whether to generate fresh integer variables
     IntBlaster* ib = new IntBlaster(
-        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, false);
+        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, true);
 
     // create the formula:
     // ( x & y = x << 1) /\ ( x != y )
@@ -147,49 +147,59 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     delete ib;
   }
 
-  // tests that the supportNoBV flag
-  // works as expected
-  void testSupportNoBV()
+  // with fresh integer variables, we should be getting
+  // range constraints
+  void testLemmasWithFreshVars()
   {
-    // Start two int-blasters.
-    // an int-blaster that supports all formulas
-    IntBlaster* ibGeneral = new IntBlaster(
+    // an int-blaster that generates fresh Int variables 
+    IntBlaster* ib = new IntBlaster(
         d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, true);
-    // an int-blaster that supports QF_BV only
-    IntBlaster* ibQF_BV = new IntBlaster(
-        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, false);
+
+    // create the formula:
+    // ( x & y = x << 1) /\ ( x != y )
+    Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
+    Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
+    Node x_plus_y = d_nm->mkNode(kind::BITVECTOR_AND, x, y);
+    Node one = d_nm->mkConst<BitVector>(BitVector(16, 1u));
+    Node x_shl_one = d_nm->mkNode(kind::BITVECTOR_SHL, x, one);
+    Node eq = d_nm->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
+    Node not_x_eq_y = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, y));
+    Node formula = d_nm->mkNode(kind::AND, eq, not_x_eq_y);
 
     // prepare a vector of lemmas and a map for skolems
     vector<Node> lemmas;
     std::map<Node, Node> skolems;
 
-    // create the formula f(x)=f(y)
-    Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
-    Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
-    Node f = d_nm->mkVar("f",
-                         d_nm->mkFunctionType(d_nm->mkBitVectorType(16),
-                                              d_nm->mkBitVectorType(16)));
-    Node fx = d_nm->mkNode(kind::APPLY_UF, f, x);
-    Node fy = d_nm->mkNode(kind::APPLY_UF, f, y);
-    Node eqf = d_nm->mkNode(kind::EQUAL, fx, fy);
+    // perform the translation to integers
+    Node translation = ib->intBlast(formula, lemmas, skolems);
 
-    // translate it twice. Once with the general
-    // translator and once with the QF_BV-specific translator.
-    Node translation1 = ibGeneral->intBlast(eqf, lemmas, skolems);
-    Node translation2 = ibQF_BV->intBlast(eqf, lemmas, skolems);
-
-    // The first translation should be successful
-    // The second should not, because the formula is not purely BV.
-    TS_ASSERT(!translation1.isNull());
-    TS_ASSERT(translation2.isNull());
-
-    delete ibGeneral;
-    delete ibQF_BV;
+    // Make sure that:
+    // 0. There are lemmas
+    // 1. All lemmas are Boolean nodes
+    // 2. All lemmas are conjunctions
+    // 3. One literal is a Not >=, and the other is >=
+    TS_ASSERT(lemmas.size() > 0);
+    for (Node lemma : lemmas)
+    {
+      TS_ASSERT(lemma.getType().isBoolean());
+      TS_ASSERT(lemma.getKind() == kind::AND);
+      Node left = lemma[0];
+      Node right = lemma[1];
+      TS_ASSERT((left.getKind() == kind::GEQ && right.getKind() == kind::NOT
+                 && right[0].getKind() == kind::GEQ)
+                || (left.getKind() == kind::NOT
+                    && left[0].getKind() == kind::GEQ
+                    && right.getKind() == kind::GEQ));
+    }
   }
 
-  void testLemmas()
+
+  // without fresh integer variables, there are no lemmas.
+  // The test is similar to testLemmasWithFreshVars,
+  // but some TS_ASSERTs are different.
+  void testLemmasWithoutFreshVars()
   {
-    // an int-blaster that supports QF_BV only
+    // an int-blaster that does not generate fresh Int variables 
     IntBlaster* ib = new IntBlaster(
         d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, false);
 
@@ -211,30 +221,17 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     // perform the translation to integers
     Node translation = ib->intBlast(formula, lemmas, skolems);
 
-    // Make sure that:
-    // 1. All lemmas are Boolean nodes
-    // 2. All lemmas are conjunctions
-    // 3. One literal is a Not >=, and the other is >=
-    for (Node lemma : lemmas)
-    {
-      TS_ASSERT(lemma.getType().isBoolean());
-      TS_ASSERT(lemma.getKind() == kind::AND);
-      Node left = lemma[0];
-      Node right = lemma[1];
-      TS_ASSERT((left.getKind() == kind::GEQ && right.getKind() == kind::NOT
-                 && right[0].getKind() == kind::GEQ)
-                || (left.getKind() == kind::NOT
-                    && left[0].getKind() == kind::GEQ
-                    && right.getKind() == kind::GEQ));
-    }
+    // Make sure that there are no lemmas
+    TS_ASSERT(lemmas.size() == 0);
   }
+
 
   // tests that SLTBV and ULTBV
   // work as expected
   void testSLTBVULTBV()
   {
     IntBlaster* ib = new IntBlaster(
-        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, false);
+        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, true);
 
     // create the terms:
     // (slt x y), (sltbv x y), (ult x y), (ultbv x y)
@@ -288,11 +285,13 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     delete ib;
   }
 
-  void testSkolems()
+  // tests that the skolems include translations
+  // back to bv from the fresh variables
+  void testSkolemsWithFreshVars()
   {
-    // an int-blaster that supports QF_BV only
+    // an int-blaster that does introduces fresh Int variables
     IntBlaster* ib = new IntBlaster(
-        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, false);
+        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, true);
 
     // create the formula:
     // ( x & y = x << 1) /\ ( x != y )
@@ -325,13 +324,50 @@ class TheoryBVIntBlastWhite : public CxxTest::TestSuite
     }
   }
 
+  // tests that the skolems are the BV variables
+  // them selves, when no fresh Int variables
+  // are introduced.
+  // Similar to testSkolemsWithFreshVars, but
+  // some TS_ASSERTs are different.
+  void testSkolemsWithoutFreshVars()
+  {
+    // an int-blaster that does not introduce fresh Int variables
+    IntBlaster* ib = new IntBlaster(
+        d_smt->getUserContext(), options::SolveBVAsIntMode::IAND, 1, false);
+
+    // create the formula:
+    // ( x & y = x << 1) /\ ( x != y )
+    Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
+    Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
+    Node x_plus_y = d_nm->mkNode(kind::BITVECTOR_AND, x, y);
+    Node one = d_nm->mkConst<BitVector>(BitVector(16, 1u));
+    Node x_shl_one = d_nm->mkNode(kind::BITVECTOR_SHL, x, one);
+    Node eq = d_nm->mkNode(kind::EQUAL, x_plus_y, x_shl_one);
+    Node not_x_eq_y = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, y));
+    Node formula = d_nm->mkNode(kind::AND, eq, not_x_eq_y);
+
+    // prepare a vector of lemmas and a map for skolems
+    vector<Node> lemmas;
+    std::map<Node, Node> skolems;
+
+    // perform the translation to integers
+    Node translation = ib->intBlast(formula, lemmas, skolems);
+
+    // verify that:
+    // 1. each skolem is a bv variable
+    // 2. The definition for each skolem itself.
+    map<Node, Node>::iterator it;
+    for (it = skolems.begin(); it != skolems.end(); it++)
+    {
+      TS_ASSERT(it->first.isVar() && it->first.getType().isBitVector());
+      TS_ASSERT(it->second == it->first);
+    }
+  }
  protected:
   ExprManager* d_em;
   NodeManager* d_nm;
   SmtEngine* d_smt;
   SmtScope* d_scope;
-  IntBlaster* d_ibGeneral;
-  IntBlaster* d_ibQF_BV;
   Node d_true;
   Node d_one;
 

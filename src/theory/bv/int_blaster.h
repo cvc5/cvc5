@@ -92,7 +92,7 @@ class IntBlaster
   IntBlaster(context::Context* context,
              options::SolveBVAsIntMode mode,
              uint64_t granluarity = 1,
-             bool supportNoBV = true);
+             bool introduceFreshIntVars = true);
 
   /**
    * The result is an integer term and is computed
@@ -327,8 +327,11 @@ class IntBlaster
   /** an SmtEngine for context */
   context::Context* d_context;
 
-  /** true iff the translator supports non-pure BV nodes */
-  bool d_supportNoBV;
+  /** true iff the translator should introduce
+   * fresh integer variables for bit-vector variables.
+   * Otherwise, we introduce a nat2bv term.
+   */
+  bool d_introduceFreshIntVars;
 };
 
 }  // namespace CVC4

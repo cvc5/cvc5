@@ -696,6 +696,14 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "Cross-theory rewrites"
 
+[[option]]
+  name       = "bvToIntFreshVars"
+  category   = "regular"
+  long       = "bv-to-int-fresh-vars"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "introduce fresh integer variables for BV variables, rather than using bv2nat operator"
 
 [[option]]
   name       = "solveBVAsInt"

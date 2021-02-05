@@ -41,7 +41,8 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
       d_intBlaster(preprocContext->getSmt()->getUserContext(),
                    options::solveBVAsInt(),
-                   options::BVAndIntegerGranularity()){};
+                   options::BVAndIntegerGranularity(),
+                   options::bvToIntFreshVars()){};
 
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
