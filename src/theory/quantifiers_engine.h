@@ -178,8 +178,6 @@ public:
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** get current q effort */
- QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get needs check */
  bool getInstWhenNeedsCheck(Theory::Effort e);
  /** get user pat mode */
@@ -325,8 +323,13 @@ public:
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
   //------------- temporary information during check
+<<<<<<< HEAD
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
+=======
+  /** has added lemma this round */
+  bool d_hasAddedLemma;
+>>>>>>> ea30ab14a8a5093e198e853d422dffd13b52275b
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */
