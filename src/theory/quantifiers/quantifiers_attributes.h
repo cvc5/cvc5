@@ -25,8 +25,6 @@
 namespace CVC4 {
 namespace theory {
 
-class QuantifiersEngine;
-
 /** Attribute true for function definition quantifiers */
 struct FunDefAttributeId {};
 typedef expr::Attribute< FunDefAttributeId, bool > FunDefAttribute;
@@ -176,8 +174,8 @@ struct QAttributes
 */
 class QuantAttributes
 {
-public:
-  QuantAttributes( QuantifiersEngine * qe );
+ public:
+  QuantAttributes();
   ~QuantAttributes(){}
   /** set user attribute
   * This function applies an attribute
@@ -238,8 +236,6 @@ public:
   static void setInstantiationLevelAttr(Node n, Node qn, uint64_t level);
 
  private:
-  /** pointer to quantifiers engine */
-  QuantifiersEngine * d_quantEngine;
   /** cache of attributes */
   std::map< Node, QAttributes > d_qattr;
   /** function definitions */
