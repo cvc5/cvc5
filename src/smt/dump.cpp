@@ -105,7 +105,9 @@ void DumpC::setDumpFromString(const std::string& optarg) {
                                 + optargPtr
                                 + "'.  Please consult --dump help.");
         }
-        if (!strcmp(p, "everything"))
+        // hard-coded cases
+        if (!strcmp(p, "everything") || !strcmp(p, "definition-expansion")
+            || !strcmp(p, "simplify") || !strcmp(p, "repeat-simplify"))
         {
         }
         else if (preprocessing::PreprocessingPassRegistry::getInstance()
