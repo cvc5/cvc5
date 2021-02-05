@@ -29,7 +29,7 @@
 
 namespace CVC4 {
 
-using namespace CVC4::kind;
+using namespace kind;
 
 namespace test {
 
