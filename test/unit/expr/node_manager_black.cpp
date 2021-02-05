@@ -34,11 +34,11 @@ using namespace CVC4::expr;
 
 namespace test {
 
-class TestNodeManagerBlackNode : public TestNodeBlack
+class TestNodeBlackNodeManager : public TestNodeBlack
 {
 };
 
-TEST_F(TestNodeManagerBlackNode, mkNode_not)
+TEST_F(TestNodeBlackNodeManager, mkNode_not)
 {
   Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
   Node n = d_nodeManager->mkNode(NOT, x);
@@ -47,7 +47,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_not)
   ASSERT_EQ(n[0], x);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkNode_binary)
+TEST_F(TestNodeBlackNodeManager, mkNode_binary)
 {
   Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
   Node y = d_nodeManager->mkSkolem("y", d_nodeManager->booleanType());
@@ -58,7 +58,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_binary)
   ASSERT_EQ(n[1], y);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkNode_three_children)
+TEST_F(TestNodeBlackNodeManager, mkNode_three_children)
 {
   Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
   Node y = d_nodeManager->mkSkolem("y", d_nodeManager->booleanType());
@@ -71,7 +71,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_three_children)
   ASSERT_EQ(n[2], z);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkNode_four_children)
+TEST_F(TestNodeBlackNodeManager, mkNode_four_children)
 {
   Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
   Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
@@ -86,7 +86,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_four_children)
   ASSERT_EQ(n[3], x4);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkNode_five_children)
+TEST_F(TestNodeBlackNodeManager, mkNode_five_children)
 {
   Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
   Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
@@ -103,7 +103,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_five_children)
   ASSERT_EQ(n[4], x5);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkNode_vector_of_node)
+TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_node)
 {
   Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
   Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
@@ -121,7 +121,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_vector_of_node)
   }
 }
 
-TEST_F(TestNodeManagerBlackNode, mkNode_vector_of_tnode)
+TEST_F(TestNodeBlackNodeManager, mkNode_vector_of_tnode)
 {
   Node x1 = d_nodeManager->mkSkolem("x1", d_nodeManager->booleanType());
   Node x2 = d_nodeManager->mkSkolem("x2", d_nodeManager->booleanType());
@@ -139,7 +139,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_vector_of_tnode)
   }
 }
 
-TEST_F(TestNodeManagerBlackNode, mkSkolem_with_name)
+TEST_F(TestNodeBlackNodeManager, mkSkolem_with_name)
 {
   Node x = d_nodeManager->mkSkolem(
       "x", *d_boolTypeNode, "", NodeManager::SKOLEM_EXACT_NAME);
@@ -149,7 +149,7 @@ TEST_F(TestNodeManagerBlackNode, mkSkolem_with_name)
   ASSERT_EQ(x.getType(), *d_boolTypeNode);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkConst_bool)
+TEST_F(TestNodeBlackNodeManager, mkConst_bool)
 {
   Node tt = d_nodeManager->mkConst(true);
   ASSERT_EQ(tt.getConst<bool>(), true);
@@ -157,14 +157,14 @@ TEST_F(TestNodeManagerBlackNode, mkConst_bool)
   ASSERT_EQ(ff.getConst<bool>(), false);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkConst_rational)
+TEST_F(TestNodeBlackNodeManager, mkConst_rational)
 {
   Rational r("3/2");
   Node n = d_nodeManager->mkConst(r);
   ASSERT_EQ(n.getConst<Rational>(), r);
 }
 
-TEST_F(TestNodeManagerBlackNode, hasOperator)
+TEST_F(TestNodeBlackNodeManager, hasOperator)
 {
   ASSERT_TRUE(NodeManager::hasOperator(AND));
   ASSERT_TRUE(NodeManager::hasOperator(OR));
@@ -173,7 +173,7 @@ TEST_F(TestNodeManagerBlackNode, hasOperator)
   ASSERT_TRUE(!NodeManager::hasOperator(VARIABLE));
 }
 
-TEST_F(TestNodeManagerBlackNode, booleanType)
+TEST_F(TestNodeBlackNodeManager, booleanType)
 {
   TypeNode t = d_nodeManager->booleanType();
   TypeNode t2 = d_nodeManager->booleanType();
@@ -190,7 +190,7 @@ TEST_F(TestNodeManagerBlackNode, booleanType)
   ASSERT_EQ(bt, t);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkFunctionType_bool_to_bool)
+TEST_F(TestNodeBlackNodeManager, mkFunctionType_bool_to_bool)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
   TypeNode t = d_nodeManager->mkFunctionType(booleanType, booleanType);
@@ -211,7 +211,7 @@ TEST_F(TestNodeManagerBlackNode, mkFunctionType_bool_to_bool)
   ASSERT_EQ(ft.getRangeType(), booleanType);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkFunctionType_vector_args_with_return_type)
+TEST_F(TestNodeBlackNodeManager, mkFunctionType_vector_args_with_return_type)
 {
   TypeNode a = d_nodeManager->mkSort();
   TypeNode b = d_nodeManager->mkSort();
@@ -240,7 +240,7 @@ TEST_F(TestNodeManagerBlackNode, mkFunctionType_vector_args_with_return_type)
   ASSERT_EQ(ft.getRangeType(), c);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkFunctionType_vector_of_arguments)
+TEST_F(TestNodeBlackNodeManager, mkFunctionType_vector_of_arguments)
 {
   TypeNode a = d_nodeManager->mkSort();
   TypeNode b = d_nodeManager->mkSort();
@@ -270,7 +270,7 @@ TEST_F(TestNodeManagerBlackNode, mkFunctionType_vector_of_arguments)
   ASSERT_EQ(ft.getRangeType(), c);
 }
 
-TEST_F(TestNodeManagerBlackNode, mkPredicateType)
+TEST_F(TestNodeBlackNodeManager, mkPredicateType)
 {
   TypeNode a = d_nodeManager->mkSort("a");
   TypeNode b = d_nodeManager->mkSort("b");
@@ -303,7 +303,7 @@ TEST_F(TestNodeManagerBlackNode, mkPredicateType)
 }
 
 /* This test is only valid if assertions are enabled. */
-TEST_F(TestNodeManagerBlackNode, mkNode_too_few_children)
+TEST_F(TestNodeBlackNodeManager, mkNode_too_few_children)
 {
 #ifdef CVC4_ASSERTIONS
   Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
@@ -313,7 +313,7 @@ TEST_F(TestNodeManagerBlackNode, mkNode_too_few_children)
 }
 
 /* This test is only valid if assertions are enabled. */
-TEST_F(TestNodeManagerBlackNode, mkNode_too_many_children)
+TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 {
 #ifdef CVC4_ASSERTIONS
   std::vector<Node> vars;
