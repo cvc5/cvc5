@@ -119,7 +119,7 @@ uint64_t Trigger::addInstantiations()
         Node eq = k.eqNode(gt);
         Trace("trigger-gt-lemma")
             << "Trigger: ground term purify lemma: " << eq << std::endl;
-        d_quantEngine->addLemma(eq);
+        d_qim.addPendingLemma(eq);
         gtAddedLemmas++;
       }
     }

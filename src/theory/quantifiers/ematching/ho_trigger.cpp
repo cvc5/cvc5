@@ -497,7 +497,7 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           {
             Node u = tdb->getHoTypeMatchPredicate(tn);
             Node au = nm->mkNode(kind::APPLY_UF, u, f);
-            if (d_quantEngine->addLemma(au))
+            if (d_qim.addPendingLemma(au))
             {
               // this forces f to be a first-class member of the quantifier-free
               // equality engine, which in turn forces the quantifier-free

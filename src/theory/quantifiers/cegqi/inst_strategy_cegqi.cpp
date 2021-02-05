@@ -392,7 +392,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   {
     Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
                          << std::endl;
-    d_quantEngine->addLemma(auxLems[i], false);
+    d_qim.addPendingLemma(auxLems[i]);
   }
 }
 
@@ -491,10 +491,9 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   }
 }
 
-bool InstStrategyCegqi::addLemma( Node lem ) {
-  return d_quantEngine->addLemma( lem );
+bool InstStrategyCegqi::addPendingLemma( Node lem ) const {
+  return d_qim.addPendingLemma( lem );
 }
-
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
@@ -534,7 +533,7 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
       // add lemmas to process
       for (const Node& lem : lems)
       {
-        d_quantEngine->addLemma(lem);
+        d_qim.addPendingLemma(lem);
       }
       // don't need to process this, since it has been reduced
       return true;

@@ -627,7 +627,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
         << "Make partially specified user pattern: " << std::endl;
     Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
     Node lem = nm->mkNode(OR, q.negate(), qq);
-    d_quantEngine->addLemma(lem);
+    d_qim.addPendingLemma(lem);
     return;
   }
   unsigned tindex;

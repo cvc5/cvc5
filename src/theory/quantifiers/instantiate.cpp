@@ -321,13 +321,12 @@ bool Instantiate::addInstantiation(
   bool addedLem = false;
   if (hasProof)
   {
-    // use trust interface
-    TrustNode tlem = TrustNode::mkTrustLemma(lem, d_pfInst.get());
-    addedLem = d_qe->addTrustedLemma(tlem, true, false);
+    // use proof generator
+    addedLem = d_qim.addPendingLemma(lem, LemmaProperty::NONE, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qim.addPendingLemma(lem, true, false);
+    addedLem = d_qim.addPendingLemma(lem);
   }
 
   if (!addedLem)
