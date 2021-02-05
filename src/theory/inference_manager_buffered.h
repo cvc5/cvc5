@@ -52,7 +52,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * non-null, pg must be able to provide a proof for lem for the remainder
    * of the user context. Pending lemmas are sent to the output channel using
    * doPendingLemmas.
-   * 
+   *
    * @param lem The lemma to send
    * @param p The property of the lemma
    * @param pg The proof generator which can provide a proof for lem
