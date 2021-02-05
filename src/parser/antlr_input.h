@@ -37,11 +37,6 @@
 #include "util/rational.h"
 
 namespace CVC4 {
-
-class Command;
-class Type;
-class FunctionType;
-
 namespace parser {
 
 /** Wrapper around an ANTLR3 input stream. */

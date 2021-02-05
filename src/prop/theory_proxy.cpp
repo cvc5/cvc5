@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "options/decision_options.h"
+#include "options/smt_options.h"
 #include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -35,10 +36,9 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          DecisionEngine* decisionEngine,
                          context::Context* context,
                          context::UserContext* userContext,
-                         CnfStream* cnfStream,
                          ProofNodeManager* pnm)
     : d_propEngine(propEngine),
-      d_cnfStream(cnfStream),
+      d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_queue(context),
@@ -49,6 +49,8 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
+
+void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -171,22 +173,43 @@ CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 theory::TrustNode TheoryProxy::preprocessLemma(
     theory::TrustNode trn,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems, doTheoryPreprocess);
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
 }
 
 theory::TrustNode TheoryProxy::preprocess(
     TNode node,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  theory::TrustNode pnode =
-      d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess);
-  return pnode;
+  return d_tpp.preprocess(node, newLemmas, newSkolems);
 }
+
+theory::TrustNode TheoryProxy::removeItes(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  return rtf.run(node, newLemmas, newSkolems, true);
+}
+
+void TheoryProxy::getSkolems(TNode node,
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  std::unordered_set<Node, NodeHashFunction> skolems;
+  rtf.getSkolems(node, skolems);
+  for (const Node& k : skolems)
+  {
+    sks.push_back(k);
+    skAsserts.push_back(rtf.getLemmaForSkolem(k));
+  }
+}
+
+void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

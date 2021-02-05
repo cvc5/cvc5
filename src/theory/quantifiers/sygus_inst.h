@@ -62,7 +62,10 @@ namespace quantifiers {
 class SygusInst : public QuantifiersModule
 {
  public:
-  SygusInst(QuantifiersEngine* qe);
+  SygusInst(QuantifiersEngine* qe,
+            QuantifiersState& qs,
+            QuantifiersInferenceManager& qim,
+            QuantifiersRegistry& qr);
   ~SygusInst() = default;
 
   bool needsCheck(Theory::Effort e) override;

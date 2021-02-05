@@ -19,6 +19,7 @@
 
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
+#include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
@@ -156,7 +157,7 @@ MipLibTrick::~MipLibTrick()
   }
 }
 
-void MipLibTrick::nmNotifyNewVar(TNode n, uint32_t flags)
+void MipLibTrick::nmNotifyNewVar(TNode n)
 {
   if (n.getType().isBoolean())
   {

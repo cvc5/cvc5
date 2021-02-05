@@ -24,6 +24,7 @@
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
 #include "theory/shared_solver.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 
@@ -49,15 +50,8 @@ class CombinationEngine
   /** Finish initialization */
   void finishInit();
 
-  //-------------------------- equality engine
   /** Get equality engine theory information for theory with identifier tid. */
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-  /**
-   * Get the "core" equality engine. This is the equality engine that
-   * quantifiers should use.
-   */
-  eq::EqualityEngine* getCoreEqualityEngine();
-  //-------------------------- end equality engine
   //-------------------------- model
   /**
    * Reset the model maintained by this class. This resets all local information
@@ -111,6 +105,8 @@ class CombinationEngine
   void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
+  /** Valuation for the engine */
+  Valuation d_valuation;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Logic info of theory engine (cached) */

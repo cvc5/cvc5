@@ -23,7 +23,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
-#include "expr/term_canonize.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -31,6 +30,8 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
@@ -59,32 +60,25 @@ class QuantifiersEngine {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
+  QuantifiersEngine(quantifiers::QuantifiersState& qstate,
+                    quantifiers::QuantifiersInferenceManager& qim,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
-  /** finish initialize */
-  void finishInit();
   //---------------------- external interface
   /** get theory engine */
   TheoryEngine* getTheoryEngine() const;
   /** Get the decision manager */
   DecisionManager* getDecisionManager();
-  /** get default sat context for quantifiers engine */
-  context::Context* getSatContext();
-  /** get default sat context for quantifiers engine */
-  context::UserContext* getUserContext();
   /** get default output channel for the quantifiers engine */
   OutputChannel& getOutputChannel();
   /** get default valuation for the quantifiers engine */
   Valuation& getValuation();
-  /** get the logic info for the quantifiers engine */
-  const LogicInfo& getLogicInfo() const;
+  /** The quantifiers state object */
+  quantifiers::QuantifiersState& getState();
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& getInferenceManager();
   //---------------------- end external interface
   //---------------------- utilities
-  /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine() const;
-  /** get equality query */
-  EqualityQuery* getEqualityQuery() const;
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
   /** get model */
@@ -95,8 +89,6 @@ class QuantifiersEngine {
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
   /** get term utilities */
   quantifiers::TermUtil* getTermUtil() const;
-  /** get term canonizer */
-  expr::TermCanonize* getTermCanonize() const;
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
@@ -110,33 +102,18 @@ class QuantifiersEngine {
   //---------------------- end utilities
  private:
   //---------------------- private initialization
-  /** Set the master equality engine */
-  void setMasterEqualityEngine(eq::EqualityEngine* mee);
+  /**
+   * Finish initialize, which passes pointers to the objects that quantifiers
+   * engine needs but were not available when it was created. This is
+   * called after theories have been created but before they have finished
+   * initialization.
+   *
+   * @param te The theory engine
+   * @param dm The decision manager of the theory engine
+   */
+  void finishInit(TheoryEngine* te, DecisionManager* dm);
   //---------------------- end private initialization
-  /**
-   * Maps quantified formulas to the module that owns them, if any module has
-   * specifically taken ownership of it.
-   */
-  std::map< Node, QuantifiersModule * > d_owner;
-  /**
-   * The priority value associated with the ownership of quantified formulas
-   * in the domain of the above map, where higher values take higher
-   * precendence.
-   */
-  std::map< Node, int > d_owner_priority;
  public:
-  /** get owner */
-  QuantifiersModule * getOwner( Node q );
-  /**
-   * Set owner of quantified formula q to module m with given priority. If
-   * the quantified formula has previously been assigned an owner with
-   * lower priority, that owner is overwritten.
-   */
-  void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
-  /** set owner of quantified formula q based on its attributes qa. */
-  void setOwner(Node q, quantifiers::QAttributes& qa);
-  /** considers */
-  bool hasOwnership( Node q, QuantifiersModule * m = NULL );
   /** does variable v of quantified formula q have a finite bound? */
   bool isFiniteBound(Node q, Node v) const;
   /** get bound var type
@@ -183,8 +160,6 @@ class QuantifiersEngine {
    * that are pre-registered to the quantifiers theory.
    */
   void preRegisterQuantifier(Node q);
-  /** register quantifier */
-  void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
   void assertQuantifier( Node q, bool pol );
 private:
@@ -226,17 +201,6 @@ public:
  void markRelevant(Node q);
  /** has added lemma */
  bool hasAddedLemma() const;
- /** theory engine needs check
-  *
-  * This is true if the theory engine has more constraints to process. When
-  * it is false, we are tentatively going to terminate solving with
-  * sat/unknown. For details, see TheoryEngine::needCheck.
-  */
- bool theoryEngineNeedsCheck() const;
- /** is in conflict */
- bool inConflict() { return d_conflict; }
- /** set conflict */
- void setConflict();
  /** get current q effort */
  QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */
@@ -266,11 +230,19 @@ public:
   * guided instantiation.
   */
  Node getInternalRepresentative(Node a, Node q, int index);
+ /**
+  * Get quantifiers name, which returns a variable corresponding to the name of
+  * quantified formula q if q has a name, or otherwise returns q itself.
+  */
+ Node getNameForQuant(Node q) const;
+ /**
+  * Get name for quantified formula. Returns true if q has a name or if req
+  * is false. Sets name to the result of the above method.
+  */
+ bool getNameForQuant(Node q, Node& name, bool req = true) const;
 
 public:
  //----------user interface for instantiations (see quantifiers/instantiate.h)
- /** print instantiations */
- void printInstantiations(std::ostream& out);
  /** print solution for synthesis conjectures */
  void printSynthSolution(std::ostream& out);
  /** get list of quantified formulas that were instantiated */
@@ -280,6 +252,12 @@ public:
                                   std::vector<std::vector<Node> >& tvecs);
  void getInstantiationTermVectors(
      std::map<Node, std::vector<std::vector<Node> > >& insts);
+ /**
+  * Get skolemization vectors, where for each quantified formula that was
+  * skolemized, this is the list of skolems that were used to witness the
+  * negation of that quantified formula.
+  */
+ void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
 
  /** get synth solutions
   *
@@ -329,23 +307,21 @@ public:
   Statistics d_statistics;
 
  private:
+  /** The quantifiers state object */
+  quantifiers::QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
   /** Pointer to theory engine object */
   TheoryEngine* d_te;
-  /** The SAT context */
-  context::Context* d_context;
-  /** The user context */
-  context::UserContext* d_userContext;
   /** Reference to the decision manager of the theory engine */
-  DecisionManager& d_decManager;
-  /** Pointer to the master equality engine */
-  eq::EqualityEngine* d_masterEqualityEngine;
+  DecisionManager* d_decManager;
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */
   std::vector<QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry d_qreg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
@@ -354,10 +330,10 @@ public:
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** term utilities */
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
-  /** term utilities */
-  std::unique_ptr<expr::TermCanonize> d_term_canon;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
+  /** equality query class */
+  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** sygus term database */
   std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
   /** quantifiers attributes */
@@ -376,9 +352,6 @@ public:
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
-  /** are we in conflict */
-  bool d_conflict;
-  context::CDO<bool> d_conflict_c;
   /** has added lemma this round */
   bool d_hasAddedLemma;
   //------------- end temporary information during check

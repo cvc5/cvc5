@@ -69,7 +69,10 @@ class InstStrategyCegqi : public QuantifiersModule
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersEngine* qe);
+  InstStrategyCegqi(QuantifiersEngine* qe,
+                    QuantifiersState& qs,
+                    QuantifiersInferenceManager& qim,
+                    QuantifiersRegistry& qr);
   ~InstStrategyCegqi();
 
   /** whether to do counterexample-guided instantiation for quantifier q */

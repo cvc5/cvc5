@@ -53,22 +53,22 @@ class TestContextCDListBlack : public TestContext
     ASSERT_TRUE(list.empty());
     for (int32_t i = 0; i < n; ++i)
     {
-      EXPECT_EQ(list.size(), (uint32_t)i);
+      ASSERT_EQ(list.size(), (uint32_t)i);
       list.push_back(i);
       ASSERT_FALSE(list.empty());
-      EXPECT_EQ(list.back(), i);
+      ASSERT_EQ(list.back(), i);
       int32_t i2 = 0;
       for (CDList<int32_t>::const_iterator j = list.begin(); j != list.end();
            ++j)
       {
-        EXPECT_EQ(*j, i2++);
+        ASSERT_EQ(*j, i2++);
       }
     }
-    EXPECT_EQ(list.size(), (uint32_t)n);
+    ASSERT_EQ(list.size(), (uint32_t)n);
 
     for (int32_t i = 0; i < n; ++i)
     {
-      EXPECT_EQ(list[i], i);
+      ASSERT_EQ(list[i], i);
     }
   }
 };
@@ -114,25 +114,25 @@ TEST_F(TestContextCDListBlack, destructor_called)
   listF.push_back(shouldAlsoRemainFalseDSO);
   listF.push_back(aThirdFalseDSO);
 
-  EXPECT_EQ(shouldRemainFalse, false);
-  EXPECT_EQ(shouldFlipToTrue, false);
-  EXPECT_EQ(alsoFlipToTrue, false);
-  EXPECT_EQ(shouldAlsoRemainFalse, false);
-  EXPECT_EQ(aThirdFalse, false);
+  ASSERT_EQ(shouldRemainFalse, false);
+  ASSERT_EQ(shouldFlipToTrue, false);
+  ASSERT_EQ(alsoFlipToTrue, false);
+  ASSERT_EQ(shouldAlsoRemainFalse, false);
+  ASSERT_EQ(aThirdFalse, false);
 
   d_context->pop();
 
-  EXPECT_EQ(shouldRemainFalse, false);
-  EXPECT_EQ(shouldFlipToTrue, true);
-  EXPECT_EQ(alsoFlipToTrue, true);
-  EXPECT_EQ(shouldAlsoRemainFalse, false);
-  EXPECT_EQ(aThirdFalse, false);
+  ASSERT_EQ(shouldRemainFalse, false);
+  ASSERT_EQ(shouldFlipToTrue, true);
+  ASSERT_EQ(alsoFlipToTrue, true);
+  ASSERT_EQ(shouldAlsoRemainFalse, false);
+  ASSERT_EQ(aThirdFalse, false);
 }
 
 TEST_F(TestContextCDListBlack, empty_iterator)
 {
   CDList<int>* list = new (true) CDList<int>(d_context.get());
-  EXPECT_EQ(list->begin(), list->end());
+  ASSERT_EQ(list->begin(), list->end());
   list->deleteSelf();
 }
 

@@ -32,7 +32,7 @@ class MipLibTrick : public PreprocessingPass, public NodeManagerListener
   ~MipLibTrick();
 
   // NodeManagerListener callbacks to collect d_boolVars.
-  void nmNotifyNewVar(TNode n, uint32_t flags) override;
+  void nmNotifyNewVar(TNode n) override;
   void nmNotifyNewSkolem(TNode n,
                          const std::string& comment,
                          uint32_t flags) override;

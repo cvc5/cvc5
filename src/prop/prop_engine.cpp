@@ -23,7 +23,6 @@
 #include "base/check.h"
 #include "base/output.h"
 #include "decision/decision_engine.h"
-#include "expr/expr.h"
 #include "options/base_options.h"
 #include "options/decision_options.h"
 #include "options/main_options.h"
@@ -37,8 +36,8 @@
 #include "prop/theory_proxy.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
+#include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_registrar.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 
@@ -76,7 +75,6 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_context(satContext),
       d_theoryProxy(nullptr),
       d_satSolver(nullptr),
-      d_registrar(nullptr),
       d_pnm(pnm),
       d_cnfStream(nullptr),
       d_pfCnfStream(nullptr),
@@ -92,17 +90,24 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_satSolver = SatSolverFactory::createCDCLTMinisat(smtStatisticsRegistry());
 
-  d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::CnfStream(
-      d_satSolver, d_registrar, userContext, &d_outMgr, rm, FormulaLitPolicy::TRACK);
-
+  // CNF stream and theory proxy required pointers to each other, make the
+  // theory proxy first
   d_theoryProxy = new TheoryProxy(this,
                                   d_theoryEngine,
                                   d_decisionEngine.get(),
-                                  d_context,
+                                  satContext,
                                   userContext,
-                                  d_cnfStream,
                                   pnm);
+  d_cnfStream = new CnfStream(d_satSolver,
+                              d_theoryProxy,
+                              userContext,
+                              &d_outMgr,
+                              rm,
+                              FormulaLitPolicy::TRACK);
+
+  // connect theory proxy
+  d_theoryProxy->finishInit(d_cnfStream);
+  // connect SAT solver
   d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -145,7 +150,6 @@ PropEngine::~PropEngine() {
   d_decisionEngine->shutdown();
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
-  delete d_registrar;
   delete d_satSolver;
   delete d_theoryProxy;
 }
@@ -153,11 +157,17 @@ PropEngine::~PropEngine() {
 theory::TrustNode PropEngine::preprocess(
     TNode node,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  return d_theoryProxy->preprocess(
-      node, newLemmas, newSkolems, doTheoryPreprocess);
+  return d_theoryProxy->preprocess(node, newLemmas, newSkolems);
+}
+
+theory::TrustNode PropEngine::removeItes(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
 }
 
 void PropEngine::notifyPreprocessedAssertions(
@@ -197,16 +207,15 @@ void PropEngine::assertFormula(TNode node) {
   }
 }
 
-Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
+void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
 {
   bool removable = isLemmaPropertyRemovable(p);
-  bool preprocess = isLemmaPropertyPreprocess(p);
 
   // call preprocessor
   std::vector<theory::TrustNode> ppLemmas;
   std::vector<Node> ppSkolems;
   theory::TrustNode tplemma =
-      d_theoryProxy->preprocessLemma(tlemma, ppLemmas, ppSkolems, preprocess);
+      d_theoryProxy->preprocessLemma(tlemma, ppLemmas, ppSkolems);
 
   Assert(ppSkolems.size() == ppLemmas.size());
 
@@ -253,20 +262,6 @@ Node PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
     }
     d_decisionEngine->addAssertions(assertions, ppLemmasF, ppSkolems);
   }
-
-  // make the return lemma, which the theory engine will use
-  Node retLemma = tplemma.getProven();
-  if (!ppLemmas.empty())
-  {
-    std::vector<Node> lemmas{retLemma};
-    for (const theory::TrustNode& tnl : ppLemmas)
-    {
-      lemmas.push_back(tnl.getProven());
-    }
-    // the returned lemma is the conjunction of all additional lemmas.
-    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas);
-  }
-  return retLemma;
 }
 
 void PropEngine::assertLemmaInternal(theory::TrustNode trn, bool removable)
@@ -424,21 +419,59 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
 Node PropEngine::ensureLiteral(TNode n)
 {
   // must preprocess
-  std::vector<theory::TrustNode> newLemmas;
-  std::vector<Node> newSkolems;
-  theory::TrustNode tpn =
-      d_theoryProxy->preprocess(n, newLemmas, newSkolems, true);
-  // send lemmas corresponding to the skolems introduced by preprocessing n
-  for (const theory::TrustNode& tnl : newLemmas)
-  {
-    Trace("ensureLiteral") << "  lemma: " << tnl.getNode() << std::endl;
-    assertLemma(tnl, theory::LemmaProperty::NONE);
-  }
-  Node preprocessed = tpn.isNull() ? Node(n) : tpn.getNode();
+  Node preprocessed = getPreprocessedTerm(n);
   Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
                          << std::endl;
   d_cnfStream->ensureLiteral(preprocessed);
   return preprocessed;
+}
+
+Node PropEngine::getPreprocessedTerm(TNode n)
+{
+  Node rewritten = theory::Rewriter::rewrite(n);
+  // must preprocess
+  std::vector<theory::TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  theory::TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas, newSkolems);
+  // send lemmas corresponding to the skolems introduced by preprocessing n
+  for (const theory::TrustNode& tnl : newLemmas)
+  {
+    assertLemma(tnl, theory::LemmaProperty::NONE);
+  }
+  return tpn.isNull() ? Node(n) : tpn.getNode();
+}
+
+Node PropEngine::getPreprocessedTerm(TNode n,
+                                     std::vector<Node>& skAsserts,
+                                     std::vector<Node>& sks)
+{
+  // get the preprocessed form of the term
+  Node pn = getPreprocessedTerm(n);
+  // initialize the set of skolems and assertions to process
+  std::vector<theory::TrustNode> toProcessAsserts;
+  std::vector<Node> toProcess;
+  d_theoryProxy->getSkolems(pn, toProcessAsserts, toProcess);
+  size_t index = 0;
+  // until fixed point is reached
+  while (index < toProcess.size())
+  {
+    theory::TrustNode ka = toProcessAsserts[index];
+    Node k = toProcess[index];
+    index++;
+    if (std::find(sks.begin(), sks.end(), k) != sks.end())
+    {
+      // already added the skolem to the list
+      continue;
+    }
+    // must preprocess lemmas as well
+    Node kap = getPreprocessedTerm(ka.getProven());
+    skAsserts.push_back(kap);
+    sks.push_back(k);
+    // get the skolems in the preprocessed form of the lemma ka
+    d_theoryProxy->getSkolems(kap, toProcessAsserts, toProcess);
+  }
+  // return the preprocessed term
+  return pn;
 }
 
 void PropEngine::push()

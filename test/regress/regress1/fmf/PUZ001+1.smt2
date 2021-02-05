@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --no-check-unsat-core
+; COMMAND-LINE: --finite-model-find --no-check-unsat-cores
 ; EXPECT: unsat
 ;%------------------------------------------------------------------------------
 ;% File     : PUZ001+1 : TPTP v5.4.0. Released v2.0.0.
@@ -53,7 +53,7 @@
 (declare-fun richer__smt2_2 ( sort__smt2 sort__smt2 ) Bool)
 
 ; pel55_1 axiom
-(assert (exists ((?X sort__smt2)) 
+(assert (exists ((?X sort__smt2))
     (and (lives__smt2_1 ?X)
         (killed__smt2_2 ?X agatha__smt2_0))))
 
@@ -67,44 +67,44 @@
 (assert (lives__smt2_1 charles__smt2_0))
 
 ; pel55_3 axiom
-(assert (forall ((?X sort__smt2)) 
+(assert (forall ((?X sort__smt2))
     (=> (lives__smt2_1 ?X)
         (or (= ?X agatha__smt2_0)
             (= ?X butler__smt2_0)
             (= ?X charles__smt2_0)))))
 
 ; pel55_4 axiom
-(assert (forall ((?X sort__smt2) (?Y sort__smt2)) 
+(assert (forall ((?X sort__smt2) (?Y sort__smt2))
     (=> (killed__smt2_2 ?X ?Y)
         (hates__smt2_2 ?X ?Y))))
 
 ; pel55_5 axiom
-(assert (forall ((?X sort__smt2) (?Y sort__smt2)) 
+(assert (forall ((?X sort__smt2) (?Y sort__smt2))
     (=> (killed__smt2_2 ?X ?Y)
         (not (richer__smt2_2 ?X ?Y)))))
 
 ; pel55_6 axiom
-(assert (forall ((?X sort__smt2)) 
+(assert (forall ((?X sort__smt2))
     (=> (hates__smt2_2 agatha__smt2_0 ?X)
         (not (hates__smt2_2 charles__smt2_0 ?X)))))
 
 ; pel55_7 axiom
-(assert (forall ((?X sort__smt2)) 
+(assert (forall ((?X sort__smt2))
     (=> (not (= ?X butler__smt2_0))
         (hates__smt2_2 agatha__smt2_0 ?X))))
 
 ; pel55_8 axiom
-(assert (forall ((?X sort__smt2)) 
+(assert (forall ((?X sort__smt2))
     (=> (not (richer__smt2_2 ?X agatha__smt2_0))
         (hates__smt2_2 butler__smt2_0 ?X))))
 
 ; pel55_9 axiom
-(assert (forall ((?X sort__smt2)) 
+(assert (forall ((?X sort__smt2))
     (=> (hates__smt2_2 agatha__smt2_0 ?X)
         (hates__smt2_2 butler__smt2_0 ?X))))
 
 ; pel55_10 axiom
-(assert (forall ((?X sort__smt2)) 
+(assert (forall ((?X sort__smt2))
 (exists ((?Y sort__smt2)) (not (hates__smt2_2 ?X ?Y)))))
 
 ; pel55_11 axiom
