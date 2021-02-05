@@ -14,6 +14,9 @@
 
 #include "rcons_obligation_info.h"
 
+#include "expr/node_algorithm.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
@@ -42,6 +45,54 @@ const std::unordered_set<Node, NodeHashFunction>&
 RConsObligationInfo::getWatchSet() const
 {
   return d_watchSet;
+}
+
+std::string RConsObligationInfo::obToString(Node k,
+                                            const RConsObligationInfo& obInfo)
+{
+  return "ob<" + obInfo.getBuiltin().toString() + ", " + k.getType().toString()
+         + ">";
+}
+
+void RConsObligationInfo::printCandSols(
+    const Node& mainOb,
+    const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
+        obInfo)
+{
+  std::unordered_set<Node, NodeHashFunction> visited;
+  std::vector<Node> stack;
+  stack.push_back(mainOb);
+
+  Trace("sygus-rcons") << "\nEq classes: \n[";
+
+  while (!stack.empty())
+  {
+    const Node& k = stack.back();
+    stack.pop_back();
+    visited.emplace(k);
+
+    Trace("sygus-rcons") << std::endl
+                         << datatypes::utils::sygusToBuiltin(k) << " "
+                         << obToString(k, obInfo.at(k)) << ":\n [";
+
+    for (const Node& j : obInfo.at(k).getCandidateSolutions())
+    {
+      Trace("sygus-rcons") << datatypes::utils::sygusToBuiltin(j) << " ";
+      std::unordered_set<TNode, TNodeHashFunction> subObs;
+      expr::getVariables(j, subObs);
+      for (const TNode& l : subObs)
+      {
+        if (visited.find(l) == visited.cend()
+            && obInfo.find(l) != obInfo.cend())
+        {
+          stack.push_back(l);
+        }
+      }
+    }
+    Trace("sygus-rcons") << "]" << std::endl;
+  }
+
+  Trace("sygus-rcons") << "]" << std::endl;
 }
 
 }  // namespace quantifiers

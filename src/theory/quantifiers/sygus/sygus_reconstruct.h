@@ -260,24 +260,6 @@ class SygusReconstruct : public expr::NotifyMatch
   void clear();
 
   /**
-   * Return a string representation of an obligation.
-   *
-   * @param k An obligation
-   * @return A string representation of `k`
-   */
-  std::string ob(Node k) const;
-
-  /**
-   * Print all reachable obligations and their candidate solutions from
-   * the `root` obligation and its candidate solutions.
-   *
-   * \note requires enabling "sygus-rcons" trace
-   *
-   * @param root The root obligation to start from
-   */
-  void printCandSols(const Node& mainOb) const;
-
-  /**
    * Print the pool of patterns/shape used in the matching phase.
    *
    * \note requires enabling "sygus-rcons" trace

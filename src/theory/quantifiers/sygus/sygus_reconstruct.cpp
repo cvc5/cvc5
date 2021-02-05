@@ -126,7 +126,9 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         {
           if (d_sol[k] == Node::null())
           {
-            Trace("sygus-rcons") << "ob: " << ob(k) << std::endl;
+            Trace("sygus-rcons")
+                << "ob: " << RConsObligationInfo::obToString(k, d_obInfo[k])
+                << std::endl;
             // try to match obligation k with the enumerated term sz
             std::unordered_map<TypeNode,
                                std::unordered_set<Node, NodeHashFunction>,
@@ -161,7 +163,9 @@ Node SygusReconstruct::reconstructSolution(Node sol,
           unsolvedObs[pair.first].emplace(k);
           if (d_sol[k] == Node::null())
           {
-            Trace("sygus-rcons") << "ob: " << ob(k) << std::endl;
+            Trace("sygus-rcons")
+                << "ob: " << RConsObligationInfo::obToString(k, d_obInfo[k])
+                << std::endl;
             for (Node sz : pool[pair.first])
             {
               // try to match each newly generated and cached obligation
@@ -191,7 +195,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
 
   if (Trace("sygus-rcons").isConnected())
   {
-    printCandSols(mainOb);
+    RConsObligationInfo::printCandSols(mainOb, d_obInfo);
     printPool(pool);
   }
 
@@ -497,50 +501,6 @@ void SygusReconstruct::clear()
   d_parentOb.clear();
   d_groundVars.clear();
   d_poolTrie.clear();
-}
-
-std::string SygusReconstruct::ob(Node k) const
-{
-  return "ob<" + d_obInfo.at(k).getBuiltin().toString() + ", "
-         + k.getType().toString() + ">";
-}
-
-void SygusReconstruct::printCandSols(const Node& mainOb) const
-{
-  std::unordered_set<Node, NodeHashFunction> visited;
-  std::vector<Node> stack;
-  stack.push_back(mainOb);
-
-  Trace("sygus-rcons") << "\nEq classes: \n[";
-
-  while (!stack.empty())
-  {
-    const Node& k = stack.back();
-    stack.pop_back();
-    visited.emplace(k);
-
-    Trace("sygus-rcons") << std::endl
-                         << datatypes::utils::sygusToBuiltin(k) << " " << ob(k)
-                         << ":\n [";
-
-    for (const Node& j : d_obInfo.at(k).getCandidateSolutions())
-    {
-      Trace("sygus-rcons") << datatypes::utils::sygusToBuiltin(j) << " ";
-      std::unordered_set<TNode, TNodeHashFunction> subObs;
-      expr::getVariables(j, subObs);
-      for (const TNode& l : subObs)
-      {
-        if (visited.find(l) == visited.cend()
-            && d_obInfo.find(l) != d_obInfo.cend())
-        {
-          stack.push_back(l);
-        }
-      }
-    }
-    Trace("sygus-rcons") << "]" << std::endl;
-  }
-
-  Trace("sygus-rcons") << "]" << std::endl;
 }
 
 void SygusReconstruct::printPool(
