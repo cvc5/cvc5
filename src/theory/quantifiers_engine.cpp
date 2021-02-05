@@ -365,7 +365,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
     //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
-    d_qim.doPendingLemmas();
+    d_qim.doPending();
     if (d_qim.hasSentLemma())
     {
       return;
@@ -415,7 +415,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                                    << "..." << std::endl;
       if (!util->reset(e))
       {
-        d_qim.doPendingLemmas();
+        d_qim.doPending();
         if (d_qim.hasSentLemma())
         {
           return;
@@ -445,7 +445,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
     //reset may have added lemmas
-    d_qim.doPendingLemmas();
+    d_qim.doPending();
     if (d_qim.hasSentLemma())
     {
       return;
@@ -472,7 +472,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         {
           // If we failed to build the model, flush all pending lemmas and
           // finish.
-          d_qim.doPendingLemmas();
+          d_qim.doPending();
           break;
         }
       }
@@ -492,7 +492,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           }
         }
         //flush all current lemmas
-        d_qim.doPendingLemmas();
+        d_qim.doPending();
       }
       //if we have added one, stop
       if (d_qim.hasSentLemma())
@@ -724,7 +724,7 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
     mdl->preRegisterQuantifier(q);
   }
   // flush the lemmas
-  d_qim.doPendingLemmas();
+  d_qim.doPending();
   Trace("quant-debug") << "...finish pre-register " << q << "..." << std::endl;
 }
 
