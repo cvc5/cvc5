@@ -25,8 +25,9 @@ namespace theory {
 namespace quantifiers {
 
 InstStrategyUserPatterns::InstStrategyUserPatterns(QuantifiersEngine* ie,
-                                                   QuantifiersState& qs)
-    : InstStrategy(ie, qs)
+                                                   QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim)
+    : InstStrategy(ie, qs, qim)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}

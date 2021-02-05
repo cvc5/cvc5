@@ -60,8 +60,9 @@ struct sortTriggers {
 
 InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
                                                          QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim,
                                                          QuantRelevance* qr)
-    : InstStrategy(qe, qs), d_quant_rel(qr)
+    : InstStrategy(qe, qs, qim), d_quant_rel(qr)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
