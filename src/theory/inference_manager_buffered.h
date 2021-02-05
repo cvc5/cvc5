@@ -56,8 +56,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   bool addPendingLemma(Node lem,
                        LemmaProperty p = LemmaProperty::NONE,
                        ProofGenerator* pg = nullptr,
-                       bool doCache = true
-                      );
+                       bool doCache = true);
   /**
    * Add pending lemma, where lemma can be a (derived) class of the
    * theory inference base class.

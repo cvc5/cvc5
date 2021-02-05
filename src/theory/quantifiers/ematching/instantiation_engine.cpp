@@ -111,7 +111,8 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       }
     }
     //do not consider another level if already added lemma at this level
-    if( d_qim.numPendingLemmas()>lastWaiting ){
+    if (d_qim.numPendingLemmas() > lastWaiting)
+    {
       finished = true;
     }
     e++;
@@ -170,15 +171,13 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
     {
       Assert(d_qim.numPendingLemmas() > lastWaiting);
       Trace("inst-engine") << "Conflict, added lemmas = "
-                           << (d_qim.numPendingLemmas()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
     else if (d_qim.hasPendingLemma())
     {
       Trace("inst-engine") << "Added lemmas = "
-                           << (d_qim.numPendingLemmas()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
   }

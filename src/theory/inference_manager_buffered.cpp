@@ -47,7 +47,7 @@ bool InferenceManagerBuffered::hasPendingLemma() const
 bool InferenceManagerBuffered::addPendingLemma(Node lem,
                                                LemmaProperty p,
                                                ProofGenerator* pg,
-                       bool doCache)
+                                               bool doCache)
 {
   if (doCache)
   {

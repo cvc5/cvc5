@@ -477,7 +477,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
           break;
         }
       }
-      if( !d_qim.hasSent() ){
+      if (!d_qim.hasSent())
+      {
         //check each module
         for (QuantifiersModule*& mdl : qm)
         {
@@ -609,7 +610,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   //SAT case
-  if( e==Theory::EFFORT_LAST_CALL && !d_qim.hasSent() ){
+  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSent())
+  {
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();

@@ -38,7 +38,7 @@ namespace quantifiers {
 
 Instantiate::Instantiate(QuantifiersEngine* qe,
                          QuantifiersState& qs,
-              QuantifiersInferenceManager& qim,
+                         QuantifiersInferenceManager& qim,
                          ProofNodeManager* pnm)
     : d_qe(qe),
       d_qstate(qs),

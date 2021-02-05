@@ -273,15 +273,17 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
           break;
         }
       }
-      if (d_qstate.isInConflict()
-          || d_qim.numPendingLemmas() > lastWaiting)
+      if (d_qstate.isInConflict() || d_qim.numPendingLemmas() > lastWaiting)
       {
         break;
       }
     }
     if( Trace.isOn("cegqi-engine") ){
-      if( d_qim.numPendingLemmas()>lastWaiting ){
-        Trace("cegqi-engine") << "Added lemmas = " << (d_qim.numPendingLemmas()-lastWaiting) << std::endl;
+      if (d_qim.numPendingLemmas() > lastWaiting)
+      {
+        Trace("cegqi-engine")
+            << "Added lemmas = " << (d_qim.numPendingLemmas() - lastWaiting)
+            << std::endl;
       }
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
