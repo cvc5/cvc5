@@ -26,7 +26,7 @@ QuantifiersInferenceManager::QuantifiersInferenceManager(
 
 QuantifiersInferenceManager::~QuantifiersInferenceManager() {}
 
-void InferenceManager::doPending()
+void QuantifiersInferenceManager::doPending()
 {
   doPendingLemmas();
   doPendingPhaseRequirements();
