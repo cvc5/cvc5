@@ -54,7 +54,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext()),
-      d_lemmas_produced_c(qstate.getUserContext()),
       d_ierCounter_c(qstate.getSatContext()),
       d_presolve(qstate.getUserContext(), true),
       d_presolve_in(qstate.getUserContext()),
@@ -76,7 +75,6 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(d_instantiate.get());
 
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
-  d_hasAddedLemma = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_util->d_true] = true;
 
@@ -479,7 +477,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           break;
         }
       }
-      if( !d_hasAddedLemma ){
+      if( !d_qim.hasSent() ){
         //check each module
         for (QuantifiersModule*& mdl : qm)
         {
@@ -588,7 +586,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
     // debug print
-    if (d_hasAddedLemma)
+    if (d_qim.hasSent())
     {
       bool debugInstTrace = Trace.isOn("inst-per-quant-round");
       if (options::debugInst() || debugInstTrace)
@@ -601,7 +599,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("quant-engine") << "Finished quantifiers engine, total time = " << (clSet2-clSet);
-      Trace("quant-engine") << ", added lemma = " << d_hasAddedLemma;
+      Trace("quant-engine") << ", sent lemma = " << d_qim.hasSent();
       Trace("quant-engine") << std::endl;
     }
 
@@ -611,7 +609,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   //SAT case
-  if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
+  if( e==Theory::EFFORT_LAST_CALL && !d_qim.hasSent() ){
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();
@@ -791,11 +789,6 @@ void QuantifiersEngine::eqNotifyNewClass(TNode t) {
 
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
-}
-
-bool QuantifiersEngine::hasAddedLemma() const
-{
-  return !d_lemmas_waiting.empty() || d_hasAddedLemma;
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {

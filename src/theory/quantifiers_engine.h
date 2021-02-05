@@ -178,8 +178,6 @@ public:
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** has added lemma */
- bool hasAddedLemma() const;
  /** get current q effort */
  QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */
@@ -331,8 +329,6 @@ public:
   //------------- temporary information during check
   /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
-  /** has added lemma this round */
-  bool d_hasAddedLemma;
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */
@@ -342,15 +338,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** list of all lemmas produced */
-  // std::map< Node, bool > d_lemmas_produced;
-  BoolMap d_lemmas_produced_c;
-  /** lemmas waiting */
-  std::vector<Node> d_lemmas_waiting;
-  /** map from waiting lemmas to their proof generators */
-  std::map<Node, ProofGenerator*> d_lemmasWaitingPg;
-  /** phase requirements waiting */
-  std::map<Node, bool> d_phase_req_waiting;
   /** inst round counters TODO: make context-dependent? */
   context::CDO<int> d_ierCounter_c;
   int d_ierCounter;
