@@ -779,11 +779,14 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   {
     if (level == Theory::EFFORT_FULL)
     {
-      fullEffortCheck();
-      if (!d_state.isInConflict() && !d_im.hasSentLemma()
-          && d_full_check_incomplete)
+      if (!d_external.d_valuation.needCheck())
       {
-        d_im.setIncomplete();
+        fullEffortCheck();
+        if (!d_state.isInConflict() && !d_im.hasSentLemma()
+            && d_full_check_incomplete)
+        {
+          d_im.setIncomplete();
+        }
       }
     }
   }
