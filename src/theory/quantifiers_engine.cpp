@@ -75,7 +75,6 @@ QuantifiersEngine::QuantifiersEngine(
 
   d_util.push_back(d_instantiate.get());
 
-  d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
   d_hasAddedLemma = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_util->d_true] = true;
@@ -463,7 +462,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     {
       QuantifiersModule::QEffort quant_e =
           static_cast<QuantifiersModule::QEffort>(qef);
-      d_curr_effort_level = quant_e;
       // Force the theory engine to build the model if any module requested it.
       if (needsModelE == quant_e)
       {
@@ -581,7 +579,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
       }
     }
-    d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
     // debug print
     if (d_hasAddedLemma)
