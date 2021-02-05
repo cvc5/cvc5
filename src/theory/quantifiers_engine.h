@@ -113,30 +113,7 @@ class QuantifiersEngine {
    */
   void finishInit(TheoryEngine* te, DecisionManager* dm);
   //---------------------- end private initialization
-  /**
-   * Maps quantified formulas to the module that owns them, if any module has
-   * specifically taken ownership of it.
-   */
-  std::map< Node, QuantifiersModule * > d_owner;
-  /**
-   * The priority value associated with the ownership of quantified formulas
-   * in the domain of the above map, where higher values take higher
-   * precendence.
-   */
-  std::map< Node, int > d_owner_priority;
  public:
-  /** get owner */
-  QuantifiersModule * getOwner( Node q );
-  /**
-   * Set owner of quantified formula q to module m with given priority. If
-   * the quantified formula has previously been assigned an owner with
-   * lower priority, that owner is overwritten.
-   */
-  void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
-  /** set owner of quantified formula q based on its attributes qa. */
-  void setOwner(Node q, quantifiers::QAttributes& qa);
-  /** considers */
-  bool hasOwnership( Node q, QuantifiersModule * m = NULL );
   /** does variable v of quantified formula q have a finite bound? */
   bool isFiniteBound(Node q, Node v) const;
   /** get bound var type
@@ -343,8 +320,8 @@ public:
   /** vector of modules for quantifiers */
   std::vector<QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry d_qreg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
@@ -355,6 +332,8 @@ public:
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
+  /** equality query class */
+  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** sygus term database */
   std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
   /** quantifiers attributes */

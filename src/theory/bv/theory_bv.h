@@ -96,6 +96,8 @@ class TheoryBV : public Theory
 
   void presolve() override;
 
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+
   /** Called by abstraction preprocessing pass. */
   bool applyAbstraction(const std::vector<Node>& assertions,
                         std::vector<Node>& new_assertions);

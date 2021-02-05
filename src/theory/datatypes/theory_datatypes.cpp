@@ -1558,7 +1558,11 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   // may contribute to conflicts due to cardinality (good examples of this are
   // regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  bool forceLemma = true;
+  if (options::dtPoliteOptimize())
+  {
+    forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
   d_im.addPendingInference(eq, exp, forceLemma, InferId::INST);

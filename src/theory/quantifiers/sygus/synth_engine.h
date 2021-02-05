@@ -35,7 +35,8 @@ class SynthEngine : public QuantifiersModule
  public:
   SynthEngine(QuantifiersEngine* qe,
               QuantifiersState& qs,
-              QuantifiersInferenceManager& qim);
+              QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr);
   ~SynthEngine();
   /** presolve
    *
@@ -49,6 +50,8 @@ class SynthEngine : public QuantifiersModule
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
+  /** check ownership */
+  void checkOwnership(Node q) override;
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */

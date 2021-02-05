@@ -525,6 +525,8 @@ libcvc4_add_sources(
   theory/bv/bv_quick_check.cpp
   theory/bv/bv_quick_check.h
   theory/bv/bv_solver.h
+  theory/bv/bv_solver_bitblast.cpp
+  theory/bv/bv_solver_bitblast.h
   theory/bv/bv_solver_lazy.cpp
   theory/bv/bv_solver_lazy.h
   theory/bv/bv_solver_simple.cpp
@@ -729,6 +731,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_inference_manager.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
+  theory/quantifiers/quantifiers_registry.cpp
+  theory/quantifiers/quantifiers_registry.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
   theory/quantifiers/quantifiers_state.cpp
