@@ -339,7 +339,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // proceed with the check.
     Assert(false);
   }
-  bool needsCheck = !d_qim.hasPendingLemma();
+  bool needsCheck = d_qim.hasPendingLemma();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
@@ -366,7 +366,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   if( needsCheck ){
     //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
     d_qim.doPendingLemmas();
-    if (d_qim.hasSent())
+    if (d_qim.hasSentLemma())
     {
       return;
     }
@@ -416,7 +416,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if (!util->reset(e))
       {
         d_qim.doPendingLemmas();
-        if (d_qim.hasSent())
+        if (d_qim.hasSentLemma())
         {
           return;
         }else{
@@ -446,7 +446,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
     //reset may have added lemmas
     d_qim.doPendingLemmas();
-    if (d_qim.hasSent())
+    if (d_qim.hasSentLemma())
     {
       return;
     }
@@ -476,7 +476,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
           break;
         }
       }
-      if (!d_qim.hasSent())
+      if (!d_qim.hasSentLemma())
       {
         //check each module
         for (QuantifiersModule*& mdl : qm)
@@ -495,7 +495,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         d_qim.doPendingLemmas();
       }
       //if we have added one, stop
-      if (d_qim.hasSent())
+      if (d_qim.hasSentLemma())
       {
         break;
       }else{
@@ -586,7 +586,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
     // debug print
-    if (d_qim.hasSent())
+    if (d_qim.hasSentLemma())
     {
       bool debugInstTrace = Trace.isOn("inst-per-quant-round");
       if (options::debugInst() || debugInstTrace)
@@ -599,7 +599,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("quant-engine") << "Finished quantifiers engine, total time = " << (clSet2-clSet);
-      Trace("quant-engine") << ", sent lemma = " << d_qim.hasSent();
+      Trace("quant-engine") << ", sent lemma = " << d_qim.hasSentLemma();
       Trace("quant-engine") << std::endl;
     }
 
@@ -609,7 +609,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   //SAT case
-  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSent())
+  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
   {
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;

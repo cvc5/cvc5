@@ -47,9 +47,9 @@ bool InferenceManagerBuffered::hasPendingLemma() const
 bool InferenceManagerBuffered::addPendingLemma(Node lem,
                                                LemmaProperty p,
                                                ProofGenerator* pg,
-                                               bool doCache)
+                                               bool checkCache)
 {
-  if (doCache)
+  if (checkCache)
   {
     // check if it is unique up to rewriting
     Node lemr = Rewriter::rewrite(lem);
