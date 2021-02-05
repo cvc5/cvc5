@@ -239,7 +239,7 @@ SygusReconstruct::matchNewObs(Node k, Node sz)
     // enumerated terms, so we need to replace them with our own skolems
     std::vector<std::pair<Node, Node>> subs;
     Trace("sygus-rcons") << "-- ct: " << sz << std::endl;
-    // remove redundaunt substitutions
+    // remove redundant substitutions
     for (const std::pair<const Node, Node>& pair : d_groundVars)
     {
       candObs.erase(pair.first);
@@ -327,7 +327,7 @@ void SygusReconstruct::markSolved(Node k, Node s)
                        << std::endl;
 
   // some free terms in the reconstructed solution get eliminated by the
-  // rewriter. For example, rewite((ite true 0 z)) = 0. We replace those with
+  // rewriter. For example, rewrite((ite true 0 z)) = 0. We replace those with
   // ground values.
   if (!s.isConst())
   {

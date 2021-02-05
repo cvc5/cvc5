@@ -86,7 +86,7 @@ class RConsTypeInfo
  private:
   /** Sygus terms enumerator for the corresponding Sygus datatype type */
   std::unique_ptr<SygusEnumerator> d_enumerator;
-  /** Candidate rewrite database for the corresponding sgyus datatype type */
+  /** Candidate rewrite database for the corresponding sygus datatype type */
   std::unique_ptr<CandidateRewriteDatabase> d_crd;
   /** Sygus sampler needed for initializing the candidate rewrite database */
   SygusSampler d_sygusSampler;
