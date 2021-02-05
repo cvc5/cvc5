@@ -322,14 +322,6 @@ public:
    * The modules utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
-  //------------- temporary information during check
-<<<<<<< HEAD
-  /** current effort level */
-  QuantifiersModule::QEffort d_curr_effort_level;
-=======
-  /** has added lemma this round */
-  bool d_hasAddedLemma;
->>>>>>> ea30ab14a8a5093e198e853d422dffd13b52275b
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */
