@@ -106,7 +106,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     for (size_t i = 0, usize = ugw.size(); i < usize; i++)
     {
       Trigger* t = Trigger::mkTrigger(
-          d_quantEngine, q, ugw[i], true, Trigger::TR_RETURN_NULL);
+          d_quantEngine, d_qim, q, ugw[i], true, Trigger::TR_RETURN_NULL);
       if (t)
       {
         d_user_gen[q].push_back(t);
@@ -165,7 +165,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
     return;
   }
   Trigger* t =
-      Trigger::mkTrigger(d_quantEngine, q, nodes, true, Trigger::TR_MAKE_NEW);
+      Trigger::mkTrigger(d_quantEngine, d_qim, q, nodes, true, Trigger::TR_MAKE_NEW);
   if (t)
   {
     d_user_gen[q].push_back(t);

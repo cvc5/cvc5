@@ -29,12 +29,14 @@ namespace theory {
 
 class QuantifiersEngine;
 
+namespace quantifiers {
+class QuantifiersInferenceManager;
+}
+
 namespace inst {
 
 class IMGenerator;
 class InstMatchGenerator;
-class QuantifiersInferenceManager;
-
 /** A collection of nodes representing a trigger.
 *
 * This class encapsulates all implementations of E-matching in CVC4.
@@ -160,7 +162,7 @@ class Trigger {
     TR_RETURN_NULL  //return null if a duplicate is found
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
-                            QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersInferenceManager& qim,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -168,7 +170,7 @@ class Trigger {
                             size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
-                            QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersInferenceManager& qim,
                             Node q,
                             Node n,
                             bool keepAll = true,
@@ -191,7 +193,7 @@ class Trigger {
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
   Trigger(QuantifiersEngine* ie,
-          QuantifiersInferenceManager& qim,
+          quantifiers::QuantifiersInferenceManager& qim,
           Node q,
           std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
@@ -239,6 +241,8 @@ class Trigger {
   std::vector<Node> d_groundTerms;
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
+  /** Reference to the quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** match generator

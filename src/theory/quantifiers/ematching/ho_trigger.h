@@ -93,7 +93,7 @@ class HigherOrderTrigger : public Trigger
 
  private:
   HigherOrderTrigger(QuantifiersEngine* qe,
-                     QuantifiersInferenceManager& qim,
+                     quantifiers::QuantifiersInferenceManager& qim,
                      Node q,
                      std::vector<Node>& nodes,
                      std::map<Node, std::vector<Node> >& ho_apps);

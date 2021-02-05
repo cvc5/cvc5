@@ -35,7 +35,7 @@ namespace inst {
 
 /** trigger class constructor */
 Trigger::Trigger(QuantifiersEngine* qe,
-                 QuantifiersInferenceManager& qim,
+                 quantifiers::QuantifiersInferenceManager& qim,
                  Node q,
                  std::vector<Node>& nodes)
     : d_quantEngine(qe), d_qim(qim), d_quant(q)
@@ -232,7 +232,7 @@ bool Trigger::mkTriggerTerms(Node q,
 }
 
 Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
-                            QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersInferenceManager& qim,
                             Node f,
                             std::vector<Node>& nodes,
                             bool keepAll,
@@ -285,7 +285,7 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
 }
 
 Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
-                            QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersInferenceManager& qim,
                             Node f,
                             Node n,
                             bool keepAll,

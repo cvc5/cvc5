@@ -77,7 +77,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     if (options::fullSaturateInterleave())
     {
       // we only add when interleaved with other strategies
-      doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+      doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
     }
     if (options::fullSaturateQuant() && !doCheck)
     {

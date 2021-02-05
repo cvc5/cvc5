@@ -53,9 +53,11 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * of the user context. Pending lemmas are sent to the output channel using
    * doPendingLemmas.
    */
-  void addPendingLemma(Node lem,
+  bool addPendingLemma(Node lem,
                        LemmaProperty p = LemmaProperty::NONE,
-                       ProofGenerator* pg = nullptr);
+                       ProofGenerator* pg = nullptr,
+                       bool doCache = true
+                      );
   /**
    * Add pending lemma, where lemma can be a (derived) class of the
    * theory inference base class.

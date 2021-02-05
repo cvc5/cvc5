@@ -259,7 +259,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
-    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+    size_t lastWaiting = d_qim.numPendingLemmas();
     for( int ee=0; ee<=1; ee++ ){
       //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
@@ -274,14 +274,14 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         }
       }
       if (d_qstate.isInConflict()
-          || d_quantEngine->getNumLemmasWaiting() > lastWaiting)
+          || d_qim.numPendingLemmas() > lastWaiting)
       {
         break;
       }
     }
     if( Trace.isOn("cegqi-engine") ){
-      if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
-        Trace("cegqi-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
+      if( d_qim.numPendingLemmas()>lastWaiting ){
+        Trace("cegqi-engine") << "Added lemmas = " << (d_qim.numPendingLemmas()-lastWaiting) << std::endl;
       }
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;

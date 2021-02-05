@@ -49,7 +49,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes),
-      d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
+      d_instantiate(new quantifiers::Instantiate(this, qstate, qim, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
