@@ -19,7 +19,6 @@
 #include <sstream>
 #include <string>
 
-#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "context/context.h"
@@ -27,7 +26,7 @@
 #include "expr/expr_manager.h"
 #include "expr/symbol_table.h"
 #include "expr/type.h"
-#include "test.h"
+#include "test_api.h"
 
 namespace CVC4 {
 
@@ -36,17 +35,15 @@ using namespace context;
 
 namespace test {
 
-class TestSymbolTableBlack : public TestInternal
+class TestSymbolTableBlack : public TestApi
 {
- protected:
-  api::Solver d_slv;
 };
 
 TEST_F(TestSymbolTableBlack, bind1)
 {
   SymbolTable symtab;
-  api::Sort booleanType = d_slv.getBooleanSort();
-  api::Term x = d_slv.mkConst(booleanType);
+  api::Sort booleanType = d_solver.getBooleanSort();
+  api::Term x = d_solver.mkConst(booleanType);
   symtab.bind("x", x);
   ASSERT_TRUE(symtab.isBound("x"));
   ASSERT_EQ(symtab.lookup("x"), x);
@@ -55,9 +52,9 @@ TEST_F(TestSymbolTableBlack, bind1)
 TEST_F(TestSymbolTableBlack, bind2)
 {
   SymbolTable symtab;
-  api::Sort booleanType = d_slv.getBooleanSort();
+  api::Sort booleanType = d_solver.getBooleanSort();
   // var name attribute shouldn't matter
-  api::Term y = d_slv.mkConst(booleanType, "y");
+  api::Term y = d_solver.mkConst(booleanType, "y");
   symtab.bind("x", y);
   ASSERT_TRUE(symtab.isBound("x"));
   ASSERT_EQ(symtab.lookup("x"), y);
@@ -66,10 +63,10 @@ TEST_F(TestSymbolTableBlack, bind2)
 TEST_F(TestSymbolTableBlack, bind3)
 {
   SymbolTable symtab;
-  api::Sort booleanType = d_slv.getBooleanSort();
-  api::Term x = d_slv.mkConst(booleanType);
+  api::Sort booleanType = d_solver.getBooleanSort();
+  api::Term x = d_solver.mkConst(booleanType);
   symtab.bind("x", x);
-  api::Term y = d_slv.mkConst(booleanType);
+  api::Term y = d_solver.mkConst(booleanType);
   // new binding covers old
   symtab.bind("x", y);
   ASSERT_TRUE(symtab.isBound("x"));
@@ -79,11 +76,11 @@ TEST_F(TestSymbolTableBlack, bind3)
 TEST_F(TestSymbolTableBlack, bind4)
 {
   SymbolTable symtab;
-  api::Sort booleanType = d_slv.getBooleanSort();
-  api::Term x = d_slv.mkConst(booleanType);
+  api::Sort booleanType = d_solver.getBooleanSort();
+  api::Term x = d_solver.mkConst(booleanType);
   symtab.bind("x", x);
 
-  api::Sort t = d_slv.mkUninterpretedSort("T");
+  api::Sort t = d_solver.mkUninterpretedSort("T");
   // duplicate binding for type is OK
   symtab.bindType("x", t);
 
@@ -96,7 +93,7 @@ TEST_F(TestSymbolTableBlack, bind4)
 TEST_F(TestSymbolTableBlack, bind_type1)
 {
   SymbolTable symtab;
-  api::Sort s = d_slv.mkUninterpretedSort("S");
+  api::Sort s = d_solver.mkUninterpretedSort("S");
   symtab.bindType("S", s);
   ASSERT_TRUE(symtab.isBoundType("S"));
   ASSERT_EQ(symtab.lookupType("S"), s);
@@ -106,7 +103,7 @@ TEST_F(TestSymbolTableBlack, bind_type2)
 {
   SymbolTable symtab;
   // type name attribute shouldn't matter
-  api::Sort s = d_slv.mkUninterpretedSort("S");
+  api::Sort s = d_solver.mkUninterpretedSort("S");
   symtab.bindType("T", s);
   ASSERT_TRUE(symtab.isBoundType("T"));
   ASSERT_EQ(symtab.lookupType("T"), s);
@@ -115,9 +112,9 @@ TEST_F(TestSymbolTableBlack, bind_type2)
 TEST_F(TestSymbolTableBlack, bind_type3)
 {
   SymbolTable symtab;
-  api::Sort s = d_slv.mkUninterpretedSort("S");
+  api::Sort s = d_solver.mkUninterpretedSort("S");
   symtab.bindType("S", s);
-  api::Sort t = d_slv.mkUninterpretedSort("T");
+  api::Sort t = d_solver.mkUninterpretedSort("T");
   // new binding covers old
   symtab.bindType("S", t);
   ASSERT_TRUE(symtab.isBoundType("S"));
@@ -127,15 +124,15 @@ TEST_F(TestSymbolTableBlack, bind_type3)
 TEST_F(TestSymbolTableBlack, push_scope)
 {
   SymbolTable symtab;
-  api::Sort booleanType = d_slv.getBooleanSort();
-  api::Term x = d_slv.mkConst(booleanType);
+  api::Sort booleanType = d_solver.getBooleanSort();
+  api::Term x = d_solver.mkConst(booleanType);
   symtab.bind("x", x);
   symtab.pushScope();
 
   ASSERT_TRUE(symtab.isBound("x"));
   ASSERT_EQ(symtab.lookup("x"), x);
 
-  api::Term y = d_slv.mkConst(booleanType);
+  api::Term y = d_solver.mkConst(booleanType);
   symtab.bind("x", y);
 
   ASSERT_TRUE(symtab.isBound("x"));
