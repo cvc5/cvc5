@@ -153,27 +153,31 @@ class SygusReconstruct : public expr::NotifyMatch
  private:
   /** match obligation `k`'s builtin term with pattern `sz`
    *
-   * This function matches the builtin term corresponding to the obligation `k`
-   * with the pattern `sz`. If the match succeeds, `sz` is added to the set of
-   * candidate solutions for `k` and A set of new sub-obligations to satisfy is
-   * returned. If there are no sub-obligations are they are all satisfied, then
-   * `sz` is considered a solution to obligation `k` and `matchNewObs(k, s)` is
-   * called, where `s = s * {z -> sol[z]}`. For example, given:
+   * This function matches the builtin term to reconstruct for obligation `k`
+   * with the builtin analog of the pattern `sz`. If the match succeeds, `sz` is
+   * added to the set of candidate solutions for `k` and a set of new
+   * sub-obligations to satisfy is returned. If there are no new sub-obligations
+   * to satisfy, then `sz` is considered a solution to obligation `k` and
+   * `matchNewObs(k, sz)` is called. For example, given:
    *
-   * Term = {c_z1 -> (+ 1 1)}
+   * Obs = {(c_z1, (+ 1 1), null)}
+   * Pool = {(c_+ c_z2 c_z3)}
    * CandSols = {}
-   * Sol = {}
    *
-   * Then calling `matchNewObs(c_z1, (+ c_z2 c_z3))` will result in:
+   * Then calling `matchNewObs(c_z1, (c_+ c_z2 c_z3))` will result in:
    *
-   * Term = {c_z1 -> (+ 1 1), c_z2 -> 1}
-   * CandSols = {c_z1 -> {(+ c_z2 c_z2)}, c_z2 -> {}}
-   * Sol = {}
+   * Obs = {(c_z1, (+ 1 1), null), (c_z4, 1, null)}
+   * Pool = {(c_+ c_z2 c_z3)}
+   * CandSols = {c_z1 -> {(c_+ c_z4 c_z4)}}
    *
-   * and will return `{typeOf(c_z2) -> {c_z2}}`.
+   * and will return `{typeOf(c_z4) -> {c_z4}}`.
    *
-   * Notice that `c_z3` is replaced by `c_z2` because it has the same
-   * corresponding builtin term.
+   * Notice that `c_z2` and `c_z3` are not returned as new sub-obligations.
+   * Instead, `(c_+ c_z2 c_z3)` is instantiated with a new skolem `c_z4`, which
+   * is then added to the set of obligations. This is done to allow the reuse of
+   * patterns in `Pool`. Also, notice that only one new skolem/sub-obligation is
+   * generated. That's because the builtin analogs of `c_z2` and `c_z3` match
+   * with the same builtin term `1`.
    *
    * @param ob free var whose builtin term we need to match
    * @param sz a pattern to match `ob`s builtin term with

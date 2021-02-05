@@ -81,7 +81,7 @@ class RConsObligationInfo
   /**
    * a set of candidate solutions to the corresponding obligation. Each
    * candidate solution is a sygus datatype term containing skolem subterms
-   * (sub-obligations). By Replacing all sub-obligations with their
+   * (sub-obligations). By replacing all sub-obligations with their
    * corresponding solution, we get a term whose builtin analog rewrites to
    * `d_builtin` and hence solves this obligation. For example, given:
    * d_builtin = (+ x y)
