@@ -327,7 +327,7 @@ bool Instantiate::addInstantiation(
   }
   else
   {
-    addedLem = d_qe->addLemma(lem, true, false);
+    addedLem = d_qim.addPendingLemma(lem, true, false);
   }
 
   if (!addedLem)
@@ -398,18 +398,6 @@ bool Instantiate::addInstantiation(
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
   return true;
-}
-
-bool Instantiate::removeInstantiation(Node q,
-                                      Node lem,
-                                      std::vector<Node>& terms)
-{
-  // lem must occur in d_waiting_lemmas
-  if (d_qe->removeLemma(lem))
-  {
-    return removeInstantiationInternal(q, terms);
-  }
-  return false;
 }
 
 bool Instantiate::recordInstantiation(Node q,

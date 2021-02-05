@@ -173,29 +173,8 @@ private:
  void registerQuantifierInternal(Node q);
  /** reduceQuantifier, return true if reduced */
  bool reduceQuantifier(Node q);
- /** flush lemmas */
- void flushLemmas();
 
 public:
- /**
-  * Add lemma to the lemma buffer of this quantifiers engine.
-  * @param lem The lemma to send
-  * @param doCache Whether to cache the lemma (to check for duplicate lemmas)
-  * @param doRewrite Whether to rewrite the lemma
-  * @return true if the lemma was successfully added to the buffer
-  */
- bool addLemma(Node lem, bool doCache = true, bool doRewrite = true);
- /**
-  * Add trusted lemma lem, same as above, but where a proof generator may be
-  * provided along with the lemma.
-  */
- bool addTrustedLemma(TrustNode tlem,
-                      bool doCache = true,
-                      bool doRewrite = true);
- /** remove pending lemma */
- bool removeLemma(Node lem);
- /** add require phase */
- void addRequirePhase(Node lit, bool req);
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
