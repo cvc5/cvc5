@@ -75,8 +75,6 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(d_instantiate.get());
 
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
-  //don't add true lemma
-  d_lemmas_produced_c[d_term_util->d_true] = true;
 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
@@ -262,8 +260,7 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
-  d_lemmas_waiting.clear();
-  d_phase_req_waiting.clear();
+  d_qim.clearPending();
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
@@ -342,7 +339,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // proceed with the check.
     Assert(false);
   }
-  bool needsCheck = !d_lemmas_waiting.empty();
+  bool needsCheck = !d_qim.hasPendingLemma();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
@@ -389,8 +386,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       Trace("quant-engine-debug") << std::endl;
       Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
-      if( !d_lemmas_waiting.empty() ){
-        Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
+      if( d_qim.hasPendingLemma() ){
+        Trace("quant-engine-debug") << "  lemmas waiting = " << d_qim.numPendingLemmas() << std::endl;
       }
       Trace("quant-engine-debug")
           << "  Theory engine finished : "
@@ -664,7 +661,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
   if( it==d_quants.end() ){
     Trace("quant") << "QuantifiersEngine : Register quantifier ";
     Trace("quant") << " : " << f << std::endl;
-    unsigned prev_lemma_waiting = d_lemmas_waiting.size();
+    size_t prev_lemma_waiting = d_qim.numPendingLemmas();
     ++(d_statistics.d_num_quant);
     Assert(f.getKind() == FORALL);
     // register with utilities
@@ -692,11 +689,11 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
       mdl->registerQuantifier(f);
       // since this is context-independent, we should not add any lemmas during
       // this call
-      Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
+      Assert(d_qim.numPendingLemmas() == prev_lemma_waiting);
     }
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
-    AlwaysAssert(d_lemmas_waiting.size() == prev_lemma_waiting);
+    AlwaysAssert(d_qim.numPendingLemmas() == prev_lemma_waiting);
   }
 }
 
