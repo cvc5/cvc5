@@ -160,7 +160,7 @@ class Trigger {
     TR_RETURN_NULL  //return null if a duplicate is found
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
-                      QuantifiersInferenceManager& qim,
+                            QuantifiersInferenceManager& qim,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -168,7 +168,7 @@ class Trigger {
                             size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
-                      QuantifiersInferenceManager& qim,
+                            QuantifiersInferenceManager& qim,
                             Node q,
                             Node n,
                             bool keepAll = true,
@@ -191,7 +191,9 @@ class Trigger {
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
   Trigger(QuantifiersEngine* ie,
-                      QuantifiersInferenceManager& qim, Node q, std::vector<Node>& nodes);
+          QuantifiersInferenceManager& qim,
+          Node q,
+          std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
    *
    * This calls Instantiate::addInstantiation(...) for instantiations

@@ -931,7 +931,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
 
               Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
               d_qim.addPendingLemma(lem);
-              d_qim.addPendingPhaseRequirement( rsg, false );
+              d_qim.addPendingPhaseRequirement(rsg, false);
               addedLemmas++;
               if( (int)addedLemmas>=options::conjectureGenPerRound() ){
                 break;

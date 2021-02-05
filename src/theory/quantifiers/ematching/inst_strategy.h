@@ -46,8 +46,9 @@ enum class InstStrategyStatus
 class InstStrategy
 {
  public:
-  InstStrategy(QuantifiersEngine* qe, QuantifiersState& qs,
-                      QuantifiersInferenceManager& qim)
+  InstStrategy(QuantifiersEngine* qe,
+               QuantifiersState& qs,
+               QuantifiersInferenceManager& qim)
       : d_quantEngine(qe), d_qstate(qs), d_qim(qim)
   {
   }

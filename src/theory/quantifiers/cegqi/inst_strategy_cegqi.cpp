@@ -108,7 +108,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       //add counterexample lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
-      d_qim.addPendingPhaseRequirement( ceLit, true );
+      d_qim.addPendingPhaseRequirement(ceLit, true);
       Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = Rewriter::rewrite( lem );
