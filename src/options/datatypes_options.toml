@@ -23,6 +23,16 @@ header = "options/datatypes_options.h"
   help       = "force the datatypes solver to give specific values to all datatypes terms before answering sat"
 
 [[option]]
+  name       = "dtPoliteOptimize"
+  smt_name   = "dt-polite-optimize"
+  category   = "experimental"
+  long       = "dt-polite-optimize"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "turn on optimization for polite combination"
+
+[[option]]
   name       = "dtBinarySplit"
   category   = "regular"
   long       = "dt-binary-split"
