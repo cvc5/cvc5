@@ -386,8 +386,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       Trace("quant-engine-debug") << std::endl;
       Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
-      if( d_qim.hasPendingLemma() ){
-        Trace("quant-engine-debug") << "  lemmas waiting = " << d_qim.numPendingLemmas() << std::endl;
+      if (d_qim.hasPendingLemma())
+      {
+        Trace("quant-engine-debug")
+            << "  lemmas waiting = " << d_qim.numPendingLemmas() << std::endl;
       }
       Trace("quant-engine-debug")
           << "  Theory engine finished : "

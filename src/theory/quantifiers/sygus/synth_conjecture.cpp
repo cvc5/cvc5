@@ -42,7 +42,7 @@ namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
-              QuantifiersInferenceManager& qim,
+                                 QuantifiersInferenceManager& qim,
                                  SygusStatistics& s)
     : d_qe(qe),
       d_qstate(qs),

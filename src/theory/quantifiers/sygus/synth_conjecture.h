@@ -84,7 +84,7 @@ class SynthConjecture
  public:
   SynthConjecture(QuantifiersEngine* qe,
                   QuantifiersState& qs,
-              QuantifiersInferenceManager& qim,
+                  QuantifiersInferenceManager& qim,
                   SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
