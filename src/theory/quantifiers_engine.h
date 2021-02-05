@@ -201,8 +201,6 @@ public:
  void markRelevant(Node q);
  /** has added lemma */
  bool hasAddedLemma() const;
- /** get current q effort */
- QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */
  unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
  /** get needs check */
@@ -350,8 +348,6 @@ public:
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
   //------------- temporary information during check
-  /** current effort level */
-  QuantifiersModule::QEffort d_curr_effort_level;
   /** has added lemma this round */
   bool d_hasAddedLemma;
   //------------- end temporary information during check
