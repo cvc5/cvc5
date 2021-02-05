@@ -347,8 +347,9 @@ bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
       std::vector< Node > lem;
       getEnumeratePredUfTerm( n, options::conjectureGenGtEnum(), lem );
       if( !lem.empty() ){
-        for (const Node& l : lem){
-          d_qim.addPendingLemma( l );
+        for (const Node& l : lem)
+        {
+          d_qim.addPendingLemma(l);
         }
         d_hasAddedLemma = true;
         return false;
@@ -929,7 +930,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[rhs].push_back( lhs );
 
               Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-              d_qim.addPendingLemma( lem );
+              d_qim.addPendingLemma(lem);
               d_quantEngine->addRequirePhase( rsg, false );
               addedLemmas++;
               if( (int)addedLemmas>=options::conjectureGenPerRound() ){

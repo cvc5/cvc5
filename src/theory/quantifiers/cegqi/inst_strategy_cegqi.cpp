@@ -491,8 +491,9 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   }
 }
 
-bool InstStrategyCegqi::addPendingLemma( Node lem ) const {
-  return d_qim.addPendingLemma( lem );
+bool InstStrategyCegqi::addPendingLemma(Node lem) const
+{
+  return d_qim.addPendingLemma(lem);
 }
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {

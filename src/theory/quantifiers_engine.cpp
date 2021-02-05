@@ -371,7 +371,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
   if( needsCheck ){
     //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
     d_qim.doPendingLemmas();
-    if( d_qim.hasSent() ){
+    if (d_qim.hasSent())
+    {
       return;
     }
 
@@ -418,7 +419,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
       if (!util->reset(e))
       {
         d_qim.doPendingLemmas();
-        if( d_qim.hasSent() ){
+        if (d_qim.hasSent())
+        {
           return;
         }else{
           //should only fail reset if added a lemma
@@ -447,7 +449,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
     //reset may have added lemmas
     d_qim.doPendingLemmas();
-    if( d_qim.hasSent() ){
+    if (d_qim.hasSent())
+    {
       return;
     }
 
@@ -494,7 +497,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
         d_qim.doPendingLemmas();
       }
       //if we have added one, stop
-      if( d_qim.hasSent() ){
+      if (d_qim.hasSent())
+      {
         break;
       }else{
         Assert(!d_qstate.isInConflict());
