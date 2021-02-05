@@ -34,7 +34,7 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
                               QuantifiersState& state,
                               ProofNodeManager* pnm);
   ~QuantifiersInferenceManager();
-  /** 
+  /**
    * Do all pending lemmas, then do all pending phase requirements.
    */
   void doPending();
