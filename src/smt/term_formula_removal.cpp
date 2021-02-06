@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
@@ -518,6 +519,74 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
   return Node::null();
 }
 
+struct HasSkolemTag
+{
+};
+struct HasSkolemComputedTag
+{
+};
+/** Attribute true for nodes with skolems in them */
+typedef expr::Attribute<HasSkolemTag, bool> HasSkolemAttr;
+/** Attribute true for nodes where we have computed the above attribute */
+typedef expr::Attribute<HasSkolemComputedTag, bool> HasSkolemComputedAttr;
+
+bool RemoveTermFormulas::hasSkolems(TNode n) const
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    if (cur.getAttribute(HasSkolemComputedAttr()))
+    {
+      visit.pop_back();
+      // already computed
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getNumChildren() == 0)
+      {
+        visit.pop_back();
+        bool hasSkolem = false;
+        if (cur.isVar())
+        {
+          hasSkolem = (d_lemmaCache.find(cur) != d_lemmaCache.end());
+        }
+        cur.setAttribute(HasSkolemAttr(), hasSkolem);
+        cur.setAttribute(HasSkolemComputedAttr(), true);
+      }
+      else
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+    else
+    {
+      visit.pop_back();
+      bool hasSkolem = false;
+      for (TNode i : cur)
+      {
+        Assert(i.getAttribute(HasSkolemComputedAttr()));
+        if (i.getAttribute(HasSkolemAttr()))
+        {
+          hasSkolem = true;
+          break;
+        }
+      }
+      cur.setAttribute(HasSkolemAttr(), hasSkolem);
+      cur.setAttribute(HasSkolemComputedAttr(), true);
+    }
+  } while (!visit.empty());
+  Assert(n.getAttribute(HasSkolemComputedAttr()));
+  return n.getAttribute(HasSkolemAttr());
+}
+
 void RemoveTermFormulas::getSkolems(
     TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
 {
@@ -530,6 +599,11 @@ void RemoveTermFormulas::getSkolems(
   {
     cur = visit.back();
     visit.pop_back();
+    if (!hasSkolems(cur))
+    {
+      // does not have skolems, continue
+      continue;
+    }
     it = visited.find(cur);
     if (it == visited.end())
     {
