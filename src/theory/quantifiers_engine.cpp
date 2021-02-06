@@ -271,7 +271,8 @@ void QuantifiersEngine::presolve() {
   //add all terms to database
   if( options::incrementalSolving() ){
     Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
-    for (const Node& t : d_presolve_cache){
+    for (const Node& t : d_presolve_cache)
+    {
       addTermToDatabase(t);
     }
     Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
@@ -754,8 +755,9 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
 
 void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
 {
-  //don't add terms in quantifier bodies
-  if( withinQuant && !options::registerQuantBodyTerms() ){
+  // don't add terms in quantifier bodies
+  if (withinQuant && !options::registerQuantBodyTerms())
+  {
     return;
   }
   if( options::incrementalSolving() ){

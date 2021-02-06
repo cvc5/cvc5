@@ -210,8 +210,7 @@ public:
 
 public:
  /** add term to database */
- void addTermToDatabase(Node n,
-                        bool withinQuant = false);
+ void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
  void eqNotifyNewClass(TNode t);
  /** debug print equality engine */
