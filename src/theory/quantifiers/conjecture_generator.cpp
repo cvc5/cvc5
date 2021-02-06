@@ -408,8 +408,12 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           Trace("sg-proc-debug") << "......term : " << n << std::endl;
           if( getTermDatabase()->hasTermCurrent( n ) ){
             if( isHandledTerm( n ) ){
-              getTermDatabase()->computeArgReps( n );
-              d_op_arg_index[r].addTerm( getTermDatabase()->d_arg_reps[n], n );
+              std::vector<TNode> areps;
+              for (const Node& nc : n)
+              {
+                areps.push_back(d_qstate.getRepresentative(nc));
+              }
+              d_op_arg_index[r].addTerm( areps, n );
             }
           }
           ++ieqc_i;
@@ -473,10 +477,10 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
               if( n.hasOperator() ){
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
-                getTermDatabase()->computeArgReps( n );
-                for (TNode ar : getTermDatabase()->d_arg_reps[n])
+                for (const Node& nc : n)
                 {
-                  Trace("sg-gen-eqc") << " e" << d_em[ar];
+                  TNode r = d_qstate.getRepresentative(nc);
+                  Trace("sg-gen-eqc") << " e" << d_em[r];
                 }
                 Trace("sg-gen-eqc") << ") :: " << n << std::endl;
               }else{

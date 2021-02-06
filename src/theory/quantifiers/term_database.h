@@ -65,9 +65,6 @@ class DbList
  */
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
-  // TODO: eliminate these
-  friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
-  friend class ::CVC4::theory::quantifiers::TermGenEnv;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
   typedef context::CDList<Node> NodeList;
