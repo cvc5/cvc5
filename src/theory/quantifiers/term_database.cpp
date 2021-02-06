@@ -1083,10 +1083,7 @@ bool TermDb::reset( Theory::Effort effort ){
            it != it_end;
            ++it)
       {
-        if ((*it).d_assertion.getKind() != INST_CLOSURE)
-        {
-          setHasTerm((*it).d_assertion);
-        }
+        setHasTerm((*it).d_assertion);
       }
     }
   }

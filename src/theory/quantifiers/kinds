@@ -50,7 +50,6 @@ typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeR
 typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule 
 typerule INST_NO_PATTERN ::CVC4::theory::quantifiers::QuantifierInstNoPatternTypeRule 
 typerule INST_ATTRIBUTE ::CVC4::theory::quantifiers::QuantifierInstAttributeTypeRule 
-typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule 
-typerule INST_CLOSURE ::CVC4::theory::quantifiers::QuantifierInstClosureTypeRule 
+typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule
 
 endtheory
