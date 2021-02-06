@@ -59,9 +59,11 @@ class TermDb : public QuantifiersUtil {
   // TODO: eliminate these
   friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
   friend class ::CVC4::theory::quantifiers::TermGenEnv;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
+  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersInferenceManager& qim,
@@ -280,8 +282,28 @@ class TermDb : public QuantifiersUtil {
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
+  
+  class DbList 
+  {
+  public:
+    DbList(context::Context* c) : d_list(c){}
+    NodeList d_list;
+  };
+  
   /** terms processed */
-  std::unordered_set< Node, NodeHashFunction > d_processed;
+  NodeSet d_processed;
+  using TypeNodeDbList = context::CDHashMap< TypeNode, std::shared_ptr<DbList>, TypeNodeHashFunction>;
+  TypeNodeDbList d_type_map;
+  DbList * getOrMkDbListForType(TypeNode tn);
+  
+  /** list of all operators */
+  NodeList d_ops;
+  /** map from operators to ground terms for that operator */
+  using NodeDbListMap = context::CDHashMap< Node, std::shared_ptr<DbList>, NodeHashFunction>;
+  NodeDbListMap d_op_map;
+  DbList * getOrMkDbListForOp(TNode op);
+  
+  
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
@@ -289,12 +311,6 @@ class TermDb : public QuantifiersUtil {
   /** boolean terms */
   Node d_true;
   Node d_false;
-  /** list of all operators */
-  std::vector<Node> d_ops;
-  /** map from operators to ground terms for that operator */
-  std::map< Node, std::vector< Node > > d_op_map;
-  /** map from type nodes to terms of that type */
-  std::map< TypeNode, std::vector< Node > > d_type_map;
   /** map from type nodes to a fresh variable we introduced */
   std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_fv;
   /** inactive map */
