@@ -413,7 +413,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               {
                 areps.push_back(d_qstate.getRepresentative(nc));
               }
-              d_op_arg_index[r].addTerm( areps, n );
+              d_op_arg_index[r].addTerm(areps, n);
             }
           }
           ++ieqc_i;

@@ -442,7 +442,8 @@ void TermDb::computeUfTerms( TNode f ) {
                    << (nonCongruentCount + congruentCount
                        + alreadyCongruentCount)
                    << " / ";
-      Trace("tdb") << relevantCount << " / " << it->second->d_list.size() << std::endl;
+      Trace("tdb") << relevantCount << " / " << it->second->d_list.size()
+                   << std::endl;
     }
   }
 }
