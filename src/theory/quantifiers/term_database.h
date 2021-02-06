@@ -63,7 +63,7 @@ class TermDb : public QuantifiersUtil {
 
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  
+
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersInferenceManager& qim,
@@ -282,28 +282,29 @@ class TermDb : public QuantifiersUtil {
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
-  
-  class DbList 
+
+  class DbList
   {
-  public:
-    DbList(context::Context* c) : d_list(c){}
+   public:
+    DbList(context::Context* c) : d_list(c) {}
     NodeList d_list;
   };
-  
+
   /** terms processed */
   NodeSet d_processed;
-  using TypeNodeDbList = context::CDHashMap< TypeNode, std::shared_ptr<DbList>, TypeNodeHashFunction>;
+  using TypeNodeDbList = context::
+      CDHashMap<TypeNode, std::shared_ptr<DbList>, TypeNodeHashFunction>;
   TypeNodeDbList d_type_map;
-  DbList * getOrMkDbListForType(TypeNode tn);
-  
+  DbList* getOrMkDbListForType(TypeNode tn);
+
   /** list of all operators */
   NodeList d_ops;
   /** map from operators to ground terms for that operator */
-  using NodeDbListMap = context::CDHashMap< Node, std::shared_ptr<DbList>, NodeHashFunction>;
+  using NodeDbListMap =
+      context::CDHashMap<Node, std::shared_ptr<DbList>, NodeHashFunction>;
   NodeDbListMap d_op_map;
-  DbList * getOrMkDbListForOp(TNode op);
-  
-  
+  DbList* getOrMkDbListForOp(TNode op);
+
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */

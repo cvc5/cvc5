@@ -95,8 +95,7 @@ Node TermDb::getGroundTerm(Node f, unsigned i) const
 
 unsigned TermDb::getNumTypeGroundTerms(TypeNode tn) const
 {
-  TypeNodeDbList::const_iterator it =
-      d_type_map.find(tn);
+  TypeNodeDbList::const_iterator it = d_type_map.find(tn);
   if( it!=d_type_map.end() ){
     return it->second->d_list.size();
   }
@@ -105,8 +104,7 @@ unsigned TermDb::getNumTypeGroundTerms(TypeNode tn) const
 
 Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
 {
-  TypeNodeDbList::const_iterator it =
-      d_type_map.find(tn);
+  TypeNodeDbList::const_iterator it = d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     Assert(i < it->second->d_list.size());
@@ -118,8 +116,7 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
 
 Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
 {
-  TypeNodeDbList::const_iterator it =
-      d_type_map.find(tn);
+  TypeNodeDbList::const_iterator it = d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     Assert(!it->second->d_list.empty());
@@ -204,7 +201,7 @@ void TermDb::addTerm(Node n)
   if (!TermUtil::hasInstConstAttr(n))
   {
     Trace("term-db-debug") << "register term : " << n << std::endl;
-    DbList * dlt = getOrMkDbListForType(n.getType());
+    DbList* dlt = getOrMkDbListForType(n.getType());
     dlt->d_list.push_back(n);
     // if this is an atomic trigger, consider adding it
     if (inst::TriggerTermInfo::isAtomicTrigger(n))
@@ -213,8 +210,7 @@ void TermDb::addTerm(Node n)
 
       Node op = getMatchOperator(n);
       Trace("term-db-debug") << "  match operator is : " << op << std::endl;
-      DbList * dlo = getOrMkDbListForOp(op)
-      dlo->d_list.push_back(n);
+      DbList* dlo = getOrMkDbListForOp(op) dlo->d_list.push_back(n);
       // If we are higher-order, we may need to register more terms.
       if (options::ufHo())
       {
@@ -235,26 +231,28 @@ void TermDb::addTerm(Node n)
   }
 }
 
-DbList * TermDb::getOrMkDbListForType(TypeNode tn)
+DbList* TermDb::getOrMkDbListForType(TypeNode tn)
 {
   TypeNodeDbList::iterator it = d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_qstate.getSatContext());
+  std::shared_ptr<DbList> dl =
+      std::make_shared<DbList>(d_qstate.getSatContext());
   d_type_map.insert(tn, dl);
   return dl.get();
 }
 
-DbList * TermDb::getOrMkDbListForOp(TNode op)
+DbList* TermDb::getOrMkDbListForOp(TNode op)
 {
   NodeDbList::iterator it = d_op_map.find(op);
   if (it != d_op_map.end())
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_qstate.getSatContext());
+  std::shared_ptr<DbList> dl =
+      std::make_shared<DbList>(d_qstate.getSatContext());
   d_op_map.insert(op, dl);
   d_ops.push_back(op);
   return dl.get();
@@ -289,7 +287,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
   for (TNode ff : ops)
   {
-    DbList * dbl = getOrMkDbListForOp(ff);
+    DbList* dbl = getOrMkDbListForOp(ff);
     for (const Node& n : dbl->d_list)
     {
       if (hasTermCurrent(n) && isTermActive(n))
@@ -486,7 +484,7 @@ void TermDb::addTermHo(Node n)
       Trace("term-db") << "register term in db (via purify) " << p_n
                        << std::endl;
       // also add this one internally
-      DbList * dblp = getOrMkDbListForOp(psk);
+      DbList* dblp = getOrMkDbListForOp(psk);
       dblp->d_list.push_back(p_n);
       // maintain backwards mapping
       d_ho_purify_to_term[p_n] = n;
@@ -1137,7 +1135,7 @@ bool TermDb::reset( Theory::Effort effort ){
     }
     Trace("quant-ho") << "...finished compute equal functions." << std::endl;
   }
- 
+
   return true;
 }
 
