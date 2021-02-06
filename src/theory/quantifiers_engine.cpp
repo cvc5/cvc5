@@ -58,9 +58,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_ierCounter_c(qstate.getSatContext()),
       d_presolve(qstate.getUserContext(), true),
       d_presolve_in(qstate.getUserContext()),
-      d_presolve_cache(qstate.getUserContext()),
-      d_presolve_cache_wq(qstate.getUserContext()),
-      d_presolve_cache_wic(qstate.getUserContext())
+      d_presolve_cache(qstate.getUserContext())
 {
   //---- utilities
   // term util must come before the other utilities
@@ -273,8 +271,9 @@ void QuantifiersEngine::presolve() {
   //add all terms to database
   if( options::incrementalSolving() ){
     Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
-    for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
-      addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i], d_presolve_cache_wic[i] );
+    for (const Node& t : d_presolve_cache)
+    {
+      addTermToDatabase(t);
     }
     Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
   }
@@ -754,26 +753,25 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
-void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
+void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
+{
+  // don't add terms in quantifier bodies
+  if (withinQuant && !options::registerQuantBodyTerms())
+  {
+    return;
+  }
   if( options::incrementalSolving() ){
     if( d_presolve_in.find( n )==d_presolve_in.end() ){
       d_presolve_in.insert( n );
       d_presolve_cache.push_back( n );
-      d_presolve_cache_wq.push_back( withinQuant );
-      d_presolve_cache_wic.push_back( withinInstClosure );
     }
   }
   //only wait if we are doing incremental solving
   if( !d_presolve || !options::incrementalSolving() ){
-    std::set< Node > added;
-    d_term_db->addTerm(n, added, withinQuant, withinInstClosure);
-
-    if (!withinQuant)
+    d_term_db->addTerm(n);
+    if (d_sygus_tdb && options::sygusEvalUnfold())
     {
-      if (d_sygus_tdb && options::sygusEvalUnfold())
-      {
-        d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
-      }
+      d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
     }
   }
 }
