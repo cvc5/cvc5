@@ -989,7 +989,7 @@ void TermDb::setHasTerm( Node n ) {
 }
 
 void TermDb::presolve() {
-  if (!options::termDbCd())
+  if (options::incrementalSolving() && !options::termDbCd())
   {
     d_termsContext.pop();
     d_termsContext.push();
