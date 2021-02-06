@@ -269,7 +269,8 @@ void QuantifiersEngine::presolve() {
   d_term_db->presolve();
   d_presolve = false;
   //add all terms to database
-  if( options::incrementalSolving() && !options::termDbCd() ){
+  if (options::incrementalSolving() && !options::termDbCd())
+  {
     Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
     for (const Node& t : d_presolve_cache)
     {
@@ -760,7 +761,8 @@ void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
   {
     return;
   }
-  if( options::incrementalSolving() && !options::termDbCd() ){
+  if (options::incrementalSolving() && !options::termDbCd())
+  {
     if( d_presolve_in.find( n )==d_presolve_in.end() ){
       d_presolve_in.insert( n );
       d_presolve_cache.push_back( n );
