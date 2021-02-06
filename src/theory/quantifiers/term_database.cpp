@@ -40,6 +40,7 @@ TermDb::TermDb(QuantifiersState& qs,
     : d_quantEngine(qe),
       d_qstate(qs),
       d_qim(qim),
+      d_termsContext(),
       d_processed(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
       d_type_map(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
       d_ops(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
@@ -49,8 +50,10 @@ TermDb::TermDb(QuantifiersState& qs,
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-  if (options::termDbCd())
+  if (!options::termDbCd())
   {
+    // when not maintaining terms in a context dependent manner, we clear during
+    // each presolve, which requires maintaining a single outermost level
     d_termsContext.push();
   }
 }
@@ -986,7 +989,7 @@ void TermDb::setHasTerm( Node n ) {
 }
 
 void TermDb::presolve() {
-  if (options::termDbCd())
+  if (!options::termDbCd())
   {
     d_termsContext.pop();
     d_termsContext.push();
