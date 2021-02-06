@@ -288,7 +288,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
   default:
     Unreachable();
   }
-  return THEORY_BUILTIN;
 }
 
 void Theory::notifySharedTerm(TNode n)
