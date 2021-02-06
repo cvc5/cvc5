@@ -1803,7 +1803,7 @@ void TermGenEnv::collectSignatureInformation() {
   for (size_t i = 0, nops = tdb->getNumOperators(); i < nops; i++)
   {
     Node op = tdb->getOperator(i);
-    TermDb::DbList* dbl = tdb->getOrMkDbListForOp(op);
+    DbList* dbl = tdb->getOrMkDbListForOp(op);
     if (!dbl->d_list.empty())
     {
       Node nn = dbl->d_list[0];

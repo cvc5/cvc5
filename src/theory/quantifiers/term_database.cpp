@@ -64,15 +64,16 @@ void TermDb::registerQuantifier( Node q ) {
   }
 }
 
-unsigned TermDb::getNumOperators() { return d_ops.size(); }
-Node TermDb::getOperator(unsigned i)
+size_t TermDb::getNumOperators() { return d_ops.size(); }
+
+Node TermDb::getOperator(size_t i)
 {
   Assert(i < d_ops.size());
   return d_ops[i];
 }
 
 /** ground terms */
-unsigned TermDb::getNumGroundTerms(Node f) const
+size_t TermDb::getNumGroundTerms(Node f) const
 {
   NodeDbListMap::const_iterator it = d_op_map.find(f);
   if( it!=d_op_map.end() ){
@@ -81,7 +82,7 @@ unsigned TermDb::getNumGroundTerms(Node f) const
   return 0;
 }
 
-Node TermDb::getGroundTerm(Node f, unsigned i) const
+Node TermDb::getGroundTerm(Node f, size_t i) const
 {
   NodeDbListMap::const_iterator it = d_op_map.find(f);
   if (it != d_op_map.end())
@@ -93,18 +94,18 @@ Node TermDb::getGroundTerm(Node f, unsigned i) const
   return Node::null();
 }
 
-unsigned TermDb::getNumTypeGroundTerms(TypeNode tn) const
+size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
 {
-  TypeNodeDbList::const_iterator it = d_type_map.find(tn);
+  TypeNodeDbListMap::const_iterator it = d_type_map.find(tn);
   if( it!=d_type_map.end() ){
     return it->second->d_list.size();
   }
   return 0;
 }
 
-Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
+Node TermDb::getTypeGroundTerm(TypeNode tn, size_t i) const
 {
-  TypeNodeDbList::const_iterator it = d_type_map.find(tn);
+  TypeNodeDbListMap::const_iterator it = d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     Assert(i < it->second->d_list.size());
@@ -116,7 +117,7 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
 
 Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
 {
-  TypeNodeDbList::const_iterator it = d_type_map.find(tn);
+  TypeNodeDbListMap::const_iterator it = d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     Assert(!it->second->d_list.empty());
@@ -234,7 +235,7 @@ void TermDb::addTerm(Node n)
 
 DbList* TermDb::getOrMkDbListForType(TypeNode tn)
 {
-  TypeNodeDbList::iterator it = d_type_map.find(tn);
+  TypeNodeDbListMap::iterator it = d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     return it->second.get();
@@ -247,7 +248,7 @@ DbList* TermDb::getOrMkDbListForType(TypeNode tn)
 
 DbList* TermDb::getOrMkDbListForOp(TNode op)
 {
-  NodeDbList::iterator it = d_op_map.find(op);
+  NodeDbListMap::iterator it = d_op_map.find(op);
   if (it != d_op_map.end())
   {
     return it->second.get();
