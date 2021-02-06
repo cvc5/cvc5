@@ -108,9 +108,10 @@ class TermDb : public QuantifiersUtil {
   * variable per type.
   */
   Node getOrMakeTypeFreshVariable(TypeNode tn);
-  /** add a term to the database
-  * withinQuant is whether n is within the body of a quantified formula
-  */
+  /**
+   * Add a term to the database, which registers it as a term that may be
+   * matched with via E-matching, and can be used in entailment tests below.
+   */
   void addTerm(Node n);
   /** get match operator for term n
   *
