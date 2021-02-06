@@ -200,8 +200,7 @@ Node TermDb::getMatchOperator( Node n ) {
 
 void TermDb::addTerm(Node n,
                      std::set<Node>& added,
-                     bool withinQuant,
-                     bool withinInstClosure)
+                     bool withinQuant)
 {
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
@@ -231,7 +230,7 @@ void TermDb::addTerm(Node n,
         // If we are higher-order, we may need to register more terms.
         if (options::ufHo())
         {
-          addTermHo(n, added, withinQuant, withinInstClosure);
+          addTermHo(n, added, withinQuant);
         }
       }
     }
@@ -241,17 +240,11 @@ void TermDb::addTerm(Node n,
     }
     rec = true;
   }
-  if (withinInstClosure
-      && d_iclosure_processed.find(n) == d_iclosure_processed.end())
-  {
-    d_iclosure_processed.insert(n);
-    rec = true;
-  }
   if (rec && !n.isClosure())
   {
     for (const Node& nc : n)
     {
-      addTerm(nc, added, withinQuant, withinInstClosure);
+      addTerm(nc, added, withinQuant);
     }
   }
 }
@@ -918,18 +911,6 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
 
 bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
-  if( options::lteRestrictInstClosure() ){
-    //has to be both in inst closure and in ground assertions
-    if( !isInstClosure( n ) ){
-      Trace("inst-add-debug") << "Term " << n << " is not an inst-closure term." << std::endl;
-      return false;
-    }
-    // hack : since theories preregister terms not in assertions, we are using hasTermCurrent to approximate this
-    if( !hasTermCurrent( n, false ) ){
-      Trace("inst-add-debug") << "Term " << n << " is not in a ground assertion." << std::endl;
-      return false;
-    }
-  }
   if( options::instMaxLevel()!=-1 ){
     if( n.hasAttribute(InstLevelAttribute()) ){
       int fml = f.isNull() ? -1 : d_quantEngine->getQuantAttributes()->getQuantInstLevel( f );
@@ -1060,8 +1041,7 @@ bool TermDb::reset( Theory::Effort effort ){
   }
 
   //compute has map
-  if (options::termDbMode() == options::TermDbMode::RELEVANT
-      || options::lteRestrictInstClosure())
+  if (options::termDbMode() == options::TermDbMode::RELEVANT)
   {
     d_has_map.clear();
     d_term_elig_eqc.clear();

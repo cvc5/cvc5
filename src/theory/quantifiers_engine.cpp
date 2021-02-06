@@ -59,8 +59,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_presolve(qstate.getUserContext(), true),
       d_presolve_in(qstate.getUserContext()),
       d_presolve_cache(qstate.getUserContext()),
-      d_presolve_cache_wq(qstate.getUserContext()),
-      d_presolve_cache_wic(qstate.getUserContext())
+      d_presolve_cache_wq(qstate.getUserContext())
 {
   //---- utilities
   // term util must come before the other utilities
@@ -274,7 +273,7 @@ void QuantifiersEngine::presolve() {
   if( options::incrementalSolving() ){
     Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
     for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
-      addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i], d_presolve_cache_wic[i] );
+      addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i] );
     }
     Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
   }
@@ -754,19 +753,18 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
-void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
+void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
   if( options::incrementalSolving() ){
     if( d_presolve_in.find( n )==d_presolve_in.end() ){
       d_presolve_in.insert( n );
       d_presolve_cache.push_back( n );
       d_presolve_cache_wq.push_back( withinQuant );
-      d_presolve_cache_wic.push_back( withinInstClosure );
     }
   }
   //only wait if we are doing incremental solving
   if( !d_presolve || !options::incrementalSolving() ){
     std::set< Node > added;
-    d_term_db->addTerm(n, added, withinQuant, withinInstClosure);
+    d_term_db->addTerm(n, added, withinQuant);
 
     if (!withinQuant)
     {

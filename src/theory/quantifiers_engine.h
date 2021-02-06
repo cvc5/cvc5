@@ -380,7 +380,6 @@ public:
   NodeSet d_presolve_in;
   NodeList d_presolve_cache;
   BoolList d_presolve_cache_wq;
-  BoolList d_presolve_cache_wic;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

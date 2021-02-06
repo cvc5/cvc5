@@ -172,11 +172,6 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
-  }
-  else if (options::lteRestrictInstClosure()
-           && (!d_tdb->isInstClosure(n) || !d_tdb->hasTermCurrent(n, false)))
-  {
-    return -1;
   }else if( options::instMaxLevel()!=-1 ){
     //score prefer lowest instantiation level
     if( n.hasAttribute(InstLevelAttribute()) ){

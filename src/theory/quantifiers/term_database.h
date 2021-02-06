@@ -268,12 +268,6 @@ class TermDb : public QuantifiersUtil {
   bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
-  /** is r a inst closure node?
-   * This terminology was used for specifying
-   * a particular status of nodes for
-   * Bansal et al., CAV 2015.
-   */
-  bool isInstClosure(Node r);
   /** get higher-order type match predicate
    *
    * This predicate is used to force certain functions f of type tn to appear as
@@ -292,8 +286,6 @@ class TermDb : public QuantifiersUtil {
   QuantifiersInferenceManager& d_qim;
   /** terms processed */
   std::unordered_set< Node, NodeHashFunction > d_processed;
-  /** terms processed */
-  std::unordered_set< Node, NodeHashFunction > d_iclosure_processed;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
@@ -409,8 +401,7 @@ class TermDb : public QuantifiersUtil {
    */
   void addTermHo(Node n,
                  std::set<Node>& added,
-                 bool withinQuant,
-                 bool withinInstClosure);
+                 bool withinQuant);
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing
