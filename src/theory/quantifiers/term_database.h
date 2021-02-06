@@ -298,6 +298,8 @@ class TermDb : public QuantifiersUtil {
   QuantifiersInferenceManager& d_qim;
   /** A context for the data structures below, when not context-dependent */
   context::Context d_termsContext;
+  /** The context we are using for the data structures below */
+  context::Context* d_termsContextUse;
   /** terms processed */
   NodeSet d_processed;
   /** map from types to ground terms for that type */
