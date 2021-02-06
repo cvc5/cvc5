@@ -355,6 +355,7 @@ class Theory {
     Kind k = typeNode.getKind();
     if (k == kind::TYPE_CONSTANT)
     {
+      // type constants, e.g. Int, always belong to given theory (not builtin)
       return typeConstantToTheoryId(typeNode.getConst<TypeConstant>());
     }
     id = kindToTheoryId(k);
