@@ -958,10 +958,6 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
   }
 }
 
-bool TermDb::isInstClosure( Node r ) {
-  return d_iclosure_processed.find( r )!=d_iclosure_processed.end();
-}
-
 void TermDb::setHasTerm( Node n ) {
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
   if( d_has_map.find( n )==d_has_map.end() ){
@@ -980,7 +976,6 @@ void TermDb::presolve() {
     d_op_map.clear();
     d_type_map.clear();
     d_processed.clear();
-    d_iclosure_processed.clear();
   }
 }
 
@@ -1083,14 +1078,6 @@ bool TermDb::reset( Theory::Effort effort ){
       {
         setHasTerm((*it).d_assertion);
       }
-    }
-  }
-  //explicitly add inst closure terms to the equality engine to ensure only EE terms are indexed
-  for (const Node& n : d_iclosure_processed)
-  {
-    if (!ee->hasTerm(n))
-    {
-      ee->addTerm(n);
     }
   }
 
