@@ -146,8 +146,9 @@ struct TheoryOfTypeTag
 struct TheoryOfTermTag
 {
 };
-/** Attribute true for expressions with bound variables in them */
+/** Attribute caching the result of theoryOf, type based */
 typedef expr::Attribute<TheoryOfTypeTag, uint32_t> TheoryOfTypeAttr;
+/** Attribute caching the result of theoryOf, term based */
 typedef expr::Attribute<TheoryOfTermTag, uint32_t> TheoryOfTermAttr;
 
 TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
