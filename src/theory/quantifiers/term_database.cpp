@@ -41,7 +41,8 @@ TermDb::TermDb(QuantifiersState& qs,
       d_qstate(qs),
       d_qim(qim),
       d_termsContext(),
-      d_termsContextUse(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
+      d_termsContextUse(options::termDbCd() ? qs.getSatContext()
+                                            : &d_termsContext),
       d_processed(d_termsContextUse),
       d_type_map(d_termsContextUse),
       d_ops(d_termsContextUse),
@@ -248,8 +249,7 @@ DbList* TermDb::getOrMkDbListForType(TypeNode tn)
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl =
-      std::make_shared<DbList>(d_termsContextUse);
+  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
   d_type_map.insert(tn, dl);
   return dl.get();
 }
@@ -261,8 +261,7 @@ DbList* TermDb::getOrMkDbListForOp(TNode op)
   {
     return it->second.get();
   }
-  std::shared_ptr<DbList> dl =
-      std::make_shared<DbList>(d_termsContextUse);
+  std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
   d_op_map.insert(op, dl);
   d_ops.push_back(op);
   return dl.get();
