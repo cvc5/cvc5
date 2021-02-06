@@ -110,13 +110,8 @@ class TermDb : public QuantifiersUtil {
   Node getOrMakeTypeFreshVariable(TypeNode tn);
   /** add a term to the database
   * withinQuant is whether n is within the body of a quantified formula
-  * withinInstClosure is whether n is within an inst-closure operator (see
-  * Bansal et al CAV 2015).
   */
-  void addTerm(Node n,
-               std::set<Node>& added,
-               bool withinQuant = false,
-               bool withinInstClosure = false);
+  void addTerm(Node n);
   /** get match operator for term n
   *
   * If n has a kind that we index, this function will
@@ -399,7 +394,7 @@ class TermDb : public QuantifiersUtil {
    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
    * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
    */
-  void addTermHo(Node n, std::set<Node>& added, bool withinQuant);
+  void addTermHo(Node n);
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing

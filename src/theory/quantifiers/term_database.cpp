@@ -198,51 +198,45 @@ Node TermDb::getMatchOperator( Node n ) {
   }
 }
 
-void TermDb::addTerm(Node n, std::set<Node>& added, bool withinQuant)
+void TermDb::addTerm(Node n)
 {
-  //don't add terms in quantifier bodies
-  if( withinQuant && !options::registerQuantBodyTerms() ){
+  if (d_processed.find(n) != d_processed.end())
+  {
     return;
   }
-  bool rec = false;
-  if (d_processed.find(n) == d_processed.end())
+  d_processed.insert(n);
+  if (!TermUtil::hasInstConstAttr(n))
   {
-    d_processed.insert(n);
-    if (!TermUtil::hasInstConstAttr(n))
+    Trace("term-db-debug") << "register term : " << n << std::endl;
+    d_type_map[n.getType()].push_back(n);
+    // if this is an atomic trigger, consider adding it
+    if (inst::TriggerTermInfo::isAtomicTrigger(n))
     {
-      Trace("term-db-debug") << "register term : " << n << std::endl;
-      d_type_map[n.getType()].push_back(n);
-      // if this is an atomic trigger, consider adding it
-      if (inst::TriggerTermInfo::isAtomicTrigger(n))
-      {
-        Trace("term-db") << "register term in db " << n << std::endl;
+      Trace("term-db") << "register term in db " << n << std::endl;
 
-        Node op = getMatchOperator(n);
-        Trace("term-db-debug") << "  match operator is : " << op << std::endl;
-        if (d_op_map.find(op) == d_op_map.end())
-        {
-          d_ops.push_back(op);
-        }
-        d_op_map[op].push_back(n);
-        added.insert(n);
-        // If we are higher-order, we may need to register more terms.
-        if (options::ufHo())
-        {
-          addTermHo(n, added, withinQuant);
-        }
+      Node op = getMatchOperator(n);
+      Trace("term-db-debug") << "  match operator is : " << op << std::endl;
+      if (d_op_map.find(op) == d_op_map.end())
+      {
+        d_ops.push_back(op);
+      }
+      d_op_map[op].push_back(n);
+      // If we are higher-order, we may need to register more terms.
+      if (options::ufHo())
+      {
+        addTermHo(n);
       }
     }
-    else
-    {
-      setTermInactive(n);
-    }
-    rec = true;
   }
-  if (rec && !n.isClosure())
+  else
+  {
+    setTermInactive(n);
+  }
+  if (!n.isClosure())
   {
     for (const Node& nc : n)
     {
-      addTerm(nc, added, withinQuant);
+      addTerm(nc);
     }
   }
 }
@@ -433,10 +427,7 @@ void TermDb::computeUfTerms( TNode f ) {
   }
 }
 
-void TermDb::addTermHo(Node n,
-                       std::set<Node>& added,
-                       bool withinQuant,
-                       bool withinInstClosure)
+void TermDb::addTermHo(Node n)
 {
   Assert(options::ufHo());
   if (n.getType().isFunction())
@@ -485,7 +476,7 @@ void TermDb::addTermHo(Node n,
     // also add standard application version
     args.insert(args.begin(), curr);
     Node uf_n = nm->mkNode(APPLY_UF, args);
-    addTerm(uf_n, added, withinQuant, withinInstClosure);
+    addTerm(uf_n);
   }
 }
 
