@@ -273,7 +273,7 @@ void QuantifiersEngine::presolve() {
   if( options::incrementalSolving() ){
     Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
     for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
-      addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i] );
+      addTermToDatabase(d_presolve_cache[i], d_presolve_cache_wq[i]);
     }
     Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
   }
@@ -753,7 +753,8 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
-void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant ){
+void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
+{
   if( options::incrementalSolving() ){
     if( d_presolve_in.find( n )==d_presolve_in.end() ){
       d_presolve_in.insert( n );

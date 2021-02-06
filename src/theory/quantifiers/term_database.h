@@ -399,9 +399,7 @@ class TermDb : public QuantifiersUtil {
    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
    * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
    */
-  void addTermHo(Node n,
-                 std::set<Node>& added,
-                 bool withinQuant);
+  void addTermHo(Node n, std::set<Node>& added, bool withinQuant);
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing

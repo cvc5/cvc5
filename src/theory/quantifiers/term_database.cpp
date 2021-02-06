@@ -198,9 +198,7 @@ Node TermDb::getMatchOperator( Node n ) {
   }
 }
 
-void TermDb::addTerm(Node n,
-                     std::set<Node>& added,
-                     bool withinQuant)
+void TermDb::addTerm(Node n, std::set<Node>& added, bool withinQuant)
 {
   //don't add terms in quantifier bodies
   if( withinQuant && !options::registerQuantBodyTerms() ){
