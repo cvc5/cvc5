@@ -479,8 +479,8 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
                 for (const Node& nc : n)
                 {
-                  TNode r = d_qstate.getRepresentative(nc);
-                  Trace("sg-gen-eqc") << " e" << d_em[r];
+                  TNode ar = d_qstate.getRepresentative(nc);
+                  Trace("sg-gen-eqc") << " e" << d_em[ar];
                 }
                 Trace("sg-gen-eqc") << ") :: " << n << std::endl;
               }else{
