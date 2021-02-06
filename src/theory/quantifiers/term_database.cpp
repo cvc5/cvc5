@@ -210,7 +210,8 @@ void TermDb::addTerm(Node n)
 
       Node op = getMatchOperator(n);
       Trace("term-db-debug") << "  match operator is : " << op << std::endl;
-      DbList* dlo = getOrMkDbListForOp(op) dlo->d_list.push_back(n);
+      DbList* dlo = getOrMkDbListForOp(op);
+      dlo->d_list.push_back(n);
       // If we are higher-order, we may need to register more terms.
       if (options::ufHo())
       {
