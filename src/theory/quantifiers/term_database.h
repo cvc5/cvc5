@@ -304,6 +304,8 @@ class TermDb : public QuantifiersUtil {
   NodeList d_ops;
   /** map from operators to ground terms for that operator */
   NodeDbListMap d_op_map;
+  /** A context for the above */
+  context::Context d_termsContext;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */

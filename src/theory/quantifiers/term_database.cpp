@@ -40,15 +40,19 @@ TermDb::TermDb(QuantifiersState& qs,
     : d_quantEngine(qe),
       d_qstate(qs),
       d_qim(qim),
-      d_processed(qs.getSatContext()),
-      d_type_map(qs.getSatContext()),
-      d_ops(qs.getSatContext()),
-      d_op_map(qs.getSatContext()),
+      d_processed(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
+      d_type_map(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
+      d_ops(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
+      d_op_map(options::termDbCd() ? qs.getSatContext() : &d_termsContext),
       d_inactive_map(qs.getSatContext())
 {
   d_consistent_ee = true;
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
+  if (options::termDbCd())
+  {
+    d_termsContext.push();
+  }
 }
 
 TermDb::~TermDb(){
@@ -982,6 +986,11 @@ void TermDb::setHasTerm( Node n ) {
 }
 
 void TermDb::presolve() {
+  if (options::termDbCd())
+  {
+    d_termsContext.pop();
+    d_termsContext.push();
+  }
 }
 
 bool TermDb::reset( Theory::Effort effort ){
