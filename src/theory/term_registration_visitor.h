@@ -51,21 +51,16 @@ class PreRegisterVisitor {
   TNodeToTheorySetMap d_visited;
 
   /**
-   * A set of all theories in the term
-   */
-  theory::TheoryIdSet d_theories;
-
-  /**
    * String representation of the visited map, for debugging purposes.
    */
   std::string toString() const;
 
  public:
   /** Returned set tells us which theories there are */
-  typedef theory::TheoryIdSet return_type;
+  typedef void return_type;
 
   PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
-      : d_engine(engine), d_visited(context), d_theories(0)
+      : d_engine(engine), d_visited(context)
   {
   }
 
@@ -89,7 +84,13 @@ class PreRegisterVisitor {
   /**
    * Notifies the engine of all the theories used.
    */
-  theory::TheoryIdSet done(TNode node) { return d_theories; }
+  void done(TNode node) {}
+
+  /** Preregister */
+  static void preregister(TheoryEngine* te,
+                          theory::TheoryIdSet& visitedTheories,
+                          TNode current,
+                          TNode parent);
 };
 
 
@@ -99,9 +100,6 @@ class PreRegisterVisitor {
  * been visited already, we need to visit it again, since we need to associate it with both atoms.
  */
 class SharedTermsVisitor {
-
-  /** The shared terms database */
-  SharedTermsDatabase& d_sharedTerms;
 
   /**
    * Cache from preprocessing of atoms.
@@ -124,8 +122,10 @@ public:
 
   typedef void return_type;
 
-  SharedTermsVisitor(SharedTermsDatabase& sharedTerms)
-  : d_sharedTerms(sharedTerms) {}
+  SharedTermsVisitor(TheoryEngine* te, SharedTermsDatabase& sharedTerms)
+      : d_engine(te), d_sharedTerms(sharedTerms)
+  {
+  }
 
   /**
    * Returns true is current has already been pre-registered with both current and parent theories.
@@ -151,6 +151,12 @@ public:
    * Clears the internal state.
    */   
   void clear();
+
+ private:
+  /** The engine */
+  TheoryEngine* d_engine;
+  /** The shared terms database */
+  SharedTermsDatabase& d_sharedTerms;
 };
 
 

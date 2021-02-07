@@ -96,14 +96,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
   }
 
   TheoryIdSet visitedTheories = (*find).second;
-  if (shouldVisit(visitedTheories, current, parent))
-  {
-    return false;
-  }
-  // mark that the term we are visiting belongs to the theories that have
-  // already preregistered current
-  d_theories = TheoryIdSetUtil::setUnion(visitedTheories, d_theories);
-  return true;
+  return !shouldVisit(visitedTheories, current, parent);
 }
 
 void PreRegisterVisitor::visit(TNode current, TNode parent) {
@@ -113,15 +106,35 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
     Debug("register::internal") << toString() << std::endl;
   }
 
+  // get the theories we already preregistered with
   TheoryIdSet visitedTheories = d_visited[current];
 
+  // call the preregistration on current, parent or type theories and update
+  // visitedTheories.
+  preregister(d_engine, visitedTheories, current, parent);
+
+  Debug("register::internal")
+      << "PreRegisterVisitor::visit(" << current << "," << parent
+      << "): now registered with "
+      << TheoryIdSetUtil::setToString(visitedTheories) << std::endl;
+  // update the theories set for current
+  d_visited[current] = visitedTheories;
+  Assert(d_visited.find(current) != d_visited.end());
+  Assert(alreadyVisited(current, parent));
+}
+
+void PreRegisterVisitor::preregister(TheoryEngine* te,
+                                     TheoryIdSet& visitedTheories,
+                                     TNode current,
+                                     TNode parent)
+{
   // Preregister with the current theory, if necessary
   TheoryId currentTheoryId = Theory::theoryOf(current);
   if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))
   {
     visitedTheories =
         TheoryIdSetUtil::setInsert(currentTheoryId, visitedTheories);
-    Theory* th = d_engine->theoryOf(currentTheoryId);
+    Theory* th = te->theoryOf(currentTheoryId);
     th->preRegisterTerm(current);
     Debug("register::internal")
         << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -136,7 +149,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
     {
       visitedTheories =
           TheoryIdSetUtil::setInsert(parentTheoryId, visitedTheories);
-      Theory* th = d_engine->theoryOf(parentTheoryId);
+      Theory* th = te->theoryOf(parentTheoryId);
       th->preRegisterTerm(current);
       Debug("register::internal")
           << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -152,7 +165,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
       {
         visitedTheories =
             TheoryIdSetUtil::setInsert(typeTheoryId, visitedTheories);
-        Theory* th = d_engine->theoryOf(typeTheoryId);
+        Theory* th = te->theoryOf(typeTheoryId);
         th->preRegisterTerm(current);
         Debug("register::internal")
             << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -160,24 +173,9 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
       }
     }
   }
-
-  Debug("register::internal")
-      << "PreRegisterVisitor::visit(" << current << "," << parent
-      << "): now registered with "
-      << TheoryIdSetUtil::setToString(visitedTheories) << std::endl;
-  // update the theories set for current
-  d_visited[current] = visitedTheories;
-  // update the entire set of theories seen
-  d_theories = TheoryIdSetUtil::setUnion(visitedTheories, d_theories);
-  Assert(d_visited.find(current) != d_visited.end());
-  Assert(alreadyVisited(current, parent));
 }
 
-void PreRegisterVisitor::start(TNode node)
-{
-  // reset the set of theories we have seen
-  d_theories = 0;
-}
+void PreRegisterVisitor::start(TNode node) {}
 
 std::string SharedTermsVisitor::toString() const {
   std::stringstream ss;
@@ -223,32 +221,14 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
   }
   TheoryIdSet visitedTheories = d_visited[current];
 
-  // consider current
-  TheoryId currentTheoryId = Theory::theoryOf(current);
-  visitedTheories =
-      TheoryIdSetUtil::setInsert(currentTheoryId, visitedTheories);
-
-  if (current != parent) {
-    // consider parent
-    TheoryId parentTheoryId = Theory::theoryOf(parent);
-    visitedTheories =
-        TheoryIdSetUtil::setInsert(parentTheoryId, visitedTheories);
-
-    // consider type if current and parent are different theories, or type is
-    // finite
-    TypeNode type = current.getType();
-    if (currentTheoryId != parentTheoryId || type.isInterpretedFinite())
-    {
-      TheoryId typeTheoryId = Theory::theoryOf(type);
-      visitedTheories =
-          TheoryIdSetUtil::setInsert(typeTheoryId, visitedTheories);
-    }
-  }
+  // preregister the term with the current, parent or type theories, as needed
+  PreRegisterVisitor::preregister(d_engine, visitedTheories, current, parent);
 
   // Record the new theories that we visited
   d_visited[current] = visitedTheories;
 
   // If there is more than two theories and a new one has been added notify the shared terms database
+  TheoryId currentTheoryId = Theory::theoryOf(current);  // TODO: remove
   if (TheoryIdSetUtil::setDifference(
           visitedTheories, TheoryIdSetUtil::setInsert(currentTheoryId)))
   {

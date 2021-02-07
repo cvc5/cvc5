@@ -224,7 +224,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
       d_relManager(nullptr),
-      d_preRegistrationVisitor(this, context),
       d_eager_model_building(false),
       d_inConflict(context, false),
       d_inSatMode(false),
@@ -273,6 +272,11 @@ void TheoryEngine::interrupt() { d_interrupted = true; }
 void TheoryEngine::preRegister(TNode preprocessed) {
   Debug("theory") << "TheoryEngine::preRegister( " << preprocessed << ")"
                   << std::endl;
+  if (d_inConflict)
+  {
+    // not necessary if in conflict already
+    return;
+  }
   d_preregisterQueue.push(preprocessed);
 
   if (!d_inPreregister) {
@@ -281,6 +285,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
 
     // Process the pre-registration queue
     while (!d_preregisterQueue.empty()) {
+      Assert(!d_inConflict);
       // Get the next atom to pre-register
       preprocessed = d_preregisterQueue.front();
       d_preregisterQueue.pop();
@@ -292,47 +297,10 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // should not have witness
       Assert(!expr::hasSubtermKind(kind::WITNESS, preprocessed));
 
-      // Pre-register the terms in the atom
-      theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
-          d_preRegistrationVisitor, preprocessed);
-      theories = TheoryIdSetUtil::setRemove(THEORY_BOOL, theories);
-      // Remove the top theory, if any more that means multiple theories were
-      // involved
-      bool multipleTheories =
-          TheoryIdSetUtil::setRemove(Theory::theoryOf(preprocessed), theories);
-      if (Configuration::isAssertionBuild())
-      {
-        TheoryId i;
-        // This should never throw an exception, since theories should be
-        // guaranteed to be initialized.
-        // These checks don't work with finite model finding, because it
-        // uses Rational constants to represent cardinality constraints,
-        // even though arithmetic isn't actually involved.
-        if (!options::finiteModelFind())
-        {
-          while ((i = TheoryIdSetUtil::setPop(theories)) != THEORY_LAST)
-          {
-            if (!d_logicInfo.isTheoryEnabled(i))
-            {
-              LogicInfo newLogicInfo = d_logicInfo.getUnlockedCopy();
-              newLogicInfo.enableTheory(i);
-              newLogicInfo.lock();
-              std::stringstream ss;
-              ss << "The logic was specified as " << d_logicInfo.getLogicString()
-                << ", which doesn't include " << i
-                << ", but found a term in that theory." << std::endl
-                << "You might want to extend your logic to "
-                << newLogicInfo.getLogicString() << std::endl;
-              throw LogicException(ss.str());
-            }
-          }
-        }
-      }
-
       // pre-register with the shared solver, which also handles
       // calling prepregister on individual theories.
       Assert(d_sharedSolver != nullptr);
-      d_sharedSolver->preRegisterShared(preprocessed, multipleTheories);
+      d_sharedSolver->preRegisterShared(preprocessed);
     }
 
     // Leaving pre-register
@@ -1307,8 +1275,6 @@ void TheoryEngine::lemma(theory::TrustNode tlemma,
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
-  Trace("te-lemma") << "Lemma, input: " << lemma << ", property = " << p
-                    << std::endl;
 
   Assert(!expr::hasFreeVar(lemma));
 
