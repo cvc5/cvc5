@@ -769,7 +769,7 @@ void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
     }
   }
   //only wait if we are doing incremental solving
-  if( !d_presolve || !options::incrementalSolving() ){
+  if( !d_presolve || !options::incrementalSolving() || options::termDbCd()){
     d_term_db->addTerm(n);
     if (d_sygus_tdb && options::sygusEvalUnfold())
     {

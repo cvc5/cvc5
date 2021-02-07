@@ -263,6 +263,7 @@ DbList* TermDb::getOrMkDbListForOp(TNode op)
   }
   std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
   d_op_map.insert(op, dl);
+  Assert (op.getKind()!=BOUND_VARIABLE);
   d_ops.push_back(op);
   return dl.get();
 }
