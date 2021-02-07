@@ -84,7 +84,7 @@ class PreRegisterVisitor {
   /**
    * Marks the node as the starting literal.
    */
-  void start(TNode node) {}
+  void start(TNode node);
 
   /**
    * Notifies the engine of all the theories used.
