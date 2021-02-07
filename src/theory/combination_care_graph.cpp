@@ -15,6 +15,7 @@
 #include "theory/combination_care_graph.h"
 
 #include "expr/node_visitor.h"
+#include "prop/prop_engine.h"
 #include "theory/care_graph.h"
 #include "theory/theory_engine.h"
 
@@ -85,7 +86,7 @@ void CombinationCareGraph::combineTheories()
     // This is supposed to force preference to follow what the theory models
     // already have but it doesn't seem to make a big difference - need to
     // explore more -Clark
-    Node e = d_te.ensureLiteral(equality);
+    Node e = d_valuation.ensureLiteral(equality);
     propEngine->requirePhase(e, true);
   }
 }

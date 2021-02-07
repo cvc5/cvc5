@@ -33,77 +33,73 @@ QuantifiersModules::QuantifiersModules()
       d_fs(nullptr),
       d_i_cbqi(nullptr),
       d_qsplit(nullptr),
-      d_anti_skolem(nullptr),
       d_sygus_inst(nullptr)
 {
 }
 QuantifiersModules::~QuantifiersModules() {}
 void QuantifiersModules::initialize(QuantifiersEngine* qe,
-                                    context::Context* c,
+                                    QuantifiersState& qs,
+                                    QuantifiersInferenceManager& qim,
+                                    QuantifiersRegistry& qr,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
   if (options::quantConflictFind())
   {
-    d_qcf.reset(new quantifiers::QuantConflictFind(qe, c));
+    d_qcf.reset(new QuantConflictFind(qe, qs, qim, qr));
     modules.push_back(d_qcf.get());
   }
   if (options::conjectureGen())
   {
-    d_sg_gen.reset(new quantifiers::ConjectureGenerator(qe, c));
+    d_sg_gen.reset(new ConjectureGenerator(qe, qs, qim, qr));
     modules.push_back(d_sg_gen.get());
   }
   if (!options::finiteModelFind() || options::fmfInstEngine())
   {
-    d_inst_engine.reset(new quantifiers::InstantiationEngine(qe));
+    d_inst_engine.reset(new InstantiationEngine(qe, qs, qim, qr));
     modules.push_back(d_inst_engine.get());
   }
   if (options::cegqi())
   {
-    d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
+    d_i_cbqi.reset(new InstStrategyCegqi(qe, qs, qim, qr));
     modules.push_back(d_i_cbqi.get());
     qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
   }
   if (options::sygus())
   {
-    d_synth_e.reset(new quantifiers::SynthEngine(qe, c));
+    d_synth_e.reset(new SynthEngine(qe, qs, qim, qr));
     modules.push_back(d_synth_e.get());
   }
   // finite model finding
   if (options::fmfBound())
   {
-    d_bint.reset(new quantifiers::BoundedIntegers(c, qe));
+    d_bint.reset(new BoundedIntegers(qe, qs, qim, qr));
     modules.push_back(d_bint.get());
   }
   if (options::finiteModelFind() || options::fmfBound())
   {
-    d_model_engine.reset(new quantifiers::ModelEngine(c, qe));
+    d_model_engine.reset(new ModelEngine(qe, qs, qim, qr));
     modules.push_back(d_model_engine.get());
   }
   if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
   {
-    d_qsplit.reset(new quantifiers::QuantDSplit(qe, c));
+    d_qsplit.reset(new QuantDSplit(qe, qs, qim, qr));
     modules.push_back(d_qsplit.get());
-  }
-  if (options::quantAntiSkolem())
-  {
-    d_anti_skolem.reset(new quantifiers::QuantAntiSkolem(qe));
-    modules.push_back(d_anti_skolem.get());
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new quantifiers::AlphaEquivalence(qe));
+    d_alpha_equiv.reset(new AlphaEquivalence(qe));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
-    d_rel_dom.reset(new quantifiers::RelevantDomain(qe));
-    d_fs.reset(new quantifiers::InstStrategyEnum(qe, d_rel_dom.get()));
+    d_rel_dom.reset(new RelevantDomain(qe));
+    d_fs.reset(new InstStrategyEnum(qe, qs, qim, qr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }
   if (options::sygusInst())
   {
-    d_sygus_inst.reset(new quantifiers::SygusInst(qe));
+    d_sygus_inst.reset(new SygusInst(qe, qs, qim, qr));
     modules.push_back(d_sygus_inst.get());
   }
 }

@@ -24,6 +24,7 @@
 
 #include "expr/node.h"
 #include "expr/node_traversal.h"
+#include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
@@ -77,7 +78,13 @@ Node BVToInt::modpow2(Node n, uint64_t exponent)
  */
 Node BVToInt::makeBinary(Node n)
 {
-  for (TNode current : NodeDfsIterable(n, VisitOrder::POSTORDER))
+  for (TNode current : NodeDfsIterable(n,
+                                       VisitOrder::POSTORDER,
+                                       // skip visited nodes
+                                       [this](TNode tn) {
+                                         return d_binarizeCache.find(tn)
+                                                != d_binarizeCache.end();
+                                       }))
   {
     uint64_t numChildren = current.getNumChildren();
     /*

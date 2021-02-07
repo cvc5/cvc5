@@ -42,7 +42,8 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
   d_ee = ee;
   // if proofs are enabled, also make a proof equality engine to wrap ee
-  if (d_pnm != nullptr)
+  // if it is non-null
+  if (d_pnm != nullptr && d_ee != nullptr)
   {
     d_pfee.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
                                        d_theoryState.getUserContext(),
@@ -287,7 +288,8 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
 
 bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
-  return d_lemmasSent.find(lem) != d_lemmasSent.end();
+  Node rewritten = Rewriter::rewrite(lem);
+  return d_lemmasSent.find(rewritten) != d_lemmasSent.end();
 }
 
 uint32_t TheoryInferenceManager::numSentLemmas() const
@@ -445,11 +447,12 @@ bool TheoryInferenceManager::hasSentFact() const
 
 bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 {
-  if (d_lemmasSent.find(lem) != d_lemmasSent.end())
+  Node rewritten = Rewriter::rewrite(lem);
+  if (d_lemmasSent.find(rewritten) != d_lemmasSent.end())
   {
     return false;
   }
-  d_lemmasSent.insert(lem);
+  d_lemmasSent.insert(rewritten);
   return true;
 }
 

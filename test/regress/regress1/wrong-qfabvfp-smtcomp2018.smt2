@@ -1,6 +1,6 @@
 ; REQUIRES: symfpu
-; COMMAND-LINE: --decision=internal
-; COMMAND-LINE: --decision=justification
+; COMMAND-LINE: --decision=internal -q
+; COMMAND-LINE: --decision=justification -q
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_BVFP)

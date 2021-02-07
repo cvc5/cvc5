@@ -19,10 +19,11 @@
 #include <vector>
 
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -80,7 +81,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
     for( int i=0; i<(int)assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
-        if (options::unsatCores()
+        if (options::unsatCores() && !options::proofNew()
             && std::find(macro_assertions.begin(),
                          macro_assertions.end(),
                          assertions[i])
@@ -106,7 +107,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
           // is an over-approximation. a more fine-grained unsat core
           // computation would require caching dependencies for each subterm of
           // the formula, which is expensive.
-          if (options::unsatCores())
+          if (options::unsatCores() && !options::proofNew())
           {
             ProofManager::currentPM()->addDependence(curr, assertions[i]);
             for (unsigned j = 0; j < macro_assertions.size(); j++)
@@ -191,17 +192,18 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
   return pol && n.getKind()==EQUAL;
 }
 
-bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
+bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
+{
   Node icn = d_preprocContext->getTheoryEngine()
                  ->getQuantifiersEngine()
                  ->getTermUtil()
-                 ->substituteBoundVariablesToInstConstants(n, f);
+                 ->substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
-  quantifiers::TermUtil::computeInstConstContainsForQuant(f, icn, var);
+  quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
   Trace("macros-debug2") << "Get trigger variables for " << icn << std::endl;
   std::vector< Node > trigger_var;
-  inst::Trigger::getTriggerVariables( icn, f, trigger_var );
+  inst::PatternTermSelector::getTriggerVariables(icn, q, trigger_var);
   Trace("macros-debug2") << "Done." << std::endl;
   //only if all variables are also trigger variables
   return trigger_var.size()>=var.size();

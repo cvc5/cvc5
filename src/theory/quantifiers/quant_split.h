@@ -49,7 +49,10 @@ class QuantDSplit : public QuantifiersModule {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantDSplit( QuantifiersEngine * qe, context::Context* c );
+  QuantDSplit(QuantifiersEngine* qe,
+              QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr);
   /** determine whether this quantified formula will be reduced */
   void checkOwnership(Node q) override;
   /* whether this module needs to check this round */

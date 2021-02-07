@@ -43,6 +43,7 @@ namespace CVC4 {
 class StatisticsRegistry;
 class ResourceManager;
 class SkolemManager;
+class BoundVarManager;
 
 class DType;
 
@@ -70,7 +71,7 @@ class NodeManagerListener {
                                     uint32_t flags)
   {
   }
-  virtual void nmNotifyNewVar(TNode n, uint32_t flags) {}
+  virtual void nmNotifyNewVar(TNode n) {}
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
                                  uint32_t flags) {}
   /**
@@ -88,8 +89,8 @@ class NodeManager {
   friend class expr::TypeChecker;
 
   // friends so they can access mkVar() here, which is private
-  friend Expr ExprManager::mkVar(const std::string&, Type, uint32_t flags);
-  friend Expr ExprManager::mkVar(Type, uint32_t flags);
+  friend Expr ExprManager::mkVar(const std::string&, Type);
+  friend Expr ExprManager::mkVar(Type);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -108,7 +109,9 @@ class NodeManager {
   StatisticsRegistry* d_statisticsRegistry;
 
   /** The skolem manager */
-  std::shared_ptr<SkolemManager> d_skManager;
+  std::unique_ptr<SkolemManager> d_skManager;
+  /** The bound variable manager */
+  std::unique_ptr<BoundVarManager> d_bvManager;
 
   NodeValuePool d_nodeValuePool;
 
@@ -370,12 +373,12 @@ class NodeManager {
    * version of this is private to avoid internal uses of mkVar() from
    * within CVC4.  Such uses should employ mkSkolem() instead.
    */
-  Node mkVar(const std::string& name, const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  Node* mkVarPtr(const std::string& name, const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
+  Node mkVar(const std::string& name, const TypeNode& type);
+  Node* mkVarPtr(const std::string& name, const TypeNode& type);
 
   /** Create a variable with the given type. */
-  Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
+  Node mkVar(const TypeNode& type);
+  Node* mkVarPtr(const TypeNode& type);
 
  public:
 
@@ -386,6 +389,8 @@ class NodeManager {
   static NodeManager* currentNM() { return s_current; }
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
+  /** Get this node manager's bound variable manager */
+  BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const
@@ -1027,21 +1032,28 @@ class NodeManager {
   /** Make a type representing a tester with given parameterization */
   inline TypeNode mkTesterType(TypeNode domain);
 
+  /** Bits for use in mkSort() flags. */
+  enum
+  {
+    SORT_FLAG_NONE = 0,
+    SORT_FLAG_PLACEHOLDER = 1
+  }; /* enum */
+
   /** Make a new (anonymous) sort of arity 0. */
-  TypeNode mkSort(uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSort(uint32_t flags = SORT_FLAG_NONE);
 
   /** Make a new sort with the given name of arity 0. */
-  TypeNode mkSort(const std::string& name, uint32_t flags = ExprManager::SORT_FLAG_NONE);
+  TypeNode mkSort(const std::string& name, uint32_t flags = SORT_FLAG_NONE);
 
   /** Make a new sort by parameterizing the given sort constructor. */
   TypeNode mkSort(TypeNode constructor,
                   const std::vector<TypeNode>& children,
-                  uint32_t flags = ExprManager::SORT_FLAG_NONE);
+                  uint32_t flags = SORT_FLAG_NONE);
 
   /** Make a new sort with the given name and arity. */
   TypeNode mkSortConstructor(const std::string& name,
                              size_t arity,
-                             uint32_t flags = ExprManager::SORT_FLAG_NONE);
+                             uint32_t flags = SORT_FLAG_NONE);
 
   /**
    * Get the type for the given node and optionally do type checking.

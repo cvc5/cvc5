@@ -33,8 +33,11 @@ namespace arith {
 namespace nl {
 namespace transcendental {
 
-TranscendentalSolver::TranscendentalSolver(InferenceManager& im, NlModel& m)
-    : d_tstate(im, m), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
+TranscendentalSolver::TranscendentalSolver(InferenceManager& im,
+                                           NlModel& m,
+                                           ProofNodeManager* pnm,
+                                           context::UserContext* c)
+    : d_tstate(im, m, pnm, c), d_expSlv(&d_tstate), d_sineSlv(&d_tstate)
 {
   d_taylor_degree = options::nlExtTfTaylorDegree();
 }
@@ -192,8 +195,15 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
 
 void TranscendentalSolver::checkTranscendentalTangentPlanes()
 {
-  Trace("nl-ext") << "Get tangent plane lemmas for transcendental functions..."
-                  << std::endl;
+  if (Trace.isOn("nl-ext"))
+  {
+    if (!d_tstate.d_funcMap.empty())
+    {
+      Trace("nl-ext")
+          << "Get tangent plane lemmas for transcendental functions..."
+          << std::endl;
+    }
+  }
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
   for (const std::pair<const Kind, std::vector<Node> >& tfs :

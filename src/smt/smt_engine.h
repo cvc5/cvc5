@@ -118,6 +118,7 @@ struct SmtEngineStatistics;
 class SmtScope;
 class ProcessAssertions;
 class PfManager;
+class UnsatCoreManager;
 
 ProofManager* currentProofManager();
 }/* CVC4::smt namespace */
@@ -127,6 +128,7 @@ ProofManager* currentProofManager();
 namespace theory {
   class TheoryModel;
   class Rewriter;
+  class QuantifiersEngine;
 }/* CVC4::theory namespace */
 
 
@@ -434,13 +436,13 @@ class CVC4_PUBLIC SmtEngine
    * which a function is being synthesized. Thus declared functions should use
    * this method as well.
    */
-  void declareSygusVar(const std::string& id, Node var, TypeNode type);
+  void declareSygusVar(Node var);
 
   /**
    * Add a function-to-synthesize declaration.
    *
-   * The given type may not correspond to the actual function type but to a
-   * datatype encoding the syntax restrictions for the
+   * The given sygusType may not correspond to the actual function type of func
+   * but to a datatype encoding the syntax restrictions for the
    * function-to-synthesize. In this case this information is stored to be used
    * during solving.
    *
@@ -451,11 +453,14 @@ class CVC4_PUBLIC SmtEngine
    * invariant. This information is necessary if we are dumping a command
    * corresponding to this declaration, so that it can be properly printed.
    */
-  void declareSynthFun(const std::string& id,
-                       Node func,
-                       TypeNode type,
+  void declareSynthFun(Node func,
+                       TypeNode sygusType,
                        bool isInv,
                        const std::vector<Node>& vars);
+  /**
+   * Same as above, without a sygus type.
+   */
+  void declareSynthFun(Node func, bool isInv, const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint.*/
   void assertSygusConstraint(Node constraint);
@@ -510,12 +515,15 @@ class CVC4_PUBLIC SmtEngine
   Node simplify(const Node& e);
 
   /**
-   * Expand the definitions in a term or formula.  No other
-   * simplification or normalization is done.
+   * Expand the definitions in a term or formula.
+   *
+   * @param n The node to expand
+   * @param expandOnly if true, then the expandDefinitions function of
+   * TheoryEngine is not called on subterms of n.
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Node expandDefinitions(const Node& e);
+  Node expandDefinitions(const Node& n, bool expandOnly = true);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -669,6 +677,14 @@ class CVC4_PUBLIC SmtEngine
    */
   void getInstantiationTermVectors(Node q,
                                    std::vector<std::vector<Node>>& tvecs);
+  /**
+   * Get instantiation term vectors, which maps each instantiated quantified
+   * formula to the list of instantiations for that quantified formula. This
+   * list is minimized if proofs are enabled, and this call is immediately
+   * preceded by an UNSAT or ENTAILED query
+   */
+  void getInstantiationTermVectors(
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an UNSAT or
@@ -676,6 +692,12 @@ class CVC4_PUBLIC SmtEngine
    * and produce-unsat-cores is on.
    */
   UnsatCore getUnsatCore();
+
+  /**
+   * Get a refutation proof (only if immediately preceded by an UNSAT or
+   * ENTAILED query). Only permitted if CVC4 was built with proof support and
+   * the proof option is on. */
+  std::string getProof();
 
   /**
    * Get the current set of assertions.  Only permitted if the
@@ -801,7 +823,13 @@ class CVC4_PUBLIC SmtEngine
   /** Get the value of one named statistic from this SmtEngine. */
   SExpr getStatistic(std::string name) const;
 
-  /** Flush statistic from this SmtEngine. Safe to use in a signal handler. */
+  /** Flush statistics from this SmtEngine and the NodeManager it uses. */
+  void flushStatistics(std::ostream& out) const;
+
+  /**
+   * Flush statistics from this SmtEngine and the NodeManager it uses. Safe to
+   * use in a signal handler.
+   */
   void safeFlushStatistics(int fd) const;
 
   /**
@@ -946,10 +974,19 @@ class CVC4_PUBLIC SmtEngine
    * by this class is currently available, which means that CVC4 is producing
    * models, and is in "SAT mode", otherwise a recoverable exception is thrown.
    *
-   * The flag c is used for giving an error message to indicate the context
+   * @param c used for giving an error message to indicate the context
    * this method was called.
    */
   smt::Model* getAvailableModel(const char* c) const;
+  /**
+   * Get available quantifiers engine, which throws a modal exception if it
+   * does not exist. This can happen if a quantifiers-specific call (e.g.
+   * getInstantiatedQuantifiedFormulas) is called in a non-quantified logic.
+   *
+   * @param c used for giving an error message to indicate the context
+   * this method was called.
+   */
+  theory::QuantifiersEngine* getAvailableQuantifiersEngine(const char* c) const;
 
   // --------------------------------------- callbacks from the state
   /**
@@ -1063,6 +1100,11 @@ class CVC4_PUBLIC SmtEngine
    * processing, and printing proofs.
    */
   std::unique_ptr<smt::PfManager> d_pfManager;
+
+  /**
+   * The unsat core manager, which produces unsat cores and related information
+   * from refutations. */
+  std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
 
   /**
    * The rewriter associated with this SmtEngine. We have a different instance

@@ -22,7 +22,6 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
-#include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
 
 namespace CVC4 {
@@ -79,11 +78,9 @@ class Preprocessor
    * has been constructed.  It also involves theory normalization.
    *
    * @param n The node to simplify
-   * @param removeItes Whether to remove ITE (and other terms with formulas in
-   * term positions) from the result.
    * @return The simplified term.
    */
-  Node simplify(const Node& n, bool removeItes = false);
+  Node simplify(const Node& n);
   /**
    * Expand the definitions in a term or formula n.  No other
    * simplification or normalization is done.
@@ -99,10 +96,6 @@ class Preprocessor
       const Node& n,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       bool expandOnly = false);
-  /**
-   * Get the underlying term formula remover utility.
-   */
-  RemoveTermFormulas& getTermFormulaRemover();
 
   /**
    * Set proof node manager. Enables proofs in this preprocessor.
@@ -133,11 +126,6 @@ class Preprocessor
    * passes.
    */
   ProcessAssertions d_processor;
-  /**
-   * The term formula remover, responsible for eliminating formulas that occur
-   * in term contexts.
-   */
-  RemoveTermFormulas d_rtf;
   /** Proof node manager */
   ProofNodeManager* d_pnm;
 };

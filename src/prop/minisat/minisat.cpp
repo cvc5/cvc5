@@ -102,8 +102,11 @@ void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
   Assert((unsigned)clause.size() == sat_clause.size());
 }
 
-void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theoryProxy) {
-
+void MinisatSatSolver::initialize(context::Context* context,
+                                  TheoryProxy* theoryProxy,
+                                  context::UserContext* userContext,
+                                  ProofNodeManager* pnm)
+{
   d_context = context;
 
   if (options::decisionMode() != options::DecisionMode::INTERNAL)
@@ -116,6 +119,8 @@ void MinisatSatSolver::initialize(context::Context* context, TheoryProxy* theory
   d_minisat = new Minisat::SimpSolver(
       theoryProxy,
       d_context,
+      userContext,
+      pnm,
       options::incrementalSolving()
           || options::decisionMode() != options::DecisionMode::INTERNAL);
 
@@ -154,7 +159,9 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
     return ClauseIdUndef;
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
-  Assert(!CVC4::options::unsatCores() || clause_id != ClauseIdError);
+  // FIXME: to be deleted when we kill old proof code for unsat cores
+  Assert(!options::unsatCores() || options::proofNew()
+         || clause_id != ClauseIdError);
   return clause_id;
 }
 
@@ -216,6 +223,16 @@ void MinisatSatSolver::requirePhase(SatLiteral lit) {
 
 bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
+}
+
+SatProofManager* MinisatSatSolver::getProofManager()
+{
+  return d_minisat->getProofManager();
+}
+
+std::shared_ptr<ProofNode> MinisatSatSolver::getProof()
+{
+  return d_minisat->getProof();
 }
 
 /** Incremental interface */

@@ -33,7 +33,7 @@ BVSatSolverInterface* SatSolverFactory::createMinisat(
   return new BVMinisatSatSolver(registry, mainSatContext, name);
 }
 
-DPLLSatSolverInterface* SatSolverFactory::createDPLLMinisat(
+MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
     StatisticsRegistry* registry)
 {
   return new MinisatSatSolver(registry);

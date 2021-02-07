@@ -1044,7 +1044,7 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
         {
           std::vector<Node> conf;
           conf.push_back(t);
-          conf.push_back(c.eqNode(t[0][0]));
+          conf.push_back(t[0][0].eqNode(c));
           Trace("dt-conflict")
               << "CONFLICT: Tester merge eq conflict : " << conf << std::endl;
           d_im.sendDtConflict(conf, InferId::TESTER_CONFLICT);
@@ -1558,7 +1558,11 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   // may contribute to conflicts due to cardinality (good examples of this are
   // regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  bool forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  bool forceLemma = true;
+  if (options::dtPoliteOptimize())
+  {
+    forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
   d_im.addPendingInference(eq, exp, forceLemma, InferId::INST);

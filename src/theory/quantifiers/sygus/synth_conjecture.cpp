@@ -18,7 +18,6 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "prop/prop_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -33,7 +32,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
-#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -43,8 +41,10 @@ namespace theory {
 namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
+                                 QuantifiersState& qs,
                                  SygusStatistics& s)
     : d_qe(qe),
+      d_qstate(qs),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
@@ -56,7 +56,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
-      d_ceg_cegisUnif(new CegisUnif(qe, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, qs, this)),
       d_sygus_ccore(new CegisCoreConnective(qe, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
@@ -235,7 +235,7 @@ void SynthConjecture::assign(Node q)
   d_feasible_strategy.reset(
       new DecisionStrategySingleton("sygus_feasible",
                                     d_feasible_guard,
-                                    d_qe->getSatContext(),
+                                    d_qstate.getSatContext(),
                                     d_qe->getValuation()));
   d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
@@ -977,7 +977,6 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   Assert(d_master != nullptr);
   // we have generated a solution, print it
   // get the current output stream
-  // this output stream should coincide with wherever --dump-synth is output on
   Options& sopts = smt::currentSmtEngine()->getOptions();
   printSynthSolution(*sopts.getOut());
   excludeCurrentSolution(enums, values);

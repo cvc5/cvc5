@@ -39,7 +39,7 @@ class PropPfManager
  public:
   PropPfManager(context::UserContext* userContext,
                 ProofNodeManager* pnm,
-                SatProofManager* satPM,
+                CDCLTSatSolverInterface* satSolver,
                 ProofCnfStream* cnfProof);
 
   /** Saves assertion for later checking whether refutation proof is closed.
@@ -78,9 +78,9 @@ class PropPfManager
   /** The proof post-processor */
   std::unique_ptr<prop::ProofPostproccess> d_pfpp;
   /**
-   * The SAT solver's proof manager, which will provide a refutation
-   * proofresolution proof when requested */
-  SatProofManager* d_satPM;
+   * The SAT solver of this prop engine, which should provide a refutation
+   * proof when requested */
+  CDCLTSatSolverInterface* d_satSolver;
   /** Assertions corresponding to the leaves of the prop engine's proof.
    *
    * These are kept in a context-dependent manner since the prop engine's proof

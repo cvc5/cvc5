@@ -216,12 +216,6 @@ class CegInstantiator {
    * on the output channel d_out of this class.
    */
   bool check();
-  /** presolve for quantified formula
-   *
-   * This initializes formulas that help static learning of the quantifier-free
-   * solver. It is only called if the option --cbqi-prereg-inst is used.
-   */
-  void presolve(Node q);
   /** Register the counterexample lemma
    *
    * @param lem contains the counterexample lemma of the quantified formula we

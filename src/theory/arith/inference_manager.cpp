@@ -25,7 +25,7 @@ namespace arith {
 InferenceManager::InferenceManager(TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(ta, astate, pnm), d_lemmasPp(ta.getUserContext())
+    : InferenceManagerBuffered(ta, astate, pnm)
 {
 }
 
@@ -34,7 +34,6 @@ void InferenceManager::addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
 {
   Trace("arith::infman") << "Add " << lemma->d_inference << " " << lemma->d_node
                          << (isWaiting ? " as waiting" : "") << std::endl;
-  lemma->d_node = Rewriter::rewrite(lemma->d_node);
   if (hasCachedLemma(lemma->d_node, lemma->d_property))
   {
     return;
@@ -110,25 +109,14 @@ std::size_t InferenceManager::numWaitingLemmas() const
 
 bool InferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
-  if (isLemmaPropertyPreprocess(p))
-  {
-    return d_lemmasPp.find(lem) != d_lemmasPp.end();
-  }
-  return TheoryInferenceManager::hasCachedLemma(lem, p);
+  Node rewritten = Rewriter::rewrite(lem);
+  return TheoryInferenceManager::hasCachedLemma(rewritten, p);
 }
 
 bool InferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 {
-  if (isLemmaPropertyPreprocess(p))
-  {
-    if (d_lemmasPp.find(lem) != d_lemmasPp.end())
-    {
-      return false;
-    }
-    d_lemmasPp.insert(lem);
-    return true;
-  }
-  return TheoryInferenceManager::cacheLemma(lem, p);
+  Node rewritten = Rewriter::rewrite(lem);
+  return TheoryInferenceManager::cacheLemma(rewritten, p);
 }
 
 bool InferenceManager::isEntailedFalse(const ArithLemma& lem)

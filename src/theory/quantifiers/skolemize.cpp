@@ -16,6 +16,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -29,13 +30,14 @@ namespace theory {
 namespace quantifiers {
 
 Skolemize::Skolemize(QuantifiersEngine* qe,
-                     context::UserContext* u,
+                     QuantifiersState& qs,
                      ProofNodeManager* pnm)
     : d_quantEngine(qe),
-      d_skolemized(u),
+      d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
+                           : new EagerProofGenerator(
+                                 pnm, qs.getUserContext(), "Skolemize::epg"))
 {
 }
 
@@ -377,29 +379,18 @@ bool Skolemize::isInductionTerm(Node n)
   return false;
 }
 
-bool Skolemize::printSkolemization(std::ostream& out)
+void Skolemize::getSkolemTermVectors(
+    std::map<Node, std::vector<Node> >& sks) const
 {
-  bool printed = false;
-  for (NodeNodeMap::iterator it = d_skolemized.begin();
-       it != d_skolemized.end();
-       ++it)
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
+      itk;
+  for (const std::pair<const Node, Node>& p : d_skolemized)
   {
-    Node q = (*it).first;
-    printed = true;
-    out << "(skolem " << q << std::endl;
-    out << "  ( ";
-    for (unsigned i = 0; i < d_skolem_constants[q].size(); i++)
-    {
-      if (i > 0)
-      {
-        out << " ";
-      }
-      out << d_skolem_constants[q][i];
-    }
-    out << " )" << std::endl;
-    out << ")" << std::endl;
+    Node q = p.first;
+    itk = d_skolem_constants.find(q);
+    Assert(itk != d_skolem_constants.end());
+    sks[q].insert(sks[q].end(), itk->second.begin(), itk->second.end());
   }
-  return printed;
 }
 
 bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }

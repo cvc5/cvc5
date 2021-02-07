@@ -343,11 +343,11 @@ TEST_F(TestApiSolverBlack, mkBitVector)
   ASSERT_THROW(d_solver.mkBitVector("20", 2), CVC4ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "101010101", 2), CVC4ApiException);
   ASSERT_THROW(d_solver.mkBitVector(8, "-256", 10), CVC4ApiException);
-  EXPECT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
-  EXPECT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("a", 16));
-  EXPECT_EQ(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
-  EXPECT_EQ(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
-  EXPECT_EQ(d_solver.mkBitVector(8, "-1", 10),
+  ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("10", 10));
+  ASSERT_EQ(d_solver.mkBitVector("1010", 2), d_solver.mkBitVector("a", 16));
+  ASSERT_EQ(d_solver.mkBitVector(8, "01010101", 2).toString(), "#b01010101");
+  ASSERT_EQ(d_solver.mkBitVector(8, "F", 16).toString(), "#b00001111");
+  ASSERT_EQ(d_solver.mkBitVector(8, "-1", 10),
             d_solver.mkBitVector(8, "FF", 16));
 }
 
@@ -672,9 +672,9 @@ TEST_F(TestApiSolverBlack, mkString)
 {
   ASSERT_NO_THROW(d_solver.mkString(""));
   ASSERT_NO_THROW(d_solver.mkString("asdfasdf"));
-  EXPECT_EQ(d_solver.mkString("asdf\\nasdf").toString(),
+  ASSERT_EQ(d_solver.mkString("asdf\\nasdf").toString(),
             "\"asdf\\u{5c}nasdf\"");
-  EXPECT_EQ(d_solver.mkString("asdf\\u{005c}nasdf", true).toString(),
+  ASSERT_EQ(d_solver.mkString("asdf\\u{005c}nasdf", true).toString(),
             "\"asdf\\u{5c}nasdf\"");
 }
 
@@ -685,7 +685,7 @@ TEST_F(TestApiSolverBlack, mkChar)
   ASSERT_THROW(d_solver.mkChar(""), CVC4ApiException);
   ASSERT_THROW(d_solver.mkChar("0g0"), CVC4ApiException);
   ASSERT_THROW(d_solver.mkChar("100000"), CVC4ApiException);
-  EXPECT_EQ(d_solver.mkChar("abc"), d_solver.mkChar("ABC"));
+  ASSERT_EQ(d_solver.mkChar("abc"), d_solver.mkChar("ABC"));
 }
 
 TEST_F(TestApiSolverBlack, mkTerm)
@@ -965,6 +965,19 @@ TEST_F(TestApiSolverBlack, declareSort)
   ASSERT_NO_THROW(d_solver.declareSort("", 2));
 }
 
+TEST_F(TestApiSolverBlack, defineSort)
+{
+  Sort sortVar0 = d_solver.mkParamSort("T0");
+  Sort sortVar1 = d_solver.mkParamSort("T1");
+  Sort intSort = d_solver.getIntegerSort();
+  Sort realSort = d_solver.getRealSort();
+  Sort arraySort0 = d_solver.mkArraySort(sortVar0, sortVar0);
+  Sort arraySort1 = d_solver.mkArraySort(sortVar0, sortVar1);
+  // Now create instantiations of the defined sorts
+  ASSERT_NO_THROW(arraySort0.substitute(sortVar0, intSort));
+  ASSERT_NO_THROW(arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
+}
+
 TEST_F(TestApiSolverBlack, defineFun)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -1237,8 +1250,8 @@ TEST_F(TestApiSolverBlack, uFIteration)
   uint32_t idx = 0;
   for (auto c : fxy)
   {
-    EXPECT_LT(idx, 3);
-    EXPECT_EQ(c, expected_children[idx]);
+    ASSERT_LT(idx, 3);
+    ASSERT_EQ(c, expected_children[idx]);
     idx++;
   }
 }
@@ -1251,7 +1264,30 @@ TEST_F(TestApiSolverBlack, getInfo)
 
 TEST_F(TestApiSolverBlack, getInterpolant)
 {
-  // TODO issue #5593
+  d_solver.setOption("produce-interpols", "default");
+  d_solver.setOption("incremental", "false");
+
+  Sort intSort = d_solver.getIntegerSort();
+  Term zero = d_solver.mkInteger(0);
+  Term x = d_solver.mkConst(intSort, "x");
+  Term y = d_solver.mkConst(intSort, "y");
+  Term z = d_solver.mkConst(intSort, "z");
+
+  // Assumptions for interpolation: x + y > 0 /\ x < 0
+  d_solver.assertFormula(
+      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
+  d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
+  // Conjecture for interpolation: y + z > 0 /\ z < 0
+  Term conj =
+      d_solver.mkTerm(OR,
+                      d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
+                      d_solver.mkTerm(LT, z, zero));
+  Term output;
+  // Call the interpolation api, while the resulting interpolant is the output
+  d_solver.getInterpolant(conj, output);
+
+  // We expect the resulting output to be a boolean formula
+  ASSERT_TRUE(output.getSort().isBoolean());
 }
 
 TEST_F(TestApiSolverBlack, getOp)
@@ -1264,7 +1300,7 @@ TEST_F(TestApiSolverBlack, getOp)
   ASSERT_FALSE(a.hasOp());
   ASSERT_THROW(a.getOp(), CVC4ApiException);
   ASSERT_TRUE(exta.hasOp());
-  EXPECT_EQ(exta.getOp(), ext);
+  ASSERT_EQ(exta.getOp(), ext);
 
   // Test Datatypes -- more complicated
   DatatypeDecl consListSpec = d_solver.mkDatatypeDecl("list");
@@ -1287,13 +1323,13 @@ TEST_F(TestApiSolverBlack, getOp)
   Term listhead = d_solver.mkTerm(APPLY_SELECTOR, headTerm, listcons1);
 
   ASSERT_TRUE(listnil.hasOp());
-  EXPECT_EQ(listnil.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  ASSERT_EQ(listnil.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
 
   ASSERT_TRUE(listcons1.hasOp());
-  EXPECT_EQ(listcons1.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  ASSERT_EQ(listcons1.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
 
   ASSERT_TRUE(listhead.hasOp());
-  EXPECT_EQ(listhead.getOp(), Op(&d_solver, APPLY_SELECTOR));
+  ASSERT_EQ(listhead.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 
 TEST_F(TestApiSolverBlack, getOption)
@@ -1784,12 +1820,12 @@ TEST_F(TestApiSolverBlack, simplify)
   ASSERT_NO_THROW(d_solver.simplify(b));
   Term x_eq_x = d_solver.mkTerm(EQUAL, x, x);
   ASSERT_NO_THROW(d_solver.simplify(x_eq_x));
-  EXPECT_NE(d_solver.mkTrue(), x_eq_x);
-  EXPECT_EQ(d_solver.mkTrue(), d_solver.simplify(x_eq_x));
+  ASSERT_NE(d_solver.mkTrue(), x_eq_x);
+  ASSERT_EQ(d_solver.mkTrue(), d_solver.simplify(x_eq_x));
   Term x_eq_b = d_solver.mkTerm(EQUAL, x, b);
   ASSERT_NO_THROW(d_solver.simplify(x_eq_b));
-  EXPECT_NE(d_solver.mkTrue(), x_eq_b);
-  EXPECT_NE(d_solver.mkTrue(), d_solver.simplify(x_eq_b));
+  ASSERT_NE(d_solver.mkTrue(), x_eq_b);
+  ASSERT_NE(d_solver.mkTrue(), d_solver.simplify(x_eq_b));
   Solver slv;
   ASSERT_THROW(slv.simplify(x), CVC4ApiException);
 
@@ -1797,12 +1833,12 @@ TEST_F(TestApiSolverBlack, simplify)
   ASSERT_NO_THROW(d_solver.simplify(i1));
   Term i2 = d_solver.mkTerm(MULT, i1, d_solver.mkInteger("23"));
   ASSERT_NO_THROW(d_solver.simplify(i2));
-  EXPECT_NE(i1, i2);
-  EXPECT_NE(i1, d_solver.simplify(i2));
+  ASSERT_NE(i1, i2);
+  ASSERT_NE(i1, d_solver.simplify(i2));
   Term i3 = d_solver.mkTerm(PLUS, i1, d_solver.mkInteger(0));
   ASSERT_NO_THROW(d_solver.simplify(i3));
-  EXPECT_NE(i1, i3);
-  EXPECT_EQ(i1, d_solver.simplify(i3));
+  ASSERT_NE(i1, i3);
+  ASSERT_EQ(i1, d_solver.simplify(i3));
 
   Datatype consList = consListSort.getDatatype();
   Term dt1 = d_solver.mkTerm(
