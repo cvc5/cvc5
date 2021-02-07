@@ -30,8 +30,10 @@ BVSolverIntblast::BVSolverIntblast(TheoryState* s,
                                    TheoryInferenceManager& inferMgr,
                                    ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_intblaster(new IntBlaster(
-          s->getUserContext(), options::SolveBVAsIntMode::IAND, 1, true)),
+      d_intblaster(new IntBlaster(s->getUserContext(),
+                                  options::solveBVAsInt(),
+                                  options::BVAndIntegerGranularity(),
+                                  true)),
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
                 : nullptr)
 {
