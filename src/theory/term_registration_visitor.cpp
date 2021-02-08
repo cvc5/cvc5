@@ -158,8 +158,31 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
   if (!TheoryIdSetUtil::setContains(id, visitedTheories))
   {
     visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
-    if (
-      const LogicInfo& l = te->getLogicInfo();
+    if (Configuration::isAssertionBuild())
+    {
+      // This should never throw an exception, since theories should be
+      // guaranteed to be initialized.
+      // These checks don't work with finite model finding, because it
+      // uses Rational constants to represent cardinality constraints,
+      // even though arithmetic isn't actually involved.
+      if (!options::finiteModelFind())
+      {
+        if (!d_te->isTheoryEnabled(id))
+        {
+          const LogicInfo& l = d_te->getLogicInfo();
+          LogicInfo newLogicInfo = l.getUnlockedCopy();
+          newLogicInfo.enableTheory(id);
+          newLogicInfo.lock();
+          std::stringstream ss;
+          ss << "The logic was specified as " << l.getLogicString()
+            << ", which doesn't include " << id
+            << ", but found a term in that theory." << std::endl
+            << "You might want to extend your logic to "
+            << newLogicInfo.getLogicString() << std::endl;
+          throw LogicException(ss.str());
+        }
+      }
+    }
     Theory* th = te->theoryOf(id);
     th->preRegisterTerm(current);
     Debug("register::internal") << "PreRegisterVisitor::visit(" << current << ","
