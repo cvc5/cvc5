@@ -155,16 +155,16 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
                                                TNode current,
                                                TNode parent)
 {
-  if (TheoryIdSetUtil::setContains(id, visitedTheories))
+  if (!TheoryIdSetUtil::setContains(id, visitedTheories))
   {
-    // already visited
-    return;
+    visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
+    if (
+      const LogicInfo& l = te->getLogicInfo();
+    Theory* th = te->theoryOf(id);
+    th->preRegisterTerm(current);
+    Debug("register::internal") << "PreRegisterVisitor::visit(" << current << ","
+                                << parent << "): adding " << id << std::endl;
   }
-  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
-  Theory* th = te->theoryOf(id);
-  th->preRegisterTerm(current);
-  Debug("register::internal") << "PreRegisterVisitor::visit(" << current << ","
-                              << parent << "): adding " << id << std::endl;
 }
 
 void PreRegisterVisitor::start(TNode node) {}

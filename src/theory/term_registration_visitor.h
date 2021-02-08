@@ -111,8 +111,8 @@ class PreRegisterVisitor {
    * given by an identifier.
    */
   static void preregisterTerm(TheoryEngine* te,
-                              TheoryIdSet& visitedTheories,
-                              TheoryId id,
+                              theory::TheoryIdSet& visitedTheories,
+                              theory::TheoryId id,
                               TNode current,
                               TNode parent);
 };
