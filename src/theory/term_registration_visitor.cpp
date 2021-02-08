@@ -161,9 +161,10 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
     // already registered
     return;
   }
-  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
   if (Configuration::isAssertionBuild())
   {
+    Debug("register::internal") << "PreRegisterVisitor::visit(" << current << ","
+                                << parent << "): adding " << id << std::endl;
     // This should never throw an exception, since theories should be
     // guaranteed to be initialized.
     // These checks don't work with finite model finding, because it
@@ -187,11 +188,10 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
       }
     }
   }
+  // call the theory's preRegisterTerm method
+  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
   Theory* th = te->theoryOf(id);
   th->preRegisterTerm(current);
-  Debug("register::internal") << "PreRegisterVisitor::visit(" << current << ","
-                              << parent << "): adding " << id << std::endl;
-  
 }
 
 void PreRegisterVisitor::start(TNode node) {}
