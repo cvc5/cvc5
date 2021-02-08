@@ -201,8 +201,6 @@ public:
  void markRelevant(Node q);
  /** has added lemma */
  bool hasAddedLemma() const;
- /** get current q effort */
- QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
  /** get number of waiting lemmas */
  unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
  /** get needs check */
@@ -212,9 +210,7 @@ public:
 
 public:
  /** add term to database */
- void addTermToDatabase(Node n,
-                        bool withinQuant = false,
-                        bool withinInstClosure = false);
+ void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
  void eqNotifyNewClass(TNode t);
  /** debug print equality engine */
@@ -350,8 +346,6 @@ public:
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
   //------------- temporary information during check
-  /** current effort level */
-  QuantifiersModule::QEffort d_curr_effort_level;
   /** has added lemma this round */
   bool d_hasAddedLemma;
   //------------- end temporary information during check
@@ -383,8 +377,6 @@ public:
   /** presolve cache */
   NodeSet d_presolve_in;
   NodeList d_presolve_cache;
-  BoolList d_presolve_cache_wq;
-  BoolList d_presolve_cache_wic;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

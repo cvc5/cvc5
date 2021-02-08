@@ -32,11 +32,11 @@
 
 namespace CVC4 {
 
-using namespace CVC4::kind;
+using namespace kind;
 
 namespace test {
 
-class TestNodeBuilderBlackNode : public TestNodeBlack
+class TestNodeBlackNodeBuilder : public TestNodeBlack
 {
  protected:
   template <unsigned N>
@@ -51,7 +51,7 @@ class TestNodeBuilderBlackNode : public TestNodeBlack
 };
 
 /** Tests just constructors. No modification is done to the node. */
-TEST_F(TestNodeBuilderBlackNode, ctors)
+TEST_F(TestNodeBlackNodeBuilder, ctors)
 {
   /* Default size tests. */
   NodeBuilder<> def;
@@ -153,13 +153,13 @@ TEST_F(TestNodeBuilderBlackNode, ctors)
 #endif
 }
 
-TEST_F(TestNodeBuilderBlackNode, dtor)
+TEST_F(TestNodeBlackNodeBuilder, dtor)
 {
   NodeBuilder<K>* nb = new NodeBuilder<K>();
   delete nb;
 }
 
-TEST_F(TestNodeBuilderBlackNode, begin_end)
+TEST_F(TestNodeBlackNodeBuilder, begin_end)
 {
   /* Test begin() and end() without resizing. */
   NodeBuilder<K> ws(d_specKind);
@@ -208,7 +208,7 @@ TEST_F(TestNodeBuilderBlackNode, begin_end)
   ASSERT_EQ(smaller_citer, smaller.end());
 }
 
-TEST_F(TestNodeBuilderBlackNode, iterator)
+TEST_F(TestNodeBlackNodeBuilder, iterator)
 {
   NodeBuilder<> b;
   Node x = d_nodeManager->mkSkolem("x", *d_boolTypeNode);
@@ -234,7 +234,7 @@ TEST_F(TestNodeBuilderBlackNode, iterator)
   }
 }
 
-TEST_F(TestNodeBuilderBlackNode, getKind)
+TEST_F(TestNodeBlackNodeBuilder, getKind)
 {
   NodeBuilder<> noKind;
   ASSERT_EQ(noKind.getKind(), UNDEFINED_KIND);
@@ -259,7 +259,7 @@ TEST_F(TestNodeBuilderBlackNode, getKind)
   ASSERT_EQ(spec.getKind(), PLUS);
 }
 
-TEST_F(TestNodeBuilderBlackNode, getNumChildren)
+TEST_F(TestNodeBlackNodeBuilder, getNumChildren)
 {
   Node x(d_nodeManager->mkSkolem("x", *d_intTypeNode));
 
@@ -294,7 +294,7 @@ TEST_F(TestNodeBuilderBlackNode, getNumChildren)
 #endif
 }
 
-TEST_F(TestNodeBuilderBlackNode, operator_square)
+TEST_F(TestNodeBlackNodeBuilder, operator_square)
 {
   NodeBuilder<> arr(d_specKind);
 
@@ -343,7 +343,7 @@ TEST_F(TestNodeBuilderBlackNode, operator_square)
 #endif
 }
 
-TEST_F(TestNodeBuilderBlackNode, clear)
+TEST_F(TestNodeBlackNodeBuilder, clear)
 {
   NodeBuilder<> nb;
 
@@ -394,7 +394,7 @@ TEST_F(TestNodeBuilderBlackNode, clear)
 #endif
 }
 
-TEST_F(TestNodeBuilderBlackNode, operator_stream_insertion_kind)
+TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_kind)
 {
 #ifdef CVC4_ASSERTIONS
   NodeBuilder<> spec(d_specKind);
@@ -443,7 +443,7 @@ TEST_F(TestNodeBuilderBlackNode, operator_stream_insertion_kind)
       d_specKind);
 }
 
-TEST_F(TestNodeBuilderBlackNode, operator_stream_insertion_node)
+TEST_F(TestNodeBlackNodeBuilder, operator_stream_insertion_node)
 {
   NodeBuilder<K> nb(d_specKind);
   ASSERT_EQ(nb.getKind(), d_specKind);
@@ -471,7 +471,7 @@ TEST_F(TestNodeBuilderBlackNode, operator_stream_insertion_node)
   ASSERT_NE(overflow.begin(), overflow.end());
 }
 
-TEST_F(TestNodeBuilderBlackNode, append)
+TEST_F(TestNodeBlackNodeBuilder, append)
 {
   Node x = d_nodeManager->mkSkolem("x", *d_boolTypeNode);
   Node y = d_nodeManager->mkSkolem("y", *d_boolTypeNode);
@@ -536,7 +536,7 @@ TEST_F(TestNodeBuilderBlackNode, append)
   ASSERT_EQ(b[8], m);
 }
 
-TEST_F(TestNodeBuilderBlackNode, operator_node_cast)
+TEST_F(TestNodeBlackNodeBuilder, operator_node_cast)
 {
   NodeBuilder<K> implicit(d_specKind);
   NodeBuilder<K> explic(d_specKind);
@@ -558,7 +558,7 @@ TEST_F(TestNodeBuilderBlackNode, operator_node_cast)
 #endif
 }
 
-TEST_F(TestNodeBuilderBlackNode, leftist_building)
+TEST_F(TestNodeBlackNodeBuilder, leftist_building)
 {
   NodeBuilder<> nb;
 
