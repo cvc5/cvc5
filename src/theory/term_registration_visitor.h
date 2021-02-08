@@ -81,9 +81,7 @@ class PreRegisterVisitor {
    */
   void start(TNode node);
 
-  /**
-   * Notifies the engine of all the theories used.
-   */
+  /** Called when the visitor is finished with a term, do nothing */
   void done(TNode node) {}
 
   /**
