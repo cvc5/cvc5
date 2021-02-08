@@ -28,7 +28,6 @@
 #include "expr/node_value.h"
 #include "smt/smt_engine.h"
 #include "test_node.h"
-#include "test_utils.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
