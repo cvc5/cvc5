@@ -144,8 +144,6 @@ class ExtTheory
    * that is, if addFunctionKind( n.getKind() ) was called.
    */
   void registerTerm(Node n);
-  /** register all subterms of n with this class */
-  void registerTermRec(Node n);
   /** set n as reduced/inactive
    *
    * If satDep = false, then n remains inactive in the duration of this
