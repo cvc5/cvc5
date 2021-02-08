@@ -1993,24 +1993,64 @@ void CoreSolver::processDeq(Node ni, Node nj)
     // (3) SEQ_UNIT to constant-like.
     // We only have to process (3) here, since disequalities of the form of (1)
     // and (2) are satisfied by construction.
-    if ((nfni.d_nf.size() == 0 || nfni.d_nf[0].getKind() != SEQ_UNIT)
-        && (nfnj.d_nf.size() == 0 || nfnj.d_nf[0].getKind() != SEQ_UNIT))
+    for (size_t i=0; i<2; i++)
     {
-      Trace("strings-solve-debug") << "...trivial" << std::endl;
+      NormalForm& nfc = i==0 ? nfni : nfnj;
+      if (nfc.d_nf.size()==0 || nfc.d_nf[0].getKind() != SEQ_UNIT)
+      {
+        // may need to look at the other side
+        continue;
+      }
+      Node u = nfc.d_nf[0];
+      // if the other side is constant like
+      NormalForm& nfo = i==0 ? nfnj : nfni;
+      if (nfo.d_nf.size()==0 || !utils::isConstantLike(nfo.d_nf[0]))
+      {
+        break;
+      }
+      Node v = nfo.d_nf[0];
+      Node vc;
+      if (v.isConst())
+      {
+        // get the list of characters (strings of length 1)
+        std::vector<Node> vchars = Word::getChars(v);
+        if (vchars.size()!=1)
+        {
+          // constant of size != 1, disequality is satisfied
+          break;
+        }
+        // get the element of the character
+        vc = vchars[0].getConst<Sequence>().getVec()[0];
+      }
+      else
+      {
+        Assert (v.getKind()==SEQ_UNIT);
+        vc = v[0];
+      }
+      Assert (u[0].getType()==vc.getType());
+      // if already disequal, we are done
+      if (d_state.areDisequal(u[0], vc))
+      {
+        break;
+      }
+      // seq.unit(x) != seq.unit(y) => x != y
+      // Notice this is a special case, since the code below would justify this
+      // disequality by reasoning that a component is disequal. However, the
+      // disequality components are the entire disequality.
+      Node deq = u.eqNode(v).notNode();
+      std::vector<Node> premises;
+      premises.push_back(deq);
+      Node conc = u[0].eqNode(vc).notNode();
+      d_im.sendInference(premises,
+                        conc,
+                        Inference::UNIT_INJ_DEQ,
+                        false,
+                        true);
       return;
     }
-    // seq.unit(x) != seq.unit(y) => x != y
-    // Notice this is a special case, since the code below would justify this
-    // disequality by reasoning that a component is disequal. However, the
-    // disequality components are the entire disequality.
-
-    std::vector<Node> premises;
-    premises.push_back(nm->mkNode(GEQ, nckLenTerm, d_one));
-    d_im.sendInference(antecLen,
-                       conc,
-                       Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
-                       false,
-                       true);
+    Trace("strings-solve-debug") << "...trivial" << std::endl;
+    return;
+    
   }
 
   std::vector<Node> nfi = nfni.d_nf;
