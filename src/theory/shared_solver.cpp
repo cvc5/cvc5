@@ -42,13 +42,14 @@ bool SharedSolver::needsEqualityEngine(theory::EeSetupInfo& esi)
 
 void SharedSolver::preRegister(TNode atom)
 {
-  // This method uses two different methods for preregistering terms, which
-  // depends on whether sharing is enabled. If sharing is enabled, we use
-  // SharedTermsVisitor, which may associate shared terms in atom with the atom.
-  // Thus, it must always traverse the set of subterms in atom each call.
-  // If sharing is disabled, we use PreRegisterVisitor, which only is
-  // responsible for preregistering terms, and thus keeps a global SAT-context
-  // dependent cache of terms visited.
+  // This method uses two different implementations for preregistering terms,
+  // which depends on whether sharing is enabled.
+  // If sharing is disabled, we use PreRegisterVisitor, which keeps a global
+  // SAT-context dependent cache of terms visited.
+  // If sharing is disabled, we use SharedTermsVisitor which does *not* keep a
+  // global cache. This is because shared terms must be associated with the
+  // given atom, and thus it must traverse the set of subterms in each atom.
+  // See term_registration_visitor.h for more details.
   if (d_logicInfo.isSharingEnabled())
   {
     // register it with the shared terms database if sharing is enabled
