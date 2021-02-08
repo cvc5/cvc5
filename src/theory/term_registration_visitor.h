@@ -108,9 +108,9 @@ class PreRegisterVisitor {
  private:
   /**
    * Helper for above, called whether we wish to register a term with a theory
-   * given by an identifier.
+   * given by an identifier id.
    */
-  static void preregisterTerm(TheoryEngine* te,
+  static void preRegisterWithTheory(TheoryEngine* te,
                               theory::TheoryIdSet& visitedTheories,
                               theory::TheoryId id,
                               TNode current,
