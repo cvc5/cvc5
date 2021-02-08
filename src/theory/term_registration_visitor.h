@@ -86,7 +86,20 @@ class PreRegisterVisitor {
    */
   void done(TNode node) {}
 
-  /** Preregister */
+  /** 
+   * Preregister the term current occuring under term parent.  This calls
+   * Theory::preRegisterTerm for the theories of current and parent, as well
+   * as the theory of current's type, if it is finite.
+   * 
+   * This method takes a set of theories visitedTheories that have already
+   * preregistered current and updates this set with the theories that
+   * preregister current during this call
+   * 
+   * @param te Pointer to the theory engine containing the theories
+   * @param visitedTheories The theories that have already preregistered current
+   * @param current The term to preregister
+   * @param parent The parent term of current
+   */
   static void preregister(TheoryEngine* te,
                           theory::TheoryIdSet& visitedTheories,
                           TNode current,

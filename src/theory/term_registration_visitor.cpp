@@ -161,6 +161,7 @@ void PreRegisterVisitor::preregister(TheoryEngine* te,
     if (currentTheoryId != parentTheoryId || type.isInterpretedFinite())
     {
       TheoryId typeTheoryId = Theory::theoryOf(type);
+      // preregister with the type's theory, if necessary
       if (!TheoryIdSetUtil::setContains(typeTheoryId, visitedTheories))
       {
         visitedTheories =
