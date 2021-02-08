@@ -1989,15 +1989,28 @@ void CoreSolver::processDeq(Node ni, Node nj)
   {
     // If normal forms have size <=1, then we are comparing either:
     // (1) variable to variable,
-    // (2) variable to constant-like (CONST_STRING or SEQ_UNIT), or
-    // (3) SEQ_UNIT to SEQ_UNIT.
-    // We only have to process (3) here, as disequalities of the form of (1)
+    // (2) variable to constant-like (constant string/seq or SEQ_UNIT), or
+    // (3) SEQ_UNIT to constant-like.
+    // We only have to process (3) here, since disequalities of the form of (1)
     // and (2) are satisfied by construction.
-    if (nfni.d_nf.size() == 0 || nfni.d_nf[0].getKind() != SEQ_UNIT
-        || nfnj.d_nf.size() == 0 || nfnj.d_nf[0].getKind() != SEQ_UNIT)
+    if ((nfni.d_nf.size() == 0 || nfni.d_nf[0].getKind() != SEQ_UNIT)
+        && (nfnj.d_nf.size() == 0 || nfnj.d_nf[0].getKind() != SEQ_UNIT))
     {
+      Trace("strings-solve-debug") << "...trivial" << std::endl;
       return;
     }
+    // seq.unit(x) != seq.unit(y) => x != y
+    // Notice this is a special case, since the code below would justify this
+    // disequality by reasoning that a component is disequal. However, the
+    // disequality components are the entire disequality.
+    
+    std::vector<Node> premises;
+    premises.push_back(nm->mkNode(GEQ, nckLenTerm, d_one));
+    d_im.sendInference(antecLen,
+                        conc,
+                        Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+                        false,
+                        true);
   }
 
   std::vector<Node> nfi = nfni.d_nf;
@@ -2025,6 +2038,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
 
   if (processReverseDeq(nfi, nfj, ni, nj))
   {
+    Trace("strings-solve-debug") << "...processed reverse" << std::endl;
     return;
   }
 
@@ -2036,6 +2050,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
   {
     if (processSimpleDeq(nfi, nfj, ni, nj, index, false))
     {
+      Trace("strings-solve-debug") << "...processed simple" << std::endl;
       return;
     }
 
@@ -2505,27 +2520,25 @@ void CoreSolver::checkNormalFormsDeq()
               // if both are constants, they should be distinct, and its trivial
               Assert(cols[i][j] != cols[i][k]);
             }
-            else
+            else if (d_state.areDisequal(cols[i][j], cols[i][k]))
             {
-              if (d_state.areDisequal(cols[i][j], cols[i][k]))
+              Assert(!d_state.isInConflict());
+              if (Trace.isOn("strings-solve"))
               {
-                Assert(!d_state.isInConflict());
-                if (Trace.isOn("strings-solve"))
-                {
-                  Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-                  utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf, "strings-solve");
-                  Trace("strings-solve") << " against " << cols[i][k] << " ";
-                  utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf, "strings-solve");
-                  Trace("strings-solve") << "..." << std::endl;
-                }
-                processDeq(cols[i][j], cols[i][k]);
-                if (d_im.hasProcessed())
-                {
-                  return;
-                }
+                Trace("strings-solve") << "- Compare " << cols[i][j] << ", nf ";
+                utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf, "strings-solve");
+                Trace("strings-solve") << " against " << cols[i][k] << ", nf ";
+                utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf, "strings-solve");
+                Trace("strings-solve") << "..." << std::endl;
+              }
+              processDeq(cols[i][j], cols[i][k]);
+              if (d_im.hasProcessed())
+              {
+                return;
               }
             }
           }
+          
         }
       }
     }
