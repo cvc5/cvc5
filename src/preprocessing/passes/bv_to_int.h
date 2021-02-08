@@ -39,8 +39,8 @@ class BVToInt : public PreprocessingPass
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 
-  void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess,
-                                  std::vector<Node> rangeConstraints);
+  void addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
+                             std::vector<Node> additionalConstraints);
   void addSkolemDefinitions(std::map<Node, Node> skolems);
   void defineBVUFAsIntUF(Node bvUF, Node intUF);
 

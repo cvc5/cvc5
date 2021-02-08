@@ -47,19 +47,24 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  std::vector<Node> rangeConstraints;
+  // vector of boolean nodes for additional constraints
+  // this will always contain range constraints
+  // and for options::SolveBVAsIntMode::BITWISE, it will
+  // also include bitwise assertion constraints
+  std::vector<Node> additionalConstraints;
   std::map<Node, Node> skolems;
   for (uint64_t i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     Node bvNode = (*assertionsToPreprocess)[i];
-    Node intNode = d_intBlaster.intBlast(bvNode, rangeConstraints, skolems);
+    Node intNode =
+        d_intBlaster.intBlast(bvNode, additionalConstraints, skolems);
     Node rwNode = Rewriter::rewrite(intNode);
     Trace("bv-to-int-debug") << "bv node: " << bvNode << std::endl;
     Trace("bv-to-int-debug") << "int node: " << intNode << std::endl;
     Trace("bv-to-int-debug") << "rw node: " << rwNode << std::endl;
     assertionsToPreprocess->replace(i, rwNode);
   }
-  addFinalizeRangeAssertions(assertionsToPreprocess, rangeConstraints);
+  addFinalizeAssertions(assertionsToPreprocess, additionalConstraints);
   addSkolemDefinitions(skolems);
   return PreprocessingPassResult::NO_CONFLICT;
 }
@@ -87,14 +92,13 @@ void BVToInt::addSkolemDefinitions(std::map<Node, Node> skolems)
   }
 }
 
-void BVToInt::addFinalizeRangeAssertions(
-    AssertionPipeline* assertionsToPreprocess,
-    std::vector<Node> rangeConstraints)
+void BVToInt::addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
+                                    std::vector<Node> additionalConstraints)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Node rangeLemma = nm->mkAnd(rangeConstraints);
-  assertionsToPreprocess->push_back(rangeLemma);
-  Trace("bv-to-int-debug") << "range constraints: " << rangeLemma.toString()
+  Node lemmas = nm->mkAnd(additionalConstraints);
+  assertionsToPreprocess->push_back(lemmas);
+  Trace("bv-to-int-debug") << "range constraints: " << lemmas.toString()
                            << std::endl;
 }
 
