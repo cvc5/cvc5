@@ -65,10 +65,9 @@ class DbList
  */
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
-
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+  using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
+  using NodeList = context::CDList<Node>;
+  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
   using TypeNodeDbListMap = context::
       CDHashMap<TypeNode, std::shared_ptr<DbList>, TypeNodeHashFunction>;
   using NodeDbListMap =
