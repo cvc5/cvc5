@@ -1993,18 +1993,18 @@ void CoreSolver::processDeq(Node ni, Node nj)
     // (3) SEQ_UNIT to constant-like.
     // We only have to process (3) here, since disequalities of the form of (1)
     // and (2) are satisfied by construction.
-    for (size_t i=0; i<2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
-      NormalForm& nfc = i==0 ? nfni : nfnj;
-      if (nfc.d_nf.size()==0 || nfc.d_nf[0].getKind() != SEQ_UNIT)
+      NormalForm& nfc = i == 0 ? nfni : nfnj;
+      if (nfc.d_nf.size() == 0 || nfc.d_nf[0].getKind() != SEQ_UNIT)
       {
         // may need to look at the other side
         continue;
       }
       Node u = nfc.d_nf[0];
       // if the other side is constant like
-      NormalForm& nfo = i==0 ? nfnj : nfni;
-      if (nfo.d_nf.size()==0 || !utils::isConstantLike(nfo.d_nf[0]))
+      NormalForm& nfo = i == 0 ? nfnj : nfni;
+      if (nfo.d_nf.size() == 0 || !utils::isConstantLike(nfo.d_nf[0]))
       {
         break;
       }
@@ -2014,7 +2014,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       {
         // get the list of characters (strings of length 1)
         std::vector<Node> vchars = Word::getChars(v);
-        if (vchars.size()!=1)
+        if (vchars.size() != 1)
         {
           // constant of size != 1, disequality is satisfied
           break;
@@ -2024,10 +2024,10 @@ void CoreSolver::processDeq(Node ni, Node nj)
       }
       else
       {
-        Assert (v.getKind()==SEQ_UNIT);
+        Assert(v.getKind() == SEQ_UNIT);
         vc = v[0];
       }
-      Assert (u[0].getType()==vc.getType());
+      Assert(u[0].getType() == vc.getType());
       // if already disequal, we are done
       if (d_state.areDisequal(u[0], vc))
       {
@@ -2041,16 +2041,11 @@ void CoreSolver::processDeq(Node ni, Node nj)
       std::vector<Node> premises;
       premises.push_back(deq);
       Node conc = u[0].eqNode(vc).notNode();
-      d_im.sendInference(premises,
-                        conc,
-                        Inference::UNIT_INJ_DEQ,
-                        false,
-                        true);
+      d_im.sendInference(premises, conc, Inference::UNIT_INJ_DEQ, false, true);
       return;
     }
     Trace("strings-solve-debug") << "...trivial" << std::endl;
     return;
-    
   }
 
   std::vector<Node> nfi = nfni.d_nf;
