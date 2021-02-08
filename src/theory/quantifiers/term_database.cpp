@@ -198,60 +198,45 @@ Node TermDb::getMatchOperator( Node n ) {
   }
 }
 
-void TermDb::addTerm(Node n,
-                     std::set<Node>& added,
-                     bool withinQuant,
-                     bool withinInstClosure)
+void TermDb::addTerm(Node n)
 {
-  //don't add terms in quantifier bodies
-  if( withinQuant && !options::registerQuantBodyTerms() ){
+  if (d_processed.find(n) != d_processed.end())
+  {
     return;
   }
-  bool rec = false;
-  if (d_processed.find(n) == d_processed.end())
+  d_processed.insert(n);
+  if (!TermUtil::hasInstConstAttr(n))
   {
-    d_processed.insert(n);
-    if (!TermUtil::hasInstConstAttr(n))
+    Trace("term-db-debug") << "register term : " << n << std::endl;
+    d_type_map[n.getType()].push_back(n);
+    // if this is an atomic trigger, consider adding it
+    if (inst::TriggerTermInfo::isAtomicTrigger(n))
     {
-      Trace("term-db-debug") << "register term : " << n << std::endl;
-      d_type_map[n.getType()].push_back(n);
-      // if this is an atomic trigger, consider adding it
-      if (inst::TriggerTermInfo::isAtomicTrigger(n))
-      {
-        Trace("term-db") << "register term in db " << n << std::endl;
+      Trace("term-db") << "register term in db " << n << std::endl;
 
-        Node op = getMatchOperator(n);
-        Trace("term-db-debug") << "  match operator is : " << op << std::endl;
-        if (d_op_map.find(op) == d_op_map.end())
-        {
-          d_ops.push_back(op);
-        }
-        d_op_map[op].push_back(n);
-        added.insert(n);
-        // If we are higher-order, we may need to register more terms.
-        if (options::ufHo())
-        {
-          addTermHo(n, added, withinQuant, withinInstClosure);
-        }
+      Node op = getMatchOperator(n);
+      Trace("term-db-debug") << "  match operator is : " << op << std::endl;
+      if (d_op_map.find(op) == d_op_map.end())
+      {
+        d_ops.push_back(op);
+      }
+      d_op_map[op].push_back(n);
+      // If we are higher-order, we may need to register more terms.
+      if (options::ufHo())
+      {
+        addTermHo(n);
       }
     }
-    else
-    {
-      setTermInactive(n);
-    }
-    rec = true;
   }
-  if (withinInstClosure
-      && d_iclosure_processed.find(n) == d_iclosure_processed.end())
+  else
   {
-    d_iclosure_processed.insert(n);
-    rec = true;
+    setTermInactive(n);
   }
-  if (rec && !n.isClosure())
+  if (!n.isClosure())
   {
     for (const Node& nc : n)
     {
-      addTerm(nc, added, withinQuant, withinInstClosure);
+      addTerm(nc);
     }
   }
 }
@@ -442,10 +427,7 @@ void TermDb::computeUfTerms( TNode f ) {
   }
 }
 
-void TermDb::addTermHo(Node n,
-                       std::set<Node>& added,
-                       bool withinQuant,
-                       bool withinInstClosure)
+void TermDb::addTermHo(Node n)
 {
   Assert(options::ufHo());
   if (n.getType().isFunction())
@@ -494,7 +476,7 @@ void TermDb::addTermHo(Node n,
     // also add standard application version
     args.insert(args.begin(), curr);
     Node uf_n = nm->mkNode(APPLY_UF, args);
-    addTerm(uf_n, added, withinQuant, withinInstClosure);
+    addTerm(uf_n);
   }
 }
 
@@ -918,18 +900,6 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
 
 bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
-  if( options::lteRestrictInstClosure() ){
-    //has to be both in inst closure and in ground assertions
-    if( !isInstClosure( n ) ){
-      Trace("inst-add-debug") << "Term " << n << " is not an inst-closure term." << std::endl;
-      return false;
-    }
-    // hack : since theories preregister terms not in assertions, we are using hasTermCurrent to approximate this
-    if( !hasTermCurrent( n, false ) ){
-      Trace("inst-add-debug") << "Term " << n << " is not in a ground assertion." << std::endl;
-      return false;
-    }
-  }
   if( options::instMaxLevel()!=-1 ){
     if( n.hasAttribute(InstLevelAttribute()) ){
       int fml = f.isNull() ? -1 : d_quantEngine->getQuantAttributes()->getQuantInstLevel( f );
@@ -979,10 +949,6 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
   }
 }
 
-bool TermDb::isInstClosure( Node r ) {
-  return d_iclosure_processed.find( r )!=d_iclosure_processed.end();
-}
-
 void TermDb::setHasTerm( Node n ) {
   Trace("term-db-debug2") << "hasTerm : " << n  << std::endl;
   if( d_has_map.find( n )==d_has_map.end() ){
@@ -1001,7 +967,6 @@ void TermDb::presolve() {
     d_op_map.clear();
     d_type_map.clear();
     d_processed.clear();
-    d_iclosure_processed.clear();
   }
 }
 
@@ -1060,8 +1025,7 @@ bool TermDb::reset( Theory::Effort effort ){
   }
 
   //compute has map
-  if (options::termDbMode() == options::TermDbMode::RELEVANT
-      || options::lteRestrictInstClosure())
+  if (options::termDbMode() == options::TermDbMode::RELEVANT)
   {
     d_has_map.clear();
     d_term_elig_eqc.clear();
@@ -1103,19 +1067,8 @@ bool TermDb::reset( Theory::Effort effort ){
            it != it_end;
            ++it)
       {
-        if ((*it).d_assertion.getKind() != INST_CLOSURE)
-        {
-          setHasTerm((*it).d_assertion);
-        }
+        setHasTerm((*it).d_assertion);
       }
-    }
-  }
-  //explicitly add inst closure terms to the equality engine to ensure only EE terms are indexed
-  for (const Node& n : d_iclosure_processed)
-  {
-    if (!ee->hasTerm(n))
-    {
-      ee->addTerm(n);
     }
   }
 
