@@ -847,6 +847,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4437-unc-quant.smt2
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
+  regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
