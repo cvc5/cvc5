@@ -138,7 +138,8 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     TheoryId parentTheoryId = Theory::theoryOf(parent);
     preRegisterWithTheory(te, visitedTheories, parentTheoryId, current, parent);
 
-    // Should we use the theory of the type
+    // Note that if enclosed by different theories it's shared, for example,
+    // in read(a, f(a)), f(a) should be shared with integers.
     TypeNode type = current.getType();
     if (currentTheoryId != parentTheoryId || type.isInterpretedFinite())
     {
@@ -170,9 +171,9 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
     // even though arithmetic isn't actually involved.
     if (!options::finiteModelFind())
     {
-      if (!d_te->isTheoryEnabled(id))
+      if (!te->isTheoryEnabled(id))
       {
-        const LogicInfo& l = d_te->getLogicInfo();
+        const LogicInfo& l = te->getLogicInfo();
         LogicInfo newLogicInfo = l.getUnlockedCopy();
         newLogicInfo.enableTheory(id);
         newLogicInfo.lock();
