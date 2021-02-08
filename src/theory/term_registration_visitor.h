@@ -111,10 +111,10 @@ class PreRegisterVisitor {
    * given by an identifier id.
    */
   static void preRegisterWithTheory(TheoryEngine* te,
-                              theory::TheoryIdSet& visitedTheories,
-                              theory::TheoryId id,
-                              TNode current,
-                              TNode parent);
+                                    theory::TheoryIdSet& visitedTheories,
+                                    theory::TheoryId id,
+                                    TNode current,
+                                    TNode parent);
 };
 
 

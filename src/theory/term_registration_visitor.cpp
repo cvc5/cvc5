@@ -163,8 +163,9 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
   }
   if (Configuration::isAssertionBuild())
   {
-    Debug("register::internal") << "PreRegisterVisitor::visit(" << current << ","
-                                << parent << "): adding " << id << std::endl;
+    Debug("register::internal")
+        << "PreRegisterVisitor::visit(" << current << "," << parent
+        << "): adding " << id << std::endl;
     // This should never throw an exception, since theories should be
     // guaranteed to be initialized.
     // These checks don't work with finite model finding, because it
@@ -180,10 +181,10 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
         newLogicInfo.lock();
         std::stringstream ss;
         ss << "The logic was specified as " << l.getLogicString()
-          << ", which doesn't include " << id
-          << ", but found a term in that theory." << std::endl
-          << "You might want to extend your logic to "
-          << newLogicInfo.getLogicString() << std::endl;
+           << ", which doesn't include " << id
+           << ", but found a term in that theory." << std::endl
+           << "You might want to extend your logic to "
+           << newLogicInfo.getLogicString() << std::endl;
         throw LogicException(ss.str());
       }
     }
