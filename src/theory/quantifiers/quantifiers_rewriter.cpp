@@ -1868,6 +1868,14 @@ Node QuantifiersRewriter::computeOperation(Node f,
       std::vector< Node > nargs;
       n = computePrenex(f, n, args, nargs, true, false);
       Assert(nargs.empty());
+      // prenex may lead to repeated variables in args, so we remove duplicates
+      // here
+      std::unordered_set<TNode, TNodeHashFunction> varSet{args.begin(), args.end()};
+      if (varSet.size() < args.size())
+      {
+        args.clear();
+        args.insert(args.end(), varSet.begin(), varSet.end());
+      }
     }
   }
   else if (computeOption == COMPUTE_VAR_ELIMINATION)
