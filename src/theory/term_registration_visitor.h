@@ -100,7 +100,7 @@ class PreRegisterVisitor {
    * @param current The term to preregister
    * @param parent The parent term of current
    */
-  static void preregister(TheoryEngine* te,
+  static void preRegister(TheoryEngine* te,
                           theory::TheoryIdSet& visitedTheories,
                           TNode current,
                           TNode parent);

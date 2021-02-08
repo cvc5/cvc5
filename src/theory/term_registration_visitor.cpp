@@ -111,7 +111,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
 
   // call the preregistration on current, parent or type theories and update
   // visitedTheories.
-  preregister(d_engine, visitedTheories, current, parent);
+  preRegister(d_engine, visitedTheories, current, parent);
 
   Debug("register::internal")
       << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -240,7 +240,7 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
   TheoryIdSet visitedTheories = d_visited[current];
 
   // preregister the term with the current, parent or type theories, as needed
-  PreRegisterVisitor::preregister(d_engine, visitedTheories, current, parent);
+  PreRegisterVisitor::preRegister(d_engine, visitedTheories, current, parent);
 
   // Record the new theories that we visited
   d_visited[current] = visitedTheories;
