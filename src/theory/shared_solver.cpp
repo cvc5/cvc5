@@ -40,7 +40,7 @@ bool SharedSolver::needsEqualityEngine(theory::EeSetupInfo& esi)
   return false;
 }
 
-void SharedSolver::preRegisterShared(TNode t)
+void SharedSolver::preRegister(TNode t)
 {
   // register it with the equality engine manager if sharing is enabled
   if (d_logicInfo.isSharingEnabled())
