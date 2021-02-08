@@ -1987,7 +1987,16 @@ void CoreSolver::processDeq(Node ni, Node nj)
 
   if (nfni.d_nf.size() <= 1 && nfnj.d_nf.size() <= 1)
   {
-    return;
+    // If normal forms have size <=1, then we are comparing either:
+    // (1) variable to variable,
+    // (2) variable to constant-like (CONST_STRING or SEQ_UNIT), or
+    // (3) SEQ_UNIT to SEQ_UNIT.
+    // We only have to process (3) here, as disequalities of the form of (1)
+    // and (2) are satisfied by construction.
+    if (nfni.d_nf.size()==0 || nfni.d_nf[0].getKind()!=SEQ_UNIT || nfnj.d_nf.size()==0 || nfnj.d_nf[0].getKind()!=SEQ_UNIT)
+    {
+      return;
+    }
   }
 
   std::vector<Node> nfi = nfni.d_nf;
