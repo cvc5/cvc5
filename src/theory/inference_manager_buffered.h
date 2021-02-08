@@ -58,8 +58,8 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * @param pg The proof generator which can provide a proof for lem
    * @param checkCache Whether we want to check that the lemma is already in
    * the cache.
-   * @return true if the lemma was added to the list of pending lemmas. This
-   * returns false if the lemma is already cached.
+   * @return true if the lemma was added to the list of pending lemmas and
+   * false if the lemma is already cached.
    */
   bool addPendingLemma(Node lem,
                        LemmaProperty p = LemmaProperty::NONE,
