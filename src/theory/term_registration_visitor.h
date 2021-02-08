@@ -56,8 +56,8 @@ class PreRegisterVisitor {
   std::string toString() const;
 
  public:
-  /** Returned set tells us which theories there are */
-  typedef void return_type;
+  /** required to instantiate template for NodeVisitor */
+  using return_type = void;
 
   PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
       : d_engine(engine), d_visited(context)
@@ -77,7 +77,8 @@ class PreRegisterVisitor {
   void visit(TNode current, TNode parent);
 
   /**
-   * Marks the node as the starting literal.
+   * Marks the node as the starting literal, which does nothing. This method
+   * is required to instantiate template for NodeVisitor.
    */
   void start(TNode node);
 
@@ -141,8 +142,8 @@ class SharedTermsVisitor {
   TNode d_atom; 
     
 public:
-
-  typedef void return_type;
+  /** required to instantiate template for NodeVisitor */
+  using return_type = void;
 
   SharedTermsVisitor(TheoryEngine* te, SharedTermsDatabase& sharedTerms)
       : d_engine(te), d_sharedTerms(sharedTerms)
@@ -160,7 +161,7 @@ public:
   void visit(TNode current, TNode parent);
   
   /**
-   * Marks the node as the starting literal.
+   * Marks the node as the starting literal, which clears the state.
    */
   void start(TNode node);
 
