@@ -149,22 +149,22 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     }
   }
 }
-void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te, 
-                                     TheoryIdSet& visitedTheories, TheoryId id, TNode current,
-                                     TNode parent)
+void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
+                                               TheoryIdSet& visitedTheories,
+                                               TheoryId id,
+                                               TNode current,
+                                               TNode parent)
 {
   if (TheoryIdSetUtil::setContains(id, visitedTheories))
   {
     // already visited
     return;
   }
-  visitedTheories =
-      TheoryIdSetUtil::setInsert(id, visitedTheories);
+  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
   Theory* th = te->theoryOf(id);
   th->preRegisterTerm(current);
-  Debug("register::internal")
-      << "PreRegisterVisitor::visit(" << current << "," << parent
-      << "): adding " << id << std::endl;
+  Debug("register::internal") << "PreRegisterVisitor::visit(" << current << ","
+                              << parent << "): adding " << id << std::endl;
 }
 
 void PreRegisterVisitor::start(TNode node) {}

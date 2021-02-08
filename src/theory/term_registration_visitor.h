@@ -104,14 +104,17 @@ class PreRegisterVisitor {
                           theory::TheoryIdSet& visitedTheories,
                           TNode current,
                           TNode parent);
-private:
-  /** 
+
+ private:
+  /**
    * Helper for above, called whether we wish to register a term with a theory
    * given by an identifier.
    */
-  static void preregisterTerm(TheoryEngine* te, 
-                                     TheoryIdSet& visitedTheories, TheoryId id, TNode current,
-                                     TNode parent);
+  static void preregisterTerm(TheoryEngine* te,
+                              TheoryIdSet& visitedTheories,
+                              TheoryId id,
+                              TNode current,
+                              TNode parent);
 };
 
 
