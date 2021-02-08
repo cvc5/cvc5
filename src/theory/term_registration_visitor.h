@@ -141,7 +141,7 @@ class SharedTermsVisitor {
    */
   TNode d_atom; 
     
-public:
+ public:
   /** required to instantiate template for NodeVisitor */
   using return_type = void;
 
