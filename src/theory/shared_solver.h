@@ -58,18 +58,18 @@ class SharedSolver
   virtual void setEqualityEngine(eq::EqualityEngine* ee) = 0;
   //------------------------------------- end initialization
   /**
-   * Called when the given term t is pre-registered in TheoryEngine.
+   * Called when the given atom is pre-registered in TheoryEngine.
    *
-   * This calls Theory::preRegisterTerm on all subterms of t for the appropriate
-   * theories.
+   * This calls Theory::preRegisterTerm on all subterms of atom for the
+   * appropriate theories.
    *
-   * Also, if sharing is enabled, this adds t as an equality to propagate in the
-   * shared terms database if it is an equality, and adds its shared terms
+   * Also, if sharing is enabled, this adds atom as an equality to propagate in
+   * the shared terms database if it is an equality, and adds its shared terms
    * to the appropariate theories.
    *
-   * @param t The term to preregister
+   * @param atom The atom to preregister
    */
-  void preRegister(TNode t);
+  void preRegister(TNode atom);
   /**
    * Pre-notify assertion fact with the given atom. This is called when any
    * fact is asserted in TheoryEngine, just before it is dispatched to the
