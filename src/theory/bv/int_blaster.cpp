@@ -534,6 +534,7 @@ Node IntBlaster::translateWithChildren(
             iAnd,
             "__intblast__iand",
             "skolem for an IAND node in bitwise mode " + iAnd.toString());
+        addRangeConstraint(returnNode, bvsize, lemmas);
 
         // eagerly add bitwise lemmas according to the provided granularity
         uint64_t high_bit;
