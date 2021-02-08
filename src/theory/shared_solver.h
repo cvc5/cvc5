@@ -60,13 +60,16 @@ class SharedSolver
   /**
    * Called when the given term t is pre-registered in TheoryEngine.
    *
-   * This adds t as an equality to propagate in the shared terms database
-   * if it is an equality, or adds its shared terms if it involves multiple
+   * This calls Theory::preRegisterTerm on all subterms of t for the appropriate
    * theories.
+   *
+   * Also, if sharing is enabled, this adds t as an equality to propagate in the
+   * shared terms database if it is an equality, and adds its shared terms
+   * to the appropariate theories.
    *
    * @param t The term to preregister
    */
-  void preRegisterShared(TNode t);
+  void preRegister(TNode t);
   /**
    * Pre-notify assertion fact with the given atom. This is called when any
    * fact is asserted in TheoryEngine, just before it is dispatched to the

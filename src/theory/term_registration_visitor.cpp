@@ -123,57 +123,48 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
   Assert(alreadyVisited(current, parent));
 }
 
-void PreRegisterVisitor::preregister(TheoryEngine* te,
+void PreRegisterVisitor::preRegister(TheoryEngine* te,
                                      TheoryIdSet& visitedTheories,
                                      TNode current,
                                      TNode parent)
 {
   // Preregister with the current theory, if necessary
   TheoryId currentTheoryId = Theory::theoryOf(current);
-  if (!TheoryIdSetUtil::setContains(currentTheoryId, visitedTheories))
-  {
-    visitedTheories =
-        TheoryIdSetUtil::setInsert(currentTheoryId, visitedTheories);
-    Theory* th = te->theoryOf(currentTheoryId);
-    th->preRegisterTerm(current);
-    Debug("register::internal")
-        << "PreRegisterVisitor::visit(" << current << "," << parent
-        << "): adding " << currentTheoryId << std::endl;
-  }
+  preRegisterWithTheory(te, visitedTheories, currentTheoryId, current, parent);
 
   if (current != parent)
   {
     // preregister with parent theory, if necessary
     TheoryId parentTheoryId = Theory::theoryOf(parent);
-    if (!TheoryIdSetUtil::setContains(parentTheoryId, visitedTheories))
-    {
-      visitedTheories =
-          TheoryIdSetUtil::setInsert(parentTheoryId, visitedTheories);
-      Theory* th = te->theoryOf(parentTheoryId);
-      th->preRegisterTerm(current);
-      Debug("register::internal")
-          << "PreRegisterVisitor::visit(" << current << "," << parent
-          << "): adding " << parentTheoryId << std::endl;
-    }
+    preRegisterWithTheory(te, visitedTheories, parentTheoryId, current, parent);
 
     // Should we use the theory of the type
     TypeNode type = current.getType();
     if (currentTheoryId != parentTheoryId || type.isInterpretedFinite())
     {
+      // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);
       // preregister with the type's theory, if necessary
-      if (!TheoryIdSetUtil::setContains(typeTheoryId, visitedTheories))
-      {
-        visitedTheories =
-            TheoryIdSetUtil::setInsert(typeTheoryId, visitedTheories);
-        Theory* th = te->theoryOf(typeTheoryId);
-        th->preRegisterTerm(current);
-        Debug("register::internal")
-            << "PreRegisterVisitor::visit(" << current << "," << parent
-            << "): adding " << typeTheoryId << std::endl;
-      }
+      preRegisterWithTheory(te, visitedTheories, typeTheoryId, current, parent);
     }
   }
+}
+void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te, 
+                                     TheoryIdSet& visitedTheories, TheoryId id, TNode current,
+                                     TNode parent)
+{
+  if (TheoryIdSetUtil::setContains(id, visitedTheories))
+  {
+    // already visited
+    return;
+  }
+  visitedTheories =
+      TheoryIdSetUtil::setInsert(id, visitedTheories);
+  Theory* th = te->theoryOf(id);
+  th->preRegisterTerm(current);
+  Debug("register::internal")
+      << "PreRegisterVisitor::visit(" << current << "," << parent
+      << "): adding " << id << std::endl;
 }
 
 void PreRegisterVisitor::start(TNode node) {}
