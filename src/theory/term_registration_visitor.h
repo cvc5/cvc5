@@ -139,8 +139,8 @@ class SharedTermsVisitor {
   /** 
    * The initial atom.
    */
-  TNode d_atom; 
-    
+  TNode d_atom;
+
  public:
   /** required to instantiate template for NodeVisitor */
   using return_type = void;
@@ -159,7 +159,7 @@ class SharedTermsVisitor {
    * Pre-registeres current with any of the current and parent theories that haven't seen the term yet.
    */
   void visit(TNode current, TNode parent);
-  
+
   /**
    * Marks the node as the starting literal, which clears the state.
    */
