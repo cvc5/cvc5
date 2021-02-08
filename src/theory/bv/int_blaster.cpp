@@ -774,6 +774,11 @@ Node IntBlaster::translateWithChildren(
     case kind::BOUND_VAR_LIST:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
+      if (d_mode == options::SolveBVAsIntMode::BITWISE)
+      {
+        throw OptionException(
+            "--solve-bv-as-int=bitwise does not support quantifiers");
+      }
       break;
     }
     case kind::FORALL:
