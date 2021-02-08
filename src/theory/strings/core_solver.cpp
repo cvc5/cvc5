@@ -2003,14 +2003,14 @@ void CoreSolver::processDeq(Node ni, Node nj)
     // Notice this is a special case, since the code below would justify this
     // disequality by reasoning that a component is disequal. However, the
     // disequality components are the entire disequality.
-    
+
     std::vector<Node> premises;
     premises.push_back(nm->mkNode(GEQ, nckLenTerm, d_one));
     d_im.sendInference(antecLen,
-                        conc,
-                        Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
-                        false,
-                        true);
+                       conc,
+                       Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
+                       false,
+                       true);
   }
 
   std::vector<Node> nfi = nfni.d_nf;
@@ -2526,9 +2526,11 @@ void CoreSolver::checkNormalFormsDeq()
               if (Trace.isOn("strings-solve"))
               {
                 Trace("strings-solve") << "- Compare " << cols[i][j] << ", nf ";
-                utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf, "strings-solve");
+                utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf,
+                                        "strings-solve");
                 Trace("strings-solve") << " against " << cols[i][k] << ", nf ";
-                utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf, "strings-solve");
+                utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf,
+                                        "strings-solve");
                 Trace("strings-solve") << "..." << std::endl;
               }
               processDeq(cols[i][j], cols[i][k]);
@@ -2538,7 +2540,6 @@ void CoreSolver::checkNormalFormsDeq()
               }
             }
           }
-          
         }
       }
     }
