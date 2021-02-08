@@ -294,7 +294,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
     {
       Trace("bound-int-lemma")
           << "*** bound int : proxy lemma : " << prangeLem << std::endl;
-      d_quantEngine->addLemma(prangeLem);
+      d_qim.addPendingLemma(prangeLem);
       addedLemma = true;
     }
   }
