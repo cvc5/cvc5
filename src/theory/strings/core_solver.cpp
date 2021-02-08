@@ -1989,7 +1989,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
   {
     // If normal forms have size <=1, then we are comparing either:
     // (1) variable to variable,
-    // (2) variable to constant-like (constant string/seq or SEQ_UNIT), or
+    // (2) variable to constant-like (empty, constant string/seq or SEQ_UNIT),
     // (3) SEQ_UNIT to constant-like.
     // We only have to process (3) here, since disequalities of the form of (1)
     // and (2) are satisfied by construction.
