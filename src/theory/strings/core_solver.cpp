@@ -2008,6 +2008,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       {
         break;
       }
+      // v is the other side (a possibly constant seq.unit term)
       Node v = nfo.d_nf[0];
       Node vc;
       if (v.isConst())
