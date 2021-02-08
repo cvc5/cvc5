@@ -145,7 +145,6 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     {
       // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);
-      // preregister with the type's theory, if necessary
       preRegisterWithTheory(te, visitedTheories, typeTheoryId, current, parent);
     }
   }
@@ -248,7 +247,7 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
   d_visited[current] = visitedTheories;
 
   // If there is more than two theories and a new one has been added notify the shared terms database
-  TheoryId currentTheoryId = Theory::theoryOf(current);  // TODO: remove
+  TheoryId currentTheoryId = Theory::theoryOf(current);
   if (TheoryIdSetUtil::setDifference(
           visitedTheories, TheoryIdSetUtil::setInsert(currentTheoryId)))
   {
