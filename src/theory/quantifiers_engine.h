@@ -185,9 +185,7 @@ public:
 
 public:
  /** add term to database */
- void addTermToDatabase(Node n,
-                        bool withinQuant = false,
-                        bool withinInstClosure = false);
+ void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
  void eqNotifyNewClass(TNode t);
  /** debug print equality engine */
@@ -342,8 +340,6 @@ public:
   /** presolve cache */
   NodeSet d_presolve_in;
   NodeList d_presolve_cache;
-  BoolList d_presolve_cache_wq;
-  BoolList d_presolve_cache_wic;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

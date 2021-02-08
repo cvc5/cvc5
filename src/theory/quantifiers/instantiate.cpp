@@ -219,7 +219,7 @@ bool Instantiate::addInstantiation(
   }
 
   // check based on instantiation level
-  if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
+  if (options::instMaxLevel() != -1)
   {
     for (Node& t : terms)
     {
