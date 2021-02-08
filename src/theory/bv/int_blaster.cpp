@@ -528,7 +528,12 @@ Node IntBlaster::translateWithChildren(
         Node x = translated_children[0];
         Node y = translated_children[1];
         Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
-        returnNode = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+        Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+        // get a skolem so the IAND solver knows not to do work
+        returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
+            iAnd,
+            "__intblast__iand",
+            "skolem for an IAND node in bitwise mode " + iAnd.toString());
 
         // eagerly add bitwise lemmas according to the provided granularity
         uint64_t high_bit;
