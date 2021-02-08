@@ -1239,11 +1239,11 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
 
 Node QuantifiersRewriter::computePrenex(
     Node q,
-                                        Node body,
+    Node body,
     std::unordered_set<Node, NodeHashFunction>& args,
     std::unordered_set<Node, NodeHashFunction>& nargs,
-                                        bool pol,
-                                        bool prenexAgg)
+    bool pol,
+    bool prenexAgg)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = body.getKind();
@@ -1527,13 +1527,13 @@ Node QuantifiersRewriter::mkForAll(const std::vector<Node>& args,
     return body;
   }
   NodeManager* nm = NodeManager::currentNM();
-    std::vector< Node > children;
+  std::vector<Node> children;
   children.push_back(nm->mkNode(kind::BOUND_VAR_LIST, args));
-    children.push_back( body );
+  children.push_back(body);
   if (!qa.d_ipl.isNull())
   {
-      children.push_back( qa.d_ipl );
-    }
+    children.push_back(qa.d_ipl);
+  }
   return nm->mkNode(kind::FORALL, children);
 }
 
@@ -1555,16 +1555,16 @@ Node QuantifiersRewriter::mkForall(const std::vector<Node>& args,
     return body;
   }
   NodeManager* nm = NodeManager::currentNM();
-    std::vector< Node > children;
+  std::vector<Node> children;
   children.push_back(nm->mkNode(kind::BOUND_VAR_LIST, args));
-    children.push_back( body );
+  children.push_back(body);
   if (marked)
   {
     Node avar = nm->mkSkolem("id", nm->booleanType());
-      QuantIdNumAttribute ida;
-      avar.setAttribute(ida,0);
+    QuantIdNumAttribute ida;
+    avar.setAttribute(ida, 0);
     iplc.push_back(nm->mkNode(kind::INST_ATTRIBUTE, avar));
-    }
+  }
   if (!iplc.empty())
   {
     children.push_back(nm->mkNode(kind::INST_PATTERN_LIST, iplc));

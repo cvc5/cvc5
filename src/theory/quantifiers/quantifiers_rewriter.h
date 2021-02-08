@@ -289,9 +289,16 @@ public:
    * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
    */
   static TrustNode preprocess(Node n, bool isInst = false);
-  static Node mkForAll( const std::vector< Node >& args, Node body, QAttributes& qa );
-  static Node mkForall( const std::vector< Node >& args, Node body, bool marked = false );
-  static Node mkForall( const std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked = false );
+  static Node mkForAll(const std::vector<Node>& args,
+                       Node body,
+                       QAttributes& qa);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       bool marked = false);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       std::vector<Node>& iplc,
+                       bool marked = false);
 }; /* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */
