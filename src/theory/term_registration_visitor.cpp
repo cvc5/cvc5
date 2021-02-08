@@ -35,7 +35,8 @@ std::string PreRegisterVisitor::toString() const {
 /**
  * Return true if we already visited the term current with the given parent,
  * assuming that the set of theories in visitedTheories has already processed
- * current. This method is used by PreRegisterVisitor and SharedTermsVisitor below.
+ * current. This method is used by PreRegisterVisitor and SharedTermsVisitor
+ * below.
  */
 bool isAlreadyVisited(TheoryIdSet visitedTheories, TNode current, TNode parent)
 {
