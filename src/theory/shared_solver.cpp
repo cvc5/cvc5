@@ -46,13 +46,16 @@ void SharedSolver::preRegister(TNode t)
   if (d_logicInfo.isSharingEnabled())
   {
     preRegisterSharedInternal(t);
-    // Collect the shared terms if there are multiple theories
-    // This calls Theory::addSharedTerm, possibly multiple times
+    // Collect the shared terms in t, as well as calling preregister on the
+    // appropriate theories in t.
+    // This calls Theory::preRegisterTerm and Theory::addSharedTerm, possibly
+    // multiple times
     NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, t);
   }
   else
   {
-    // just use the normal preregister visitor
+    // just use the normal preregister visitor, which calls
+    // Theory::preRegisterTerm possibly multiple times.
     NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, t);
   }
 }
