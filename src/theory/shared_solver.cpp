@@ -51,7 +51,7 @@ void SharedSolver::preRegister(TNode atom)
   // dependent cache of terms visited.
   if (d_logicInfo.isSharingEnabled())
   {
-  // register it with the shared terms database if sharing is enabled
+    // register it with the shared terms database if sharing is enabled
     preRegisterSharedInternal(atom);
     // Collect the shared terms in atom, as well as calling preregister on the
     // appropriate theories in atom.
