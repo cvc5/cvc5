@@ -44,9 +44,9 @@ TermDb::TermDb(QuantifiersState& qs,
       d_termsContextUse(options::termDbCd() ? qs.getSatContext()
                                             : &d_termsContext),
       d_processed(d_termsContextUse),
-      d_type_map(d_termsContextUse),
+      d_typeMap(d_termsContextUse),
       d_ops(d_termsContextUse),
-      d_op_map(d_termsContextUse),
+      d_opMap(d_termsContextUse),
       d_inactive_map(qs.getSatContext())
 {
   d_consistent_ee = true;
@@ -73,9 +73,9 @@ void TermDb::registerQuantifier( Node q ) {
   }
 }
 
-size_t TermDb::getNumOperators() { return d_ops.size(); }
+size_t TermDb::getNumOperators() const { return d_ops.size(); }
 
-Node TermDb::getOperator(size_t i)
+Node TermDb::getOperator(size_t i) const
 {
   Assert(i < d_ops.size());
   return d_ops[i];
@@ -84,8 +84,8 @@ Node TermDb::getOperator(size_t i)
 /** ground terms */
 size_t TermDb::getNumGroundTerms(Node f) const
 {
-  NodeDbListMap::const_iterator it = d_op_map.find(f);
-  if( it!=d_op_map.end() ){
+  NodeDbListMap::const_iterator it = d_opMap.find(f);
+  if( it!=d_opMap.end() ){
     return it->second->d_list.size();
   }
   return 0;
@@ -93,8 +93,8 @@ size_t TermDb::getNumGroundTerms(Node f) const
 
 Node TermDb::getGroundTerm(Node f, size_t i) const
 {
-  NodeDbListMap::const_iterator it = d_op_map.find(f);
-  if (it != d_op_map.end())
+  NodeDbListMap::const_iterator it = d_opMap.find(f);
+  if (it != d_opMap.end())
   {
     Assert(i < it->second->d_list.size());
     return it->second->d_list[i];
@@ -105,8 +105,8 @@ Node TermDb::getGroundTerm(Node f, size_t i) const
 
 size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
 {
-  TypeNodeDbListMap::const_iterator it = d_type_map.find(tn);
-  if( it!=d_type_map.end() ){
+  TypeNodeDbListMap::const_iterator it = d_typeMap.find(tn);
+  if( it!=d_typeMap.end() ){
     return it->second->d_list.size();
   }
   return 0;
@@ -114,8 +114,8 @@ size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
 
 Node TermDb::getTypeGroundTerm(TypeNode tn, size_t i) const
 {
-  TypeNodeDbListMap::const_iterator it = d_type_map.find(tn);
-  if (it != d_type_map.end())
+  TypeNodeDbListMap::const_iterator it = d_typeMap.find(tn);
+  if (it != d_typeMap.end())
   {
     Assert(i < it->second->d_list.size());
     return it->second->d_list[i];
@@ -126,8 +126,8 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, size_t i) const
 
 Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
 {
-  TypeNodeDbListMap::const_iterator it = d_type_map.find(tn);
-  if (it != d_type_map.end())
+  TypeNodeDbListMap::const_iterator it = d_typeMap.find(tn);
+  if (it != d_typeMap.end())
   {
     Assert(!it->second->d_list.empty());
     if (!reqVar)
@@ -244,25 +244,25 @@ void TermDb::addTerm(Node n)
 
 DbList* TermDb::getOrMkDbListForType(TypeNode tn)
 {
-  TypeNodeDbListMap::iterator it = d_type_map.find(tn);
-  if (it != d_type_map.end())
+  TypeNodeDbListMap::iterator it = d_typeMap.find(tn);
+  if (it != d_typeMap.end())
   {
     return it->second.get();
   }
   std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
-  d_type_map.insert(tn, dl);
+  d_typeMap.insert(tn, dl);
   return dl.get();
 }
 
 DbList* TermDb::getOrMkDbListForOp(TNode op)
 {
-  NodeDbListMap::iterator it = d_op_map.find(op);
-  if (it != d_op_map.end())
+  NodeDbListMap::iterator it = d_opMap.find(op);
+  if (it != d_opMap.end())
   {
     return it->second.get();
   }
   std::shared_ptr<DbList> dl = std::make_shared<DbList>(d_termsContextUse);
-  d_op_map.insert(op, dl);
+  d_opMap.insert(op, dl);
   Assert(op.getKind() != BOUND_VARIABLE);
   d_ops.push_back(op);
   return dl.get();
@@ -333,8 +333,8 @@ void TermDb::computeUfTerms( TNode f ) {
   NodeManager* nm = NodeManager::currentNM();
   for (TNode ff : ops)
   {
-    NodeDbListMap::iterator it = d_op_map.find(ff);
-    if (it == d_op_map.end())
+    NodeDbListMap::iterator it = d_opMap.find(ff);
+    if (it == d_opMap.end())
     {
       // no terms for this operator
       continue;
@@ -1129,7 +1129,7 @@ bool TermDb::reset( Theory::Effort effort ){
           }
           Trace("quant-ho") << "  - process " << n_use << ", from " << n
                             << std::endl;
-          if (!n_use.isNull() && d_op_map.find(n_use) != d_op_map.end())
+          if (!n_use.isNull() && d_opMap.find(n_use) != d_opMap.end())
           {
             if (first.isNull())
             {

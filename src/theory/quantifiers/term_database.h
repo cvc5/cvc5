@@ -87,9 +87,9 @@ class TermDb : public QuantifiersUtil {
   /** identify */
   std::string identify() const override { return "TermDb"; }
   /** get number of operators */
-  size_t getNumOperators();
+  size_t getNumOperators() const;
   /** get operator at index i */
-  Node getOperator(size_t i);
+  Node getOperator(size_t i) const;
   /** ground terms for operator
   * Get the number of ground terms with operator f that have been added to the
   * database
@@ -302,11 +302,11 @@ class TermDb : public QuantifiersUtil {
   /** terms processed */
   NodeSet d_processed;
   /** map from types to ground terms for that type */
-  TypeNodeDbListMap d_type_map;
+  TypeNodeDbListMap d_typeMap;
   /** list of all operators */
   NodeList d_ops;
   /** map from operators to ground terms for that operator */
-  NodeDbListMap d_op_map;
+  NodeDbListMap d_opMap;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
