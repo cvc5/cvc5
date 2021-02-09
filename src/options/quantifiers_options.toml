@@ -220,6 +220,14 @@ header = "options/quantifiers_options.h"
   help = "Quantifiers module considers only ground terms connected to current assertions."
 
 [[option]]
+  name       = "termDbCd"
+  category   = "regular"
+  long       = "term-db-cd"
+  type       = "bool"
+  default    = "true"
+  help       = "register terms in term database based on the SAT context"
+
+[[option]]
   name       = "registerQuantBodyTerms"
   category   = "regular"
   long       = "register-quant-body-terms"
