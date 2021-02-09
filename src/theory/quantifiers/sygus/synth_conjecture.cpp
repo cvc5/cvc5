@@ -42,9 +42,11 @@ namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
+                                 QuantifiersInferenceManager& qim,
                                  SygusStatistics& s)
     : d_qe(qe),
       d_qstate(qs),
+      d_qim(qim),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
@@ -721,7 +723,7 @@ bool SynthConjecture::doRefine()
   {
     Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
                          << std::endl;
-    bool res = d_qe->addLemma(lem);
+    bool res = d_qim.addPendingLemma(lem);
     if (res)
     {
       ++(d_stats.d_cegqi_lemmas_refine);

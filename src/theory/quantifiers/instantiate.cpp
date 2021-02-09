@@ -38,9 +38,11 @@ namespace quantifiers {
 
 Instantiate::Instantiate(QuantifiersEngine* qe,
                          QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim,
                          ProofNodeManager* pnm)
     : d_qe(qe),
       d_qstate(qs),
+      d_qim(qim),
       d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),
@@ -217,7 +219,7 @@ bool Instantiate::addInstantiation(
   }
 
   // check based on instantiation level
-  if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
+  if (options::instMaxLevel() != -1)
   {
     for (Node& t : terms)
     {
@@ -321,13 +323,12 @@ bool Instantiate::addInstantiation(
   bool addedLem = false;
   if (hasProof)
   {
-    // use trust interface
-    TrustNode tlem = TrustNode::mkTrustLemma(lem, d_pfInst.get());
-    addedLem = d_qe->addTrustedLemma(tlem, true, false);
+    // use proof generator
+    addedLem = d_qim.addPendingLemma(lem, LemmaProperty::NONE, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qe->addLemma(lem, true, false);
+    addedLem = d_qim.addPendingLemma(lem);
   }
 
   if (!addedLem)
@@ -400,18 +401,6 @@ bool Instantiate::addInstantiation(
   return true;
 }
 
-bool Instantiate::removeInstantiation(Node q,
-                                      Node lem,
-                                      std::vector<Node>& terms)
-{
-  // lem must occur in d_waiting_lemmas
-  if (d_qe->removeLemma(lem))
-  {
-    return removeInstantiationInternal(q, terms);
-  }
-  return false;
-}
-
 bool Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
                                       bool modEq,
@@ -430,8 +419,7 @@ bool Instantiate::existsInstantiation(Node q,
         d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(
-          d_qe, q, terms, d_qstate.getUserContext(), modEq);
+      return it->second->existsInstMatch(d_qstate, q, terms, modEq);
     }
   }
   else
@@ -440,7 +428,7 @@ bool Instantiate::existsInstantiation(Node q,
         d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
-      return it->second.existsInstMatch(d_qe, q, terms, modEq);
+      return it->second.existsInstMatch(d_qstate, q, terms, modEq);
     }
   }
   return false;
@@ -530,10 +518,10 @@ bool Instantiate::recordInstantiationInternal(Node q,
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qe, q, terms, d_qstate.getUserContext(), modEq);
+    return imt->addInstMatch(d_qstate, q, terms, modEq);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-  return d_inst_match_trie[q].addInstMatch(d_qe, q, terms, modEq);
+  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms, modEq);
 }
 
 bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)

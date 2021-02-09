@@ -198,7 +198,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   for (const Node& lem : lemmas)
   {
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-    d_quantEngine->addLemma(lem, false);
+    d_qim.addPendingLemma(lem);
   }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }

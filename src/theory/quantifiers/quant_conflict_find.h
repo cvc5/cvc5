@@ -249,7 +249,7 @@ private:  //for equivalence classes
    *
    * This method attempts to construct a conflicting or propagating instance.
    * If such an instance exists, then it makes a call to
-   * Instantiation::addInstantiation or QuantifiersEngine::addLemma.
+   * Instantiation::addInstantiation.
    */
   void check(Theory::Effort level, QEffort quant_e) override;
 
