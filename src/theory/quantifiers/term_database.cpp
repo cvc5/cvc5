@@ -54,7 +54,7 @@ TermDb::TermDb(QuantifiersState& qs,
   d_false = NodeManager::currentNM()->mkConst(false);
   if (!options::termDbCd())
   {
-    // when not maintaining terms in a context dependent manner, we clear during
+    // when not maintaining terms in a context-dependent manner, we clear during
     // each presolve, which requires maintaining a single outermost level
     d_termsContext.push();
   }
