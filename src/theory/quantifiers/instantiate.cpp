@@ -602,32 +602,6 @@ void Instantiate::getInstantiationTermVectors(
 
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
-void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
-{
-  if (options::incrementalSolving())
-  {
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
-    if (it != d_c_inst_match_trie.end())
-    {
-      std::vector<Node> active_lemmas;
-      it->second->getInstantiations(
-          insts, it->first, d_qe, false, active_lemmas);
-    }
-  }
-  else
-  {
-    std::map<Node, inst::InstMatchTrie>::iterator it =
-        d_inst_match_trie.find(q);
-    if (it != d_inst_match_trie.end())
-    {
-      std::vector<Node> active_lemmas;
-      it->second.getInstantiations(
-          insts, it->first, d_qe, false, active_lemmas);
-    }
-  }
-}
-
 void Instantiate::debugPrint(std::ostream& out)
 {
   // debug information

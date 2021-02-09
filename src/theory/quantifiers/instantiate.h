@@ -230,19 +230,6 @@ class Instantiate : public QuantifiersUtil
    * user context, store them in qs.
    */
   void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for quantified formula q, store them in insts.
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for all quantified formulas stored in the domain of insts, store them in
-   * the range of insts.
-   */
-  void getInstantiations(std::map<Node, std::vector<Node> >& insts);
   /** get instantiation term vectors
    *
    * Get term vectors corresponding to for all instantiations lemmas added in
