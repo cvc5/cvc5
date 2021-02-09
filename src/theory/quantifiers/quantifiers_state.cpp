@@ -96,19 +96,14 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e)
   return performCheck;
 }
 
-options::UserPatMode QuantifiersState::getInstUserPatMode()
-{
-  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
-  {
-    return d_ierCounter % 2 == 0 ? options::UserPatMode::USE
-                                 : options::UserPatMode::RESORT;
-  }
-  return options::userPatternsQuant();
-}
-
-int64_t getInstRoundDepth() const
+uint64_t QuantifiersState::getInstRoundDepth() const
 {
   return d_ierCounterc.get();
+}
+
+uint64_t QuantifiersState::getInstRounds() const
+{
+  return d_ierCounter;
 }
 
 }  // namespace quantifiers

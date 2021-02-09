@@ -44,31 +44,28 @@ class QuantifiersState : public TheoryState
    * class.
    */
   bool getInstWhenNeedsCheck(Theory::Effort e) const;
-  /** 
-   * Get the current user pat mode, which may be interleaved based on counters
-   * maintained by this class.
-   */
-  options::UserPatMode getInstUserPatMode() const;
   /** Get the number of instantiation rounds performed in this SAT context */
-  int64_t getInstRoundDepth() const;
+  uint64_t getInstRoundDepth() const;
+  /** Get the total number of instantiation rounds performed */
+  uint64_t getInstRounds() const;
  private:
   /** The number of instantiation rounds in this SAT context */
-  context::CDO<int64_t> d_ierCounterc;
+  context::CDO<uint64_t> d_ierCounterc;
   /** The number of total instantiation rounds (full effort) */
-  int64_t d_ierCounter;
+  uint64_t d_ierCounter;
   /** The number of total instantiation rounds (last call effort) */
-  int64_t d_ierCounterLc;
+  uint64_t d_ierCounterLc;
   /**
    * A counter to remember the last value of d_ierCounterLc where we a
    * full effort check. This is used for interleaving theory combination
    * and quantifier instantiation rounds.
    */
-  int64_t d_ierCounterLastLc;
+  uint64_t d_ierCounterLastLc;
   /**
    * The number of instantiation rounds we run for each call to theory
    * combination.
    */
-  int64_t d_instWhenPhase;
+  uint64_t d_instWhenPhase;
 };
 
 }  // namespace quantifiers
