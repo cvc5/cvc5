@@ -413,7 +413,7 @@ class InstMatchTrieOrdered
    *
    * This method returns true if the match m was not previously added to this
    * class. If modEq is true, we consider duplicates modulo the current
-   * equalities stored in the active equality engine of quantifiers engine.
+   * equalities stored in the equality engine of qs.
    */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
@@ -426,7 +426,7 @@ class InstMatchTrieOrdered
    *
    * This method returns true if the match m exists in this
    * class. If modEq is true, we consider duplicates modulo the current
-   * equalities stored in the active equality engine of quantifiers engine.
+   * equalities stored in the equality engine of qs.
    */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,

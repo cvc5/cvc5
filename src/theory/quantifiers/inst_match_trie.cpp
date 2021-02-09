@@ -16,9 +16,9 @@
 
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/quantifiers_state.h"
 
 using namespace CVC4::context;
 
@@ -319,8 +319,7 @@ bool CDInstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
   std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(n);
   if (it != d_data.end())
   {
-    bool ret =
-        it->second->addInstMatch(qs, f, m, modEq, index + 1, onlyExist);
+    bool ret = it->second->addInstMatch(qs, f, m, modEq, index + 1, onlyExist);
     if (!onlyExist || !ret)
     {
       return reset || ret;
