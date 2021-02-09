@@ -85,7 +85,8 @@ Node TermDb::getOperator(size_t i) const
 size_t TermDb::getNumGroundTerms(Node f) const
 {
   NodeDbListMap::const_iterator it = d_opMap.find(f);
-  if( it!=d_opMap.end() ){
+  if (it != d_opMap.end())
+  {
     return it->second->d_list.size();
   }
   return 0;
@@ -106,7 +107,8 @@ Node TermDb::getGroundTerm(Node f, size_t i) const
 size_t TermDb::getNumTypeGroundTerms(TypeNode tn) const
 {
   TypeNodeDbListMap::const_iterator it = d_typeMap.find(tn);
-  if( it!=d_typeMap.end() ){
+  if (it != d_typeMap.end())
+  {
     return it->second->d_list.size();
   }
   return 0;
