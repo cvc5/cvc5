@@ -152,8 +152,6 @@ class QuantifiersEngine {
   void ppNotifyAssertions(const std::vector<Node>& assertions);
   /** check at level */
   void check( Theory::Effort e );
-  /** notify that theories were combined */
-  void notifyCombineTheories();
   /** preRegister quantifier
    *
    * This function is called after registerQuantifier for quantified formulas
@@ -178,12 +176,6 @@ public:
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** get needs check */
- bool getInstWhenNeedsCheck(Theory::Effort e);
- /** get user pat mode */
- options::UserPatMode getInstUserPatMode();
-
-public:
  /** add term to database */
  void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
@@ -329,12 +321,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** inst round counters TODO: make context-dependent? */
-  context::CDO<int> d_ierCounter_c;
-  int d_ierCounter;
-  int d_ierCounter_lc;
-  int d_ierCounterLastLc;
-  int d_inst_when_phase;
   /** has presolve been called */
   context::CDO<bool> d_presolve;
   /** presolve cache */

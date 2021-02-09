@@ -54,7 +54,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext()),
-      d_ierCounter_c(qstate.getSatContext()),
       d_presolve(qstate.getUserContext(), true),
       d_presolve_in(qstate.getUserContext()),
       d_presolve_cache(qstate.getUserContext())
@@ -76,13 +75,6 @@ QuantifiersEngine::QuantifiersEngine(
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   //---- end utilities
-
-  //allow theory combination to go first, once initially
-  d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
-  d_ierCounter_c = d_ierCounter;
-  d_ierCounter_lc = 0;
-  d_ierCounterLastLc = 0;
-  d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model and model builder here, since it is
@@ -376,7 +368,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
-      Trace("quant-engine-debug") << "  depth : " << d_ierCounter_c << std::endl;
+      Trace("quant-engine-debug") << "  depth : " << d_state.getInstRoundDepth() << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
       for( unsigned i=0; i<qm.size(); i++ ){
         Trace("quant-engine-debug") << qm[i]->identify() << " ";
@@ -498,16 +490,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         Assert(!d_qstate.isInConflict());
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
-          if( e==Theory::EFFORT_FULL ){
-            //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
-            if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
-              d_ierCounter = d_ierCounter + 1;
-              d_ierCounterLastLc = d_ierCounter_lc;
-              d_ierCounter_c = d_ierCounter_c.get() + 1;
-            }
-          }else if( e==Theory::EFFORT_LAST_CALL ){
-            d_ierCounter_lc = d_ierCounter_lc + 1;
-          }
+          d_qstate.incrementInstRoundCounters(e);
         }
         else if (quant_e == QuantifiersModule::QEFFORT_MODEL)
         {
@@ -616,9 +599,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
 }
 
 void QuantifiersEngine::notifyCombineTheories() {
-  //if allowing theory combination to happen at most once between instantiation rounds
-  //d_ierCounter = 1;
-  //d_ierCounterLastLc = -1;
+  // If allowing theory combination to happen at most once between instantiation
+  // rounds, this would reset d_ierCounter to 1 and d_ierCounterLastLc to -1
+  // in quantifiers state.
 }
 
 bool QuantifiersEngine::reduceQuantifier( Node q ) {
@@ -784,55 +767,6 @@ void QuantifiersEngine::eqNotifyNewClass(TNode t) {
 
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
-}
-
-bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
-  Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
-  //determine if we should perform check, based on instWhenMode
-  bool performCheck = false;
-  if (options::instWhenMode() == options::InstWhenMode::FULL)
-  {
-    performCheck = ( e >= Theory::EFFORT_FULL );
-  }
-  else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
-  {
-    performCheck =
-        (e >= Theory::EFFORT_FULL) && !d_qstate.getValuation().needCheck();
-  }
-  else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
-  {
-    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }
-  else if (options::instWhenMode()
-           == options::InstWhenMode::FULL_DELAY_LAST_CALL)
-  {
-    performCheck =
-        ((e == Theory::EFFORT_FULL && !d_qstate.getValuation().needCheck()
-          && d_ierCounter % d_inst_when_phase != 0)
-         || e == Theory::EFFORT_LAST_CALL);
-  }
-  else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
-  {
-    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
-  }
-  else
-  {
-    performCheck = true;
-  }
-  return performCheck;
-}
-
-options::UserPatMode QuantifiersEngine::getInstUserPatMode()
-{
-  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
-  {
-    return d_ierCounter % 2 == 0 ? options::UserPatMode::USE
-                                 : options::UserPatMode::RESORT;
-  }
-  else
-  {
-    return options::userPatternsQuant();
-  }
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {

@@ -31,6 +31,39 @@ class QuantifiersState : public TheoryState
  public:
   QuantifiersState(context::Context* c, context::UserContext* u, Valuation val);
   ~QuantifiersState() {}
+/** 
+ * Increment the instantiation counters, called once at of beginning of when
+ * we perform a check with quantifiers engine for the given effort.
+ */
+void incrementInstRoundCounters(Theory::Effort e);
+ /** 
+  * Get whether we need to check at effort e based on the inst-when mode. This
+  * option determines the policy of quantifier instantiation and theory 
+  * combination, e.g. does it run before, after, or interleaved with theory
+  * combination. This is based on the state of the counters maintained by this
+  * class.
+  */
+ bool getInstWhenNeedsCheck(Theory::Effort e) const;
+ /** get user pat mode */
+ options::UserPatMode getInstUserPatMode() const;
+private:
+  /** The number of instantiation rounds in this SAT context */
+  context::CDO<int64_t> d_ierCounterc;
+  /** The number of total instantiation rounds (full effort) */
+  int64_t d_ierCounter;
+  /** The number of total instantiation rounds (last call effort) */
+  int64_t d_ierCounterLc;
+  /** 
+   * A counter to remember the last value of d_ierCounterLc where we a
+   * full effort check. This is used for interleaving theory combination
+   * and quantifier instantiation rounds.
+   */
+  int64_t d_ierCounterLastLc;
+  /** 
+   * The number of instantiation rounds we run for each call to theory
+   * combination.
+   */
+  int64_t d_instWhenPhase;
 };
 
 }  // namespace quantifiers
