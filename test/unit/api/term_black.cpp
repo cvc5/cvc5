@@ -20,11 +20,11 @@ using namespace api;
 
 namespace test {
 
-class TestApiTermBlack : public TestApi
+class TestApiBlackTerm : public TestApi
 {
 };
 
-TEST_F(TestApiTermBlack, eq)
+TEST_F(TestApiBlackTerm, eq)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(uSort, "x");
@@ -39,7 +39,7 @@ TEST_F(TestApiTermBlack, eq)
   ASSERT_TRUE(x != z);
 }
 
-TEST_F(TestApiTermBlack, getId)
+TEST_F(TestApiBlackTerm, getId)
 {
   Term n;
   ASSERT_THROW(n.getId(), CVC4ApiException);
@@ -52,7 +52,7 @@ TEST_F(TestApiTermBlack, getId)
   ASSERT_NE(x.getId(), z.getId());
 }
 
-TEST_F(TestApiTermBlack, getKind)
+TEST_F(TestApiBlackTerm, getKind)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   Sort intSort = d_solver.getIntegerSort();
@@ -94,7 +94,7 @@ TEST_F(TestApiTermBlack, getKind)
   ASSERT_EQ(ss.getKind(), SEQ_CONCAT);
 }
 
-TEST_F(TestApiTermBlack, getSort)
+TEST_F(TestApiBlackTerm, getSort)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -139,7 +139,7 @@ TEST_F(TestApiTermBlack, getSort)
   ASSERT_EQ(p_f_y.getSort(), boolSort);
 }
 
-TEST_F(TestApiTermBlack, getOp)
+TEST_F(TestApiBlackTerm, getOp)
 {
   Sort intsort = d_solver.getIntegerSort();
   Sort bvsort = d_solver.mkBitVectorSort(8);
@@ -219,7 +219,7 @@ TEST_F(TestApiTermBlack, getOp)
   ASSERT_EQ(headTerm, d_solver.mkTerm(headTerm.getOp(), children));
 }
 
-TEST_F(TestApiTermBlack, isNull)
+TEST_F(TestApiBlackTerm, isNull)
 {
   Term x;
   ASSERT_TRUE(x.isNull());
@@ -227,7 +227,7 @@ TEST_F(TestApiTermBlack, isNull)
   ASSERT_FALSE(x.isNull());
 }
 
-TEST_F(TestApiTermBlack, notTerm)
+TEST_F(TestApiBlackTerm, notTerm)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -256,7 +256,7 @@ TEST_F(TestApiTermBlack, notTerm)
   ASSERT_NO_THROW(p_f_x.notTerm());
 }
 
-TEST_F(TestApiTermBlack, andTerm)
+TEST_F(TestApiBlackTerm, andTerm)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -322,7 +322,7 @@ TEST_F(TestApiTermBlack, andTerm)
   ASSERT_NO_THROW(p_f_x.andTerm(p_f_x));
 }
 
-TEST_F(TestApiTermBlack, orTerm)
+TEST_F(TestApiBlackTerm, orTerm)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -388,7 +388,7 @@ TEST_F(TestApiTermBlack, orTerm)
   ASSERT_NO_THROW(p_f_x.orTerm(p_f_x));
 }
 
-TEST_F(TestApiTermBlack, xorTerm)
+TEST_F(TestApiBlackTerm, xorTerm)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -454,7 +454,7 @@ TEST_F(TestApiTermBlack, xorTerm)
   ASSERT_NO_THROW(p_f_x.xorTerm(p_f_x));
 }
 
-TEST_F(TestApiTermBlack, eqTerm)
+TEST_F(TestApiBlackTerm, eqTerm)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -520,7 +520,7 @@ TEST_F(TestApiTermBlack, eqTerm)
   ASSERT_NO_THROW(p_f_x.eqTerm(p_f_x));
 }
 
-TEST_F(TestApiTermBlack, impTerm)
+TEST_F(TestApiBlackTerm, impTerm)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -586,7 +586,7 @@ TEST_F(TestApiTermBlack, impTerm)
   ASSERT_NO_THROW(p_f_x.impTerm(p_f_x));
 }
 
-TEST_F(TestApiTermBlack, iteTerm)
+TEST_F(TestApiBlackTerm, iteTerm)
 {
   Sort bvSort = d_solver.mkBitVectorSort(8);
   Sort intSort = d_solver.getIntegerSort();
@@ -630,7 +630,7 @@ TEST_F(TestApiTermBlack, iteTerm)
   ASSERT_THROW(p_f_x.iteTerm(x, b), CVC4ApiException);
 }
 
-TEST_F(TestApiTermBlack, termAssignment)
+TEST_F(TestApiBlackTerm, termAssignment)
 {
   Term t1 = d_solver.mkInteger(1);
   Term t2 = t1;
@@ -638,7 +638,7 @@ TEST_F(TestApiTermBlack, termAssignment)
   ASSERT_EQ(t1, d_solver.mkInteger(1));
 }
 
-TEST_F(TestApiTermBlack, termCompare)
+TEST_F(TestApiBlackTerm, termCompare)
 {
   Term t1 = d_solver.mkInteger(1);
   Term t2 = d_solver.mkTerm(PLUS, d_solver.mkInteger(2), d_solver.mkInteger(2));
@@ -649,7 +649,7 @@ TEST_F(TestApiTermBlack, termCompare)
   ASSERT_TRUE((t1 > t2 || t1 == t2) == (t1 >= t2));
 }
 
-TEST_F(TestApiTermBlack, termChildren)
+TEST_F(TestApiBlackTerm, termChildren)
 {
   // simple term 2+3
   Term two = d_solver.mkInteger(2);
@@ -671,7 +671,7 @@ TEST_F(TestApiTermBlack, termChildren)
   ASSERT_THROW(tnull[0], CVC4ApiException);
 }
 
-TEST_F(TestApiTermBlack, getInteger)
+TEST_F(TestApiBlackTerm, getInteger)
 {
   Term int1 = d_solver.mkInteger("-18446744073709551616");
   Term int2 = d_solver.mkInteger("-18446744073709551615");
@@ -749,14 +749,14 @@ TEST_F(TestApiTermBlack, getInteger)
   ASSERT_EQ(int11.getInteger(), "18446744073709551616");
 }
 
-TEST_F(TestApiTermBlack, getString)
+TEST_F(TestApiBlackTerm, getString)
 {
   Term s1 = d_solver.mkString("abcde");
   ASSERT_TRUE(s1.isString());
   ASSERT_EQ(s1.getString(), L"abcde");
 }
 
-TEST_F(TestApiTermBlack, substitute)
+TEST_F(TestApiBlackTerm, substitute)
 {
   Term x = d_solver.mkConst(d_solver.getIntegerSort(), "x");
   Term one = d_solver.mkInteger(1);
@@ -807,7 +807,7 @@ TEST_F(TestApiTermBlack, substitute)
   ASSERT_THROW(xpx.substitute(es, rs), CVC4ApiException);
 }
 
-TEST_F(TestApiTermBlack, constArray)
+TEST_F(TestApiBlackTerm, constArray)
 {
   Sort intsort = d_solver.getIntegerSort();
   Sort arrsort = d_solver.mkArraySort(intsort, intsort);
@@ -830,7 +830,7 @@ TEST_F(TestApiTermBlack, constArray)
       d_solver.mkTerm(STORE, stores, d_solver.mkReal(4), d_solver.mkReal(5));
 }
 
-TEST_F(TestApiTermBlack, constSequenceElements)
+TEST_F(TestApiBlackTerm, constSequenceElements)
 {
   Sort realsort = d_solver.getRealSort();
   Sort seqsort = d_solver.mkSequenceSort(realsort);
@@ -847,7 +847,7 @@ TEST_F(TestApiTermBlack, constSequenceElements)
   ASSERT_THROW(su.getConstSequenceElements(), CVC4ApiException);
 }
 
-TEST_F(TestApiTermBlack, termScopedToString)
+TEST_F(TestApiBlackTerm, termScopedToString)
 {
   Sort intsort = d_solver.getIntegerSort();
   Term x = d_solver.mkConst(intsort, "x");

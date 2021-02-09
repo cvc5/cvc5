@@ -53,13 +53,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs));
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs, qim));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
-    d_i_ag.reset(
-        new InstStrategyAutoGenTriggers(d_quantEngine, qs, d_quant_rel.get()));
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(
+        d_quantEngine, qs, qim, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -73,7 +73,7 @@ void InstantiationEngine::presolve() {
 }
 
 void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
-  unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+  size_t lastWaiting = d_qim.numPendingLemmas();
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;
@@ -111,7 +111,8 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       }
     }
     //do not consider another level if already added lemma at this level
-    if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+    if (d_qim.numPendingLemmas() > lastWaiting)
+    {
       finished = true;
     }
     e++;
@@ -164,21 +165,19 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   Trace("inst-engine-debug") << nquant << " " << quantActive << std::endl;
   if (quantActive)
   {
-    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+    size_t lastWaiting = d_qim.numPendingLemmas();
     doInstantiationRound(e);
     if (d_qstate.isInConflict())
     {
-      Assert(d_quantEngine->getNumLemmasWaiting() > lastWaiting);
+      Assert(d_qim.numPendingLemmas() > lastWaiting);
       Trace("inst-engine") << "Conflict, added lemmas = "
-                           << (d_quantEngine->getNumLemmasWaiting()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
-    else if (d_quantEngine->hasAddedLemma())
+    else if (d_qim.hasPendingLemma())
     {
       Trace("inst-engine") << "Added lemmas = "
-                           << (d_quantEngine->getNumLemmasWaiting()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
   }

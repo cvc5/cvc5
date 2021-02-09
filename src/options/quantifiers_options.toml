@@ -1762,17 +1762,6 @@ header = "options/quantifiers_options.h"
   default    = "true"
   help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
-### Local theory extensions options
-
-[[option]]
-  name       = "lteRestrictInstClosure"
-  category   = "regular"
-  long       = "lte-restrict-inst-closure"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "treat arguments of inst closure as restricted terms for instantiation"
-
 ### Reduction options
 
 [[option]]

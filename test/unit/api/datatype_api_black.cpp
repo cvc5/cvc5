@@ -22,11 +22,11 @@ using namespace api;
 
 namespace test {
 
-class TestApiDatatypeBlack : public TestApi
+class TestApiBlackDatatype : public TestApi
 {
 };
 
-TEST_F(TestApiDatatypeBlack, mkDatatypeSort)
+TEST_F(TestApiBlackDatatype, mkDatatypeSort)
 {
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
@@ -43,7 +43,7 @@ TEST_F(TestApiDatatypeBlack, mkDatatypeSort)
   ASSERT_NO_THROW(nilConstr.getConstructorTerm());
 }
 
-TEST_F(TestApiDatatypeBlack, mkDatatypeSorts)
+TEST_F(TestApiBlackDatatype, mkDatatypeSorts)
 {
   /* Create two mutual datatypes corresponding to this definition
    * block:
@@ -108,7 +108,7 @@ TEST_F(TestApiDatatypeBlack, mkDatatypeSorts)
   ASSERT_THROW(d_solver.mkDatatypeSorts(dtdeclsBad), CVC4ApiException);
 }
 
-TEST_F(TestApiDatatypeBlack, datatypeStructs)
+TEST_F(TestApiBlackDatatype, datatypeStructs)
 {
   Sort intSort = d_solver.getIntegerSort();
   Sort boolSort = d_solver.getBooleanSort();
@@ -182,7 +182,7 @@ TEST_F(TestApiDatatypeBlack, datatypeStructs)
   ASSERT_TRUE(dtRecord.isWellFounded());
 }
 
-TEST_F(TestApiDatatypeBlack, datatypeNames)
+TEST_F(TestApiBlackDatatype, datatypeNames)
 {
   Sort intSort = d_solver.getIntegerSort();
 
@@ -219,7 +219,7 @@ TEST_F(TestApiDatatypeBlack, datatypeNames)
   ASSERT_THROW(DatatypeDecl().getName(), CVC4ApiException);
 }
 
-TEST_F(TestApiDatatypeBlack, parametricDatatype)
+TEST_F(TestApiBlackDatatype, parametricDatatype)
 {
   std::vector<Sort> v;
   Sort t1 = d_solver.mkParamSort("T1");
@@ -297,7 +297,7 @@ TEST_F(TestApiDatatypeBlack, parametricDatatype)
   ASSERT_TRUE(pairIntInt.isSubsortOf(pairIntInt));
 }
 
-TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
+TEST_F(TestApiBlackDatatype, datatypeSimplyRec)
 {
   /* Create mutual datatypes corresponding to this definition block:
    *
@@ -496,7 +496,7 @@ TEST_F(TestApiDatatypeBlack, datatypeSimplyRec)
   ASSERT_TRUE(dtsorts[0].getDatatype().hasNestedRecursion());
 }
 
-TEST_F(TestApiDatatypeBlack, datatypeSpecializedCons)
+TEST_F(TestApiBlackDatatype, datatypeSpecializedCons)
 {
   /* Create mutual datatypes corresponding to this definition block:
    *   DATATYPE
