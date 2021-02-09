@@ -9,12 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief White box testing of CVC4::NodeManager.
+ ** \brief Black box testing of CVC4::NodeManager.
  **
- ** White box testing of CVC4::NodeManager.
+ ** Black box testing of CVC4::NodeManager.
  **/
-
-#include <cxxtest/TestSuite.h>
 
 #include <string>
 #include <vector>
