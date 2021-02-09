@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Instantiation Engine classes
+ ** \brief Instantiation engine strategy base class
  **/
 
 #include "cvc4_private.h"
