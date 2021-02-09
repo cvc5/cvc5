@@ -64,12 +64,12 @@ class omt : public CxxTest::TestSuite {
     OptResult r = d_optslv->checkOpt();
 
     // We expect max_cost == 99
-    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*max_cost.d_node),
+    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(),
                      d_nm->mkConst(Rational(99)));
 
     std::cout << "Result is :" << r << std::endl;
     std::cout << "Optimized max value is: "
-              << d_optslv->objectiveGetValue(*max_cost.d_node) << std::endl;
+              << d_optslv->objectiveGetValue() << std::endl;
   }
   void testOmtMin()
   {
@@ -99,12 +99,12 @@ class omt : public CxxTest::TestSuite {
     OptResult r = d_optslv->checkOpt();
 
     // We expect min_cost == 1
-    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(*min_cost.d_node),
+    TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(),
                      d_nm->mkConst(Rational(1)));
 
     std::cout << "Result is :" << r << std::endl;
     std::cout << "Optimized min value is: "
-              << d_optslv->objectiveGetValue(*min_cost.d_node) << std::endl;
+              << d_optslv->objectiveGetValue() << std::endl;
   }
   void testOmtResult()
   {

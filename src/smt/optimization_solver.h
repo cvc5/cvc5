@@ -41,8 +41,7 @@ enum CVC4_PUBLIC ObjectiveType
  * An enum for optimization queries.
  *
  * Represents the result of a checkopt query
- * (unimplemented) OPT_OPTIMAL: if 
- * value was found
+ * (unimplemented) OPT_OPTIMAL: if value was found
  */
 enum CVC4_PUBLIC OptResult
 {
@@ -77,18 +76,18 @@ class Objective
   /** The type of objective this is, either OBJECTIVE_MAXIMIZE OR
    * OBJECTIVE_MINIMIZE  **/
   ObjectiveType d_type;
-  /** The node associated to the term that was used to construc the objective.
+  /** The node associated to the term that was used to construct the objective.
    * **/
   Node d_node;
   };
 
   /**
    * A solver for optimization queries.
-   *
-   * This class is responsible for responding to get-interpol commands. It
-   * spawns a subsolver SmtEngine for a sygus conjecture that captures the
-   * interpolation query, and implements supporting utility methods such as
-   * checkInterpol.
+   * 
+   * This class is responsible for responding to optmization queries. It
+   * spawns a subsolver SmtEngine that captures the parent assertions and 
+   * implements a linear optimization loop. Supports activateObjective, 
+   * checkOpt, and objectiveGetValue in that order.
    */
   class OptimizationSolver
   {
@@ -102,7 +101,7 @@ class Objective
     /** Activates an objective: will be optimized for **/
     void activateObj(const Node& obj, const int& type);
     /** Gets the value of the optimized objective after checkopt is called **/
-    Node objectiveGetValue(const Node& obj);
+    Node objectiveGetValue();
 
    private:
     /** The parent SMT engine **/

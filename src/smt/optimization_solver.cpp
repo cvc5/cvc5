@@ -119,7 +119,7 @@ void OptimizationSolver::activateObj(const Node& obj, const int& type)
   d_activatedObjective = Objective(obj, (ObjectiveType)type);
 }
 
-Node OptimizationSolver::objectiveGetValue(const Node& obj)
+Node OptimizationSolver::objectiveGetValue()
 {
   Assert(!d_savedValue.isNull());
   return d_savedValue;
