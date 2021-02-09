@@ -106,27 +106,6 @@ bool InstMatchTrie::removeInstMatch(Node q,
   return false;
 }
 
-bool InstMatchTrie::recordInstLemma(Node q,
-                                    std::vector<Node>& m,
-                                    Node lem,
-                                    ImtIndexOrder* imtio,
-                                    unsigned index)
-{
-  if (index == q[0].getNumChildren()
-      || (imtio && index == imtio->d_order.size()))
-  {
-    setInstLemma(lem);
-    return true;
-  }
-  unsigned i_index = imtio ? imtio->d_order[index] : index;
-  std::map<Node, InstMatchTrie>::iterator it = d_data.find(m[i_index]);
-  if (it != d_data.end())
-  {
-    return it->second.recordInstLemma(q, m, lem, imtio, index + 1);
-  }
-  return false;
-}
-
 void InstMatchTrie::print(std::ostream& out,
                           Node q,
                           std::vector<TNode>& terms,
@@ -303,28 +282,6 @@ bool CDInstMatchTrie::removeInstMatch(Node q,
   if (it != d_data.end())
   {
     return it->second->removeInstMatch(q, m, index + 1);
-  }
-  return false;
-}
-
-bool CDInstMatchTrie::recordInstLemma(Node q,
-                                      std::vector<Node>& m,
-                                      Node lem,
-                                      unsigned index)
-{
-  if (index == q[0].getNumChildren())
-  {
-    if (d_valid.get())
-    {
-      setInstLemma(lem);
-      return true;
-    }
-    return false;
-  }
-  std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(m[index]);
-  if (it != d_data.end())
-  {
-    return it->second->recordInstLemma(q, m, lem, index + 1);
   }
   return false;
 }
