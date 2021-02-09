@@ -44,9 +44,13 @@ class QuantifiersState : public TheoryState
    * class.
    */
   bool getInstWhenNeedsCheck(Theory::Effort e) const;
-  /** get user pat mode */
+  /** 
+   * Get the current user pat mode, which may be interleaved based on counters
+   * maintained by this class.
+   */
   options::UserPatMode getInstUserPatMode() const;
-
+  /** Get the number of instantiation rounds performed in this SAT context */
+  int64_t getInstRoundDepth() const;
  private:
   /** The number of instantiation rounds in this SAT context */
   context::CDO<int64_t> d_ierCounterc;

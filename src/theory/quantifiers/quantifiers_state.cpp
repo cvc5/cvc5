@@ -106,6 +106,11 @@ options::UserPatMode QuantifiersState::getInstUserPatMode()
   return options::userPatternsQuant();
 }
 
+int64_t getInstRoundDepth() const
+{
+  return d_ierCounterc.get();
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
