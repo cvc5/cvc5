@@ -18,8 +18,12 @@ execute_process(
 )
 
 if(RET_TOML)
-    message(FATAL_ERROR
-      "Could not find Python module toml. Install via `pip install toml'.")
+  message(FATAL_ERROR
+      "Could not find toml for Python "
+      "version ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}. "
+      "Make sure to install toml for this Python version "
+      "via \n`${PYTHON_EXECUTABLE} -m pip install toml'.\nNote: You need to "
+      "have pip installed for this Python version.")
 endif()
 
 libcvc4_add_sources(
