@@ -408,7 +408,7 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
   // (2) an assigned representative specified by a theory in collectModelInfo,
   // (3) no assigned representative.
   TypeSet typeConstSet, typeRepSet, typeNoRepSet;
-  // An order list of types, such that T1 comes before T2 if T1 is a "component
+  // An ordered list of types, such that T1 comes before T2 if T1 is a "component
   // type" of T2, e.g. U comes before (Set U). This is only strictly necessary
   // for finite model finding + parametric types instantiated with uninterpreted
   // sorts, but is probably a good idea to do in general since it leads to
