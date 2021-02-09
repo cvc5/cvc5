@@ -57,9 +57,8 @@ void QuantifiersState::incrementInstRoundCounters(Theory::Effort e)
 
 bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e) const
 {
-  Trace("qstate-debug")
-      << "Get inst when needs check, counts=" << d_ierCounter << ", "
-      << d_ierCounterLc << std::endl;
+  Trace("qstate-debug") << "Get inst when needs check, counts=" << d_ierCounter
+                        << ", " << d_ierCounterLc << std::endl;
   // determine if we should perform check, based on instWhenMode
   bool performCheck = false;
   if (options::instWhenMode() == options::InstWhenMode::FULL)
@@ -68,8 +67,7 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e) const
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
   {
-    performCheck =
-        (e >= Theory::EFFORT_FULL) && !d_valuation.needCheck();
+    performCheck = (e >= Theory::EFFORT_FULL) && !d_valuation.needCheck();
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
   {
@@ -80,10 +78,9 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e) const
   else if (options::instWhenMode()
            == options::InstWhenMode::FULL_DELAY_LAST_CALL)
   {
-    performCheck =
-        ((e == Theory::EFFORT_FULL && !d_valuation.needCheck()
-          && d_ierCounter % d_instWhenPhase != 0)
-         || e == Theory::EFFORT_LAST_CALL);
+    performCheck = ((e == Theory::EFFORT_FULL && !d_valuation.needCheck()
+                     && d_ierCounter % d_instWhenPhase != 0)
+                    || e == Theory::EFFORT_LAST_CALL);
   }
   else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
   {

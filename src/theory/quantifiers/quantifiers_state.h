@@ -51,6 +51,7 @@ class QuantifiersState : public TheoryState
   uint64_t getInstRounds() const;
   /** debug print equality engine on trace c */
   void debugPrintEqualityEngine(const char* c) const;
+
  private:
   /** The number of instantiation rounds in this SAT context */
   context::CDO<uint64_t> d_ierCounterc;
