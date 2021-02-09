@@ -257,29 +257,6 @@ class Instantiate : public QuantifiersUtil
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node> > >& insts);
-  /** get instantiated conjunction
-   *
-   * This gets a conjunction of the bodies of instantiation lemmas added in the
-   * current user context for quantified formula q.  For example, if we added:
-   *   ~forall x. P( x ) V P( a )
-   *   ~forall x. P( x ) V P( b )
-   * Then, this method returns P( a ) ^ P( b ).
-   */
-  Node getInstantiatedConjunction(Node q);
-  /** get unsat core lemmas
-   *
-   * If this method returns true, then it appends to activeLemmas all lemmas
-   * that are in the unsat core that originated from the theory of quantifiers.
-   * This method returns false if the unsat core is not available.
-   */
-  bool getUnsatCoreLemmas(std::vector<Node>& activeLemmas);
-  /** get explanation for instantiation lemmas
-   *
-   *
-   */
-  void getExplanationForInstLemmas(const std::vector<Node>& lems,
-                                   std::map<Node, Node>& quant,
-                                   std::map<Node, std::vector<Node> >& tvec);
   //--------------------------------------end user-level interface utilities
 
   /** Are proofs enabled for this object? */
