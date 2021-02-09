@@ -518,8 +518,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(
-        d_qstate, q, terms, modEq);
+    return imt->addInstMatch(d_qstate, q, terms, modEq);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
   return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms, modEq);
