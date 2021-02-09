@@ -50,7 +50,7 @@ compatible.
   or [Clang](https://clang.llvm.org) (reasonably recent versions)
 - [CMake >= 3.9](https://cmake.org)
 - [GNU Bash](https://www.gnu.org/software/bash/)
-- [Python >= 2.7](https://www.python.org)
+- [Python 3.x](https://www.python.org)
   + module [toml](https://pypi.org/project/toml/)
 - [GMP v4.2 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
 - [libantlr3c v3.2 or v3.4 (ANTLR parser generator C support library)](http://www.antlr3.org/)

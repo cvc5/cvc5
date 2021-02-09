@@ -31,18 +31,32 @@ class TestNodeBlack : public TestInternal
   {
     d_nodeManager.reset(new NodeManager(nullptr));
     d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
-    d_intTypeNode.reset(new TypeNode(d_nodeManager->integerType()));
     d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
     d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));
+    d_intTypeNode.reset(new TypeNode(d_nodeManager->integerType()));
+    d_realTypeNode.reset(new TypeNode(d_nodeManager->realType()));
   }
 
   std::unique_ptr<NodeManagerScope> d_scope;
   std::unique_ptr<NodeManager> d_nodeManager;
-  std::unique_ptr<TypeNode> d_intTypeNode;
   std::unique_ptr<TypeNode> d_boolTypeNode;
   std::unique_ptr<TypeNode> d_bvTypeNode;
+  std::unique_ptr<TypeNode> d_intTypeNode;
+  std::unique_ptr<TypeNode> d_realTypeNode;
 };
 
+class TestNodeWhite : public TestInternal
+{
+ protected:
+  void SetUp() override
+  {
+    d_nodeManager.reset(new NodeManager(nullptr));
+    d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
+  }
+
+  std::unique_ptr<NodeManagerScope> d_scope;
+  std::unique_ptr<NodeManager> d_nodeManager;
+};
 }  // namespace test
 }  // namespace CVC4
 #endif

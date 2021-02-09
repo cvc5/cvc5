@@ -31,6 +31,7 @@ const char* toString(Inference i)
     case Inference::I_NORM: return "I_NORM";
     case Inference::UNIT_INJ: return "UNIT_INJ";
     case Inference::UNIT_CONST_CONFLICT: return "UNIT_CONST_CONFLICT";
+    case Inference::UNIT_INJ_DEQ: return "UNIT_INJ_DEQ";
     case Inference::CARD_SP: return "CARD_SP";
     case Inference::CARDINALITY: return "CARDINALITY";
     case Inference::I_CYCLE_E: return "I_CYCLE_E";

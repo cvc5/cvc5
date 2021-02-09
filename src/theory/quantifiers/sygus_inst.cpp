@@ -309,7 +309,7 @@ bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
   for (const Node& lem : lemmas)
   {
     Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-    added_lemma |= d_quantEngine->addLemma(lem);
+    added_lemma |= d_qim.addPendingLemma(lem);
   }
   return added_lemma;
 }
@@ -511,7 +511,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   d_var_eval.emplace(q, evals);
 
   Node lit = getCeLiteral(q);
-  d_quantEngine->addRequirePhase(lit, true);
+  d_qim.addPendingPhaseRequirement(lit, true);
 
   /* The decision strategy for quantified formula 'q' ensures that its
    * counterexample literal is decided on first. It is user-context dependent.
@@ -545,7 +545,7 @@ void SygusInst::addCeLemma(Node q)
   if (d_ce_lemma_added.find(q) != d_ce_lemma_added.end()) return;
 
   Node lem = d_ce_lemmas[q];
-  d_quantEngine->addLemma(lem, false);
+  d_qim.addPendingLemma(lem);
   d_ce_lemma_added.insert(q);
   Trace("sygus-inst") << "Add CE Lemma: " << lem << std::endl;
 }

@@ -82,10 +82,6 @@ void Smt2::addTranscendentalOperators()
 
 void Smt2::addQuantifiersOperators()
 {
-  if (!strictModeEnabled())
-  {
-    addOperator(api::INST_CLOSURE, "inst-closure");
-  }
 }
 
 void Smt2::addBitvectorOperators() {
