@@ -1,5 +1,4 @@
 ; COMMAND-LINE:  --cegqi-all --full-saturate-quant --bvand-integer-granularity=1 --solve-bv-as-int=sum  --no-check-unsat-cores
-; COMMAND-LINE:  --cegqi-all --full-saturate-quant --bvand-integer-granularity=1 --solve-bv-as-int=bitwise  --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic BV)
 (declare-fun s () (_ BitVec 4))
