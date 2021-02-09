@@ -103,7 +103,8 @@ uint64_t QuantifiersState::getInstRounds() const { return d_ierCounter; }
 
 void QuantifiersState::debugPrintEqualityEngine(const char* c) const
 {
-  if (!Trace.isOn(c))
+  bool traceEnabled = Trace.isOn(c);
+  if (!traceEnabled)
   {
     return;
   }
