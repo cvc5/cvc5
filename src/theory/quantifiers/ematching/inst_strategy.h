@@ -48,21 +48,22 @@ class InstStrategy
  public:
   InstStrategy(QuantifiersEngine* qe,
                QuantifiersState& qs,
-               QuantifiersInferenceManager& qim)
-      : d_quantEngine(qe), d_qstate(qs), d_qim(qim)
-  {
-  }
-  virtual ~InstStrategy() {}
+               QuantifiersInferenceManager& qim);
+  virtual ~InstStrategy();
   /** presolve */
-  virtual void presolve() {}
+  virtual void presolve();
   /** reset instantiation */
   virtual void processResetInstantiationRound(Theory::Effort effort) = 0;
   /** process method, returns a status */
   virtual InstStrategyStatus process(Node f, Theory::Effort effort, int e) = 0;
   /** identify */
-  virtual std::string identify() const { return std::string("Unknown"); }
-
+  virtual std::string identify() const;
  protected:
+  /**
+   * Get the current user pat mode, which may be interleaved based on counters
+   * maintained by the quantifiers state.
+   */
+  options::UserPatMode getInstUserPatMode() const;
   /** reference to the instantiation engine */
   QuantifiersEngine* d_quantEngine;
   /** The quantifiers state object */

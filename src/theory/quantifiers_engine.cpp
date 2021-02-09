@@ -390,7 +390,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
-      debugPrintEqualityEngine( "quant-engine-ee-pre" );
+      d_qstate.debugPrintEqualityEngine( "quant-engine-ee-pre" );
     }
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
@@ -418,7 +418,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     if( Trace.isOn("quant-engine-ee") ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
-      debugPrintEqualityEngine( "quant-engine-ee" );
+      d_qstate.debugPrintEqualityEngine( "quant-engine-ee" );
     }
 
     //reset the model
@@ -890,42 +890,6 @@ bool QuantifiersEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
   return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
-}
-
-void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-  std::map< TypeNode, int > typ_num;
-  while( !eqcs_i.isFinished() ){
-    TNode r = (*eqcs_i);
-    TypeNode tr = r.getType();
-    if( typ_num.find( tr )==typ_num.end() ){
-      typ_num[tr] = 0;
-    }
-    typ_num[tr]++;
-    bool firstTime = true;
-    Trace(c) << "  " << r;
-    Trace(c) << " : { ";
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-    while( !eqc_i.isFinished() ){
-      TNode n = (*eqc_i);
-      if( r!=n ){
-        if( firstTime ){
-          Trace(c) << std::endl;
-          firstTime = false;
-        }
-        Trace(c) << "    " << n << std::endl;
-      }
-      ++eqc_i;
-    }
-    if( !firstTime ){ Trace(c) << "  "; }
-    Trace(c) << "}" << std::endl;
-    ++eqcs_i;
-  }
-  Trace(c) << std::endl;
-  for( std::map< TypeNode, int >::iterator it = typ_num.begin(); it != typ_num.end(); ++it ){
-    Trace(c) << "# eqc for " << it->first << " : " << it->second << std::endl;
-  }
 }
 
 }  // namespace theory

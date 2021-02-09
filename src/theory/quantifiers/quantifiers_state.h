@@ -18,6 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATE_H
 
 #include "theory/theory_state.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,6 +50,8 @@ class QuantifiersState : public TheoryState
   /** Get the total number of instantiation rounds performed */
   uint64_t getInstRounds() const;
 
+ /** debug print equality engine */
+ void debugPrintEqualityEngine(const char* c) const;
  private:
   /** The number of instantiation rounds in this SAT context */
   context::CDO<uint64_t> d_ierCounterc;

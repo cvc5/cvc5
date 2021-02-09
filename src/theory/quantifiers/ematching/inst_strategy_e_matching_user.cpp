@@ -177,16 +177,6 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   }
 }
 
-options::UserPatMode QuantifiersState::getInstUserPatMode()
-{
-  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
-  {
-    return d_qstate.getInstRounds() % 2 == 0 ? options::UserPatMode::USE
-                                             : options::UserPatMode::RESORT;
-  }
-  return options::userPatternsQuant();
-}
-
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

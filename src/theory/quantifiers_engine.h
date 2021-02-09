@@ -180,8 +180,6 @@ public:
  void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
  void eqNotifyNewClass(TNode t);
- /** debug print equality engine */
- void debugPrintEqualityEngine(const char* c);
  /** get internal representative
   *
   * Choose a term that is equivalent to a in the current context that is the
