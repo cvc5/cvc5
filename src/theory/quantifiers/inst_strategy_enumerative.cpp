@@ -35,8 +35,9 @@ namespace quantifiers {
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
+                                   QuantifiersRegistry& qr,
                                    RelevantDomain* rd)
-    : QuantifiersModule(qs, qim, qe), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(qs, qim, qr, qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
@@ -76,7 +77,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     if (options::fullSaturateInterleave())
     {
       // we only add when interleaved with other strategies
-      doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+      doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
     }
     if (options::fullSaturateQuant() && !doCheck)
     {
@@ -130,7 +131,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       for (unsigned i = 0; i < nquant; i++)
       {
         Node q = fm->getAssertedQuantifier(i, true);
-        bool doProcess = d_quantEngine->hasOwnership(q, this)
+        bool doProcess = d_qreg.hasOwnership(q, this)
                          && fm->isQuantifierActive(q)
                          && alreadyProc.find(q) == alreadyProc.end();
         if (doProcess)

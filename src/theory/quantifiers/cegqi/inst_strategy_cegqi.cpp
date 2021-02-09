@@ -49,8 +49,9 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
 
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
-                                     QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                                     QuantifiersInferenceManager& qim,
+                                     QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
@@ -107,7 +108,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       //add counterexample lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
-      d_quantEngine->addRequirePhase( ceLit, true );
+      d_qim.addPendingPhaseRequirement(ceLit, true);
       Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = Rewriter::rewrite( lem );
@@ -258,7 +259,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
-    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+    size_t lastWaiting = d_qim.numPendingLemmas();
     for( int ee=0; ee<=1; ee++ ){
       //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
@@ -272,15 +273,17 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
           break;
         }
       }
-      if (d_qstate.isInConflict()
-          || d_quantEngine->getNumLemmasWaiting() > lastWaiting)
+      if (d_qstate.isInConflict() || d_qim.numPendingLemmas() > lastWaiting)
       {
         break;
       }
     }
     if( Trace.isOn("cegqi-engine") ){
-      if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
-        Trace("cegqi-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
+      if (d_qim.numPendingLemmas() > lastWaiting)
+      {
+        Trace("cegqi-engine")
+            << "Added lemmas = " << (d_qim.numPendingLemmas() - lastWaiting)
+            << std::endl;
       }
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
@@ -309,11 +312,12 @@ bool InstStrategyCegqi::checkCompleteFor(Node q)
 
 void InstStrategyCegqi::checkOwnership(Node q)
 {
-  if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
+  if (d_qreg.getOwner(q) == nullptr && doCbqi(q))
+  {
     if (d_do_cbqi[q] == CEG_HANDLED)
     {
       //take full ownership of the quantified formula
-      d_quantEngine->setOwner( q, this );
+      d_qreg.setOwner(q, this);
     }
   }
 }
@@ -390,7 +394,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   {
     Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
                          << std::endl;
-    d_quantEngine->addLemma(auxLems[i], false);
+    d_qim.addPendingLemma(auxLems[i]);
   }
 }
 
@@ -489,10 +493,10 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   }
 }
 
-bool InstStrategyCegqi::addLemma( Node lem ) {
-  return d_quantEngine->addLemma( lem );
+bool InstStrategyCegqi::addPendingLemma(Node lem) const
+{
+  return d_qim.addPendingLemma(lem);
 }
-
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
@@ -532,7 +536,7 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
       // add lemmas to process
       for (const Node& lem : lems)
       {
-        d_quantEngine->addLemma(lem);
+        d_qim.addPendingLemma(lem);
       }
       // don't need to process this, since it has been reduced
       return true;

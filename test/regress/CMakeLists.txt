@@ -848,6 +848,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4437-unc-quant.smt2
   regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/issue5645-dt-cm-spurious.smt2
+  regress0/quantifiers/issue5693-prenex.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -1109,6 +1110,8 @@ set(regress_0_tests
   regress0/strings/issue5428-re-diff-assoc.smt2
   regress0/strings/issue5542-strings-seq-mix.smt2
   regress0/strings/issue5608-eager-pp.smt2
+  regress0/strings/issue5666-orig-unit-deq.smt2
+  regress0/strings/issue5666-unit-deq.smt2
   regress0/strings/issue5745-eager-pp.smt2
   regress0/strings/issue5767-eager-pp.smt2
   regress0/strings/issue5771-eager-pp.smt2
@@ -1634,6 +1637,7 @@ set(regress_1_tests
   regress1/proof00.smt2
   regress1/proofs/macro-res-exp-crowding-lit-inside-unit.smt2
   regress1/proofs/macro-res-exp-singleton-after-elimCrowd.smt2
+  regress1/proofs/sat-trivial-cycle.smt2
   regress1/push-pop/arith_lra_01.smt2
   regress1/push-pop/arith_lra_02.smt2
   regress1/push-pop/bug-fmf-fun-skolem.smt2
@@ -1782,6 +1786,7 @@ set(regress_1_tests
   regress1/quantifiers/nra-interleave-inst.smt2
   regress1/quantifiers/opisavailable-12.smt2
   regress1/quantifiers/parametric-lists.smt2
+  regress1/quantifiers/prenex-scholl-smt08_RNDPRE_RNDPRE_4_6.smt2
   regress1/quantifiers/psyco-001-bv.smt2
   regress1/quantifiers/psyco-107-bv.smt2
   regress1/quantifiers/psyco-196.smt2
@@ -1953,6 +1958,7 @@ set(regress_1_tests
   regress1/sets/is_singleton1.smt2
   regress1/sets/issue2568.smt2
   regress1/sets/issue2904.smt2
+  regress1/sets/issue4124-need-check.smt2
   regress1/sets/issue4391-card-lasso.smt2
   regress1/sets/issue5271.smt2
   regress1/sets/issue5309.smt2

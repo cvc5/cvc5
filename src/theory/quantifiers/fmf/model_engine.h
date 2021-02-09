@@ -45,7 +45,8 @@ private:
 public:
  ModelEngine(QuantifiersEngine* qe,
              QuantifiersState& qs,
-             QuantifiersInferenceManager& qim);
+             QuantifiersInferenceManager& qim,
+             QuantifiersRegistry& qr);
  virtual ~ModelEngine();
 
 public:

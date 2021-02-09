@@ -69,9 +69,16 @@ enum class Inference : uint32_t
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
   // injectivity of seq.unit
+  // (seq.unit x) = (seq.unit y) => x=y, or
+  // (seq.unit x) = (seq.unit c) => x=c
   UNIT_INJ,
   // unit constant conflict
+  // (seq.unit x) = C => false if |C| != 1.
   UNIT_CONST_CONFLICT,
+  // injectivity of seq.unit for disequality
+  // (seq.unit x) != (seq.unit y) => x != y, or
+  // (seq.unit x) != (seq.unit c) => x != c
+  UNIT_INJ_DEQ,
   // A split due to cardinality
   CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
