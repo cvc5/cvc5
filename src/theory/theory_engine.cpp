@@ -504,7 +504,9 @@ void TheoryEngine::check(Theory::Effort effort) {
       propagate(effort);
 
       // We do combination if all has been processed and we are in fullcheck
-      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled() && !d_factsAsserted && !d_lemmasAdded && !d_inConflict) {
+      if (Theory::fullEffort(effort) && d_logicInfo.isSharingEnabled()
+          && !d_factsAsserted && !needCheck() && !d_inConflict)
+      {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         {
