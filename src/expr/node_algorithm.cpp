@@ -375,7 +375,8 @@ bool getFreeVariablesScope(TNode n,
         for (const TNode& cn : cur[0])
         {
           // should not shadow
-          Assert(scope.find(cn) == scope.end());
+          Assert(scope.find(cn) == scope.end())
+              << "Shadowed variable " << cn << " in " << cur << "\n";
           scope.insert(cn);
         }
         // must make recursive call to use separate cache

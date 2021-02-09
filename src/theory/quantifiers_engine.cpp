@@ -40,29 +40,26 @@ QuantifiersEngine::QuantifiersEngine(
       d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, this)),
+      d_qreg(),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
       d_term_util(new quantifiers::TermUtil),
       d_term_db(new quantifiers::TermDb(qstate, qim, this)),
+      d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
-      d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(new quantifiers::Instantiate(this, qstate, pnm)),
+      d_quant_attr(new quantifiers::QuantAttributes),
+      d_instantiate(new quantifiers::Instantiate(this, qstate, qim, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext()),
-      d_lemmas_produced_c(qstate.getUserContext()),
       d_ierCounter_c(qstate.getSatContext()),
       d_presolve(qstate.getUserContext(), true),
       d_presolve_in(qstate.getUserContext()),
-      d_presolve_cache(qstate.getUserContext()),
-      d_presolve_cache_wq(qstate.getUserContext()),
-      d_presolve_cache_wic(qstate.getUserContext())
+      d_presolve_cache(qstate.getUserContext())
 {
   //---- utilities
-  d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
@@ -74,11 +71,6 @@ QuantifiersEngine::QuantifiersEngine(
   }
 
   d_util.push_back(d_instantiate.get());
-
-  d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
-  d_hasAddedLemma = false;
-  //don't add true lemma
-  d_lemmas_produced_c[d_term_util->d_true] = true;
 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
@@ -116,6 +108,9 @@ QuantifiersEngine::QuantifiersEngine(
     d_model.reset(
         new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
   }
+  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
+      qstate, d_term_db.get(), d_model.get()));
+  d_util.insert(d_util.begin(), d_eq_query.get());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
@@ -126,7 +121,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   d_decManager = dm;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -196,49 +191,6 @@ inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
   return d_tr_trie.get();
 }
 
-QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
-  std::map< Node, QuantifiersModule * >::iterator it = d_owner.find( q );
-  if( it==d_owner.end() ){
-    return NULL;
-  }else{
-    return it->second;
-  }
-}
-
-void QuantifiersEngine::setOwner( Node q, QuantifiersModule * m, int priority ) {
-  QuantifiersModule * mo = getOwner( q );
-  if( mo!=m ){
-    if( mo!=NULL ){
-      if( priority<=d_owner_priority[q] ){
-        Trace("quant-warn") << "WARNING: setting owner of " << q << " to " << ( m ? m->identify() : "null" ) << ", but already has owner " << mo->identify() << " with higher priority!" << std::endl;
-        return;
-      }
-    }
-    d_owner[q] = m;
-    d_owner_priority[q] = priority;
-  }
-}
-
-void QuantifiersEngine::setOwner(Node q, quantifiers::QAttributes& qa)
-{
-  if (qa.d_sygus || (options::sygusRecFun() && !qa.d_fundef_f.isNull()))
-  {
-    if (d_qmodules->d_synth_e.get() == nullptr)
-    {
-      Trace("quant-warn") << "WARNING : synth engine is null, and we have : "
-                          << q << std::endl;
-    }
-    // set synth engine as owner since this is either a conjecture or a function
-    // definition to be used by sygus
-    setOwner(q, d_qmodules->d_synth_e.get(), 2);
-  }
-}
-
-bool QuantifiersEngine::hasOwnership( Node q, QuantifiersModule * m ) {
-  QuantifiersModule * mo = getOwner( q );
-  return mo==m || mo==NULL;
-}
-
 bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
 {
   quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
@@ -304,8 +256,7 @@ bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
-  d_lemmas_waiting.clear();
-  d_phase_req_waiting.clear();
+  d_qim.clearPending();
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
@@ -314,8 +265,9 @@ void QuantifiersEngine::presolve() {
   //add all terms to database
   if( options::incrementalSolving() ){
     Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
-    for( unsigned i=0; i<d_presolve_cache.size(); i++ ){
-      addTermToDatabase( d_presolve_cache[i], d_presolve_cache_wq[i], d_presolve_cache_wic[i] );
+    for (const Node& t : d_presolve_cache)
+    {
+      addTermToDatabase(t);
     }
     Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
   }
@@ -384,7 +336,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     // proceed with the check.
     Assert(false);
   }
-  bool needsCheck = !d_lemmas_waiting.empty();
+  bool needsCheck = d_qim.hasPendingLemma();
   QuantifiersModule::QEffort needsModelE = QuantifiersModule::QEFFORT_NONE;
   std::vector< QuantifiersModule* > qm;
   if( d_model->checkNeeded() ){
@@ -404,14 +356,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
   }
 
-  d_hasAddedLemma = false;
+  d_qim.reset();
   bool setIncomplete = false;
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
     //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
-    flushLemmas();
-    if( d_hasAddedLemma ){
+    d_qim.doPending();
+    if (d_qim.hasSentLemma())
+    {
       return;
     }
 
@@ -430,8 +383,10 @@ void QuantifiersEngine::check( Theory::Effort e ){
       }
       Trace("quant-engine-debug") << std::endl;
       Trace("quant-engine-debug") << "  # quantified formulas = " << d_model->getNumAssertedQuantifiers() << std::endl;
-      if( !d_lemmas_waiting.empty() ){
-        Trace("quant-engine-debug") << "  lemmas waiting = " << d_lemmas_waiting.size() << std::endl;
+      if (d_qim.hasPendingLemma())
+      {
+        Trace("quant-engine-debug")
+            << "  lemmas waiting = " << d_qim.numPendingLemmas() << std::endl;
       }
       Trace("quant-engine-debug")
           << "  Theory engine finished : "
@@ -457,8 +412,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
                                    << "..." << std::endl;
       if (!util->reset(e))
       {
-        flushLemmas();
-        if( d_hasAddedLemma ){
+        d_qim.doPending();
+        if (d_qim.hasSentLemma())
+        {
           return;
         }else{
           //should only fail reset if added a lemma
@@ -486,8 +442,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     Trace("quant-engine-debug") << "Done resetting all modules." << std::endl;
     //reset may have added lemmas
-    flushLemmas();
-    if( d_hasAddedLemma ){
+    d_qim.doPending();
+    if (d_qim.hasSentLemma())
+    {
       return;
     }
 
@@ -503,7 +460,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     {
       QuantifiersModule::QEffort quant_e =
           static_cast<QuantifiersModule::QEffort>(qef);
-      d_curr_effort_level = quant_e;
       // Force the theory engine to build the model if any module requested it.
       if (needsModelE == quant_e)
       {
@@ -512,11 +468,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
         {
           // If we failed to build the model, flush all pending lemmas and
           // finish.
-          flushLemmas();
+          d_qim.doPending();
           break;
         }
       }
-      if( !d_hasAddedLemma ){
+      if (!d_qim.hasSentLemma())
+      {
         //check each module
         for (QuantifiersModule*& mdl : qm)
         {
@@ -531,10 +488,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
           }
         }
         //flush all current lemmas
-        flushLemmas();
+        d_qim.doPending();
       }
       //if we have added one, stop
-      if( d_hasAddedLemma ){
+      if (d_qim.hasSentLemma())
+      {
         break;
       }else{
         Assert(!d_qstate.isInConflict());
@@ -590,7 +548,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
                 for( unsigned i=0; i<d_model->getNumAssertedQuantifiers(); i++ ){
                   bool hasCompleteM = false;
                   Node q = d_model->getAssertedQuantifier( i );
-                  QuantifiersModule * qmd = getOwner( q );
+                  QuantifiersModule* qmd = d_qreg.getOwner(q);
                   if( qmd!=NULL ){
                     hasCompleteM = qmd->checkCompleteFor( q );
                   }else{
@@ -621,10 +579,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
         }
       }
     }
-    d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
     // debug print
-    if (d_hasAddedLemma)
+    if (d_qim.hasSentLemma())
     {
       bool debugInstTrace = Trace.isOn("inst-per-quant-round");
       if (options::debugInst() || debugInstTrace)
@@ -637,7 +594,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("quant-engine") << "Finished quantifiers engine, total time = " << (clSet2-clSet);
-      Trace("quant-engine") << ", added lemma = " << d_hasAddedLemma;
+      Trace("quant-engine") << ", sent lemma = " << d_qim.hasSentLemma();
       Trace("quant-engine") << std::endl;
     }
 
@@ -647,7 +604,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
   }
 
   //SAT case
-  if( e==Theory::EFFORT_LAST_CALL && !d_hasAddedLemma ){
+  if (e == Theory::EFFORT_LAST_CALL && !d_qim.hasSentLemma())
+  {
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
       getOutputChannel().setIncomplete();
@@ -700,7 +658,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
   if( it==d_quants.end() ){
     Trace("quant") << "QuantifiersEngine : Register quantifier ";
     Trace("quant") << " : " << f << std::endl;
-    unsigned prev_lemma_waiting = d_lemmas_waiting.size();
+    size_t prev_lemma_waiting = d_qim.numPendingLemmas();
     ++(d_statistics.d_num_quant);
     Assert(f.getKind() == FORALL);
     // register with utilities
@@ -717,7 +675,7 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
                            << "..." << std::endl;
       mdl->checkOwnership(f);
     }
-    QuantifiersModule* qm = getOwner(f);
+    QuantifiersModule* qm = d_qreg.getOwner(f);
     Trace("quant") << " Owner : " << (qm == nullptr ? "[none]" : qm->identify())
                    << std::endl;
     // register with each module
@@ -728,11 +686,11 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
       mdl->registerQuantifier(f);
       // since this is context-independent, we should not add any lemmas during
       // this call
-      Assert(d_lemmas_waiting.size() == prev_lemma_waiting);
+      Assert(d_qim.numPendingLemmas() == prev_lemma_waiting);
     }
     Trace("quant-debug") << "...finish." << std::endl;
     d_quants[f] = true;
-    AlwaysAssert(d_lemmas_waiting.size() == prev_lemma_waiting);
+    AlwaysAssert(d_qim.numPendingLemmas() == prev_lemma_waiting);
   }
 }
 
@@ -761,7 +719,7 @@ void QuantifiersEngine::preRegisterQuantifier(Node q)
     mdl->preRegisterQuantifier(q);
   }
   // flush the lemmas
-  flushLemmas();
+  d_qim.doPending();
   Trace("quant-debug") << "...finish pre-register " << q << "..." << std::endl;
 }
 
@@ -797,26 +755,25 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
-void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
+void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
+{
+  // don't add terms in quantifier bodies
+  if (withinQuant && !options::registerQuantBodyTerms())
+  {
+    return;
+  }
   if( options::incrementalSolving() ){
     if( d_presolve_in.find( n )==d_presolve_in.end() ){
       d_presolve_in.insert( n );
       d_presolve_cache.push_back( n );
-      d_presolve_cache_wq.push_back( withinQuant );
-      d_presolve_cache_wic.push_back( withinInstClosure );
     }
   }
   //only wait if we are doing incremental solving
   if( !d_presolve || !options::incrementalSolving() ){
-    std::set< Node > added;
-    d_term_db->addTerm(n, added, withinQuant, withinInstClosure);
-
-    if (!withinQuant)
+    d_term_db->addTerm(n);
+    if (d_sygus_tdb && options::sygusEvalUnfold())
     {
-      if (d_sygus_tdb && options::sygusEvalUnfold())
-      {
-        d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
-      }
+      d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
     }
   }
 }
@@ -825,64 +782,8 @@ void QuantifiersEngine::eqNotifyNewClass(TNode t) {
   addTermToDatabase( t );
 }
 
-bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
-  if( doCache ){
-    if( doRewrite ){
-      lem = Rewriter::rewrite(lem);
-    }
-    Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
-    BoolMap::const_iterator itp = d_lemmas_produced_c.find( lem );
-    if( itp==d_lemmas_produced_c.end() || !(*itp).second ){
-      d_lemmas_produced_c[ lem ] = true;
-      d_lemmas_waiting.push_back( lem );
-      Trace("inst-add-debug") << "Added lemma" << std::endl;
-      return true;
-    }else{
-      Trace("inst-add-debug") << "Duplicate." << std::endl;
-      return false;
-    }
-  }else{
-    //do not need to rewrite, will be rewritten after sending
-    d_lemmas_waiting.push_back( lem );
-    return true;
-  }
-}
-
-bool QuantifiersEngine::addTrustedLemma(TrustNode tlem,
-                                        bool doCache,
-                                        bool doRewrite)
-{
-  Node lem = tlem.getProven();
-  if (!addLemma(lem, doCache, doRewrite))
-  {
-    return false;
-  }
-  d_lemmasWaitingPg[lem] = tlem.getGenerator();
-  return true;
-}
-
-bool QuantifiersEngine::removeLemma( Node lem ) {
-  std::vector< Node >::iterator it = std::find( d_lemmas_waiting.begin(), d_lemmas_waiting.end(), lem );
-  if( it!=d_lemmas_waiting.end() ){
-    d_lemmas_waiting.erase( it, it + 1 );
-    d_lemmas_produced_c[ lem ] = false;
-    return true;
-  }else{
-    return false;
-  }
-}
-
-void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
-  d_phase_req_waiting[lit] = req;
-}
-
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
-}
-
-bool QuantifiersEngine::hasAddedLemma() const
-{
-  return !d_lemmas_waiting.empty() || d_hasAddedLemma;
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
@@ -931,41 +832,6 @@ options::UserPatMode QuantifiersEngine::getInstUserPatMode()
   else
   {
     return options::userPatternsQuant();
-  }
-}
-
-void QuantifiersEngine::flushLemmas(){
-  OutputChannel& out = getOutputChannel();
-  if( !d_lemmas_waiting.empty() ){
-    //take default output channel if none is provided
-    d_hasAddedLemma = true;
-    std::map<Node, ProofGenerator*>::iterator itp;
-    // Note: Do not use foreach loop here and do not cache size() call.
-    // New lemmas can be added while iterating over d_lemmas_waiting.
-    for (size_t i = 0; i < d_lemmas_waiting.size(); ++i)
-    {
-      const Node& lemw = d_lemmas_waiting[i];
-      Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
-      itp = d_lemmasWaitingPg.find(lemw);
-      LemmaProperty p = LemmaProperty::NEEDS_JUSTIFY;
-      if (itp != d_lemmasWaitingPg.end())
-      {
-        TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
-        out.trustedLemma(tlemw, p);
-      }
-      else
-      {
-        out.lemma(lemw, p);
-      }
-    }
-    d_lemmas_waiting.clear();
-  }
-  if( !d_phase_req_waiting.empty() ){
-    for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
-      Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
-      out.requirePhase(it->first, it->second);
-    }
-    d_phase_req_waiting.clear();
   }
 }
 

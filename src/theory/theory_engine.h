@@ -671,8 +671,6 @@ private:
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
- private:
-  IntStat d_arithSubstitutionsAdded;
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */
