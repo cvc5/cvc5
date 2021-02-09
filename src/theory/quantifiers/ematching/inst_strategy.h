@@ -58,6 +58,7 @@ class InstStrategy
   virtual InstStrategyStatus process(Node f, Theory::Effort effort, int e) = 0;
   /** identify */
   virtual std::string identify() const;
+
  protected:
   /**
    * Get the current user pat mode, which may be interleaved based on counters

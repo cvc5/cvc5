@@ -390,7 +390,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
-      d_qstate.debugPrintEqualityEngine( "quant-engine-ee-pre" );
+      d_qstate.debugPrintEqualityEngine("quant-engine-ee-pre");
     }
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
@@ -418,7 +418,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     if( Trace.isOn("quant-engine-ee") ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
-      d_qstate.debugPrintEqualityEngine( "quant-engine-ee" );
+      d_qstate.debugPrintEqualityEngine("quant-engine-ee");
     }
 
     //reset the model

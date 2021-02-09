@@ -19,13 +19,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-  InstStrategy::InstStrategy(QuantifiersEngine* qe,
-               QuantifiersState& qs,
-               QuantifiersInferenceManager& qim)
-      : d_quantEngine(qe), d_qstate(qs), d_qim(qim)
-  {
-  }
- InstStrategy:: ~InstStrategy() {}
+InstStrategy::InstStrategy(QuantifiersEngine* qe,
+                           QuantifiersState& qs,
+                           QuantifiersInferenceManager& qim)
+    : d_quantEngine(qe), d_qstate(qs), d_qim(qim)
+{
+}
+InstStrategy::~InstStrategy() {}
 void InstStrategy::presolve() {}
 std::string InstStrategy::identify() const { return std::string("Unknown"); }
 
@@ -42,4 +42,3 @@ options::UserPatMode InstStrategy::getInstUserPatMode()
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
-

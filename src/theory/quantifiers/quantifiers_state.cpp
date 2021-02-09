@@ -103,29 +103,35 @@ uint64_t QuantifiersState::getInstRoundDepth() const
 
 uint64_t QuantifiersState::getInstRounds() const { return d_ierCounter; }
 
-void QuantifiersState::debugPrintEqualityEngine( const char * c ) {
+void QuantifiersState::debugPrintEqualityEngine(const char* c)
+{
   if (!Trace.isOn(c))
   {
     return;
   }
   eq::EqualityEngine* ee = getEqualityEngine();
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-  std::map< TypeNode, uint64_t > tnum;
-  while( !eqcs_i.isFinished() ){
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  std::map<TypeNode, uint64_t> tnum;
+  while (!eqcs_i.isFinished())
+  {
     TNode r = (*eqcs_i);
     TypeNode tr = r.getType();
-    if( tnum.find( tr )==tnum.end() ){
+    if (tnum.find(tr) == tnum.end())
+    {
       tnum[tr] = 0;
     }
     tnum[tr]++;
     bool firstTime = true;
     Trace(c) << "  " << r;
     Trace(c) << " : { ";
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-    while( !eqc_i.isFinished() ){
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(r, ee);
+    while (!eqc_i.isFinished())
+    {
       TNode n = (*eqc_i);
-      if( r!=n ){
-        if( firstTime ){
+      if (r != n)
+      {
+        if (firstTime)
+        {
           Trace(c) << std::endl;
           firstTime = false;
         }
@@ -133,12 +139,17 @@ void QuantifiersState::debugPrintEqualityEngine( const char * c ) {
       }
       ++eqc_i;
     }
-    if( !firstTime ){ Trace(c) << "  "; }
+    if (!firstTime)
+    {
+      Trace(c) << "  ";
+    }
     Trace(c) << "}" << std::endl;
     ++eqcs_i;
   }
   Trace(c) << std::endl;
-  for( std::map< TypeNode, int >::iterator it = tnum.begin(); it != tnum.end(); ++it ){
+  for (std::map<TypeNode, int>::iterator it = tnum.begin(); it != tnum.end();
+       ++it)
+  {
     Trace(c) << "# eqc for " << it->first << " : " << it->second << std::endl;
   }
 }
