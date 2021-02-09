@@ -19,9 +19,9 @@
 
 #include <map>
 #include "expr/node.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
-#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -52,7 +52,7 @@ class InstStrategyUserPatterns : public InstStrategy
   void processResetInstantiationRound(Theory::Effort effort) override;
   /** Process quantified formula q at the given effort */
   InstStrategyStatus process(Node f, Theory::Effort effort, int e) override;
-  /** 
+  /**
    * Get the current user pat mode, which may be interleaved based on counters
    * maintained by the quantifiers state.
    */

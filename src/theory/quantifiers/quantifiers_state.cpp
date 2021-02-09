@@ -101,10 +101,7 @@ uint64_t QuantifiersState::getInstRoundDepth() const
   return d_ierCounterc.get();
 }
 
-uint64_t QuantifiersState::getInstRounds() const
-{
-  return d_ierCounter;
-}
+uint64_t QuantifiersState::getInstRounds() const { return d_ierCounter; }
 
 }  // namespace quantifiers
 }  // namespace theory

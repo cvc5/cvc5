@@ -48,6 +48,7 @@ class QuantifiersState : public TheoryState
   uint64_t getInstRoundDepth() const;
   /** Get the total number of instantiation rounds performed */
   uint64_t getInstRounds() const;
+
  private:
   /** The number of instantiation rounds in this SAT context */
   context::CDO<uint64_t> d_ierCounterc;
