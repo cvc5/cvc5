@@ -405,7 +405,7 @@ void TermDb::computeUfTerms( TNode f ) {
             }
             Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
           }
-          d_quantEngine->addLemma(lem);
+          d_qim.addPendingLemma(lem);
           d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return;
@@ -1015,7 +1015,7 @@ bool TermDb::reset( Theory::Effort effort ){
           // equality is sent out as a lemma here.
           Trace("term-db-lemma")
               << "Purify equality lemma: " << eq << std::endl;
-          d_quantEngine->addLemma(eq);
+          d_qim.addPendingLemma(eq);
           d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return false;

@@ -173,36 +173,11 @@ private:
  void registerQuantifierInternal(Node q);
  /** reduceQuantifier, return true if reduced */
  bool reduceQuantifier(Node q);
- /** flush lemmas */
- void flushLemmas();
 
 public:
- /**
-  * Add lemma to the lemma buffer of this quantifiers engine.
-  * @param lem The lemma to send
-  * @param doCache Whether to cache the lemma (to check for duplicate lemmas)
-  * @param doRewrite Whether to rewrite the lemma
-  * @return true if the lemma was successfully added to the buffer
-  */
- bool addLemma(Node lem, bool doCache = true, bool doRewrite = true);
- /**
-  * Add trusted lemma lem, same as above, but where a proof generator may be
-  * provided along with the lemma.
-  */
- bool addTrustedLemma(TrustNode tlem,
-                      bool doCache = true,
-                      bool doRewrite = true);
- /** remove pending lemma */
- bool removeLemma(Node lem);
- /** add require phase */
- void addRequirePhase(Node lit, bool req);
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** has added lemma */
- bool hasAddedLemma() const;
- /** get number of waiting lemmas */
- unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
  /** get needs check */
  bool getInstWhenNeedsCheck(Theory::Effort e);
  /** get user pat mode */
@@ -345,9 +320,6 @@ public:
    * The modules utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
-  //------------- temporary information during check
-  /** has added lemma this round */
-  bool d_hasAddedLemma;
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */
@@ -357,15 +329,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** list of all lemmas produced */
-  // std::map< Node, bool > d_lemmas_produced;
-  BoolMap d_lemmas_produced_c;
-  /** lemmas waiting */
-  std::vector<Node> d_lemmas_waiting;
-  /** map from waiting lemmas to their proof generators */
-  std::map<Node, ProofGenerator*> d_lemmasWaitingPg;
-  /** phase requirements waiting */
-  std::map<Node, bool> d_phase_req_waiting;
   /** inst round counters TODO: make context-dependent? */
   context::CDO<int> d_ierCounter_c;
   int d_ierCounter;

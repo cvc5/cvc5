@@ -38,9 +38,11 @@ namespace quantifiers {
 
 Instantiate::Instantiate(QuantifiersEngine* qe,
                          QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim,
                          ProofNodeManager* pnm)
     : d_qe(qe),
       d_qstate(qs),
+      d_qim(qim),
       d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),
@@ -321,13 +323,12 @@ bool Instantiate::addInstantiation(
   bool addedLem = false;
   if (hasProof)
   {
-    // use trust interface
-    TrustNode tlem = TrustNode::mkTrustLemma(lem, d_pfInst.get());
-    addedLem = d_qe->addTrustedLemma(tlem, true, false);
+    // use proof generator
+    addedLem = d_qim.addPendingLemma(lem, LemmaProperty::NONE, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qe->addLemma(lem, true, false);
+    addedLem = d_qim.addPendingLemma(lem);
   }
 
   if (!addedLem)
@@ -398,18 +399,6 @@ bool Instantiate::addInstantiation(
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
   return true;
-}
-
-bool Instantiate::removeInstantiation(Node q,
-                                      Node lem,
-                                      std::vector<Node>& terms)
-{
-  // lem must occur in d_waiting_lemmas
-  if (d_qe->removeLemma(lem))
-  {
-    return removeInstantiationInternal(q, terms);
-  }
-  return false;
 }
 
 bool Instantiate::recordInstantiation(Node q,

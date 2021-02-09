@@ -70,7 +70,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   if( options::mbqiInterleave() ){
-    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
   }
   if( !doCheck ){
     doCheck = quant_e == QEFFORT_MODEL;
