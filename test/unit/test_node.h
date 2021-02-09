@@ -57,7 +57,6 @@ class TestNodeWhite : public TestInternal
   std::unique_ptr<NodeManagerScope> d_scope;
   std::unique_ptr<NodeManager> d_nodeManager;
 };
-
 }  // namespace test
 }  // namespace CVC4
 #endif

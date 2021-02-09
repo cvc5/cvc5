@@ -185,10 +185,10 @@ public:
   QuantifiersUtil(){}
   virtual ~QuantifiersUtil(){}
   /* reset
-  * Called at the beginning of an instantiation round
-  * Returns false if the reset failed. When reset fails, the utility should have
-  * added a lemma via a call to qe->addLemma. TODO: improve this contract #1163
-  */
+   * Called at the beginning of an instantiation round
+   * Returns false if the reset failed. When reset fails, the utility should
+   * have added a lemma via a call to d_qim.addPendingLemma.
+   */
   virtual bool reset( Theory::Effort e ) = 0;
   /* Called for new quantifiers */
   virtual void registerQuantifier(Node q) = 0;
