@@ -152,7 +152,7 @@ option(USE_DRAT2ER            "Include drat2er for making eager BV proofs")
 option(USE_LFSC               "Use LFSC proof checker")
 option(USE_POLY               "Use LibPoly for polynomial arithmetic")
 option(USE_SYMFPU             "Use SymFPU for floating point support")
-option(USE_PYTHON2            "Prefer using Python 2 (for Python bindings)")
+option(USE_PYTHON2            "Force Python 2 (deprecated)")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was

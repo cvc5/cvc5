@@ -44,7 +44,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
-  --python2                prefer using Python 2 (deprecated)
+  --python2                force Python 2 (deprecated)
   --python-bindings        build Python bindings based on new C++ API
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
