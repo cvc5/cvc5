@@ -52,10 +52,19 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * non-null, pg must be able to provide a proof for lem for the remainder
    * of the user context. Pending lemmas are sent to the output channel using
    * doPendingLemmas.
+   *
+   * @param lem The lemma to send
+   * @param p The property of the lemma
+   * @param pg The proof generator which can provide a proof for lem
+   * @param checkCache Whether we want to check that the lemma is already in
+   * the cache.
+   * @return true if the lemma was added to the list of pending lemmas and
+   * false if the lemma is already cached.
    */
-  void addPendingLemma(Node lem,
+  bool addPendingLemma(Node lem,
                        LemmaProperty p = LemmaProperty::NONE,
-                       ProofGenerator* pg = nullptr);
+                       ProofGenerator* pg = nullptr,
+                       bool checkCache = true);
   /**
    * Add pending lemma, where lemma can be a (derived) class of the
    * theory inference base class.

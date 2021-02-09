@@ -78,7 +78,7 @@ class InstantiationRewriter
  *
  * Its main interface is ::addInstantiation(...), which is called by many of
  * the quantifiers modules, which enqueues instantiation lemmas in quantifiers
- * engine via calls to QuantifiersEngine::addLemma.
+ * engine via calls to QuantifiersInferenceManager::addPendingLemma.
  *
  * It also has utilities for constructing instantiations, and interfaces for
  * getting the results of the instantiations produced during check-sat calls.
@@ -90,6 +90,7 @@ class Instantiate : public QuantifiersUtil
  public:
   Instantiate(QuantifiersEngine* qe,
               QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -117,7 +118,7 @@ class Instantiate : public QuantifiersUtil
    *
    * This function returns true if the instantiation lemma for quantified
    * formula q for the substitution specified by m is successfully enqueued
-   * via a call to QuantifiersEngine::addLemma.
+   * via a call to QuantifiersInferenceManager::addPendingLemma.
    *   mkRep : whether to take the representatives of the terms in the range of
    *           the substitution m,
    *   modEq : whether to check for duplication modulo equality in instantiation
@@ -326,6 +327,8 @@ class Instantiate : public QuantifiersUtil
   QuantifiersEngine* d_qe;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */
