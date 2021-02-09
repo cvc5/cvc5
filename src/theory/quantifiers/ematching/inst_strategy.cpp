@@ -30,7 +30,7 @@ InstStrategy::~InstStrategy() {}
 void InstStrategy::presolve() {}
 std::string InstStrategy::identify() const { return std::string("Unknown"); }
 
-options::UserPatMode InstStrategy::getInstUserPatMode()
+options::UserPatMode InstStrategy::getInstUserPatMode() const
 {
   if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
   {

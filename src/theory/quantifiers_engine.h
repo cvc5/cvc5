@@ -152,6 +152,8 @@ class QuantifiersEngine {
   void ppNotifyAssertions(const std::vector<Node>& assertions);
   /** check at level */
   void check( Theory::Effort e );
+  /** notify that theories were combined */
+  void notifyCombineTheories();
   /** preRegister quantifier
    *
    * This function is called after registerQuantifier for quantified formulas

@@ -55,9 +55,9 @@ void QuantifiersState::incrementInstRoundCounters(Theory::Effort e)
   }
 }
 
-bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e)
+bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e) const
 {
-  Trace("quant-engine-debug2")
+  Trace("qstate-debug")
       << "Get inst when needs check, counts=" << d_ierCounter << ", "
       << d_ierCounterLc << std::endl;
   // determine if we should perform check, based on instWhenMode
@@ -69,7 +69,7 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e)
   else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
   {
     performCheck =
-        (e >= Theory::EFFORT_FULL) && !d_qstate.getValuation().needCheck();
+        (e >= Theory::EFFORT_FULL) && !d_valuation.needCheck();
   }
   else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
   {
@@ -81,7 +81,7 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e)
            == options::InstWhenMode::FULL_DELAY_LAST_CALL)
   {
     performCheck =
-        ((e == Theory::EFFORT_FULL && !d_qstate.getValuation().needCheck()
+        ((e == Theory::EFFORT_FULL && !d_valuation.needCheck()
           && d_ierCounter % d_instWhenPhase != 0)
          || e == Theory::EFFORT_LAST_CALL);
   }
@@ -93,6 +93,7 @@ bool QuantifiersState::getInstWhenNeedsCheck(Theory::Effort e)
   {
     performCheck = true;
   }
+  Trace("qstate-debug") << "...returned " << performCheck << std::endl;
   return performCheck;
 }
 
@@ -103,7 +104,7 @@ uint64_t QuantifiersState::getInstRoundDepth() const
 
 uint64_t QuantifiersState::getInstRounds() const { return d_ierCounter; }
 
-void QuantifiersState::debugPrintEqualityEngine(const char* c)
+void QuantifiersState::debugPrintEqualityEngine(const char* c) const
 {
   if (!Trace.isOn(c))
   {
@@ -147,10 +148,9 @@ void QuantifiersState::debugPrintEqualityEngine(const char* c)
     ++eqcs_i;
   }
   Trace(c) << std::endl;
-  for (std::map<TypeNode, int>::iterator it = tnum.begin(); it != tnum.end();
-       ++it)
+  for (const std::pair<const TypeNode, uint64_t>& t : tnum)
   {
-    Trace(c) << "# eqc for " << it->first << " : " << it->second << std::endl;
+    Trace(c) << "# eqc for " << t.first << " : " << t.second << std::endl;
   }
 }
 

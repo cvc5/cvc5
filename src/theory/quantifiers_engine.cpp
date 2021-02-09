@@ -369,7 +369,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
       Trace("quant-engine-debug")
-          << "  depth : " << d_state.getInstRoundDepth() << std::endl;
+          << "  depth : " << d_qstate.getInstRoundDepth() << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
       for( unsigned i=0; i<qm.size(); i++ ){
         Trace("quant-engine-debug") << qm[i]->identify() << " ";

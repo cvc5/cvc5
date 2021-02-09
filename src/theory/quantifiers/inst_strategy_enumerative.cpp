@@ -52,7 +52,8 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
   }
   if (options::fullSaturateInterleave())
   {
-    if (d_quantEngine->getInstWhenNeedsCheck(e))
+    // if interleaved, we run at the same time as E-matching
+    if (d_qstate.getInstWhenNeedsCheck(e))
     {
       return true;
     }

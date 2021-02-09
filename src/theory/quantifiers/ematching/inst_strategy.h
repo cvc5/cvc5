@@ -20,6 +20,7 @@
 #include <vector>
 #include "expr/node.h"
 #include "theory/theory.h"
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {
