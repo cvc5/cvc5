@@ -108,15 +108,11 @@ class TermDb : public QuantifiersUtil {
   * variable per type.
   */
   Node getOrMakeTypeFreshVariable(TypeNode tn);
-  /** add a term to the database
-  * withinQuant is whether n is within the body of a quantified formula
-  * withinInstClosure is whether n is within an inst-closure operator (see
-  * Bansal et al CAV 2015).
-  */
-  void addTerm(Node n,
-               std::set<Node>& added,
-               bool withinQuant = false,
-               bool withinInstClosure = false);
+  /**
+   * Add a term to the database, which registers it as a term that may be
+   * matched with via E-matching, and can be used in entailment tests below.
+   */
+  void addTerm(Node n);
   /** get match operator for term n
   *
   * If n has a kind that we index, this function will
@@ -268,12 +264,6 @@ class TermDb : public QuantifiersUtil {
   bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
-  /** is r a inst closure node?
-   * This terminology was used for specifying
-   * a particular status of nodes for
-   * Bansal et al., CAV 2015.
-   */
-  bool isInstClosure(Node r);
   /** get higher-order type match predicate
    *
    * This predicate is used to force certain functions f of type tn to appear as
@@ -292,8 +282,6 @@ class TermDb : public QuantifiersUtil {
   QuantifiersInferenceManager& d_qim;
   /** terms processed */
   std::unordered_set< Node, NodeHashFunction > d_processed;
-  /** terms processed */
-  std::unordered_set< Node, NodeHashFunction > d_iclosure_processed;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
@@ -407,10 +395,7 @@ class TermDb : public QuantifiersUtil {
    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
    * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
    */
-  void addTermHo(Node n,
-                 std::set<Node>& added,
-                 bool withinQuant,
-                 bool withinInstClosure);
+  void addTermHo(Node n);
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing

@@ -22,11 +22,11 @@ using namespace api;
 
 namespace test {
 
-class TestApiGrammarBlack : public TestApi
+class TestApiBlackGrammar : public TestApi
 {
 };
 
-TEST_F(TestApiGrammarBlack, addRule)
+TEST_F(TestApiBlackGrammar, addRule)
 {
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
@@ -50,7 +50,7 @@ TEST_F(TestApiGrammarBlack, addRule)
   ASSERT_THROW(g.addRule(start, d_solver.mkBoolean(false)), CVC4ApiException);
 }
 
-TEST_F(TestApiGrammarBlack, addRules)
+TEST_F(TestApiBlackGrammar, addRules)
 {
   Sort boolean = d_solver.getBooleanSort();
   Sort integer = d_solver.getIntegerSort();
@@ -75,7 +75,7 @@ TEST_F(TestApiGrammarBlack, addRules)
                CVC4ApiException);
 }
 
-TEST_F(TestApiGrammarBlack, addAnyConstant)
+TEST_F(TestApiBlackGrammar, addAnyConstant)
 {
   Sort boolean = d_solver.getBooleanSort();
 
@@ -96,7 +96,7 @@ TEST_F(TestApiGrammarBlack, addAnyConstant)
   ASSERT_THROW(g.addAnyConstant(start), CVC4ApiException);
 }
 
-TEST_F(TestApiGrammarBlack, addAnyVariable)
+TEST_F(TestApiBlackGrammar, addAnyVariable)
 {
   Sort boolean = d_solver.getBooleanSort();
 

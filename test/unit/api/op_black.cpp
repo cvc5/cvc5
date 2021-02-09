@@ -20,18 +20,18 @@ using namespace api;
 
 namespace test {
 
-class TestApiOpBlack : public TestApi
+class TestApiBlackOp : public TestApi
 {
 };
 
-TEST_F(TestApiOpBlack, getKind)
+TEST_F(TestApiBlackOp, getKind)
 {
   Op x;
   x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
   ASSERT_NO_THROW(x.getKind());
 }
 
-TEST_F(TestApiOpBlack, isNull)
+TEST_F(TestApiBlackOp, isNull)
 {
   Op x;
   ASSERT_TRUE(x.isNull());
@@ -39,7 +39,7 @@ TEST_F(TestApiOpBlack, isNull)
   ASSERT_FALSE(x.isNull());
 }
 
-TEST_F(TestApiOpBlack, opFromKind)
+TEST_F(TestApiBlackOp, opFromKind)
 {
   Op plus(&d_solver, PLUS);
   ASSERT_FALSE(plus.isIndexed());
@@ -50,7 +50,7 @@ TEST_F(TestApiOpBlack, opFromKind)
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT), CVC4ApiException);
 }
 
-TEST_F(TestApiOpBlack, getIndicesString)
+TEST_F(TestApiBlackOp, getIndicesString)
 {
   Op x;
   ASSERT_THROW(x.getIndices<std::string>(), CVC4ApiException);
@@ -66,7 +66,7 @@ TEST_F(TestApiOpBlack, getIndicesString)
   ASSERT_THROW(record_update_ot.getIndices<uint32_t>(), CVC4ApiException);
 }
 
-TEST_F(TestApiOpBlack, getIndicesUint)
+TEST_F(TestApiBlackOp, getIndicesUint)
 {
   Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
   ASSERT_TRUE(bitvector_repeat_ot.isIndexed());
@@ -116,7 +116,7 @@ TEST_F(TestApiOpBlack, getIndicesUint)
   ASSERT_THROW(tuple_update_ot.getIndices<std::string>(), CVC4ApiException);
 }
 
-TEST_F(TestApiOpBlack, getIndicesPairUint)
+TEST_F(TestApiBlackOp, getIndicesPairUint)
 {
   Op bitvector_extract_ot = d_solver.mkOp(BITVECTOR_EXTRACT, 4, 0);
   ASSERT_TRUE(bitvector_extract_ot.isIndexed());
@@ -175,7 +175,7 @@ TEST_F(TestApiOpBlack, getIndicesPairUint)
                CVC4ApiException);
 }
 
-TEST_F(TestApiOpBlack, opScopingToString)
+TEST_F(TestApiBlackOp, opScopingToString)
 {
   Op bitvector_repeat_ot = d_solver.mkOp(BITVECTOR_REPEAT, 5);
   std::string op_repr = bitvector_repeat_ot.toString();

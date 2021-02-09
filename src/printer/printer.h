@@ -33,8 +33,8 @@ namespace CVC4 {
 class Command;
 class CommandStatus;
 class UnsatCore;
-class InstantiationList;
-class SkolemList;
+struct InstantiationList;
+struct SkolemList;
 
 class Printer
 {
