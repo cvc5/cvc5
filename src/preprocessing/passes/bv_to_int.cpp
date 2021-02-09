@@ -69,9 +69,9 @@ PreprocessingPassResult BVToInt::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-void BVToInt::addSkolemDefinitions(std::map<Node, Node> skolems)
+void BVToInt::addSkolemDefinitions(const std::map<Node, Node>& skolems)
 {
-  map<Node, Node>::iterator it;
+  map<Node, Node>::const_iterator it;
   for (it = skolems.begin(); it != skolems.end(); it++)
   {
     Node originalSkolem = it->first;
@@ -92,8 +92,9 @@ void BVToInt::addSkolemDefinitions(std::map<Node, Node> skolems)
   }
 }
 
-void BVToInt::addFinalizeAssertions(AssertionPipeline* assertionsToPreprocess,
-                                    std::vector<Node> additionalConstraints)
+void BVToInt::addFinalizeAssertions(
+    AssertionPipeline* assertionsToPreprocess,
+    const std::vector<Node>& additionalConstraints)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemmas = nm->mkAnd(additionalConstraints);
