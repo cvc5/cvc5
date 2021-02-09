@@ -70,7 +70,7 @@ class InstMatchTrie
                        ImtIndexOrder* imtio = NULL,
                        unsigned index = 0)
   {
-    return !addInstMatch(qe, q, m, modEq, imtio, true, index);
+    return !addInstMatch(qs, q, m, modEq, imtio, true, index);
   }
   /** exists inst match, vector version */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
@@ -245,21 +245,19 @@ class CDInstMatchTrie
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        InstMatch& m,
-                       context::Context* c,
                        bool modEq = false,
                        unsigned index = 0)
   {
-    return !addInstMatch(qs, q, m, c, modEq, index, true);
+    return !addInstMatch(qs, q, m, modEq, index, true);
   }
   /** exists inst match, vector version */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        std::vector<Node>& m,
-                       context::Context* c,
                        bool modEq = false,
                        unsigned index = 0)
   {
-    return !addInstMatch(qs, q, m, c, modEq, index, true);
+    return !addInstMatch(qs, q, m, modEq, index, true);
   }
   /** add inst match
    *
@@ -273,18 +271,16 @@ class CDInstMatchTrie
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     InstMatch& m,
-                    context::Context* c,
                     bool modEq = false,
                     unsigned index = 0,
                     bool onlyExist = false)
   {
-    return addInstMatch(qs, q, m.d_vals, c, modEq, index, onlyExist);
+    return addInstMatch(qs, q, m.d_vals, modEq, index, onlyExist);
   }
   /** add inst match, vector version */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     std::vector<Node>& m,
-                    context::Context* c,
                     bool modEq = false,
                     unsigned index = 0,
                     bool onlyExist = false);
@@ -419,12 +415,12 @@ class InstMatchTrieOrdered
    * class. If modEq is true, we consider duplicates modulo the current
    * equalities stored in the active equality engine of quantifiers engine.
    */
-  bool addInstMatch(QuantifiersEngine* qe,
+  bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     InstMatch& m,
                     bool modEq = false)
   {
-    return d_imt.addInstMatch(qe, q, m, modEq, d_imtio);
+    return d_imt.addInstMatch(qs, q, m, modEq, d_imtio);
   }
   /** returns true if this trie contains m
    *
@@ -432,12 +428,12 @@ class InstMatchTrieOrdered
    * class. If modEq is true, we consider duplicates modulo the current
    * equalities stored in the active equality engine of quantifiers engine.
    */
-  bool existsInstMatch(QuantifiersEngine* qe,
+  bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        InstMatch& m,
                        bool modEq = false)
   {
-    return d_imt.existsInstMatch(qe, q, m, modEq, d_imtio);
+    return d_imt.existsInstMatch(qs, q, m, modEq, d_imtio);
   }
 
  private:
