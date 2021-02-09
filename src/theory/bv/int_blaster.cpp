@@ -57,6 +57,19 @@ void IntBlaster::addRangeConstraint(Node node,
   }
 }
 
+void IntBlaster::addBitwiseConstraint(Node bitwiseConstraint,
+                                      std::vector<Node>& lemmas)
+{
+  if (d_bitwiseAssertions.find(bitwiseConstraint) == d_bitwiseAssertions.end())
+  {
+    Trace("int-blaster-debug")
+        << "bitwise constraint added to cache and lemmas: " << bitwiseConstraint
+        << std::endl;
+    d_bitwiseAssertions.insert(bitwiseConstraint);
+    lemmas.push_back(bitwiseConstraint);
+  }
+}
+
 Node IntBlaster::mkRangeConstraint(Node newVar, uint64_t k)
 {
   Node lower = d_nm->mkNode(kind::LEQ, d_zero, newVar);
@@ -496,15 +509,50 @@ Node IntBlaster::translateWithChildren(
         // translate the result to integers
         returnNode = d_nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
       }
-      else
+      else if (d_mode == options::SolveBVAsIntMode::SUM)
       {
-        Assert(d_mode == options::SolveBVAsIntMode::SUM);
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode = d_iandUtils.createSumNode(translated_children[0],
                                                translated_children[1],
                                                bvsize,
                                                d_granularity);
+      }
+      else
+      {
+        Assert(d_mode == options::SolveBVAsIntMode::BITWISE);
+        // Enforce semantics over individual bits with iextract and ites
+        Assert(translated_children.size() == 2);
+        uint64_t granularity = options::BVAndIntegerGranularity();
+
+        Node x = translated_children[0];
+        Node y = translated_children[1];
+        Node iAndOp = d_nm->mkConst(IntAnd(bvsize));
+        Node iAnd = d_nm->mkNode(kind::IAND, iAndOp, x, y);
+        // get a skolem so the IAND solver knows not to do work
+        returnNode = d_nm->getSkolemManager()->mkPurifySkolem(
+            iAnd,
+            "__intblast__iand",
+            "skolem for an IAND node in bitwise mode " + iAnd.toString());
+        addRangeConstraint(returnNode, bvsize, lemmas);
+
+        // eagerly add bitwise lemmas according to the provided granularity
+        uint64_t high_bit;
+        for (uint64_t j = 0; j < bvsize; j += granularity)
+        {
+          high_bit = j + granularity - 1;
+          // don't let high_bit pass bvsize
+          if (high_bit >= bvsize)
+          {
+            high_bit = bvsize - 1;
+          }
+          Node extractedReturnNode =
+              d_iandUtils.iextract(high_bit, j, returnNode);
+          addBitwiseConstraint(
+              extractedReturnNode.eqNode(
+                  d_iandUtils.createBitwiseIAndNode(x, y, high_bit, j)),
+              lemmas);
+        }
       }
       break;
     }
@@ -732,6 +780,11 @@ Node IntBlaster::translateWithChildren(
     case kind::BOUND_VAR_LIST:
     {
       returnNode = d_nm->mkNode(oldKind, translated_children);
+      if (d_mode == options::SolveBVAsIntMode::BITWISE)
+      {
+        throw OptionException(
+            "--solve-bv-as-int=bitwise does not support quantifiers");
+      }
       break;
     }
     case kind::FORALL:
@@ -1032,6 +1085,7 @@ IntBlaster::IntBlaster(context::Context* c,
       d_rebuildCache(c),
       d_intblastCache(c),
       d_rangeAssertions(c),
+      d_bitwiseAssertions(c),
       d_mode(mode),
       d_granularity(granularity),
       d_context(c),

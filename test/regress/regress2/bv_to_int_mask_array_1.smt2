@@ -1,4 +1,5 @@
 ; COMMAND-LINE: --solve-bv-as-int=sum --bvand-integer-granularity=1 --no-check-unsat-cores
+; COMMAND-LINE: --solve-bv-as-int=bitwise --bvand-integer-granularity=1 --no-check-unsat-cores
 ; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=value --no-check-unsat-cores
 ; COMMAND-LINE: --solve-bv-as-int=iand --iand-mode=sum --no-check-unsat-cores
 ; COMMAND-LINE: --solve-bv-as-int=bv --no-check-unsat-cores

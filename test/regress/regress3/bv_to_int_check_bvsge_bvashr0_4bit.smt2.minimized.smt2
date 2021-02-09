@@ -1,4 +1,5 @@
 ; COMMAND-LINE:  --solve-bv-as-int=sum  --no-check-models
+; COMMAND-LINE:  --solve-bv-as-int=bitwise  --no-check-models
 ; EXPECT: sat
 (set-logic BV)
 (declare-fun s () (_ BitVec 3))
