@@ -226,11 +226,11 @@ void SmtSolver::processAssertions(Assertions& as)
   // process the assertions with the preprocessor
   bool noConflict = d_pp.process(as);
 
-  // Push the formula to decision engine
+  // Notify the input formulas to theory engine
   if (noConflict)
   {
-    Chat() << "notifying theory engine and decision engine..." << std::endl;
-    d_propEngine->notifyPreprocessedAssertions(ap);
+    Chat() << "notifying theory engine..." << std::endl;
+    d_propEngine->notifyPreprocessedAssertions(ap.ref());
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -242,10 +242,23 @@ void SmtSolver::processAssertions(Assertions& as)
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
-    for (const Node& assertion : ap.ref())
+    const std::vector<Node>& assertions = ap.ref();
+    size_t aend = ap.getRealAssertionsEnd();
+    // It is important to distinguish the input assertions from the skolem
+    // definitions, as the decision justification heuristic treates the latter
+    // specially.
+    // first, assert the input formulas
+    for (size_t i=0; i<aend; i++)
     {
-      Chat() << "+ " << assertion << std::endl;
-      d_propEngine->assertFormula(assertion);
+      Chat() << "+ input " << assertions[i] << std::endl;
+      d_propEngine->assertFormula(assertions[i]);
+    }
+    // second, assert the skolem definitions
+    for (const std::pair<const Node, size_t>& i : ap.getIteSkolemMap())
+    {
+      Assert(i.second >= aend && i.second < assertions.size());
+      Chat() << "+ skolem definition " << assertions[i.second] << " (from " << i.first << ")" << std::endl;
+      d_propEngine->assertSkolemDefinition(assertions[i.second], i.first);
     }
   }
 

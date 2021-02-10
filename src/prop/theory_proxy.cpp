@@ -157,7 +157,7 @@ void TheoryProxy::spendResource(ResourceManager::Resource r)
 }
 
 bool TheoryProxy::isDecisionRelevant(SatVariable var) {
-  return d_decisionEngine->isRelevant(var);
+  return true;
 }
 
 bool TheoryProxy::isDecisionEngineDone() {
@@ -165,7 +165,7 @@ bool TheoryProxy::isDecisionEngineDone() {
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return d_decisionEngine->getPolarity(var);
+  return SAT_VALUE_UNKNOWN;
 }
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }

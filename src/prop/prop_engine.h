@@ -26,7 +26,6 @@
 #include "base/modal_exception.h"
 #include "expr/node.h"
 #include "options/options.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_manager.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/minisat.h"
@@ -129,14 +128,28 @@ class PropEngine
    * assertions are asserted to this prop engine. This method notifies the
    * decision engine and the theory engine of the assertions in ap.
    */
-  void notifyPreprocessedAssertions(const preprocessing::AssertionPipeline& ap);
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
-   * The formula is asserted permanently for the current context.
+   * The formula is asserted permanently for the current context. Note the
+   * formula should correspond to an input formula and not a lemma introduced
+   * by term formula removal (which instead should use the interface below).
    * @param node the formula to assert
    */
   void assertFormula(TNode node);
+  /**
+   * Same as above, but node corresponds to the skolem definition of the given
+   * skolem.
+   * @param node the formula to assert
+   * @param skolem the skolem that this lemma defines.
+   *
+   * For example, if k is introduced by ITE removal of (ite C x y), then node
+   * is the formula (ite C (= k x) (= k y)).  It is important to distinguish
+   * these kinds of lemmas from input assertions, as the justification decision
+   * heuristic treates them specially.
+   */
+  void assertSkolemDefinition(TNode node, TNode skolem);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -304,7 +317,21 @@ class PropEngine
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic
    */
-  void assertLemmaInternal(theory::TrustNode trn, bool removable);
+  void assertTrustedLemmaInternal(theory::TrustNode trn, bool removable);
+  /**
+   * Assert node as a formula to the CNF stream
+   * @param node The formula to assert
+   * @param negated Whether to assert the negation of node
+   * @param removable Whether the formula is removable
+   * @param input Whether the formula came from the input
+   * @param pg Pointer to a proof generator that can provide a proof of node
+   * (or its negation if negated is true).
+   */
+  void assertInternal(TNode node,
+                      bool negated,
+                      bool removable,
+                      bool input,
+                      ProofGenerator* pg = nullptr);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should
