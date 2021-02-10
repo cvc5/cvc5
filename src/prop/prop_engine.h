@@ -297,6 +297,9 @@ class PropEngine
 
   /** Is proof enabled? */
   bool isProofEnabled() const;
+
+  void getUnsatCore(std::vector<Node>& core);
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
@@ -378,6 +381,8 @@ class PropEngine
 
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;
+
+  context::CDList<Node> d_assumptions;
 };
 
 }  // namespace prop

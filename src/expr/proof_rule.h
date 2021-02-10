@@ -617,6 +617,8 @@ enum class PfRule : uint32_t
   // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
   CNF_ITE_NEG3,
 
+  SAT_REFUTATION,
+
   //================================================= Equality rules
   // ======== Reflexive
   // Children: none

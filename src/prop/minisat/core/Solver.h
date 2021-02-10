@@ -398,6 +398,8 @@ protected:
      */
     vec<bool> theory;
 
+    bool d_unsatCoresProofs;
+
     enum TheoryCheckType {
       // Quick check, but don't perform theory reasoning
       CHECK_WITHOUT_THEORY,

@@ -57,6 +57,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+  void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions) override;
 
   bool ok() const override;
 
@@ -98,6 +100,8 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   /** Context we will be using to synchronize the sat solver */
   context::Context* d_context;
+
+  std::unordered_set<SatLiteral, SatLiteralHashFunction> d_assumptions;
 
   void setupOptions();
 
