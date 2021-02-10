@@ -191,7 +191,7 @@ void InstMatchGeneratorMulti::processNewMatch(QuantifiersEngine* qe,
                                               uint64_t& addedLemmas)
 {
   // see if these produce new matches
-  d_children_trie[fromChildIndex].addInstMatch(qe, d_quant, m);
+  d_children_trie[fromChildIndex].addInstMatch(qe->getState(), d_quant, m);
   // possibly only do the following if we know that new matches will be
   // produced? the issue is that instantiations are filtered in quantifiers
   // engine, and so there is no guarentee that
