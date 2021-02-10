@@ -1630,6 +1630,7 @@ set(regress_1_tests
   regress1/nl/sugar-ident-3.smt2
   regress1/nl/sugar-ident.smt2
   regress1/nl/tan-rewrite2.smt2
+  regress1/nl/ufnia-factor-open-proof.smt2
   regress1/nl/zero-subset.smt2
   regress1/non-fatal-errors.smt2
   regress1/parsing_ringer.cvc
