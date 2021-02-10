@@ -29,6 +29,10 @@ namespace theory {
 
 class QuantifiersEngine;
 
+namespace {
+class QuantifiersState;
+}
+
 namespace inst {
 
 /** trie for InstMatch objects
@@ -57,26 +61,26 @@ class InstMatchTrie
    * The domain of m is the bound variables of quantified formula q.
    * It returns true if (the suffix) of m exists in this trie.
    * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the active equality engine of qe.
+   * equalities in the equality engine of qs.
    */
-  bool existsInstMatch(QuantifiersEngine* qe,
+  bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        InstMatch& m,
                        bool modEq = false,
                        ImtIndexOrder* imtio = NULL,
                        unsigned index = 0)
   {
-    return !addInstMatch(qe, q, m, modEq, imtio, true, index);
+    return !addInstMatch(qs, q, m, modEq, imtio, true, index);
   }
   /** exists inst match, vector version */
-  bool existsInstMatch(QuantifiersEngine* qe,
+  bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        std::vector<Node>& m,
                        bool modEq = false,
                        ImtIndexOrder* imtio = NULL,
                        unsigned index = 0)
   {
-    return !addInstMatch(qe, q, m, modEq, imtio, true, index);
+    return !addInstMatch(qs, q, m, modEq, imtio, true, index);
   }
   /** add inst match
    *
@@ -84,9 +88,9 @@ class InstMatchTrie
    * trie, and returns true if and only if m did not already occur in this trie.
    * The domain of m is the bound variables of quantified formula q.
    * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the active equality engine of qe.
+   * equalities in the equality engine of qs.
    */
-  bool addInstMatch(QuantifiersEngine* qe,
+  bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     InstMatch& m,
                     bool modEq = false,
@@ -94,10 +98,10 @@ class InstMatchTrie
                     bool onlyExist = false,
                     unsigned index = 0)
   {
-    return addInstMatch(qe, q, m.d_vals, modEq, imtio, onlyExist, index);
+    return addInstMatch(qs, q, m.d_vals, modEq, imtio, onlyExist, index);
   }
   /** add inst match, vector version */
-  bool addInstMatch(QuantifiersEngine* qe,
+  bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node f,
                     std::vector<Node>& m,
                     bool modEq = false,
@@ -114,53 +118,10 @@ class InstMatchTrie
                        std::vector<Node>& m,
                        ImtIndexOrder* imtio = NULL,
                        unsigned index = 0);
-  /** record instantiation lemma
-   *
-   * This records that the instantiation lemma lem corresponds to the entry
-   * given by (the suffix of) m starting at the given index.
-   */
-  bool recordInstLemma(Node q,
-                       std::vector<Node>& m,
-                       Node lem,
-                       ImtIndexOrder* imtio = NULL,
-                       unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */
   void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
-
-  /** get instantiations
-   *
-   * This gets the set of instantiation lemmas that were recorded in this trie
-   * via calls to recordInstLemma. If useActive is true, we only add
-   * instantiations that occur in active.
-   */
-  void getInstantiations(std::vector<Node>& insts,
-                         Node q,
-                         QuantifiersEngine* qe,
-                         bool useActive,
-                         std::vector<Node>& active)
-  {
-    std::vector<Node> terms;
-    getInstantiations(insts, q, terms, qe, useActive, active);
-  }
-  /** get explanation for inst lemmas
-   *
-   * This gets the explanation for the instantiation lemmas in lems for
-   * quantified formula q, for which this trie stores instantiation matches for.
-   * For each instantiation lemma lem recording in this trie via calls to
-   * recordInstLemma, we map lem to q in map quant, and lem to its corresponding
-   * vector of terms in tvec.
-   */
-  void getExplanationForInstLemmas(
-      Node q,
-      const std::vector<Node>& lems,
-      std::map<Node, Node>& quant,
-      std::map<Node, std::vector<Node> >& tvec) const
-  {
-    std::vector<Node> terms;
-    getExplanationForInstLemmas(q, terms, lems, quant, tvec);
-  }
 
   /** clear the data of this class */
   void clear() { d_data.clear(); }
@@ -189,24 +150,6 @@ class InstMatchTrie
              std::vector<TNode>& terms,
              bool useActive,
              std::vector<Node>& active) const;
-  /** helper for get instantiations
-   * terms accumulates the path we are on in the trie.
-   */
-  void getInstantiations(std::vector<Node>& insts,
-                         Node q,
-                         std::vector<Node>& terms,
-                         QuantifiersEngine* qe,
-                         bool useActive,
-                         std::vector<Node>& active) const;
-  /** helper for get explantaion for inst lemmas
-   * terms accumulates the path we are on in the trie.
-   */
-  void getExplanationForInstLemmas(
-      Node q,
-      std::vector<Node>& terms,
-      const std::vector<Node>& lems,
-      std::map<Node, Node>& quant,
-      std::map<Node, std::vector<Node> >& tvec) const;
   /** set instantiation lemma at this node in the trie */
   void setInstLemma(Node n)
   {
@@ -235,27 +178,25 @@ class CDInstMatchTrie
    * The domain of m is the bound variables of quantified formula q.
    * It returns true if (the suffix) of m exists in this trie.
    * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the active equality engine of qe.
+   * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool existsInstMatch(QuantifiersEngine* qe,
+  bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        InstMatch& m,
-                       context::Context* c,
                        bool modEq = false,
                        unsigned index = 0)
   {
-    return !addInstMatch(qe, q, m, c, modEq, index, true);
+    return !addInstMatch(qs, q, m, modEq, index, true);
   }
   /** exists inst match, vector version */
-  bool existsInstMatch(QuantifiersEngine* qe,
+  bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        std::vector<Node>& m,
-                       context::Context* c,
                        bool modEq = false,
                        unsigned index = 0)
   {
-    return !addInstMatch(qe, q, m, c, modEq, index, true);
+    return !addInstMatch(qs, q, m, modEq, index, true);
   }
   /** add inst match
    *
@@ -263,24 +204,22 @@ class CDInstMatchTrie
    * trie, and returns true if and only if m did not already occur in this trie.
    * The domain of m is the bound variables of quantified formula q.
    * If modEq is true, we check for duplication modulo equality the current
-   * equalities in the active equality engine of qe.
+   * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool addInstMatch(QuantifiersEngine* qe,
+  bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     InstMatch& m,
-                    context::Context* c,
                     bool modEq = false,
                     unsigned index = 0,
                     bool onlyExist = false)
   {
-    return addInstMatch(qe, q, m.d_vals, c, modEq, index, onlyExist);
+    return addInstMatch(qs, q, m.d_vals, modEq, index, onlyExist);
   }
   /** add inst match, vector version */
-  bool addInstMatch(QuantifiersEngine* qe,
+  bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     std::vector<Node>& m,
-                    context::Context* c,
                     bool modEq = false,
                     unsigned index = 0,
                     bool onlyExist = false);
@@ -291,52 +230,10 @@ class CDInstMatchTrie
    * The domain of m is the bound variables of quantified formula q.
    */
   bool removeInstMatch(Node q, std::vector<Node>& m, unsigned index = 0);
-  /** record instantiation lemma
-   *
-   * This records that the instantiation lemma lem corresponds to the entry
-   * given by (the suffix of) m starting at the given index.
-   */
-  bool recordInstLemma(Node q,
-                       std::vector<Node>& m,
-                       Node lem,
-                       unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */
   void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
-
-  /** get instantiations
-   *
-   * This gets the set of instantiation lemmas that were recorded in this class
-   * via calls to recordInstLemma. If useActive is true, we only add
-   * instantiations that occur in active.
-   */
-  void getInstantiations(std::vector<Node>& insts,
-                         Node q,
-                         QuantifiersEngine* qe,
-                         bool useActive,
-                         std::vector<Node>& active)
-  {
-    std::vector<Node> terms;
-    getInstantiations(insts, q, terms, qe, useActive, active);
-  }
-  /** get explanation for inst lemmas
-   *
-   * This gets the explanation for the instantiation lemmas in lems for
-   * quantified formula q, for which this trie stores instantiation matches for.
-   * For each instantiation lemma lem recording in this trie via calls to
-   * recordInstLemma, we map lem to q in map quant, and lem to its corresponding
-   * vector of terms in tvec.
-   */
-  void getExplanationForInstLemmas(
-      Node q,
-      const std::vector<Node>& lems,
-      std::map<Node, Node>& quant,
-      std::map<Node, std::vector<Node> >& tvec) const
-  {
-    std::vector<Node> terms;
-    getExplanationForInstLemmas(q, terms, lems, quant, tvec);
-  }
 
   /** print this class */
   void print(std::ostream& out,
@@ -413,27 +310,27 @@ class InstMatchTrieOrdered
    *
    * This method returns true if the match m was not previously added to this
    * class. If modEq is true, we consider duplicates modulo the current
-   * equalities stored in the active equality engine of quantifiers engine.
+   * equalities stored in the equality engine of qs.
    */
-  bool addInstMatch(QuantifiersEngine* qe,
+  bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     InstMatch& m,
                     bool modEq = false)
   {
-    return d_imt.addInstMatch(qe, q, m, modEq, d_imtio);
+    return d_imt.addInstMatch(qs, q, m, modEq, d_imtio);
   }
   /** returns true if this trie contains m
    *
    * This method returns true if the match m exists in this
    * class. If modEq is true, we consider duplicates modulo the current
-   * equalities stored in the active equality engine of quantifiers engine.
+   * equalities stored in the equality engine of qs.
    */
-  bool existsInstMatch(QuantifiersEngine* qe,
+  bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
                        InstMatch& m,
                        bool modEq = false)
   {
-    return d_imt.existsInstMatch(qe, q, m, modEq, d_imtio);
+    return d_imt.existsInstMatch(qs, q, m, modEq, d_imtio);
   }
 
  private:
