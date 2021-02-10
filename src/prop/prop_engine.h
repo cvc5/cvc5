@@ -300,6 +300,8 @@ class PropEngine
 
   void getUnsatCore(std::vector<Node>& core);
 
+  std::shared_ptr<ProofNode> getRefutation();
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();

@@ -635,16 +635,6 @@ std::shared_ptr<ProofNode> PropEngine::getProof()
   {
     return nullptr;
   }
-  if (options::unsatCores()
-      && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
-  {
-    std::vector<Node> core;
-    getUnsatCore(core);
-    CDProof cdp(d_pnm);
-    Node fnode = NodeManager::currentNM()->mkConst(false);
-    cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
-    return cdp.getProofFor(fnode);
-  }
   return d_ppm->getProof();
 }
 
@@ -658,6 +648,18 @@ void PropEngine::getUnsatCore(std::vector<Node>& core)
   {
     core.push_back(d_cnfStream->getNode(lit));
   }
+}
+
+std::shared_ptr<ProofNode> PropEngine::getRefutation()
+{
+  Assert(options::unsatCores());
+  Assert(options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS);
+  std::vector<Node> core;
+  getUnsatCore(core);
+  CDProof cdp(d_pnm);
+  Node fnode = NodeManager::currentNM()->mkConst(false);
+  cdp.addStep(fnode, PfRule::SAT_REFUTATION, core, {});
+  return cdp.getProofFor(fnode);
 }
 
 }  // namespace prop

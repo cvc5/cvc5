@@ -1428,9 +1428,20 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   // generate with new proofs
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  Assert(pe->getProof() != nullptr);
-  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
-      pe->getProof(), *d_asserts, *d_definedFunctions);
+
+  std::shared_ptr<ProofNode> pepf;
+  if (options::unsatCores()
+      && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  {
+    pepf = pe->getRefutation();
+  }
+  else
+  {
+    pepf = pe->getProof();
+  }
+  Assert(pepf != nullptr);
+  std::shared_ptr<ProofNode> pfn =
+      d_pfManager->getFinalProof(pepf, *d_asserts, *d_definedFunctions);
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
   return UnsatCore(core);
