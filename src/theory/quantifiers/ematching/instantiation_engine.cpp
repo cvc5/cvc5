@@ -35,8 +35,9 @@ namespace quantifiers {
 
 InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
-                                         QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                                         QuantifiersInferenceManager& qim,
+                                         QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
@@ -52,13 +53,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs));
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs, qim));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
-    d_i_ag.reset(
-        new InstStrategyAutoGenTriggers(d_quantEngine, qs, d_quant_rel.get()));
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(
+        d_quantEngine, qs, qim, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -72,7 +73,7 @@ void InstantiationEngine::presolve() {
 }
 
 void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
-  unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+  size_t lastWaiting = d_qim.numPendingLemmas();
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;
@@ -110,7 +111,8 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
       }
     }
     //do not consider another level if already added lemma at this level
-    if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+    if (d_qim.numPendingLemmas() > lastWaiting)
+    {
       finished = true;
     }
     e++;
@@ -163,21 +165,19 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   Trace("inst-engine-debug") << nquant << " " << quantActive << std::endl;
   if (quantActive)
   {
-    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+    size_t lastWaiting = d_qim.numPendingLemmas();
     doInstantiationRound(e);
     if (d_qstate.isInConflict())
     {
-      Assert(d_quantEngine->getNumLemmasWaiting() > lastWaiting);
+      Assert(d_qim.numPendingLemmas() > lastWaiting);
       Trace("inst-engine") << "Conflict, added lemmas = "
-                           << (d_quantEngine->getNumLemmasWaiting()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
-    else if (d_quantEngine->hasAddedLemma())
+    else if (d_qim.hasPendingLemma())
     {
       Trace("inst-engine") << "Added lemmas = "
-                           << (d_quantEngine->getNumLemmasWaiting()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
   }
@@ -210,7 +210,7 @@ void InstantiationEngine::checkOwnership(Node q)
       }
     }
     if( hasPat ){
-      d_quantEngine->setOwner( q, this, 1 );
+      d_qreg.setOwner(q, this, 1);
     }
   }
 }
@@ -260,7 +260,7 @@ void InstantiationEngine::addUserNoPattern(Node q, Node pat) {
 
 bool InstantiationEngine::shouldProcess(Node q)
 {
-  if (!d_quantEngine->hasOwnership(q, this))
+  if (!d_qreg.hasOwnership(q, this))
   {
     return false;
   }

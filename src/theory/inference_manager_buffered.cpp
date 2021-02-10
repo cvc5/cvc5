@@ -44,12 +44,23 @@ bool InferenceManagerBuffered::hasPendingLemma() const
   return !d_pendingLem.empty();
 }
 
-void InferenceManagerBuffered::addPendingLemma(Node lem,
+bool InferenceManagerBuffered::addPendingLemma(Node lem,
                                                LemmaProperty p,
-                                               ProofGenerator* pg)
+                                               ProofGenerator* pg,
+                                               bool checkCache)
 {
+  if (checkCache)
+  {
+    // check if it is unique up to rewriting
+    Node lemr = Rewriter::rewrite(lem);
+    if (hasCachedLemma(lemr, p))
+    {
+      return false;
+    }
+  }
   // make the simple theory lemma
   d_pendingLem.emplace_back(new SimpleTheoryLemma(lem, p, pg));
+  return true;
 }
 
 void InferenceManagerBuffered::addPendingLemma(

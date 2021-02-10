@@ -176,7 +176,8 @@ void DumpC::setDumpFromString(const std::string& optarg) {
   }
 }
 
-const std::string DumpC::s_dumpHelp = "\
+const std::string DumpC::s_dumpHelp =
+    "\
 Dump modes currently supported by the --dump option:\n\
 \n\
 benchmark\n\

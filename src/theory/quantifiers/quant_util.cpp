@@ -26,8 +26,9 @@ namespace theory {
 QuantifiersModule::QuantifiersModule(
     quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersInferenceManager& qim,
+    quantifiers::QuantifiersRegistry& qr,
     QuantifiersEngine* qe)
-    : d_quantEngine(qe), d_qstate(qs), d_qim(qim)
+    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr)
 {
 }
 

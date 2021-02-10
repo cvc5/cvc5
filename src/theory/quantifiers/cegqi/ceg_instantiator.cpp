@@ -1082,8 +1082,9 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
   bool ret = d_parent->doAddInstantiation(subs);
-  for( unsigned i=0; i<lemmas.size(); i++ ){
-    d_parent->addLemma(lemmas[i]);
+  for (const Node& l : lemmas)
+  {
+    d_parent->addPendingLemma(l);
   }
   return ret;
 }
