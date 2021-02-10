@@ -69,7 +69,10 @@ class InstStrategyCegqi : public QuantifiersModule
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersEngine* qe);
+  InstStrategyCegqi(QuantifiersEngine* qe,
+                    QuantifiersState& qs,
+                    QuantifiersInferenceManager& qim,
+                    QuantifiersRegistry& qr);
   ~InstStrategyCegqi();
 
   /** whether to do counterexample-guided instantiation for quantifier q */
@@ -120,8 +123,8 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /** Add lemma lem via the output channel of this class. */
-  bool addLemma(Node lem);
+  /** Add pending lemma lem via the inference manager of this class. */
+  bool addPendingLemma(Node lem) const;
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:

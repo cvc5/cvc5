@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "expr/attribute.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
@@ -69,12 +70,9 @@ theory::TrustNode RemoveTermFormulas::run(
   if (fixedPoint)
   {
     size_t i = 0;
-    std::unordered_set<Node, NodeHashFunction> processed;
     while (i < newAsserts.size())
     {
       theory::TrustNode trn = newAsserts[i];
-      AlwaysAssert(processed.find(trn.getProven()) == processed.end());
-      processed.insert(trn.getProven());
       // do not run to fixed point on subcall, since we are processing all
       // lemmas in this loop
       newAsserts[i] = runLemma(trn, newAsserts, newSkolems, false);
@@ -183,6 +181,11 @@ Node RemoveTermFormulas::runInternal(TNode assertion,
         ctx.pop();
         processedChildren.pop_back();
       }
+      else if (node.isClosure())
+      {
+        // currently, we never do any term formula removal in quantifier bodies
+        d_tfCache.insert(curr, node);
+      }
       else
       {
         size_t nchild = node.getNumChildren();
@@ -256,6 +259,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
   RtfTermContext::getFlags(curr.second, inQuant, inTerm);
   Debug("ite") << "removeITEs(" << node << ")"
                << " " << inQuant << " " << inTerm << std::endl;
+  Assert(!inQuant);
 
   NodeManager *nodeManager = NodeManager::currentNM();
 
@@ -272,57 +276,54 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
     // not in a quantified formula. This policy should be in sync with
     // the policy for when to apply theory preprocessing to terms, see PR
     // #5497.
-    if (!inQuant)
+    skolem = getSkolemForNode(node);
+    if (skolem.isNull())
     {
-      skolem = getSkolemForNode(node);
-      if (skolem.isNull())
+      Trace("rtf-proof-debug")
+          << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
+      // Make the skolem to represent the ITE
+      SkolemManager* sm = nodeManager->getSkolemManager();
+      skolem = sm->mkPurifySkolem(
+          node,
+          "termITE",
+          "a variable introduced due to term-level ITE removal");
+      d_skolem_cache.insert(node, skolem);
+
+      // The new assertion
+      newAssertion = nodeManager->mkNode(
+          kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
+
+      // we justify it internally
+      if (isProofEnabled())
       {
         Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
-        // Make the skolem to represent the ITE
-        SkolemManager* sm = nodeManager->getSkolemManager();
-        skolem = sm->mkPurifySkolem(
-            node,
-            "termITE",
-            "a variable introduced due to term-level ITE removal");
-        d_skolem_cache.insert(node, skolem);
-
-        // The new assertion
-        newAssertion = nodeManager->mkNode(
-            kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
-
-        // we justify it internally
-        if (isProofEnabled())
-        {
-          Trace("rtf-proof-debug")
-              << "RemoveTermFormulas::run: justify " << newAssertion
-              << " with ITE axiom" << std::endl;
-          // ---------------------- REMOVE_TERM_FORMULA_AXIOM
-          // (ite node[0]
-          //      (= node node[1])            ------------- MACRO_SR_PRED_INTRO
-          //      (= node node[2]))           node = skolem
-          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
-          // (ite node[0] (= skolem node[1]) (= skolem node[2]))
-          //
-          // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
-          // of skolem into its witness form, which is node.
-          Node axiom = getAxiomFor(node);
-          d_lp->addStep(axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
-          Node eq = node.eqNode(skolem);
-          d_lp->addStep(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
-          d_lp->addStep(newAssertion,
-                        PfRule::MACRO_SR_PRED_TRANSFORM,
-                        {axiom, eq},
-                        {newAssertion});
-          newAssertionPg = d_lp.get();
-        }
+            << "RemoveTermFormulas::run: justify " << newAssertion
+            << " with ITE axiom" << std::endl;
+        // ---------------------- REMOVE_TERM_FORMULA_AXIOM
+        // (ite node[0]
+        //      (= node node[1])            ------------- MACRO_SR_PRED_INTRO
+        //      (= node node[2]))           node = skolem
+        // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+        // (ite node[0] (= skolem node[1]) (= skolem node[2]))
+        //
+        // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
+        // of skolem into its witness form, which is node.
+        Node axiom = getAxiomFor(node);
+        d_lp->addStep(axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
+        Node eq = node.eqNode(skolem);
+        d_lp->addStep(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
+        d_lp->addStep(newAssertion,
+                      PfRule::MACRO_SR_PRED_TRANSFORM,
+                      {axiom, eq},
+                      {newAssertion});
+        newAssertionPg = d_lp.get();
       }
     }
   }
   else if (node.getKind() == kind::LAMBDA)
   {
     // if a lambda, do lambda-lifting
-    if (!inQuant || !expr::hasFreeVar(node))
+    if (!expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -366,7 +367,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
     // If a witness choice
     //   For details on this operator, see
     //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if (!inQuant || !expr::hasFreeVar(node))
+    if (!expr::hasFreeVar(node))
     {
       // NOTE: we can replace by t if body is of the form (and (= z t) ...)
       skolem = getSkolemForNode(node);
@@ -414,8 +415,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
     }
   }
   else if (node.getKind() != kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean()
-           && inTerm
-           && !inQuant)
+           && inTerm)
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
@@ -465,6 +465,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
                             PfRule::MACRO_SR_PRED_INTRO,
                             {},
                             {node.eqNode(skolem)},
+                            true,
                             cval);
     }
 
@@ -520,21 +521,77 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
   return Node::null();
 }
 
-bool RemoveTermFormulas::getSkolems(
+struct HasSkolemTag
+{
+};
+struct HasSkolemComputedTag
+{
+};
+/** Attribute true for nodes with skolems in them */
+typedef expr::Attribute<HasSkolemTag, bool> HasSkolemAttr;
+/** Attribute true for nodes where we have computed the above attribute */
+typedef expr::Attribute<HasSkolemComputedTag, bool> HasSkolemComputedAttr;
+
+bool RemoveTermFormulas::hasSkolems(TNode n) const
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    if (cur.getAttribute(HasSkolemComputedAttr()))
+    {
+      visit.pop_back();
+      // already computed
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getNumChildren() == 0)
+      {
+        visit.pop_back();
+        bool hasSkolem = false;
+        if (cur.isVar())
+        {
+          hasSkolem = (d_lemmaCache.find(cur) != d_lemmaCache.end());
+        }
+        cur.setAttribute(HasSkolemAttr(), hasSkolem);
+        cur.setAttribute(HasSkolemComputedAttr(), true);
+      }
+      else
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+    else
+    {
+      visit.pop_back();
+      bool hasSkolem = false;
+      for (TNode i : cur)
+      {
+        Assert(i.getAttribute(HasSkolemComputedAttr()));
+        if (i.getAttribute(HasSkolemAttr()))
+        {
+          hasSkolem = true;
+          break;
+        }
+      }
+      cur.setAttribute(HasSkolemAttr(), hasSkolem);
+      cur.setAttribute(HasSkolemComputedAttr(), true);
+    }
+  } while (!visit.empty());
+  Assert(n.getAttribute(HasSkolemComputedAttr()));
+  return n.getAttribute(HasSkolemAttr());
+}
+
+void RemoveTermFormulas::getSkolems(
     TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
 {
-  // if n was unchanged by term formula removal, just return immediately
-  std::pair<Node, uint32_t> initial(n, d_rtfc.initialValue());
-  TermFormulaCache::const_iterator itc = d_tfCache.find(initial);
-  if (itc != d_tfCache.end())
-  {
-    if (itc->second == n)
-    {
-      return false;
-    }
-  }
-  // otherwise, traverse it
-  bool ret = false;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<TNode, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -544,6 +601,11 @@ bool RemoveTermFormulas::getSkolems(
   {
     cur = visit.back();
     visit.pop_back();
+    if (!hasSkolems(cur))
+    {
+      // does not have skolems, continue
+      continue;
+    }
     it = visited.find(cur);
     if (it == visited.end())
     {
@@ -552,16 +614,15 @@ bool RemoveTermFormulas::getSkolems(
       {
         if (d_lemmaCache.find(cur) != d_lemmaCache.end())
         {
-          // technically could already be in skolems if skolems was non-empty,
-          // regardless set return value to true.
           skolems.insert(cur);
-          ret = true;
         }
       }
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      else
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
   } while (!visit.empty());
-  return ret;
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)

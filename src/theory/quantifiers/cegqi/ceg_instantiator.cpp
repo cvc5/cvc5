@@ -663,9 +663,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   TypeNode pvtn = pv.getType();
   TypeNode pvtnb = pvtn.getBaseType();
   Node pvr = pv;
-  if (d_qe->getMasterEqualityEngine()->hasTerm(pv))
+  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  if (ee->hasTerm(pv))
   {
-    pvr = d_qe->getMasterEqualityEngine()->getRepresentative(pv);
+    pvr = ee->getRepresentative(pv);
   }
   Trace("cegqi-inst-debug") << "[Find instantiation for " << pv
                            << "], rep=" << pvr << ", instantiator is "
@@ -1081,8 +1082,9 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
   bool ret = d_parent->doAddInstantiation(subs);
-  for( unsigned i=0; i<lemmas.size(); i++ ){
-    d_parent->addLemma(lemmas[i]);
+  for (const Node& l : lemmas)
+  {
+    d_parent->addPendingLemma(l);
   }
   return ret;
 }
@@ -1306,7 +1308,7 @@ void CegInstantiator::processAssertions() {
   d_curr_type_eqc.clear();
 
   // must use master equality engine to avoid value instantiations
-  eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
 
   //for each variable
   for( unsigned i=0; i<d_vars.size(); i++ ){

@@ -78,7 +78,7 @@ class InstantiationRewriter
  *
  * Its main interface is ::addInstantiation(...), which is called by many of
  * the quantifiers modules, which enqueues instantiation lemmas in quantifiers
- * engine via calls to QuantifiersEngine::addLemma.
+ * engine via calls to QuantifiersInferenceManager::addPendingLemma.
  *
  * It also has utilities for constructing instantiations, and interfaces for
  * getting the results of the instantiations produced during check-sat calls.
@@ -89,7 +89,8 @@ class Instantiate : public QuantifiersUtil
 
  public:
   Instantiate(QuantifiersEngine* qe,
-              context::UserContext* u,
+              QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -117,7 +118,7 @@ class Instantiate : public QuantifiersUtil
    *
    * This function returns true if the instantiation lemma for quantified
    * formula q for the substitution specified by m is successfully enqueued
-   * via a call to QuantifiersEngine::addLemma.
+   * via a call to QuantifiersInferenceManager::addPendingLemma.
    *   mkRep : whether to take the representatives of the terms in the range of
    *           the substitution m,
    *   modEq : whether to check for duplication modulo equality in instantiation
@@ -223,32 +224,12 @@ class Instantiate : public QuantifiersUtil
   void debugPrintModel();
 
   //--------------------------------------user-level interface utilities
-  /** print instantiations
-   *
-   * Print all instantiations for all quantified formulas on out,
-   * returns true if at least one instantiation was printed. The type of output
-   * (list, num, etc.) is determined by printInstMode.
-   */
-  bool printInstantiations(std::ostream& out);
   /** get instantiated quantified formulas
    *
    * Get the list of quantified formulas that were instantiated in the current
    * user context, store them in qs.
    */
   void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for quantified formula q, store them in insts.
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for all quantified formulas stored in the domain of insts, store them in
-   * the range of insts.
-   */
-  void getInstantiations(std::map<Node, std::vector<Node> >& insts);
   /** get instantiation term vectors
    *
    * Get term vectors corresponding to for all instantiations lemmas added in
@@ -263,29 +244,6 @@ class Instantiate : public QuantifiersUtil
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node> > >& insts);
-  /** get instantiated conjunction
-   *
-   * This gets a conjunction of the bodies of instantiation lemmas added in the
-   * current user context for quantified formula q.  For example, if we added:
-   *   ~forall x. P( x ) V P( a )
-   *   ~forall x. P( x ) V P( b )
-   * Then, this method returns P( a ) ^ P( b ).
-   */
-  Node getInstantiatedConjunction(Node q);
-  /** get unsat core lemmas
-   *
-   * If this method returns true, then it appends to active_lemmas all lemmas
-   * that are in the unsat core that originated from the theory of quantifiers.
-   * This method returns false if the unsat core is not available.
-   */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
-  /** get explanation for instantiation lemmas
-   *
-   *
-   */
-  void getExplanationForInstLemmas(const std::vector<Node>& lems,
-                                   std::map<Node, Node>& quant,
-                                   std::map<Node, std::vector<Node> >& tvec);
   //--------------------------------------end user-level interface utilities
 
   /** Are proofs enabled for this object? */
@@ -328,19 +286,13 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
-  /** print instantiations in list format */
-  bool printInstantiationsList(std::ostream& out);
-  /** print instantiations in num format */
-  bool printInstantiationsNum(std::ostream& out);
-  /**
-   * Print quantified formula q on output out. If isFull is false, then we print
-   * the identifier of the quantified formula if it has one, or print
-   * nothing and return false otherwise.
-   */
-  bool printQuant(Node q, std::ostream& out, bool isFull);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */

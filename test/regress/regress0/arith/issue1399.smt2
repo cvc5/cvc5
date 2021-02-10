@@ -1,4 +1,4 @@
-(set-logic LIA)
+(set-logic NIA)
 (set-info :status sat)
 
 (define-fun findIdx ((y1 Int)(y2 Int)(k1 Int)) Int (div (* (- 7) (mod y1 (- 5))) 2))

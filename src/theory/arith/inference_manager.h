@@ -116,10 +116,6 @@ class InferenceManager : public InferenceManagerBuffered
 
   /** The waiting lemmas. */
   std::vector<std::unique_ptr<ArithLemma>> d_waitingLem;
-
-  /** cache of all preprocessed lemmas sent on the output channel
-   * (user-context-dependent) */
-  NodeSet d_lemmasPp;
 };
 
 }  // namespace arith
