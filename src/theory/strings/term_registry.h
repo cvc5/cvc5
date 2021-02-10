@@ -195,8 +195,7 @@ class TermRegistry
    * definitions of proxy variables, which can be omitted since they are
    * assumed to hold globally.
    */
-  void removeProxyEqs(Node n,
-                                  std::vector<Node>& unproc) const;
+  void removeProxyEqs(Node n, std::vector<Node>& unproc) const;
   //---------------------------- end proxy variables
  private:
   /** Common constants */

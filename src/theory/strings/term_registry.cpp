@@ -575,8 +575,7 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   return proxy;
 }
 
-void TermRegistry::removeProxyEqs(Node n,
-                                              std::vector<Node>& unproc) const
+void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
 {
   if (n.getKind() == AND)
   {
