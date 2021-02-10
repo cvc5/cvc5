@@ -26,32 +26,33 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
-/** 
+/**
  * Term Registry, which manages notifying modules within quantifiers about
  * (ground) terms that exist in the current context.
  */
-class TermRegistry {
-public:
+class TermRegistry
+{
+ public:
   TermRegistry(QuantifiersState& qs,
-         QuantifiersInferenceManager& qim,
-         QuantifiersEngine* qe);
- /** 
-  * Add term n, which notifies all 
-  * 
-  * @param n the term to add
-  * @param withinQuant whether n occurs within a quantified formula body
-  */
- void addTerm(Node n, bool withinQuant = false);
-private:
+               QuantifiersInferenceManager& qim,
+               QuantifiersEngine* qe);
+  /**
+   * Add term n, which notifies all
+   *
+   * @param n the term to add
+   * @param withinQuant whether n occurs within a quantified formula body
+   */
+  void addTerm(Node n, bool withinQuant = false);
+
+ private:
   /** has presolve been called */
   context::CDO<bool> d_presolve;
   /** the set of terms we have seen before presolve */
   NodeSet d_presolveCache;
 };
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H */

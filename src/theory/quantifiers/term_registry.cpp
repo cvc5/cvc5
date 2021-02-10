@@ -18,19 +18,14 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
 TermRegistry::TermRegistry(QuantifiersState& qs,
-        QuantifiersInferenceManager& qim,
-        QuantifiersEngine* qe)
+                           QuantifiersInferenceManager& qim,
+                           QuantifiersEngine* qe)
 {
 }
 
-void TermRegistry::addTerm(Node n, bool withinQuant)
-{
-  
-}
+void TermRegistry::addTerm(Node n, bool withinQuant) {}
 
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
-
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
