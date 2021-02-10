@@ -309,7 +309,7 @@ class CnfStream {
    * structure in this expression.  Assumed to not be in the
    * translation cache.
    */
-  SatLiteral convertAtom(TNode node, bool noPreprocessing = false);
+  SatLiteral convertAtom(TNode node);
 
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;

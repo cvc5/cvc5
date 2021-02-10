@@ -284,7 +284,7 @@ void CnfStream::setProof(CnfProof* proof) {
   d_cnfProof = proof;
 }
 
-SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
+SatLiteral CnfStream::convertAtom(TNode node) {
   Trace("cnf") << "convertAtom(" << node << ")\n";
 
   Assert(!hasLiteral(node)) << "atom already mapped!";
@@ -302,7 +302,7 @@ SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
   {
     theoryLiteral = true;
     canEliminate = false;
-    preRegister = !noPreregistration;
+    preRegister = true;
   }
 
   // Make a new literal (variables are not considered theory literals)
