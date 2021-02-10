@@ -176,8 +176,7 @@ class TermRegistry
    */
   Node ensureProxyVariableFor(Node n);
 
-  /** infer substitution proxy vars
-   *
+  /**
    * This method attempts to (partially) remove trivial parts of an explanation
    * n. It adds conjuncts of n that must be included in the explanation into
    * unproc and drops the rest.
