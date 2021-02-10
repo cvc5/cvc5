@@ -248,7 +248,7 @@ void SmtSolver::processAssertions(Assertions& as)
     // definitions, as the decision justification heuristic treates the latter
     // specially.
     // first, assert the input formulas
-    for (size_t i=0; i<aend; i++)
+    for (size_t i = 0; i < aend; i++)
     {
       Chat() << "+ input " << assertions[i] << std::endl;
       d_propEngine->assertFormula(assertions[i]);
@@ -257,7 +257,8 @@ void SmtSolver::processAssertions(Assertions& as)
     for (const std::pair<const Node, size_t>& i : ap.getIteSkolemMap())
     {
       Assert(i.second >= aend && i.second < assertions.size());
-      Chat() << "+ skolem definition " << assertions[i.second] << " (from " << i.first << ")" << std::endl;
+      Chat() << "+ skolem definition " << assertions[i.second] << " (from "
+             << i.first << ")" << std::endl;
       d_propEngine->assertSkolemDefinition(assertions[i.second], i.first);
     }
   }

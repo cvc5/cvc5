@@ -332,7 +332,7 @@ class PropEngine
                       bool removable,
                       bool input,
                       ProofGenerator* pg = nullptr);
-  /** 
+  /**
    * Assert lemmas internal, where trn is a trust node corresponding to a
    * formula to assert to the CNF stream, ppLemmas and ppSkolems are the
    * skolem definitions and skolems obtained from preprocessing it, and
