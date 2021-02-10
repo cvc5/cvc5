@@ -243,23 +243,27 @@ void SmtSolver::processAssertions(Assertions& as)
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
     const std::vector<Node>& assertions = ap.ref();
-    size_t aend = ap.getRealAssertionsEnd();
     // It is important to distinguish the input assertions from the skolem
     // definitions, as the decision justification heuristic treates the latter
     // specially.
-    // first, assert the input formulas
-    for (size_t i = 0; i < aend; i++)
+    preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
+    preprocessing::IteSkolemMap::iterator it;
+    for (size_t i = 0, asize = assertions.size(); i < asize; i++)
     {
-      Chat() << "+ input " << assertions[i] << std::endl;
-      d_propEngine->assertFormula(assertions[i]);
-    }
-    // second, assert the skolem definitions
-    for (const std::pair<const Node, size_t>& i : ap.getIteSkolemMap())
-    {
-      Assert(i.second >= aend && i.second < assertions.size());
-      Chat() << "+ skolem definition " << assertions[i.second] << " (from "
-             << i.first << ")" << std::endl;
-      d_propEngine->assertSkolemDefinition(assertions[i.second], i.first);
+      // is the assertion a skolem definition?
+      it = ism.find(i);
+      if (it==ism.end())
+      {
+        Chat() << "+ input " << assertions[i] << std::endl;
+        d_propEngine->assertFormula(assertions[i]);
+      }
+      else
+      {
+        Chat() << "+ skolem definition " << assertions[i] << " (from "
+              << it->second << ")" << std::endl;
+        d_propEngine->assertSkolemDefinition(assertions[i], it->second);
+      }
+      
     }
   }
 

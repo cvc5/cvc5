@@ -30,7 +30,7 @@
 namespace CVC4 {
 namespace preprocessing {
 
-using IteSkolemMap = std::unordered_map<Node, size_t, NodeHashFunction>;
+using IteSkolemMap = std::unordered_map<size_t, Node>;
 
 /**
  * Assertion Pipeline stores a list of assertions modified by preprocessing
