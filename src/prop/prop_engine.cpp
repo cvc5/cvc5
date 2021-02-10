@@ -228,22 +228,7 @@ void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
   }
 
   // now, assert the lemmas
-  assertTrustedLemmaInternal(tplemma, removable);
-  for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
-  {
-    assertTrustedLemmaInternal(ppLemmas[i], removable);
-  }
-
-  // assert to decision engine
-  if (!removable)
-  {
-    // also add to the decision engine, where notice we don't need proofs
-    d_decisionEngine->addAssertion(tplemma.getProven());
-    for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
-    {
-      d_decisionEngine->addSkolemDefinition(ppLemmas[i].getProven(), ppSkolems[i]);
-    }
-  }
+  assertLemmasInternal(tplemma, ppLemmas, ppSkolems, removable);
 }
 
 void PropEngine::assertTrustedLemmaInternal(theory::TrustNode trn,
@@ -272,6 +257,37 @@ void PropEngine::assertInternal(
   else
   {
     d_cnfStream->convertAndAssert(node, removable, negated, input);
+  }
+}
+void PropEngine::assertLemmasInternal(
+    theory::TrustNode trn,
+    const std::vector<theory::TrustNode>& ppLemmas,
+    const std::vector<Node>& ppSkolems,
+    bool removable)
+{
+  if (!trn.isNull())
+  {
+    assertTrustedLemmaInternal(trn, removable);
+  }
+  for (const theory::TrustNode& tnl : ppLemmas)
+  {
+    assertTrustedLemmaInternal(tnl, removable);
+  }
+  // assert to decision engine
+  if (!removable)
+  {
+    // also add to the decision engine, where notice we don't need proofs
+    if (!trn.isNull())
+    {
+      // notify the theory proxy of the lemma
+      d_decisionEngine->addAssertion(trn.getProven());
+    }
+    Assert(ppSkolems.size() == ppLemmas.size());
+    for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
+    {
+      Node lem = ppLemmas[i].getProven();
+      d_decisionEngine->addSkolemDefinition(lem, ppSkolems[i]);
+    }
   }
 }
 
@@ -427,10 +443,8 @@ Node PropEngine::getPreprocessedTerm(TNode n)
   std::vector<Node> newSkolems;
   theory::TrustNode tpn = d_theoryProxy->preprocess(n, newLemmas, newSkolems);
   // send lemmas corresponding to the skolems introduced by preprocessing n
-  for (const theory::TrustNode& tnl : newLemmas)
-  {
-    assertLemma(tnl, theory::LemmaProperty::NONE);
-  }
+  theory::TrustNode trnNull;
+  assertLemmasInternal(trnNull, newLemmas, newSkolems, false);
   return tpn.isNull() ? Node(n) : tpn.getNode();
 }
 

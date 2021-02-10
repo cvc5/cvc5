@@ -332,6 +332,16 @@ class PropEngine
                       bool removable,
                       bool input,
                       ProofGenerator* pg = nullptr);
+  /** 
+   * Assert lemmas internal, where trn is a trust node corresponding to a
+   * formula to assert to the CNF stream, ppLemmas and ppSkolems are the
+   * skolem definitions and skolems obtained from preprocessing it, and
+   * removable is whether the lemma is removable.
+   */
+  void assertLemmasInternal(theory::TrustNode trn,
+                            const std::vector<theory::TrustNode>& ppLemmas,
+                            const std::vector<Node>& ppSkolems,
+                            bool removable);
 
   /**
    * Indicates that the SAT solver is currently solving something and we should
