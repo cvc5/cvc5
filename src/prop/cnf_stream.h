@@ -203,6 +203,9 @@ class CnfStream {
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
+  /** Stores the literal of the given node in d_literalToNodeMap. */
+  void ensureExistingLiteral(TNode n);
+
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
 
