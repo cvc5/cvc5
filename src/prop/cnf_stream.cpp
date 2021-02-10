@@ -284,7 +284,8 @@ void CnfStream::setProof(CnfProof* proof) {
   d_cnfProof = proof;
 }
 
-SatLiteral CnfStream::convertAtom(TNode node) {
+SatLiteral CnfStream::convertAtom(TNode node)
+{
   Trace("cnf") << "convertAtom(" << node << ")\n";
 
   Assert(!hasLiteral(node)) << "atom already mapped!";
