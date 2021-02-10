@@ -480,11 +480,10 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
       Node n = *eqc_i;
       Trace("model-builder") << "  Processing Term: " << n << endl;
 
-      // For each term n in this equivalence class:
-      // (1) Register its assignable subterms,
-      // (2) Compute whether it is a constant or assigned representative,
-      // (3) If we don't have a constant representative, compute information
-      // regarding how we will assign values.
+      // For each term n in this equivalence class, below we register its
+      // assignable subterms, compute whether it is a constant or assigned
+      // representative, then if we don't have a constant representative,
+      // compute information regarding how we will assign values.
 
       // (1) Add assignable subterms, which ensures that e.g. models for
       // uninterpreted functions take into account all subterms in the
@@ -536,7 +535,8 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
         continue;
       }
       // process the assignment exclusion set for term n
-      // was it processed as a slave of a group?
+      // was it processed based on a master exclusion group (see
+      // eqcToAssignerMaster)?
       if (processedExcSet.find(n) != processedExcSet.end())
       {
         // Should not have two assignment exclusion sets for the same
