@@ -35,11 +35,31 @@ NotTranslated,
 NoCheck
 };
 
-static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
+static bool equalNodes(Node vp1, Node vp2){
+  if(vp1.getKind() != vp2.getKind()){
+     return false;
+  }
+  else if(vp1 == vp2){
+    return true;
+  }
+  else if(vp1.getKind() == kind::EQUAL){
+     return (equalNodes(vp1[0],vp2[1]) && equalNodes(vp1[1],vp2[0]))
+	     || (equalNodes(vp1[0],vp2[0]) && equalNodes(vp1[1],vp2[1]));
+  }
+  std::vector<Node> vp1s(vp1.begin(),vp1.end());
+  std::vector<Node> vp2s(vp2.begin(),vp2.end());
+  if(vp1s.size() != vp2s.size()) {return false;}
+  bool equal = true;
+  for(int i=0; i < vp1s.size();i++){
+    equal &= equalNodes(vp1s[i],vp2s[i]);
+  }
+  return equal;
+}
+
+static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 {
   VeritRule id =
       static_cast<VeritRule>(std::stoul(pfn->getArguments()[0].toString()));
-
   Node res = pfn->getArguments()[2];
   NodeManager* nm = NodeManager::currentNM();
   Node cl = nm->mkBoundVar("cl", nm->stringType());
@@ -63,11 +83,9 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::ASSUME://DONE
     {
-      if(res.end()-res.begin() > 0){
-        if (res[0].toString() == cl.toString())
-        {
-          return CheckResult::False;
-        }
+      if(res.end()-res.begin() > 0 && res[0].toString() == cl.toString()){
+	      std::cout << "assume failed " << res << std::endl;
+        return CheckResult::False;
       }
       return CheckResult::True;
     }
@@ -81,23 +99,23 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::TRUE://DONE
     {
-      if (res == nm->mkNode(kind::SEXPR, cl, nm->mkConst(true))){return CheckResult::True;}
+      if (equalNodes(res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(true)))){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::FALSE://DONE
     {
-      if (res == nm->mkNode(kind::SEXPR, cl, nm->mkConst(true).negate())){return CheckResult::True;}
+      if (equalNodes(res,nm->mkNode(kind::SEXPR, cl, nm->mkConst(true).negate()))){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::NOT_NOT://DONE
     {
-      if (res[0].toString() == cl.toString() && res[1] == res[2].notNode().notNode().notNode()){return CheckResult::True;}
+      if (res[0].toString() == cl.toString() && equalNodes(res[1], res[2].notNode().notNode().notNode())){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::AND_POS://DONE
     {
       // Special case n=1
-      if (res[0].toString() == cl.toString() && res[1][0] == res[2] && res[1].getKind() == kind::NOT)
+      if (res[0].toString() == cl.toString() && equalNodes(res[1][0],res[2]) && res[1].getKind() == kind::NOT)
       {
         return CheckResult::True;
       }
@@ -105,7 +123,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       bool equal = false;
       for (auto i = res[1][0].begin(); i != res[1][0].end(); i++)
       {
-        if (*i == res[2])
+        if (equalNodes(*i,res[2]))
         {
           equal = true;
         }
@@ -120,7 +138,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       bool neg = true;
       for (auto i = 0; i < res[1].end() - res[1].begin(); i++)
       {
-        if (res[1][i] != res[i + 2][0])
+        if (!equalNodes(res[1][i],res[i + 2][0]))
         {
           equal = false;
         }
@@ -137,7 +155,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       bool equal = true;
       for (auto i = 0; i < res[1][0].end() - res[1][0].begin(); i++)
       {
-        if (res[1][0][i] != res[i + 2])
+        if (!equalNodes(res[1][0][i],res[i + 2]))
         {
           equal = false;
         }
@@ -149,7 +167,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::OR_NEG://DONE
     {
       // Special case n=1
-      if (res[0].toString() == cl.toString() && res[1] == res[2][0] && res[2].getKind() == kind::NOT)
+      if (res[0].toString() == cl.toString() && equalNodes(res[1],res[2][0]) && res[2].getKind() == kind::NOT)
       {
         return CheckResult::True;
       }
@@ -157,7 +175,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       bool equal = false;
       for (auto i = res[1].begin(); i != res[1].end(); i++)
       {
-        if (*i == res[2][0])
+        if (equalNodes(*i,res[2][0]))
         {
           equal = true;
         }
@@ -169,86 +187,86 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::XOR_POS1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
-          && res[1][0].getKind() == kind::XOR && res[1][0][0] == res[2]
-          && res[1][0][1] == res[3]){return CheckResult::True;}
+          && res[1][0].getKind() == kind::XOR && equalNodes(res[1][0][0],res[2])
+          && equalNodes(res[1][0][1],res[3])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::XOR_POS2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::XOR && res[2].getKind() == kind::NOT
-          && res[3].getKind() == kind::NOT && res[1][0][0] == res[2][0]
-          && res[1][0][1] == res[3][0]){return CheckResult::True;}
+          && res[3].getKind() == kind::NOT && equalNodes(res[1][0][0],res[2][0])
+          && equalNodes(res[1][0][1],res[3][0])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::XOR_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::XOR
-          && res[3].getKind() == kind::NOT && res[1][0] == res[2]
-          && res[1][1] == res[3][0]){return CheckResult::True;}
+          && res[3].getKind() == kind::NOT && equalNodes(res[1][0],res[2])
+          && equalNodes(res[1][1],res[3][0])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::XOR_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::XOR
-          && res[2].getKind() == kind::NOT && res[1][0] == res[2][0]
-          && res[1][1] == res[3]){return CheckResult::True;}
+          && res[2].getKind() == kind::NOT && equalNodes(res[1][0],res[2][0])
+          && equalNodes(res[1][1],res[3])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::IMPLIES_POS://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::IMPLIES
-          && res[2].getKind() == kind::NOT && res[1][0][0] == res[2][0]
-          && res[1][0][1] == res[3]){return CheckResult::True;}
+          && res[2].getKind() == kind::NOT && equalNodes(res[1][0][0],res[2][0])
+          && equalNodes(res[1][0][1],res[3])){return CheckResult::True;}
       return CheckResult::False;
      }
     case VeritRule::IMPLIES_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::IMPLIES
-          && res[1][0] == res[2]){return CheckResult::True;}
+          && equalNodes(res[1][0],res[2])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::IMPLIES_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::IMPLIES
-          && res[2].getKind() == kind::NOT && res[1][1] == res[2][0]){return CheckResult::True;}
+          && res[2].getKind() == kind::NOT && equalNodes(res[1][1],res[2][0])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::EQUIV_POS1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[3].getKind() == kind::NOT
-          && res[1][0][0] == res[2] && res[1][0][1] == res[3][0]){return CheckResult::True;}
+          && equalNodes(res[1][0][0], res[2]) && equalNodes(res[1][0][1],res[3][0])){return CheckResult::True;}
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[3].getKind() == kind::NOT
-          && res[1][0][1] == res[2] && res[1][0][0] == res[3][0]){return CheckResult::True;}
+          && equalNodes(res[1][0][1],res[2]) && equalNodes(res[1][0][0],res[3][0])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::EQUIV_POS2://DONE
     {
       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[2].getKind() == kind::NOT
-          && res[1][0][0] == res[2][0] && res[1][0][1] == res[3]){return CheckResult::True;}
+          && equalNodes(res[1][0][0],res[2][0]) && equalNodes(res[1][0][1],res[3])){return CheckResult::True;}
       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[2].getKind() == kind::NOT
-          && res[1][0][1] == res[2][0] && res[1][0][0] == res[3]){return CheckResult::True;}
+          && equalNodes(res[1][0][1],res[2][0]) && equalNodes(res[1][0][0],res[3])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::EQUIV_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && res[1][0] == res[2][0] && res[1][1] == res[3][0]){return CheckResult::True;}
+          && equalNodes(res[1][0],res[2][0]) && equalNodes(res[1][1],res[3][0])){return CheckResult::True;}
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && res[1][1] == res[2][0] && res[1][0] == res[3][0]){return CheckResult::True;}
+          && equalNodes(res[1][1],res[2][0]) && equalNodes(res[1][0],res[3][0])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::EQUIV_NEG2://DONE
     {
-      if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && res[1][0] == res[2]
-          && res[1][1] == res[3]){return CheckResult::True;}
+      if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && equalNodes(res[1][0],res[2])
+          && equalNodes(res[1][1],res[3])){return CheckResult::True;}
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && res[1][1] == res[2]
           && res[1][0] == res[3]){return CheckResult::True;}
       return CheckResult::False;
@@ -256,35 +274,35 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::ITE_POS1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
-          && res[1][0].getKind() == kind::ITE && res[1][0][0] == res[2]
-          && res[1][0][2] == res[3]){return CheckResult::True;}
+          && res[1][0].getKind() == kind::ITE && equalNodes(res[1][0][0],res[2])
+          && equalNodes(res[1][0][2],res[3])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::ITE_POS2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::ITE && res[2].getKind() == kind::NOT
-          && res[1][0][0] == res[2][0] && res[1][0][1] == res[3]){return CheckResult::True;}
+          && equalNodes(res[1][0][0],res[2][0]) && equalNodes(res[1][0][1],res[3])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::ITE_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::ITE
-          && res[3].getKind() == kind::NOT && res[1][0] == res[2]
-          && res[1][2] == res[3][0]){return CheckResult::True;}
+          && res[3].getKind() == kind::NOT && equalNodes(res[1][0],res[2])
+          && equalNodes(res[1][2],res[3][0])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::ITE_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::ITE
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && res[1][0] == res[2][0] && res[1][1] == res[3][0]){return CheckResult::True;}
+          && equalNodes(res[1][0],res[2][0]) && equalNodes(res[1][1],res[3][0])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::EQ_REFLEXIVE://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
-          && res[1][0] == res[1][1]){return CheckResult::True;}
+          && equalNodes(res[1][0],res[1][1])){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::EQ_TRANSITIVE://DONE
@@ -315,8 +333,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
           equal = false;
         }
       }
-      if (res[0].toString() == cl.toString() && res[n - 1][0] == ts[0]
-          && res[n - 1][1] == ts[1]
+      if (res[0].toString() == cl.toString() && equalNodes(res[n - 1][0],ts[0])
+          && equalNodes(res[n - 1][1],ts[1])
           && res[n - 1].getKind() == kind::EQUAL && equal){return CheckResult::True;}
       return CheckResult::False;
      }
@@ -326,8 +344,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       int n = res.end() - res.begin();
       for (auto i = 1; i < n - 1; i++)
       {
-        if (res[i][0][0] != res[n - 1][0][0][i]
-            || res[i][0][1] != res[n - 1][1][0][i]
+        if (!equalNodes(res[i][0][0],res[n - 1][0][0][i])
+            || !equalNodes(res[i][0][1],res[n - 1][1][0][i])
             || res[i].getKind() != kind::NOT
             || res[i][0].getKind() != kind::EQUAL)
         {
@@ -347,8 +365,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       int n = res.end() - res.begin();
       for (auto i = 1; i < n - 1; i++)
       {
-        if (res[i][0][0] != res[n - 1][0][0][i]
-            || res[i][0][1] != res[n - 1][1][0][i]
+	if (!equalNodes(res[i][0][0],res[n - 1][0][0][i])
+            || !equalNodes(res[i][0][1],res[n - 1][1][0][i])
             || res[i].getKind() != kind::NOT
             || res[i][0].getKind() != kind::EQUAL)
         {
@@ -368,8 +386,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       if(res[0].toString() == cl.toString() && res[1].getKind() == kind::OR && res[1][0].getKind() == kind::EQUAL
       && res[1][1].getKind() == kind::NOT && res[1][1][0].getKind() == kind::LEQ
       && res[1][2].getKind() == kind::NOT && res[1][2][0].getKind() == kind::LEQ
-      && res[1][0][0] == res[1][1][0][0] && res[1][0][0] == res[1][2][0][1]
-      && res[1][0][1] == res[1][1][0][1] && res[1][0][1] == res[1][2][0][0]){
+      && equalNodes(res[1][0][0],res[1][1][0][0]) && equalNodes(res[1][0][0],res[1][2][0][1])
+      && equalNodes(res[1][0][1],res[1][1][0][1]) && equalNodes(res[1][0][1],res[1][2][0][0])){
         return CheckResult::True;
       }
       else{
@@ -387,8 +405,11 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
 	  && success){return CheckResult::NoCheck;}
       return CheckResult::False;
     }
+    case VeritRule::EQ_RESOLUTION:{} //same handling as resolution. TODO: delete
+    case VeritRule::TH_RESOLUTION:{}
     case VeritRule::RESOLUTION:
     {  // This is not a real resolution check, but should be good enough. The problem is that the order is unimportant here.
+       //std::cout << std::endl;
       if (res[0].toString() != cl.toString())
       {
         return CheckResult::False;
@@ -407,7 +428,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
           for(int k = 0; k < (clauses.end()-clauses.begin());k++){
 	     //std::cout << "new_children[i][j] " << new_children[i][j] << std::endl;
 	     //std::cout << "clauses[k].negate() " << clauses[k].notNode() << std::endl;
-	     if(new_children[i][j] == clauses[k].notNode() || new_children[i][j].notNode() == clauses[k]){
+	     if(equalNodes(new_children[i][j], clauses[k].notNode()) || equalNodes(new_children[i][j].notNode(), clauses[k])){
 	        //std::cout << "deleted " << clauses[k] << std::endl;
 		clauses.erase(clauses.begin()+k);
 		new_clause = false;
@@ -422,7 +443,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       }
       for(int i = 1; i < (res.end()-res.begin());i++){
         for(int k = 0; k < (clauses.end()-clauses.begin());k++){
-	     if(res[i] == clauses[k]){
+	     if(equalNodes(res[i],clauses[k])){
 	        //std::cout << "deleted " << res[i]  << std::endl;
 		clauses.erase(clauses.begin()+k);
 		break;
@@ -438,36 +459,15 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::REFL:
     {  // TODO
       //std::cout << (res[1][0] == res[1][1]) << std::endl;
-      if(res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && res[1][0] == res[1][1]){
+      if(res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && equalNodes(res[1][0],res[1][1])){
         return CheckResult::True;
       }
       return CheckResult::False;
     }
-    case VeritRule::TRANS: //DONE
+    case VeritRule::TRANS: //Quick and ad-hoc fix not very clean or efficient
     {
       Node start;
       Node symm;
-      if(new_children[0][1][0] == new_children[1][1][0]){
-         start = new_children[0][1][1];
-	 symm = new_children[1][1][1];
-      }
-      else if(new_children[0][1][0] == new_children[1][1][1]){
-         start = new_children[0][1][1];
-	 symm = new_children[1][1][0];
-      }
-      else if(new_children[0][1][1] == new_children[1][1][0]){
-         start = new_children[0][1][0];
-	 symm = new_children[1][1][1];
-      }
-      else if(new_children[0][1][1] == new_children[1][1][1]){
-         start = new_children[0][1][0];
-	 symm = new_children[1][1][0];
-      }
-      else{
-        return CheckResult::False;
-      }
-      //std::cout << "start " <<  start << std::endl;
-      //std::cout << "symm " << symm << std::endl;
       if (new_children[0][0].toString() != cl.toString()
           || new_children[0][1].getKind() != kind::EQUAL
 	  || new_children[1][0].toString() != cl.toString()
@@ -476,30 +476,132 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
         return CheckResult::False;
       }
 
-      for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
-      {
-        if (new_children[i][0].toString() != cl.toString()
-            || new_children[i][1].getKind() != kind::EQUAL)
-        {
-          return CheckResult::False;
+      bool success;
+      bool success1 = true;
+      bool success2 = true;
+      bool success3 = true;
+      bool success4 = true;
+      if(equalNodes(new_children[0][1][0],new_children[1][1][0])){
+         start = new_children[0][1][1];
+	 symm = new_children[1][1][1];
+         for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
+         {
+           if (new_children[i][0].toString() != cl.toString()
+               || new_children[i][1].getKind() != kind::EQUAL)
+           {
+             success1 = false;
+           }
+           if (equalNodes(new_children[i][1][0],symm))
+           {
+             symm = new_children[i][1][1];
+           }
+	   else if (equalNodes(new_children[i][1][1],symm)){
+	     symm = new_children[i][1][0];
+	   }
+	   else{
+             success1 = false;
+	   }
         }
-        if (new_children[i][1][0] == symm)
-        {
-          symm = new_children[i][1][1];
+        if (res[0].toString() == cl.toString()
+        && ((equalNodes(res[1][0],start) && equalNodes(res[1][1],symm)) || (equalNodes(res[1][0],symm) && equalNodes(res[1][1],start)))
+        && res[1].getKind() == kind::EQUAL){
+          success1 &= true;
         }
-	else if (new_children[i][1][1] == symm){
-	  symm = new_children[i][1][0];
-	}
-	else{
-	  return CheckResult::False;
-	}
+        success1 = false;
       }
-      if (res[0].toString() == cl.toString()
-      && ((res[1][0] == start && res[1][1] == symm) || (res[1][0] == symm && res[1][1] == start))
-      && res[1].getKind() == kind::EQUAL){
+      else if(equalNodes(new_children[0][1][0],new_children[1][1][1])){
+         start = new_children[0][1][1];
+	 symm = new_children[1][1][0];
+         for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
+         {
+           if (new_children[i][0].toString() != cl.toString()
+               || new_children[i][1].getKind() != kind::EQUAL)
+           {
+             success2 = false;
+           }
+           if (equalNodes(new_children[i][1][0],symm))
+           {
+             symm = new_children[i][1][1];
+           }
+	   else if (equalNodes(new_children[i][1][1],symm)){
+	     symm = new_children[i][1][0];
+	   }
+	   else{
+             success2 = false;
+	   }
+        }
+        if (res[0].toString() == cl.toString()
+        && ((equalNodes(res[1][0],start) && equalNodes(res[1][1],symm)) || (equalNodes(res[1][0],symm) && equalNodes(res[1][1],start)))
+        && res[1].getKind() == kind::EQUAL){
+          success2 &= true;
+        }
+        success2 = false;
+      }
+      else if(equalNodes(new_children[0][1][1],new_children[1][1][0])){
+         start = new_children[0][1][0];
+	 symm = new_children[1][1][1];
+         for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
+         {
+           if (new_children[i][0].toString() != cl.toString()
+               || new_children[i][1].getKind() != kind::EQUAL)
+           {
+             success3 = false;
+           }
+           if (equalNodes(new_children[i][1][0],symm))
+           {
+             symm = new_children[i][1][1];
+           }
+	   else if (equalNodes(new_children[i][1][1],symm)){
+	     symm = new_children[i][1][0];
+	   }
+	   else{
+             success3 = false;
+	   }
+        }
+        if (res[0].toString() == cl.toString()
+        && ((equalNodes(res[1][0],start) && equalNodes(res[1][1],symm)) || (equalNodes(res[1][0],symm) && equalNodes(res[1][1],start)))
+        && res[1].getKind() == kind::EQUAL){
+          success3 &= true;
+        }
+        success3 = false;
+      }
+      else if(equalNodes(new_children[0][1][1],new_children[1][1][1])){
+         start = new_children[0][1][0];
+	 symm = new_children[1][1][0];
+	 for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
+         {
+           if (new_children[i][0].toString() != cl.toString()
+               || new_children[i][1].getKind() != kind::EQUAL)
+           {
+             success4 = false;
+           }
+           if (equalNodes(new_children[i][1][0],symm))
+           {
+             symm = new_children[i][1][1];
+           }
+	   else if (equalNodes(new_children[i][1][1],symm)){
+	     symm = new_children[i][1][0];
+	   }
+	   else{
+             success4 = false;
+	   }
+        }
+        if (res[0].toString() == cl.toString()
+        && ((equalNodes(res[1][0],start) && equalNodes(res[1][1],symm)) || (equalNodes(res[1][0],symm) && equalNodes(res[1][1],start)))
+        && res[1].getKind() == kind::EQUAL){
+          success4 &= true;
+        }
+        success4 = false;
+      }
+      if(success1 || success2 || success3 || success4){
         return CheckResult::True;
       }
-      return CheckResult::False;
+      else{
+        return CheckResult::False;
+      }
+      //std::cout << "start " <<  start << std::endl;
+      //std::cout << "symm " << symm << std::endl;
+
      }
     case VeritRule::CONG:
     {
@@ -510,8 +612,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
         {
           return CheckResult::False;
         }
-        if (!(new_children[i][1][0] == res[1][0][i] && new_children[i][1][1] == res[1][1][i])
-	 && !(new_children[i][1][0] == res[1][1][i] && new_children[i][1][1] == res[1][0][i]))
+        if (!(equalNodes(new_children[i][1][0],res[1][0][i]) && equalNodes(new_children[i][1][1],res[1][1][i]))
+	 && !(equalNodes(new_children[i][1][0],res[1][1][i]) && equalNodes(new_children[i][1][1],res[1][0][i])))
         {
           return CheckResult::False;
         }
@@ -529,14 +631,14 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
            i < (new_children[0][1].end() - new_children[0][1].begin());
            i++)
       {
-        if (new_children[0][1][i] == res[1])
+        if (equalNodes(new_children[0][1][i],res[1]))
         {
           equal = true;
         }
-        }
-        if (res[0].toString() == cl.toString() && new_children[0][0] == cl
+      }
+      if (res[0].toString() == cl.toString() && new_children[0][0].toString() == cl.toString()
             && new_children[0][1].getKind() == kind::AND && equal){return CheckResult::True;}
-	return CheckResult::False;
+      return CheckResult::False;
     }
     case VeritRule::TAUTOLOGIC_CLAUSE:
     {
@@ -548,7 +650,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
         for (int j = 0; j < (new_children[0].end() - new_children[0].begin());
              j++)
         {
-          if (new_children[0][i] == new_children[0][i].negate())
+          if (equalNodes(new_children[0][i],new_children[0][i].negate()))
 		  //check if .notNode() has to be used
           {
             equal = true;
@@ -568,7 +670,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
 	      //std::cout << "new_children[0][1][0][i] " << new_children[0][1][0][i] << std::endl;
 	      //std::cout << "new_children[0][1][0][i].negate()  " << new_children[0][1][0][i].negate() << std::endl;
 	      //std::cout << "new_children[0][1][0][i].notNode() " << new_children[0][1][0][i].notNode() <<std::endl;
-        if (new_children[0][1][0][i].notNode() == res[1])
+        if (equalNodes(new_children[0][1][0][i].notNode(),res[1]))
         {
           equal = true;
         }
@@ -592,7 +694,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
            i < (new_children[0][1].end() - new_children[0][1].begin());
            i++)
       {
-        if (new_children[0][1][i] != res[i + 1])
+        if (!equalNodes(new_children[0][1][i], res[i + 1]))
         {
           equal = false;
         }
@@ -607,15 +709,16 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     case VeritRule::NOT_AND:{
       bool equal = true;
       if ((new_children[0][1][0].end() - new_children[0][1][0].begin())
-          == (res.end() - res.begin() - 1))
+          != (res.end() - res.begin() - 1))
       {
         return CheckResult::False;
       }
+
       for (int i = 0;
            i < (new_children[0][1][0].end() - new_children[0][1][0].begin());
            i++)
       {
-        if (new_children[0][1][0][i].notNode() != res[i + 1] || res[i+1].getKind() != kind::NOT)
+        if ((!equalNodes(new_children[0][1][0][i].notNode(),res[i + 1])) || res[i+1].getKind() != kind::NOT)
         {
           equal = false;
         }
@@ -633,9 +736,9 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::IMPLIES
-	     && new_children[0][1][0] == res[1][0]
+	     && equalNodes(new_children[0][1][0],res[1][0])
 	     && res[1].getKind() == kind::NOT
-	     && new_children[0][1][1] == res[2]
+	     && equalNodes(new_children[0][1][1],res[2])
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
     }
@@ -644,7 +747,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::NOT
 	     && new_children[0][1][0].getKind() == kind::IMPLIES
-	     && new_children[0][1][0][0] == res[1]
+	     && equalNodes(new_children[0][1][0][0],res[1])
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
     }
@@ -653,7 +756,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::NOT
 	     && new_children[0][1][0].getKind() == kind::IMPLIES
-	     && new_children[0][1][0][1] == res[1][0]
+	     && equalNodes(new_children[0][1][0][1],res[1][0])
 	     && res[1].getKind() == kind::NOT
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
@@ -662,8 +765,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::EQUAL
-	     && new_children[0][1][0] == res[1][0]
-	     && new_children[0][1][1] == res[2]
+	     && equalNodes(new_children[0][1][0],res[1][0])
+	     && equalNodes(new_children[0][1][1],res[2])
 	     && res[1].getKind() == kind::NOT
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
@@ -672,8 +775,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::EQUAL
-	     && new_children[0][1][0] == res[1]
-	     && new_children[0][1][1] == res[2][0]
+	     && equalNodes(new_children[0][1][0],res[1])
+	     && equalNodes(new_children[0][1][1],res[2][0])
 	     && res[2].getKind() == kind::NOT
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
@@ -683,8 +786,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::NOT
 	     && new_children[0][1][0].getKind() == kind::EQUAL
-	     && new_children[0][1][0][0] == res[1]
-	     && new_children[0][1][0][1] == res[2]
+	     && equalNodes(new_children[0][1][0][0],res[1])
+	     && equalNodes(new_children[0][1][0][1],res[2])
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
     }
@@ -693,8 +796,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::NOT
 	     && new_children[0][1][0].getKind() == kind::EQUAL
-	     && new_children[0][1][0][0] == res[1][0]
-	     && new_children[0][1][0][1] == res[2][0]
+	     && equalNodes(new_children[0][1][0][0],res[1][0])
+	     && equalNodes(new_children[0][1][0][1],res[2][0])
 	     && res[1].getKind() == kind::NOT
 	     && res[2].getKind() == kind::NOT
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
@@ -704,8 +807,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::ITE
-	     && new_children[0][1][0] == res[1]
-	     && new_children[0][1][2] == res[2]
+	     && equalNodes(new_children[0][1][0],res[1])
+	     && equalNodes(new_children[0][1][2],res[2])
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
     }
@@ -713,8 +816,8 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::ITE
-	     && new_children[0][1][0] == res[1][0]
-	     && new_children[0][1][1] == res[2]
+	     && equalNodes(new_children[0][1][0],res[1][0])
+	     && equalNodes(new_children[0][1][1],res[2])
 	     && res[1].getKind() == kind::NOT
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
@@ -724,44 +827,53 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::NOT
 	     && new_children[0][1][0].getKind() == kind::ITE
-	     && new_children[0][1][0][0] == res[1]
-	     && new_children[0][1][0][2] == res[2][0]
+	     && equalNodes(new_children[0][1][0][0],res[1])
+	     && equalNodes(new_children[0][1][0][2],res[2][0])
 	     && res[2].getKind() == kind::NOT
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::NOT_ITE2:
-    {
+    {//TODO: For all rules this should not be ifs but try catches, since maybe children does not has [0][1][0][0] element
       if (new_children[0][0].toString() == cl.toString()
 	     && new_children[0][1].getKind() == kind::NOT
 	     && new_children[0][1][0].getKind() == kind::ITE
-	     && new_children[0][1][0][0] == res[1][0]
-	     && new_children[0][1][0][1] == res[2][0]
+	     && equalNodes(new_children[0][1][0][0],res[1][0])
+	     && equalNodes(new_children[0][1][0][1],res[2][0])
 	     && res[2].getKind() == kind::NOT
 	     && res[1].getKind() == kind::NOT
 	     && res[0].toString() == cl.toString()){return CheckResult::True;}
       return CheckResult::False;
     }
     case VeritRule::DUPLICATED_LITERALS:
-    {  // tested. Assumes that all duplicates are deleted.
+    {
       std::vector<Node> resVec;
       resVec.insert(resVec.begin(),res.begin()+1,res.end()); //TODO: DO THIS EVERYWHERE INSTEAD OF FOR LOOP
 
       std::vector<Node> childVec;
       childVec.insert(childVec.begin(),new_children[0].begin()+1, new_children[0].end());
 
+      Node lastElement = res[0];
+      Node nextElement = res[1];
+      bool alreadyEncountered;
       std::vector<Node> childVec2;
-      Node lastElement;
-      for(Node child : childVec){
-	if(lastElement != child){
-          childVec2.push_back(child);
+      int j=0;
+
+      for(int i = 0; i < childVec.size(); i++){
+        if(!equalNodes(childVec[i],lastElement)){
+          if(!equalNodes(childVec[i],nextElement)){
+	    if(std::find(childVec2.begin(),childVec.end(),childVec[i]) == childVec2.end()){
+              return CheckResult::False;
+	    }
+  	  }
+          lastElement = resVec[j];
+	  if(j != resVec.size()-1){nextElement = resVec[j+1];}
+	  j++;
+	  childVec2.push_back(childVec[i]);
 	}
-	lastElement = child;
       }
 
-      if (childVec2 == resVec
-          && childVec2.size() == resVec.size()
-	  && new_children[0][0].toString() == cl.toString()
+      if (new_children[0][0].toString() == cl.toString()
 	  && res[0].toString() == cl.toString())
       {
         return CheckResult::True;
@@ -790,7 +902,7 @@ static CheckResult checkInternal(std::shared_ptr<ProofNode> pfn)
   }
 }
 //Add res.getKind() == kind::SEXPR everywhere
-static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
+static bool veritProofCheckerInternal(std::shared_ptr<ProofNode> pfn)
 {
    //std::cout << " CHECK CHILD ";
    //std::cout  << pfn->getResult() << " ";
@@ -806,12 +918,15 @@ static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
     new_children.push_back(child->getArguments()[2]);
   }
 
-  if(checkInternal(pfn)==CheckResult::True){
+  try{
+  CheckResult check = checkStep(pfn);
+
+  if(check == CheckResult::True){//TODO: indent
     Trace("verit-checker")
         << "... check succeeded " << res << " " << veritRuletoString(id)
         << " " << new_children << std::endl;
   }
-  else if(checkInternal(pfn) == CheckResult::NoCheck){
+  else if(check == CheckResult::NotTranslated){
     Trace("verit-checker")
         << "... check not translated yet " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
@@ -819,8 +934,13 @@ static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
     Trace("verit-checker-debug")
         << "... check not translated yet " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
+
+    Trace("verit-checker-failed")
+        << "... check not translated yet " << res << " " << veritRuletoString(id) << " "
+        << new_children << std::endl;
+    success = false;
   }
-  else if(checkInternal(pfn) == CheckResult::False){
+  else if(check == CheckResult::False){
     Trace("verit-checker")
         << "... check failed " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
@@ -843,18 +963,46 @@ static bool veritProofChecker(std::shared_ptr<ProofNode> pfn)
         << "... check manually " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
 
+  }
+  }
+  catch(...){ //TODO: This is not working
+	  std::cout << "in exception" << std::endl;
+    Trace("verit-checker-debug")
+        << "... check manually " << res << " " << veritRuletoString(id) << " "
+        << new_children << std::endl;
     Trace("verit-checker-failed")
         << "... check failed " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
-    success = false;
+
   }
   for (auto child : pfn->getChildren())
   {
-    success &= veritProofChecker(child);
+    success &= veritProofCheckerInternal(child);
   }
   return success;
 }
 
+static void veritProofChecker(std::shared_ptr<ProofNode> pfn, std::ostream& out){
+  NodeManager* nm = NodeManager::currentNM();
+  bool success = veritProofCheckerInternal(pfn);
+  Node cl = nm->mkBoundVar("cl", nm->stringType());
+  Node res = pfn->getArguments()[2];//TODO: catch if this is not possible, also in checkStep
+  if(res.toString() != nm->mkNode(kind::SEXPR,cl).toString()){
+    success = false;
+    Trace("verit-checker-debug")
+        << "... last step is not (cl). "<< std::endl;
+    Trace("verit-checker-failed")
+        << "... last step is not (cl). "<< std::endl;
+  }
+  if(success){
+    out << "Proof check succeeded." << "\n";
+  }
+  else{
+    out << "Proof check failed." << "\n";
+  }
+  out << "\n";
+  out << "\n";
+}
 }  // namespace proof
 
 }  // namespace CVC4
