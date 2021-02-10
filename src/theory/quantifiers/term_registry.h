@@ -1,0 +1,57 @@
+/*********************                                                        */
+/*! \file term_registry.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief term registry class
+ **/
+
+#include "cvc4_private.h"
+
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H
+
+#include <map>
+#include <unordered_set>
+
+#include "theory/quantifiers/term_database.h"
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
+
+/** 
+ * Term Registry, which manages notifying modules within quantifiers about
+ * (ground) terms that exist in the current context.
+ */
+class TermRegistry {
+public:
+  TermRegistry(QuantifiersState& qs,
+         QuantifiersInferenceManager& qim,
+         QuantifiersEngine* qe);
+ /** 
+  * Add term n, which notifies all 
+  * 
+  * @param n the term to add
+  * @param withinQuant whether n occurs within a quantified formula body
+  */
+ void addTerm(Node n, bool withinQuant = false);
+private:
+  /** has presolve been called */
+  context::CDO<bool> d_presolve;
+  /** the set of terms we have seen before presolve */
+  NodeSet d_presolveCache;
+};
+
+}/* CVC4::theory::quantifiers namespace */
+}/* CVC4::theory namespace */
+}/* CVC4 namespace */
+
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_REGISTRY_H */

@@ -184,10 +184,6 @@ public:
  options::UserPatMode getInstUserPatMode();
 
 public:
- /** add term to database */
- void addTermToDatabase(Node n, bool withinQuant = false);
- /** notification when master equality engine is updated */
- void eqNotifyNewClass(TNode t);
  /** debug print equality engine */
  void debugPrintEqualityEngine(const char* c);
  /** get internal representative
@@ -335,11 +331,6 @@ public:
   int d_ierCounter_lc;
   int d_ierCounterLastLc;
   int d_inst_when_phase;
-  /** has presolve been called */
-  context::CDO<bool> d_presolve;
-  /** presolve cache */
-  NodeSet d_presolve_in;
-  NodeList d_presolve_cache;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

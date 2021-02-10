@@ -54,10 +54,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext()),
-      d_ierCounter_c(qstate.getSatContext()),
-      d_presolve(qstate.getUserContext(), true),
-      d_presolve_in(qstate.getUserContext()),
-      d_presolve_cache(qstate.getUserContext())
+      d_ierCounter_c(qstate.getSatContext())
 {
   //---- utilities
   // term util must come before the other utilities
@@ -261,17 +258,6 @@ void QuantifiersEngine::presolve() {
     d_modules[i]->presolve();
   }
   d_term_db->presolve();
-  d_presolve = false;
-  //add all terms to database
-  if (options::incrementalSolving() && !options::termDbCd())
-  {
-    Trace("quant-engine-proc") << "Add presolve cache " << d_presolve_cache.size() << std::endl;
-    for (const Node& t : d_presolve_cache)
-    {
-      addTermToDatabase(t);
-    }
-    Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
-  }
 }
 
 void QuantifiersEngine::ppNotifyAssertions(
@@ -753,36 +739,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   {
     mdl->assertNode(f);
   }
-  addTermToDatabase(d_term_util->getInstConstantBody(f), true);
-}
-
-void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
-{
-  // don't add terms in quantifier bodies
-  if (withinQuant && !options::registerQuantBodyTerms())
-  {
-    return;
-  }
-  if (options::incrementalSolving() && !options::termDbCd())
-  {
-    if( d_presolve_in.find( n )==d_presolve_in.end() ){
-      d_presolve_in.insert( n );
-      d_presolve_cache.push_back( n );
-    }
-  }
-  //only wait if we are doing incremental solving
-  if (!d_presolve || !options::incrementalSolving() || options::termDbCd())
-  {
-    d_term_db->addTerm(n);
-    if (d_sygus_tdb && options::sygusEvalUnfold())
-    {
-      d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
-    }
-  }
-}
-
-void QuantifiersEngine::eqNotifyNewClass(TNode t) {
-  addTermToDatabase( t );
+  d_term_db->addTerm(d_term_util->getInstConstantBody(f), true);
 }
 
 void QuantifiersEngine::markRelevant( Node q ) {
