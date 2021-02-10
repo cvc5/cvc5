@@ -1873,16 +1873,6 @@ header = "options/quantifiers_options.h"
   read_only  = false
   help       = "use store axiom during ho-elim"
 
-### Proof options
-
-[[option]]
-  name       = "trackInstLemmas"
-  category   = "regular"
-  long       = "track-inst-lemmas"
-  type       = "bool"
-  default    = "false"
-  help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
-
 ### Output options
 
 [[option]]
