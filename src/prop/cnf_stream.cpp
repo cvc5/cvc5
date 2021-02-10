@@ -194,7 +194,8 @@ void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
   }
 
   Assert(hasLiteral(n) && getNode(lit) == n);
-  Debug("ensureLiteral") << "CnfStream::ensureLiteral(): out lit is " << lit << std::endl;
+  Trace("ensureLiteral") << "CnfStream::ensureLiteral(): out lit is " << lit
+                         << std::endl;
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {

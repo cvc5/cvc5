@@ -85,6 +85,14 @@ class ProofCnfStream : public ProofGenerator
   void convertPropagation(theory::TrustNode ttn);
 
   /**
+   * Ensure that the given node will have a designated SAT literal that is
+   * definitionally equal to it.  The result of this function is that the Node
+   * can be queried via getSatValue(). Essentially, this is like a "convert-but-
+   * don't-assert" version of convertAndAssert().
+   */
+  void ensureLiteral(TNode n, bool noPreregistration = false);
+
+  /**
    * Blocks a proof, so that it is not further updated by a post processor of
    * this class's proof. */
   void addBlocked(std::shared_ptr<ProofNode> pfn);
