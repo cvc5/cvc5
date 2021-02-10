@@ -572,40 +572,14 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
 
 void ProofCnfStream::ensureLiteral(TNode n, bool noPreregistration)
 {
-  // These are not removable and have no proof ID
-  d_removable = false;
-
-  Trace("cnf") << "ensureLiteral(" << n << ")\n";
+  Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n << ")\n";
   if (d_cnfStream.hasLiteral(n))
   {
-    SatLiteral lit = d_cnfStream.getLiteral(n);
-    if (!d_cnfStream.d_literalToNodeMap.contains(lit))
-    {
-      // Store backward-mappings
-      d_cnfStream.d_literalToNodeMap.insert(lit, n);
-      d_cnfStream.d_literalToNodeMap.insert(~lit, n.notNode());
-    }
-    return;
+    d_cnfStream.ensureExistingLiteral(n);
   }
-
-  AlwaysAssertArgument(
-      n.getType().isBoolean(),
-      n,
-      "ProofCnfStream::ensureLiteral() requires a node of Boolean type.\n"
-      "got node: %s\n"
-      "its type: %s\n",
-      n.toString().c_str(),
-      n.getType().toString().c_str());
-
-  SatLiteral lit;
-
-  // since this is a literal we do not care about this
-  n = n.getKind() == kind::NOT ? n[0] : n;
-
-  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  else if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
-    lit = toCNF(n, false);
-
+    SatLiteral lit = toCNF(n, false);
     // Store backward-mappings
     // These may already exist
     d_cnfStream.d_literalToNodeMap.insert_safe(lit, n);
@@ -613,13 +587,8 @@ void ProofCnfStream::ensureLiteral(TNode n, bool noPreregistration)
   }
   else
   {
-    // We have a theory atom or variable.
-    lit = d_cnfStream.convertAtom(n, noPreregistration);
+    d_cnfStream.convertAtom(n, noPreregistration);
   }
-
-  Assert(d_cnfStream.hasLiteral(n) && d_cnfStream.getNode(lit) == n);
-  Trace("ensureLiteral") << "ProofCnfStream::ensureLiteral(): out lit is "
-                         << lit << std::endl;
 }
 
 SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
