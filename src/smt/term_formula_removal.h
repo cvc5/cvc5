@@ -135,6 +135,10 @@ class RemoveTermFormulas {
    */
   void getSkolems(TNode n,
                   std::unordered_set<Node, NodeHashFunction>& skolems) const;
+  /**
+   * Does n have skolems introduced by this class?
+   */
+  bool hasSkolems(TNode n) const;
 
   /**
    * Get the lemma for the skolem, or the null node if k is not a skolem this
