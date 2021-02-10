@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
+#include "options/uf_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -980,7 +981,11 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
   d_qni_size = 0;
   if( isVar ){
     Assert(qi->d_var_num.find(n) != qi->d_var_num.end());
-    if( n.getKind()==ITE ){
+    // rare case where we have a free variable in an operator, we are invalid
+    if (n.getKind() == ITE
+        || (options::ufHo() && n.getKind() == APPLY_UF
+            && expr::hasFreeVar(n.getOperator())))
+    {
       d_type = typ_invalid;
     }else{
       d_type = isHandledUfTerm( n ) ? typ_var : typ_tsym;

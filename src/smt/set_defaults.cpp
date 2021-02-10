@@ -890,11 +890,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
              << std::endl;
     options::cegqi.set(false);
   }
-  // Do we need to track instantiations?
-  if (options::unsatCores() && !options::trackInstLemmas.wasSetByUser())
-  {
-    options::trackInstLemmas.set(true);
-  }
 
   if ((options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy())
       || (options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt()))
