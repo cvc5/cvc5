@@ -252,7 +252,7 @@ void SmtSolver::processAssertions(Assertions& as)
     {
       // is the assertion a skolem definition?
       it = ism.find(i);
-      if (it==ism.end())
+      if (it == ism.end())
       {
         Chat() << "+ input " << assertions[i] << std::endl;
         d_propEngine->assertFormula(assertions[i]);
@@ -260,10 +260,9 @@ void SmtSolver::processAssertions(Assertions& as)
       else
       {
         Chat() << "+ skolem definition " << assertions[i] << " (from "
-              << it->second << ")" << std::endl;
+               << it->second << ")" << std::endl;
         d_propEngine->assertSkolemDefinition(assertions[i], it->second);
       }
-      
     }
   }
 
