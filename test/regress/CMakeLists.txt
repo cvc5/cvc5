@@ -2022,7 +2022,10 @@ set(regress_1_tests
   regress1/strings/issue5483-pp-leq.smt2
   regress1/strings/issue5510-re-consume.smt2
   regress1/strings/issue5520-re-consume.smt2
+  regress1/strings/issue5610-infer-proxy.smt2
+  regress1/strings/issue5610-2-infer-proxy.smt2
   regress1/strings/issue5611-deq-norm-emp.smt2
+  regress1/strings/issue5692-infer-proxy.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
