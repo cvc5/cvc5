@@ -421,7 +421,14 @@ Node PropEngine::ensureLiteral(TNode n)
   Node preprocessed = getPreprocessedTerm(n);
   Trace("ensureLiteral") << "ensureLiteral preprocessed: " << preprocessed
                          << std::endl;
-  d_cnfStream->ensureLiteral(preprocessed);
+  if (isProofEnabled())
+  {
+    d_pfCnfStream->ensureLiteral(preprocessed);
+  }
+  else
+  {
+    d_cnfStream->ensureLiteral(preprocessed);
+  }
   return preprocessed;
 }
 
