@@ -189,7 +189,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
     std::vector<Node> unproc;
     for (const Node& ac : ii.d_premises)
     {
-      d_termReg.inferSubstitutionProxyVars(ac, unproc);
+      d_termReg.removeProxyEqs(ac, unproc);
     }
     if (unproc.empty())
     {

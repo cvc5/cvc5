@@ -575,14 +575,14 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   return proxy;
 }
 
-void TermRegistry::inferSubstitutionProxyVars(Node n,
+void TermRegistry::removeProxyEqs(Node n,
                                               std::vector<Node>& unproc) const
 {
   if (n.getKind() == AND)
   {
     for (const Node& nc : n)
     {
-      inferSubstitutionProxyVars(nc, unproc);
+      removeProxyEqs(nc, unproc);
     }
     return;
   }

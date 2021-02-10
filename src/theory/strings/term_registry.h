@@ -191,11 +191,11 @@ class TermRegistry
    * that equality simply corresponds to definition of a proxy variable.
    *
    * This method is used as a performance heuristic. It can infer when the
-   * explanation of a fact depends only trivially on equalities corresponding
-   * to definitions of proxy variables, which can be omitted since they are
+   * explanation of a fact depends only on equalities corresponding to
+   * definitions of proxy variables, which can be omitted since they are
    * assumed to hold globally.
    */
-  void inferSubstitutionProxyVars(Node n,
+  void removeProxyEqs(Node n,
                                   std::vector<Node>& unproc) const;
   //---------------------------- end proxy variables
  private:
