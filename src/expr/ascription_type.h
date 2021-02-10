@@ -2,7 +2,7 @@
 /*! \file ascription_type.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
+ **   Morgan Deters, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -19,9 +19,12 @@
 #ifndef CVC4__ASCRIPTION_TYPE_H
 #define CVC4__ASCRIPTION_TYPE_H
 
-#include "expr/type.h"
+#include <iosfwd>
+#include <memory>
 
 namespace CVC4 {
+
+class TypeNode;
 
 /**
  * A class used to parameterize a type ascription.  For example,
@@ -31,35 +34,29 @@ namespace CVC4 {
  * coerce a Type into the expression tree.)
  */
 class CVC4_PUBLIC AscriptionType {
-  Type d_type;
-
  public:
-  AscriptionType(Type t) : d_type(t) {}
-  Type getType() const { return d_type; }
-  bool operator==(const AscriptionType& other) const
-  {
-    return d_type == other.d_type;
-  }
-  bool operator!=(const AscriptionType& other) const
-  {
-    return d_type != other.d_type;
-  }
+  AscriptionType(TypeNode t);
+  ~AscriptionType();
+  AscriptionType(const AscriptionType& other);
+  AscriptionType& operator=(const AscriptionType& other);
+  TypeNode getType() const;
+  bool operator==(const AscriptionType& other) const;
+  bool operator!=(const AscriptionType& other) const;
+
+ private:
+  /** The type */
+  std::unique_ptr<TypeNode> d_type;
 };/* class AscriptionType */
 
 /**
  * A hash function for type ascription operators.
  */
 struct CVC4_PUBLIC AscriptionTypeHashFunction {
-  inline size_t operator()(const AscriptionType& at) const {
-    return TypeHashFunction()(at.getType());
-  }
+  size_t operator()(const AscriptionType& at) const;
 };/* struct AscriptionTypeHashFunction */
 
 /** An output routine for AscriptionTypes */
-inline std::ostream& operator<<(std::ostream& out, AscriptionType at) {
-  out << at.getType();
-  return out;
-}
+std::ostream& operator<<(std::ostream& out, AscriptionType at) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 

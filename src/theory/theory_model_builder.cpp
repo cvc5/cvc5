@@ -913,10 +913,17 @@ bool TheoryEngineModelBuilder::buildModel(TheoryModel* tm)
             n = itAssigner->second.getNextAssignment();
             Assert(!n.isNull());
           }
-          else if (!t.isFinite())
+          else if (t.isSort() || !t.isInterpretedFinite())
           {
-            // if its infinite, we get a fresh value that does not occur in
-            // the model.
+            // If its interpreted as infinite, we get a fresh value that does
+            // not occur in the model.
+            // Note we also consider uninterpreted sorts to be infinite here
+            // regardless of whether isInterpretedFinite is true (which is true
+            // for uninterpreted sorts iff finite model finding is enabled).
+            // This is required because the UF solver does not explicitly
+            // assign uninterpreted constants to equivalence classes in its
+            // collectModelValues method. Doing so would have the same effect
+            // as running the code in this case.
             bool success;
             do
             {
@@ -1159,12 +1166,18 @@ Node TheoryEngineModelBuilder::normalize(TheoryModel* m, TNode r, bool evalOnly)
           if (itMap != d_constantReps.end())
           {
             ri = (*itMap).second;
+            Trace("model-builder-debug") << i << ": const child " << ri << std::endl;
             recurse = false;
           }
           else if (!evalOnly)
           {
             recurse = false;
+            Trace("model-builder-debug") << i << ": keep " << ri << std::endl;
           }
+        }
+        else
+        {
+          Trace("model-builder-debug") << i << ": no hasTerm " << ri << std::endl;
         }
         if (recurse)
         {

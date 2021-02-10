@@ -2,7 +2,7 @@
 #####################
 ## sequences.py
 ## Top contributors (to current version):
-##   Andres Noetzli, Makai Mann
+##   Andres Noetzli, Makai Mann, Mudathir Mohamed
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
@@ -42,9 +42,9 @@ if __name__ == "__main__":
     # Sequence length: |x.y.empty|
     concat_len = slv.mkTerm(kinds.SeqLength, concat)
     # |x.y.empty| > 1
-    formula1 = slv.mkTerm(kinds.Gt, concat_len, slv.mkReal(1))
+    formula1 = slv.mkTerm(kinds.Gt, concat_len, slv.mkInteger(1))
     # Sequence unit: seq(1)
-    unit = slv.mkTerm(kinds.SeqUnit, slv.mkReal(1))
+    unit = slv.mkTerm(kinds.SeqUnit, slv.mkInteger(1))
     # x = seq(1)
     formula2 = slv.mkTerm(kinds.Equal, x, unit)
 

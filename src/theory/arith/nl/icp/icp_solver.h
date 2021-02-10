@@ -2,10 +2,10 @@
 /*! \file icp_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Gereon Kremer, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -67,8 +67,8 @@ class ICPSolver
     poly::IntervalAssignment d_assignment;
     /** The origins for the current assignment */
     ContractionOriginManager d_origins;
-    /** The conflict, if any way found. Initially the null node */
-    Node d_conflict;
+    /** The conflict, if any way found. Initially empty */
+    std::vector<Node> d_conflict;
 
     /** Initialized the variable bounds with a variable mapper */
     ICPState(VariableMapper& vm) {}
@@ -80,7 +80,7 @@ class ICPSolver
       d_candidates.clear();
       d_assignment.clear();
       d_origins = ContractionOriginManager();
-      d_conflict = Node();
+      d_conflict.clear();
     }
   };
 

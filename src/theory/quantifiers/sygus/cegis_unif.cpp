@@ -21,7 +21,6 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 
@@ -29,8 +28,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe, SynthConjecture* p)
-    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, p)
+CegisUnif::CegisUnif(QuantifiersEngine* qe,
+                     QuantifiersState& qs,
+                     SynthConjecture* p)
+    : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, qs, p)
 {
 }
 
@@ -398,8 +399,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
-    QuantifiersEngine* qe, SynthConjecture* parent)
-    : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
+    QuantifiersEngine* qe, QuantifiersState& qs, SynthConjecture* parent)
+    : DecisionStrategyFmf(qs.getSatContext(), qe->getValuation()),
       d_qe(qe),
       d_parent(parent)
 {
@@ -464,7 +465,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       Node bvl;
       std::string veName("_virtual_enum_grammar");
       SygusDatatype sdt(veName);
-      TypeNode u = nm->mkSort(veName, ExprManager::SORT_FLAG_PLACEHOLDER);
+      TypeNode u = nm->mkSort(veName, NodeManager::SORT_FLAG_PLACEHOLDER);
       std::set<TypeNode> unresolvedTypes;
       unresolvedTypes.insert(u);
       std::vector<TypeNode> cargsEmpty;

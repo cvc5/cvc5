@@ -46,7 +46,7 @@ Node AbstractValues::mkAbstractValue(TNode n)
     d_abstractValueMap.addSubstitution(val, n);
   }
   // We are supposed to ascribe types to all abstract values that go out.
-  Node ascription = d_nm->mkConst(AscriptionType(n.getType().toType()));
+  Node ascription = d_nm->mkConst(AscriptionType(n.getType()));
   Node retval = d_nm->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
   return retval;
 }

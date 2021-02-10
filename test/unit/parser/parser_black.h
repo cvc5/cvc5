@@ -2,7 +2,7 @@
 /*! \file parser_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Aina Niemetz
+ **   Christopher L. Conway, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -23,6 +23,7 @@
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
+#include "expr/symbol_manager.h"
 #include "options/base_options.h"
 #include "options/language.h"
 #include "options/options.h"
@@ -30,7 +31,6 @@
 #include "parser/parser_builder.h"
 #include "parser/smt2/smt2.h"
 #include "smt/command.h"
-
 
 using namespace CVC4;
 using namespace CVC4::parser;
@@ -70,7 +70,8 @@ class ParserBlack
       //         Debug.on("parser-extra");
       //        cerr << "Testing good input: <<" << goodInput << ">>" << endl;
       //        istringstream stream(goodInputs[i]);
-      Parser* parser = ParserBuilder(d_solver.get(), "test")
+      d_symman.reset(new SymbolManager(d_solver.get()));
+      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                            .withStringInput(goodInput)
                            .withOptions(d_options)
                            .withInputLanguage(d_lang)
@@ -101,7 +102,8 @@ class ParserBlack
     //      cerr << "Testing bad input: '" << badInput << "'\n";
     //      Debug.on("parser");
 
-    Parser* parser = ParserBuilder(d_solver.get(), "test")
+    d_symman.reset(new SymbolManager(d_solver.get()));
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                          .withStringInput(badInput)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
@@ -132,7 +134,8 @@ class ParserBlack
       // Debug.on("parser");
       //        istringstream stream(context + goodBooleanExprs[i]);
 
-      Parser* parser = ParserBuilder(d_solver.get(), "test")
+      d_symman.reset(new SymbolManager(d_solver.get()));
+      Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                            .withStringInput(goodExpr)
                            .withOptions(d_options)
                            .withInputLanguage(d_lang)
@@ -179,7 +182,8 @@ class ParserBlack
     //    Debug.on("parser-extra");
     //      cout << "Testing bad expr: '" << badExpr << "'\n";
 
-    Parser* parser = ParserBuilder(d_solver.get(), "test")
+    d_symman.reset(new SymbolManager(d_solver.get()));
+    Parser* parser = ParserBuilder(d_solver.get(), d_symman.get(), "test")
                          .withStringInput(badExpr)
                          .withOptions(d_options)
                          .withInputLanguage(d_lang)
@@ -206,14 +210,21 @@ class ParserBlack
   void setUp()
   {
     d_options.set(options::parseOnly, true);
+    // ensure the old symbol manager is deleted
+    d_symman.reset(nullptr);
     d_solver.reset(new api::Solver(&d_options));
   }
 
-  void tearDown() { d_solver.reset(nullptr); }
+  void tearDown()
+  {
+    d_symman.reset(nullptr);
+    d_solver.reset(nullptr);
+  }
 
  private:
   InputLanguage d_lang;
   std::unique_ptr<api::Solver> d_solver;
+  std::unique_ptr<SymbolManager> d_symman;
 
 }; /* class ParserBlack */
 
@@ -248,8 +259,6 @@ public:
     tryGoodInput("a : INT = 5; a: INT;"); // decl after define, compatible
     tryGoodInput("a : TYPE; a : INT;"); // ok, sort and variable symbol spaces distinct
     tryGoodInput("a : TYPE; a : INT; b : a;"); // ok except a is both INT and sort `a'
-    //tryGoodInput("a : [0..0]; b : [-5..5]; c : [-1..1]; d : [ _ .._];"); // subranges
-    tryGoodInput("a : [ _..1]; b : [_.. 0]; c :[_..-1];");
     tryGoodInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE cons = null END;");
     tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) | nil END;");
     //tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
@@ -370,7 +379,7 @@ public:
     tryGoodExpr("1.5");
     tryGoodExpr("#xfab09c7");
     tryGoodExpr("#b0001011");
-    tryGoodExpr("(* 5 01)"); // '01' is OK in non-strict mode
+    tryGoodExpr("(* 5 1)");
   }
 
   void testBadSmt2Exprs() {

@@ -105,6 +105,20 @@ bool hasClosure(Node n);
 bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv = true);
+/**
+ * Get the free variables in n, that is, the subterms of n of kind
+ * BOUND_VARIABLE that are not bound in n or occur in scope, adds these to fvs.
+ * @param n The node under investigation
+ * @param fvs The set which free variables are added to
+ * @param scope The scope we are considering.
+ * @param computeFv If this flag is false, then we only return true/false and
+ * do not add to fvs.
+ * @return true iff this node contains a free variable.
+ */
+bool getFreeVariablesScope(TNode n,
+                           std::unordered_set<Node, NodeHashFunction>& fvs,
+                           std::unordered_set<TNode, TNodeHashFunction>& scope,
+                           bool computeFv = true);
 
 /**
  * Get all variables in n.
@@ -132,6 +146,18 @@ void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
+
+/**
+ * For term n, this function collects the subterms of n whose kind is k.
+ * @param n The node under investigation
+ * @param k The kind we are considering
+ * @param topLevel If true, we collect only the top-level subterms with kind k.
+ * @param ts The set which the symbols of n are added to
+ */
+void getKindSubterms(TNode n,
+                     Kind k,
+                     bool topLevel,
+                     std::unordered_set<Node, NodeHashFunction>& ts);
 
 /**
  * For term n, this function collects the operators that occur in n.

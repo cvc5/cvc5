@@ -2,7 +2,7 @@
 /*! \file preprocess_proof_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -28,8 +28,9 @@ PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm,
                                                    PfRule ra,
                                                    PfRule rpp)
     : d_pnm(pnm),
-      d_src(c ? c : &d_context),
-      d_helperProofs(pnm, c ? c : &d_context),
+      d_ctx(c ? c : &d_context),
+      d_src(d_ctx),
+      d_helperProofs(pnm, d_ctx),
       d_inputPf(pnm, nullptr),
       d_name(name),
       d_ra(ra),
@@ -227,7 +228,7 @@ ProofNodeManager* PreprocessProofGenerator::getManager() { return d_pnm; }
 
 LazyCDProof* PreprocessProofGenerator::allocateHelperProof()
 {
-  return d_helperProofs.allocateProof();
+  return d_helperProofs.allocateProof(nullptr, d_ctx);
 }
 
 std::string PreprocessProofGenerator::identify() const { return d_name; }

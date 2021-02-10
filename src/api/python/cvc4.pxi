@@ -664,6 +664,12 @@ cdef class Solver:
         term.cterm = self.csolver.mkPi()
         return term
 
+    def mkInteger(self, val):
+        cdef Term term = Term(self)
+        integer = int(val)
+        term.cterm = self.csolver.mkInteger("{}".format(integer).encode())
+        return term
+
     def mkReal(self, val, den=None):
         cdef Term term = Term(self)
         if den is None:
@@ -691,10 +697,6 @@ cdef class Solver:
         term.cterm = self.csolver.mkEmptySet(s.csort)
         return term
 
-    def mkSingleton(self, Sort s, Term t):
-        cdef Term term = Term(self)
-        term.cterm = self.csolver.mkSingleton(s.csort, t.cterm)
-        return term
 
     def mkSepNil(self, Sort sort):
         cdef Term term = Term(self)
@@ -1088,19 +1090,6 @@ cdef class Solver:
             assertions.append(term)
         return assertions
 
-    def getAssignment(self):
-        '''
-        Gives the assignment of *named* formulas as a dictionary.
-        '''
-        assignments = {}
-        for a in self.csolver.getAssignment():
-            varterm = Term(self)
-            valterm = Term(self)
-            varterm.cterm = a.first
-            valterm.cterm = a.second
-            assignments[varterm] = valterm
-        return assignments
-
     def getInfo(self, str flag):
         return self.csolver.getInfo(flag.encode())
 
@@ -1133,6 +1122,9 @@ cdef class Solver:
         term.cterm = self.csolver.getSeparationHeap()
         return term
 
+    def declareSeparationHeap(self, Sort locType, Sort dataType):
+        self.csolver.declareSeparationHeap(locType.csort, dataType.csort)
+
     def getSeparationNilTerm(self):
         cdef Term term = Term(self)
         term.cterm = self.csolver.getSeparationNilTerm()
@@ -1140,9 +1132,6 @@ cdef class Solver:
 
     def pop(self, nscopes=1):
         self.csolver.pop(nscopes)
-
-    def printModel(self):
-        self.csolver.printModel(cout)
 
     def push(self, nscopes=1):
         self.csolver.push(nscopes)
@@ -1461,9 +1450,6 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
-    def isValue(self):
-        return self.cterm.isValue()
-
     def getConstArrayBase(self):
         cdef Term term = Term(self.solver)
         term.cterm = self.cterm.getConstArrayBase()
@@ -1515,7 +1501,6 @@ cdef class Term:
     def toPythonObj(self):
         '''
         Converts a constant value Term to a Python object.
-        Requires isValue to hold.
 
         Currently supports:
           Boolean -- returns a Python bool
@@ -1526,9 +1511,6 @@ cdef class Term:
                   -- the constant base is returned as the default value
           String  -- returns a Python Unicode string
         '''
-
-        if not self.isValue():
-            raise RuntimeError("Cannot call toPythonObj on a non-const Term")
 
         string_repr = self.cterm.toString().decode()
         assert string_repr

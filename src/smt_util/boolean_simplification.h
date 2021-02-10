@@ -23,7 +23,6 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/expr_manager_scope.h"
 #include "expr/node.h"
 
 namespace CVC4 {
@@ -199,18 +198,6 @@ class BooleanSimplification {
     }else{
       return base;
     }
-  }
-
-  /**
-   * Negates an Expr, doing all the double-negation elimination that's
-   * possible.
-   *
-   * @param e the Expr to negate (cannot be the null Expr)
-   */
-  static Expr negate(Expr e)
-  {
-    ExprManagerScope ems(e);
-    return negate(Node::fromExpr(e)).toExpr();
   }
 
   /**

@@ -2,7 +2,7 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -68,8 +68,7 @@ Theory::Theory(TheoryId id,
       d_facts(satContext),
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
-      d_careGraph(NULL),
-      d_quantEngine(NULL),
+      d_careGraph(nullptr),
       d_decManager(nullptr),
       d_instanceName(name),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
@@ -82,6 +81,7 @@ Theory::Theory(TheoryId id,
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
       d_inferManager(nullptr),
+      d_quantEngine(nullptr),
       d_pnm(pnm)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -115,7 +115,6 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
 
 void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 {
-  Assert(d_quantEngine == nullptr);
   // quantifiers engine may be null if not in quantified logic
   d_quantEngine = qe;
 }
@@ -158,10 +157,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
           tid = Theory::theoryOf(node.getType());
         }
       }
-      else if (node.isConst())
-      {
-        tid = Theory::theoryOf(node.getType());
-      }
       else if (node.getKind() == kind::EQUAL)
       {
         // Equality is owned by the theory that owns the domain
@@ -169,7 +164,9 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind. Notice that constants are a
+        // special case here, where the theory of the kind of a constant
+        // always coincides with the type of that constant.
         tid = kindToTheoryId(node.getKind());
       }
       break;
@@ -195,11 +192,6 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
             tid = THEORY_BOOL;
           }
         }
-      }
-      else if (node.isConst())
-      {
-        // Constants go to the theory of the type
-        tid = Theory::theoryOf(node.getType());
       }
       else if (node.getKind() == kind::EQUAL)
       {  // Equality
@@ -260,7 +252,8 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
       }
       else
       {
-        // Regular nodes are owned by the kind
+        // Regular nodes are owned by the kind, which includes constants as a
+        // special case.
         tid = kindToTheoryId(node.getKind());
       }
     break;
@@ -430,6 +423,11 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   d_careGraph = NULL;
 }
 
+bool Theory::proofsEnabled() const
+{
+  return d_pnm != nullptr;
+}
+
 EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
 {
   // if not using an equality engine, then by default we don't know the status
@@ -437,6 +435,7 @@ EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
   {
     return EQUALITY_UNKNOWN;
   }
+  Trace("sharing") << "Theory<" << getId() << ">::getEqualityStatus(" << a << ", " << b << ")" << std::endl;
   Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
 
   // Check for equality (simplest)

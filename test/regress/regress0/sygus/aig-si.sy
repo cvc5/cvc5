@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-si-abort --decision=internal --cegqi --cegqi-prereg-inst --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-si-abort --decision=internal --cegqi --sygus-out=status
 (set-logic BV)
 
 (define-fun parity ((a Bool) (b Bool) (c Bool) (d Bool)) Bool

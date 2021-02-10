@@ -2,7 +2,7 @@
 /*! \file parser_builder_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Aina Niemetz, Tim King
+ **   Christopher L. Conway, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -25,6 +25,7 @@
 #include <iostream>
 
 #include "api/cvc4cpp.h"
+#include "expr/symbol_manager.h"
 #include "options/language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
@@ -37,7 +38,13 @@ using namespace std;
 class ParserBuilderBlack : public CxxTest::TestSuite
 {
  public:
-  void setUp() override { d_solver.reset(new api::Solver()); }
+  void setUp() override
+  {
+    // ensure the old symbol manager is deleted
+    d_symman.reset(nullptr);
+    d_solver.reset(new api::Solver());
+    d_symman.reset(new SymbolManager(d_solver.get()));
+  }
 
   void tearDown() override {}
 
@@ -45,8 +52,8 @@ class ParserBuilderBlack : public CxxTest::TestSuite
   {
     char *filename = mkTemp();
 
-    checkEmptyInput(
-        ParserBuilder(d_solver.get(), filename).withInputLanguage(LANG_CVC4));
+    checkEmptyInput(ParserBuilder(d_solver.get(), d_symman.get(), filename)
+                        .withInputLanguage(LANG_CVC4));
 
     remove(filename);
     free(filename);
@@ -59,35 +66,35 @@ class ParserBuilderBlack : public CxxTest::TestSuite
     fs << "TRUE" << std::endl;
     fs.close();
 
-    checkTrueInput(
-        ParserBuilder(d_solver.get(), filename).withInputLanguage(LANG_CVC4));
+    checkTrueInput(ParserBuilder(d_solver.get(), d_symman.get(), filename)
+                       .withInputLanguage(LANG_CVC4));
 
     remove(filename);
     free(filename);
   }
 
   void testEmptyStringInput() {
-    checkEmptyInput(ParserBuilder(d_solver.get(), "foo")
+    checkEmptyInput(ParserBuilder(d_solver.get(), d_symman.get(), "foo")
                         .withInputLanguage(LANG_CVC4)
                         .withStringInput(""));
   }
 
   void testTrueStringInput() {
-    checkTrueInput(ParserBuilder(d_solver.get(), "foo")
+    checkTrueInput(ParserBuilder(d_solver.get(), d_symman.get(), "foo")
                        .withInputLanguage(LANG_CVC4)
                        .withStringInput("TRUE"));
   }
 
   void testEmptyStreamInput() {
     stringstream ss( "", ios_base::in );
-    checkEmptyInput(ParserBuilder(d_solver.get(), "foo")
+    checkEmptyInput(ParserBuilder(d_solver.get(), d_symman.get(), "foo")
                         .withInputLanguage(LANG_CVC4)
                         .withStreamInput(ss));
   }
 
   void testTrueStreamInput() {
     stringstream ss( "TRUE", ios_base::in );
-    checkTrueInput(ParserBuilder(d_solver.get(), "foo")
+    checkTrueInput(ParserBuilder(d_solver.get(), d_symman.get(), "foo")
                        .withInputLanguage(LANG_CVC4)
                        .withStreamInput(ss));
   }
@@ -127,5 +134,6 @@ class ParserBuilderBlack : public CxxTest::TestSuite
   }
 
   std::unique_ptr<api::Solver> d_solver;
+  std::unique_ptr<SymbolManager> d_symman;
 
 }; // class ParserBuilderBlack

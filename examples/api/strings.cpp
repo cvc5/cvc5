@@ -2,7 +2,7 @@
 /*! \file strings.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Tianyi Liang, Andres Noetzli
+ **   Aina Niemetz, Tianyi Liang, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -56,7 +56,7 @@ int main()
   // Length of y: |y|
   Term leny = slv.mkTerm(STRING_LENGTH, y);
   // |y| >= 0
-  Term formula2 = slv.mkTerm(GEQ, leny, slv.mkReal(0));
+  Term formula2 = slv.mkTerm(GEQ, leny, slv.mkInteger(0));
 
   // Regular expression: (ab[c-e]*f)|g|h
   Term r = slv.mkTerm(REGEXP_UNION,

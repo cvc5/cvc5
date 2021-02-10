@@ -2,7 +2,7 @@
 /*! \file sygus-grammar.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed
+ **   Abdalrhman Mohamed, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -69,7 +69,7 @@ int main()
   Term start = slv.mkVar(integer, "Start");
 
   // define the rules
-  Term zero = slv.mkReal(0);
+  Term zero = slv.mkInteger(0);
   Term neg_x = slv.mkTerm(UMINUS, x);
   Term plus = slv.mkTerm(PLUS, x, start);
 

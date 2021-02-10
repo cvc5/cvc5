@@ -5,7 +5,7 @@
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -114,8 +114,10 @@ void InferenceManager::convert(PfRule& id,
       break;
     case PfRule::ARRAYS_EXT: children.push_back(exp); break;
     default:
-      // unknown rule, should never happen
-      Assert(false);
+      if (id != PfRule::ARRAYS_TRUST)
+      {
+        Assert(false) << "Unknown rule " << id << "\n";
+      }
       children.push_back(exp);
       args.push_back(conc);
       id = PfRule::ARRAYS_TRUST;

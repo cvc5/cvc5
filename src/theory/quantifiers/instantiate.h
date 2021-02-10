@@ -78,7 +78,7 @@ class InstantiationRewriter
  *
  * Its main interface is ::addInstantiation(...), which is called by many of
  * the quantifiers modules, which enqueues instantiation lemmas in quantifiers
- * engine via calls to QuantifiersEngine::addLemma.
+ * engine via calls to QuantifiersInferenceManager::addPendingLemma.
  *
  * It also has utilities for constructing instantiations, and interfaces for
  * getting the results of the instantiations produced during check-sat calls.
@@ -89,7 +89,8 @@ class Instantiate : public QuantifiersUtil
 
  public:
   Instantiate(QuantifiersEngine* qe,
-              context::UserContext* u,
+              QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -117,7 +118,7 @@ class Instantiate : public QuantifiersUtil
    *
    * This function returns true if the instantiation lemma for quantified
    * formula q for the substitution specified by m is successfully enqueued
-   * via a call to QuantifiersEngine::addLemma.
+   * via a call to QuantifiersInferenceManager::addPendingLemma.
    *   mkRep : whether to take the representatives of the terms in the range of
    *           the substitution m,
    *   modEq : whether to check for duplication modulo equality in instantiation
@@ -223,13 +224,6 @@ class Instantiate : public QuantifiersUtil
   void debugPrintModel();
 
   //--------------------------------------user-level interface utilities
-  /** print instantiations
-   *
-   * Print all instantiations for all quantified formulas on out,
-   * returns true if at least one instantiation was printed. The type of output
-   * (list, num, etc.) is determined by printInstMode.
-   */
-  bool printInstantiations(std::ostream& out);
   /** get instantiated quantified formulas
    *
    * Get the list of quantified formulas that were instantiated in the current
@@ -274,11 +268,11 @@ class Instantiate : public QuantifiersUtil
   Node getInstantiatedConjunction(Node q);
   /** get unsat core lemmas
    *
-   * If this method returns true, then it appends to active_lemmas all lemmas
+   * If this method returns true, then it appends to activeLemmas all lemmas
    * that are in the unsat core that originated from the theory of quantifiers.
    * This method returns false if the unsat core is not available.
    */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
+  bool getUnsatCoreLemmas(std::vector<Node>& activeLemmas);
   /** get explanation for instantiation lemmas
    *
    *
@@ -328,19 +322,13 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
-  /** print instantiations in list format */
-  bool printInstantiationsList(std::ostream& out);
-  /** print instantiations in num format */
-  bool printInstantiationsNum(std::ostream& out);
-  /**
-   * Print quantified formula q on output out. If isFull is false, then we print
-   * the identifier of the quantified formula if it has one, or print
-   * nothing and return false otherwise.
-   */
-  bool printQuant(Node q, std::ostream& out, bool isFull);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */

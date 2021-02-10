@@ -19,8 +19,6 @@
 #ifndef CVC4__SAT__PROOF_H
 #define CVC4__SAT__PROOF_H
 
-#include <stdint.h>
-
 #include <iosfwd>
 #include <set>
 #include <sstream>
@@ -29,7 +27,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdmaybe.h"
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
 #include "util/statistics_registry.h"

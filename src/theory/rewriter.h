@@ -83,15 +83,12 @@ class Rewriter {
    * to setProofNodeManager prior to this call.
    *
    * @param node The node to rewrite.
-   * @param elimTheoryRewrite Whether we also want fine-grained proofs for
-   * THEORY_REWRITE steps.
    * @param isExtEq Whether node is an equality which we are applying
    * rewriteEqualityExt on.
    * @return The trust node of kind TrustNodeKind::REWRITE that contains the
    * rewritten form of node.
    */
   TrustNode rewriteWithProof(TNode node,
-                             bool elimTheoryRewrite = false,
                              bool isExtEq = false);
 
   /** Set proof node manager */
@@ -203,8 +200,6 @@ class Rewriter {
 
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
-
-  unsigned long d_iterationCount = 0;
 
   /** Rewriter table for prewrites. Maps kinds to rewriter function. */
   std::function<RewriteResponse(RewriteEnvironment*, TNode)>

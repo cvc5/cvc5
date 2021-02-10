@@ -173,11 +173,11 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
         Term mkPi() except +
+        Term mkInteger(const string& s) except +
         Term mkReal(const string& s) except +
         Term mkRegexpEmpty() except +
         Term mkRegexpSigma() except +
         Term mkEmptySet(Sort s) except +
-        Term mkSingleton(Sort s, Term t) except +
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
         Term mkString(const vector[unsigned]& s) except +
@@ -229,17 +229,16 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
                            vector[Term]& terms, bint glbl) except +
         vector[Term] getAssertions() except +
-        vector[pair[Term, Term]] getAssignment() except +
         string getInfo(const string& flag) except +
         string getOption(string& option) except +
         vector[Term] getUnsatAssumptions() except +
         vector[Term] getUnsatCore() except +
         Term getValue(Term term) except +
         vector[Term] getValue(const vector[Term]& terms) except +
+        void declareSeparationHeap(Sort locSort, Sort dataSort) except +
         Term getSeparationHeap() except +
         Term getSeparationNilTerm() except +
         void pop(uint32_t nscopes) except +
-        void printModel(ostream& out)
         void push(uint32_t nscopes) except +
         void reset() except +
         void resetAssertions() except +
@@ -330,7 +329,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +
-        bint isValue() except +
         Term getConstArrayBase() except +
         vector[Term] getConstSequenceElements() except +
         Term notTerm() except +

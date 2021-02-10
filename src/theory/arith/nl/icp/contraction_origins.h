@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -80,7 +80,7 @@ class ContractionOriginManager
   /**
    * Collect all theory atoms from the origins of the given variable.
    */
-  Node getOrigins(const Node& variable) const;
+  std::vector<Node> getOrigins(const Node& variable) const;
 
   /** Check whether a node c is among the origins of a variable. */
   bool isInOrigins(const Node& variable, const Node& c) const;

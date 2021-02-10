@@ -2,7 +2,7 @@
 /*! \file theory_test_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
+ **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -77,26 +77,18 @@ public:
     return true;
   }
 
-  LemmaStatus lemma(TNode n, LemmaProperty p) override
-  {
-    push(LEMMA, n);
-    return LemmaStatus(Node::null(), 0);
-  }
+  void lemma(TNode n, LemmaProperty p) override { push(LEMMA, n); }
 
-  LemmaStatus trustedLemma(TrustNode n, LemmaProperty p) override
+  void trustedLemma(TrustNode n, LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
-    return LemmaStatus(Node::null(), 0);
   }
 
   void requirePhase(TNode, bool) override {}
   void setIncomplete() override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 
-  LemmaStatus splitLemma(TNode n, bool removable = false) override {
-    push(LEMMA, n);
-    return LemmaStatus(Node::null(), 0);
-  }
+  void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }
 
   void clear() { d_callHistory.clear(); }
 

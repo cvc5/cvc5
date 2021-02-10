@@ -2,7 +2,7 @@
 /*! \file integer_gmp_imp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Liana Hadarean
+ **   Aina Niemetz, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -403,7 +403,7 @@ unsigned int Integer::getUnsignedInt() const
                 this,
                 "Overflow detected in Integer::getUnsignedInt()");
   CheckArgument(
-      fitsSignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
+      fitsUnsignedInt(), this, "Overflow detected in Integer::getUnsignedInt()");
   return (unsigned int)d_value.get_ui();
 }
 

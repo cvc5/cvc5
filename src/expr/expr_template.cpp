@@ -208,16 +208,11 @@ private:
             NodeManagerScope to_nms(to_nm);
             to_e = nn.toExpr();
           } else if(n.getKind() == kind::VARIABLE) {
-            bool isGlobal;
-            Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
-
             // Temporarily set the node manager to nullptr; this gets around
             // a check that mkVar isn't called internally
             NodeManagerScope nullScope(nullptr);
             to_e = d_to->mkVar(name,
-                               type,
-                               isGlobal ? ExprManager::VAR_FLAG_GLOBAL
-                                        : d_flags);  // FIXME thread safety
+                               type);  // FIXME thread safety
           } else if(n.getKind() == kind::SKOLEM) {
             // skolems are only available at the Node level (not the Expr level)
             TypeNode typeNode = TypeNode::fromType(type);
@@ -593,10 +588,13 @@ bool Expr::hasFreeVariable() const
   return expr::hasFreeVar(*d_node);
 }
 
-void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,
-                    OutputLanguage language) const {
+void Expr::toStream(std::ostream& out,
+                    int depth,
+                    size_t dag,
+                    OutputLanguage language) const
+{
   ExprManagerScope ems(*this);
-  d_node->toStream(out, depth, types, dag, language);
+  d_node->toStream(out, depth, dag, language);
 }
 
 Node Expr::getNode() const { return *d_node; }

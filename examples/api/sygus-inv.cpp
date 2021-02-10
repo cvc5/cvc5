@@ -2,7 +2,7 @@
 /*! \file sygus-inv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed
+ **   Abdalrhman Mohamed, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -53,9 +53,9 @@ int main()
   Sort integer = slv.getIntegerSort();
   Sort boolean = slv.getBooleanSort();
 
-  Term zero = slv.mkReal(0);
-  Term one = slv.mkReal(1);
-  Term ten = slv.mkReal(10);
+  Term zero = slv.mkInteger(0);
+  Term one = slv.mkInteger(1);
+  Term ten = slv.mkInteger(10);
 
   // declare input variables for functions
   Term x = slv.mkVar(integer, "x");

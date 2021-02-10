@@ -2,7 +2,7 @@
 /*! \file theory_sep.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Tim King, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -24,7 +24,6 @@
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -69,6 +68,22 @@ TheorySep::~TheorySep() {
   }
 }
 
+void TheorySep::declareSepHeap(TypeNode locT, TypeNode dataT)
+{
+  if (!d_type_ref.isNull())
+  {
+    TypeNode te1 = d_loc_to_data_type.begin()->first;
+    std::stringstream ss;
+    ss << "ERROR: cannot declare heap types for separation logic more than "
+          "once.  We are declaring heap of type ";
+    ss << locT << " -> " << dataT << ", but we already have ";
+    ss << d_type_ref << " -> " << d_type_data;
+    throw LogicException(ss.str());
+  }
+  Node nullAtom;
+  registerRefDataTypes(locT, dataT, nullAtom);
+}
+
 TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
 
 bool TheorySep::needsEqualityEngine(EeSetupInfo& esi)
@@ -84,6 +99,15 @@ void TheorySep::finishInit()
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::SEP_PTO);
   // we could but don't do congruence on SEP_STAR here.
+}
+
+void TheorySep::preRegisterTerm(TNode n)
+{
+  Kind k = n.getKind();
+  if (k == SEP_PTO || k == SEP_EMP || k == SEP_STAR || k == SEP_WAND)
+  {
+    registerRefDataTypesAtom(n);
+  }
 }
 
 Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
@@ -239,7 +263,6 @@ void TheorySep::postProcessModel( TheoryModel* m ){
 
 void TheorySep::presolve() {
   Trace("sep-pp") << "Presolving" << std::endl;
-  //TODO: cleanup if incremental?
 }
 
 
@@ -731,7 +754,7 @@ void TheorySep::postCheck(Effort level)
 
       // get model values
       std::map<int, Node> mvals;
-      for (const std::pair<int, Node>& sub_element : d_label_map[satom][slbl])
+      for (const std::pair<const int, Node>& sub_element : d_label_map[satom][slbl])
       {
         int sub_index = sub_element.first;
         Node sub_lbl = sub_element.second;
@@ -966,22 +989,6 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
       d_loc_to_data_type[d_type_ref] = d_type_data;
     }
   }
-  // initialize the EPR utility
-  QuantifiersEngine* qe = getQuantifiersEngine();
-  if (qe != nullptr)
-  {
-    quantifiers::QuantEPR* qepr = qe->getQuantEPR();
-    if (qepr != nullptr)
-    {
-      for (const Node& a : assertions)
-      {
-        qepr->registerAssertion(a);
-      }
-      // must handle sources of other new constants e.g. separation logic
-      initializeBounds();
-      qepr->finishInit();
-    }
-  }
 }
 
 //return cardinality
@@ -994,9 +1001,7 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
   if( it==visited[index].end() ){
     Trace("sep-pp-debug") << "process assertion : " << n << ", index = " << index << std::endl;
     if( n.getKind()==kind::SEP_EMP ){
-      TypeNode tn = n[0].getType();
-      TypeNode tnd = n[1].getType();
-      registerRefDataTypes( tn, tnd, n );
+      registerRefDataTypesAtom(n);
       if( hasPol && pol ){
         references[index][n].clear();
         references_strict[index][n] = true; 
@@ -1004,18 +1009,14 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
         card = 1;
       }
     }else if( n.getKind()==kind::SEP_PTO ){
-      TypeNode tn1 = n[0].getType();
-      TypeNode tn2 = n[1].getType();
-      registerRefDataTypes( tn1, tn2, n );
+      registerRefDataTypesAtom(n);
       if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
+        TypeNode tn1 = n[0].getType();
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
-          if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
-            // still valid : bound on heap models will include Herbrand universe of n[0].getType()
-            d_bound_kind[tn1] = bound_herbrand;
-          }else{
-            d_bound_kind[tn1] = bound_invalid;
-            Trace("sep-bound") << "reference cannot be bound (due to quantified pto)." << std::endl;
-          }
+          d_bound_kind[tn1] = bound_invalid;
+          Trace("sep-bound")
+              << "reference cannot be bound (due to quantified pto)."
+              << std::endl;
         }
       }else{
         references[index][n].push_back( n[0] );
@@ -1118,49 +1119,62 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
   return card;
 }
 
-void TheorySep::registerRefDataTypes( TypeNode tn1, TypeNode tn2, Node atom ){
-  //separation logic is effectively enabled when we find at least one spatial constraint occurs in the input
-  if( options::incrementalSolving() ){
+void TheorySep::registerRefDataTypesAtom(Node atom)
+{
+  TypeNode tn1;
+  TypeNode tn2;
+  Kind k = atom.getKind();
+  if (k == SEP_PTO || k == SEP_EMP)
+  {
+    tn1 = atom[0].getType();
+    tn2 = atom[1].getType();
+  }
+  else
+  {
+    Assert(k == SEP_STAR || k == SEP_WAND);
+  }
+  registerRefDataTypes(tn1, tn2, atom);
+}
+
+void TheorySep::registerRefDataTypes(TypeNode tn1, TypeNode tn2, Node atom)
+{
+  if (!d_type_ref.isNull())
+  {
+    Assert(!atom.isNull());
+    // already declared, ensure compatible
+    if ((!tn1.isNull() && !tn1.isComparableTo(d_type_ref))
+        || (!tn2.isNull() && !tn2.isComparableTo(d_type_data)))
+    {
+      std::stringstream ss;
+      ss << "ERROR: the separation logic heap type has already been set to "
+         << d_type_ref << " -> " << d_type_data
+         << " but we have a constraint that uses different heap types, "
+            "offending atom is "
+         << atom << " with associated heap type " << tn1 << " -> " << tn2
+         << std::endl;
+    }
+    return;
+  }
+  // if not declared yet, and we have a separation logic constraint, throw
+  // an error.
+  if (!atom.isNull())
+  {
     std::stringstream ss;
-    ss << "ERROR: cannot use separation logic in incremental mode." << std::endl;
+    // error, heap not declared
+    ss << "ERROR: the type of the separation logic heap has not been declared "
+          "(e.g. via a declare-heap command), and we have a separation logic "
+          "constraint "
+       << atom << std::endl;
     throw LogicException(ss.str());
   }
-  std::map< TypeNode, TypeNode >::iterator itt = d_loc_to_data_type.find( tn1 );
-  if( itt==d_loc_to_data_type.end() ){
-    if( !d_loc_to_data_type.empty() ){
-      TypeNode te1 = d_loc_to_data_type.begin()->first;
-      std::stringstream ss;
-      ss << "ERROR: specifying heap constraints for two different types : " << tn1 << " -> " << tn2 << " and " << te1 << " -> " << d_loc_to_data_type[te1] << std::endl;
-      throw LogicException(ss.str());
-      Assert(false);
-    }
-    if( tn2.isNull() ){
-      Trace("sep-type") << "Sep: assume location type " << tn1 << " (from " << atom << ")" << std::endl;
-    }else{
-      Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
-    }
-    d_loc_to_data_type[tn1] = tn2;
-    //for now, we only allow heap constraints of one type
-    d_type_ref = tn1;
-    d_type_data = tn2;
-    d_bound_kind[tn1] = bound_default;
-  }else{
-    if( !tn2.isNull() ){
-      if( itt->second!=tn2 ){
-        if( itt->second.isNull() ){
-          Trace("sep-type") << "Sep: assume location type " << tn1 << " is associated with data type " << tn2 << " (from " << atom << ")" << std::endl;
-          //now we know data type
-          d_loc_to_data_type[tn1] = tn2;
-          d_type_data = tn2;
-        }else{
-          std::stringstream ss;
-          ss << "ERROR: location type " << tn1 << " is already associated with data type " << itt->second << ", offending atom is " << atom << " with data type " << tn2 << std::endl;
-          throw LogicException(ss.str());
-          Assert(false);
-        }
-      }
-    }
-  }
+  // otherwise set it
+  Trace("sep-type") << "Sep: assume location type " << tn1
+                    << " is associated with data type " << tn2 << std::endl;
+  d_loc_to_data_type[tn1] = tn2;
+  // for now, we only allow heap constraints of one type
+  d_type_ref = tn1;
+  d_type_data = tn2;
+  d_bound_kind[tn1] = bound_default;
 }
 
 void TheorySep::initializeBounds() {
@@ -1170,24 +1184,6 @@ void TheorySep::initializeBounds() {
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
-      quantifiers::QuantEPR* qepr = getLogicInfo().isQuantified()
-                                        ? getQuantifiersEngine()->getQuantEPR()
-                                        : NULL;
-      //if pto had free variable reference      
-      if( d_bound_kind[tn]==bound_herbrand ){
-        //include Herbrand universe of tn
-        if( qepr && qepr->isEPR( tn ) ){
-          for( unsigned j=0; j<qepr->d_consts[tn].size(); j++ ){
-            Node k = qepr->d_consts[tn][j];
-            if( std::find( d_type_references[tn].begin(), d_type_references[tn].end(), k )==d_type_references[tn].end() ){
-              d_type_references[tn].push_back( k );
-            }
-          }
-        }else{
-          d_bound_kind[tn] = bound_invalid;
-          Trace("sep-bound") << "reference cannot be bound (due to non-EPR variable)." << std::endl;
-        }
-      }
       unsigned n_emp = 0;
       if( d_bound_kind[tn] != bound_invalid ){
         n_emp = d_card_max[tn];  
@@ -1202,18 +1198,7 @@ void TheorySep::initializeBounds() {
         Node e = NodeManager::currentNM()->mkSkolem( "e", tn, "cardinality bound element for seplog" );
         d_type_references_card[tn].push_back( e );
         d_type_ref_card_id[e] = r;
-        //must include this constant back into EPR handling
-        if( qepr && qepr->isEPR( tn ) ){
-          qepr->addEPRConstant( tn, e );
-        }
       }
-      //EPR must include nil ref    
-      if( qepr && qepr->isEPR( tn ) ){
-        Node nr = getNilRef( tn );
-        if( !qepr->isEPRConstant( tn, nr ) ){
-          qepr->addEPRConstant( tn, nr );
-        }
-      }      
     }
   }
 }

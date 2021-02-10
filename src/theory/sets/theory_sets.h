@@ -76,7 +76,14 @@ class TheorySets : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
+  /**  Expand partial operators (choose) from n. */
   TrustNode expandDefinition(Node n) override;
+  /**
+   * If the sets-ext option is not set and we have an extended operator,
+   * we throw an exception. Additionally, we expand operators like choose
+   * and is_singleton.
+   */
+  TrustNode ppRewrite(TNode n) override;
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
   void presolve() override;

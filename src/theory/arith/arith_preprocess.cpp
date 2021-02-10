@@ -25,7 +25,10 @@ ArithPreprocess::ArithPreprocess(ArithState& state,
     : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
 {
 }
-TrustNode ArithPreprocess::eliminate(TNode n) { return d_opElim.eliminate(n); }
+TrustNode ArithPreprocess::eliminate(TNode n, bool partialOnly)
+{
+  return d_opElim.eliminate(n, partialOnly);
+}
 bool ArithPreprocess::reduceAssertion(TNode atom)
 {
   context::CDHashMap<Node, bool, NodeHashFunction>::const_iterator it =
@@ -46,7 +49,7 @@ bool ArithPreprocess::reduceAssertion(TNode atom)
   // tn is of kind REWRITE, turn this into a LEMMA here
   TrustNode tlem = TrustNode::mkTrustLemma(tn.getProven(), tn.getGenerator());
   // must preprocess
-  d_im.trustedLemma(tlem, LemmaProperty::PREPROCESS);
+  d_im.trustedLemma(tlem);
   // mark the atom as reduced
   d_reduced[atom] = true;
   return true;

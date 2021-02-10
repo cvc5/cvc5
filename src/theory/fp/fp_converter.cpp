@@ -13,10 +13,12 @@
  **/
 
 #include "theory/fp/fp_converter.h"
-#include "theory/theory.h"
-// theory.h Only needed for the leaf test
 
 #include <vector>
+
+#include "theory/theory.h"  // theory.h Only needed for the leaf test
+#include "util/floatingpoint.h"
+#include "util/floatingpoint_literal_symfpu.h"
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -753,17 +755,19 @@ TypeNode floatingPointTypeInfo::getTypeNode(void) const
 }
 
 FpConverter::FpConverter(context::UserContext* user)
-    :
+    : d_additionalAssertions(user)
 #ifdef CVC4_USE_SYMFPU
+      ,
       d_fpMap(user),
       d_rmMap(user),
       d_boolMap(user),
       d_ubvMap(user),
-      d_sbvMap(user),
+      d_sbvMap(user)
 #endif
-      d_additionalAssertions(user)
 {
 }
+
+FpConverter::~FpConverter() {}
 
 #ifdef CVC4_USE_SYMFPU
 Node FpConverter::ufToNode(const fpt &format, const uf &u) const
@@ -797,17 +801,17 @@ Node FpConverter::rmToNode(const rm &r) const
   Node value = nm->mkNode(
       kind::ITE,
       nm->mkNode(kind::EQUAL, transVar, RNE),
-      nm->mkConst(roundNearestTiesToEven),
+      nm->mkConst(ROUND_NEAREST_TIES_TO_EVEN),
       nm->mkNode(kind::ITE,
                  nm->mkNode(kind::EQUAL, transVar, RNA),
-                 nm->mkConst(roundNearestTiesToAway),
+                 nm->mkConst(ROUND_NEAREST_TIES_TO_AWAY),
                  nm->mkNode(kind::ITE,
                             nm->mkNode(kind::EQUAL, transVar, RTP),
-                            nm->mkConst(roundTowardPositive),
+                            nm->mkConst(ROUND_TOWARD_POSITIVE),
                             nm->mkNode(kind::ITE,
                                        nm->mkNode(kind::EQUAL, transVar, RTN),
-                                       nm->mkConst(roundTowardNegative),
-                                       nm->mkConst(roundTowardZero)))));
+                                       nm->mkConst(ROUND_TOWARD_NEGATIVE),
+                                       nm->mkConst(ROUND_TOWARD_ZERO)))));
   return value;
 }
 
@@ -875,19 +879,19 @@ Node FpConverter::convert(TNode node)
             /******** Constants ********/
             switch (current.getConst<RoundingMode>())
             {
-              case roundNearestTiesToEven:
+              case ROUND_NEAREST_TIES_TO_EVEN:
                 d_rmMap.insert(current, traits::RNE());
                 break;
-              case roundNearestTiesToAway:
+              case ROUND_NEAREST_TIES_TO_AWAY:
                 d_rmMap.insert(current, traits::RNA());
                 break;
-              case roundTowardPositive:
+              case ROUND_TOWARD_POSITIVE:
                 d_rmMap.insert(current, traits::RTP());
                 break;
-              case roundTowardNegative:
+              case ROUND_TOWARD_NEGATIVE:
                 d_rmMap.insert(current, traits::RTN());
                 break;
-              case roundTowardZero:
+              case ROUND_TOWARD_ZERO:
                 d_rmMap.insert(current, traits::RTZ());
                 break;
               default: Unreachable() << "Unknown rounding mode"; break;
@@ -919,9 +923,11 @@ Node FpConverter::convert(TNode node)
           if (current.getKind() == kind::CONST_FLOATINGPOINT)
           {
             /******** Constants ********/
-            d_fpMap.insert(current,
-                           symfpu::unpackedFloat<traits>(
-                               current.getConst<FloatingPoint>().getLiteral()));
+            d_fpMap.insert(
+                current,
+                symfpu::unpackedFloat<traits>(current.getConst<FloatingPoint>()
+                                                  .getLiteral()
+                                                  ->getSymUF()));
           }
           else
           {
@@ -1578,7 +1584,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToUBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               ubv(current[2])));
             i = d_ubvMap.find(current);
           }
@@ -1620,7 +1626,7 @@ Node FpConverter::convert(TNode node)
                             symfpu::convertFloatToSBV<traits>(fpt(childType),
                                                               (*mode).second,
                                                               (*arg1).second,
-                                                              info.bvs,
+                                                              info.d_bv_size,
                                                               sbv(current[2])));
 
             i = d_sbvMap.find(current);
@@ -1711,43 +1717,23 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 #ifdef CVC4_USE_SYMFPU
   TypeNode t(var.getType());
 
+  Assert(t.isRoundingMode() || t.isFloatingPoint())
+      << "Asking for the value of a type that is not managed by the "
+         "floating-point theory";
+
   if (t.isRoundingMode())
   {
     rmMap::const_iterator i(d_rmMap.find(var));
 
-    if (i == d_rmMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = rmToNode((*i).second);
-      return value;
-    }
+    Assert(i != d_rmMap.end())
+        << "Asking for the value of an unregistered expression";
+    return rmToNode((*i).second);
   }
-  else if (t.isFloatingPoint())
-  {
-    fpMap::const_iterator i(d_fpMap.find(var));
+  fpMap::const_iterator i(d_fpMap.find(var));
 
-    if (i == d_fpMap.end())
-    {
-      Unreachable() << "Asking for the value of an unregistered expression";
-    }
-    else
-    {
-      Node value = ufToNode(fpt(t), (*i).second);
-      return value;
-    }
-  }
-  else
-  {
-    Unreachable()
-        << "Asking for the value of a type that is not managed by the "
-           "floating-point theory";
-  }
-
-  Unreachable() << "Unable to find value";
-
+  Assert(i != d_fpMap.end())
+      << "Asking for the value of an unregistered expression";
+  return ufToNode(fpt(t), (*i).second);
 #else
   Unimplemented() << "Conversion is dependent on SymFPU";
 #endif

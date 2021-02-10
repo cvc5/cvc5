@@ -16,6 +16,8 @@
 #include "theory/bv/theory_bv.h"
 
 #include "options/bv_options.h"
+#include "options/smt_options.h"
+#include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -41,13 +43,17 @@ TheoryBV::TheoryBV(context::Context* c,
 {
   switch (options::bvSolver())
   {
+    case options::BVSolver::BITBLAST:
+      d_internal.reset(new BVSolverBitblast(&d_state, d_inferMgr, pnm));
+      break;
+
     case options::BVSolver::LAZY:
       d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
       break;
 
     default:
       AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
-      d_internal.reset(new BVSolverSimple(d_state, d_inferMgr));
+      d_internal.reset(new BVSolverSimple(&d_state, d_inferMgr, pnm));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_inferMgr;
@@ -69,6 +75,44 @@ void TheoryBV::finishInit()
   getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
   getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
   d_internal->finishInit();
+
+  eq::EqualityEngine* ee = getEqualityEngine();
+  if (ee)
+  {
+    // The kinds we are treating as function application in congruence
+    ee->addFunctionKind(kind::BITVECTOR_CONCAT, true);
+    //    ee->addFunctionKind(kind::BITVECTOR_AND);
+    //    ee->addFunctionKind(kind::BITVECTOR_OR);
+    //    ee->addFunctionKind(kind::BITVECTOR_XOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_NOT);
+    //    ee->addFunctionKind(kind::BITVECTOR_NAND);
+    //    ee->addFunctionKind(kind::BITVECTOR_NOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_COMP);
+    ee->addFunctionKind(kind::BITVECTOR_MULT, true);
+    ee->addFunctionKind(kind::BITVECTOR_PLUS, true);
+    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
+    //    ee->addFunctionKind(kind::BITVECTOR_SUB);
+    //    ee->addFunctionKind(kind::BITVECTOR_NEG);
+    //    ee->addFunctionKind(kind::BITVECTOR_UDIV);
+    //    ee->addFunctionKind(kind::BITVECTOR_UREM);
+    //    ee->addFunctionKind(kind::BITVECTOR_SDIV);
+    //    ee->addFunctionKind(kind::BITVECTOR_SREM);
+    //    ee->addFunctionKind(kind::BITVECTOR_SMOD);
+    //    ee->addFunctionKind(kind::BITVECTOR_SHL);
+    //    ee->addFunctionKind(kind::BITVECTOR_LSHR);
+    //    ee->addFunctionKind(kind::BITVECTOR_ASHR);
+    //    ee->addFunctionKind(kind::BITVECTOR_ULT);
+    //    ee->addFunctionKind(kind::BITVECTOR_ULE);
+    //    ee->addFunctionKind(kind::BITVECTOR_UGT);
+    //    ee->addFunctionKind(kind::BITVECTOR_UGE);
+    //    ee->addFunctionKind(kind::BITVECTOR_SLT);
+    //    ee->addFunctionKind(kind::BITVECTOR_SLE);
+    //    ee->addFunctionKind(kind::BITVECTOR_SGT);
+    //    ee->addFunctionKind(kind::BITVECTOR_SGE);
+    ee->addFunctionKind(kind::BITVECTOR_TO_NAT);
+    ee->addFunctionKind(kind::INT_TO_BITVECTOR);
+  }
 }
 
 Node TheoryBV::getUFDivByZero(Kind k, unsigned width)
@@ -129,27 +173,12 @@ TrustNode TheoryBV::expandDefinition(Node node)
     case kind::BITVECTOR_UREM:
     {
       NodeManager* nm = NodeManager::currentNM();
-      unsigned width = node.getType().getBitVectorSize();
 
-      if (options::bitvectorDivByZeroConst())
-      {
-        Kind kind = node.getKind() == kind::BITVECTOR_UDIV
-                        ? kind::BITVECTOR_UDIV_TOTAL
-                        : kind::BITVECTOR_UREM_TOTAL;
-        ret = nm->mkNode(kind, node[0], node[1]);
-        break;
-      }
-
-      TNode num = node[0], den = node[1];
-      Node den_eq_0 = nm->mkNode(kind::EQUAL, den, utils::mkZero(width));
-      Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV
-                                           ? kind::BITVECTOR_UDIV_TOTAL
-                                           : kind::BITVECTOR_UREM_TOTAL,
-                                       num,
-                                       den);
-      Node divByZero = getUFDivByZero(node.getKind(), width);
-      Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-      ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
+      Kind kind = node.getKind() == kind::BITVECTOR_UDIV
+                      ? kind::BITVECTOR_UDIV_TOTAL
+                      : kind::BITVECTOR_UREM_TOTAL;
+      ret = nm->mkNode(kind, node[0], node[1]);
+      break;
     }
     break;
 
@@ -200,9 +229,23 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t) { return d_internal->ppRewrite(t); }
+TrustNode TheoryBV::ppRewrite(TNode t)
+{
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(t);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
+  return d_internal->ppRewrite(t);
+}
 
 void TheoryBV::presolve() { d_internal->presolve(); }
+
+EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
+{
+  return d_internal->getEqualityStatus(a, b);
+}
 
 TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
 

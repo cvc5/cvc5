@@ -204,21 +204,21 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 }
 //--------------------------------- end standard check
 
-TrustNode TheoryUF::expandDefinition(Node node)
+TrustNode TheoryUF::ppRewrite(TNode node)
 {
-  Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
-                      << node << std::endl;
+  Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
+                      << std::endl;
   if( node.getKind()==kind::HO_APPLY ){
     if( !options::ufHo() ){
       std::stringstream ss;
       ss << "Partial function applications are not supported in default mode, try --uf-ho.";
       throw LogicException(ss.str());
     }
-    Node ret = d_ho->expandDefinition(node);
+    Node ret = d_ho->ppRewrite(node);
     if (ret != node)
     {
-      Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: "
-                          << node << " to " << ret << std::endl;
+      Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
+                          << " to " << ret << std::endl;
       return TrustNode::mkTrustRewrite(node, ret, nullptr);
     }
   }

@@ -84,13 +84,14 @@ constant CONST_SEQUENCE \
 
 operator SEQ_UNIT 1 "a sequence of length one"
 operator SEQ_NTH 2 "The nth element of a sequence"
+operator SEQ_NTH_TOTAL 2 "The nth element of a sequence (internal, for responses to expand definitions only)"
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
 operator REGEXP_CONCAT 2: "regexp concat"
 operator REGEXP_UNION 2: "regexp union"
 operator REGEXP_INTER 2: "regexp intersection"
-operator REGEXP_DIFF 2: "regexp difference"
+operator REGEXP_DIFF 2 "regexp difference"
 operator REGEXP_STAR 1 "regexp *"
 operator REGEXP_PLUS 1 "regexp +"
 operator REGEXP_OPT 1 "regexp ?"
@@ -171,5 +172,6 @@ typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
 typerule CONST_SEQUENCE ::CVC4::theory::strings::ConstSequenceTypeRule
 typerule SEQ_UNIT ::CVC4::theory::strings::SeqUnitTypeRule
 typerule SEQ_NTH ::CVC4::theory::strings::SeqNthTypeRule
+typerule SEQ_NTH_TOTAL ::CVC4::theory::strings::SeqNthTypeRule
 
 endtheory

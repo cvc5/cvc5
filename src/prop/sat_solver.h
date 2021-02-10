@@ -19,16 +19,15 @@
 #ifndef CVC4__PROP__SAT_SOLVER_H
 #define CVC4__PROP__SAT_SOLVER_H
 
-#include <stdint.h>
-
 #include <string>
 
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
-#include "prop/sat_solver_types.h"
 #include "prop/bv_sat_solver_notify.h"
+#include "prop/sat_solver_types.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -97,6 +96,19 @@ public:
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
 
+  /**
+   * Get list of unsatisfiable assumptions.
+   *
+   * The returned assumptions are a subset of the assumptions provided to
+   * the solve method.
+   * Can only be called if satisfiability check under assumptions was used and
+   * if it returned SAT_VALUE_FALSE.
+   */
+  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  {
+    Unimplemented() << "getUnsatAssumptions not implemented";
+  }
+
 };/* class SatSolver */
 
 
@@ -124,13 +136,15 @@ public:
 
 };/* class BVSatSolverInterface */
 
-class DPLLSatSolverInterface : public SatSolver
+class CDCLTSatSolverInterface : public SatSolver
 {
  public:
-  virtual ~DPLLSatSolverInterface(){};
+  virtual ~CDCLTSatSolverInterface(){};
 
   virtual void initialize(context::Context* context,
-                          prop::TheoryProxy* theoryProxy) = 0;
+                          prop::TheoryProxy* theoryProxy,
+                          CVC4::context::UserContext* userContext,
+                          ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;
 
@@ -147,7 +161,10 @@ class DPLLSatSolverInterface : public SatSolver
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
-}; /* class DPLLSatSolverInterface */
+
+  virtual std::shared_ptr<ProofNode> getProof() = 0;
+
+}; /* class CDCLTSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();

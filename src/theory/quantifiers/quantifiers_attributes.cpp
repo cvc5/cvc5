@@ -18,7 +18,6 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -34,11 +33,8 @@ bool QAttributes::isStandard() const
          && !d_isInternal;
 }
 
-QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 
-d_quantEngine(qe) {
+QuantAttributes::QuantAttributes() {}
 
-}  
-  
 void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if (attr == "fun-def")
@@ -176,13 +172,12 @@ void QuantAttributes::computeAttributes( Node q ) {
   {
     Node f = qa.d_fundef_f;
     if( d_fun_defs.find( f )!=d_fun_defs.end() ){
-      Message() << "Cannot define function " << f << " more than once." << std::endl;
+      CVC4Message() << "Cannot define function " << f << " more than once."
+                    << std::endl;
       AlwaysAssert(false);
     }
     d_fun_defs[f] = true;
   }
-  // set ownership of quantified formula q based on the computed attributes
-  d_quantEngine->setOwner(q, qa);
 }
 
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
@@ -313,6 +308,14 @@ Node QuantAttributes::getQuantName(Node q) const
     return it->second.d_name;
   }
   return Node::null();
+}
+
+std::string QuantAttributes::quantToString(Node q) const
+{
+  std::stringstream ss;
+  Node name = getQuantName(q);
+  ss << (name.isNull() ? q : name);
+  return ss.str();
 }
 
 int QuantAttributes::getQuantIdNum( Node q ) {

@@ -389,6 +389,7 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check reduce comprehensions
     checkReduceComprehensions();
+
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -850,7 +851,17 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
     {
       Node f1 = t1->getData();
       Node f2 = t2->getData();
-      if (!d_state.areEqual(f1, f2))
+
+      // Usually when (= (f x) (f y)), we don't care whether (= x y) is true or
+      // not for the shared variables x, y in the care graph.
+      // However, this does not apply to the membership operator since the
+      // equality or disequality between members affects the number of elements
+      // in a set. Therefore we need to split on (= x y) for kind MEMBER.
+      // Example:
+      // Suppose (= (member x S) member( y, S)) is true and there are
+      // no other members in S. We would get S = {x} if (= x y) is true.
+      // Otherwise we would get S = {x, y}.
+      if (f1.getKind() == MEMBER || !d_state.areEqual(f1, f2))
       {
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
         vector<pair<TNode, TNode> > currentPairs;
@@ -970,7 +981,6 @@ void TheorySetsPrivate::computeCareGraph()
       // populate indices
       for (TNode f1 : it.second)
       {
-        Assert(d_equalityEngine->hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine->hasTerm(f1));
         // break into index based on operator, and type of first argument (since
@@ -1101,6 +1111,9 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
           TypeNode elementType = eqc.getType().getSetElementType();
           for (const std::pair<const Node, Node>& itmm : emems)
           {
+            Trace("sets-model")
+                << "m->getRepresentative(" << itmm.first
+                << ")= " << m->getRepresentative(itmm.first) << std::endl;
             Node t = nm->mkSingleton(elementType, itmm.first);
             els.push_back(t);
           }
@@ -1112,6 +1125,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
         // cardinality
         d_cardSolver->mkModelValueElementsFor(val, eqc, els, mvals, m);
       }
+
       Node rep = NormalForm::mkBop(kind::UNION, els, eqc.getType());
       rep = Rewriter::rewrite(rep);
       Trace("sets-model") << "* Assign representative of " << eqc << " to "
@@ -1123,6 +1137,21 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
       }
       m->assertSkeleton(rep);
 
+      // we add the element terms (singletons) as representatives to tell the
+      // model builder to evaluate them along with their union (rep).
+      // This is needed to account for cases when members and rep are not enough
+      // for the model builder to evaluate set terms.
+      // e.g.
+      // eqc(rep) = [(union (singleton skolem) (singleton 0))]
+      // eqc(skolem) = [0]
+      // The model builder would fail to evaluate rep as (singleton 0)
+      // if (singleton skolem) is not registered as a representative in the
+      // model
+      for (const Node& el : els)
+      {
+        m->assertSkeleton(el);
+      }
+
       Trace("sets-model") << "Set " << eqc << " = { " << traceElements(rep)
                           << " }" << std::endl;
     }
@@ -1133,7 +1162,7 @@ bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
   {
     const std::map<TypeNode, std::vector<TNode> >& slackElements =
         d_cardSolver->getFiniteTypeSlackElements();
-    for (const std::pair<TypeNode, std::vector<TNode> >& pair : slackElements)
+    for (const auto& pair : slackElements)
     {
       const std::vector<Node>& members =
           d_cardSolver->getFiniteTypeMembers(pair.first);
@@ -1238,6 +1267,17 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 TrustNode TheorySetsPrivate::expandDefinition(Node node)
 {
   Debug("sets-proc") << "expandDefinition : " << node << std::endl;
+
+  if (node.getKind()==kind::CHOOSE)
+  {
+    return expandChooseOperator(node);
+  }
+  return TrustNode::null();
+}
+
+TrustNode TheorySetsPrivate::ppRewrite(Node node)
+{
+  Debug("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {

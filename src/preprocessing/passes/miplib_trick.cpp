@@ -2,7 +2,7 @@
 /*! \file miplib_trick.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Tim King, Morgan Deters
+ **   Mathias Preiner, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -19,6 +19,7 @@
 
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
+#include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
@@ -156,7 +157,7 @@ MipLibTrick::~MipLibTrick()
   }
 }
 
-void MipLibTrick::nmNotifyNewVar(TNode n, uint32_t flags)
+void MipLibTrick::nmNotifyNewVar(TNode n)
 {
   if (n.getType().isBoolean())
   {
@@ -180,6 +181,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   Assert(assertionsToPreprocess->getRealAssertionsEnd()
          == assertionsToPreprocess->size());
   Assert(!options::incrementalSolving());
+  Assert(!options::unsatCores());
 
   context::Context fakeContext;
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
@@ -527,10 +529,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
-              if (options::unsatCores())
-              {
-                ProofManager::currentPM()->addDependence(n, Node::null());
-              }
               TrustSubstitutionMap tnullMap(&fakeContext, nullptr);
               CVC4_UNUSED SubstitutionMap& nullMap = tnullMap.get();
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
@@ -599,11 +597,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Debug("miplib") << "  " << newAssertion << endl;
 
           assertionsToPreprocess->push_back(newAssertion);
-          if (options::unsatCores())
-          {
-            ProofManager::currentPM()->addDependence(newAssertion,
-                                                     Node::null());
-          }
           Debug("miplib") << "  assertions to remove: " << endl;
           for (vector<TNode>::const_iterator k = asserts[pos_var].begin(),
                                              k_end = asserts[pos_var].end();

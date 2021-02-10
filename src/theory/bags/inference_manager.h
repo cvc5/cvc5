@@ -5,7 +5,7 @@
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -37,6 +37,16 @@ class InferenceManager : public InferenceManagerBuffered
 
  public:
   InferenceManager(Theory& t, SolverState& s, ProofNodeManager* pnm);
+
+  /**
+   * Do pending method. This processes all pending facts, lemmas and pending
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
+   */
+  // TODO issue #78: refactor this with theory of strings
+  void doPending();
 
  private:
   /** constants */

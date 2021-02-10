@@ -93,6 +93,7 @@ class HigherOrderTrigger : public Trigger
 
  private:
   HigherOrderTrigger(QuantifiersEngine* qe,
+                     quantifiers::QuantifiersInferenceManager& qim,
                      Node q,
                      std::vector<Node>& nodes,
                      std::map<Node, std::vector<Node> >& ho_apps);
@@ -122,7 +123,7 @@ class HigherOrderTrigger : public Trigger
    * Extends Trigger::addInstantiations to also send
    * lemmas based on addHoTypeMatchPredicateLemmas.
    */
-  int addInstantiations() override;
+  uint64_t addInstantiations() override;
 
  protected:
   /**
@@ -158,7 +159,7 @@ class HigherOrderTrigger : public Trigger
    *
    * TODO: we may eliminate this based on how github issue #1115 is resolved.
    */
-  int addHoTypeMatchPredicateLemmas();
+  uint64_t addHoTypeMatchPredicateLemmas();
   /** send instantiation
    *
   * Sends an instantiation that is equivalent to m via

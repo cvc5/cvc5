@@ -20,14 +20,13 @@
 #include <iosfwd>
 #include <vector>
 
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "theory/theory_model.h"
 #include "util/cardinality.h"
 
 namespace CVC4 {
 
 class SmtEngine;
-class NodeCommand;
 
 namespace smt {
 
@@ -39,6 +38,9 @@ std::ostream& operator<<(std::ostream&, const Model&);
  * This is the SMT-level model object, that is responsible for maintaining
  * the necessary information for how to print the model, as well as
  * holding a pointer to the underlying implementation of the theory model.
+ *
+ * The model declarations maintained by this class are context-independent
+ * and should be updated when this model is printed.
  */
 class Model {
   friend std::ostream& operator<<(std::ostream&, const Model&);
@@ -46,17 +48,9 @@ class Model {
 
  public:
   /** construct */
-  Model(SmtEngine& smt, theory::TheoryModel* tm);
+  Model(theory::TheoryModel* tm);
   /** virtual destructor */
   ~Model() {}
-  /** get number of commands to report */
-  size_t getNumCommands() const;
-  /** get command */
-  const NodeCommand* getCommand(size_t i) const;
-  /** get the smt engine that this model is hooked up to */
-  SmtEngine* getSmtEngine() { return &d_smt; }
-  /** get the smt engine (as a pointer-to-const) that this model is hooked up to */
-  const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
   /**
@@ -78,9 +72,25 @@ class Model {
   /** Does this model have approximations? */
   bool hasApproximations() const;
   //----------------------- end helper methods
+  //----------------------- model declarations
+  /** Clear the current model declarations. */
+  void clearModelDeclarations();
+  /**
+   * Set that tn is a sort that should be printed in the model, when applicable,
+   * based on the output language.
+   */
+  void addDeclarationSort(TypeNode tn);
+  /**
+   * Set that n is a variable that should be printed in the model, when
+   * applicable, based on the output language.
+   */
+  void addDeclarationTerm(Node n);
+  /** get declared sorts */
+  const std::vector<TypeNode>& getDeclaredSorts() const;
+  /** get declared terms */
+  const std::vector<Node>& getDeclaredTerms() const;
+  //----------------------- end model declarations
  protected:
-  /** The SmtEngine we're associated with */
-  SmtEngine& d_smt;
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
   /**
@@ -93,6 +103,16 @@ class Model {
    * the values of sorts and terms.
    */
   theory::TheoryModel* d_tmodel;
+  /**
+   * The list of types to print, generally corresponding to declare-sort
+   * commands.
+   */
+  std::vector<TypeNode> d_declareSorts;
+  /**
+   * The list of terms to print, is typically one-to-one with declare-fun
+   * commands.
+   */
+  std::vector<Node> d_declareTerms;
 };
 
 }  // namespace smt

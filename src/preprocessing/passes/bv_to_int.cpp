@@ -2,7 +2,7 @@
 /*! \file bv_to_int.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar, Ahmed Irfan, Andres Noetzli
+ **   Yoni Zohar, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -23,6 +23,8 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/node_traversal.h"
+#include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
@@ -76,72 +78,55 @@ Node BVToInt::modpow2(Node n, uint64_t exponent)
  */
 Node BVToInt::makeBinary(Node n)
 {
-  vector<Node> toVisit;
-  toVisit.push_back(n);
-  while (!toVisit.empty())
+  for (TNode current : NodeDfsIterable(n,
+                                       VisitOrder::POSTORDER,
+                                       // skip visited nodes
+                                       [this](TNode tn) {
+                                         return d_binarizeCache.find(tn)
+                                                != d_binarizeCache.end();
+                                       }))
   {
-    Node current = toVisit.back();
     uint64_t numChildren = current.getNumChildren();
-    if (d_binarizeCache.find(current) == d_binarizeCache.end())
+    /*
+     * We already visited the sub-dag rooted at the current node,
+     * and binarized all its children.
+     * Now we binarize the current node itself.
+     */
+    kind::Kind_t k = current.getKind();
+    if ((numChildren > 2)
+        && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
+            || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
+            || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
     {
-      /**
-       * We still haven't visited the sub-dag rooted at the current node.
-       * In this case, we:
-       * mark that we have visited this node by assigning a null node to it in
-       * the cache, and add its children to toVisit.
-       */
-      d_binarizeCache[current] = Node();
-      toVisit.insert(toVisit.end(), current.begin(), current.end());
+      // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
+      Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
+      Node result = d_binarizeCache[current[0]];
+      for (uint64_t i = 1; i < numChildren; i++)
+      {
+        Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
+        Node child = d_binarizeCache[current[i]];
+        result = d_nm->mkNode(current.getKind(), result, child);
+      }
+      d_binarizeCache[current] = result;
     }
-    else if (d_binarizeCache[current].get().isNull())
+    else if (numChildren > 0)
     {
-      /*
-       * We already visited the sub-dag rooted at the current node,
-       * and binarized all its children.
-       * Now we binarize the current node itself.
-       */
-      toVisit.pop_back();
-      kind::Kind_t k = current.getKind();
-      if ((numChildren > 2)
-          && (k == kind::BITVECTOR_PLUS || k == kind::BITVECTOR_MULT
-              || k == kind::BITVECTOR_AND || k == kind::BITVECTOR_OR
-              || k == kind::BITVECTOR_XOR || k == kind::BITVECTOR_CONCAT))
+      // current has children, but we do not binarize it
+      NodeBuilder<> builder(k);
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
-        // We only binarize bvadd, bvmul, bvand, bvor, bvxor, bvconcat
-        Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
-        Node result = d_binarizeCache[current[0]];
-        for (uint64_t i = 1; i < numChildren; i++)
-        {
-          Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
-          Node child = d_binarizeCache[current[i]];
-          result = d_nm->mkNode(current.getKind(), result, child);
-        }
-        d_binarizeCache[current] = result;
+        builder << current.getOperator();
       }
-      else if (numChildren > 0)
+      for (Node child : current)
       {
-        // current has children, but we do not binarize it
-        NodeBuilder<> builder(k);
-        if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
-        {
-          builder << current.getOperator();
-        }
-        for (Node child : current)
-        {
-          builder << d_binarizeCache[child].get();
-        }
-        d_binarizeCache[current] = builder.constructNode();
+        builder << d_binarizeCache[child].get();
       }
-      else
-      {
-        // current has no children
-        d_binarizeCache[current] = current;
-      }
+      d_binarizeCache[current] = builder.constructNode();
     }
     else
     {
-      // We already binarized current and it is in the cache.
-      toVisit.pop_back();
+      // current has no children
+      d_binarizeCache[current] = current;
     }
   }
   return d_binarizeCache[n];
@@ -180,7 +165,7 @@ Node BVToInt::eliminationPass(Node n)
     {
       // current is not the elimination of any previously-visited node
       // current hasn't been eliminated yet.
-      // eliminate operators from it
+      // eliminate operators from it using rewrite rules
       Node currentEliminated =
           FixpointRewriteStrategy<RewriteRule<UdivZero>,
                                   RewriteRule<SdivEliminateFewerBitwiseOps>,
@@ -201,6 +186,21 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SltEliminate>,
                                   RewriteRule<SgtEliminate>,
                                   RewriteRule<SgeEliminate>>::apply(current);
+
+      // expanding definitions of udiv and urem
+      if (k == kind::BITVECTOR_UDIV)
+      {
+        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
+                                         currentEliminated[0],
+                                         currentEliminated[1]);
+      }
+      else if (k == kind::BITVECTOR_UREM)
+      {
+        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
+                                         currentEliminated[0],
+                                         currentEliminated[1]);
+      }
+
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
       // also assign the eliminated now to itself to avoid revisiting.
@@ -353,6 +353,10 @@ Node BVToInt::translateWithChildren(Node original,
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
+  // Assert that BITVECTOR_UDIV/UREM were replaced by their
+  // *_TOTAL versions
+  Assert(oldKind != kind::BITVECTOR_UDIV);
+  Assert(oldKind != kind::BITVECTOR_UREM);
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
@@ -446,10 +450,10 @@ Node BVToInt::translateWithChildren(Node original,
         // Construct a sum of ites, based on granularity.
         Assert(translated_children.size() == 2);
         returnNode =
-            d_iandTable.createBitwiseNode(translated_children[0],
-                                          translated_children[1],
-                                          bvsize,
-                                          options::BVAndIntegerGranularity());
+            d_iandUtils.createSumNode(translated_children[0],
+                                      translated_children[1],
+                                      bvsize,
+                                      options::BVAndIntegerGranularity());
       }
       break;
     }

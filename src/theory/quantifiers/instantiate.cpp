@@ -15,6 +15,7 @@
 #include "theory/quantifiers/instantiate.h"
 
 #include "expr/node_algorithm.h"
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
@@ -36,14 +37,17 @@ namespace theory {
 namespace quantifiers {
 
 Instantiate::Instantiate(QuantifiersEngine* qe,
-                         context::UserContext* u,
+                         QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim,
                          ProofNodeManager* pnm)
     : d_qe(qe),
+      d_qstate(qs),
+      d_qim(qim),
       d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),
-      d_total_inst_debug(u),
-      d_c_inst_match_trie_dom(u),
+      d_total_inst_debug(qs.getUserContext()),
+      d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
 }
@@ -104,7 +108,7 @@ bool Instantiate::addInstantiation(
 {
   // For resource-limiting (also does a time check).
   d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
-  Assert(!d_qe->inConflict());
+  Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
   Assert(d_term_util != nullptr);
@@ -215,7 +219,7 @@ bool Instantiate::addInstantiation(
   }
 
   // check based on instantiation level
-  if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
+  if (options::instMaxLevel() != -1)
   {
     for (Node& t : terms)
     {
@@ -268,10 +272,9 @@ bool Instantiate::addInstantiation(
       // add the transformation proof, or THEORY_PREPROCESS if none provided
       pfTmp->addLazyStep(proven,
                          tpBody.getGenerator(),
+                         PfRule::THEORY_PREPROCESS,
                          true,
-                         "Instantiate::getInstantiation:qpreprocess",
-                         false,
-                         PfRule::THEORY_PREPROCESS);
+                         "Instantiate::getInstantiation:qpreprocess");
       pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {});
     }
   }
@@ -320,13 +323,12 @@ bool Instantiate::addInstantiation(
   bool addedLem = false;
   if (hasProof)
   {
-    // use trust interface
-    TrustNode tlem = TrustNode::mkTrustLemma(lem, d_pfInst.get());
-    addedLem = d_qe->addTrustedLemma(tlem, true, false);
+    // use proof generator
+    addedLem = d_qim.addPendingLemma(lem, LemmaProperty::NONE, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qe->addLemma(lem, true, false);
+    addedLem = d_qim.addPendingLemma(lem);
   }
 
   if (!addedLem)
@@ -399,18 +401,6 @@ bool Instantiate::addInstantiation(
   return true;
 }
 
-bool Instantiate::removeInstantiation(Node q,
-                                      Node lem,
-                                      std::vector<Node>& terms)
-{
-  // lem must occur in d_waiting_lemmas
-  if (d_qe->removeLemma(lem))
-  {
-    return removeInstantiationInternal(q, terms);
-  }
-  return false;
-}
-
 bool Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
                                       bool modEq,
@@ -429,8 +419,7 @@ bool Instantiate::existsInstantiation(Node q,
         d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(
-          d_qe, q, terms, d_qe->getUserContext(), modEq);
+      return it->second->existsInstMatch(d_qstate, q, terms, modEq);
     }
   }
   else
@@ -439,7 +428,7 @@ bool Instantiate::existsInstantiation(Node q,
         d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
-      return it->second.existsInstMatch(d_qe, q, terms, modEq);
+      return it->second.existsInstMatch(d_qstate, q, terms, modEq);
     }
   }
   return false;
@@ -477,10 +466,9 @@ Node Instantiate::getInstantiation(Node q,
         Node proven = trn.getProven();
         pf->addLazyStep(proven,
                         trn.getGenerator(),
+                        PfRule::THEORY_PREPROCESS,
                         true,
-                        "Instantiate::getInstantiation:rewrite_inst",
-                        false,
-                        PfRule::THEORY_PREPROCESS);
+                        "Instantiate::getInstantiation:rewrite_inst");
         pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
       }
       body = newBody;
@@ -526,14 +514,14 @@ bool Instantiate::recordInstantiationInternal(Node q,
     }
     else
     {
-      imt = new inst::CDInstMatchTrie(d_qe->getUserContext());
+      imt = new inst::CDInstMatchTrie(d_qstate.getUserContext());
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qe, q, terms, d_qe->getUserContext(), modEq);
+    return imt->addInstMatch(d_qstate, q, terms, modEq);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-  return d_inst_match_trie[q].addInstMatch(d_qe, q, terms, modEq);
+  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms, modEq);
 }
 
 bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
@@ -560,107 +548,6 @@ Node Instantiate::getTermForType(TypeNode tn)
   return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
-bool Instantiate::printInstantiations(std::ostream& out)
-{
-  if (options::printInstMode() == options::PrintInstMode::NUM)
-  {
-    return printInstantiationsNum(out);
-  }
-  Assert(options::printInstMode() == options::PrintInstMode::LIST);
-  return printInstantiationsList(out);
-}
-
-bool Instantiate::printInstantiationsList(std::ostream& out)
-{
-  bool useUnsatCore = false;
-  std::vector<Node> active_lemmas;
-  if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
-  {
-    useUnsatCore = true;
-  }
-  bool printed = false;
-  bool isFull = options::printInstFull();
-  if (options::incrementalSolving())
-  {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
-    {
-      std::stringstream qout;
-      if (!printQuant(t.first, qout, isFull))
-      {
-        continue;
-      }
-      std::stringstream sout;
-      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
-      if (!sout.str().empty())
-      {
-        out << "(instantiations " << qout.str() << std::endl;
-        out << sout.str();
-        out << ")" << std::endl;
-        printed = true;
-      }
-    }
-  }
-  else
-  {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-    {
-      std::stringstream qout;
-      if (!printQuant(t.first, qout, isFull))
-      {
-        continue;
-      }
-      std::stringstream sout;
-      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
-      if (!sout.str().empty())
-      {
-        out << "(instantiations " << qout.str() << std::endl;
-        out << sout.str();
-        out << ")" << std::endl;
-        printed = true;
-      }
-    }
-  }
-  return printed;
-}
-
-bool Instantiate::printInstantiationsNum(std::ostream& out)
-{
-  if (d_total_inst_debug.empty())
-  {
-    return false;
-  }
-  bool isFull = options::printInstFull();
-  for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
-       it != d_total_inst_debug.end();
-       ++it)
-  {
-    std::stringstream ss;
-    if (printQuant((*it).first, ss, isFull))
-    {
-      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")"
-          << std::endl;
-    }
-  }
-  return true;
-}
-
-bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
-{
-  if (isFull)
-  {
-    out << q;
-    return true;
-  }
-  quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
-  Node name = qa->getQuantName(q);
-  if (name.isNull())
-  {
-    return false;
-  }
-  out << name;
-  return true;
-}
-
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
@@ -685,7 +572,7 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 {
   // only if unsat core available
-  if (options::unsatCores())
+  if (options::unsatCores() && !isProofEnabled())
   {
     if (!ProofManager::currentPM()->unsatCoreAvailable())
     {
@@ -716,14 +603,39 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 void Instantiate::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node> >& tvecs)
 {
-  std::vector<Node> lemmas;
-  getInstantiations(q, lemmas);
-  std::map<Node, Node> quant;
-  std::map<Node, std::vector<Node> > tvec;
-  getExplanationForInstLemmas(lemmas, quant, tvec);
-  for (std::pair<const Node, std::vector<Node> >& t : tvec)
+  // if track instantiations is true, we use the instantiation + explanation
+  // methods for doing minimization based on unsat cores.
+  if (options::trackInstLemmas())
   {
-    tvecs.push_back(t.second);
+    std::vector<Node> lemmas;
+    getInstantiations(q, lemmas);
+    std::map<Node, Node> quant;
+    std::map<Node, std::vector<Node> > tvec;
+    getExplanationForInstLemmas(lemmas, quant, tvec);
+    for (std::pair<const Node, std::vector<Node> >& t : tvec)
+    {
+      tvecs.push_back(t.second);
+    }
+    return;
+  }
+
+  if (options::incrementalSolving())
+  {
+    std::map<Node, inst::CDInstMatchTrie*>::const_iterator it =
+        d_c_inst_match_trie.find(q);
+    if (it != d_c_inst_match_trie.end())
+    {
+      it->second->getInstantiations(q, tvecs);
+    }
+  }
+  else
+  {
+    std::map<Node, inst::InstMatchTrie>::const_iterator it =
+        d_inst_match_trie.find(q);
+    if (it != d_inst_match_trie.end())
+    {
+      it->second.getInstantiations(q, tvecs);
+    }
   }
 }
 
@@ -732,14 +644,14 @@ void Instantiate::getInstantiationTermVectors(
 {
   if (options::incrementalSolving())
   {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    for (const auto& t : d_c_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
   }
   else
   {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (const auto& t : d_inst_match_trie)
     {
       getInstantiationTermVectors(t.first, insts[t.first]);
     }
@@ -878,15 +790,15 @@ void Instantiate::debugPrint(std::ostream& out)
   }
   if (options::debugInst())
   {
-    bool isFull = options::printInstFull();
+    bool req = !options::printInstFull();
     for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
-      std::stringstream ss;
-      if (!printQuant(i.first, ss, isFull))
+      Node name;
+      if (!d_qe->getNameForQuant(i.first, name, req))
       {
         continue;
       }
-      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+      out << "(num-instantiations " << name << " " << i.second << ")"
           << std::endl;
     }
   }

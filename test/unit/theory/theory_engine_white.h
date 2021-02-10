@@ -56,8 +56,7 @@ using namespace std;
 class FakeOutputChannel : public OutputChannel {
   void conflict(TNode n) override { Unimplemented(); }
   bool propagate(TNode n) override { Unimplemented(); }
-  LemmaStatus lemma(TNode n,
-                    LemmaProperty p = LemmaProperty::NONE) override
+  void lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) override
   {
     Unimplemented();
   }
@@ -66,7 +65,7 @@ class FakeOutputChannel : public OutputChannel {
   void handleUserAttribute(const char* attr, Theory* t) override {
     Unimplemented();
   }
-  LemmaStatus splitLemma(TNode n, bool removable) override { Unimplemented(); }
+  void splitLemma(TNode n, bool removable) override { Unimplemented(); }
 }; /* class FakeOutputChannel */
 
 template<TheoryId theory>
@@ -192,8 +191,8 @@ public:
 
   void setUp() override {
     d_em = new ExprManager();
-    d_smt = new SmtEngine(d_em);
     d_nm = NodeManager::fromExprManager(d_em);
+    d_smt = new SmtEngine(d_nm);
     d_scope = new SmtScope(d_smt);
 
     d_ctxt = d_smt->getContext();

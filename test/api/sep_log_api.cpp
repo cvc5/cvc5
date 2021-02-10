@@ -2,7 +2,7 @@
 /*! \file sep_log_api.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew V. Jones, Andres Noetzli
+ **   Andrew V. Jones, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -45,6 +45,8 @@ int validate_exception(void)
 
   /* Our integer type */
   Sort integer = slv.getIntegerSort();
+
+  /** we intentionally do not set the separation logic heap */
 
   /* Our SMT constants */
   Term x = slv.mkConst(integer, "x");
@@ -134,11 +136,14 @@ int validate_getters(void)
   /* Our integer type */
   Sort integer = slv.getIntegerSort();
 
+  /** Declare the separation logic heap types */
+  slv.declareSeparationHeap(integer, integer);
+
   /* A "random" constant */
-  Term random_constant = slv.mkReal(0xDEADBEEF);
+  Term random_constant = slv.mkInteger(0xDEADBEEF);
 
   /* Another random constant */
-  Term expr_nil_val = slv.mkReal(0xFBADBEEF);
+  Term expr_nil_val = slv.mkInteger(0xFBADBEEF);
 
   /* Our nil term */
   Term nil = slv.mkSepNil(integer);

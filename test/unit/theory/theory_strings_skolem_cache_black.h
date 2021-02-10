@@ -2,7 +2,7 @@
 /*! \file theory_strings_skolem_cache_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -35,13 +35,13 @@ class TheoryStringsSkolemCacheBlack : public CxxTest::TestSuite
   void setUp() override
   {
     d_em.reset(new ExprManager());
-    d_smt.reset(new SmtEngine(d_em.get()));
+    d_nm = NodeManager::fromExprManager(d_em.get());
+    d_smt.reset(new SmtEngine(d_nm));
     d_scope.reset(new SmtScope(d_smt.get()));
     // Ensure that the SMT engine is fully initialized (required for the
     // rewriter)
     d_smt->push();
 
-    d_nm = NodeManager::fromExprManager(d_em.get());
   }
 
   void tearDown() override {}

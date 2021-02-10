@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/theory_inference.h"
 #include "util/safe_print.h"
 
 namespace CVC4 {
@@ -55,7 +56,7 @@ enum class Inference : uint32_t
   //   explain_constant(x, c) => x = c
   // Above, explain_constant(x,c) is a basic explanation of why x must be equal
   // to string constant c, which is computed by taking arguments of
-  // concatentation terms that are entailed to be constants. For example:
+  // concatenation terms that are entailed to be constants. For example:
   //  ( y = "AB" ^ z = "C" ) => y ++ z = "ABC"
   I_CONST_MERGE,
   // initial constant conflict
@@ -68,9 +69,16 @@ enum class Inference : uint32_t
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
   // injectivity of seq.unit
+  // (seq.unit x) = (seq.unit y) => x=y, or
+  // (seq.unit x) = (seq.unit c) => x=c
   UNIT_INJ,
   // unit constant conflict
+  // (seq.unit x) = C => false if |C| != 1.
   UNIT_CONST_CONFLICT,
+  // injectivity of seq.unit for disequality
+  // (seq.unit x) != (seq.unit y) => x != y, or
+  // (seq.unit x) != (seq.unit c) => x != c
+  UNIT_INJ_DEQ,
   // A split due to cardinality
   CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
@@ -347,12 +355,14 @@ enum LengthStatus
   LENGTH_GEQ_ONE
 };
 
+class InferenceManager;
+
 /**
  * An inference. This is a class to track an unprocessed call to either
  * send a fact, lemma, or conflict that is waiting to be asserted to the
  * equality engine or sent on the output channel.
  *
- * For the sake of proofs, the antecedants in InferInfo have a particular
+ * For the sake of proofs, the premises in InferInfo have a particular
  * ordering for many of the core strings rules, which is expected by
  * InferProofCons for constructing proofs of F_CONST, F_UNIFY, N_CONST, etc.
  * which apply to a pair of string terms t and s. At a high level, the ordering
@@ -362,17 +372,21 @@ enum LengthStatus
  * (3) (optionally) a length constraint.
  * For example, say we have:
  *   { x ++ y ++ v1 = z ++ w ++ v2, x = z ++ u, u = "", len(y) = len(w) }
- * We can conclude y = w by the N_UNIFY rule from the left side. The antecedant
+ * We can conclude y = w by the N_UNIFY rule from the left side. The premise
  * has the following form:
  * - (prefix up to y/w equal) x = z ++ u, u = "",
  * - (main equality) x ++ y ++ v1 = z ++ w ++ v2,
  * - (length constraint) len(y) = len(w).
  */
-class InferInfo
+class InferInfo : public TheoryInference
 {
  public:
   InferInfo();
   ~InferInfo() {}
+  /** Process this inference */
+  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Pointer to the class used for processing this info */
+  InferenceManager* d_sim;
   /** The inference identifier */
   Inference d_id;
   /** Whether it is the reverse form of the above id */
@@ -380,15 +394,15 @@ class InferInfo
   /** The conclusion */
   Node d_conc;
   /**
-   * The antecedant(s) of the inference, interpreted conjunctively. These are
+   * The premise(s) of the inference, interpreted conjunctively. These are
    * literals that currently hold in the equality engine.
    */
-  std::vector<Node> d_ant;
+  std::vector<Node> d_premises;
   /**
-   * The "new literal" antecedant(s) of the inference, interpreted
+   * The "new literal" premise(s) of the inference, interpreted
    * conjunctively. These are literals that were needed to show the conclusion
    * but do not currently hold in the equality engine. These should be a subset
-   * of d_ant. In other words, antecedants that are not explained are stored
+   * of d_ant. In other words, premises that are not explained are stored
    * in *both* d_ant and d_noExplain.
    */
   std::vector<Node> d_noExplain;
@@ -397,22 +411,22 @@ class InferInfo
    * are mapped to by a length status, indicating the length constraint that
    * can be assumed for them.
    */
-  std::map<LengthStatus, std::vector<Node> > d_new_skolem;
+  std::map<LengthStatus, std::vector<Node> > d_skolems;
   /**  Is this infer info trivial? True if d_conc is true. */
   bool isTrivial() const;
   /**
    * Does this infer info correspond to a conflict? True if d_conc is false
-   * and it has no new antecedants (d_noExplain).
+   * and it has no new premises (d_noExplain).
    */
   bool isConflict() const;
   /**
    * Does this infer info correspond to a "fact". A fact is an inference whose
    * conclusion should be added as an equality or predicate to the equality
-   * engine with no new external antecedants (d_noExplain).
+   * engine with no new external premises (d_noExplain).
    */
   bool isFact() const;
-  /** Get antecedant */
-  Node getAntecedant() const;
+  /** Get premises */
+  Node getPremises() const;
 };
 
 /**

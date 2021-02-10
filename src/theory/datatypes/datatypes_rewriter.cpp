@@ -2,7 +2,7 @@
 /*! \file datatypes_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -280,7 +280,7 @@ RewriteResponse DatatypesRewriter::preRewrite(TNode in)
         const DTypeConstructor& dtc = utils::datatypeOf(op)[utils::indexOf(op)];
         // create ascribed constructor type
         Node tc = NodeManager::currentNM()->mkConst(
-            AscriptionType(dtc.getSpecializedConstructorType(tn).toType()));
+            AscriptionType(dtc.getSpecializedConstructorType(tn)));
         Node op_new = NodeManager::currentNM()->mkNode(
             kind::APPLY_TYPE_ASCRIPTION, tc, op);
         // make new node
@@ -397,7 +397,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
       {
         gt = NodeManager::currentNM()->mkNode(
             kind::APPLY_TYPE_ASCRIPTION,
-            NodeManager::currentNM()->mkConst(AscriptionType(tn.toType())),
+            NodeManager::currentNM()->mkConst(AscriptionType(tn)),
             gt);
       }
       Trace("datatypes-rewrite")

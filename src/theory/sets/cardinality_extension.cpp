@@ -165,7 +165,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       const std::map<Node, Node>& negativeMembers =
           d_state.getNegativeMembers(representative);
 
-      for (const std::pair<Node, Node>& negativeMember : negativeMembers)
+      for (const auto& negativeMember : negativeMembers)
       {
         Node member = nm->mkNode(MEMBER, negativeMember.first, univ);
         // negativeMember.second is the reason for the negative membership and
@@ -308,6 +308,9 @@ void CardinalityExtension::checkCardCycles()
       return;
     }
   }
+
+  Trace("sets") << "d_card_parent: " << d_card_parent << std::endl;
+  Trace("sets") << "d_oSetEqc: " << d_oSetEqc << std::endl;
   Trace("sets") << "Done check cardinality cycles" << std::endl;
 }
 

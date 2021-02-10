@@ -27,8 +27,6 @@
 #include "api/cvc4cpp.h"
 #include "base/configuration.h"
 #include "base/output.h"
-#include "expr/expr_iomanip.h"
-#include "expr/expr_manager.h"
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
@@ -209,22 +207,24 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             "--tear-down-incremental doesn't work in interactive mode");
       }
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
+        cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }
-      InteractiveShell shell(pExecutor->getSolver());
+      InteractiveShell shell(pExecutor->getSolver(),
+                             pExecutor->getSymbolManager());
       if(opts.getInteractivePrompt()) {
-        Message() << Configuration::getPackageName()
-                  << " " << Configuration::getVersionString();
+        CVC4Message() << Configuration::getPackageName() << " "
+                      << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
-          Message() << " [" << Configuration::getGitId() << "]";
+          CVC4Message() << " [" << Configuration::getGitId() << "]";
         }
-        Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
-                  << " assertions:"
-                  << (Configuration::isAssertionBuild() ? "on" : "off")
-                  << endl << endl;
-        Message() << Configuration::copyright() << endl;
+        CVC4Message() << (Configuration::isDebugBuild() ? " DEBUG" : "")
+                      << " assertions:"
+                      << (Configuration::isAssertionBuild() ? "on" : "off")
+                      << endl
+                      << endl;
+        CVC4Message() << Configuration::copyright() << endl;
       }
 
       while(true) {
@@ -245,7 +245,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
         // For tear-down-incremental values greater than 1, need incremental
         // on too.
-        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
+        cmd.reset(new SetOptionCommand("incremental", "true"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         // if(opts.wasSetByUserIncrementalSolving()) {
@@ -258,7 +258,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         // pExecutor->doCommand(cmd);
       }
 
-      ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
+      ParserBuilder parserBuilder(pExecutor->getSolver(),
+                                  pExecutor->getSymbolManager(),
+                                  filename,
+                                  opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)
@@ -406,12 +409,15 @@ int runCvc4(int argc, char* argv[], Options& opts) {
       }
     } else {
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
+        cmd.reset(new SetOptionCommand("incremental", "false"));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
       }
 
-      ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
+      ParserBuilder parserBuilder(pExecutor->getSolver(),
+                                  pExecutor->getSymbolManager(),
+                                  filename,
+                                  opts);
 
       if( inputFromStdin ) {
 #if defined(CVC4_COMPETITION_MODE) && !defined(CVC4_SMTCOMP_APPLICATION_TRACK)

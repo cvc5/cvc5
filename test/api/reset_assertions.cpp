@@ -2,7 +2,7 @@
 /*! \file reset_assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Mudathir Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -31,7 +31,7 @@ int main()
 
   Sort real = slv.getRealSort();
   Term x = slv.mkConst(real, "x");
-  Term four = slv.mkReal(4);
+  Term four = slv.mkInteger(4);
   Term xEqFour = slv.mkTerm(Kind::EQUAL, x, four);
   slv.assertFormula(xEqFour);
   std::cout << slv.checkSat() << std::endl;
@@ -43,7 +43,7 @@ int main()
   Sort arrayType = slv.mkArraySort(indexType, elementType);
   Term array = slv.mkConst(arrayType, "array");
   Term arrayAtFour = slv.mkTerm(Kind::SELECT, array, four);
-  Term ten = slv.mkReal(10);
+  Term ten = slv.mkInteger(10);
   Term arrayAtFour_eq_ten = slv.mkTerm(Kind::EQUAL, arrayAtFour, ten);
   slv.assertFormula(arrayAtFour_eq_ten);
   std::cout << slv.checkSat() << std::endl;

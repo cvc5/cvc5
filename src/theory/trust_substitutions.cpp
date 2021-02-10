@@ -2,7 +2,7 @@
 /*! \file trust_substitutions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -24,7 +24,8 @@ TrustSubstitutionMap::TrustSubstitutionMap(context::Context* c,
                                            std::string name,
                                            PfRule trustId,
                                            MethodId ids)
-    : d_subs(c),
+    : d_ctx(c),
+      d_subs(c),
       d_pnm(pnm),
       d_tsubs(c),
       d_tspb(pnm ? new TheoryProofStepBuffer(pnm->getChecker()) : nullptr),
@@ -54,12 +55,7 @@ void TrustSubstitutionMap::addSubstitution(TNode x, TNode t, ProofGenerator* pg)
     // current substitution node is no longer valid.
     d_currentSubs = Node::null();
     // add to lazy proof
-    d_subsPg->addLazyStep(tnl.getProven(),
-                          pg,
-                          false,
-                          "TrustSubstitutionMap::addSubstitution",
-                          false,
-                          d_trustId);
+    d_subsPg->addLazyStep(tnl.getProven(), pg, d_trustId);
   }
 }
 
@@ -73,13 +69,15 @@ void TrustSubstitutionMap::addSubstitution(TNode x,
     addSubstitution(x, t, nullptr);
     return;
   }
-  LazyCDProof* stepPg = d_helperPf.allocateProof();
+  LazyCDProof* stepPg = d_helperPf.allocateProof(nullptr, d_ctx);
   Node eq = x.eqNode(t);
   stepPg->addStep(eq, id, {}, args);
   addSubstitution(x, t, stepPg);
 }
 
-void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
+ProofGenerator* TrustSubstitutionMap::addSubstitutionSolved(TNode x,
+                                                            TNode t,
+                                                            TrustNode tn)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitutionSolved: add "
                       << x << " -> " << t << " from " << tn.getProven()
@@ -89,7 +87,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
     // no generator or not proof enabled, nothing to do
     addSubstitution(x, t, nullptr);
     Trace("trust-subs") << "...no proof" << std::endl;
-    return;
+    return nullptr;
   }
   Node eq = x.eqNode(t);
   Node proven = tn.getProven();
@@ -100,16 +98,16 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
     // no rewrite required, just use the generator
     addSubstitution(x, t, tn.getGenerator());
     Trace("trust-subs") << "...use generator directly" << std::endl;
-    return;
+    return tn.getGenerator();
   }
-  LazyCDProof* solvePg = d_helperPf.allocateProof();
+  LazyCDProof* solvePg = d_helperPf.allocateProof(nullptr, d_ctx);
   // Try to transform tn.getProven() to (= x t) here, if necessary
   if (!d_tspb->applyPredTransform(proven, eq, {}))
   {
     // failed to rewrite
     addSubstitution(x, t, nullptr);
     Trace("trust-subs") << "...failed to rewrite" << std::endl;
-    return;
+    return nullptr;
   }
   Trace("trust-subs") << "...successful rewrite" << std::endl;
   solvePg->addSteps(*d_tspb.get());
@@ -117,6 +115,7 @@ void TrustSubstitutionMap::addSubstitutionSolved(TNode x, TNode t, TrustNode tn)
   // link the given generator
   solvePg->addLazyStep(proven, tn.getGenerator());
   addSubstitution(x, t, solvePg);
+  return solvePg;
 }
 
 void TrustSubstitutionMap::addSubstitutions(TrustSubstitutionMap& t)
@@ -201,13 +200,14 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
   }
   if (!d_tspb->applyEqIntro(n, ns, pfChildren, d_ids))
   {
-    return TrustNode::mkTrustRewrite(n, ns, nullptr);
+    // if we fail for any reason, we must use a trusted step instead
+    d_tspb->addStep(PfRule::TRUST_SUBS_MAP, pfChildren, {eq}, eq);
   }
   // -------        ------- from external proof generators
   // x1 = t1 ...    xn = tn
   // ----------------------- AND_INTRO
   //   ...
-  // --------- MACRO_SR_EQ_INTRO
+  // --------- MACRO_SR_EQ_INTRO (or TRUST_SUBS_MAP if we failed above)
   // n == ns
   // add it to the apply proof generator.
   //
@@ -242,6 +242,7 @@ Node TrustSubstitutionMap::getCurrentSubstitution()
   {
     csubsChildren.push_back(tns.getProven());
   }
+  std::reverse(csubsChildren.begin(),csubsChildren.end());
   d_currentSubs = NodeManager::currentNM()->mkAnd(csubsChildren);
   if (d_currentSubs.get().getKind() == kind::AND)
   {

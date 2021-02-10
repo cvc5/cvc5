@@ -1,4 +1,6 @@
-(set-logic QF_LIA)
+; COMMAND-LINE: -q
+; EXPECT: sat
+(set-logic QF_NIA)
 (set-info :status sat)
 
 (declare-fun x () Int)

@@ -21,6 +21,7 @@
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -44,14 +45,10 @@ bool CegGrammarConstructor::hasSyntaxRestrictions(Node q)
   Assert(q.getKind() == FORALL);
   for (const Node& f : q[0])
   {
-    Node gv = f.getAttribute(SygusSynthGrammarAttribute());
-    if (!gv.isNull())
+    TypeNode tn = SygusUtils::getSygusTypeForSynthFun(f);
+    if (tn.isDatatype() && tn.getDType().isSygus())
     {
-      TypeNode tn = gv.getType();
-      if (tn.isDatatype() && tn.getDType().isSygus())
-      {
-        return true;
-      }
+      return true;
     }
   }
   return false;
@@ -144,7 +141,7 @@ Node CegGrammarConstructor::process(Node q,
       SygusGrammarNorm sygus_norm(d_qe);
       tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }else{
-      sfvl = getSygusVarList(sf);
+      sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
@@ -213,7 +210,7 @@ Node CegGrammarConstructor::process(Node q,
   {
     Node sf = q[0][i];
     d_synth_fun_vars[sf] = ebvl[i];
-    Node sfvl = getSygusVarList(sf);
+    Node sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
     TypeNode tn = ebvl[i].getType();
     // check if there is a template
     std::map<Node, Node>::const_iterator itt = templates.find(sf);
@@ -380,7 +377,8 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
 TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
                                                  std::set<TypeNode>& unres)
 {
-  TypeNode unresolved = NodeManager::currentNM()->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
+  TypeNode unresolved = NodeManager::currentNM()->mkSort(
+      name, NodeManager::SORT_FLAG_PLACEHOLDER);
   unres.insert(unresolved);
   return unresolved;
 }
@@ -423,11 +421,11 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isRoundingMode())
   {
-    ops.push_back(nm->mkConst(RoundingMode::roundNearestTiesToAway));
-    ops.push_back(nm->mkConst(RoundingMode::roundNearestTiesToEven));
-    ops.push_back(nm->mkConst(RoundingMode::roundTowardNegative));
-    ops.push_back(nm->mkConst(RoundingMode::roundTowardPositive));
-    ops.push_back(nm->mkConst(RoundingMode::roundTowardZero));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_AWAY));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_NEAREST_TIES_TO_EVEN));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_NEGATIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_POSITIVE));
+    ops.push_back(nm->mkConst(RoundingMode::ROUND_TOWARD_ZERO));
   }
   else if (type.isFloatingPoint())
   {
@@ -1579,27 +1577,6 @@ TypeNode CegGrammarConstructor::mkSygusTemplateType( Node templ, Node templ_arg,
                                                      const std::string& fun ) {
   unsigned tcount = 0;
   return mkSygusTemplateTypeRec( templ, templ_arg, templ_arg_sygus_type, bvl, fun, tcount );
-}
-
-Node CegGrammarConstructor::getSygusVarList(Node f)
-{
-  Node sfvl = f.getAttribute(SygusSynthFunVarListAttribute());
-  if (sfvl.isNull() && f.getType().isFunction())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-    std::vector<TypeNode> argTypes = f.getType().getArgTypes();
-    // make default variable list if none was specified by input
-    std::vector<Node> bvs;
-    for (unsigned j = 0, size = argTypes.size(); j < size; j++)
-    {
-      std::stringstream ss;
-      ss << "arg" << j;
-      bvs.push_back(nm->mkBoundVar(ss.str(), argTypes[j]));
-    }
-    sfvl = nm->mkNode(BOUND_VAR_LIST, bvs);
-    f.setAttribute(SygusSynthFunVarListAttribute(), sfvl);
-  }
-  return sfvl;
 }
 
 CegGrammarConstructor::SygusDatatypeGenerator::SygusDatatypeGenerator(

@@ -34,6 +34,8 @@ const char* toString(MethodId id)
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
+    case MethodId::RW_REWRITE_THEORY_PRE: return "RW_REWRITE_THEORY_PRE";
+    case MethodId::RW_REWRITE_THEORY_POST: return "RW_REWRITE_THEORY_POST";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
     case MethodId::SB_FORMULA: return "SB_FORMULA";
@@ -73,6 +75,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 3);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 3);
+  pc->registerTrustedChecker(PfRule::THEORY_EXPAND_DEF, this, 3);
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
   pc->registerTrustedChecker(PfRule::TRUST_REWRITE, this, 1);
   pc->registerTrustedChecker(PfRule::TRUST_SUBS, this, 1);
@@ -253,7 +256,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::SCOPE)
   {
-    NodeManager * nm = NodeManager::currentNM();
     Assert(children.size() == 1);
     if (args.empty())
     {
@@ -283,6 +285,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       exp.push_back(children[i]);
     }
     Node res = applySubstitution(args[0], exp, ids);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::REWRITE)
@@ -295,6 +301,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0], idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::EVALUATE)
@@ -302,6 +312,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
@@ -313,12 +327,16 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applySubstitutionRewrite(args[0], children, ids, idr);
+    if (res.isNull())
+    {
+      return Node::null();
+    }
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_PRED_INTRO)
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
-                             << args.size() << std::endl;
+                             << args[0] << std::endl;
     Assert(1 <= args.size() && args.size() <= 3);
     MethodId ids, idr;
     if (!getMethodIds(args, ids, idr, 1))
@@ -330,6 +348,9 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       return Node::null();
     }
+    Trace("builtin-pfcheck") << "Result is " << res << std::endl;
+    Trace("builtin-pfcheck") << "Witness form is "
+                             << SkolemManager::getWitnessForm(res) << std::endl;
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
     res = Rewriter::rewrite(SkolemManager::getWitnessForm(res));
@@ -339,6 +360,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
           << "Failed to rewrite to true, res=" << res << std::endl;
       return Node::null();
     }
+    Trace("builtin-pfcheck") << "...success" << std::endl;
     return args[0];
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
@@ -395,11 +417,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
-  else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
-           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
-           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE
-           || id == PfRule::TRUST_REWRITE || id == PfRule::TRUST_SUBS
-           || id == PfRule::TRUST_SUBS_MAP)
+  else if (id == PfRule::PREPROCESS || id == PfRule::PREPROCESS_LEMMA
+           || id == PfRule::THEORY_PREPROCESS
+           || id == PfRule::THEORY_PREPROCESS_LEMMA
+           || id == PfRule::THEORY_EXPAND_DEF || id == PfRule::WITNESS_AXIOM
+           || id == PfRule::THEORY_LEMMA || id == PfRule::THEORY_REWRITE
+           || id == PfRule::TRUST_SUBS || id == PfRule::TRUST_SUBS_MAP)
   {
     // "trusted" rules
     Assert(children.empty());
@@ -407,6 +430,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args[0].getType().isBoolean());
     return args[0];
   }
+
   // no rule
   return Node::null();
 }

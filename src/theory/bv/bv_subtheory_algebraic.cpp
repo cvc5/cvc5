@@ -2,7 +2,7 @@
 /*! \file bv_subtheory_algebraic.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Mathias Preiner
+ **   Liana Hadarean, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -275,7 +275,6 @@ bool AlgebraicSolver::check(Theory::Effort e)
 
   uint64_t original_bb_cost = 0;
 
-  NodeManager* nm = NodeManager::currentNM();
   NodeSet seen_assertions;
   // Processing assertions from scratch
   for (AssertionQueue::const_iterator it = assertionsBegin(); it != assertionsEnd(); ++it) {

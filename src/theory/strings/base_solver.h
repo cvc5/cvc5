@@ -225,7 +225,7 @@ class BaseSolver
    *
    * This set contains a set of nodes that are not representatives of their
    * congruence class. This set is used to skip reasoning about terms in
-   * various inference schemas implemnted by this class.
+   * various inference schemas implemented by this class.
    */
   NodeSet d_congruent;
   /**
@@ -235,8 +235,8 @@ class BaseSolver
   std::map<Node, BaseEqcInfo> d_eqcInfo;
   /** The list of equivalence classes of type string */
   std::vector<Node> d_stringsEqc;
-  /** A term index for each function kind */
-  std::map<Kind, TermIndex> d_termIndex;
+  /** A term index for each type, function kind pair */
+  std::map<TypeNode, std::map<Kind, TermIndex> > d_termIndex;
   /** the cardinality of the alphabet */
   uint32_t d_cardSize;
 }; /* class BaseSolver */

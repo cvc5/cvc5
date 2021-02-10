@@ -14,6 +14,8 @@
 
 #include "expr/lazy_proof.h"
 
+#include "expr/proof_ensure_closed.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -133,10 +135,10 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
+                              PfRule idNull,
                               bool isClosed,
                               const char* ctx,
-                              bool forceOverwrite,
-                              PfRule idNull)
+                              bool forceOverwrite)
 {
   if (pg == nullptr)
   {

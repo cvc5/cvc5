@@ -2,7 +2,7 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
+ **   Mathias Preiner, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -95,6 +95,8 @@ class TheoryBV : public Theory
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   void presolve() override;
+
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   /** Called by abstraction preprocessing pass. */
   bool applyAbstraction(const std::vector<Node>& assertions,

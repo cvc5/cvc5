@@ -16,8 +16,6 @@
 
 #include "theory/strings/theory_strings_preprocess.h"
 
-#include <stdint.h>
-
 #include "expr/kind.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -43,9 +41,8 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     context::UserContext* u,
-                                     SequencesStatistics& stats)
-    : d_sc(sc), d_statistics(stats)
+                                     HistogramStat<Kind>* statReductions)
+    : d_sc(sc), d_statReductions(statReductions)
 {
 }
 
@@ -446,13 +443,7 @@ Node StringsPreprocess::reduce(Node t,
     Node b1 = nm->mkNode(AND, b11, b12, b13);
 
     // nodes for the case where `seq.nth` is undefined.
-    std::vector<TypeNode> argTypes;
-    argTypes.push_back(s.getType());
-    argTypes.push_back(nm->integerType());
-    TypeNode elemType = s.getType().getSequenceElementType();
-    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
-    Node uf = sc->mkTypedSkolemCached(
-        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node uf = sc->mkSkolemSeqNth(s.getType(), "Uf");
     Node b2 = nm->mkNode(EQUAL, skt, nm->mkNode(APPLY_UF, uf, s, n));
 
     // the full ite, split on definedness of `seq.nth`
@@ -875,7 +866,7 @@ Node StringsPreprocess::reduce(Node t,
   {
     Node ltp = sc->mkTypedSkolemCached(
         nm->booleanType(), t, SkolemCache::SK_PURIFY, "ltp");
-    Node k = nm->mkSkolem("k", nm->integerType());
+    Node k = SkolemCache::mkIndexVar(t);
 
     std::vector<Node> conj;
     conj.push_back(nm->mkNode(GEQ, k, zero));
@@ -899,6 +890,8 @@ Node StringsPreprocess::reduce(Node t,
     }
     conj.push_back(nm->mkNode(ITE, ite_ch));
 
+    Node conjn = nm->mkNode(
+        EXISTS, nm->mkNode(BOUND_VAR_LIST, k), nm->mkNode(AND, conj));
     // Intuitively, the reduction says either x and y are equal, or they have
     // some (maximal) common prefix after which their characters at position k
     // are distinct, and the comparison of their code matches the return value
@@ -912,13 +905,13 @@ Node StringsPreprocess::reduce(Node t,
     // assert:
     //  IF x=y
     //  THEN: ltp
-    //  ELSE: k >= 0 AND k <= len( x ) AND k <= len( y ) AND
+    //  ELSE: exists k.
+    //        k >= 0 AND k <= len( x ) AND k <= len( y ) AND
     //        substr( x, 0, k ) = substr( y, 0, k ) AND
     //        IF    ltp
     //        THEN: str.code(substr( x, k, 1 )) < str.code(substr( y, k, 1 ))
     //        ELSE: str.code(substr( x, k, 1 )) > str.code(substr( y, k, 1 ))
-    Node assert =
-        nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, nm->mkNode(AND, conj));
+    Node assert = nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, conjn);
     asserts.push_back(assert);
 
     // Thus, str.<=( x, y ) = ltp
@@ -944,7 +937,10 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
         Trace("strings-preprocess") << "   " << asserts[i] << std::endl;
       }
     }
-    d_statistics.d_reductions << t.getKind();
+    if (d_statReductions != nullptr)
+    {
+      (*d_statReductions) << t.getKind();
+    }
   }
   else
   {
@@ -954,25 +950,26 @@ Node StringsPreprocess::simplify(Node t, std::vector<Node>& asserts)
   return retNode;
 }
 
-Node StringsPreprocess::simplifyRec(Node t,
-                                    std::vector<Node>& asserts,
-                                    std::map<Node, Node>& visited)
+Node StringsPreprocess::simplifyRec(Node t, std::vector<Node>& asserts)
 {
-  std::map< Node, Node >::iterator it = visited.find(t);
-  if( it!=visited.end() ){
+  std::map<Node, Node>::iterator it = d_visited.find(t);
+  if (it != d_visited.end())
+  {
     return it->second;
   }else{
     Node retNode = t;
     if( t.getNumChildren()==0 ){
       retNode = simplify(t, asserts);
-    }else if( t.getKind()!=kind::FORALL ){
+    }
+    else if (!t.isClosure())
+    {
       bool changed = false;
       std::vector< Node > cc;
       if( t.getMetaKind() == kind::metakind::PARAMETERIZED ){
         cc.push_back( t.getOperator() );
       }
       for(unsigned i=0; i<t.getNumChildren(); i++) {
-        Node s = simplifyRec(t[i], asserts, visited);
+        Node s = simplifyRec(t[i], asserts);
         cc.push_back( s );
         if( s!=t[i] ) {
           changed = true;
@@ -984,59 +981,26 @@ Node StringsPreprocess::simplifyRec(Node t,
       }
       retNode = simplify(tmp, asserts);
     }
-    visited[t] = retNode;
+    d_visited[t] = retNode;
     return retNode;
   }
 }
 
 Node StringsPreprocess::processAssertion(Node n, std::vector<Node>& asserts)
 {
-  std::map< Node, Node > visited;
   std::vector<Node> asserts_curr;
-  Node ret = simplifyRec(n, asserts_curr, visited);
+  Node ret = simplifyRec(n, asserts_curr);
   while (!asserts_curr.empty())
   {
     Node curr = asserts_curr.back();
     asserts_curr.pop_back();
     std::vector<Node> asserts_tmp;
-    curr = simplifyRec(curr, asserts_tmp, visited);
+    curr = simplifyRec(curr, asserts_tmp);
     asserts_curr.insert(
         asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end());
     asserts.push_back(curr);
   }
   return ret;
-}
-
-void StringsPreprocess::processAssertions( std::vector< Node > &vec_node ){
-  std::map< Node, Node > visited;
-  for( unsigned i=0; i<vec_node.size(); i++ ){
-    Trace("strings-preprocess-debug") << "Preprocessing assertion " << vec_node[i] << std::endl;
-    //preprocess until fixed point
-    std::vector<Node> asserts;
-    std::vector<Node> asserts_curr;
-    asserts_curr.push_back(vec_node[i]);
-    while (!asserts_curr.empty())
-    {
-      Node curr = asserts_curr.back();
-      asserts_curr.pop_back();
-      std::vector<Node> asserts_tmp;
-      curr = simplifyRec(curr, asserts_tmp, visited);
-      asserts_curr.insert(
-          asserts_curr.end(), asserts_tmp.begin(), asserts_tmp.end());
-      asserts.push_back(curr);
-    }
-    Node res = asserts.size() == 1
-                   ? asserts[0]
-                   : NodeManager::currentNM()->mkNode(kind::AND, asserts);
-    if( res!=vec_node[i] ){
-      res = Rewriter::rewrite( res );
-      if (options::unsatCores())
-      {
-        ProofManager::currentPM()->addDependence(res, vec_node[i]);
-      }
-      vec_node[i] = res;
-    }
-  }
 }
 
 Node StringsPreprocess::mkForallInternal(Node bvl, Node body)

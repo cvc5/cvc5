@@ -48,14 +48,14 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
   NodeManager* nm = NodeManager::currentNM();
   SmtEngine* smtCurr = smt::currentSmtEngine();
   // must copy the options
-  smte.reset(new SmtEngine(nm->toExprManager(), &smtCurr->getOptions()));
+  smte.reset(new SmtEngine(nm, &smtCurr->getOptions()));
   smte->setIsInternalSubsolver();
   smte->setLogic(smtCurr->getLogicInfo());
+  // set the options
   if (needsTimeout)
   {
     smte->setTimeLimit(timeout);
   }
-  smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
 }
 
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,

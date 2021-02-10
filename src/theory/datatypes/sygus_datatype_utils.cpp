@@ -37,12 +37,19 @@ Node applySygusArgs(const DType& dt,
                     Node n,
                     const std::vector<Node>& args)
 {
+  // optimization: if n is just a sygus bound variable, return immediately
+  // by replacing with the proper argument, or returning unchanged if it is
+  // a bound variable not corresponding to a formal argument.
   if (n.getKind() == BOUND_VARIABLE)
   {
-    Assert(n.hasAttribute(SygusVarNumAttribute()));
-    int vn = n.getAttribute(SygusVarNumAttribute());
-    Assert(dt.getSygusVarList()[vn] == n);
-    return args[vn];
+    if (n.hasAttribute(SygusVarNumAttribute()))
+    {
+      int vn = n.getAttribute(SygusVarNumAttribute());
+      Assert(dt.getSygusVarList()[vn] == n);
+      return args[vn];
+    }
+    // it is a different bound variable, it is unchanged
+    return n;
   }
   // n is an application of operator op.
   // We must compute the free variables in op to determine if there are
@@ -551,8 +558,10 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
           children.push_back(it->second);
         }
         index = indexOf(cur.getOperator());
-        // apply to arguments
+        // apply to children, which constructs the builtin term
         ret = mkSygusTerm(dt, index, children);
+        // now apply it to arguments in args
+        ret = applySygusArgs(dt, dt[index].getSygusOp(), ret, args);
       }
       visited[cur] = ret;
     }
@@ -661,7 +670,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   std::stringstream ssutn0;
   ssutn0 << sdtd.getName() << "_s";
   TypeNode abdTNew =
-      nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+      nm->mkSort(ssutn0.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
   unres.insert(abdTNew);
   dtProcessed[sdt] = abdTNew;
 
@@ -703,7 +712,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
             std::stringstream ssutn;
             ssutn << argt.getDType().getName() << "_s";
             argtNew =
-                nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+                nm->mkSort(ssutn.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
             unres.insert(argtNew);

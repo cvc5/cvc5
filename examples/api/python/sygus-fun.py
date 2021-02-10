@@ -2,7 +2,7 @@
 #####################
 ## sygus-fun.py
 ## Top contributors (to current version):
-##   Yoni Zohar, Andres Noetzli
+##   Yoni Zohar, Andres Noetzli, Mudathir Mohamed
 ## Copyright (c) 2009-2018 by the authors listed in the file AUTHkinds.OrS
 ## This file is part of the CVC4 project.
 ## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
@@ -41,8 +41,8 @@ if __name__ == "__main__":
   start_bool = slv.mkVar(boolean, "StartBool")
 
   # define the rules
-  zero = slv.mkReal(0)
-  one = slv.mkReal(1)
+  zero = slv.mkInteger(0)
+  one = slv.mkInteger(1)
 
   plus = slv.mkTerm(kinds.Plus, start, start)
   minus = slv.mkTerm(kinds.Minus, start, start)

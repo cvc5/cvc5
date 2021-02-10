@@ -2,10 +2,10 @@
 /*! \file proof_cnf_stream.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -81,8 +81,11 @@ void ProofCnfStream::convertAndAssert(TNode node,
     Trace("cnf") << "ProofCnfStream::convertAndAssert: pg: " << pg->identify()
                  << "\n";
     Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
-    d_proof.addLazyStep(
-        toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
+    d_proof.addLazyStep(toJustify,
+                        pg,
+                        PfRule::ASSUME,
+                        true,
+                        "ProofCnfStream::convertAndAssert:cnf");
   }
   convertAndAssert(node, negated);
   // process saved steps in buffer
@@ -519,8 +522,11 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
   Trace("cnf-steps") << proven << " by explainPropagation "
                      << trn.identifyGenerator() << std::endl;
-  d_proof.addLazyStep(
-      proven, trn.getGenerator(), true, "ProofCnfStream::convertPropagation");
+  d_proof.addLazyStep(proven,
+                      trn.getGenerator(),
+                      PfRule::ASSUME,
+                      true,
+                      "ProofCnfStream::convertPropagation");
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
   NodeManager* nm = NodeManager::currentNM();

@@ -2,7 +2,7 @@
 /*! \file update_ostream.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Mathias Preiner
+ **   Tim King, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -37,21 +37,18 @@ class ChannelSettings {
   ChannelSettings(std::ostream& out)
       : d_dagSetting(expr::ExprDag::getDag(out)),
         d_exprDepthSetting(expr::ExprSetDepth::getDepth(out)),
-        d_printtypesSetting(expr::ExprPrintTypes::getPrintTypes(out)),
         d_languageSetting(language::SetLanguage::getLanguage(out))
   {}
 
   void apply(std::ostream& out) {
     out << expr::ExprDag(d_dagSetting);
     out << expr::ExprSetDepth(d_exprDepthSetting);
-    out << expr::ExprPrintTypes(d_printtypesSetting);
     out << language::SetLanguage(d_languageSetting);
   }
 
  private:
   const int d_dagSetting;
   const size_t d_exprDepthSetting;
-  const bool d_printtypesSetting;
   const OutputLanguage d_languageSetting;
 }; /* class ChannelSettings */
 
@@ -97,8 +94,8 @@ class WarningOstreamUpdate : public OstreamUpdate {
 
 class MessageOstreamUpdate : public OstreamUpdate {
  public:
-  std::ostream& get() override { return Message.getStream(); }
-  void set(std::ostream* setTo) override { Message.setStream(setTo); }
+  std::ostream& get() override { return CVC4Message.getStream(); }
+  void set(std::ostream* setTo) override { CVC4Message.setStream(setTo); }
 };  /* class MessageOstreamUpdate */
 
 class NoticeOstreamUpdate : public OstreamUpdate {

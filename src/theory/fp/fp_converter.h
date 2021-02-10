@@ -2,7 +2,7 @@
 /*! \file fp_converter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Mathias Preiner
+ **   Martin Brain, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -14,6 +14,8 @@
  ** Uses the symfpu library to convert from floating-point operations to
  ** bit-vectors and propositions allowing the theory to be solved by
  ** 'bit-blasting'.
+ **
+ ** !!! This header is not to be included in any other headers !!!
  **/
 
 #include "cvc4_private.h"
@@ -26,10 +28,10 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/type.h"
+#include "expr/type_node.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"
-#include "util/floatingpoint.h"
+#include "util/floatingpoint_size.h"
 #include "util/hash.h"
 
 #ifdef CVC4_USE_SYMFPU
@@ -48,10 +50,6 @@
 namespace CVC4 {
 namespace theory {
 namespace fp {
-
-typedef PairHashFunction<TypeNode, TypeNode, TypeNodeHashFunction,
-                         TypeNodeHashFunction>
-    PairTypeNodeHashFunction;
 
 /**
  * This is a symfpu symbolic "back-end".  It allows the library to be used to
@@ -302,6 +300,20 @@ class floatingPointTypeInfo : public FloatingPointSize
  */
 class FpConverter
 {
+ public:
+  /** Constructor. */
+  FpConverter(context::UserContext*);
+  /** Destructor. */
+  ~FpConverter();
+
+  /** Adds a node to the conversion, returns the converted node */
+  Node convert(TNode);
+
+  /** Gives the node representing the value of a given variable */
+  Node getValue(Valuation&, TNode);
+
+  context::CDList<Node> d_additionalAssertions;
+
  protected:
 #ifdef CVC4_USE_SYMFPU
   typedef symfpuSymbolic::traits traits;
@@ -338,17 +350,6 @@ class FpConverter
   /* Creates the relevant components for a variable */
   uf buildComponents(TNode current);
 #endif
-
- public:
-  context::CDList<Node> d_additionalAssertions;
-
-  FpConverter(context::UserContext *);
-
-  /** Adds a node to the conversion, returns the converted node */
-  Node convert(TNode);
-
-  /** Gives the node representing the value of a given variable */
-  Node getValue(Valuation &, TNode);
 };
 
 }  // namespace fp

@@ -2,7 +2,7 @@
 /*! \file assertion_pipeline.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli, Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -96,19 +96,19 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   }
   Trace("assert-pipeline") << "Assertions: Replace " << d_nodes[i] << " with "
                            << n << std::endl;
-  if (options::unsatCores())
-  {
-    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-  }
   if (isProofEnabled())
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
+  }
+  else if (options::unsatCores())
+  {
+    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
   }
   d_nodes[i] = n;
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
-{  
+{
   if (trn.isNull())
   {
     // null trust node denotes no change, nothing to do
@@ -177,7 +177,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       //   rewrite( d_nodes[i] ^ n )
       // allocate a fresh proof which will act as the proof generator
       LazyCDProof* lcp = d_pppg->allocateHelperProof();
-      lcp->addLazyStep(n, pg, false);
+      lcp->addLazyStep(n, pg, PfRule::PREPROCESS);
       if (d_nodes[i].isConst() && d_nodes[i].getConst<bool>())
       {
         // skip the AND_INTRO if the previous d_nodes[i] was true
@@ -201,7 +201,7 @@ void AssertionPipeline::conjoin(size_t i, Node n, ProofGenerator* pg)
       d_pppg->notifyNewAssert(newConjr, lcp);
     }
   }
-  if (options::unsatCores())
+  if (options::unsatCores() && !isProofEnabled())
   {
     ProofManager::currentPM()->addDependence(newConjr, d_nodes[i]);
   }

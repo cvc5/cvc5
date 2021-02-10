@@ -14,6 +14,7 @@
 
 #include "theory/strings/infer_info.h"
 
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 
 namespace CVC4 {
@@ -30,6 +31,7 @@ const char* toString(Inference i)
     case Inference::I_NORM: return "I_NORM";
     case Inference::UNIT_INJ: return "UNIT_INJ";
     case Inference::UNIT_CONST_CONFLICT: return "UNIT_CONST_CONFLICT";
+    case Inference::UNIT_INJ_DEQ: return "UNIT_INJ_DEQ";
     case Inference::CARD_SP: return "CARD_SP";
     case Inference::CARDINALITY: return "CARDINALITY";
     case Inference::I_CYCLE_E: return "I_CYCLE_E";
@@ -98,7 +100,18 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-InferInfo::InferInfo() : d_id(Inference::NONE), d_idRev(false) {}
+InferInfo::InferInfo() : d_sim(nullptr), d_id(Inference::NONE), d_idRev(false)
+{
+}
+
+bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
+{
+  if (asLemma)
+  {
+    return d_sim->processLemma(*this);
+  }
+  return d_sim->processFact(*this);
+}
 
 bool InferInfo::isTrivial() const
 {
@@ -119,10 +132,10 @@ bool InferInfo::isFact() const
   return !atom.isConst() && atom.getKind() != kind::OR && d_noExplain.empty();
 }
 
-Node InferInfo::getAntecedant() const
+Node InferInfo::getPremises() const
 {
   // d_noExplain is a subset of d_ant
-  return utils::mkAnd(d_ant);
+  return utils::mkAnd(d_premises);
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
@@ -132,9 +145,9 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
   {
     out << " :rev";
   }
-  if (!ii.d_ant.empty())
+  if (!ii.d_premises.empty())
   {
-    out << " :ant (" << ii.d_ant << ")";
+    out << " :ant (" << ii.d_premises << ")";
   }
   if (!ii.d_noExplain.empty())
   {

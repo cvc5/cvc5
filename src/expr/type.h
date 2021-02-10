@@ -20,7 +20,6 @@
 #define CVC4__TYPE_H
 
 #include <climits>
-#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -30,14 +29,11 @@ namespace CVC4 {
 
 class NodeManager;
 class CVC4_PUBLIC ExprManager;
-class CVC4_PUBLIC Expr;
+class Expr;
 class TypeNode;
 struct CVC4_PUBLIC ExprManagerMapCollection;
 
-class CVC4_PUBLIC SmtEngine;
-
-class CVC4_PUBLIC Datatype;
-class Record;
+class SmtEngine;
 
 template <bool ref_count>
 class NodeTemplate;

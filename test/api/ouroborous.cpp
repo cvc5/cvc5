@@ -2,7 +2,7 @@
 /*! \file ouroborous.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz, Tim King
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -111,7 +111,8 @@ void runTestString(std::string instr, InputLanguage instrlang = input::LANG_SMTL
 int runTest() {
   std::unique_ptr<api::Solver> solver =
       std::unique_ptr<api::Solver>(new api::Solver());
-  psr = ParserBuilder(solver.get(), "internal-buffer")
+  std::unique_ptr<SymbolManager> symman(new SymbolManager(solver.get()));
+  psr = ParserBuilder(solver.get(), symman.get(), "internal-buffer")
             .withStringInput(declarations)
             .withInputLanguage(input::LANG_SMTLIB_V2)
             .build();

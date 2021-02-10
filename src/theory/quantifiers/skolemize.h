@@ -2,7 +2,7 @@
 /*! \file skolemize.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -24,6 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 
@@ -63,15 +64,14 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersEngine* qe, context::UserContext* u);
+  Skolemize(QuantifiersEngine* qe, QuantifiersState& qs, ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
-   * If the return value ret of this function
-   * is non-null, then ret is a new skolemization lemma
-   * we generated for q. These lemmas are constructed
-   * once per user-context.
+   * If the return value ret of this function is non-null, then ret is a trust
+   * node corresponding to a new skolemization lemma we generated for q. These
+   * lemmas are constructed once per user-context.
    */
-  Node process(Node q);
+  TrustNode process(Node q);
   /** get skolem constants for quantified formula q */
   bool getSkolemConstants(Node q, std::vector<Node>& skolems);
   /** get the i^th skolem constant for quantified formula q */
@@ -108,17 +108,22 @@ class Skolemize
   Node getSkolemizedBody(Node q);
   /** is n a variable that we can apply inductive strenghtening to? */
   static bool isInductionTerm(Node n);
-  /** print all skolemizations
+  /**
+   * Get skolemization vectors, where for each quantified formula that was
+   * skolemized, this is the list of skolems that were used to witness the
+   * negation of that quantified formula (which is equivalent to an existential
+   * one).
+   *
    * This is used for the command line option
    *   --dump-instantiations
-   * which prints an informal justification
-   * of steps taken by the quantifiers module.
-   * Returns true if we printed at least one
-   * skolemization.
+   * which prints an informal justification of steps taken by the quantifiers
+   * module.
    */
-  bool printSkolemization(std::ostream& out);
+  void getSkolemTermVectors(std::map<Node, std::vector<Node> >& sks) const;
 
  private:
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /** get self selectors
    * For datatype constructor dtc with type dt,
    * this collects the set of datatype selector applications,
@@ -139,6 +144,10 @@ class Skolemize
       d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
   std::unordered_map<Node, Node, NodeHashFunction> d_skolem_body;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
+  /** Eager proof generator for skolemization lemmas */
+  std::unique_ptr<EagerProofGenerator> d_epg;
 };
 
 } /* CVC4::theory::quantifiers namespace */
