@@ -138,7 +138,7 @@ void CnfStream::ensureExistingLiteral(TNode n)
   }
 }
 
-void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
+void CnfStream::ensureLiteral(TNode n)
 {
   AlwaysAssertArgument(
       hasLiteral(n) || n.getType().isBoolean(),
@@ -190,7 +190,7 @@ void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
   else
   {
     // We have a theory atom or variable.
-    convertAtom(n, noPreregistration);
+    convertAtom(n);
   }
 }
 

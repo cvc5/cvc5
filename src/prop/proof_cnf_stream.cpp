@@ -570,7 +570,7 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   d_psb.clear();
 }
 
-void ProofCnfStream::ensureLiteral(TNode n, bool noPreregistration)
+void ProofCnfStream::ensureLiteral(TNode n)
 {
   Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n << ")\n";
   if (d_cnfStream.hasLiteral(n))
@@ -587,7 +587,7 @@ void ProofCnfStream::ensureLiteral(TNode n, bool noPreregistration)
   }
   else
   {
-    d_cnfStream.convertAtom(n, noPreregistration);
+    d_cnfStream.convertAtom(n);
   }
 }
 
