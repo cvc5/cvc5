@@ -45,6 +45,18 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL: return "CAD_EXCLUDED_INTERVAL";
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION: return "ICP_PROPAGATION";
+    case Inference::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
+    case Inference::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
+    case InferenceId::BAG_MK_BAG: return "BAG_MK_BAG";
+    case InferenceId::BAG_EQUALITY: return "BAG_EQUALITY";
+    case InferenceId::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
+    case InferenceId::BAG_EMPTY: return "BAG_EMPTY";
+    case InferenceId::BAG_UNION_DISJOINT: return "BAG_UNION_DISJOINT";
+    case InferenceId::BAG_UNION_MAX: return "BAG_UNION_MAX";
+    case InferenceId::BAG_INTERSECTION_MIN: return "BAG_INTERSECTION_MIN";
+    case InferenceId::BAG_DIFFERENCE_SUBTRACT: return "BAG_DIFFERENCE_SUBTRACT";
+    case InferenceId::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
+    case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
     default: return "?";
   }
 }

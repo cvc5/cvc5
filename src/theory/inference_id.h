@@ -85,6 +85,21 @@ enum class InferenceId
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
   //-------------------- unknown
+
+
+  BAG_NON_NEGATIVE_COUNT,
+  BAG_MK_BAG_SAME_ELEMENT,
+  BAG_MK_BAG,
+  BAG_EQUALITY,
+  BAG_DISEQUALITY,
+  BAG_EMPTY,
+  BAG_UNION_DISJOINT,
+  BAG_UNION_MAX,
+  BAG_INTERSECTION_MIN,
+  BAG_DIFFERENCE_SUBTRACT,
+  BAG_DIFFERENCE_REMOVE,
+  BAG_DUPLICATE_REMOVAL,
+
   UNKNOWN,
 };
 

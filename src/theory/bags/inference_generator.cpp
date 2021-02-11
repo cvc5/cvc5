@@ -88,7 +88,7 @@ InferInfo InferenceGenerator::bagDisequality(Node n)
   Node B = n[1];
 
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_DISEQUALITY;
+  inferInfo.d_id = InferenceId::BAG_DISEQUALITY;
 
   TypeNode elementType = A.getType().getBagElementType();
   BoundVarManager* bvm = d_nm->getBoundVarManager();
@@ -123,7 +123,7 @@ InferInfo InferenceGenerator::empty(Node n, Node e)
 
   InferInfo inferInfo;
   Node skolem = getSkolem(n, inferInfo);
-  inferInfo.d_id = Inference::BAG_EMPTY;
+  inferInfo.d_id = InferenceId::BAG_EMPTY;
   Node count = getMultiplicityTerm(e, skolem);
 
   Node equal = count.eqNode(d_zero);
@@ -139,7 +139,7 @@ InferInfo InferenceGenerator::unionDisjoint(Node n, Node e)
   Node A = n[0];
   Node B = n[1];
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_UNION_DISJOINT;
+  inferInfo.d_id = InferenceId::BAG_UNION_DISJOINT;
 
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
@@ -162,7 +162,7 @@ InferInfo InferenceGenerator::unionMax(Node n, Node e)
   Node A = n[0];
   Node B = n[1];
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_UNION_MAX;
+  inferInfo.d_id = InferenceId::BAG_UNION_MAX;
 
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
@@ -186,7 +186,7 @@ InferInfo InferenceGenerator::intersection(Node n, Node e)
   Node A = n[0];
   Node B = n[1];
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_INTERSECTION_MIN;
+  inferInfo.d_id = InferenceId::BAG_INTERSECTION_MIN;
 
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
@@ -208,7 +208,7 @@ InferInfo InferenceGenerator::differenceSubtract(Node n, Node e)
   Node A = n[0];
   Node B = n[1];
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_DIFFERENCE_SUBTRACT;
+  inferInfo.d_id = InferenceId::BAG_DIFFERENCE_SUBTRACT;
 
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
@@ -231,7 +231,7 @@ InferInfo InferenceGenerator::differenceRemove(Node n, Node e)
   Node A = n[0];
   Node B = n[1];
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_DIFFERENCE_REMOVE;
+  inferInfo.d_id = InferenceId::BAG_DIFFERENCE_REMOVE;
 
   Node countA = getMultiplicityTerm(e, A);
   Node countB = getMultiplicityTerm(e, B);
@@ -253,7 +253,7 @@ InferInfo InferenceGenerator::duplicateRemoval(Node n, Node e)
 
   Node A = n[0];
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_DUPLICATE_REMOVAL;
+  inferInfo.d_id = InferenceId::BAG_DUPLICATE_REMOVAL;
 
   Node countA = getMultiplicityTerm(e, A);
   Node skolem = getSkolem(n, inferInfo);
