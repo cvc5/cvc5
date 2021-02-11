@@ -93,12 +93,12 @@ void BVSolverSimple::addBBLemma(TNode fact)
 
   if (d_epg == nullptr)
   {
-    d_inferManager.lemma(lemma);
+    d_inferManager.lemma(InferenceId::UNKNOWN, lemma);
   }
   else
   {
     TrustNode tlem = d_epg->mkTrustNode(lemma, PfRule::BV_BITBLAST, {}, {fact});
-    d_inferManager.trustedLemma(tlem);
+    d_inferManager.trustedLemma(InferenceId::UNKNOWN, tlem);
   }
 }
 
@@ -123,13 +123,13 @@ bool BVSolverSimple::preNotifyFact(
 
     if (d_epg == nullptr)
     {
-      d_inferManager.lemma(lemma);
+      d_inferManager.lemma(InferenceId::UNKNOWN, lemma);
     }
     else
     {
       TrustNode tlem =
           d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
-      d_inferManager.trustedLemma(tlem);
+      d_inferManager.trustedLemma(InferenceId::UNKNOWN, tlem);
     }
 
     std::unordered_set<Node, NodeHashFunction> bv_atoms;

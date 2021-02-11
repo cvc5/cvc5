@@ -416,9 +416,9 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_inferManager.lemma(lemma);
+    d_bv->d_inferManager.lemma(InferenceId::UNKNOWN, lemma);
   } else {
-    d_bv->d_inferManager.lemma(d_cnf->getNode(clause[0]));
+    d_bv->d_inferManager.lemma(InferenceId::UNKNOWN, d_cnf->getNode(clause[0]));
   }
 }
 

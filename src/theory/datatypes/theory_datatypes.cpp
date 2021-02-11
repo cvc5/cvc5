@@ -252,7 +252,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     assumptions.push_back(assumption);
                     Node lemma = assumptions.size()==1 ? assumptions[0] : NodeManager::currentNM()->mkNode( OR, assumptions );
                     Trace("dt-singleton") << "*************Singleton equality lemma " << lemma << std::endl;
-                    d_im.lemma(lemma);
+                    d_im.lemma(InferenceId::UNKNOWN, lemma);
                   }
                 }
               }else{
@@ -318,7 +318,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     NodeBuilder<> nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
-                    d_im.lemma(lemma);
+                    d_im.lemma(InferenceId::UNKNOWN, lemma);
                     d_out->requirePhase( test, true );
                   }else{
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
@@ -1415,7 +1415,7 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
       Node v2 = NodeManager::currentNM()->mkSkolem( "k2", tn );
       a = v1.eqNode( v2 ).negate();
       //send out immediately as lemma
-      d_im.lemma(a);
+      d_im.lemma(InferenceId::UNKNOWN, a);
       Trace("dt-singleton") << "******** assert " << a << " to avoid singleton cardinality for type " << tn << std::endl;
     }
     d_singleton_lemma[index][tn] = a;

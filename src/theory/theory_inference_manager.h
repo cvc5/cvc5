@@ -132,12 +132,12 @@ class TheoryInferenceManager
    * Raise conflict conf (of any form), without proofs. This method should
    * only be called if there is not yet proof support in the given theory.
    */
-  void conflict(TNode conf);
+  void conflict(InferenceId id, TNode conf);
   /**
    * Raise trusted conflict tconf (of any form) where a proof generator has
    * been provided (as part of the trust node) in a custom way.
    */
-  void trustedConflict(TrustNode tconf);
+  void trustedConflict(InferenceId id, TrustNode tconf);
   /**
    * Explain and send conflict from contradictory facts. This method is called
    * when the proof rule id with premises exp and arguments args concludes
@@ -145,7 +145,7 @@ class TheoryInferenceManager
    * equality engine's explanation of literals in exp, with the proof equality
    * engine as the proof generator (if it exists).
    */
-  void conflictExp(PfRule id,
+  void conflictExp(InferenceId id, PfRule pfr,
                    const std::vector<Node>& exp,
                    const std::vector<Node>& args);
   /**
@@ -153,7 +153,7 @@ class TheoryInferenceManager
    * the responsibility of the caller to subsequently call trustedConflict with
    * the returned trust node.
    */
-  TrustNode mkConflictExp(PfRule id,
+  TrustNode mkConflictExp(PfRule pfr,
                           const std::vector<Node>& exp,
                           const std::vector<Node>& args);
   /**
@@ -164,7 +164,7 @@ class TheoryInferenceManager
    * engine as the proof generator (if it exists), where pg provides the
    * final step(s) of this proof during this call.
    */
-  void conflictExp(const std::vector<Node>& exp, ProofGenerator* pg);
+  void conflictExp(InferenceId id, const std::vector<Node>& exp, ProofGenerator* pg);
   /**
    * Make the trust node corresponding to the conflict of the above form. It is
    * the responsibility of the caller to subsequently call trustedConflict with
@@ -181,14 +181,14 @@ class TheoryInferenceManager
    * cached (see cacheLemma), and add it to the cache during this call.
    * @return true if the lemma was sent on the output channel.
    */
-  bool trustedLemma(const TrustNode& tlem,
+  bool trustedLemma(InferenceId id, const TrustNode& tlem,
                     LemmaProperty p = LemmaProperty::NONE,
                     bool doCache = true);
   /**
    * Send lemma lem with property p on the output channel. Same as above, with
    * a node instead of a trust node.
    */
-  bool lemma(TNode lem,
+  bool lemma(InferenceId id, TNode lem,
              LemmaProperty p = LemmaProperty::NONE,
              bool doCache = true);
   /**
@@ -214,8 +214,8 @@ class TheoryInferenceManager
    * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
-  bool lemmaExp(Node conc,
-                PfRule id,
+  bool lemmaExp(InferenceId id, Node conc,
+                PfRule pfr,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
                 const std::vector<Node>& args,
@@ -245,7 +245,7 @@ class TheoryInferenceManager
    * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
-  bool lemmaExp(Node conc,
+  bool lemmaExp(InferenceId id, Node conc,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
                 ProofGenerator* pg = nullptr,
@@ -286,7 +286,7 @@ class TheoryInferenceManager
    * @return true if the fact was processed, i.e. it was asserted to the
    * equality engine or preNotifyFact returned true.
    */
-  bool assertInternalFact(TNode atom, bool pol, TNode exp);
+  bool assertInternalFact(InferenceId id, TNode atom, bool pol, TNode exp);
   /**
    * Assert internal fact, with a proof step justification. Notice that if
    * proofs are not enabled in this inference manager, then this asserts
@@ -300,9 +300,9 @@ class TheoryInferenceManager
    * @return true if the fact was processed, i.e. it was asserted to the
    * equality engine or preNotifyFact returned true.
    */
-  bool assertInternalFact(TNode atom,
+  bool assertInternalFact(InferenceId id, TNode atom,
                           bool pol,
-                          PfRule id,
+                          PfRule pfr,
                           const std::vector<Node>& exp,
                           const std::vector<Node>& args);
   /**
@@ -318,7 +318,7 @@ class TheoryInferenceManager
    * @return true if the fact was processed, i.e. it was asserted to the
    * equality engine or preNotifyFact returned true.
    */
-  bool assertInternalFact(TNode atom,
+  bool assertInternalFact(InferenceId id, TNode atom,
                           bool pol,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);

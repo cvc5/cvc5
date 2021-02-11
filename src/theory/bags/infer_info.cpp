@@ -37,7 +37,7 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   if (asLemma)
   {
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    im->trustedLemma(trustedLemma);
+    im->trustedLemma(getId(), trustedLemma);
   }
   else
   {
@@ -47,7 +47,7 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   {
     Node n = pair.first.eqNode(pair.second);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
-    im->trustedLemma(trustedLemma);
+    im->trustedLemma(getId(), trustedLemma);
   }
 
   Trace("bags::InferInfo::process") << (*this) << std::endl;
