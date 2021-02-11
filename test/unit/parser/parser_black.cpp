@@ -9,11 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of CVC4::parser::Parser, including CVC, SMT and
- ** SMT v2 inputs.
+ ** \brief Black box testing of CVC4::parser::Parser for CVC and SMT-LIBv2
+ ** inputs.
  **
- ** Black box testing of CVC4::parser::Parser, including CVC, SMT, and
- ** SMT v2 inputs.
+ ** Black box testing of CVC4::parser::Parser for CVC and SMT-LIbv2 inputs.
  **/
 
 #include <sstream>
