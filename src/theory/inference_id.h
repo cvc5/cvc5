@@ -404,7 +404,23 @@ enum class InferenceId
   STRINGS_PREFIX_CONFLICT,
   //-------------------------------------- end prefix conflict
 
-  UNKNOWN,
+  // Clause from the uf symmetry breaker
+  UF_BREAK_SYMMETRY,
+  UF_CARD_CLIQUE,
+  UF_CARD_COMBINED,
+  UF_CARD_ENFORCE_NEGATIVE,
+  UF_CARD_EQUIV,
+  UF_CARD_MONOTONE_COMBINED,
+  UF_CARD_SIMPLE_CONFLICT,
+  UF_CARD_SPLIT,
+  // HO collect model info application
+  UF_HO_APPLY_EXPAND,
+  UF_HO_APPLY_CONV_SKOLEM,
+  UF_HO_CMI_APP,
+  UF_HO_CMI_EXTENSIONALITY,
+  UF_HO_EXTENSIONALITY,
+
+  UNKNOWN
 };
 
 /**
