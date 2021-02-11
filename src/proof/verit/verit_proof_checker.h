@@ -35,6 +35,27 @@ NotTranslated,
 NoCheck
 };
 
+static bool equalNodes(Node vp1, Node vp2){
+  if(vp1.getKind() != vp2.getKind()){
+     return false;
+  }
+  else if(vp1 == vp2){
+    return true;
+  }
+  else if(vp1.getKind() == kind::EQUAL){
+     return (equalNodes(vp1[0],vp2[1]) && equalNodes(vp1[1],vp2[0]))
+	     || (equalNodes(vp1[0],vp2[0]) && equalNodes(vp1[1],vp2[1]));
+  }
+  std::vector<Node> vp1s(vp1.begin(),vp1.end());
+  std::vector<Node> vp2s(vp2.begin(),vp2.end());
+  if(vp1s.size() != vp2s.size()) {return false;}
+  bool equal = true;
+  for(int i=0; i < vp1s.size();i++){
+    equal &= equalNodes(vp1s[i],vp2s[i]);
+  }
+  return equal;
+}
+
 static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 {
   VeritRule id =
@@ -79,7 +100,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::TRUE://DONE
     {
-      if (CDProof::isSame(res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(true))))
+      if (equalNodes(res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(true))))
       {
         return CheckResult::True;
       }
@@ -87,8 +108,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::FALSE://DONE
     {
-      if (CDProof::isSame(
-              res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(true).negate())))
+      if (equalNodes(
+              res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(false).negate())))
       {
         return CheckResult::True;
       }
@@ -97,7 +118,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::NOT_NOT://DONE
     {
       if (res[0].toString() == cl.toString()
-          && CDProof::isSame(res[1], res[2].notNode().notNode().notNode()))
+          && equalNodes(res[1], res[2].notNode().notNode().notNode()))
       {
         return CheckResult::True;
       }
@@ -107,7 +128,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       // Special case n=1
       if (res[0].toString() == cl.toString()
-          && CDProof::isSame(res[1][0], res[2])
+          && equalNodes(res[1][0], res[2])
           && res[1].getKind() == kind::NOT)
       {
         return CheckResult::True;
@@ -116,7 +137,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool equal = false;
       for (auto i = res[1][0].begin(); i != res[1][0].end(); i++)
       {
-        if (CDProof::isSame(*i, res[2]))
+        if (equalNodes(*i, res[2]))
         {
           equal = true;
         }
@@ -131,7 +152,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool neg = true;
       for (auto i = 0; i < res[1].end() - res[1].begin(); i++)
       {
-        if (!CDProof::isSame(res[1][i], res[i + 2][0]))
+        if (!equalNodes(res[1][i], res[i + 2][0]))
         {
           equal = false;
         }
@@ -148,7 +169,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool equal = true;
       for (auto i = 0; i < res[1][0].end() - res[1][0].begin(); i++)
       {
-        if (!CDProof::isSame(res[1][0][i], res[i + 2]))
+        if (!equalNodes(res[1][0][i], res[i + 2]))
         {
           equal = false;
         }
@@ -161,7 +182,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       // Special case n=1
       if (res[0].toString() == cl.toString()
-          && CDProof::isSame(res[1], res[2][0])
+          && equalNodes(res[1], res[2][0])
           && res[2].getKind() == kind::NOT)
       {
         return CheckResult::True;
@@ -170,7 +191,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool equal = false;
       for (auto i = res[1].begin(); i != res[1].end(); i++)
       {
-        if (CDProof::isSame(*i, res[2][0]))
+        if (equalNodes(*i, res[2][0]))
         {
           equal = true;
         }
@@ -183,8 +204,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::XOR
-          && CDProof::isSame(res[1][0][0], res[2])
-          && CDProof::isSame(res[1][0][1], res[3]))
+          && equalNodes(res[1][0][0], res[2])
+          && equalNodes(res[1][0][1], res[3]))
       {
         return CheckResult::True;
       }
@@ -195,8 +216,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::XOR && res[2].getKind() == kind::NOT
           && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0], res[2][0])
-          && CDProof::isSame(res[1][0][1], res[3][0]))
+          && equalNodes(res[1][0][0], res[2][0])
+          && equalNodes(res[1][0][1], res[3][0]))
       {
         return CheckResult::True;
       }
@@ -205,8 +226,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::XOR_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::XOR
-          && res[3].getKind() == kind::NOT && CDProof::isSame(res[1][0], res[2])
-          && CDProof::isSame(res[1][1], res[3][0]))
+          && res[3].getKind() == kind::NOT && equalNodes(res[1][0], res[2])
+          && equalNodes(res[1][1], res[3][0]))
       {
         return CheckResult::True;
       }
@@ -216,8 +237,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::XOR
           && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0], res[2][0])
-          && CDProof::isSame(res[1][1], res[3]))
+          && equalNodes(res[1][0], res[2][0])
+          && equalNodes(res[1][1], res[3]))
       {
         return CheckResult::True;
       }
@@ -228,8 +249,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::IMPLIES
           && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0], res[2][0])
-          && CDProof::isSame(res[1][0][1], res[3]))
+          && equalNodes(res[1][0][0], res[2][0])
+          && equalNodes(res[1][0][1], res[3]))
       {
         return CheckResult::True;
       }
@@ -239,7 +260,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString()
           && res[1].getKind() == kind::IMPLIES
-          && CDProof::isSame(res[1][0], res[2]))
+          && equalNodes(res[1][0], res[2]))
       {
         return CheckResult::True;
       }
@@ -249,7 +270,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString()
           && res[1].getKind() == kind::IMPLIES && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][1], res[2][0]))
+          && equalNodes(res[1][1], res[2][0]))
       {
         return CheckResult::True;
       }
@@ -259,15 +280,15 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0], res[2])
-          && CDProof::isSame(res[1][0][1], res[3][0]))
+          && equalNodes(res[1][0][0], res[2])
+          && equalNodes(res[1][0][1], res[3][0]))
       {
         return CheckResult::True;
       }
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][1], res[2])
-          && CDProof::isSame(res[1][0][0], res[3][0]))
+          && equalNodes(res[1][0][1], res[2])
+          && equalNodes(res[1][0][0], res[3][0]))
       {
         return CheckResult::True;
       }
@@ -278,16 +299,16 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString()
           && res[1].getKind() == kind::NOT && res[1][0].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0], res[2][0])
-          && CDProof::isSame(res[1][0][1], res[3]))
+          && equalNodes(res[1][0][0], res[2][0])
+          && equalNodes(res[1][0][1], res[3]))
       {
         return CheckResult::True;
       }
       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString()
           && res[1].getKind() == kind::NOT && res[1][0].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][1], res[2][0])
-          && CDProof::isSame(res[1][0][0], res[3]))
+          && equalNodes(res[1][0][1], res[2][0])
+          && equalNodes(res[1][0][0], res[3]))
       {
         return CheckResult::True;
       }
@@ -297,15 +318,15 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0], res[2][0])
-          && CDProof::isSame(res[1][1], res[3][0]))
+          && equalNodes(res[1][0], res[2][0])
+          && equalNodes(res[1][1], res[3][0]))
       {
         return CheckResult::True;
       }
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][1], res[2][0])
-          && CDProof::isSame(res[1][0], res[3][0]))
+          && equalNodes(res[1][1], res[2][0])
+          && equalNodes(res[1][0], res[3][0]))
       {
         return CheckResult::True;
       }
@@ -314,8 +335,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::EQUIV_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
-          && CDProof::isSame(res[1][0], res[2])
-          && CDProof::isSame(res[1][1], res[3]))
+          && equalNodes(res[1][0], res[2])
+          && equalNodes(res[1][1], res[3]))
       {
         return CheckResult::True;
       }
@@ -327,8 +348,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::ITE
-          && CDProof::isSame(res[1][0][0], res[2])
-          && CDProof::isSame(res[1][0][2], res[3]))
+          && equalNodes(res[1][0][0], res[2])
+          && equalNodes(res[1][0][2], res[3]))
       {
         return CheckResult::True;
       }
@@ -338,8 +359,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::ITE && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0], res[2][0])
-          && CDProof::isSame(res[1][0][1], res[3]))
+          && equalNodes(res[1][0][0], res[2][0])
+          && equalNodes(res[1][0][1], res[3]))
       {
         return CheckResult::True;
       }
@@ -348,8 +369,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::ITE_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::ITE
-          && res[3].getKind() == kind::NOT && CDProof::isSame(res[1][0], res[2])
-          && CDProof::isSame(res[1][2], res[3][0]))
+          && res[3].getKind() == kind::NOT && equalNodes(res[1][0], res[2])
+          && equalNodes(res[1][2], res[3][0]))
       {
         return CheckResult::True;
       }
@@ -359,8 +380,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::ITE
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0], res[2][0])
-          && CDProof::isSame(res[1][1], res[3][0]))
+          && equalNodes(res[1][0], res[2][0])
+          && equalNodes(res[1][1], res[3][0]))
       {
         return CheckResult::True;
       }
@@ -369,7 +390,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::EQ_REFLEXIVE://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
-          && CDProof::isSame(res[1][0], res[1][1]))
+          && equalNodes(res[1][0], res[1][1]))
       {
         return CheckResult::True;
       }
@@ -404,8 +425,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
         }
       }
       if (res[0].toString() == cl.toString()
-          && CDProof::isSame(res[n - 1][0], ts[0])
-          && CDProof::isSame(res[n - 1][1], ts[1])
+          && equalNodes(res[n - 1][0], ts[0])
+          && equalNodes(res[n - 1][1], ts[1])
           && res[n - 1].getKind() == kind::EQUAL && equal)
       {
         return CheckResult::True;
@@ -418,8 +439,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       int n = res.end() - res.begin();
       for (auto i = 1; i < n - 1; i++)
       {
-        if (!CDProof::isSame(res[i][0][0], res[n - 1][0][0][i])
-            || !CDProof::isSame(res[i][0][1], res[n - 1][1][0][i])
+        if (!equalNodes(res[i][0][0], res[n - 1][0][0][i])
+            || !equalNodes(res[i][0][1], res[n - 1][1][0][i])
             || res[i].getKind() != kind::NOT
             || res[i][0].getKind() != kind::EQUAL)
         {
@@ -439,8 +460,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       int n = res.end() - res.begin();
       for (auto i = 1; i < n - 1; i++)
       {
-        if (!CDProof::isSame(res[i][0][0], res[n - 1][0][0][i])
-            || !CDProof::isSame(res[i][0][1], res[n - 1][1][0][i])
+        if (!equalNodes(res[i][0][0], res[n - 1][0][0][i])
+            || !equalNodes(res[i][0][1], res[n - 1][1][0][i])
             || res[i].getKind() != kind::NOT
             || res[i][0].getKind() != kind::EQUAL)
         {
@@ -467,10 +488,10 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           && res[1][1][0].getKind() == kind::LEQ
           && res[1][2].getKind() == kind::NOT
           && res[1][2][0].getKind() == kind::LEQ
-          && CDProof::isSame(res[1][0][0], res[1][1][0][0])
-          && CDProof::isSame(res[1][0][0], res[1][2][0][1])
-          && CDProof::isSame(res[1][0][1], res[1][1][0][1])
-          && CDProof::isSame(res[1][0][1], res[1][2][0][0]))
+          && equalNodes(res[1][0][0], res[1][1][0][0])
+          && equalNodes(res[1][0][0], res[1][2][0][1])
+          && equalNodes(res[1][0][1], res[1][1][0][1])
+          && equalNodes(res[1][0][1], res[1][2][0][0]))
       {
         return CheckResult::True;
       }
@@ -518,8 +539,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           for(int k = 0; k < (clauses.end()-clauses.begin());k++){
 	     //std::cout << "new_children[i][j] " << new_children[i][j] << std::endl;
 	     //std::cout << "clauses[k].negate() " << clauses[k].notNode() << std::endl;
-             if (CDProof::isSame(new_children[i][j], clauses[k].notNode())
-                 || CDProof::isSame(new_children[i][j].notNode(), clauses[k]))
+             if (equalNodes(new_children[i][j], clauses[k].notNode())
+                 || equalNodes(new_children[i][j].notNode(), clauses[k]))
              {
                // std::cout << "deleted " << clauses[k] << std::endl;
                clauses.erase(clauses.begin() + k);
@@ -535,7 +556,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       }
       for(int i = 1; i < (res.end()-res.begin());i++){
         for(int k = 0; k < (clauses.end()-clauses.begin());k++){
-          if (CDProof::isSame(res[i], clauses[k]))
+          if (equalNodes(res[i], clauses[k]))
           {
             // std::cout << "deleted " << res[i]  << std::endl;
             clauses.erase(clauses.begin() + k);
@@ -554,7 +575,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       //std::cout << (res[1][0] == res[1][1]) << std::endl;
       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString()
           && res[1].getKind() == kind::EQUAL
-          && CDProof::isSame(res[1][0], res[1][1]))
+          && equalNodes(res[1][0], res[1][1]))
       {
         return CheckResult::True;
       }
@@ -577,7 +598,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool success2 = true;
       bool success3 = true;
       bool success4 = true;
-      if (CDProof::isSame(new_children[0][1][0], new_children[1][1][0]))
+      if (equalNodes(new_children[0][1][0], new_children[1][1][0]))
       {
         start = new_children[0][1][1];
         symm = new_children[1][1][1];
@@ -589,11 +610,11 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           {
             success1 = false;
           }
-          if (CDProof::isSame(new_children[i][1][0], symm))
+          if (equalNodes(new_children[i][1][0], symm))
           {
             symm = new_children[i][1][1];
           }
-          else if (CDProof::isSame(new_children[i][1][1], symm))
+          else if (equalNodes(new_children[i][1][1], symm))
           {
             symm = new_children[i][1][0];
           }
@@ -603,17 +624,17 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((CDProof::isSame(res[1][0], start)
-                 && CDProof::isSame(res[1][1], symm))
-                || (CDProof::isSame(res[1][0], symm)
-                    && CDProof::isSame(res[1][1], start)))
+            && ((equalNodes(res[1][0], start)
+                 && equalNodes(res[1][1], symm))
+                || (equalNodes(res[1][0], symm)
+                    && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
         {
           success1 &= true;
         }
         success1 = false;
       }
-      else if (CDProof::isSame(new_children[0][1][0], new_children[1][1][1]))
+      else if (equalNodes(new_children[0][1][0], new_children[1][1][1]))
       {
         start = new_children[0][1][1];
         symm = new_children[1][1][0];
@@ -625,11 +646,11 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           {
             success2 = false;
           }
-          if (CDProof::isSame(new_children[i][1][0], symm))
+          if (equalNodes(new_children[i][1][0], symm))
           {
             symm = new_children[i][1][1];
           }
-          else if (CDProof::isSame(new_children[i][1][1], symm))
+          else if (equalNodes(new_children[i][1][1], symm))
           {
             symm = new_children[i][1][0];
           }
@@ -639,17 +660,17 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((CDProof::isSame(res[1][0], start)
-                 && CDProof::isSame(res[1][1], symm))
-                || (CDProof::isSame(res[1][0], symm)
-                    && CDProof::isSame(res[1][1], start)))
+            && ((equalNodes(res[1][0], start)
+                 && equalNodes(res[1][1], symm))
+                || (equalNodes(res[1][0], symm)
+                    && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
         {
           success2 &= true;
         }
         success2 = false;
       }
-      else if (CDProof::isSame(new_children[0][1][1], new_children[1][1][0]))
+      else if (equalNodes(new_children[0][1][1], new_children[1][1][0]))
       {
         start = new_children[0][1][0];
         symm = new_children[1][1][1];
@@ -661,11 +682,11 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           {
             success3 = false;
           }
-          if (CDProof::isSame(new_children[i][1][0], symm))
+          if (equalNodes(new_children[i][1][0], symm))
           {
             symm = new_children[i][1][1];
           }
-          else if (CDProof::isSame(new_children[i][1][1], symm))
+          else if (equalNodes(new_children[i][1][1], symm))
           {
             symm = new_children[i][1][0];
           }
@@ -675,17 +696,17 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((CDProof::isSame(res[1][0], start)
-                 && CDProof::isSame(res[1][1], symm))
-                || (CDProof::isSame(res[1][0], symm)
-                    && CDProof::isSame(res[1][1], start)))
+            && ((equalNodes(res[1][0], start)
+                 && equalNodes(res[1][1], symm))
+                || (equalNodes(res[1][0], symm)
+                    && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
         {
           success3 &= true;
         }
         success3 = false;
       }
-      else if (CDProof::isSame(new_children[0][1][1], new_children[1][1][1]))
+      else if (equalNodes(new_children[0][1][1], new_children[1][1][1]))
       {
         start = new_children[0][1][0];
         symm = new_children[1][1][0];
@@ -697,11 +718,11 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           {
             success4 = false;
           }
-          if (CDProof::isSame(new_children[i][1][0], symm))
+          if (equalNodes(new_children[i][1][0], symm))
           {
             symm = new_children[i][1][1];
           }
-          else if (CDProof::isSame(new_children[i][1][1], symm))
+          else if (equalNodes(new_children[i][1][1], symm))
           {
             symm = new_children[i][1][0];
           }
@@ -711,10 +732,10 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((CDProof::isSame(res[1][0], start)
-                 && CDProof::isSame(res[1][1], symm))
-                || (CDProof::isSame(res[1][0], symm)
-                    && CDProof::isSame(res[1][1], start)))
+            && ((equalNodes(res[1][0], start)
+                 && equalNodes(res[1][1], symm))
+                || (equalNodes(res[1][0], symm)
+                    && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
         {
           success4 &= true;
@@ -741,10 +762,10 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
          {
            return CheckResult::False;
          }
-         if (!(CDProof::isSame(new_children[i][1][0], res[1][0][i])
-               && CDProof::isSame(new_children[i][1][1], res[1][1][i]))
-             && !(CDProof::isSame(new_children[i][1][0], res[1][1][i])
-                  && CDProof::isSame(new_children[i][1][1], res[1][0][i])))
+         if (!(equalNodes(new_children[i][1][0], res[1][0][i])
+               && equalNodes(new_children[i][1][1], res[1][1][i]))
+             && !(equalNodes(new_children[i][1][0], res[1][1][i])
+                  && equalNodes(new_children[i][1][1], res[1][0][i])))
          {
            return CheckResult::False;
          }
@@ -767,7 +788,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
            i < (new_children[0][1].end() - new_children[0][1].begin());
            i++)
       {
-        if (CDProof::isSame(new_children[0][1][i], res[1]))
+        if (equalNodes(new_children[0][1][i], res[1]))
         {
           equal = true;
         }
@@ -790,7 +811,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
         for (int j = 0; j < (new_children[0].end() - new_children[0].begin());
              j++)
         {
-          if (CDProof::isSame(new_children[0][i], new_children[0][i].negate()))
+          if (equalNodes(new_children[0][i], new_children[0][i].negate()))
           // check if .notNode() has to be used
           {
             equal = true;
@@ -810,7 +831,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 	      //std::cout << "new_children[0][1][0][i] " << new_children[0][1][0][i] << std::endl;
 	      //std::cout << "new_children[0][1][0][i].negate()  " << new_children[0][1][0][i].negate() << std::endl;
 	      //std::cout << "new_children[0][1][0][i].notNode() " << new_children[0][1][0][i].notNode() <<std::endl;
-              if (CDProof::isSame(new_children[0][1][0][i].notNode(), res[1]))
+              if (equalNodes(new_children[0][1][0][i].notNode(), res[1]))
               {
                 equal = true;
               }
@@ -834,7 +855,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
            i < (new_children[0][1].end() - new_children[0][1].begin());
            i++)
       {
-        if (!CDProof::isSame(new_children[0][1][i], res[i + 1]))
+        if (!equalNodes(new_children[0][1][i], res[i + 1]))
         {
           equal = false;
         }
@@ -858,7 +879,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
            i < (new_children[0][1][0].end() - new_children[0][1][0].begin());
            i++)
       {
-        if ((!CDProof::isSame(new_children[0][1][0][i].notNode(), res[i + 1]))
+        if ((!equalNodes(new_children[0][1][0][i].notNode(), res[i + 1]))
             || res[i + 1].getKind() != kind::NOT)
         {
           equal = false;
@@ -877,9 +898,9 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::IMPLIES
-          && CDProof::isSame(new_children[0][1][0], res[1][0])
+          && equalNodes(new_children[0][1][0], res[1][0])
           && res[1].getKind() == kind::NOT
-          && CDProof::isSame(new_children[0][1][1], res[2])
+          && equalNodes(new_children[0][1][1], res[2])
           && res[0].toString() == cl.toString())
       {
         return CheckResult::True;
@@ -891,7 +912,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::NOT
           && new_children[0][1][0].getKind() == kind::IMPLIES
-          && CDProof::isSame(new_children[0][1][0][0], res[1])
+          && equalNodes(new_children[0][1][0][0], res[1])
           && res[0].toString() == cl.toString())
       {
         return CheckResult::True;
@@ -903,7 +924,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::NOT
           && new_children[0][1][0].getKind() == kind::IMPLIES
-          && CDProof::isSame(new_children[0][1][0][1], res[1][0])
+          && equalNodes(new_children[0][1][0][1], res[1][0])
           && res[1].getKind() == kind::NOT
           && res[0].toString() == cl.toString())
       {
@@ -915,8 +936,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::EQUAL
-          && CDProof::isSame(new_children[0][1][0], res[1][0])
-          && CDProof::isSame(new_children[0][1][1], res[2])
+          && equalNodes(new_children[0][1][0], res[1][0])
+          && equalNodes(new_children[0][1][1], res[2])
           && res[1].getKind() == kind::NOT
           && res[0].toString() == cl.toString())
       {
@@ -928,8 +949,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::EQUAL
-          && CDProof::isSame(new_children[0][1][0], res[1])
-          && CDProof::isSame(new_children[0][1][1], res[2][0])
+          && equalNodes(new_children[0][1][0], res[1])
+          && equalNodes(new_children[0][1][1], res[2][0])
           && res[2].getKind() == kind::NOT
           && res[0].toString() == cl.toString())
       {
@@ -942,8 +963,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::NOT
           && new_children[0][1][0].getKind() == kind::EQUAL
-          && CDProof::isSame(new_children[0][1][0][0], res[1])
-          && CDProof::isSame(new_children[0][1][0][1], res[2])
+          && equalNodes(new_children[0][1][0][0], res[1])
+          && equalNodes(new_children[0][1][0][1], res[2])
           && res[0].toString() == cl.toString())
       {
         return CheckResult::True;
@@ -955,8 +976,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::NOT
           && new_children[0][1][0].getKind() == kind::EQUAL
-          && CDProof::isSame(new_children[0][1][0][0], res[1][0])
-          && CDProof::isSame(new_children[0][1][0][1], res[2][0])
+          && equalNodes(new_children[0][1][0][0], res[1][0])
+          && equalNodes(new_children[0][1][0][1], res[2][0])
           && res[1].getKind() == kind::NOT && res[2].getKind() == kind::NOT
           && res[0].toString() == cl.toString())
       {
@@ -968,8 +989,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::ITE
-          && CDProof::isSame(new_children[0][1][0], res[1])
-          && CDProof::isSame(new_children[0][1][2], res[2])
+          && equalNodes(new_children[0][1][0], res[1])
+          && equalNodes(new_children[0][1][2], res[2])
           && res[0].toString() == cl.toString())
       {
         return CheckResult::True;
@@ -980,8 +1001,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     {
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::ITE
-          && CDProof::isSame(new_children[0][1][0], res[1][0])
-          && CDProof::isSame(new_children[0][1][1], res[2])
+          && equalNodes(new_children[0][1][0], res[1][0])
+          && equalNodes(new_children[0][1][1], res[2])
           && res[1].getKind() == kind::NOT
           && res[0].toString() == cl.toString())
       {
@@ -994,8 +1015,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::NOT
           && new_children[0][1][0].getKind() == kind::ITE
-          && CDProof::isSame(new_children[0][1][0][0], res[1])
-          && CDProof::isSame(new_children[0][1][0][2], res[2][0])
+          && equalNodes(new_children[0][1][0][0], res[1])
+          && equalNodes(new_children[0][1][0][2], res[2][0])
           && res[2].getKind() == kind::NOT
           && res[0].toString() == cl.toString())
       {
@@ -1009,8 +1030,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       if (new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::NOT
           && new_children[0][1][0].getKind() == kind::ITE
-          && CDProof::isSame(new_children[0][1][0][0], res[1][0])
-          && CDProof::isSame(new_children[0][1][0][1], res[2][0])
+          && equalNodes(new_children[0][1][0][0], res[1][0])
+          && equalNodes(new_children[0][1][0][1], res[2][0])
           && res[2].getKind() == kind::NOT && res[1].getKind() == kind::NOT
           && res[0].toString() == cl.toString())
       {
@@ -1034,9 +1055,9 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 
       for (int i = 0; i < childVec.size(); i++)
       {
-        if (!CDProof::isSame(childVec[i], lastElement))
+        if (!equalNodes(childVec[i], lastElement))
         {
-          if (!CDProof::isSame(childVec[i], nextElement))
+          if (!equalNodes(childVec[i], nextElement))
           {
             if (std::find(childVec2.begin(), childVec.end(), childVec[i])
                 == childVec2.end())

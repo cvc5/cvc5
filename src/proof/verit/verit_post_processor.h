@@ -134,7 +134,7 @@ class VeritProofPostprocessCallback  //: public ProofNodeUpdaterCallback
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof& cdp);
-  bool equalNodes(Node vp1, Node vp2);
+  bool isSameModEqual(Node vp1, Node vp2);
 };
 
 /**
