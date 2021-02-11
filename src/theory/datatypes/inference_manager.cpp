@@ -56,7 +56,7 @@ InferenceManager::~InferenceManager()
 void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            bool forceLemma,
-                                           InferId i)
+                                           InferenceId i)
 {
   if (forceLemma)
   {
@@ -77,7 +77,7 @@ void InferenceManager::process()
 }
 
 void InferenceManager::sendDtLemma(Node lem,
-                                   InferId id,
+                                   InferenceId id,
                                    LemmaProperty p,
                                    bool doCache)
 {
@@ -93,7 +93,7 @@ void InferenceManager::sendDtLemma(Node lem,
   }
 }
 
-void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferId id)
+void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId id)
 {
   if (isProofEnabled())
   {
@@ -120,7 +120,7 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
 bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 
 bool InferenceManager::processDtLemma(
-    Node conc, Node exp, InferId id, LemmaProperty p, bool doCache)
+    Node conc, Node exp, InferenceId id, LemmaProperty p, bool doCache)
 {
   // set up a proof constructor
   std::shared_ptr<InferProofCons> ipcl;
@@ -163,7 +163,7 @@ bool InferenceManager::processDtLemma(
   return true;
 }
 
-bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
+bool InferenceManager::processDtFact(Node conc, Node exp, InferenceId id)
 {
   conc = prepareDtInference(conc, exp, id, d_ipc.get());
   // assert the internal fact, which has the same issue as above
@@ -189,7 +189,7 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferId id)
 
 Node InferenceManager::prepareDtInference(Node conc,
                                           Node exp,
-                                          InferId id,
+                                          InferenceId id,
                                           InferProofCons* ipc)
 {
   Trace("dt-lemma-debug") << "prepareDtInference : " << conc << " via " << exp

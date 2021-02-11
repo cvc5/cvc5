@@ -303,7 +303,7 @@ int MonomialCheck::compareSign(
         args.emplace_back(oa);
         proof->addStep(lemma, PfRule::ARITH_MULT_SIGN, {}, args);
       }
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN, proof);
+      d_data->d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return status;
   }
@@ -329,7 +329,7 @@ int MonomialCheck::compareSign(
         proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
         proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
       }
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::NL_SIGN, proof);
+      d_data->d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return 0;
   }
@@ -418,7 +418,7 @@ bool MonomialCheck::compareMonomial(
           Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       lem.emplace_back(
-          clem, LemmaProperty::NONE, nullptr, InferenceId::NL_COMPARISON);
+          clem, LemmaProperty::NONE, nullptr, InferenceId::ARITH_NL_COMPARISON);
       cmp_infers[status][oa][ob] = clem;
     }
     return true;

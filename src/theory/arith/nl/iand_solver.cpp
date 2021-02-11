@@ -100,7 +100,7 @@ void IAndSolver::checkInitialRefine()
           Rewriter::rewrite(conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj));
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
-      d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_INIT_REFINE);
+      d_im.addPendingArithLemma(lem, InferenceId::ARITH_NL_IAND_INIT_REFINE);
     }
   }
 }
@@ -155,7 +155,7 @@ void IAndSolver::checkFullRefine()
         // note that lemma can contain div/mod, and will be preprocessed in the
         // prop engine
         d_im.addPendingArithLemma(
-            lem, InferenceId::NL_IAND_SUM_REFINE, nullptr, true);
+            lem, InferenceId::ARITH_NL_IAND_SUM_REFINE, nullptr, true);
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
@@ -165,7 +165,7 @@ void IAndSolver::checkFullRefine()
         // note that lemma can contain div/mod, and will be preprocessed in the
         // prop engine
         d_im.addPendingArithLemma(
-            lem, InferenceId::NL_IAND_BITWISE_REFINE, nullptr, true);
+            lem, InferenceId::ARITH_NL_IAND_BITWISE_REFINE, nullptr, true);
       }
       else
       {
@@ -175,7 +175,7 @@ void IAndSolver::checkFullRefine()
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
         // value lemmas should not contain div/mod so we don't need to tag it with PREPROCESS
         d_im.addPendingArithLemma(lem,
-                                  InferenceId::NL_IAND_VALUE_REFINE,
+                                  InferenceId::ARITH_NL_IAND_VALUE_REFINE,
                                   nullptr,
                                   true,
                                   LemmaProperty::NONE);
