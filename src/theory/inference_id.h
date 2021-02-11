@@ -140,6 +140,19 @@ enum class InferenceId
   // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
   SEP_PTO_PROP,
 
+  SETS_COMPREHENSION,
+  SETS_CONFLICT,
+  SETS_EQ_MEM,
+  SETS_EQ_MEM_CONFLICT,
+  SETS_EQUALITY,
+  SETS_MEM_EQ,
+  SETS_MEM_EQ_CONFLICT,
+  SETS_PROXY,
+  SETS_PROXY_SINGLETON,
+  SETS_SINGLETON_EQ,
+  SETS_SPLIT,
+  SETS_UNIV_TYPE,
+
   //-------------------------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
