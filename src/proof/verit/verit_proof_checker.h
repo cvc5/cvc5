@@ -35,8 +35,6 @@ NotTranslated,
 NoCheck
 };
 
-
-
 static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 {
   VeritRule id =
@@ -64,8 +62,9 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::ASSUME://DONE
     {
-      if(res.end()-res.begin() > 0 && res[0].toString() == cl.toString()){
-	      std::cout << "assume failed " << res << std::endl;
+      if (res.end() - res.begin() > 0 && res[0].toString() == cl.toString())
+      {
+        std::cout << "assume failed " << res << std::endl;
         return CheckResult::False;
       }
       return CheckResult::True;
@@ -80,23 +79,36 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::TRUE://DONE
     {
-      if (CDProof::isSame(res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(true)))){return CheckResult::True;}
+      if (CDProof::isSame(res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(true))))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::FALSE://DONE
     {
-      if (CDProof::isSame(res,nm->mkNode(kind::SEXPR, cl, nm->mkConst(true).negate()))){return CheckResult::True;}
+      if (CDProof::isSame(
+              res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(true).negate())))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::NOT_NOT://DONE
     {
-      if (res[0].toString() == cl.toString() && CDProof::isSame(res[1], res[2].notNode().notNode().notNode())){return CheckResult::True;}
+      if (res[0].toString() == cl.toString()
+          && CDProof::isSame(res[1], res[2].notNode().notNode().notNode()))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::AND_POS://DONE
     {
       // Special case n=1
-      if (res[0].toString() == cl.toString() && CDProof::isSame(res[1][0],res[2]) && res[1].getKind() == kind::NOT)
+      if (res[0].toString() == cl.toString()
+          && CDProof::isSame(res[1][0], res[2])
+          && res[1].getKind() == kind::NOT)
       {
         return CheckResult::True;
       }
@@ -104,7 +116,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool equal = false;
       for (auto i = res[1][0].begin(); i != res[1][0].end(); i++)
       {
-        if (CDProof::isSame(*i,res[2]))
+        if (CDProof::isSame(*i, res[2]))
         {
           equal = true;
         }
@@ -119,7 +131,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool neg = true;
       for (auto i = 0; i < res[1].end() - res[1].begin(); i++)
       {
-        if (!CDProof::isSame(res[1][i],res[i + 2][0]))
+        if (!CDProof::isSame(res[1][i], res[i + 2][0]))
         {
           equal = false;
         }
@@ -136,7 +148,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool equal = true;
       for (auto i = 0; i < res[1][0].end() - res[1][0].begin(); i++)
       {
-        if (!CDProof::isSame(res[1][0][i],res[i + 2]))
+        if (!CDProof::isSame(res[1][0][i], res[i + 2]))
         {
           equal = false;
         }
@@ -148,7 +160,9 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::OR_NEG://DONE
     {
       // Special case n=1
-      if (res[0].toString() == cl.toString() && CDProof::isSame(res[1],res[2][0]) && res[2].getKind() == kind::NOT)
+      if (res[0].toString() == cl.toString()
+          && CDProof::isSame(res[1], res[2][0])
+          && res[2].getKind() == kind::NOT)
       {
         return CheckResult::True;
       }
@@ -156,7 +170,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool equal = false;
       for (auto i = res[1].begin(); i != res[1].end(); i++)
       {
-        if (CDProof::isSame(*i,res[2][0]))
+        if (CDProof::isSame(*i, res[2][0]))
         {
           equal = true;
         }
@@ -168,86 +182,143 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::XOR_POS1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
-          && res[1][0].getKind() == kind::XOR && CDProof::isSame(res[1][0][0],res[2])
-          && CDProof::isSame(res[1][0][1],res[3])){return CheckResult::True;}
+          && res[1][0].getKind() == kind::XOR
+          && CDProof::isSame(res[1][0][0], res[2])
+          && CDProof::isSame(res[1][0][1], res[3]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::XOR_POS2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::XOR && res[2].getKind() == kind::NOT
-          && res[3].getKind() == kind::NOT && CDProof::isSame(res[1][0][0],res[2][0])
-          && CDProof::isSame(res[1][0][1],res[3][0])){return CheckResult::True;}
+          && res[3].getKind() == kind::NOT
+          && CDProof::isSame(res[1][0][0], res[2][0])
+          && CDProof::isSame(res[1][0][1], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::XOR_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::XOR
-          && res[3].getKind() == kind::NOT && CDProof::isSame(res[1][0],res[2])
-          && CDProof::isSame(res[1][1],res[3][0])){return CheckResult::True;}
+          && res[3].getKind() == kind::NOT && CDProof::isSame(res[1][0], res[2])
+          && CDProof::isSame(res[1][1], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::XOR_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::XOR
-          && res[2].getKind() == kind::NOT && CDProof::isSame(res[1][0],res[2][0])
-          && CDProof::isSame(res[1][1],res[3])){return CheckResult::True;}
+          && res[2].getKind() == kind::NOT
+          && CDProof::isSame(res[1][0], res[2][0])
+          && CDProof::isSame(res[1][1], res[3]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::IMPLIES_POS://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::IMPLIES
-          && res[2].getKind() == kind::NOT && CDProof::isSame(res[1][0][0],res[2][0])
-          && CDProof::isSame(res[1][0][1],res[3])){return CheckResult::True;}
+          && res[2].getKind() == kind::NOT
+          && CDProof::isSame(res[1][0][0], res[2][0])
+          && CDProof::isSame(res[1][0][1], res[3]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
      }
     case VeritRule::IMPLIES_NEG1://DONE
     {
-      if (res[0].toString() == cl.toString() && res[1].getKind() == kind::IMPLIES
-          && CDProof::isSame(res[1][0],res[2])){return CheckResult::True;}
+      if (res[0].toString() == cl.toString()
+          && res[1].getKind() == kind::IMPLIES
+          && CDProof::isSame(res[1][0], res[2]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::IMPLIES_NEG2://DONE
     {
-      if (res[0].toString() == cl.toString() && res[1].getKind() == kind::IMPLIES
-          && res[2].getKind() == kind::NOT && CDProof::isSame(res[1][1],res[2][0])){return CheckResult::True;}
+      if (res[0].toString() == cl.toString()
+          && res[1].getKind() == kind::IMPLIES && res[2].getKind() == kind::NOT
+          && CDProof::isSame(res[1][1], res[2][0]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQUIV_POS1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0], res[2]) && CDProof::isSame(res[1][0][1],res[3][0])){return CheckResult::True;}
+          && CDProof::isSame(res[1][0][0], res[2])
+          && CDProof::isSame(res[1][0][1], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::EQUAL && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][1],res[2]) && CDProof::isSame(res[1][0][0],res[3][0])){return CheckResult::True;}
+          && CDProof::isSame(res[1][0][1], res[2])
+          && CDProof::isSame(res[1][0][0], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQUIV_POS2://DONE
     {
-      if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
-          && res[1][0].getKind() == kind::EQUAL && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0],res[2][0]) && CDProof::isSame(res[1][0][1],res[3])){return CheckResult::True;}
-      if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
-          && res[1][0].getKind() == kind::EQUAL && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][1],res[2][0]) && CDProof::isSame(res[1][0][0],res[3])){return CheckResult::True;}
+      if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString()
+          && res[1].getKind() == kind::NOT && res[1][0].getKind() == kind::EQUAL
+          && res[2].getKind() == kind::NOT
+          && CDProof::isSame(res[1][0][0], res[2][0])
+          && CDProof::isSame(res[1][0][1], res[3]))
+      {
+        return CheckResult::True;
+      }
+      if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString()
+          && res[1].getKind() == kind::NOT && res[1][0].getKind() == kind::EQUAL
+          && res[2].getKind() == kind::NOT
+          && CDProof::isSame(res[1][0][1], res[2][0])
+          && CDProof::isSame(res[1][0][0], res[3]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQUIV_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0],res[2][0]) && CDProof::isSame(res[1][1],res[3][0])){return CheckResult::True;}
+          && CDProof::isSame(res[1][0], res[2][0])
+          && CDProof::isSame(res[1][1], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][1],res[2][0]) && CDProof::isSame(res[1][0],res[3][0])){return CheckResult::True;}
+          && CDProof::isSame(res[1][1], res[2][0])
+          && CDProof::isSame(res[1][0], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQUIV_NEG2://DONE
     {
-      if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && CDProof::isSame(res[1][0],res[2])
-          && CDProof::isSame(res[1][1],res[3])){return CheckResult::True;}
+      if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
+          && CDProof::isSame(res[1][0], res[2])
+          && CDProof::isSame(res[1][1], res[3]))
+      {
+        return CheckResult::True;
+      }
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && res[1][1] == res[2]
           && res[1][0] == res[3]){return CheckResult::True;}
       return CheckResult::False;
@@ -255,35 +326,53 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::ITE_POS1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
-          && res[1][0].getKind() == kind::ITE && CDProof::isSame(res[1][0][0],res[2])
-          && CDProof::isSame(res[1][0][2],res[3])){return CheckResult::True;}
+          && res[1][0].getKind() == kind::ITE
+          && CDProof::isSame(res[1][0][0], res[2])
+          && CDProof::isSame(res[1][0][2], res[3]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::ITE_POS2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::NOT
           && res[1][0].getKind() == kind::ITE && res[2].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0][0],res[2][0]) && CDProof::isSame(res[1][0][1],res[3])){return CheckResult::True;}
+          && CDProof::isSame(res[1][0][0], res[2][0])
+          && CDProof::isSame(res[1][0][1], res[3]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::ITE_NEG1://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::ITE
-          && res[3].getKind() == kind::NOT && CDProof::isSame(res[1][0],res[2])
-          && CDProof::isSame(res[1][2],res[3][0])){return CheckResult::True;}
+          && res[3].getKind() == kind::NOT && CDProof::isSame(res[1][0], res[2])
+          && CDProof::isSame(res[1][2], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::ITE_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::ITE
           && res[2].getKind() == kind::NOT && res[3].getKind() == kind::NOT
-          && CDProof::isSame(res[1][0],res[2][0]) && CDProof::isSame(res[1][1],res[3][0])){return CheckResult::True;}
+          && CDProof::isSame(res[1][0], res[2][0])
+          && CDProof::isSame(res[1][1], res[3][0]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQ_REFLEXIVE://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
-          && CDProof::isSame(res[1][0],res[1][1])){return CheckResult::True;}
+          && CDProof::isSame(res[1][0], res[1][1]))
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQ_TRANSITIVE://DONE
@@ -314,9 +403,13 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           equal = false;
         }
       }
-      if (res[0].toString() == cl.toString() && CDProof::isSame(res[n - 1][0],ts[0])
-          && CDProof::isSame(res[n - 1][1],ts[1])
-          && res[n - 1].getKind() == kind::EQUAL && equal){return CheckResult::True;}
+      if (res[0].toString() == cl.toString()
+          && CDProof::isSame(res[n - 1][0], ts[0])
+          && CDProof::isSame(res[n - 1][1], ts[1])
+          && res[n - 1].getKind() == kind::EQUAL && equal)
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
      }
     case VeritRule::EQ_CONGRUENT://No symm handling
@@ -325,8 +418,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       int n = res.end() - res.begin();
       for (auto i = 1; i < n - 1; i++)
       {
-        if (!CDProof::isSame(res[i][0][0],res[n - 1][0][0][i])
-            || !CDProof::isSame(res[i][0][1],res[n - 1][1][0][i])
+        if (!CDProof::isSame(res[i][0][0], res[n - 1][0][0][i])
+            || !CDProof::isSame(res[i][0][1], res[n - 1][1][0][i])
             || res[i].getKind() != kind::NOT
             || res[i][0].getKind() != kind::EQUAL)
         {
@@ -346,8 +439,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       int n = res.end() - res.begin();
       for (auto i = 1; i < n - 1; i++)
       {
-	if (!CDProof::isSame(res[i][0][0],res[n - 1][0][0][i])
-            || !CDProof::isSame(res[i][0][1],res[n - 1][1][0][i])
+        if (!CDProof::isSame(res[i][0][0], res[n - 1][0][0][i])
+            || !CDProof::isSame(res[i][0][1], res[n - 1][1][0][i])
             || res[i].getKind() != kind::NOT
             || res[i][0].getKind() != kind::EQUAL)
         {
@@ -362,16 +455,27 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::DISTINCT_ELIM:{return CheckResult::NoCheck;}
     case VeritRule::LA_GENERIC:{return CheckResult::NoCheck;}
-    case VeritRule::LIA_GENERIC:{return CheckResult::NoCheck;}
-    case VeritRule::LA_DISEQUALITY:{//Add that t1 t2 are numbers?
-      if(res[0].toString() == cl.toString() && res[1].getKind() == kind::OR && res[1][0].getKind() == kind::EQUAL
-      && res[1][1].getKind() == kind::NOT && res[1][1][0].getKind() == kind::LEQ
-      && res[1][2].getKind() == kind::NOT && res[1][2][0].getKind() == kind::LEQ
-      && CDProof::isSame(res[1][0][0],res[1][1][0][0]) && CDProof::isSame(res[1][0][0],res[1][2][0][1])
-      && CDProof::isSame(res[1][0][1],res[1][1][0][1]) && CDProof::isSame(res[1][0][1],res[1][2][0][0])){
+    case VeritRule::LIA_GENERIC:
+    {
+      return CheckResult::NoCheck;
+    }
+    case VeritRule::LA_DISEQUALITY:
+    {  // Add that t1 t2 are numbers?
+      if (res[0].toString() == cl.toString() && res[1].getKind() == kind::OR
+          && res[1][0].getKind() == kind::EQUAL
+          && res[1][1].getKind() == kind::NOT
+          && res[1][1][0].getKind() == kind::LEQ
+          && res[1][2].getKind() == kind::NOT
+          && res[1][2][0].getKind() == kind::LEQ
+          && CDProof::isSame(res[1][0][0], res[1][1][0][0])
+          && CDProof::isSame(res[1][0][0], res[1][2][0][1])
+          && CDProof::isSame(res[1][0][1], res[1][1][0][1])
+          && CDProof::isSame(res[1][0][1], res[1][2][0][0]))
+      {
         return CheckResult::True;
       }
-      else{
+      else
+      {
         return CheckResult::False;
       }
     }
@@ -386,11 +490,16 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 	  && success){return CheckResult::NoCheck;}
       return CheckResult::False;
     }
-    case VeritRule::EQ_RESOLUTION:{} //same handling as resolution. TODO: delete
-    case VeritRule::TH_RESOLUTION:{}
+    case VeritRule::EQ_RESOLUTION:
+    {
+    }  // same handling as resolution. TODO: delete
+    case VeritRule::TH_RESOLUTION:
+    {
+    }
     case VeritRule::RESOLUTION:
-    {  // This is not a real resolution check, but should be good enough. The problem is that the order is unimportant here.
-       //std::cout << std::endl;
+    {  // This is not a real resolution check, but should be good enough. The
+       // problem is that the order is unimportant here.
+       // std::cout << std::endl;
       if (res[0].toString() != cl.toString())
       {
         return CheckResult::False;
@@ -409,14 +518,16 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           for(int k = 0; k < (clauses.end()-clauses.begin());k++){
 	     //std::cout << "new_children[i][j] " << new_children[i][j] << std::endl;
 	     //std::cout << "clauses[k].negate() " << clauses[k].notNode() << std::endl;
-	     if(CDProof::isSame(new_children[i][j], clauses[k].notNode()) || CDProof::isSame(new_children[i][j].notNode(), clauses[k])){
-	        //std::cout << "deleted " << clauses[k] << std::endl;
-		clauses.erase(clauses.begin()+k);
-		new_clause = false;
-		break;
-	     }
-	  }
-	  if(new_clause){
+             if (CDProof::isSame(new_children[i][j], clauses[k].notNode())
+                 || CDProof::isSame(new_children[i][j].notNode(), clauses[k]))
+             {
+               // std::cout << "deleted " << clauses[k] << std::endl;
+               clauses.erase(clauses.begin() + k);
+               new_clause = false;
+               break;
+             }
+          }
+          if(new_clause){
 	    clauses.push_back(new_children[i][j]);
 	    //std::cout << "added " << new_children[i][j] << std::endl;
 	  }
@@ -424,14 +535,15 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       }
       for(int i = 1; i < (res.end()-res.begin());i++){
         for(int k = 0; k < (clauses.end()-clauses.begin());k++){
-	     if(CDProof::isSame(res[i],clauses[k])){
-	        //std::cout << "deleted " << res[i]  << std::endl;
-		clauses.erase(clauses.begin()+k);
-		break;
-	     }
-	}
+          if (CDProof::isSame(res[i], clauses[k]))
+          {
+            // std::cout << "deleted " << res[i]  << std::endl;
+            clauses.erase(clauses.begin() + k);
+            break;
+          }
+        }
       }
-      //std::cout << "clauses "<< clauses << std::endl;
+      // std::cout << "clauses "<< clauses << std::endl;
       if(clauses.empty()||(clauses.size()==1 && clauses[0]==nm->mkConst(false))){
         return CheckResult::True;
       }
@@ -440,12 +552,15 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::REFL:
     {  // TODO
       //std::cout << (res[1][0] == res[1][1]) << std::endl;
-      if(res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL && CDProof::isSame(res[1][0],res[1][1])){
+      if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString()
+          && res[1].getKind() == kind::EQUAL
+          && CDProof::isSame(res[1][0], res[1][1]))
+      {
         return CheckResult::True;
       }
       return CheckResult::False;
     }
-    case VeritRule::TRANS: //Quick and ad-hoc fix not very clean or efficient
+    case VeritRule::TRANS:  // Quick and ad-hoc fix not very clean or efficient
     {
       Node start;
       Node symm;
@@ -462,148 +577,188 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       bool success2 = true;
       bool success3 = true;
       bool success4 = true;
-      if(CDProof::isSame(new_children[0][1][0],new_children[1][1][0])){
-         start = new_children[0][1][1];
-	 symm = new_children[1][1][1];
-         for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
-         {
-           if (new_children[i][0].toString() != cl.toString()
-               || new_children[i][1].getKind() != kind::EQUAL)
-           {
-             success1 = false;
-           }
-           if (CDProof::isSame(new_children[i][1][0],symm))
-           {
-             symm = new_children[i][1][1];
-           }
-	   else if (CDProof::isSame(new_children[i][1][1],symm)){
-	     symm = new_children[i][1][0];
-	   }
-	   else{
-             success1 = false;
-	   }
+      if (CDProof::isSame(new_children[0][1][0], new_children[1][1][0]))
+      {
+        start = new_children[0][1][1];
+        symm = new_children[1][1][1];
+        for (int i = 2; i < new_children.size();
+             i++)  // TODO: does this need to be -1
+        {
+          if (new_children[i][0].toString() != cl.toString()
+              || new_children[i][1].getKind() != kind::EQUAL)
+          {
+            success1 = false;
+          }
+          if (CDProof::isSame(new_children[i][1][0], symm))
+          {
+            symm = new_children[i][1][1];
+          }
+          else if (CDProof::isSame(new_children[i][1][1], symm))
+          {
+            symm = new_children[i][1][0];
+          }
+          else
+          {
+            success1 = false;
+          }
         }
         if (res[0].toString() == cl.toString()
-        && ((CDProof::isSame(res[1][0],start) && CDProof::isSame(res[1][1],symm)) || (CDProof::isSame(res[1][0],symm) && CDProof::isSame(res[1][1],start)))
-        && res[1].getKind() == kind::EQUAL){
+            && ((CDProof::isSame(res[1][0], start)
+                 && CDProof::isSame(res[1][1], symm))
+                || (CDProof::isSame(res[1][0], symm)
+                    && CDProof::isSame(res[1][1], start)))
+            && res[1].getKind() == kind::EQUAL)
+        {
           success1 &= true;
         }
         success1 = false;
       }
-      else if(CDProof::isSame(new_children[0][1][0],new_children[1][1][1])){
-         start = new_children[0][1][1];
-	 symm = new_children[1][1][0];
-         for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
-         {
-           if (new_children[i][0].toString() != cl.toString()
-               || new_children[i][1].getKind() != kind::EQUAL)
-           {
-             success2 = false;
-           }
-           if (CDProof::isSame(new_children[i][1][0],symm))
-           {
-             symm = new_children[i][1][1];
-           }
-	   else if (CDProof::isSame(new_children[i][1][1],symm)){
-	     symm = new_children[i][1][0];
-	   }
-	   else{
-             success2 = false;
-	   }
+      else if (CDProof::isSame(new_children[0][1][0], new_children[1][1][1]))
+      {
+        start = new_children[0][1][1];
+        symm = new_children[1][1][0];
+        for (int i = 2; i < new_children.size();
+             i++)  // TODO: does this need to be -1
+        {
+          if (new_children[i][0].toString() != cl.toString()
+              || new_children[i][1].getKind() != kind::EQUAL)
+          {
+            success2 = false;
+          }
+          if (CDProof::isSame(new_children[i][1][0], symm))
+          {
+            symm = new_children[i][1][1];
+          }
+          else if (CDProof::isSame(new_children[i][1][1], symm))
+          {
+            symm = new_children[i][1][0];
+          }
+          else
+          {
+            success2 = false;
+          }
         }
         if (res[0].toString() == cl.toString()
-        && ((CDProof::isSame(res[1][0],start) && CDProof::isSame(res[1][1],symm)) || (CDProof::isSame(res[1][0],symm) && CDProof::isSame(res[1][1],start)))
-        && res[1].getKind() == kind::EQUAL){
+            && ((CDProof::isSame(res[1][0], start)
+                 && CDProof::isSame(res[1][1], symm))
+                || (CDProof::isSame(res[1][0], symm)
+                    && CDProof::isSame(res[1][1], start)))
+            && res[1].getKind() == kind::EQUAL)
+        {
           success2 &= true;
         }
         success2 = false;
       }
-      else if(CDProof::isSame(new_children[0][1][1],new_children[1][1][0])){
-         start = new_children[0][1][0];
-	 symm = new_children[1][1][1];
-         for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
-         {
-           if (new_children[i][0].toString() != cl.toString()
-               || new_children[i][1].getKind() != kind::EQUAL)
-           {
-             success3 = false;
-           }
-           if (CDProof::isSame(new_children[i][1][0],symm))
-           {
-             symm = new_children[i][1][1];
-           }
-	   else if (CDProof::isSame(new_children[i][1][1],symm)){
-	     symm = new_children[i][1][0];
-	   }
-	   else{
-             success3 = false;
-	   }
+      else if (CDProof::isSame(new_children[0][1][1], new_children[1][1][0]))
+      {
+        start = new_children[0][1][0];
+        symm = new_children[1][1][1];
+        for (int i = 2; i < new_children.size();
+             i++)  // TODO: does this need to be -1
+        {
+          if (new_children[i][0].toString() != cl.toString()
+              || new_children[i][1].getKind() != kind::EQUAL)
+          {
+            success3 = false;
+          }
+          if (CDProof::isSame(new_children[i][1][0], symm))
+          {
+            symm = new_children[i][1][1];
+          }
+          else if (CDProof::isSame(new_children[i][1][1], symm))
+          {
+            symm = new_children[i][1][0];
+          }
+          else
+          {
+            success3 = false;
+          }
         }
         if (res[0].toString() == cl.toString()
-        && ((CDProof::isSame(res[1][0],start) && CDProof::isSame(res[1][1],symm)) || (CDProof::isSame(res[1][0],symm) && CDProof::isSame(res[1][1],start)))
-        && res[1].getKind() == kind::EQUAL){
+            && ((CDProof::isSame(res[1][0], start)
+                 && CDProof::isSame(res[1][1], symm))
+                || (CDProof::isSame(res[1][0], symm)
+                    && CDProof::isSame(res[1][1], start)))
+            && res[1].getKind() == kind::EQUAL)
+        {
           success3 &= true;
         }
         success3 = false;
       }
-      else if(CDProof::isSame(new_children[0][1][1],new_children[1][1][1])){
-         start = new_children[0][1][0];
-	 symm = new_children[1][1][0];
-	 for (int i = 2; i < new_children.size(); i++) //TODO: does this need to be -1
-         {
-           if (new_children[i][0].toString() != cl.toString()
-               || new_children[i][1].getKind() != kind::EQUAL)
-           {
-             success4 = false;
-           }
-           if (CDProof::isSame(new_children[i][1][0],symm))
-           {
-             symm = new_children[i][1][1];
-           }
-	   else if (CDProof::isSame(new_children[i][1][1],symm)){
-	     symm = new_children[i][1][0];
-	   }
-	   else{
-             success4 = false;
-	   }
+      else if (CDProof::isSame(new_children[0][1][1], new_children[1][1][1]))
+      {
+        start = new_children[0][1][0];
+        symm = new_children[1][1][0];
+        for (int i = 2; i < new_children.size();
+             i++)  // TODO: does this need to be -1
+        {
+          if (new_children[i][0].toString() != cl.toString()
+              || new_children[i][1].getKind() != kind::EQUAL)
+          {
+            success4 = false;
+          }
+          if (CDProof::isSame(new_children[i][1][0], symm))
+          {
+            symm = new_children[i][1][1];
+          }
+          else if (CDProof::isSame(new_children[i][1][1], symm))
+          {
+            symm = new_children[i][1][0];
+          }
+          else
+          {
+            success4 = false;
+          }
         }
         if (res[0].toString() == cl.toString()
-        && ((CDProof::isSame(res[1][0],start) && CDProof::isSame(res[1][1],symm)) || (CDProof::isSame(res[1][0],symm) && CDProof::isSame(res[1][1],start)))
-        && res[1].getKind() == kind::EQUAL){
+            && ((CDProof::isSame(res[1][0], start)
+                 && CDProof::isSame(res[1][1], symm))
+                || (CDProof::isSame(res[1][0], symm)
+                    && CDProof::isSame(res[1][1], start)))
+            && res[1].getKind() == kind::EQUAL)
+        {
           success4 &= true;
         }
         success4 = false;
       }
-      if(success1 || success2 || success3 || success4){
+      if (success1 || success2 || success3 || success4)
+      {
         return CheckResult::True;
       }
-      else{
+      else
+      {
         return CheckResult::False;
       }
-      //std::cout << "start " <<  start << std::endl;
-      //std::cout << "symm " << symm << std::endl;
-
+      // std::cout << "start " <<  start << std::endl;
+      // std::cout << "symm " << symm << std::endl;
      }
-    case VeritRule::CONG:
-    {
-      for (int i = 0; i < new_children.size(); i++)
-      {
-        if (new_children[i][0].toString() != cl.toString()
-            || new_children[i][1].getKind() != kind::EQUAL)
-        {
-          return CheckResult::False;
-        }
-        if (!(CDProof::isSame(new_children[i][1][0],res[1][0][i]) && CDProof::isSame(new_children[i][1][1],res[1][1][i]))
-	 && !(CDProof::isSame(new_children[i][1][0],res[1][1][i]) && CDProof::isSame(new_children[i][1][1],res[1][0][i])))
-        {
-          return CheckResult::False;
-        }
-
-      }
-      if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
-          && res[1][0].getKind() == res[1][1].getKind() //TODO: check if function, seems to be APPLY_UF at least sometimes
-          && res[1][0].getOperator() == res[1][1].getOperator()){return CheckResult::True;}
-      return CheckResult::False;
+     case VeritRule::CONG:
+     {
+       for (int i = 0; i < new_children.size(); i++)
+       {
+         if (new_children[i][0].toString() != cl.toString()
+             || new_children[i][1].getKind() != kind::EQUAL)
+         {
+           return CheckResult::False;
+         }
+         if (!(CDProof::isSame(new_children[i][1][0], res[1][0][i])
+               && CDProof::isSame(new_children[i][1][1], res[1][1][i]))
+             && !(CDProof::isSame(new_children[i][1][0], res[1][1][i])
+                  && CDProof::isSame(new_children[i][1][1], res[1][0][i])))
+         {
+           return CheckResult::False;
+         }
+       }
+       if (res.getKind() == kind::SEXPR && res[0].toString() == cl.toString()
+           && res[1].getKind() == kind::EQUAL
+           && res[1][0].getKind()
+                  == res[1][1].getKind()  // TODO: check if function, seems to
+                                          // be APPLY_UF at least sometimes
+           && res[1][0].getOperator() == res[1][1].getOperator())
+       {
+         return CheckResult::True;
+       }
+       return CheckResult::False;
     }
     case VeritRule::AND:
     {
@@ -612,13 +767,17 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
            i < (new_children[0][1].end() - new_children[0][1].begin());
            i++)
       {
-        if (CDProof::isSame(new_children[0][1][i],res[1]))
+        if (CDProof::isSame(new_children[0][1][i], res[1]))
         {
           equal = true;
         }
       }
-      if (res[0].toString() == cl.toString() && new_children[0][0].toString() == cl.toString()
-            && new_children[0][1].getKind() == kind::AND && equal){return CheckResult::True;}
+      if (res[0].toString() == cl.toString()
+          && new_children[0][0].toString() == cl.toString()
+          && new_children[0][1].getKind() == kind::AND && equal)
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::TAUTOLOGIC_CLAUSE:
@@ -631,8 +790,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
         for (int j = 0; j < (new_children[0].end() - new_children[0].begin());
              j++)
         {
-          if (CDProof::isSame(new_children[0][i],new_children[0][i].negate()))
-		  //check if .notNode() has to be used
+          if (CDProof::isSame(new_children[0][i], new_children[0][i].negate()))
+          // check if .notNode() has to be used
           {
             equal = true;
           }
@@ -651,10 +810,10 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 	      //std::cout << "new_children[0][1][0][i] " << new_children[0][1][0][i] << std::endl;
 	      //std::cout << "new_children[0][1][0][i].negate()  " << new_children[0][1][0][i].negate() << std::endl;
 	      //std::cout << "new_children[0][1][0][i].notNode() " << new_children[0][1][0][i].notNode() <<std::endl;
-        if (CDProof::isSame(new_children[0][1][0][i].notNode(),res[1]))
-        {
-          equal = true;
-        }
+              if (CDProof::isSame(new_children[0][1][0][i].notNode(), res[1]))
+              {
+                equal = true;
+              }
       }
       if (res[0].toString() == cl.toString() && new_children[0][0].toString() == cl.toString()
           && new_children[0][1].getKind() == kind::NOT
@@ -699,7 +858,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
            i < (new_children[0][1][0].end() - new_children[0][1][0].begin());
            i++)
       {
-        if ((!CDProof::isSame(new_children[0][1][0][i].notNode(),res[i + 1])) || res[i+1].getKind() != kind::NOT)
+        if ((!CDProof::isSame(new_children[0][1][0][i].notNode(), res[i + 1]))
+            || res[i + 1].getKind() != kind::NOT)
         {
           equal = false;
         }
@@ -716,114 +876,146 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::IMPLIES://tested
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::IMPLIES
-	     && CDProof::isSame(new_children[0][1][0],res[1][0])
-	     && res[1].getKind() == kind::NOT
-	     && CDProof::isSame(new_children[0][1][1],res[2])
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::IMPLIES
+          && CDProof::isSame(new_children[0][1][0], res[1][0])
+          && res[1].getKind() == kind::NOT
+          && CDProof::isSame(new_children[0][1][1], res[2])
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::NOT_IMPLIES1:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::NOT
-	     && new_children[0][1][0].getKind() == kind::IMPLIES
-	     && CDProof::isSame(new_children[0][1][0][0],res[1])
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::NOT
+          && new_children[0][1][0].getKind() == kind::IMPLIES
+          && CDProof::isSame(new_children[0][1][0][0], res[1])
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::NOT_IMPLIES2:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::NOT
-	     && new_children[0][1][0].getKind() == kind::IMPLIES
-	     && CDProof::isSame(new_children[0][1][0][1],res[1][0])
-	     && res[1].getKind() == kind::NOT
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::NOT
+          && new_children[0][1][0].getKind() == kind::IMPLIES
+          && CDProof::isSame(new_children[0][1][0][1], res[1][0])
+          && res[1].getKind() == kind::NOT
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQUIV1:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::EQUAL
-	     && CDProof::isSame(new_children[0][1][0],res[1][0])
-	     && CDProof::isSame(new_children[0][1][1],res[2])
-	     && res[1].getKind() == kind::NOT
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::EQUAL
+          && CDProof::isSame(new_children[0][1][0], res[1][0])
+          && CDProof::isSame(new_children[0][1][1], res[2])
+          && res[1].getKind() == kind::NOT
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::EQUIV2:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::EQUAL
-	     && CDProof::isSame(new_children[0][1][0],res[1])
-	     && CDProof::isSame(new_children[0][1][1],res[2][0])
-	     && res[2].getKind() == kind::NOT
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::EQUAL
+          && CDProof::isSame(new_children[0][1][0], res[1])
+          && CDProof::isSame(new_children[0][1][1], res[2][0])
+          && res[2].getKind() == kind::NOT
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::NOT_EQUIV1:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::NOT
-	     && new_children[0][1][0].getKind() == kind::EQUAL
-	     && CDProof::isSame(new_children[0][1][0][0],res[1])
-	     && CDProof::isSame(new_children[0][1][0][1],res[2])
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::NOT
+          && new_children[0][1][0].getKind() == kind::EQUAL
+          && CDProof::isSame(new_children[0][1][0][0], res[1])
+          && CDProof::isSame(new_children[0][1][0][1], res[2])
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::NOT_EQUIV2:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::NOT
-	     && new_children[0][1][0].getKind() == kind::EQUAL
-	     && CDProof::isSame(new_children[0][1][0][0],res[1][0])
-	     && CDProof::isSame(new_children[0][1][0][1],res[2][0])
-	     && res[1].getKind() == kind::NOT
-	     && res[2].getKind() == kind::NOT
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::NOT
+          && new_children[0][1][0].getKind() == kind::EQUAL
+          && CDProof::isSame(new_children[0][1][0][0], res[1][0])
+          && CDProof::isSame(new_children[0][1][0][1], res[2][0])
+          && res[1].getKind() == kind::NOT && res[2].getKind() == kind::NOT
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::ITE1:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::ITE
-	     && CDProof::isSame(new_children[0][1][0],res[1])
-	     && CDProof::isSame(new_children[0][1][2],res[2])
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::ITE
+          && CDProof::isSame(new_children[0][1][0], res[1])
+          && CDProof::isSame(new_children[0][1][2], res[2])
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::ITE2:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::ITE
-	     && CDProof::isSame(new_children[0][1][0],res[1][0])
-	     && CDProof::isSame(new_children[0][1][1],res[2])
-	     && res[1].getKind() == kind::NOT
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::ITE
+          && CDProof::isSame(new_children[0][1][0], res[1][0])
+          && CDProof::isSame(new_children[0][1][1], res[2])
+          && res[1].getKind() == kind::NOT
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::NOT_ITE1:
     {
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::NOT
-	     && new_children[0][1][0].getKind() == kind::ITE
-	     && CDProof::isSame(new_children[0][1][0][0],res[1])
-	     && CDProof::isSame(new_children[0][1][0][2],res[2][0])
-	     && res[2].getKind() == kind::NOT
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::NOT
+          && new_children[0][1][0].getKind() == kind::ITE
+          && CDProof::isSame(new_children[0][1][0][0], res[1])
+          && CDProof::isSame(new_children[0][1][0][2], res[2][0])
+          && res[2].getKind() == kind::NOT
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::NOT_ITE2:
-    {//TODO: For all rules this should not be ifs but try catches, since maybe children does not has [0][1][0][0] element
+    {  // TODO: For all rules this should not be ifs but try catches, since
+       // maybe children does not has [0][1][0][0] element
       if (new_children[0][0].toString() == cl.toString()
-	     && new_children[0][1].getKind() == kind::NOT
-	     && new_children[0][1][0].getKind() == kind::ITE
-	     && CDProof::isSame(new_children[0][1][0][0],res[1][0])
-	     && CDProof::isSame(new_children[0][1][0][1],res[2][0])
-	     && res[2].getKind() == kind::NOT
-	     && res[1].getKind() == kind::NOT
-	     && res[0].toString() == cl.toString()){return CheckResult::True;}
+          && new_children[0][1].getKind() == kind::NOT
+          && new_children[0][1][0].getKind() == kind::ITE
+          && CDProof::isSame(new_children[0][1][0][0], res[1][0])
+          && CDProof::isSame(new_children[0][1][0][1], res[2][0])
+          && res[2].getKind() == kind::NOT && res[1].getKind() == kind::NOT
+          && res[0].toString() == cl.toString())
+      {
+        return CheckResult::True;
+      }
       return CheckResult::False;
     }
     case VeritRule::DUPLICATED_LITERALS:
@@ -838,24 +1030,32 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       Node nextElement = res[1];
       bool alreadyEncountered;
       std::vector<Node> childVec2;
-      int j=0;
+      int j = 0;
 
-      for(int i = 0; i < childVec.size(); i++){
-        if(!CDProof::isSame(childVec[i],lastElement)){
-          if(!CDProof::isSame(childVec[i],nextElement)){
-	    if(std::find(childVec2.begin(),childVec.end(),childVec[i]) == childVec2.end()){
+      for (int i = 0; i < childVec.size(); i++)
+      {
+        if (!CDProof::isSame(childVec[i], lastElement))
+        {
+          if (!CDProof::isSame(childVec[i], nextElement))
+          {
+            if (std::find(childVec2.begin(), childVec.end(), childVec[i])
+                == childVec2.end())
+            {
               return CheckResult::False;
-	    }
-  	  }
+            }
+          }
           lastElement = resVec[j];
-	  if(j != resVec.size()-1){nextElement = resVec[j+1];}
-	  j++;
-	  childVec2.push_back(childVec[i]);
-	}
+          if (j != resVec.size() - 1)
+          {
+            nextElement = resVec[j + 1];
+          }
+          j++;
+          childVec2.push_back(childVec[i]);
+        }
       }
 
       if (new_children[0][0].toString() == cl.toString()
-	  && res[0].toString() == cl.toString())
+          && res[0].toString() == cl.toString())
       {
         return CheckResult::True;
       }
@@ -899,62 +1099,66 @@ static bool veritProofCheckerInternal(std::shared_ptr<ProofNode> pfn)
     new_children.push_back(child->getArguments()[2]);
   }
 
-  try{
-  CheckResult check = checkStep(pfn);
+  try
+  {
+    CheckResult check = checkStep(pfn);
 
-  if(check == CheckResult::True){//TODO: indent
-    Trace("verit-checker")
-        << "... check succeeded " << res << " " << veritRuletoString(id)
-        << " " << new_children << std::endl;
+    if (check == CheckResult::True)
+    {  // TODO: indent
+      Trace("verit-checker")
+          << "... check succeeded " << res << " " << veritRuletoString(id)
+          << " " << new_children << std::endl;
+    }
+    else if (check == CheckResult::NotTranslated)
+    {
+      Trace("verit-checker")
+          << "... check not translated yet " << res << " "
+          << veritRuletoString(id) << " " << new_children << std::endl;
+
+      Trace("verit-checker-debug")
+          << "... check not translated yet " << res << " "
+          << veritRuletoString(id) << " " << new_children << std::endl;
+
+      Trace("verit-checker-failed")
+          << "... check not translated yet " << res << " "
+          << veritRuletoString(id) << " " << new_children << std::endl;
+      success = false;
+    }
+    else if (check == CheckResult::False)
+    {
+      Trace("verit-checker")
+          << "... check failed " << res << " " << veritRuletoString(id) << " "
+          << new_children << std::endl;
+
+      Trace("verit-checker-debug")
+          << "... check failed " << res << " " << veritRuletoString(id) << " "
+          << new_children << std::endl;
+
+      Trace("verit-checker-failed")
+          << "... check failed " << res << " " << veritRuletoString(id) << " "
+          << new_children << std::endl;
+      success = false;
+    }
+    else
+    {
+      Trace("verit-checker")
+          << "... check manually " << res << " " << veritRuletoString(id) << " "
+          << new_children << std::endl;
+
+      Trace("verit-checker-debug")
+          << "... check manually " << res << " " << veritRuletoString(id) << " "
+          << new_children << std::endl;
+    }
   }
-  else if(check == CheckResult::NotTranslated){
-    Trace("verit-checker")
-        << "... check not translated yet " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
-
+  catch (...)
+  {  // TODO: This is not working
+    std::cout << "in exception" << std::endl;
     Trace("verit-checker-debug")
-        << "... check not translated yet " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
-
-    Trace("verit-checker-failed")
-        << "... check not translated yet " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
-    success = false;
-  }
-  else if(check == CheckResult::False){
-    Trace("verit-checker")
-        << "... check failed " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
-
-    Trace("verit-checker-debug")
-        << "... check failed " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
-
-    Trace("verit-checker-failed")
-        << "... check failed " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
-    success = false;
-  }
-  else{
-    Trace("verit-checker")
         << "... check manually " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
-
-    Trace("verit-checker-debug")
-        << "... check manually " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
-
-  }
-  }
-  catch(...){ //TODO: This is not working
-	  std::cout << "in exception" << std::endl;
-    Trace("verit-checker-debug")
-        << "... check manually " << res << " " << veritRuletoString(id) << " "
-        << new_children << std::endl;
     Trace("verit-checker-failed")
         << "... check failed " << res << " " << veritRuletoString(id) << " "
         << new_children << std::endl;
-
   }
   for (auto child : pfn->getChildren())
   {
@@ -963,23 +1167,28 @@ static bool veritProofCheckerInternal(std::shared_ptr<ProofNode> pfn)
   return success;
 }
 
-static void veritProofChecker(std::shared_ptr<ProofNode> pfn, std::ostream& out){
+static void veritProofChecker(std::shared_ptr<ProofNode> pfn, std::ostream& out)
+{
   NodeManager* nm = NodeManager::currentNM();
   bool success = veritProofCheckerInternal(pfn);
   Node cl = nm->mkBoundVar("cl", nm->stringType());
-  Node res = pfn->getArguments()[2];//TODO: catch if this is not possible, also in checkStep
-  if(res.toString() != nm->mkNode(kind::SEXPR,cl).toString()){
+  Node res = pfn->getArguments()[2];  // TODO: catch if this is not possible,
+                                      // also in checkStep
+  if (res.toString() != nm->mkNode(kind::SEXPR, cl).toString())
+  {
     success = false;
-    Trace("verit-checker-debug")
-        << "... last step is not (cl). "<< std::endl;
-    Trace("verit-checker-failed")
-        << "... last step is not (cl). "<< std::endl;
+    Trace("verit-checker-debug") << "... last step is not (cl). " << std::endl;
+    Trace("verit-checker-failed") << "... last step is not (cl). " << std::endl;
   }
-  if(success){
-    out << "Proof check succeeded." << "\n";
+  if (success)
+  {
+    out << "Proof check succeeded."
+        << "\n";
   }
-  else{
-    out << "Proof check failed." << "\n";
+  else
+  {
+    out << "Proof check failed."
+        << "\n";
   }
   out << "\n";
   out << "\n";

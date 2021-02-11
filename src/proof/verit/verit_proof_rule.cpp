@@ -68,7 +68,8 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
     case VeritRule::QNT_RM_UNUSED: return "qnt_rm_unused";
     case VeritRule::TH_RESOLUTION: return "th_resolution";
     case VeritRule::RESOLUTION: return "resolution";
-    case VeritRule::EQ_RESOLUTION: return "eq_resolution"; //TODO: change to resolution
+    case VeritRule::EQ_RESOLUTION:
+      return "eq_resolution";  // TODO: change to resolution
     case VeritRule::REFL: return "refl";
     case VeritRule::TRANS: return "trans";
     case VeritRule::CONG: return "cong";
@@ -123,7 +124,7 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
     // Extended //TODO make separate enum
     case VeritRule::SYMM: return "symm";
     case VeritRule::REORDER: return "reorder";
-    default: return "?"; //TODO: Print these rules in printer
+    default: return "?";  // TODO: Print these rules in printer
   }
 }
 

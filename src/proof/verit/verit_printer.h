@@ -75,14 +75,19 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
                                            int i,
                                            int h)
 {
-  if(pfn->getRule()!=PfRule::VERIT_RULE){
-    std::cout<< "Not translated yet, rule is: " << pfn->getRule()<<std::endl;
-    return {i,h};
+  if (pfn->getRule() == PfRule::SYMM)
+  {
+    return {i, h};
   }
-  //std::cout << " verit rule " <<
-  //veritRuletoString(static_cast<VeritRule>(
-  //std::stoul(pfn->getArguments()[0].toString())));
-  //std::cout << " res " << pfn->getResult() << std::endl;
+  else if (pfn->getRule() != PfRule::VERIT_RULE)
+  {
+    std::cout << "Not translated yet, rule is: " << pfn->getRule() << std::endl;
+    return {i, h};
+  }
+  // std::cout << " verit rule " <<
+  // veritRuletoString(static_cast<VeritRule>(
+  // std::stoul(pfn->getArguments()[0].toString())));
+  // std::cout << " res " << pfn->getResult() << std::endl;
   // The id of the current proof node
   int current_i = i;
   // The id of the latest assumption
@@ -240,7 +245,10 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   out << "Check proof? (0/1)" << "\n";
   bool check;
   std::cin >> check;
-  if(check){veritProofChecker(pfn,out);}
+  if (check)
+  {
+    veritProofChecker(pfn, out);
+  }
 }
 
 }  // namespace proof

@@ -28,7 +28,7 @@ namespace proof {
  * A callback class used by the veriT converter for post-processing proof nodes
  * by replacing internal rules by the rules in the veriT calculus.
  */
-class VeritProofPostprocessCallback //: public ProofNodeUpdaterCallback
+class VeritProofPostprocessCallback  //: public ProofNodeUpdaterCallback
 {
  public:
   VeritProofPostprocessCallback(ProofNodeManager* pnm);
@@ -61,17 +61,18 @@ class VeritProofPostprocessCallback //: public ProofNodeUpdaterCallback
    */
   bool update(Node res,
               PfRule id,
-	      const std::vector<Node>& children,
-	      const std::vector<VeritRule>& childrenRules,
+              const std::vector<Node>& children,
+              const std::vector<VeritRule>& childrenRules,
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate);
-  //TODO: Add comment
+  // TODO: Add comment
   bool finalResult(Node res,
                    VeritRule id,
-		   const std::vector<Node>& children,
+                   const std::vector<Node>& children,
                    const std::vector<Node>& args,
                    CDProof* cdp);
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
