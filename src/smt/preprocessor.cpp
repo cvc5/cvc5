@@ -80,12 +80,10 @@ bool Preprocessor::process(Assertions& as)
   }
 
   // process the assertions, return true if no conflict is discovered
-  return d_processor.apply(as);
-}
+  bool noConflict = d_processor.apply(as);
 
-void Preprocessor::postprocess(Assertions& as)
-{
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  // now, post-process the assertions
+
   // if incremental, compute which variables are assigned
   if (options::incrementalSolving())
   {
@@ -94,6 +92,8 @@ void Preprocessor::postprocess(Assertions& as)
 
   // mark that we've processed assertions
   d_assertionsProcessed = true;
+
+  return noConflict;
 }
 
 void Preprocessor::clearLearnedLiterals()

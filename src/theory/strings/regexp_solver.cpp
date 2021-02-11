@@ -664,7 +664,8 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
   switch (r.getKind())
   {
     case REGEXP_EMPTY:
-    case REGEXP_SIGMA: break;
+    case REGEXP_SIGMA:
+    case REGEXP_RANGE: break;
     case STRING_TO_REGEXP:
     {
       if (!r[0].isConst())
