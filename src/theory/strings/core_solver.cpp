@@ -2042,7 +2042,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
       std::vector<Node> premises;
       premises.push_back(deq);
       Node conc = u[0].eqNode(vc).notNode();
-      d_im.sendInference(premises, conc, Inference::UNIT_INJ_DEQ, false, true);
+      d_im.sendInference(premises, conc, InferenceId::STRINGS_UNIT_INJ_DEQ, false, true);
       return;
     }
     Trace("strings-solve-debug") << "...trivial" << std::endl;

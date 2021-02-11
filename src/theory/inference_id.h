@@ -133,7 +133,7 @@ enum class InferenceId
   DATATYPES_BISIMILAR,
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
-  
+
   //-------------------------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>

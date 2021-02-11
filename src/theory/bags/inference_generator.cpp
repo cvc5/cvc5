@@ -38,7 +38,7 @@ InferInfo InferenceGenerator::nonNegativeCount(Node n, Node e)
   Assert(e.getType() == n.getType().getBagElementType());
 
   InferInfo inferInfo;
-  inferInfo.d_id = Inference::BAG_NON_NEGATIVE_COUNT;
+  inferInfo.d_id = InferenceId::BAG_NON_NEGATIVE_COUNT;
   Node count = d_nm->mkNode(kind::BAG_COUNT, e, n);
 
   Node gte = d_nm->mkNode(kind::GEQ, count, d_zero);
@@ -58,7 +58,7 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
   {
     // TODO issue #78: refactor this with BagRewriter
     // (=> true (= (bag.count e (bag e c)) c))
-    inferInfo.d_id = Inference::BAG_MK_BAG_SAME_ELEMENT;
+    inferInfo.d_id = InferenceId::BAG_MK_BAG_SAME_ELEMENT;
     inferInfo.d_conclusion = count.eqNode(n[1]);
   }
   else
@@ -66,7 +66,7 @@ InferInfo InferenceGenerator::mkBag(Node n, Node e)
     // (=>
     //   true
     //   (= (bag.count e (bag x c)) (ite (= e x) c 0)))
-    inferInfo.d_id = Inference::BAG_MK_BAG;
+    inferInfo.d_id = InferenceId::BAG_MK_BAG;
     Node same = d_nm->mkNode(kind::EQUAL, n[0], e);
     Node ite = d_nm->mkNode(kind::ITE, same, n[1], d_zero);
     Node equal = count.eqNode(ite);
