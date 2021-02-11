@@ -261,7 +261,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   // now go back and convert it to proof steps and add to proof
   std::shared_ptr<DatatypesInference> di = (*it).second;
   // run the conversion
-  convert(di->getInferId(), di->d_conc, di->d_exp, &pf);
+  convert(di->getId(), di->d_conc, di->d_exp, &pf);
   return pf.getProofFor(fact);
 }
 

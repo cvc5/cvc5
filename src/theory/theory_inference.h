@@ -18,6 +18,7 @@
 #define CVC4__THEORY__THEORY_INFERENCE_H
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "theory/output_channel.h"
 
 namespace CVC4 {
@@ -34,6 +35,7 @@ class TheoryInferenceManager;
 class TheoryInference
 {
  public:
+  TheoryInference(InferenceId id) : d_id(id) {}
   virtual ~TheoryInference() {}
   /**
    * Called by the provided inference manager to process this inference. This
@@ -60,6 +62,14 @@ class TheoryInference
    * lemma that was already cached by im and hence was discarded.
    */
   virtual bool process(TheoryInferenceManager* im, bool asLemma) = 0;
+
+  /** Get the InferenceId of this theory inference. */
+  InferenceId getId() const { return d_id; }
+  /** Set the InferenceId of this theory inference. */
+  void setId(InferenceId id) { d_id = id; }
+
+ private:
+  InferenceId d_id;
 };
 
 /**
@@ -69,7 +79,7 @@ class TheoryInference
 class SimpleTheoryLemma : public TheoryInference
 {
  public:
-  SimpleTheoryLemma(Node n, LemmaProperty p, ProofGenerator* pg);
+  SimpleTheoryLemma(InferenceId id, Node n, LemmaProperty p, ProofGenerator* pg);
   virtual ~SimpleTheoryLemma() {}
   /**
    * Send the lemma using inference manager im, return true if the lemma was
@@ -97,7 +107,7 @@ class SimpleTheoryLemma : public TheoryInference
 class SimpleTheoryInternalFact : public TheoryInference
 {
  public:
-  SimpleTheoryInternalFact(Node conc, Node exp, ProofGenerator* pg);
+  SimpleTheoryInternalFact(InferenceId id, Node conc, Node exp, ProofGenerator* pg);
   virtual ~SimpleTheoryInternalFact() {}
   /**
    * Send the lemma using inference manager im, return true if the lemma was

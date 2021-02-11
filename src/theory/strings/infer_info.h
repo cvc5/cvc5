@@ -72,14 +72,12 @@ class InferenceManager;
 class InferInfo : public TheoryInference
 {
  public:
-  InferInfo();
+  InferInfo(InferenceId id);
   ~InferInfo() {}
   /** Process this inference */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
   /** Pointer to the class used for processing this info */
   InferenceManager* d_sim;
-  /** The inference identifier */
-  InferenceId d_id;
   /** Whether it is the reverse form of the above id */
   bool d_idRev;
   /** The conclusion */

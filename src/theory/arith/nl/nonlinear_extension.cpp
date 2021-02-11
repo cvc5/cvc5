@@ -89,10 +89,10 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
 {
   for (const NlLemma& nlem : out)
   {
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_inference
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.getId()
                           << " : " << nlem.d_node << std::endl;
     d_im.addPendingArithLemma(nlem);
-    d_stats.d_inferences << nlem.d_inference;
+    d_stats.d_inferences << nlem.getId();
   }
 }
 

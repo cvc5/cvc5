@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-InferInfo::InferInfo() : d_id(InferenceId::UNKNOWN) {}
+InferInfo::InferInfo(InferenceId id) : TheoryInference(id) {}
 
 bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 {
@@ -77,7 +77,7 @@ bool InferInfo::isFact() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer :id " << ii.d_id << std::endl;
+  out << "(infer :id " << ii.getId() << std::endl;
   out << ":conclusion " << ii.d_conclusion << std::endl;
   if (!ii.d_premises.empty())
   {
