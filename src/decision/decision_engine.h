@@ -127,13 +127,13 @@ class DecisionEngine {
   // External World helping us help the Strategies
 
   /**
-   * Add that assertion is an (input) assertion, not corresponding to a
-   * skolem definition.
+   * Notify this class that assertion is an (input) assertion, not corresponding
+   * to a skolem definition.
    */
   void addAssertion(TNode assertion);
   /**
-   * Add that lem is the skolem definition for skolem, which is a part of
-   * the current assertions.
+   * Notify this class  that lem is the skolem definition for skolem, which is
+   * a part of the current assertions.
    */
   void addSkolemDefinition(TNode lem, TNode skolem);
 
