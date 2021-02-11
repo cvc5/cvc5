@@ -208,7 +208,7 @@ class CnfStream {
    * Note that n must already have a literal associated to it in
    * d_nodeToLiteralMap.
    */
-  void ensureExistingLiteral(TNode n);
+  void ensureMappingForLiteral(TNode n);
 
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;

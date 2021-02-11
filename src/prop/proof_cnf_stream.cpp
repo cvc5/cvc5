@@ -575,7 +575,7 @@ void ProofCnfStream::ensureLiteral(TNode n)
   Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n << ")\n";
   if (d_cnfStream.hasLiteral(n))
   {
-    d_cnfStream.ensureExistingLiteral(n);
+    d_cnfStream.ensureMappingForLiteral(n);
     return;
   }
   // remove top level negation. We don't need to track this because it's a
