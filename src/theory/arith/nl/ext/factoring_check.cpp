@@ -168,7 +168,7 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
                 flem, PfRule::MACRO_SR_PRED_TRANSFORM, {split, k_eq}, {flem});
           }
           d_data->d_im.addPendingArithLemma(
-              flem, InferenceId::NL_FACTOR, proof);
+              flem, InferenceId::ARITH_NL_FACTOR, proof);
         }
       }
     }
@@ -186,7 +186,7 @@ Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
     Node k_eq = k.eqNode(n);
     Trace("nl-ext-factor") << "...adding factor skolem " << k << " == " << n
                            << std::endl;
-    d_data->d_im.addPendingArithLemma(k_eq, InferenceId::NL_FACTOR, proof);
+    d_data->d_im.addPendingArithLemma(k_eq, InferenceId::ARITH_NL_FACTOR, proof);
     d_factor_skolem[n] = k;
   }
   else
