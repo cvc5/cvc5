@@ -104,7 +104,8 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
   }
 }
 
-void TheoryInferenceManager::conflictExp(InferenceId id, PfRule pfr,
+void TheoryInferenceManager::conflictExp(InferenceId id,
+                                         PfRule pfr,
                                          const std::vector<Node>& exp,
                                          const std::vector<Node>& args)
 {
@@ -131,7 +132,8 @@ TrustNode TheoryInferenceManager::mkConflictExp(PfRule id,
   return TrustNode::mkTrustConflict(conf, nullptr);
 }
 
-void TheoryInferenceManager::conflictExp(InferenceId id, const std::vector<Node>& exp,
+void TheoryInferenceManager::conflictExp(InferenceId id,
+                                         const std::vector<Node>& exp,
                                          ProofGenerator* pg)
 {
   if (!d_theoryState.isInConflict())
@@ -207,7 +209,10 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                   << " mkTrustedConflictEqConstantMerge";
 }
 
-bool TheoryInferenceManager::lemma(TNode lem, InferenceId id, LemmaProperty p, bool doCache)
+bool TheoryInferenceManager::lemma(TNode lem,
+                                   InferenceId id,
+                                   LemmaProperty p,
+                                   bool doCache)
 {
   TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
   return trustedLemma(tlem, id, p, doCache);
@@ -308,7 +313,10 @@ bool TheoryInferenceManager::hasSentLemma() const
   return d_numCurrentLemmas != 0;
 }
 
-bool TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, InferenceId id, TNode exp)
+bool TheoryInferenceManager::assertInternalFact(TNode atom,
+                                                bool pol,
+                                                InferenceId id,
+                                                TNode exp)
 {
   return processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }

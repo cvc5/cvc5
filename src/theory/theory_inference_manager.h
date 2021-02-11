@@ -145,7 +145,8 @@ class TheoryInferenceManager
    * equality engine's explanation of literals in exp, with the proof equality
    * engine as the proof generator (if it exists).
    */
-  void conflictExp(InferenceId id, PfRule pfr,
+  void conflictExp(InferenceId id,
+                   PfRule pfr,
                    const std::vector<Node>& exp,
                    const std::vector<Node>& args);
   /**
@@ -164,7 +165,9 @@ class TheoryInferenceManager
    * engine as the proof generator (if it exists), where pg provides the
    * final step(s) of this proof during this call.
    */
-  void conflictExp(InferenceId id, const std::vector<Node>& exp, ProofGenerator* pg);
+  void conflictExp(InferenceId id,
+                   const std::vector<Node>& exp,
+                   ProofGenerator* pg);
   /**
    * Make the trust node corresponding to the conflict of the above form. It is
    * the responsibility of the caller to subsequently call trustedConflict with
@@ -181,14 +184,16 @@ class TheoryInferenceManager
    * cached (see cacheLemma), and add it to the cache during this call.
    * @return true if the lemma was sent on the output channel.
    */
-  bool trustedLemma(const TrustNode& tlem, InferenceId id,
+  bool trustedLemma(const TrustNode& tlem,
+                    InferenceId id,
                     LemmaProperty p = LemmaProperty::NONE,
                     bool doCache = true);
   /**
    * Send lemma lem with property p on the output channel. Same as above, with
    * a node instead of a trust node.
    */
-  bool lemma(TNode lem, InferenceId id,
+  bool lemma(TNode lem,
+             InferenceId id,
              LemmaProperty p = LemmaProperty::NONE,
              bool doCache = true);
   /**
@@ -331,7 +336,7 @@ class TheoryInferenceManager
   /** Have we added a internal fact since the last call to reset? */
   bool hasSentFact() const;
   //--------------------------------------- phase requirements
-  /** 
+  /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
    * decided with polarity pol, for details see OutputChannel::requirePhase.
    */
