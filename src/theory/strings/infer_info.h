@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "theory/theory_inference.h"
 #include "util/safe_print.h"
 
@@ -28,6 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+<<<<<<< HEAD
 /** Types of inferences used in the procedure
  *
  * These are variants of the inference rules in Figures 3-5 of Liang et al.
@@ -338,6 +340,8 @@ const char* toString(Inference i);
  */
 std::ostream& operator<<(std::ostream& out, Inference i);
 
+=======
+>>>>>>> Move strings to new InferenceId
 /**
  * Length status, used for indicating the length constraints for Skolems
  * introduced by the theory of strings.
@@ -388,7 +392,7 @@ class InferInfo : public TheoryInference
   /** Pointer to the class used for processing this info */
   InferenceManager* d_sim;
   /** The inference identifier */
-  Inference d_id;
+  InferenceId d_id;
   /** Whether it is the reverse form of the above id */
   bool d_idRev;
   /** The conclusion */

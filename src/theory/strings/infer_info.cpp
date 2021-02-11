@@ -21,6 +21,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+<<<<<<< HEAD
 const char* toString(Inference i)
 {
   switch (i)
@@ -101,6 +102,9 @@ std::ostream& operator<<(std::ostream& out, Inference i)
 }
 
 InferInfo::InferInfo() : d_sim(nullptr), d_id(Inference::NONE), d_idRev(false)
+=======
+InferInfo::InferInfo() : d_sim(nullptr), d_id(InferenceId::UNKNOWN), d_idRev(false)
+>>>>>>> Move strings to new InferenceId
 {
 }
 

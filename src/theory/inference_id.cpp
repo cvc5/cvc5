@@ -70,6 +70,72 @@ const char* toString(InferenceId i)
     case InferenceId::DATATYPES_BISIMILAR: return "BISIMILAR";
     case InferenceId::DATATYPES_CYCLE: return "CYCLE";
 
+    case InferenceId::STRINGS_I_NORM_S: return "I_NORM_S";
+    case InferenceId::STRINGS_I_CONST_MERGE: return "I_CONST_MERGE";
+    case InferenceId::STRINGS_I_CONST_CONFLICT: return "I_CONST_CONFLICT";
+    case InferenceId::STRINGS_I_NORM: return "I_NORM";
+    case InferenceId::STRINGS_UNIT_INJ: return "UNIT_INJ";
+    case InferenceId::STRINGS_UNIT_CONST_CONFLICT: return "UNIT_CONST_CONFLICT";
+    case InferenceId::STRINGS_UNIT_INJ_DEQ: return "UNIT_INJ_DEQ";
+    case InferenceId::STRINGS_CARD_SP: return "CARD_SP";
+    case InferenceId::STRINGS_CARDINALITY: return "CARDINALITY";
+    case InferenceId::STRINGS_I_CYCLE_E: return "I_CYCLE_E";
+    case InferenceId::STRINGS_I_CYCLE: return "I_CYCLE";
+    case InferenceId::STRINGS_F_CONST: return "F_CONST";
+    case InferenceId::STRINGS_F_UNIFY: return "F_UNIFY";
+    case InferenceId::STRINGS_F_ENDPOINT_EMP: return "F_ENDPOINT_EMP";
+    case InferenceId::STRINGS_F_ENDPOINT_EQ: return "F_ENDPOINT_EQ";
+    case InferenceId::STRINGS_F_NCTN: return "F_NCTN";
+    case InferenceId::STRINGS_N_EQ_CONF: return "N_EQ_CONF";
+    case InferenceId::STRINGS_N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
+    case InferenceId::STRINGS_N_UNIFY: return "N_UNIFY";
+    case InferenceId::STRINGS_N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
+    case InferenceId::STRINGS_N_CONST: return "N_CONST";
+    case InferenceId::STRINGS_INFER_EMP: return "INFER_EMP";
+    case InferenceId::STRINGS_SSPLIT_CST_PROP: return "SSPLIT_CST_PROP";
+    case InferenceId::STRINGS_SSPLIT_VAR_PROP: return "SSPLIT_VAR_PROP";
+    case InferenceId::STRINGS_LEN_SPLIT: return "LEN_SPLIT";
+    case InferenceId::STRINGS_LEN_SPLIT_EMP: return "LEN_SPLIT_EMP";
+    case InferenceId::STRINGS_SSPLIT_CST: return "SSPLIT_CST";
+    case InferenceId::STRINGS_SSPLIT_VAR: return "SSPLIT_VAR";
+    case InferenceId::STRINGS_FLOOP: return "FLOOP";
+    case InferenceId::STRINGS_FLOOP_CONFLICT: return "FLOOP_CONFLICT";
+    case InferenceId::STRINGS_NORMAL_FORM: return "NORMAL_FORM";
+    case InferenceId::STRINGS_N_NCTN: return "N_NCTN";
+    case InferenceId::STRINGS_LEN_NORM: return "LEN_NORM";
+    case InferenceId::STRINGS_DEQ_DISL_EMP_SPLIT: return "DEQ_DISL_EMP_SPLIT";
+    case InferenceId::STRINGS_DEQ_DISL_FIRST_CHAR_EQ_SPLIT:
+      return "DEQ_DISL_FIRST_CHAR_EQ_SPLIT";
+    case InferenceId::STRINGS_DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
+      return "DEQ_DISL_FIRST_CHAR_STRING_SPLIT";
+    case InferenceId::STRINGS_DEQ_STRINGS_EQ: return "DEQ_STRINGS_EQ";
+    case InferenceId::STRINGS_DEQ_DISL_STRINGS_SPLIT: return "DEQ_DISL_STRINGS_SPLIT";
+    case InferenceId::STRINGS_DEQ_LENS_EQ: return "DEQ_LENS_EQ";
+    case InferenceId::STRINGS_DEQ_NORM_EMP: return "DEQ_NORM_EMP";
+    case InferenceId::STRINGS_DEQ_LENGTH_SP: return "DEQ_LENGTH_SP";
+    case InferenceId::STRINGS_CODE_PROXY: return "CODE_PROXY";
+    case InferenceId::STRINGS_CODE_INJ: return "CODE_INJ";
+    case InferenceId::STRINGS_RE_NF_CONFLICT: return "RE_NF_CONFLICT";
+    case InferenceId::STRINGS_RE_UNFOLD_POS: return "RE_UNFOLD_POS";
+    case InferenceId::STRINGS_RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
+    case InferenceId::STRINGS_RE_INTER_INCLUDE: return "RE_INTER_INCLUDE";
+    case InferenceId::STRINGS_RE_INTER_CONF: return "RE_INTER_CONF";
+    case InferenceId::STRINGS_RE_INTER_INFER: return "RE_INTER_INFER";
+    case InferenceId::STRINGS_RE_DELTA: return "RE_DELTA";
+    case InferenceId::STRINGS_RE_DELTA_CONF: return "RE_DELTA_CONF";
+    case InferenceId::STRINGS_RE_DERIVE: return "RE_DERIVE";
+    case InferenceId::STRINGS_EXTF: return "EXTF";
+    case InferenceId::STRINGS_EXTF_N: return "EXTF_N";
+    case InferenceId::STRINGS_EXTF_D: return "EXTF_D";
+    case InferenceId::STRINGS_EXTF_D_N: return "EXTF_D_N";
+    case InferenceId::STRINGS_EXTF_EQ_REW: return "EXTF_EQ_REW";
+    case InferenceId::STRINGS_CTN_TRANS: return "CTN_TRANS";
+    case InferenceId::STRINGS_CTN_DECOMPOSE: return "CTN_DECOMPOSE";
+    case InferenceId::STRINGS_CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";
+    case InferenceId::STRINGS_CTN_POS: return "CTN_POS";
+    case InferenceId::STRINGS_REDUCTION: return "REDUCTION";
+    case InferenceId::STRINGS_PREFIX_CONFLICT: return "PREFIX_CONFLICT";
+
     default: return "?";
   }
 }
