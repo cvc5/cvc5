@@ -84,28 +84,6 @@ bool VeritProofPostprocessCallback::addVeritStepFromOr(
   return addVeritStep(res,rule,conclusion,children,args,cdp);
 }
 
-//TODO: Rename in equalNodesModSymm?
-bool VeritProofPostprocessCallback::equalNodes(Node vp1, Node vp2){
-  if(vp1.getKind() != vp2.getKind()){
-     return false;
-  }
-  else if(vp1 == vp2){
-    return true;
-  }
-  else if(vp1.getKind() == kind::EQUAL){
-     return (equalNodes(vp1[0],vp2[1]) && equalNodes(vp1[1],vp2[0]))
-	     || (equalNodes(vp1[0],vp2[0]) && equalNodes(vp1[1],vp2[1]));
-  }
-  std::vector<Node> vp1s(vp1.begin(),vp1.end());
-  std::vector<Node> vp2s(vp2.begin(),vp2.end());
-  if(vp1s.size() != vp2s.size()) {return false;}
-  bool equal = true;
-  for(int i=0; i < vp1s.size();i++){
-    equal &= equalNodes(vp1s[i],vp2s[i]);
-  }
-  return equal;
-}
-
 bool VeritProofPostprocessCallback::update(Node res,
                                            PfRule id,
 				           const std::vector<Node>& children,
@@ -857,7 +835,7 @@ bool VeritProofPostprocessCallback::update(Node res,
    //   VeritRule child1_rule = static_cast<VeritRule>(std::stoul(child1_proof->getArguments()[0].toString()));
 //TODO: Whenever cdp->getProof is used there could be SYMM steps introduced
       VeritRule child1_rule = childrenRules[0];
-      if(child1_rule != VeritRule::ASSUME && !equalNodes(children[0].notNode(),vp1[1]) && children[0].getKind() == kind::OR){
+      if(child1_rule != VeritRule::ASSUME && !cdp->isSame(children[0].notNode(),vp1[1]) && children[0].getKind() == kind::OR){
         std::vector<Node> clauses;
         clauses.push_back(d_cl); // cl
         clauses.insert(clauses.end(),children[0].begin(),children[0].end()); //(cl G1 ... Gn)
@@ -2257,7 +2235,7 @@ void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
   CDProof* cdp = new CDProof(d_pnm);
 
   processInternal(pf, cdp);
-  processSYMM(pf,cdp); //check when this is necessary
+  //processSYMM(pf,cdp); //check when this is necessary
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -2314,15 +2292,16 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
     //In non-extended mode symm and reordering should be skipped.
     if(!d_extended && (next_child->getRule() == PfRule::REORDERING || next_child->getRule() == PfRule::SYMM)){
       while (next_child->getRule() == PfRule::SYMM || next_child->getRule() == PfRule::REORDERING){
-        if(next_child->getChildren().end()-next_child->getChildren().begin() > 0){
-          next_child = next_child->getChildren()[0];
-         }
-  	else{
-	  break;
-	}
+        next_child = next_child->getChildren()[0];
       }
     }
     processInternal(next_child, cdp);
+    //TODO: Find better solution
+    if(!d_extended && (next_child->getRule() == PfRule::REORDERING || next_child->getRule() == PfRule::SYMM)){
+      while (next_child->getRule() == PfRule::SYMM || next_child->getRule() == PfRule::REORDERING){
+        next_child = next_child->getChildren()[0];
+      }
+    }
     children.push_back(next_child->getResult());
     childrenRules.push_back(static_cast<VeritRule>(std::stoul(next_child->getArguments()[0].toString())));
     cdp->addProof(next_child);//Find out if this is necessary
