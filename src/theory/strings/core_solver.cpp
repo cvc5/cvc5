@@ -30,7 +30,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-CoreInferInfo::CoreInferInfo() : d_index(0), d_rev(false) {}
+CoreInferInfo::CoreInferInfo(InferenceId id) : d_infer(id), d_index(0), d_rev(false) {}
 
 CoreSolver::CoreSolver(SolverState& s,
                        InferenceManager& im,
@@ -1223,11 +1223,11 @@ void CoreSolver::processNEqc(Node eqc,
     InferInfo& ii = ipii.d_infer;
     Trace("strings-solve") << "#" << i << ": From " << ipii.d_i << " / "
                            << ipii.d_j << " (rev=" << ipii.d_rev << ") : ";
-    Trace("strings-solve") << ii.d_conc << " by " << ii.d_id << std::endl;
-    if (!set_use_index || ii.d_id < min_id
-        || (ii.d_id == min_id && ipii.d_index > max_index))
+    Trace("strings-solve") << ii.d_conc << " by " << ii.getId() << std::endl;
+    if (!set_use_index || ii.getId() < min_id
+        || (ii.getId() == min_id && ipii.d_index > max_index))
     {
-      min_id = ii.d_id;
+      min_id = ii.getId();
       max_index = ipii.d_index;
       use_index = i;
       set_use_index = true;
@@ -1443,7 +1443,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     }
 
     // The candidate inference "info"
-    CoreInferInfo info;
+    CoreInferInfo info(InferenceId::UNKNOWN);
     InferInfo& iinfo = info.d_infer;
     info.d_index = index;
     // for debugging
@@ -1466,7 +1466,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       Node lenEq = nm->mkNode(EQUAL, xLenTerm, yLenTerm);
       lenEq = Rewriter::rewrite(lenEq);
       iinfo.d_conc = nm->mkNode(OR, lenEq, lenEq.negate());
-      iinfo.d_id = InferenceId::STRINGS_LEN_SPLIT;
+      iinfo.setId(InferenceId::STRINGS_LEN_SPLIT);
       info.d_pendingPhase[lenEq] = true;
       pinfer.push_back(info);
       break;
@@ -1546,12 +1546,12 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           // inferred
           iinfo.d_conc = nm->mkNode(
               AND, p.eqNode(nc), !eq.getConst<bool>() ? pEq.negate() : pEq);
-          iinfo.d_id = InferenceId::STRINGS_INFER_EMP;
+          iinfo.setId(InferenceId::STRINGS_INFER_EMP);
         }
         else
         {
           iinfo.d_conc = nm->mkNode(OR, eq, eq.negate());
-          iinfo.d_id = InferenceId::STRINGS_LEN_SPLIT_EMP;
+          iinfo.setId(InferenceId::STRINGS_LEN_SPLIT_EMP);
         }
         pinfer.push_back(info);
         break;
@@ -1594,7 +1594,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
               xcv, stra, PfRule::CONCAT_CPROP, isRev, skc, newSkolems);
           Assert(newSkolems.size() == 1);
           iinfo.d_skolems[LENGTH_SPLIT].push_back(newSkolems[0]);
-          iinfo.d_id = InferenceId::STRINGS_SSPLIT_CST_PROP;
+          iinfo.setId(InferenceId::STRINGS_SSPLIT_CST_PROP);
           iinfo.d_idRev = isRev;
           pinfer.push_back(info);
           break;
@@ -1614,7 +1614,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_premises.push_back(expNonEmpty);
       Assert(newSkolems.size() == 1);
       iinfo.d_skolems[LENGTH_SPLIT].push_back(newSkolems[0]);
-      iinfo.d_id = InferenceId::STRINGS_SSPLIT_CST;
+      iinfo.setId(InferenceId::STRINGS_SSPLIT_CST);
       iinfo.d_idRev = isRev;
       pinfer.push_back(info);
       break;
@@ -1703,7 +1703,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     // make the conclusion
     if (lentTestSuccess == -1)
     {
-      iinfo.d_id = InferenceId::STRINGS_SSPLIT_VAR;
+      iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR);
       iinfo.d_conc =
           getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
       if (options::stringUnifiedVSpt() && !options::stringLenConc())
@@ -1714,14 +1714,14 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     }
     else if (lentTestSuccess == 0)
     {
-      iinfo.d_id = InferenceId::STRINGS_SSPLIT_VAR_PROP;
+      iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
       iinfo.d_conc =
           getConclusion(x, y, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
     else
     {
       Assert(lentTestSuccess == 1);
-      iinfo.d_id = InferenceId::STRINGS_SSPLIT_VAR_PROP;
+      iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR_PROP);
       iinfo.d_conc =
           getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
@@ -1856,7 +1856,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
         iinfo.d_premises.clear();
         // try to make t equal to empty to avoid loop
         iinfo.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
-        iinfo.d_id = InferenceId::STRINGS_LEN_SPLIT_EMP;
+        iinfo.setId(InferenceId::STRINGS_LEN_SPLIT_EMP);
         return ProcessLoopResult::INFERENCE;
       }
       else
@@ -1973,7 +1973,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
 
   // we will be done
   iinfo.d_conc = conc;
-  iinfo.d_id = InferenceId::STRINGS_FLOOP;
+  iinfo.setId(InferenceId::STRINGS_FLOOP);
   info.d_nfPair[0] = nfi.d_base;
   info.d_nfPair[1] = nfj.d_base;
   return ProcessLoopResult::INFERENCE;
