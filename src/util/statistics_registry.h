@@ -639,6 +639,100 @@ public:
 
 };/* class HistogramStat */
 
+/**
+ * A histogram statistic class for enum types.
+ * Avoids using an std::map (like the generic HistogramStat) in favor of a
+ * faster std::array by casting the enum values to indices into the array.
+ * Requires the type to be an enum and the underlying type of the enum to
+ * be unsigned. The second template argument serves as the sentinel element
+ * of the possible values of the Enum and should be the last (i.e. largest
+ * when cast to unsigned) element ever passed into this histogram.
+ */
+template <typename Enum, Enum Sentinel>
+class EnumHistogramStat : public Stat
+{
+  static_assert(std::is_enum<Enum>::value, "Type should be an enum.");
+  static_assert(
+      std::is_unsigned<typename std::underlying_type<Enum>::type>::value,
+      "Underlying type of the enum should be unsigned");
+
+ private:
+  using Histogram =
+      std::array<std::size_t, static_cast<std::size_t>(Sentinel) + 1>;
+  Histogram d_hist;
+
+ public:
+  /** Construct a histogram of a stream of entries. */
+  EnumHistogramStat(const std::string& name) : Stat(name) { d_hist.fill(0); }
+  ~EnumHistogramStat() {}
+
+  void flushInformation(std::ostream& out) const override
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      out << "[";
+      bool first = true;
+      for (std::size_t i = 0; i <= static_cast<std::size_t>(Sentinel); ++i)
+      {
+        if (d_hist[i] > 0)
+        {
+          if (first)
+          {
+            first = false;
+          }
+          else
+          {
+            out << ", ";
+          }
+          out << "(" << static_cast<Enum>(i) << " : " << d_hist[i] << ")";
+        }
+      }
+      out << "]";
+    }
+  }
+
+  void safeFlushInformation(int fd) const override
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      safe_print(fd, "[");
+      bool first = true;
+      for (std::size_t i = 0; i <= static_cast<std::size_t>(Sentinel); ++i)
+      {
+        if (d_hist[i] > 0)
+        {
+          if (first)
+          {
+            first = false;
+          }
+          else
+          {
+            safe_print(fd, ", ");
+          }
+          safe_print(fd, "(");
+          safe_print<Enum>(fd, static_cast<Enum>(i));
+          safe_print(fd, " : ");
+          safe_print<uint64_t>(fd, d_hist[i]);
+          safe_print(fd, ")");
+        }
+      }
+      safe_print(fd, "]");
+    }
+  }
+
+  EnumHistogramStat& operator<<(Enum val)
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      Assert(static_cast<std::size_t>(val) < d_hist.size())
+          << "The given value is larger than the specified sentinel element.";
+      d_hist[static_cast<std::size_t>(val)]++;
+    }
+    return (*this);
+  }
+
+}; /* class EnumHistogramStat */
+
 /****************************************************************************/
 /* Statistics Registry                                                      */
 /****************************************************************************/
