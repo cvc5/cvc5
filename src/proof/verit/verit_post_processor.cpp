@@ -86,23 +86,32 @@ bool VeritProofPostprocessCallback::addVeritStepFromOr(
   return addVeritStep(res,rule,conclusion,children,args,cdp);
 }
 
-bool VeritProofPostprocessCallback::isSameModEqual(Node vp1, Node vp2){
-  if(vp1.getKind() != vp2.getKind()){
-     return false;
+bool VeritProofPostprocessCallback::isSameModEqual(Node vp1, Node vp2)
+{
+  if (vp1.getKind() != vp2.getKind())
+  {
+    return false;
   }
-  else if(vp1 == vp2){
+  else if (vp1 == vp2)
+  {
     return true;
   }
-  else if(vp1.getKind() == kind::EQUAL){
-     return (isSameModEqual(vp1[0],vp2[1]) && isSameModEqual(vp1[1],vp2[0]))
-	     || (isSameModEqual(vp1[0],vp2[0]) && isSameModEqual(vp1[1],vp2[1]));
+  else if (vp1.getKind() == kind::EQUAL)
+  {
+    return (isSameModEqual(vp1[0], vp2[1]) && isSameModEqual(vp1[1], vp2[0]))
+           || (isSameModEqual(vp1[0], vp2[0])
+               && isSameModEqual(vp1[1], vp2[1]));
   }
-  std::vector<Node> vp1s(vp1.begin(),vp1.end());
-  std::vector<Node> vp2s(vp2.begin(),vp2.end());
-  if(vp1s.size() != vp2s.size()) {return false;}
+  std::vector<Node> vp1s(vp1.begin(), vp1.end());
+  std::vector<Node> vp2s(vp2.begin(), vp2.end());
+  if (vp1s.size() != vp2s.size())
+  {
+    return false;
+  }
   bool equal = true;
-  for(int i=0; i < vp1s.size();i++){
-    equal &= isSameModEqual(vp1s[i],vp2s[i]);
+  for (int i = 0; i < vp1s.size(); i++)
+  {
+    equal &= isSameModEqual(vp1s[i], vp2s[i]);
   }
   return equal;
 }
@@ -366,11 +375,12 @@ bool VeritProofPostprocessCallback::update(
 	     case kind::ITE:{
 	       vrule = VeritRule::ITE_SIMPLIFY; break;
 	     }
-	     case kind::EQUAL:{ //Test equiv_simplify
-				      //std::cout << "What happens here " << t << std::endl;
-	       vrule = VeritRule::EQ_SIMPLIFY; break;
+	     case kind::EQUAL:
+             {  // Test equiv_simplify
+                // std::cout << "What happens here " << t << std::endl;
+               vrule = VeritRule::EQ_SIMPLIFY; break;
              }
-	     case kind::AND:{
+             case kind::AND:{
 	       vrule = VeritRule::AND_SIMPLIFY; break;
 	     }
 	     case kind::OR:{
@@ -383,9 +393,9 @@ bool VeritProofPostprocessCallback::update(
 	       vrule = VeritRule::IMPLIES_SIMPLIFY; break;
 	     }
 	     default:{
-	       //std::cout << "t kind " << t.getKind() << std::endl;
-               //td::cout << "(= t t')" << res << std::endl;
-	     }
+               // std::cout << "t kind " << t.getKind() << std::endl;
+               // td::cout << "(= t t')" << res << std::endl;
+             }
 	  }
 	}
         case theory::TheoryId::THEORY_BOOL:
@@ -395,17 +405,19 @@ bool VeritProofPostprocessCallback::update(
         }  // TODO: Should there be a case distinction with kinds here?
         case theory::TheoryId::THEORY_UF:{
 	  switch(t.getKind()){
-	     case kind::EQUAL:{//A lot of these seem to be symmetry rules but not all....
-               //std::cout << "What happens here2: " << std::endl;
-		//		std::cout << "tid2 " << tid << std::endl;
-     // std::cout << "t kind2 " << t.getKind() << std::endl;
-    //  std::cout << "(= t t')2 " << res << std::endl;
-               vrule = VeritRule::EQUIV_SIMPLIFY; break;
-	     }
-	     default:{
-	      // std::cout << "t kind 3" << t.getKind() << std::endl;
-              // std::cout << "(= t t') 3" << res << std::endl;
-	     }
+            case kind::EQUAL:
+            {  // A lot of these seem to be symmetry rules but not all....
+              // std::cout << "What happens here2: " << std::endl;
+              //		std::cout << "tid2 " << tid << std::endl;
+              // std::cout << "t kind2 " << t.getKind() << std::endl;
+              //  std::cout << "(= t t')2 " << res << std::endl;
+              vrule = VeritRule::EQUIV_SIMPLIFY;
+              break;
+            }
+             default:{
+               // std::cout << "t kind 3" << t.getKind() << std::endl;
+               // std::cout << "(= t t') 3" << res << std::endl;
+             }
 	  }
 	  break;
 	}
@@ -445,9 +457,9 @@ bool VeritProofPostprocessCallback::update(
                                    *cdp);
 	     }
 	     default:{
-	       //std::cout << "t kind " << t.getKind() << std::endl;
-               //std::cout << "(= t t')" << res << std::endl;
-	     }
+               // std::cout << "t kind " << t.getKind() << std::endl;
+               // std::cout << "(= t t')" << res << std::endl;
+             }
 	  }
 	  break;
 	}

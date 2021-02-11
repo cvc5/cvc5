@@ -35,23 +35,31 @@ NotTranslated,
 NoCheck
 };
 
-static bool equalNodes(Node vp1, Node vp2){
-  if(vp1.getKind() != vp2.getKind()){
-     return false;
+static bool equalNodes(Node vp1, Node vp2)
+{
+  if (vp1.getKind() != vp2.getKind())
+  {
+    return false;
   }
-  else if(vp1 == vp2){
+  else if (vp1 == vp2)
+  {
     return true;
   }
-  else if(vp1.getKind() == kind::EQUAL){
-     return (equalNodes(vp1[0],vp2[1]) && equalNodes(vp1[1],vp2[0]))
-	     || (equalNodes(vp1[0],vp2[0]) && equalNodes(vp1[1],vp2[1]));
+  else if (vp1.getKind() == kind::EQUAL)
+  {
+    return (equalNodes(vp1[0], vp2[1]) && equalNodes(vp1[1], vp2[0]))
+           || (equalNodes(vp1[0], vp2[0]) && equalNodes(vp1[1], vp2[1]));
   }
-  std::vector<Node> vp1s(vp1.begin(),vp1.end());
-  std::vector<Node> vp2s(vp2.begin(),vp2.end());
-  if(vp1s.size() != vp2s.size()) {return false;}
+  std::vector<Node> vp1s(vp1.begin(), vp1.end());
+  std::vector<Node> vp2s(vp2.begin(), vp2.end());
+  if (vp1s.size() != vp2s.size())
+  {
+    return false;
+  }
   bool equal = true;
-  for(int i=0; i < vp1s.size();i++){
-    equal &= equalNodes(vp1s[i],vp2s[i]);
+  for (int i = 0; i < vp1s.size(); i++)
+  {
+    equal &= equalNodes(vp1s[i], vp2s[i]);
   }
   return equal;
 }
@@ -108,8 +116,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     }
     case VeritRule::FALSE://DONE
     {
-      if (equalNodes(
-              res, nm->mkNode(kind::SEXPR, cl, nm->mkConst(false).negate())))
+      if (equalNodes(res,
+                     nm->mkNode(kind::SEXPR, cl, nm->mkConst(false).negate())))
       {
         return CheckResult::True;
       }
@@ -127,8 +135,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::AND_POS://DONE
     {
       // Special case n=1
-      if (res[0].toString() == cl.toString()
-          && equalNodes(res[1][0], res[2])
+      if (res[0].toString() == cl.toString() && equalNodes(res[1][0], res[2])
           && res[1].getKind() == kind::NOT)
       {
         return CheckResult::True;
@@ -181,8 +188,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::OR_NEG://DONE
     {
       // Special case n=1
-      if (res[0].toString() == cl.toString()
-          && equalNodes(res[1], res[2][0])
+      if (res[0].toString() == cl.toString() && equalNodes(res[1], res[2][0])
           && res[2].getKind() == kind::NOT)
       {
         return CheckResult::True;
@@ -236,8 +242,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::XOR_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::XOR
-          && res[2].getKind() == kind::NOT
-          && equalNodes(res[1][0], res[2][0])
+          && res[2].getKind() == kind::NOT && equalNodes(res[1][0], res[2][0])
           && equalNodes(res[1][1], res[3]))
       {
         return CheckResult::True;
@@ -259,8 +264,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::IMPLIES_NEG1://DONE
     {
       if (res[0].toString() == cl.toString()
-          && res[1].getKind() == kind::IMPLIES
-          && equalNodes(res[1][0], res[2]))
+          && res[1].getKind() == kind::IMPLIES && equalNodes(res[1][0], res[2]))
       {
         return CheckResult::True;
       }
@@ -335,8 +339,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::EQUIV_NEG2://DONE
     {
       if (res[0].toString() == cl.toString() && res[1].getKind() == kind::EQUAL
-          && equalNodes(res[1][0], res[2])
-          && equalNodes(res[1][1], res[3]))
+          && equalNodes(res[1][0], res[2]) && equalNodes(res[1][1], res[3]))
       {
         return CheckResult::True;
       }
@@ -424,8 +427,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           equal = false;
         }
       }
-      if (res[0].toString() == cl.toString()
-          && equalNodes(res[n - 1][0], ts[0])
+      if (res[0].toString() == cl.toString() && equalNodes(res[n - 1][0], ts[0])
           && equalNodes(res[n - 1][1], ts[1])
           && res[n - 1].getKind() == kind::EQUAL && equal)
       {
@@ -624,8 +626,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((equalNodes(res[1][0], start)
-                 && equalNodes(res[1][1], symm))
+            && ((equalNodes(res[1][0], start) && equalNodes(res[1][1], symm))
                 || (equalNodes(res[1][0], symm)
                     && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
@@ -660,8 +661,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((equalNodes(res[1][0], start)
-                 && equalNodes(res[1][1], symm))
+            && ((equalNodes(res[1][0], start) && equalNodes(res[1][1], symm))
                 || (equalNodes(res[1][0], symm)
                     && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
@@ -696,8 +696,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((equalNodes(res[1][0], start)
-                 && equalNodes(res[1][1], symm))
+            && ((equalNodes(res[1][0], start) && equalNodes(res[1][1], symm))
                 || (equalNodes(res[1][0], symm)
                     && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
@@ -732,8 +731,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
           }
         }
         if (res[0].toString() == cl.toString()
-            && ((equalNodes(res[1][0], start)
-                 && equalNodes(res[1][1], symm))
+            && ((equalNodes(res[1][0], start) && equalNodes(res[1][1], symm))
                 || (equalNodes(res[1][0], symm)
                     && equalNodes(res[1][1], start)))
             && res[1].getKind() == kind::EQUAL)
