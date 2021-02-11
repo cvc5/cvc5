@@ -511,7 +511,7 @@ bool NonlinearExtension::modelBasedRefinement()
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
+            NlLemma nsplit(split, InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT);
             d_im.addPendingArithLemma(nsplit, true);
           }
           if (d_im.hasWaitingLemma())
