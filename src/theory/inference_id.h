@@ -100,6 +100,27 @@ enum class InferenceId
   BAG_DIFFERENCE_REMOVE,
   BAG_DUPLICATE_REMOVAL,
 
+  // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
+  DATATYPES_UNIF,
+  // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
+  DATATYPES_INST,
+  // (or ((_ is C1) t) V ... V ((_ is Cn) t))
+  DATATYPES_SPLIT,
+  // (not ((_ is C1) t)) ^ ... [j] ... ^ (not ((_ is Cn) t)) => ((_ is Cj) t)
+  DATATYPES_LABEL_EXH,
+  // (= t (Ci t1 ... tn)) => (= (sel_j t) rewrite((sel_j (Ci t1 ... tn))))
+  DATATYPES_COLLAPSE_SEL,
+  // (= (Ci t1...tn) (Cj t1...tn)) => false
+  DATATYPES_CLASH_CONFLICT,
+  // ((_ is Ci) t) ^ (= t (Cj t1 ... tn)) => false
+  DATATYPES_TESTER_CONFLICT,
+  // ((_ is Ci) t) ^ ((_ is Cj) s) ^ (= t s) => false
+  DATATYPES_TESTER_MERGE_CONFLICT,
+  // bisimilarity for codatatypes
+  DATATYPES_BISIMILAR,
+  // cycle conflict for datatypes
+  DATATYPES_CYCLE,
+
   UNKNOWN,
 };
 

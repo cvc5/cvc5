@@ -45,8 +45,9 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL: return "CAD_EXCLUDED_INTERVAL";
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION: return "ICP_PROPAGATION";
-    case Inference::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
-    case Inference::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
+
+    case InferenceId::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
+    case InferenceId::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
     case InferenceId::BAG_MK_BAG: return "BAG_MK_BAG";
     case InferenceId::BAG_EQUALITY: return "BAG_EQUALITY";
     case InferenceId::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
@@ -57,6 +58,18 @@ const char* toString(InferenceId i)
     case InferenceId::BAG_DIFFERENCE_SUBTRACT: return "BAG_DIFFERENCE_SUBTRACT";
     case InferenceId::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
     case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
+
+    case InferenceId::DATATYPES_UNIF: return "UNIF";
+    case InferenceId::DATATYPES_INST: return "INST";
+    case InferenceId::DATATYPES_SPLIT: return "SPLIT";
+    case InferenceId::DATATYPES_LABEL_EXH: return "LABEL_EXH";
+    case InferenceId::DATATYPES_COLLAPSE_SEL: return "COLLAPSE_SEL";
+    case InferenceId::DATATYPES_CLASH_CONFLICT: return "CLASH_CONFLICT";
+    case InferenceId::DATATYPES_TESTER_CONFLICT: return "TESTER_CONFLICT";
+    case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
+    case InferenceId::DATATYPES_BISIMILAR: return "BISIMILAR";
+    case InferenceId::DATATYPES_CYCLE: return "CYCLE";
+
     default: return "?";
   }
 }

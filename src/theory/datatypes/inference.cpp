@@ -25,35 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-const char* toString(InferId i)
-{
-  switch (i)
-  {
-    case InferId::NONE: return "NONE";
-    case InferId::UNIF: return "UNIF";
-    case InferId::INST: return "INST";
-    case InferId::SPLIT: return "SPLIT";
-    case InferId::LABEL_EXH: return "LABEL_EXH";
-    case InferId::COLLAPSE_SEL: return "COLLAPSE_SEL";
-    case InferId::CLASH_CONFLICT: return "CLASH_CONFLICT";
-    case InferId::TESTER_CONFLICT: return "TESTER_CONFLICT";
-    case InferId::TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
-    case InferId::BISIMILAR: return "BISIMILAR";
-    case InferId::CYCLE: return "CYCLE";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, InferId i)
-{
-  out << toString(i);
-  return out;
-}
-
 DatatypesInference::DatatypesInference(InferenceManager* im,
                                        Node conc,
                                        Node exp,
-                                       InferId i)
+                                       InferenceId i)
     : SimpleTheoryInternalFact(conc, exp, nullptr), d_im(im), d_id(i)
 {
   // false is not a valid explanation
@@ -98,7 +73,7 @@ bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
   return d_im->processDtFact(d_conc, d_exp, d_id);
 }
 
-InferId DatatypesInference::getInferId() const { return d_id; }
+InferenceId DatatypesInference::getInferId() const { return d_id; }
 
 }  // namespace datatypes
 }  // namespace theory

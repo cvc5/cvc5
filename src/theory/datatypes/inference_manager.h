@@ -54,7 +54,7 @@ class InferenceManager : public InferenceManagerBuffered
   void addPendingInference(Node conc,
                            Node exp,
                            bool forceLemma = false,
-                           InferId i = InferId::NONE);
+                           InferenceId i = InferenceId::UNKNOWN);
   /**
    * Process the current lemmas and facts. This is a custom method that can
    * be seen as overriding the behavior of calling both doPendingLemmas and
@@ -66,13 +66,13 @@ class InferenceManager : public InferenceManagerBuffered
    * Send lemma immediately on the output channel
    */
   void sendDtLemma(Node lem,
-                   InferId i = InferId::NONE,
+                   InferenceId i = InferenceId::UNKNOWN,
                    LemmaProperty p = LemmaProperty::NONE,
                    bool doCache = true);
   /**
    * Send conflict immediately on the output channel
    */
-  void sendDtConflict(const std::vector<Node>& conf, InferId i = InferId::NONE);
+  void sendDtConflict(const std::vector<Node>& conf, InferenceId i = InferenceId::UNKNOWN);
   /**
    * Send lemmas with property NONE on the output channel immediately.
    * Returns true if any lemma was sent.
@@ -87,13 +87,13 @@ class InferenceManager : public InferenceManagerBuffered
    */
   bool processDtLemma(Node conc,
                       Node exp,
-                      InferId id,
+                      InferenceId id,
                       LemmaProperty p = LemmaProperty::NONE,
                       bool doCache = true);
   /**
    * Process datatype inference as a fact
    */
-  bool processDtFact(Node conc, Node exp, InferId id);
+  bool processDtFact(Node conc, Node exp, InferenceId id);
   /**
    * Helper function for the above methods. Returns the conclusion, which
    * may be modified so that it is compatible with proofs. If proofs are
@@ -106,16 +106,16 @@ class InferenceManager : public InferenceManagerBuffered
    * status for proof generation. If this is not done, then it is possible
    * to have proofs with missing connections and hence free assumptions.
    */
-  Node prepareDtInference(Node conc, Node exp, InferId id, InferProofCons* ipc);
+  Node prepareDtInference(Node conc, Node exp, InferenceId id, InferProofCons* ipc);
   /** The false node */
   Node d_false;
   /**
    * Counts the number of applications of each type of inference processed by
    * the above method as facts, lemmas and conflicts.
    */
-  HistogramStat<InferId> d_inferenceLemmas;
-  HistogramStat<InferId> d_inferenceFacts;
-  HistogramStat<InferId> d_inferenceConflicts;
+  HistogramStat<InferenceId> d_inferenceLemmas;
+  HistogramStat<InferenceId> d_inferenceFacts;
+  HistogramStat<InferenceId> d_inferenceConflicts;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** The inference to proof converter */
