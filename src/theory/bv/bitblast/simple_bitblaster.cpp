@@ -51,9 +51,13 @@ void BBSimple::storeBBTerm(TNode node, const Bits& bits)
   d_termCache.emplace(node, bits);
 }
 
-bool BBSimple::hasBBAtom(TNode atom) const
+bool BBSimple::hasBBAtom(TNode lit) const
 {
-  return d_bbAtoms.find(atom) != d_bbAtoms.end();
+  if (lit.getKind() == kind::NOT)
+  {
+    lit = lit[0];
+  }
+  return d_bbAtoms.find(lit) != d_bbAtoms.end();
 }
 
 void BBSimple::makeVariable(TNode var, Bits& bits)
@@ -141,6 +145,11 @@ bool BBSimple::collectModelValues(TheoryModel* m,
     }
   }
   return true;
+}
+
+bool BBSimple::isVariable(TNode node)
+{
+  return d_variables.find(node) != d_variables.end();
 }
 
 }  // namespace bv

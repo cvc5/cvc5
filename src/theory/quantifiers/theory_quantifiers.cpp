@@ -162,18 +162,6 @@ bool TheoryQuantifiers::preNotifyFact(
   {
     getQuantifiersEngine()->assertQuantifier(atom, polarity);
   }
-  else if (k == INST_CLOSURE)
-  {
-    if (!polarity)
-    {
-      Unhandled() << "Unexpected inst-closure fact " << fact;
-    }
-    getQuantifiersEngine()->addTermToDatabase(atom[0], false, true);
-    if (!options::lteRestrictInstClosure())
-    {
-      d_qstate.getEqualityEngine()->addTerm(atom[0]);
-    }
-  }
   else
   {
     Unhandled() << "Unexpected fact " << fact;

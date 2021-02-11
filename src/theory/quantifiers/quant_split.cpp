@@ -27,8 +27,9 @@ using namespace CVC4::theory::quantifiers;
 
 QuantDSplit::QuantDSplit(QuantifiersEngine* qe,
                          QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe), d_added_split(qs.getUserContext())
+                         QuantifiersInferenceManager& qim,
+                         QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe), d_added_split(qs.getUserContext())
 {
 }
 
@@ -100,7 +101,7 @@ void QuantDSplit::checkOwnership(Node q)
   if (takeOwnership)
   {
     Trace("quant-dsplit-debug") << "Will take ownership." << std::endl;
-    d_quantEngine->setOwner( q, this );
+    d_qreg.setOwner(q, this);
   }
   // Notice we may not take ownership in some cases, meaning that both the
   // original quantified formula and the split one are generated. This may
@@ -197,7 +198,7 @@ void QuantDSplit::check(Theory::Effort e, QEffort quant_e)
   for (const Node& lem : lemmas)
   {
     Trace("quant-dsplit") << "QuantDSplit lemma : " << lem << std::endl;
-    d_quantEngine->addLemma(lem, false);
+    d_qim.addPendingLemma(lem);
   }
   Trace("quant-dsplit") << "QuantDSplit::check finished" << std::endl;
 }

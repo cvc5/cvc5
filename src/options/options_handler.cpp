@@ -145,8 +145,9 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
     throw OptionException(ss.str());
   }
 
-  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
-      || m == SatSolverMode::KISSAT)
+  if (options::bvSolver() != options::BVSolver::BITBLAST
+      && (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
+          || m == SatSolverMode::KISSAT))
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
         && options::bitblastMode.wasSetByUser())

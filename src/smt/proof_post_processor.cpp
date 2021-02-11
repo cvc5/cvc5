@@ -137,6 +137,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     const std::vector<Node>& args,
     CDProof* cdp)
 {
+  Trace("smt-proof-pp-debug2") << push;
   NodeManager* nm = NodeManager::currentNM();
   Node trueNode = nm->mkConst(true);
   // get crowding lits and the position of the last clause that includes
@@ -164,10 +165,10 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       size_t j;
       for (j = children.size() - 1; j > 0; --j)
       {
-        // notice that only non-unit clauses may be introducing the crowding
-        // literal, so we only care about non-unit OR nodes. We check then
-        // against the kind and whether the whole OR node occurs as a pivot of
-        // the respective resolution
+        // notice that only non-singleton clauses may be introducing the
+        // crowding literal, so we only care about non-singleton OR nodes. We
+        // check then against the kind and whether the whole OR node occurs as a
+        // pivot of the respective resolution
         if (children[j - 1].getKind() != kind::OR)
         {
           continue;
@@ -376,6 +377,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     Trace("smt-proof-pp-debug2")
         << "nextGuardedElimPos: " << nextGuardedElimPos << "\n";
   } while (true);
+  Trace("smt-proof-pp-debug2") << pop;
   return lastClause;
 }
 
@@ -659,10 +661,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                           chainConclusion.end()};
     std::set<Node> chainConclusionLitsSet{chainConclusion.begin(),
                                           chainConclusion.end()};
-    // is args[0] a unit clause? If it's not an OR node, then yes. Otherwise,
-    // it's only a unit if it occurs in chainConclusionLitsSet
+    // is args[0] a singleton clause? If it's not an OR node, then yes.
+    // Otherwise, it's only a singleton if it occurs in chainConclusionLitsSet
     std::vector<Node> conclusionLits;
-    // whether conclusion is unit
+    // whether conclusion is singleton
     if (chainConclusionLitsSet.count(args[0]))
     {
       conclusionLits.push_back(args[0]);
@@ -684,16 +686,32 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           chainConclusionLits, conclusionLits, children, args, cdp);
       // update vector of lits. Note that the set is no longer used, so we don't
       // need to update it
+      //
+      // We need again to check whether chainConclusion is a singleton
+      // clause. As above, it's a singleton if it's in the original
+      // chainConclusionLitsSet.
       chainConclusionLits.clear();
-      chainConclusionLits.insert(chainConclusionLits.end(),
-                                 chainConclusion.begin(),
-                                 chainConclusion.end());
+      if (chainConclusionLitsSet.count(chainConclusion))
+      {
+        chainConclusionLits.push_back(chainConclusion);
+      }
+      else
+      {
+        Assert(chainConclusion.getKind() == kind::OR);
+        chainConclusionLits.insert(chainConclusionLits.end(),
+                                   chainConclusion.begin(),
+                                   chainConclusion.end());
+      }
     }
     else
     {
       cdp->addStep(
           chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
     }
+    Trace("smt-proof-pp-debug")
+        << "Conclusion after chain_res/elimCrowd: " << chainConclusion << "\n";
+    Trace("smt-proof-pp-debug")
+        << "Conclusion lits: " << chainConclusionLits << "\n";
     // Placeholder for running conclusion
     Node n = chainConclusion;
     // factoring

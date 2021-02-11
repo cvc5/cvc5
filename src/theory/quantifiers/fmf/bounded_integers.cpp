@@ -86,8 +86,9 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
 
 BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
-                                 QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe)
+                                 QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe)
 {
 }
 
@@ -293,7 +294,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
     {
       Trace("bound-int-lemma")
           << "*** bound int : proxy lemma : " << prangeLem << std::endl;
-      d_quantEngine->addLemma(prangeLem);
+      d_qim.addPendingLemma(prangeLem);
       addedLemma = true;
     }
   }

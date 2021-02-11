@@ -58,10 +58,12 @@ struct sortTriggers {
   }
 };
 
-InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
-                                                         QuantifiersState& qs,
-                                                         QuantRelevance* qr)
-    : InstStrategy(qe, qs), d_quant_rel(qr)
+InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
+    QuantifiersEngine* qe,
+    QuantifiersState& qs,
+    QuantifiersInferenceManager& qim,
+    QuantRelevance* qr)
+    : InstStrategy(qe, qs, qim), d_quant_rel(qr)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
@@ -280,6 +282,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if (d_is_single_trigger[patTerms[0]])
     {
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qim,
                               f,
                               patTerms[0],
                               false,
@@ -316,6 +319,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       // will possibly want to get an old trigger
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qim,
                               f,
                               patTerms,
                               false,
@@ -357,6 +361,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         {
           d_single_trigger_gen[patTerms[index]] = true;
           Trigger* tr2 = Trigger::mkTrigger(d_quantEngine,
+                                            d_qim,
                                             f,
                                             patTerms[index],
                                             false,
@@ -627,7 +632,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
         << "Make partially specified user pattern: " << std::endl;
     Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
     Node lem = nm->mkNode(OR, q.negate(), qq);
-    d_quantEngine->addLemma(lem);
+    d_qim.addPendingLemma(lem);
     return;
   }
   unsigned tindex;

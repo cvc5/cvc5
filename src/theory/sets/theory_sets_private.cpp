@@ -981,7 +981,6 @@ void TheorySetsPrivate::computeCareGraph()
       // populate indices
       for (TNode f1 : it.second)
       {
-        Assert(d_equalityEngine->hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine->hasTerm(f1));
         // break into index based on operator, and type of first argument (since

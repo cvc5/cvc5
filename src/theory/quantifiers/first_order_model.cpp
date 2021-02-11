@@ -118,7 +118,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
       // terms in rep_set are now constants which mapped to terms through
       // TheoryModel. Thus, should introduce a constant and a term.
       // For now, we just add an arbitrary term.
-      Node var = d_qe->getModel()->getSomeDomainElement(tn);
+      Node var = getSomeDomainElement(tn);
       Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn
                      << std::endl;
       d_rep_set.add(tn, var);

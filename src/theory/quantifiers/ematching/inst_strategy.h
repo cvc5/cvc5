@@ -29,6 +29,7 @@ class QuantifiersEngine;
 namespace quantifiers {
 
 class QuantifiersState;
+class QuantifiersInferenceManager;
 
 /** A status response to process */
 enum class InstStrategyStatus
@@ -45,8 +46,10 @@ enum class InstStrategyStatus
 class InstStrategy
 {
  public:
-  InstStrategy(QuantifiersEngine* qe, QuantifiersState& qs)
-      : d_quantEngine(qe), d_qstate(qs)
+  InstStrategy(QuantifiersEngine* qe,
+               QuantifiersState& qs,
+               QuantifiersInferenceManager& qim)
+      : d_quantEngine(qe), d_qstate(qs), d_qim(qim)
   {
   }
   virtual ~InstStrategy() {}
@@ -64,6 +67,8 @@ class InstStrategy
   QuantifiersEngine* d_quantEngine;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
+  /** The quantifiers inference manager object */
+  QuantifiersInferenceManager& d_qim;
 }; /* class InstStrategy */
 
 }  // namespace quantifiers

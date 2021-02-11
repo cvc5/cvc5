@@ -31,14 +31,15 @@ namespace quantifiers {
 
 SynthEngine::SynthEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                         QuantifiersInferenceManager& qim,
+                         QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_tds(qe->getTermDatabaseSygus()),
       d_conj(nullptr),
       d_sqp(qe)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, qs, d_statistics)));
+      new SynthConjecture(d_quantEngine, qs, qim, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -159,16 +160,27 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, d_qstate, d_statistics)));
+        new SynthConjecture(d_quantEngine, d_qstate, d_qim, d_statistics)));
   }
   d_conjs.back()->assign(q);
+}
+
+void SynthEngine::checkOwnership(Node q)
+{
+  // take ownership of quantified formulas with sygus attribute, and function
+  // definitions when options::sygusRecFun is true.
+  QuantAttributes* qa = d_quantEngine->getQuantAttributes();
+  if (qa->isSygus(q) || (options::sygusRecFun() && qa->isFunDef(q)))
+  {
+    d_qreg.setOwner(q, this, 2);
+  }
 }
 
 void SynthEngine::registerQuantifier(Node q)
 {
   Trace("cegqi-debug") << "SynthEngine: Register quantifier : " << q
                        << std::endl;
-  if (d_quantEngine->getOwner(q) != this)
+  if (d_qreg.getOwner(q) != this)
   {
     return;
   }
@@ -212,7 +224,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
-      if (d_quantEngine->addLemma(lem))
+      if (d_qim.addPendingLemma(lem))
       {
         ++(d_statistics.d_cegqi_lemmas_ce);
         addedLemma = true;
