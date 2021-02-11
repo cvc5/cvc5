@@ -34,7 +34,7 @@ bool SimpleTheoryLemma::process(TheoryInferenceManager* im, bool asLemma)
   Assert(!d_node.isNull());
   Assert(asLemma);
   // send (trusted) lemma on the output channel with property p
-  return im->trustedLemma(getId(), TrustNode::mkTrustLemma(d_node, d_pg), d_property);
+  return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), getId(), d_property);
 }
 
 SimpleTheoryInternalFact::SimpleTheoryInternalFact(InferenceId id,
@@ -54,11 +54,11 @@ bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im, bool asLemma)
   Assert(atom.getKind() != NOT && atom.getKind() != AND);
   if (d_pg != nullptr)
   {
-    im->assertInternalFact(getId(), atom, polarity, {d_exp}, d_pg);
+    im->assertInternalFact(atom, polarity, getId(), {d_exp}, d_pg);
   }
   else
   {
-    im->assertInternalFact(getId(), atom, polarity, d_exp);
+    im->assertInternalFact(atom, polarity, getId(), d_exp);
   }
   return true;
 }

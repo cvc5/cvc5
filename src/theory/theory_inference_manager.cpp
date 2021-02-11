@@ -85,7 +85,7 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
   }
 }
 
-void TheoryInferenceManager::conflict(InferenceId id, TNode conf)
+void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
   if (!d_theoryState.isInConflict())
   {
@@ -95,7 +95,7 @@ void TheoryInferenceManager::conflict(InferenceId id, TNode conf)
   }
 }
 
-void TheoryInferenceManager::trustedConflict(InferenceId id, TrustNode tconf)
+void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   if (!d_theoryState.isInConflict())
   {
@@ -113,7 +113,7 @@ void TheoryInferenceManager::conflictExp(InferenceId id, PfRule pfr,
     // make the trust node
     TrustNode tconf = mkConflictExp(pfr, exp, args);
     // send it on the output channel
-    trustedConflict(id, tconf);
+    trustedConflict(tconf, id);
   }
 }
 
@@ -139,7 +139,7 @@ void TheoryInferenceManager::conflictExp(InferenceId id, const std::vector<Node>
     // make the trust node
     TrustNode tconf = mkConflictExp(exp, pg);
     // send it on the output channel
-    trustedConflict(id, tconf);
+    trustedConflict(tconf, id);
   }
 }
 
@@ -207,13 +207,14 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                   << " mkTrustedConflictEqConstantMerge";
 }
 
-bool TheoryInferenceManager::lemma(InferenceId id, TNode lem, LemmaProperty p, bool doCache)
+bool TheoryInferenceManager::lemma(TNode lem, InferenceId id, LemmaProperty p, bool doCache)
 {
   TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
-  return trustedLemma(id, tlem, p, doCache);
+  return trustedLemma(tlem, id, p, doCache);
 }
 
-bool TheoryInferenceManager::trustedLemma(InferenceId id, const TrustNode& tlem,
+bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
+                                          InferenceId id,
                                           LemmaProperty p,
                                           bool doCache)
 {
@@ -229,7 +230,8 @@ bool TheoryInferenceManager::trustedLemma(InferenceId id, const TrustNode& tlem,
   return true;
 }
 
-bool TheoryInferenceManager::lemmaExp(InferenceId id, Node conc,
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                                      InferenceId id,
                                       PfRule pfr,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
@@ -240,7 +242,7 @@ bool TheoryInferenceManager::lemmaExp(InferenceId id, Node conc,
   // make the trust node
   TrustNode trn = mkLemmaExp(conc, pfr, exp, noExplain, args);
   // send it on the output channel
-  return trustedLemma(id, trn, p, doCache);
+  return trustedLemma(trn, id, p, doCache);
 }
 
 TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
@@ -260,7 +262,8 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
-bool TheoryInferenceManager::lemmaExp(InferenceId id, Node conc,
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                                      InferenceId id,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
                                       ProofGenerator* pg,
@@ -270,7 +273,7 @@ bool TheoryInferenceManager::lemmaExp(InferenceId id, Node conc,
   // make the trust node
   TrustNode trn = mkLemmaExp(conc, exp, noExplain, pg);
   // send it on the output channel
-  return trustedLemma(id, trn, p, doCache);
+  return trustedLemma(trn, id, p, doCache);
 }
 
 TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
@@ -305,13 +308,14 @@ bool TheoryInferenceManager::hasSentLemma() const
   return d_numCurrentLemmas != 0;
 }
 
-bool TheoryInferenceManager::assertInternalFact(InferenceId id, TNode atom, bool pol, TNode exp)
+bool TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, InferenceId id, TNode exp)
 {
   return processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
-bool TheoryInferenceManager::assertInternalFact(InferenceId id, TNode atom,
+bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
+                                                InferenceId id,
                                                 PfRule pfr,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
@@ -320,8 +324,9 @@ bool TheoryInferenceManager::assertInternalFact(InferenceId id, TNode atom,
   return processInternalFact(atom, pol, pfr, exp, args, nullptr);
 }
 
-bool TheoryInferenceManager::assertInternalFact(InferenceId id, TNode atom,
+bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
+                                                InferenceId id,
                                                 const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {

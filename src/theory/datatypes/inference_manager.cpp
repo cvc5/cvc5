@@ -87,7 +87,7 @@ void InferenceManager::sendDtLemma(Node lem,
     return;
   }
   // otherwise send as a normal lemma
-  if (lemma(id, lem, p, doCache))
+  if (lemma(lem, id, p, doCache))
   {
     d_inferenceLemmas << id;
   }
@@ -109,7 +109,7 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
   bool ret = false;
   for (const Node& lem : lemmas)
   {
-    if (lemma(InferenceId::UNKNOWN, lem))
+    if (lemma(lem, InferenceId::UNKNOWN))
     {
       ret = true;
     }
@@ -154,7 +154,7 @@ bool InferenceManager::processDtLemma(
   }
   // use trusted lemma
   TrustNode tlem = TrustNode::mkTrustLemma(lem, d_lemPg.get());
-  if (!trustedLemma(id, tlem))
+  if (!trustedLemma(tlem, id))
   {
     Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
     return false;
@@ -176,12 +176,12 @@ bool InferenceManager::processDtFact(Node conc, Node exp, InferenceId id)
     {
       expv.push_back(exp);
     }
-    assertInternalFact(id, atom, polarity, expv, d_ipc.get());
+    assertInternalFact(atom, polarity, id, expv, d_ipc.get());
   }
   else
   {
     // use version without proofs
-    assertInternalFact(id, atom, polarity, exp);
+    assertInternalFact(atom, polarity, id, exp);
   }
   d_inferenceFacts << id;
   return true;

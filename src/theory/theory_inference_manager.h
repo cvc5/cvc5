@@ -132,12 +132,12 @@ class TheoryInferenceManager
    * Raise conflict conf (of any form), without proofs. This method should
    * only be called if there is not yet proof support in the given theory.
    */
-  void conflict(InferenceId id, TNode conf);
+  void conflict(TNode conf, InferenceId id);
   /**
    * Raise trusted conflict tconf (of any form) where a proof generator has
    * been provided (as part of the trust node) in a custom way.
    */
-  void trustedConflict(InferenceId id, TrustNode tconf);
+  void trustedConflict(TrustNode tconf, InferenceId id);
   /**
    * Explain and send conflict from contradictory facts. This method is called
    * when the proof rule id with premises exp and arguments args concludes
@@ -181,14 +181,14 @@ class TheoryInferenceManager
    * cached (see cacheLemma), and add it to the cache during this call.
    * @return true if the lemma was sent on the output channel.
    */
-  bool trustedLemma(InferenceId id, const TrustNode& tlem,
+  bool trustedLemma(const TrustNode& tlem, InferenceId id,
                     LemmaProperty p = LemmaProperty::NONE,
                     bool doCache = true);
   /**
    * Send lemma lem with property p on the output channel. Same as above, with
    * a node instead of a trust node.
    */
-  bool lemma(InferenceId id, TNode lem,
+  bool lemma(TNode lem, InferenceId id,
              LemmaProperty p = LemmaProperty::NONE,
              bool doCache = true);
   /**
@@ -214,7 +214,8 @@ class TheoryInferenceManager
    * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
-  bool lemmaExp(InferenceId id, Node conc,
+  bool lemmaExp(Node conc,
+                InferenceId id,
                 PfRule pfr,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
@@ -245,7 +246,8 @@ class TheoryInferenceManager
    * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
-  bool lemmaExp(InferenceId id, Node conc,
+  bool lemmaExp(Node conc,
+                InferenceId id,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
                 ProofGenerator* pg = nullptr,
@@ -286,7 +288,7 @@ class TheoryInferenceManager
    * @return true if the fact was processed, i.e. it was asserted to the
    * equality engine or preNotifyFact returned true.
    */
-  bool assertInternalFact(InferenceId id, TNode atom, bool pol, TNode exp);
+  bool assertInternalFact(TNode atom, bool pol, InferenceId id, TNode exp);
   /**
    * Assert internal fact, with a proof step justification. Notice that if
    * proofs are not enabled in this inference manager, then this asserts
@@ -300,8 +302,9 @@ class TheoryInferenceManager
    * @return true if the fact was processed, i.e. it was asserted to the
    * equality engine or preNotifyFact returned true.
    */
-  bool assertInternalFact(InferenceId id, TNode atom,
+  bool assertInternalFact(TNode atom,
                           bool pol,
+                          InferenceId id,
                           PfRule pfr,
                           const std::vector<Node>& exp,
                           const std::vector<Node>& args);
@@ -318,8 +321,9 @@ class TheoryInferenceManager
    * @return true if the fact was processed, i.e. it was asserted to the
    * equality engine or preNotifyFact returned true.
    */
-  bool assertInternalFact(InferenceId id, TNode atom,
+  bool assertInternalFact(TNode atom,
                           bool pol,
+                          InferenceId id,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);
   /** The number of internal facts we have added since the last call to reset */
