@@ -151,7 +151,7 @@ void CnfStream::ensureLiteral(TNode n)
   Trace("cnf") << "ensureLiteral(" << n << ")\n";
   if (hasLiteral(n))
   {
-    ensureExistingLiteral(n);
+    ensureMappingForLiteral(n);
     return;
   }
   // remove top level negation
