@@ -299,7 +299,7 @@ void InferenceManager::processConflict(const InferInfo& ii)
   Trace("strings-assert") << "(assert (not " << tconf.getNode()
                           << ")) ; conflict " << ii.getId() << std::endl;
   // send the trusted conflict
-  trustedConflict(tconf);
+  trustedConflict(tconf, ii.getId());
 }
 
 bool InferenceManager::processFact(InferInfo& ii)
@@ -342,13 +342,13 @@ bool InferenceManager::processFact(InferInfo& ii)
       // current SAT context
       d_ipc->notifyFact(ii);
       // now, assert the internal fact with d_ipc as proof generator
-      curRet = assertInternalFact(atom, polarity, exp, d_ipc.get());
+      curRet = assertInternalFact(atom, polarity, ii.getId(), exp, d_ipc.get());
     }
     else
     {
       Node cexp = utils::mkAnd(exp);
       // without proof generator
-      curRet = assertInternalFact(atom, polarity, cexp);
+      curRet = assertInternalFact(atom, polarity, ii.getId(), cexp);
     }
     ret = ret || curRet;
     // may be in conflict
@@ -420,7 +420,7 @@ bool InferenceManager::processLemma(InferInfo& ii)
   ++(d_statistics.d_lemmasInfer);
 
   // call the trusted lemma, without caching
-  return trustedLemma(tlem, p, false);
+  return trustedLemma(tlem, ii.getId(), p, false);
 }
 
 }  // namespace strings

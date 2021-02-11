@@ -1787,7 +1787,7 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c
                            << std::endl;
-        d_im.conflictExp(ant, nullptr);
+        d_im.conflictExp(InferenceId::UNKNOWN, ant, nullptr);
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
                            << " by " << c << std::endl;
