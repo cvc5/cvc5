@@ -134,7 +134,7 @@ namespace CVC4 {
 class CDProof : public ProofGenerator
 {
  public:
-  /** 
+  /**
    * @param pnm The proof node manager responsible for constructor ProofNode
    * @param c The context this proof depends on
    * @param name The name of this proof (for debugging)
@@ -144,8 +144,7 @@ class CDProof : public ProofGenerator
   CDProof(ProofNodeManager* pnm,
           context::Context* c = nullptr,
           std::string name = "CDProof",
-          bool autoSymm = true
-         );
+          bool autoSymm = true);
   virtual ~CDProof();
   /**
    * Make proof for fact.

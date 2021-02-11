@@ -18,9 +18,15 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(ProofNodeManager* pnm, context::Context* c, std::string name,
-          bool autoSymm)
-    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context), d_name(name), d_autoSymm(autoSymm)
+CDProof::CDProof(ProofNodeManager* pnm,
+                 context::Context* c,
+                 std::string name,
+                 bool autoSymm)
+    : d_manager(pnm),
+      d_context(),
+      d_nodes(c ? c : &d_context),
+      d_name(name),
+      d_autoSymm(autoSymm)
 {
 }
 
