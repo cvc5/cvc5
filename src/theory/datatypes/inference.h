@@ -20,55 +20,11 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/inference_manager_buffered.h"
+#include "theory/inference_id.h"
 
 namespace CVC4 {
 namespace theory {
 namespace datatypes {
-
-enum class InferId : uint32_t
-{
-  NONE,
-  // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
-  UNIF,
-  // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
-  INST,
-  // (or ((_ is C1) t) V ... V ((_ is Cn) t))
-  SPLIT,
-  // (not ((_ is C1) t)) ^ ... [j] ... ^ (not ((_ is Cn) t)) => ((_ is Cj) t)
-  LABEL_EXH,
-  // (= t (Ci t1 ... tn)) => (= (sel_j t) rewrite((sel_j (Ci t1 ... tn))))
-  COLLAPSE_SEL,
-  // (= (Ci t1...tn) (Cj t1...tn)) => false
-  CLASH_CONFLICT,
-  // ((_ is Ci) t) ^ (= t (Cj t1 ... tn)) => false
-  TESTER_CONFLICT,
-  // ((_ is Ci) t) ^ ((_ is Cj) s) ^ (= t s) => false
-  TESTER_MERGE_CONFLICT,
-  // bisimilarity for codatatypes
-  BISIMILAR,
-  // cycle conflict for datatypes
-  CYCLE,
-};
-
-/**
- * Converts an inference to a string. Note: This function is also used in
- * `safe_print()`. Changing this functions name or signature will result in
- * `safe_print()` printing "<unsupported>" instead of the proper strings for
- * the enum values.
- *
- * @param i The inference
- * @return The name of the inference
- */
-const char* toString(InferId i);
-
-/**
- * Writes an inference name to a stream.
- *
- * @param out The stream to write to
- * @param i The inference to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, InferId i);
 
 class InferenceManager;
 
@@ -83,7 +39,7 @@ class DatatypesInference : public SimpleTheoryInternalFact
   DatatypesInference(InferenceManager* im,
                      Node conc,
                      Node exp,
-                     InferId i = InferId::NONE);
+                     InferenceId i = InferenceId::UNKNOWN);
   /**
    * Must communicate fact method.
    * The datatypes decision procedure makes "internal" inferences :
@@ -107,13 +63,13 @@ class DatatypesInference : public SimpleTheoryInternalFact
    */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
   /** Get the inference identifier */
-  InferId getInferId() const;
+  InferenceId getInferId() const;
 
  private:
   /** Pointer to the inference manager */
   InferenceManager* d_im;
   /** The inference */
-  InferId d_id;
+  InferenceId d_id;
 };
 
 }  // namespace datatypes

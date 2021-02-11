@@ -138,7 +138,7 @@ void SolverState::setPendingPrefixConflictWhen(Node conf)
     return;
   }
   InferInfo iiPrefixConf;
-  iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
+  iiPrefixConf.d_id = InferenceId::STRINGS_PREFIX_CONFLICT;
   iiPrefixConf.d_conc = d_false;
   utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);

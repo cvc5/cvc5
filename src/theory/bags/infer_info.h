@@ -21,51 +21,12 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 #include "theory/theory_inference.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
-
-/**
- * Types of inferences used in the procedure
- */
-enum class Inference : uint32_t
-{
-  NONE,
-  BAG_NON_NEGATIVE_COUNT,
-  BAG_MK_BAG_SAME_ELEMENT,
-  BAG_MK_BAG,
-  BAG_EQUALITY,
-  BAG_DISEQUALITY,
-  BAG_EMPTY,
-  BAG_UNION_DISJOINT,
-  BAG_UNION_MAX,
-  BAG_INTERSECTION_MIN,
-  BAG_DIFFERENCE_SUBTRACT,
-  BAG_DIFFERENCE_REMOVE,
-  BAG_DUPLICATE_REMOVAL
-};
-
-/**
- * Converts an inference to a string. Note: This function is also used in
- * `safe_print()`. Changing this functions name or signature will result in
- * `safe_print()` printing "<unsupported>" instead of the proper strings for
- * the enum values.
- *
- * @param i The inference
- * @return The name of the inference
- */
-const char* toString(Inference i);
-
-/**
- * Writes an inference name to a stream.
- *
- * @param out The stream to write to
- * @param i The inference to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, Inference i);
 
 class InferenceManager;
 
@@ -82,8 +43,8 @@ class InferInfo : public TheoryInference
   /** Process this inference */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
   /** The inference identifier */
-  Inference d_id;
-  /** The conclusions */
+  InferenceId d_id;
+  /** The conclusion */
   Node d_conclusion;
   /**
    * The premise(s) of the inference, interpreted conjunctively. These are

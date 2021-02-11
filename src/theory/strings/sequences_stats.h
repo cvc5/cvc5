@@ -61,12 +61,12 @@ class SequencesStatistics
   IntStat d_strategyRuns;
   //--------------- inferences
   /** Counts the number of applications of each type of inference */
-  HistogramStat<Inference> d_inferences;
+  HistogramStat<InferenceId> d_inferences;
   /**
    * Counts the number of applications of each type of inference that were not
    * processed as a proof step. This is a subset of d_inferences.
    */
-  HistogramStat<Inference> d_inferencesNoPf;
+  HistogramStat<InferenceId> d_inferencesNoPf;
   /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or

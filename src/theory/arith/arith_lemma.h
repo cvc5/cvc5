@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_id.h"
+#include "theory/inference_id.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
 #include "theory/theory_inference.h"

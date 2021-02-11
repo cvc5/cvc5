@@ -320,7 +320,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
             // Trace("nl-ext-bound-lemma") << "       intro new
             // monomials = " << introNewTerms << std::endl;
             d_data->d_im.addPendingArithLemma(
-                iblem, InferenceId::NL_INFER_BOUNDS_NT, nullptr, introNewTerms);
+                iblem, InferenceId::ARITH_NL_INFER_BOUNDS_NT, nullptr, introNewTerms);
           }
         }
       }
@@ -479,7 +479,7 @@ void MonomialBoundsCheck::checkResBounds()
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
                   d_data->d_im.addPendingArithLemma(
-                      rblem, InferenceId::NL_RES_INFER_BOUNDS);
+                      rblem, InferenceId::ARITH_NL_RES_INFER_BOUNDS);
                 }
               }
               exp.pop_back();
