@@ -27,12 +27,9 @@ namespace theory {
 
 /** Types of inferences used in the procedure
  *
- * These are variants of the inference rules in Figures 3-5 of Liang et al.
- * "A DPLL(T) Solver for a Theory of Strings and Regular Expressions", CAV 2014.
- *
  * Note: The order in this enum matters in certain cases (e.g. inferences
- * related to normal forms), inferences that come first are generally
- * preferred.
+ * related to normal forms in strings), where inferences that come first are
+ * generally preferred.
  *
  * Notice that an inference is intentionally distinct from PfRule. An
  * inference captures *why* we performed a reasoning step, and a PfRule
