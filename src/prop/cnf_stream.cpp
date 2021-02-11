@@ -154,7 +154,7 @@ void CnfStream::ensureLiteral(TNode n)
     ensureExistingLiteral(n);
     return;
   }
-  // since this is a literal we do not care about this
+  // remove top level negation
   n = n.getKind() == kind::NOT ? n[0] : n;
   if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {

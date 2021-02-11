@@ -576,8 +576,12 @@ void ProofCnfStream::ensureLiteral(TNode n)
   if (d_cnfStream.hasLiteral(n))
   {
     d_cnfStream.ensureExistingLiteral(n);
+    return;
   }
-  else if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  // remove top level negation. We don't need to track this because it's a
+  // literal.
+  n = n.getKind() == kind::NOT ? n[0] : n;
+  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
     SatLiteral lit = toCNF(n, false);
     // Store backward-mappings
