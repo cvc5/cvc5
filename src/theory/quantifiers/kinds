@@ -44,15 +44,12 @@ sort INST_PATTERN_LIST_TYPE \
 # a list of instantiation patterns
 operator INST_PATTERN_LIST 1: "a list of instantiation patterns"
 
-operator INST_CLOSURE 1 "predicate for specifying term in instantiation closure."
-
 typerule FORALL ::CVC4::theory::quantifiers::QuantifierForallTypeRule 
 typerule EXISTS ::CVC4::theory::quantifiers::QuantifierExistsTypeRule 
 typerule BOUND_VAR_LIST ::CVC4::theory::quantifiers::QuantifierBoundVarListTypeRule 
 typerule INST_PATTERN ::CVC4::theory::quantifiers::QuantifierInstPatternTypeRule 
 typerule INST_NO_PATTERN ::CVC4::theory::quantifiers::QuantifierInstNoPatternTypeRule 
 typerule INST_ATTRIBUTE ::CVC4::theory::quantifiers::QuantifierInstAttributeTypeRule 
-typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule 
-typerule INST_CLOSURE ::CVC4::theory::quantifiers::QuantifierInstClosureTypeRule 
+typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule
 
 endtheory

@@ -36,6 +36,9 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0)
 {
+  // don't add true lemma
+  Node truen = NodeManager::currentNM()->mkConst(true);
+  d_lemmasSent.insert(truen);
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)

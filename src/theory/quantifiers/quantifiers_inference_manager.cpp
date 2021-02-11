@@ -26,6 +26,12 @@ QuantifiersInferenceManager::QuantifiersInferenceManager(
 
 QuantifiersInferenceManager::~QuantifiersInferenceManager() {}
 
+void QuantifiersInferenceManager::doPending()
+{
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

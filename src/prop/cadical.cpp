@@ -111,6 +111,7 @@ SatVariable CadicalSolver::falseVar() { return d_false; }
 
 SatValue CadicalSolver::solve()
 {
+  d_assumptions.clear();
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   SatValue res = toSatValue(d_solver->solve());
   d_okay = (res == SAT_VALUE_TRUE);
@@ -125,15 +126,28 @@ SatValue CadicalSolver::solve(long unsigned int&)
 
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
+  d_assumptions.clear();
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   for (const SatLiteral& lit : assumptions)
   {
     d_solver->assume(toCadicalLit(lit));
+    d_assumptions.push_back(lit);
   }
   SatValue res = toSatValue(d_solver->solve());
   d_okay = (res == SAT_VALUE_TRUE);
   ++d_statistics.d_numSatCalls;
   return res;
+}
+
+void CadicalSolver::getUnsatAssumptions(std::vector<SatLiteral>& assumptions)
+{
+  for (const SatLiteral& lit : d_assumptions)
+  {
+    if (d_solver->failed(toCadicalLit(lit)))
+    {
+      assumptions.push_back(lit);
+    }
+  }
 }
 
 void CadicalSolver::interrupt() { d_solver->terminate(); }

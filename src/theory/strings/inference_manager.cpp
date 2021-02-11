@@ -186,17 +186,14 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
   }
   if (options::stringInferSym())
   {
-    std::vector<Node> vars;
-    std::vector<Node> subs;
     std::vector<Node> unproc;
     for (const Node& ac : ii.d_premises)
     {
-      d_termReg.inferSubstitutionProxyVars(ac, vars, subs, unproc);
+      d_termReg.removeProxyEqs(ac, unproc);
     }
     if (unproc.empty())
     {
-      Node eqs = ii.d_conc.substitute(
-          vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node eqs = ii.d_conc;
       InferInfo iiSubsLem;
       iiSubsLem.d_sim = this;
       // keep the same id for now, since we are transforming the form of the
@@ -209,11 +206,6 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
             << "Strings::Infer " << iiSubsLem << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
-        for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
-        {
-          Trace("strings-lemma-debug")
-              << "  " << vars[i] << " -> " << subs[i] << std::endl;
-        }
       }
       Trace("strings-infer-debug") << "...as symbolic lemma" << std::endl;
       addPendingLemma(std::unique_ptr<InferInfo>(new InferInfo(iiSubsLem)));

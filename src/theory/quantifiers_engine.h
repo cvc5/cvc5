@@ -113,30 +113,7 @@ class QuantifiersEngine {
    */
   void finishInit(TheoryEngine* te, DecisionManager* dm);
   //---------------------- end private initialization
-  /**
-   * Maps quantified formulas to the module that owns them, if any module has
-   * specifically taken ownership of it.
-   */
-  std::map< Node, QuantifiersModule * > d_owner;
-  /**
-   * The priority value associated with the ownership of quantified formulas
-   * in the domain of the above map, where higher values take higher
-   * precendence.
-   */
-  std::map< Node, int > d_owner_priority;
  public:
-  /** get owner */
-  QuantifiersModule * getOwner( Node q );
-  /**
-   * Set owner of quantified formula q to module m with given priority. If
-   * the quantified formula has previously been assigned an owner with
-   * lower priority, that owner is overwritten.
-   */
-  void setOwner( Node q, QuantifiersModule * m, int priority = 0 );
-  /** set owner of quantified formula q based on its attributes qa. */
-  void setOwner(Node q, quantifiers::QAttributes& qa);
-  /** considers */
-  bool hasOwnership( Node q, QuantifiersModule * m = NULL );
   /** does variable v of quantified formula q have a finite bound? */
   bool isFiniteBound(Node q, Node v) const;
   /** get bound var type
@@ -196,38 +173,11 @@ private:
  void registerQuantifierInternal(Node q);
  /** reduceQuantifier, return true if reduced */
  bool reduceQuantifier(Node q);
- /** flush lemmas */
- void flushLemmas();
 
 public:
- /**
-  * Add lemma to the lemma buffer of this quantifiers engine.
-  * @param lem The lemma to send
-  * @param doCache Whether to cache the lemma (to check for duplicate lemmas)
-  * @param doRewrite Whether to rewrite the lemma
-  * @return true if the lemma was successfully added to the buffer
-  */
- bool addLemma(Node lem, bool doCache = true, bool doRewrite = true);
- /**
-  * Add trusted lemma lem, same as above, but where a proof generator may be
-  * provided along with the lemma.
-  */
- bool addTrustedLemma(TrustNode tlem,
-                      bool doCache = true,
-                      bool doRewrite = true);
- /** remove pending lemma */
- bool removeLemma(Node lem);
- /** add require phase */
- void addRequirePhase(Node lit, bool req);
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** has added lemma */
- bool hasAddedLemma() const;
- /** get current q effort */
- QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
- /** get number of waiting lemmas */
- unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
  /** get needs check */
  bool getInstWhenNeedsCheck(Theory::Effort e);
  /** get user pat mode */
@@ -235,9 +185,7 @@ public:
 
 public:
  /** add term to database */
- void addTermToDatabase(Node n,
-                        bool withinQuant = false,
-                        bool withinInstClosure = false);
+ void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
  void eqNotifyNewClass(TNode t);
  /** debug print equality engine */
@@ -343,8 +291,8 @@ public:
   /** vector of modules for quantifiers */
   std::vector<QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry d_qreg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
@@ -355,6 +303,8 @@ public:
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
+  /** equality query class */
+  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** sygus term database */
   std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
   /** quantifiers attributes */
@@ -370,11 +320,6 @@ public:
    * The modules utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
-  //------------- temporary information during check
-  /** current effort level */
-  QuantifiersModule::QEffort d_curr_effort_level;
-  /** has added lemma this round */
-  bool d_hasAddedLemma;
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */
@@ -384,15 +329,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** list of all lemmas produced */
-  // std::map< Node, bool > d_lemmas_produced;
-  BoolMap d_lemmas_produced_c;
-  /** lemmas waiting */
-  std::vector<Node> d_lemmas_waiting;
-  /** map from waiting lemmas to their proof generators */
-  std::map<Node, ProofGenerator*> d_lemmasWaitingPg;
-  /** phase requirements waiting */
-  std::map<Node, bool> d_phase_req_waiting;
   /** inst round counters TODO: make context-dependent? */
   context::CDO<int> d_ierCounter_c;
   int d_ierCounter;
@@ -404,8 +340,6 @@ public:
   /** presolve cache */
   NodeSet d_presolve_in;
   NodeList d_presolve_cache;
-  BoolList d_presolve_cache_wq;
-  BoolList d_presolve_cache_wic;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

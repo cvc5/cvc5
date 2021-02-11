@@ -1987,6 +1987,65 @@ void CoreSolver::processDeq(Node ni, Node nj)
 
   if (nfni.d_nf.size() <= 1 && nfnj.d_nf.size() <= 1)
   {
+    // If normal forms have size <=1, then we are comparing either:
+    // (1) variable to variable,
+    // (2) variable to constant-like (empty, constant string/seq or SEQ_UNIT),
+    // (3) SEQ_UNIT to constant-like.
+    // We only have to process (3) here, since disequalities of the form of (1)
+    // and (2) are satisfied by construction.
+    for (size_t i = 0; i < 2; i++)
+    {
+      NormalForm& nfc = i == 0 ? nfni : nfnj;
+      if (nfc.d_nf.size() == 0 || nfc.d_nf[0].getKind() != SEQ_UNIT)
+      {
+        // may need to look at the other side
+        continue;
+      }
+      Node u = nfc.d_nf[0];
+      // if the other side is constant like
+      NormalForm& nfo = i == 0 ? nfnj : nfni;
+      if (nfo.d_nf.size() == 0 || !utils::isConstantLike(nfo.d_nf[0]))
+      {
+        break;
+      }
+      // v is the other side (a possibly constant seq.unit term)
+      Node v = nfo.d_nf[0];
+      Node vc;
+      if (v.isConst())
+      {
+        // get the list of characters (strings of length 1)
+        std::vector<Node> vchars = Word::getChars(v);
+        if (vchars.size() != 1)
+        {
+          // constant of size != 1, disequality is satisfied
+          break;
+        }
+        // get the element of the character
+        vc = vchars[0].getConst<Sequence>().getVec()[0];
+      }
+      else
+      {
+        Assert(v.getKind() == SEQ_UNIT);
+        vc = v[0];
+      }
+      Assert(u[0].getType() == vc.getType());
+      // if already disequal, we are done
+      if (d_state.areDisequal(u[0], vc))
+      {
+        break;
+      }
+      // seq.unit(x) != seq.unit(y) => x != y
+      // Notice this is a special case, since the code below would justify this
+      // disequality by reasoning that a component is disequal. However, the
+      // disequality components are the entire disequality.
+      Node deq = u.eqNode(v).notNode();
+      std::vector<Node> premises;
+      premises.push_back(deq);
+      Node conc = u[0].eqNode(vc).notNode();
+      d_im.sendInference(premises, conc, Inference::UNIT_INJ_DEQ, false, true);
+      return;
+    }
+    Trace("strings-solve-debug") << "...trivial" << std::endl;
     return;
   }
 
@@ -2015,6 +2074,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
 
   if (processReverseDeq(nfi, nfj, ni, nj))
   {
+    Trace("strings-solve-debug") << "...processed reverse" << std::endl;
     return;
   }
 
@@ -2026,6 +2086,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
   {
     if (processSimpleDeq(nfi, nfj, ni, nj, index, false))
     {
+      Trace("strings-solve-debug") << "...processed simple" << std::endl;
       return;
     }
 
@@ -2495,24 +2556,23 @@ void CoreSolver::checkNormalFormsDeq()
               // if both are constants, they should be distinct, and its trivial
               Assert(cols[i][j] != cols[i][k]);
             }
-            else
+            else if (d_state.areDisequal(cols[i][j], cols[i][k]))
             {
-              if (d_state.areDisequal(cols[i][j], cols[i][k]))
+              Assert(!d_state.isInConflict());
+              if (Trace.isOn("strings-solve"))
               {
-                Assert(!d_state.isInConflict());
-                if (Trace.isOn("strings-solve"))
-                {
-                  Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-                  utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf, "strings-solve");
-                  Trace("strings-solve") << " against " << cols[i][k] << " ";
-                  utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf, "strings-solve");
-                  Trace("strings-solve") << "..." << std::endl;
-                }
-                processDeq(cols[i][j], cols[i][k]);
-                if (d_im.hasProcessed())
-                {
-                  return;
-                }
+                Trace("strings-solve") << "- Compare " << cols[i][j] << ", nf ";
+                utils::printConcatTrace(getNormalForm(cols[i][j]).d_nf,
+                                        "strings-solve");
+                Trace("strings-solve") << " against " << cols[i][k] << ", nf ";
+                utils::printConcatTrace(getNormalForm(cols[i][k]).d_nf,
+                                        "strings-solve");
+                Trace("strings-solve") << "..." << std::endl;
+              }
+              processDeq(cols[i][j], cols[i][k]);
+              if (d_im.hasProcessed())
+              {
+                return;
               }
             }
           }
