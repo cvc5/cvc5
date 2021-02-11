@@ -106,27 +106,6 @@ bool InstMatchTrie::removeInstMatch(Node q,
   return false;
 }
 
-bool InstMatchTrie::recordInstLemma(Node q,
-                                    std::vector<Node>& m,
-                                    Node lem,
-                                    ImtIndexOrder* imtio,
-                                    unsigned index)
-{
-  if (index == q[0].getNumChildren()
-      || (imtio && index == imtio->d_order.size()))
-  {
-    setInstLemma(lem);
-    return true;
-  }
-  unsigned i_index = imtio ? imtio->d_order[index] : index;
-  std::map<Node, InstMatchTrie>::iterator it = d_data.find(m[i_index]);
-  if (it != d_data.end())
-  {
-    return it->second.recordInstLemma(q, m, lem, imtio, index + 1);
-  }
-  return false;
-}
-
 void InstMatchTrie::print(std::ostream& out,
                           Node q,
                           std::vector<TNode>& terms,
@@ -172,84 +151,6 @@ void InstMatchTrie::print(std::ostream& out,
     {
       terms.push_back(d.first);
       d.second.print(out, q, terms, useActive, active);
-      terms.pop_back();
-    }
-  }
-}
-
-void InstMatchTrie::getInstantiations(std::vector<Node>& insts,
-                                      Node q,
-                                      std::vector<Node>& terms,
-                                      QuantifiersEngine* qe,
-                                      bool useActive,
-                                      std::vector<Node>& active) const
-{
-  if (terms.size() == q[0].getNumChildren())
-  {
-    if (useActive)
-    {
-      if (hasInstLemma())
-      {
-        Node lem = getInstLemma();
-        if (std::find(active.begin(), active.end(), lem) != active.end())
-        {
-          insts.push_back(lem);
-        }
-      }
-    }
-    else
-    {
-      if (hasInstLemma())
-      {
-        insts.push_back(getInstLemma());
-      }
-      else if (!options::trackInstLemmas())
-      {
-        // If we are tracking instantiation lemmas, then hasInstLemma()
-        // corresponds exactly to when the lemma was successfully added.
-        // Hence the above condition guards the case where the instantiation
-        // was recorded but not sent out as a lemma.
-        insts.push_back(qe->getInstantiate()->getInstantiation(q, terms, true));
-      }
-    }
-  }
-  else
-  {
-    for (const std::pair<const Node, InstMatchTrie>& d : d_data)
-    {
-      terms.push_back(d.first);
-      d.second.getInstantiations(insts, q, terms, qe, useActive, active);
-      terms.pop_back();
-    }
-  }
-}
-
-void InstMatchTrie::getExplanationForInstLemmas(
-    Node q,
-    std::vector<Node>& terms,
-    const std::vector<Node>& lems,
-    std::map<Node, Node>& quant,
-    std::map<Node, std::vector<Node> >& tvec) const
-{
-  if (terms.size() == q[0].getNumChildren())
-  {
-    if (hasInstLemma())
-    {
-      Node lem = getInstLemma();
-      if (std::find(lems.begin(), lems.end(), lem) != lems.end())
-      {
-        quant[lem] = q;
-        tvec[lem].clear();
-        tvec[lem].insert(tvec[lem].end(), terms.begin(), terms.end());
-      }
-    }
-  }
-  else
-  {
-    for (const std::pair<const Node, InstMatchTrie>& d : d_data)
-    {
-      terms.push_back(d.first);
-      d.second.getExplanationForInstLemmas(q, terms, lems, quant, tvec);
       terms.pop_back();
     }
   }
@@ -381,28 +282,6 @@ bool CDInstMatchTrie::removeInstMatch(Node q,
   return false;
 }
 
-bool CDInstMatchTrie::recordInstLemma(Node q,
-                                      std::vector<Node>& m,
-                                      Node lem,
-                                      unsigned index)
-{
-  if (index == q[0].getNumChildren())
-  {
-    if (d_valid.get())
-    {
-      setInstLemma(lem);
-      return true;
-    }
-    return false;
-  }
-  std::map<Node, CDInstMatchTrie*>::iterator it = d_data.find(m[index]);
-  if (it != d_data.end())
-  {
-    return it->second->recordInstLemma(q, m, lem, index + 1);
-  }
-  return false;
-}
-
 void CDInstMatchTrie::print(std::ostream& out,
                             Node q,
                             std::vector<TNode>& terms,
@@ -447,90 +326,6 @@ void CDInstMatchTrie::print(std::ostream& out,
       {
         terms.push_back(d.first);
         d.second->print(out, q, terms, useActive, active);
-        terms.pop_back();
-      }
-    }
-  }
-}
-
-void CDInstMatchTrie::getInstantiations(std::vector<Node>& insts,
-                                        Node q,
-                                        std::vector<Node>& terms,
-                                        QuantifiersEngine* qe,
-                                        bool useActive,
-                                        std::vector<Node>& active) const
-{
-  if (d_valid.get())
-  {
-    if (terms.size() == q[0].getNumChildren())
-    {
-      if (useActive)
-      {
-        if (hasInstLemma())
-        {
-          Node lem = getInstLemma();
-          if (std::find(active.begin(), active.end(), lem) != active.end())
-          {
-            insts.push_back(lem);
-          }
-        }
-      }
-      else
-      {
-        if (hasInstLemma())
-        {
-          insts.push_back(getInstLemma());
-        }
-        else if (!options::trackInstLemmas())
-        {
-          // Like in the context-independent case, hasInstLemma()
-          // corresponds exactly to when the lemma was successfully added when
-          // trackInstLemmas() is true.
-          insts.push_back(
-              qe->getInstantiate()->getInstantiation(q, terms, true));
-        }
-      }
-    }
-    else
-    {
-      for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
-      {
-        terms.push_back(d.first);
-        d.second->getInstantiations(insts, q, terms, qe, useActive, active);
-        terms.pop_back();
-      }
-    }
-  }
-}
-
-void CDInstMatchTrie::getExplanationForInstLemmas(
-    Node q,
-    std::vector<Node>& terms,
-    const std::vector<Node>& lems,
-    std::map<Node, Node>& quant,
-    std::map<Node, std::vector<Node> >& tvec) const
-{
-  if (d_valid.get())
-  {
-    if (terms.size() == q[0].getNumChildren())
-    {
-      if (hasInstLemma())
-      {
-        Node lem;
-        if (std::find(lems.begin(), lems.end(), lem) != lems.end())
-        {
-          quant[lem] = q;
-          tvec[lem].clear();
-          tvec[lem].insert(tvec[lem].end(), terms.begin(), terms.end());
-        }
-      }
-    }
-    else
-    {
-      for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
-      {
-        terms.push_back(d.first);
-        d.second->getExplanationForInstLemmas(q, terms, lems, quant, tvec);
         terms.pop_back();
       }
     }

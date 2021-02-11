@@ -83,7 +83,7 @@ class InferProofCons : public ProofGenerator
    * step(s) are for concluding the conclusion of the inference. This
    * information is stored in cdp.
    */
-  void convert(InferId infer, TNode conc, TNode exp, CDProof* cdp);
+  void convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp);
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /** the proof node manager */

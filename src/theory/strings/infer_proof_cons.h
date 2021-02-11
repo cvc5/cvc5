@@ -100,7 +100,7 @@ class InferProofCons : public ProofGenerator
    * In particular, psb will contain a set of steps that form a proof
    * whose conclusion is ii.d_conc and whose free assumptions are ii.d_ant.
    */
-  void convert(Inference infer,
+  void convert(InferenceId infer,
                bool isRev,
                Node conc,
                const std::vector<Node>& exp,

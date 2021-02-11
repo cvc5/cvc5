@@ -20,34 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-const char* toString(Inference i)
-{
-  switch (i)
-  {
-    case Inference::NONE: return "NONE";
-    case Inference::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
-    case Inference::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
-    case Inference::BAG_MK_BAG: return "BAG_MK_BAG";
-    case Inference::BAG_EQUALITY: return "BAG_EQUALITY";
-    case Inference::BAG_DISEQUALITY: return "BAG_DISEQUALITY";
-    case Inference::BAG_EMPTY: return "BAG_EMPTY";
-    case Inference::BAG_UNION_DISJOINT: return "BAG_UNION_DISJOINT";
-    case Inference::BAG_UNION_MAX: return "BAG_UNION_MAX";
-    case Inference::BAG_INTERSECTION_MIN: return "BAG_INTERSECTION_MIN";
-    case Inference::BAG_DIFFERENCE_SUBTRACT: return "BAG_DIFFERENCE_SUBTRACT";
-    case Inference::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
-    case Inference::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, Inference i)
-{
-  out << toString(i);
-  return out;
-}
-
-InferInfo::InferInfo() : d_id(Inference::NONE) {}
+InferInfo::InferInfo(InferenceId id) : TheoryInference(id) {}
 
 bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 {
@@ -64,7 +37,7 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   if (asLemma)
   {
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    im->trustedLemma(trustedLemma);
+    im->trustedLemma(trustedLemma, getId());
   }
   else
   {
@@ -74,7 +47,7 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   {
     Node n = pair.first.eqNode(pair.second);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
-    im->trustedLemma(trustedLemma);
+    im->trustedLemma(trustedLemma, getId());
   }
 
   Trace("bags::InferInfo::process") << (*this) << std::endl;
@@ -104,7 +77,7 @@ bool InferInfo::isFact() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer :id " << ii.d_id << std::endl;
+  out << "(infer :id " << ii.getId() << std::endl;
   out << ":conclusion " << ii.d_conclusion << std::endl;
   if (!ii.d_premises.empty())
   {
