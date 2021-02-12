@@ -44,14 +44,11 @@ Node RConsTypeInfo::nextEnum()
 
   Node sz = d_enumerator->getCurrent();
 
-  if (sz == Node::null())
-  {
-    Trace("sygus-rcons") << "null" << std::endl;
-  }
-  else
-  {
-    Trace("sygus-rcons") << datatypes::utils::sygusToBuiltin(sz) << std::endl;
-  }
+  Trace("sygus-rcons") << (sz == Node::null()
+                               ? sz
+                               : datatypes::utils::sygusToBuiltin(sz))
+                       << std::endl;
+
   return sz;
 }
 

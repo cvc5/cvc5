@@ -78,7 +78,7 @@ class RConsObligationInfo
    * @param obInfo Obligation `k`'s info
    * @return A string representation of `k`
    */
-  std::string static obToString(Node k, const RConsObligationInfo& obInfo);
+  static std::string obToString(Node k, const RConsObligationInfo& obInfo);
 
   /**
    * Print all reachable obligations and their candidate solutions from
@@ -89,7 +89,7 @@ class RConsObligationInfo
    * @param root The root obligation to start from
    * @param obInfo a map from obligations to their corresponding infos
    */
-  void static printCandSols(
+  static void printCandSols(
       const Node& mainOb,
       const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
           obInfo);
