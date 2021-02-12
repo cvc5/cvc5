@@ -640,38 +640,32 @@ public:
 };/* class HistogramStat */
 
 /**
- * A histogram statistic class for enum types.
+ * A histogram statistic class for integral types.
  * Avoids using an std::map (like the generic HistogramStat) in favor of a
- * faster std::array by casting the enum values to indices into the array.
- * Requires the type to be an enum and the underlying type of the enum to
- * be unsigned. The second template argument serves as the last element
- * of the possible values of the Enum and should be the last (i.e. largest
- * when cast to unsigned) element ever passed into this histogram.
- * If only a a small portion of the Enum is actually used, the second and
- * third argument can also be used to make this class only accept values
- * from a slice of the Enum, mostly to save space in storing the statistics.
- * In general, this class only accepts values from [First, Last], but First
- * defaults to zero.
+ * faster std::vector by casting the integral values to indices into the
+ * vector. Requires the type to be an integral type that is convertible to
+ * std::int64_t, also supporting appropriate enum types.
+ * The vector is resized on demand to grow as necessary and supports negative
+ * values as well.
  */
-template <typename Enum, Enum Last, Enum First = static_cast<Enum>(0)>
-class EnumHistogramStat : public Stat
+template <typename Integral>
+class IntegralHistogramStat : public Stat
 {
-  static_assert(std::is_enum<Enum>::value, "Type should be an enum.");
-  static_assert(
-      std::is_unsigned<typename std::underlying_type<Enum>::type>::value,
-      "Underlying type of the enum should be unsigned");
-  static_assert(Last >= First, "Last should be as least as large as First");
+  static_assert(std::is_convertible<Integral, std::int64_t>::value
+                    || (std::is_enum<Integral>::value
+                        && std::is_convertible<
+                            typename std::underlying_type<Integral>::type,
+                            std::int64_t>::value),
+                "Type should be convertible to std::int64_t.");
 
  private:
-  using Histogram = std::array<std::size_t,
-                               static_cast<std::size_t>(Last)
-                                   - static_cast<std::size_t>(First) + 1>;
-  Histogram d_hist;
+  std::vector<std::uint64_t> d_hist;
+  std::int64_t d_offset;
 
  public:
   /** Construct a histogram of a stream of entries. */
-  EnumHistogramStat(const std::string& name) : Stat(name) { d_hist.fill(0); }
-  ~EnumHistogramStat() {}
+  IntegralHistogramStat(const std::string& name) : Stat(name) {}
+  ~IntegralHistogramStat() {}
 
   void flushInformation(std::ostream& out) const override
   {
@@ -679,11 +673,9 @@ class EnumHistogramStat : public Stat
     {
       out << "[";
       bool first = true;
-      for (std::size_t i = static_cast<std::size_t>(First);
-           i <= static_cast<std::size_t>(Last);
-           ++i)
+      for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
       {
-        if (d_hist[i - static_cast<std::size_t>(First)] > 0)
+        if (d_hist[i] > 0)
         {
           if (first)
           {
@@ -693,8 +685,8 @@ class EnumHistogramStat : public Stat
           {
             out << ", ";
           }
-          out << "(" << static_cast<Enum>(i) << " : "
-              << d_hist[i - static_cast<std::size_t>(First)] << ")";
+          out << "(" << static_cast<Integral>(i + d_offset) << " : "
+              << d_hist[i] << ")";
         }
       }
       out << "]";
@@ -707,11 +699,9 @@ class EnumHistogramStat : public Stat
     {
       safe_print(fd, "[");
       bool first = true;
-      for (std::size_t i = static_cast<std::size_t>(First);
-           i <= static_cast<std::size_t>(Last);
-           ++i)
+      for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
       {
-        if (d_hist[i - static_cast<std::size_t>(First)] > 0)
+        if (d_hist[i] > 0)
         {
           if (first)
           {
@@ -722,9 +712,9 @@ class EnumHistogramStat : public Stat
             safe_print(fd, ", ");
           }
           safe_print(fd, "(");
-          safe_print<Enum>(fd, static_cast<Enum>(i));
+          safe_print<Integral>(fd, static_cast<Integral>(i + d_offset));
           safe_print(fd, " : ");
-          safe_print<uint64_t>(fd, d_hist[i - static_cast<std::size_t>(First)]);
+          safe_print<std::uint64_t>(fd, d_hist[i]);
           safe_print(fd, ")");
         }
       }
@@ -732,19 +722,29 @@ class EnumHistogramStat : public Stat
     }
   }
 
-  EnumHistogramStat& operator<<(Enum val)
+  IntegralHistogramStat& operator<<(Integral val)
   {
     if (CVC4_USE_STATISTICS)
     {
-      Assert(val >= First && val <= Last);
-      Assert(static_cast<std::size_t>(val) - static_cast<std::size_t>(First)
-             < d_hist.size())
-          << "The given value is larger than the specified last element.";
-      d_hist[static_cast<std::size_t>(val) - static_cast<std::size_t>(First)]++;
+      std::int64_t v = static_cast<std::int64_t>(val);
+      if (d_hist.empty())
+      {
+        d_offset = v;
+      }
+      if (v < d_offset)
+      {
+        d_hist.insert(d_hist.begin(), d_offset - v, 0);
+        d_offset = v;
+      }
+      if (static_cast<std::size_t>(v - d_offset) >= d_hist.size())
+      {
+        d_hist.resize(v - d_offset + 1);
+      }
+      d_hist[v - d_offset]++;
     }
     return (*this);
   }
-}; /* class EnumHistogramStat */
+}; /* class IntegralHistogramStat */
 
 /****************************************************************************/
 /* Statistics Registry                                                      */
