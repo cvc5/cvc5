@@ -134,9 +134,17 @@ namespace CVC4 {
 class CDProof : public ProofGenerator
 {
  public:
+  /**
+   * @param pnm The proof node manager responsible for constructor ProofNode
+   * @param c The context this proof depends on
+   * @param name The name of this proof (for debugging)
+   * @param autoSymm Whether this proof automatically adds symmetry steps based
+   * on policy documented above.
+   */
   CDProof(ProofNodeManager* pnm,
           context::Context* c = nullptr,
-          std::string name = "CDProof");
+          std::string name = "CDProof",
+          bool autoSymm = true);
   virtual ~CDProof();
   /**
    * Make proof for fact.
@@ -247,6 +255,8 @@ class CDProof : public ProofGenerator
   NodeProofNodeMap d_nodes;
   /** Name identifier */
   std::string d_name;
+  /** Whether we automatically add symmetry steps */
+  bool d_autoSymm;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**
