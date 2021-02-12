@@ -236,8 +236,6 @@ void SmtSolver::processAssertions(Assertions& as)
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  d_pp.postprocess(as);
-
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;

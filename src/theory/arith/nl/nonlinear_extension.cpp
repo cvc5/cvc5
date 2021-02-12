@@ -89,10 +89,10 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
 {
   for (const NlLemma& nlem : out)
   {
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_inference
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.getId()
                           << " : " << nlem.d_node << std::endl;
     d_im.addPendingArithLemma(nlem);
-    d_stats.d_inferences << nlem.d_inference;
+    d_stats.d_inferences << nlem.getId();
   }
 }
 
@@ -511,7 +511,7 @@ bool NonlinearExtension::modelBasedRefinement()
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
+            NlLemma nsplit(split, InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT);
             d_im.addPendingArithLemma(nsplit, true);
           }
           if (d_im.hasWaitingLemma())

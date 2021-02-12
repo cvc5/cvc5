@@ -21,10 +21,11 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-SimpleTheoryLemma::SimpleTheoryLemma(Node n,
+SimpleTheoryLemma::SimpleTheoryLemma(InferenceId id, 
+                                     Node n,
                                      LemmaProperty p,
                                      ProofGenerator* pg)
-    : d_node(n), d_property(p), d_pg(pg)
+    : TheoryInference(id), d_node(n), d_property(p), d_pg(pg)
 {
 }
 
@@ -33,13 +34,14 @@ bool SimpleTheoryLemma::process(TheoryInferenceManager* im, bool asLemma)
   Assert(!d_node.isNull());
   Assert(asLemma);
   // send (trusted) lemma on the output channel with property p
-  return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), d_property);
+  return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), getId(), d_property);
 }
 
-SimpleTheoryInternalFact::SimpleTheoryInternalFact(Node conc,
+SimpleTheoryInternalFact::SimpleTheoryInternalFact(InferenceId id,
+                                                   Node conc,
                                                    Node exp,
                                                    ProofGenerator* pg)
-    : d_conc(conc), d_exp(exp), d_pg(pg)
+    : TheoryInference(id), d_conc(conc), d_exp(exp), d_pg(pg)
 {
 }
 
@@ -52,11 +54,11 @@ bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im, bool asLemma)
   Assert(atom.getKind() != NOT && atom.getKind() != AND);
   if (d_pg != nullptr)
   {
-    im->assertInternalFact(atom, polarity, {d_exp}, d_pg);
+    im->assertInternalFact(atom, polarity, getId(), {d_exp}, d_pg);
   }
   else
   {
-    im->assertInternalFact(atom, polarity, d_exp);
+    im->assertInternalFact(atom, polarity, getId(), d_exp);
   }
   return true;
 }

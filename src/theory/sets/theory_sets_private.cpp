@@ -104,7 +104,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // infer equality between elements of singleton
             Node exp = s1.eqNode(s2);
             Node eq = s1[0].eqNode(s2[0]);
-            d_im.assertInternalFact(eq, true, exp);
+            d_im.assertInternalFact(eq, true, InferenceId::UNKNOWN, exp);
           }
           else
           {
@@ -137,7 +137,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(facts.size() == 1);
       Trace("sets-prop") << "Propagate eq-mem conflict : " << facts[0]
                          << std::endl;
-      d_im.conflict(facts[0]);
+      d_im.conflict(facts[0], InferenceId::UNKNOWN);
       return;
     }
     for (const Node& f : facts)
@@ -145,7 +145,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(f.getKind() == kind::IMPLIES);
       Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
                          << f[1] << std::endl;
-      d_im.assertInternalFact(f[1], true, f[0]);
+      d_im.assertInternalFact(f[1], true, InferenceId::UNKNOWN, f[0]);
     }
   }
 }
@@ -764,7 +764,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
         nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
-    d_im.lemma(lem);
+    d_im.lemma(lem, InferenceId::UNKNOWN);
   }
 }
 
@@ -818,14 +818,14 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
             Trace("sets-prop") << "Propagate mem-eq : " << pexp << std::endl;
             Node eq = s[0].eqNode(atom[0]);
             // triggers an internal inference
-            d_im.assertInternalFact(eq, true, pexp);
+            d_im.assertInternalFact(eq, true, InferenceId::UNKNOWN, pexp);
           }
         }
         else
         {
           Trace("sets-prop")
               << "Propagate mem-eq conflict : " << pexp << std::endl;
-          d_im.conflict(pexp);
+          d_im.conflict(pexp, InferenceId::UNKNOWN);
         }
       }
     }
