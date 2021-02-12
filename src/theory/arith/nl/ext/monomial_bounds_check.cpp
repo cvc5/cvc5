@@ -329,7 +329,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                   {mult, d_ci_exp[x][coeff][rhs], nm->mkNode(type, t, rhs)});
             }
             d_data->d_im.addPendingArithLemma(
-                iblem, InferenceId::NL_INFER_BOUNDS_NT, proof, introNewTerms);
+                iblem, InferenceId::ARITH_NL_INFER_BOUNDS_NT, proof, introNewTerms);
           }
         }
       }
@@ -488,7 +488,7 @@ void MonomialBoundsCheck::checkResBounds()
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
                   d_data->d_im.addPendingArithLemma(
-                      rblem, InferenceId::NL_RES_INFER_BOUNDS);
+                      rblem, InferenceId::ARITH_NL_RES_INFER_BOUNDS);
                 }
               }
               exp.pop_back();

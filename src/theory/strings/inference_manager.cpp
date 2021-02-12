@@ -65,7 +65,7 @@ void InferenceManager::doPending()
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
-                                             Inference infer)
+                                             InferenceId infer)
 {
   if (conc.getKind() == AND
       || (conc.getKind() == NOT && conc[0].getKind() == OR))
@@ -125,7 +125,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
 bool InferenceManager::sendInference(const std::vector<Node>& exp,
                                      const std::vector<Node>& noExplain,
                                      Node eq,
-                                     Inference infer,
+                                     InferenceId infer,
                                      bool isRev,
                                      bool asLemma)
 {
@@ -151,7 +151,7 @@ bool InferenceManager::sendInference(const std::vector<Node>& exp,
 
 bool InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
-                                     Inference infer,
+                                     InferenceId infer,
                                      bool isRev,
                                      bool asLemma)
 {
@@ -225,7 +225,7 @@ void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
   addPendingFact(std::unique_ptr<InferInfo>(new InferInfo(ii)));
 }
 
-bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
+bool InferenceManager::sendSplit(Node a, Node b, InferenceId infer, bool preq)
 {
   Node eq = a.eqNode(b);
   eq = Rewriter::rewrite(eq);
@@ -412,7 +412,7 @@ bool InferenceManager::processLemma(InferInfo& ii)
     }
   }
   LemmaProperty p = LemmaProperty::NONE;
-  if (ii.d_id == Inference::REDUCTION)
+  if (ii.d_id == InferenceId::STRINGS_REDUCTION)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;
   }

@@ -79,7 +79,7 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  NlLemma nlem(lem, LemmaProperty::NONE, proof, InferenceId::NL_T_PURIFY_ARG);
+  NlLemma nlem(lem, LemmaProperty::NONE, proof, InferenceId::ARITH_NL_T_PURIFY_ARG);
   d_data->d_im.addPendingArithLemma(nlem);
 }
 
@@ -122,7 +122,7 @@ void SineSolver::checkInitialRefine()
             proof->addStep(lem, PfRule::ARITH_TRANS_SINE_BOUNDS, {}, {t[0]});
           }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // sine symmetry: sin(t) - sin(-t) = 0
@@ -134,7 +134,7 @@ void SineSolver::checkInitialRefine()
             proof->addStep(lem, PfRule::ARITH_TRANS_SINE_SYMMETRY, {}, {t[0]});
           }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // sine zero tangent:
@@ -156,7 +156,7 @@ void SineSolver::checkInitialRefine()
                 lem, PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, {}, {t[0]});
           }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // sine pi tangent:
@@ -184,7 +184,7 @@ void SineSolver::checkInitialRefine()
                 lem, PfRule::ARITH_TRANS_SINE_TANGENT_PI, {}, {t[0]});
           }
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           Node lem =
@@ -198,7 +198,7 @@ void SineSolver::checkInitialRefine()
                                     nm->mkNode(Kind::GT, t[0], d_data->d_zero),
                                     nm->mkNode(Kind::GT, t, d_data->d_zero)));
           d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE);
         }
       }
     }
@@ -338,7 +338,7 @@ void SineSolver::checkMonotonic()
             << "Monotonicity lemma : " << mono_lem << std::endl;
 
         d_data->d_im.addPendingArithLemma(mono_lem,
-                                          InferenceId::NL_T_MONOTONICITY);
+                                          InferenceId::ARITH_NL_T_MONOTONICITY);
       }
     }
     // store the previous values
@@ -435,7 +435,7 @@ void SineSolver::doTangentLemma(
     }
   }
   d_data->d_im.addPendingArithLemma(
-      lem, InferenceId::NL_T_TANGENT, proof, true);
+      lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
 }
 
 void SineSolver::doSecantLemmas(TNode e,
