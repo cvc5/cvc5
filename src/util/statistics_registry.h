@@ -644,21 +644,28 @@ public:
  * Avoids using an std::map (like the generic HistogramStat) in favor of a
  * faster std::array by casting the enum values to indices into the array.
  * Requires the type to be an enum and the underlying type of the enum to
- * be unsigned. The second template argument serves as the sentinel element
+ * be unsigned. The second template argument serves as the last element
  * of the possible values of the Enum and should be the last (i.e. largest
  * when cast to unsigned) element ever passed into this histogram.
+ * If only a a small portion of the Enum is actually used, the second and
+ * third argument can also be used to make this class only accept values
+ * from a slice of the Enum, mostly to save space in storing the statistics.
+ * In general, this class only accepts values from [First, Last], but First
+ * defaults to zero.
  */
-template <typename Enum, Enum Sentinel>
+template <typename Enum, Enum Last, Enum First = static_cast<Enum>(0)>
 class EnumHistogramStat : public Stat
 {
   static_assert(std::is_enum<Enum>::value, "Type should be an enum.");
   static_assert(
       std::is_unsigned<typename std::underlying_type<Enum>::type>::value,
       "Underlying type of the enum should be unsigned");
+  static_assert(Last >= First, "Last should be as least as large as First");
 
  private:
-  using Histogram =
-      std::array<std::size_t, static_cast<std::size_t>(Sentinel) + 1>;
+  using Histogram = std::array<std::size_t,
+                               static_cast<std::size_t>(Last)
+                                   - static_cast<std::size_t>(First) + 1>;
   Histogram d_hist;
 
  public:
@@ -672,9 +679,11 @@ class EnumHistogramStat : public Stat
     {
       out << "[";
       bool first = true;
-      for (std::size_t i = 0; i <= static_cast<std::size_t>(Sentinel); ++i)
+      for (std::size_t i = static_cast<std::size_t>(First);
+           i <= static_cast<std::size_t>(Last);
+           ++i)
       {
-        if (d_hist[i] > 0)
+        if (d_hist[i - static_cast<std::size_t>(First)] > 0)
         {
           if (first)
           {
@@ -684,7 +693,8 @@ class EnumHistogramStat : public Stat
           {
             out << ", ";
           }
-          out << "(" << static_cast<Enum>(i) << " : " << d_hist[i] << ")";
+          out << "(" << static_cast<Enum>(i) << " : "
+              << d_hist[i - static_cast<std::size_t>(First)] << ")";
         }
       }
       out << "]";
@@ -697,9 +707,11 @@ class EnumHistogramStat : public Stat
     {
       safe_print(fd, "[");
       bool first = true;
-      for (std::size_t i = 0; i <= static_cast<std::size_t>(Sentinel); ++i)
+      for (std::size_t i = static_cast<std::size_t>(First);
+           i <= static_cast<std::size_t>(Last);
+           ++i)
       {
-        if (d_hist[i] > 0)
+        if (d_hist[i - static_cast<std::size_t>(First)] > 0)
         {
           if (first)
           {
@@ -712,7 +724,7 @@ class EnumHistogramStat : public Stat
           safe_print(fd, "(");
           safe_print<Enum>(fd, static_cast<Enum>(i));
           safe_print(fd, " : ");
-          safe_print<uint64_t>(fd, d_hist[i]);
+          safe_print<uint64_t>(fd, d_hist[i - static_cast<std::size_t>(First)]);
           safe_print(fd, ")");
         }
       }
@@ -724,13 +736,14 @@ class EnumHistogramStat : public Stat
   {
     if (CVC4_USE_STATISTICS)
     {
-      Assert(static_cast<std::size_t>(val) < d_hist.size())
-          << "The given value is larger than the specified sentinel element.";
-      d_hist[static_cast<std::size_t>(val)]++;
+      Assert(val >= First && val <= Last);
+      Assert(static_cast<std::size_t>(val) - static_cast<std::size_t>(First)
+             < d_hist.size())
+          << "The given value is larger than the specified last element.";
+      d_hist[static_cast<std::size_t>(val) - static_cast<std::size_t>(First)]++;
     }
     return (*this);
   }
-
 }; /* class EnumHistogramStat */
 
 /****************************************************************************/
