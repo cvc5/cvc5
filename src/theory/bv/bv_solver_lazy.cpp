@@ -42,7 +42,7 @@ BVSolverLazy::BVSolverLazy(TheoryBV& bv,
                            context::UserContext* u,
                            ProofNodeManager* pnm,
                            std::string name)
-    : BVSolver(bv.d_state, bv.d_inferMgr),
+    : BVSolver(bv.d_state, bv.d_im),
       d_bv(bv),
       d_context(c),
       d_alreadyPropagatedSet(c),
@@ -119,7 +119,7 @@ void BVSolverLazy::finishInit()
 
 void BVSolverLazy::spendResource(ResourceManager::Resource r)
 {
-  d_inferManager.spendResource(r);
+  d_im.spendResource(r);
 }
 
 BVSolverLazy::Statistics::Statistics()
@@ -196,7 +196,7 @@ void BVSolverLazy::sendConflict()
   {
     Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
                        << d_conflictNode << std::endl;
-    d_inferManager.conflict(d_conflictNode, InferenceId::UNKNOWN);
+    d_im.conflict(d_conflictNode, InferenceId::UNKNOWN);
     d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
     d_conflictNode = Node::null();
   }
@@ -287,11 +287,11 @@ void BVSolverLazy::check(Theory::Effort e)
     {
       if (assertions.size() == 1)
       {
-        d_inferManager.conflict(assertions[0], InferenceId::UNKNOWN);
+        d_im.conflict(assertions[0], InferenceId::UNKNOWN);
         return;
       }
       Node conflict = utils::mkAnd(assertions);
-      d_inferManager.conflict(conflict, InferenceId::UNKNOWN);
+      d_im.conflict(conflict, InferenceId::UNKNOWN);
       return;
     }
     return;
@@ -426,7 +426,7 @@ void BVSolverLazy::propagate(Theory::Effort e)
     {
       Debug("bitvector::propagate")
           << "BVSolverLazy:: propagating " << literal << "\n";
-      ok = d_inferManager.propagateLit(literal);
+      ok = d_im.propagateLit(literal);
     }
   }
 
@@ -670,7 +670,7 @@ bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
   constexpr bool ok = true;
   if (subtheory == SUB_CORE)
   {
-    d_inferManager.propagateLit(literal);
+    d_im.propagateLit(literal);
     if (!ok)
     {
       setConflict();
