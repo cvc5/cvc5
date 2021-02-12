@@ -107,8 +107,15 @@ class BVSolverBitblast : public BVSolver
   /** CNF stream. */
   std::unique_ptr<prop::CnfStream> d_cnfStream;
 
-  /** Facts sent to this solver. */
-  context::CDList<Node> d_facts;
+  /**
+   * Bit-blast queue for facts sent to this solver.
+   *
+   * Get populated on preNotifyFact().
+   */
+  context::CDQueue<Node> d_bbFacts;
+
+  /** Corresponds to the SAT literals of the currently asserted facts. */
+  context::CDList<prop::SatLiteral> d_assumptions;
 
   /** Flag indicating whether `d_modelCache` should be invalidated. */
   context::CDO<bool> d_invalidateModelCache;
@@ -120,6 +127,17 @@ class BVSolverBitblast : public BVSolver
   std::unique_ptr<EagerProofGenerator> d_epg;
 
   BVProofRuleChecker d_bvProofChecker;
+
+  /** Stores the SatLiteral for a given fact. */
+  context::CDHashMap<Node, prop::SatLiteral, NodeHashFunction>
+      d_factLiteralCache;
+
+  /** Reverse map of `d_factLiteralCache`. */
+  context::CDHashMap<prop::SatLiteral, Node, prop::SatLiteralHashFunction>
+      d_literalFactCache;
+
+  /** Option to enable/disable bit-level propagation. */
+  bool d_propagate;
 };
 
 }  // namespace bv
