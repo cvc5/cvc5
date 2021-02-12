@@ -4540,6 +4540,24 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Term Solver::tupleSelect(size_t index, Term tuple) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+
+  CVC4_API_ARG_CHECK_EXPECTED(tuple.getSort().isTuple(), tuple) << " a tuple ";
+
+  Datatype datatype = tuple.getSort().getDatatype();
+  DatatypeConstructor constructor = datatype[0];
+  // make sure the index is less than the length of the tuple
+  CVC4_API_ARG_CHECK_EXPECTED(index < constructor.getNumSelectors(), index)
+      << " < length of the tuple";
+  Term selectorTerm = constructor[index].getSelectorTerm();
+  Term term = mkTerm(APPLY_SELECTOR, selectorTerm, tuple);
+  return term;
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 /* Create operators                                                           */
 /* -------------------------------------------------------------------------- */
 

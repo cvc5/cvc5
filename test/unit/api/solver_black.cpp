@@ -2292,5 +2292,27 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
   ASSERT_THROW(slv.getSynthSolutions({x}), CVC4ApiException);
 }
 
+TEST_F(TestApiBlackSolver, tupleSelect)
+{
+  std::vector<Sort> sorts = {d_solver.getBooleanSort(),
+                             d_solver.getIntegerSort(),
+                             d_solver.getStringSort(),
+                             d_solver.mkSetSort(d_solver.getStringSort())};
+  std::vector<Term> values = {
+      d_solver.mkBoolean(true),
+      d_solver.mkInteger(3),
+      d_solver.mkString("C"),
+      d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
+
+  Term tuple = d_solver.mkTuple(sorts, values);
+
+  for (size_t i = 0; i < values.size(); i++)
+  {
+    Term selectedTerm = d_solver.tupleSelect(i, tuple);
+    Term simplifiedTerm = d_solver.simplify(selectedTerm);
+    ASSERT_EQ(values[i], simplifiedTerm);
+  }
+}
+
 }  // namespace test
 }  // namespace CVC4
