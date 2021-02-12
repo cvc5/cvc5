@@ -2571,18 +2571,18 @@ void SetBenchmarkLogicCommand::toStream(std::ostream& out,
 /* class SetInfoCommand                                                       */
 /* -------------------------------------------------------------------------- */
 
-SetInfoCommand::SetInfoCommand(std::string flag, const std::string& sexpr)
+SetInfoCommand::SetInfoCommand(std::string flag, const api::Term& sexpr)
     : d_flag(flag), d_sexpr(sexpr)
 {
 }
 
 std::string SetInfoCommand::getFlag() const { return d_flag; }
-const std::string& SetInfoCommand::getSExpr() const { return d_sexpr; }
+const api::Term& SetInfoCommand::getSExpr() const { return d_sexpr; }
 void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->setInfo(d_flag, d_sexpr);
+    solver->setInfo(d_flag, sexprToString(d_sexpr));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException&)
@@ -2608,7 +2608,8 @@ void SetInfoCommand::toStream(std::ostream& out,
                               size_t dag,
                               OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetInfo(out, d_flag, d_sexpr);
+  Printer::getPrinter(language)->toStreamCmdSetInfo(
+      out, d_flag, d_sexpr.getNode());
 }
 
 /* -------------------------------------------------------------------------- */

@@ -33,8 +33,8 @@ namespace CVC4 {
 class Command;
 class CommandStatus;
 class UnsatCore;
-class InstantiationList;
-class SkolemList;
+struct InstantiationList;
+struct SkolemList;
 
 class Printer
 {
@@ -217,7 +217,7 @@ class Printer
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const;
+                                  Node sexpr) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,

@@ -1787,11 +1787,9 @@ void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
-                                     SExpr sexpr) const
+                                     Node sexpr) const
 {
-  out << "(set-info :" << flag << ' ';
-  SExpr::toStream(out, sexpr, variantToLanguage(d_variant));
-  out << ')' << std::endl;
+  out << "(set-info :" << flag << ' ' << sexpr << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,

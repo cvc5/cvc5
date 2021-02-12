@@ -346,7 +346,7 @@ void AstPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void AstPrinter::toStreamCmdSetInfo(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const
+                                    Node sexpr) const
 {
   out << "SetInfo(" << flag << ", " << sexpr << ')' << std::endl;
 }

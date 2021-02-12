@@ -5596,6 +5596,11 @@ void Solver::resetAssertions(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Node stringToSexpr(const std::string& value)
+{
+  return Node::null();
+}
+
 /**
  *  ( set-info <attribute> )
  */
@@ -5620,7 +5625,8 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
                               value)
       << "'sat', 'unsat' or 'unknown'";
 
-  d_smtEngine->setInfo(keyword, value);
+  d_smtEngine->setInfo(
+      keyword, getNodeManager()->mkConst<CVC4::String>(CVC4::String(value)));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

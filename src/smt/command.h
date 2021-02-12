@@ -1298,13 +1298,13 @@ class CVC4_PUBLIC SetInfoCommand : public Command
 {
  protected:
   std::string d_flag;
-  std::string d_sexpr;
+  api::Term d_sexpr;
 
  public:
-  SetInfoCommand(std::string flag, const std::string& sexpr);
+  SetInfoCommand(std::string flag, const api::Term& sexpr);
 
   std::string getFlag() const;
-  const std::string& getSExpr() const;
+  const api::Term& getSExpr() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
