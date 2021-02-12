@@ -105,6 +105,9 @@ header = "options/smt_options.h"
 [[option.mode.NONE]]
   name       = "none"
   help       = "Do not translate proof output"
+[[option.mode.DOT]]
+  name       = "dot"
+  help       = "Output DOT proof"
 [[option.mode.LEAN]]
   name       = "lean"
   help       = "Output Lean proof"

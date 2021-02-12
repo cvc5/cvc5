@@ -17,6 +17,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "proof/dot/dot_printer.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
@@ -128,7 +129,11 @@ void PfManager::printProof(std::ostream& out,
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
+  if (options::proofFormatMode() == options::ProofFormatMode::DOT)
+  {
+    proof::DotPrinter::print(out, pfn.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
