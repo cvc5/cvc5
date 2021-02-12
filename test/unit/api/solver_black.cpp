@@ -2298,19 +2298,51 @@ TEST_F(TestApiBlackSolver, tupleSelect)
                              d_solver.getIntegerSort(),
                              d_solver.getStringSort(),
                              d_solver.mkSetSort(d_solver.getStringSort())};
-  std::vector<Term> values = {
+  std::vector<Term> elements = {
       d_solver.mkBoolean(true),
       d_solver.mkInteger(3),
       d_solver.mkString("C"),
       d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
 
-  Term tuple = d_solver.mkTuple(sorts, values);
+  Term tuple = d_solver.mkTuple(sorts, elements);
 
-  for (size_t i = 0; i < values.size(); i++)
+  for (size_t i = 0; i < elements.size(); i++)
   {
     Term selectedTerm = d_solver.tupleSelect(i, tuple);
     Term simplifiedTerm = d_solver.simplify(selectedTerm);
-    ASSERT_EQ(values[i], simplifiedTerm);
+    ASSERT_EQ(elements[i], simplifiedTerm);
+  }
+}
+
+TEST_F(TestApiBlackSolver, tupleProject)
+{
+  std::vector<Sort> sorts = {d_solver.getBooleanSort(),
+                             d_solver.getIntegerSort(),
+                             d_solver.getStringSort(),
+                             d_solver.mkSetSort(d_solver.getStringSort())};
+  std::vector<Term> elements = {
+      d_solver.mkBoolean(true),
+      d_solver.mkInteger(3),
+      d_solver.mkString("C"),
+      d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
+
+  Term tuple = d_solver.mkTuple(sorts, elements);
+
+  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {}));
+  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {0}));
+  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {0, 1}));
+  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {0, 0, 2, 2, 3, 3, 0}));
+
+  ASSERT_THROW(d_solver.tupleProject(tuple, {4}), CVC4ApiException);
+  ASSERT_THROW(d_solver.tupleProject(tuple, {0, 4}), CVC4ApiException);
+
+  std::vector<size_t> indices = {0, 3, 2, 0, 1, 2};
+  Term project = d_solver.tupleProject(tuple, indices);
+  for (size_t i = 0; i < indices.size(); i++)
+  {
+    Term selectedTerm = d_solver.tupleSelect(i, project);
+    Term simplifiedTerm = d_solver.simplify(selectedTerm);
+    ASSERT_EQ(elements[indices[i]], simplifiedTerm);
   }
 }
 
