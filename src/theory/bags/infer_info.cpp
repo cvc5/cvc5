@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-InferInfo::InferInfo() : d_id(InferenceId::UNKNOWN) {}
+InferInfo::InferInfo(InferenceId id) : TheoryInference(id) {}
 
 bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
 {
@@ -37,7 +37,7 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   if (asLemma)
   {
     TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    im->trustedLemma(trustedLemma);
+    im->trustedLemma(trustedLemma, getId());
   }
   else
   {
@@ -47,7 +47,7 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   {
     Node n = pair.first.eqNode(pair.second);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
-    im->trustedLemma(trustedLemma);
+    im->trustedLemma(trustedLemma, getId());
   }
 
   Trace("bags::InferInfo::process") << (*this) << std::endl;
@@ -77,7 +77,7 @@ bool InferInfo::isFact() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer :id " << ii.d_id << std::endl;
+  out << "(infer :id " << ii.getId() << std::endl;
   out << ":conclusion " << ii.d_conclusion << std::endl;
   if (!ii.d_premises.empty())
   {

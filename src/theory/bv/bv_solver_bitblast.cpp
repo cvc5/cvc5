@@ -97,7 +97,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     }
 
     NodeManager* nm = NodeManager::currentNM();
-    d_inferManager.conflict(nm->mkAnd(conflict));
+    d_inferManager.conflict(nm->mkAnd(conflict), InferenceId::UNKNOWN);
   }
 }
 

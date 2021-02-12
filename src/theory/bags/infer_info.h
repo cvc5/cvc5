@@ -38,12 +38,10 @@ class InferenceManager;
 class InferInfo : public TheoryInference
 {
  public:
-  InferInfo();
+  InferInfo(InferenceId id);
   ~InferInfo() {}
   /** Process this inference */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
-  /** The inference identifier */
-  InferenceId d_id;
   /** The conclusion */
   Node d_conclusion;
   /**

@@ -560,7 +560,7 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
                               nm->mkNode(kind::LT, n, max));
         Trace("bv-extf-lemma")
             << "BV extf lemma (range) : " << lem << std::endl;
-        d_bv->d_inferManager.lemma(lem);
+        d_bv->d_inferManager.lemma(lem, InferenceId::UNKNOWN);
         sentLemma = true;
       }
     }
@@ -609,7 +609,7 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
           //   (bv2nat ((_ int2bv w) x)) == x + k*2^w for some k
           Trace("bv-extf-lemma")
               << "BV extf lemma (collapse) : " << lem << std::endl;
-          d_bv->d_inferManager.lemma(lem);
+          d_bv->d_inferManager.lemma(lem, InferenceId::UNKNOWN);
           sentLemma = true;
         }
       }
