@@ -230,6 +230,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {TUPLE_UPDATE, CVC4::Kind::TUPLE_UPDATE},
     {RECORD_UPDATE, CVC4::Kind::RECORD_UPDATE},
     {DT_SIZE, CVC4::Kind::DT_SIZE},
+    {PROJECT, CVC4::Kind::PROJECT},
     /* Separation Logic ---------------------------------------------------- */
     {SEP_NIL, CVC4::Kind::SEP_NIL},
     {SEP_EMP, CVC4::Kind::SEP_EMP},
@@ -536,6 +537,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::RECORD_UPDATE_OP, RECORD_UPDATE},
         {CVC4::Kind::RECORD_UPDATE, RECORD_UPDATE},
         {CVC4::Kind::DT_SIZE, DT_SIZE},
+        {CVC4::Kind::PROJECT, PROJECT},
         /* Separation Logic ------------------------------------------------ */
         {CVC4::Kind::SEP_NIL, SEP_NIL},
         {CVC4::Kind::SEP_EMP, SEP_EMP},
@@ -4540,7 +4542,7 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::tupleSelect(size_t index, Term tuple) const
+Term Solver::tupleSelect(uint32_t index, Term tuple) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
@@ -4558,7 +4560,7 @@ Term Solver::tupleSelect(size_t index, Term tuple) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::tupleProject(Term t, std::vector<size_t> indices) const
+Term Solver::tupleProject(Term t, std::vector<uint32_t> indices) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   std::vector<Sort> sorts;
@@ -4776,6 +4778,34 @@ Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
     default:
       CVC4_API_KIND_CHECK_EXPECTED(false, kind)
           << "operator kind with two uint32_t arguments";
+  }
+  Assert(!res.isNull());
+  return res;
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_KIND_CHECK(kind);
+
+  Op res;
+  switch (kind)
+  {
+    case PROJECT:
+    {
+      res = Op(this,
+               kind,
+               *mkValHelper<CVC4::ProjectOp>(CVC4::ProjectOp(args)).d_node);
+    }
+    break;
+    default:
+    {
+      std::string message = "operator kind with " + std::to_string(args.size())
+                            + " uint32_t arguments";
+      CVC4_API_KIND_CHECK_EXPECTED(false, kind) << message;
+    }
   }
   Assert(!res.isNull());
   return res;

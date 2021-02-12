@@ -1715,6 +1715,22 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   DT_SIZE,
+  /**
+   * Operator for tuple projection indices
+   * Parameters: 1
+   *   -[1]: The projection indices
+   * Create with:
+   *   mkOp(Kind PROJECT, std::vector<uint32_t> param)
+   *
+   * constructs a new tuple from an existing one using the elements at the
+   * given indices
+   * Parameters: 1
+   *   -[1]: a term of tuple sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   */
+  PROJECT,
 #if 0
   /* datatypes height bound */
   DT_HEIGHT_BOUND,

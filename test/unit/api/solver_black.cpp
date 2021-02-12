@@ -554,6 +554,10 @@ TEST_F(TestApiBlackSolver, mkOp)
   // mkOp(Kind kind, uint32_t arg1, uint32_t arg2)
   ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, 1, 1));
   ASSERT_THROW(d_solver.mkOp(DIVISIBLE, 1, 2), CVC4ApiException);
+
+  // mkOp(Kind kind, std::vector<uint32_t> args)
+  std::vector<uint32_t> args = {1, 2, 2};
+  ASSERT_NO_THROW(d_solver.mkOp(PROJECT, args));
 }
 
 TEST_F(TestApiBlackSolver, mkPi) { ASSERT_NO_THROW(d_solver.mkPi()); }
@@ -2336,7 +2340,7 @@ TEST_F(TestApiBlackSolver, tupleProject)
   ASSERT_THROW(d_solver.tupleProject(tuple, {4}), CVC4ApiException);
   ASSERT_THROW(d_solver.tupleProject(tuple, {0, 4}), CVC4ApiException);
 
-  std::vector<size_t> indices = {0, 3, 2, 0, 1, 2};
+  std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
   Term project = d_solver.tupleProject(tuple, indices);
   for (size_t i = 0; i < indices.size(); i++)
   {
@@ -2344,6 +2348,13 @@ TEST_F(TestApiBlackSolver, tupleProject)
     Term simplifiedTerm = d_solver.simplify(selectedTerm);
     ASSERT_EQ(elements[indices[i]], simplifiedTerm);
   }
+
+  Op op = d_solver.mkOp(PROJECT, indices);
+  Term term = d_solver.mkTerm(op, tuple);
+  ASSERT_EQ(
+      "(PROJECT (project_op 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
+      "\"Z\")))",
+      term.toString());
 }
 
 }  // namespace test

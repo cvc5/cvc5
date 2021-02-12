@@ -571,6 +571,60 @@ class MatchBindCaseTypeRule
   }
 }; /* class MatchBindCaseTypeRule */
 
+class ProjectTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::PROJECT && n.hasOperator()
+           && n.getOperator().getKind() == kind::PROJECT_OP);
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    const std::vector<uint32_t>& indices = op.getIndices();
+    if (check)
+    {
+      if (n.getNumChildren() != 1)
+      {
+        std::stringstream ss;
+        ss << "operands in term " << n << " are " << n.getNumChildren()
+           << ", but PROJECT expects 1 operand.";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+      TypeNode tupleType = n[0].getType(check);
+      if (!tupleType.isTuple())
+      {
+        std::stringstream ss;
+        ss << "PROJECT expects a tuple for " << n[0] << ". Found" << tupleType;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+
+      // make sure all indices are less than the length of the tuple type
+      DType dType = tupleType.getDType();
+      DTypeConstructor constructor = dType[0];
+      size_t numArgs = constructor.getNumArgs();
+      for (const uint32_t& index : indices)
+      {
+        std::stringstream ss;
+        if (index >= numArgs)
+        {
+          ss << "Project index " << index << " in term " << n
+             << " is >= " << numArgs << " which is the length of tuple " << n[0]
+             << std::endl;
+          throw TypeCheckingExceptionPrivate(n, ss.str());
+        }
+      }
+    }
+    TypeNode tupleType = n[0].getType(check);
+    std::vector<TypeNode> types;
+    DType dType = tupleType.getDType();
+    DTypeConstructor constructor = dType[0];
+    for (const uint32_t& index : indices)
+    {
+      types.push_back(constructor.getArgType(index));
+    }
+    return nm->mkTupleType(types);
+  }
+}; /* class ProjectTypeRule */
+
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

@@ -2566,7 +2566,7 @@ class CVC4_PUBLIC Solver
    * @pre sort of tuple is (Tuple T1 ... Tn) and index < n
    * @return the element at the given index in tuple
    */
-  Term tupleSelect(size_t index, Term tuple) const;
+  Term tupleSelect(uint32_t index, Term tuple) const;
 
   /**
    * returns a tuple that represents
@@ -2577,7 +2577,7 @@ class CVC4_PUBLIC Solver
    * @return a tuple that represents the elements with indices {i_1, ..., i_n}
    * in tuple t
    */
-  Term tupleProject(Term t, std::vector<size_t> indices) const;
+  Term tupleProject(Term t, std::vector<uint32_t> indices) const;
 
   /* .................................................................... */
   /* Create Operators                                                     */
@@ -2639,6 +2639,14 @@ class CVC4_PUBLIC Solver
    * @param arg2 the second uint32_t argument to this operator
    */
   Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
+
+  /**
+   * Create operator of Kind:
+   *   - PROJECT
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   */
+  Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
