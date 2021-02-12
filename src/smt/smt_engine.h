@@ -224,9 +224,8 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Set information about the script executing.
-   * @throw OptionException, ModalException
    */
-  void setInfo(const std::string& key, const CVC4::SExpr& value);
+  void setInfo(const std::string& key, Node value);
 
   /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
   bool isValidGetInfoFlag(const std::string& key) const;

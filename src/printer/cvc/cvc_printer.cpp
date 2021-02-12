@@ -1418,13 +1418,9 @@ void CvcPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void CvcPrinter::toStreamCmdSetInfo(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const
+                                    Node sexpr) const
 {
-  out << "% (set-info " << flag << ' ';
-  OutputLanguage language =
-      d_cvc3Mode ? language::output::LANG_CVC3 : language::output::LANG_CVC4;
-  SExpr::toStream(out, sexpr, language);
-  out << ')' << std::endl;
+  out << "% (set-info " << flag << ' ' << sexpr << ')' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetInfo(std::ostream& out,

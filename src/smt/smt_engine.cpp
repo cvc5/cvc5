@@ -436,53 +436,72 @@ void SmtEngine::setLogicInternal()
   d_userLogic.lock();
 }
 
-void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
+void SmtEngine::setInfo(const std::string& key, Node value)
 {
   SmtScope smts(this);
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
 
-  if(Dump.isOn("benchmark")) {
-    if(key == "status") {
-      string s = value.getValue();
+  if (Dump.isOn("benchmark"))
+  {
+    if (key == "status")
+    {
+      std::string s = value.getConst<CVC4::String>().toString();
       Result::Sat status =
           (s == "sat") ? Result::SAT
                        : ((s == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
       getOutputManager().getPrinter().toStreamCmdSetBenchmarkStatus(
           getOutputManager().getDumpOut(), status);
-    } else {
+    }
+    else
+    {
       getOutputManager().getPrinter().toStreamCmdSetInfo(
           getOutputManager().getDumpOut(), key, value);
     }
   }
 
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if (key == "source" || key == "category" || key == "difficulty"
-      || key == "notes" || key == "name" || key == "license")
+  if (key == "filename")
   {
-    // ignore these
-    return;
-  }
-  else if (key == "filename")
-  {
-    d_state->setFilename(value.getValue());
-    return;
+    d_state->setFilename(value.getConst<CVC4::String>().toString());
   }
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
   {
     language::input::Language ilang = language::input::LANG_AUTO;
-    if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
-        (value.isRational() && value.getRationalValue() == Rational(2)) ||
-        value.getValue() == "2" ||
-        value.getValue() == "2.0" ) {
-      ilang = language::input::LANG_SMTLIB_V2_0;
-    } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
-               value.getValue() == "2.5" ) {
-      ilang = language::input::LANG_SMTLIB_V2_5;
-    } else if( (value.isRational() && value.getRationalValue() == Rational(13, 5)) ||
-               value.getValue() == "2.6" ) {
-      ilang = language::input::LANG_SMTLIB_V2_6;
+
+    if (value.getKind() == Kind::CONST_RATIONAL)
+    {
+      Rational v = value.getConst<Rational>();
+      if (v == Rational(2))
+      {
+        ilang = language::input::LANG_SMTLIB_V2_0;
+      }
+      else if (v == Rational(5, 2))
+      {
+        ilang = language::input::LANG_SMTLIB_V2_5;
+      }
+      else if (v == Rational(13, 5))
+      {
+        ilang = language::input::LANG_SMTLIB_V2_6;
+      }
     }
+    else
+    {
+      std::string v = value.getConst<CVC4::String>().toString();
+      if (v == "2" || v == "2.0")
+      {
+        ilang = language::input::LANG_SMTLIB_V2_0;
+      }
+      else if (v == "2.5")
+      {
+        ilang = language::input::LANG_SMTLIB_V2_5;
+      }
+      else if (v == "2.6")
+      {
+        ilang = language::input::LANG_SMTLIB_V2_6;
+      }
+    }
+
     options::inputLanguage.set(ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
@@ -494,18 +513,11 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
         *options::out() << language::SetLanguage(olang);
       }
     }
-    return;
-  } else if(key == "status") {
-    string s;
-    if(value.isAtom()) {
-      s = value.getValue();
-    }
-    if(s != "sat" && s != "unsat" && s != "unknown") {
-      throw OptionException("argument to (set-info :status ..) must be "
-                            "`sat' or `unsat' or `unknown'");
-    }
+  }
+  else if (key == "status")
+  {
+    string s = value.getConst<CVC4::String>().toString();
     d_state->notifyExpectedStatus(s);
-    return;
   }
 }
 

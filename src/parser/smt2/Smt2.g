@@ -722,7 +722,7 @@ setInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
 }
   : KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      cmd->reset(new SetInfoCommand(name.c_str() + 1, sexprToString(sexpr)));
+      cmd->reset(new SetInfoCommand(name.c_str() + 1, sexpr));
     }
   ;
 

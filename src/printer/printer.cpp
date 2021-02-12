@@ -388,7 +388,7 @@ void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void Printer::toStreamCmdSetInfo(std::ostream& out,
                                  const std::string& flag,
-                                 SExpr sexpr) const
+                                 Node sexpr) const
 {
   printUnknownCommand(out, "set-info");
 }

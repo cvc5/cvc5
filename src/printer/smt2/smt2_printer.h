@@ -178,7 +178,7 @@ class Smt2Printer : public CVC4::Printer
   /** Print set-info command */
   void toStreamCmdSetInfo(std::ostream& out,
                           const std::string& flag,
-                          SExpr sexpr) const override;
+                          Node sexpr) const override;
 
   /** Print get-info command */
   void toStreamCmdGetInfo(std::ostream& out,

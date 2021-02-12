@@ -217,7 +217,7 @@ class Printer
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const;
+                                  Node sexpr) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,
