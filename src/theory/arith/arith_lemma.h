@@ -41,13 +41,10 @@ class ArithLemma : public SimpleTheoryLemma
              LemmaProperty p,
              ProofGenerator* pg,
              InferenceId inf = InferenceId::UNKNOWN)
-      : SimpleTheoryLemma(n, p, pg), d_inference(inf)
+      : SimpleTheoryLemma(inf, n, p, pg)
   {
   }
   virtual ~ArithLemma() {}
-
-  /** The inference id for the lemma */
-  InferenceId d_inference;
 };
 /**
  * Writes an arithmetic lemma to a stream.

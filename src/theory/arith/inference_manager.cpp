@@ -32,7 +32,7 @@ InferenceManager::InferenceManager(TheoryArith& ta,
 void InferenceManager::addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
                                             bool isWaiting)
 {
-  Trace("arith::infman") << "Add " << lemma->d_inference << " " << lemma->d_node
+  Trace("arith::infman") << "Add " << lemma->getId() << " " << lemma->d_node
                          << (isWaiting ? " as waiting" : "") << std::endl;
   if (hasCachedLemma(lemma->d_node, lemma->d_property))
   {
@@ -81,7 +81,7 @@ void InferenceManager::flushWaitingLemmas()
   for (auto& lem : d_waitingLem)
   {
     Trace("arith::infman") << "Flush waiting lemma to pending: "
-                           << lem->d_inference << " " << lem->d_node
+                           << lem->getId() << " " << lem->d_node
                            << std::endl;
     d_pendingLem.emplace_back(std::move(lem));
   }

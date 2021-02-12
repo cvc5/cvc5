@@ -615,7 +615,7 @@ void TheoryStrings::notifyFact(TNode atom,
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
-    InferInfo iiPendingConf;
+    InferInfo iiPendingConf(InferenceId::UNKNOWN);
     d_state.getPendingConflict(iiPendingConf);
     Trace("strings-pending")
         << "Process pending conflict " << iiPendingConf.d_premises << std::endl;

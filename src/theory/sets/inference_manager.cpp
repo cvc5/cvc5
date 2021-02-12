@@ -57,7 +57,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     if (fact == d_false)
     {
       Trace("sets-lemma") << "Conflict : " << exp << std::endl;
-      conflict(exp);
+      conflict(exp, InferenceId::UNKNOWN);
       return true;
     }
     return false;
@@ -90,7 +90,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
       || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine
-    if (assertInternalFact(atom, polarity, exp))
+    if (assertInternalFact(atom, polarity, InferenceId::UNKNOWN, exp))
     {
       // return true if this wasn't redundant
       return true;
@@ -164,7 +164,7 @@ void InferenceManager::split(Node n, int reqPol)
   n = Rewriter::rewrite(n);
   Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
   // send the lemma
-  lemma(lem);
+  lemma(lem, InferenceId::UNKNOWN);
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;
   if (reqPol != 0)
   {

@@ -127,7 +127,7 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
-void CnfStream::ensureExistingLiteral(TNode n)
+void CnfStream::ensureMappingForLiteral(TNode n)
 {
   SatLiteral lit = getLiteral(n);
   if (!d_literalToNodeMap.contains(lit))
@@ -151,10 +151,10 @@ void CnfStream::ensureLiteral(TNode n)
   Trace("cnf") << "ensureLiteral(" << n << ")\n";
   if (hasLiteral(n))
   {
-    ensureExistingLiteral(n);
+    ensureMappingForLiteral(n);
     return;
   }
-  // since this is a literal we do not care about this
+  // remove top level negation
   n = n.getKind() == kind::NOT ? n[0] : n;
   if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
@@ -284,7 +284,8 @@ void CnfStream::setProof(CnfProof* proof) {
   d_cnfProof = proof;
 }
 
-SatLiteral CnfStream::convertAtom(TNode node) {
+SatLiteral CnfStream::convertAtom(TNode node)
+{
   Trace("cnf") << "convertAtom(" << node << ")\n";
 
   Assert(!hasLiteral(node)) << "atom already mapped!";
