@@ -29,7 +29,7 @@ DatatypesInference::DatatypesInference(InferenceManager* im,
                                        Node conc,
                                        Node exp,
                                        InferenceId i)
-    : SimpleTheoryInternalFact(conc, exp, nullptr), d_im(im), d_id(i)
+    : SimpleTheoryInternalFact(i, conc, exp, nullptr), d_im(im)
 {
   // false is not a valid explanation
   Assert(d_exp.isNull() || !d_exp.isConst() || d_exp.getConst<bool>());
@@ -68,12 +68,10 @@ bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
   // sent as a lemma in addPendingInference below.
   if (asLemma || mustCommunicateFact(d_conc, d_exp))
   {
-    return d_im->processDtLemma(d_conc, d_exp, d_id);
+    return d_im->processDtLemma(d_conc, d_exp, getId());
   }
-  return d_im->processDtFact(d_conc, d_exp, d_id);
+  return d_im->processDtFact(d_conc, d_exp, getId());
 }
-
-InferenceId DatatypesInference::getInferId() const { return d_id; }
 
 }  // namespace datatypes
 }  // namespace theory

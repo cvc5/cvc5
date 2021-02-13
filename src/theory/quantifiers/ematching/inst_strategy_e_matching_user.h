@@ -19,6 +19,7 @@
 
 #include <map>
 #include "expr/node.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 

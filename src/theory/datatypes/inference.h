@@ -62,14 +62,10 @@ class DatatypesInference : public SimpleTheoryInternalFact
    * above method.
    */
   bool process(TheoryInferenceManager* im, bool asLemma) override;
-  /** Get the inference identifier */
-  InferenceId getInferId() const;
 
  private:
   /** Pointer to the inference manager */
   InferenceManager* d_im;
-  /** The inference */
-  InferenceId d_id;
 };
 
 }  // namespace datatypes

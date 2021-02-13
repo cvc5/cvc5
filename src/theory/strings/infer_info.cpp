@@ -21,7 +21,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferInfo::InferInfo() : d_sim(nullptr), d_id(InferenceId::UNKNOWN), d_idRev(false)
+InferInfo::InferInfo(InferenceId id): TheoryInference(id), d_sim(nullptr), d_idRev(false)
 {
 }
 
@@ -61,7 +61,7 @@ Node InferInfo::getPremises() const
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
-  out << "(infer " << ii.d_id << " " << ii.d_conc;
+  out << "(infer " << ii.getId() << " " << ii.d_conc;
   if (ii.d_idRev)
   {
     out << " :rev";

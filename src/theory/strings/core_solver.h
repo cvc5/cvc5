@@ -40,7 +40,7 @@ namespace strings {
 class CoreInferInfo
 {
  public:
-  CoreInferInfo();
+  CoreInferInfo(InferenceId id);
   ~CoreInferInfo() {}
   /** The infer info of this class */
   InferInfo d_infer;

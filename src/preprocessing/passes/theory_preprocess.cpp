@@ -51,7 +51,7 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
     Assert(newSkolems.size() == newAsserts.size());
     for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
     {
-      imap[newSkolems[j]] = assertions->size();
+      imap[assertions->size()] = newSkolems[j];
       assertions->pushBackTrusted(newAsserts[j]);
       // new assertions have a dependence on the node (old pf architecture)
       if (options::unsatCores())
