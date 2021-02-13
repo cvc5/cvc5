@@ -86,7 +86,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
   {
     return InstStrategyStatus::STATUS_UNFINISHED;
   }
-  options::UserPatMode upm = d_quantEngine->getInstUserPatMode();
+  options::UserPatMode upm = getInstUserPatMode();
   int peffort = upm == options::UserPatMode::RESORT ? 2 : 1;
   if (e < peffort)
   {
@@ -159,7 +159,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
   }
   Trace("user-pat") << "Add user pattern: " << pat << " for " << q << std::endl;
   // check match option
-  if (d_quantEngine->getInstUserPatMode() == options::UserPatMode::RESORT)
+  if (getInstUserPatMode() == options::UserPatMode::RESORT)
   {
     d_user_gen_wait[q].push_back(nodes);
     return;
