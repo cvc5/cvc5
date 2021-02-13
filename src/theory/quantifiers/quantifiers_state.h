@@ -33,7 +33,7 @@ class QuantifiersState : public TheoryState
   QuantifiersState(context::Context* c, context::UserContext* u, Valuation val);
   ~QuantifiersState() {}
   /**
-   * Increment the instantiation counters, called once at of beginning of when
+   * Increment the instantiation counters, called once at the beginning of when
    * we perform a check with quantifiers engine for the given effort.
    */
   void incrementInstRoundCounters(Theory::Effort e);
