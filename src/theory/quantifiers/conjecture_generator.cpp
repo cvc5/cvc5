@@ -409,8 +409,12 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           Trace("sg-proc-debug") << "......term : " << n << std::endl;
           if( getTermDatabase()->hasTermCurrent( n ) ){
             if( isHandledTerm( n ) ){
-              getTermDatabase()->computeArgReps( n );
-              d_op_arg_index[r].addTerm( getTermDatabase()->d_arg_reps[n], n );
+              std::vector<TNode> areps;
+              for (const Node& nc : n)
+              {
+                areps.push_back(d_qstate.getRepresentative(nc));
+              }
+              d_op_arg_index[r].addTerm(areps, n);
             }
           }
           ++ieqc_i;
@@ -474,9 +478,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
               if( n.hasOperator() ){
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
-                getTermDatabase()->computeArgReps( n );
-                for (TNode ar : getTermDatabase()->d_arg_reps[n])
+                for (const Node& nc : n)
                 {
+                  TNode ar = d_qstate.getRepresentative(nc);
                   Trace("sg-gen-eqc") << " e" << d_em[ar];
                 }
                 Trace("sg-gen-eqc") << ") :: " << n << std::endl;
@@ -1800,9 +1804,14 @@ void TermGenEnv::collectSignatureInformation() {
   d_func_kind.clear();
   d_func_args.clear();
   TypeNode tnull;
-  for( std::map< Node, std::vector< Node > >::iterator it = getTermDatabase()->d_op_map.begin(); it != getTermDatabase()->d_op_map.end(); ++it ){
-    if( !it->second.empty() ){
-      Node nn = it->second[0];
+  TermDb* tdb = getTermDatabase();
+  for (size_t i = 0, nops = tdb->getNumOperators(); i < nops; i++)
+  {
+    Node op = tdb->getOperator(i);
+    DbList* dbl = tdb->getOrMkDbListForOp(op);
+    if (!dbl->d_list.empty())
+    {
+      Node nn = dbl->d_list[0];
       Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
       if( d_cg->isHandledTerm( nn ) && nn.getKind()!=APPLY_SELECTOR_TOTAL && !nn.getType().isBoolean() ){
         bool do_enum = true;
@@ -1815,16 +1824,20 @@ void TermGenEnv::collectSignatureInformation() {
         }
         if( do_enum ){
           Trace("sg-rel-sig-debug") << "Set enumeration..." << std::endl;
-          d_funcs.push_back( it->first );
-          for( unsigned i=0; i<nn.getNumChildren(); i++ ){
-            d_func_args[it->first].push_back( nn[i].getType() );
+          d_funcs.push_back(op);
+          for (const Node& nnc : nn)
+          {
+            d_func_args[op].push_back(nnc.getType());
           }
-          d_func_kind[it->first] = nn.getKind();
-          d_typ_tg_funcs[tnull].push_back( it->first );
-          d_typ_tg_funcs[nn.getType()].push_back( it->first );
-          d_tg_func_param[it->first] = ( nn.getMetaKind() == kind::metakind::PARAMETERIZED );
-          Trace("sg-rel-sig") << "Will enumerate function applications of : " << it->first << ", #args = " << d_func_args[it->first].size() << ", kind = " << nn.getKind() << std::endl;
-          //getTermDatabase()->computeUfEqcTerms( it->first );
+          d_func_kind[op] = nn.getKind();
+          d_typ_tg_funcs[tnull].push_back(op);
+          d_typ_tg_funcs[nn.getType()].push_back(op);
+          d_tg_func_param[op] =
+              (nn.getMetaKind() == kind::metakind::PARAMETERIZED);
+          Trace("sg-rel-sig")
+              << "Will enumerate function applications of : " << op
+              << ", #args = " << d_func_args[op].size()
+              << ", kind = " << nn.getKind() << std::endl;
         }
       }
       Trace("sg-rel-sig-debug") << "Done check in signature : " << nn << std::endl;

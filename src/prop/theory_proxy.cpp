@@ -156,16 +156,14 @@ void TheoryProxy::spendResource(ResourceManager::Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) {
-  return d_decisionEngine->isRelevant(var);
-}
+bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
 
 bool TheoryProxy::isDecisionEngineDone() {
   return d_decisionEngine->isDone();
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return d_decisionEngine->getPolarity(var);
+  return SAT_VALUE_UNKNOWN;
 }
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }

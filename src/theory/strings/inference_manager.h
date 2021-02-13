@@ -114,7 +114,7 @@ class InferenceManager : public InferenceManagerBuffered
    */
   bool sendInternalInference(std::vector<Node>& exp,
                              Node conc,
-                             Inference infer);
+                             InferenceId infer);
 
   /** send inference
    *
@@ -164,13 +164,13 @@ class InferenceManager : public InferenceManagerBuffered
   bool sendInference(const std::vector<Node>& exp,
                      const std::vector<Node>& noExplain,
                      Node eq,
-                     Inference infer,
+                     InferenceId infer,
                      bool isRev = false,
                      bool asLemma = false);
   /** same as above, but where noExplain is empty */
   bool sendInference(const std::vector<Node>& exp,
                      Node eq,
-                     Inference infer,
+                     InferenceId infer,
                      bool isRev = false,
                      bool asLemma = false);
 
@@ -200,7 +200,7 @@ class InferenceManager : public InferenceManagerBuffered
    * This method returns true if the split was non-trivial, and false
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
-  bool sendSplit(Node a, Node b, Inference infer, bool preq = true);
+  bool sendSplit(Node a, Node b, InferenceId infer, bool preq = true);
   /**
    * Set that we are incomplete for the current set of assertions (in other
    * words, we must answer "unknown" instead of "sat"); this calls the output

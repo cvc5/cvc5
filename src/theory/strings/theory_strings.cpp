@@ -615,7 +615,7 @@ void TheoryStrings::notifyFact(TNode atom,
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
-    InferInfo iiPendingConf;
+    InferInfo iiPendingConf(InferenceId::UNKNOWN);
     d_state.getPendingConflict(iiPendingConf);
     Trace("strings-pending")
         << "Process pending conflict " << iiPendingConf.d_premises << std::endl;
@@ -921,7 +921,7 @@ void TheoryStrings::checkCodes()
         if (!d_state.areEqual(cc, vc))
         {
           std::vector<Node> emptyVec;
-          d_im.sendInference(emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
+          d_im.sendInference(emptyVec, cc.eqNode(vc), InferenceId::STRINGS_CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -961,7 +961,7 @@ void TheoryStrings::checkCodes()
           deq = Rewriter::rewrite(deq);
           d_im.addPendingPhaseRequirement(deq, false);
           std::vector<Node> emptyVec;
-          d_im.sendInference(emptyVec, inj_lem, Inference::CODE_INJ);
+          d_im.sendInference(emptyVec, inj_lem, InferenceId::STRINGS_CODE_INJ);
         }
       }
     }

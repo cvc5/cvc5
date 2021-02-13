@@ -147,7 +147,7 @@ void TangentPlaneCheck::check(bool asWaitingLemmas)
                                 nm->mkConst(Rational(d == 0 ? -1 : 1))});
               }
               d_data->d_im.addPendingArithLemma(
-                  tlem, InferenceId::NL_TANGENT_PLANE, proof, asWaitingLemmas);
+                  tlem, InferenceId::ARITH_NL_TANGENT_PLANE, proof, asWaitingLemmas);
             }
           }
         }

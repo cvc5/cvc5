@@ -56,12 +56,6 @@ class Preprocessor
    */
   bool process(Assertions& as);
   /**
-   * Postprocess assertions, called after the SmtEngine has finished
-   * giving the assertions to the SMT solver and before the assertions are
-   * cleared.
-   */
-  void postprocess(Assertions& as);
-  /**
    * Clear learned literals from the Boolean propagator.
    */
   void clearLearnedLiterals();

@@ -59,7 +59,7 @@ bool InferenceManagerBuffered::addPendingLemma(Node lem,
     }
   }
   // make the simple theory lemma
-  d_pendingLem.emplace_back(new SimpleTheoryLemma(lem, p, pg));
+  d_pendingLem.emplace_back(new SimpleTheoryLemma(InferenceId::UNKNOWN, lem, p, pg));
   return true;
 }
 
@@ -75,7 +75,7 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
 {
   // make a simple theory internal fact
   Assert(conc.getKind() != AND && conc.getKind() != OR);
-  d_pendingFact.emplace_back(new SimpleTheoryInternalFact(conc, exp, pg));
+  d_pendingFact.emplace_back(new SimpleTheoryInternalFact(InferenceId::UNKNOWN, conc, exp, pg));
 }
 
 void InferenceManagerBuffered::addPendingFact(

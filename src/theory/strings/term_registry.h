@@ -176,39 +176,25 @@ class TermRegistry
    */
   Node ensureProxyVariableFor(Node n);
 
-  /** infer substitution proxy vars
+  /**
+   * This method attempts to (partially) remove trivial parts of an explanation
+   * n. It adds conjuncts of n that must be included in the explanation into
+   * unproc and drops the rest.
    *
-   * This method attempts to (partially) convert the formula n into a
-   * substitution of the form:
-   *   v1 -> s1, ..., vn -> sn
-   * where s1 ... sn are proxy variables and v1 ... vn are either variables
-   * or constants.
+   * For example, say that v1 was introduced as a proxy variable for "ABC".
    *
-   * This method ensures that P ^ v1 = s1 ^ ... ^ vn = sn ^ unproc is equivalent
-   * to P ^ n, where P is the conjunction of equalities corresponding to the
-   * definition of all proxy variables introduced by the theory of strings.
-   *
-   * For example, say that v1 was introduced as a proxy variable for "ABC", and
-   * v2 was introduced as a proxy variable for "AA".
-   *
-   * Given the input n := v1 = "ABC" ^ v2 = x ^ x = "AA", this method sets:
-   * vars = { x },
-   * subs = { v2 },
-   * unproc = {}.
+   * Given the input n := v1 = "ABC" ^ x = "AA", this method sets:
+   * unproc = { x = "AA" }.
    * In particular, this says that the information content of n is essentially
-   * x = v2. The first and third conjunctions can be dropped from the
-   * explanation since these equalities simply correspond to definitions
-   * of proxy variables.
+   * x = "AA". The first conjunct can be dropped from the explanation since
+   * that equality simply corresponds to definition of a proxy variable.
    *
    * This method is used as a performance heuristic. It can infer when the
-   * explanation of a fact depends only trivially on equalities corresponding
-   * to definitions of proxy variables, which can be omitted since they are
+   * explanation of a fact depends only on equalities corresponding to
+   * definitions of proxy variables, which can be omitted since they are
    * assumed to hold globally.
    */
-  void inferSubstitutionProxyVars(Node n,
-                                  std::vector<Node>& vars,
-                                  std::vector<Node>& subs,
-                                  std::vector<Node>& unproc) const;
+  void removeProxyEqs(Node n, std::vector<Node>& unproc) const;
   //---------------------------- end proxy variables
  private:
   /** Common constants */
