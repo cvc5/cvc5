@@ -416,9 +416,9 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_inferManager.lemma(lemma, InferenceId::UNKNOWN);
+    d_bv->d_im.lemma(lemma, InferenceId::UNKNOWN);
   } else {
-    d_bv->d_inferManager.lemma(d_cnf->getNode(clause[0]), InferenceId::UNKNOWN);
+    d_bv->d_im.lemma(d_cnf->getNode(clause[0]), InferenceId::UNKNOWN);
   }
 }
 
@@ -429,7 +429,7 @@ void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
 
 void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 {
-  d_bv->d_inferManager.safePoint(r);
+  d_bv->d_im.safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
