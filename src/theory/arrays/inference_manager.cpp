@@ -53,9 +53,9 @@ bool InferenceManager::assertInference(TNode atom,
     std::vector<Node> args;
     // convert to proof rule application
     convert(id, fact, reason, children, args);
-    return assertInternalFact(atom, polarity, InferenceId::UNKNOWN, id, children, args);
+    return assertInternalFact(atom, polarity, InferenceId::ARRAYS_INFERENCE, id, children, args);
   }
-  return assertInternalFact(atom, polarity, InferenceId::UNKNOWN, reason);
+  return assertInternalFact(atom, polarity, InferenceId::ARRAYS_INFERENCE, reason);
 }
 
 bool InferenceManager::arrayLemma(
@@ -72,11 +72,11 @@ bool InferenceManager::arrayLemma(
     convert(id, conc, exp, children, args);
     // make the trusted lemma based on the eager proof generator and send
     TrustNode tlem = d_lemmaPg->mkTrustNode(conc, id, children, args);
-    return trustedLemma(tlem, InferenceId::UNKNOWN, p, doCache);
+    return trustedLemma(tlem, InferenceId::ARRAYS_LEMMA, p, doCache);
   }
   // send lemma without proofs
   Node lem = nm->mkNode(IMPLIES, exp, conc);
-  return lemma(lem, InferenceId::UNKNOWN, p, doCache);
+  return lemma(lem, InferenceId::ARRAYS_LEMMA, p, doCache);
 }
 
 void InferenceManager::convert(PfRule& id,

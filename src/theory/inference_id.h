@@ -96,6 +96,8 @@ enum class InferenceId
   ARITH_NL_ICP_PROPAGATION,
   //-------------------- unknown
 
+  ARRAYS_INFERENCE,
+  ARRAYS_LEMMA,
 
   BAG_NON_NEGATIVE_COUNT,
   BAG_MK_BAG_SAME_ELEMENT,
