@@ -2572,12 +2572,12 @@ class CVC4_PUBLIC Solver
    * returns a tuple that represents
    * (mkTuple ((_ tupSel i_1) t) ... ((_ tupSel i_n) t))
    * where each i_j is less than the length of t
-   * @param t a node that has a tuple type
    * @param indices of the projected elements
+   * @param t a node that has a tuple type
    * @return a tuple that represents the elements with indices {i_1, ..., i_n}
    * in tuple t
    */
-  Term tupleProject(Term t, std::vector<uint32_t> indices) const;
+  Term tupleProject(const std::vector<uint32_t>& indices, Term t) const;
 
   /* .................................................................... */
   /* Create Operators                                                     */

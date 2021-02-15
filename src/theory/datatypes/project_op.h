@@ -17,8 +17,8 @@
 #ifndef CVC4__PROJECT_OP_H
 #define CVC4__PROJECT_OP_H
 
-#include <vector>
 #include <ostream>
+#include <vector>
 
 namespace CVC4 {
 
@@ -31,8 +31,8 @@ class TypeNode;
 class ProjectOp
 {
  public:
-  ProjectOp(std::vector<uint32_t> indices);
-  ProjectOp(const ProjectOp& op);
+  explicit ProjectOp(std::vector<uint32_t> indices);
+  ProjectOp(const ProjectOp& op) = default;
 
   /** return the indices of the projection */
   const std::vector<uint32_t>& getIndices() const;
@@ -40,7 +40,6 @@ class ProjectOp
   bool operator==(const ProjectOp& op) const;
 
  private:
-  ProjectOp();
   std::vector<uint32_t> d_indices;
 }; /* class ProjectOp */
 

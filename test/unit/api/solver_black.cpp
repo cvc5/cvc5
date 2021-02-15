@@ -979,7 +979,8 @@ TEST_F(TestApiBlackSolver, defineSort)
   Sort arraySort1 = d_solver.mkArraySort(sortVar0, sortVar1);
   // Now create instantiations of the defined sorts
   ASSERT_NO_THROW(arraySort0.substitute(sortVar0, intSort));
-  ASSERT_NO_THROW(arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
+  ASSERT_NO_THROW(
+      arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
 }
 
 TEST_F(TestApiBlackSolver, defineFun)
@@ -2332,16 +2333,16 @@ TEST_F(TestApiBlackSolver, tupleProject)
 
   Term tuple = d_solver.mkTuple(sorts, elements);
 
-  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {}));
-  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {0}));
-  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {0, 1}));
-  ASSERT_NO_THROW(d_solver.tupleProject(tuple, {0, 0, 2, 2, 3, 3, 0}));
+  ASSERT_NO_THROW(d_solver.tupleProject({}, tuple));
+  ASSERT_NO_THROW(d_solver.tupleProject({0}, tuple));
+  ASSERT_NO_THROW(d_solver.tupleProject({0, 1}, tuple));
+  ASSERT_NO_THROW(d_solver.tupleProject({0, 0, 2, 2, 3, 3, 0}, tuple));
 
-  ASSERT_THROW(d_solver.tupleProject(tuple, {4}), CVC4ApiException);
-  ASSERT_THROW(d_solver.tupleProject(tuple, {0, 4}), CVC4ApiException);
+  ASSERT_THROW(d_solver.tupleProject({4}, tuple), CVC4ApiException);
+  ASSERT_THROW(d_solver.tupleProject({0, 4}, tuple), CVC4ApiException);
 
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
-  Term project = d_solver.tupleProject(tuple, indices);
+  Term project = d_solver.tupleProject(indices, tuple);
   for (size_t i = 0; i < indices.size(); i++)
   {
     Term selectedTerm = d_solver.tupleSelect(i, project);

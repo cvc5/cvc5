@@ -43,7 +43,6 @@ class MakeBagOp
   bool operator==(const MakeBagOp& op) const;
 
  private:
-  MakeBagOp();
   /** a pointer to the type of the bag element */
   std::unique_ptr<TypeNode> d_type;
 }; /* class MakeBagOp */

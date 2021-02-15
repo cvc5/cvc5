@@ -601,7 +601,7 @@ class ProjectTypeRule
       DType dType = tupleType.getDType();
       DTypeConstructor constructor = dType[0];
       size_t numArgs = constructor.getNumArgs();
-      for (const uint32_t& index : indices)
+      for (uint32_t index : indices)
       {
         std::stringstream ss;
         if (index >= numArgs)
@@ -617,7 +617,7 @@ class ProjectTypeRule
     std::vector<TypeNode> types;
     DType dType = tupleType.getDType();
     DTypeConstructor constructor = dType[0];
-    for (const uint32_t& index : indices)
+    for (uint32_t index : indices)
     {
       types.push_back(constructor.getArgType(index));
     }

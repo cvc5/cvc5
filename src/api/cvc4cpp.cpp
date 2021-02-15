@@ -4560,7 +4560,7 @@ Term Solver::tupleSelect(uint32_t index, Term tuple) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::tupleProject(Term t, std::vector<uint32_t> indices) const
+Term Solver::tupleProject(const std::vector<uint32_t>& indices, Term t) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   std::vector<Sort> sorts;
