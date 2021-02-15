@@ -45,6 +45,7 @@ bool InferenceManagerBuffered::hasPendingLemma() const
 }
 
 bool InferenceManagerBuffered::addPendingLemma(Node lem,
+                                               InferenceId id,
                                                LemmaProperty p,
                                                ProofGenerator* pg,
                                                bool checkCache)
@@ -59,7 +60,7 @@ bool InferenceManagerBuffered::addPendingLemma(Node lem,
     }
   }
   // make the simple theory lemma
-  d_pendingLem.emplace_back(new SimpleTheoryLemma(InferenceId::UNKNOWN, lem, p, pg));
+  d_pendingLem.emplace_back(new SimpleTheoryLemma(id, lem, p, pg));
   return true;
 }
 
@@ -70,12 +71,13 @@ void InferenceManagerBuffered::addPendingLemma(
 }
 
 void InferenceManagerBuffered::addPendingFact(Node conc,
+                                              InferenceId id,
                                               Node exp,
                                               ProofGenerator* pg)
 {
   // make a simple theory internal fact
   Assert(conc.getKind() != AND && conc.getKind() != OR);
-  d_pendingFact.emplace_back(new SimpleTheoryInternalFact(InferenceId::UNKNOWN, conc, exp, pg));
+  d_pendingFact.emplace_back(new SimpleTheoryInternalFact(id, conc, exp, pg));
 }
 
 void InferenceManagerBuffered::addPendingFact(

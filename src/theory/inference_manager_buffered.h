@@ -62,6 +62,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * false if the lemma is already cached.
    */
   bool addPendingLemma(Node lem,
+                       InferenceId id,
                        LemmaProperty p = LemmaProperty::NONE,
                        ProofGenerator* pg = nullptr,
                        bool checkCache = true);
@@ -80,7 +81,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * Pending facts are sent to the equality engine of this class using
    * doPendingFacts.
    */
-  void addPendingFact(Node conc, Node exp, ProofGenerator* pg = nullptr);
+  void addPendingFact(Node conc, InferenceId id, Node exp, ProofGenerator* pg = nullptr);
   /**
    * Add pending fact, where fact can be a (derived) class of the
    * theory inference base class.

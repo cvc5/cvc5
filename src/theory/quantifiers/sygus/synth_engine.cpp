@@ -224,7 +224,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
-      if (d_qim.addPendingLemma(lem))
+      if (d_qim.addPendingLemma(lem, InferenceId::UNKNOWN))
       {
         ++(d_statistics.d_cegqi_lemmas_ce);
         addedLemma = true;
