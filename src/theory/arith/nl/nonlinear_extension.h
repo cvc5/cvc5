@@ -203,11 +203,6 @@ class NonlinearExtension
   /** singleton version of above */
   unsigned filterLemma(NlLemma lem, std::vector<NlLemma>& out);
 
-  /**
-   * Send lemmas in out on the output channel of theory of arithmetic.
-   */
-  void sendLemmas(const std::vector<NlLemma>& out);
-
   /** run check strategy
    *
    * Check assertions for consistency in the effort LAST_CALL with a subset of
