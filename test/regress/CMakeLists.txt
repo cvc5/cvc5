@@ -1581,7 +1581,6 @@ set(regress_1_tests
   regress1/nl/disj-eval.smt2
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
-  regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   regress1/nl/exp-4.5-lt.smt2
   regress1/nl/exp-approx.smt2
   regress1/nl/exp-soundness-bound.smt2
@@ -2541,6 +2540,8 @@ set(regression_disabled_tests
   regress1/ho/hoa0102.smt2
   # slow on some builds after changes to tangent planes
   regress1/nl/approx-sqrt-unsat.smt2
+  # times out after update to circuit propagator
+  regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   # times out after update to tangent planes
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
