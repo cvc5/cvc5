@@ -413,12 +413,29 @@ enum class InferenceId
   UF_CARD_MONOTONE_COMBINED,
   UF_CARD_SIMPLE_CONFLICT,
   UF_CARD_SPLIT,
-  // HO collect model info application
-  UF_HO_APPLY_EXPAND,
-  UF_HO_APPLY_CONV_SKOLEM,
-  UF_HO_CMI_APP,
-  UF_HO_CMI_EXTENSIONALITY,
+  //-------------------------------------- begin HO extension to UF
+  // Encodes an n-ary application as a chain of binary HO_APPLY applications
+  //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
+  UF_HO_APP_ENCODE,
+  UF_HO_APP_CONV_SKOLEM,
+  // Adds an extensionality lemma to witness that disequal functions have
+  // different applications
+  //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_EXTENSIONALITY,
+  //-------------------------------------- begin model-construction specific part
+  // These rules are necessary to ensure that we build models properly. For more
+  // details see Section 3.3 of Barbosa et al. CADE'19.
+  //
+  // Enforces that a regular APPLY_UF term in the model is equal to its HO_APPLY
+  // equivalent by adding the equality as a lemma
+  //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
+  UF_HO_MODEL_APP_ENCODE,
+  // Adds an extensionality lemma to witness that disequal functions have
+  // different applications
+  //   (not (= (f sk1 .. skn) (g sk1 .. skn))
+  UF_HO_MODEL_EXTENSIONALITY,
+  //-------------------------------------- end model-construction specific part
+  //-------------------------------------- end HO extension to UF
 
   UNKNOWN
 };
