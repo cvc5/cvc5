@@ -54,6 +54,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * doPendingLemmas.
    *
    * @param lem The lemma to send
+   * @param id The identifier of the inference
    * @param p The property of the lemma
    * @param pg The proof generator which can provide a proof for lem
    * @param checkCache Whether we want to check that the lemma is already in
@@ -80,6 +81,10 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    *
    * Pending facts are sent to the equality engine of this class using
    * doPendingFacts.
+   * @param conc The conclustion
+   * @param id The identifier of the inference
+   * @param exp The explanation in the equality engine of the theory
+   * @param pg The proof generator which can provide a proof for conc
    */
   void addPendingFact(Node conc, InferenceId id, Node exp, ProofGenerator* pg = nullptr);
   /**
