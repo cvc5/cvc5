@@ -120,7 +120,7 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
 }
 
 bool InstantiationEngine::needsCheck( Theory::Effort e ){
-  return d_quantEngine->getInstWhenNeedsCheck( e );
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 void InstantiationEngine::reset_round( Theory::Effort e ){

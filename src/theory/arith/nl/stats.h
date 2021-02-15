@@ -41,8 +41,6 @@ class NlStats
   IntStat d_mbrRuns;
   /** Number of calls to NonlinearExtension::checkLastCall */
   IntStat d_checkRuns;
-  /** Counts the number of applications of each type of inference */
-  HistogramStat<InferenceId> d_inferences;
 };
 
 }  // namespace nl

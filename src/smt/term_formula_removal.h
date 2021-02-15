@@ -34,8 +34,6 @@
 
 namespace CVC4 {
 
-typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
-
 class RemoveTermFormulas {
  public:
   RemoveTermFormulas(context::UserContext* u, ProofNodeManager* pnm = nullptr);

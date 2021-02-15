@@ -28,17 +28,14 @@ namespace CVC4 {
 DecisionEngine::DecisionEngine(context::Context* sc,
                                context::UserContext* uc,
                                ResourceManager* rm)
-    : d_enabledITEStrategy(nullptr),
-      d_needIteSkolemMap(),
-      d_relevancyStrategy(nullptr),
-      d_assertions(uc),
-      d_cnfStream(nullptr),
+    : d_cnfStream(nullptr),
       d_satSolver(nullptr),
       d_satContext(sc),
       d_userContext(uc),
       d_result(sc, SAT_VALUE_UNKNOWN),
       d_engineState(0),
-      d_resourceManager(rm)
+      d_resourceManager(rm),
+      d_enabledITEStrategy(nullptr)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
 }
@@ -58,7 +55,6 @@ void DecisionEngine::init()
   {
     d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
         this, d_userContext, d_satContext));
-    d_needIteSkolemMap.push_back(d_enabledITEStrategy.get());
   }
 }
 
@@ -69,7 +65,6 @@ void DecisionEngine::shutdown()
   Assert(d_engineState == 1);
   d_engineState = 2;
   d_enabledITEStrategy.reset(nullptr);
-  d_needIteSkolemMap.clear();
 }
 
 SatLiteral DecisionEngine::getNext(bool& stopSearch)
@@ -85,49 +80,23 @@ SatLiteral DecisionEngine::getNext(bool& stopSearch)
              : d_enabledITEStrategy->getNext(stopSearch);
 }
 
-bool DecisionEngine::isRelevant(SatVariable var)
-{
-  Debug("decision") << "isRelevant(" << var <<")" << std::endl;
-  if (d_relevancyStrategy != nullptr)
-  {
-    //Assert(d_cnfStream->hasNode(var));
-    return d_relevancyStrategy->isRelevant( d_cnfStream->getNode(SatLiteral(var)) );
-  }
-  else
-  {
-    return true;
-  }
-}
-
-SatValue DecisionEngine::getPolarity(SatVariable var)
-{
-  Debug("decision") << "getPolarity(" << var <<")" << std::endl;
-  if (d_relevancyStrategy != nullptr)
-  {
-    Assert(isRelevant(var));
-    return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );
-  }
-  else
-  {
-    return SAT_VALUE_UNKNOWN;
-  }
-}
-
-void DecisionEngine::addAssertions(const std::vector<Node>& assertions,
-                                   const std::vector<Node>& ppLemmas,
-                                   const std::vector<Node>& ppSkolems)
+void DecisionEngine::addAssertion(TNode assertion)
 {
   // new assertions, reset whatever result we knew
   d_result = SAT_VALUE_UNKNOWN;
-
-  for (const Node& assertion : assertions)
+  if (d_enabledITEStrategy != nullptr)
   {
-    d_assertions.push_back(assertion);
+    d_enabledITEStrategy->addAssertion(assertion);
   }
+}
 
-  for(unsigned i = 0; i < d_needIteSkolemMap.size(); ++i)
+void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
+{
+  // new assertions, reset whatever result we knew
+  d_result = SAT_VALUE_UNKNOWN;
+  if (d_enabledITEStrategy != nullptr)
   {
-    d_needIteSkolemMap[i]->addAssertions(assertions, ppLemmas, ppSkolems);
+    d_enabledITEStrategy->addSkolemDefinition(lem, skolem);
   }
 }
 

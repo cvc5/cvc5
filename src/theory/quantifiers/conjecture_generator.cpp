@@ -336,7 +336,7 @@ bool ConjectureGenerator::isGroundTerm( TNode n ) {
 
 bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
   // synchonized with instantiation engine
-  return d_quantEngine->getInstWhenNeedsCheck( e );
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 bool ConjectureGenerator::hasEnumeratedUf( Node n ) {

@@ -203,7 +203,7 @@ class BVSolverLazy : public BVSolver
 
   void lemma(TNode node)
   {
-    d_inferManager.lemma(node);
+    d_im.lemma(node, InferenceId::UNKNOWN);
     d_lemmasAdded = true;
   }
 

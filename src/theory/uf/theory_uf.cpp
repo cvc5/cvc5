@@ -315,7 +315,7 @@ void TheoryUF::presolve() {
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
       // no proof generator provided
-      d_im.lemma(*i);
+      d_im.lemma(*i, InferenceId::UNKNOWN);
     }
   }
   if( d_thss ){
