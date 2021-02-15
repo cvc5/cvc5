@@ -141,6 +141,13 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_REDUCTION: return "REDUCTION";
     case InferenceId::STRINGS_PREFIX_CONFLICT: return "PREFIX_CONFLICT";
 
+    case InferenceId::UF_HO_APP_ENCODE: return "UF_HO_APP_ENCODE";
+    case InferenceId::UF_HO_APP_CONV_SKOLEM: return "UF_HO_APP_CONV_SKOLEM";
+    case InferenceId::UF_HO_EXTENSIONALITY: return "UF_HO_EXTENSIONALITY";
+    case InferenceId::UF_HO_MODEL_APP_ENCODE: return "UF_HO_MODEL_APP_ENCODE";
+    case InferenceId::UF_HO_MODEL_EXTENSIONALITY:
+      return "UF_HO_MODEL_EXTENSIONALITY";
+
     default: return "?";
   }
 }
