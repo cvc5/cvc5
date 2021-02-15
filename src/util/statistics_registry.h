@@ -651,12 +651,9 @@ public:
 template <typename Integral>
 class IntegralHistogramStat : public Stat
 {
-  static_assert(std::is_convertible<Integral, std::int64_t>::value
-                    || (std::is_enum<Integral>::value
-                        && std::is_convertible<
-                            typename std::underlying_type<Integral>::type,
-                            std::int64_t>::value),
-                "Type should be convertible to std::int64_t.");
+  static_assert(std::is_integral<Integral>::value
+                    || std::is_enum<Integral>::value,
+                "Type should be a fundamental integral type.");
 
  private:
   std::vector<std::uint64_t> d_hist;
