@@ -34,7 +34,7 @@ class TypeNode;
 class MakeBagOp
 {
  public:
-  MakeBagOp(const TypeNode& elementType);
+  explicit MakeBagOp(const TypeNode& elementType);
   MakeBagOp(const MakeBagOp& op);
 
   /** return the type of the current object */
