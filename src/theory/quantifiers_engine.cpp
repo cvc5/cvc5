@@ -54,7 +54,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext()),
-      d_ierCounter_c(qstate.getSatContext()),
       d_presolve(qstate.getUserContext(), true),
       d_presolve_in(qstate.getUserContext()),
       d_presolve_cache(qstate.getUserContext())
@@ -76,13 +75,6 @@ QuantifiersEngine::QuantifiersEngine(
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   //---- end utilities
-
-  //allow theory combination to go first, once initially
-  d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
-  d_ierCounter_c = d_ierCounter;
-  d_ierCounter_lc = 0;
-  d_ierCounterLastLc = 0;
-  d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model and model builder here, since it is
@@ -377,7 +369,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     if( Trace.isOn("quant-engine-debug") ){
       Trace("quant-engine-debug") << "Quantifiers Engine check, level = " << e << std::endl;
-      Trace("quant-engine-debug") << "  depth : " << d_ierCounter_c << std::endl;
+      Trace("quant-engine-debug")
+          << "  depth : " << d_qstate.getInstRoundDepth() << std::endl;
       Trace("quant-engine-debug") << "  modules to check : ";
       for( unsigned i=0; i<qm.size(); i++ ){
         Trace("quant-engine-debug") << qm[i]->identify() << " ";
@@ -398,7 +391,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;
-      debugPrintEqualityEngine( "quant-engine-ee-pre" );
+      d_qstate.debugPrintEqualityEngine("quant-engine-ee-pre");
     }
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
@@ -426,7 +419,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
     if( Trace.isOn("quant-engine-ee") ){
       Trace("quant-engine-ee") << "Equality engine : " << std::endl;
-      debugPrintEqualityEngine( "quant-engine-ee" );
+      d_qstate.debugPrintEqualityEngine("quant-engine-ee");
     }
 
     //reset the model
@@ -499,16 +492,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
         Assert(!d_qstate.isInConflict());
         if (quant_e == QuantifiersModule::QEFFORT_CONFLICT)
         {
-          if( e==Theory::EFFORT_FULL ){
-            //increment if a last call happened, we are not strictly enforcing interleaving, or already were in phase
-            if( d_ierCounterLastLc!=d_ierCounter_lc || !options::instWhenStrictInterleave() || d_ierCounter%d_inst_when_phase!=0 ){
-              d_ierCounter = d_ierCounter + 1;
-              d_ierCounterLastLc = d_ierCounter_lc;
-              d_ierCounter_c = d_ierCounter_c.get() + 1;
-            }
-          }else if( e==Theory::EFFORT_LAST_CALL ){
-            d_ierCounter_lc = d_ierCounter_lc + 1;
-          }
+          d_qstate.incrementInstRoundCounters(e);
         }
         else if (quant_e == QuantifiersModule::QEFFORT_MODEL)
         {
@@ -617,9 +601,9 @@ void QuantifiersEngine::check( Theory::Effort e ){
 }
 
 void QuantifiersEngine::notifyCombineTheories() {
-  //if allowing theory combination to happen at most once between instantiation rounds
-  //d_ierCounter = 1;
-  //d_ierCounterLastLc = -1;
+  // If allowing theory combination to happen at most once between instantiation
+  // rounds, this would reset d_ierCounter to 1 and d_ierCounterLastLc to -1
+  // in quantifiers state.
 }
 
 bool QuantifiersEngine::reduceQuantifier( Node q ) {
@@ -789,55 +773,6 @@ void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
 
-bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
-  Trace("quant-engine-debug2") << "Get inst when needs check, counts=" << d_ierCounter << ", " << d_ierCounter_lc << std::endl;
-  //determine if we should perform check, based on instWhenMode
-  bool performCheck = false;
-  if (options::instWhenMode() == options::InstWhenMode::FULL)
-  {
-    performCheck = ( e >= Theory::EFFORT_FULL );
-  }
-  else if (options::instWhenMode() == options::InstWhenMode::FULL_DELAY)
-  {
-    performCheck =
-        (e >= Theory::EFFORT_FULL) && !d_qstate.getValuation().needCheck();
-  }
-  else if (options::instWhenMode() == options::InstWhenMode::FULL_LAST_CALL)
-  {
-    performCheck = ( ( e==Theory::EFFORT_FULL && d_ierCounter%d_inst_when_phase!=0 ) || e==Theory::EFFORT_LAST_CALL );
-  }
-  else if (options::instWhenMode()
-           == options::InstWhenMode::FULL_DELAY_LAST_CALL)
-  {
-    performCheck =
-        ((e == Theory::EFFORT_FULL && !d_qstate.getValuation().needCheck()
-          && d_ierCounter % d_inst_when_phase != 0)
-         || e == Theory::EFFORT_LAST_CALL);
-  }
-  else if (options::instWhenMode() == options::InstWhenMode::LAST_CALL)
-  {
-    performCheck = ( e >= Theory::EFFORT_LAST_CALL );
-  }
-  else
-  {
-    performCheck = true;
-  }
-  return performCheck;
-}
-
-options::UserPatMode QuantifiersEngine::getInstUserPatMode()
-{
-  if (options::userPatternsQuant() == options::UserPatMode::INTERLEAVE)
-  {
-    return d_ierCounter % 2 == 0 ? options::UserPatMode::USE
-                                 : options::UserPatMode::RESORT;
-  }
-  else
-  {
-    return options::userPatternsQuant();
-  }
-}
-
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
   d_instantiate->getInstantiationTermVectors(q, tvecs);
 }
@@ -958,42 +893,6 @@ bool QuantifiersEngine::getSynthSolutions(
     std::map<Node, std::map<Node, Node> >& sol_map)
 {
   return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
-}
-
-void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = d_qstate.getEqualityEngine();
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
-  std::map< TypeNode, int > typ_num;
-  while( !eqcs_i.isFinished() ){
-    TNode r = (*eqcs_i);
-    TypeNode tr = r.getType();
-    if( typ_num.find( tr )==typ_num.end() ){
-      typ_num[tr] = 0;
-    }
-    typ_num[tr]++;
-    bool firstTime = true;
-    Trace(c) << "  " << r;
-    Trace(c) << " : { ";
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-    while( !eqc_i.isFinished() ){
-      TNode n = (*eqc_i);
-      if( r!=n ){
-        if( firstTime ){
-          Trace(c) << std::endl;
-          firstTime = false;
-        }
-        Trace(c) << "    " << n << std::endl;
-      }
-      ++eqc_i;
-    }
-    if( !firstTime ){ Trace(c) << "  "; }
-    Trace(c) << "}" << std::endl;
-    ++eqcs_i;
-  }
-  Trace(c) << std::endl;
-  for( std::map< TypeNode, int >::iterator it = typ_num.begin(); it != typ_num.end(); ++it ){
-    Trace(c) << "# eqc for " << it->first << " : " << it->second << std::endl;
-  }
 }
 
 }  // namespace theory

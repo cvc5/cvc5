@@ -102,7 +102,7 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
                                                         Theory::Effort effort,
                                                         int e)
 {
-  options::UserPatMode upMode = d_quantEngine->getInstUserPatMode();
+  options::UserPatMode upMode = getInstUserPatMode();
   if (hasUserPatterns(f) && upMode == options::UserPatMode::TRUST)
   {
     return InstStrategyStatus::STATUS_UNKNOWN;

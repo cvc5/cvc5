@@ -178,18 +178,10 @@ public:
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** get needs check */
- bool getInstWhenNeedsCheck(Theory::Effort e);
- /** get user pat mode */
- options::UserPatMode getInstUserPatMode();
-
-public:
  /** add term to database */
  void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
  void eqNotifyNewClass(TNode t);
- /** debug print equality engine */
- void debugPrintEqualityEngine(const char* c);
  /** get internal representative
   *
   * Choose a term that is equivalent to a in the current context that is the
@@ -329,12 +321,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** inst round counters TODO: make context-dependent? */
-  context::CDO<int> d_ierCounter_c;
-  int d_ierCounter;
-  int d_ierCounter_lc;
-  int d_ierCounterLastLc;
-  int d_inst_when_phase;
   /** has presolve been called */
   context::CDO<bool> d_presolve;
   /** presolve cache */
