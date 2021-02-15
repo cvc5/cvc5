@@ -85,17 +85,6 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   d_extTheory.registerTerm(n);
 }
 
-void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
-{
-  for (const NlLemma& nlem : out)
-  {
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.getId()
-                          << " : " << nlem.d_node << std::endl;
-    d_im.addPendingArithLemma(nlem);
-    d_stats.d_inferences << nlem.getId();
-  }
-}
-
 void NonlinearExtension::processSideEffect(const NlLemma& se)
 {
   d_trSlv.processSideEffect(se);
