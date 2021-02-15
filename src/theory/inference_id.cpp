@@ -70,6 +70,9 @@ const char* toString(InferenceId i)
     case InferenceId::DATATYPES_BISIMILAR: return "BISIMILAR";
     case InferenceId::DATATYPES_CYCLE: return "CYCLE";
 
+    case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
+    case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
+
     case InferenceId::STRINGS_I_NORM_S: return "I_NORM_S";
     case InferenceId::STRINGS_I_CONST_MERGE: return "I_CONST_MERGE";
     case InferenceId::STRINGS_I_CONST_CONFLICT: return "I_CONST_CONFLICT";
