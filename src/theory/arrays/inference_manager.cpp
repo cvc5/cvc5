@@ -37,13 +37,13 @@ InferenceManager::InferenceManager(Theory& t,
 
 bool InferenceManager::assertInference(TNode atom,
                                        bool polarity,
-                                       TNode reason,
                                        InferenceId id,
+                                       TNode reason,
                                        PfRule pfr)
 {
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
                         << (polarity ? Node(atom) : atom.notNode()) << " by "
-                        << reason << "; " << pfr << std::endl;
+                        << reason << "; " << id << std::endl;
   Assert(atom.getKind() == EQUAL);
   // if proofs are enabled, we determine which proof rule to add, otherwise
   // we simply assert the internal fact
@@ -60,10 +60,10 @@ bool InferenceManager::assertInference(TNode atom,
 }
 
 bool InferenceManager::arrayLemma(
-    Node conc, Node exp, InferenceId id, PfRule pfr, LemmaProperty p, bool doCache)
+    Node conc, InferenceId id, Node exp, PfRule pfr, LemmaProperty p, bool doCache)
 {
   Trace("arrays-infer") << "TheoryArrays::arrayLemma: " << conc << " by " << exp
-                        << "; " << pfr << std::endl;
+                        << "; " << id << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   if (isProofEnabled())
   {
