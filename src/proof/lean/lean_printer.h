@@ -30,8 +30,6 @@ namespace proof {
 
 const char* toString(LeanRule id);
 std::ostream& operator<<(std::ostream& out, LeanRule id);
-LeanRule getLeanRule(Node n);
-bool getLeanRule(Node n, LeanRule& lr);
 
 class LeanPrinter
 {
@@ -43,6 +41,8 @@ class LeanPrinter
                     std::shared_ptr<ProofNode> pfn);
 
  private:
+
+  static LeanRule getLeanRule(Node n);
   static std::string kindToLeanString(Kind k);
   static std::string nodeToLeanString(Node n);
   static std::string nodeToLeanTypeStringAux(Node n);
