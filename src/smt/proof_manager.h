@@ -115,7 +115,7 @@ class PfManager
   /** The preprocess proof generator. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
-  std::unique_ptr<smt::ProofPostproccess> d_pfpp;
+  std::unique_ptr<smt::ProofPostprocess> d_pfpp;
   std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
   std::unique_ptr<proof::VeritProofPostprocess> d_vpfpp;
 

@@ -38,7 +38,7 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
       d_rewriteDb(new theory::RewriteDb),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
-      d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
+      d_pfpp(new ProofPostprocess(d_pnm.get(), smte, d_pppg.get())),
       d_lpfpp(nullptr),
       d_vpfpp(nullptr),
       d_finalProof(nullptr)
@@ -137,7 +137,7 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
     getAssertions(as, df, assertions);
     d_lpfpp.reset(new proof::LeanProofPostprocess(d_pnm.get()));
     d_lpfpp->process(fp);
-    CVC4::proof::leanPrinter(out, assertions, fp);
+    CVC4::proof::LeanPrinter::print(out, assertions, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
