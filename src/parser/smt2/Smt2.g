@@ -1672,6 +1672,13 @@ identifier[CVC4::ParseOp& p]
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
+    | TUPLE_PROJECT_TOK RPAREN_TOK
+      {
+        // generate an empty tuple with (_ project) without indices
+        p.d_kind = api::PROJECT;
+        std::vector<uint32_t> indices;
+        p.d_op = SOLVER->mkOp(api::PROJECT, indices);
+      }
     | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
         // we adopt a special syntax (_ project i_1 ... i_n) where
