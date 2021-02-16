@@ -1672,14 +1672,7 @@ identifier[CVC4::ParseOp& p]
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
-    | TUPLE_PROJECT_TOK RPAREN_TOK
-      {
-        // generate an empty tuple with (_ project) without indices
-        p.d_kind = api::PROJECT;
-        std::vector<uint32_t> indices;
-        p.d_op = SOLVER->mkOp(api::PROJECT, indices);
-      }
-    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
+    | TUPLE_PROJECT_TOK numeralList[numerals]
       {
         // we adopt a special syntax (_ project i_1 ... i_n) where
         // i_1, ..., i_n are numerals
@@ -2154,6 +2147,16 @@ nonemptyNumeralList[std::vector<uint64_t>& numerals]
   : ( INTEGER_LITERAL
       { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
     )+
+  ;
+
+/**
+ * Matches a list of numerals (which may be empty)
+ * @param numerals the (empty) vector to house the numerals.
+ */
+numeralList[std::vector<uint64_t>& numerals]
+  : ( INTEGER_LITERAL
+  { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
+  )*
   ;
 
 /**
