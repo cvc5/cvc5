@@ -25,10 +25,6 @@
 #include "proof/lean/lean_rules.h"
 
 namespace CVC4 {
-// static uint32_t getUInt32(TNode n)
-//{
-//  return n.getConst<Rational>().getNumerator().toUnsignedInt();
-//  }
 
 namespace proof {
 

@@ -1,14 +1,15 @@
-#include <iostream>
-
 #include "cvc4_private.h"
+
+#ifndef CVC4__PROOF_LEAN_RULES_H
+#define CVC4__PROOF_LEAN_RULES_H
+
+#include <iostream>
 
 namespace CVC4 {
 namespace proof {
 enum class LeanRule : uint32_t
 {
-  // in what format should I put these lean rules
-  // all the lean rules
-  R0,  // describe it
+  R0,
   R1,
   SMTCONG,
   SMTREFL,
@@ -21,3 +22,5 @@ enum class LeanRule : uint32_t
 };
 }
 }  // namespace CVC4
+
+#endif /* CVC4__PROOF_LEAN_RULES_H */

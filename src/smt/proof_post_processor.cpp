@@ -29,7 +29,7 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
-ProofPostproccessCallback::ProofPostproccessCallback(ProofNodeManager* pnm,
+ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
                                                    SmtEngine* smte,
                                                    ProofGenerator* pppg)
     : d_pnm(pnm), d_smte(smte), d_pppg(pppg), d_wfpm(pnm), d_trrc(pnm)
@@ -39,24 +39,24 @@ ProofPostproccessCallback::ProofPostproccessCallback(ProofNodeManager* pnm,
   d_elimRules.insert(PfRule::ASSUME);
 }
 
-void ProofPostproccessCallback::initializeUpdate()
+void ProofPostprocessCallback::initializeUpdate()
 {
   d_assumpToProof.clear();
   d_wfAssumptions.clear();
 }
 
-void ProofPostproccessCallback::setEliminateRule(PfRule rule)
+void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 {
   d_elimRules.insert(rule);
 }
 
-bool ProofPostproccessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+bool ProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                             bool& continueUpdate)
 {
   return d_elimRules.find(pn->getRule()) != d_elimRules.end();
 }
 
-bool ProofPostproccessCallback::update(Node res,
+bool ProofPostprocessCallback::update(Node res,
                                       PfRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
@@ -120,7 +120,7 @@ bool ProofPostproccessCallback::update(Node res,
   return !ret.isNull();
 }
 
-bool ProofPostproccessCallback::updateInternal(Node res,
+bool ProofPostprocessCallback::updateInternal(Node res,
                                               PfRule id,
                                               const std::vector<Node>& children,
                                               const std::vector<Node>& args,
@@ -130,7 +130,7 @@ bool ProofPostproccessCallback::updateInternal(Node res,
   return update(res, id, children, args, cdp, continueUpdate);
 }
 
-Node ProofPostproccessCallback::eliminateCrowdingLits(
+Node ProofPostprocessCallback::eliminateCrowdingLits(
     const std::vector<Node>& clauseLits,
     const std::vector<Node>& targetClauseLits,
     const std::vector<Node>& children,
@@ -379,7 +379,7 @@ Node ProofPostproccessCallback::eliminateCrowdingLits(
   return lastClause;
 }
 
-Node ProofPostproccessCallback::expandMacros(PfRule id,
+Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
                                             CDProof* cdp)
@@ -973,7 +973,7 @@ Node ProofPostproccessCallback::expandMacros(PfRule id,
   return Node::null();
 }
 
-Node ProofPostproccessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
+Node ProofPostprocessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
 {
   Node tw = SkolemManager::getWitnessForm(t);
   Node eq = t.eqNode(tw);
@@ -991,14 +991,14 @@ Node ProofPostproccessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
   }
   else
   {
-    Assert(false) << "ProofPostproccessCallback::addProofForWitnessForm: failed "
+    Assert(false) << "ProofPostprocessCallback::addProofForWitnessForm: failed "
                      "to add proof for witness form of "
                   << t;
   }
   return eq;
 }
 
-Node ProofPostproccessCallback::addProofForTrans(
+Node ProofPostprocessCallback::addProofForTrans(
     const std::vector<Node>& tchildren, CDProof* cdp)
 {
   size_t tsize = tchildren.size();
@@ -1017,7 +1017,7 @@ Node ProofPostproccessCallback::addProofForTrans(
   return Node::null();
 }
 
-Node ProofPostproccessCallback::addProofForSubsStep(Node var,
+Node ProofPostprocessCallback::addProofForSubsStep(Node var,
                                                    Node subs,
                                                    Node assump,
                                                    CDProof* cdp)
@@ -1037,7 +1037,7 @@ Node ProofPostproccessCallback::addProofForSubsStep(Node var,
   return veqs;
 }
 
-bool ProofPostproccessCallback::addToTransChildren(Node eq,
+bool ProofPostprocessCallback::addToTransChildren(Node eq,
                                                   std::vector<Node>& tchildren,
                                                   bool isSymm)
 {
@@ -1055,7 +1055,7 @@ bool ProofPostproccessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostproccessFinalCallback::ProofPostproccessFinalCallback(
+ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_ruleCount("finalProof::ruleCount"),
       d_totalRuleCount("finalProof::totalRuleCount", 0),
@@ -1070,7 +1070,7 @@ ProofPostproccessFinalCallback::ProofPostproccessFinalCallback(
   smtStatisticsRegistry()->registerStat(&d_numFinalProofs);
 }
 
-ProofPostproccessFinalCallback::~ProofPostproccessFinalCallback()
+ProofPostprocessFinalCallback::~ProofPostprocessFinalCallback()
 {
   smtStatisticsRegistry()->unregisterStat(&d_ruleCount);
   smtStatisticsRegistry()->unregisterStat(&d_totalRuleCount);
@@ -1078,14 +1078,14 @@ ProofPostproccessFinalCallback::~ProofPostproccessFinalCallback()
   smtStatisticsRegistry()->unregisterStat(&d_numFinalProofs);
 }
 
-void ProofPostproccessFinalCallback::initializeUpdate()
+void ProofPostprocessFinalCallback::initializeUpdate()
 {
   d_pedanticFailure = false;
   d_pedanticFailureOut.str("");
   ++d_numFinalProofs;
 }
 
-bool ProofPostproccessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  bool& continueUpdate)
 {
   PfRule r = pn->getRule();
@@ -1126,7 +1126,7 @@ bool ProofPostproccessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return false;
 }
 
-bool ProofPostproccessFinalCallback::wasPedanticFailure(std::ostream& out) const
+bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
 {
   if (d_pedanticFailure)
   {
@@ -1136,7 +1136,7 @@ bool ProofPostproccessFinalCallback::wasPedanticFailure(std::ostream& out) const
   return false;
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
+ProofPostprocess::ProofPostprocess(ProofNodeManager* pnm,
                                    SmtEngine* smte,
                                    ProofGenerator* pppg)
     : d_pnm(pnm),
@@ -1148,9 +1148,9 @@ ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
 {
 }
 
-ProofPostproccess::~ProofPostproccess() {}
+ProofPostprocess::~ProofPostprocess() {}
 
-void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
+void ProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Initialize the callback, which computes necessary static information about
   // how to process, including how to process assumptions in pf.
@@ -1166,17 +1166,17 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   if (wasPedanticFailure)
   {
     AlwaysAssert(!wasPedanticFailure)
-        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << "ProofPostprocess::process: pedantic failure:" << std::endl
         << serr.str();
   }
 }
 
-void ProofPostproccess::setEliminateRule(PfRule rule)
+void ProofPostprocess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
 }
 
-void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
+void ProofPostprocess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
   if (options::proofNewUpdateDebug())
