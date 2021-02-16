@@ -1672,6 +1672,19 @@ identifier[CVC4::ParseOp& p]
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
+    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ project i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = api::PROJECT;
+        std::vector<uint32_t> indices(numerals.size());
+        for(size_t i = 0; i < numerals.size(); ++i)
+        {
+          // convert uint64_t to uint32_t
+          indices[i] = numerals[i];
+        }
+        p.d_op = SOLVER->mkOp(api::PROJECT, indices);
+      }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
         p.d_op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals);
@@ -2279,6 +2292,7 @@ EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
+TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';
