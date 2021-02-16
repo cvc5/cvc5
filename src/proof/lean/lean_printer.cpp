@@ -84,7 +84,7 @@ std::string LeanPrinter::nodeToLeanString(Node n)
   for (size_t i = 0, size = n.getNumChildren(); i < size; ++i)
   {
     s << nodeToLeanString(n[i]);
-    if (i != size - 1) s << " ";
+    if (i != size - 1) { s << " "; };
   }
   s << ")";
   return s.str();
