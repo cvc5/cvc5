@@ -4565,7 +4565,7 @@ Term Solver::tupleProject(const std::vector<uint32_t>& indices, Term t) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   std::vector<Sort> sorts;
   std::vector<Term> terms;
-  for (size_t index : indices)
+  for (uint32_t index : indices)
   {
     Term selectedTerm = tupleSelect(index, t);
     sorts.push_back(selectedTerm.getSort());
