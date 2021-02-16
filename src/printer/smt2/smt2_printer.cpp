@@ -897,6 +897,12 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     break;
   }
+  case kind::PROJECT:
+  {
+    // e.g. ((_ project 2 4 4) tuple)
+    out << "(_ project" << n.getOperator() << ") " << n[0] << ")";
+    return;
+  }
   case kind::CONSTRUCTOR_TYPE:
   {
     out << n[n.getNumChildren()-1];

@@ -20,12 +20,10 @@ namespace CVC4 {
 
 std::ostream& operator<<(std::ostream& out, const ProjectOp& op)
 {
-  out << "(project_op";
   for (const uint32_t& index : op.getIndices())
   {
     out << " " << index;
   }
-  out << ')';
   return out;
 }
 
