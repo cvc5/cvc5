@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 class QuantifiersRegistry;
 
 /** Relevant Domain

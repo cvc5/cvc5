@@ -41,7 +41,7 @@ class QuantifiersRegistry : public QuantifiersUtil
  public:
   QuantifiersRegistry() {}
   ~QuantifiersRegistry() {}
-  /** 
+  /**
    * Register quantifier, which allocates the instantiation constants for q.
    */
   void registerQuantifier(Node q) override;

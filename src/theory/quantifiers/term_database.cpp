@@ -36,7 +36,7 @@ namespace quantifiers {
 
 TermDb::TermDb(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
-              QuantifiersRegistry& qr,
+               QuantifiersRegistry& qr,
                QuantifiersEngine* qe)
     : d_quantEngine(qe),
       d_qstate(qs),
@@ -67,10 +67,10 @@ TermDb::~TermDb(){
 }
 
 void TermDb::registerQuantifier( Node q ) {
-  Assert(q[0].getNumChildren()
-         == d_qreg.getNumInstantiationConstants(q));
-  for( size_t i=0, nvars = q[0].getNumChildren(); i<nvars; i++ ){
-    Node ic = d_qreg.getInstantiationConstant( q, i );
+  Assert(q[0].getNumChildren() == d_qreg.getNumInstantiationConstants(q));
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    Node ic = d_qreg.getInstantiationConstant(q, i);
     setTermInactive( ic );
   }
 }

@@ -111,7 +111,7 @@ void RelevantDomain::compute(){
     FirstOrderModel* fm = d_qe->getModel();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
-      Node icf = d_qreg.getInstConstantBody( q );
+      Node icf = d_qreg.getInstConstantBody(q);
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
       computeRelevantDomain( q, icf, true, true );
     }
@@ -204,12 +204,13 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
 
 void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
   if( n.getKind()==INST_CONSTANT ){
-    Node q = TermUtil::getInstConstAttr( n );
+    Node q = TermUtil::getInstConstAttr(n);
     //merge the RDomains
     unsigned id = n.getAttribute(InstVarNumAttribute());
     Assert(q[0][id].getType() == n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
-    Trace("rel-dom-debug") << " with body : " << d_qreg.getInstConstantBody( q ) << std::endl;
+    Trace("rel-dom-debug") << " with body : " << d_qreg.getInstConstantBody(q)
+                           << std::endl;
     RDomain * rq = getRDomain( q, id );
     if( rf!=rq ){
       rq->merge( rf );

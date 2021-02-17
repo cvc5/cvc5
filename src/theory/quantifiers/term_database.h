@@ -77,7 +77,7 @@ class TermDb : public QuantifiersUtil {
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersInferenceManager& qim,
-              QuantifiersRegistry& qr,
+         QuantifiersRegistry& qr,
          QuantifiersEngine* qe);
   ~TermDb();
   /** presolve (called once per user check-sat) */
