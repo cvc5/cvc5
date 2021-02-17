@@ -449,7 +449,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
                 std::vector<Node> exp;
                 exp.push_back(mem);
                 exp.push_back(mem[1].eqNode(eq_set));
-                d_im.assertInference(nmem, exp, "downc");
+                d_im.assertInference(nmem, InferenceId::UNKNOWN, exp, "downc");
                 if (d_state.isInConflict())
                 {
                   return;
@@ -474,7 +474,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
                   nmem = NodeManager::currentNM()->mkNode(
                       kind::OR, pmem.negate(), nmem);
                 }
-                d_im.assertInference(nmem, exp, "downc");
+                d_im.assertInference(nmem, InferenceId::UNKNOWN, exp, "downc");
               }
             }
           }
@@ -578,7 +578,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                   {
                     Node kk = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
-                    d_im.assertInference(fact, exp, "upc", inferType);
+                    d_im.assertInference(fact, InferenceId::SETS_MEMBER, exp, "upc", inferType);
                     if (d_state.isInConflict())
                     {
                       return;
@@ -605,7 +605,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
                     Node r = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, r);
-                    d_im.assertInference(fact, exp, "upc2");
+                    d_im.assertInference(fact, InferenceId::UNKNOWN, exp, "upc2");
                     if (d_state.isInConflict())
                     {
                       return;
@@ -667,7 +667,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 exp.push_back(v.eqNode(it2.second[1]));
               }
               Node fact = nm->mkNode(kind::MEMBER, it2.second[0], u);
-              d_im.assertInference(fact, exp, "upuniv");
+              d_im.assertInference(fact, InferenceId::UNKNOWN, exp, "upuniv");
               if (d_state.isInConflict())
               {
                 return;
@@ -724,7 +724,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
-    d_im.assertInference(lem, d_true, "diseq", 1);
+    d_im.assertInference(lem, InferenceId::UNKNOWN, d_true, "diseq", 1);
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {

@@ -32,7 +32,7 @@ InferenceManager::InferenceManager(Theory& t,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
+bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int inferType)
 {
   // should we send this fact out as a lemma?
   if ((options::setsInferAsLemmas() && inferType != -1) || inferType == 1)
@@ -46,7 +46,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    addPendingLemma(lem, InferenceId::UNKNOWN);
+    addPendingLemma(lem, id);
     return true;
   }
   Trace("sets-fact") << "Assert fact rec : " << fact << ", exp = " << exp
@@ -70,7 +70,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     for (unsigned i = 0; i < f.getNumChildren(); i++)
     {
       Node factc = fact.getKind() == NOT ? f[i].negate() : f[i];
-      bool tret = assertFactRec(factc, exp, inferType);
+      bool tret = assertFactRec(factc, id, exp, inferType);
       ret = ret || tret;
       if (d_state.isInConflict())
       {
@@ -104,17 +104,18 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    addPendingLemma(lem, InferenceId::UNKNOWN);
+    addPendingLemma(lem, id);
     return true;
   }
   return false;
 }
 void InferenceManager::assertInference(Node fact,
+                                       InferenceId id,
                                        Node exp,
                                        const char* c,
                                        int inferType)
 {
-  if (assertFactRec(fact, exp, inferType))
+  if (assertFactRec(fact, id, exp, inferType))
   {
     Trace("sets-lemma") << "Sets::Lemma : " << fact << " from " << exp << " by "
                         << c << std::endl;
@@ -124,6 +125,7 @@ void InferenceManager::assertInference(Node fact,
 }
 
 void InferenceManager::assertInference(Node fact,
+                                       InferenceId id,
                                        std::vector<Node>& exp,
                                        const char* c,
                                        int inferType)
@@ -132,10 +134,11 @@ void InferenceManager::assertInference(Node fact,
                            : (exp.size() == 1
                                   ? exp[0]
                                   : NodeManager::currentNM()->mkNode(AND, exp));
-  assertInference(fact, exp_n, c, inferType);
+  assertInference(fact, id, exp_n, c, inferType);
 }
 
 void InferenceManager::assertInference(std::vector<Node>& conc,
+                                       InferenceId id,
                                        Node exp,
                                        const char* c,
                                        int inferType)
@@ -144,10 +147,11 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
   {
     Node fact = conc.size() == 1 ? conc[0]
                                  : NodeManager::currentNM()->mkNode(AND, conc);
-    assertInference(fact, exp, c, inferType);
+    assertInference(fact, id, exp, c, inferType);
   }
 }
 void InferenceManager::assertInference(std::vector<Node>& conc,
+                                       InferenceId id,
                                        std::vector<Node>& exp,
                                        const char* c,
                                        int inferType)
@@ -156,7 +160,7 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
                            : (exp.size() == 1
                                   ? exp[0]
                                   : NodeManager::currentNM()->mkNode(AND, exp));
-  assertInference(conc, exp_n, c, inferType);
+  assertInference(conc, id, exp_n, c, inferType);
 }
 
 void InferenceManager::split(Node n, int reqPol)

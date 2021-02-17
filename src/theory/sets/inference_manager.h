@@ -53,19 +53,26 @@ class InferenceManager : public InferenceManagerBuffered
    *
    * The argument c is the name of the inference, which is used for debugging.
    */
-  void assertInference(Node fact, Node exp, const char* c, int inferType = 0);
+  void assertInference(Node fact,
+                       InferenceId id,
+                       Node exp,
+                       const char* c,
+                       int inferType = 0);
   /** same as above, where exp is interpreted as a conjunction */
   void assertInference(Node fact,
+                       InferenceId id,
                        std::vector<Node>& exp,
                        const char* c,
                        int inferType = 0);
   /** same as above, where conc is interpreted as a conjunction */
   void assertInference(std::vector<Node>& conc,
+                       InferenceId id,
                        Node exp,
                        const char* c,
                        int inferType = 0);
   /** same as above, where both exp and conc are interpreted as conjunctions */
   void assertInference(std::vector<Node>& conc,
+                       InferenceId id,
                        std::vector<Node>& exp,
                        const char* c,
                        int inferType = 0);
@@ -94,7 +101,7 @@ class InferenceManager : public InferenceManagerBuffered
    * The argument inferType determines the policy on whether fact is processed
    * as a fact or as a lemma (see assertInference above).
    */
-  bool assertFactRec(Node fact, Node exp, int inferType = 0);
+  bool assertFactRec(Node fact, InferenceId id, Node exp, int inferType = 0);
 };
 
 }  // namespace sets

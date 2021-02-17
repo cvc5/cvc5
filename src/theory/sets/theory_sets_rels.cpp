@@ -1129,11 +1129,11 @@ void TheorySetsRels::check(Theory::Effort level)
       Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
       // we wrap the spurious explanation into a splitting lemma
       Node lem = NodeManager::currentNM()->mkNode(OR, exp.negate(), conc);
-      d_im.assertInference(lem, d_trueNode, c, 1);
+      d_im.assertInference(lem, InferenceId::UNKNOWN, d_trueNode, c, 1);
       return;
     }
     // try to assert it as a fact
-    d_im.assertInference(conc, exp, c);
+    d_im.assertInference(conc, InferenceId::UNKNOWN, exp, c);
   }
 
   bool TheorySetsRels::isRelationKind( Kind k ) {

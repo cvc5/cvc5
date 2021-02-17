@@ -140,6 +140,22 @@ enum class InferenceId
   // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
   SEP_PTO_PROP,
 
+  // cardinality of the universe is at most cardinality of the type
+  SETS_CARD_UNIV_TYPE,
+  // the universe is a superset of every set
+  SETS_UNIV_SUPERSET,
+  // negative members are part of the universe
+  SETS_NEGATIVE_MEMBER,
+  // all sets have non-negative cardinality
+  SETS_CARD_POSITIVE,
+  // two sets have the same cardinality
+  SETS_CARD_EQUAL,
+  // cycle of cardinalities, hence all sets have the same
+  SETS_CARD_CYCLE,
+  // cardinality is at least the number of elements we already know
+  SETS_CARD_MINIMAL,
+  // an element is a member of a set
+  SETS_MEMBER,
   SETS_COMPREHENSION,
   SETS_CONFLICT,
   SETS_EQ_MEM,
