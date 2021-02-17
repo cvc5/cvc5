@@ -404,7 +404,6 @@ Node TermUtil::mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status)
     {
       val_o = Rewriter::rewrite(
           NodeManager::currentNM()->mkNode(BITVECTOR_PLUS, val, offset_val));
-      // TODO : enable?  watch for overflows
     }
   }
   return val_o;

@@ -25,7 +25,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 #include <numeric>  // for std::iota
 
@@ -68,8 +67,8 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
-SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
-    : d_qe(qe), d_tds(d_qe->getTermDatabaseSygus())
+SygusGrammarNorm::SygusGrammarNorm(TermDbSygus* tds)
+    : d_tds(tds)
 {
 }
 
