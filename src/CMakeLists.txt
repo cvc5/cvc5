@@ -726,6 +726,8 @@ libcvc4_add_sources(
   theory/quantifiers/quant_split.h
   theory/quantifiers/quant_util.cpp
   theory/quantifiers/quant_util.h
+  theory/quantifiers/quant_module.cpp
+  theory/quantifiers/quant_module.h
   theory/quantifiers/quantifiers_attributes.cpp
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_inference_manager.cpp

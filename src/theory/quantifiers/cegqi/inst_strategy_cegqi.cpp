@@ -103,7 +103,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     //add cbqi lemma
     //get the counterexample literal
     Node ceLit = getCounterexampleLiteral(q);
-    Node ceBody = d_quantEngine->getTermUtil()->getInstConstantBody( q );
+    Node ceBody = d_qreg.getInstConstantBody( q );
     if( !ceBody.isNull() ){
       //add counterexample lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );

@@ -71,7 +71,8 @@ void RelevantDomain::RDomain::removeRedundantTerms(QuantifiersState& qs)
 
 
 
-RelevantDomain::RelevantDomain( QuantifiersEngine* qe ) : d_qe( qe ){
+RelevantDomain::RelevantDomain( QuantifiersEngine* qe,
+                    QuantifiersRegistry& qr ) : d_qe( qe ){
    d_is_computed = false;
 }
 

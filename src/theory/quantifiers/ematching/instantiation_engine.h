@@ -21,7 +21,7 @@
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/quant_relevance.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 
 namespace CVC4 {
 namespace theory {

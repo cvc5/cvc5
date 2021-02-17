@@ -59,9 +59,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_presolve_cache(qstate.getUserContext())
 {
   //---- utilities
-  // term util must come before the other utilities
+  // quantifiers registry must come before the other utilities
   d_util.push_back(&d_qreg);
-  d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
 
   if (options::sygus() || options::sygusInst())
