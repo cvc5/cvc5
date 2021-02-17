@@ -28,6 +28,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
@@ -77,6 +78,8 @@ class QuantifiersEngine {
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */

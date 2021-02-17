@@ -19,7 +19,6 @@
 
 #include "context/cdlist.h"
 #include "expr/attribute.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
@@ -43,6 +42,8 @@ typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
 namespace quantifiers {
 
 class TermDb;
+class QuantifiersState;
+class QuantifiersRegistry;
 
 namespace fmcheck {
   class FirstOrderModelFmc;
@@ -57,6 +58,7 @@ class FirstOrderModel : public TheoryModel
  public:
   FirstOrderModel(QuantifiersEngine* qe,
                   QuantifiersState& qs,
+                  QuantifiersRegistry& qr,
                   std::string name);
 
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
@@ -134,6 +136,8 @@ class FirstOrderModel : public TheoryModel
  protected:
   /** quant engine */
   QuantifiersEngine* d_qe;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 
@@ -203,6 +207,7 @@ class FirstOrderModelFmc : public FirstOrderModel
  public:
   FirstOrderModelFmc(QuantifiersEngine* qe,
                      QuantifiersState& qs,
+                     QuantifiersRegistry& qr,
                      std::string name);
   ~FirstOrderModelFmc() override;
   FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }

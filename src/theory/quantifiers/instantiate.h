@@ -33,7 +33,9 @@ class QuantifiersEngine;
 namespace quantifiers {
 
 class TermDb;
-class TermUtil;
+class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
 
 /** Instantiation rewriter
  *
@@ -91,6 +93,7 @@ class Instantiate : public QuantifiersUtil
   Instantiate(QuantifiersEngine* qe,
               QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -293,12 +296,12 @@ class Instantiate : public QuantifiersUtil
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */
   TermDb* d_term_db;
-  /** cache of term util for quantifiers engine */
-  TermUtil* d_term_util;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 

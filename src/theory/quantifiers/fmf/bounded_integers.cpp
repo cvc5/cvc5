@@ -546,7 +546,7 @@ void BoundedIntegers::getBoundVarIndices(Node q,
   {
     for (const Node& v : it->second)
     {
-      indices.push_back(d_quantEngine->getTermUtil()->getVariableNum(q, v));
+      indices.push_back(TermUtil::getVariableNum(q, v));
     }
   }
 }
