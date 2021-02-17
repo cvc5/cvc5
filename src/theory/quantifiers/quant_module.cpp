@@ -67,11 +67,6 @@ quantifiers::TermDb* QuantifiersModule::getTermDatabase() const
   return d_quantEngine->getTermDatabase();
 }
 
-quantifiers::TermUtil* QuantifiersModule::getTermUtil() const
-{
-  return d_quantEngine->getTermUtil();
-}
-
 quantifiers::QuantifiersState& QuantifiersModule::getState()
 {
   return d_qstate;

@@ -114,33 +114,6 @@ public:
                                                Node n,
                                                std::vector<Node>& vars);
 
-public:
-  
-//general utilities
-  // TODO #1216 : promote these?
- private:
-  /** cache for getTypeValue */
-  std::unordered_map<TypeNode,
-                     std::unordered_map<int, Node>,
-                     TypeNodeHashFunction>
-      d_type_value;
-  /** cache for getTypeMaxValue */
-  std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_max_value;
-  /** cache for getTypeValueOffset */
-  std::unordered_map<TypeNode,
-                     std::unordered_map<Node,
-                                        std::unordered_map<int, Node>,
-                                        NodeHashFunction>,
-                     TypeNodeHashFunction>
-      d_type_value_offset;
-  /** cache for status of getTypeValueOffset*/
-  std::unordered_map<TypeNode,
-                     std::unordered_map<Node,
-                                        std::unordered_map<int, int>,
-                                        NodeHashFunction>,
-                     TypeNodeHashFunction>
-      d_type_value_offset_status;
-
  public:
   /** contains uninterpreted constant */
   static bool containsUninterpretedConstant( Node n );
@@ -205,35 +178,14 @@ public:
    *   <k>( ... t_{arg-1}, t_{arg+1}...)
    * always holds.
    */
-  bool isIdempotentArg(Node n, Kind ik, int arg);
+  static bool isIdempotentArg(Node n, Kind ik, int arg);
 
   /** is singular arg
    * Returns true if
    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = ret
    * always holds for some constant ret, which is returned by this function.
    */
-  Node isSingularArg(Node n, Kind ik, unsigned arg);
-
-  /** get type value
-   * This gets the Node that represents value val for Type tn
-   * This is used to get simple values, e.g. -1,0,1,
-   * in a uniform way per type.
-   */
-  Node getTypeValue(TypeNode tn, int val);
-
-  /** get type value offset
-   * Returns the value of ( val + getTypeValue( tn, offset ) ),
-   * where + is the additive operator for the type.
-   * Stores the status (0: success, -1: failure) in status.
-   */
-  Node getTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
-
-  /** get the "max" value for type tn
-   * For example,
-   *   the max value for Bool is true,
-   *   the max value for BitVector is 1..1.
-   */
-  Node getTypeMaxValue(TypeNode tn);
+  static Node isSingularArg(Node n, Kind ik, unsigned arg);
 
   /** make value, static version of get value */
   static Node mkTypeValue(TypeNode tn, int val);

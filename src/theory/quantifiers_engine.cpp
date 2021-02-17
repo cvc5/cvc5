@@ -44,7 +44,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
-      d_term_util(new quantifiers::TermUtil),
       d_term_db(new quantifiers::TermDb(qstate, qim, d_qreg, this)),
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
@@ -164,10 +163,6 @@ quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_sygus_tdb.get();
-}
-quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
-{
-  return d_term_util.get();
 }
 quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
 {
