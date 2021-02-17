@@ -12,9 +12,10 @@
  ** \brief Implementation of first order model for full model check
  **/
 
-#include "theory/quantifiers/first_order_model_fmc.h"
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
 #include "theory/rewriter.h"
+#include "theory/quantifiers/fmf/full_model_check.h"
 
 using namespace CVC4::kind;
 
@@ -93,7 +94,8 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   Def * odef = d_models[op];
   for (size_t i=0, ncond=odef->d_cond.size(); i<ncond; i++)
   {
-    Node v = odef->d_value[(ncond-1)-i];
+    size_t ii = (ncond-1)-i;
+    Node v = odef->d_value[ii];
     Trace("fmc-model-func") << "Value is : " << v << std::endl;
     Assert(v.isConst());
     if( curr.isNull() ){
@@ -101,7 +103,7 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
       curr = v;
     }else{
       //make the condition
-      Node cond = odef->d_cond[i];
+      Node cond = odef->d_cond[ii];
       Trace("fmc-model-func") << "...cond : " << cond << std::endl;
       std::vector< Node > children;
       for( size_t j=0, nchild = cond.getNumChildren(); j<nchild; j++) {
