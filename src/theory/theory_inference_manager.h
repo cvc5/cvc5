@@ -70,8 +70,11 @@ class TheoryInferenceManager
   /**
    * Constructor, note that state should be the official state of theory t.
    */
-  TheoryInferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
-  virtual ~TheoryInferenceManager() {}
+  TheoryInferenceManager(Theory& t,
+                         TheoryState& state,
+                         ProofNodeManager* pnm,
+                         const std::string& name);
+  virtual ~TheoryInferenceManager();
   /**
    * Set equality engine, ee is a pointer to the official equality engine
    * of theory.
@@ -432,6 +435,8 @@ class TheoryInferenceManager
   uint32_t d_numCurrentLemmas;
   /** The number of internal facts added since the last call to reset. */
   uint32_t d_numCurrentFacts;
+  /** Statistics for the inference ids sent via this inference manager. */
+  IntegralHistogramStat<InferenceId> d_inferenceStats;
 };
 
 }  // namespace theory
