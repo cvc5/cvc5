@@ -15,6 +15,7 @@
 #include "theory/datatypes/sygus_simple_sym.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -24,7 +25,7 @@ namespace theory {
 namespace datatypes {
 
 SygusSimpleSymBreak::SygusSimpleSymBreak(QuantifiersEngine* qe)
-    : d_tds(qe->getTermDatabaseSygus()), d_tutil(qe->getTermUtil())
+    : d_tds(qe->getTermDatabaseSygus())
 {
 }
 
@@ -430,7 +431,7 @@ bool SygusSimpleSymBreak::considerConst(
   {
     Kind ok;
     int offset;
-    if (TermUtil::hasOffsetArg(pk, arg, offset, ok))
+    if (quantifiers::TermUtil::hasOffsetArg(pk, arg, offset, ok))
     {
       Trace("sygus-sb-simple-debug")
           << pk << " has offset arg " << ok << " " << offset << std::endl;
@@ -443,7 +444,7 @@ bool SygusSimpleSymBreak::considerConst(
         if (d_tds->isTypeMatch(pdt[ok_arg], pdt[arg]))
         {
           int status;
-          Node co = TermUtil::mkTypeValueOffset(c.getType(), c, offset, status);
+          Node co = quantifiers::TermUtil::mkTypeValueOffset(c.getType(), c, offset, status);
           Trace("sygus-sb-simple-debug")
               << c << " with offset " << offset << " is " << co
               << ", status=" << status << std::endl;
@@ -476,7 +477,7 @@ bool SygusSimpleSymBreak::considerConst(
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk
                           << ", arg = " << arg << "?" << std::endl;
-  if (TermUtil::isIdempotentArg(c, pk, arg))
+  if (quantifiers::TermUtil::isIdempotentArg(c, pk, arg))
   {
     if (pdt[pc].getNumArgs() == 2)
     {
@@ -493,7 +494,7 @@ bool SygusSimpleSymBreak::considerConst(
   }
   else
   {
-    Node sc = TermUtil::isSingularArg(c, pk, arg);
+    Node sc = quantifiers::TermUtil::isSingularArg(c, pk, arg);
     if (!sc.isNull())
     {
       if (pti.hasConst(sc))
@@ -509,9 +510,9 @@ bool SygusSimpleSymBreak::considerConst(
   {
     ReqTrie rt;
     Assert(rt.empty());
-    Node max_c = TermUtil::mkTypeMaxValue(c.getType());
-    Node zero_c = TermUtil::mkTypeValue(c.getType(), 0);
-    Node one_c = TermUtil::mkTypeValue(c.getType(), 1);
+    Node max_c = quantifiers::TermUtil::mkTypeMaxValue(c.getType());
+    Node zero_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 0);
+    Node one_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 1);
     if (pk == XOR || pk == BITVECTOR_XOR)
     {
       if (c == max_c)

@@ -50,13 +50,6 @@ typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttri
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 
-class QuantifiersEngine;
-
-namespace inst{
-  class Trigger;
-  class HigherOrderTrigger;
-}
-
 namespace quantifiers {
 
 class TermDatabase;
@@ -65,14 +58,8 @@ class TermDatabase;
 class TermUtil
 {
  public:
-  TermUtil();
-  ~TermUtil();
-  /** boolean terms */
-  Node d_true;
-  Node d_false;
-  /** constants */
-  Node d_zero;
-  Node d_one;
+  TermUtil() {}
+  ~TermUtil() {}
 
   // for inst constant
  public:

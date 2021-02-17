@@ -35,18 +35,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermUtil::TermUtil()
-{
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-}
-
-TermUtil::~TermUtil(){
-
-}
-
 size_t TermUtil::getVariableNum(Node q, Node v)
 {
   Node::iterator it = std::find(q[0].begin(), q[0].end(), v);
