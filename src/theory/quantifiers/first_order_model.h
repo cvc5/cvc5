@@ -189,38 +189,6 @@ class FirstOrderModel : public TheoryModel
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
-namespace fmcheck {
-
-class Def;
-
-class FirstOrderModelFmc : public FirstOrderModel
-{
-  friend class FullModelChecker;
-
- private:
-  /** models for UF */
-  std::map<Node, Def * > d_models;
-  std::map<TypeNode, Node > d_type_star;
-  /** get current model value */
-  void processInitializeModelForTerm(Node n) override;
-
- public:
-  FirstOrderModelFmc(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
-                     QuantifiersRegistry& qr,
-                     std::string name);
-  ~FirstOrderModelFmc() override;
-  FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
-  // initialize the model
-  void processInitialize(bool ispre) override;
-  Node getFunctionValue(Node op, const char* argPrefix );
-
-  bool isStar(Node n);
-  Node getStar(TypeNode tn);
-};/* class FirstOrderModelFmc */
-
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
