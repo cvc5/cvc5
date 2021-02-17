@@ -25,15 +25,6 @@ InferInfo::InferInfo(InferenceId id): TheoryInference(id), d_sim(nullptr), d_idR
 {
 }
 
-bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
-{
-  if (asLemma)
-  {
-    return d_sim->processLemma(*this);
-  }
-  return d_sim->processFact(*this);
-}
-
 TrustNode InferInfo::processLemma(LemmaProperty& p)
 {
   return d_sim->processLemma(*this, p);
@@ -41,9 +32,9 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
 
 Node InferInfo::processFact(std::vector<Node>& exp, ProofGenerator*& pg)
 {
-  for (const Node& ec : ii.d_premises)
+  for (const Node& ec : d_premises)
   {
-    utils::flattenOp(AND, ec, exp);
+    utils::flattenOp(kind::AND, ec, exp);
   }
   d_sim->processFact(*this, pg);
   return d_conc;

@@ -1179,7 +1179,7 @@ bool SortModel::checkLastCall()
         Node lem = NodeManager::currentNM()->mkNode(
             OR, cl, NodeManager::currentNM()->mkAnd(force_cl));
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
-        d_im.lemma(lem, InferenceId::UF_CARD_ENFORCE_NEGATIVE, LemmaProperty::NONE, false);
+        d_im.lemma(lem, InferenceId::UF_CARD_ENFORCE_NEGATIVE, LemmaProperty::NO_CACHE);
         return false;
       }
     }
@@ -1399,7 +1399,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
           eqv_lit = lit.eqNode( eqv_lit );
           Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
-          d_im.lemma(eqv_lit, InferenceId::UF_CARD_EQUIV, LemmaProperty::NONE, false);
+          d_im.lemma(eqv_lit, InferenceId::UF_CARD_EQUIV, LemmaProperty::NO_CACHE);
           d_card_assertions_eqv_lemma[lit] = true;
         }
       }
@@ -1528,7 +1528,7 @@ void CardinalityExtension::check(Theory::Effort level)
                     Node eq = Rewriter::rewrite( a.eqNode( b ) );
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
-                    d_im.lemma(lem, InferenceId::UF_CARD_SPLIT, LemmaProperty::NONE, false);
+                    d_im.lemma(lem, InferenceId::UF_CARD_SPLIT, LemmaProperty::NO_CACHE);
                     d_im.requirePhase(eq, true);
                     type_proc[tn] = true;
                     break;
