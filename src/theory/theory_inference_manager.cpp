@@ -37,17 +37,23 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_numConflicts(0),
       d_numCurrentLemmas(0),
       d_numCurrentFacts(0),
-      d_inferenceStats(name + "::inferenceIds")
+      d_conflictIdStats(name + "::inferencesConflict"),
+      d_factIdStats(name + "::inferencesFact"),
+      d_lemmaIdStats(name + "::inferencesLemma")
 {
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
-  smtStatisticsRegistry()->registerStat(&d_inferenceStats);
+  smtStatisticsRegistry()->registerStat(&d_conflictIdStats);
+  smtStatisticsRegistry()->registerStat(&d_factIdStats);
+  smtStatisticsRegistry()->registerStat(&d_lemmaIdStats);
 }
 
 TheoryInferenceManager::~TheoryInferenceManager()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceStats);
+  smtStatisticsRegistry()->unregisterStat(&d_conflictIdStats);
+  smtStatisticsRegistry()->unregisterStat(&d_factIdStats);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmaIdStats);
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
@@ -98,7 +104,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
   if (!d_theoryState.isInConflict())
   {
-    d_inferenceStats << id;
+    d_conflictIdStats << id;
     d_theoryState.notifyInConflict();
     d_out.conflict(conf);
     ++d_numConflicts;
@@ -109,7 +115,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   if (!d_theoryState.isInConflict())
   {
-    d_inferenceStats << id;
+    d_conflictIdStats << id;
     d_theoryState.notifyInConflict();
     d_out.trustedConflict(tconf);
   }
@@ -122,7 +128,6 @@ void TheoryInferenceManager::conflictExp(InferenceId id,
 {
   if (!d_theoryState.isInConflict())
   {
-    d_inferenceStats << id;
     // make the trust node
     TrustNode tconf = mkConflictExp(pfr, exp, args);
     // send it on the output channel
@@ -150,7 +155,6 @@ void TheoryInferenceManager::conflictExp(InferenceId id,
 {
   if (!d_theoryState.isInConflict())
   {
-    d_inferenceStats << id;
     // make the trust node
     TrustNode tconf = mkConflictExp(exp, pg);
     // send it on the output channel
@@ -243,7 +247,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
       return false;
     }
   }
-  d_inferenceStats << id;
+  d_lemmaIdStats << id;
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
@@ -332,7 +336,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 InferenceId id,
                                                 TNode exp)
 {
-  d_inferenceStats << id;
+  d_factIdStats << id;
   return processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
@@ -344,7 +348,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& args)
 {
   Assert(pfr != PfRule::UNKNOWN);
-  d_inferenceStats << id;
+  d_factIdStats << id;
   return processInternalFact(atom, pol, pfr, exp, args, nullptr);
 }
 
@@ -355,7 +359,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 ProofGenerator* pg)
 {
   Assert(pg != nullptr);
-  d_inferenceStats << id;
+  d_factIdStats << id;
   return processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
 }
 
