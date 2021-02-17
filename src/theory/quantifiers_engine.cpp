@@ -143,6 +143,12 @@ QuantifiersEngine::getInferenceManager()
 {
   return d_qim;
 }
+
+quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
+{
+  return d_qreg;
+}
+
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
