@@ -40,8 +40,7 @@ namespace quantifiers {
 class RelevantDomain : public QuantifiersUtil
 {
  public:
-  RelevantDomain(QuantifiersEngine* qe,
-                    QuantifiersRegistry& qr);
+  RelevantDomain(QuantifiersEngine* qe, QuantifiersRegistry& qr);
   virtual ~RelevantDomain();
   /** Reset. */
   bool reset(Theory::Effort e) override;

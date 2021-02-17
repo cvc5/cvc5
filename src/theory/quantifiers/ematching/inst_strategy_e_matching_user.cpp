@@ -105,8 +105,13 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     std::vector<std::vector<Node> >& ugw = d_user_gen_wait[q];
     for (size_t i = 0, usize = ugw.size(); i < usize; i++)
     {
-      Trigger* t = Trigger::mkTrigger(
-          d_quantEngine, d_qim, d_qreg, q, ugw[i], true, Trigger::TR_RETURN_NULL);
+      Trigger* t = Trigger::mkTrigger(d_quantEngine,
+                                      d_qim,
+                                      d_qreg,
+                                      q,
+                                      ugw[i],
+                                      true,
+                                      Trigger::TR_RETURN_NULL);
       if (t)
       {
         d_user_gen[q].push_back(t);

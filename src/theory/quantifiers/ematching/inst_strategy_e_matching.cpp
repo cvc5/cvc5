@@ -62,7 +62,7 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
     QuantifiersEngine* qe,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
-                                         QuantifiersRegistry& qr,
+    QuantifiersRegistry& qr,
     QuantRelevance* qrlv)
     : InstStrategy(qe, qs, qim, qr), d_quant_rel(qrlv)
 {

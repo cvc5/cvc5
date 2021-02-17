@@ -164,7 +164,7 @@ class Trigger {
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
                             quantifiers::QuantifiersInferenceManager& qim,
-          quantifiers::QuantifiersRegistry& qr,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -173,7 +173,7 @@ class Trigger {
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
                             quantifiers::QuantifiersInferenceManager& qim,
-          quantifiers::QuantifiersRegistry& qr,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             Node n,
                             bool keepAll = true,

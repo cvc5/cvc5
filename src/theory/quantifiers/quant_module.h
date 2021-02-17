@@ -33,16 +33,17 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
-  class TermDb;
-  class TermUtil;
-}
+class TermDb;
+class TermUtil;
+}  // namespace quantifiers
 
 /** QuantifiersModule class
-*
-* This is the virtual class for defining subsolvers of the quantifiers theory.
-* It has a similar interface to a Theory object.
-*/
-class QuantifiersModule {
+ *
+ * This is the virtual class for defining subsolvers of the quantifiers theory.
+ * It has a similar interface to a Theory object.
+ */
+class QuantifiersModule
+{
  public:
   /** effort levels for quantifiers modules check */
   enum QEffort
@@ -64,7 +65,7 @@ class QuantifiersModule {
                     quantifiers::QuantifiersInferenceManager& qim,
                     quantifiers::QuantifiersRegistry& qr,
                     QuantifiersEngine* qe);
-  virtual ~QuantifiersModule(){}
+  virtual ~QuantifiersModule() {}
   /** Presolve.
    *
    * Called at the beginning of check-sat call.
@@ -75,7 +76,10 @@ class QuantifiersModule {
    * Returns true if this module wishes a call to be made
    * to check(e) during QuantifiersEngine::check(e).
    */
-  virtual bool needsCheck( Theory::Effort e ) { return e>=Theory::EFFORT_LAST_CALL; }
+  virtual bool needsCheck(Theory::Effort e)
+  {
+    return e >= Theory::EFFORT_LAST_CALL;
+  }
   /** Needs model.
    *
    * Whether this module needs a model built during a
@@ -89,7 +93,7 @@ class QuantifiersModule {
    *
    * Called at the beginning of QuantifiersEngine::check(e).
    */
-  virtual void reset_round( Theory::Effort e ){}
+  virtual void reset_round(Theory::Effort e) {}
   /** Check.
    *
    *   Called during QuantifiersEngine::check(e) depending
@@ -113,7 +117,7 @@ class QuantifiersModule {
    * "sat", unless
    * we are incomplete for other reasons.
    */
-  virtual bool checkCompleteFor( Node q ) { return false; }
+  virtual bool checkCompleteFor(Node q) { return false; }
   /** Check ownership
    *
    * Called once for new quantified formulas that are registered by the
@@ -172,9 +176,9 @@ class QuantifiersModule {
   quantifiers::QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& d_qreg;
-};/* class QuantifiersModule */
+}; /* class QuantifiersModule */
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANT_UTIL_H */

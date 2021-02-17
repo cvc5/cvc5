@@ -103,7 +103,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     //add cbqi lemma
     //get the counterexample literal
     Node ceLit = getCounterexampleLiteral(q);
-    Node ceBody = d_qreg.getInstConstantBody( q );
+    Node ceBody = d_qreg.getInstConstantBody(q);
     if( !ceBody.isNull() ){
       //add counterexample lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
@@ -379,8 +379,8 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;
-  Node ppLem = d_qstate.getValuation().getPreprocessedTerm(
-      lem, skAsserts, skolems);
+  Node ppLem =
+      d_qstate.getValuation().getPreprocessedTerm(lem, skAsserts, skolems);
   std::vector<Node> lemp{ppLem};
   lemp.insert(lemp.end(), skAsserts.begin(), skAsserts.end());
   ppLem = NodeManager::currentNM()->mkAnd(lemp);

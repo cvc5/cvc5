@@ -21,17 +21,17 @@
 #include <map>
 #include <vector>
 
-#include "theory/theory.h"
 #include "expr/node.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
 
 /** Quantifiers utility
-*
-* This is a lightweight version of a quantifiers module that does not implement
-* methods for checking satisfiability.
-*/
+ *
+ * This is a lightweight version of a quantifiers module that does not implement
+ * methods for checking satisfiability.
+ */
 class QuantifiersUtil {
 public:
   QuantifiersUtil(){}
