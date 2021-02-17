@@ -67,10 +67,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
-SygusGrammarNorm::SygusGrammarNorm(TermDbSygus* tds)
-    : d_tds(tds)
-{
-}
+SygusGrammarNorm::SygusGrammarNorm(TermDbSygus* tds) : d_tds(tds) {}
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
     : d_tn(src_tn),

@@ -33,7 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegGrammarConstructor::CegGrammarConstructor(TermDbSygus* tds, 
+CegGrammarConstructor::CegGrammarConstructor(TermDbSygus* tds,
                                              SynthConjecture* p)
     : d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
 {
