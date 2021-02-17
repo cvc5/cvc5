@@ -60,7 +60,7 @@ bool InferenceManager::assertInference(TNode atom,
 }
 
 bool InferenceManager::arrayLemma(
-    Node conc, InferenceId id, Node exp, PfRule pfr, LemmaProperty p, bool doCache)
+    Node conc, InferenceId id, Node exp, PfRule pfr, LemmaProperty p)
 {
   Trace("arrays-infer") << "TheoryArrays::arrayLemma: " << conc << " by " << exp
                         << "; " << id << std::endl;
@@ -73,11 +73,11 @@ bool InferenceManager::arrayLemma(
     convert(pfr, conc, exp, children, args);
     // make the trusted lemma based on the eager proof generator and send
     TrustNode tlem = d_lemmaPg->mkTrustNode(conc, pfr, children, args);
-    return trustedLemma(tlem, id, p, doCache);
+    return trustedLemma(tlem, id, p);
   }
   // send lemma without proofs
   Node lem = nm->mkNode(IMPLIES, exp, conc);
-  return lemma(lem, id, p, doCache);
+  return lemma(lem, id, p);
 }
 
 void InferenceManager::convert(PfRule& id,

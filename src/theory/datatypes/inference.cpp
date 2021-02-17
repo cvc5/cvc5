@@ -61,16 +61,15 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   return false;
 }
 
-bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
+TrustNode processLemma(LemmaProperty& p)
 {
-  // Check to see if we have to communicate it to the rest of the system.
-  // The flag asLemma is true when the inference was marked that it must be
-  // sent as a lemma.
-  if (asLemma)
-  {
-    return d_im->processDtLemma(d_conc, d_exp, getId());
-  }
-  return d_im->processDtFact(d_conc, d_exp, getId());
+  // we don't use lemma property p currently, as it is always default
+  return d_im->processDtLemma(d_conc, d_exp, getId());
+}
+
+Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg)
+{
+  return d_im->processDtFact(d_conc, d_exp, getId(), exp, pg);
 }
 
 }  // namespace datatypes

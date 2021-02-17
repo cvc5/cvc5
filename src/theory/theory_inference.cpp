@@ -29,7 +29,7 @@ SimpleTheoryLemma::SimpleTheoryLemma(InferenceId id,
 {
 }
 
-TrustNode SimpleTheoryLemma::processLemma(LemmaProperty& p, bool& doCache)
+TrustNode SimpleTheoryLemma::processLemma(LemmaProperty& p)
 {
   Assert(!d_node.isNull());
   p = d_property;
@@ -44,7 +44,7 @@ SimpleTheoryInternalFact::SimpleTheoryInternalFact(InferenceId id,
 {
 }
 
-Node SimpleTheoryInternalFact::processInternalFact(std::vector<Node>& exp, ProofGenerator * pg)
+Node SimpleTheoryInternalFact::processInternalFact(std::vector<Node>& exp, ProofGenerator *& pg)
 {
   exp.push_back(d_exp);
   pg = d_pg;

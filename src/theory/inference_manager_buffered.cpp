@@ -95,18 +95,15 @@ void InferenceManagerBuffered::addPendingPhaseRequirement(Node lit, bool pol)
 void InferenceManagerBuffered::doPendingFacts()
 {
   size_t i = 0;
-  std::vector<Node> exp;
-  ProofGenerator * pg;
-  Node fact;
-  bool pol;
-  TNode atom;
   while (!d_theoryState.isInConflict() && i < d_pendingFact.size())
   {
     // process this fact
-    exp.clear();
-    fact = d_pendingFact[i]->process(exp, pg);
-    pol = lit.getKind()!=NOT;
-    atom = pol ? lit : lit[0];
+    std::vector<Node> exp;
+    ProofGenerator * pg = nullptr;
+    Node fact = d_pendingFact[i]->process(exp, pg);
+    Assert (!fact.isNull());
+    bool pol = fact.getKind()!=NOT;
+    TNode atom = pol ? fact : fact[0];
     // no double negation or conjunctive conclusions  TODO: revisit?
     Assert(atom.getKind() != NOT && atom.getKind() != AND);
     // assert the internal fact, which notice may enqueue more pending facts in
@@ -126,13 +123,15 @@ void InferenceManagerBuffered::doPendingLemmas()
   }
   d_processingPendingLemmas = true;
   size_t i = 0;
-  TrustNode lem;
-  LemmaProperty p;
   while (i < d_pendingLem.size())
   {
-    // process this lemma, which notice may enqueue more pending lemmas in this
+    // process this lemma
+    LemmaProperty p = LemmaProperty::NONE;
+    TrustNode lem = d_pendingLem[i]->process(p);
+    Assert (!lem.isNull());
+    // send the lemma, which notice may enqueue more pending lemmas in this
     // loop, or clear the lemmas.
-    lem = d_pendingLem[i]->process(p);
+    trustedLemma(lem, d_pendingLem[i]->getId(), p);
     i++;
   }
   d_pendingLem.clear();

@@ -302,7 +302,7 @@ void InferenceManager::processConflict(const InferInfo& ii)
   trustedConflict(tconf, ii.getId());
 }
 
-bool InferenceManager::processFact(InferInfo& ii)
+TrustNode InferenceManager::processFact(InferInfo& ii)
 {
   // Get the fact(s). There are multiple facts if the conclusion is an AND
   std::vector<Node> facts;
@@ -360,7 +360,7 @@ bool InferenceManager::processFact(InferInfo& ii)
   return ret;
 }
 
-bool InferenceManager::processLemma(InferInfo& ii)
+TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
 {
   Assert(!ii.isTrivial());
   Assert(!ii.isConflict());
@@ -408,7 +408,8 @@ bool InferenceManager::processLemma(InferInfo& ii)
       d_termReg.registerTermAtomic(n, sks.first);
     }
   }
-  LemmaProperty p = LemmaProperty::NONE;
+  // we don't cache lemmas
+  p = LemmaProperty::NO_CACHE;
   if (ii.getId() == InferenceId::STRINGS_REDUCTION)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;
@@ -419,8 +420,7 @@ bool InferenceManager::processLemma(InferInfo& ii)
                          << ii.getId() << std::endl;
   ++(d_statistics.d_lemmasInfer);
 
-  // call the trusted lemma, without caching
-  return trustedLemma(tlem, ii.getId(), p, false);
+  return tlem;
 }
 
 }  // namespace strings

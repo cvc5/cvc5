@@ -20,39 +20,25 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-InferInfo::InferInfo(InferenceId id) : TheoryInference(id) {}
+InferInfo::InferInfo(InferenceManager* im, InferenceId id) : TheoryInference(id), d_im(im) {}
 
-bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
+TrustNode InferInfo::processLemma(LemmaProperty& p)
 {
-  Node lemma = d_conclusion;
-  if (d_premises.size() >= 2)
-  {
-    Node andNode = NodeManager::currentNM()->mkNode(kind::AND, d_premises);
-    lemma = andNode.impNode(lemma);
-  }
-  else if (d_premises.size() == 1)
-  {
-    lemma = d_premises[0].impNode(lemma);
-  }
-  if (asLemma)
-  {
-    TrustNode trustedLemma = TrustNode::mkTrustLemma(lemma, nullptr);
-    im->trustedLemma(trustedLemma, getId());
-  }
-  else
-  {
-    Unimplemented();
-  }
+  NodeManager * nm = NodeManager::currentNM();
+  Node pnode = nm->mkNode(kind::AND, d_premises);
+  Node lemma = nm->mkNode(kind::IMPLIES, pnode, d_conclusion);
+  
+  // send lemmas corresponding to the skolems introduced
   for (const auto& pair : d_skolems)
   {
     Node n = pair.first.eqNode(pair.second);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
-    im->trustedLemma(trustedLemma, getId());
+    d_im->trustedLemma(trustedLemma, getId());
   }
 
   Trace("bags::InferInfo::process") << (*this) << std::endl;
 
-  return true;
+  return TrustNode::mkTrustLemma(lemma, nullptr);
 }
 
 bool InferInfo::isTrivial() const

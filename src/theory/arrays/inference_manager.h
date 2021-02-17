@@ -47,15 +47,13 @@ class InferenceManager : public TheoryInferenceManager
    */
   bool assertInference(TNode atom, bool polarity, InferenceId id, TNode reason, PfRule pfr);
   /**
-   * Send lemma (exp => conc) based on proof rule id with properties p. Cache
-   * the lemma if doCache is true.
+   * Send lemma (exp => conc) based on proof rule id with properties p.
    */
   bool arrayLemma(Node conc,
                   InferenceId id,
                   Node exp,
                   PfRule pfr,
-                  LemmaProperty p = LemmaProperty::NONE,
-                  bool doCache = false);
+                  LemmaProperty p = LemmaProperty::NO_CACHE);
 
  private:
   /**

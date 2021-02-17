@@ -85,15 +85,13 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Process datatype inference as a lemma
    */
-  bool processDtLemma(Node conc,
+  TrustNode processDtLemma(Node conc,
                       Node exp,
-                      InferenceId id,
-                      LemmaProperty p = LemmaProperty::NONE,
-                      bool doCache = true);
+                      InferenceId id);
   /**
    * Process datatype inference as a fact
    */
-  bool processDtFact(Node conc, Node exp, InferenceId id);
+  Node processDtFact(Node conc, Node exp, InferenceId id, std::vector<Node>& expv, ProofGenerator *& pg);
   /**
    * Helper function for the above methods. Returns the conclusion, which
    * may be modified so that it is compatible with proofs. If proofs are

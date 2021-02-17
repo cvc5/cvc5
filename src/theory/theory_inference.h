@@ -85,7 +85,7 @@ class TheoryInference
    * engine.
    * @return The (possibly negated) conclusion.
    */
-  virtual TrustNode processInternalFact(std::vector<Node>& exp) { return TrustNode::null(); }
+  virtual Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg) { return Node::null(); }
 
   /** Get the InferenceId of this theory inference. */
   InferenceId getId() const { return d_id; }
@@ -106,7 +106,7 @@ class SimpleTheoryLemma : public TheoryInference
   SimpleTheoryLemma(InferenceId id, Node n, LemmaProperty p, ProofGenerator* pg);
   virtual ~SimpleTheoryLemma() {}
   /** Process lemma */
-  TrustNode processLemma(LemmaProperty& p, bool& doCache) override;
+  TrustNode processLemma(LemmaProperty& p) override;
   /** The lemma to send */
   Node d_node;
   /** The lemma property (see OutputChannel::lemma) */
@@ -130,7 +130,7 @@ class SimpleTheoryInternalFact : public TheoryInference
   SimpleTheoryInternalFact(InferenceId id, Node conc, Node exp, ProofGenerator* pg);
   virtual ~SimpleTheoryInternalFact() {}
   /** Process internal fact */
-  Node processInternalFact(std::vector<Node>& exp) override;
+  Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
   /** The lemma to send */
   Node d_conc;
   /** The explanation */

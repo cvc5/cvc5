@@ -34,6 +34,16 @@ bool InferInfo::process(TheoryInferenceManager* im, bool asLemma)
   return d_sim->processFact(*this);
 }
 
+TrustNode InferInfo::processLemma(LemmaProperty& p)
+{
+  return d_sim->processLemma(*this, p);
+}
+
+Node InferInfo::processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg)
+{
+  return d_sim->processFact(*this, exp, pg);
+}
+
 bool InferInfo::isTrivial() const
 {
   Assert(!d_conc.isNull());

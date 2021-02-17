@@ -76,6 +76,10 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     {
       out << " NEEDS_JUSTIFY";
     }
+    if (isLemmaPropertyNoCache(p))
+    {
+      out << " NO_CACHE";
+    }
     out << " }";
   }
   return out;
