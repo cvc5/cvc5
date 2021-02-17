@@ -50,6 +50,7 @@ class CadicalSolver : public SatSolver
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+  bool setPropagateOnly() override;
   void getUnsatAssumptions(std::vector<SatLiteral>& assumptions) override;
 
   void interrupt() override;
@@ -82,7 +83,7 @@ class CadicalSolver : public SatSolver
   std::vector<SatLiteral> d_assumptions;
 
   unsigned d_nextVarIdx;
-  bool d_okay;
+  bool d_inSatMode;
   SatVariable d_true;
   SatVariable d_false;
 

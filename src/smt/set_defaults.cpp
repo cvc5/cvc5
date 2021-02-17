@@ -132,6 +132,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::bvLazyRewriteExtf.set(false);
   }
 
+  /* Disable bit-level propagation by default for the BITBLAST solver. */
+  if (options::bvSolver() == options::BVSolver::BITBLAST)
+  {
+    options::bitvectorPropagate.set(false);
+  }
+
   if (options::solveIntAsBV() > 0)
   {
     // not compatible with incremental
