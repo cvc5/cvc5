@@ -32,8 +32,8 @@ class FirstOrderModelFmc : public FirstOrderModel
 
  private:
   /** models for UF */
-  std::map<Node, Def * > d_models;
-  std::map<TypeNode, Node > d_type_star;
+  std::map<Node, Def*> d_models;
+  std::map<TypeNode, Node> d_type_star;
   /** get current model value */
   void processInitializeModelForTerm(Node n) override;
 
@@ -46,15 +46,15 @@ class FirstOrderModelFmc : public FirstOrderModel
   FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
   // initialize the model
   void processInitialize(bool ispre) override;
-  Node getFunctionValue(Node op, const char* argPrefix );
+  Node getFunctionValue(Node op, const char* argPrefix);
 
   bool isStar(Node n);
   Node getStar(TypeNode tn);
-};/* class FirstOrderModelFmc */
+}; /* class FirstOrderModelFmc */
 
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-}/* CVC4::theory::quantifiers namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace fmcheck
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__FIRST_ORDER_MODEL_H */
