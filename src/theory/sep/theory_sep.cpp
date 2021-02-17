@@ -1782,7 +1782,7 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
     if( infer && conc!=d_false ){
       Node ant_n = NodeManager::currentNM()->mkAnd(ant);
       Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << c << std::endl;
-      d_im.addPendingFact(conc, ant_n);
+      d_im.addPendingFact(conc, InferenceId::UNKNOWN, ant_n);
     }else{
       if( conc==d_false ){
         Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c
@@ -1793,7 +1793,7 @@ void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, 
                            << " by " << c << std::endl;
         TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
         d_im.addPendingLemma(
-            trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
+            trn.getNode(), InferenceId::UNKNOWN, LemmaProperty::NONE, trn.getGenerator());
       }
     }
   }
