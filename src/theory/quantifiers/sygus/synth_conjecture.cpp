@@ -723,7 +723,7 @@ bool SynthConjecture::doRefine()
   {
     Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
                          << std::endl;
-    bool res = d_qim.addPendingLemma(lem);
+    bool res = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
     if (res)
     {
       ++(d_stats.d_cegqi_lemmas_refine);

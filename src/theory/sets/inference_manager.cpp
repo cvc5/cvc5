@@ -46,7 +46,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    addPendingLemma(lem);
+    addPendingLemma(lem, InferenceId::UNKNOWN);
     return true;
   }
   Trace("sets-fact") << "Assert fact rec : " << fact << ", exp = " << exp
@@ -104,7 +104,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    addPendingLemma(lem);
+    addPendingLemma(lem, InferenceId::UNKNOWN);
     return true;
   }
   return false;
