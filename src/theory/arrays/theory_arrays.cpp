@@ -771,8 +771,11 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
         preRegisterTermInternal(ni);
       }
       // Apply RIntro1 Rule
-      d_im.assertInference(
-          ni.eqNode(v), true, InferenceId::ARRAYS_READ_OVER_WRITE_1, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
+      d_im.assertInference(ni.eqNode(v),
+                           true,
+                           InferenceId::ARRAYS_READ_OVER_WRITE_1,
+                           d_true,
+                           PfRule::ARRAYS_READ_OVER_WRITE_1);
 
       d_infoMap.addStore(node, node);
       d_infoMap.addInStore(a, node);
@@ -1660,8 +1663,11 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     {
       preRegisterTermInternal(selConst);
     }
-    d_im.assertInference(
-        selConst.eqNode(defValue), true, InferenceId::ARRAYS_TRUST, d_true, PfRule::ARRAYS_TRUST);
+    d_im.assertInference(selConst.eqNode(defValue),
+                         true,
+                         InferenceId::UNKNOWN,
+                         d_true,
+                         PfRule::ARRAYS_TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);
