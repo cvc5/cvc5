@@ -37,31 +37,6 @@ class TheoryInference
  public:
   TheoryInference(InferenceId id) : d_id(id) {}
   virtual ~TheoryInference() {}
-  /**
-   * Called by the provided inference manager to process this inference. This
-   * method should make call(s) to inference manager to process this
-   * inference, as well as processing any specific side effects. This method
-   * typically makes a single call to the provided inference manager e.g.
-   * d_im->trustedLemma or d_im->assertInternalFact. Notice it is the sole
-   * responsibility of this class to make this call; the inference manager
-   * does not call itself otherwise when processing pending inferences.
-   *
-   * @param im The inference manager to use
-   * @param asLemma Whether this inference is being processed as a lemma
-   * during doPendingLemmas (otherwise it is being processed in doPendingFacts).
-   * Typically, this method calls lemma or conflict when asLemma is
-   * true, and assertInternalFact when this flag is false, although this
-   * behavior is (intentionally) not strictly enforced. In particular, the
-   * choice to send a conflict, lemma or fact may depend on local state of the
-   * theory, which may change while the inference is pending. Hence the
-   * implementation of this method may choose to implement any call to the
-   * inference manager. This flag simply serves to track whether the inference
-   * initially was added a pending lemma or not.
-   * @return true if the inference was successfully processed by the inference
-   * manager. This method for instance returns false if it corresponds to a
-   * lemma that was already cached by im and hence was discarded.
-   */
-  // virtual bool process(TheoryInferenceManager* im, bool asLemma) = 0;
 
   /**
    * Process lemma, return the trust node to pass to
