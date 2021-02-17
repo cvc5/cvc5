@@ -185,7 +185,10 @@ public:
    * where + is the additive operator for the type.
    * Stores the status (0: success, -1: failure) in status.
    */
-  static Node mkTypeValueOffset(TypeNode tn, Node val, int32_t offset, int32_t& status);
+  static Node mkTypeValueOffset(TypeNode tn,
+                                Node val,
+                                int32_t offset,
+                                int32_t& status);
   /** make the "max" value for type tn
    * For example,
    *   the max value for Bool is true,
