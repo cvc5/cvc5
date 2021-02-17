@@ -46,6 +46,11 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION: return "ICP_PROPAGATION";
 
+    case InferenceId::ARRAYS_EXT: return "ARRAYS_EXT";
+    case InferenceId::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
+    case InferenceId::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
+    case InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA: return "ARRAYS_READ_OVER_WRITE_CONTRA";
+
     case InferenceId::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
     case InferenceId::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
     case InferenceId::BAG_MK_BAG: return "BAG_MK_BAG";
@@ -69,6 +74,9 @@ const char* toString(InferenceId i)
     case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
     case InferenceId::DATATYPES_BISIMILAR: return "BISIMILAR";
     case InferenceId::DATATYPES_CYCLE: return "CYCLE";
+
+    case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
+    case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
 
     case InferenceId::STRINGS_I_NORM_S: return "I_NORM_S";
     case InferenceId::STRINGS_I_CONST_MERGE: return "I_CONST_MERGE";
@@ -135,6 +143,13 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CTN_POS: return "CTN_POS";
     case InferenceId::STRINGS_REDUCTION: return "REDUCTION";
     case InferenceId::STRINGS_PREFIX_CONFLICT: return "PREFIX_CONFLICT";
+
+    case InferenceId::UF_HO_APP_ENCODE: return "UF_HO_APP_ENCODE";
+    case InferenceId::UF_HO_APP_CONV_SKOLEM: return "UF_HO_APP_CONV_SKOLEM";
+    case InferenceId::UF_HO_EXTENSIONALITY: return "UF_HO_EXTENSIONALITY";
+    case InferenceId::UF_HO_MODEL_APP_ENCODE: return "UF_HO_MODEL_APP_ENCODE";
+    case InferenceId::UF_HO_MODEL_EXTENSIONALITY:
+      return "UF_HO_MODEL_EXTENSIONALITY";
 
     default: return "?";
   }

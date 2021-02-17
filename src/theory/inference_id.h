@@ -96,6 +96,10 @@ enum class InferenceId
   ARITH_NL_ICP_PROPAGATION,
   //-------------------- unknown
 
+  ARRAYS_EXT,
+  ARRAYS_READ_OVER_WRITE,
+  ARRAYS_READ_OVER_WRITE_1,
+  ARRAYS_READ_OVER_WRITE_CONTRA,
 
   BAG_NON_NEGATIVE_COUNT,
   BAG_MK_BAG_SAME_ELEMENT,
@@ -130,6 +134,11 @@ enum class InferenceId
   DATATYPES_BISIMILAR,
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
+
+  // ensures that pto is a function: (pto x y) ^ ~(pto z w) ^ x = z => y != w
+  SEP_PTO_NEG_PROP,
+  // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
+  SEP_PTO_PROP,
 
   //-------------------------------------- base solver
   // initial normalize singular
@@ -400,7 +409,40 @@ enum class InferenceId
   STRINGS_PREFIX_CONFLICT,
   //-------------------------------------- end prefix conflict
 
-  UNKNOWN,
+  // Clause from the uf symmetry breaker
+  UF_BREAK_SYMMETRY,
+  UF_CARD_CLIQUE,
+  UF_CARD_COMBINED,
+  UF_CARD_ENFORCE_NEGATIVE,
+  UF_CARD_EQUIV,
+  UF_CARD_MONOTONE_COMBINED,
+  UF_CARD_SIMPLE_CONFLICT,
+  UF_CARD_SPLIT,
+  //-------------------------------------- begin HO extension to UF
+  // Encodes an n-ary application as a chain of binary HO_APPLY applications
+  //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
+  UF_HO_APP_ENCODE,
+  UF_HO_APP_CONV_SKOLEM,
+  // Adds an extensionality lemma to witness that disequal functions have
+  // different applications
+  //   (not (= (f sk1 .. skn) (g sk1 .. skn))
+  UF_HO_EXTENSIONALITY,
+  //-------------------------------------- begin model-construction specific part
+  // These rules are necessary to ensure that we build models properly. For more
+  // details see Section 3.3 of Barbosa et al. CADE'19.
+  //
+  // Enforces that a regular APPLY_UF term in the model is equal to its HO_APPLY
+  // equivalent by adding the equality as a lemma
+  //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
+  UF_HO_MODEL_APP_ENCODE,
+  // Adds an extensionality lemma to witness that disequal functions have
+  // different applications
+  //   (not (= (f sk1 .. skn) (g sk1 .. skn))
+  UF_HO_MODEL_EXTENSIONALITY,
+  //-------------------------------------- end model-construction specific part
+  //-------------------------------------- end HO extension to UF
+
+  UNKNOWN
 };
 
 /**
