@@ -56,16 +56,15 @@ class QuantifiersRegistry : public QuantifiersUtil
   bool hasOwnership(Node q, QuantifiersModule* m) const;
   //----------------------------- instantiation constants
   /** get the i^th instantiation constant of q */
-  Node getInstantiationConstant( Node q, size_t i ) const;
+  Node getInstantiationConstant(Node q, size_t i) const;
   /** get number of instantiation constants for q */
-  size_t getNumInstantiationConstants( Node q ) const;
+  size_t getNumInstantiationConstants(Node q) const;
   /** get the ce body q[e/x] */
-  Node getInstConstantBody( Node q );
-  /** returns node n with bound vars of q replaced by instantiation constants of q
-      node n : is the future pattern
-      node q : is the quantifier containing which bind the variable
-      return a pattern where the variable are replaced by variable for
-      instantiation.
+  Node getInstConstantBody(Node q);
+  /** returns node n with bound vars of q replaced by instantiation constants of
+     q node n : is the future pattern node q : is the quantifier containing
+     which bind the variable return a pattern where the variable are replaced by
+     variable for instantiation.
    */
   Node substituteBoundVariablesToInstConstants(Node n, Node q);
   /** substitute { instantiation constants of q -> bound variables of q } in n
@@ -89,13 +88,13 @@ class QuantifiersRegistry : public QuantifiersUtil
    */
   std::map<Node, int32_t> d_owner_priority;
   /** map from universal quantifiers to the list of variables */
-  std::map< Node, std::vector< Node > > d_vars;
+  std::map<Node, std::vector<Node> > d_vars;
   /** map from universal quantifiers to their inst constant body */
-  std::map< Node, Node > d_inst_const_body;
+  std::map<Node, Node> d_inst_const_body;
   /** instantiation constants to universal quantifiers */
-  std::map< Node, Node > d_inst_constants_map;
+  std::map<Node, Node> d_inst_constants_map;
   /** map from universal quantifiers to the list of instantiation constants */
-  std::map< Node, std::vector< Node > > d_inst_constants;
+  std::map<Node, std::vector<Node> > d_inst_constants;
 };
 
 }  // namespace quantifiers
