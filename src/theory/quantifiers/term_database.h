@@ -35,6 +35,7 @@ namespace quantifiers {
 
 class QuantifiersState;
 class QuantifiersInferenceManager;
+class QuantifiersRegistry;
 
 /** Context-dependent list of nodes */
 class DbList
@@ -76,6 +77,7 @@ class TermDb : public QuantifiersUtil {
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr,
          QuantifiersEngine* qe);
   ~TermDb();
   /** presolve (called once per user check-sat) */
@@ -295,6 +297,8 @@ class TermDb : public QuantifiersUtil {
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** A context for the data structures below, when not context-dependent */
   context::Context d_termsContext;
   /** The context we are using for the data structures below */

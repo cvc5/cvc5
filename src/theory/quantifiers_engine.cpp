@@ -45,7 +45,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_model(nullptr),
       d_builder(nullptr),
       d_term_util(new quantifiers::TermUtil),
-      d_term_db(new quantifiers::TermDb(qstate, qim, this)),
+      d_term_db(new quantifiers::TermDb(qstate, qim, d_qreg, this)),
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes),

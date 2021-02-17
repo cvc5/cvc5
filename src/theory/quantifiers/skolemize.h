@@ -23,15 +23,20 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/quant_util.h"
 #include "theory/trust_node.h"
+#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 
 class DTypeConstructor;
 
 namespace theory {
+  
+class QuantifiersEngine;
+
 namespace quantifiers {
+  
+class QuantifiersState;
 
 /** Skolemization utility
  *

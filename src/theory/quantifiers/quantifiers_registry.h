@@ -31,7 +31,8 @@ class Instantiate;
 
 /**
  * The quantifiers registry, which manages basic information about which
- * quantifiers modules have ownership of quantified formulas.
+ * quantifiers modules have ownership of quantified formulas, and manages
+ * the allocation of instantiation constants per quantified formula.
  */
 class QuantifiersRegistry : public QuantifiersUtil
 {
@@ -40,7 +41,9 @@ class QuantifiersRegistry : public QuantifiersUtil
  public:
   QuantifiersRegistry() {}
   ~QuantifiersRegistry() {}
-  /** register quantifier */
+  /** 
+   * Register quantifier, which allocates the instantiation constants for q.
+   */
   void registerQuantifier(Node q) override;
   /** reset */
   bool reset(Theory::Effort e) override;
