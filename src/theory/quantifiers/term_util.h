@@ -80,7 +80,7 @@ class TermUtil
   Node d_one;
 
   // for inst constant
-public:
+ public:
   /** Get the index of BOUND_VARIABLE v in quantifier q */
   static size_t getVariableNum(Node q, Node v);
 
