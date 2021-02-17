@@ -624,7 +624,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
     NodeManager* nm = NodeManager::currentNM();
     // partial trigger : generate implication to mark user pattern
     Node pat =
-        d_quantEngine->getTermUtil()->substituteInstConstantsToBoundVariables(
+        d_qreg.substituteInstConstantsToBoundVariables(
             tr->getInstPattern(), q);
     Node ipl = nm->mkNode(INST_PATTERN_LIST, pat);
     Node qq = nm->mkNode(FORALL,

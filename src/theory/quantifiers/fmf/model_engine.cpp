@@ -21,7 +21,6 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -268,7 +267,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermUtil()->getInstantiationConstant( f, i ) << " ";
+        Trace("fmf-exh-inst-debug") << d_qreg.getInstantiationConstant( f, i ) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }

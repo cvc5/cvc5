@@ -166,6 +166,8 @@ class QuantifiersModule
   quantifiers::QuantifiersState& getState();
   /** get the quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
+  /** get the quantifiers registry */
+  quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
   //----------------------------end general queries
  protected:
   /** pointer to the quantifiers engine that owns this module */

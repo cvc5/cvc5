@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/quant_util.h"
 
+#include "theory/quantifiers/term_util.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {

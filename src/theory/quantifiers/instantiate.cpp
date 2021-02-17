@@ -39,13 +39,14 @@ namespace quantifiers {
 Instantiate::Instantiate(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr,
                          ProofNodeManager* pnm)
     : d_qe(qe),
       d_qstate(qs),
       d_qim(qim),
+      d_qreg(qr),
       d_pnm(pnm),
       d_term_db(nullptr),
-      d_term_util(nullptr),
       d_total_inst_debug(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
@@ -75,7 +76,6 @@ bool Instantiate::reset(Theory::Effort e)
     d_recorded_inst.clear();
   }
   d_term_db = d_qe->getTermDatabase();
-  d_term_util = d_qe->getTermUtil();
   return true;
 }
 
@@ -111,7 +111,6 @@ bool Instantiate::addInstantiation(
   Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
-  Assert(d_term_util != nullptr);
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
   for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -167,7 +166,7 @@ bool Instantiate::addInstantiation(
                         << terms[i] << std::endl;
           bad_inst = true;
         }
-        else if (expr::hasSubterm(terms[i], d_term_util->d_inst_constants[q]))
+        else if (expr::hasSubterm(terms[i], d_qreg.d_inst_constants[q]))
         {
           Trace("inst") << "***& inst contains inst constants : " << terms[i]
                         << std::endl;
@@ -250,10 +249,10 @@ bool Instantiate::addInstantiation(
 
   // construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
-  Assert(d_term_util->d_vars[q].size() == terms.size());
+  Assert(d_qreg.d_vars[q].size() == terms.size());
   // get the instantiation
   Node body =
-      getInstantiation(q, d_term_util->d_vars[q], terms, doVts, pfTmp.get());
+      getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
   TrustNode tpBody = quantifiers::QuantifiersRewriter::preprocess(body, true);
@@ -466,15 +465,15 @@ Node Instantiate::getInstantiation(Node q,
 
 Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
 {
-  Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
+  Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
   Assert(m.d_vals.size() == q[0].getNumChildren());
-  return getInstantiation(q, d_term_util->d_vars[q], m.d_vals, doVts);
+  return getInstantiation(q, d_qreg.d_vars[q], m.d_vals, doVts);
 }
 
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 {
-  Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
-  return getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
+  Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
+  return getInstantiation(q, d_qreg.d_vars[q], terms, doVts);
 }
 
 bool Instantiate::recordInstantiationInternal(Node q,

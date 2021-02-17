@@ -375,7 +375,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
     ce_vars.push_back(d_qreg.getInstantiationConstant(q, i));
   }
   // send the lemma
-  d_qim.lemma(lem);
+  d_qim.lemma(lem, InferenceId::UNKNOWN);
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;

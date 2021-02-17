@@ -32,7 +32,6 @@ void QuantifiersRegistry::registerQuantifier(Node q)
   for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
     d_vars[q].push_back(q[0][i]);
-    d_var_num[q][q[0][i]] = i;
     // make instantiation constants
     Node ic = nm->mkInstConstant(q[0][i].getType());
     d_inst_constants_map[ic] = q;
@@ -125,6 +124,12 @@ Node QuantifiersRegistry::getInstConstantBody(Node q)
     return n;
   }
   return it->second;
+}
+
+size_t QuantifiersRegistry::getVariableNum( Node q, Node v ) const
+{
+  // FIXME
+  return 0;
 }
 
 Node QuantifiersRegistry::substituteBoundVariablesToInstConstants(Node n,

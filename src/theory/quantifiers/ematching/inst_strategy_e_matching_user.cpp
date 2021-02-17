@@ -27,7 +27,8 @@ namespace quantifiers {
 InstStrategyUserPatterns::InstStrategyUserPatterns(
     QuantifiersEngine* ie,
     QuantifiersState& qs,
-    QuantifiersInferenceManager& qim)
+    QuantifiersInferenceManager& qim,
+                           QuantifiersRegistry& qr)
     : InstStrategy(ie, qs, qim, qr)
 {
 }
@@ -170,7 +171,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
     return;
   }
   Trigger* t = Trigger::mkTrigger(
-      d_quantEngine, d_qim, q, nodes, true, Trigger::TR_MAKE_NEW);
+      d_quantEngine, d_qim, d_qreg, q, nodes, true, Trigger::TR_MAKE_NEW);
   if (t)
   {
     d_user_gen[q].push_back(t);

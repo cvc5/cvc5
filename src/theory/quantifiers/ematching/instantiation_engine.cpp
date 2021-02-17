@@ -229,7 +229,7 @@ void InstantiationEngine::registerQuantifier(Node q)
   if (q.getNumChildren() == 3)
   {
     Node subsPat =
-        d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
+        d_qreg.substituteBoundVariablesToInstConstants(
             q[2], q);
     // add patterns
     for (const Node& p : subsPat)
