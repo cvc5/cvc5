@@ -61,7 +61,31 @@ class TheoryInference
    * manager. This method for instance returns false if it corresponds to a
    * lemma that was already cached by im and hence was discarded.
    */
-  virtual bool process(TheoryInferenceManager* im, bool asLemma) = 0;
+  //virtual bool process(TheoryInferenceManager* im, bool asLemma) = 0;
+  
+  /**
+   * Process lemma, return the trust node to pass to
+   * TheoryInferenceManager::trustedLemma. In addition, the inference should
+   * process any internal side effects of the lemma.
+   * 
+   * @param p The property of the lemma which will be passed to trustedLemma
+   * for this inference. If this call does not update p, the default value will
+   * be used.
+   * @return The trust node (of kind TrustNodeKind::LEMMA) corresponding to the
+   * lemma and its proof generator.
+   */
+  virtual TrustNode processLemma(LemmaProperty& p) { return TrustNode::null(); }
+  /**
+   * Process internal fact, return the conclusion to pass to 
+   * TheoryInferenceManager::assertInternalFact. In addition, the inference
+   * should process any internal side effects of the fact.
+   * 
+   * @param exp The explanation for the returned conclusion. Each node added to
+   * exp should be a (conjunction of) literals that hold in the current equality
+   * engine.
+   * @return The (possibly negated) conclusion.
+   */
+  virtual TrustNode processInternalFact(std::vector<Node>& exp) { return TrustNode::null(); }
 
   /** Get the InferenceId of this theory inference. */
   InferenceId getId() const { return d_id; }
@@ -81,12 +105,8 @@ class SimpleTheoryLemma : public TheoryInference
  public:
   SimpleTheoryLemma(InferenceId id, Node n, LemmaProperty p, ProofGenerator* pg);
   virtual ~SimpleTheoryLemma() {}
-  /**
-   * Send the lemma using inference manager im, return true if the lemma was
-   * sent. It should be the case that asLemma = true or an assertion failure
-   * is thrown.
-   */
-  virtual bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Process lemma */
+  TrustNode processLemma(LemmaProperty& p, bool& doCache) override;
   /** The lemma to send */
   Node d_node;
   /** The lemma property (see OutputChannel::lemma) */
@@ -109,12 +129,8 @@ class SimpleTheoryInternalFact : public TheoryInference
  public:
   SimpleTheoryInternalFact(InferenceId id, Node conc, Node exp, ProofGenerator* pg);
   virtual ~SimpleTheoryInternalFact() {}
-  /**
-   * Send the lemma using inference manager im, return true if the lemma was
-   * sent. It should be the case that asLemma = false or an assertion failure
-   * is thrown.
-   */
-  virtual bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Process internal fact */
+  Node processInternalFact(std::vector<Node>& exp) override;
   /** The lemma to send */
   Node d_conc;
   /** The explanation */

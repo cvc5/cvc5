@@ -180,22 +180,18 @@ class TheoryInferenceManager
    *
    * @param tlem The trust node containing the lemma and its proof generator.
    * @param p The property of the lemma
-   * @param doCache If true, we send the lemma only if it has not already been
-   * cached (see cacheLemma), and add it to the cache during this call.
    * @return true if the lemma was sent on the output channel.
    */
   bool trustedLemma(const TrustNode& tlem,
                     InferenceId id,
-                    LemmaProperty p = LemmaProperty::NONE,
-                    bool doCache = true);
+                    LemmaProperty p = LemmaProperty::NONE);
   /**
    * Send lemma lem with property p on the output channel. Same as above, with
    * a node instead of a trust node.
    */
   bool lemma(TNode lem,
              InferenceId id,
-             LemmaProperty p = LemmaProperty::NONE,
-             bool doCache = true);
+             LemmaProperty p = LemmaProperty::NONE);
   /**
    * Explained lemma. This should be called when
    *   ( exp => conc )
@@ -216,7 +212,6 @@ class TheoryInferenceManager
    * equality engine
    * @param args The arguments to the proof step concluding conc
    * @param p The property of the lemma
-   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
@@ -225,8 +220,7 @@ class TheoryInferenceManager
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
                 const std::vector<Node>& args,
-                LemmaProperty p = LemmaProperty::NONE,
-                bool doCache = true);
+                LemmaProperty p = LemmaProperty::NONE);
   /**
    * Make the trust node for the above method. It is responsibility of the
    * caller to subsequently call trustedLemma with the returned trust node.
@@ -248,7 +242,6 @@ class TheoryInferenceManager
    * equality engine
    * @param pg If non-null, the proof generator who can provide a proof of conc.
    * @param p The property of the lemma
-   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
@@ -256,8 +249,7 @@ class TheoryInferenceManager
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
                 ProofGenerator* pg = nullptr,
-                LemmaProperty p = LemmaProperty::NONE,
-                bool doCache = true);
+                LemmaProperty p = LemmaProperty::NONE);
   /**
    * Make the trust node for the above method. It is responsibility of the
    * caller to subsequently call trustedLemma with the returned trust node.

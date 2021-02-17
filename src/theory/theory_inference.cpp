@@ -29,12 +29,11 @@ SimpleTheoryLemma::SimpleTheoryLemma(InferenceId id,
 {
 }
 
-bool SimpleTheoryLemma::process(TheoryInferenceManager* im, bool asLemma)
+TrustNode SimpleTheoryLemma::processLemma(LemmaProperty& p, bool& doCache)
 {
   Assert(!d_node.isNull());
-  Assert(asLemma);
-  // send (trusted) lemma on the output channel with property p
-  return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), getId(), d_property);
+  p = d_property;
+  return TrustNode::mkTrustLemma(d_node, d_pg);
 }
 
 SimpleTheoryInternalFact::SimpleTheoryInternalFact(InferenceId id,
@@ -45,22 +44,11 @@ SimpleTheoryInternalFact::SimpleTheoryInternalFact(InferenceId id,
 {
 }
 
-bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im, bool asLemma)
+Node SimpleTheoryInternalFact::processInternalFact(std::vector<Node>& exp, ProofGenerator * pg)
 {
-  Assert(!asLemma);
-  bool polarity = d_conc.getKind() != NOT;
-  TNode atom = polarity ? d_conc : d_conc[0];
-  // no double negation or conjunctive conclusions
-  Assert(atom.getKind() != NOT && atom.getKind() != AND);
-  if (d_pg != nullptr)
-  {
-    im->assertInternalFact(atom, polarity, getId(), {d_exp}, d_pg);
-  }
-  else
-  {
-    im->assertInternalFact(atom, polarity, getId(), d_exp);
-  }
-  return true;
+  exp.push_back(d_exp);
+  pg = d_pg;
+  return d_conc;
 }
 
 }  // namespace theory

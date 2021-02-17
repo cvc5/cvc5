@@ -211,19 +211,21 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
 
 bool TheoryInferenceManager::lemma(TNode lem,
                                    InferenceId id,
-                                   LemmaProperty p,
-                                   bool doCache)
+                                   LemmaProperty p)
 {
   TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
-  return trustedLemma(tlem, id, p, doCache);
+  return trustedLemma(tlem, id, p);
 }
 
 bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
                                           InferenceId id,
-                                          LemmaProperty p,
-                                          bool doCache)
+                                          LemmaProperty p)
 {
-  if (doCache)
+  if (isLemmaPropertyNoCache(p))
+  {
+    p = p & LemmaProperty::NO_CACHE;
+  }
+  else
   {
     if (!cacheLemma(tlem.getNode(), p))
     {
@@ -241,13 +243,12 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
                                       const std::vector<Node>& args,
-                                      LemmaProperty p,
-                                      bool doCache)
+                                      LemmaProperty p)
 {
   // make the trust node
   TrustNode trn = mkLemmaExp(conc, pfr, exp, noExplain, args);
   // send it on the output channel
-  return trustedLemma(trn, id, p, doCache);
+  return trustedLemma(trn, id, p);
 }
 
 TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
@@ -272,13 +273,12 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
                                       ProofGenerator* pg,
-                                      LemmaProperty p,
-                                      bool doCache)
+                                      LemmaProperty p)
 {
   // make the trust node
   TrustNode trn = mkLemmaExp(conc, exp, noExplain, pg);
   // send it on the output channel
-  return trustedLemma(trn, id, p, doCache);
+  return trustedLemma(trn, id, p);
 }
 
 TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,

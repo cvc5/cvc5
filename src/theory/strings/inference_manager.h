@@ -249,9 +249,9 @@ class InferenceManager : public InferenceManagerBuffered
 
  private:
   /** Called when ii is ready to be processed as a fact */
-  bool processFact(InferInfo& ii);
+  TrustNode processFact(InferInfo& ii);
   /** Called when ii is ready to be processed as a lemma */
-  bool processLemma(InferInfo& ii);
+  TrustNode processLemma(InferInfo& ii);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
