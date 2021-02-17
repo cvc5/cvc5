@@ -688,10 +688,10 @@ Node TermDb::evaluateTerm2(TNode n,
         {
           if (ret.getKind() == EQUAL || ret.getKind() == GEQ)
           {
-            TheoryEngine* te = d_quantEngine->getTheoryEngine();
+            Valuation& val = d_qstate.getValuation();
             for (unsigned j = 0; j < 2; j++)
             {
-              std::pair<bool, Node> et = te->entailmentCheck(
+              std::pair<bool, Node> et = val.entailmentCheck(
                   options::TheoryOfMode::THEORY_OF_TYPE_BASED,
                   j == 0 ? ret : ret.negate());
               if (et.first)

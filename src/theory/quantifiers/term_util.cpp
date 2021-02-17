@@ -47,26 +47,6 @@ TermUtil::~TermUtil(){
 
 }
 
-void TermUtil::registerQuantifier( Node q ){
-  if( d_inst_constants.find( q )==d_inst_constants.end() ){
-    Debug("quantifiers-engine") << "Instantiation constants for " << q << " : " << std::endl;
-    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-      d_vars[q].push_back( q[0][i] );
-      d_var_num[q][q[0][i]] = i;
-      //make instantiation constants
-      Node ic = NodeManager::currentNM()->mkInstConstant( q[0][i].getType() );
-      d_inst_constants_map[ic] = q;
-      d_inst_constants[ q ].push_back( ic );
-      Debug("quantifiers-engine") << "  " << ic << std::endl;
-      //set the var number attribute
-      InstVarNumAttribute ivna;
-      ic.setAttribute( ivna, i );
-      InstConstantAttribute ica;
-      ic.setAttribute( ica, q );
-    }
-  }
-}
-
 Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it!=visited.end() ){
@@ -166,68 +146,6 @@ Node TermUtil::getQuantSimplify( Node n ) {
   Node q = nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, bvs), n);
   q = Rewriter::rewrite(q);
   return getRemoveQuantifiers(q);
-}
-
-/** get the i^th instantiation constant of q */
-Node TermUtil::getInstantiationConstant( Node q, int i ) const {
-  std::map< Node, std::vector< Node > >::const_iterator it = d_inst_constants.find( q );
-  if( it!=d_inst_constants.end() ){
-    return it->second[i];
-  }else{
-    return Node::null();
-  }
-}
-
-/** get number of instantiation constants for q */
-unsigned TermUtil::getNumInstantiationConstants( Node q ) const {
-  std::map< Node, std::vector< Node > >::const_iterator it = d_inst_constants.find( q );
-  if( it!=d_inst_constants.end() ){
-    return it->second.size();
-  }else{
-    return 0;
-  }
-}
-
-Node TermUtil::getInstConstantBody( Node q ){
-  std::map< Node, Node >::iterator it = d_inst_const_body.find( q );
-  if( it==d_inst_const_body.end() ){
-    Node n = substituteBoundVariablesToInstConstants(q[1], q);
-    d_inst_const_body[ q ] = n;
-    return n;
-  }else{
-    return it->second;
-  }
-}
-
-Node TermUtil::substituteBoundVariablesToInstConstants(Node n, Node q)
-{
-  registerQuantifier( q );
-  return n.substitute( d_vars[q].begin(), d_vars[q].end(), d_inst_constants[q].begin(), d_inst_constants[q].end() );
-}
-
-Node TermUtil::substituteInstConstantsToBoundVariables(Node n, Node q)
-{
-  registerQuantifier( q );
-  return n.substitute( d_inst_constants[q].begin(), d_inst_constants[q].end(), d_vars[q].begin(), d_vars[q].end() );
-}
-
-Node TermUtil::substituteBoundVariables(Node n,
-                                        Node q,
-                                        std::vector<Node>& terms)
-{
-  registerQuantifier(q);
-  Assert(d_vars[q].size() == terms.size());
-  return n.substitute( d_vars[q].begin(), d_vars[q].end(), terms.begin(), terms.end() );
-}
-
-Node TermUtil::substituteInstConstants(Node n, Node q, std::vector<Node>& terms)
-{
-  registerQuantifier(q);
-  Assert(d_inst_constants[q].size() == terms.size());
-  return n.substitute(d_inst_constants[q].begin(),
-                      d_inst_constants[q].end(),
-                      terms.begin(),
-                      terms.end());
 }
 
 void TermUtil::computeInstConstContains(Node n, std::vector<Node>& ics)

@@ -64,7 +64,7 @@ class TermDatabase;
 class Instantiate;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
-class TermUtil : public QuantifiersUtil
+class TermUtil
 {
   // TODO : remove these
   friend class ::CVC4::theory::QuantifiersEngine;
@@ -82,44 +82,10 @@ class TermUtil : public QuantifiersUtil
 
   /** reset */
   bool reset(Theory::Effort e) override { return true; }
-  /** register quantifier */
-  void registerQuantifier(Node q) override;
   /** identify */
   std::string identify() const override { return "TermUtil"; }
   // for inst constant
- private:
-  /** map from universal quantifiers to the list of variables */
-  std::map< Node, std::vector< Node > > d_vars;
-  std::map< Node, std::map< Node, unsigned > > d_var_num;
-  /** map from universal quantifiers to their inst constant body */
-  std::map< Node, Node > d_inst_const_body;
-  /** instantiation constants to universal quantifiers */
-  std::map< Node, Node > d_inst_constants_map;
 public:
-  /** map from universal quantifiers to the list of instantiation constants */
-  std::map< Node, std::vector< Node > > d_inst_constants;
-  /** get variable number */
-  unsigned getVariableNum( Node q, Node v ) { return d_var_num[q][v]; }
-  /** get the i^th instantiation constant of q */
-  Node getInstantiationConstant( Node q, int i ) const;
-  /** get number of instantiation constants for q */
-  unsigned getNumInstantiationConstants( Node q ) const;
-  /** get the ce body q[e/x] */
-  Node getInstConstantBody( Node q );
-  /** returns node n with bound vars of q replaced by instantiation constants of q
-      node n : is the future pattern
-      node q : is the quantifier containing which bind the variable
-      return a pattern where the variable are replaced by variable for
-      instantiation.
-   */
-  Node substituteBoundVariablesToInstConstants(Node n, Node q);
-  /** substitute { instantiation constants of q -> bound variables of q } in n
-   */
-  Node substituteInstConstantsToBoundVariables(Node n, Node q);
-  /** substitute { variables of q -> terms } in n */
-  Node substituteBoundVariables(Node n, Node q, std::vector<Node>& terms);
-  /** substitute { instantiation constants of q -> terms } in n */
-  Node substituteInstConstants(Node n, Node q, std::vector<Node>& terms);
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );

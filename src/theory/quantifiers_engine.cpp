@@ -60,6 +60,7 @@ QuantifiersEngine::QuantifiersEngine(
 {
   //---- utilities
   // term util must come before the other utilities
+  d_util.push_back(&d_qreg);
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
 
@@ -737,7 +738,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   {
     mdl->assertNode(f);
   }
-  addTermToDatabase(d_term_util->getInstConstantBody(f), true);
+  addTermToDatabase(d_qreg.getInstConstantBody(f), true);
 }
 
 void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)
