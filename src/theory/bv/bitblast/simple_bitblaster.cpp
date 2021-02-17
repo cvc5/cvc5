@@ -38,7 +38,7 @@ void BBSimple::bbAtom(TNode node)
           ? d_atomBBStrategies[normalized.getKind()](normalized, this)
           : normalized;
 
-  storeBBAtom(node, atom_bb);
+  storeBBAtom(node, Rewriter::rewrite(atom_bb));
 }
 
 void BBSimple::storeBBAtom(TNode atom, Node atom_bb)
