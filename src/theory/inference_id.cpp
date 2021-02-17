@@ -46,6 +46,11 @@ const char* toString(InferenceId i)
     case InferenceId::ARITH_NL_ICP_CONFLICT: return "ICP_CONFLICT";
     case InferenceId::ARITH_NL_ICP_PROPAGATION: return "ICP_PROPAGATION";
 
+    case InferenceId::ARRAYS_EXT: return "ARRAYS_EXT";
+    case InferenceId::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
+    case InferenceId::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
+    case InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA: return "ARRAYS_READ_OVER_WRITE_CONTRA";
+
     case InferenceId::BAG_NON_NEGATIVE_COUNT: return "BAG_NON_NEGATIVE_COUNT";
     case InferenceId::BAG_MK_BAG_SAME_ELEMENT: return "BAG_MK_BAG_SAME_ELEMENT";
     case InferenceId::BAG_MK_BAG: return "BAG_MK_BAG";
