@@ -249,7 +249,7 @@ class InferenceManager : public InferenceManagerBuffered
 
  private:
   /** Called when ii is ready to be processed as a fact */
-  TrustNode processFact(InferInfo& ii);
+  Node processFact(InferInfo& ii, ProofGenerator*& pg);
   /** Called when ii is ready to be processed as a lemma */
   TrustNode processLemma(InferInfo& ii, LemmaProperty& p);
   /** Reference to the solver state of the theory of strings. */

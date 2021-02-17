@@ -77,7 +77,7 @@ class InferInfo : public TheoryInference
   /** Process lemma */
   TrustNode processLemma(LemmaProperty& p) override;
   /** Process internal fact */
-  Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
+  Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
   /** Pointer to the class used for processing this info */
   InferenceManager* d_sim;
   /** Whether it is the reverse form of the above id */

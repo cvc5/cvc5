@@ -67,8 +67,7 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void sendDtLemma(Node lem,
                    InferenceId i = InferenceId::UNKNOWN,
-                   LemmaProperty p = LemmaProperty::NONE,
-                   bool doCache = true);
+                   LemmaProperty p = LemmaProperty::NONE);
   /**
    * Send conflict immediately on the output channel
    */
@@ -91,7 +90,7 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Process datatype inference as a fact
    */
-  Node processDtFact(Node conc, Node exp, InferenceId id, std::vector<Node>& expv, ProofGenerator *& pg);
+  Node processDtFact(Node conc, Node exp, InferenceId id, ProofGenerator *& pg);
   /**
    * Helper function for the above methods. Returns the conclusion, which
    * may be modified so that it is compatible with proofs. If proofs are

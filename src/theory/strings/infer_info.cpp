@@ -39,9 +39,14 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
   return d_sim->processLemma(*this, p);
 }
 
-Node InferInfo::processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg)
+Node InferInfo::processFact(std::vector<Node>& exp, ProofGenerator*& pg)
 {
-  return d_sim->processFact(*this, exp, pg);
+  for (const Node& ec : ii.d_premises)
+  {
+    utils::flattenOp(AND, ec, exp);
+  }
+  d_sim->processFact(*this, pg);
+  return d_conc;
 }
 
 bool InferInfo::isTrivial() const

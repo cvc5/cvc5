@@ -61,15 +61,20 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   return false;
 }
 
-TrustNode processLemma(LemmaProperty& p)
+TrustNode DatatypesInference::processLemma(LemmaProperty& p)
 {
   // we don't use lemma property p currently, as it is always default
   return d_im->processDtLemma(d_conc, d_exp, getId());
 }
 
-Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg)
+Node DatatypesInference::processFact(std::vector<Node>& exp, ProofGenerator*& pg)
 {
-  return d_im->processDtFact(d_conc, d_exp, getId(), exp, pg);
+  // add to the explanation vector if applicable (when non-trivial)
+  if (!d_exp.isNull() && !d_exp.isConst())
+  {
+    exp.push_back(d_exp);
+  }
+  return d_im->processDtFact(d_conc, d_exp, getId(), pg);
 }
 
 }  // namespace datatypes

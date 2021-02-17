@@ -81,8 +81,7 @@ void InferenceManager::process()
 
 void InferenceManager::sendDtLemma(Node lem,
                                    InferenceId id,
-                                   LemmaProperty p,
-                                   bool doCache)
+                                   LemmaProperty p)
 {
   if (isProofEnabled())
   {
@@ -90,7 +89,7 @@ void InferenceManager::sendDtLemma(Node lem,
     return;
   }
   // otherwise send as a normal lemma
-  if (lemma(lem, id, p, doCache))
+  if (lemma(lem, id, p))
   {
     d_inferenceLemmas << id;
   }
@@ -122,7 +121,7 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
 
 bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 
-bool InferenceManager::processDtLemma(
+TrustNode InferenceManager::processDtLemma(
     Node conc, Node exp, InferenceId id)
 {
   // set up a proof constructor
@@ -159,14 +158,9 @@ bool InferenceManager::processDtLemma(
   return TrustNode::mkTrustLemma(lem, d_lemPg.get());
 }
 
-Node InferenceManager::processDtFact(Node conc, Node exp, InferenceId id, std::vector<Node>& expv, ProofGenerator *& pg)
+Node InferenceManager::processDtFact(Node conc, Node exp, InferenceId id, ProofGenerator *& pg)
 {
-  // add to the explanation vector if applicable (when non-trivial)
-  if (!exp.isNull() && !exp.isConst())
-  {
-    expv.push_back(exp);
-  }
-  d_pg = d_ipc.get();
+  pg = d_ipc.get();
   return prepareDtInference(conc, exp, id, d_ipc.get());
 }
 

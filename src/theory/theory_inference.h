@@ -85,7 +85,7 @@ class TheoryInference
    * engine.
    * @return The (possibly negated) conclusion.
    */
-  virtual Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg) { return Node::null(); }
+  virtual Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) { return Node::null(); }
 
   /** Get the InferenceId of this theory inference. */
   InferenceId getId() const { return d_id; }
@@ -130,7 +130,7 @@ class SimpleTheoryInternalFact : public TheoryInference
   SimpleTheoryInternalFact(InferenceId id, Node conc, Node exp, ProofGenerator* pg);
   virtual ~SimpleTheoryInternalFact() {}
   /** Process internal fact */
-  Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
+  Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
   /** The lemma to send */
   Node d_conc;
   /** The explanation */

@@ -60,7 +60,7 @@ class DatatypesInference : public SimpleTheoryInternalFact
   /** Process lemma */
   TrustNode processLemma(LemmaProperty& p) override;
   /** Process internal fact */
-  Node processInternalFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
+  Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
 
  private:
   /** Pointer to the inference manager */

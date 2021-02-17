@@ -27,7 +27,7 @@ namespace theory {
 namespace bags {
 
 BagSolver::BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr)
-    : d_state(s), d_ig(&d_state), d_im(im), d_termReg(tr)
+    : d_state(s), d_ig(&s, &im), d_im(im), d_termReg(tr)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));

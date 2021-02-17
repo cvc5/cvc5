@@ -100,7 +100,7 @@ void InferenceManagerBuffered::doPendingFacts()
     // process this fact
     std::vector<Node> exp;
     ProofGenerator * pg = nullptr;
-    Node fact = d_pendingFact[i]->process(exp, pg);
+    Node fact = d_pendingFact[i]->processFact(exp, pg);
     Assert (!fact.isNull());
     bool pol = fact.getKind()!=NOT;
     TNode atom = pol ? fact : fact[0];
@@ -127,7 +127,7 @@ void InferenceManagerBuffered::doPendingLemmas()
   {
     // process this lemma
     LemmaProperty p = LemmaProperty::NONE;
-    TrustNode lem = d_pendingLem[i]->process(p);
+    TrustNode lem = d_pendingLem[i]->processLemma(p);
     Assert (!lem.isNull());
     // send the lemma, which notice may enqueue more pending lemmas in this
     // loop, or clear the lemmas.
