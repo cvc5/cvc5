@@ -330,18 +330,6 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
          ( n.getKind()!=ITE || n.getType().isBoolean() );
 }
 
-Node TermUtil::mkTypeValue(TypeNode tn, int val)
-{
-  std::unordered_map<int, Node>::iterator it = d_type_value[tn].find(val);
-  if (it == d_type_value[tn].end())
-  {
-    Node n = mkTypeValue(tn, val);
-    d_type_value[tn][val] = n;
-    return n;
-  }
-  return it->second;
-}
-
 Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 {
   Node n;
