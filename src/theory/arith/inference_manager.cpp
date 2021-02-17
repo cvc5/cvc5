@@ -96,7 +96,7 @@ void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
 {
   Trace("arith::infman") << "Adding conflict: " << inftype << " " << conf
                          << std::endl;
-  conflict(conf);
+  conflict(conf, inftype);
 }
 
 void InferenceManager::addTrustedConflict(const TrustNode& tconf,
@@ -104,7 +104,7 @@ void InferenceManager::addTrustedConflict(const TrustNode& tconf,
 {
   Trace("arith::infman") << "Adding conflict: " << inftype << " " << tconf
                          << std::endl;
-  trustedConflict(tconf);
+  trustedConflict(tconf, inftype);
 }
 
 void InferenceManager::addTrustedLemma(const TrustNode& tlem,
@@ -112,7 +112,7 @@ void InferenceManager::addTrustedLemma(const TrustNode& tlem,
 {
   Trace("arith::infman") << "Adding lemma: " << inftype << " " << tlem
                          << std::endl;
-  trustedLemma(tlem);
+  trustedLemma(tlem, inftype);
 }
 
 bool InferenceManager::hasUsed() const
