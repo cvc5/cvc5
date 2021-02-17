@@ -21,6 +21,7 @@
 #include <string>
 
 #include "lib/clock_gettime.h"
+#include "expr/proof_rule.h"
 #include "util/statistics_registry.h"
 
 using namespace CVC4;
@@ -75,6 +76,10 @@ public:
     histStat << 10;
     histStat << 10;
     histStat << 0;
+    IntegralHistogramStat<std::int64_t> histIntStat("hist-int");
+    histIntStat << 15 << 16 << 15 << 14 << 16;
+    IntegralHistogramStat<CVC4::PfRule> histPfRuleStat("hist-pfrule");
+    histPfRuleStat << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
 
     // A statistic with no safe_print support
     BackedStat<string*> backedUnsupported("backedUnsupported", &bar);
@@ -87,6 +92,8 @@ public:
     TS_ASSERT_EQUALS(backedStr.getName(), "backed");
     TS_ASSERT_EQUALS(sInt.getName(), "my int");
     TS_ASSERT_EQUALS(sTimer.getName(), "a timer ! for measuring time");
+    TS_ASSERT_EQUALS(histIntStat.getName(), "hist-int");
+    TS_ASSERT_EQUALS(histPfRuleStat.getName(), "hist-pfrule");
 
     TS_ASSERT_EQUALS(refStr.getData(), empty);
     TS_ASSERT_EQUALS(refStr2.getData(), bar);
@@ -148,6 +155,10 @@ public:
     safe_print(fd, "\n");
     histStat.safeFlushInformation(fd);
     safe_print(fd, "\n");
+    histIntStat.safeFlushInformation(fd);
+    safe_print(fd, "\n");
+    histPfRuleStat.safeFlushInformation(fd);
+    safe_print(fd, "\n");
     backedUnsupported.safeFlushInformation(fd);
     off_t file_size = lseek(fd, 0, SEEK_CUR);
     close(fd);
@@ -171,6 +182,8 @@ public:
         "0xdeadbeef\n"
         "true\n"
         "[(0 : 1), (5 : 2), (6 : 1), (10 : 2)]\n"
+        "[(14 : 1), (15 : 2), (16 : 2)]\n"
+        "[(ASSUME : 2), (SCOPE : 1)]\n"
         "<unsupported>";
     TS_ASSERT(strncmp(expected, buf, file_size) == 0);
     delete[] buf;
