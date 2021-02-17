@@ -18,7 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
 
 #include "theory/quantifiers/fmf/model_builder.h"
-#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
 namespace CVC4 {
 namespace theory {

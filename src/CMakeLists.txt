@@ -694,6 +694,8 @@ libcvc4_add_sources(
   theory/quantifiers/first_order_model.h
   theory/quantifiers/fmf/bounded_integers.cpp
   theory/quantifiers/fmf/bounded_integers.h
+  theory/quantifiers/fmf/first_order_model_fmc.cpp
+  theory/quantifiers/fmf/first_order_model_fmc.h
   theory/quantifiers/fmf/full_model_check.cpp
   theory/quantifiers/fmf/full_model_check.h
   theory/quantifiers/fmf/model_builder.cpp
