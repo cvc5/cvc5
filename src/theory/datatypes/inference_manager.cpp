@@ -58,7 +58,7 @@ void InferenceManager::addPendingInference(Node conc,
                                            bool forceLemma,
                                            InferenceId i)
 {
-  if (forceLemma)
+  if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
   {
     d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, i));
   }
