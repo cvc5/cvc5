@@ -1246,7 +1246,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     bool pol = lit.getKind()!=NOT;
     //arithmetic inequalities and disequalities
     if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       Assert(atom.getKind() != GEQ || atom[1].isConst());
       Node atom_lhs;
       Node atom_rhs;
@@ -1254,7 +1254,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = nm->mkNode( MINUS, atom[0], atom[1] );
+        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
         atom_lhs = Rewriter::rewrite( atom_lhs );
         atom_rhs = nm->mkConst(Rational(0));
       }
@@ -1262,13 +1262,19 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
       if( isEligible( atom_lhs ) ){
         //apply substitution to LHS of atom
         TermProperties atom_lhs_prop;
-        atom_lhs = applySubstitution( nm->realType(), atom_lhs, vars, subs, prop, non_basic, atom_lhs_prop );
+        atom_lhs = applySubstitution(nm->realType(),
+                                     atom_lhs,
+                                     vars,
+                                     subs,
+                                     prop,
+                                     non_basic,
+                                     atom_lhs_prop);
         if( !atom_lhs.isNull() ){
           if( !atom_lhs_prop.d_coeff.isNull() ){
-            atom_rhs = nm->mkNode( MULT, atom_lhs_prop.d_coeff, atom_rhs );
+            atom_rhs = nm->mkNode(MULT, atom_lhs_prop.d_coeff, atom_rhs);
             atom_rhs = Rewriter::rewrite(atom_rhs);
           }
-          lret = nm->mkNode( atom.getKind(), atom_lhs, atom_rhs );
+          lret = nm->mkNode(atom.getKind(), atom_lhs, atom_rhs);
           if( !pol ){
             lret = lret.negate();
           }

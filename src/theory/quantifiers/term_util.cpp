@@ -387,10 +387,7 @@ Node TermUtil::mkTypeMaxValue(TypeNode tn)
   return n;
 }
 
-Node TermUtil::mkTypeValueOffset(TypeNode tn,
-                                  Node val,
-                                  int offset,
-                                  int& status)
+Node TermUtil::mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status)
 {
   Node val_o;
   Node offset_val = mkTypeValue(tn, offset);

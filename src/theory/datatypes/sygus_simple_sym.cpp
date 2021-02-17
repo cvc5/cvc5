@@ -14,8 +14,8 @@
 
 #include "theory/datatypes/sygus_simple_sym.h"
 
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -444,7 +444,8 @@ bool SygusSimpleSymBreak::considerConst(
         if (d_tds->isTypeMatch(pdt[ok_arg], pdt[arg]))
         {
           int status;
-          Node co = quantifiers::TermUtil::mkTypeValueOffset(c.getType(), c, offset, status);
+          Node co = quantifiers::TermUtil::mkTypeValueOffset(
+              c.getType(), c, offset, status);
           Trace("sygus-sb-simple-debug")
               << c << " with offset " << offset << " is " << co
               << ", status=" << status << std::endl;

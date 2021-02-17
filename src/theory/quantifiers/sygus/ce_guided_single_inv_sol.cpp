@@ -544,7 +544,8 @@ void CegSingleInvSol::getEquivalentTerms(Kind k,
         }
         if( !eq.isNull() ){
           eq = Rewriter::rewrite( eq );
-          if( !eq.isConst() || !eq.getConst<bool>() ){
+          if (!eq.isConst() || !eq.getConst<bool>())
+          {
             success = false;
             break;
           }
