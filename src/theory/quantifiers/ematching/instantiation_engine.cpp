@@ -53,13 +53,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs, qim));
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(new InstStrategyAutoGenTriggers(
-        d_quantEngine, qs, qim, d_quant_rel.get()));
+        d_quantEngine, qs, qim, qr, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }

@@ -62,8 +62,9 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
     QuantifiersEngine* qe,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
-    QuantRelevance* qr)
-    : InstStrategy(qe, qs, qim), d_quant_rel(qr)
+                                         QuantifiersRegistry& qr,
+    QuantRelevance* qrlv)
+    : InstStrategy(qe, qs, qim, qr), d_quant_rel(qrlv)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
@@ -283,6 +284,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     {
       tr = Trigger::mkTrigger(d_quantEngine,
                               d_qim,
+                              d_qreg,
                               f,
                               patTerms[0],
                               false,
@@ -320,6 +322,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       // will possibly want to get an old trigger
       tr = Trigger::mkTrigger(d_quantEngine,
                               d_qim,
+                              d_qreg,
                               f,
                               patTerms,
                               false,
@@ -362,6 +365,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
           d_single_trigger_gen[patTerms[index]] = true;
           Trigger* tr2 = Trigger::mkTrigger(d_quantEngine,
                                             d_qim,
+                                            d_qreg,
                                             f,
                                             patTerms[index],
                                             false,

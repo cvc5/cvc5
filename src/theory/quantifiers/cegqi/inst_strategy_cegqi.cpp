@@ -369,18 +369,17 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   // must register with the instantiator
   // must explicitly remove ITEs so that we record dependencies
   std::vector<Node> ce_vars;
-  TermUtil* tutil = d_quantEngine->getTermUtil();
-  for (unsigned i = 0, nics = tutil->getNumInstantiationConstants(q); i < nics;
+  for (size_t i = 0, nics = d_qreg.getNumInstantiationConstants(q); i < nics;
        i++)
   {
-    ce_vars.push_back(tutil->getInstantiationConstant(q, i));
+    ce_vars.push_back(d_qreg.getInstantiationConstant(q, i));
   }
   // send the lemma
-  d_quantEngine->getOutputChannel().lemma(lem);
+  d_qim.lemma(lem);
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;
-  Node ppLem = d_quantEngine->getValuation().getPreprocessedTerm(
+  Node ppLem = d_qstate.getValuation().getPreprocessedTerm(
       lem, skAsserts, skolems);
   std::vector<Node> lemp{ppLem};
   lemp.insert(lemp.end(), skAsserts.begin(), skAsserts.end());

@@ -20,6 +20,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/strings/sequences_rewriter.h"
+#include "theory/theory.h"
 
 using namespace CVC4::kind;
 using namespace std;

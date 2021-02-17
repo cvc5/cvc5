@@ -28,7 +28,7 @@ InstStrategyUserPatterns::InstStrategyUserPatterns(
     QuantifiersEngine* ie,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim)
-    : InstStrategy(ie, qs, qim)
+    : InstStrategy(ie, qs, qim, qr)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
@@ -106,7 +106,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     for (size_t i = 0, usize = ugw.size(); i < usize; i++)
     {
       Trigger* t = Trigger::mkTrigger(
-          d_quantEngine, d_qim, q, ugw[i], true, Trigger::TR_RETURN_NULL);
+          d_quantEngine, d_qim, d_qreg, q, ugw[i], true, Trigger::TR_RETURN_NULL);
       if (t)
       {
         d_user_gen[q].push_back(t);

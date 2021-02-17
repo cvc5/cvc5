@@ -21,7 +21,6 @@
 #include <unordered_set>
 
 #include "expr/attribute.h"
-#include "theory/quantifiers/quant_util.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
@@ -80,10 +79,6 @@ class TermUtil
   Node d_zero;
   Node d_one;
 
-  /** reset */
-  bool reset(Theory::Effort e) override { return true; }
-  /** identify */
-  std::string identify() const override { return "TermUtil"; }
   // for inst constant
 public:
 

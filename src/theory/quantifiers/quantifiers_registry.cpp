@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers/quantifiers_registry.h"
 
-#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {

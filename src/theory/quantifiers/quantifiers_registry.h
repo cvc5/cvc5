@@ -42,6 +42,7 @@ class QuantifiersRegistry : public QuantifiersUtil
   bool reset(Theory::Effort e) override;
   /** identify */
   std::string identify() const override;
+  //----------------------------- ownership
   /** get the owner of quantified formula q */
   QuantifiersModule* getOwner(Node q) const;
   /**
@@ -54,6 +55,7 @@ class QuantifiersRegistry : public QuantifiersUtil
    * Return true if module q has no owner registered or if its registered owner is m.
    */
   bool hasOwnership(Node q, QuantifiersModule* m) const;
+  //----------------------------- end ownership
   //----------------------------- instantiation constants
   /** get the i^th instantiation constant of q */
   Node getInstantiationConstant(Node q, size_t i) const;

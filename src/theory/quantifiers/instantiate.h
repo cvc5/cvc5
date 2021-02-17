@@ -34,6 +34,8 @@ namespace quantifiers {
 
 class TermDb;
 class TermUtil;
+class QuantifiersState;
+class QuantifiersInferenceManager;
 
 /** Instantiation rewriter
  *

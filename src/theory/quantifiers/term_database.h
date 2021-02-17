@@ -33,8 +33,8 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
-class ConjectureGenerator;
-class TermGenEnv;
+class QuantifiersState;
+class QuantifiersInferenceManager;
 
 /** Context-dependent list of nodes */
 class DbList

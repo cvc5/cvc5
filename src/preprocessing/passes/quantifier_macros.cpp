@@ -194,10 +194,10 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 
 bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
 {
-  Node icn = d_preprocContext->getTheoryEngine()
+  Node icn = n; /* d_preprocContext->getTheoryEngine()
                  ->getQuantifiersEngine()
                  ->getTermUtil()
-                 ->substituteBoundVariablesToInstConstants(n, q);
+                 ->substituteBoundVariablesToInstConstants(n, q); */
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);
