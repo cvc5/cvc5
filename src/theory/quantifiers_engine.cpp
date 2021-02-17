@@ -49,7 +49,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes),
-      d_instantiate(new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
+      d_instantiate(
+          new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
@@ -92,13 +93,13 @@ QuantifiersEngine::QuantifiersEngine(
       d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this, qstate));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
-      d_model.reset(
-          new quantifiers::FirstOrderModel(this, qstate, d_qreg, "FirstOrderModel"));
+      d_model.reset(new quantifiers::FirstOrderModel(
+          this, qstate, d_qreg, "FirstOrderModel"));
       d_builder.reset(new quantifiers::QModelBuilder(this, qstate));
     }
   }else{
-    d_model.reset(
-        new quantifiers::FirstOrderModel(this, qstate, d_qreg, "FirstOrderModel"));
+    d_model.reset(new quantifiers::FirstOrderModel(
+        this, qstate, d_qreg, "FirstOrderModel"));
   }
   d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
       qstate, d_term_db.get(), d_model.get()));

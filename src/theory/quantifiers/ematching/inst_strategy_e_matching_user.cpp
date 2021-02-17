@@ -28,7 +28,7 @@ InstStrategyUserPatterns::InstStrategyUserPatterns(
     QuantifiersEngine* ie,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
-                           QuantifiersRegistry& qr)
+    QuantifiersRegistry& qr)
     : InstStrategy(ie, qs, qim, qr)
 {
 }

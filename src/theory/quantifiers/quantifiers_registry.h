@@ -36,6 +36,7 @@ class Instantiate;
 class QuantifiersRegistry : public QuantifiersUtil
 {
   friend class Instantiate;
+
  public:
   QuantifiersRegistry() {}
   ~QuantifiersRegistry() {}
@@ -67,7 +68,7 @@ class QuantifiersRegistry : public QuantifiersUtil
   /** get the ce body q[e/x] */
   Node getInstConstantBody(Node q);
   /** get variable number */
-  size_t getVariableNum( Node q, Node v ) const;
+  size_t getVariableNum(Node q, Node v) const;
   /** returns node n with bound vars of q replaced by instantiation constants of
      q node n : is the future pattern node q : is the quantifier containing
      which bind the variable return a pattern where the variable are replaced by

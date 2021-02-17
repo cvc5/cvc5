@@ -39,7 +39,7 @@ namespace quantifiers {
 Instantiate::Instantiate(QuantifiersEngine* qe,
                          QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
-              QuantifiersRegistry& qr,
+                         QuantifiersRegistry& qr,
                          ProofNodeManager* pnm)
     : d_qe(qe),
       d_qstate(qs),
@@ -251,8 +251,7 @@ bool Instantiate::addInstantiation(
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_qreg.d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body =
-      getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
+  Node body = getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
   TrustNode tpBody = quantifiers::QuantifiersRewriter::preprocess(body, true);

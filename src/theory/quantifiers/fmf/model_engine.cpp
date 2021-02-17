@@ -267,7 +267,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-        Trace("fmf-exh-inst-debug") << d_qreg.getInstantiationConstant( f, i ) << " ";
+        Trace("fmf-exh-inst-debug")
+            << d_qreg.getInstantiationConstant(f, i) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }

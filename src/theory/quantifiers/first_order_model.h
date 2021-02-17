@@ -58,7 +58,7 @@ class FirstOrderModel : public TheoryModel
  public:
   FirstOrderModel(QuantifiersEngine* qe,
                   QuantifiersState& qs,
-               QuantifiersRegistry& qr,
+                  QuantifiersRegistry& qr,
                   std::string name);
 
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
@@ -207,7 +207,7 @@ class FirstOrderModelFmc : public FirstOrderModel
  public:
   FirstOrderModelFmc(QuantifiersEngine* qe,
                      QuantifiersState& qs,
-               QuantifiersRegistry& qr,
+                     QuantifiersRegistry& qr,
                      std::string name);
   ~FirstOrderModelFmc() override;
   FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }

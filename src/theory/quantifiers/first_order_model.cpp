@@ -35,7 +35,7 @@ namespace quantifiers {
 
 FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
-                           QuantifiersRegistry& qr,
+                                 QuantifiersRegistry& qr,
                                  std::string name)
     : TheoryModel(qs.getSatContext(), name, true),
       d_qe(qe),
@@ -303,8 +303,7 @@ Node FirstOrderModel::getModelBasis(Node q, Node n)
       d_model_basis_terms[q].push_back(getModelBasisTerm(q[0][j].getType()));
     }
   }
-  Node gn = d_qreg.substituteInstConstants(
-      n, q, d_model_basis_terms[q]);
+  Node gn = d_qreg.substituteInstConstants(n, q, d_model_basis_terms[q]);
   return gn;
 }
 
@@ -339,7 +338,7 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
 
 FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
                                        QuantifiersState& qs,
-               QuantifiersRegistry& qr,
+                                       QuantifiersRegistry& qr,
                                        std::string name)
     : FirstOrderModel(qe, qs, qr, name)
 {
