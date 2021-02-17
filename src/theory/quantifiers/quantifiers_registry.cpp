@@ -127,12 +127,6 @@ Node QuantifiersRegistry::getInstConstantBody(Node q)
   return it->second;
 }
 
-size_t QuantifiersRegistry::getVariableNum(Node q, Node v) const
-{
-  // FIXME
-  return 0;
-}
-
 Node QuantifiersRegistry::substituteBoundVariablesToInstConstants(Node n,
                                                                   Node q)
 {

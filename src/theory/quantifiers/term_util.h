@@ -81,6 +81,8 @@ class TermUtil
 
   // for inst constant
 public:
+  /** Get the index of BOUND_VARIABLE v in quantifier q */
+  static size_t getVariableNum(Node q, Node v);
 
   static Node getInstConstAttr( Node n );
   static bool hasInstConstAttr( Node n );

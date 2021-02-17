@@ -47,6 +47,14 @@ TermUtil::~TermUtil(){
 
 }
 
+
+size_t TermUtil::getVariableNum(Node q, Node v)
+{
+  Node::iterator it = std::find(q[0].begin(), q[0].end(), v);
+  Assert (it != q[0].end());
+  return it - q[0].begin();
+}
+
 Node TermUtil::getRemoveQuantifiers2( Node n, std::map< Node, Node >& visited ) {
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it!=visited.end() ){
