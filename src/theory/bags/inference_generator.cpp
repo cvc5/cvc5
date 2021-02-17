@@ -23,7 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager * im) : d_state(state), d_im(im)
+InferenceGenerator::InferenceGenerator(SolverState* state, InferenceManager* im)
+    : d_state(state), d_im(im)
 {
   d_nm = NodeManager::currentNM();
   d_sm = d_nm->getSkolemManager();

@@ -165,7 +165,7 @@ void BagSolver::checkMkBag(const Node& n)
 void BagSolver::checkNonNegativeCountTerms(const Node& bag, const Node& element)
 {
   InferInfo i = d_ig.nonNegativeCount(bag, element);
-    d_im.processLemma(i);
+  d_im.processLemma(i);
 }
 
 void BagSolver::checkDifferenceRemove(const Node& n)

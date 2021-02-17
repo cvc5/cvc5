@@ -99,10 +99,10 @@ void InferenceManagerBuffered::doPendingFacts()
   {
     // process this fact
     std::vector<Node> exp;
-    ProofGenerator * pg = nullptr;
+    ProofGenerator* pg = nullptr;
     Node fact = d_pendingFact[i]->processFact(exp, pg);
-    Assert (!fact.isNull());
-    bool pol = fact.getKind()!=NOT;
+    Assert(!fact.isNull());
+    bool pol = fact.getKind() != NOT;
     TNode atom = pol ? fact : fact[0];
     // no double negation or conjunctive conclusions  TODO: revisit?
     Assert(atom.getKind() != NOT && atom.getKind() != AND);
@@ -128,7 +128,7 @@ void InferenceManagerBuffered::doPendingLemmas()
     // process this lemma
     LemmaProperty p = LemmaProperty::NONE;
     TrustNode lem = d_pendingLem[i]->processLemma(p);
-    Assert (!lem.isNull());
+    Assert(!lem.isNull());
     // send the lemma, which notice may enqueue more pending lemmas in this
     // loop, or clear the lemmas.
     trustedLemma(lem, d_pendingLem[i]->getId(), p);

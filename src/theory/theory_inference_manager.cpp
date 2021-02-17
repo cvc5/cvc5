@@ -209,9 +209,7 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                   << " mkTrustedConflictEqConstantMerge";
 }
 
-bool TheoryInferenceManager::lemma(TNode lem,
-                                   InferenceId id,
-                                   LemmaProperty p)
+bool TheoryInferenceManager::lemma(TNode lem, InferenceId id, LemmaProperty p)
 {
   TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
   return trustedLemma(tlem, id, p);

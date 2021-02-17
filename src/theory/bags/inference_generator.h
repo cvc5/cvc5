@@ -22,8 +22,8 @@
 
 #include "expr/node.h"
 #include "infer_info.h"
-#include "theory/bags/solver_state.h"
 #include "theory/bags/inference_manager.h"
+#include "theory/bags/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,7 +36,7 @@ namespace bags {
 class InferenceGenerator
 {
  public:
-  InferenceGenerator(SolverState* state, InferenceManager * im);
+  InferenceGenerator(SolverState* state, InferenceManager* im);
 
   /**
    * @param A is a bag of type (Bag E)

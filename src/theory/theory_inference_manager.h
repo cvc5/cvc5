@@ -189,9 +189,7 @@ class TheoryInferenceManager
    * Send lemma lem with property p on the output channel. Same as above, with
    * a node instead of a trust node.
    */
-  bool lemma(TNode lem,
-             InferenceId id,
-             LemmaProperty p = LemmaProperty::NONE);
+  bool lemma(TNode lem, InferenceId id, LemmaProperty p = LemmaProperty::NONE);
   /**
    * Explained lemma. This should be called when
    *   ( exp => conc )

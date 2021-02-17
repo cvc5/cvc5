@@ -67,7 +67,8 @@ TrustNode DatatypesInference::processLemma(LemmaProperty& p)
   return d_im->processDtLemma(d_conc, d_exp, getId());
 }
 
-Node DatatypesInference::processFact(std::vector<Node>& exp, ProofGenerator*& pg)
+Node DatatypesInference::processFact(std::vector<Node>& exp,
+                                     ProofGenerator*& pg)
 {
   // add to the explanation vector if applicable (when non-trivial)
   if (!d_exp.isNull() && !d_exp.isConst())

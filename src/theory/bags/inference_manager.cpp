@@ -44,7 +44,6 @@ void InferenceManager::doPending()
   doPendingPhaseRequirements();
 }
 
-
 void InferenceManager::processLemma(InferInfo& ii)
 {
   LemmaProperty p;

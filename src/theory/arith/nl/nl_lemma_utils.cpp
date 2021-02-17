@@ -22,7 +22,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-TrustNode NlLemma::processLemma(LemmaProperty& p) 
+TrustNode NlLemma::processLemma(LemmaProperty& p)
 {
   if (d_nlext != nullptr)
   {

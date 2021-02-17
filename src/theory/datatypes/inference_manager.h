@@ -84,13 +84,11 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Process datatype inference as a lemma
    */
-  TrustNode processDtLemma(Node conc,
-                      Node exp,
-                      InferenceId id);
+  TrustNode processDtLemma(Node conc, Node exp, InferenceId id);
   /**
    * Process datatype inference as a fact
    */
-  Node processDtFact(Node conc, Node exp, InferenceId id, ProofGenerator *& pg);
+  Node processDtFact(Node conc, Node exp, InferenceId id, ProofGenerator*& pg);
   /**
    * Helper function for the above methods. Returns the conclusion, which
    * may be modified so that it is compatible with proofs. If proofs are

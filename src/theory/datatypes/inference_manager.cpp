@@ -79,9 +79,7 @@ void InferenceManager::process()
   doPendingFacts();
 }
 
-void InferenceManager::sendDtLemma(Node lem,
-                                   InferenceId id,
-                                   LemmaProperty p)
+void InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
 {
   if (isProofEnabled())
   {
@@ -121,8 +119,7 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
 
 bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 
-TrustNode InferenceManager::processDtLemma(
-    Node conc, Node exp, InferenceId id)
+TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
 {
   // set up a proof constructor
   std::shared_ptr<InferProofCons> ipcl;
@@ -158,7 +155,10 @@ TrustNode InferenceManager::processDtLemma(
   return TrustNode::mkTrustLemma(lem, d_lemPg.get());
 }
 
-Node InferenceManager::processDtFact(Node conc, Node exp, InferenceId id, ProofGenerator *& pg)
+Node InferenceManager::processDtFact(Node conc,
+                                     Node exp,
+                                     InferenceId id,
+                                     ProofGenerator*& pg)
 {
   pg = d_ipc.get();
   return prepareDtInference(conc, exp, id, d_ipc.get());

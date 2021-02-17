@@ -20,14 +20,17 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-InferInfo::InferInfo(InferenceManager* im, InferenceId id) : TheoryInference(id), d_im(im) {}
+InferInfo::InferInfo(InferenceManager* im, InferenceId id)
+    : TheoryInference(id), d_im(im)
+{
+}
 
 TrustNode InferInfo::processLemma(LemmaProperty& p)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node pnode = nm->mkNode(kind::AND, d_premises);
   Node lemma = nm->mkNode(kind::IMPLIES, pnode, d_conclusion);
-  
+
   // send lemmas corresponding to the skolems introduced
   for (const auto& pair : d_skolems)
   {

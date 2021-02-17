@@ -44,7 +44,8 @@ SimpleTheoryInternalFact::SimpleTheoryInternalFact(InferenceId id,
 {
 }
 
-Node SimpleTheoryInternalFact::processFact(std::vector<Node>& exp, ProofGenerator *& pg)
+Node SimpleTheoryInternalFact::processFact(std::vector<Node>& exp,
+                                           ProofGenerator*& pg)
 {
   exp.push_back(d_exp);
   pg = d_pg;

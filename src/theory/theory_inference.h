@@ -61,13 +61,13 @@ class TheoryInference
    * manager. This method for instance returns false if it corresponds to a
    * lemma that was already cached by im and hence was discarded.
    */
-  //virtual bool process(TheoryInferenceManager* im, bool asLemma) = 0;
-  
+  // virtual bool process(TheoryInferenceManager* im, bool asLemma) = 0;
+
   /**
    * Process lemma, return the trust node to pass to
    * TheoryInferenceManager::trustedLemma. In addition, the inference should
    * process any internal side effects of the lemma.
-   * 
+   *
    * @param p The property of the lemma which will be passed to trustedLemma
    * for this inference. If this call does not update p, the default value will
    * be used.
@@ -76,16 +76,19 @@ class TheoryInference
    */
   virtual TrustNode processLemma(LemmaProperty& p) { return TrustNode::null(); }
   /**
-   * Process internal fact, return the conclusion to pass to 
+   * Process internal fact, return the conclusion to pass to
    * TheoryInferenceManager::assertInternalFact. In addition, the inference
    * should process any internal side effects of the fact.
-   * 
+   *
    * @param exp The explanation for the returned conclusion. Each node added to
    * exp should be a (conjunction of) literals that hold in the current equality
    * engine.
    * @return The (possibly negated) conclusion.
    */
-  virtual Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) { return Node::null(); }
+  virtual Node processFact(std::vector<Node>& exp, ProofGenerator*& pg)
+  {
+    return Node::null();
+  }
 
   /** Get the InferenceId of this theory inference. */
   InferenceId getId() const { return d_id; }
