@@ -65,7 +65,7 @@ bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
 {
   // Check to see if we have to communicate it to the rest of the system.
   // The flag asLemma is true when the inference was marked that it must be
-  // sent as a lemma in addPendingInference below.
+  // sent as a lemma.
   if (asLemma)
   {
     return d_im->processDtLemma(d_conc, d_exp, getId());
