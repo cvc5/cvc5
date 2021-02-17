@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 #include "expr/attribute.h"
-#include "theory/type_enumerator.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -174,11 +174,23 @@ public:
    */
   static Node isSingularArg(Node n, Kind ik, unsigned arg);
 
-  /** make value, static version of get value */
-  static Node mkTypeValue(TypeNode tn, int val);
-  /** make value offset, static version of get value offset */
-  static Node mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
-  /** make max value, static version of get max value */
+  /** get type value with simple value
+   * This gets the Node that represents value val for Type tn
+   * This is used to get simple values, e.g. -1,0,1,
+   * in a uniform way per type.
+   */
+  static Node mkTypeValue(TypeNode tn, int32_t val);
+  /** make type value with simple offset
+   * Returns the value of ( val + getTypeValue( tn, offset ) ),
+   * where + is the additive operator for the type.
+   * Stores the status (0: success, -1: failure) in status.
+   */
+  static Node mkTypeValueOffset(TypeNode tn, Node val, int32_t offset, int32_t& status);
+  /** make the "max" value for type tn
+   * For example,
+   *   the max value for Bool is true,
+   *   the max value for BitVector is 1..1.
+   */
   static Node mkTypeMaxValue(TypeNode tn);
   /**
    * Make const, returns pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn).

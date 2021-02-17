@@ -283,7 +283,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   if (options::sygusMinGrammar() && dt.getNumConstructors() == op_pos.size())
   {
     SygusRedundantCons src;
-    src.initialize(d_qe, tn);
+    src.initialize(d_tds, tn);
     std::vector<unsigned> rindices;
     src.getRedundant(rindices);
     if (!rindices.empty())

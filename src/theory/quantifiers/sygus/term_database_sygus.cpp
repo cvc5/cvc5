@@ -940,7 +940,7 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
         if (n[1]
-            == d_quantEngine->getTermUtil()->getTypeValue(n[1].getType(), 0))
+            == TermUtil::mkTypeValue(n[1].getType(), 0))
         {
           return true;
         }

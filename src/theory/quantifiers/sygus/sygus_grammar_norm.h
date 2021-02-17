@@ -362,8 +362,6 @@ class SygusGrammarNorm
 
   }; /* class TransfChain */
 
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
   /** List of variable inputs of function-to-synthesize.
