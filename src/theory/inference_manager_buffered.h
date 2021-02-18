@@ -34,7 +34,8 @@ class InferenceManagerBuffered : public TheoryInferenceManager
  public:
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
-                           ProofNodeManager* pnm);
+                           ProofNodeManager* pnm,
+                           const std::string& name);
   virtual ~InferenceManagerBuffered() {}
   /**
    * Do we have a pending fact or lemma?
