@@ -122,47 +122,6 @@ unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
   return 1;
 }
 
-unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
-                                          std::vector<NlLemma>& out)
-{
-  if (options::nlExtEntailConflicts())
-  {
-    // check if any are entailed to be false
-    for (const NlLemma& lem : lemmas)
-    {
-      Node ch_lemma = lem.d_node.negate();
-      ch_lemma = Rewriter::rewrite(ch_lemma);
-      Trace("nl-ext-et-debug")
-          << "Check entailment of " << ch_lemma << "..." << std::endl;
-      std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
-          options::TheoryOfMode::THEORY_OF_TYPE_BASED, ch_lemma);
-      Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
-                               << et.second << std::endl;
-      if (et.first)
-      {
-        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
-                           << lem.d_node << std::endl;
-        // return just this lemma
-        if (filterLemma(lem, out) > 0)
-        {
-          lemmas.clear();
-          return 1;
-        }
-      }
-    }
-  }
-
-  unsigned sum = 0;
-  for (const NlLemma& lem : lemmas)
-  {
-    sum += filterLemma(lem, out);
-    d_containing.getOutputChannel().spendResource(
-        ResourceManager::Resource::ArithNlLemmaStep);
-  }
-  lemmas.clear();
-  return sum;
-}
-
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext-assert-debug") << "Getting assertions..." << std::endl;
