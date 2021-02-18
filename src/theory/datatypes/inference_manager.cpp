@@ -28,7 +28,7 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm),
+    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes"),
       d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
       d_inferenceFacts("theory::datatypes::inferenceFacts"),
       d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
@@ -38,7 +38,7 @@ InferenceManager::InferenceManager(Theory& t,
       d_lemPg(pnm == nullptr
                   ? nullptr
                   : new EagerProofGenerator(
-                        pnm, state.getUserContext(), "datatypes::lemPg"))
+                      pnm, state.getUserContext(), "datatypes::lemPg"))
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);

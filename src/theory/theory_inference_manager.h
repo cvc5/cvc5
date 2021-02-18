@@ -74,6 +74,8 @@ class TheoryInferenceManager
    * @param state The state of the theory
    * @param pnm The proof node manager, which if non-null, enables proofs for
    * this inference manager
+   * @param name The name of the inference manager, which is used for giving 
+   * unique names for statistics,
    * @param cacheLemmas Whether all lemmas sent using this theory inference
    * manager are added to a user-context dependent cache. This means that
    * only lemmas that are unique after rewriting are sent to the theory engine
@@ -82,8 +84,9 @@ class TheoryInferenceManager
   TheoryInferenceManager(Theory& t,
                          TheoryState& state,
                          ProofNodeManager* pnm,
+                         const std::string& name,
                          bool cacheLemmas = true);
-  virtual ~TheoryInferenceManager() {}
+  virtual ~TheoryInferenceManager();
   /**
    * Set equality engine, ee is a pointer to the official equality engine
    * of theory.
@@ -436,6 +439,12 @@ class TheoryInferenceManager
   uint32_t d_numCurrentLemmas;
   /** The number of internal facts added since the last call to reset. */
   uint32_t d_numCurrentFacts;
+  /** Statistics for conflicts sent via this inference manager. */
+  IntegralHistogramStat<InferenceId> d_conflictIdStats;
+  /** Statistics for facts sent via this inference manager. */
+  IntegralHistogramStat<InferenceId> d_factIdStats;
+  /** Statistics for lemmas sent via this inference manager. */
+  IntegralHistogramStat<InferenceId> d_lemmaIdStats;
 };
 
 }  // namespace theory

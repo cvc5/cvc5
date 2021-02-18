@@ -27,10 +27,9 @@ namespace arrays {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm, false),  // don't cache lemmas
-      d_lemmaPg(pnm ? new EagerProofGenerator(pnm,
-                                              state.getUserContext(),
-                                              "ArrayLemmaProofGenerator")
+    : TheoryInferenceManager(t, state, pnm, "theory::arrays", false),
+      d_lemmaPg(pnm ? new EagerProofGenerator(
+                    pnm, state.getUserContext(), "ArrayLemmaProofGenerator")
                     : nullptr)
 {
 }
