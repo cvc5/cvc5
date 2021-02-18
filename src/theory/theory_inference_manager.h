@@ -74,7 +74,7 @@ class TheoryInferenceManager
    * @param state The state of the theory
    * @param pnm The proof node manager, which if non-null, enables proofs for
    * this inference manager
-   * @param name The name of the inference manager, which is used for giving 
+   * @param name The name of the inference manager, which is used for giving
    * unique names for statistics,
    * @param cacheLemmas Whether all lemmas sent using this theory inference
    * manager are added to a user-context dependent cache. This means that
