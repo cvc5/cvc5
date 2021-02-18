@@ -28,7 +28,7 @@ namespace theory {
 
 class QuantifiersEngine;
 
-namespace quantifiers{
+namespace quantifiers {
 class QuantifiersState;
 }
 
