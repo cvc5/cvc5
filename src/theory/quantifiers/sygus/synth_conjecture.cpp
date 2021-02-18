@@ -43,10 +43,12 @@ namespace quantifiers {
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
                                  SygusStatistics& s)
     : d_qe(qe),
       d_qstate(qs),
       d_qim(qim),
+      d_qreg(qr),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),

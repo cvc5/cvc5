@@ -39,7 +39,7 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe,
       d_sqp(qe)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, qs, qim, d_statistics)));
+      new SynthConjecture(d_quantEngine, qs, qim, qr, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -160,7 +160,7 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, d_qstate, d_qim, d_statistics)));
+        new SynthConjecture(d_quantEngine, d_qstate, d_qim, d_qreg, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
