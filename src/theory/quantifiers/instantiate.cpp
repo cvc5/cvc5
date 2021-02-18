@@ -97,13 +97,6 @@ void Instantiate::addRewriter(InstantiationRewriter* ir)
 }
 
 bool Instantiate::addInstantiation(
-    Node q, InstMatch& m, bool mkRep, bool modEq, bool doVts)
-{
-  Assert(q[0].getNumChildren() == m.d_vals.size());
-  return addInstantiation(q, m.d_vals, mkRep, modEq, doVts);
-}
-
-bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
@@ -460,13 +453,6 @@ Node Instantiate::getInstantiation(Node q,
     }
   }
   return body;
-}
-
-Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
-{
-  Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
-  Assert(m.d_vals.size() == q[0].getNumChildren());
-  return getInstantiation(q, d_qreg.d_vars[q], m.d_vals, doVts);
 }
 
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)

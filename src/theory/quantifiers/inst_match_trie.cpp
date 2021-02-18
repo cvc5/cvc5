@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of inst match class
+ ** \brief Implementation of inst match trie class
  **/
 
 #include "theory/quantifiers/inst_match_trie.h"

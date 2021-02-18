@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief inst match class
+ ** \brief inst match trie class
  **/
 
 #include "cvc4_private.h"
@@ -22,7 +22,6 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "theory/quantifiers/inst_match.h"
 
 namespace CVC4 {
 namespace theory {
@@ -65,16 +64,6 @@ class InstMatchTrie
    */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
-                       InstMatch& m,
-                       bool modEq = false,
-                       ImtIndexOrder* imtio = NULL,
-                       unsigned index = 0)
-  {
-    return !addInstMatch(qs, q, m, modEq, imtio, true, index);
-  }
-  /** exists inst match, vector version */
-  bool existsInstMatch(quantifiers::QuantifiersState& qs,
-                       Node q,
                        std::vector<Node>& m,
                        bool modEq = false,
                        ImtIndexOrder* imtio = NULL,
@@ -90,17 +79,6 @@ class InstMatchTrie
    * If modEq is true, we check for duplication modulo equality the current
    * equalities in the equality engine of qs.
    */
-  bool addInstMatch(quantifiers::QuantifiersState& qs,
-                    Node q,
-                    InstMatch& m,
-                    bool modEq = false,
-                    ImtIndexOrder* imtio = NULL,
-                    bool onlyExist = false,
-                    unsigned index = 0)
-  {
-    return addInstMatch(qs, q, m.d_vals, modEq, imtio, onlyExist, index);
-  }
-  /** add inst match, vector version */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node f,
                     std::vector<Node>& m,
@@ -183,15 +161,6 @@ class CDInstMatchTrie
    */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
-                       InstMatch& m,
-                       bool modEq = false,
-                       unsigned index = 0)
-  {
-    return !addInstMatch(qs, q, m, modEq, index, true);
-  }
-  /** exists inst match, vector version */
-  bool existsInstMatch(quantifiers::QuantifiersState& qs,
-                       Node q,
                        std::vector<Node>& m,
                        bool modEq = false,
                        unsigned index = 0)
@@ -207,16 +176,6 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool addInstMatch(quantifiers::QuantifiersState& qs,
-                    Node q,
-                    InstMatch& m,
-                    bool modEq = false,
-                    unsigned index = 0,
-                    bool onlyExist = false)
-  {
-    return addInstMatch(qs, q, m.d_vals, modEq, index, onlyExist);
-  }
-  /** add inst match, vector version */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
                     std::vector<Node>& m,
@@ -314,7 +273,7 @@ class InstMatchTrieOrdered
    */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
-                    InstMatch& m,
+                    std::vector<Node>& m,
                     bool modEq = false)
   {
     return d_imt.addInstMatch(qs, q, m, modEq, d_imtio);
@@ -327,7 +286,7 @@ class InstMatchTrieOrdered
    */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
-                       InstMatch& m,
+                       std::vector<Node>& m,
                        bool modEq = false)
   {
     return d_imt.existsInstMatch(qs, q, m, modEq, d_imtio);
