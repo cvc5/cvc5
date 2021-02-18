@@ -19,12 +19,53 @@ namespace proof {
 
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
-  out << "disgraph {}\n";
-  // pn->getChildren() -> the premises (proof nodes)
-  // pn->getArgs() -> the args (nodes)
-  // pn->getResult() -> conclusion (node)
-  // pn->getRule() -> rule used in the proof (PfRule)
+  uint64_t ruleID = 0;
 
+  out << "digraph proof {\n";
+  DotPrinter::printInternal(out, pn, ruleID);
+  out << "}\n";
+}
+
+void DotPrinter::printInternal(std::ostream& out,
+                               const ProofNode* pn,
+                               uint64_t& ruleID)
+{
+  uint64_t currentRuleID = ruleID;
+  std::ostringstream currentArguments;
+  DotPrinter::ruleArguments(currentArguments, pn);
+  const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
+
+  out << "\t\"" << currentRuleID << " " << pn->getRule() << "("
+      << currentArguments.str() << ")\" [ shape = \"box\"];\n";
+
+  out << "\t\"" << currentRuleID << " " << pn->getRule() << "("
+      << currentArguments.str() << ")\"";
+  out << " -> \"" << currentRuleID << " " << pn->getResult() << "\";\n";
+
+  for (const std::shared_ptr<ProofNode>& c : children)
+  {
+    ++ruleID;
+    out << "\t\"" << ruleID << " " << c->getResult() << "\" -> \""
+        << currentRuleID << " " << pn->getRule() << "("
+        << currentArguments.str() << ")\";\n";
+    printInternal(out, c.get(), ruleID);
+  }
+}
+
+void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
+                               const ProofNode* pn)
+{
+  const std::vector<Node>& args = pn->getArguments();
+
+  if (args.size())
+  {
+    currentArguments << args[0];
+  }
+
+  for (size_t i = 1, size = args.size(); i < size; i++)
+  {
+    currentArguments << ", " << args[i];
+  }
 }
 
 }  // namespace proof

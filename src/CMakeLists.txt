@@ -140,6 +140,7 @@ libcvc4_add_sources(
   proof/cnf_proof.cpp
   proof/cnf_proof.h
   proof/dot/dot_printer.cpp
+  proof/dot/dot_printer.h
   proof/lean/lean_post_processor.cpp
   proof/lean/lean_post_processor.h
   proof/lean/lean_printer.h

@@ -18,9 +18,7 @@
 #define CVC4__PROOF__DOT__DOT_PRINTER_H
 
 #include <iostream>
-#include <map>
 
-#include "expr/node.h"
 #include "expr/proof_node.h"
 
 namespace CVC4 {
@@ -34,8 +32,35 @@ class DotPrinter
 
   /**
    * Print the full proof of assertions => false by pn using the dot format.
+   * @param out the output stream
+   * @param pn the root node of the proof to print
    */
   static void print(std::ostream& out, const ProofNode* pn);
+
+ private:
+  /**
+   * Print the rule in the format:
+   * "$RULE_ID $RULE_NAME($RULE_ARGUMENTS)" [ shape = "box"];
+   * "$RULE_ID $RULE_NAME($RULE_ARGUMENTS)" -> "$RULE_ID $RULE_CONCLUSION";
+   * and then for each child of the rule print
+   * "$CHILD_ID $CHILD_CONCLUSION" -> "$RULE_ID $RULE_NAME($RULE_ARGUMENTS)";
+   * and then recursively call the function with the child as argument.
+   * @param out the output stream
+   * @param pn the proof node to print
+   * @param ruleID the id of the rule to print
+   */
+  static void printInternal(std::ostream& out,
+                            const ProofNode* pn,
+                            uint64_t& ruleID);
+
+  /**
+   * Return the arguments of a ProofNode
+   * @param currentArguments an ostringstream that will store the arguments of
+   * pn formatted as "$ARG[0], $ARG[1], ..., $ARG[N-1]"
+   * @param pn a ProofNode
+   */
+  static void ruleArguments(std::ostringstream& currentArguments,
+                            const ProofNode* pn);
 };
 
 }  // namespace proof
