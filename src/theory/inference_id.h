@@ -140,34 +140,56 @@ enum class InferenceId
   // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
   SEP_PTO_PROP,
 
-  // cardinality of the universe is at most cardinality of the type
-  SETS_CARD_UNIV_TYPE,
-  // the universe is a superset of every set
-  SETS_UNIV_SUPERSET,
-  // negative members are part of the universe
-  SETS_NEGATIVE_MEMBER,
-  // all sets have non-negative cardinality
-  SETS_CARD_POSITIVE,
-  // two sets have the same cardinality
-  SETS_CARD_EQUAL,
-  // cycle of cardinalities, hence all sets have the same
-  SETS_CARD_CYCLE,
-  // cardinality is at least the number of elements we already know
-  SETS_CARD_MINIMAL,
-  // an element is a member of a set
-  SETS_MEMBER,
+  // ***** sets theory
   SETS_COMPREHENSION,
-  SETS_CONFLICT,
+  SETS_DEQ,
+  SETS_DOWN_CLOSURE,
   SETS_EQ_MEM,
   SETS_EQ_MEM_CONFLICT,
-  SETS_EQUALITY,
   SETS_MEM_EQ,
   SETS_MEM_EQ_CONFLICT,
   SETS_PROXY,
   SETS_PROXY_SINGLETON,
   SETS_SINGLETON_EQ,
-  SETS_SPLIT,
+  SETS_UP_CLOSURE,
+  SETS_UP_CLOSURE_2,
+  SETS_UP_UNIV,
   SETS_UNIV_TYPE,
+
+  // ***** sets cardinality extension
+  // cycle of cardinalities, hence all sets have the same
+  SETS_CARD_CYCLE,
+  // two sets have the same cardinality
+  SETS_CARD_EQUAL,
+  SETS_CARD_GRAPH_EMP,
+  SETS_CARD_GRAPH_EMP_PARENT,
+  SETS_CARD_GRAPH_EQ_PARENT,
+  SETS_CARD_GRAPH_EQ_PARENT_2,
+  SETS_CARD_GRAPH_PARENT_SINGLETON,
+  // cardinality is at least the number of elements we already know
+  SETS_CARD_MINIMAL,
+  // negative members are part of the universe
+  SETS_CARD_NEGATIVE_MEMBER,
+  // all sets have non-negative cardinality
+  SETS_CARD_POSITIVE,
+  // the universe is a superset of every set
+  SETS_CARD_UNIV_SUPERSET,
+  // cardinality of the universe is at most cardinality of the type
+  SETS_CARD_UNIV_TYPE,
+
+  // ***** sets relations extension
+  SETS_RELS_IDENTITY_DOWN,
+  SETS_RELS_IDENTITY_UP,
+  SETS_RELS_JOIN_COMPOSE,
+  SETS_RELS_JOIN_IMAGE_DOWN,
+  SETS_RELS_JOIN_SPLIT_1,
+  SETS_RELS_JOIN_SPLIT_2,
+  SETS_RELS_PRODUCE_COMPOSE,
+  SETS_RELS_PRODUCT_SPLIT,
+  SETS_RELS_TCLOSURE_FWD,
+  SETS_RELS_TRANSPOSE_EQ,
+  SETS_RELS_TRANSPOSE_REV,
+  SETS_RELS_TUPLE_REDUCTION,
 
   //-------------------------------------- base solver
   // initial normalize singular

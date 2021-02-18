@@ -158,7 +158,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       if (!d_state.isEntailed(subset, true))
       {
         d_im.assertInference(
-            subset, InferenceId::SETS_UNIV_SUPERSET, d_true, 1);
+            subset, InferenceId::SETS_CARD_UNIV_SUPERSET, d_true, 1);
       }
 
       // negative members are members in the universe set
@@ -176,7 +176,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
         //    (not (member negativeMember representative)))
         //    (member negativeMember (as univset t)))
         d_im.assertInference(
-            member, InferenceId::SETS_NEGATIVE_MEMBER, notMember, 1);
+            member, InferenceId::SETS_CARD_NEGATIVE_MEMBER, notMember, 1);
       }
     }
   }
@@ -420,7 +420,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           conc.push_back(n[e].eqNode(sib[e]));
         }
       }
-      d_im.assertInference(conc, InferenceId::UNKNOWN, n.eqNode(emp_set));
+      d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EMP, n.eqNode(emp_set));
       d_im.doPendingLemmas();
       if (d_im.hasSent())
       {
@@ -453,7 +453,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
         d_im.assertInference(
-            n.eqNode(emp_set), InferenceId::UNKNOWN, p.eqNode(emp_set));
+            n.eqNode(emp_set), InferenceId::SETS_CARD_GRAPH_EMP_PARENT, p.eqNode(emp_set));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -500,7 +500,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
         Trace("sets-debug")
             << "...derived " << conc.size() << " conclusions" << std::endl;
-        d_im.assertInference(conc, InferenceId::UNKNOWN, n.eqNode(p));
+        d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT, n.eqNode(p));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -552,7 +552,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         if (eq_parent)
         {
           Node conc = n.eqNode(cpk);
-          d_im.assertInference(conc, InferenceId::UNKNOWN, exps);
+          d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_PARENT_SINGLETON, exps);
           d_im.doPendingLemmas();
         }
         else
@@ -607,7 +607,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
               conc.push_back(cpk.eqNode(n));
             }
           }
-          d_im.assertInference(conc, InferenceId::UNKNOWN, cpk.eqNode(cpnl));
+          d_im.assertInference(conc, InferenceId::SETS_CARD_GRAPH_EQ_PARENT_2, cpk.eqNode(cpnl));
           d_im.doPendingLemmas();
           if (d_im.hasSent())
           {

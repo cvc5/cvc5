@@ -404,7 +404,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if( distinct_skolems.size() >= 2 ) {
       conclusion =  NodeManager::currentNM()->mkNode( kind::AND, conclusion, NodeManager::currentNM()->mkNode( kind::DISTINCT, distinct_skolems ) );
     }
-    sendInfer(conclusion, InferenceId::UNKNOWN, reason);
+    sendInfer(conclusion, InferenceId::SETS_RELS_JOIN_IMAGE_DOWN, reason);
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyJoinImageRule ***********" << std::endl;
 
   }
@@ -437,7 +437,7 @@ void TheorySetsRels::check(Theory::Effort level)
       reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], iden_term ) );
     }
     sendInfer(nm->mkNode(AND, fact, nm->mkNode(EQUAL, fst_mem, snd_mem)),
-              InferenceId::UNKNOWN,
+              InferenceId::SETS_RELS_IDENTITY_DOWN,
               reason);
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyIdenRule on " << iden_term << std::endl;
   }
@@ -470,7 +470,7 @@ void TheorySetsRels::check(Theory::Effort level)
         reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, (*mem_rep_exp_it)[1], iden_term_rel ) );
       }
       sendInfer(
-          nm->mkNode(MEMBER, new_mem, iden_term), InferenceId::UNKNOWN, reason);
+          nm->mkNode(MEMBER, new_mem, iden_term), InferenceId::SETS_RELS_IDENTITY_UP, reason);
       ++mem_rep_exp_it;
     }
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for Iden Term = " << iden_term << std::endl;
@@ -713,11 +713,11 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     if( all_reasons.size() > 1) {
       sendInfer(nm->mkNode(MEMBER, tc_mem, tc_rel),
-                InferenceId::UNKNOWN,
+                InferenceId::SETS_RELS_TCLOSURE_FWD,
                 nm->mkNode(AND, all_reasons));
     } else {
       sendInfer(nm->mkNode(MEMBER, tc_mem, tc_rel),
-                InferenceId::UNKNOWN,
+                InferenceId::SETS_RELS_TCLOSURE_FWD,
                 all_reasons.front());
     }
 
@@ -791,8 +791,8 @@ void TheorySetsRels::check(Theory::Effort level)
     if( pt_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, exp, NodeManager::currentNM()->mkNode(kind::EQUAL, pt_rel, exp[1]));
     }
-    sendInfer(fact_1, InferenceId::UNKNOWN, reason);
-    sendInfer(fact_2, InferenceId::UNKNOWN, reason);
+    sendInfer(fact_1, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
+    sendInfer(fact_2, InferenceId::SETS_RELS_PRODUCT_SPLIT, reason);
   }
 
   /* join-split rule:           (a, b) IS_IN (X JOIN Y)
@@ -862,9 +862,9 @@ void TheorySetsRels::check(Theory::Effort level)
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, join_rel, exp[1]));
     }
     Node fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem1, join_rel[0]);
-    sendInfer(fact, InferenceId::UNKNOWN, reason);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_1, reason);
     fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem2, join_rel[1]);
-    sendInfer(fact, InferenceId::UNKNOWN, reason);
+    sendInfer(fact, InferenceId::SETS_RELS_JOIN_SPLIT_2, reason);
     makeSharedTerm(shared_x, shared_type);
   }
 
@@ -886,7 +886,7 @@ void TheorySetsRels::check(Theory::Effort level)
     for( unsigned int i = 1; i < tp_terms.size(); i++ ) {
       Trace("rels-debug") << "\n[Theory::Rels] *********** Applying TRANSPOSE-Equal rule on transposed term = " << tp_terms[0] << " and " << tp_terms[i] << std::endl;
       sendInfer(nm->mkNode(EQUAL, tp_terms[0][0], tp_terms[i][0]),
-                InferenceId::UNKNOWN,
+                InferenceId::SETS_RELS_TRANSPOSE_EQ,
                 nm->mkNode(EQUAL, tp_terms[0], tp_terms[i]));
     }
   }
@@ -912,7 +912,7 @@ void TheorySetsRels::check(Theory::Effort level)
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tp_rel, exp[1]));
     }
     sendInfer(nm->mkNode(MEMBER, reversed_mem, tp_rel[0]),
-              InferenceId::UNKNOWN,
+              InferenceId::SETS_RELS_TRANSPOSE_REV,
               reason);
   }
 
@@ -1004,7 +1004,7 @@ void TheorySetsRels::check(Theory::Effort level)
           reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
         sendInfer(nm->mkNode(MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
-                  InferenceId::UNKNOWN,
+                  InferenceId::SETS_RELS_TRANSPOSE_REV,
                   reason);
       }
     }
@@ -1078,13 +1078,13 @@ void TheorySetsRels::check(Theory::Effort level)
           }
           if( isProduct ) {
             sendInfer(
-                fact, InferenceId::UNKNOWN, nm->mkNode(kind::AND, reasons));
+                fact, InferenceId::SETS_RELS_PRODUCE_COMPOSE, nm->mkNode(kind::AND, reasons));
           } else {
             if( r1_rmost != r2_lmost ) {
               reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r1_rmost, r2_lmost) );
             }
             sendInfer(
-                fact, InferenceId::UNKNOWN, nm->mkNode(kind::AND, reasons));
+                fact, InferenceId::SETS_RELS_JOIN_COMPOSE, nm->mkNode(kind::AND, reasons));
           }
         }
       }
@@ -1236,7 +1236,7 @@ void TheorySetsRels::check(Theory::Effort level)
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
       tuple_reduct = NodeManager::currentNM()->mkNode(kind::MEMBER,tuple_reduct, n[1]);
       Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::EQUAL, n, tuple_reduct);
-      sendInfer(tuple_reduction_lemma, InferenceId::UNKNOWN, d_trueNode);
+      sendInfer(tuple_reduction_lemma, InferenceId::SETS_RELS_TUPLE_REDUCTION, d_trueNode);
       d_symbolic_tuples.insert(n);
     }
   }
