@@ -293,7 +293,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   bool ret = d_model.checkModel(passertions, tdegree, lemmas);
   for (const auto& al: lemmas)
   {
-    d_im.addPendingArithLemma(al);
+    d_im.addPendingLemma(al);
   }
   return ret;
 }
@@ -502,7 +502,7 @@ bool NonlinearExtension::modelBasedRefinement()
             Node split = literal.orNode(literal.negate());
             NlLemma nsplit(InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT,
                            split);
-            d_im.addPendingArithLemma(nsplit, true);
+            d_im.addPendingLemma(nsplit, true);
           }
           if (d_im.hasWaitingLemma())
           {

@@ -54,24 +54,24 @@ class InferenceManager : public InferenceManagerBuffered
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(std::unique_ptr<SimpleTheoryLemma> lemma,
-                            bool isWaiting = false);
+  void addPendingLemma(std::unique_ptr<SimpleTheoryLemma> lemma,
+                       bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(const SimpleTheoryLemma& lemma, bool isWaiting = false);
+  void addPendingLemma(const SimpleTheoryLemma& lemma, bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(const Node& lemma,
-                            InferenceId inftype,
-                            ProofGenerator* pg = nullptr,
-                            bool isWaiting = false,
-                            LemmaProperty p = LemmaProperty::NONE);
+  void addPendingLemma(const Node& lemma,
+                       InferenceId inftype,
+                       ProofGenerator* pg = nullptr,
+                       bool isWaiting = false,
+                       LemmaProperty p = LemmaProperty::NONE);
 
   /**
    * Flush all waiting lemmas to this inference manager (as pending

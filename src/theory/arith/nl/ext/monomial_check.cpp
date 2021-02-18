@@ -274,7 +274,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   {
     if (r_lemmas.find(lemmas[i].d_node) == r_lemmas.end())
     {
-      d_data->d_im.addPendingArithLemma(lemmas[i]);
+      d_data->d_im.addPendingLemma(lemmas[i]);
     }
   }
   // could only take maximal lower/minimial lower bounds?
@@ -295,7 +295,7 @@ int MonomialCheck::compareSign(
     {
       Node lemma =
           nm->mkAnd(exp).impNode(mkLit(oa, d_data->d_zero, status * 2));
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_SIGN);
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN);
     }
     return status;
   }
@@ -321,7 +321,7 @@ int MonomialCheck::compareSign(
         proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
         proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
       }
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return 0;
   }

@@ -29,8 +29,8 @@ InferenceManager::InferenceManager(TheoryArith& ta,
 {
 }
 
-void InferenceManager::addPendingArithLemma(std::unique_ptr<SimpleTheoryLemma> lemma,
-                                            bool isWaiting)
+void InferenceManager::addPendingLemma(std::unique_ptr<SimpleTheoryLemma> lemma,
+                                       bool isWaiting)
 {
   Trace("arith::infman") << "Add " << lemma->getId() << " " << lemma->d_node
                          << (isWaiting ? " as waiting" : "") << std::endl;
@@ -59,21 +59,22 @@ void InferenceManager::addPendingArithLemma(std::unique_ptr<SimpleTheoryLemma> l
     d_pendingLem.emplace_back(std::move(lemma));
   }
 }
-void InferenceManager::addPendingArithLemma(const SimpleTheoryLemma& lemma,
-                                            bool isWaiting)
+void InferenceManager::addPendingLemma(const SimpleTheoryLemma& lemma,
+                                       bool isWaiting)
 {
-  addPendingArithLemma(std::unique_ptr<SimpleTheoryLemma>(new SimpleTheoryLemma(lemma)),
-                       isWaiting);
-}
-void InferenceManager::addPendingArithLemma(const Node& lemma,
-                                            InferenceId inftype,
-                                            ProofGenerator* pg,
-                                            bool isWaiting,
-                                            LemmaProperty p)
-{
-  addPendingArithLemma(
-      std::unique_ptr<SimpleTheoryLemma>(new SimpleTheoryLemma(inftype, lemma, p, pg)),
+  addPendingLemma(
+      std::unique_ptr<SimpleTheoryLemma>(new SimpleTheoryLemma(lemma)),
       isWaiting);
+}
+void InferenceManager::addPendingLemma(const Node& lemma,
+                                       InferenceId inftype,
+                                       ProofGenerator* pg,
+                                       bool isWaiting,
+                                       LemmaProperty p)
+{
+  addPendingLemma(std::unique_ptr<SimpleTheoryLemma>(
+                      new SimpleTheoryLemma(inftype, lemma, p, pg)),
+                  isWaiting);
 }
 
 void InferenceManager::flushWaitingLemmas()
