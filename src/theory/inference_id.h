@@ -40,6 +40,7 @@ namespace theory {
  */
 enum class InferenceId
 {
+  // ---------------------------------- arith theory
   //-------------------- core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
@@ -94,13 +95,16 @@ enum class InferenceId
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
-  //-------------------- unknown
+  // ---------------------------------- end arith theory
 
+  // ---------------------------------- arrays theory
   ARRAYS_EXT,
   ARRAYS_READ_OVER_WRITE,
   ARRAYS_READ_OVER_WRITE_1,
   ARRAYS_READ_OVER_WRITE_CONTRA,
+  // ---------------------------------- end arrays theory
 
+  // ---------------------------------- bags theory
   BAG_NON_NEGATIVE_COUNT,
   BAG_MK_BAG_SAME_ELEMENT,
   BAG_MK_BAG,
@@ -113,7 +117,9 @@ enum class InferenceId
   BAG_DIFFERENCE_SUBTRACT,
   BAG_DIFFERENCE_REMOVE,
   BAG_DUPLICATE_REMOVAL,
+  // ---------------------------------- end bags theory
 
+  // ---------------------------------- datatypes theory
   // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
   DATATYPES_UNIF,
   // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
@@ -134,13 +140,17 @@ enum class InferenceId
   DATATYPES_BISIMILAR,
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
+  // ---------------------------------- end datatypes theory
 
+  // ---------------------------------- sep theory
   // ensures that pto is a function: (pto x y) ^ ~(pto z w) ^ x = z => y != w
   SEP_PTO_NEG_PROP,
   // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
   SEP_PTO_PROP,
+  // ---------------------------------- end sep theory
 
   // ---------------------------------- sets theory
+  //-------------------- sets core solver
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,
@@ -155,7 +165,7 @@ enum class InferenceId
   SETS_UP_CLOSURE_2,
   SETS_UP_UNIV,
   SETS_UNIV_TYPE,
-  // ***** sets cardinality extension
+  //-------------------- sets cardinality solver
   // cycle of cardinalities, hence all sets have the same
   SETS_CARD_CYCLE,
   // two sets have the same cardinality
@@ -175,7 +185,7 @@ enum class InferenceId
   SETS_CARD_UNIV_SUPERSET,
   // cardinality of the universe is at most cardinality of the type
   SETS_CARD_UNIV_TYPE,
-  // ***** sets relations extension
+  //-------------------- sets relations solver
   SETS_RELS_IDENTITY_DOWN,
   SETS_RELS_IDENTITY_UP,
   SETS_RELS_JOIN_COMPOSE,
@@ -188,8 +198,10 @@ enum class InferenceId
   SETS_RELS_TRANSPOSE_EQ,
   SETS_RELS_TRANSPOSE_REV,
   SETS_RELS_TUPLE_REDUCTION,
+  //-------------------------------------- end sets theory
 
-  //-------------------------------------- base solver
+  //-------------------------------------- strings theory
+  //-------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
   //   x1 ++ ... ++ xn = xi
@@ -225,8 +237,8 @@ enum class InferenceId
   STRINGS_CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
   STRINGS_CARDINALITY,
-  //-------------------------------------- end base solver
-  //-------------------------------------- core solver
+  //-------------------- end base solver
+  //-------------------- core solver
   // A cycle in the empty string equivalence class, e.g.:
   //   x ++ y = "" => x = ""
   // This is typically not applied due to length constraints implying emptiness.
@@ -363,15 +375,15 @@ enum class InferenceId
   // is unknown, we apply the inference:
   //   len(s) != len(t) V len(s) = len(t)
   STRINGS_DEQ_LENGTH_SP,
-  //-------------------------------------- end core solver
-  //-------------------------------------- codes solver
+  //-------------------- end core solver
+  //-------------------- codes solver
   // str.to_code( v ) = rewrite( str.to_code(c) )
   // where v is the proxy variable for c.
   STRINGS_CODE_PROXY,
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
-  //-------------------------------------- end codes solver
-  //-------------------------------------- regexp solver
+  //-------------------- end codes solver
+  //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
   // where y is the normal form computed for x.
@@ -406,8 +418,8 @@ enum class InferenceId
   STRINGS_RE_DELTA_CONF,
   // regular expression derive ???
   STRINGS_RE_DERIVE,
-  //-------------------------------------- end regexp solver
-  //-------------------------------------- extended function solver
+  //-------------------- end regexp solver
+  //-------------------- extended function solver
   // Standard extended function inferences from context-dependent rewriting
   // produced by constant substitutions. See Reynolds et al CAV 2017. These are
   // inferences of the form:
@@ -452,15 +464,17 @@ enum class InferenceId
   // f(x1, .., xn) and P is the reduction predicate for f
   // (see theory_strings_preprocess).
   STRINGS_REDUCTION,
-  //-------------------------------------- end extended function solver
-  //-------------------------------------- prefix conflict
+  //-------------------- end extended function solver
+  //-------------------- prefix conflict
   // prefix conflict (coarse-grained)
   STRINGS_PREFIX_CONFLICT,
-  //-------------------------------------- end prefix conflict
+  //-------------------- end prefix conflict
+  //-------------------------------------- end strings theory
 
+  //-------------------------------------- uf theory
   // Clause from the uf symmetry breaker
   UF_BREAK_SYMMETRY,
-  //-------------------------------------- begin cardinality extension to UF
+  //-------------------- cardinality extension to UF
   // The inferences below are described in Reynolds' thesis 2013.
   // conflict of the form (card_T n) => (not (distinct t1 ... tn))
   UF_CARD_CLIQUE,
@@ -482,8 +496,8 @@ enum class InferenceId
   //  (or (= t1 t2) (not (= t1 t2))
   // to satisfy the cardinality constraints on the type of t1, t2.
   UF_CARD_SPLIT,
-  //-------------------------------------- end cardinality extension to UF
-  //-------------------------------------- begin HO extension to UF
+  //-------------------- end cardinality extension to UF
+  //-------------------- HO extension to UF
   // Encodes an n-ary application as a chain of binary HO_APPLY applications
   //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
   UF_HO_APP_ENCODE,
@@ -497,7 +511,7 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_EXTENSIONALITY,
-  //-------------------------------------- begin model-construction specific part
+  //-------------------- model-construction specific part
   // These rules are necessary to ensure that we build models properly. For more
   // details see Section 3.3 of Barbosa et al. CADE'19.
   //
@@ -509,9 +523,11 @@ enum class InferenceId
   // different applications
   //   (not (= (f sk1 .. skn) (g sk1 .. skn))
   UF_HO_MODEL_EXTENSIONALITY,
-  //-------------------------------------- end model-construction specific part
-  //-------------------------------------- end HO extension to UF
+  //-------------------- end model-construction specific part
+  //-------------------- end HO extension to UF
+  //-------------------------------------- end uf theory
 
+  //-------------------------------------- unknown
   UNKNOWN
 };
 
