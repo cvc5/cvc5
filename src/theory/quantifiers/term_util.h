@@ -46,7 +46,8 @@ typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttri
  * for quantifier instantiation level, where -1 means no limit.
  */
 struct QuantInstLevelAttributeId {};
-typedef expr::Attribute<QuantInstLevelAttributeId, int64_t> QuantInstLevelAttribute;
+typedef expr::Attribute<QuantInstLevelAttributeId, int64_t>
+    QuantInstLevelAttribute;
 
 /** Attribute for id number */
 struct QuantIdNumAttributeId {};

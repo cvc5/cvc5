@@ -214,7 +214,7 @@ class QuantAttributes
   /** is sygus conjecture */
   bool isSygus( Node q );
   /** get instantiation level */
-  int64_t getQuantInstLevel( Node q );
+  int64_t getQuantInstLevel(Node q);
   /** is quant elim */
   bool isQuantElim( Node q );
   /** is quant elim partial */
