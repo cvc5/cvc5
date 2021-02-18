@@ -252,7 +252,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     assumptions.push_back(assumption);
                     Node lemma = assumptions.size()==1 ? assumptions[0] : NodeManager::currentNM()->mkNode( OR, assumptions );
                     Trace("dt-singleton") << "*************Singleton equality lemma " << lemma << std::endl;
-                    d_im.lemma(lemma, InferenceId::UNKNOWN);
+                    d_im.lemma(lemma, InferenceId::UNKNOWN, LemmaProperty::CACHE);
                   }
                 }
               }else{
@@ -318,7 +318,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     NodeBuilder<> nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
-                    d_im.lemma(lemma, InferenceId::UNKNOWN);
+                    d_im.lemma(lemma, InferenceId::UNKNOWN, LemmaProperty::CACHE);
                     d_out->requirePhase( test, true );
                   }else{
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
@@ -327,7 +327,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     d_im.sendDtLemma(
                         lemma,
                         InferenceId::DATATYPES_SPLIT,
-                        LemmaProperty::SEND_ATOMS | LemmaProperty::NO_CACHE);
+                        LemmaProperty::SEND_ATOMS);
                   }
                   if( !options::dtBlastSplits() ){
                     break;
@@ -850,7 +850,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
-      d_im.addPendingLemma(eq, InferenceId::UNKNOWN);
+      d_im.addPendingLemma(eq, InferenceId::UNKNOWN, LemmaProperty::CACHE);
       return k;
     }else{
       return (*it).second;
@@ -1415,7 +1415,7 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
       Node v2 = NodeManager::currentNM()->mkSkolem( "k2", tn );
       a = v1.eqNode( v2 ).negate();
       //send out immediately as lemma
-      d_im.lemma(a, InferenceId::UNKNOWN);
+      d_im.lemma(a, InferenceId::UNKNOWN, LemmaProperty::CACHE);
       Trace("dt-singleton") << "******** assert " << a << " to avoid singleton cardinality for type " << tn << std::endl;
     }
     d_singleton_lemma[index][tn] = a;
@@ -1473,7 +1473,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
     Node lem = nm->mkNode(LEQ, d_zero, n);
     Trace("datatypes-infer")
         << "DtInfer : size geq zero : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::UNKNOWN);
+    d_im.addPendingLemma(lem, InferenceId::UNKNOWN, LemmaProperty::CACHE);
   }
   else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
@@ -1498,7 +1498,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
                                           : nm->mkNode(OR, children));
     }
     Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::UNKNOWN);
+    d_im.addPendingLemma(lem, InferenceId::UNKNOWN, LemmaProperty::CACHE);
   }
 }
 

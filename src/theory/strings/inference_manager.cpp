@@ -367,7 +367,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
     }
   }
   // we don't cache lemmas
-  p = LemmaProperty::NO_CACHE;
+  p = LemmaProperty::NONE;
   if (ii.getId() == InferenceId::STRINGS_REDUCTION)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;

@@ -219,12 +219,10 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
                                           InferenceId id,
                                           LemmaProperty p)
 {
-  if (isLemmaPropertyNoCache(p))
+  if (isLemmaPropertyCache(p))
   {
-    p = p & LemmaProperty::NO_CACHE;
-  }
-  else
-  {
+    // cache bit is irrelevant henceforth
+    p = p & LemmaProperty::CACHE;
     if (!cacheLemma(tlem.getNode(), p))
     {
       return false;

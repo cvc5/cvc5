@@ -53,7 +53,7 @@ class InferenceManager : public TheoryInferenceManager
                   InferenceId id,
                   Node exp,
                   PfRule pfr,
-                  LemmaProperty p = LemmaProperty::NO_CACHE);
+                  LemmaProperty p = LemmaProperty::NONE);
 
  private:
   /**

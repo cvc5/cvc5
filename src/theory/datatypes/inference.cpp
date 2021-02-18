@@ -63,7 +63,9 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 
 TrustNode DatatypesInference::processLemma(LemmaProperty& p)
 {
-  // we don't use lemma property p currently, as it is always default
+  // cache all lemmas
+  p = LemmaProperty::CACHE;
+  // we don't pass lemma property p currently
   return d_im->processDtLemma(d_conc, d_exp, getId());
 }
 

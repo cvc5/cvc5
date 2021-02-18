@@ -46,7 +46,7 @@ void InferenceManager::doPending()
 
 void InferenceManager::processLemma(InferInfo& ii)
 {
-  LemmaProperty p;
+  LemmaProperty p = LemmaProperty::NONE;
   TrustNode tlem = ii.processLemma(p);
   trustedLemma(tlem, ii.getId(), p);
 }

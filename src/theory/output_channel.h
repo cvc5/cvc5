@@ -41,8 +41,9 @@ enum class LemmaProperty : uint32_t
   SEND_ATOMS = 2,
   // whether the lemma is part of the justification for answering "sat"
   NEEDS_JUSTIFY = 4,
-  // whether the lemma should *not* be cached by its theory inference manager
-  NO_CACHE = 8
+  // whether the lemma should be cached by its theory inference manager and not
+  // sent if it is already cached
+  CACHE = 8
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
@@ -58,8 +59,8 @@ bool isLemmaPropertyRemovable(LemmaProperty p);
 bool isLemmaPropertySendAtoms(LemmaProperty p);
 /** is the needs justify bit set on p? */
 bool isLemmaPropertyNeedsJustify(LemmaProperty p);
-/** is the no-cache bit set on p? */
-bool isLemmaPropertyNoCache(LemmaProperty p);
+/** is the cache bit set on p? */
+bool isLemmaPropertyCache(LemmaProperty p);
 
 /**
  * Writes an lemma property name to a stream.

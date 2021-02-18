@@ -50,9 +50,9 @@ bool isLemmaPropertyNeedsJustify(LemmaProperty p)
   return (p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE;
 }
 
-bool isLemmaPropertyNoCache(LemmaProperty p)
+bool isLemmaPropertyCache(LemmaProperty p)
 {
-  return (p & LemmaProperty::NO_CACHE) != LemmaProperty::NONE;
+  return (p & LemmaProperty::CACHE) != LemmaProperty::NONE;
 }
 
 std::ostream& operator<<(std::ostream& out, LemmaProperty p)
@@ -76,9 +76,9 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     {
       out << " NEEDS_JUSTIFY";
     }
-    if (isLemmaPropertyNoCache(p))
+    if (isLemmaPropertyCache(p))
     {
-      out << " NO_CACHE";
+      out << " CACHE";
     }
     out << " }";
   }

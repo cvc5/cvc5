@@ -27,6 +27,8 @@ InferInfo::InferInfo(InferenceManager* im, InferenceId id)
 
 TrustNode InferInfo::processLemma(LemmaProperty& p)
 {
+  // cache all lemmas
+  p = LemmaProperty::CACHE;
   NodeManager* nm = NodeManager::currentNM();
   Node pnode = nm->mkAnd(d_premises);
   Node lemma = nm->mkNode(kind::IMPLIES, pnode, d_conclusion);
@@ -36,7 +38,7 @@ TrustNode InferInfo::processLemma(LemmaProperty& p)
   {
     Node n = pair.first.eqNode(pair.second);
     TrustNode trustedLemma = TrustNode::mkTrustLemma(n, nullptr);
-    d_im->trustedLemma(trustedLemma, getId());
+    d_im->trustedLemma(trustedLemma, getId(), p);
   }
 
   Trace("bags::InferInfo::process") << (*this) << std::endl;
