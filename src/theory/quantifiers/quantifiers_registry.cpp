@@ -46,6 +46,8 @@ void QuantifiersRegistry::registerQuantifier(Node q)
     InstConstantAttribute ica;
     ic.setAttribute(ica, q);
   }
+  // compute attributes
+  d_quantAttr.computeAttributes(q);
 }
 
 bool QuantifiersRegistry::reset(Theory::Effort e) { return true; }
@@ -174,6 +176,22 @@ Node QuantifiersRegistry::substituteInstConstants(Node n,
 QuantAttributes& QuantifiersRegistry::getQuantAttributes()
 {
   return d_quantAttr;
+}
+Node QuantifiersRegistry::getNameForQuant(Node q) const
+{
+  Node name = d_quantAttr.getQuantName(q);
+  if (!name.isNull())
+  {
+    return name;
+  }
+  return q;
+}
+
+bool QuantifiersRegistry::getNameForQuant(Node q, Node& name, bool req) const
+{
+  name = getNameForQuant(q);
+  // if we have a name, or we did not require one
+  return name != q || !req;
 }
 
 }  // namespace quantifiers

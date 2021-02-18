@@ -50,7 +50,7 @@ typedef expr::Attribute<QuantNameAttributeId, bool> QuantNameAttribute;
 struct InstLevelAttributeId
 {
 };
-typedef expr::Attribute<InstLevelAttributeId, int64_t> InstLevelAttribute;
+typedef expr::Attribute<InstLevelAttributeId, uint64_t> InstLevelAttribute;
 
 /** Attribute for setting printing information for sygus variables
  *
