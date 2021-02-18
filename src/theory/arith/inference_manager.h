@@ -55,14 +55,14 @@ class InferenceManager : public InferenceManagerBuffered
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
+  void addPendingArithLemma(std::unique_ptr<SimpleTheoryLemma> lemma,
                             bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(const ArithLemma& lemma, bool isWaiting = false);
+  void addPendingArithLemma(const SimpleTheoryLemma& lemma, bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
@@ -112,10 +112,10 @@ class InferenceManager : public InferenceManagerBuffered
    * Checks whether the lemma is entailed to be false. In this case, it is a
    * conflict.
    */
-  bool isEntailedFalse(const ArithLemma& lem);
+  bool isEntailedFalse(const SimpleTheoryLemma& lem);
 
   /** The waiting lemmas. */
-  std::vector<std::unique_ptr<ArithLemma>> d_waitingLem;
+  std::vector<std::unique_ptr<SimpleTheoryLemma>> d_waitingLem;
 };
 
 }  // namespace arith

@@ -19,8 +19,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/arith_lemma.h"
-#include "theory/output_channel.h"
+#include "theory/theory_inference.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,15 +40,14 @@ class NonlinearExtension;
  * - A set of secant points to record (for transcendental secant plane
  * inferences).
  */
-class NlLemma : public ArithLemma
+class NlLemma : public SimpleTheoryLemma
 {
  public:
-  NlLemma(InferenceId inf, Node n, LemmaProperty p, ProofGenerator* pg)
-      : ArithLemma(inf, n, p, pg)
-  {
-  }
-  NlLemma(InferenceId inf, Node n)
-      : ArithLemma(inf, n, LemmaProperty::NONE, nullptr)
+  NlLemma(InferenceId inf,
+          Node n,
+          LemmaProperty p = LemmaProperty::NONE,
+          ProofGenerator* pg = nullptr)
+      : SimpleTheoryLemma(inf, n, p, pg)
   {
   }
   ~NlLemma() {}

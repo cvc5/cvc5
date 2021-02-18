@@ -112,7 +112,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   }
 
   unsigned r = 1;
-  std::vector<ArithLemma> lemmas;
+  std::vector<SimpleTheoryLemma> lemmas;
   // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
   // in lemmas
   std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
@@ -342,7 +342,7 @@ bool MonomialCheck::compareMonomial(
     Node b,
     NodeMultiset& b_exp_proc,
     std::vector<Node>& exp,
-    std::vector<ArithLemma>& lem,
+    std::vector<SimpleTheoryLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -377,7 +377,7 @@ bool MonomialCheck::compareMonomial(
     NodeMultiset& b_exp_proc,
     int status,
     std::vector<Node>& exp,
-    std::vector<ArithLemma>& lem,
+    std::vector<SimpleTheoryLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
