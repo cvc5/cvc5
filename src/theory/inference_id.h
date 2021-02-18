@@ -140,7 +140,7 @@ enum class InferenceId
   // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
   SEP_PTO_PROP,
 
-  // ***** sets theory
+  // ---------------------------------- sets theory
   SETS_COMPREHENSION,
   SETS_DEQ,
   SETS_DOWN_CLOSURE,
@@ -155,7 +155,6 @@ enum class InferenceId
   SETS_UP_CLOSURE_2,
   SETS_UP_UNIV,
   SETS_UNIV_TYPE,
-
   // ***** sets cardinality extension
   // cycle of cardinalities, hence all sets have the same
   SETS_CARD_CYCLE,
@@ -176,7 +175,6 @@ enum class InferenceId
   SETS_CARD_UNIV_SUPERSET,
   // cardinality of the universe is at most cardinality of the type
   SETS_CARD_UNIV_TYPE,
-
   // ***** sets relations extension
   SETS_RELS_IDENTITY_DOWN,
   SETS_RELS_IDENTITY_UP,
