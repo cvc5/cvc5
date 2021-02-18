@@ -411,17 +411,38 @@ enum class InferenceId
 
   // Clause from the uf symmetry breaker
   UF_BREAK_SYMMETRY,
+  //-------------------------------------- begin cardinality extension to UF
+  // The inferences below are described in Reynolds' thesis 2013.
+  // conflict of the form (card_T n) => (not (distinct t1 ... tn))
   UF_CARD_CLIQUE,
+  // conflict of the form (not (card_T1 n1)) ^ ... (not (card_Tk nk)) ^ (card n)
+  // where n1 + ... + nk >= n, where (card n) is a combined cardinality
+  // constraint.
   UF_CARD_COMBINED,
+  // (not (card_T n)) => (distinct t1 ... tn)
   UF_CARD_ENFORCE_NEGATIVE,
+  // used to make the index terms in cardinality constraints equal
   UF_CARD_EQUIV,
+  // conflict of the form (not (card_T1 n)) ^ (card_T2 m) where the cardinality
+  // of T2 can be assumed to be without loss of generality larger than T1 due to
+  // monotonicity reasoning (Claessen et al 2011).
   UF_CARD_MONOTONE_COMBINED,
+  // conflict of the form (not (card_T n)) ^ (card_T m) where n>m
   UF_CARD_SIMPLE_CONFLICT,
+  // equality split requested by cardinality solver
+  //  (or (= t1 t2) (not (= t1 t2))
+  // to satisfy the cardinality constraints on the type of t1, t2.
   UF_CARD_SPLIT,
+  //-------------------------------------- end cardinality extension to UF
   //-------------------------------------- begin HO extension to UF
   // Encodes an n-ary application as a chain of binary HO_APPLY applications
   //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
   UF_HO_APP_ENCODE,
+  // A lemma corresponding to the definition of a skolem k used to convert
+  // HO_APPLY terms to APPLY_UF terms. This is of the form:
+  //   (forall x1 ... xn) (@ (@ k x1) ... xn) = t
+  // where notice that t is a function whose free variables (if any) are
+  // x1 ... xn.
   UF_HO_APP_CONV_SKOLEM,
   // Adds an extensionality lemma to witness that disequal functions have
   // different applications

@@ -20,6 +20,7 @@
 #include "options/uf_options.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
@@ -44,12 +45,12 @@ QuantifiersEngine::QuantifiersEngine(
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
-      d_term_util(new quantifiers::TermUtil),
-      d_term_db(new quantifiers::TermDb(qstate, qim, this)),
+      d_term_db(new quantifiers::TermDb(qstate, qim, d_qreg, this)),
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes),
-      d_instantiate(new quantifiers::Instantiate(this, qstate, qim, pnm)),
+      d_instantiate(
+          new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
@@ -59,8 +60,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_presolve_cache(qstate.getUserContext())
 {
   //---- utilities
-  // term util must come before the other utilities
-  d_util.push_back(d_term_util.get());
+  // quantifiers registry must come before the other utilities
+  d_util.push_back(&d_qreg);
   d_util.push_back(d_term_db.get());
 
   if (options::sygus() || options::sygusInst())
@@ -88,17 +89,17 @@ QuantifiersEngine::QuantifiersEngine(
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, qstate, "FirstOrderModelFmc"));
+          this, qstate, d_qreg, "FirstOrderModelFmc"));
       d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this, qstate));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
-      d_model.reset(
-          new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
+      d_model.reset(new quantifiers::FirstOrderModel(
+          this, qstate, d_qreg, "FirstOrderModel"));
       d_builder.reset(new quantifiers::QModelBuilder(this, qstate));
     }
   }else{
-    d_model.reset(
-        new quantifiers::FirstOrderModel(this, qstate, "FirstOrderModel"));
+    d_model.reset(new quantifiers::FirstOrderModel(
+        this, qstate, d_qreg, "FirstOrderModel"));
   }
   d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
       qstate, d_term_db.get(), d_model.get()));
@@ -142,6 +143,12 @@ QuantifiersEngine::getInferenceManager()
 {
   return d_qim;
 }
+
+quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
+{
+  return d_qreg;
+}
+
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
@@ -157,10 +164,6 @@ quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_sygus_tdb.get();
-}
-quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
-{
-  return d_term_util.get();
 }
 quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
 {
@@ -737,7 +740,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   {
     mdl->assertNode(f);
   }
-  addTermToDatabase(d_term_util->getInstConstantBody(f), true);
+  addTermToDatabase(d_qreg.getInstConstantBody(f), true);
 }
 
 void QuantifiersEngine::addTermToDatabase(Node n, bool withinQuant)

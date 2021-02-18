@@ -25,7 +25,6 @@
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -128,7 +127,7 @@ class OpPosTrie
 class SygusGrammarNorm
 {
  public:
-  SygusGrammarNorm(QuantifiersEngine* qe);
+  SygusGrammarNorm(TermDbSygus* tds);
   ~SygusGrammarNorm() {}
   /** creates a normalized typenode from a given one.
    *
@@ -363,8 +362,6 @@ class SygusGrammarNorm
 
   }; /* class TransfChain */
 
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
   /** sygus term database associated with this utility */
   TermDbSygus* d_tds;
   /** List of variable inputs of function-to-synthesize.

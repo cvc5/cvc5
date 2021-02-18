@@ -544,7 +544,8 @@ void CegSingleInvSol::getEquivalentTerms(Kind k,
         }
         if( !eq.isNull() ){
           eq = Rewriter::rewrite( eq );
-          if( eq!=d_qe->getTermUtil()->d_true ){
+          if (!eq.isConst() || !eq.getConst<bool>())
+          {
             success = false;
             break;
           }
@@ -788,7 +789,7 @@ void CegSingleInvSol::registerType(TypeNode tn)
   TypeNode btn = dt.getSygusType();
   // for constant reconstruction
   Kind ck = getComparisonKind(btn);
-  Node z = d_qe->getTermUtil()->getTypeValue(btn, 0);
+  Node z = TermUtil::mkTypeValue(btn, 0);
 
   // iterate over constructors
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)

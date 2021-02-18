@@ -694,6 +694,8 @@ libcvc4_add_sources(
   theory/quantifiers/first_order_model.h
   theory/quantifiers/fmf/bounded_integers.cpp
   theory/quantifiers/fmf/bounded_integers.h
+  theory/quantifiers/fmf/first_order_model_fmc.cpp
+  theory/quantifiers/fmf/first_order_model_fmc.h
   theory/quantifiers/fmf/full_model_check.cpp
   theory/quantifiers/fmf/full_model_check.h
   theory/quantifiers/fmf/model_builder.cpp
@@ -726,6 +728,8 @@ libcvc4_add_sources(
   theory/quantifiers/quant_split.h
   theory/quantifiers/quant_util.cpp
   theory/quantifiers/quant_util.h
+  theory/quantifiers/quant_module.cpp
+  theory/quantifiers/quant_module.h
   theory/quantifiers/quantifiers_attributes.cpp
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_inference_manager.cpp
