@@ -90,8 +90,6 @@ class QuantifiersEngine {
   quantifiers::TermDb* getTermDatabase() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term utilities */
-  quantifiers::TermUtil* getTermUtil() const;
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
@@ -294,8 +292,6 @@ public:
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** term utilities */
-  std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** equality query class */

@@ -34,7 +34,6 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 class TermDb;
-class TermUtil;
 }  // namespace quantifiers
 
 /** QuantifiersModule class
@@ -160,8 +159,6 @@ class QuantifiersModule
   QuantifiersEngine* getQuantifiersEngine() const;
   /** get currently used term database */
   quantifiers::TermDb* getTermDatabase() const;
-  /** get currently used term utility object */
-  quantifiers::TermUtil* getTermUtil() const;
   /** get the quantifiers state */
   quantifiers::QuantifiersState& getState();
   /** get the quantifiers inference manager */

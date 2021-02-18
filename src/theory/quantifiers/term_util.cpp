@@ -35,18 +35,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermUtil::TermUtil()
-{
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-}
-
-TermUtil::~TermUtil(){
-
-}
-
 size_t TermUtil::getVariableNum(Node q, Node v)
 {
   Node::iterator it = std::find(q[0].begin(), q[0].end(), v);
@@ -342,19 +330,7 @@ bool TermUtil::isBoolConnectiveTerm( TNode n ) {
          ( n.getKind()!=ITE || n.getType().isBoolean() );
 }
 
-Node TermUtil::getTypeValue(TypeNode tn, int val)
-{
-  std::unordered_map<int, Node>::iterator it = d_type_value[tn].find(val);
-  if (it == d_type_value[tn].end())
-  {
-    Node n = mkTypeValue(tn, val);
-    d_type_value[tn][val] = n;
-    return n;
-  }
-  return it->second;
-}
-
-Node TermUtil::mkTypeValue(TypeNode tn, int val)
+Node TermUtil::mkTypeValue(TypeNode tn, int32_t val)
 {
   Node n;
   if (tn.isInteger() || tn.isReal())
@@ -364,7 +340,8 @@ Node TermUtil::mkTypeValue(TypeNode tn, int val)
   }
   else if (tn.isBitVector())
   {
-    unsigned int uv = val;
+    // cast to unsigned
+    uint32_t uv = static_cast<uint32_t>(val);
     BitVector bval(tn.getConst<BitVectorSize>(), uv);
     n = NodeManager::currentNM()->mkConst<BitVector>(bval);
   }
@@ -385,19 +362,6 @@ Node TermUtil::mkTypeValue(TypeNode tn, int val)
   return n;
 }
 
-Node TermUtil::getTypeMaxValue(TypeNode tn)
-{
-  std::unordered_map<TypeNode, Node, TypeNodeHashFunction>::iterator it =
-      d_type_max_value.find(tn);
-  if (it == d_type_max_value.end())
-  {
-    Node n = mkTypeMaxValue(tn);
-    d_type_max_value[tn] = n;
-    return n;
-  }
-  return it->second;
-}
-
 Node TermUtil::mkTypeMaxValue(TypeNode tn)
 {
   Node n;
@@ -412,39 +376,29 @@ Node TermUtil::mkTypeMaxValue(TypeNode tn)
   return n;
 }
 
-Node TermUtil::getTypeValueOffset(TypeNode tn,
-                                  Node val,
-                                  int offset,
-                                  int& status)
+Node TermUtil::mkTypeValueOffset(TypeNode tn,
+                                 Node val,
+                                 int32_t offset,
+                                 int32_t& status)
 {
-  std::unordered_map<int, Node>::iterator it =
-      d_type_value_offset[tn][val].find(offset);
-  if (it == d_type_value_offset[tn][val].end())
+  Node val_o;
+  Node offset_val = mkTypeValue(tn, offset);
+  status = -1;
+  if (!offset_val.isNull())
   {
-    Node val_o;
-    Node offset_val = getTypeValue(tn, offset);
-    status = -1;
-    if (!offset_val.isNull())
+    if (tn.isInteger() || tn.isReal())
     {
-      if (tn.isInteger() || tn.isReal())
-      {
-        val_o = Rewriter::rewrite(
-            NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
-        status = 0;
-      }
-      else if (tn.isBitVector())
-      {
-        val_o = Rewriter::rewrite(
-            NodeManager::currentNM()->mkNode(BITVECTOR_PLUS, val, offset_val));
-        // TODO : enable?  watch for overflows
-      }
+      val_o = Rewriter::rewrite(
+          NodeManager::currentNM()->mkNode(PLUS, val, offset_val));
+      status = 0;
     }
-    d_type_value_offset[tn][val][offset] = val_o;
-    d_type_value_offset_status[tn][val][offset] = status;
-    return val_o;
+    else if (tn.isBitVector())
+    {
+      val_o = Rewriter::rewrite(
+          NodeManager::currentNM()->mkNode(BITVECTOR_PLUS, val, offset_val));
+    }
   }
-  status = d_type_value_offset_status[tn][val][offset];
-  return it->second;
+  return val_o;
 }
 
 Node TermUtil::mkTypeConst(TypeNode tn, bool pol)
@@ -493,7 +447,7 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
   // Assert( ik!=DIVISION && ik!=INTS_DIVISION && ik!=INTS_MODULUS &&
   // ik!=BITVECTOR_UDIV );
   TypeNode tn = n.getType();
-  if (n == getTypeValue(tn, 0))
+  if (n == mkTypeValue(tn, 0))
   {
     if (ik == PLUS || ik == OR || ik == XOR || ik == BITVECTOR_PLUS
         || ik == BITVECTOR_OR
@@ -511,7 +465,7 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
       return arg == 1;
     }
   }
-  else if (n == getTypeValue(tn, 1))
+  else if (n == mkTypeValue(tn, 1))
   {
     if (ik == MULT || ik == BITVECTOR_MULT)
     {
@@ -528,7 +482,7 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
       return arg == 1;
     }
   }
-  else if (n == getTypeMaxValue(tn))
+  else if (n == mkTypeMaxValue(tn))
   {
     if (ik == EQUAL || ik == BITVECTOR_AND || ik == BITVECTOR_XNOR)
     {
@@ -541,7 +495,7 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
 Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
 {
   TypeNode tn = n.getType();
-  if (n == getTypeValue(tn, 0))
+  if (n == mkTypeValue(tn, 0))
   {
     if (ik == AND || ik == MULT || ik == BITVECTOR_AND || ik == BITVECTOR_MULT)
     {
@@ -565,7 +519,7 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       }
       else if (arg == 1)
       {
-        return getTypeMaxValue(tn);
+        return mkTypeMaxValue(tn);
       }
     }
     else if (ik == DIVISION || ik == DIVISION_TOTAL || ik == INTS_DIVISION
@@ -586,25 +540,25 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       }
       else if (arg == 2)
       {
-        return getTypeValue(NodeManager::currentNM()->stringType(), 0);
+        return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
       }
     }
     else if (ik == STRING_STRIDOF)
     {
       if (arg == 0 || arg == 1)
       {
-        return getTypeValue(NodeManager::currentNM()->integerType(), -1);
+        return mkTypeValue(NodeManager::currentNM()->integerType(), -1);
       }
     }
   }
-  else if (n == getTypeValue(tn, 1))
+  else if (n == mkTypeValue(tn, 1))
   {
     if (ik == BITVECTOR_UREM_TOTAL)
     {
-      return getTypeValue(tn, 0);
+      return mkTypeValue(tn, 0);
     }
   }
-  else if (n == getTypeMaxValue(tn))
+  else if (n == mkTypeMaxValue(tn))
   {
     if (ik == OR || ik == BITVECTOR_OR)
     {
@@ -618,12 +572,12 @@ Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
       // negative arguments
       if (ik == STRING_SUBSTR || ik == STRING_CHARAT)
       {
-        return getTypeValue(NodeManager::currentNM()->stringType(), 0);
+        return mkTypeValue(NodeManager::currentNM()->stringType(), 0);
       }
       else if (ik == STRING_STRIDOF)
       {
         Assert(arg == 2);
-        return getTypeValue(NodeManager::currentNM()->integerType(), -1);
+        return mkTypeValue(NodeManager::currentNM()->integerType(), -1);
       }
     }
   }

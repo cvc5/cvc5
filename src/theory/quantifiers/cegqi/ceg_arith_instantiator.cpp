@@ -870,10 +870,7 @@ CegTermType ArithInstantiator::solve_arith(CegInstantiator* ci,
   {
     // redo, split integer/non-integer parts
     bool useCoeff = false;
-    Integer coeff = ci->getQuantifiersEngine()
-                        ->getTermUtil()
-                        ->d_one.getConst<Rational>()
-                        .getNumerator();
+    Integer coeff(1);
     for (std::map<Node, Node>::iterator it = msum.begin(); it != msum.end();
          ++it)
     {

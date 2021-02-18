@@ -783,7 +783,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
         Assert(!tl.isNull() && !tu.isNull());
-        if( ra==d_quantEngine->getTermUtil()->d_true ){
+        if (ra.isConst() && ra.getConst<bool>())
+        {
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for( unsigned k=0; k<rr; k++ ){

@@ -21,7 +21,7 @@
 #include <unordered_set>
 
 #include "expr/attribute.h"
-#include "theory/type_enumerator.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -50,13 +50,6 @@ typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttri
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 
-class QuantifiersEngine;
-
-namespace inst{
-  class Trigger;
-  class HigherOrderTrigger;
-}
-
 namespace quantifiers {
 
 class TermDatabase;
@@ -65,14 +58,8 @@ class TermDatabase;
 class TermUtil
 {
  public:
-  TermUtil();
-  ~TermUtil();
-  /** boolean terms */
-  Node d_true;
-  Node d_false;
-  /** constants */
-  Node d_zero;
-  Node d_one;
+  TermUtil() {}
+  ~TermUtil() {}
 
   // for inst constant
  public:
@@ -113,33 +100,6 @@ public:
   static void computeInstConstContainsForQuant(Node q,
                                                Node n,
                                                std::vector<Node>& vars);
-
-public:
-  
-//general utilities
-  // TODO #1216 : promote these?
- private:
-  /** cache for getTypeValue */
-  std::unordered_map<TypeNode,
-                     std::unordered_map<int, Node>,
-                     TypeNodeHashFunction>
-      d_type_value;
-  /** cache for getTypeMaxValue */
-  std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_max_value;
-  /** cache for getTypeValueOffset */
-  std::unordered_map<TypeNode,
-                     std::unordered_map<Node,
-                                        std::unordered_map<int, Node>,
-                                        NodeHashFunction>,
-                     TypeNodeHashFunction>
-      d_type_value_offset;
-  /** cache for status of getTypeValueOffset*/
-  std::unordered_map<TypeNode,
-                     std::unordered_map<Node,
-                                        std::unordered_map<int, int>,
-                                        NodeHashFunction>,
-                     TypeNodeHashFunction>
-      d_type_value_offset_status;
 
  public:
   /** contains uninterpreted constant */
@@ -205,41 +165,35 @@ public:
    *   <k>( ... t_{arg-1}, t_{arg+1}...)
    * always holds.
    */
-  bool isIdempotentArg(Node n, Kind ik, int arg);
+  static bool isIdempotentArg(Node n, Kind ik, int arg);
 
   /** is singular arg
    * Returns true if
    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = ret
    * always holds for some constant ret, which is returned by this function.
    */
-  Node isSingularArg(Node n, Kind ik, unsigned arg);
+  static Node isSingularArg(Node n, Kind ik, unsigned arg);
 
-  /** get type value
+  /** get type value with simple value
    * This gets the Node that represents value val for Type tn
    * This is used to get simple values, e.g. -1,0,1,
    * in a uniform way per type.
    */
-  Node getTypeValue(TypeNode tn, int val);
-
-  /** get type value offset
+  static Node mkTypeValue(TypeNode tn, int32_t val);
+  /** make type value with simple offset
    * Returns the value of ( val + getTypeValue( tn, offset ) ),
    * where + is the additive operator for the type.
    * Stores the status (0: success, -1: failure) in status.
    */
-  Node getTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
-
-  /** get the "max" value for type tn
+  static Node mkTypeValueOffset(TypeNode tn,
+                                Node val,
+                                int32_t offset,
+                                int32_t& status);
+  /** make the "max" value for type tn
    * For example,
    *   the max value for Bool is true,
    *   the max value for BitVector is 1..1.
    */
-  Node getTypeMaxValue(TypeNode tn);
-
-  /** make value, static version of get value */
-  static Node mkTypeValue(TypeNode tn, int val);
-  /** make value offset, static version of get value offset */
-  static Node mkTypeValueOffset(TypeNode tn, Node val, int offset, int& status);
-  /** make max value, static version of get max value */
   static Node mkTypeMaxValue(TypeNode tn);
   /**
    * Make const, returns pol ? mkTypeValue(tn,0) : mkTypeMaxValue(tn).
