@@ -156,6 +156,24 @@ class Instantiate : public QuantifiersUtil
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
+  /** 
+   * Same as above, but we also compute a vector failMask which contains
+   * information about what values in terms led to the instantiation not being
+   * added when this method returns false.  For example, if q is the formula
+   *   forall xy. x>5 => P(x,y)
+   * If terms = { 4, 0 }, then this method will return false since
+   *   4>5 => P(4,0)
+   * is entailed true based on rewriting. This method may additionally set
+   * failMask to { true, false }, indicating that x's value was critical, but
+   * y's value was not. In other words, all instantiations including { x -> 4 }
+   * will also lead to this method returning false.
+   */
+  bool addInstantiationExpFail(Node q,
+                        std::vector<Node>& terms,
+                        std::vector<bool>& failMask,
+                        bool mkRep = false,
+                        bool modEq = false,
+                        bool doVts = false);
   /** remove pending instantiation
    *
    * Removes the instantiation lemma lem from the instantiation trie.

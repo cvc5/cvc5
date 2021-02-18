@@ -386,6 +386,23 @@ bool Instantiate::addInstantiation(
   return true;
 }
 
+
+bool Instantiate::addInstantiationExpFail(Node q,
+                      std::vector<Node>& terms,
+                      std::vector<bool>& failMask,
+                      bool mkRep,
+                      bool modEq,
+                      bool doVts)
+{
+  if (addInstantiation(q, terms, mkRep, modEq, doVts))
+  {
+    return true;
+  }
+  failMask.resize(terms.size(), true);
+  // TODO
+  return false;
+}
+
 bool Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
                                       bool modEq,
