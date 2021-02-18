@@ -86,6 +86,7 @@ class QuantifiersRegistry : public QuantifiersUtil
   //----------------------------- end instantiation constants
   /** Get quantifiers attributes utility class */
   QuantAttributes& getQuantAttributes();
+
  private:
   /**
    * Maps quantified formulas to the module that owns them, if any module has
