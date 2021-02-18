@@ -57,7 +57,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
     if (fact == d_false)
     {
       Trace("sets-lemma") << "Conflict : " << exp << std::endl;
-      conflict(exp, InferenceId::SETS_CONFLICT);
+      conflict(exp, id);
       return true;
     }
     return false;
