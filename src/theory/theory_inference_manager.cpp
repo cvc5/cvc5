@@ -356,11 +356,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {
-<<<<<<< HEAD
-=======
-  Assert(pg != nullptr);
   d_factIdStats << id;
->>>>>>> 251bd84f628be2ce5ac2159b48112d9383c071c3
   return processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
 }
 
