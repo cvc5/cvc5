@@ -368,7 +368,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
   else
   {
     // do not run higher-order matching
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
   }
 }
 
@@ -381,7 +381,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
   }
   else
   {

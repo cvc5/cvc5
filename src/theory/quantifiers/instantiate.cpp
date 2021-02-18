@@ -135,7 +135,7 @@ bool Instantiate::addInstantiation(
     }
 #ifdef CVC4_ASSERTIONS
     bool bad_inst = false;
-    if (quantifiers::TermUtil::containsUninterpretedConstant(terms[i]))
+    if (TermUtil::containsUninterpretedConstant(terms[i]))
     {
       Trace("inst") << "***& inst contains uninterpreted constant : "
                     << terms[i] << std::endl;
@@ -150,7 +150,7 @@ bool Instantiate::addInstantiation(
     }
     else if (options::cegqi())
     {
-      Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
+      Node icf = TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
       {
         if (icf == q)
@@ -247,7 +247,7 @@ bool Instantiate::addInstantiation(
   Node body = getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
-  TrustNode tpBody = quantifiers::QuantifiersRewriter::preprocess(body, true);
+  TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
   if (!tpBody.isNull())
   {
     Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
