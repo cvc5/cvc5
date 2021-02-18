@@ -132,8 +132,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
     // (=> true (<= (card (as univset t)) cardUniv)
     if (!d_state.isEntailed(leq, true))
     {
-      d_im.assertInference(
-          leq, InferenceId::SETS_CARD_UNIV_TYPE, d_true, "univset cardinality <= type cardinality", 1);
+      d_im.assertInference(leq, InferenceId::SETS_CARD_UNIV_TYPE, d_true, 1);
     }
   }
 
@@ -158,7 +157,8 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       subset = Rewriter::rewrite(subset);
       if (!d_state.isEntailed(subset, true))
       {
-        d_im.assertInference(subset, InferenceId::SETS_UNIV_SUPERSET, d_true, "univset is a super set", 1);
+        d_im.assertInference(
+            subset, InferenceId::SETS_UNIV_SUPERSET, d_true, 1);
       }
 
       // negative members are members in the universe set
@@ -176,7 +176,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
         //    (not (member negativeMember representative)))
         //    (member negativeMember (as univset t)))
         d_im.assertInference(
-            member, InferenceId::SETS_NEGATIVE_MEMBER, notMember, "negative members are in the universe", 1);
+            member, InferenceId::SETS_NEGATIVE_MEMBER, notMember, 1);
       }
     }
   }
@@ -268,7 +268,8 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
       cterms.push_back(s);
     }
     Node pos_lem = nm->mkNode(GEQ, nm->mkNode(CARD, n), d_zero);
-    d_im.assertInference(pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, "pcard", 1);
+    d_im.assertInference(
+        pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
   }
   else
   {
@@ -279,13 +280,14 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
     Node nn = cterms[k];
     Node nk = d_treg.getProxy(nn);
     Node pos_lem = nm->mkNode(GEQ, nm->mkNode(CARD, nk), d_zero);
-    d_im.assertInference(pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, "pcard", 1);
+    d_im.assertInference(
+        pos_lem, InferenceId::SETS_CARD_POSITIVE, d_emp_exp, 1);
     if (nn != nk)
     {
       Node lem = nm->mkNode(EQUAL, nm->mkNode(CARD, nk), nm->mkNode(CARD, nn));
       lem = Rewriter::rewrite(lem);
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
-      d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, "card", 1);
+      d_im.assertInference(lem, InferenceId::SETS_CARD_EQUAL, d_emp_exp, 1);
     }
   }
   d_im.doPendingLemmas();
@@ -342,7 +344,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       Node fact = conc.size() == 1 ? conc[0] : nm->mkNode(AND, conc);
       Trace("sets-cycle-debug")
           << "CYCLE: " << fact << " from " << exp << std::endl;
-      d_im.assertInference(fact, InferenceId::SETS_CARD_CYCLE, exp, "card_cycle");
+      d_im.assertInference(fact, InferenceId::SETS_CARD_CYCLE, exp);
       d_im.doPendingLemmas();
     }
     else
@@ -418,7 +420,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           conc.push_back(n[e].eqNode(sib[e]));
         }
       }
-      d_im.assertInference(conc, InferenceId::UNKNOWN, n.eqNode(emp_set), "cg_emp");
+      d_im.assertInference(conc, InferenceId::UNKNOWN, n.eqNode(emp_set));
       d_im.doPendingLemmas();
       if (d_im.hasSent())
       {
@@ -450,7 +452,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
-        d_im.assertInference(n.eqNode(emp_set), InferenceId::UNKNOWN, p.eqNode(emp_set), "cg_emppar");
+        d_im.assertInference(
+            n.eqNode(emp_set), InferenceId::UNKNOWN, p.eqNode(emp_set));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -497,7 +500,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
         Trace("sets-debug")
             << "...derived " << conc.size() << " conclusions" << std::endl;
-        d_im.assertInference(conc, InferenceId::UNKNOWN, n.eqNode(p), "cg_eqpar");
+        d_im.assertInference(conc, InferenceId::UNKNOWN, n.eqNode(p));
         d_im.doPendingLemmas();
         if (d_im.hasSent())
         {
@@ -549,7 +552,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         if (eq_parent)
         {
           Node conc = n.eqNode(cpk);
-          d_im.assertInference(conc, InferenceId::UNKNOWN, exps, "cg_par_sing");
+          d_im.assertInference(conc, InferenceId::UNKNOWN, exps);
           d_im.doPendingLemmas();
         }
         else
@@ -604,7 +607,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
               conc.push_back(cpk.eqNode(n));
             }
           }
-          d_im.assertInference(conc, InferenceId::UNKNOWN, cpk.eqNode(cpnl), "cg_pareq");
+          d_im.assertInference(conc, InferenceId::UNKNOWN, cpk.eqNode(cpnl));
           d_im.doPendingLemmas();
           if (d_im.hasSent())
           {
@@ -972,7 +975,7 @@ void CardinalityExtension::checkMinCard()
       Node conc =
           nm->mkNode(GEQ, cardTerm, nm->mkConst(Rational(members.size())));
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
-      d_im.assertInference(conc, InferenceId::SETS_CARD_MINIMAL, expn, "mincard", 1);
+      d_im.assertInference(conc, InferenceId::SETS_CARD_MINIMAL, expn, 1);
     }
   }
   // flush the lemmas
