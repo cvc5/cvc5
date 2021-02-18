@@ -114,6 +114,14 @@ enum class InferenceId
   BAG_DIFFERENCE_REMOVE,
   BAG_DUPLICATE_REMOVAL,
 
+  BV_BITBLAST_CONFLICT,
+  BV_LAZY_CONFLICT,
+  BV_LAZY_LEMMA,
+  BV_SIMPLE_LEMMA,
+  BV_SIMPLE_BITBLAST_LEMMA,
+  BV_EXTF_LEMMA,
+  BV_EXTF_COLLAPSE,
+
   // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
   DATATYPES_UNIF,
   // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
