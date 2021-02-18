@@ -936,7 +936,7 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
   if( options::instMaxLevel()!=-1 ){
     if( n.hasAttribute(InstLevelAttribute()) ){
-      int fml =
+      int64_t fml =
           f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
       unsigned ml = fml>=0 ? fml : options::instMaxLevel();
 
