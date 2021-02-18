@@ -119,6 +119,16 @@ enum class InferenceId
   BAG_DUPLICATE_REMOVAL,
   // ---------------------------------- end bags theory
 
+  // ---------------------------------- bitvector theory
+  BV_BITBLAST_CONFLICT,
+  BV_LAZY_CONFLICT,
+  BV_LAZY_LEMMA,
+  BV_SIMPLE_LEMMA,
+  BV_SIMPLE_BITBLAST_LEMMA,
+  BV_EXTF_LEMMA,
+  BV_EXTF_COLLAPSE,
+  // ---------------------------------- end bitvector theory
+
   // ---------------------------------- datatypes theory
   // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
   DATATYPES_UNIF,

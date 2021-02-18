@@ -118,7 +118,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     }
 
     NodeManager* nm = NodeManager::currentNM();
-    d_im.conflict(nm->mkAnd(conflict), InferenceId::UNKNOWN);
+    d_im.conflict(nm->mkAnd(conflict), InferenceId::BV_BITBLAST_CONFLICT);
   }
 }
 
