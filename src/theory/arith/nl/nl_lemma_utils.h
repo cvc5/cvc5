@@ -44,15 +44,12 @@ class NonlinearExtension;
 class NlLemma : public ArithLemma
 {
  public:
-  NlLemma(Node n,
-          LemmaProperty p,
-          ProofGenerator* pg,
-          InferenceId inf = InferenceId::UNKNOWN)
-      : ArithLemma(n, p, pg, inf)
+  NlLemma(InferenceId inf, Node n, LemmaProperty p, ProofGenerator* pg)
+      : ArithLemma(inf, n, p, pg)
   {
   }
-  NlLemma(Node n, InferenceId inf = InferenceId::UNKNOWN)
-      : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
+  NlLemma(InferenceId inf, Node n)
+      : ArithLemma(inf, n, LemmaProperty::NONE, nullptr)
   {
   }
   ~NlLemma() {}

@@ -37,10 +37,7 @@ namespace arith {
 class ArithLemma : public SimpleTheoryLemma
 {
  public:
-  ArithLemma(Node n,
-             LemmaProperty p,
-             ProofGenerator* pg,
-             InferenceId inf = InferenceId::UNKNOWN)
+  ArithLemma(InferenceId inf, Node n, LemmaProperty p, ProofGenerator* pg)
       : SimpleTheoryLemma(inf, n, p, pg)
   {
   }

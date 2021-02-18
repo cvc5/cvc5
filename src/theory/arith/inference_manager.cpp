@@ -72,7 +72,7 @@ void InferenceManager::addPendingArithLemma(const Node& lemma,
                                             LemmaProperty p)
 {
   addPendingArithLemma(
-      std::unique_ptr<ArithLemma>(new ArithLemma(lemma, p, pg, inftype)),
+      std::unique_ptr<ArithLemma>(new ArithLemma(inftype, lemma, p, pg)),
       isWaiting);
 }
 
