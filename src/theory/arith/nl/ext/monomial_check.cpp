@@ -409,8 +409,10 @@ bool MonomialCheck::compareMonomial(
       Node clem = nm->mkNode(
           Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
-      lem.emplace_back(
-          clem, LemmaProperty::CACHE, nullptr, InferenceId::ARITH_NL_COMPARISON);
+      lem.emplace_back(clem,
+                       LemmaProperty::CACHE,
+                       nullptr,
+                       InferenceId::ARITH_NL_COMPARISON);
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
