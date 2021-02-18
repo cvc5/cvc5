@@ -165,10 +165,6 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_sygus_tdb.get();
 }
-quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
-{
-  return d_quant_attr.get();
-}
 quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
 {
   return d_instantiate.get();

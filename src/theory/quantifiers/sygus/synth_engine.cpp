@@ -169,8 +169,8 @@ void SynthEngine::checkOwnership(Node q)
 {
   // take ownership of quantified formulas with sygus attribute, and function
   // definitions when options::sygusRecFun is true.
-  QuantAttributes* qa = d_quantEngine->getQuantAttributes();
-  if (qa->isSygus(q) || (options::sygusRecFun() && qa->isFunDef(q)))
+  QuantAttributes& qa = d_qreg.getQuantAttributes();
+  if (qa.isSygus(q) || (options::sygusRecFun() && qa.isFunDef(q)))
   {
     d_qreg.setOwner(q, this, 2);
   }
@@ -184,7 +184,7 @@ void SynthEngine::registerQuantifier(Node q)
   {
     return;
   }
-  if (d_quantEngine->getQuantAttributes()->isFunDef(q))
+  if (d_qreg.getQuantAttributes().isFunDef(q))
   {
     Assert(options::sygusRecFun());
     // If it is a recursive function definition, add it to the function
