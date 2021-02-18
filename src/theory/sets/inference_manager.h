@@ -82,7 +82,7 @@ class InferenceManager : public InferenceManagerBuffered
    * If reqPol is not 0, then a phase requirement for n is requested with
    * polarity ( reqPol>0 ).
    */
-  void split(Node n, int reqPol = 0);
+  void split(Node n, InferenceId id, int reqPol = 0);
 
  private:
   /** constants */

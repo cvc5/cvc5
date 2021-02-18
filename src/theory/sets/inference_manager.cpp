@@ -90,7 +90,7 @@ bool InferenceManager::assertFactRec(Node fact, InferenceId id, Node exp, int in
       || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
   {
     // send to equality engine
-    if (assertInternalFact(atom, polarity, InferenceId::SETS_EQUALITY, exp))
+    if (assertInternalFact(atom, polarity, id, exp))
     {
       // return true if this wasn't redundant
       return true;
@@ -163,12 +163,12 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
   assertInference(conc, id, exp_n, c, inferType);
 }
 
-void InferenceManager::split(Node n, int reqPol)
+void InferenceManager::split(Node n, InferenceId id, int reqPol)
 {
   n = Rewriter::rewrite(n);
   Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
   // send the lemma
-  lemma(lem, InferenceId::SETS_SPLIT);
+  lemma(lem, id);
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;
   if (reqPol != 0)
   {

@@ -896,7 +896,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
                 {
                   Trace("sets-cg-lemma")
                       << "Should split on : " << x << "==" << y << std::endl;
-                  d_im.split(x.eqNode(y));
+                  d_im.split(x.eqNode(y), InferenceId::UNKNOWN);
                 }
               }
             }
