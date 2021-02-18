@@ -127,12 +127,9 @@ private:
    * Called when we have inferred fact from explanation reason, where the
    * latter should be a conjunction of facts that hold in the current context.
    *
-   * The argument c is used for debugging, to give the name of the inference
-   * rule being used.
-   *
    * This method adds the node (=> reason exp) to the pending vector d_pending.
    */
-  void sendInfer(Node fact, Node reason, const char* c);
+  void sendInfer(Node fact, InferenceId id, Node reason);
   /**
    * This method flushes the inferences in the pending vector d_pending to
    * theory of sets, which may process them as lemmas or as facts to assert to
@@ -143,10 +140,8 @@ private:
    *
    * A wrapper around d_im.assertInference that ensures that we do not send
    * inferences with explanations that are not entailed.
-   *
-   * Argument c is used for debugging, typically the name of the inference.
    */
-  void processInference(Node conc, Node exp, const char* c);
+  void processInference(Node conc, InferenceId id, Node exp);
 
   /** Methods used in full effort */
   void check();
