@@ -39,7 +39,7 @@ class QuantifiersRegistry : public QuantifiersUtil
   friend class Instantiate;
 
  public:
-  QuantifiersRegistry() {}
+  QuantifiersRegistry();
   ~QuantifiersRegistry() {}
   /**
    * Register quantifier, which allocates the instantiation constants for q.
@@ -84,6 +84,8 @@ class QuantifiersRegistry : public QuantifiersUtil
   /** substitute { instantiation constants of q -> terms } in n */
   Node substituteInstConstants(Node n, Node q, std::vector<Node>& terms);
   //----------------------------- end instantiation constants
+  /** Get quantifiers attributes utility class */
+  QuantAttributes& getQuantAttributes();
  private:
   /**
    * Maps quantified formulas to the module that owns them, if any module has
@@ -104,6 +106,8 @@ class QuantifiersRegistry : public QuantifiersUtil
   std::map<Node, Node> d_inst_constants_map;
   /** map from universal quantifiers to the list of instantiation constants */
   std::map<Node, std::vector<Node> > d_inst_constants;
+  /** The quantifiers attributes class */
+  QuantAttributes d_quantAttr;
 };
 
 }  // namespace quantifiers

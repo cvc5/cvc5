@@ -21,6 +21,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+QuantifiersRegistry::QuantifiersRegistry() : d_quantAttr() {}
+
 void QuantifiersRegistry::registerQuantifier(Node q)
 {
   if (d_inst_constants.find(q) != d_inst_constants.end())
@@ -167,6 +169,11 @@ Node QuantifiersRegistry::substituteInstConstants(Node n,
                       d_inst_constants[q].end(),
                       terms.begin(),
                       terms.end());
+}
+
+QuantAttributes& QuantifiersRegistry::getQuantAttributes()
+{
+  return d_quantAttr;
 }
 
 }  // namespace quantifiers
