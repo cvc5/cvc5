@@ -26,7 +26,7 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 class TheoryInferenceManager;
 
 namespace bags {

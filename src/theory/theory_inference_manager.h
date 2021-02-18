@@ -69,7 +69,7 @@ class TheoryInferenceManager
  public:
   /**
    * Constructor, note that state should be the official state of theory t.
-   * 
+   *
    * @param t The theory this inference manager is for
    * @param state The state of the theory
    * @param pnm The proof node manager, which if non-null, enables proofs for
@@ -79,7 +79,10 @@ class TheoryInferenceManager
    * only lemmas that are unique after rewriting are sent to the theory engine
    * from this inference manager.
    */
-  TheoryInferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm, bool cacheLemmas=true);
+  TheoryInferenceManager(Theory& t,
+                         TheoryState& state,
+                         ProofNodeManager* pnm,
+                         bool cacheLemmas = true);
   virtual ~TheoryInferenceManager() {}
   /**
    * Set equality engine, ee is a pointer to the official equality engine

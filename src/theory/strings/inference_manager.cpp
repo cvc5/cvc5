@@ -34,7 +34,7 @@ InferenceManager::InferenceManager(Theory& t,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm, false), // don't cache lemmas
+    : InferenceManagerBuffered(t, s, pnm, false),  // don't cache lemmas
       d_state(s),
       d_termReg(tr),
       d_extt(e),

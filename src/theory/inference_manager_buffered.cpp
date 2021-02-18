@@ -24,8 +24,10 @@ namespace theory {
 
 InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
                                                    TheoryState& state,
-                                                   ProofNodeManager* pnm, bool cacheLemmas)
-    : TheoryInferenceManager(t, state, pnm, cacheLemmas), d_processingPendingLemmas(false)
+                                                   ProofNodeManager* pnm,
+                                                   bool cacheLemmas)
+    : TheoryInferenceManager(t, state, pnm, cacheLemmas),
+      d_processingPendingLemmas(false)
 {
 }
 
@@ -147,14 +149,16 @@ void InferenceManagerBuffered::clearPendingPhaseRequirements()
   d_pendingReqPhase.clear();
 }
 
-std::size_t InferenceManagerBuffered::numPendingLemmas() const {
+std::size_t InferenceManagerBuffered::numPendingLemmas() const
+{
   return d_pendingLem.size();
 }
-std::size_t InferenceManagerBuffered::numPendingFacts() const {
+std::size_t InferenceManagerBuffered::numPendingFacts() const
+{
   return d_pendingFact.size();
 }
 
-void InferenceManagerBuffered::lemmaTheoryInference(TheoryInference * lem)
+void InferenceManagerBuffered::lemmaTheoryInference(TheoryInference* lem)
 {
   // process this lemma
   LemmaProperty p = LemmaProperty::NONE;
@@ -164,7 +168,8 @@ void InferenceManagerBuffered::lemmaTheoryInference(TheoryInference * lem)
   trustedLemma(tlem, lem->getId(), p);
 }
 
-void InferenceManagerBuffered::assertInternalFactTheoryInference(TheoryInference * fact)
+void InferenceManagerBuffered::assertInternalFactTheoryInference(
+    TheoryInference* fact)
 {
   // process this fact
   std::vector<Node> exp;
@@ -177,7 +182,6 @@ void InferenceManagerBuffered::assertInternalFactTheoryInference(TheoryInference
   Assert(atom.getKind() != NOT && atom.getKind() != AND);
   // assert the internal fact
   assertInternalFact(atom, pol, fact->getId(), exp, pg);
-  
 }
 
 }  // namespace theory
