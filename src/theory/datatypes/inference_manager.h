@@ -77,8 +77,7 @@ class InferenceManager : public InferenceManagerBuffered
    * Send lemmas with property NONE on the output channel immediately.
    * Returns true if any lemma was sent.
    */
-  bool sendLemmas(const std::vector<Node>& lemmas,
-                   InferenceId id);
+  bool sendLemmas(const std::vector<Node>& lemmas, InferenceId id);
 
  private:
   /** Are proofs enabled? */

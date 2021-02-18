@@ -107,9 +107,9 @@ void TheoryDatatypes::finishInit()
   // this is not done.
   if (getQuantifiersEngine() && options::sygus())
   {
-    quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
-    d_sygusExtension.reset(
-        new SygusExtension(this, tds, getSatContext()));
+    quantifiers::TermDbSygus* tds =
+        getQuantifiersEngine()->getTermDatabaseSygus();
+    d_sygusExtension.reset(new SygusExtension(this, tds, getSatContext()));
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }
@@ -308,7 +308,8 @@ void TheoryDatatypes::postCheck(Effort level)
                   //this may not be necessary?
                   //if only one constructor, then this term must be this constructor
                   Node t = utils::mkTester(n, 0, dt);
-                  d_im.addPendingInference(t, d_true, InferenceId::DATATYPES_SPLIT);
+                  d_im.addPendingInference(
+                      t, d_true, InferenceId::DATATYPES_SPLIT);
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
                 }else{
                   Assert(consIndex != -1 || dt.isSygus());
@@ -689,7 +690,8 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             for( int i=0; i<(int)cons1.getNumChildren(); i++ ) {
               if( !areEqual( cons1[i], cons2[i] ) ){
                 Node eq = cons1[i].eqNode( cons2[i] );
-                d_im.addPendingInference(eq, unifEq, InferenceId::DATATYPES_UNIF);
+                d_im.addPendingInference(
+                    eq, unifEq, InferenceId::DATATYPES_UNIF);
                 Trace("datatypes-infer") << "DtInfer : cons-inj : " << eq << " by " << unifEq << std::endl;
               }
             }
@@ -1112,7 +1114,8 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       bool forceLemma = !s.getType().isDatatype();
       Trace("datatypes-infer") << "DtInfer : collapse sel";
       Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
-      d_im.addPendingInference(eq, eq_exp, InferenceId::DATATYPES_COLLAPSE_SEL, forceLemma);
+      d_im.addPendingInference(
+          eq, eq_exp, InferenceId::DATATYPES_COLLAPSE_SEL, forceLemma);
     }
   }
 }

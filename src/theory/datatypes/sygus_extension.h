@@ -74,8 +74,8 @@ class SygusExtension
   SygusExtension(TheoryDatatypes* td,
                  TheoryState& s,
                  InferenceManager& im,
-                   quantifiers::TermDbSygus* tds,
-                   context::Context* c);
+                 quantifiers::TermDbSygus* tds,
+                 context::Context* c);
   ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for

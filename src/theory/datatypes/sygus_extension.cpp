@@ -36,13 +36,13 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
 SygusExtension::SygusExtension(TheoryDatatypes* td,
-                 TheoryState& s,
-                 InferenceManager& im,
-                                   quantifiers::TermDbSygus* tds,
-                                   context::Context* c)
+                               TheoryState& s,
+                               InferenceManager& im,
+                               quantifiers::TermDbSygus* tds,
+                               context::Context* c)
     : d_td(td),
-    d_state(s),
-    d_im(im),
+      d_state(s),
+      d_im(im),
       d_tds(tds),
       d_ssb(tds),
       d_testers(c),

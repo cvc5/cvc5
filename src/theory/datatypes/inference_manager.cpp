@@ -95,7 +95,7 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
 }
 
 bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas,
-                   InferenceId id)
+                                  InferenceId id)
 {
   bool ret = false;
   for (const Node& lem : lemmas)
