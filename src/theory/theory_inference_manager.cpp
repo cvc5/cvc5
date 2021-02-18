@@ -24,12 +24,14 @@ namespace theory {
 
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
                                                TheoryState& state,
-                                               ProofNodeManager* pnm)
+                                               ProofNodeManager* pnm,
+                                               bool cacheLemmas)
     : d_theory(t),
       d_theoryState(state),
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
       d_pnm(pnm),
+      d_cacheLemmas(cacheLemmas),
       d_keep(t.getSatContext()),
       d_lemmasSent(t.getUserContext()),
       d_numConflicts(0),
@@ -219,10 +221,10 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
                                           InferenceId id,
                                           LemmaProperty p)
 {
-  if (isLemmaPropertyCache(p))
+  // if the policy says to cache lemmas, check the cache and return false if
+  // we are a duplicate
+  if (d_cacheLemmas)
   {
-    // cache bit is not needed henceforth
-    p = p & LemmaProperty::CACHE;
     if (!cacheLemma(tlem.getNode(), p))
     {
       return false;

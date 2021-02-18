@@ -69,8 +69,17 @@ class TheoryInferenceManager
  public:
   /**
    * Constructor, note that state should be the official state of theory t.
+   * 
+   * @param t The theory this inference manager is for
+   * @param state The state of the theory
+   * @param pnm The proof node manager, which if non-null, enables proofs for
+   * this inference manager
+   * @param cacheLemmas Whether all lemmas sent using this theory inference
+   * manager are added to a user-context dependent cache. This means that
+   * only lemmas that are unique after rewriting are sent to the theory engine
+   * from this inference manager.
    */
-  TheoryInferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
+  TheoryInferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm, bool cacheLemmas=true);
   virtual ~TheoryInferenceManager() {}
   /**
    * Set equality engine, ee is a pointer to the official equality engine
@@ -404,6 +413,8 @@ class TheoryInferenceManager
   std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
+  /** Whether this manager caches lemmas */
+  bool d_cacheLemmas;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their

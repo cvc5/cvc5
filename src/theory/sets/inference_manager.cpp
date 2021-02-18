@@ -46,7 +46,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    addPendingLemma(lem, InferenceId::UNKNOWN, LemmaProperty::CACHE);
+    addPendingLemma(lem, InferenceId::UNKNOWN);
     return true;
   }
   Trace("sets-fact") << "Assert fact rec : " << fact << ", exp = " << exp
@@ -104,7 +104,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
-    addPendingLemma(lem, InferenceId::UNKNOWN, LemmaProperty::CACHE);
+    addPendingLemma(lem, InferenceId::UNKNOWN);
     return true;
   }
   return false;
@@ -164,7 +164,7 @@ void InferenceManager::split(Node n, int reqPol)
   n = Rewriter::rewrite(n);
   Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
   // send the lemma
-  lemma(lem, InferenceId::UNKNOWN, LemmaProperty::CACHE);
+  lemma(lem, InferenceId::UNKNOWN);
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;
   if (reqPol != 0)
   {

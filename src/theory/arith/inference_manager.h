@@ -72,7 +72,7 @@ class InferenceManager : public InferenceManagerBuffered
                             InferenceId inftype,
                             ProofGenerator* pg = nullptr,
                             bool isWaiting = false,
-                            LemmaProperty p = LemmaProperty::CACHE);
+                            LemmaProperty p = LemmaProperty::NONE);
 
   /**
    * Flush all waiting lemmas to this inference manager (as pending

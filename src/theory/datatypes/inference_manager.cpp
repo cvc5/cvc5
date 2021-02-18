@@ -109,7 +109,7 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
   bool ret = false;
   for (const Node& lem : lemmas)
   {
-    if (lemma(lem, InferenceId::UNKNOWN, LemmaProperty::CACHE))
+    if (lemma(lem, InferenceId::UNKNOWN))
     {
       ret = true;
     }

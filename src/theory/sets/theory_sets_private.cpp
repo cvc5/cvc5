@@ -764,7 +764,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
         nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
-    d_im.lemma(lem, InferenceId::UNKNOWN, LemmaProperty::CACHE);
+    d_im.lemma(lem, InferenceId::UNKNOWN);
   }
 }
 

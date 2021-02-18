@@ -27,8 +27,6 @@ InferInfo::InferInfo(InferenceManager* im, InferenceId id)
 
 TrustNode InferInfo::processLemma(LemmaProperty& p)
 {
-  // cache all lemmas
-  p = LemmaProperty::CACHE;
   NodeManager* nm = NodeManager::currentNM();
   Node pnode = nm->mkAnd(d_premises);
   Node lemma = nm->mkNode(kind::IMPLIES, pnode, d_conclusion);

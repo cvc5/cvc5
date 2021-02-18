@@ -34,7 +34,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
  public:
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
-                           ProofNodeManager* pnm);
+                           ProofNodeManager* pnm, bool cacheLemmas=true);
   virtual ~InferenceManagerBuffered() {}
   /**
    * Do we have a pending fact or lemma?

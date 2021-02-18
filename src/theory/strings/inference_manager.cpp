@@ -34,7 +34,7 @@ InferenceManager::InferenceManager(Theory& t,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm),
+    : InferenceManagerBuffered(t, s, pnm, false), // don't cache lemmas
       d_state(s),
       d_termReg(tr),
       d_extt(e),
@@ -366,8 +366,6 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
       d_termReg.registerTermAtomic(n, sks.first);
     }
   }
-  // note strings doesn't cache lemmas by default
-  p = LemmaProperty::NONE;
   if (ii.getId() == InferenceId::STRINGS_REDUCTION)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;

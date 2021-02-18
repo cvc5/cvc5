@@ -79,9 +79,7 @@ void SineSolver::doPhaseShift(TNode a, TNode new_a, TNode y)
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  NlLemma nlem(
-      lem, LemmaProperty::CACHE, proof, InferenceId::ARITH_NL_T_PURIFY_ARG);
-  d_data->d_im.addPendingArithLemma(nlem);
+  d_data->d_im.addPendingArithLemma(lem, LemmaProperty::NONE, proof, InferenceId::ARITH_NL_T_PURIFY_ARG);
 }
 
 void SineSolver::checkInitialRefine()

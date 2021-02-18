@@ -24,8 +24,8 @@ namespace theory {
 
 InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
                                                    TheoryState& state,
-                                                   ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm), d_processingPendingLemmas(false)
+                                                   ProofNodeManager* pnm, bool cacheLemmas)
+    : TheoryInferenceManager(t, state, pnm, cacheLemmas), d_processingPendingLemmas(false)
 {
 }
 
