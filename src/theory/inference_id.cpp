@@ -90,6 +90,53 @@ const char* toString(InferenceId i)
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
 
+    case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
+    case InferenceId::SETS_DEQ: return "SETS_DEQ";
+    case InferenceId::SETS_DOWN_CLOSURE: return "SETS_DOWN_CLOSURE";
+    case InferenceId::SETS_EQ_MEM: return "SETS_EQ_MEM";
+    case InferenceId::SETS_EQ_MEM_CONFLICT: return "SETS_EQ_MEM_CONFLICT";
+    case InferenceId::SETS_MEM_EQ: return "SETS_MEM_EQ";
+    case InferenceId::SETS_MEM_EQ_CONFLICT: return "SETS_MEM_EQ_CONFLICT";
+    case InferenceId::SETS_PROXY: return "SETS_PROXY";
+    case InferenceId::SETS_PROXY_SINGLETON: return "SETS_PROXY_SINGLETON";
+    case InferenceId::SETS_SINGLETON_EQ: return "SETS_SINGLETON_EQ";
+    case InferenceId::SETS_UP_CLOSURE: return "SETS_UP_CLOSURE";
+    case InferenceId::SETS_UP_CLOSURE_2: return "SETS_UP_CLOSURE_2";
+    case InferenceId::SETS_UP_UNIV: return "SETS_UP_UNIV";
+    case InferenceId::SETS_UNIV_TYPE: return "SETS_UNIV_TYPE";
+    case InferenceId::SETS_CARD_CYCLE: return "SETS_CARD_CYCLE";
+    case InferenceId::SETS_CARD_EQUAL: return "SETS_CARD_EQUAL";
+    case InferenceId::SETS_CARD_GRAPH_EMP: return "SETS_CARD_GRAPH_EMP";
+    case InferenceId::SETS_CARD_GRAPH_EMP_PARENT:
+      return "SETS_CARD_GRAPH_EMP_PARENT";
+    case InferenceId::SETS_CARD_GRAPH_EQ_PARENT:
+      return "SETS_CARD_GRAPH_EQ_PARENT";
+    case InferenceId::SETS_CARD_GRAPH_EQ_PARENT_2:
+      return "SETS_CARD_GRAPH_EQ_PARENT_2";
+    case InferenceId::SETS_CARD_GRAPH_PARENT_SINGLETON:
+      return "SETS_CARD_GRAPH_PARENT_SINGLETON";
+    case InferenceId::SETS_CARD_MINIMAL: return "SETS_CARD_MINIMAL";
+    case InferenceId::SETS_CARD_NEGATIVE_MEMBER:
+      return "SETS_CARD_NEGATIVE_MEMBER";
+    case InferenceId::SETS_CARD_POSITIVE: return "SETS_CARD_POSITIVE";
+    case InferenceId::SETS_CARD_UNIV_SUPERSET: return "SETS_CARD_UNIV_SUPERSET";
+    case InferenceId::SETS_CARD_UNIV_TYPE: return "SETS_CARD_UNIV_TYPE";
+    case InferenceId::SETS_RELS_IDENTITY_DOWN: return "SETS_RELS_IDENTITY_DOWN";
+    case InferenceId::SETS_RELS_IDENTITY_UP: return "SETS_RELS_IDENTITY_UP";
+    case InferenceId::SETS_RELS_JOIN_COMPOSE: return "SETS_RELS_JOIN_COMPOSE";
+    case InferenceId::SETS_RELS_JOIN_IMAGE_DOWN:
+      return "SETS_RELS_JOIN_IMAGE_DOWN";
+    case InferenceId::SETS_RELS_JOIN_SPLIT_1: return "SETS_RELS_JOIN_SPLIT_1";
+    case InferenceId::SETS_RELS_JOIN_SPLIT_2: return "SETS_RELS_JOIN_SPLIT_2";
+    case InferenceId::SETS_RELS_PRODUCE_COMPOSE:
+      return "SETS_RELS_PRODUCE_COMPOSE";
+    case InferenceId::SETS_RELS_PRODUCT_SPLIT: return "SETS_RELS_PRODUCT_SPLIT";
+    case InferenceId::SETS_RELS_TCLOSURE_FWD: return "SETS_RELS_TCLOSURE_FWD";
+    case InferenceId::SETS_RELS_TRANSPOSE_EQ: return "SETS_RELS_TRANSPOSE_EQ";
+    case InferenceId::SETS_RELS_TRANSPOSE_REV: return "SETS_RELS_TRANSPOSE_REV";
+    case InferenceId::SETS_RELS_TUPLE_REDUCTION:
+      return "SETS_RELS_TUPLE_REDUCTION";
+
     case InferenceId::STRINGS_I_NORM_S: return "I_NORM_S";
     case InferenceId::STRINGS_I_CONST_MERGE: return "I_CONST_MERGE";
     case InferenceId::STRINGS_I_CONST_CONFLICT: return "I_CONST_CONFLICT";
