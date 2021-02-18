@@ -175,8 +175,7 @@ void IAndSolver::checkFullRefine()
         d_im.addPendingArithLemma(lem,
                                   InferenceId::ARITH_NL_IAND_VALUE_REFINE,
                                   nullptr,
-                                  true,
-                                  LemmaProperty::NONE);
+                                  true);
       }
     }
   }

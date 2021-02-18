@@ -52,7 +52,7 @@ class NlLemma : public ArithLemma
   {
   }
   NlLemma(Node n, InferenceId inf = InferenceId::UNKNOWN)
-      : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
+      : ArithLemma(n, LemmaProperty::CACHE, nullptr, inf)
   {
   }
   ~NlLemma() {}

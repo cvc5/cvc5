@@ -319,7 +319,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
   lem = Rewriter::rewrite(lem);
   Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
-  return NlLemma(lem, LemmaProperty::NONE, nullptr, InferenceId::ARITH_NL_T_SECANT);
+  return NlLemma(lem, LemmaProperty::CACHE, nullptr, InferenceId::ARITH_NL_T_SECANT);
 }
 
 void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,

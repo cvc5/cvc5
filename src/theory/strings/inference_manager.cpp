@@ -366,7 +366,7 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
       d_termReg.registerTermAtomic(n, sks.first);
     }
   }
-  // we don't cache lemmas
+  // note strings doesn't cache lemmas by default
   p = LemmaProperty::NONE;
   if (ii.getId() == InferenceId::STRINGS_REDUCTION)
   {
