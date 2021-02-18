@@ -49,9 +49,6 @@ class InferenceManager : public InferenceManagerBuffered
   // TODO issue #78: refactor this with theory of strings
   void doPending();
 
-  /** Process inference info as lemma */
-  void processLemma(InferInfo& ii);
-
  private:
   /** constants */
   Node d_true;

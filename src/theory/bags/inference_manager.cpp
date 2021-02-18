@@ -44,13 +44,6 @@ void InferenceManager::doPending()
   doPendingPhaseRequirements();
 }
 
-void InferenceManager::processLemma(InferInfo& ii)
-{
-  LemmaProperty p = LemmaProperty::NONE;
-  TrustNode tlem = ii.processLemma(p);
-  trustedLemma(tlem, ii.getId(), p);
-}
-
 }  // namespace bags
 }  // namespace theory
 }  // namespace CVC4

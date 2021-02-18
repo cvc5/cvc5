@@ -27,7 +27,7 @@ namespace arrays {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm),
+    : TheoryInferenceManager(t, state, pnm, false), // don't cache lemmas
       d_lemmaPg(pnm ? new EagerProofGenerator(pnm,
                                               state.getUserContext(),
                                               "ArrayLemmaProofGenerator")

@@ -97,18 +97,9 @@ void InferenceManagerBuffered::doPendingFacts()
   size_t i = 0;
   while (!d_theoryState.isInConflict() && i < d_pendingFact.size())
   {
-    // process this fact
-    std::vector<Node> exp;
-    ProofGenerator* pg = nullptr;
-    Node fact = d_pendingFact[i]->processFact(exp, pg);
-    Assert(!fact.isNull());
-    bool pol = fact.getKind() != NOT;
-    TNode atom = pol ? fact : fact[0];
-    // no double negation or conjunctive conclusions  TODO: revisit?
-    Assert(atom.getKind() != NOT && atom.getKind() != AND);
     // assert the internal fact, which notice may enqueue more pending facts in
-    // this loop.
-    assertInternalFact(atom, pol, d_pendingFact[i]->getId(), exp, pg);
+    // this loop, or result in a conflict.
+    assertInternalFactTheoryInference(d_pendingFact[i].get());
     i++;
   }
   d_pendingFact.clear();
@@ -125,13 +116,9 @@ void InferenceManagerBuffered::doPendingLemmas()
   size_t i = 0;
   while (i < d_pendingLem.size())
   {
-    // process this lemma
-    LemmaProperty p = LemmaProperty::NONE;
-    TrustNode lem = d_pendingLem[i]->processLemma(p);
-    Assert(!lem.isNull());
-    // send the lemma, which notice may enqueue more pending lemmas in this
+    // process this lemma, which notice may enqueue more pending lemmas in this
     // loop, or clear the lemmas.
-    trustedLemma(lem, d_pendingLem[i]->getId(), p);
+    lemmaTheoryInference(d_pendingLem[i].get());
     i++;
   }
   d_pendingLem.clear();
@@ -160,13 +147,38 @@ void InferenceManagerBuffered::clearPendingPhaseRequirements()
   d_pendingReqPhase.clear();
 }
 
+std::size_t InferenceManagerBuffered::numPendingLemmas() const {
+  return d_pendingLem.size();
+}
+std::size_t InferenceManagerBuffered::numPendingFacts() const {
+  return d_pendingFact.size();
+}
 
-  std::size_t InferenceManagerBuffered::numPendingLemmas() const {
-    return d_pendingLem.size();
-  }
-  std::size_t InferenceManagerBuffered::numPendingFacts() const {
-    return d_pendingFact.size();
-  }
+void InferenceManagerBuffered::lemmaTheoryInference(TheoryInference * lem)
+{
+  // process this lemma
+  LemmaProperty p = LemmaProperty::NONE;
+  TrustNode tlem = lem->processLemma(p);
+  Assert(!tlem.isNull());
+  // send the lemma
+  trustedLemma(tlem, lem->getId(), p);
+}
+
+void InferenceManagerBuffered::assertInternalFactTheoryInference(TheoryInference * fact)
+{
+  // process this fact
+  std::vector<Node> exp;
+  ProofGenerator* pg = nullptr;
+  Node lit = fact->processFact(exp, pg);
+  Assert(!lit.isNull());
+  bool pol = lit.getKind() != NOT;
+  TNode atom = pol ? lit : lit[0];
+  // no double negation or conjunctive conclusions
+  Assert(atom.getKind() != NOT && atom.getKind() != AND);
+  // assert the internal fact
+  assertInternalFact(atom, pol, fact->getId(), exp, pg);
+  
+}
 
 }  // namespace theory
 }  // namespace CVC4

@@ -102,7 +102,7 @@ void BagSolver::checkEmpty(const Node& n)
   for (const Node& e : d_state.getElements(n))
   {
     InferInfo i = d_ig.empty(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -113,7 +113,7 @@ void BagSolver::checkUnionDisjoint(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.unionDisjoint(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -124,7 +124,7 @@ void BagSolver::checkUnionMax(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.unionMax(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -135,7 +135,7 @@ void BagSolver::checkIntersectionMin(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.intersection(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -146,7 +146,7 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.differenceSubtract(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -159,13 +159,13 @@ void BagSolver::checkMkBag(const Node& n)
   for (const Node& e : d_state.getElements(n))
   {
     InferInfo i = d_ig.mkBag(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 void BagSolver::checkNonNegativeCountTerms(const Node& bag, const Node& element)
 {
   InferInfo i = d_ig.nonNegativeCount(bag, element);
-  d_im.processLemma(i);
+  d_im.lemmaTheoryInference(&i);
 }
 
 void BagSolver::checkDifferenceRemove(const Node& n)
@@ -175,7 +175,7 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.differenceRemove(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -192,7 +192,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.duplicateRemoval(n, e);
-    d_im.processLemma(i);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -201,7 +201,7 @@ void BagSolver::checkDisequalBagTerms()
   for (const Node& n : d_state.getDisequalBagTerms())
   {
     InferInfo info = d_ig.bagDisequality(n);
-    d_im.processLemma(info);
+    d_im.lemmaTheoryInference(&info);
   }
 }
 

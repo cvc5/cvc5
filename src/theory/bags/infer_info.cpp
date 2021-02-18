@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-InferInfo::InferInfo(InferenceManager* im, InferenceId id)
+InferInfo::InferInfo(TheoryInferenceManager* im, InferenceId id)
     : TheoryInference(id), d_im(im)
 {
 }

@@ -26,9 +26,11 @@
 
 namespace CVC4 {
 namespace theory {
+  
+class TheoryInferenceManager;
+
 namespace bags {
 
-class InferenceManager;
 
 /**
  * An inference. This is a class to track an unprocessed call to either
@@ -38,12 +40,12 @@ class InferenceManager;
 class InferInfo : public TheoryInference
 {
  public:
-  InferInfo(InferenceManager* im, InferenceId id);
+  InferInfo(TheoryInferenceManager* im, InferenceId id);
   ~InferInfo() {}
   /** Process lemma */
   TrustNode processLemma(LemmaProperty& p) override;
   /** Pointer to the class used for processing this info */
-  InferenceManager* d_im;
+  TheoryInferenceManager* d_im;
   /** The conclusion */
   Node d_conclusion;
   /**
