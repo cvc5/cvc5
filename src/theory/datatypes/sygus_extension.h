@@ -38,6 +38,7 @@ namespace theory {
 namespace datatypes {
 
 class TheoryDatatypes;
+class InferenceManager;
 
 /**
  * This is the sygus extension of the decision procedure for quantifier-free
@@ -71,7 +72,9 @@ class SygusExtension
 
  public:
   SygusExtension(TheoryDatatypes* td,
-                   QuantifiersEngine* qe,
+                 TheoryState& s,
+                 InferenceManager& im,
+                   quantifiers::TermDbSygus* tds,
                    context::Context* c);
   ~SygusExtension();
   /**
@@ -108,6 +111,10 @@ class SygusExtension
  private:
   /** Pointer to the datatype theory that owns this class. */
   TheoryDatatypes* d_td;
+  /** The theory state of the datatype theory */
+  TheoryState& d_state;
+  /** The inference manager of the datatype theory */
+  InferenceManager& d_im;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
   /** the simple symmetry breaking utility */

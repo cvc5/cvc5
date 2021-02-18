@@ -27,7 +27,6 @@
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;
@@ -37,11 +36,15 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
 SygusExtension::SygusExtension(TheoryDatatypes* td,
-                                   QuantifiersEngine* qe,
+                 TheoryState& s,
+                 InferenceManager& im,
+                                   quantifiers::TermDbSygus* tds,
                                    context::Context* c)
     : d_td(td),
-      d_tds(qe->getTermDatabaseSygus()),
-      d_ssb(qe),
+    d_state(s),
+    d_im(im),
+      d_tds(tds),
+      d_ssb(tds),
       d_testers(c),
       d_testers_exp(c),
       d_active_terms(c),

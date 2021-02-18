@@ -107,8 +107,9 @@ void TheoryDatatypes::finishInit()
   // this is not done.
   if (getQuantifiersEngine() && options::sygus())
   {
+    quantifiers::TermDbSygus * tds = getQuantifiersEngine()->getTermDatabaseSygus();
     d_sygusExtension.reset(
-        new SygusExtension(this, getQuantifiersEngine(), getSatContext()));
+        new SygusExtension(this, tds, getSatContext()));
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }
@@ -177,7 +178,7 @@ void TheoryDatatypes::postCheck(Effort level)
     Assert(d_sygusExtension != nullptr);
     std::vector<Node> lemmas;
     d_sygusExtension->check(lemmas);
-    d_im.sendLemmas(lemmas);
+    d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
     return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
@@ -252,7 +253,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     assumptions.push_back(assumption);
                     Node lemma = assumptions.size()==1 ? assumptions[0] : NodeManager::currentNM()->mkNode( OR, assumptions );
                     Trace("dt-singleton") << "*************Singleton equality lemma " << lemma << std::endl;
-                    d_im.lemma(lemma, InferenceId::UNKNOWN);
+                    d_im.lemma(lemma, InferenceId::DATATYPES_REC_SINGLETON_EQ);
                   }
                 }
               }else{
@@ -307,7 +308,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   //this may not be necessary?
                   //if only one constructor, then this term must be this constructor
                   Node t = utils::mkTester(n, 0, dt);
-                  d_im.addPendingInference(t, d_true, false, InferenceId::DATATYPES_SPLIT);
+                  d_im.addPendingInference(t, d_true, InferenceId::DATATYPES_SPLIT);
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
                 }else{
                   Assert(consIndex != -1 || dt.isSygus());
@@ -318,7 +319,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     NodeBuilder<> nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
-                    d_im.lemma(lemma, InferenceId::UNKNOWN);
+                    d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
                     d_out->requirePhase( test, true );
                   }else{
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
@@ -390,7 +391,7 @@ void TheoryDatatypes::notifyFact(TNode atom,
   {
     std::vector< Node > lemmas;
     d_sygusExtension->assertFact(atom, polarity, lemmas);
-    d_im.sendLemmas(lemmas);
+    d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
   }
   //add to tester if applicable
   Node t_arg;
@@ -413,7 +414,7 @@ void TheoryDatatypes::notifyFact(TNode atom,
         std::vector< Node > lemmas;
         d_sygusExtension->assertTester(tindex, t_arg, atom, lemmas);
         Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
-        d_im.sendLemmas(lemmas);
+        d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
       }
     }
   }else{
@@ -473,7 +474,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     {
       std::vector< Node > lemmas;
       d_sygusExtension->preRegisterTerm(n, lemmas);
-      d_im.sendLemmas(lemmas);
+      d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
     }
     break;
   }
@@ -688,7 +689,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             for( int i=0; i<(int)cons1.getNumChildren(); i++ ) {
               if( !areEqual( cons1[i], cons2[i] ) ){
                 Node eq = cons1[i].eqNode( cons2[i] );
-                d_im.addPendingInference(eq, unifEq, false, InferenceId::DATATYPES_UNIF);
+                d_im.addPendingInference(eq, unifEq, InferenceId::DATATYPES_UNIF);
                 Trace("datatypes-infer") << "DtInfer : cons-inj : " << eq << " by " << unifEq << std::endl;
               }
             }
@@ -850,7 +851,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
-      d_im.addPendingLemma(eq, InferenceId::UNKNOWN);
+      d_im.addPendingLemma(eq, InferenceId::DATATYPES_PURIFY);
       return k;
     }else{
       return (*it).second;
@@ -975,7 +976,7 @@ void TheoryDatatypes::addTester(
                              : utils::mkTester(t_arg, testerIndex, dt);
           Node t_concl_exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
           d_im.addPendingInference(
-              t_concl, t_concl_exp, false, InferenceId::DATATYPES_LABEL_EXH);
+              t_concl, t_concl_exp, InferenceId::DATATYPES_LABEL_EXH);
           Trace("datatypes-infer") << "DtInfer : label : " << t_concl << " by " << t_concl_exp << std::endl;
           return;
         }
@@ -1111,7 +1112,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       bool forceLemma = !s.getType().isDatatype();
       Trace("datatypes-infer") << "DtInfer : collapse sel";
       Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
-      d_im.addPendingInference(eq, eq_exp, forceLemma, InferenceId::DATATYPES_COLLAPSE_SEL);
+      d_im.addPendingInference(eq, eq_exp, InferenceId::DATATYPES_COLLAPSE_SEL, forceLemma);
     }
   }
 }
@@ -1415,7 +1416,7 @@ Node TheoryDatatypes::getSingletonLemma( TypeNode tn, bool pol ) {
       Node v2 = NodeManager::currentNM()->mkSkolem( "k2", tn );
       a = v1.eqNode( v2 ).negate();
       //send out immediately as lemma
-      d_im.lemma(a, InferenceId::UNKNOWN);
+      d_im.lemma(a, InferenceId::DATATYPES_REC_SINGLETON_FORCE_DEQ);
       Trace("dt-singleton") << "******** assert " << a << " to avoid singleton cardinality for type " << tn << std::endl;
     }
     d_singleton_lemma[index][tn] = a;
@@ -1473,7 +1474,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
     Node lem = nm->mkNode(LEQ, d_zero, n);
     Trace("datatypes-infer")
         << "DtInfer : size geq zero : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::UNKNOWN);
+    d_im.addPendingLemma(lem, InferenceId::DATATYPES_SIZE_POS);
   }
   else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
@@ -1498,7 +1499,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
                                           : nm->mkNode(OR, children));
     }
     Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
-    d_im.addPendingLemma(lem, InferenceId::UNKNOWN);
+    d_im.addPendingLemma(lem, InferenceId::DATATYPES_HEIGHT_ZERO);
   }
 }
 
@@ -1565,7 +1566,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
-  d_im.addPendingInference(eq, exp, forceLemma, InferenceId::DATATYPES_INST);
+  d_im.addPendingInference(eq, exp, InferenceId::DATATYPES_INST, forceLemma);
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
 }
@@ -1651,7 +1652,7 @@ void TheoryDatatypes::checkCycles() {
           Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
           Node eqExp = NodeManager::currentNM()->mkAnd(exp);
-          d_im.addPendingInference(eq, eqExp, false, InferenceId::DATATYPES_BISIMILAR);
+          d_im.addPendingInference(eq, eqExp, InferenceId::DATATYPES_BISIMILAR);
           Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
         }
       }
