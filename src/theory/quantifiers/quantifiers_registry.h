@@ -87,16 +87,16 @@ class QuantifiersRegistry : public QuantifiersUtil
   //----------------------------- end instantiation constants
   /** Get quantifiers attributes utility class */
   QuantAttributes& getQuantAttributes();
- /**
-  * Get quantifiers name, which returns a variable corresponding to the name of
-  * quantified formula q if q has a name, or otherwise returns q itself.
-  */
- Node getNameForQuant(Node q) const;
- /**
-  * Get name for quantified formula. Returns true if q has a name or if req
-  * is false. Sets name to the result of the above method.
-  */
- bool getNameForQuant(Node q, Node& name, bool req = true) const;
+  /**
+   * Get quantifiers name, which returns a variable corresponding to the name of
+   * quantified formula q if q has a name, or otherwise returns q itself.
+   */
+  Node getNameForQuant(Node q) const;
+  /**
+   * Get name for quantified formula. Returns true if q has a name or if req
+   * is false. Sets name to the result of the above method.
+   */
+  bool getNameForQuant(Node q, Node& name, bool req = true) const;
 
  private:
   /**
