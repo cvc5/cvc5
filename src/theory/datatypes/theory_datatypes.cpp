@@ -252,7 +252,8 @@ void TheoryDatatypes::postCheck(Effort level)
                     assumptions.push_back(assumption);
                     Node lemma = assumptions.size()==1 ? assumptions[0] : NodeManager::currentNM()->mkNode( OR, assumptions );
                     Trace("dt-singleton") << "*************Singleton equality lemma " << lemma << std::endl;
-                    d_im.lemma(lemma, InferenceId::UNKNOWN, LemmaProperty::CACHE);
+                    d_im.lemma(
+                        lemma, InferenceId::UNKNOWN, LemmaProperty::CACHE);
                   }
                 }
               }else{
@@ -318,16 +319,16 @@ void TheoryDatatypes::postCheck(Effort level)
                     NodeBuilder<> nb(kind::OR);
                     nb << test << test.notNode();
                     Node lemma = nb;
-                    d_im.lemma(lemma, InferenceId::UNKNOWN, LemmaProperty::CACHE);
+                    d_im.lemma(
+                        lemma, InferenceId::UNKNOWN, LemmaProperty::CACHE);
                     d_out->requirePhase( test, true );
                   }else{
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    d_im.sendDtLemma(
-                        lemma,
-                        InferenceId::DATATYPES_SPLIT,
-                        LemmaProperty::SEND_ATOMS);
+                    d_im.sendDtLemma(lemma,
+                                     InferenceId::DATATYPES_SPLIT,
+                                     LemmaProperty::SEND_ATOMS);
                   }
                   if( !options::dtBlastSplits() ){
                     break;
