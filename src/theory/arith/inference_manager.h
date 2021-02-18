@@ -20,7 +20,6 @@
 #include <map>
 #include <vector>
 
-#include "theory/arith/arith_lemma.h"
 #include "theory/arith/arith_state.h"
 #include "theory/inference_id.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
