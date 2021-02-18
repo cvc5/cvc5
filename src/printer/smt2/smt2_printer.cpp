@@ -899,14 +899,15 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::PROJECT:
   {
-    // e.g. ((_ project 2 4 4) tuple)
     ProjectOp op = n.getOperator().getConst<ProjectOp>();
     if (op.getIndices().empty())
     {
+      // e.g. (project tuple)
       out << "project " << n[0] << ")";
     }
     else
     {
+      // e.g. ((_ project 2 4 4) tuple)
       out << "(_ project" << op << ") " << n[0] << ")";
     }
     return;
