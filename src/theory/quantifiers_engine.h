@@ -28,6 +28,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
@@ -77,6 +78,8 @@ class QuantifiersEngine {
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
@@ -87,8 +90,6 @@ class QuantifiersEngine {
   quantifiers::TermDb* getTermDatabase() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term utilities */
-  quantifiers::TermUtil* getTermUtil() const;
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
@@ -291,8 +292,6 @@ public:
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** term utilities */
-  std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** equality query class */

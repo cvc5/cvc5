@@ -24,8 +24,8 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
@@ -196,8 +196,8 @@ bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
 {
   Node icn = d_preprocContext->getTheoryEngine()
                  ->getQuantifiersEngine()
-                 ->getTermUtil()
-                 ->substituteBoundVariablesToInstConstants(n, q);
+                 ->getQuantifiersRegistry()
+                 .substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);

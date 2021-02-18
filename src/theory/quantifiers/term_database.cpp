@@ -36,10 +36,12 @@ namespace quantifiers {
 
 TermDb::TermDb(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
+               QuantifiersRegistry& qr,
                QuantifiersEngine* qe)
     : d_quantEngine(qe),
       d_qstate(qs),
       d_qim(qim),
+      d_qreg(qr),
       d_termsContext(),
       d_termsContextUse(options::termDbCd() ? qs.getSatContext()
                                             : &d_termsContext),
@@ -65,10 +67,10 @@ TermDb::~TermDb(){
 }
 
 void TermDb::registerQuantifier( Node q ) {
-  Assert(q[0].getNumChildren()
-         == d_quantEngine->getTermUtil()->getNumInstantiationConstants(q));
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
+  Assert(q[0].getNumChildren() == d_qreg.getNumInstantiationConstants(q));
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    Node ic = d_qreg.getInstantiationConstant(q, i);
     setTermInactive( ic );
   }
 }
@@ -688,10 +690,10 @@ Node TermDb::evaluateTerm2(TNode n,
         {
           if (ret.getKind() == EQUAL || ret.getKind() == GEQ)
           {
-            TheoryEngine* te = d_quantEngine->getTheoryEngine();
+            Valuation& val = d_qstate.getValuation();
             for (unsigned j = 0; j < 2; j++)
             {
-              std::pair<bool, Node> et = te->entailmentCheck(
+              std::pair<bool, Node> et = val.entailmentCheck(
                   options::TheoryOfMode::THEORY_OF_TYPE_BASED,
                   j == 0 ? ret : ret.negate());
               if (et.first)

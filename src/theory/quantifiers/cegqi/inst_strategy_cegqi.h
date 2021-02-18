@@ -24,7 +24,7 @@
 #include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

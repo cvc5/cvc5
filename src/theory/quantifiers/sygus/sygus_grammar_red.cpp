@@ -19,7 +19,6 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -28,13 +27,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
+void SygusRedundantCons::initialize(TermDbSygus* tds, TypeNode tn)
 {
-  Assert(qe != nullptr);
+  Assert(tds != nullptr);
   Trace("sygus-red") << "Compute redundant cons for " << tn << std::endl;
   d_type = tn;
   Assert(tn.isDatatype());
-  TermDbSygus* tds = qe->getTermDatabaseSygus();
   tds->registerSygusType(tn);
   const DType& dt = tn.getDType();
   Assert(dt.isSygus());
