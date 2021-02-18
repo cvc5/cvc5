@@ -193,8 +193,6 @@ class NonlinearExtension
   /** compute relevant assertions */
   void computeRelevantAssertions(const std::vector<Node>& assertions,
                                  std::vector<Node>& keep);
-  /** singleton version of above */
-  unsigned filterLemma(NlLemma lem, std::vector<NlLemma>& out);
 
   /** run check strategy
    *

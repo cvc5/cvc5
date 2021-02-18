@@ -106,22 +106,6 @@ void NonlinearExtension::computeRelevantAssertions(
                       << " assertions" << std::endl;
 }
 
-unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
-{
-  Trace("nl-ext-lemma-debug")
-      << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_node << std::endl;
-  lem.d_node = Rewriter::rewrite(lem.d_node);
-
-  if (d_im.hasCachedLemma(lem.d_node, lem.d_property))
-  {
-    Trace("nl-ext-lemma-debug")
-        << "NonlinearExtension::Lemma duplicate : " << lem.d_node << std::endl;
-    return 0;
-  }
-  out.emplace_back(lem);
-  return 1;
-}
-
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext-assert-debug") << "Getting assertions..." << std::endl;
