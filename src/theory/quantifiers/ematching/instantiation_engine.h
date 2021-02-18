@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_relevance.h"
-#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {

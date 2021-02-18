@@ -238,8 +238,6 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
   if (trieIndex < iio->d_order.size())
   {
     size_t curr_index = iio->d_order[trieIndex];
-    // Node curr_ic = qe->getTermUtil()->getInstantiationConstant( d_quant,
-    // curr_index );
     Node n = m.get(curr_index);
     if (n.isNull())
     {

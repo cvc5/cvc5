@@ -135,6 +135,11 @@ enum class InferenceId
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
 
+  // ensures that pto is a function: (pto x y) ^ ~(pto z w) ^ x = z => y != w
+  SEP_PTO_NEG_PROP,
+  // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
+  SEP_PTO_PROP,
+
   //-------------------------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
