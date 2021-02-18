@@ -7,5 +7,5 @@
 (assert (= t (mkTuple "a" "b" "c" "d")))
 (assert (= x ((_ tupSel 0) t)))
 (assert (= u ((_ project 2 3) t)))
-(assert (= v ((_ project) t)))
+(assert (= v (project t)))
 (check-sat)

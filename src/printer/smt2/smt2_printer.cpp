@@ -900,7 +900,15 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::PROJECT:
   {
     // e.g. ((_ project 2 4 4) tuple)
-    out << "(_ project" << n.getOperator() << ") " << n[0] << ")";
+    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    if (op.getIndices().empty())
+    {
+      out << "project " << n[0] << ")";
+    }
+    else
+    {
+      out << "(_ project" << op << ") " << n[0] << ")";
+    }
     return;
   }
   case kind::CONSTRUCTOR_TYPE:

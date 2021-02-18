@@ -1549,6 +1549,12 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     }
     expr = SOLVER->mkTuple(sorts, terms);
   }
+  | LPAREN_TOK TUPLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    api::Op op = SOLVER->mkOp(api::PROJECT, indices);
+    expr = SOLVER->mkTerm(op, expr);
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1672,7 +1678,7 @@ identifier[CVC4::ParseOp& p]
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
       }
-    | TUPLE_PROJECT_TOK numeralList[numerals]
+    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
       {
         // we adopt a special syntax (_ project i_1 ... i_n) where
         // i_1, ..., i_n are numerals
@@ -2147,16 +2153,6 @@ nonemptyNumeralList[std::vector<uint64_t>& numerals]
   : ( INTEGER_LITERAL
       { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
     )+
-  ;
-
-/**
- * Matches a list of numerals (which may be empty)
- * @param numerals the (empty) vector to house the numerals.
- */
-numeralList[std::vector<uint64_t>& numerals]
-  : ( INTEGER_LITERAL
-  { numerals.push_back(AntlrInput::tokenToUnsigned($INTEGER_LITERAL)); }
-  )*
   ;
 
 /**
