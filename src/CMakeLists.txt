@@ -291,8 +291,6 @@ libcvc4_add_sources(
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
   theory/arith/arith_ite_utils.h
-  theory/arith/arith_lemma.cpp
-  theory/arith/arith_lemma.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
   theory/arith/arith_preprocess.cpp
