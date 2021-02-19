@@ -379,13 +379,12 @@ bool Instantiate::addInstantiation(
   return true;
 }
 
-
 bool Instantiate::addInstantiationExpFail(Node q,
-                      std::vector<Node>& terms,
-                      std::vector<bool>& failMask,
-                      bool mkRep,
-                      bool modEq,
-                      bool doVts)
+                                          std::vector<Node>& terms,
+                                          std::vector<bool>& failMask,
+                                          bool mkRep,
+                                          bool modEq,
+                                          bool doVts)
 {
   if (addInstantiation(q, terms, mkRep, modEq, doVts))
   {
@@ -394,7 +393,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
   failMask.resize(terms.size(), true);
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];
-  Assert (terms.size()==vars.size());
+  Assert(terms.size() == vars.size());
   std::map<TNode, TNode> subs;
   for (size_t i = 0, size = terms.size(); i < size; i++)
   {
@@ -403,9 +402,9 @@ bool Instantiate::addInstantiationExpFail(Node q,
   // get the instantiation body
   Node ibody = getInstantiation(q, vars, terms, doVts);
   ibody = Rewriter::rewrite(ibody);
-  for (size_t i=0, tsize = terms.size(); i<tsize; i++)
+  for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
   {
-    size_t ii = (tsize-1)-i;
+    size_t ii = (tsize - 1) - i;
     // replace with the identity substitution
     Node prev = terms[ii];
     terms[ii] = vars[ii];
@@ -425,7 +424,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
       // check whether the instantiation rewrites to the same thing
       Node ibodyc = getInstantiation(q, vars, terms, doVts);
       ibodyc = Rewriter::rewrite(ibodyc);
-      success = (ibodyc==ibody);
+      success = (ibodyc == ibody);
     }
     if (success)
     {

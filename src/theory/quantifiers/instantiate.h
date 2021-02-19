@@ -146,7 +146,7 @@ class Instantiate : public QuantifiersUtil
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
-  /** 
+  /**
    * Same as above, but we also compute a vector failMask which contains
    * information about what values in terms led to the instantiation not being
    * added when this method returns false.  For example, if q is the formula
@@ -159,11 +159,11 @@ class Instantiate : public QuantifiersUtil
    * will also lead to this method returning false.
    */
   bool addInstantiationExpFail(Node q,
-                        std::vector<Node>& terms,
-                        std::vector<bool>& failMask,
-                        bool mkRep = false,
-                        bool modEq = false,
-                        bool doVts = false);
+                               std::vector<Node>& terms,
+                               std::vector<bool>& failMask,
+                               bool mkRep = false,
+                               bool modEq = false,
+                               bool doVts = false);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms. This is the
