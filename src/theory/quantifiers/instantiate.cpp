@@ -404,6 +404,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
   ibody = Rewriter::rewrite(ibody);
   for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
   {
+    // process in reverse order, which is important since we 
     size_t ii = (tsize - 1) - i;
     // replace with the identity substitution
     Node prev = terms[ii];
@@ -411,7 +412,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     subs[vars[ii]] = vars[ii];
     // check whether we are still redundant
     bool success = false;
-    // check entailment
+    // check entailment, only if option is set
     if (options::instNoEntail())
     {
       if (d_term_db->isEntailed(q[1], subs, false, true))
@@ -419,9 +420,9 @@ bool Instantiate::addInstantiationExpFail(Node q,
         success = true;
       }
     }
+    // check whether the instantiation rewrites to the same thing
     if (!success)
     {
-      // check whether the instantiation rewrites to the same thing
       Node ibodyc = getInstantiation(q, vars, terms, doVts);
       ibodyc = Rewriter::rewrite(ibodyc);
       success = (ibodyc == ibody);

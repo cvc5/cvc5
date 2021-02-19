@@ -323,7 +323,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                 << "Incompatible type " << f << ", " << terms[i].getType()
                 << ", " << ftypes[i] << std::endl;
           }
-          if (ie->addInstantiation(f, terms))
+          std::vector<bool> failMask
+          if (ie->addInstantiationExpFail(f, terms, failMask))
           {
             Trace("inst-alg-rd") << "Success!" << std::endl;
             ++(d_quantEngine->d_statistics.d_instantiations_guess);
@@ -331,6 +332,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           }
           else
           {
+            // TODO
+            Assert (failMask.size()==terms.size());
             index--;
           }
           if (d_qstate.isInConflict())
