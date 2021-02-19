@@ -27,11 +27,11 @@ namespace theory {
 namespace inst {
 
 bool InstMatchTrie::existsInstMatch(quantifiers::QuantifiersState& qs,
-                      Node q,
-                      const std::vector<Node>& m,
-                      bool modEq,
-                      ImtIndexOrder* imtio,
-                      unsigned index)
+                                    Node q,
+                                    const std::vector<Node>& m,
+                                    bool modEq,
+                                    ImtIndexOrder* imtio,
+                                    unsigned index)
 {
   return !addInstMatch(qs, q, m, modEq, imtio, true, index);
 }
@@ -172,8 +172,7 @@ void InstMatchTrie::getInstantiations(Node q,
 
 void InstMatchTrie::clear() { d_data.clear(); }
 
-void InstMatchTrie::print(std::ostream& out,
-            Node q) const
+void InstMatchTrie::print(std::ostream& out, Node q) const
 {
   std::vector<TNode> terms;
   print(out, q, terms);
@@ -189,12 +188,11 @@ CDInstMatchTrie::~CDInstMatchTrie()
   d_data.clear();
 }
 
-
 bool CDInstMatchTrie::existsInstMatch(quantifiers::QuantifiersState& qs,
-                      Node q,
-                      const std::vector<Node>& m,
-                      bool modEq,
-                      unsigned index)
+                                      Node q,
+                                      const std::vector<Node>& m,
+                                      bool modEq,
+                                      unsigned index)
 {
   return !addInstMatch(qs, q, m, modEq, index, true);
 }
@@ -347,27 +345,24 @@ void CDInstMatchTrie::getInstantiations(Node q,
   }
 }
 
-
-void CDInstMatchTrie::print(std::ostream& out,
-            Node q) const
+void CDInstMatchTrie::print(std::ostream& out, Node q) const
 {
   std::vector<TNode> terms;
   print(out, q, terms);
 }
 
-
 bool InstMatchTrieOrdered::addInstMatch(quantifiers::QuantifiersState& qs,
-                  Node q,
-                  const std::vector<Node>& m,
-                  bool modEq)
+                                        Node q,
+                                        const std::vector<Node>& m,
+                                        bool modEq)
 {
   return d_imt.addInstMatch(qs, q, m, modEq, d_imtio);
 }
 
 bool InstMatchTrieOrdered::existsInstMatch(quantifiers::QuantifiersState& qs,
-                      Node q,
-                      const std::vector<Node>& m,
-                      bool modEq)
+                                           Node q,
+                                           const std::vector<Node>& m,
+                                           bool modEq)
 {
   return d_imt.existsInstMatch(qs, q, m, modEq, d_imtio);
 }

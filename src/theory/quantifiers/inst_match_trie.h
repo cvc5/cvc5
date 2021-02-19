@@ -101,8 +101,7 @@ class InstMatchTrie
   /** clear the data of this class */
   void clear();
   /** print this class */
-  void print(std::ostream& out,
-             Node q) const;
+  void print(std::ostream& out, Node q) const;
   /** the data */
   std::map<Node, InstMatchTrie> d_data;
 
@@ -114,9 +113,7 @@ class InstMatchTrie
   /** helper for print
    * terms accumulates the path we are on in the trie.
    */
-  void print(std::ostream& out,
-             Node q,
-             std::vector<TNode>& terms) const;
+  void print(std::ostream& out, Node q, std::vector<TNode>& terms) const;
 };
 
 /** trie for InstMatch objects
@@ -171,8 +168,7 @@ class CDInstMatchTrie
   void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
   /** print this class */
-  void print(std::ostream& out,
-             Node q) const;
+  void print(std::ostream& out, Node q) const;
 
  private:
   /** Helper for getInstantiations.*/
@@ -182,9 +178,7 @@ class CDInstMatchTrie
   /** helper for print
    * terms accumulates the path we are on in the trie.
    */
-  void print(std::ostream& out,
-             Node q,
-             std::vector<TNode>& terms) const;
+  void print(std::ostream& out, Node q, std::vector<TNode>& terms) const;
   /** the data */
   std::map<Node, CDInstMatchTrie*> d_data;
   /** is valid */
