@@ -109,7 +109,8 @@ void TheoryDatatypes::finishInit()
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
-    d_sygusExtension.reset(new SygusExtension(d_state, d_im, tds, getDecisionManager()));
+    d_sygusExtension.reset(
+        new SygusExtension(d_state, d_im, tds, getDecisionManager()));
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }

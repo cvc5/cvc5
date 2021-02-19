@@ -28,11 +28,11 @@
 #include "expr/dtype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/decision_manager.h"
 
 namespace CVC4 {
 namespace theory {
