@@ -134,12 +134,16 @@ enum class InferenceId
   // ---------------------------------- end bitvector theory
 
   // ---------------------------------- datatypes theory
+  // (= k t) for fresh k
+  DATATYPES_PURIFY,
   // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
   DATATYPES_UNIF,
   // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
   DATATYPES_INST,
   // (or ((_ is C1) t) V ... V ((_ is Cn) t))
   DATATYPES_SPLIT,
+  // (or ((_ is Ci) t) V (not ((_ is Ci) t)))
+  DATATYPES_BINARY_SPLIT,
   // (not ((_ is C1) t)) ^ ... [j] ... ^ (not ((_ is Cn) t)) => ((_ is Cj) t)
   DATATYPES_LABEL_EXH,
   // (= t (Ci t1 ... tn)) => (= (sel_j t) rewrite((sel_j (Ci t1 ... tn))))
@@ -152,8 +156,17 @@ enum class InferenceId
   DATATYPES_TESTER_MERGE_CONFLICT,
   // bisimilarity for codatatypes
   DATATYPES_BISIMILAR,
+  // corecursive singleton equality
+  DATATYPES_REC_SINGLETON_EQ,
+  // corecursive singleton equality (not (= k1 k2)) for fresh k1, k2
+  DATATYPES_REC_SINGLETON_FORCE_DEQ,
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
+  //-------------------- datatypes size/height
+  // (>= (dt.size t) 0)
+  DATATYPES_SIZE_POS,
+  // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
+  DATATYPES_HEIGHT_ZERO,
   // ---------------------------------- end datatypes theory
 
   // ---------------------------------- sep theory
