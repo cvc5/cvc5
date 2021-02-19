@@ -41,12 +41,16 @@ namespace theory {
 enum class InferenceId
 {
   // ---------------------------------- arith theory
-  //-------------------- core
+  //-------------------- preprocessing
+  ARITH_PP_ELIM_OPERATORS,
+  //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
   // shared term value split (for naive theory combination)
   ARITH_NL_SHARED_TERM_VALUE_SPLIT,
-  //-------------------- incremental linearization solver
+  // checkModel found a conflict with a quadratic equality
+  ARITH_NL_CM_QUADRATIC_EQ,
+  //-------------------- nonlinear incremental linearization solver
   // splitting on zero (NlSolver::checkSplitZero)
   ARITH_NL_SPLIT_ZERO,
   // based on sign (NlSolver::checkMonomialSign)
@@ -63,7 +67,7 @@ enum class InferenceId
   ARITH_NL_RES_INFER_BOUNDS,
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
-  //-------------------- transcendental solver
+  //-------------------- nonlinear transcendental solver
   // purification of arguments to transcendental functions
   ARITH_NL_T_PURIFY_ARG,
   // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)
@@ -76,7 +80,7 @@ enum class InferenceId
   ARITH_NL_T_TANGENT,
   // secant refinement, the dual of the above inference
   ARITH_NL_T_SECANT,
-  //-------------------- iand solver
+  //-------------------- nonlinear iand solver
   // initial refinements (IAndSolver::checkInitialRefine)
   ARITH_NL_IAND_INIT_REFINE,
   // value refinements (IAndSolver::checkFullRefine)
@@ -85,12 +89,12 @@ enum class InferenceId
   ARITH_NL_IAND_SUM_REFINE,
   // bitwise refinements (IAndSolver::checkFullRefine)
   ARITH_NL_IAND_BITWISE_REFINE,
-  //-------------------- cad solver
+  //-------------------- nonlinear cad solver
   // conflict / infeasible subset obtained from cad
   ARITH_NL_CAD_CONFLICT,
   // excludes an interval for a single variable
   ARITH_NL_CAD_EXCLUDED_INTERVAL,
-  //-------------------- icp solver
+  //-------------------- nonlinear icp solver
   // conflict obtained from icp
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp

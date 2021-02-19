@@ -92,8 +92,8 @@ void CadSolver::checkFull()
     {
       n = n.negate();
     }
-    d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
-                              InferenceId::ARITH_NL_CAD_CONFLICT);
+    d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
+                         InferenceId::ARITH_NL_CAD_CONFLICT);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
@@ -140,7 +140,8 @@ void CadSolver::checkPartial()
         Trace("nl-cad") << "Excluding " << first_var << " -> "
                         << interval.d_interval << " using " << lemma
                         << std::endl;
-        d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL);
+        d_im.addPendingLemma(lemma,
+                             InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL);
       }
     }
   }
