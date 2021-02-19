@@ -64,16 +64,22 @@ const char* toString(InferenceId i)
     case InferenceId::BAG_DIFFERENCE_REMOVE: return "BAG_DIFFERENCE_REMOVE";
     case InferenceId::BAG_DUPLICATE_REMOVAL: return "BAG_DUPLICATE_REMOVAL";
 
-    case InferenceId::DATATYPES_UNIF: return "UNIF";
-    case InferenceId::DATATYPES_INST: return "INST";
-    case InferenceId::DATATYPES_SPLIT: return "SPLIT";
-    case InferenceId::DATATYPES_LABEL_EXH: return "LABEL_EXH";
-    case InferenceId::DATATYPES_COLLAPSE_SEL: return "COLLAPSE_SEL";
-    case InferenceId::DATATYPES_CLASH_CONFLICT: return "CLASH_CONFLICT";
-    case InferenceId::DATATYPES_TESTER_CONFLICT: return "TESTER_CONFLICT";
-    case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
-    case InferenceId::DATATYPES_BISIMILAR: return "BISIMILAR";
-    case InferenceId::DATATYPES_CYCLE: return "CYCLE";
+    case InferenceId::DATATYPES_PURIFY: return "DATATYPES_PURIFY";
+    case InferenceId::DATATYPES_UNIF: return "DATATYPES_UNIF";
+    case InferenceId::DATATYPES_INST: return "DATATYPES_INST";
+    case InferenceId::DATATYPES_SPLIT: return "DATATYPES_SPLIT";
+    case InferenceId::DATATYPES_BINARY_SPLIT: return "DATATYPES_BINARY_SPLIT";
+    case InferenceId::DATATYPES_LABEL_EXH: return "DATATYPES_LABEL_EXH";
+    case InferenceId::DATATYPES_COLLAPSE_SEL: return "DATATYPES_COLLAPSE_SEL";
+    case InferenceId::DATATYPES_CLASH_CONFLICT: return "DATATYPES_CLASH_CONFLICT";
+    case InferenceId::DATATYPES_TESTER_CONFLICT: return "DATATYPES_TESTER_CONFLICT";
+    case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT: return "DATATYPES_TESTER_MERGE_CONFLICT";
+    case InferenceId::DATATYPES_BISIMILAR: return "DATATYPES_BISIMILAR";
+    case InferenceId::DATATYPES_REC_SINGLETON_EQ: return "DATATYPES_REC_SINGLETON_EQ";
+    case InferenceId::DATATYPES_REC_SINGLETON_FORCE_DEQ: return "DATATYPES_REC_SINGLETON_FORCE_DEQ";
+    case InferenceId::DATATYPES_CYCLE: return "DATATYPES_CYCLE";
+    case InferenceId::DATATYPES_SIZE_POS: return "DATATYPES_SIZE_POS";
+    case InferenceId::DATATYPES_HEIGHT_ZERO: return "DATATYPES_HEIGHT_ZERO";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
