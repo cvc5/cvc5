@@ -164,7 +164,6 @@ void TheoryArith::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
 bool TheoryArith::preCheck(Effort level)
 {
   Trace("arith-check") << "TheoryArith::preCheck " << level << std::endl;
-  d_im.reset();
   return d_internal->preCheck(level);
 }
 
