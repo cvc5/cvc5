@@ -131,7 +131,7 @@ void PfManager::printProof(std::ostream& out,
   // TODO (proj #37) according to the proof format, print the proof node
   if (options::proofFormatMode() == options::ProofFormatMode::DOT)
   {
-    proof::DotPrinter::print(out, pfn.get());
+    proof::DotPrinter::print(out, fp.get());
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
