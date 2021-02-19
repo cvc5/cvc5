@@ -590,7 +590,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   {
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      getOutputChannel().setIncomplete();
+      d_qim.setIncomplete();
     }
     //output debug stats
     d_instantiate->debugPrintModel();
@@ -625,7 +625,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
       lem = itr->second;
     }
     if( !lem.isNull() ){
-      getOutputChannel().lemma( lem );
+      d_qim.lemma( lem );
     }
     d_quants_red[q] = !lem.isNull();
     return !lem.isNull();
