@@ -1996,29 +1996,34 @@ void TheoryArithPrivate::outputConflicts(){
 void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  d_containing.d_im.trustedLemma(lemma, id);
+  //d_containing.d_im.trustedLemma(lemma, id, LemmaProperty::NONE, false);
+  (d_containing.d_out)->trustedLemma(lemma);
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
-  d_containing.d_im.lemma(lem, id);
+  d_containing.d_im.lemma(lem, id, LemmaProperty::NONE, false);
+  //(d_containing.d_out)->lemma(lem);
 }
 
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
-  d_containing.d_im.trustedConflict(conf, id);
+  d_containing.d_im.trustedConflict(conf, id, true);
+  //(d_containing.d_out)->trustedConflict(conf);
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit, InferenceId id) {
   Debug("arith::channel") << "Arith conflict: " << lit << std::endl;
-  d_containing.d_im.conflict(lit, id);
+  d_containing.d_im.conflict(lit, id, true);
+  //(d_containing.d_out)->conflict(lit);
 }
 
 void TheoryArithPrivate::outputPropagate(TNode lit) {
   Debug("arith::channel") << "Arith propagation: " << lit << std::endl;
   // call the propagate lit method of the
-  d_containing.d_im.propagateLit(lit);
+  d_containing.d_im.propagateLit(lit, true);
+  //(d_containing.d_out)->propagate(lit);
 }
 
 void TheoryArithPrivate::outputRestart() {
