@@ -1996,8 +1996,8 @@ void TheoryArithPrivate::outputConflicts(){
 void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  //d_containing.d_im.trustedLemma(lemma, id, LemmaProperty::NONE, false);
-  (d_containing.d_out)->trustedLemma(lemma);
+  d_containing.d_im.trustedLemma(lemma, id, LemmaProperty::NONE, false);
+  //(d_containing.d_out)->trustedLemma(lemma);
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
