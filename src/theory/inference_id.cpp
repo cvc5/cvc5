@@ -127,10 +127,12 @@ const char* toString(InferenceId i)
 
     case InferenceId::STRINGS_I_NORM_S: return "STRINGS_I_NORM_S";
     case InferenceId::STRINGS_I_CONST_MERGE: return "STRINGS_I_CONST_MERGE";
-    case InferenceId::STRINGS_I_CONST_CONFLICT: return "STRINGS_I_CONST_CONFLICT";
+    case InferenceId::STRINGS_I_CONST_CONFLICT:
+      return "STRINGS_I_CONST_CONFLICT";
     case InferenceId::STRINGS_I_NORM: return "STRINGS_I_NORM";
     case InferenceId::STRINGS_UNIT_INJ: return "STRINGS_UNIT_INJ";
-    case InferenceId::STRINGS_UNIT_CONST_CONFLICT: return "STRINGS_UNIT_CONST_CONFLICT";
+    case InferenceId::STRINGS_UNIT_CONST_CONFLICT:
+      return "STRINGS_UNIT_CONST_CONFLICT";
     case InferenceId::STRINGS_UNIT_INJ_DEQ: return "STRINGS_UNIT_INJ_DEQ";
     case InferenceId::STRINGS_CARD_SP: return "STRINGS_CARD_SP";
     case InferenceId::STRINGS_CARDINALITY: return "STRINGS_CARDINALITY";
@@ -158,13 +160,15 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_NORMAL_FORM: return "STRINGS_NORMAL_FORM";
     case InferenceId::STRINGS_N_NCTN: return "STRINGS_N_NCTN";
     case InferenceId::STRINGS_LEN_NORM: return "STRINGS_LEN_NORM";
-    case InferenceId::STRINGS_DEQ_DISL_EMP_SPLIT: return "STRINGS_DEQ_DISL_EMP_SPLIT";
+    case InferenceId::STRINGS_DEQ_DISL_EMP_SPLIT:
+      return "STRINGS_DEQ_DISL_EMP_SPLIT";
     case InferenceId::STRINGS_DEQ_DISL_FIRST_CHAR_EQ_SPLIT:
       return "STRINGS_DEQ_DISL_FIRST_CHAR_EQ_SPLIT";
     case InferenceId::STRINGS_DEQ_DISL_FIRST_CHAR_STRING_SPLIT:
       return "STRINGS_DEQ_DISL_FIRST_CHAR_STRING_SPLIT";
     case InferenceId::STRINGS_DEQ_STRINGS_EQ: return "STRINGS_DEQ_STRINGS_EQ";
-    case InferenceId::STRINGS_DEQ_DISL_STRINGS_SPLIT: return "STRINGS_DEQ_DISL_STRINGS_SPLIT";
+    case InferenceId::STRINGS_DEQ_DISL_STRINGS_SPLIT:
+      return "STRINGS_DEQ_DISL_STRINGS_SPLIT";
     case InferenceId::STRINGS_DEQ_LENS_EQ: return "STRINGS_DEQ_LENS_EQ";
     case InferenceId::STRINGS_DEQ_NORM_EMP: return "STRINGS_DEQ_NORM_EMP";
     case InferenceId::STRINGS_DEQ_LENGTH_SP: return "STRINGS_DEQ_LENGTH_SP";
@@ -173,7 +177,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_RE_NF_CONFLICT: return "STRINGS_RE_NF_CONFLICT";
     case InferenceId::STRINGS_RE_UNFOLD_POS: return "STRINGS_RE_UNFOLD_POS";
     case InferenceId::STRINGS_RE_UNFOLD_NEG: return "STRINGS_RE_UNFOLD_NEG";
-    case InferenceId::STRINGS_RE_INTER_INCLUDE: return "STRINGS_RE_INTER_INCLUDE";
+    case InferenceId::STRINGS_RE_INTER_INCLUDE:
+      return "STRINGS_RE_INTER_INCLUDE";
     case InferenceId::STRINGS_RE_INTER_CONF: return "STRINGS_RE_INTER_CONF";
     case InferenceId::STRINGS_RE_INTER_INFER: return "STRINGS_RE_INTER_INFER";
     case InferenceId::STRINGS_RE_DELTA: return "STRINGS_RE_DELTA";
