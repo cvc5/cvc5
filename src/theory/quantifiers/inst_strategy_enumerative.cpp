@@ -323,7 +323,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                 << "Incompatible type " << f << ", " << terms[i].getType()
                 << ", " << ftypes[i] << std::endl;
           }
-          std::vector<bool> failMask
+          std::vector<bool> failMask;
           if (ie->addInstantiationExpFail(f, terms, failMask))
           {
             Trace("inst-alg-rd") << "Success!" << std::endl;
@@ -332,9 +332,15 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           }
           else
           {
-            // TODO
-            Assert (failMask.size()==terms.size());
             index--;
+            Assert (failMask.size()==terms.size());
+            while (!failMask.empty() && !failMask.back())
+            {
+              failMask.pop_back();
+              childIndex.pop_back();
+              index--;
+            }
+            // If a single value was bad, remember it TODO
           }
           if (d_qstate.isInConflict())
           {

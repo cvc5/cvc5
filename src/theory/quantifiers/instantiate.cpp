@@ -390,35 +390,38 @@ bool Instantiate::addInstantiationExpFail(Node q,
   {
     return true;
   }
-  failMask.resize(terms.size(), true);
+  size_t tsize = terms.size();
+  failMask.resize(tsize, true);
+  Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];
-  Assert(terms.size() == vars.size());
+  Assert(tsize == vars.size());
   std::map<TNode, TNode> subs;
-  for (size_t i = 0, size = terms.size(); i < size; i++)
+  for (size_t i = 0; i < tsize; i++)
   {
     subs[vars[i]] = terms[i];
   }
   // get the instantiation body
   Node ibody = getInstantiation(q, vars, terms, doVts);
   ibody = Rewriter::rewrite(ibody);
-  for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
+  for (size_t i = 0; i < tsize; i++)
   {
-    // process in reverse order, which is important since we 
+    // process consecutively in reverse order, which is important since we use
+    // the fail mask for incrementing in a lexicographic order
     size_t ii = (tsize - 1) - i;
     // replace with the identity substitution
     Node prev = terms[ii];
     terms[ii] = vars[ii];
-    subs[vars[ii]] = vars[ii];
+    subs.erase(vars[ii]);
+    Trace("inst-exp-fail") << "- revert " << ii << std::endl;
     // check whether we are still redundant
     bool success = false;
     // check entailment, only if option is set
     if (options::instNoEntail())
     {
-      if (d_term_db->isEntailed(q[1], subs, false, true))
-      {
-        success = true;
-      }
+      Trace("inst-exp-fail") << "  check entailment" << std::endl;
+      success = d_term_db->isEntailed(q[1], subs, false, true);
+      Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
     }
     // check whether the instantiation rewrites to the same thing
     if (!success)
@@ -426,6 +429,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
       Node ibodyc = getInstantiation(q, vars, terms, doVts);
       ibodyc = Rewriter::rewrite(ibodyc);
       success = (ibodyc == ibody);
+      Trace("inst-exp-fail") << "  rewrite invariant: " << success << std::endl;
     }
     if (success)
     {
@@ -479,12 +483,11 @@ Node Instantiate::getInstantiation(Node q,
                                    bool doVts,
                                    LazyCDProof* pf)
 {
-  Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
   // Notice that this could be optimized, but no significant performance
   // improvements were observed with alternative implementations (see #1386).
-  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
+  Node body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
 
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
