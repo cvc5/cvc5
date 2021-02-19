@@ -433,6 +433,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     }
     if (success)
     {
+      // if we still fail, we are not critical
       failMask[ii] = false;
     }
     else
