@@ -45,7 +45,8 @@ void SplitZeroCheck::check()
         proof->addStep(lem, PfRule::SPLIT, {}, {eq});
       }
       d_data->d_im.addPendingPhaseRequirement(eq, true);
-      d_data->d_im.addPendingArithLemma(lem, InferenceId::ARITH_NL_SPLIT_ZERO, proof);
+      d_data->d_im.addPendingLemma(
+          lem, InferenceId::ARITH_NL_SPLIT_ZERO, proof);
     }
   }
 }

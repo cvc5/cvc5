@@ -28,7 +28,7 @@ TrustNode NlLemma::processLemma(LemmaProperty& p)
   {
     d_nlext->processSideEffect(*this);
   }
-  return ArithLemma::processLemma(p);
+  return SimpleTheoryLemma::processLemma(p);
 }
 
 std::ostream& operator<<(std::ostream& out, NlLemma& n)

@@ -288,7 +288,6 @@ void InferenceManager::processConflict(const InferInfo& ii)
 {
   Assert(!d_state.isInConflict());
   // setup the fact to reproduce the proof in the call below
-  d_statistics.d_inferences << ii.getId();
   if (d_ipc != nullptr)
   {
     d_ipc->notifyFact(ii);
@@ -345,7 +344,6 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
   }
   // ensure that the proof generator is ready to explain the final conclusion
   // of the lemma (ii.d_conc).
-  d_statistics.d_inferences << ii.getId();
   if (d_ipc != nullptr)
   {
     d_ipc->notifyFact(ii);
