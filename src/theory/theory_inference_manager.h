@@ -125,7 +125,7 @@ class TheoryInferenceManager
    * EqualityEngineNotify::eqNotifyTriggerPredicate and
    * EqualityEngineNotify::eqNotifyTriggerTermEquality.
    */
-  bool propagateLit(TNode lit);
+  bool propagateLit(TNode lit, bool always = false);
   /**
    * Return an explanation for the literal represented by parameter lit
    * (which was previously propagated by this theory). By default, this
@@ -148,12 +148,12 @@ class TheoryInferenceManager
    * Raise conflict conf (of any form), without proofs. This method should
    * only be called if there is not yet proof support in the given theory.
    */
-  void conflict(TNode conf, InferenceId id);
+  void conflict(TNode conf, InferenceId id, bool addAlways = false);
   /**
    * Raise trusted conflict tconf (of any form) where a proof generator has
    * been provided (as part of the trust node) in a custom way.
    */
-  void trustedConflict(TrustNode tconf, InferenceId id);
+  void trustedConflict(TrustNode tconf, InferenceId id, bool addAlways = false);
   /**
    * Explain and send conflict from contradictory facts. This method is called
    * when the proof rule id with premises exp and arguments args concludes

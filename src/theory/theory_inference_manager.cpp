@@ -105,7 +105,7 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
   }
 }
 
-void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
+void TheoryInferenceManager::conflict(TNode conf, InferenceId id, bool addAlways)
 {
   d_conflictIdStats << id;
   d_theoryState.notifyInConflict();
@@ -113,7 +113,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
   ++d_numConflicts;
 }
 
-void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
+void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id, bool addAlways)
 {
   d_conflictIdStats << id;
   d_theoryState.notifyInConflict();
@@ -175,10 +175,10 @@ TrustNode TheoryInferenceManager::mkConflictExp(const std::vector<Node>& exp,
   return TrustNode::mkTrustConflict(conf, nullptr);
 }
 
-bool TheoryInferenceManager::propagateLit(TNode lit)
+bool TheoryInferenceManager::propagateLit(TNode lit, bool always)
 {
   // If already in conflict, no more propagation
-  if (d_theoryState.isInConflict())
+  if (!always && d_theoryState.isInConflict())
   {
     return false;
   }

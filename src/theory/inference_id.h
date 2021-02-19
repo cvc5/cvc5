@@ -41,6 +41,9 @@ namespace theory {
 enum class InferenceId
 {
   // ---------------------------------- arith theory
+  //-------------------- linear core
+  // introduces split on a disequality
+  ARITH_SPLIT_DEQ,
   //-------------------- preprocessing
   ARITH_PP_ELIM_OPERATORS,
   //-------------------- nonlinear core

@@ -536,9 +536,9 @@ bool TheoryArithPrivate::isProofEnabled() const
   return d_pnm != nullptr;
 }
 
-void TheoryArithPrivate::raiseConflict(ConstraintCP a){
+void TheoryArithPrivate::raiseConflict(ConstraintCP a, InferenceId id){
   Assert(a->inConflict());
-  d_conflicts.push_back(a);
+  d_conflicts.push_back(std::make_pair(a, id));
 }
 
 void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
@@ -655,7 +655,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
     ConstraintP negation = constraint->getNegation();
     negation->impliedByUnate(ubc, true);
 
-    raiseConflict(constraint);
+    raiseConflict(constraint, InferenceId::UNKNOWN);
 
     ++(d_statistics.d_statAssertLowerConflicts);
     return true;
@@ -691,7 +691,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
       }
       if(triConflict){
         ++(d_statistics.d_statDisequalityConflicts);
-        raiseConflict(eq);
+        raiseConflict(eq, InferenceId::UNKNOWN);
         return true;
       }
     }
@@ -715,7 +715,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
           negUb->tryToPropagate();
         }
         if(ubInConflict){
-          raiseConflict(ub);
+          raiseConflict(ub, InferenceId::UNKNOWN);
           return true;
         }else if(learnNegUb){
           d_learnedBounds.push_back(negUb);
@@ -796,7 +796,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     ConstraintP lbc = d_partialModel.getLowerBoundConstraint(x_i);
     ConstraintP negConstraint = constraint->getNegation();
     negConstraint->impliedByUnate(lbc, true);
-    raiseConflict(constraint);
+    raiseConflict(constraint, InferenceId::UNKNOWN);
     ++(d_statistics.d_statAssertUpperConflicts);
     return true;
   }else if(cmpToLB == 0){ // \lowerBound(x_i) == \upperbound(x_i)
@@ -830,7 +830,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
       }
       if(triConflict){
         ++(d_statistics.d_statDisequalityConflicts);
-        raiseConflict(eq);
+        raiseConflict(eq, InferenceId::UNKNOWN);
         return true;
       }
     }
@@ -854,7 +854,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
           negLb->tryToPropagate();
         }
         if(lbInConflict){
-          raiseConflict(lb);
+          raiseConflict(lb, InferenceId::UNKNOWN);
           return true;
         }else if(learnNegLb){
           d_learnedBounds.push_back(negLb);
@@ -936,7 +936,7 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
     ConstraintP diseq = constraint->getNegation();
     Assert(!diseq->isTrue());
     diseq->impliedByUnate(cb, true);
-    raiseConflict(constraint);
+    raiseConflict(constraint, InferenceId::UNKNOWN);
     return true;
   }
 
@@ -1028,7 +1028,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
     if(lb->isTrue() && ub->isTrue()){
       ConstraintP eq = constraint->getNegation();
       eq->impliedByTrichotomy(lb, ub, true);
-      raiseConflict(constraint);
+      raiseConflict(constraint, InferenceId::UNKNOWN);
       //in conflict
       ++(d_statistics.d_statDisequalityConflicts);
       return true;
@@ -1068,7 +1068,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
 
   if(!split && c_i == d_partialModel.getAssignment(x_i)){
     Debug("arith::eq") << "lemma now! " << constraint << endl;
-    outputTrustedLemma(constraint->split(), InferenceId::UNKNOWN);
+    outputTrustedLemma(constraint->split(), InferenceId::ARITH_SPLIT_DEQ);
     return false;
   }else if(d_partialModel.strictlyLessThanLowerBound(x_i, c_i)){
     Debug("arith::eq") << "can drop as less than lb" << constraint << endl;
@@ -1781,7 +1781,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(TNode assertion)
     Debug("arith::eq") << "negation has proof" << endl;
     Debug("arith::eq") << constraint << endl;
     Debug("arith::eq") << negation << endl;
-    raiseConflict(negation);
+    raiseConflict(negation, InferenceId::UNKNOWN);
     return NullConstraint;
   }else{
     return constraint;
@@ -1807,7 +1807,7 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
         floorConstraint->impliedByIntTighten(constraint, inConflict);
         floorConstraint->tryToPropagate();
         if(inConflict){
-          raiseConflict(floorConstraint);
+          raiseConflict(floorConstraint, InferenceId::UNKNOWN);
           return true;
         }
       }
@@ -1827,7 +1827,7 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
         ceilingConstraint->impliedByIntTighten(constraint, inConflict);
         ceilingConstraint->tryToPropagate();
         if(inConflict){
-          raiseConflict(ceilingConstraint);
+          raiseConflict(ceilingConstraint, InferenceId::UNKNOWN);
           return true;
         }
       }
@@ -1933,7 +1933,8 @@ void TheoryArithPrivate::outputConflicts(){
   if(!conflictQueueEmpty()){
     Assert(!d_conflicts.empty());
     for(size_t i = 0, i_end = d_conflicts.size(); i < i_end; ++i){
-      ConstraintCP confConstraint = d_conflicts[i];
+      std::pair<ConstraintCP, InferenceId> conf = d_conflicts[i];
+      ConstraintCP confConstraint = conf.first;
       bool hasProof = confConstraint->hasProof();
       Assert(confConstraint->inConflict());
       const ConstraintRule& pf = confConstraint->getConstraintRule();
@@ -1962,11 +1963,11 @@ void TheoryArithPrivate::outputConflicts(){
 
       if (isProofEnabled())
       {
-        outputTrustedConflict(trustedConflict, InferenceId::UNKNOWN);
+        outputTrustedConflict(trustedConflict, conf.second);
       }
       else
       {
-        outputConflict(conflict, InferenceId::UNKNOWN);
+        outputConflict(conflict, conf.second);
       }
     }
   }
@@ -2114,7 +2115,7 @@ bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
                                      << "  (" << neg_at_j->isTrue() <<") " << neg_at_j << endl
                                      << "  (" << at_j->isTrue() <<") " << at_j << endl;
           neg_at_j->impliedByIntHole(vec, true);
-          raiseConflict(at_j);
+          raiseConflict(at_j, InferenceId::UNKNOWN);
           break;
         }
       }
@@ -2340,7 +2341,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
     for(size_t i = 0, N = d_conflicts.size(); i < N; ++i){
 
       conflicts.push_back(ConstraintCPVec());
-      intHoleConflictToVector(d_conflicts[i], conflicts.back());
+      intHoleConflictToVector(d_conflicts[i].first, conflicts.back());
       Constraint::assertionFringe(conflicts.back());
 
       // ConstraintCP conflicting = d_conflicts[i];
@@ -2372,7 +2373,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
     if(!contains(conf, bcneg)){
       Debug("approx::branch") << "reraise " << conf  << endl;
       ConstraintCP conflicting = vectorToIntHoleConflict(conf);
-      raiseConflict(conflicting);
+      raiseConflict(conflicting, InferenceId::UNKNOWN);
     }else if(!bci.proven()){
       drop(conf, bcneg);
       bci.setExplanation(conf);
@@ -2392,7 +2393,7 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
     }
     Debug("approx::replayAssert") << "replayAssertion " << c << endl;
     if(inConflict){
-      raiseConflict(c);
+      raiseConflict(c, InferenceId::UNKNOWN);
     }else{
       assertionCases(c);
     }
@@ -2542,7 +2543,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
             }else {
               con->impliedByIntHole(exp, true);
               Debug("approx::replayLogRec") << "cut into conflict " << con << endl;
-              raiseConflict(con);
+              raiseConflict(con, InferenceId::UNKNOWN);
             }
           }else{
             ++d_statistics.d_cutsProofFailed;
@@ -2580,7 +2581,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
       /* if a conflict has been found stop */
       for(size_t i = 0, N = d_conflicts.size(); i < N; ++i){
         res.push_back(ConstraintCPVec());
-        intHoleConflictToVector(d_conflicts[i], res.back());
+        intHoleConflictToVector(d_conflicts[i].first, res.back());
       }
       ++d_statistics.d_replayLogRecEarlyExit;
     }else if(nl.isBranch()){

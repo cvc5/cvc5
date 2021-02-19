@@ -316,7 +316,7 @@ private:
 
 
   /** This is only used by simplex at the moment. */
-  context::CDList<ConstraintCP> d_conflicts;
+  context::CDList<std::pair<ConstraintCP, InferenceId>> d_conflicts;
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
@@ -330,7 +330,7 @@ private:
    * This adds the constraint a to the queue of conflicts in d_conflicts.
    * Both a and ~a must have a proof.
    */
-  void raiseConflict(ConstraintCP a);
+  void raiseConflict(ConstraintCP a, InferenceId id);
 
   // inline void raiseConflict(const ConstraintCPVec& cv){
   //   d_conflicts.push_back(cv);
