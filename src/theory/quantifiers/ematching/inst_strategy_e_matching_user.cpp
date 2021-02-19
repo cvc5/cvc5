@@ -171,8 +171,14 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
     d_user_gen_wait[q].push_back(nodes);
     return;
   }
-  Trigger* t = Trigger::mkTrigger(
-      d_quantEngine, d_qstate, d_qim, d_qreg, q, nodes, true, Trigger::TR_MAKE_NEW);
+  Trigger* t = Trigger::mkTrigger(d_quantEngine,
+                                  d_qstate,
+                                  d_qim,
+                                  d_qreg,
+                                  q,
+                                  nodes,
+                                  true,
+                                  Trigger::TR_MAKE_NEW);
   if (t)
   {
     d_user_gen[q].push_back(t);

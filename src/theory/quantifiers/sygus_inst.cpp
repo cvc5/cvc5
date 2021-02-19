@@ -517,11 +517,8 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
    * counterexample literal is decided on first. It is user-context dependent.
    */
   Assert(d_dstrat.find(q) == d_dstrat.end());
-  DecisionStrategy* ds =
-      new DecisionStrategySingleton("CeLiteral",
-                                    lit,
-                                    d_qstate.getSatContext(),
-                                    d_qstate.getValuation());
+  DecisionStrategy* ds = new DecisionStrategySingleton(
+      "CeLiteral", lit, d_qstate.getSatContext(), d_qstate.getValuation());
 
   d_dstrat[q].reset(ds);
   d_quantEngine->getDecisionManager()->registerStrategy(

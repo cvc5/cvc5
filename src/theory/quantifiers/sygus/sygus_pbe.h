@@ -86,8 +86,9 @@ class SynthConjecture;
 class SygusPbe : public SygusModule
 {
  public:
-  SygusPbe(QuantifiersEngine* qe, 
-                  QuantifiersInferenceManager& qim, SynthConjecture* p);
+  SygusPbe(QuantifiersEngine* qe,
+           QuantifiersInferenceManager& qim,
+           SynthConjecture* p);
   ~SygusPbe();
 
   /** initialize this class

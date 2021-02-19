@@ -54,7 +54,9 @@ class QuantifiersInferenceManager;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe, QuantifiersInferenceManager& qim, SynthConjecture* p);
+  SygusModule(QuantifiersEngine* qe,
+              QuantifiersInferenceManager& qim,
+              SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
    *

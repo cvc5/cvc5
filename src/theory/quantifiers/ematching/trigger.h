@@ -30,7 +30,7 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
-  class QuantifiersState;
+class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
 }

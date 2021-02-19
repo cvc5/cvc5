@@ -722,7 +722,9 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      d_qim.trustedLemma(lem, InferenceId::QUANTIFIERS_SKOLEMIZE, LemmaProperty::NEEDS_JUSTIFY);
+      d_qim.trustedLemma(lem,
+                         InferenceId::QUANTIFIERS_SKOLEMIZE,
+                         LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }

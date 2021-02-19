@@ -166,11 +166,10 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     DecisionStrategy* dlds = nullptr;
     if (itds == d_dstrat.end())
     {
-      d_dstrat[q].reset(
-          new DecisionStrategySingleton("CexLiteral",
-                                        ceLit,
-                                        d_qstate.getSatContext(),
-                                        d_qstate.getValuation()));
+      d_dstrat[q].reset(new DecisionStrategySingleton("CexLiteral",
+                                                      ceLit,
+                                                      d_qstate.getSatContext(),
+                                                      d_qstate.getValuation()));
       dlds = d_dstrat[q].get();
     }
     else
@@ -201,10 +200,12 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
         Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
-        if( d_qstate.getValuation().hasSatValue( cel, value ) ){
+        if (d_qstate.getValuation().hasSatValue(cel, value))
+        {
           Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
-            if( d_qstate.getValuation().isDecision( cel ) ){
+            if (d_qstate.getValuation().isDecision(cel))
+            {
               Trace("cegqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
             }else{
               Trace("cegqi") << "Inactive : " << q << std::endl;
@@ -438,14 +439,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
         Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
-        d_qim.lemma( delta_lem_ub, InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA );
+        d_qim.lemma(delta_lem_ub, InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA);
       }
       std::vector< Node > inf;
       d_vtsCache->getVtsTerms(inf, true, false, false);
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
         Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf[i], NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
-        d_qim.lemma( inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF );
+        d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
       }
     }
   }

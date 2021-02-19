@@ -151,7 +151,7 @@ enum class InferenceId
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
   // ---------------------------------- end datatypes theory
-  
+
   //-------------------------------------- quantifiers theory
   QUANTIFIERS_SKOLEMIZE,
   //-------------------- counterexample-guided instantiation
