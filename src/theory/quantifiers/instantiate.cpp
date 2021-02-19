@@ -487,7 +487,8 @@ Node Instantiate::getInstantiation(Node q,
   Assert(q[0].getNumChildren() == vars.size());
   // Notice that this could be optimized, but no significant performance
   // improvements were observed with alternative implementations (see #1386).
-  Node body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
+  Node body =
+      q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
 
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)

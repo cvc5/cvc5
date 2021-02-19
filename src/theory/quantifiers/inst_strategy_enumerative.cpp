@@ -333,7 +333,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           else
           {
             index--;
-            Assert (failMask.size()==terms.size());
+            Assert(failMask.size() == terms.size());
             while (!failMask.empty() && !failMask.back())
             {
               failMask.pop_back();
