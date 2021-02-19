@@ -108,8 +108,6 @@ class SygusExtension
    */
   void check(std::vector<Node>& lemmas);
  private:
-  /** Pointer to the datatype theory that owns this class. */
-  TheoryDatatypes* d_td;
   /** The theory state of the datatype theory */
   TheoryState& d_state;
   /** The inference manager of the datatype theory */
