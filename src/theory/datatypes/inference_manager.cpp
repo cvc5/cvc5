@@ -45,8 +45,8 @@ InferenceManager::~InferenceManager()
 }
 
 void InferenceManager::addPendingInference(Node conc,
-                                           Node exp,
                                            InferenceId id,
+                                           Node exp,
                                            bool forceLemma)
 {
   // if we are forcing the inference to be processed as a lemma, or if the
