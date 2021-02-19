@@ -52,7 +52,7 @@ class NlLemma : public SimpleTheoryLemma
   }
   ~NlLemma() {}
 
-  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  TrustNode processLemma(LemmaProperty& p) override;
 
   /** secant points to add
    *
