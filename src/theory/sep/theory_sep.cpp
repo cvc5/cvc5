@@ -49,7 +49,7 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr),
+      d_im(*this, d_state, nullptr, "theory::sep"),
       d_notify(*this),
       d_reduce(u),
       d_spatial_assertions(c)

@@ -34,7 +34,7 @@ InferenceManager::InferenceManager(Theory& t,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm),
+    : InferenceManagerBuffered(t, s, pnm, "theory::strings"),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
@@ -288,7 +288,6 @@ void InferenceManager::processConflict(const InferInfo& ii)
 {
   Assert(!d_state.isInConflict());
   // setup the fact to reproduce the proof in the call below
-  d_statistics.d_inferences << ii.getId();
   if (d_ipc != nullptr)
   {
     d_ipc->notifyFact(ii);
@@ -332,7 +331,6 @@ bool InferenceManager::processFact(InferInfo& ii)
   for (const Node& fact : facts)
   {
     ii.d_conc = fact;
-    d_statistics.d_inferences << ii.getId();
     bool polarity = fact.getKind() != NOT;
     TNode atom = polarity ? fact : fact[0];
     bool curRet = false;
@@ -387,7 +385,6 @@ bool InferenceManager::processLemma(InferInfo& ii)
   }
   // ensure that the proof generator is ready to explain the final conclusion
   // of the lemma (ii.d_conc).
-  d_statistics.d_inferences << ii.getId();
   if (d_ipc != nullptr)
   {
     d_ipc->notifyFact(ii);
