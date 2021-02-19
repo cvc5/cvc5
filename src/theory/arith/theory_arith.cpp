@@ -266,7 +266,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-      d_im.lemma(lem, InferenceId::UNKNOWN, LemmaProperty::NONE, false);
+      d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL, LemmaProperty::NONE, false);
       //d_out->lemma(lem);
     }
     return false;

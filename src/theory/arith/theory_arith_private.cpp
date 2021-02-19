@@ -655,7 +655,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
     ConstraintP negation = constraint->getNegation();
     negation->impliedByUnate(ubc, true);
 
-    raiseConflict(constraint, InferenceId::UNKNOWN);
+    raiseConflict(constraint, InferenceId::ARITH_CONF_LOWER);
 
     ++(d_statistics.d_statAssertLowerConflicts);
     return true;
@@ -691,7 +691,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
       }
       if(triConflict){
         ++(d_statistics.d_statDisequalityConflicts);
-        raiseConflict(eq, InferenceId::UNKNOWN);
+        raiseConflict(eq, InferenceId::ARITH_CONF_TRICHOTOMY);
         return true;
       }
     }
@@ -715,7 +715,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
           negUb->tryToPropagate();
         }
         if(ubInConflict){
-          raiseConflict(ub, InferenceId::UNKNOWN);
+          raiseConflict(ub, InferenceId::ARITH_CONF_TRICHOTOMY);
           return true;
         }else if(learnNegUb){
           d_learnedBounds.push_back(negUb);
@@ -796,7 +796,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     ConstraintP lbc = d_partialModel.getLowerBoundConstraint(x_i);
     ConstraintP negConstraint = constraint->getNegation();
     negConstraint->impliedByUnate(lbc, true);
-    raiseConflict(constraint, InferenceId::UNKNOWN);
+    raiseConflict(constraint, InferenceId::ARITH_CONF_UPPER);
     ++(d_statistics.d_statAssertUpperConflicts);
     return true;
   }else if(cmpToLB == 0){ // \lowerBound(x_i) == \upperbound(x_i)
@@ -830,7 +830,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
       }
       if(triConflict){
         ++(d_statistics.d_statDisequalityConflicts);
-        raiseConflict(eq, InferenceId::UNKNOWN);
+        raiseConflict(eq, InferenceId::ARITH_CONF_TRICHOTOMY);
         return true;
       }
     }
@@ -854,7 +854,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
           negLb->tryToPropagate();
         }
         if(lbInConflict){
-          raiseConflict(lb, InferenceId::UNKNOWN);
+          raiseConflict(lb, InferenceId::ARITH_CONF_TRICHOTOMY);
           return true;
         }else if(learnNegLb){
           d_learnedBounds.push_back(negLb);
@@ -936,7 +936,7 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
     ConstraintP diseq = constraint->getNegation();
     Assert(!diseq->isTrue());
     diseq->impliedByUnate(cb, true);
-    raiseConflict(constraint, InferenceId::UNKNOWN);
+    raiseConflict(constraint, InferenceId::ARITH_CONF_EQ);
     return true;
   }
 
@@ -1028,7 +1028,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
     if(lb->isTrue() && ub->isTrue()){
       ConstraintP eq = constraint->getNegation();
       eq->impliedByTrichotomy(lb, ub, true);
-      raiseConflict(constraint, InferenceId::UNKNOWN);
+      raiseConflict(constraint, InferenceId::ARITH_CONF_TRICHOTOMY);
       //in conflict
       ++(d_statistics.d_statDisequalityConflicts);
       return true;
@@ -1807,7 +1807,7 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
         floorConstraint->impliedByIntTighten(constraint, inConflict);
         floorConstraint->tryToPropagate();
         if(inConflict){
-          raiseConflict(floorConstraint, InferenceId::UNKNOWN);
+          raiseConflict(floorConstraint, InferenceId::ARITH_TIGHTEN_FLOOR);
           return true;
         }
       }
@@ -1827,7 +1827,7 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
         ceilingConstraint->impliedByIntTighten(constraint, inConflict);
         ceilingConstraint->tryToPropagate();
         if(inConflict){
-          raiseConflict(ceilingConstraint, InferenceId::UNKNOWN);
+          raiseConflict(ceilingConstraint, InferenceId::ARITH_TIGHTEN_CEIL);
           return true;
         }
       }
@@ -1984,11 +1984,11 @@ void TheoryArithPrivate::outputConflicts(){
     if (isProofEnabled() && d_blackBoxConflictPf.get())
     {
       auto confPf = d_blackBoxConflictPf.get();
-      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true), InferenceId::UNKNOWN);
+      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true), InferenceId::ARITH_BLACK_BOX);
     }
     else
     {
-      outputConflict(bb, InferenceId::UNKNOWN);
+      outputConflict(bb, InferenceId::ARITH_BLACK_BOX);
     }
   }
 }
@@ -3559,7 +3559,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       Debug("arith::approx::cuts") << "approximate cut:" << lem << endl;
       anyFresh = anyFresh || hasFreshArithLiteral(lem.getNode());
       Debug("arith::lemma") << "approximate cut:" << lem << endl;
-      outputTrustedLemma(lem, InferenceId::UNKNOWN);
+      outputTrustedLemma(lem, InferenceId::ARITH_APPROX_CUT);
     }
     if(anyFresh){
       emmittedConflictOrSplit = true;
@@ -3676,7 +3676,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           d_hasDoneWorkSinceCut = false;
           d_cutCount = d_cutCount + 1;
           Debug("arith::lemma") << "dio cut   " << possibleLemma << endl;
-          outputTrustedLemma(possibleLemma, InferenceId::UNKNOWN);
+          outputTrustedLemma(possibleLemma, InferenceId::ARITH_DIO_CUT);
         }
       }
     }
@@ -3690,7 +3690,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         emmittedConflictOrSplit = true;
         Debug("arith::lemma") << "rrbranch lemma"
                               << possibleLemma << endl;
-        outputTrustedLemma(possibleLemma, InferenceId::UNKNOWN);
+        outputTrustedLemma(possibleLemma, InferenceId::ARITH_BB_LEMMA);
       }
     }
 
@@ -3700,7 +3700,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           Node decompositionLemma = d_diosolver.nextDecompositionLemma();
           Debug("arith::lemma") << "dio decomposition lemma "
                                 << decompositionLemma << endl;
-          outputLemma(decompositionLemma, InferenceId::UNKNOWN);
+          outputLemma(decompositionLemma, InferenceId::ARITH_DIO_DECOMPOSITION);
         }
       }else{
         Debug("arith::restart") << "arith restart!" << endl;
@@ -3916,7 +3916,7 @@ bool TheoryArithPrivate::splitDisequalities(){
 
         Debug("arith::lemma")
             << "Now " << Rewriter::rewrite(lemma.getNode()) << endl;
-        outputTrustedLemma(lemma, InferenceId::UNKNOWN);
+        outputTrustedLemma(lemma, InferenceId::ARITH_SPLIT_DEQ);
         //cout << "Now " << Rewriter::rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
