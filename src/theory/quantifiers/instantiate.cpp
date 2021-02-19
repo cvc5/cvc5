@@ -392,7 +392,51 @@ bool Instantiate::addInstantiationExpFail(Node q,
     return true;
   }
   failMask.resize(terms.size(), true);
-  // TODO
+  // set up information for below
+  std::vector<Node>& vars = d_qreg.d_vars[q];
+  Assert (terms.size()==vars.size());
+  std::map<TNode, TNode> subs;
+  for (size_t i = 0, size = terms.size(); i < size; i++)
+  {
+    subs[vars[i]] = terms[i];
+  }
+  // get the instantiation body
+  Node ibody = getInstantiation(q, vars, terms, doVts);
+  ibody = Rewriter::rewrite(ibody);
+  for (size_t i=0, tsize = terms.size(); i<tsize; i++)
+  {
+    size_t ii = (tsize-1)-i;
+    // replace with the identity substitution
+    Node prev = terms[ii];
+    terms[ii] = vars[ii];
+    subs[vars[ii]] = vars[ii];
+    // check whether we are still redundant
+    bool success = false;
+    // check entailment
+    if (options::instNoEntail())
+    {
+      if (d_term_db->isEntailed(q[1], subs, false, true))
+      {
+        success = true;
+      }
+    }
+    if (!success)
+    {
+      // check whether the instantiation rewrites to the same thing
+      Node ibodyc = getInstantiation(q, vars, terms, doVts);
+      ibodyc = Rewriter::rewrite(ibodyc);
+      success = (ibodyc==ibody);
+    }
+    if (success)
+    {
+      failMask[ii] = false;
+    }
+    else
+    {
+      subs[vars[ii]] = prev;
+      terms[ii] = prev;
+    }
+  }
   return false;
 }
 
