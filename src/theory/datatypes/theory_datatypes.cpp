@@ -310,7 +310,7 @@ void TheoryDatatypes::postCheck(Effort level)
                   //if only one constructor, then this term must be this constructor
                   Node t = utils::mkTester(n, 0, dt);
                   d_im.addPendingInference(
-                      t, d_true, InferenceId::DATATYPES_SPLIT);
+                      t, InferenceId::DATATYPES_SPLIT, d_true);
                   Trace("datatypes-infer") << "DtInfer : 1-cons (full) : " << t << std::endl;
                 }else{
                   Assert(consIndex != -1 || dt.isSygus());
@@ -692,7 +692,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
               if( !areEqual( cons1[i], cons2[i] ) ){
                 Node eq = cons1[i].eqNode( cons2[i] );
                 d_im.addPendingInference(
-                    eq, unifEq, InferenceId::DATATYPES_UNIF);
+                    eq, InferenceId::DATATYPES_UNIF, unifEq);
                 Trace("datatypes-infer") << "DtInfer : cons-inj : " << eq << " by " << unifEq << std::endl;
               }
             }
@@ -979,7 +979,7 @@ void TheoryDatatypes::addTester(
                              : utils::mkTester(t_arg, testerIndex, dt);
           Node t_concl_exp = ( nb.getNumChildren() == 1 ) ? nb.getChild( 0 ) : nb;
           d_im.addPendingInference(
-              t_concl, t_concl_exp, InferenceId::DATATYPES_LABEL_EXH);
+              t_concl, InferenceId::DATATYPES_LABEL_EXH, t_concl_exp);
           Trace("datatypes-infer") << "DtInfer : label : " << t_concl << " by " << t_concl_exp << std::endl;
           return;
         }
@@ -1116,7 +1116,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       Trace("datatypes-infer") << "DtInfer : collapse sel";
       Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
       d_im.addPendingInference(
-          eq, eq_exp, InferenceId::DATATYPES_COLLAPSE_SEL, forceLemma);
+          eq, InferenceId::DATATYPES_COLLAPSE_SEL, eq_exp, forceLemma);
     }
   }
 }
@@ -1570,7 +1570,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;
-  d_im.addPendingInference(eq, exp, InferenceId::DATATYPES_INST, forceLemma);
+  d_im.addPendingInference(eq, InferenceId::DATATYPES_INST, exp, forceLemma);
   Trace("datatypes-infer") << "DtInfer : instantiate : " << eq << " by " << exp
                            << std::endl;
 }
@@ -1656,7 +1656,7 @@ void TheoryDatatypes::checkCycles() {
           Trace("dt-cdt") << std::endl;
           Node eq = part_out[i][0].eqNode( part_out[i][j] );
           Node eqExp = NodeManager::currentNM()->mkAnd(exp);
-          d_im.addPendingInference(eq, eqExp, InferenceId::DATATYPES_BISIMILAR);
+          d_im.addPendingInference(eq, InferenceId::DATATYPES_BISIMILAR, eqExp);
           Trace("datatypes-infer") << "DtInfer : cdt-bisimilar : " << eq << " by " << eqExp << std::endl;
         }
       }

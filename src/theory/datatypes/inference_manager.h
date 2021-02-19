@@ -51,8 +51,8 @@ class InferenceManager : public InferenceManagerBuffered
    * mustCommunicateFact.
    */
   void addPendingInference(Node conc,
-                           Node exp,
                            InferenceId id,
+                           Node exp,
                            bool forceLemma = false);
   /**
    * Process the current lemmas and facts. This is a custom method that can
