@@ -20,7 +20,6 @@
 #include <map>
 #include <vector>
 
-#include "theory/arith/arith_lemma.h"
 #include "theory/arith/arith_state.h"
 #include "theory/inference_id.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -55,24 +54,24 @@ class InferenceManager : public InferenceManagerBuffered
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
-                            bool isWaiting = false);
+  void addPendingLemma(std::unique_ptr<SimpleTheoryLemma> lemma,
+                       bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(const ArithLemma& lemma, bool isWaiting = false);
+  void addPendingLemma(const SimpleTheoryLemma& lemma, bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(const Node& lemma,
-                            InferenceId inftype,
-                            ProofGenerator* pg = nullptr,
-                            bool isWaiting = false,
-                            LemmaProperty p = LemmaProperty::NONE);
+  void addPendingLemma(const Node& lemma,
+                       InferenceId inftype,
+                       ProofGenerator* pg = nullptr,
+                       bool isWaiting = false,
+                       LemmaProperty p = LemmaProperty::NONE);
 
   /**
    * Flush all waiting lemmas to this inference manager (as pending
@@ -112,10 +111,10 @@ class InferenceManager : public InferenceManagerBuffered
    * Checks whether the lemma is entailed to be false. In this case, it is a
    * conflict.
    */
-  bool isEntailedFalse(const ArithLemma& lem);
+  bool isEntailedFalse(const SimpleTheoryLemma& lem);
 
   /** The waiting lemmas. */
-  std::vector<std::unique_ptr<ArithLemma>> d_waitingLem;
+  std::vector<std::unique_ptr<SimpleTheoryLemma>> d_waitingLem;
 };
 
 }  // namespace arith

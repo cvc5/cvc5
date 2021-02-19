@@ -45,8 +45,7 @@ void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  NlLemma nlem(lem, LemmaProperty::NONE, nullptr, InferenceId::ARITH_NL_T_PURIFY_ARG);
-  d_data->d_im.addPendingArithLemma(nlem);
+  d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_PURIFY_ARG);
 }
 
 void ExponentialSolver::checkInitialRefine()
@@ -71,7 +70,7 @@ void ExponentialSolver::checkInitialRefine()
         {
           // exp is always positive: exp(t) > 0
           Node lem = nm->mkNode(Kind::GT, t, d_data->d_zero);
-          d_data->d_im.addPendingArithLemma(
+          d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
         }
         {
@@ -79,7 +78,7 @@ void ExponentialSolver::checkInitialRefine()
           Node lem = nm->mkNode(Kind::EQUAL,
                                 t[0].eqNode(d_data->d_zero),
                                 t.eqNode(d_data->d_one));
-          d_data->d_im.addPendingArithLemma(
+          d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
         }
         {
@@ -87,7 +86,7 @@ void ExponentialSolver::checkInitialRefine()
           Node lem = nm->mkNode(Kind::EQUAL,
                                 nm->mkNode(Kind::LT, t[0], d_data->d_zero),
                                 nm->mkNode(Kind::LT, t, d_data->d_one));
-          d_data->d_im.addPendingArithLemma(
+          d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
         }
         {
@@ -97,7 +96,7 @@ void ExponentialSolver::checkInitialRefine()
               nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
               nm->mkNode(
                   Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
-          d_data->d_im.addPendingArithLemma(
+          d_data->d_im.addPendingLemma(
               lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
         }
       }
@@ -162,8 +161,8 @@ void ExponentialSolver::checkMonotonic()
                                  nm->mkNode(Kind::GEQ, t, s));
       Trace("nl-ext-exp") << "Monotonicity lemma : " << mono_lem << std::endl;
 
-      d_data->d_im.addPendingArithLemma(mono_lem,
-                                        InferenceId::ARITH_NL_T_MONOTONICITY);
+      d_data->d_im.addPendingLemma(mono_lem,
+                                   InferenceId::ARITH_NL_T_MONOTONICITY);
     }
     // store the previous values
     targ = sarg;
@@ -190,7 +189,8 @@ void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
   Trace("nl-ext-exp") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
-  d_data->d_im.addPendingArithLemma(lem, InferenceId::ARITH_NL_T_TANGENT, nullptr, true);
+  d_data->d_im.addPendingLemma(
+      lem, InferenceId::ARITH_NL_T_TANGENT, nullptr, true);
 }
 
 void ExponentialSolver::doSecantLemmas(TNode e,
