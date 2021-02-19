@@ -48,7 +48,7 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
   CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe,
-                                QuantifiersState& qs,
+                                QuantifiersState& qs,QuantifiersInferenceManager& qim, 
                                 SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
@@ -101,6 +101,8 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */

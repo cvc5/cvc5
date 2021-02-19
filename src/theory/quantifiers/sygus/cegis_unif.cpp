@@ -32,7 +32,7 @@ CegisUnif::CegisUnif(QuantifiersEngine* qe,
                      QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                      SynthConjecture* p)
-    : Cegis(qe, qim, p), d_sygus_unif(p), d_u_enum_manager(qe, qs, p)
+    : Cegis(qe, qim, p), d_sygus_unif(p), d_u_enum_manager(qe, qs, qim, p)
 {
 }
 
@@ -400,9 +400,10 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
-    QuantifiersEngine* qe, QuantifiersState& qs, SynthConjecture* parent)
+    QuantifiersEngine* qe, QuantifiersState& qs, QuantifiersInferenceManager& qim, SynthConjecture* parent)
     : DecisionStrategyFmf(qs.getSatContext(), qs.getValuation()),
       d_qe(qe),
+      d_qim(qim),
       d_parent(parent)
 {
   d_initialized = false;

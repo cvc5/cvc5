@@ -151,8 +151,8 @@ class SygusModule
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
-  /** The quantifiers inference manager */
-  QuantifiersInferenceManager& qim;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
