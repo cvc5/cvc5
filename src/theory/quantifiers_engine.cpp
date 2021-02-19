@@ -128,12 +128,6 @@ DecisionManager* QuantifiersEngine::getDecisionManager()
   return d_decManager;
 }
 
-OutputChannel& QuantifiersEngine::getOutputChannel()
-{
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getOutputChannel();
-}
-Valuation& QuantifiersEngine::getValuation() { return d_qstate.getValuation(); }
-
 quantifiers::QuantifiersState& QuantifiersEngine::getState()
 {
   return d_qstate;
@@ -728,7 +722,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().trustedLemma(lem, LemmaProperty::NEEDS_JUSTIFY);
+      d_qim.trustedLemma(lem, InferenceId::QUANTIFIERS_SKOLEMIZE, LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }

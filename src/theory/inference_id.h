@@ -151,6 +151,15 @@ enum class InferenceId
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
   // ---------------------------------- end datatypes theory
+  
+  //-------------------------------------- quantifiers theory
+  QUANTIFIERS_SKOLEMIZE,
+  //-------------------- sygus solver
+  QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
+  QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
+  QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory
   // ensures that pto is a function: (pto x y) ^ ~(pto z w) ^ x = z => y != w

@@ -200,7 +200,7 @@ void SynthConjecture::assign(Node q)
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
-    d_qe->getOutputChannel().lemma(infLem);
+    d_qim.lemma(infLem, InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA);
     // we don't need to continue initialization in this case
     return;
   }
@@ -244,7 +244,7 @@ void SynthConjecture::assign(Node q)
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
-  d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
+  d_qim.requirePhase(d_feasible_guard, true);
 
   Node gneg = d_feasible_guard.negate();
   for (unsigned i = 0; i < guarded_lemmas.size(); i++)
@@ -252,7 +252,7 @@ void SynthConjecture::assign(Node q)
     Node lem = nm->mkNode(OR, gneg, guarded_lemmas[i]);
     Trace("cegqi-lemma") << "Cegqi::Lemma : initial (guarded) lemma : " << lem
                          << std::endl;
-    d_qe->getOutputChannel().lemma(lem);
+    d_qim.lemma(lem, InferenceId::UNKNOWN);
   }
 
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation()
@@ -608,7 +608,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // We should set incomplete, since a "sat" answer should not be
       // interpreted as "infeasible", which would make a difference in the rare
       // case where e.g. we had a finite grammar and exhausted the grammar.
-      d_qe->getOutputChannel().setIncomplete();
+      d_qim.setIncomplete();
       return false;
     }
     // otherwise we are unsat, and we will process the solution below
@@ -934,7 +934,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
       TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
       Trace("sygus-active-gen-debug") << std::endl;
     }
-    d_qe->getOutputChannel().lemma(lem);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT);
   }
   else
   {
@@ -1022,7 +1022,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
     exc_lem = exc_lem.negate();
     Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : "
                          << exc_lem << std::endl;
-    d_qe->getOutputChannel().lemma(exc_lem);
+    d_qim.lemma(exc_lem, InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT);
   }
 }
 
