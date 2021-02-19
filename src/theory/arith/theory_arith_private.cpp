@@ -1068,7 +1068,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
 
   if(!split && c_i == d_partialModel.getAssignment(x_i)){
     Debug("arith::eq") << "lemma now! " << constraint << endl;
-    outputTrustedLemma(constraint->split());
+    outputTrustedLemma(constraint->split(), InferenceId::UNKNOWN);
     return false;
   }else if(d_partialModel.strictlyLessThanLowerBound(x_i, c_i)){
     Debug("arith::eq") << "can drop as less than lb" << constraint << endl;
@@ -1962,11 +1962,11 @@ void TheoryArithPrivate::outputConflicts(){
 
       if (isProofEnabled())
       {
-        outputTrustedConflict(trustedConflict);
+        outputTrustedConflict(trustedConflict, InferenceId::UNKNOWN);
       }
       else
       {
-        outputConflict(conflict);
+        outputConflict(conflict, InferenceId::UNKNOWN);
       }
     }
   }
@@ -1983,41 +1983,41 @@ void TheoryArithPrivate::outputConflicts(){
     if (isProofEnabled() && d_blackBoxConflictPf.get())
     {
       auto confPf = d_blackBoxConflictPf.get();
-      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true));
+      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true), InferenceId::UNKNOWN);
     }
     else
     {
-      outputConflict(bb);
+      outputConflict(bb, InferenceId::UNKNOWN);
     }
   }
 }
 
-void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma)
+void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
-  (d_containing.d_out)->trustedLemma(lemma);
+  d_containing.d_im.trustedLemma(lemma, id);
 }
 
-void TheoryArithPrivate::outputLemma(TNode lem) {
+void TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
-  (d_containing.d_out)->lemma(lem);
+  d_containing.d_im.lemma(lem, id);
 }
 
-void TheoryArithPrivate::outputTrustedConflict(TrustNode conf)
+void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
-  (d_containing.d_out)->trustedConflict(conf);
+  d_containing.d_im.trustedConflict(conf, id);
 }
 
-void TheoryArithPrivate::outputConflict(TNode lit) {
+void TheoryArithPrivate::outputConflict(TNode lit, InferenceId id) {
   Debug("arith::channel") << "Arith conflict: " << lit << std::endl;
-  (d_containing.d_out)->conflict(lit);
+  d_containing.d_im.conflict(lit, id);
 }
 
 void TheoryArithPrivate::outputPropagate(TNode lit) {
   Debug("arith::channel") << "Arith propagation: " << lit << std::endl;
   // call the propagate lit method of the
-  (d_containing.d_out)->propagate(lit);
+  d_containing.d_im.propagateLit(lit);
 }
 
 void TheoryArithPrivate::outputRestart() {
@@ -3553,7 +3553,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
       Debug("arith::approx::cuts") << "approximate cut:" << lem << endl;
       anyFresh = anyFresh || hasFreshArithLiteral(lem.getNode());
       Debug("arith::lemma") << "approximate cut:" << lem << endl;
-      outputTrustedLemma(lem);
+      outputTrustedLemma(lem, InferenceId::UNKNOWN);
     }
     if(anyFresh){
       emmittedConflictOrSplit = true;
@@ -3670,7 +3670,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           d_hasDoneWorkSinceCut = false;
           d_cutCount = d_cutCount + 1;
           Debug("arith::lemma") << "dio cut   " << possibleLemma << endl;
-          outputTrustedLemma(possibleLemma);
+          outputTrustedLemma(possibleLemma, InferenceId::UNKNOWN);
         }
       }
     }
@@ -3684,7 +3684,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
         emmittedConflictOrSplit = true;
         Debug("arith::lemma") << "rrbranch lemma"
                               << possibleLemma << endl;
-        outputTrustedLemma(possibleLemma);
+        outputTrustedLemma(possibleLemma, InferenceId::UNKNOWN);
       }
     }
 
@@ -3694,7 +3694,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           Node decompositionLemma = d_diosolver.nextDecompositionLemma();
           Debug("arith::lemma") << "dio decomposition lemma "
                                 << decompositionLemma << endl;
-          outputLemma(decompositionLemma);
+          outputLemma(decompositionLemma, InferenceId::UNKNOWN);
         }
       }else{
         Debug("arith::restart") << "arith restart!" << endl;
@@ -3910,7 +3910,7 @@ bool TheoryArithPrivate::splitDisequalities(){
 
         Debug("arith::lemma")
             << "Now " << Rewriter::rewrite(lemma.getNode()) << endl;
-        outputTrustedLemma(lemma);
+        outputTrustedLemma(lemma, InferenceId::UNKNOWN);
         //cout << "Now " << Rewriter::rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
@@ -4399,7 +4399,7 @@ void TheoryArithPrivate::presolve(){
   for(; i != i_end; ++i){
     TrustNode lem = *i;
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
-    outputTrustedLemma(lem);
+    outputTrustedLemma(lem, InferenceId::UNKNOWN);
   }
 }
 
@@ -4844,11 +4844,11 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
         // Output it
         TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);
-        outputTrustedLemma(trustedClause);
+        outputTrustedLemma(trustedClause, InferenceId::UNKNOWN);
       }
       else
       {
-        outputLemma(clause);
+        outputLemma(clause, InferenceId::UNKNOWN);
       }
     }else{
       Assert(!implied->negationHasProof());
