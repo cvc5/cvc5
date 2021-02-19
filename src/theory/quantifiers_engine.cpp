@@ -608,6 +608,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
   BoolMap::const_iterator it = d_quants_red.find( q );
   if( it==d_quants_red.end() ){
     Node lem;
+    InferenceId id = InferenceId::UNKNOWN;
     std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
     if( itr==d_quants_red_lem.end() ){
       if (d_qmodules->d_alpha_equiv)
@@ -615,6 +616,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
         Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
         //add equivalence with another quantified formula
         lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
+        id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
         if( !lem.isNull() ){
           Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
           ++(d_statistics.d_red_alpha_equiv);
@@ -625,7 +627,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
       lem = itr->second;
     }
     if( !lem.isNull() ){
-      d_qim.lemma(lem);
+      d_qim.lemma(lem, id);
     }
     d_quants_red[q] = !lem.isNull();
     return !lem.isNull();

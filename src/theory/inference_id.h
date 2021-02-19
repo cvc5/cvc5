@@ -153,7 +153,10 @@ enum class InferenceId
   // ---------------------------------- end datatypes theory
 
   //-------------------------------------- quantifiers theory
+  // skolemization
   QUANTIFIERS_SKOLEMIZE,
+  // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
+  QUANTIFIERS_REDUCE_ALPHA_EQ,
   //-------------------- counterexample-guided instantiation
   // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
   // counterexample literal is G1.
