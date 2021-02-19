@@ -109,7 +109,7 @@ void TheoryDatatypes::finishInit()
   {
     quantifiers::TermDbSygus* tds =
         getQuantifiersEngine()->getTermDatabaseSygus();
-    d_sygusExtension.reset(new SygusExtension(this, tds, getSatContext()));
+    d_sygusExtension.reset(new SygusExtension(d_state, d_im, tds, getDecisionManager()));
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }
@@ -178,7 +178,7 @@ void TheoryDatatypes::postCheck(Effort level)
     Assert(d_sygusExtension != nullptr);
     std::vector<Node> lemmas;
     d_sygusExtension->check(lemmas);
-    d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
+    d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
     return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
@@ -392,7 +392,7 @@ void TheoryDatatypes::notifyFact(TNode atom,
   {
     std::vector< Node > lemmas;
     d_sygusExtension->assertFact(atom, polarity, lemmas);
-    d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
+    d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
   }
   //add to tester if applicable
   Node t_arg;
@@ -415,7 +415,7 @@ void TheoryDatatypes::notifyFact(TNode atom,
         std::vector< Node > lemmas;
         d_sygusExtension->assertTester(tindex, t_arg, atom, lemmas);
         Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
-        d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
+        d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
       }
     }
   }else{
@@ -475,7 +475,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     {
       std::vector< Node > lemmas;
       d_sygusExtension->preRegisterTerm(n, lemmas);
-      d_im.sendLemmas(lemmas, InferenceId::DATATYPES_SYGUS_LEMMA);
+      d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
     }
     break;
   }

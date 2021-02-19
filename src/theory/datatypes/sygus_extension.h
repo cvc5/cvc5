@@ -32,12 +32,12 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/decision_manager.h"
 
 namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-class TheoryDatatypes;
 class InferenceManager;
 
 /**
@@ -71,11 +71,10 @@ class SygusExtension
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  SygusExtension(TheoryDatatypes* td,
-                 TheoryState& s,
+  SygusExtension(TheoryState& s,
                  InferenceManager& im,
                  quantifiers::TermDbSygus* tds,
-                 context::Context* c);
+                 DecisionManager* dm);
   ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for
@@ -117,6 +116,8 @@ class SygusExtension
   InferenceManager& d_im;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
+  /** Pointer to the decision manager */
+  DecisionManager* d_dm;
   /** the simple symmetry breaking utility */
   SygusSimpleSymBreak d_ssb;
   /**

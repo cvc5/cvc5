@@ -159,11 +159,10 @@ enum class InferenceId
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
   //-------------------- datatypes size/height
+  // (>= (dt.size t) 0)
   DATATYPES_SIZE_POS,
+  // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
   DATATYPES_HEIGHT_ZERO,
-  //-------------------- datatypes sygus extension
-  // a lemma originating from the sygus solver for smart enumeration
-  DATATYPES_SYGUS_LEMMA,
   // ---------------------------------- end datatypes theory
 
   // ---------------------------------- sep theory
