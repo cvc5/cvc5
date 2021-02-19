@@ -93,7 +93,7 @@ void SimplexDecisionProcedure::reportConflict(ArithVar basic){
 
   ConstraintCP conflicted = generateConflictForBasic(basic);
   Assert(conflicted != NullConstraint);
-  d_conflictChannel.raiseConflict(conflicted);
+  d_conflictChannel.raiseConflict(conflicted, InferenceId::UNKNOWN);
 
   d_conflictVariables.add(basic);
 }
@@ -116,7 +116,7 @@ ConstraintCP SimplexDecisionProcedure::generateConflictForBasic(ArithVar basic) 
 bool SimplexDecisionProcedure::maybeGenerateConflictForBasic(ArithVar basic) const {
   if(checkBasicForConflict(basic)){
     ConstraintCP conflicted = generateConflictForBasic(basic);
-    d_conflictChannel.raiseConflict(conflicted);
+    d_conflictChannel.raiseConflict(conflicted, InferenceId::UNKNOWN);
     return true;
   }else{
     return false;

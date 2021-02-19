@@ -23,6 +23,7 @@
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
 #include "theory/arith/constraint_forward.h"
+#include "theory/inference_id.h"
 #include "util/rational.h"
 
 namespace CVC4 {
@@ -110,7 +111,7 @@ public:
   RaiseConflict(TheoryArithPrivate& ta);
 
   /** Calls d_ta.raiseConflict(c) */
-  void raiseConflict(ConstraintCP c) const;
+  void raiseConflict(ConstraintCP c, InferenceId id) const;
 };
 
 class FarkasConflictBuilder {
