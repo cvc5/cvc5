@@ -40,7 +40,7 @@ namespace datatypes {
 class SygusSimpleSymBreak
 {
  public:
-  SygusSimpleSymBreak(QuantifiersEngine* qe);
+  SygusSimpleSymBreak(quantifiers::TermDbSygus* tds);
   ~SygusSimpleSymBreak() {}
   /** consider argument kind
    *

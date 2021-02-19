@@ -29,9 +29,6 @@ InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
     : InferenceManagerBuffered(t, state, pnm, "theory::datatypes"),
-      d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
-      d_inferenceFacts("theory::datatypes::inferenceFacts"),
-      d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
       d_pnm(pnm),
       d_ipc(pnm == nullptr ? nullptr
                            : new InferProofCons(state.getSatContext(), pnm)),
@@ -41,33 +38,27 @@ InferenceManager::InferenceManager(Theory& t,
                       pnm, state.getUserContext(), "datatypes::lemPg"))
 {
   d_false = NodeManager::currentNM()->mkConst(false);
-  smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
-  smtStatisticsRegistry()->registerStat(&d_inferenceFacts);
-  smtStatisticsRegistry()->registerStat(&d_inferenceConflicts);
 }
 
 InferenceManager::~InferenceManager()
 {
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceLemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceFacts);
-  smtStatisticsRegistry()->unregisterStat(&d_inferenceConflicts);
 }
 
 void InferenceManager::addPendingInference(Node conc,
+                                           InferenceId id,
                                            Node exp,
-                                           bool forceLemma,
-                                           InferenceId i)
+                                           bool forceLemma)
 {
   // if we are forcing the inference to be processed as a lemma, or if the
   // inference must be sent as a lemma based on the policy in
   // mustCommunicateFact.
   if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
   {
-    d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, i));
+    d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, id));
   }
   else
   {
-    d_pendingFact.emplace_back(new DatatypesInference(this, conc, exp, i));
+    d_pendingFact.emplace_back(new DatatypesInference(this, conc, exp, id));
   }
 }
 
@@ -87,10 +78,7 @@ void InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
     return;
   }
   // otherwise send as a normal lemma
-  if (lemma(lem, id, p))
-  {
-    d_inferenceLemmas << id;
-  }
+  lemma(lem, id, p);
 }
 
 void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId id)
@@ -101,15 +89,15 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
     prepareDtInference(d_false, exp, id, d_ipc.get());
   }
   conflictExp(id, conf, d_ipc.get());
-  d_inferenceConflicts << id;
 }
 
-bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
+bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas,
+                                  InferenceId id)
 {
   bool ret = false;
   for (const Node& lem : lemmas)
   {
-    if (lemma(lem, InferenceId::UNKNOWN))
+    if (lemma(lem, id))
     {
       ret = true;
     }
@@ -151,7 +139,6 @@ TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
     }
     d_lemPg->setProofFor(lem, pn);
   }
-  // use trusted lemma
   return TrustNode::mkTrustLemma(lem, d_lemPg.get());
 }
 
