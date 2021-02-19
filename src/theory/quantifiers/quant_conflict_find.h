@@ -23,7 +23,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 
 namespace CVC4 {
 namespace theory {

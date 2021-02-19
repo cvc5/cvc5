@@ -108,7 +108,7 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
     Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
     ProofGenerator* proof = d_CAC.closeProof(mis);
-    d_im.addPendingArithLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
@@ -155,7 +155,8 @@ void CadSolver::checkPartial()
         Trace("nl-cad") << "Excluding " << first_var << " -> "
                         << interval.d_interval << " using " << lemma
                         << std::endl;
-        d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL);
+        d_im.addPendingLemma(lemma,
+                             InferenceId::ARITH_NL_CAD_EXCLUDED_INTERVAL);
       }
     }
   }

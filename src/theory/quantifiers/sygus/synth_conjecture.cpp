@@ -53,7 +53,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_ceg_si(new CegSingleInv(qe)),
       d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess(qe)),
-      d_ceg_gc(new CegGrammarConstructor(qe, this)),
+      d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(qe, this)),
@@ -723,7 +723,7 @@ bool SynthConjecture::doRefine()
   {
     Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
                          << std::endl;
-    bool res = d_qim.addPendingLemma(lem);
+    bool res = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
     if (res)
     {
       ++(d_stats.d_cegqi_lemmas_refine);

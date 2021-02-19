@@ -179,7 +179,7 @@ void TranscendentalState::ensureCongruence(TNode a,
       }
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       Node cong_lemma = expn.impNode(a.eqNode(aa));
-      d_im.addPendingArithLemma(cong_lemma, InferenceId::ARITH_NL_CONGRUENCE);
+      d_im.addPendingLemma(cong_lemma, InferenceId::ARITH_NL_CONGRUENCE);
     }
   }
   else
@@ -222,7 +222,7 @@ void TranscendentalState::getCurrentPiBounds()
     proof->addStep(
         pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
   }
-  d_im.addPendingArithLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
+  d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
@@ -372,7 +372,7 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       }
     }
   }
-  return NlLemma(lem, LemmaProperty::NONE, proof, InferenceId::ARITH_NL_T_SECANT);
+  return NlLemma(InferenceId::ARITH_NL_T_SECANT, lem, LemmaProperty::NONE, proof);
 }
 
 void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
@@ -405,7 +405,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
     nlem.d_secantPoint.push_back(std::make_tuple(tf, d, center));
-    d_im.addPendingArithLemma(nlem, true);
+    d_im.addPendingLemma(nlem, true);
   }
 
   // take the model value of upper (since may contain PI)
@@ -424,7 +424,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
     nlem.d_secantPoint.push_back(std::make_tuple(tf, d, center));
-    d_im.addPendingArithLemma(nlem, true);
+    d_im.addPendingLemma(nlem, true);
   }
 }
 

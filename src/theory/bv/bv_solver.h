@@ -29,7 +29,7 @@ class BVSolver
 {
  public:
   BVSolver(TheoryState& state, TheoryInferenceManager& inferMgr)
-      : d_state(state), d_inferManager(inferMgr){};
+      : d_state(state), d_im(inferMgr){};
 
   virtual ~BVSolver(){};
 
@@ -112,7 +112,7 @@ class BVSolver
 
  protected:
   TheoryState& d_state;
-  TheoryInferenceManager& d_inferManager;
+  TheoryInferenceManager& d_im;
 };
 
 }  // namespace bv

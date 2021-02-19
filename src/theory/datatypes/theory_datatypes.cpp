@@ -850,7 +850,7 @@ Node TheoryDatatypes::getTermSkolemFor( Node n ) {
       d_term_sk[n] = k;
       Node eq = k.eqNode( n );
       Trace("datatypes-infer") << "DtInfer : ref : " << eq << std::endl;
-      d_im.addPendingLemma(eq);
+      d_im.addPendingLemma(eq, InferenceId::UNKNOWN);
       return k;
     }else{
       return (*it).second;
@@ -1473,7 +1473,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
     Node lem = nm->mkNode(LEQ, d_zero, n);
     Trace("datatypes-infer")
         << "DtInfer : size geq zero : " << lem << std::endl;
-    d_im.addPendingLemma(lem);
+    d_im.addPendingLemma(lem, InferenceId::UNKNOWN);
   }
   else if (nk == DT_HEIGHT_BOUND && n[1].getConst<Rational>().isZero())
   {
@@ -1498,7 +1498,7 @@ void TheoryDatatypes::collectTerms( Node n ) {
                                           : nm->mkNode(OR, children));
     }
     Trace("datatypes-infer") << "DtInfer : zero height : " << lem << std::endl;
-    d_im.addPendingLemma(lem);
+    d_im.addPendingLemma(lem, InferenceId::UNKNOWN);
   }
 }
 

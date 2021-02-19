@@ -28,7 +28,7 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm),
+    : InferenceManagerBuffered(t, state, pnm, "theory::datatypes"),
       d_inferenceLemmas("theory::datatypes::inferenceLemmas"),
       d_inferenceFacts("theory::datatypes::inferenceFacts"),
       d_inferenceConflicts("theory::datatypes::inferenceConflicts"),
@@ -38,7 +38,7 @@ InferenceManager::InferenceManager(Theory& t,
       d_lemPg(pnm == nullptr
                   ? nullptr
                   : new EagerProofGenerator(
-                        pnm, state.getUserContext(), "datatypes::lemPg"))
+                      pnm, state.getUserContext(), "datatypes::lemPg"))
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   smtStatisticsRegistry()->registerStat(&d_inferenceLemmas);
@@ -58,7 +58,10 @@ void InferenceManager::addPendingInference(Node conc,
                                            bool forceLemma,
                                            InferenceId i)
 {
-  if (forceLemma)
+  // if we are forcing the inference to be processed as a lemma, or if the
+  // inference must be sent as a lemma based on the policy in
+  // mustCommunicateFact.
+  if (forceLemma || DatatypesInference::mustCommunicateFact(conc, exp))
   {
     d_pendingLem.emplace_back(new DatatypesInference(this, conc, exp, i));
   }

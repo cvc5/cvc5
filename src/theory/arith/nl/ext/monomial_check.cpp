@@ -112,7 +112,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   }
 
   unsigned r = 1;
-  std::vector<ArithLemma> lemmas;
+  std::vector<SimpleTheoryLemma> lemmas;
   // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
   // in lemmas
   std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
@@ -274,7 +274,7 @@ void MonomialCheck::checkMagnitude(unsigned c)
   {
     if (r_lemmas.find(lemmas[i].d_node) == r_lemmas.end())
     {
-      d_data->d_im.addPendingArithLemma(lemmas[i]);
+      d_data->d_im.addPendingLemma(lemmas[i]);
     }
   }
   // could only take maximal lower/minimial lower bounds?
@@ -303,7 +303,7 @@ int MonomialCheck::compareSign(
         args.emplace_back(oa);
         proof->addStep(lemma, PfRule::ARITH_MULT_SIGN, {}, args);
       }
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return status;
   }
@@ -329,7 +329,7 @@ int MonomialCheck::compareSign(
         proof->addStep(conc, PfRule::MACRO_SR_PRED_INTRO, {prem}, {conc});
         proof->addStep(lemma, PfRule::SCOPE, {conc}, {prem});
       }
-      d_data->d_im.addPendingArithLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
+      d_data->d_im.addPendingLemma(lemma, InferenceId::ARITH_NL_SIGN, proof);
     }
     return 0;
   }
@@ -350,7 +350,7 @@ bool MonomialCheck::compareMonomial(
     Node b,
     NodeMultiset& b_exp_proc,
     std::vector<Node>& exp,
-    std::vector<ArithLemma>& lem,
+    std::vector<SimpleTheoryLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -385,7 +385,7 @@ bool MonomialCheck::compareMonomial(
     NodeMultiset& b_exp_proc,
     int status,
     std::vector<Node>& exp,
-    std::vector<ArithLemma>& lem,
+    std::vector<SimpleTheoryLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -418,7 +418,7 @@ bool MonomialCheck::compareMonomial(
           Kind::IMPLIES, nm->mkAnd(exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
       lem.emplace_back(
-          clem, LemmaProperty::NONE, nullptr, InferenceId::ARITH_NL_COMPARISON);
+          InferenceId::ARITH_NL_COMPARISON, clem, LemmaProperty::NONE, nullptr);
       cmp_infers[status][oa][ob] = clem;
     }
     return true;

@@ -14,6 +14,7 @@
 
 #include "theory/theory_inference_manager.h"
 
+#include "smt/smt_statistics_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -24,7 +25,8 @@ namespace theory {
 
 TheoryInferenceManager::TheoryInferenceManager(Theory& t,
                                                TheoryState& state,
-                                               ProofNodeManager* pnm)
+                                               ProofNodeManager* pnm,
+                                               const std::string& name)
     : d_theory(t),
       d_theoryState(state),
       d_out(t.getOutputChannel()),
@@ -34,11 +36,24 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_lemmasSent(t.getUserContext()),
       d_numConflicts(0),
       d_numCurrentLemmas(0),
-      d_numCurrentFacts(0)
+      d_numCurrentFacts(0),
+      d_conflictIdStats(name + "::inferencesConflict"),
+      d_factIdStats(name + "::inferencesFact"),
+      d_lemmaIdStats(name + "::inferencesLemma")
 {
   // don't add true lemma
   Node truen = NodeManager::currentNM()->mkConst(true);
   d_lemmasSent.insert(truen);
+  smtStatisticsRegistry()->registerStat(&d_conflictIdStats);
+  smtStatisticsRegistry()->registerStat(&d_factIdStats);
+  smtStatisticsRegistry()->registerStat(&d_lemmaIdStats);
+}
+
+TheoryInferenceManager::~TheoryInferenceManager()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_conflictIdStats);
+  smtStatisticsRegistry()->unregisterStat(&d_factIdStats);
+  smtStatisticsRegistry()->unregisterStat(&d_lemmaIdStats);
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
@@ -89,6 +104,7 @@ void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
   if (!d_theoryState.isInConflict())
   {
+    d_conflictIdStats << id;
     d_theoryState.notifyInConflict();
     d_out.conflict(conf);
     ++d_numConflicts;
@@ -99,6 +115,7 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
   if (!d_theoryState.isInConflict())
   {
+    d_conflictIdStats << id;
     d_theoryState.notifyInConflict();
     d_out.trustedConflict(tconf);
   }
@@ -230,6 +247,7 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
       return false;
     }
   }
+  d_lemmaIdStats << id;
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
@@ -318,6 +336,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 InferenceId id,
                                                 TNode exp)
 {
+  d_factIdStats << id;
   return processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
@@ -329,6 +348,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& args)
 {
   Assert(pfr != PfRule::UNKNOWN);
+  d_factIdStats << id;
   return processInternalFact(atom, pol, pfr, exp, args, nullptr);
 }
 
@@ -339,6 +359,7 @@ bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 ProofGenerator* pg)
 {
   Assert(pg != nullptr);
+  d_factIdStats << id;
   return processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
 }
 

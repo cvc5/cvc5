@@ -2206,7 +2206,7 @@ Node SequencesRewriter::rewriteContains(Node node)
     // if (str.contains z w) ---> false and (str.len w) = 1
     if (StringsEntail::checkLengthOne(node[1]))
     {
-      Node ctn = d_stringsEntail.checkContains(node[1], node[0][2]);
+      Node ctn = d_stringsEntail.checkContains(node[0][2], node[1]);
       if (!ctn.isNull() && !ctn.getConst<bool>())
       {
         Node empty = Word::mkEmptyWord(stype);
@@ -2558,7 +2558,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
   // check if contains definitely does (or does not) hold
   Node cmp_con = nm->mkNode(kind::STRING_STRCTN, node[0], node[1]);
   Node cmp_conr = Rewriter::rewrite(cmp_con);
-  if (!d_stringsEntail.checkContains(node[0], node[1]).isNull())
+  if (cmp_conr.isConst())
   {
     if (cmp_conr.getConst<bool>())
     {

@@ -31,6 +31,7 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 class QuantifiersInferenceManager;
+class QuantifiersRegistry;
 }
 
 namespace inst {
@@ -163,6 +164,7 @@ class Trigger {
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
                             quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -171,6 +173,7 @@ class Trigger {
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
                             quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             Node n,
                             bool keepAll = true,
@@ -194,6 +197,7 @@ class Trigger {
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
   Trigger(QuantifiersEngine* ie,
           quantifiers::QuantifiersInferenceManager& qim,
+          quantifiers::QuantifiersRegistry& qr,
           Node q,
           std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
@@ -243,6 +247,8 @@ class Trigger {
   QuantifiersEngine* d_quantEngine;
   /** Reference to the quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& d_qreg;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** match generator
