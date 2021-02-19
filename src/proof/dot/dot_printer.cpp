@@ -35,19 +35,18 @@ void DotPrinter::printInternal(std::ostream& out,
   DotPrinter::ruleArguments(currentArguments, pn);
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
 
-  out << "\t\"" << currentRuleID << " " << pn->getRule() << "("
-      << currentArguments.str() << ")\" [ shape = \"box\"];\n";
+  out << "\t\"" << currentRuleID << "\" [ shape = \"box\", label = \""
+      << pn->getRule() << "(" << currentArguments.str() << ")\"];\n";
 
-  out << "\t\"" << currentRuleID << " " << pn->getRule() << "("
-      << currentArguments.str() << ")\"";
-  out << " -> \"" << currentRuleID << " " << pn->getResult() << "\";\n";
+  out << "\t\"" << currentRuleID << "c\" [ shape = \"ellipse\", label = \""
+      << pn->getResult() << "\" ];\n";
+
+  out << "\t\"" << currentRuleID << "\" -> \"" << currentRuleID << "c\";\n";
 
   for (const std::shared_ptr<ProofNode>& c : children)
   {
     ++ruleID;
-    out << "\t\"" << ruleID << " " << c->getResult() << "\" -> \""
-        << currentRuleID << " " << pn->getRule() << "("
-        << currentArguments.str() << ")\";\n";
+    out << "\t\"" << ruleID << "c\" -> \"" << currentRuleID << "\";\n";
     printInternal(out, c.get(), ruleID);
   }
 }
