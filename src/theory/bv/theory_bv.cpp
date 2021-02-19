@@ -39,7 +39,7 @@ TheoryBV::TheoryBV(context::Context* c,
       d_ufRemByZero(),
       d_rewriter(),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr),
+      d_im(*this, d_state, nullptr, "theory::bv"),
       d_notify(d_im)
 {
   switch (options::bvSolver())

@@ -74,8 +74,10 @@ class InferInfo : public TheoryInference
  public:
   InferInfo(InferenceId id);
   ~InferInfo() {}
-  /** Process this inference */
-  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Process lemma */
+  TrustNode processLemma(LemmaProperty& p) override;
+  /** Process internal fact */
+  Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
   /** Pointer to the class used for processing this info */
   InferenceManager* d_sim;
   /** Whether it is the reverse form of the above id */
