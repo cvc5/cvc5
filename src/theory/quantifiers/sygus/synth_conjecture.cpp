@@ -56,8 +56,8 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qe, this)),
-      d_ceg_cegis(new Cegis(qe, this)),
+      d_ceg_pbe(new SygusPbe(qe, qim, this)),
+      d_ceg_cegis(new Cegis(qe, qim, this)),
       d_ceg_cegisUnif(new CegisUnif(qe, qs, this)),
       d_sygus_ccore(new CegisCoreConnective(qe, this)),
       d_master(nullptr),
@@ -100,7 +100,7 @@ void SynthConjecture::assign(Node q)
   // initialize the guard
   d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
-  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
+  d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
 
   // pre-simplify the quantified formula based on the process utility
@@ -238,7 +238,7 @@ void SynthConjecture::assign(Node q)
       new DecisionStrategySingleton("sygus_feasible",
                                     d_feasible_guard,
                                     d_qstate.getSatContext(),
-                                    d_qe->getValuation()));
+                                    d_qstate.getValuation()));
   d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
@@ -271,7 +271,7 @@ bool SynthConjecture::needsCheck()
   bool value;
   Assert(!d_feasible_guard.isNull());
   // non or fully single invocation : look at guard only
-  if (d_qe->getValuation().hasSatValue(d_feasible_guard, value))
+  if (d_qstate.getValuation().hasSatValue(d_feasible_guard, value))
   {
     if (!value)
     {
@@ -778,7 +778,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
     {
-      Node gstatus = d_qe->getValuation().getSatValue(g);
+      Node gstatus = d_qstate.getValuation().getSatValue(g);
       if (gstatus.isNull() || !gstatus.getConst<bool>())
       {
         Trace("sygus-engine-debug")

@@ -31,6 +31,7 @@ namespace quantifiers {
 
 class SynthConjecture;
 class TermDbSygus;
+class QuantifiersInferenceManager;
 
 /** SygusModule
  *
@@ -53,7 +54,7 @@ class TermDbSygus;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe, SynthConjecture* p);
+  SygusModule(QuantifiersEngine* qe, QuantifiersInferenceManager& qim, SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
    *
@@ -150,8 +151,10 @@ class SygusModule
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager& qim;
   /** sygus term database of d_qe */
-  quantifiers::TermDbSygus* d_tds;
+  TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   SynthConjecture* d_parent;
 };

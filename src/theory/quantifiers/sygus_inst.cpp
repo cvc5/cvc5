@@ -218,11 +218,11 @@ void SygusInst::reset_round(Theory::Effort e)
       Node lit = getCeLiteral(q);
 
       bool value;
-      if (d_quantEngine->getValuation().hasSatValue(lit, value))
+      if (d_qstate.getValuation().hasSatValue(lit, value))
       {
         if (!value)
         {
-          if (!d_quantEngine->getValuation().isDecision(lit))
+          if (!d_qstate.getValuation().isDecision(lit))
           {
             model->setQuantifierActive(q, false);
             d_active_quant.erase(q);
@@ -459,7 +459,7 @@ Node SygusInst::getCeLiteral(Node q)
 
   NodeManager* nm = NodeManager::currentNM();
   Node sk = nm->mkSkolem("CeLiteral", nm->booleanType());
-  Node lit = d_quantEngine->getValuation().ensureLiteral(sk);
+  Node lit = d_qstate.getValuation().ensureLiteral(sk);
   d_ce_lits[q] = lit;
   return lit;
 }
@@ -521,7 +521,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
       new DecisionStrategySingleton("CeLiteral",
                                     lit,
                                     d_qstate.getSatContext(),
-                                    d_quantEngine->getValuation());
+                                    d_qstate.getValuation());
 
   d_dstrat[q].reset(ds);
   d_quantEngine->getDecisionManager()->registerStrategy(

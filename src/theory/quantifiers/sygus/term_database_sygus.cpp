@@ -564,7 +564,7 @@ void TermDbSygus::registerEnumerator(Node e,
     // make the guard
     Node ag = nm->mkSkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
-    ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
     d_qim.requirePhase(ag, true);

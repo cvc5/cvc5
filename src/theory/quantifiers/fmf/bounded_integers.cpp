@@ -498,7 +498,7 @@ void BoundedIntegers::checkOwnership(Node f)
                 new IntRangeDecisionHeuristic(r,
                                               d_qstate.getSatContext(),
                                               d_qstate.getUserContext(),
-                                              d_quantEngine->getValuation(),
+                                              d_qstate.getValuation(),
                                               isProxy));
             d_quantEngine->getTheoryEngine()
                 ->getDecisionManager()

@@ -154,10 +154,27 @@ enum class InferenceId
   
   //-------------------------------------- quantifiers theory
   QUANTIFIERS_SKOLEMIZE,
+  //-------------------- counterexample-guided instantiation
+  // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
+  // counterexample literal is G1.
+  QUANTIFIERS_CEGQI_CEX_DEP,
+  // 0 < delta
+  QUANTIFIERS_CEGQI_VTS_LB_DELTA,
+  // delta < c, for positive c
+  QUANTIFIERS_CEGQI_VTS_UB_DELTA,
+  // infinity > c
+  QUANTIFIERS_CEGQI_VTS_LB_INF,
   //-------------------- sygus solver
+  // preprocessing a sygus conjecture based on quantifier elimination, of the
+  // form Q <=> Q_preprocessed
+  QUANTIFIERS_SYGUS_QE_PREPROC,
+  // G or ~G where G is the active guard for a sygus enumerator
   QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
+  // manual exclusion of a current solution
   QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for sygus-stream
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
   //-------------------------------------- end quantifiers theory
 
