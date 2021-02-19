@@ -97,13 +97,6 @@ void Instantiate::addRewriter(InstantiationRewriter* ir)
 }
 
 bool Instantiate::addInstantiation(
-    Node q, InstMatch& m, bool mkRep, bool modEq, bool doVts)
-{
-  Assert(q[0].getNumChildren() == m.d_vals.size());
-  return addInstantiation(q, m.d_vals, mkRep, modEq, doVts);
-}
-
-bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
@@ -142,7 +135,7 @@ bool Instantiate::addInstantiation(
     }
 #ifdef CVC4_ASSERTIONS
     bool bad_inst = false;
-    if (quantifiers::TermUtil::containsUninterpretedConstant(terms[i]))
+    if (TermUtil::containsUninterpretedConstant(terms[i]))
     {
       Trace("inst") << "***& inst contains uninterpreted constant : "
                     << terms[i] << std::endl;
@@ -157,7 +150,7 @@ bool Instantiate::addInstantiation(
     }
     else if (options::cegqi())
     {
-      Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
+      Node icf = TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
       {
         if (icf == q)
@@ -254,7 +247,7 @@ bool Instantiate::addInstantiation(
   Node body = getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
-  TrustNode tpBody = quantifiers::QuantifiersRewriter::preprocess(body, true);
+  TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
   if (!tpBody.isNull())
   {
     Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
@@ -477,13 +470,6 @@ Node Instantiate::getInstantiation(Node q,
     }
   }
   return body;
-}
-
-Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
-{
-  Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
-  Assert(m.d_vals.size() == q[0].getNumChildren());
-  return getInstantiation(q, d_qreg.d_vars[q], m.d_vals, doVts);
 }
 
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)

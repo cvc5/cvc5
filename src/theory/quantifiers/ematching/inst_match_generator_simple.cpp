@@ -140,7 +140,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (qe->getInstantiate()->addInstantiation(d_quant, m))
+    if (qe->getInstantiate()->addInstantiation(d_quant, m.d_vals))
     {
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;

@@ -19,7 +19,7 @@
 
 #include <map>
 #include "expr/node_trie.h"
-#include "theory/quantifiers/inst_match_trie.h"
+#include "theory/quantifiers/inst_match.h"
 
 namespace CVC4 {
 namespace theory {

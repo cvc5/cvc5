@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of inst match class
+ ** \brief Implementation of inst match trie class
  **/
 
 #include "theory/quantifiers/inst_match_trie.h"
@@ -26,9 +26,19 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
+bool InstMatchTrie::existsInstMatch(quantifiers::QuantifiersState& qs,
+                                    Node q,
+                                    const std::vector<Node>& m,
+                                    bool modEq,
+                                    ImtIndexOrder* imtio,
+                                    unsigned index)
+{
+  return !addInstMatch(qs, q, m, modEq, imtio, true, index);
+}
+
 bool InstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
                                  Node f,
-                                 std::vector<Node>& m,
+                                 const std::vector<Node>& m,
                                  bool modEq,
                                  ImtIndexOrder* imtio,
                                  bool onlyExist,
@@ -84,7 +94,7 @@ bool InstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
 }
 
 bool InstMatchTrie::removeInstMatch(Node q,
-                                    std::vector<Node>& m,
+                                    const std::vector<Node>& m,
                                     ImtIndexOrder* imtio,
                                     unsigned index)
 {
@@ -108,49 +118,27 @@ bool InstMatchTrie::removeInstMatch(Node q,
 
 void InstMatchTrie::print(std::ostream& out,
                           Node q,
-                          std::vector<TNode>& terms,
-                          bool useActive,
-                          std::vector<Node>& active) const
+                          std::vector<TNode>& terms) const
 {
   if (terms.size() == q[0].getNumChildren())
   {
-    bool print;
-    if (useActive)
+    out << "  ( ";
+    for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
-      if (hasInstLemma())
+      if (i > 0)
       {
-        Node lem = getInstLemma();
-        print = std::find(active.begin(), active.end(), lem) != active.end();
+        out << ", ";
       }
-      else
-      {
-        print = false;
-      }
+      out << terms[i];
     }
-    else
-    {
-      print = true;
-    }
-    if (print)
-    {
-      out << "  ( ";
-      for (unsigned i = 0, size = terms.size(); i < size; i++)
-      {
-        if (i > 0)
-        {
-          out << ", ";
-        }
-        out << terms[i];
-      }
-      out << " )" << std::endl;
-    }
+    out << " )" << std::endl;
   }
   else
   {
     for (const std::pair<const Node, InstMatchTrie>& d : d_data)
     {
       terms.push_back(d.first);
-      d.second.print(out, q, terms, useActive, active);
+      d.second.print(out, q, terms);
       terms.pop_back();
     }
   }
@@ -182,6 +170,14 @@ void InstMatchTrie::getInstantiations(Node q,
   }
 }
 
+void InstMatchTrie::clear() { d_data.clear(); }
+
+void InstMatchTrie::print(std::ostream& out, Node q) const
+{
+  std::vector<TNode> terms;
+  print(out, q, terms);
+}
+
 CDInstMatchTrie::~CDInstMatchTrie()
 {
   for (std::pair<const Node, CDInstMatchTrie*>& d : d_data)
@@ -192,9 +188,18 @@ CDInstMatchTrie::~CDInstMatchTrie()
   d_data.clear();
 }
 
+bool CDInstMatchTrie::existsInstMatch(quantifiers::QuantifiersState& qs,
+                                      Node q,
+                                      const std::vector<Node>& m,
+                                      bool modEq,
+                                      unsigned index)
+{
+  return !addInstMatch(qs, q, m, modEq, index, true);
+}
+
 bool CDInstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
                                    Node f,
-                                   std::vector<Node>& m,
+                                   const std::vector<Node>& m,
                                    bool modEq,
                                    unsigned index,
                                    bool onlyExist)
@@ -262,7 +267,7 @@ bool CDInstMatchTrie::addInstMatch(quantifiers::QuantifiersState& qs,
 }
 
 bool CDInstMatchTrie::removeInstMatch(Node q,
-                                      std::vector<Node>& m,
+                                      const std::vector<Node>& m,
                                       unsigned index)
 {
   if (index == q[0].getNumChildren())
@@ -284,48 +289,26 @@ bool CDInstMatchTrie::removeInstMatch(Node q,
 
 void CDInstMatchTrie::print(std::ostream& out,
                             Node q,
-                            std::vector<TNode>& terms,
-                            bool useActive,
-                            std::vector<Node>& active) const
+                            std::vector<TNode>& terms) const
 {
   if (d_valid.get())
   {
     if (terms.size() == q[0].getNumChildren())
     {
-      bool print;
-      if (useActive)
+      out << "  ( ";
+      for (unsigned i = 0; i < terms.size(); i++)
       {
-        if (hasInstLemma())
-        {
-          Node lem = getInstLemma();
-          print = std::find(active.begin(), active.end(), lem) != active.end();
-        }
-        else
-        {
-          print = false;
-        }
+        if (i > 0) out << " ";
+        out << terms[i];
       }
-      else
-      {
-        print = true;
-      }
-      if (print)
-      {
-        out << "  ( ";
-        for (unsigned i = 0; i < terms.size(); i++)
-        {
-          if (i > 0) out << " ";
-          out << terms[i];
-        }
-        out << " )" << std::endl;
-      }
+      out << " )" << std::endl;
     }
     else
     {
       for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
       {
         terms.push_back(d.first);
-        d.second->print(out, q, terms, useActive, active);
+        d.second->print(out, q, terms);
         terms.pop_back();
       }
     }
@@ -360,6 +343,28 @@ void CDInstMatchTrie::getInstantiations(Node q,
       terms.pop_back();
     }
   }
+}
+
+void CDInstMatchTrie::print(std::ostream& out, Node q) const
+{
+  std::vector<TNode> terms;
+  print(out, q, terms);
+}
+
+bool InstMatchTrieOrdered::addInstMatch(quantifiers::QuantifiersState& qs,
+                                        Node q,
+                                        const std::vector<Node>& m,
+                                        bool modEq)
+{
+  return d_imt.addInstMatch(qs, q, m, modEq, d_imtio);
+}
+
+bool InstMatchTrieOrdered::existsInstMatch(quantifiers::QuantifiersState& qs,
+                                           Node q,
+                                           const std::vector<Node>& m,
+                                           bool modEq)
+{
+  return d_imt.existsInstMatch(qs, q, m, modEq, d_imtio);
 }
 
 } /* CVC4::theory::inst namespace */

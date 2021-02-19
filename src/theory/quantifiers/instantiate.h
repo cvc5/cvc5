@@ -120,7 +120,7 @@ class Instantiate : public QuantifiersUtil
   /** do instantiation specified by m
    *
    * This function returns true if the instantiation lemma for quantified
-   * formula q for the substitution specified by m is successfully enqueued
+   * formula q for the substitution specified by terms is successfully enqueued
    * via a call to QuantifiersInferenceManager::addPendingLemma.
    *   mkRep : whether to take the representatives of the terms in the range of
    *           the substitution m,
@@ -140,16 +140,6 @@ class Instantiate : public QuantifiersUtil
    *     added instantiation,
    * (5) The instantiation lemma is a duplicate of previously added lemma.
    *
-   */
-  bool addInstantiation(Node q,
-                        InstMatch& m,
-                        bool mkRep = false,
-                        bool modEq = false,
-                        bool doVts = false);
-  /** add instantiation
-   *
-   * Same as above, but the substitution we are considering maps the variables
-   * of q to the vector terms, in order.
    */
   bool addInstantiation(Node q,
                         std::vector<Node>& terms,
@@ -174,11 +164,6 @@ class Instantiate : public QuantifiersUtil
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
-  /** remove pending instantiation
-   *
-   * Removes the instantiation lemma lem from the instantiation trie.
-   */
-  bool removeInstantiation(Node q, Node lem, std::vector<Node>& terms);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms. This is the
@@ -212,11 +197,6 @@ class Instantiate : public QuantifiersUtil
                         std::vector<Node>& terms,
                         bool doVts = false,
                         LazyCDProof* pf = nullptr);
-  /** get instantiation
-   *
-   * Same as above, but with vars/terms specified by InstMatch m.
-   */
-  Node getInstantiation(Node q, InstMatch& m, bool doVts = false);
   /** get instantiation
    *
    * Same as above but with vars equal to the bound variables of q.
