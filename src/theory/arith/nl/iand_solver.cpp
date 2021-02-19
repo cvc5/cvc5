@@ -171,12 +171,11 @@ void IAndSolver::checkFullRefine()
         Node lem = valueBasedLemma(i);
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-        // value lemmas should not contain div/mod so we don't need to tag it with PREPROCESS
+        // send the value lemma
         d_im.addPendingLemma(lem,
                              InferenceId::ARITH_NL_IAND_VALUE_REFINE,
                              nullptr,
-                             true,
-                             LemmaProperty::NONE);
+                             true);
       }
     }
   }

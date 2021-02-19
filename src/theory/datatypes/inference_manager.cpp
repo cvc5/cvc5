@@ -70,10 +70,7 @@ void InferenceManager::process()
   doPendingFacts();
 }
 
-void InferenceManager::sendDtLemma(Node lem,
-                                   InferenceId id,
-                                   LemmaProperty p,
-                                   bool doCache)
+void InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
 {
   if (isProofEnabled())
   {
@@ -81,7 +78,7 @@ void InferenceManager::sendDtLemma(Node lem,
     return;
   }
   // otherwise send as a normal lemma
-  lemma(lem, id, p, doCache);
+  lemma(lem, id, p);
 }
 
 void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId id)
@@ -110,8 +107,7 @@ bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas,
 
 bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 
-bool InferenceManager::processDtLemma(
-    Node conc, Node exp, InferenceId id, LemmaProperty p, bool doCache)
+TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)
 {
   // set up a proof constructor
   std::shared_ptr<InferProofCons> ipcl;
@@ -143,37 +139,16 @@ bool InferenceManager::processDtLemma(
     }
     d_lemPg->setProofFor(lem, pn);
   }
-  // use trusted lemma
-  TrustNode tlem = TrustNode::mkTrustLemma(lem, d_lemPg.get());
-  if (!trustedLemma(tlem, id))
-  {
-    Trace("dt-lemma-debug") << "...duplicate lemma" << std::endl;
-    return false;
-  }
-  return true;
+  return TrustNode::mkTrustLemma(lem, d_lemPg.get());
 }
 
-bool InferenceManager::processDtFact(Node conc, Node exp, InferenceId id)
+Node InferenceManager::processDtFact(Node conc,
+                                     Node exp,
+                                     InferenceId id,
+                                     ProofGenerator*& pg)
 {
-  conc = prepareDtInference(conc, exp, id, d_ipc.get());
-  // assert the internal fact, which has the same issue as above
-  bool polarity = conc.getKind() != NOT;
-  TNode atom = polarity ? conc : conc[0];
-  if (isProofEnabled())
-  {
-    std::vector<Node> expv;
-    if (!exp.isNull() && !exp.isConst())
-    {
-      expv.push_back(exp);
-    }
-    assertInternalFact(atom, polarity, id, expv, d_ipc.get());
-  }
-  else
-  {
-    // use version without proofs
-    assertInternalFact(atom, polarity, id, exp);
-  }
-  return true;
+  pg = d_ipc.get();
+  return prepareDtInference(conc, exp, id, d_ipc.get());
 }
 
 Node InferenceManager::prepareDtInference(Node conc,

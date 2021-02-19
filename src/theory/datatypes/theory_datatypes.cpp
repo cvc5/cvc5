@@ -329,8 +329,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
                     d_im.sendDtLemma(lemma,
                                      InferenceId::DATATYPES_SPLIT,
-                                     LemmaProperty::SEND_ATOMS,
-                                     false);
+                                     LemmaProperty::SEND_ATOMS);
                   }
                   if( !options::dtBlastSplits() ){
                     break;

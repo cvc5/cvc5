@@ -66,8 +66,7 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void sendDtLemma(Node lem,
                    InferenceId id,
-                   LemmaProperty p = LemmaProperty::NONE,
-                   bool doCache = true);
+                   LemmaProperty p = LemmaProperty::NONE);
   /**
    * Send conflict immediately on the output channel
    */
@@ -84,15 +83,11 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Process datatype inference as a lemma
    */
-  bool processDtLemma(Node conc,
-                      Node exp,
-                      InferenceId id,
-                      LemmaProperty p = LemmaProperty::NONE,
-                      bool doCache = true);
+  TrustNode processDtLemma(Node conc, Node exp, InferenceId id);
   /**
    * Process datatype inference as a fact
    */
-  bool processDtFact(Node conc, Node exp, InferenceId id);
+  Node processDtFact(Node conc, Node exp, InferenceId id, ProofGenerator*& pg);
   /**
    * Helper function for the above methods. Returns the conclusion, which
    * may be modified so that it is compatible with proofs. If proofs are
