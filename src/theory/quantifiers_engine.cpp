@@ -625,7 +625,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
       lem = itr->second;
     }
     if( !lem.isNull() ){
-      d_qim.lemma( lem );
+      d_qim.lemma(lem);
     }
     d_quants_red[q] = !lem.isNull();
     return !lem.isNull();
