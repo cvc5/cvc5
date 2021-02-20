@@ -4560,24 +4560,6 @@ Term Solver::tupleSelect(uint32_t index, Term tuple) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::tupleProject(const std::vector<uint32_t>& indices, Term t) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  std::vector<Sort> sorts;
-  std::vector<Term> terms;
-  for (uint32_t index : indices)
-  {
-    Term selectedTerm = tupleSelect(index, t);
-    sorts.push_back(selectedTerm.getSort());
-    terms.push_back(selectedTerm);
-  }
-
-  Term projection = mkTuple(sorts, terms);
-  return projection;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 /* Create operators                                                           */
 /* -------------------------------------------------------------------------- */
 

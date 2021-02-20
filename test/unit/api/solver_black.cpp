@@ -2333,29 +2333,43 @@ TEST_F(TestApiBlackSolver, tupleProject)
 
   Term tuple = d_solver.mkTuple(sorts, elements);
 
-  ASSERT_NO_THROW(d_solver.tupleProject({}, tuple));
-  ASSERT_NO_THROW(d_solver.tupleProject({0}, tuple));
-  ASSERT_NO_THROW(d_solver.tupleProject({0, 1}, tuple));
-  ASSERT_NO_THROW(d_solver.tupleProject({0, 0, 2, 2, 3, 3, 0}, tuple));
+  std::vector<uint32_t> indices1 = {};
+  std::vector<uint32_t> indices2 = {0};
+  std::vector<uint32_t> indices3 = {0, 1};
+  std::vector<uint32_t> indices4 = {0, 0, 2, 2, 3, 3, 0};
+  std::vector<uint32_t> indices5 = {4};
+  std::vector<uint32_t> indices6 = {0, 4};
 
-  ASSERT_THROW(d_solver.tupleProject({4}, tuple), CVC4ApiException);
-  ASSERT_THROW(d_solver.tupleProject({0, 4}, tuple), CVC4ApiException);
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices1), tuple));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices2), tuple));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices3), tuple));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices4), tuple));
+
+  ASSERT_THROW(d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices5), tuple),
+               CVC4ApiException);
+  ASSERT_THROW(d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices6), tuple),
+               CVC4ApiException);
 
   std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
-  Term project = d_solver.tupleProject(indices, tuple);
+
+  Op op = d_solver.mkOp(TUPLE_PROJECT, indices);
+  Term projection = d_solver.mkTerm(op, tuple);
+
   for (size_t i = 0; i < indices.size(); i++)
   {
-    Term selectedTerm = d_solver.tupleSelect(i, project);
+    Term selectedTerm = d_solver.tupleSelect(i, projection);
     Term simplifiedTerm = d_solver.simplify(selectedTerm);
     ASSERT_EQ(elements[indices[i]], simplifiedTerm);
   }
 
-  Op op = d_solver.mkOp(TUPLE_PROJECT, indices);
-  Term term = d_solver.mkTerm(op, tuple);
   ASSERT_EQ(
       "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
       "\"Z\")))",
-      term.toString());
+      projection.toString());
 }
 
 }  // namespace test
