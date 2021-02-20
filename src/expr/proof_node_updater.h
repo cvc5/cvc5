@@ -145,7 +145,7 @@ class ProofNodeUpdater
   std::vector<Node> d_freeAssumps;
   /** Whether we are merging subproofs */
   bool d_mergeSubproofs;
-  /** 
+  /**
    * Whether intermediate CDProof objects passed to updater callbacks
    * automatically introduce SYMM steps.
    */

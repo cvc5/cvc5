@@ -372,7 +372,8 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
       }
     }
   }
-  return NlLemma(InferenceId::ARITH_NL_T_SECANT, lem, LemmaProperty::NONE, proof);
+  return NlLemma(
+      InferenceId::ARITH_NL_T_SECANT, lem, LemmaProperty::NONE, proof);
 }
 
 void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,

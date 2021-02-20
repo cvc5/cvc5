@@ -12,8 +12,8 @@
  ** \brief Implementation of proof node to s-expression
  **/
 
-#include "options/smt_options.h"
 #include "expr/proof_node_to_sexpr.h"
+#include "options/smt_options.h"
 
 #include <iostream>
 

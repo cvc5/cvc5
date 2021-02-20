@@ -36,7 +36,7 @@ bool ProofNodeUpdaterCallback::update(Node res,
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb,
                                    bool mergeSubproofs,
-                   bool autoSym)
+                                   bool autoSym)
     : d_pnm(pnm),
       d_cb(cb),
       d_debugFreeAssumps(false),
