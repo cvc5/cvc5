@@ -392,6 +392,11 @@ bool Instantiate::addInstantiationExpFail(Node q,
   }
   size_t tsize = terms.size();
   failMask.resize(tsize, true);
+  if (tsize==1)
+  {
+    // will never succeed with 1 variable
+    return false;
+  }
   Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];
@@ -413,6 +418,11 @@ bool Instantiate::addInstantiationExpFail(Node q,
     Node prev = terms[ii];
     terms[ii] = vars[ii];
     subs.erase(vars[ii]);
+    if (subs.empty())
+    {
+      // will never succeed with empty substitution
+      break;
+    }
     Trace("inst-exp-fail") << "- revert " << ii << std::endl;
     // check whether we are still redundant
     bool success = false;
@@ -440,7 +450,18 @@ bool Instantiate::addInstantiationExpFail(Node q,
     {
       subs[vars[ii]] = prev;
       terms[ii] = prev;
+      // currently not necessary to proceed TODO: still continue
+      break;
     }
+  }
+  if (Trace.isOn("inst-exp-fail"))
+  {
+    Trace("inst-exp-fail") << "Fail mask: ";
+    for (bool b : failMask)
+    {
+      Trace("inst-exp-fail") << (b ? 1 : 0);
+    }
+    Trace("inst-exp-fail") << std::endl;
   }
   return false;
 }
