@@ -1718,9 +1718,9 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Operator for tuple projection indices
    * Parameters: 1
-   *   -[1]: The projection indices
+   *   -[1]: The tuple projection indices
    * Create with:
-   *   mkOp(Kind PROJECT, std::vector<uint32_t> param)
+   *   mkOp(Kind TUPLE_PROJECT, std::vector<uint32_t> param)
    *
    * constructs a new tuple from an existing one using the elements at the
    * given indices
@@ -1730,7 +1730,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Op op, Term child)
    *   mkTerm(Op op, const std::vector<Term>& children)
    */
-  PROJECT,
+  TUPLE_PROJECT,
 #if 0
   /* datatypes height bound */
   DT_HEIGHT_BOUND,

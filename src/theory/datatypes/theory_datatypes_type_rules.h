@@ -571,14 +571,14 @@ class MatchBindCaseTypeRule
   }
 }; /* class MatchBindCaseTypeRule */
 
-class ProjectTypeRule
+class TupleProjectTypeRule
 {
  public:
   static TypeNode computeType(NodeManager* nm, TNode n, bool check)
   {
-    Assert(n.getKind() == kind::PROJECT && n.hasOperator()
-           && n.getOperator().getKind() == kind::PROJECT_OP);
-    ProjectOp op = n.getOperator().getConst<ProjectOp>();
+    Assert(n.getKind() == kind::TUPLE_PROJECT && n.hasOperator()
+           && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
+    TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
     const std::vector<uint32_t>& indices = op.getIndices();
     if (check)
     {
@@ -586,14 +586,14 @@ class ProjectTypeRule
       {
         std::stringstream ss;
         ss << "operands in term " << n << " are " << n.getNumChildren()
-           << ", but PROJECT expects 1 operand.";
+           << ", but TUPLE_PROJECT expects 1 operand.";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
       TypeNode tupleType = n[0].getType(check);
       if (!tupleType.isTuple())
       {
         std::stringstream ss;
-        ss << "PROJECT expects a tuple for " << n[0] << ". Found" << tupleType;
+        ss << "TUPLE_PROJECT expects a tuple for " << n[0] << ". Found" << tupleType;
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
 
@@ -623,7 +623,7 @@ class ProjectTypeRule
     }
     return nm->mkTupleType(types);
   }
-}; /* class ProjectTypeRule */
+}; /* class TupleProjectTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */

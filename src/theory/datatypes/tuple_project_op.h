@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file project_op.h
+/*! \file tuple_project_op.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief a class for ProjectOp operator
+ ** \brief a class for TupleProjectOp operator
  **/
 
 #include "cvc4_public.h"
@@ -28,30 +28,30 @@ class TypeNode;
  * The class is an operator for kind project used to project elements in a tuple
  * It stores the indices of projected elements
  */
-class ProjectOp
+class TupleProjectOp
 {
  public:
-  explicit ProjectOp(std::vector<uint32_t> indices);
-  ProjectOp(const ProjectOp& op) = default;
+  explicit TupleProjectOp(std::vector<uint32_t> indices);
+  TupleProjectOp(const TupleProjectOp& op) = default;
 
   /** return the indices of the projection */
   const std::vector<uint32_t>& getIndices() const;
 
-  bool operator==(const ProjectOp& op) const;
+  bool operator==(const TupleProjectOp& op) const;
 
  private:
   std::vector<uint32_t> d_indices;
-}; /* class ProjectOp */
+}; /* class TupleProjectOp */
 
-std::ostream& operator<<(std::ostream& out, const ProjectOp& op);
+std::ostream& operator<<(std::ostream& out, const TupleProjectOp& op);
 
 /**
- * Hash function for the ProjectOpHashFunction objects.
+ * Hash function for the TupleProjectOpHashFunction objects.
  */
-struct CVC4_PUBLIC ProjectOpHashFunction
+struct CVC4_PUBLIC TupleProjectOpHashFunction
 {
-  size_t operator()(const ProjectOp& op) const;
-}; /* struct ProjectOpHashFunction */
+  size_t operator()(const TupleProjectOp& op) const;
+}; /* struct TupleProjectOpHashFunction */
 
 }  // namespace CVC4
 

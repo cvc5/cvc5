@@ -6,6 +6,6 @@
 (declare-fun x () String)
 (assert (= t (mkTuple "a" "b" "c" "d")))
 (assert (= x ((_ tupSel 0) t)))
-(assert (= u ((_ project 2 3) t)))
-(assert (= v (project t)))
+(assert (= u ((_ tuple_project 2 3) t)))
+(assert (= v (tuple_project t)))
 (check-sat)

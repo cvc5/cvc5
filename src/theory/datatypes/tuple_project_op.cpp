@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file project_op.cpp
+/*! \file tuple_project_op.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Mudathir Mohamed
@@ -10,7 +10,7 @@
  ** directory for licensing information.\endverbatim
  **/
 
-#include "project_op.h"
+#include "tuple_project_op.h"
 
 #include <iostream>
 
@@ -18,7 +18,7 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, const ProjectOp& op)
+std::ostream& operator<<(std::ostream& out, const TupleProjectOp& op)
 {
   for (const uint32_t& index : op.getIndices())
   {
@@ -27,7 +27,7 @@ std::ostream& operator<<(std::ostream& out, const ProjectOp& op)
   return out;
 }
 
-size_t ProjectOpHashFunction::operator()(const ProjectOp& op) const
+size_t TupleProjectOpHashFunction::operator()(const TupleProjectOp& op) const
 {
   // we expect most tuples to have length < 10.
   // Therefore we can implement a simple hash function
@@ -39,14 +39,14 @@ size_t ProjectOpHashFunction::operator()(const ProjectOp& op) const
   return hash;
 }
 
-ProjectOp::ProjectOp(std::vector<uint32_t> indices)
+TupleProjectOp::TupleProjectOp(std::vector<uint32_t> indices)
     : d_indices(std::move(indices))
 {
 }
 
-const std::vector<uint32_t>& ProjectOp::getIndices() const { return d_indices; }
+const std::vector<uint32_t>& TupleProjectOp::getIndices() const { return d_indices; }
 
-bool ProjectOp::operator==(const ProjectOp& op) const
+bool TupleProjectOp::operator==(const TupleProjectOp& op) const
 {
   return d_indices == op.d_indices;
 }

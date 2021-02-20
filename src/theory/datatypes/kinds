@@ -139,16 +139,16 @@ typerule MATCH_CASE ::CVC4::theory::datatypes::MatchCaseTypeRule
 typerule MATCH_BIND_CASE ::CVC4::theory::datatypes::MatchBindCaseTypeRule
 
 
-constant PROJECT_OP \
-	::CVC4::ProjectOp \
-	::CVC4::ProjectOpHashFunction \
+constant TUPLE_PROJECT_OP \
+	::CVC4::TupleProjectOp \
+	::CVC4::TupleProjectOpHashFunction \
 	"theory/datatypes/project_op.h" \
-	"operator for PROJECT; payload is an instance of the CVC4::ProjectOp class"
+	"operator for TUPLE_PROJECT; payload is an instance of the CVC4::TupleProjectOp class"
 
-parameterized PROJECT PROJECT_OP 1 \
-    "projects a tuple from an existing tuple using indices passed in ProjectOp"
+parameterized TUPLE_PROJECT TUPLE_PROJECT_OP 1 \
+    "projects a tuple from an existing tuple using indices passed in TupleProjectOp"
 
-typerule PROJECT_OP  "SimpleTypeRule<RBuiltinOperator>"
-typerule PROJECT     ::CVC4::theory::datatypes::ProjectTypeRule
+typerule TUPLE_PROJECT_OP  "SimpleTypeRule<RBuiltinOperator>"
+typerule TUPLE_PROJECT     ::CVC4::theory::datatypes::TupleProjectTypeRule
 
 endtheory

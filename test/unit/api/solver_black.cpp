@@ -557,7 +557,7 @@ TEST_F(TestApiBlackSolver, mkOp)
 
   // mkOp(Kind kind, std::vector<uint32_t> args)
   std::vector<uint32_t> args = {1, 2, 2};
-  ASSERT_NO_THROW(d_solver.mkOp(PROJECT, args));
+  ASSERT_NO_THROW(d_solver.mkOp(TUPLE_PROJECT, args));
 }
 
 TEST_F(TestApiBlackSolver, mkPi) { ASSERT_NO_THROW(d_solver.mkPi()); }
@@ -2350,10 +2350,10 @@ TEST_F(TestApiBlackSolver, tupleProject)
     ASSERT_EQ(elements[indices[i]], simplifiedTerm);
   }
 
-  Op op = d_solver.mkOp(PROJECT, indices);
+  Op op = d_solver.mkOp(TUPLE_PROJECT, indices);
   Term term = d_solver.mkTerm(op, tuple);
   ASSERT_EQ(
-      "(PROJECT (project_op 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
+      "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
       "\"Z\")))",
       term.toString());
 }

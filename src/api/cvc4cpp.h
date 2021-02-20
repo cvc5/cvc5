@@ -2641,7 +2641,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create operator of Kind:
-   *   - PROJECT
+   *   - TUPLE_PROJECT
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the operator
    */

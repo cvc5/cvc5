@@ -223,14 +223,14 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         << "Rewrite match: " << in << " ... " << ret << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
-  else if (kind == PROJECT)
+  else if (kind == TUPLE_PROJECT)
   {
     // returns a tuple that represents
     // (mkTuple ((_ tupSel i_1) t) ... ((_ tupSel i_n) t))
     // where each i_j is less than the length of t
 
     Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
-    ProjectOp op = in.getOperator().getConst<ProjectOp>();
+    TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
     std::vector<uint32_t> indices = op.getIndices();
     Node tuple = in[0];
     std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
