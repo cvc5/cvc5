@@ -17,6 +17,8 @@ libcvc4_add_sources(
   attribute.cpp
   attribute_internals.h
   attribute_unique_id.h
+  bound_var_manager.cpp
+  bound_var_manager.h
   buffered_proof_generator.cpp
   buffered_proof_generator.h
   emptyset.cpp

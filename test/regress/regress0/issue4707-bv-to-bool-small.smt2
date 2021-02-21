@@ -1,3 +1,4 @@
+; COMMAND-LINE: --bv-to-bool
 ; EXPECT: sat
 (set-logic ALL)
 (declare-fun b () (Array (_ BitVec 10) (_ BitVec 1)))

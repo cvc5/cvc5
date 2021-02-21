@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
@@ -163,7 +164,7 @@ void SygusTemplateInfer::initialize(Node q)
   Assert(!templ.isNull());
 
   // get the variables
-  Node sfvl = CegGrammarConstructor::getSygusVarList(prog);
+  Node sfvl = SygusUtils::getSygusArgumentListForSynthFun(prog);
   if (!sfvl.isNull())
   {
     std::vector<Node> prog_vars(sfvl.begin(), sfvl.end());

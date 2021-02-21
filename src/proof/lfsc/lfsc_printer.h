@@ -194,10 +194,8 @@ class LfscPrinter
   static void printAssumeId(std::ostream& out, uint32_t id);
   //------------------- end helper methods
 
-  /** The LFSC term processor callback */
-  LfscTermProcessCallback d_lcb;
   /** The term processor */
-  TermProcessor d_tproc;
+  LfscTermProcessor d_tproc;
 };
 
 }  // namespace proof

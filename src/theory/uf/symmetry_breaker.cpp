@@ -594,7 +594,7 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
   subs.push_back(p1);
   repls.push_back(p1);
   repls.push_back(p0);
-  for (const Node nn : d_phi)
+  for (const Node& nn : d_phi)
   {
     Node s =
         nn.substitute(subs.begin(), subs.end(), repls.begin(), repls.end());
@@ -629,7 +629,7 @@ bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
     subs.clear();
     repls.clear();
     bool first = true;
-    for (const Node& nn : p)
+    for (TNode nn : p)
     {
       subs.push_back(nn);
       if(!first) {

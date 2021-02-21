@@ -25,6 +25,7 @@
 #ifndef CVC4__PROP__CNF_STREAM_H
 #define CVC4__PROP__CNF_STREAM_H
 
+#include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -41,6 +42,17 @@ namespace prop {
 
 class ProofCnfStream;
 
+/** A policy for how literals for formulas are handled in cnf_stream */
+enum class FormulaLitPolicy : uint32_t
+{
+  // literals for formulas are notified
+  TRACK_AND_NOTIFY,
+  // literals for formulas are added to node map
+  TRACK,
+  // literals for formulas are kept internal (default)
+  INTERNAL,
+};
+
 /**
  * Implements the following recursive algorithm
  * http://people.inf.ethz.ch/daniekro/classes/251-0247-00/f2007/readings/Tseitin70.pdf
@@ -51,6 +63,7 @@ class ProofCnfStream;
  * substitute the new literal for the formula, and so on, recursively.
  */
 class CnfStream {
+  friend PropEngine;
   friend ProofCnfStream;
 
  public:
@@ -73,7 +86,8 @@ class CnfStream {
    * @param outMgr Reference to the output manager of the smt engine. Assertions
    * will not be dumped if outMgr == nullptr.
    * @param rm the resource manager of the CNF stream
-   * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping.
+   * @param flpol policy for literals corresponding to formulas (those that are
+   * not-theory literals).
    * @param name string identifier to distinguish between different instances
    * even for non-theory literals.
    */
@@ -82,7 +96,7 @@ class CnfStream {
             context::Context* context,
             OutputManager* outMgr,
             ResourceManager* rm,
-            bool fullLitToNodeMap = false,
+            FormulaLitPolicy flpol = FormulaLitPolicy::INTERNAL,
             std::string name = "");
   /**
    * Convert a given formula to CNF and assert it to the SAT solver.
@@ -117,7 +131,7 @@ class CnfStream {
    * can be queried via getSatValue(). Essentially, this is like a "convert-but-
    * don't-assert" version of convertAndAssert().
    */
-  void ensureLiteral(TNode n, bool noPreregistration = false);
+  void ensureLiteral(TNode n);
 
   /**
    * Returns the literal that represents the given node in the SAT CNF
@@ -131,6 +145,16 @@ class CnfStream {
    * Returns the Boolean variables from the input problem.
    */
   void getBooleanVariables(std::vector<TNode>& outputVariables) const;
+
+  /**
+   * For SAT/theory relevancy. Returns true if node is a "notify formula".
+   * Returns true if node is formula that we are being notified about that
+   * is not a theory atom.
+   *
+   * Note this is only ever true when the policy passed to this class is
+   * FormulaLitPolicy::TRACK_AND_NOTIFY.
+   */
+  bool isNotifyFormula(TNode node) const;
 
   /** Retrieves map from nodes to literals. */
   const CnfStream::NodeToLiteralMap& getTranslationCache() const;
@@ -179,6 +203,13 @@ class CnfStream {
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
 
+  /** Stores the literal of the given node in d_literalToNodeMap.
+   *
+   * Note that n must already have a literal associated to it in
+   * d_nodeToLiteralMap.
+   */
+  void ensureMappingForLiteral(TNode n);
+
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
 
@@ -187,6 +218,9 @@ class CnfStream {
 
   /** Boolean variables that we translated */
   context::CDList<TNode> d_booleanVariables;
+
+  /** Formulas that we translated that we are notifying */
+  context::CDHashSet<Node, NodeHashFunction> d_notifyFormulas;
 
   /** Map from nodes to literals */
   NodeToLiteralMap d_nodeToLiteralMap;
@@ -199,7 +233,7 @@ class CnfStream {
    * theory lits.  This is true if e.g. replay logging is on, which
    * dumps the Nodes corresponding to decision literals.
    */
-  const bool d_fullLitToNodeMap;
+  const FormulaLitPolicy d_flitPolicy;
 
   /** The "registrar" for pre-registration of terms */
   Registrar* d_registrar;
@@ -275,7 +309,7 @@ class CnfStream {
    * structure in this expression.  Assumed to not be in the
    * translation cache.
    */
-  SatLiteral convertAtom(TNode node, bool noPreprocessing = false);
+  SatLiteral convertAtom(TNode node);
 
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;

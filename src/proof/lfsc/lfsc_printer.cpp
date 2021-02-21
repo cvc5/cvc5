@@ -16,7 +16,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_checker.h"
-#include "proof/lfsc/letify.h"
+#include "proof/proof_letify.h"
 
 namespace CVC4 {
 namespace proof {
@@ -40,7 +40,7 @@ std::ostream& operator<<(std::ostream& out, LfscRule id)
   return out;
 }
 
-LfscPrinter::LfscPrinter() : d_lcb(), d_tproc(&d_lcb) {}
+LfscPrinter::LfscPrinter() {}
 
 void LfscPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
@@ -56,7 +56,7 @@ void LfscPrinter::print(std::ostream& out,
   for (const Node& a : assertions)
   {
     expr::getSymbols(a, syms, visited);
-    iasserts.push_back(d_tproc.toInternal(a));
+    iasserts.push_back(d_tproc.convert(a));
   }
   // [1a] user declared sorts
   std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
@@ -140,7 +140,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   // [1] compute and print the proof lets
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, uint32_t> pletMap;
-  Letify::computeProofLet(pn, pletList, pletMap);
+  ProofLetify::computeProofLet(pn, pletList, pletMap);
   // define the let proofs
   if (!pletList.empty())
   {
@@ -241,7 +241,7 @@ void LfscPrinter::printProofInternal(
             processedChildren[cur] = true;
             // could not print the rule, trust for now
             out << std::endl << "(trust ";
-            Node ni = d_tproc.toInternal(cur->getResult());
+            Node ni = d_tproc.convert(cur->getResult());
             printInternal(out, ni, lbind);
             out << ") ; from " << cur->getRule() << std::endl;
           }
@@ -317,7 +317,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
 
 void LfscPrinter::print(std::ostream& out, Node n)
 {
-  Node ni = d_tproc.toInternal(n);
+  Node ni = d_tproc.convert(n);
   printLetify(out, ni);
 }
 
@@ -372,7 +372,7 @@ void LfscPrinter::printInternal(std::ostream& out,
 
 void LfscPrinter::print(std::ostream& out, TypeNode tn)
 {
-  TypeNode tni = d_tproc.toInternalType(tn);
+  TypeNode tni = d_tproc.convertType(tn);
   printInternal(out, tni);
 }
 

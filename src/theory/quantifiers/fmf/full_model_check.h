@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
 #define CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
 
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/model_builder.h"
-#include "theory/quantifiers/first_order_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -147,8 +147,9 @@ private:
   void mkCondVec( Node n, std::vector< Node > & cond );
   Node evaluateInterpreted( Node n, std::vector< Node > & vals );
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
-public:
-  FullModelChecker( context::Context* c, QuantifiersEngine* qe );
+
+ public:
+  FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs);
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);

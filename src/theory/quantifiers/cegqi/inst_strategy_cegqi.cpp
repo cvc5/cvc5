@@ -15,19 +15,16 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "smt/term_formula_removal.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -50,12 +47,15 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
 
-InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
-    : QuantifiersModule(qe),
+InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
+                                     QuantifiersState& qs,
+                                     QuantifiersInferenceManager& qim,
+                                     QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
-      d_added_cbqi_lemma(qe->getUserContext()),
+      d_added_cbqi_lemma(qs.getUserContext()),
       d_vtsCache(new VtsTermCache(qe)),
       d_bv_invert(nullptr)
 {
@@ -69,7 +69,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
   }
   if (options::cegqiNestedQE())
   {
-    d_nestedQe.reset(new NestedQe(qe->getUserContext()));
+    d_nestedQe.reset(new NestedQe(qs.getUserContext()));
   }
 }
 
@@ -103,44 +103,17 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     //add cbqi lemma
     //get the counterexample literal
     Node ceLit = getCounterexampleLiteral(q);
-    Node ceBody = d_quantEngine->getTermUtil()->getInstConstantBody( q );
+    Node ceBody = d_qreg.getInstConstantBody(q);
     if( !ceBody.isNull() ){
       //add counterexample lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
-      d_quantEngine->addRequirePhase( ceLit, true );
+      d_qim.addPendingPhaseRequirement(ceLit, true);
       Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = Rewriter::rewrite( lem );
       Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
       registerCounterexampleLemma( q, lem );
-      
-      //totality lemmas for EPR
-      QuantEPR * qepr = d_quantEngine->getQuantEPR();
-      if( qepr!=NULL ){   
-        for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-          TypeNode tn = q[0][i].getType();
-          if( tn.isSort() ){
-            if( qepr->isEPR( tn ) ){
-              //add totality lemma
-              std::map< TypeNode, std::vector< Node > >::iterator itc = qepr->d_consts.find( tn );
-              if( itc!=qepr->d_consts.end() ){
-                Assert(!itc->second.empty());
-                Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
-                std::vector< Node > disj;
-                for( unsigned j=0; j<itc->second.size(); j++ ){
-                  disj.push_back( ic.eqNode( itc->second[j] ) );
-                }
-                Node tlem = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
-                Trace("cegqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
-                d_quantEngine->getOutputChannel().lemma( tlem );
-              }else{
-                Assert(false);
-              }                  
-            }
-          }
-        }
-      }      
       
       //compute dependencies between quantified formulas
       std::vector<Node> ics;
@@ -196,7 +169,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       d_dstrat[q].reset(
           new DecisionStrategySingleton("CexLiteral",
                                         ceLit,
-                                        d_quantEngine->getSatContext(),
+                                        d_qstate.getSatContext(),
                                         d_quantEngine->getValuation()));
       dlds = d_dstrat[q].get();
     }
@@ -280,13 +253,13 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
 {
   if (quant_e == QEFFORT_STANDARD)
   {
-    Assert(!d_quantEngine->inConflict());
+    Assert(!d_qstate.isInConflict());
     double clSet = 0;
     if( Trace.isOn("cegqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
-    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+    size_t lastWaiting = d_qim.numPendingLemmas();
     for( int ee=0; ee<=1; ee++ ){
       //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
@@ -295,18 +268,22 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         Node q = it->first;
         Trace("cegqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
         process(q, e, ee);
-        if (d_quantEngine->inConflict())
+        if (d_qstate.isInConflict())
         {
           break;
         }
       }
-      if( d_quantEngine->inConflict() || d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+      if (d_qstate.isInConflict() || d_qim.numPendingLemmas() > lastWaiting)
+      {
         break;
       }
     }
     if( Trace.isOn("cegqi-engine") ){
-      if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
-        Trace("cegqi-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
+      if (d_qim.numPendingLemmas() > lastWaiting)
+      {
+        Trace("cegqi-engine")
+            << "Added lemmas = " << (d_qim.numPendingLemmas() - lastWaiting)
+            << std::endl;
       }
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
@@ -335,11 +312,12 @@ bool InstStrategyCegqi::checkCompleteFor(Node q)
 
 void InstStrategyCegqi::checkOwnership(Node q)
 {
-  if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
+  if (d_qreg.getOwner(q) == nullptr && doCbqi(q))
+  {
     if (d_do_cbqi[q] == CEG_HANDLED)
     {
       //take full ownership of the quantified formula
-      d_quantEngine->setOwner( q, this );
+      d_qreg.setOwner(q, this);
     }
   }
 }
@@ -352,11 +330,6 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
     {
       // will process using nested quantifier elimination
       return;
-    }
-    // get the instantiator
-    if (options::cegqiPreRegInst())
-    {
-      getInstantiator(q);
     }
     // register the cbqi lemma
     if( registerCbqiLemma( q ) ){
@@ -396,25 +369,31 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   // must register with the instantiator
   // must explicitly remove ITEs so that we record dependencies
   std::vector<Node> ce_vars;
-  TermUtil* tutil = d_quantEngine->getTermUtil();
-  for (unsigned i = 0, nics = tutil->getNumInstantiationConstants(q); i < nics;
+  for (size_t i = 0, nics = d_qreg.getNumInstantiationConstants(q); i < nics;
        i++)
   {
-    ce_vars.push_back(tutil->getInstantiationConstant(q, i));
+    ce_vars.push_back(d_qreg.getInstantiationConstant(q, i));
   }
-  CegInstantiator* cinst = getInstantiator(q);
-  LemmaStatus status =
-      d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
-  Node ppLem = status.getRewrittenLemma();
+  // send the lemma
+  d_qim.lemma(lem, InferenceId::UNKNOWN);
+  // get the preprocessed form of the lemma we just sent
+  std::vector<Node> skolems;
+  std::vector<Node> skAsserts;
+  Node ppLem =
+      d_qstate.getValuation().getPreprocessedTerm(lem, skAsserts, skolems);
+  std::vector<Node> lemp{ppLem};
+  lemp.insert(lemp.end(), skAsserts.begin(), skAsserts.end());
+  ppLem = NodeManager::currentNM()->mkAnd(lemp);
   Trace("cegqi-debug") << "Counterexample lemma (post-preprocess): " << ppLem
                        << std::endl;
   std::vector<Node> auxLems;
+  CegInstantiator* cinst = getInstantiator(q);
   cinst->registerCounterexampleLemma(ppLem, ce_vars, auxLems);
   for (unsigned i = 0, size = auxLems.size(); i < size; i++)
   {
     Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
                          << std::endl;
-    d_quantEngine->addLemma(auxLems[i], false);
+    d_qim.addPendingLemma(auxLems[i], InferenceId::UNKNOWN);
   }
 }
 
@@ -513,10 +492,10 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   }
 }
 
-bool InstStrategyCegqi::addLemma( Node lem ) {
-  return d_quantEngine->addLemma( lem );
+bool InstStrategyCegqi::addPendingLemma(Node lem) const
+{
+  return d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
 }
-
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
@@ -538,18 +517,6 @@ BvInverter* InstStrategyCegqi::getBvInverter() const
   return d_bv_invert.get();
 }
 
-void InstStrategyCegqi::presolve() {
-  if (!options::cegqiPreRegInst())
-  {
-    return;
-  }
-  for (std::pair<const Node, std::unique_ptr<CegInstantiator>>& ci : d_cinst)
-  {
-    Trace("cegqi-presolve") << "Presolve " << ci.first << std::endl;
-    ci.second->presolve(ci.first);
-  }
-}
-
 bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
 {
   if (d_nestedQe != nullptr)
@@ -568,7 +535,7 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
       // add lemmas to process
       for (const Node& lem : lems)
       {
-        d_quantEngine->addLemma(lem);
+        d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
       }
       // don't need to process this, since it has been reduced
       return true;

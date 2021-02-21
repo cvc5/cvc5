@@ -477,6 +477,21 @@ class CVC4_PUBLIC Sort
   Sort instantiate(const std::vector<Sort>& params) const;
 
   /**
+   * Substitution of Sorts.
+   * @param sort the subsort to be substituted within this sort.
+   * @param replacement the sort replacing the substituted subsort.
+   */
+  Sort substitute(const Sort& sort, const Sort& replacement) const;
+
+  /**
+   * Simultaneous substitution of Sorts.
+   * @param sorts the subsorts to be substituted within this sort.
+   * @param replacements the sort replacing the substituted subsorts.
+   */
+  Sort substitute(const std::vector<Sort>& sorts,
+                  const std::vector<Sort>& replacements) const;
+
+  /**
    * Output a string representation of this sort to a given stream.
    * @param out the output stream
    */
@@ -1150,6 +1165,59 @@ class CVC4_PUBLIC Term
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   const CVC4::Node& getNode(void) const;
+
+  /**
+   * Returns true if the term is an integer that fits within std::int32_t.
+   */
+  bool isInt32() const;
+  /**
+   * Returns the stored integer as a std::int32_t. Asserts isInt32().
+   */
+  std::int32_t getInt32() const;
+  /**
+   * Returns true if the term is an integer that fits within std::uint32_t.
+   */
+  bool isUInt32() const;
+  /**
+   * Returns the stored integer as a std::uint32_t. Asserts isUInt32().
+   */
+  std::uint32_t getUInt32() const;
+  /**
+   * Returns true if the term is an integer that fits within std::int64_t.
+   */
+  bool isInt64() const;
+  /**
+   * Returns the stored integer as a std::int64_t. Asserts isInt64().
+   */
+  std::int64_t getInt64() const;
+  /**
+   * Returns true if the term is an integer that fits within std::uint64_t.
+   */
+  bool isUInt64() const;
+  /**
+   * Returns the stored integer as a std::uint64_t. Asserts isUInt64().
+   */
+  std::uint64_t getUInt64() const;
+  /**
+   * Returns true if the term is an integer.
+   */
+  bool isInteger() const;
+  /**
+   * Returns the stored integer in (decimal) string representation. Asserts
+   * isInteger().
+   */
+  std::string getInteger() const;
+
+  /**
+   * Returns true if the term is a string constant.
+   */
+  bool isString() const;
+  /**
+   * Returns the stored string constant. This method is not to be confused with
+   * toString() which returns the term in some string representation, whatever
+   * data it may hold. Asserts isString().
+   */
+  std::wstring getString() const;
 
  protected:
   /**
@@ -3109,6 +3177,15 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getUnsatCore() const;
 
   /**
+   * Get the refutation proof
+   * SMT-LIB: ( get-proof )
+   * Requires to enable option 'proof-new'.
+   * @return a string representing the proof, according to the the value of
+   * proof-format-mode.
+   */
+  std::string getProof() const;
+
+  /**
    * Get the value of the given term.
    * SMT-LIB: ( get-value ( <term> ) )
    * @param term the term for which the value is queried
@@ -3526,6 +3603,9 @@ class CVC4_PUBLIC Solver
                       const Sort& sort,
                       bool isInv = false,
                       Grammar* g = nullptr) const;
+
+  /** check whether string s is a valid decimal integer */
+  bool isValidInteger(const std::string& s) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

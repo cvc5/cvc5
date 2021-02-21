@@ -81,6 +81,13 @@ public:
     return SAT_VALUE_UNKNOWN;
   };
 
+  /**
+   * Tell SAT solver to only do propagation on next solve().
+   *
+   * @return true if feature is supported, otherwise false.
+   */
+  virtual bool setPropagateOnly() { return false; }
+
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
@@ -95,6 +102,19 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
+
+  /**
+   * Get list of unsatisfiable assumptions.
+   *
+   * The returned assumptions are a subset of the assumptions provided to
+   * the solve method.
+   * Can only be called if satisfiability check under assumptions was used and
+   * if it returned SAT_VALUE_FALSE.
+   */
+  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  {
+    Unimplemented() << "getUnsatAssumptions not implemented";
+  }
 
 };/* class SatSolver */
 
@@ -123,10 +143,10 @@ public:
 
 };/* class BVSatSolverInterface */
 
-class DPLLSatSolverInterface : public SatSolver
+class CDCLTSatSolverInterface : public SatSolver
 {
  public:
-  virtual ~DPLLSatSolverInterface(){};
+  virtual ~CDCLTSatSolverInterface(){};
 
   virtual void initialize(context::Context* context,
                           prop::TheoryProxy* theoryProxy,
@@ -148,7 +168,10 @@ class DPLLSatSolverInterface : public SatSolver
   virtual void requirePhase(SatLiteral lit) = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
-}; /* class DPLLSatSolverInterface */
+
+  virtual std::shared_ptr<ProofNode> getProof() = 0;
+
+}; /* class CDCLTSatSolverInterface */
 
 inline std::ostream& operator <<(std::ostream& out, prop::SatLiteral lit) {
   out << lit.toString();

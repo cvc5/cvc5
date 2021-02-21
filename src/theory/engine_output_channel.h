@@ -48,10 +48,9 @@ class EngineOutputChannel : public theory::OutputChannel
   void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
-  theory::LemmaStatus lemma(TNode lemma,
-                            LemmaProperty p = LemmaProperty::NONE) override;
+  void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
-  theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
+  void splitLemma(TNode lemma, bool removable = false) override;
 
   void demandRestart() override;
 
@@ -76,8 +75,8 @@ class EngineOutputChannel : public theory::OutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as calling OutputChannel::lemma on lem.
    */
-  LemmaStatus trustedLemma(TrustNode plem,
-                           LemmaProperty p = LemmaProperty::NONE) override;
+  void trustedLemma(TrustNode plem,
+                    LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**

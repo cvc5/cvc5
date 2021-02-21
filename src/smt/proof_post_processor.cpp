@@ -137,18 +137,18 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     const std::vector<Node>& args,
     CDProof* cdp)
 {
+  Trace("smt-proof-pp-debug2") << push;
   NodeManager* nm = NodeManager::currentNM();
   Node trueNode = nm->mkConst(true);
-  Node falseNode = nm->mkConst(false);
   // get crowding lits and the position of the last clause that includes
   // them. The factoring step must be added after the last inclusion and before
   // its elimination.
   std::unordered_set<TNode, TNodeHashFunction> crowding;
-  std::vector<std::pair<Node, unsigned>> lastInclusion;
+  std::vector<std::pair<Node, size_t>> lastInclusion;
   // positions of eliminators of crowding literals, which are the positions of
   // the clauses that eliminate crowding literals *after* their last inclusion
-  std::vector<unsigned> eliminators;
-  for (unsigned i = 0, size = clauseLits.size(); i < size; ++i)
+  std::vector<size_t> eliminators;
+  for (size_t i = 0, size = clauseLits.size(); i < size; ++i)
   {
     if (!crowding.count(clauseLits[i])
         && std::find(
@@ -157,16 +157,25 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     {
       Node crowdLit = clauseLits[i];
       crowding.insert(crowdLit);
+      Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
       // found crowding lit, now get its last inclusion position, which is the
       // position of the last resolution link that introduces the crowding
       // literal. Note that this position has to be *before* the last link, as a
       // link *after* the last inclusion must eliminate the crowding literal.
-      unsigned j;
+      size_t j;
       for (j = children.size() - 1; j > 0; --j)
       {
-        // notice that only non-unit clauses may be introducing the crowding
-        // literal, so we don't need to differentiate unit from non-unit
+        // notice that only non-singleton clauses may be introducing the
+        // crowding literal, so we only care about non-singleton OR nodes. We
+        // check then against the kind and whether the whole OR node occurs as a
+        // pivot of the respective resolution
         if (children[j - 1].getKind() != kind::OR)
+        {
+          continue;
+        }
+        uint64_t pivotIndex = 2 * (j - 1);
+        if (args[pivotIndex] == children[j - 1]
+            || args[pivotIndex].notNode() == children[j - 1])
         {
           continue;
         }
@@ -177,13 +186,14 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         }
       }
       Assert(j > 0);
-      lastInclusion.push_back(std::make_pair(crowdLit, j - 1));
-      Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
+      lastInclusion.emplace_back(crowdLit, j - 1);
+
       Trace("smt-proof-pp-debug2") << "last inc " << j - 1 << "\n";
       // get elimination position, starting from the following link as the last
-      // inclusion one. The reslut is the last resolution link that eliminates
-      // the crowding literal. A literal l is eliminated by a link if it
-      // contains a literal l' with opposite polarity to l.
+      // inclusion one. The result is the last (in the chain, but first from
+      // this point on) resolution link that eliminates the crowding literal. A
+      // literal l is eliminated by a link if it contains a literal l' with
+      // opposite polarity to l.
       for (; j < children.size(); ++j)
       {
         bool posFirst = args[(2 * j) - 1] == trueNode;
@@ -191,17 +201,16 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
         Trace("smt-proof-pp-debug2")
             << "\tcheck w/ args " << posFirst << " / " << pivot << "\n";
         // To eliminate the crowding literal (crowdLit), the clause must contain
-        // it with opposity polarity. There are three successful cases,
+        // it with opposite polarity. There are three successful cases,
         // according to the pivot and its sign
         //
         // - crowdLit is the same as the pivot and posFirst is true, which means
         //   that the clause contains its negation and eliminates it
         //
-        // - the pivot is equal to crowdLit negated and posFirst is false, which
-        //   means that the clause contains the negation of crowdLit
-        //
         // - crowdLit is the negation of the pivot and posFirst is false, so the
-        //   clause contains the node whose negation is crowdLit
+        //   clause contains the node whose negation is crowdLit. Note that this
+        //   case may either be crowdLit.notNode() == pivot or crowdLit ==
+        //   pivot.notNode().
         if ((crowdLit == pivot && posFirst)
             || (crowdLit.notNode() == pivot && !posFirst)
             || (pivot.notNode() == crowdLit && !posFirst))
@@ -211,13 +220,13 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
           break;
         }
       }
-      Assert(j < children.size());
+      AlwaysAssert(j < children.size());
     }
   }
   Assert(!lastInclusion.empty());
   // order map so that we process crowding literals in the order of the clauses
   // that last introduce them
-  auto cmp = [=](std::pair<Node, unsigned>& a, std::pair<Node, unsigned>& b) {
+  auto cmp = [](std::pair<Node, size_t>& a, std::pair<Node, size_t>& b) {
     return a.second < b.second;
   };
   std::sort(lastInclusion.begin(), lastInclusion.end(), cmp);
@@ -226,18 +235,20 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   if (Trace.isOn("smt-proof-pp-debug"))
   {
     Trace("smt-proof-pp-debug") << "crowding lits last inclusion:\n";
-    for (const std::pair<const Node&, unsigned>& pair : lastInclusion)
+    for (const auto& pair : lastInclusion)
     {
       Trace("smt-proof-pp-debug")
           << "\t- [" << pair.second << "] : " << pair.first << "\n";
     }
     Trace("smt-proof-pp-debug") << "eliminators:";
-    for (unsigned elim : eliminators)
+    for (size_t elim : eliminators)
     {
       Trace("smt-proof-pp-debug") << " " << elim;
     }
     Trace("smt-proof-pp-debug") << "\n";
   }
+  // TODO (cvc4-wishues/issues/77): implement also simpler version and compare
+  //
   // We now start to break the chain, one step at a time. Naively this breaking
   // down would be one resolution/factoring to each crowding literal, but we can
   // merge some of the cases. Effectively we do the following:
@@ -257,7 +268,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   //   end_0 = eliminators[0] - 1
   //   start_i+1 = nextGuardedElimPos - 1
   //
-  // The important point is how end_i+1 is computed. It is based on what we cann
+  // The important point is how end_i+1 is computed. It is based on what we call
   // the "nextGuardedElimPos", i.e., the next elimination position that requires
   // removal of duplicates. The intuition is that a factoring step may eliminate
   // the duplicates of crowding literals l1 and l2. If the last inclusion of l2
@@ -270,16 +281,16 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
   // step, the first crowded literal to have its last inclusion after "end". The
   // first elimination position to be bigger than the position of that crowded
   // literal is the next guarded elimination position.
-  unsigned lastElim = 0;
+  size_t lastElim = 0;
   Node lastClause = children[0];
   std::vector<Node> childrenRes;
   std::vector<Node> childrenResArgs;
   Node resPlaceHolder;
-  unsigned nextGuardedElimPos = eliminators[0];
+  size_t nextGuardedElimPos = eliminators[0];
   do
   {
-    unsigned start = lastElim + 1;
-    unsigned end = nextGuardedElimPos - 1;
+    size_t start = lastElim + 1;
+    size_t end = nextGuardedElimPos - 1;
     Trace("smt-proof-pp-debug2")
         << "res with:\n\tlastClause: " << lastClause << "\n\tstart: " << start
         << "\n\tend: " << end << "\n";
@@ -329,8 +340,8 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     lastElim = end;
 
     // find the position of the last inclusion of the next crowded literal
-    unsigned nextCrowdedInclusionPos = lastInclusion.size();
-    for (unsigned i = 0, size = lastInclusion.size(); i < size; ++i)
+    size_t nextCrowdedInclusionPos = lastInclusion.size();
+    for (size_t i = 0, size = lastInclusion.size(); i < size; ++i)
     {
       if (lastInclusion[i].second > lastElim)
       {
@@ -351,7 +362,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     else
     {
       nextGuardedElimPos = children.size();
-      for (unsigned i = 0, size = eliminators.size(); i < size; ++i)
+      for (size_t i = 0, size = eliminators.size(); i < size; ++i)
       {
         //  nextGuardedElimPos is the largest element of
         // eliminators bigger the next crowded literal's last inclusion
@@ -366,6 +377,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     Trace("smt-proof-pp-debug2")
         << "nextGuardedElimPos: " << nextGuardedElimPos << "\n";
   } while (true);
+  Trace("smt-proof-pp-debug2") << pop;
   return lastClause;
 }
 
@@ -647,12 +659,12 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // get the literals in the chain conclusion
     std::vector<Node> chainConclusionLits{chainConclusion.begin(),
                                           chainConclusion.end()};
-    std::unordered_set<Node, NodeHashFunction> chainConclusionLitsSet{
-        chainConclusion.begin(), chainConclusion.end()};
-    // is args[0] a unit clause? If it's not an OR node, then yes. Otherwise,
-    // it's only a unit if it occurs in chainConclusionLitsSet
+    std::set<Node> chainConclusionLitsSet{chainConclusion.begin(),
+                                          chainConclusion.end()};
+    // is args[0] a singleton clause? If it's not an OR node, then yes.
+    // Otherwise, it's only a singleton if it occurs in chainConclusionLitsSet
     std::vector<Node> conclusionLits;
-    // whether conclusion is unit
+    // whether conclusion is singleton
     if (chainConclusionLitsSet.count(args[0]))
     {
       conclusionLits.push_back(args[0]);
@@ -663,30 +675,43 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       conclusionLits.insert(
           conclusionLits.end(), args[0].begin(), args[0].end());
     }
-    std::unordered_set<Node, NodeHashFunction> conclusionLitsSet{
-        conclusionLits.begin(), conclusionLits.end()};
-    // Sets are the same: FACTORING on conclusion; otherwise there are crowding
-    // lits. Note that this assertion is not considering reordering.
-    Assert(chainConclusionLitsSet != conclusionLitsSet
-           || chainConclusionLits.size() != conclusionLits.size());
-    // there are "crowding" literals, i.e. literals that were removed by
-    // implicit multi-usage of premises in the resolution chain.
+    std::set<Node> conclusionLitsSet{conclusionLits.begin(),
+                                     conclusionLits.end()};
+    // If the sets are different, there are "crowding" literals, i.e. literals
+    // that were removed by implicit multi-usage of premises in the resolution
+    // chain.
     if (chainConclusionLitsSet != conclusionLitsSet)
     {
       chainConclusion = eliminateCrowdingLits(
           chainConclusionLits, conclusionLits, children, args, cdp);
       // update vector of lits. Note that the set is no longer used, so we don't
       // need to update it
+      //
+      // We need again to check whether chainConclusion is a singleton
+      // clause. As above, it's a singleton if it's in the original
+      // chainConclusionLitsSet.
       chainConclusionLits.clear();
-      chainConclusionLits.insert(chainConclusionLits.end(),
-                                 chainConclusion.begin(),
-                                 chainConclusion.end());
+      if (chainConclusionLitsSet.count(chainConclusion))
+      {
+        chainConclusionLits.push_back(chainConclusion);
+      }
+      else
+      {
+        Assert(chainConclusion.getKind() == kind::OR);
+        chainConclusionLits.insert(chainConclusionLits.end(),
+                                   chainConclusion.begin(),
+                                   chainConclusion.end());
+      }
     }
     else
     {
       cdp->addStep(
           chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
     }
+    Trace("smt-proof-pp-debug")
+        << "Conclusion after chain_res/elimCrowd: " << chainConclusion << "\n";
+    Trace("smt-proof-pp-debug")
+        << "Conclusion lits: " << chainConclusionLits << "\n";
     // Placeholder for running conclusion
     Node n = chainConclusion;
     // factoring
@@ -696,7 +721,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       // different
       std::vector<Node> factoredLits;
       std::unordered_set<TNode, TNodeHashFunction> clauseSet;
-      for (unsigned i = 0, size = chainConclusionLits.size(); i < size; ++i)
+      for (size_t i = 0, size = chainConclusionLits.size(); i < size; ++i)
       {
         if (clauseSet.count(chainConclusionLits[i]))
         {
@@ -808,7 +833,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
-            tcg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+            // substitutions are pre-rewrites
+            tcg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
           }
           // get the proof for the update to the current substitution
           Node seqss = subs.eqNode(ss);
@@ -853,7 +879,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                true);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
-        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+        // substitutions are pre-rewrites
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
       }
       // add the proof constructed by the term conversion utility
       std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);

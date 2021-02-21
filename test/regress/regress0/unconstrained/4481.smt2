@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --unconstrained-simp
-; EXPECT: (error "Cannot use unconstrained simplification in this logic, due to (possibly internally introduced) quantified formula.")
-; EXIT: 1
+; EXPECT: unsat
 (set-logic ALL)
 (set-info :status unsat)
 (declare-fun a () Int)

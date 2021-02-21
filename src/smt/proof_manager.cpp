@@ -17,6 +17,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "proof/dot/dot_printer.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
@@ -119,7 +120,8 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
+void PfManager::printProof(std::ostream& out,
+                           std::shared_ptr<ProofNode> pfn,
                            Assertions& as,
                            DefinedFunctionMap& df)
 {
@@ -127,8 +129,11 @@ void PfManager::printProof(std::shared_ptr<ProofNode> pfn,
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  std::ostream& out = *options::out();
-  if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
+  if (options::proofFormatMode() == options::ProofFormatMode::DOT)
+  {
+    proof::DotPrinter::print(out, fp.get());
+  }
+  else if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
     d_lpfpp->process(fp);
     proof::leanPrinter(out, fp);
@@ -212,7 +217,7 @@ void PfManager::getAssertions(Assertions& as,
     assertions.push_back(*i);
   }
   NodeManager* nm = NodeManager::currentNM();
-  for (const std::pair<Node, smt::DefinedFunction>& dfn : df)
+  for (const std::pair<const Node, const smt::DefinedFunction>& dfn : df)
   {
     Node def = dfn.second.getFormula();
     const std::vector<Node>& formals = dfn.second.getFormals();

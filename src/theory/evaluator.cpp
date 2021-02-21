@@ -210,8 +210,16 @@ EvalResult Evaluator::evalInternal(
     }
 
     bool doProcess = true;
+    bool isVar = false;
     bool doEval = true;
-    if (currNode.getMetaKind() == kind::metakind::PARAMETERIZED)
+    if (currNode.isVar())
+    {
+      // we do not evaluate if we are a variable, instead we look for the
+      // variable in args below
+      isVar = true;
+      doEval = false;
+    }
+    else if (currNode.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       TNode op = currNode.getOperator();
       // Certain nodes are parameterized with constant operators, including
@@ -262,18 +270,36 @@ EvalResult Evaluator::evalInternal(
       // store the result of substitution + rewriting currNode { args -> vals }
       // into evalAsNode[currNode].
 
-      // If we did not successfully evaluate all children
+      // If we did not successfully evaluate all children, or are a variable
       if (!doEval)
       {
-        // Reconstruct the node with a combination of the children that
-        // successfully evaluated, and the children that did not.
-        Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
-        currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
-        if (useRewriter)
+        if (isVar)
         {
-          // Rewrite the result now, if we use the rewriter. We will see below
-          // if we are able to turn it into a valid EvalResult.
-          currNodeVal = Rewriter::rewrite(currNodeVal);
+          const auto& it = std::find(args.begin(), args.end(), currNode);
+          if (it == args.end())
+          {
+            // variable with no substitution is itself
+            evalAsNode[currNode] = currNode;
+            results[currNode] = EvalResult();
+            continue;
+          }
+          ptrdiff_t pos = std::distance(args.begin(), it);
+          currNodeVal = vals[pos];
+          // Don't need to rewrite since range of substitution should already
+          // be normalized.
+        }
+        else
+        {
+          // Reconstruct the node with a combination of the children that
+          // successfully evaluated, and the children that did not.
+          Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
+          currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
+          if (useRewriter)
+          {
+            // Rewrite the result now, if we use the rewriter. We will see below
+            // if we are able to turn it into a valid EvalResult.
+            currNodeVal = Rewriter::rewrite(currNodeVal);
+          }
         }
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
@@ -292,78 +318,69 @@ EvalResult Evaluator::evalInternal(
         // block of code below.
       }
 
-      if (currNode.isVar())
-      {
-        const auto& it = std::find(args.begin(), args.end(), currNode);
-        if (it == args.end())
-        {
-          // variable with no substitution is itself
-          evalAsNode[currNode] = currNode;
-          results[currNode] = EvalResult();
-          continue;
-        }
-        ptrdiff_t pos = std::distance(args.begin(), it);
-        currNodeVal = vals[pos];
-        // Don't need to reconstruct since range of substitution should already
-        // be normalized.
-        needsReconstruct = false;
-      }
-      else if (currNode.getKind() == kind::APPLY_UF)
-      {
-        Trace("evaluator") << "Evaluate " << currNode << std::endl;
-        TNode op = currNode.getOperator();
-        Assert(evalAsNode.find(op) != evalAsNode.end());
-        // no function can be a valid EvalResult
-        op = evalAsNode[op];
-        Trace("evaluator") << "Operator evaluated to " << op << std::endl;
-        if (op.getKind() != kind::LAMBDA)
-        {
-          // this node is not evaluatable due to operator, must add to
-          // evalAsNode
-          results[currNode] = EvalResult();
-          evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
-          continue;
-        }
-        // Create a copy of the current substitutions
-        std::vector<Node> lambdaArgs(args);
-        std::vector<Node> lambdaVals(vals);
-
-        // Add the values for the arguments of the lambda as substitutions at
-        // the beginning of the vector to shadow variables from outer scopes
-        // with the same name
-        for (const auto& lambdaArg : op[0])
-        {
-          lambdaArgs.insert(lambdaArgs.begin(), lambdaArg);
-        }
-
-        for (const auto& lambdaVal : currNode)
-        {
-          lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
-        }
-
-        // Lambdas are evaluated in a recursive fashion because each evaluation
-        // requires different substitutions. We use a fresh cache since the
-        // evaluation of op[1] is under a new substitution and thus should not
-        // be cached. We could alternatively copy evalAsNode to evalAsNodeC but
-        // favor avoiding this copy for performance reasons.
-        std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
-        std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
-        results[currNode] =
-            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC, useRewriter);
-        Trace("evaluator") << "Evaluated via arguments to "
-                           << results[currNode].d_tag << std::endl;
-        if (results[currNode].d_tag == EvalResult::INVALID)
-        {
-          // evaluation was invalid, we take the node of op[1] as the result
-          evalAsNode[currNode] = evalAsNodeC[op[1]];
-          Trace("evaluator")
-              << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
-        }
-        continue;
-      }
+      Trace("evaluator") << "Current node val : " << currNodeVal << std::endl;
 
       switch (currNodeVal.getKind())
       {
+        // APPLY_UF is a special case where we look up the operator and apply
+        // beta reduction if possible
+        case kind::APPLY_UF:
+        {
+          Trace("evaluator") << "Evaluate " << currNode << std::endl;
+          TNode op = currNode.getOperator();
+          Assert(evalAsNode.find(op) != evalAsNode.end());
+          // no function can be a valid EvalResult
+          op = evalAsNode[op];
+          Trace("evaluator") << "Operator evaluated to " << op << std::endl;
+          if (op.getKind() != kind::LAMBDA)
+          {
+            // this node is not evaluatable due to operator, must add to
+            // evalAsNode
+            results[currNode] = EvalResult();
+            evalAsNode[currNode] = reconstruct(currNode, results, evalAsNode);
+            continue;
+          }
+          // Create a copy of the current substitutions
+          std::vector<Node> lambdaArgs(args);
+          std::vector<Node> lambdaVals(vals);
+
+          // Add the values for the arguments of the lambda as substitutions at
+          // the beginning of the vector to shadow variables from outer scopes
+          // with the same name
+          for (const auto& lambdaArg : op[0])
+          {
+            lambdaArgs.insert(lambdaArgs.begin(), lambdaArg);
+          }
+
+          for (const auto& lambdaVal : currNode)
+          {
+            lambdaVals.insert(lambdaVals.begin(), results[lambdaVal].toNode());
+          }
+
+          // Lambdas are evaluated in a recursive fashion because each
+          // evaluation requires different substitutions. We use a fresh cache
+          // since the evaluation of op[1] is under a new substitution and thus
+          // should not be cached. We could alternatively copy evalAsNode to
+          // evalAsNodeC but favor avoiding this copy for performance reasons.
+          std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
+          std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
+          results[currNode] = evalInternal(op[1],
+                                           lambdaArgs,
+                                           lambdaVals,
+                                           evalAsNodeC,
+                                           resultsC,
+                                           useRewriter);
+          Trace("evaluator") << "Evaluated via arguments to "
+                             << results[currNode].d_tag << std::endl;
+          if (results[currNode].d_tag == EvalResult::INVALID)
+          {
+            // evaluation was invalid, we take the node of op[1] as the result
+            evalAsNode[currNode] = evalAsNodeC[op[1]];
+            Trace("evaluator")
+                << "Take node evaluation: " << evalAsNodeC[op[1]] << std::endl;
+          }
+        }
+        break;
         case kind::CONST_BOOLEAN:
           results[currNode] = EvalResult(currNodeVal.getConst<bool>());
           break;

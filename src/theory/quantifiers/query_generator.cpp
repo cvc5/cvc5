@@ -83,7 +83,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     }
     if (threshCount < 2)
     {
-      for (const std::pair<Node, std::vector<unsigned>>& etp : ev_to_pt)
+      for (const auto& etp : ev_to_pt)
       {
         if (etp.second.size() < d_deqThresh)
         {

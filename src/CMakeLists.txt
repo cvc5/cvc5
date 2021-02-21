@@ -68,6 +68,8 @@ libcvc4_add_sources(
   preprocessing/passes/bv_to_int.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
+  preprocessing/passes/foreign_theory_rewrite.cpp
+  preprocessing/passes/foreign_theory_rewrite.h
   preprocessing/passes/fun_def_fmf.cpp
   preprocessing/passes/fun_def_fmf.h
   preprocessing/passes/global_negate.cpp
@@ -102,12 +104,16 @@ libcvc4_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
+  preprocessing/passes/strings_eager_pp.cpp
+  preprocessing/passes/strings_eager_pp.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
   preprocessing/passes/synth_rew_rules.cpp
   preprocessing/passes/synth_rew_rules.h
   preprocessing/passes/theory_preprocess.cpp
   preprocessing/passes/theory_preprocess.h
+  preprocessing/passes/theory_rewrite_eq.cpp
+  preprocessing/passes/theory_rewrite_eq.h
   preprocessing/passes/unconstrained_simplifier.cpp
   preprocessing/passes/unconstrained_simplifier.h
   preprocessing/preprocessing_pass.cpp
@@ -133,28 +139,30 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
-  proof/proof_manager.cpp
-  proof/proof_manager.h
+  proof/dot/dot_printer.cpp
+  proof/dot/dot_printer.h
   proof/lean/lean_post_processor.cpp
   proof/lean/lean_post_processor.h
   proof/lean/lean_printer.h
-  proof/verit/verit_post_processor.cpp
-  proof/verit/verit_post_processor.h
-  proof/verit/verit_printer.h
-  proof/lfsc/letify.cpp
-  proof/lfsc/letify.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
   proof/lfsc/lfsc_printer.cpp
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
+  proof/proof_letify.cpp
+  proof/proof_letify.h
+  proof/proof_manager.cpp
+  proof/proof_manager.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/term_processor.cpp
   proof/term_processor.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  proof/verit/verit_post_processor.cpp
+  proof/verit/verit_post_processor.h
+  proof/verit/verit_printer.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
   prop/bvminisat/bvminisat.h
@@ -290,6 +298,8 @@ libcvc4_add_sources(
   smt/term_formula_removal.h
   smt/theory_rewrite_rcons.cpp
   smt/theory_rewrite_rcons.h
+  smt/unsat_core_manager.cpp
+  smt/unsat_core_manager.h
   smt/update_ostream.h
   smt/witness_form.cpp
   smt/witness_form.h
@@ -301,8 +311,6 @@ libcvc4_add_sources(
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
   theory/arith/arith_ite_utils.h
-  theory/arith/arith_lemma.cpp
-  theory/arith/arith_lemma.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
   theory/arith/arith_preprocess.cpp
@@ -343,8 +351,6 @@ libcvc4_add_sources(
   theory/arith/fc_simplex.h
   theory/arith/infer_bounds.cpp
   theory/arith/infer_bounds.h
-  theory/arith/inference_id.cpp
-  theory/arith/inference_id.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
   theory/arith/linear_equality.cpp
@@ -397,8 +403,8 @@ libcvc4_add_sources(
   theory/arith/nl/icp/icp_solver.h
   theory/arith/nl/icp/intersection.cpp
   theory/arith/nl/icp/intersection.h
-  theory/arith/nl/iand_table.cpp
-  theory/arith/nl/iand_table.h
+  theory/arith/nl/iand_utils.cpp
+  theory/arith/nl/iand_utils.h
   theory/arith/nl/nl_lemma_utils.cpp
   theory/arith/nl/nl_lemma_utils.h
   theory/arith/nl/nl_model.cpp
@@ -413,6 +419,8 @@ libcvc4_add_sources(
   theory/arith/nl/strategy.h
   theory/arith/nl/transcendental/exponential_solver.cpp
   theory/arith/nl/transcendental/exponential_solver.h
+  theory/arith/nl/transcendental/proof_checker.cpp
+  theory/arith/nl/transcendental/proof_checker.h
   theory/arith/nl/transcendental/sine_solver.cpp
   theory/arith/nl/transcendental/sine_solver.h
   theory/arith/nl/transcendental/taylor_generator.cpp
@@ -470,8 +478,14 @@ libcvc4_add_sources(
   theory/atom_requests.h
   theory/bags/bags_rewriter.cpp
   theory/bags/bags_rewriter.h
+  theory/bags/bag_solver.cpp
+  theory/bags/bag_solver.h
   theory/bags/bags_statistics.cpp
   theory/bags/bags_statistics.h
+  theory/bags/infer_info.cpp
+  theory/bags/infer_info.h
+  theory/bags/inference_generator.cpp
+  theory/bags/inference_generator.h
   theory/bags/inference_manager.cpp
   theory/bags/inference_manager.h
   theory/bags/make_bag_op.cpp
@@ -531,6 +545,8 @@ libcvc4_add_sources(
   theory/bv/bv_quick_check.cpp
   theory/bv/bv_quick_check.h
   theory/bv/bv_solver.h
+  theory/bv/bv_solver_bitblast.cpp
+  theory/bv/bv_solver_bitblast.h
   theory/bv/bv_solver_lazy.cpp
   theory/bv/bv_solver_lazy.h
   theory/bv/bv_solver_simple.cpp
@@ -616,6 +632,8 @@ libcvc4_add_sources(
   theory/fp/theory_fp_type_rules.h
   theory/fp/type_enumerator.h
   theory/interrupted.h
+  theory/inference_id.cpp
+  theory/inference_id.h
   theory/inference_manager_buffered.cpp
   theory/inference_manager_buffered.h
   theory/lazy_tree_proof_generator.cpp
@@ -630,8 +648,6 @@ libcvc4_add_sources(
   theory/output_channel.h
   theory/quantifiers/alpha_equivalence.cpp
   theory/quantifiers/alpha_equivalence.h
-  theory/quantifiers/anti_skolem.cpp
-  theory/quantifiers/anti_skolem.h
   theory/quantifiers/bv_inverter.cpp
   theory/quantifiers/bv_inverter.h
   theory/quantifiers/bv_inverter_utils.cpp
@@ -648,8 +664,6 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h
   theory/quantifiers/cegqi/ceg_dt_instantiator.cpp
   theory/quantifiers/cegqi/ceg_dt_instantiator.h
-  theory/quantifiers/cegqi/ceg_epr_instantiator.cpp
-  theory/quantifiers/cegqi/ceg_epr_instantiator.h
   theory/quantifiers/cegqi/ceg_instantiator.cpp
   theory/quantifiers/cegqi/ceg_instantiator.h
   theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
@@ -668,14 +682,30 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/ho_trigger.h
   theory/quantifiers/ematching/inst_match_generator.cpp
   theory/quantifiers/ematching/inst_match_generator.h
+  theory/quantifiers/ematching/inst_match_generator_multi.cpp
+  theory/quantifiers/ematching/inst_match_generator_multi.h
+  theory/quantifiers/ematching/inst_match_generator_multi_linear.cpp
+  theory/quantifiers/ematching/inst_match_generator_multi_linear.h
+  theory/quantifiers/ematching/inst_match_generator_simple.cpp
+  theory/quantifiers/ematching/inst_match_generator_simple.h
+  theory/quantifiers/ematching/inst_strategy.cpp
+  theory/quantifiers/ematching/inst_strategy.h
   theory/quantifiers/ematching/inst_strategy_e_matching.cpp
   theory/quantifiers/ematching/inst_strategy_e_matching.h
+  theory/quantifiers/ematching/inst_strategy_e_matching_user.cpp
+  theory/quantifiers/ematching/inst_strategy_e_matching_user.h
   theory/quantifiers/ematching/instantiation_engine.cpp
   theory/quantifiers/ematching/instantiation_engine.h
+  theory/quantifiers/ematching/pattern_term_selector.cpp
+  theory/quantifiers/ematching/pattern_term_selector.h
   theory/quantifiers/ematching/trigger.cpp
   theory/quantifiers/ematching/trigger.h
-  theory/quantifiers/equality_infer.cpp
-  theory/quantifiers/equality_infer.h
+  theory/quantifiers/ematching/trigger_term_info.cpp
+  theory/quantifiers/ematching/trigger_term_info.h
+  theory/quantifiers/ematching/trigger_trie.cpp
+  theory/quantifiers/ematching/trigger_trie.h
+  theory/quantifiers/ematching/var_match_generator.cpp
+  theory/quantifiers/ematching/var_match_generator.h
   theory/quantifiers/equality_query.cpp
   theory/quantifiers/equality_query.h
   theory/quantifiers/expr_miner.cpp
@@ -688,6 +718,8 @@ libcvc4_add_sources(
   theory/quantifiers/first_order_model.h
   theory/quantifiers/fmf/bounded_integers.cpp
   theory/quantifiers/fmf/bounded_integers.h
+  theory/quantifiers/fmf/first_order_model_fmc.cpp
+  theory/quantifiers/fmf/first_order_model_fmc.h
   theory/quantifiers/fmf/full_model_check.cpp
   theory/quantifiers/fmf/full_model_check.h
   theory/quantifiers/fmf/model_builder.cpp
@@ -702,18 +734,16 @@ libcvc4_add_sources(
   theory/quantifiers/inst_match_trie.h
   theory/quantifiers/inst_strategy_enumerative.cpp
   theory/quantifiers/inst_strategy_enumerative.h
-  theory/quantifiers/sygus_inst.cpp
-  theory/quantifiers/sygus_inst.h
   theory/quantifiers/instantiate.cpp
   theory/quantifiers/instantiate.h
+  theory/quantifiers/instantiation_list.cpp
+  theory/quantifiers/instantiation_list.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/proof_checker.cpp
   theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
-  theory/quantifiers/quant_epr.cpp
-  theory/quantifiers/quant_epr.h
   theory/quantifiers/quant_relevance.cpp
   theory/quantifiers/quant_relevance.h
   theory/quantifiers/quant_rep_bound_ext.cpp
@@ -722,10 +752,16 @@ libcvc4_add_sources(
   theory/quantifiers/quant_split.h
   theory/quantifiers/quant_util.cpp
   theory/quantifiers/quant_util.h
+  theory/quantifiers/quant_module.cpp
+  theory/quantifiers/quant_module.h
   theory/quantifiers/quantifiers_attributes.cpp
   theory/quantifiers/quantifiers_attributes.h
+  theory/quantifiers/quantifiers_inference_manager.cpp
+  theory/quantifiers/quantifiers_inference_manager.h
   theory/quantifiers/quantifiers_modules.cpp
   theory/quantifiers/quantifiers_modules.h
+  theory/quantifiers/quantifiers_registry.cpp
+  theory/quantifiers/quantifiers_registry.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
   theory/quantifiers/quantifiers_state.cpp
@@ -802,6 +838,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_unif_rl.h
   theory/quantifiers/sygus/sygus_unif_strat.cpp
   theory/quantifiers/sygus/sygus_unif_strat.h
+  theory/quantifiers/sygus/sygus_utils.cpp
+  theory/quantifiers/sygus/sygus_utils.h
   theory/quantifiers/sygus/synth_conjecture.cpp
   theory/quantifiers/sygus/synth_conjecture.h
   theory/quantifiers/sygus/synth_engine.cpp
@@ -816,6 +854,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/type_node_id_trie.h
   theory/quantifiers/sygus/transition_inference.cpp
   theory/quantifiers/sygus/transition_inference.h
+  theory/quantifiers/sygus_inst.cpp
+  theory/quantifiers/sygus_inst.h
   theory/quantifiers/sygus_sampler.cpp
   theory/quantifiers/sygus_sampler.h
   theory/quantifiers/term_database.cpp
@@ -892,6 +932,8 @@ libcvc4_add_sources(
   theory/strings/base_solver.h
   theory/strings/core_solver.cpp
   theory/strings/core_solver.h
+  theory/strings/eager_solver.cpp
+  theory/strings/eager_solver.h
   theory/strings/extf_solver.cpp
   theory/strings/extf_solver.h
   theory/strings/eqc_info.cpp
@@ -974,7 +1016,6 @@ libcvc4_add_sources(
   theory/theory_proof_step_buffer.h
   theory/theory_rewriter.cpp
   theory/theory_rewriter.h
-  theory/theory_registrar.h
   theory/theory_state.cpp
   theory/theory_state.h
   theory/theory_test_utils.h

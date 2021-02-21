@@ -126,7 +126,7 @@ void SygusSampler::initializeSygus(TermDbSygus* tds,
   {
     TypeNode svt = sv.getType();
     // is it equivalent to a previous variable?
-    for (const std::pair<Node, unsigned>& v : var_to_type_id)
+    for (const auto& v : var_to_type_id)
     {
       Node svc = v.first;
       if (svc.getType() == svt)

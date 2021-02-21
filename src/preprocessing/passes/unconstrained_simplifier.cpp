@@ -358,6 +358,8 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_SHL:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
+        case kind::BITVECTOR_UDIV:
+        case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_UDIV_TOTAL:
         case kind::BITVECTOR_UREM_TOTAL:
         case kind::BITVECTOR_SDIV:

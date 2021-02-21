@@ -21,21 +21,20 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace proof {
 
-LfscTermProcessCallback::LfscTermProcessCallback() : TermProcessCallback()
+LfscTermProcessor::LfscTermProcessor()
 {
   d_arrow = NodeManager::currentNM()->mkSortConstructor("arrow", 2);
   d_sortType = NodeManager::currentNM()->mkSort("sortType");
 }
 
-Node LfscTermProcessCallback::convertInternal(Node n)
+Node LfscTermProcessor::runConvert(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   TypeNode tn = n.getType();
   if (k == APPLY_UF)
   {
-    return convertInternal(
-        theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
+    return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == HO_APPLY)
   {
@@ -91,8 +90,8 @@ Node LfscTermProcessCallback::convertInternal(Node n)
     {
       tmp.push_back(v[i]);
       // also convert internal
-      ret = nm->mkNode(
-          STRING_CONCAT, convertInternal(nm->mkConst(String(tmp))), ret);
+      ret =
+          nm->mkNode(STRING_CONCAT, runConvert(nm->mkConst(String(tmp))), ret);
       tmp.pop_back();
     }
     return ret;
@@ -154,7 +153,7 @@ Node LfscTermProcessCallback::convertInternal(Node n)
   return n;
 }
 
-TypeNode LfscTermProcessCallback::convertInternalType(TypeNode tn)
+TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 {
   Kind k = tn.getKind();
   if (k == FUNCTION_TYPE)
@@ -177,17 +176,17 @@ TypeNode LfscTermProcessCallback::convertInternalType(TypeNode tn)
   return tn;
 }
 
-Node LfscTermProcessCallback::getSymbolInternalFor(Node n,
-                                                   const std::string& name,
-                                                   uint32_t v)
+Node LfscTermProcessor::getSymbolInternalFor(Node n,
+                                             const std::string& name,
+                                             uint32_t v)
 {
   return getSymbolInternal(n.getKind(), n.getType(), name, v);
 }
 
-Node LfscTermProcessCallback::getSymbolInternal(Kind k,
-                                                TypeNode tn,
-                                                const std::string& name,
-                                                uint32_t v)
+Node LfscTermProcessor::getSymbolInternal(Kind k,
+                                          TypeNode tn,
+                                          const std::string& name,
+                                          uint32_t v)
 {
   std::tuple<Kind, TypeNode, uint32_t> key(k, tn, v);
   std::map<std::tuple<Kind, TypeNode, uint32_t>, Node>::iterator it =

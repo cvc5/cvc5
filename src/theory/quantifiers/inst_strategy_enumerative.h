@@ -19,7 +19,7 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
@@ -62,7 +62,11 @@ namespace quantifiers {
 class InstStrategyEnum : public QuantifiersModule
 {
  public:
-  InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd);
+  InstStrategyEnum(QuantifiersEngine* qe,
+                   QuantifiersState& qs,
+                   QuantifiersInferenceManager& qim,
+                   QuantifiersRegistry& qr,
+                   RelevantDomain* rd);
   ~InstStrategyEnum() {}
   /** Presolve */
   void presolve() override;

@@ -44,15 +44,6 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
   return *this;
 }
 
-CVC4dumpstream& CVC4dumpstream::operator<<(ProofNode* pn)
-{
-  if (d_os != nullptr)
-  {
-    (*d_os) << *pn;
-  }
-  return *this;
-}
-
 #else
 
 CVC4dumpstream& CVC4dumpstream::operator<<(const Command& c) { return *this; }
@@ -60,7 +51,6 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 {
   return *this;
 }
-CVC4dumpstream& CVC4dumpstream::operator<<(ProofNode* pn) { return *this; }
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 
@@ -115,7 +105,9 @@ void DumpC::setDumpFromString(const std::string& optarg) {
                                 + optargPtr
                                 + "'.  Please consult --dump help.");
         }
-        if (!strcmp(p, "everything"))
+        // hard-coded cases
+        if (!strcmp(p, "everything") || !strcmp(p, "definition-expansion")
+            || !strcmp(p, "simplify") || !strcmp(p, "repeat-simplify"))
         {
         }
         else if (preprocessing::PreprocessingPassRegistry::getInstance()
@@ -184,7 +176,8 @@ void DumpC::setDumpFromString(const std::string& optarg) {
   }
 }
 
-const std::string DumpC::s_dumpHelp = "\
+const std::string DumpC::s_dumpHelp =
+    "\
 Dump modes currently supported by the --dump option:\n\
 \n\
 benchmark\n\
@@ -235,10 +228,11 @@ bv-rewrites\n\
 theory::fullcheck\n\
 + Output completeness queries for all full-check effort-level theory checks\n\
 \n\
-Dump modes can be combined with multiple uses of --dump.  Generally you want\n\
-raw-benchmark or, alternatively, one from the assertions category (either\n\
-assertions or clauses), and perhaps one or more other modes\n\
-for checking correctness and completeness of decision procedure implementations.\n\
+Dump modes can be combined by concatenating the above values with \",\" in\n\
+between them.  Generally you want raw-benchmark or, alternatively, one from\n\
+the assertions category (either assertions or clauses), and perhaps one or more\n\
+other modes for checking correctness and completeness of decision procedure\n\
+implementations.\n\
 \n\
 The --output-language option controls the language used for dumping, and\n\
 this allows you to connect CVC4 to another solver implementation via a UNIX\n\

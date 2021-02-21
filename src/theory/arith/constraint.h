@@ -601,8 +601,17 @@ class Constraint {
    * hasEqualityEngineProof().
    *
    * All return conjuncts were asserted before this constraint.
+   *
+   * Requires the given node to rewrite to the canonical literal for this
+   * constraint.
+   *
+   * @params n the literal to prove
+   *           n must rewrite to the constraint's canonical literal
+   *
+   * @returns a trust node of the form:
+   *         (=> explanation n)
    */
-  TrustNode externalExplainForPropagation() const;
+  TrustNode externalExplainForPropagation(TNode n) const;
 
   /**
    * Explain the constraint and its negation in terms of assertions.

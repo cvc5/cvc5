@@ -21,7 +21,6 @@
 
 #include "base/check.h"
 #include "base/output.h"
-#include "expr/expr.h"
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "proof/clause_id.h"
@@ -46,14 +45,15 @@ CnfStream::CnfStream(SatSolver* satSolver,
                      context::Context* context,
                      OutputManager* outMgr,
                      ResourceManager* rm,
-                     bool fullLitToNodeMap,
+                     FormulaLitPolicy flpol,
                      std::string name)
     : d_satSolver(satSolver),
       d_outMgr(outMgr),
       d_booleanVariables(context),
+      d_notifyFormulas(context),
       d_nodeToLiteralMap(context),
       d_literalToNodeMap(context),
-      d_fullLitToNodeMap(fullLitToNodeMap),
+      d_flitPolicy(flpol),
       d_registrar(registrar),
       d_name(name),
       d_cnfProof(nullptr),
@@ -127,41 +127,37 @@ bool CnfStream::hasLiteral(TNode n) const {
   return find != d_nodeToLiteralMap.end();
 }
 
-void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
+void CnfStream::ensureMappingForLiteral(TNode n)
 {
-  // These are not removable and have no proof ID
-  d_removable = false;
-
-  Trace("cnf") << "ensureLiteral(" << n << ")\n";
-  if(hasLiteral(n)) {
-    SatLiteral lit = getLiteral(n);
-    if(!d_literalToNodeMap.contains(lit)){
-      // Store backward-mappings
-      d_literalToNodeMap.insert(lit, n);
-      d_literalToNodeMap.insert(~lit, n.notNode());
-    }
-    return;
+  SatLiteral lit = getLiteral(n);
+  if (!d_literalToNodeMap.contains(lit))
+  {
+    // Store backward-mappings
+    d_literalToNodeMap.insert(lit, n);
+    d_literalToNodeMap.insert(~lit, n.notNode());
   }
+}
 
+void CnfStream::ensureLiteral(TNode n)
+{
   AlwaysAssertArgument(
-      n.getType().isBoolean(),
+      hasLiteral(n) || n.getType().isBoolean(),
       n,
-      "CnfStream::ensureLiteral() requires a node of Boolean type.\n"
+      "ProofCnfStream::ensureLiteral() requires a node of Boolean type.\n"
       "got node: %s\n"
       "its type: %s\n",
       n.toString().c_str(),
       n.getType().toString().c_str());
-
-  bool negated CVC4_UNUSED = false;
-  SatLiteral lit;
-
-  if(n.getKind() == kind::NOT) {
-    negated = true;
-    n = n[0];
+  Trace("cnf") << "ensureLiteral(" << n << ")\n";
+  if (hasLiteral(n))
+  {
+    ensureMappingForLiteral(n);
+    return;
   }
-
-  if( theory::Theory::theoryOf(n) == theory::THEORY_BOOL &&
-      !n.isVar() ) {
+  // remove top level negation
+  n = n.getKind() == kind::NOT ? n[0] : n;
+  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  {
     // If we were called with something other than a theory atom (or
     // Boolean variable), we get a SatLiteral that is definitionally
     // equal to it.
@@ -176,8 +172,10 @@ void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
     {
       d_cnfProof->pushCurrentAssertion(Node::null());
     }
+    // These are not removable and have no proof ID
+    d_removable = false;
 
-    lit = toCNF(n, false);
+    SatLiteral lit = toCNF(n, false);
 
     if (d_cnfProof)
     {
@@ -188,13 +186,12 @@ void CnfStream::ensureLiteral(TNode n, bool noPreregistration)
     // These may already exist
     d_literalToNodeMap.insert_safe(lit, n);
     d_literalToNodeMap.insert_safe(~lit, n.notNode());
-  } else {
-    // We have a theory atom or variable.
-    lit = convertAtom(n, noPreregistration);
   }
-
-  Assert(hasLiteral(n) && getNode(lit) == n);
-  Debug("ensureLiteral") << "CnfStream::ensureLiteral(): out lit is " << lit << std::endl;
+  else
+  {
+    // We have a theory atom or variable.
+    convertAtom(n);
+  }
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
@@ -202,6 +199,13 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
                << ")\n"
                << push;
   Assert(node.getKind() != kind::NOT);
+
+  // if we are tracking formulas, everything is a theory atom
+  if (!isTheoryAtom && d_flitPolicy == FormulaLitPolicy::TRACK_AND_NOTIFY)
+  {
+    isTheoryAtom = true;
+    d_notifyFormulas.insert(node);
+  }
 
   // Get the literal for this node
   SatLiteral lit;
@@ -226,7 +230,9 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   }
 
   // If it's a theory literal, need to store it for back queries
-  if ( isTheoryAtom || d_fullLitToNodeMap || (Dump.isOn("clauses")) ) {
+  if (isTheoryAtom || d_flitPolicy == FormulaLitPolicy::TRACK
+      || (Dump.isOn("clauses")))
+  {
     d_literalToNodeMap.insert_safe(lit, node);
     d_literalToNodeMap.insert_safe(~lit, node.notNode());
   }
@@ -268,12 +274,18 @@ void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
   }
 }
 
+bool CnfStream::isNotifyFormula(TNode node) const
+{
+  return d_notifyFormulas.find(node) != d_notifyFormulas.end();
+}
+
 void CnfStream::setProof(CnfProof* proof) {
   Assert(d_cnfProof == NULL);
   d_cnfProof = proof;
 }
 
-SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
+SatLiteral CnfStream::convertAtom(TNode node)
+{
   Trace("cnf") << "convertAtom(" << node << ")\n";
 
   Assert(!hasLiteral(node)) << "atom already mapped!";
@@ -291,7 +303,7 @@ SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
   {
     theoryLiteral = true;
     canEliminate = false;
-    preRegister = !noPreregistration;
+    preRegister = true;
   }
 
   // Make a new literal (variables are not considered theory literals)
@@ -543,6 +555,8 @@ SatLiteral CnfStream::toCNF(TNode node, bool negated)
     break;
   }
   // Return the (maybe negated) literal
+  Trace("cnf") << "toCNF(): resulting literal: "
+               << (!negated ? nodeLit : ~nodeLit) << "\n";
   return !negated ? nodeLit : ~nodeLit;
 }
 

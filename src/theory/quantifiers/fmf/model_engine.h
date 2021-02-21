@@ -18,7 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__MODEL_ENGINE_H
 
 #include "theory/quantifiers/fmf/model_builder.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
@@ -43,8 +43,12 @@ private:
   int d_triedLemmas;
   int d_totalLemmas;
 public:
-  ModelEngine( context::Context* c, QuantifiersEngine* qe );
-  virtual ~ModelEngine();
+ ModelEngine(QuantifiersEngine* qe,
+             QuantifiersState& qs,
+             QuantifiersInferenceManager& qim,
+             QuantifiersRegistry& qr);
+ virtual ~ModelEngine();
+
 public:
  bool needsCheck(Theory::Effort e) override;
  QEffort needsModel(Theory::Effort e) override;

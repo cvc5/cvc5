@@ -146,6 +146,17 @@ class EagerProofGenerator : public ProofGenerator
   TrustNode mkTrustedPropagation(Node n,
                                  Node exp,
                                  std::shared_ptr<ProofNode> pf);
+  /**
+   * Make trust node: `a = b` as a Rewrite trust node
+   *
+   * @param a the original
+   * @param b what is rewrites to
+   * @param pf The proof of a = b,
+   * @return The trust node corresponding to the fact that this generator has
+   * a proof of a = b
+   */
+  TrustNode mkTrustedRewrite(
+      Node a, Node b, std::shared_ptr<ProofNode> pf);
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma

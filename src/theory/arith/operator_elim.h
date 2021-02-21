@@ -37,7 +37,7 @@ class OperatorElim : public EagerProofGenerator
     * transcendental functions), then we replace it by a form that eliminates
     * that operator. This may involve the introduction of witness terms.
     */
-  TrustNode eliminate(Node n);
+  TrustNode eliminate(Node n, bool partialOnly = false);
   /**
    * Get axiom for term n. This returns the axiom that this class uses to
    * eliminate the term n, which is determined by its top-most symbol.
@@ -101,7 +101,7 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(Node n, TConvProofGenerator* tg);
+  Node eliminateOperators(Node n, TConvProofGenerator* tg, bool partialOnly);
   /**
    * Recursively ensure that n has no non-standard operators. This applies
    * the above method on all subterms of n.
@@ -109,7 +109,7 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The eliminated form of n.
    */
-  Node eliminateOperatorsRec(Node n, TConvProofGenerator* tg);
+  Node eliminateOperatorsRec(Node n, TConvProofGenerator* tg, bool partialOnly);
   /** get arithmetic skolem
    *
    * Returns the Skolem in the above map for the given id, creating it if it

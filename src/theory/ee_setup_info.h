@@ -37,13 +37,21 @@ class EqualityEngineNotify;
  */
 struct EeSetupInfo
 {
-  EeSetupInfo() : d_notify(nullptr), d_constantsAreTriggers(true) {}
+  EeSetupInfo()
+      : d_notify(nullptr), d_constantsAreTriggers(true), d_useMaster(false)
+  {
+  }
   /** The notification class of the theory */
   eq::EqualityEngineNotify* d_notify;
   /** The name of the equality engine */
   std::string d_name;
   /** Constants are triggers */
   bool d_constantsAreTriggers;
+  /**
+   * Whether we want our state to use the master equality engine. This should
+   * be true exclusively for the theory of quantifiers.
+   */
+  bool d_useMaster;
 };
 
 }  // namespace theory

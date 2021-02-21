@@ -98,9 +98,9 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     for (unsigned i = 0; i < 2; ++i)
     {
-      // determine whether the clause is unit for effects of resolution, which
-      // is the case if it's not an OR node or it is an OR node but it is equal
-      // to the pivot
+      // determine whether the clause is a singleton for effects of resolution,
+      // which is the case if it's not an OR node or it is an OR node but it is
+      // equal to the pivot
       std::vector<Node> lits;
       if (children[i].getKind() == kind::OR && pivots[i] != children[i])
       {
@@ -199,9 +199,9 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> clauseNodes;
     // literals to be removed from the virtual lhs clause of the resolution
     std::unordered_map<Node, unsigned, NodeHashFunction> lhsElim;
-    for (unsigned i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
+    for (std::size_t i = 0, argsSize = args.size(); i < argsSize; i = i + 2)
     {
-      // whether pivot should occur as is or negated depends on the id of
+      // whether pivot should occur as is or negated depends on the polarity of
       // each step in the chain
       if (args[i] == trueNode)
       {
@@ -217,20 +217,21 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     {
       Trace("bool-pfcheck")
           << "Original elimination multiset for lhs clause:\n";
-      for (const std::pair<const Node&, unsigned>& pair : lhsElim)
+      for (const auto& pair : lhsElim)
       {
         Trace("bool-pfcheck")
             << "\t- " << pair.first << " {" << pair.second << "}\n";
       }
     }
-    for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
+         ++i)
     {
       // literal to be removed from rhs clause. They will be negated
       Node rhsElim = Node::null();
       if (Trace.isOn("bool-pfcheck"))
       {
         Trace("bool-pfcheck") << i << ": current lhsElim:\n";
-        for (const std::pair<const Node&, unsigned>& pair : lhsElim)
+        for (const auto& pair : lhsElim)
         {
           Trace("bool-pfcheck")
               << "\t- " << pair.first << " {" << pair.second << "}\n";
@@ -238,17 +239,23 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       if (i > 0)
       {
-        unsigned index = 2 * (i - 1);
+        std::size_t index = 2 * (i - 1);
         rhsElim = args[index] == trueNode ? args[index + 1].notNode()
                                           : args[index + 1];
         Trace("bool-pfcheck") << i << ": rhs elim: " << rhsElim << "\n";
       }
-      // only add to conclusion nodes that are not in elimination set. First get
+      // Only add to conclusion nodes that are not in elimination set. First get
       // the nodes.
       //
-      // Since unit clauses can also be OR nodes, we rely on the invariant that
-      // non-unit clauses will not occur themselves in their elimination sets.
-      // If they do then they must be unit.
+      // Since a Node cannot hold an OR with a single child we need to
+      // disambiguate singleton clauses that are OR nodes from non-singleton
+      // clauses (i.e. unit clauses in the SAT solver).
+      //
+      // If the child is not an OR, it is a singleton clause and we take the
+      // child itself as the clause. Otherwise the child can only be a singleton
+      // clause if the child itself is used as a resolution literal, i.e. if the
+      // child is in lhsElim or is equal to rhsElim (which means that the
+      // negation of the child is in lhsElim).
       std::vector<Node> lits;
       if (children[i].getKind() == kind::OR && lhsElim.count(children[i]) == 0
           && children[i] != rhsElim)
@@ -261,7 +268,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
       std::vector<Node> added;
-      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      for (std::size_t j = 0, size = lits.size(); j < size; ++j)
       {
         if (lits[j] == rhsElim)
         {
@@ -301,17 +308,18 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Node trueNode = nm->mkConst(true);
     Node falseNode = nm->mkConst(false);
     std::vector<Node> clauseNodes;
-    for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
+    for (std::size_t i = 0, childrenSize = children.size(); i < childrenSize;
+         ++i)
     {
       std::unordered_set<Node, NodeHashFunction> elim;
       // literals to be removed from "first" clause
       if (i < childrenSize - 1)
       {
-        for (unsigned j = (2 * i) + 1, argsSize = args.size(); j < argsSize;
+        for (std::size_t j = (2 * i) + 1, argsSize = args.size(); j < argsSize;
              j = j + 2)
         {
-          // whether pivot should occur as is or negated depends on the id of
-          // each step in the macro
+          // whether pivot should occur as is or negated depends on the polarity
+          // of each step in the macro
           if (args[j] == trueNode)
           {
             elim.insert(args[j + 1]);
@@ -326,7 +334,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // literal to be removed from "second" clause. They will be negated
       if (i > 0)
       {
-        unsigned index = 2 * (i - 1) + 1;
+        std::size_t index = 2 * (i - 1) + 1;
         Node pivot = args[index] == trueNode ? args[index + 1].notNode()
                                              : args[index + 1];
         elim.insert(pivot);
@@ -335,9 +343,15 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // only add to conclusion nodes that are not in elimination set. First get
       // the nodes.
       //
-      // Since unit clauses can also be OR nodes, we rely on the invariant that
-      // non-unit clauses will not occur themselves in their elimination sets.
-      // If they do then they must be unit.
+      // Since a Node cannot hold an OR with a single child we need to
+      // disambiguate singleton clauses that are OR nodes from non-singleton
+      // clauses (i.e. unit clauses in the SAT solver).
+      //
+      // If the child is not an OR, it is a singleton clause and we take the
+      // child itself as the clause. Otherwise the child can only be a singleton
+      // clause if the child itself is used as a resolution literal, i.e. if the
+      // child is in lhsElim or is equal to rhsElim (which means that the
+      // negation of the child is in lhsElim).
       std::vector<Node> lits;
       if (children[i].getKind() == kind::OR && !elim.count(children[i]))
       {
@@ -349,10 +363,10 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
       std::vector<Node> added;
-      for (unsigned j = 0, size = lits.size(); j < size; ++j)
+      for (std::size_t j = 0, size = lits.size(); j < size; ++j)
       {
         // only add if literal does not occur in elimination set
-        if (!elim.count(lits[j]))
+        if (elim.count(lits[j]) == 0)
         {
           clauseNodes.push_back(lits[j]);
           added.push_back(lits[j]);
@@ -386,7 +400,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return args[0];
     }
     // At this point, should amount to them differing only on order. So the
-    // original result can't be a unit clause
+    // original result can't be a singleton clause
     if (args[0].getKind() != kind::OR
         || clauseComputed.size() != args[0].getNumChildren())
     {
@@ -663,7 +677,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     std::vector<Node> disjuncts;
-    for (unsigned i = 0, size = children[0][0].getNumChildren(); i < size; ++i)
+    for (std::size_t i = 0, size = children[0][0].getNumChildren(); i < size;
+         ++i)
     {
       disjuncts.push_back(children[0][0][i].notNode());
     }

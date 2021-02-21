@@ -18,6 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
 #include "context/cdlist.h"
+#include "expr/subs.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/single_inv_partition.h"
@@ -40,7 +41,6 @@ class SynthConjecture;
 class CegSingleInv
 {
  private:
-  friend class CegqiOutputSingleInv;
   //presolve
   void collectPresolveEqTerms( Node n,
                                std::map< Node, std::vector< Node > >& teq );
@@ -58,18 +58,10 @@ class CegSingleInv
 
   // list of skolems for each argument of programs
   std::vector<Node> d_single_inv_arg_sk;
-  // list of variables/skolems for each program
-  std::vector<Node> d_single_inv_var;
-  std::vector<Node> d_single_inv_sk;
-  std::map<Node, int> d_single_inv_sk_index;
   // program to solution index
   std::map<Node, unsigned> d_prog_to_sol_index;
   // original conjecture
   Node d_orig_conjecture;
-  // solution
-  Node d_orig_solution;
-  Node d_solution;
-  Node d_sygus_solution;
 
  public:
   //---------------------------------representation of the solution
@@ -83,13 +75,15 @@ class CegSingleInv
    * first order conjecture for the term vectors above.
    */
   std::vector<Node> d_instConds;
+  /** The solutions, without reconstruction to syntax */
+  std::vector<Node> d_solutions;
+  /** The solutions, after reconstruction to syntax */
+  std::vector<Node> d_rcSolutions;
   /** is solved */
   bool d_isSolved;
   //---------------------------------end representation of the solution
 
  private:
-  // conjecture
-  Node d_quant;
   Node d_simp_quant;
   // are we single invocation?
   bool d_single_invocation;
@@ -102,8 +96,7 @@ class CegSingleInv
 
   // get simplified conjecture
   Node getSimplifiedConjecture() { return d_simp_quant; }
- public:
-  // initialize this class for synthesis conjecture q
+  /** initialize this class for synthesis conjecture q */
   void initialize( Node q );
   /** finish initialize
    *
@@ -122,8 +115,25 @@ class CegSingleInv
    * found a solution to the synthesis conjecture using this method.
    */
   bool solve();
-  //get solution
-  Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed, bool rconsSygus = true );
+  /**
+   * Get solution for the sol_index^th function to synthesize of the conjecture
+   * this class was assigned.
+   *
+   * @param sol_index The index of the function to synthesize
+   * @param stn The sygus type of the solution, which corresponds to syntactic
+   * restrictions
+   * @param reconstructed Set to the status of reconstructing the solution,
+   * where 1 = success, 0 = no reconstruction specified, -1 = failed
+   * @param rconsSygus Whether to apply sygus reconstruction techniques based
+   * on the underlying reconstruction module. If this is false, then the
+   * solution does not necessarily fit the grammar.
+   * @return the solution for the sol_index^th function to synthesize of the
+   * conjecture assigned to this class.
+   */
+  Node getSolution(size_t sol_index,
+                   TypeNode stn,
+                   int& reconstructed,
+                   bool rconsSygus = true);
   //reconstruct to syntax
   Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed,
                             bool rconsSygus = true );
@@ -140,6 +150,27 @@ class CegSingleInv
    * unsatisfiable for instantiation {x1 -> t1 ... xn -> tn}.
    */
   bool solveTrivial(Node q);
+  /**
+   * Get solution from the instantiations stored in this class (d_inst) for
+   * the index^th function to synthesize. The vector d_inst should be
+   * initialized before calling this method.
+   */
+  Node getSolutionFromInst(size_t index);
+  /**
+   * Set solution, which sets the d_solutions / d_rcSolutions fields based on
+   * calls to the above method getSolutionFromInst.
+   */
+  void setSolution();
+  /** The conjecture */
+  Node d_quant;
+  //-------------- decomposed conjecture
+  /** All functions */
+  std::vector<Node> d_funs;
+  /** Unsolved functions */
+  std::vector<Node> d_unsolvedf;
+  /** Mapping of solved functions */
+  Subs d_solvedf;
+  //-------------- end decomposed conjecture
 };
 
 }/* namespace CVC4::theory::quantifiers */

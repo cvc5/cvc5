@@ -26,10 +26,14 @@
 #include <iosfwd>
 #include <unordered_set>
 
+#include "context/cdhashmap.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
+#include "prop/registrar.h"
 #include "prop/sat_solver.h"
 #include "theory/theory.h"
+#include "theory/theory_preprocessor.h"
+#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
@@ -46,16 +50,20 @@ class CnfStream;
 /**
  * The proxy class that allows the SatSolver to communicate with the theories
  */
-class TheoryProxy
+class TheoryProxy : public Registrar
 {
  public:
   TheoryProxy(PropEngine* propEngine,
               TheoryEngine* theoryEngine,
               DecisionEngine* decisionEngine,
               context::Context* context,
-              CnfStream* cnfStream);
+              context::UserContext* userContext,
+              ProofNodeManager* pnm);
 
   ~TheoryProxy();
+
+  /** Finish initialize */
+  void finishInit(CnfStream* cnfStream);
 
   void theoryCheck(theory::Theory::Effort effort);
 
@@ -90,6 +98,40 @@ class TheoryProxy
 
   CnfStream* getCnfStream();
 
+  /**
+   * Call the preprocessor on node, return trust node corresponding to the
+   * rewrite.
+   */
+  theory::TrustNode preprocessLemma(theory::TrustNode trn,
+                                    std::vector<theory::TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems);
+  /**
+   * Call the preprocessor on node, return trust node corresponding to the
+   * rewrite.
+   */
+  theory::TrustNode preprocess(TNode node,
+                               std::vector<theory::TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems);
+  /**
+   * Remove ITEs from the node.
+   */
+  theory::TrustNode removeItes(TNode node,
+                               std::vector<theory::TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems);
+  /**
+   * Get the skolems within node and their corresponding definitions, store
+   * them in sks and skAsserts respectively. Note that this method does not
+   * necessary include all of the skolems in skAsserts. In other words, it
+   * collects from node only. To compute all skolems that node depends on
+   * requires calling this method again on each lemma in skAsserts until a
+   * fixed point is reached.
+   */
+  void getSkolems(TNode node,
+                  std::vector<theory::TrustNode>& skAsserts,
+                  std::vector<Node>& sks);
+  /** Preregister term */
+  void preRegister(Node n) override;
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;
@@ -111,6 +153,9 @@ class TheoryProxy
    * all imported and exported lemmas.
    */
   std::unordered_set<Node, NodeHashFunction> d_shared;
+
+  /** The theory preprocessor */
+  theory::TheoryPreprocessor d_tpp;
 }; /* class TheoryProxy */
 
 }/* CVC4::prop namespace */

@@ -102,9 +102,6 @@ using namespace CVC4::parser;
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/kind.h"
-#include "expr/type.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
@@ -921,7 +918,7 @@ thfQuantifier[CVC4::api::Kind& kind]
   | LAMBDA_TOK { kind = api::LAMBDA; }
   | CHOICE_TOK
     {
-        UNSUPPORTED("Choice operator");
+      UNSUPPORTED("Choice operator");
     }
   | DEF_DESC_TOK
     {
@@ -1432,7 +1429,11 @@ tffLetTermBinding[std::vector<CVC4::api::Term> & bvlist,
     PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, false);
     std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
     rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-    lhs = api::Term(SOLVER, lhs.getExpr().getOperator());
+    // since lhs is always APPLY_UF (otherwise we'd have had a parser error in
+    // checkLetBinding) the function to be replaced is always the first
+    // argument. Note that the way in which lchildren is built above is also
+    // relying on this.
+    lhs = lhs[0];
   }
   | LPAREN_TOK tffLetTermBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
@@ -1454,7 +1455,11 @@ tffLetFormulaBinding[std::vector<CVC4::api::Term> & bvlist,
     PARSER_STATE->checkLetBinding(bvlist, lhs, rhs, true);
     std::vector<api::Term> lchildren(++lhs.begin(), lhs.end());
     rhs = MK_TERM(api::LAMBDA, MK_TERM(api::BOUND_VAR_LIST, lchildren), rhs);
-    lhs = api::Term(SOLVER, lhs.getExpr().getOperator());
+    // since lhs is always APPLY_UF (otherwise we'd have had a parser error in
+    // checkLetBinding) the function to be replaced is always the first
+    // argument. Note that the way in which lchildren is built above is also
+    // relying on this.
+    lhs = lhs[0];
   }
   | LPAREN_TOK tffLetFormulaBinding[bvlist, lhs, rhs] RPAREN_TOK
   ;
@@ -1621,7 +1626,7 @@ NOT_TOK        : '~';
 FORALL_TOK     : '!';
 EXISTS_TOK     : '?';
 LAMBDA_TOK     : '^';
-WITNESS_TOK     : '@+';
+CHOICE_TOK     : '@+';
 DEF_DESC_TOK   : '@-';
 AND_TOK        : '&';
 IFF_TOK        : '<=>';

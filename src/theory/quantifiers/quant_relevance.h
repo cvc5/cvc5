@@ -48,10 +48,7 @@ class QuantRelevance : public QuantifiersUtil
   /** identify */
   std::string identify() const override { return "QuantRelevance"; }
   /** get number of quantifiers for symbol s */
-  unsigned getNumQuantifiersForSymbol(Node s)
-  {
-    return d_syms_quants[s].size();
-  }
+  size_t getNumQuantifiersForSymbol(Node s) const;
 
  private:
   /** map from quantifiers to symbols they contain */

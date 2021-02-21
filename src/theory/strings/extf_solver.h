@@ -92,12 +92,6 @@ class ExtfSolver
              ExtTheory& et,
              SequencesStatistics& statistics);
   ~ExtfSolver();
-
-  /**
-   * Called when a shared term is added to theory of strings, this registers
-   * n with the extended theory utility for context-depdendent simplification.
-   */
-  void addSharedTerm(TNode n);
   /** check extended functions evaluation
    *
    * This applies "context-dependent simplification" for all active extended

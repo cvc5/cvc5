@@ -51,7 +51,8 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
                                          TermContext* tccb,
                                          bool rewriteOps)
     : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
-      d_rewriteMap(c ? c : &d_context),
+      d_preRewriteMap(c ? c : &d_context),
+      d_postRewriteMap(c ? c : &d_context),
       d_policy(pol),
       d_cpolicy(cpol),
       d_name(name),
@@ -65,23 +66,22 @@ TConvProofGenerator::~TConvProofGenerator() {}
 void TConvProofGenerator::addRewriteStep(Node t,
                                          Node s,
                                          ProofGenerator* pg,
+                                         bool isPre,
                                          PfRule trustId,
                                          bool isClosed,
                                          uint32_t tctx)
 {
-  Node eq = registerRewriteStep(t, s, tctx);
+  Node eq = registerRewriteStep(t, s, tctx, isPre);
   if (!eq.isNull())
   {
     d_proof.addLazyStep(eq, pg, trustId, isClosed);
   }
 }
 
-void TConvProofGenerator::addRewriteStep(Node t,
-                                         Node s,
-                                         ProofStep ps,
-                                         uint32_t tctx)
+void TConvProofGenerator::addRewriteStep(
+    Node t, Node s, ProofStep ps, bool isPre, uint32_t tctx)
 {
-  Node eq = registerRewriteStep(t, s, tctx);
+  Node eq = registerRewriteStep(t, s, tctx, isPre);
   if (!eq.isNull())
   {
     d_proof.addStep(eq, ps);
@@ -93,31 +93,39 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          PfRule id,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args,
+                                         bool isPre,
                                          uint32_t tctx)
 {
-  Node eq = registerRewriteStep(t, s, tctx);
+  Node eq = registerRewriteStep(t, s, tctx, isPre);
   if (!eq.isNull())
   {
     d_proof.addStep(eq, id, children, args);
   }
 }
 
-bool TConvProofGenerator::hasRewriteStep(Node t, uint32_t tctx) const
+bool TConvProofGenerator::hasRewriteStep(Node t,
+                                         uint32_t tctx,
+                                         bool isPre) const
 {
-  return !getRewriteStep(t, tctx).isNull();
+  return !getRewriteStep(t, tctx, isPre).isNull();
 }
 
-Node TConvProofGenerator::getRewriteStep(Node t, uint32_t tctx) const
+Node TConvProofGenerator::getRewriteStep(Node t,
+                                         uint32_t tctx,
+                                         bool isPre) const
 {
   Node thash = t;
   if (d_tcontext != nullptr)
   {
     thash = TCtxNode::computeNodeHash(t, tctx);
   }
-  return getRewriteStepInternal(thash);
+  return getRewriteStepInternal(thash, isPre);
 }
 
-Node TConvProofGenerator::registerRewriteStep(Node t, Node s, uint32_t tctx)
+Node TConvProofGenerator::registerRewriteStep(Node t,
+                                              Node s,
+                                              uint32_t tctx,
+                                              bool isPre)
 {
   if (t == s)
   {
@@ -134,14 +142,15 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s, uint32_t tctx)
     Assert(tctx == 0);
   }
   // should not rewrite term to two different things
-  if (!getRewriteStepInternal(thash).isNull())
+  if (!getRewriteStepInternal(thash, isPre).isNull())
   {
-    Assert(getRewriteStepInternal(thash) == s)
+    Assert(getRewriteStepInternal(thash, isPre) == s)
         << identify() << " rewriting " << t << " to both " << s << " and "
-        << getRewriteStepInternal(thash);
+        << getRewriteStepInternal(thash, isPre);
     return Node::null();
   }
-  d_rewriteMap[thash] = s;
+  NodeNodeMap& rm = isPre ? d_preRewriteMap : d_postRewriteMap;
+  rm[thash] = s;
   if (d_cpolicy == TConvCachePolicy::DYNAMIC)
   {
     // clear the cache
@@ -188,19 +197,23 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
         serr << " (see -t tconv-pf-gen-debug for details)";
       }
       serr << std::endl;
-      serr << "                  source: " << f[0] << std::endl;
-      serr << "expected after rewriting: " << f[1] << std::endl;
-      serr << "  actual after rewriting: " << conc[1] << std::endl;
+      serr << "                   source: " << f[0] << std::endl;
+      serr << "     requested conclusion: " << f[1] << std::endl;
+      serr << "conclusion from generator: " << conc[1] << std::endl;
 
       if (debugTraceEnabled)
       {
         Trace("tconv-pf-gen-debug") << "Printing rewrite steps..." << std::endl;
-        serr << "Rewrite steps: " << std::endl;
-        for (NodeNodeMap::const_iterator it = d_rewriteMap.begin();
-             it != d_rewriteMap.end();
-             ++it)
+        for (size_t r = 0; r < 2; r++)
         {
-          serr << (*it).first << " -> " << (*it).second << std::endl;
+          const NodeNodeMap& rm = r == 0 ? d_preRewriteMap : d_postRewriteMap;
+          serr << "Rewrite steps (" << (r == 0 ? "pre" : "post")
+               << "):" << std::endl;
+          for (NodeNodeMap::const_iterator it = rm.begin(); it != rm.end();
+               ++it)
+          {
+            serr << (*it).first << " -> " << (*it).second << std::endl;
+          }
         }
       }
       Unhandled() << serr.str();
@@ -288,8 +301,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
     {
       Trace("tconv-pf-gen-rewrite") << "- previsit" << std::endl;
       visited[curHash] = Node::null();
-      // did we rewrite the current node (possibly at pre-rewrite)?
-      Node rcur = getRewriteStepInternal(curHash);
+      // did we rewrite the current node (at pre-rewrite)?
+      Node rcur = getRewriteStepInternal(curHash, true);
       if (!rcur.isNull())
       {
         Trace("tconv-pf-gen-rewrite")
@@ -484,13 +497,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           retHash = TCtxNode::computeNodeHash(cur, curCVal);
         }
         // did we rewrite ret (at post-rewrite)?
-        Node rret;
-        // only if not ONCE policy, which only does pre-rewrite
-        if (d_policy != TConvPolicy::ONCE)
-        {
-          rret = getRewriteStepInternal(retHash);
-        }
-        if (!rret.isNull())
+        Node rret = getRewriteStepInternal(retHash, false);
+        if (!rret.isNull() && d_policy == TConvPolicy::FIXPOINT)
         {
           Trace("tconv-pf-gen-rewrite")
               << "*** " << retHash << " postrewrites to " << rret << std::endl;
@@ -519,6 +527,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         }
         else
         {
+          // take its rewrite if it rewrote and we have ONCE rewriting policy
+          ret = rret.isNull() ? ret : rret;
           Trace("tconv-pf-gen-rewrite")
               << "-> (postrewrite) " << curHash << " = " << ret << std::endl;
           // it is final
@@ -553,10 +563,11 @@ void TConvProofGenerator::doCache(Node curHash,
   }
 }
 
-Node TConvProofGenerator::getRewriteStepInternal(Node t) const
+Node TConvProofGenerator::getRewriteStepInternal(Node t, bool isPre) const
 {
-  NodeNodeMap::const_iterator it = d_rewriteMap.find(t);
-  if (it == d_rewriteMap.end())
+  const NodeNodeMap& rm = isPre ? d_preRewriteMap : d_postRewriteMap;
+  NodeNodeMap::const_iterator it = rm.find(t);
+  if (it == rm.end())
   {
     return Node::null();
   }

@@ -27,6 +27,9 @@ namespace CVC4 {
 class ProofNodeManager;
 class ProofNode;
 
+// Alias for shared pointer to a proof node
+using Pf = std::shared_ptr<ProofNode>;
+
 struct ProofNodeHashFunction
 {
   inline size_t operator()(std::shared_ptr<ProofNode> pfn) const;

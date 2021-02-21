@@ -17,14 +17,12 @@
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
-#include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
@@ -250,9 +248,10 @@ bool CegInstantiator::isEligible( Node n ) {
 CegHandledStatus CegInstantiator::isCbqiKind(Kind k)
 {
   if (quantifiers::TermUtil::isBoolConnective(k) || k == PLUS || k == GEQ
-      || k == EQUAL
-      || k == MULT
-      || k == NONLINEAR_MULT)
+      || k == EQUAL || k == MULT || k == NONLINEAR_MULT || k == DIVISION
+      || k == DIVISION_TOTAL || k == INTS_DIVISION || k == INTS_DIVISION_TOTAL
+      || k == INTS_MODULUS || k == INTS_MODULUS_TOTAL || k == TO_INTEGER
+      || k == IS_INTEGER)
   {
     return CEG_HANDLED;
   }
@@ -343,12 +342,24 @@ CegHandledStatus CegInstantiator::isCbqiSort(
     const DType& dt = tn.getDType();
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
-      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      // get the constructor type
+      TypeNode consType;
+      if (dt.isParametric())
       {
-        TypeNode crange = dt[i].getArgType(j);
+        // if parametric, must instantiate the argument types
+        consType = dt[i].getSpecializedConstructorType(tn);
+      }
+      else
+      {
+        consType = dt[i].getConstructor().getType();
+      }
+      for (const TypeNode& crange : consType)
+      {
         CegHandledStatus cret = isCbqiSort(crange, visited, qe);
         if (cret == CEG_UNHANDLED)
         {
+          Trace("cegqi-debug2")
+              << "Non-cbqi sort : " << tn << " due to " << crange << std::endl;
           visited[tn] = CEG_UNHANDLED;
           return CEG_UNHANDLED;
         }
@@ -356,17 +367,6 @@ CegHandledStatus CegInstantiator::isCbqiSort(
         {
           ret = cret;
         }
-      }
-    }
-  }
-  else if (tn.isSort())
-  {
-    QuantEPR* qepr = qe != nullptr ? qe->getQuantEPR() : nullptr;
-    if (qepr != nullptr)
-    {
-      if (qepr->isEPR(tn))
-      {
-        ret = CEG_HANDLED_UNCONDITIONAL;
       }
     }
   }
@@ -476,8 +476,6 @@ void CegInstantiator::activateInstantiationVariable(Node v, unsigned index)
     Instantiator * vinst;
     if( tn.isReal() ){
       vinst = new ArithInstantiator(tn, d_parent->getVtsTermCache());
-    }else if( tn.isSort() ){
-      vinst = new EprInstantiator(tn);
     }else if( tn.isDatatype() ){
       vinst = new DtInstantiator(tn);
     }else if( tn.isBitVector() ){
@@ -665,9 +663,10 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf,
   TypeNode pvtn = pv.getType();
   TypeNode pvtnb = pvtn.getBaseType();
   Node pvr = pv;
-  if (d_qe->getMasterEqualityEngine()->hasTerm(pv))
+  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  if (ee->hasTerm(pv))
   {
-    pvr = d_qe->getMasterEqualityEngine()->getRepresentative(pv);
+    pvr = ee->getRepresentative(pv);
   }
   Trace("cegqi-inst-debug") << "[Find instantiation for " << pv
                            << "], rep=" << pvr << ", instantiator is "
@@ -1083,8 +1082,9 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
   bool ret = d_parent->doAddInstantiation(subs);
-  for( unsigned i=0; i<lemmas.size(); i++ ){
-    d_parent->addLemma(lemmas[i]);
+  for (const Node& l : lemmas)
+  {
+    d_parent->addPendingLemma(l);
   }
   return ret;
 }
@@ -1099,19 +1099,6 @@ bool CegInstantiator::isEligibleForInstantiation(Node n) const
   {
     // virtual terms are allowed
     return true;
-  }
-  TypeNode tn = n.getType();
-  if (tn.isSort())
-  {
-    QuantEPR* qepr = d_qe->getQuantEPR();
-    if (qepr != NULL)
-    {
-      // legal if in the finite set of constants of type tn
-      if (qepr->isEPRConstant(tn, n))
-      {
-        return true;
-      }
-    }
   }
   // only legal if current quantified formula contains n
   return expr::hasSubterm(d_quant, n);
@@ -1259,6 +1246,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     bool pol = lit.getKind()!=NOT;
     //arithmetic inequalities and disequalities
     if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
+      NodeManager* nm = NodeManager::currentNM();
       Assert(atom.getKind() != GEQ || atom[1].isConst());
       Node atom_lhs;
       Node atom_rhs;
@@ -1266,20 +1254,27 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
+        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
         atom_lhs = Rewriter::rewrite( atom_lhs );
-        atom_rhs = getQuantifiersEngine()->getTermUtil()->d_zero;
+        atom_rhs = nm->mkConst(Rational(0));
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){
         //apply substitution to LHS of atom
         TermProperties atom_lhs_prop;
-        atom_lhs = applySubstitution( NodeManager::currentNM()->realType(), atom_lhs, vars, subs, prop, non_basic, atom_lhs_prop );
+        atom_lhs = applySubstitution(nm->realType(),
+                                     atom_lhs,
+                                     vars,
+                                     subs,
+                                     prop,
+                                     non_basic,
+                                     atom_lhs_prop);
         if( !atom_lhs.isNull() ){
           if( !atom_lhs_prop.d_coeff.isNull() ){
-            atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_prop.d_coeff, atom_rhs ) );
+            atom_rhs = nm->mkNode(MULT, atom_lhs_prop.d_coeff, atom_rhs);
+            atom_rhs = Rewriter::rewrite(atom_rhs);
           }
-          lret = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
+          lret = nm->mkNode(atom.getKind(), atom_lhs, atom_rhs);
           if( !pol ){
             lret = lret.negate();
           }
@@ -1313,78 +1308,6 @@ bool CegInstantiator::check() {
   return false;
 }
 
-void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq ) {
-  if( n.getKind()==FORALL || n.getKind()==EXISTS ){
-    //do nothing
-    return;
-  }
-  if (n.getKind() == EQUAL)
-  {
-    for (unsigned i = 0; i < 2; i++)
-    {
-      Node nn = n[i == 0 ? 1 : 0];
-      std::map<Node, std::vector<Node> >::iterator it = teq.find(n[i]);
-      if (it != teq.end() && !expr::hasFreeVar(nn)
-          && std::find(it->second.begin(), it->second.end(), nn)
-                 == it->second.end())
-      {
-        it->second.push_back(nn);
-        Trace("cegqi-presolve") << "  - " << n[i] << " = " << nn << std::endl;
-      }
-    }
-  }
-  for (const Node& nc : n)
-  {
-    collectPresolveEqTerms(nc, teq);
-  }
-}
-
-void getPresolveEqConjuncts( std::vector< Node >& vars, std::vector< Node >& terms,
-                             std::map< Node, std::vector< Node > >& teq, Node f, std::vector< Node >& conj ) {
-  if( conj.size()<1000 ){
-    if( terms.size()==f[0].getNumChildren() ){
-      Node c = f[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
-      conj.push_back( c );
-    }else{
-      unsigned i = terms.size();
-      Node v = f[0][i];
-      terms.push_back( Node::null() );
-      for( unsigned j=0; j<teq[v].size(); j++ ){
-        terms[i] = teq[v][j];
-        getPresolveEqConjuncts( vars, terms, teq, f, conj );
-      }
-      terms.pop_back();
-    }
-  }
-}
-
-void CegInstantiator::presolve( Node q ) {
-  //at preregister time, add proxy of obvious instantiations up front, which helps learning during preprocessing
-  //only if no nested quantifiers
-  if (!expr::hasClosure(q[1]))
-  {
-    std::vector< Node > ps_vars;
-    std::map< Node, std::vector< Node > > teq;
-    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-      ps_vars.push_back( q[0][i] );
-      teq[q[0][i]].clear();
-    }
-    collectPresolveEqTerms( q[1], teq );
-    std::vector< Node > terms;
-    std::vector< Node > conj;
-    getPresolveEqConjuncts( ps_vars, terms, teq, q, conj );
-
-    if( !conj.empty() ){
-      Node lem = conj.size()==1 ? conj[0] : NodeManager::currentNM()->mkNode( AND, conj );
-      Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
-      lem = NodeManager::currentNM()->mkNode( OR, g, lem );
-      Trace("cegqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
-      Assert(!expr::hasFreeVar(lem));
-      d_qe->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
-    }
-  }
-}
-
 void CegInstantiator::processAssertions() {
   Trace("cegqi-proc") << "--- Process assertions, #var = " << d_vars.size()
                      << std::endl;
@@ -1393,7 +1316,7 @@ void CegInstantiator::processAssertions() {
   d_curr_type_eqc.clear();
 
   // must use master equality engine to avoid value instantiations
-  eq::EqualityEngine* ee = d_qe->getMasterEqualityEngine();
+  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
 
   //for each variable
   for( unsigned i=0; i<d_vars.size(); i++ ){
@@ -1612,7 +1535,10 @@ void CegInstantiator::registerCounterexampleLemma(Node lem,
       // already processed variable
       continue;
     }
-    if (ces.getType().isBoolean())
+    // must avoid selector symbols, and function skolems introduced by
+    // theory preprocessing
+    TypeNode ct = ces.getType();
+    if (ct.isBoolean() || ct.isFunctionLike())
     {
       // Boolean variables, including the counterexample literal, don't matter
       // since they are always assigned a model value.

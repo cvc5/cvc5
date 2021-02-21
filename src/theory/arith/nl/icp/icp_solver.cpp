@@ -348,8 +348,8 @@ void ICPSolver::check()
         {
           mis.emplace_back(n.negate());
         }
-        d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
-                                  InferenceId::NL_ICP_CONFLICT);
+        d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
+                             InferenceId::ARITH_NL_ICP_CONFLICT);
         did_progress = true;
         progress = false;
         break;
@@ -360,7 +360,7 @@ void ICPSolver::check()
     std::vector<Node> lemmas = generateLemmas();
     for (const auto& l : lemmas)
     {
-      d_im.addPendingArithLemma(l, InferenceId::NL_ICP_PROPAGATION);
+      d_im.addPendingLemma(l, InferenceId::ARITH_NL_ICP_PROPAGATION);
     }
   }
 }

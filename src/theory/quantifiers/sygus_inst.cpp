@@ -24,7 +24,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -180,11 +179,14 @@ void addSpecialValues(
 
 }  // namespace
 
-SygusInst::SygusInst(QuantifiersEngine* qe)
-    : QuantifiersModule(qe),
-      d_ce_lemma_added(qe->getUserContext()),
-      d_global_terms(qe->getUserContext()),
-      d_notified_assertions(qe->getUserContext())
+SygusInst::SygusInst(QuantifiersEngine* qe,
+                     QuantifiersState& qs,
+                     QuantifiersInferenceManager& qim,
+                     QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
+      d_ce_lemma_added(qs.getUserContext()),
+      d_global_terms(qs.getUserContext()),
+      d_notified_assertions(qs.getUserContext())
 {
 }
 
@@ -307,7 +309,7 @@ bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
   for (const Node& lem : lemmas)
   {
     Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-    added_lemma |= d_quantEngine->addLemma(lem);
+    added_lemma |= d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
   }
   return added_lemma;
 }
@@ -509,7 +511,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   d_var_eval.emplace(q, evals);
 
   Node lit = getCeLiteral(q);
-  d_quantEngine->addRequirePhase(lit, true);
+  d_qim.addPendingPhaseRequirement(lit, true);
 
   /* The decision strategy for quantified formula 'q' ensures that its
    * counterexample literal is decided on first. It is user-context dependent.
@@ -518,7 +520,7 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
   DecisionStrategy* ds =
       new DecisionStrategySingleton("CeLiteral",
                                     lit,
-                                    d_quantEngine->getSatContext(),
+                                    d_qstate.getSatContext(),
                                     d_quantEngine->getValuation());
 
   d_dstrat[q].reset(ds);
@@ -543,7 +545,7 @@ void SygusInst::addCeLemma(Node q)
   if (d_ce_lemma_added.find(q) != d_ce_lemma_added.end()) return;
 
   Node lem = d_ce_lemmas[q];
-  d_quantEngine->addLemma(lem, false);
+  d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
   d_ce_lemma_added.insert(q);
   Trace("sygus-inst") << "Add CE Lemma: " << lem << std::endl;
 }

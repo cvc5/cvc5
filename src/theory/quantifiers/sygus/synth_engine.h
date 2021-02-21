@@ -19,7 +19,7 @@
 #define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -33,7 +33,10 @@ class SynthEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  public:
-  SynthEngine(QuantifiersEngine* qe, context::Context* c);
+  SynthEngine(QuantifiersEngine* qe,
+              QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr);
   ~SynthEngine();
   /** presolve
    *
@@ -47,6 +50,8 @@ class SynthEngine : public QuantifiersModule
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
+  /** check ownership */
+  void checkOwnership(Node q) override;
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */

@@ -99,7 +99,7 @@ TrustNode ExpandDefs::expandDefinitions(
             // ------- ASSUME
             // n = f
             Node conc = n.eqNode(f);
-            tpg->addRewriteStep(n, f, PfRule::ASSUME, {}, {conc});
+            tpg->addRewriteStep(n, f, PfRule::ASSUME, {}, {conc}, true);
           }
           // must recursively expand its definition
           TrustNode tfe = expandDefinitions(f, cache, expandOnly, tpg);
@@ -236,7 +236,8 @@ TrustNode ExpandDefs::expandDefinitions(
                                 instance,
                                 PfRule::MACRO_SR_PRED_INTRO,
                                 pfExpChildren,
-                                {conc});
+                                {conc},
+                                true);
           }
         }
         // now, call expand definitions again on the result
@@ -260,7 +261,7 @@ TrustNode ExpandDefs::expandDefinitions(
           if (tpg != nullptr)
           {
             tpg->addRewriteStep(
-                n, node, trn.getGenerator(), PfRule::THEORY_EXPAND_DEF);
+                n, node, trn.getGenerator(), true, PfRule::THEORY_EXPAND_DEF);
           }
         }
         else

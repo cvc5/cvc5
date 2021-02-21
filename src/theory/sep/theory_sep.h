@@ -253,7 +253,6 @@ class TheorySep : public Theory {
   enum {
     bound_strict,
     bound_default,
-    bound_herbrand,
     bound_invalid,
   };
   std::map< TypeNode, unsigned > d_bound_kind;
@@ -340,7 +339,7 @@ class TheorySep : public Theory {
   bool areDisequal( Node a, Node b );
   void eqNotifyMerge(TNode t1, TNode t2);
 
-  void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
+  void sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer = false );
   void doPending();
 
  public:

@@ -25,7 +25,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 #include <numeric>  // for std::iota
 
@@ -58,7 +57,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
       ss << "_" << std::to_string(op_pos[i]);
     }
     d_unres_tn = NodeManager::currentNM()->mkSort(
-        ss.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+        ss.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
     Trace("sygus-grammar-normalize-trie")
         << "\tCreating type " << d_unres_tn << "\n";
     unres_tn = d_unres_tn;
@@ -68,10 +67,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
-SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
-    : d_qe(qe), d_tds(d_qe->getTermDatabaseSygus())
-{
-}
+SygusGrammarNorm::SygusGrammarNorm(TermDbSygus* tds) : d_tds(tds) {}
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
     : d_tn(src_tn),
@@ -287,7 +283,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   if (options::sygusMinGrammar() && dt.getNumConstructors() == op_pos.size())
   {
     SygusRedundantCons src;
-    src.initialize(d_qe, tn);
+    src.initialize(d_tds, tn);
     std::vector<unsigned> rindices;
     src.getRedundant(rindices);
     if (!rindices.empty())

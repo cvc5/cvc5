@@ -114,6 +114,13 @@ class CVC4_PUBLIC String {
    *    CVC4::String( s ).toString() = s.
    */
   std::string toString(bool useEscSequences = false) const;
+  /* toWString
+   * Converts this string to a std::wstring.
+   *
+   * Unlike toString(), this method uses no escape sequences as both this class
+   * and std::wstring use 32bit characters.
+   */
+  std::wstring toWString() const;
   /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
   /** is less than or equal to string y */

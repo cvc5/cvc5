@@ -187,11 +187,6 @@ class SkolemManager
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
-  /**
-   * Map to canonical bound variables. This is used for example by the method
-   * mkExistential.
-   */
-  std::map<Node, Node> d_witnessBoundVar;
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
   /** Get or make skolem attribute for witness term w */
@@ -217,12 +212,6 @@ class SkolemManager
                  const std::string& prefix,
                  const std::string& comment = "",
                  int flags = NodeManager::SKOLEM_DEFAULT);
-  /**
-   * Get or make bound variable unique to t whose type is the same as t. This
-   * is used to construct canonical bound variables e.g. for constructing
-   * bound variables for witness terms in the skolemize method above.
-   */
-  Node getOrMakeBoundVariable(Node t);
 };
 
 }  // namespace CVC4

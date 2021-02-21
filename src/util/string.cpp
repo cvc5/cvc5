@@ -291,6 +291,16 @@ std::string String::toString(bool useEscSequences) const {
   return str.str();
 }
 
+std::wstring String::toWString() const
+{
+  std::wstring res(size(), static_cast<wchar_t>(0));
+  for (std::size_t i = 0; i < size(); ++i)
+  {
+    res[i] = static_cast<wchar_t>(d_str[i]);
+  }
+  return res;
+}
+
 bool String::isLeq(const String &y) const
 {
   for (unsigned i = 0; i < size(); ++i)
@@ -500,7 +510,7 @@ Rational String::toNumber() const
 }
 
 std::ostream &operator<<(std::ostream &os, const String &s) {
-  return os << "\"" << s.toString(true) << "\"";
+  return os << "\"" << s.toString() << "\"";
 }
 
 }  // namespace CVC4

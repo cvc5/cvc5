@@ -47,8 +47,6 @@
  ** Tr((bvand s t)) =
  ** Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
  **
- ** More details and examples for this case are described next to
- ** the function createBitwiseNode.
  ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
  **
  ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
@@ -75,7 +73,7 @@
 #include "context/context.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/arith/nl/iand_table.h"
+#include "theory/arith/nl/iand_utils.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -284,7 +282,7 @@ class BVToInt : public PreprocessingPass
   Node d_one;
   
   /** helper class for handeling bvand translation */
-  theory::arith::nl::IAndTable d_iandTable;
+  theory::arith::nl::IAndUtils d_iandUtils;
 };
 
 }  // namespace passes

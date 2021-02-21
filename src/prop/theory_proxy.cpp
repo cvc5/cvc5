@@ -19,14 +19,14 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "options/decision_options.h"
+#include "options/smt_options.h"
+#include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
-#include "proof/cnf_proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "util/statistics_registry.h"
-
 
 namespace CVC4 {
 namespace prop {
@@ -35,18 +35,22 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
                          TheoryEngine* theoryEngine,
                          DecisionEngine* decisionEngine,
                          context::Context* context,
-                         CnfStream* cnfStream)
+                         context::UserContext* userContext,
+                         ProofNodeManager* pnm)
     : d_propEngine(propEngine),
-      d_cnfStream(cnfStream),
+      d_cnfStream(nullptr),
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
-      d_queue(context)
+      d_queue(context),
+      d_tpp(*theoryEngine, userContext, pnm)
 {
 }
 
 TheoryProxy::~TheoryProxy() {
   /* nothing to do for now */
 }
+
+void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -81,11 +85,12 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  if (options::unsatCores())
+  else if (options::unsatCores())
   {
     ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
   }
-  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
+  Debug("prop-explain") << "explainPropagation() => " << theoryExplanation
+                        << std::endl;
   explanation.push_back(l);
   if (theoryExplanation.getKind() == kind::AND)
   {
@@ -151,19 +156,58 @@ void TheoryProxy::spendResource(ResourceManager::Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) {
-  return d_decisionEngine->isRelevant(var);
-}
+bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
 
 bool TheoryProxy::isDecisionEngineDone() {
   return d_decisionEngine->isDone();
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return d_decisionEngine->getPolarity(var);
+  return SAT_VALUE_UNKNOWN;
 }
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
+
+theory::TrustNode TheoryProxy::preprocessLemma(
+    theory::TrustNode trn,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
+}
+
+theory::TrustNode TheoryProxy::preprocess(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  return d_tpp.preprocess(node, newLemmas, newSkolems);
+}
+
+theory::TrustNode TheoryProxy::removeItes(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  return rtf.run(node, newLemmas, newSkolems, true);
+}
+
+void TheoryProxy::getSkolems(TNode node,
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  std::unordered_set<Node, NodeHashFunction> skolems;
+  rtf.getSkolems(node, skolems);
+  for (const Node& k : skolems)
+  {
+    sks.push_back(k);
+    skAsserts.push_back(rtf.getLemmaForSkolem(k));
+  }
+}
+
+void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

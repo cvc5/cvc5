@@ -24,7 +24,7 @@
 #include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -69,7 +69,10 @@ class InstStrategyCegqi : public QuantifiersModule
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  InstStrategyCegqi(QuantifiersEngine* qe);
+  InstStrategyCegqi(QuantifiersEngine* qe,
+                    QuantifiersState& qs,
+                    QuantifiersInferenceManager& qim,
+                    QuantifiersRegistry& qr);
   ~InstStrategyCegqi();
 
   /** whether to do counterexample-guided instantiation for quantifier q */
@@ -98,8 +101,6 @@ class InstStrategyCegqi : public QuantifiersModule
   BvInverter* getBvInverter() const;
   /** pre-register quantifier */
   void preRegisterQuantifier(Node q) override;
-  // presolve
-  void presolve() override;
 
   /**
    * Rewrite the instantiation inst of quantified formula q for terms; return
@@ -122,8 +123,8 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /** Add lemma lem via the output channel of this class. */
-  bool addLemma(Node lem);
+  /** Add pending lemma lem via the inference manager of this class. */
+  bool addPendingLemma(Node lem) const;
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:

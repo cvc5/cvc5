@@ -17,6 +17,7 @@
 #ifndef CVC4__THEORY__BAGS__INFERENCE_MANAGER_H
 #define CVC4__THEORY__BAGS__INFERENCE_MANAGER_H
 
+#include "theory/bags/infer_info.h"
 #include "theory/bags/solver_state.h"
 #include "theory/inference_manager_buffered.h"
 
@@ -37,6 +38,16 @@ class InferenceManager : public InferenceManagerBuffered
 
  public:
   InferenceManager(Theory& t, SolverState& s, ProofNodeManager* pnm);
+
+  /**
+   * Do pending method. This processes all pending facts, lemmas and pending
+   * phase requests based on the policy of this manager. This means that
+   * we process the pending facts first and abort if in conflict. Otherwise, we
+   * process the pending lemmas and then the pending phase requirements.
+   * Notice that we process the pending lemmas even if there were facts.
+   */
+  // TODO issue #78: refactor this with theory of strings
+  void doPending();
 
  private:
   /** constants */

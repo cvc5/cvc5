@@ -60,6 +60,8 @@ class TheoryState
    * returns true if the representative of a and b are distinct constants.
    */
   virtual bool areDisequal(TNode a, TNode b) const;
+  /** get list of members in the equivalence class of a */
+  virtual void getEquivalenceClass(Node a, std::vector<Node>& eqc) const;
   /** get equality engine */
   eq::EqualityEngine* getEqualityEngine() const;
   //-------------------------------------- end equality information
@@ -82,6 +84,9 @@ class TheoryState
 
   /** Returns true if n has a current SAT assignment and stores it in value. */
   virtual bool hasSatValue(TNode n, bool& value) const;
+
+  /** Get the underlying valuation class */
+  Valuation& getValuation();
 
  protected:
   /** Pointer to the SAT context object used by the theory. */

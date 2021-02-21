@@ -318,6 +318,12 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
 
 TrustNode TheoryArrays::ppRewrite(TNode term)
 {
+  // first, see if we need to expand definitions
+  TrustNode texp = expandDefinition(term);
+  if (!texp.isNull())
+  {
+    return texp;
+  }
   if (!d_preprocess)
   {
     return TrustNode::null();
@@ -765,8 +771,11 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
         preRegisterTermInternal(ni);
       }
       // Apply RIntro1 Rule
-      d_im.assertInference(
-          ni.eqNode(v), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
+      d_im.assertInference(ni.eqNode(v),
+                           true,
+                           InferenceId::ARRAYS_READ_OVER_WRITE_1,
+                           d_true,
+                           PfRule::ARRAYS_READ_OVER_WRITE_1);
 
       d_infoMap.addStore(node, node);
       d_infoMap.addInStore(a, node);
@@ -1367,14 +1376,14 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         Debug("pf::array") << "Asserting to the equality engine:" << std::endl
                            << "\teq = " << eq << std::endl
                            << "\treason = " << fact << std::endl;
-        d_im.assertInference(eq, false, fact, PfRule::ARRAYS_EXT);
+        d_im.assertInference(eq, false, InferenceId::ARRAYS_EXT, fact, PfRule::ARRAYS_EXT);
         ++d_numProp;
       }
 
       // If this is the solution pass, generate the lemma. Otherwise, don't
       // generate it - as this is the lemma that we're reproving...
       Trace("arrays-lem") << "Arrays::addExtLemma " << lemma << "\n";
-      d_im.arrayLemma(eq.notNode(), fact, PfRule::ARRAYS_EXT);
+      d_im.arrayLemma(eq.notNode(), InferenceId::ARRAYS_EXT, fact, PfRule::ARRAYS_EXT);
       ++d_numExt;
     }
     else
@@ -1654,8 +1663,11 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     {
       preRegisterTermInternal(selConst);
     }
-    d_im.assertInference(
-        selConst.eqNode(defValue), true, d_true, PfRule::ARRAYS_TRUST);
+    d_im.assertInference(selConst.eqNode(defValue),
+                         true,
+                         InferenceId::UNKNOWN,
+                         d_true,
+                         PfRule::ARRAYS_TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);
@@ -1752,7 +1764,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
   Trace("arrays-crl")<<"Arrays::checkLemmas done.\n";
 }
 
-void TheoryArrays::propagate(RowLemmaType lem)
+void TheoryArrays::propagateRowLemma(RowLemmaType lem)
 {
   Debug("pf::array") << "TheoryArrays: RowLemma Propagate called. options::arraysPropagate() = "
                      << options::arraysPropagate() << std::endl;
@@ -1792,7 +1804,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
         preRegisterTermInternal(bj);
       }
       d_im.assertInference(
-          aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+          aj_eq_bj, true, InferenceId::ARRAYS_READ_OVER_WRITE, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -1803,7 +1815,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node j_eq_i = j.eqNode(i);
       d_im.assertInference(
-          j_eq_i, true, reason, PfRule::ARRAYS_READ_OVER_WRITE_CONTRA);
+          j_eq_i, true, InferenceId::ARRAYS_READ_OVER_WRITE_CONTRA, reason, PfRule::ARRAYS_READ_OVER_WRITE_CONTRA);
       ++d_numProp;
       return;
     }
@@ -1839,7 +1851,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   // If propagating, check propagations
   int prop = options::arraysPropagate();
   if (prop > 0) {
-    propagate(lem);
+    propagateRowLemma(lem);
   }
 
   // Prefer equality between indexes so as not to introduce new read terms
@@ -1870,7 +1882,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
         preRegisterTermInternal(aj2);
       }
       d_im.assertInference(
-          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          aj.eqNode(aj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -1882,7 +1894,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
         preRegisterTermInternal(bj2);
       }
       d_im.assertInference(
-          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          bj.eqNode(bj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       return;
@@ -1900,14 +1912,14 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
@@ -1917,7 +1929,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
     d_RowAlreadyAdded.insert(lem);
     // use non-rewritten nodes
     d_im.arrayLemma(
-        aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
+        aj.eqNode(bj), InferenceId::ARRAYS_READ_OVER_WRITE, eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
   }
   else {
@@ -1969,7 +1981,7 @@ bool TheoryArrays::dischargeLemmas()
 
     int prop = options::arraysPropagate();
     if (prop > 0) {
-      propagate(l);
+      propagateRowLemma(l);
       if (d_state.isInConflict())
       {
         return true;
@@ -1987,7 +1999,7 @@ bool TheoryArrays::dischargeLemmas()
         preRegisterTermInternal(aj2);
       }
       d_im.assertInference(
-          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          aj.eqNode(aj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -1999,7 +2011,7 @@ bool TheoryArrays::dischargeLemmas()
         preRegisterTermInternal(bj2);
       }
       d_im.assertInference(
-          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+          bj.eqNode(bj2), true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       continue;
@@ -2017,14 +2029,14 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2, true, InferenceId::UNKNOWN, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
@@ -2034,7 +2046,7 @@ bool TheoryArrays::dischargeLemmas()
     d_RowAlreadyAdded.insert(l);
     // use non-rewritten nodes, theory preprocessing will rewrite
     d_im.arrayLemma(
-        aj.eqNode(bj), eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
+        aj.eqNode(bj), InferenceId::ARRAYS_READ_OVER_WRITE, eq2.notNode(), PfRule::ARRAYS_READ_OVER_WRITE);
     ++d_numRow;
     lemmasAdded = true;
     if (options::arraysReduceSharing()) {

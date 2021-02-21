@@ -19,7 +19,9 @@
 #ifndef CVC4__DECISION__DECISION_STRATEGY_H
 #define CVC4__DECISION__DECISION_STRATEGY_H
 
-#include "preprocessing/assertion_pipeline.h"
+#include <vector>
+
+#include "expr/node.h"
 #include "prop/sat_solver_types.h"
 #include "smt/term_formula_removal.h"
 
@@ -44,10 +46,6 @@ public:
   virtual ~DecisionStrategy() { }
 
   virtual prop::SatLiteral getNext(bool&) = 0;
-
-  virtual bool needIteSkolemMap() { return false; }
-
-  virtual void notifyAssertionsAvailable() { return; }
 };/* class DecisionStrategy */
 
 class ITEDecisionStrategy : public DecisionStrategy {
@@ -55,22 +53,17 @@ public:
   ITEDecisionStrategy(DecisionEngine* de, context::Context *c) :
     DecisionStrategy(de, c) {
   }
-
-  bool needIteSkolemMap() override { return true; }
-
-  virtual void addAssertions(
-      const preprocessing::AssertionPipeline& assertions) = 0;
+  /**
+   * Add that assertion is an (input) assertion, not corresponding to a
+   * skolem definition.
+   */
+  virtual void addAssertion(TNode assertion) = 0;
+  /**
+   * Add that lem is the skolem definition for skolem, which is a part of
+   * the current assertions.
+   */
+  virtual void addSkolemDefinition(TNode lem, TNode skolem) = 0;
 };/* class ITEDecisionStrategy */
-
-class RelevancyStrategy : public ITEDecisionStrategy {
-public:
-  RelevancyStrategy(DecisionEngine* de, context::Context *c) :
-    ITEDecisionStrategy(de, c) {
-  }
-
-  virtual bool isRelevant(TNode n) = 0;
-  virtual prop::SatValue getPolarity(TNode n) = 0;
-};/* class RelevancyStrategy */
 
 }/* CVC4::decision namespace */
 }/* CVC4 namespace */

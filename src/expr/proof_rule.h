@@ -271,16 +271,17 @@ enum class PfRule : uint32_t
   // ======== Resolution
   // Children:
   //  (P1:C1, P2:C2)
-  // Arguments: (id, L)
+  // Arguments: (pol, L)
   // ---------------------
   // Conclusion: C
   // where
   //   - C1 and C2 are nodes viewed as clauses, i.e., either an OR node with
   //     each children viewed as a literal or a node viewed as a literal. Note
   //     that an OR node could also be a literal.
-  //   - id is either true or false
+  //   - pol is either true or false, representing the polarity of the pivot on
+  //     the first clause
   //   - L is the pivot of the resolution, which occurs as is (resp. under a
-  //     NOT) in C1 and negatively (as is) in C2 if id = true (id = false).
+  //     NOT) in C1 and negatively (as is) in C2 if pol = true (pol = false).
   //   C is a clause resulting from collecting all the literals in C1, minus the
   //   first occurrence of the pivot or its negation, and C2, minus the first
   //   occurrence of the pivot or its negation, according to the policy above.
@@ -295,15 +296,15 @@ enum class PfRule : uint32_t
   RESOLUTION,
   // ======== N-ary Resolution
   // Children: (P1:C_1, ..., Pm:C_n)
-  // Arguments: (id_1, L_1, ..., id_{n-1}, L_{n-1})
+  // Arguments: (pol_1, L_1, ..., pol_{n-1}, L_{n-1})
   // ---------------------
   // Conclusion: C
   // where
   //   - let C_1 ... C_n be nodes viewed as clauses, as defined above
-  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
-  //     pivot L and policy id, as defined above
+  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and polarity pol, as defined above
   //   - let C_1' = C_1 (from P1),
-  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //   - for each i > 1, let C_i' = C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
   //   The result of the chain resolution is C = C_n'
   CHAIN_RESOLUTION,
   // ======== Factoring
@@ -326,16 +327,16 @@ enum class PfRule : uint32_t
   REORDERING,
   // ======== N-ary Resolution + Factoring + Reordering
   // Children: (P1:C_1, ..., Pm:C_n)
-  // Arguments: (C, id_1, L_1, ..., id_{n-1}, L_{n-1})
+  // Arguments: (C, pol_1, L_1, ..., pol_{n-1}, L_{n-1})
   // ---------------------
   // Conclusion: C
   // where
   //   - let C_1 ... C_n be nodes viewed as clauses, as defined in RESOLUTION
-  //   - let "C_1 <>_{L,id} C_2" represent the resolution of C_1 with C_2 with
-  //     pivot L and policy id, as defined in RESOLUTION
+  //   - let "C_1 <>_{L,pol} C_2" represent the resolution of C_1 with C_2 with
+  //     pivot L and polarity pol, as defined in RESOLUTION
   //   - let C_1' be equal, in its set representation, to C_1 (from P1),
   //   - for each i > 1, let C_i' be equal, it its set representation, to
-  //     C_{i-1} <>_{L_{i-1}, id_{i-1}} C_i'
+  //     C_{i-1} <>_{L_{i-1}, pol_{i-1}} C_i'
   //   The result of the chain resolution is C, which is equal, in its set
   //   representation, to C_n'
   MACRO_RESOLUTION,
@@ -1105,6 +1106,34 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+  //======== Multiplication sign inference
+  // Children: none
+  // Arguments: (f1, ..., fk, m)
+  // ---------------------
+  // Conclusion: (=> (and f1 ... fk) (~ m 0))
+  // Where f1, ..., fk are variables compared to zero (less, greater or not
+  // equal), m is a monomial from these variables, and ~ is the comparison (less
+  // or greater) that results from the signs of the variables. All variables
+  // with even exponent in m should be given as not equal to zero while all
+  // variables with odd exponent in m should be given as less or greater than
+  // zero.
+  ARITH_MULT_SIGN,
+  //======== Multiplication with positive factor
+  // Children: none
+  // Arguments: (m, orig, lhs, rel, rhs)
+  // ---------------------
+  // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
+  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
+  // symbol.
+  ARITH_MULT_POS,
+  //======== Multiplication with negative factor
+  // Children: none
+  // Arguments: (m, orig, (rel lhs rhs))
+  // ---------------------
+  // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
+  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
+  // symbol and rel_inv the inverted relation symbol.
+  ARITH_MULT_NEG,
   //======== Multiplication tangent plane
   // Children: none
   // Arguments: (t, x, y, a, b, sgn)
@@ -1126,6 +1155,170 @@ enum class PfRule : uint32_t
   // Conclusion: (and (>= real.pi l) (<= real.pi u))
   // Where l (u) is a valid lower (upper) bound on pi.
   ARITH_TRANS_PI,
+
+  //======== Exp at negative values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (< t 0) (< (exp t) 1))
+  ARITH_TRANS_EXP_NEG,
+  //======== Exp is always positive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (> (exp t) 0)
+  ARITH_TRANS_EXP_POSITIVITY,
+  //======== Exp grows super-linearly for positive values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (or (<= t 0) (> exp(t) (+ t 1)))
+  ARITH_TRANS_EXP_SUPER_LIN,
+  //======== Exp at zero
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (= t 0) (= (exp t) 1))
+  ARITH_TRANS_EXP_ZERO,
+  //======== Exp is approximated from above for negative values
+  // Children: none
+  // Arguments: (d, t, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant exp l u t))
+  // Where d is an even positive number, t an arithmetic term and l (u) a lower
+  // (upper) bound on t. Let p be the d'th taylor polynomial at zero (also
+  // called the Maclaurin series) of the exponential function. (secant exp l u
+  // t) denotes the secant of p from (l, exp(l)) to (u, exp(u)) evaluated at t,
+  // calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (exp t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+  //======== Exp is approximated from above for positive values
+  // Children: none
+  // Arguments: (d, t, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant-pos exp l u t))
+  // Where d is an even positive number, t an arithmetic term and l (u) a lower
+  // (upper) bound on t. Let p* be a modification of the d'th taylor polynomial
+  // at zero (also called the Maclaurin series) of the exponential function as
+  // follows where p(d-1) is the regular Maclaurin series of degree d-1:
+  //    p* = p(d-1) * (1 + t^n / n!)
+  // (secant-pos exp l u t) denotes the secant of p from (l, exp(l)) to (u,
+  // exp(u)) evaluated at t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (exp t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+  //======== Exp is approximated from below
+  // Children: none
+  // Arguments: (d, t)
+  // ---------------------
+  // Conclusion: (>= (exp t) (maclaurin exp d t))
+  // Where d is an odd positive number and (maclaurin exp d t) is the d'th
+  // taylor polynomial at zero (also called the Maclaurin series) of the
+  // exponential function evaluated at t. The Maclaurin series for the
+  // exponential function is the following:
+  //   e^x = \sum_{n=0}^{\infty} x^n / n!
+  ARITH_TRANS_EXP_APPROX_BELOW,
+
+  //======== Sine is always between -1 and 1
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and (<= (sin t) 1) (>= (sin t) (- 1)))
+  ARITH_TRANS_SINE_BOUNDS,
+  //======== Sine arg shifted to -pi..pi
+  // Children: none
+  // Arguments: (x, y, s)
+  // ---------------------
+  // Conclusion: (and
+  //   (<= -pi y pi)
+  //   (= (sin y) (sin x))
+  //   (ite (<= -pi x pi) (= x y) (= x (+ y (* 2 pi s))))
+  // )
+  // Where x is the argument to sine, y is a new real skolem that is x shifted
+  // into -pi..pi and s is a new integer skolem that is the number of phases y
+  // is shifted.
+  ARITH_TRANS_SINE_SHIFT,
+  //======== Sine is symmetric with respect to negation of the argument
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (- (sin t) (sin (- t))) 0)
+  ARITH_TRANS_SINE_SYMMETRY,
+  //======== Sine is bounded by the tangent at zero
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and
+  //   (=> (> t 0) (< (sin t) t))
+  //   (=> (< t 0) (> (sin t) t))
+  // )
+  ARITH_TRANS_SINE_TANGENT_ZERO,
+  //======== Sine is bounded by the tangents at -pi and pi
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and
+  //   (=> (> t -pi) (> (sin t) (- -pi t)))
+  //   (=> (< t pi) (< (sin t) (- pi t)))
+  // )
+  ARITH_TRANS_SINE_TANGENT_PI,
+  //======== Sine is approximated from above for negative values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+  //======== Sine is approximated from above for positive values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (<= (sin t) (upper sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (upper sin c) denotes the upper
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the maximum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_ABOVE_POS,
+  //======== Sine is approximated from below for negative values
+  // Children: none
+  // Arguments: (d, t, c, lb, ub)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (lower sin c))
+  // Where d is an even positive number, t an arithmetic term, c an arithmetic
+  // constant, and lb (ub) a symbolic lower (upper) bound on t (possibly
+  // containing pi). Let p be the d'th taylor polynomial at zero (also called
+  // the Maclaurin series) of the sine function. (lower sin c) denotes the lower
+  // bound on sin(c) given by p and lb,ub are such that sin(t) is the minimum of
+  // the sine function on (lb,ub).
+  ARITH_TRANS_SINE_APPROX_BELOW_NEG,
+  //======== Sine is approximated from below for positive values
+  // Children: none
+  // Arguments: (d, t, lb, ub, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t lb) (<= t ub)) (>= (sin t) (secant sin l u t))
+  // Where d is an even positive number, t an arithmetic term, lb (ub) a
+  // symbolic lower (upper) bound on t (possibly containing pi) and l (u) the
+  // evaluated lower (upper) bound on t. Let p be the d'th taylor polynomial at
+  // zero (also called the Maclaurin series) of the sine function. (secant sin l
+  // u t) denotes the secant of p from (l, sin(l)) to (u, sin(u)) evaluated at
+  // t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (sin t) is above the
+  // secant of p from l to u.
+  ARITH_TRANS_SINE_APPROX_BELOW_POS,
 
   // ================ CAD Lemmas
   // We use IRP for IndexedRootPredicate.

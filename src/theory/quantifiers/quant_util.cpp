@@ -13,57 +13,13 @@
  **/
 
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
-using namespace std;
+#include "theory/quantifiers/term_util.h"
+
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
-
-QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
-{
-  return QEFFORT_NONE;
-}
-
-eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
-{
-  return d_quantEngine->getMasterEqualityEngine();
-}
-
-bool QuantifiersModule::areEqual(TNode n1, TNode n2) const
-{
-  return d_quantEngine->getEqualityQuery()->areEqual( n1, n2 );
-}
-
-bool QuantifiersModule::areDisequal(TNode n1, TNode n2) const
-{
-  return d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 );
-}
-
-TNode QuantifiersModule::getRepresentative(TNode n) const
-{
-  return d_quantEngine->getEqualityQuery()->getRepresentative( n );
-}
-
-QuantifiersEngine* QuantifiersModule::getQuantifiersEngine() const
-{
-  return d_quantEngine;
-}
-
-quantifiers::TermDb* QuantifiersModule::getTermDatabase() const
-{
-  return d_quantEngine->getTermDatabase();
-}
-
-quantifiers::TermUtil* QuantifiersModule::getTermUtil() const
-{
-  return d_quantEngine->getTermUtil();
-}
 
 QuantPhaseReq::QuantPhaseReq( Node n, bool computeEq ){
   initialize( n, computeEq );

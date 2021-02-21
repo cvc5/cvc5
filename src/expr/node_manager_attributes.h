@@ -26,14 +26,12 @@ namespace expr {
 // TODO: hide this attribute behind a NodeManager interface.
 namespace attr {
   struct VarNameTag { };
-  struct GlobalVarTag { };
   struct SortArityTag { };
   struct TypeTag { };
   struct TypeCheckedTag { };
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
-typedef Attribute<attr::GlobalVarTag(), bool> GlobalVarAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
 typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;

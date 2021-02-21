@@ -105,6 +105,9 @@ header = "options/smt_options.h"
 [[option.mode.NONE]]
   name       = "none"
   help       = "Do not translate proof output"
+[[option.mode.DOT]]
+  name       = "dot"
+  help       = "Output DOT proof"
 [[option.mode.LEAN]]
   name       = "lean"
   help       = "Output Lean proof"
@@ -162,6 +165,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "output proofs after every UNSAT/VALID response"
+
+[[option]]
+  name       = "proofPrintConclusion"
+  category   = "regular"
+  long       = "proof-print-conclusion"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "Print conclusion of proof steps when printing AST"
 
 [[option]]
   name       = "proofNew"
@@ -280,14 +292,6 @@ header = "options/smt_options.h"
   help       = "use sygus print callbacks to print sygus terms in the user-provided form (disable for debugging)"
 
 [[option]]
-  name       = "dumpSynth"
-  category   = "regular"
-  long       = "dump-synth"
-  type       = "bool"
-  default    = "false"
-  help       = "output solution for synthesis conjectures after every UNSAT/VALID response"
-
-[[option]]
   name       = "unsatCores"
   category   = "regular"
   long       = "produce-unsat-cores"
@@ -301,6 +305,13 @@ header = "options/smt_options.h"
   long       = "check-unsat-cores"
   type       = "bool"
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
+
+[[option]]
+  name       = "checkUnsatCoresNew"
+  category   = "regular"
+  long       = "check-unsat-cores-new"
+  type       = "bool"
+  help       = "after UNSAT/VALID, produce and check an unsat core (expensive) using the new proof infrastructure"
 
 [[option]]
   name       = "dumpUnsatCores"
@@ -407,6 +418,14 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "enables compressing ites after ite simplification"
+
+[[option]]
+  name       = "earlyIteRemoval"
+  category   = "experimental"
+  long       = "early-ite-removal"
+  type       = "bool"
+  default    = "false"
+  help       = "remove ITEs early in preprocessing"
 
 [[option]]
   name       = "unconstrainedSimp"
@@ -726,6 +745,16 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "Force no CPU limit when dumping models and proofs"
+
+[[option]]
+  name       = "foreignTheoryRewrite"
+  category   = "regular"
+  long       = "foreign-theory-rewrite"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "Cross-theory rewrites"
+
 
 [[option]]
   name       = "solveBVAsInt"

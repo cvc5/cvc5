@@ -34,7 +34,6 @@
 #include "api/cvc4cpp.h"
 
 #include <cstring>
-#include <regex>
 #include <sstream>
 
 #include "base/check.h"
@@ -334,7 +333,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {FORALL, CVC4::Kind::FORALL},
     {EXISTS, CVC4::Kind::EXISTS},
     {BOUND_VAR_LIST, CVC4::Kind::BOUND_VAR_LIST},
-    {INST_CLOSURE, CVC4::Kind::INST_CLOSURE},
     {INST_PATTERN, CVC4::Kind::INST_PATTERN},
     {INST_NO_PATTERN, CVC4::Kind::INST_NO_PATTERN},
     {INST_ATTRIBUTE, CVC4::Kind::INST_ATTRIBUTE},
@@ -630,7 +628,6 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::FORALL, FORALL},
         {CVC4::Kind::EXISTS, EXISTS},
         {CVC4::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
-        {CVC4::Kind::INST_CLOSURE, INST_CLOSURE},
         {CVC4::Kind::INST_PATTERN, INST_PATTERN},
         {CVC4::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
         {CVC4::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
@@ -1080,6 +1077,30 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   }
   Assert(d_type->isSortConstructor());
   return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
+}
+
+Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
+{
+  NodeManagerScope scope(d_solver->getNodeManager());
+  return Sort(
+      d_solver,
+      d_type->substitute(sort.getTypeNode(), replacement.getTypeNode()));
+}
+
+Sort Sort::substitute(const std::vector<Sort>& sorts,
+                      const std::vector<Sort>& replacements) const
+{
+  NodeManagerScope scope(d_solver->getNodeManager());
+
+  std::vector<CVC4::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
+                              tReplacements =
+                                  sortVectorToTypeNodes(replacements);
+
+  return Sort(d_solver,
+              d_type->substitute(tSorts.begin(),
+                                 tSorts.end(),
+                                 tReplacements.begin(),
+                                 tReplacements.end()));
 }
 
 std::string Sort::toString() const
@@ -2073,6 +2094,106 @@ CVC4::Expr Term::getExpr(void) const
 // to the new API. !!!
 const CVC4::Node& Term::getNode(void) const { return *d_node; }
 
+namespace detail {
+const Rational& getRational(const CVC4::Node& node)
+{
+  return node.getConst<Rational>();
+}
+Integer getInteger(const CVC4::Node& node)
+{
+  return node.getConst<Rational>().getNumerator();
+}
+template <typename T>
+bool checkIntegerBounds(const Integer& i)
+{
+  return i >= std::numeric_limits<T>::min()
+         && i <= std::numeric_limits<T>::max();
+}
+bool checkReal32Bounds(const Rational& r)
+{
+  return checkIntegerBounds<std::int32_t>(r.getNumerator())
+         && checkIntegerBounds<std::uint32_t>(r.getDenominator());
+}
+bool checkReal64Bounds(const Rational& r)
+{
+  return checkIntegerBounds<std::int64_t>(r.getNumerator())
+         && checkIntegerBounds<std::uint64_t>(r.getDenominator());
+}
+
+bool isInteger(const Node& node)
+{
+  return node.getKind() == CVC4::Kind::CONST_RATIONAL
+         && node.getConst<Rational>().isIntegral();
+}
+bool isInt32(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::int32_t>(getInteger(node));
+}
+bool isUInt32(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::uint32_t>(getInteger(node));
+}
+bool isInt64(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::int64_t>(getInteger(node));
+}
+bool isUInt64(const Node& node)
+{
+  return isInteger(node)
+         && checkIntegerBounds<std::uint64_t>(getInteger(node));
+}
+}  // namespace detail
+
+bool Term::isInt32() const { return detail::isInt32(*d_node); }
+std::int32_t Term::getInt32() const
+{
+  CVC4_API_CHECK(detail::isInt32(*d_node))
+      << "Term should be a Int32 when calling getInt32()";
+  return detail::getInteger(*d_node).getSignedInt();
+}
+bool Term::isUInt32() const { return detail::isUInt32(*d_node); }
+std::uint32_t Term::getUInt32() const
+{
+  CVC4_API_CHECK(detail::isUInt32(*d_node))
+      << "Term should be a UInt32 when calling getUInt32()";
+  return detail::getInteger(*d_node).getUnsignedInt();
+}
+bool Term::isInt64() const { return detail::isInt64(*d_node); }
+std::int64_t Term::getInt64() const
+{
+  CVC4_API_CHECK(detail::isInt64(*d_node))
+      << "Term should be a Int64 when calling getInt64()";
+  return detail::getInteger(*d_node).getLong();
+}
+bool Term::isUInt64() const { return detail::isUInt64(*d_node); }
+std::uint64_t Term::getUInt64() const
+{
+  CVC4_API_CHECK(detail::isUInt64(*d_node))
+      << "Term should be a UInt64 when calling getUInt64()";
+  return detail::getInteger(*d_node).getUnsignedLong();
+}
+bool Term::isInteger() const { return detail::isInteger(*d_node); }
+std::string Term::getInteger() const
+{
+  CVC4_API_CHECK(detail::isInteger(*d_node))
+      << "Term should be an Int when calling getIntString()";
+  return detail::getInteger(*d_node).toString();
+}
+
+bool Term::isString() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_STRING;
+}
+std::wstring Term::getString() const
+{
+  CVC4_API_CHECK(d_node->getKind() == CVC4::Kind::CONST_STRING)
+      << "Term should be a String when calling getString()";
+  return d_node->getConst<CVC4::String>().toWString();
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   out << t.toString();
@@ -2373,7 +2494,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  
+
   NodeManager* nm = d_solver->getNodeManager();
   Node ret =
       nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
@@ -3318,6 +3439,20 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       Node singleton = getNodeManager()->mkSingleton(type, *children[0].d_node);
       res = Term(this, singleton).getExpr();
     }
+    else if (kind == api::MK_BAG)
+    {
+      // the type of the term is the same as the type of the internal node
+      // see Term::getSort()
+      TypeNode type = children[0].d_node->getType();
+      // Internally NodeManager::mkBag needs a type argument
+      // to construct a bag, since there is no difference between
+      // integers and reals (both are Rationals).
+      // At the API, mkReal and mkInteger are different and therefore the
+      // element type can be used safely here.
+      Node bag = getNodeManager()->mkBag(
+          type, *children[0].d_node, *children[1].d_node);
+      res = Term(this, bag).getExpr();
+    }
     else
     {
       res = d_exprMgr->mkExpr(k, echildren);
@@ -3616,7 +3751,7 @@ Sort Solver::mkParamSort(const std::string& symbol) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return Sort(
       this,
-      getNodeManager()->mkSort(symbol, ExprManager::SORT_FLAG_PLACEHOLDER));
+      getNodeManager()->mkSort(symbol, NodeManager::SORT_FLAG_PLACEHOLDER));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -3786,11 +3921,48 @@ Term Solver::mkPi() const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+bool Solver::isValidInteger(const std::string& s) const
+{
+  if (s.length() == 0)
+  {
+    // string should not be empty
+    return false;
+  }
+
+  size_t index = 0;
+  if (s[index] == '-')
+  {
+    if (s.length() == 1)
+    {
+      // negative integers should contain at least one digit
+      return false;
+    }
+    index = 1;
+  }
+
+  if (s[index] == '0' && s.length() > (index + 1))
+  {
+    // From SMT-Lib 2.6: A〈numeral〉is the digit 0 or a non-empty sequence of
+    // digits not starting with 0. So integers like 001, 000 are not allowed
+    return false;
+  }
+
+  // all remaining characters should be decimal digits
+  for (; index < s.length(); ++index)
+  {
+    if (!std::isdigit(s[index]))
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 Term Solver::mkInteger(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(std::regex_match(s, std::regex("-?\\d+")), s)
-      << " an integer ";
+  CVC4_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
   Term integer = mkRealFromStrHelper(s);
   CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " an integer";
@@ -5169,6 +5341,21 @@ std::vector<Term> Solver::getUnsatCore(void) const
 }
 
 /**
+ *  ( get-proof )
+ */
+std::string Solver::getProof(void) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::proofNew])
+      << "Cannot get proof explicitly enabled (try --proof-new)";
+  CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
+      << "Cannot get proof unless in unsat mode.";
+  return d_smtEngine->getProof();
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+/**
  *  ( get-value ( <term> ) )
  */
 Term Solver::getValue(Term term) const
@@ -5515,7 +5702,7 @@ Term Solver::mkSygusVar(Sort sort, const std::string& symbol) const
   Node res = getNodeManager()->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
 
-  d_smtEngine->declareSygusVar(symbol, res, *sort.d_type);
+  d_smtEngine->declareSygusVar(res);
 
   return Term(this, res);
 
@@ -5640,7 +5827,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   std::vector<Node> bvns = termVectorToNodes(boundVars);
 
   d_smtEngine->declareSynthFun(
-      symbol, fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
+      fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
 
   return Term(this, fun);
 

@@ -44,8 +44,10 @@ void BaseSolver::checkInit()
   d_termIndex.clear();
   d_stringsEqc.clear();
 
-  std::map<Kind, uint32_t> ncongruent;
-  std::map<Kind, uint32_t> congruent;
+  Trace("strings-base") << "BaseSolver::checkInit" << std::endl;
+  // count of congruent, non-congruent per operator (independent of type),
+  // for debugging.
+  std::map<Kind, std::pair<uint32_t, uint32_t>> congruentCount;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   while (!eqcs_i.isFinished())
@@ -55,6 +57,8 @@ void BaseSolver::checkInit()
     if (!tn.isRegExp())
     {
       Node emps;
+      // get the term index for type tn
+      std::map<Kind, TermIndex>& tti = d_termIndex[tn];
       if (tn.isStringLike())
       {
         d_stringsEqc.push_back(eqc);
@@ -66,6 +70,7 @@ void BaseSolver::checkInit()
       {
         Node n = *eqc_i;
         Kind k = n.getKind();
+        Trace("strings-base") << "initialize term: " << n << std::endl;
         // process constant-like terms
         if (utils::isConstantLike(n))
         {
@@ -103,7 +108,7 @@ void BaseSolver::checkInit()
               {
                 // (seq.unit x) = C => false if |C| != 1.
                 d_im.sendInference(
-                    exp, d_false, Inference::UNIT_CONST_CONFLICT);
+                    exp, d_false, InferenceId::STRINGS_UNIT_CONST_CONFLICT);
                 return;
               }
             }
@@ -112,7 +117,7 @@ void BaseSolver::checkInit()
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x=c
               Assert(s.getType() == t.getType());
-              d_im.sendInference(exp, s.eqNode(t), Inference::UNIT_INJ);
+              d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
             }
           }
           // update best content
@@ -136,14 +141,17 @@ void BaseSolver::checkInit()
             if (d_congruent.find(n) == d_congruent.end())
             {
               std::vector<Node> c;
-              Node nc = d_termIndex[k].add(n, 0, d_state, emps, c);
+              Node nc = tti[k].add(n, 0, d_state, emps, c);
               if (nc != n)
               {
+                Trace("strings-base-debug")
+                    << "...found congruent term " << nc << std::endl;
                 // check if we have inferred a new equality by removal of empty
                 // components
                 if (k == STRING_CONCAT && !d_state.areEqual(nc, n))
                 {
                   std::vector<Node> exp;
+                  // the number of empty components of n, nc
                   size_t count[2] = {0, 0};
                   while (count[0] < nc.getNumChildren()
                          || count[1] < n.getNumChildren())
@@ -163,6 +171,9 @@ void BaseSolver::checkInit()
                         count[t]++;
                       }
                     }
+                    Trace("strings-base-debug")
+                        << "  counts = " << count[0] << ", " << count[1]
+                        << std::endl;
                     // explain equal components
                     if (count[0] < nc.getNumChildren())
                     {
@@ -176,7 +187,7 @@ void BaseSolver::checkInit()
                     }
                   }
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(nc), Inference::I_NORM);
+                  d_im.sendInference(exp, n.eqNode(nc), InferenceId::STRINGS_I_NORM);
                 }
                 else
                 {
@@ -190,15 +201,15 @@ void BaseSolver::checkInit()
                   // assuming that the reduction of f(a) depends on itself.
                 }
                 // this node is congruent to another one, we can ignore it
-                Trace("strings-process-debug")
+                Trace("strings-base-debug")
                     << "  congruent term : " << n << " (via " << nc << ")"
                     << std::endl;
                 d_congruent.insert(n);
-                congruent[k]++;
+                congruentCount[k].first++;
               }
               else if (k == STRING_CONCAT && c.size() == 1)
               {
-                Trace("strings-process-debug")
+                Trace("strings-base-debug")
                     << "  congruent term by singular : " << n << " " << c[0]
                     << std::endl;
                 // singular case
@@ -226,19 +237,19 @@ void BaseSolver::checkInit()
                   }
                   AlwaysAssert(foundNEmpty);
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(ns), Inference::I_NORM_S);
+                  d_im.sendInference(exp, n.eqNode(ns), InferenceId::STRINGS_I_NORM_S);
                 }
                 d_congruent.insert(n);
-                congruent[k]++;
+                congruentCount[k].first++;
               }
               else
               {
-                ncongruent[k]++;
+                congruentCount[k].second++;
               }
             }
             else
             {
-              congruent[k]++;
+              congruentCount[k].first++;
             }
           }
         }
@@ -254,14 +265,14 @@ void BaseSolver::checkInit()
             }
             else if (var > n)
             {
-              Trace("strings-process-debug")
+              Trace("strings-base-debug")
                   << "  congruent variable : " << var << std::endl;
               d_congruent.insert(var);
               var = n;
             }
             else
             {
-              Trace("strings-process-debug")
+              Trace("strings-base-debug")
                   << "  congruent variable : " << n << std::endl;
               d_congruent.insert(n);
             }
@@ -272,17 +283,17 @@ void BaseSolver::checkInit()
     }
     ++eqcs_i;
   }
-  if (Trace.isOn("strings-process"))
+  if (Trace.isOn("strings-base"))
   {
-    for (std::map<Kind, TermIndex>::iterator it = d_termIndex.begin();
-         it != d_termIndex.end();
-         ++it)
+    for (const std::pair<const Kind, std::pair<uint32_t, uint32_t>>& cc :
+         congruentCount)
     {
-      Trace("strings-process")
-          << "  Terms[" << it->first << "] = " << ncongruent[it->first] << "/"
-          << (congruent[it->first] + ncongruent[it->first]) << std::endl;
+      Trace("strings-base")
+          << "  Terms[" << cc.first << "] = " << cc.second.second << "/"
+          << (cc.second.first + cc.second.second) << std::endl;
     }
   }
+  Trace("strings-base") << "BaseSolver::checkInit finished" << std::endl;
 }
 
 void BaseSolver::checkConstantEquivalenceClasses()
@@ -293,17 +304,27 @@ void BaseSolver::checkConstantEquivalenceClasses()
   do
   {
     vecc.clear();
-    Trace("strings-process-debug")
+    Trace("strings-base-debug")
         << "Check constant equivalence classes..." << std::endl;
     prevSize = d_eqcInfo.size();
-    checkConstantEquivalenceClasses(&d_termIndex[STRING_CONCAT], vecc, true);
+    for (std::pair<const TypeNode, std::map<Kind, TermIndex>>& tindex :
+         d_termIndex)
+    {
+      checkConstantEquivalenceClasses(
+          &tindex.second[STRING_CONCAT], vecc, true);
+    }
   } while (!d_im.hasProcessed() && d_eqcInfo.size() > prevSize);
 
   if (!d_im.hasProcessed())
   {
     // now, go back and set "most content" terms
     vecc.clear();
-    checkConstantEquivalenceClasses(&d_termIndex[STRING_CONCAT], vecc, false);
+    for (std::pair<const TypeNode, std::map<Kind, TermIndex>>& tindex :
+         d_termIndex)
+    {
+      checkConstantEquivalenceClasses(
+          &tindex.second[STRING_CONCAT], vecc, false);
+    }
   }
 }
 
@@ -419,7 +440,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       }
       else if (d_state.hasTerm(c))
       {
-        d_im.sendInference(exp, n.eqNode(c), Inference::I_CONST_MERGE);
+        d_im.sendInference(exp, n.eqNode(c), InferenceId::STRINGS_I_CONST_MERGE);
         return;
       }
       else if (!d_im.hasProcessed())
@@ -452,7 +473,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             exp.push_back(bei.d_exp);
             d_im.addToExplanation(n, bei.d_base, exp);
           }
-          d_im.sendInference(exp, d_false, Inference::I_CONST_CONFLICT);
+          d_im.sendInference(exp, d_false, InferenceId::STRINGS_I_CONST_CONFLICT);
           return;
         }
         else
@@ -601,7 +622,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
         if (!d_state.areDisequal(*itr1, *itr2))
         {
           // add split lemma
-          if (d_im.sendSplit(*itr1, *itr2, Inference::CARD_SP))
+          if (d_im.sendSplit(*itr1, *itr2, InferenceId::STRINGS_CARD_SP))
           {
             return;
           }
@@ -639,7 +660,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       if (!cons.isConst() || !cons.getConst<bool>())
       {
         d_im.sendInference(
-            expn, expn, cons, Inference::CARDINALITY, false, true);
+            expn, expn, cons, InferenceId::STRINGS_CARDINALITY, false, true);
         return;
       }
     }

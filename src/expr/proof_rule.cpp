@@ -25,8 +25,6 @@ const char* toString(PfRule id)
     //================================================= Core rules
     case PfRule::ASSUME: return "ASSUME";
     case PfRule::SCOPE: return "SCOPE";
-
-    //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
     case PfRule::EVALUATE: return "EVALUATE";
@@ -164,14 +162,39 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_MULT_SIGN: return "ARITH_MULT_SIGN";
+    case PfRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
+    case PfRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
+    case PfRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
+    case PfRule::ARITH_TRANS_EXP_POSITIVITY:
+      return "ARITH_TRANS_EXP_POSITIVITY";
+    case PfRule::ARITH_TRANS_EXP_SUPER_LIN: return "ARITH_TRANS_EXP_SUPER_LIN";
+    case PfRule::ARITH_TRANS_EXP_ZERO: return "ARITH_TRANS_EXP_ZERO";
+    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG:
+      return "ARITH_TRANS_EXP_APPROX_ABOVE_NEG";
+    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_EXP_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_EXP_APPROX_BELOW:
+      return "ARITH_TRANS_EXP_APPROX_BELOW";
+    case PfRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
+    case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
+    case PfRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+      return "ARITH_TRANS_SINE_TANGENT_ZERO";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_PI:
+      return "ARITH_TRANS_SINE_TANGENT_PI";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
     case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
-    case PfRule::ARITH_NL_CAD_RECURSIVE:
-      return "ARITH_NL_CAD_RECURSIVE";
-
-      //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
-
+    case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
     //================================================= External rules
     case PfRule::LFSC_RULE: return "LFSC_RULE";
     case PfRule::LEAN_RULE: return "LEAN_RULE";

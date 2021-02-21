@@ -27,15 +27,15 @@
 namespace CVC4 {
 namespace proof {
 
-class LfscTermProcessCallback : public TermProcessCallback
+class LfscTermProcessor : public TermProcessor
 {
  public:
-  LfscTermProcessCallback();
-  ~LfscTermProcessCallback() {}
+  LfscTermProcessor();
+  ~LfscTermProcessor() {}
   /** convert to internal */
-  Node convertInternal(Node n) override;
+  Node runConvert(Node n) override;
   /** convert to internal */
-  TypeNode convertInternalType(TypeNode tn) override;
+  TypeNode runConvertType(TypeNode tn) override;
 
  private:
   /** Get symbol for term */

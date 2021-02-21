@@ -26,30 +26,6 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * This is a discrimination tree index for terms. It handles variadic
- * operators by indexing based on operator arity, and flattens multiple
- * occurrences of subterms.
- *
- * For example, the term
- * +( f( x ), +( a, f(x), b ) )
- *   is stored at:
- * d_children[+][2].d_children[f][1].
- *   d_children[x][0].d_children[+][3].
- *     d_children[a][0].d_children[f(x)][0].
- *       d_children[b][0]
- * Notice that the second occurrence of f(x) is flattened.
- */
-class AlphaEquivalenceNode {
-public:
- /** children of this node */
- std::map<Node, std::map<int, AlphaEquivalenceNode> > d_children;
- /** the data at this node */
- Node d_quant;
- /** Registers term q to this trie. The term t is the canonical form of q. */
- Node registerNode(Node q, Node t);
-};
-
-/**
  * This trie stores a trie of the above form for each multi-set of types. For
  * each term t registered to this node, we store t in the appropriate
  * AlphaEquivalenceNode trie. For example, if t contains 2 free variables
@@ -59,18 +35,21 @@ public:
 class AlphaEquivalenceTypeNode {
 public:
  /** children of this node */
- std::map<TypeNode, std::map<int, AlphaEquivalenceTypeNode> > d_children;
- /** the database of terms at this node */
- AlphaEquivalenceNode d_data;
+ std::map<std::pair<TypeNode, size_t>, AlphaEquivalenceTypeNode> d_children;
+ /**
+  * map from canonized quantifier bodies to a quantified formula whose
+  * canonized body is that term.
+  */
+ std::map<Node, Node> d_quant;
  /** register node
   *
   * This registers term q to this trie. The term t is the canonical form of
-  * q, typs/typ_count represent a multi-set of types of free variables in t.
+  * q, typs/typCount represent a multi-set of types of free variables in t.
   */
  Node registerNode(Node q,
                    Node t,
                    std::vector<TypeNode>& typs,
-                   std::map<TypeNode, int>& typ_count);
+                   std::map<TypeNode, size_t>& typCount);
 };
 
 /**
@@ -114,6 +93,8 @@ class AlphaEquivalence
   Node reduceQuantifier( Node q );
 
  private:
+  /** a term canonizer */
+  expr::TermCanonize d_termCanon;
   /** the database of quantified formulas registered to this class */
   AlphaEquivalenceDb d_aedb;
 };

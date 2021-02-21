@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "base/exception.h"
-#include "expr/type.h"
 
 namespace CVC4 {
 

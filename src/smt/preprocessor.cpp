@@ -38,7 +38,6 @@ Preprocessor::Preprocessor(SmtEngine& smt,
       d_assertionsProcessed(u, false),
       d_exDefs(smt, *smt.getResourceManager(), stats),
       d_processor(smt, d_exDefs, *smt.getResourceManager(), stats),
-      d_rtf(u),
       d_pnm(nullptr)
 {
 }
@@ -55,7 +54,7 @@ Preprocessor::~Preprocessor()
 void Preprocessor::finishInit()
 {
   d_ppContext.reset(new preprocessing::PreprocessingPassContext(
-      &d_smt, &d_rtf, &d_propagator, d_pnm));
+      &d_smt, &d_propagator, d_pnm));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -81,12 +80,10 @@ bool Preprocessor::process(Assertions& as)
   }
 
   // process the assertions, return true if no conflict is discovered
-  return d_processor.apply(as);
-}
+  bool noConflict = d_processor.apply(as);
 
-void Preprocessor::postprocess(Assertions& as)
-{
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  // now, post-process the assertions
+
   // if incremental, compute which variables are assigned
   if (options::incrementalSolving())
   {
@@ -95,6 +92,8 @@ void Preprocessor::postprocess(Assertions& as)
 
   // mark that we've processed assertions
   d_assertionsProcessed = true;
+
+  return noConflict;
 }
 
 void Preprocessor::clearLearnedLiterals()
@@ -103,8 +102,6 @@ void Preprocessor::clearLearnedLiterals()
 }
 
 void Preprocessor::cleanup() { d_processor.cleanup(); }
-
-RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
 
 Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
 {
@@ -129,7 +126,7 @@ Node Preprocessor::expandDefinitions(
   return d_exDefs.expandDefinitions(n, cache, expandOnly);
 }
 
-Node Preprocessor::simplify(const Node& node, bool removeItes)
+Node Preprocessor::simplify(const Node& node)
 {
   Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
@@ -147,11 +144,6 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   Node n = d_exDefs.expandDefinitions(nas, cache);
   TrustNode ts = d_ppContext->getTopLevelSubstitutions().apply(n);
   Node ns = ts.isNull() ? n : ts.getNode();
-  if (removeItes)
-  {
-    // also remove ites if asked
-    ns = d_rtf.replace(ns);
-  }
   return ns;
 }
 
@@ -161,7 +153,6 @@ void Preprocessor::setProofGenerator(PreprocessProofGenerator* pppg)
   d_pnm = pppg->getManager();
   d_exDefs.setProofNodeManager(d_pnm);
   d_propagator.setProof(d_pnm, d_context, pppg);
-  d_rtf.setProofNodeManager(d_pnm);
 }
 
 }  // namespace smt

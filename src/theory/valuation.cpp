@@ -18,6 +18,7 @@
 
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "prop/prop_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -156,7 +157,21 @@ void Valuation::setIrrelevantKind(Kind k)
 
 Node Valuation::ensureLiteral(TNode n) {
   Assert(d_engine != nullptr);
-  return d_engine->ensureLiteral(n);
+  return d_engine->getPropEngine()->ensureLiteral(n);
+}
+
+Node Valuation::getPreprocessedTerm(TNode n)
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getPreprocessedTerm(n);
+}
+
+Node Valuation::getPreprocessedTerm(TNode n,
+                                    std::vector<Node>& skAsserts,
+                                    std::vector<Node>& sks)
+{
+  Assert(d_engine != nullptr);
+  return d_engine->getPropEngine()->getPreprocessedTerm(n, skAsserts, sks);
 }
 
 bool Valuation::isDecision(Node lit) const {

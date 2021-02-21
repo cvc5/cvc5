@@ -49,42 +49,6 @@ CegSingleInvSol::CegSingleInvSol(QuantifiersEngine* qe)
 {
 }
 
-bool CegSingleInvSol::debugSolution(Node sol)
-{
-  if( sol.getKind()==SKOLEM ){
-    return false;
-  }else{
-    for( unsigned i=0; i<sol.getNumChildren(); i++ ){
-      if( !debugSolution( sol[i] ) ){
-        return false;
-      }
-    }
-    return true;
-  }
-
-}
-
-void CegSingleInvSol::debugTermSize(Node sol, int& t_size, int& num_ite)
-{
-  std::map< Node, int >::iterator it = d_dterm_size.find( sol );
-  if( it==d_dterm_size.end() ){
-    int prev = t_size;
-    int prev_ite = num_ite;
-    t_size++;
-    if( sol.getKind()==ITE ){
-      num_ite++;
-    }
-    for( unsigned i=0; i<sol.getNumChildren(); i++ ){
-      debugTermSize( sol[i], t_size, num_ite );
-    }
-    d_dterm_size[sol] = t_size-prev;
-    d_dterm_ite_size[sol] = num_ite-prev_ite;
-  }else{
-    t_size += it->second;
-    num_ite += d_dterm_ite_size[sol];
-  }
-}
-
 void CegSingleInvSol::preregisterConjecture(Node q)
 {
   Trace("csi-sol") << "Preregister conjecture : " << q << std::endl;
@@ -580,7 +544,8 @@ void CegSingleInvSol::getEquivalentTerms(Kind k,
         }
         if( !eq.isNull() ){
           eq = Rewriter::rewrite( eq );
-          if( eq!=d_qe->getTermUtil()->d_true ){
+          if (!eq.isConst() || !eq.getConst<bool>())
+          {
             success = false;
             break;
           }
@@ -824,7 +789,7 @@ void CegSingleInvSol::registerType(TypeNode tn)
   TypeNode btn = dt.getSygusType();
   // for constant reconstruction
   Kind ck = getComparisonKind(btn);
-  Node z = d_qe->getTermUtil()->getTypeValue(btn, 0);
+  Node z = TermUtil::mkTypeValue(btn, 0);
 
   // iterate over constructors
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)

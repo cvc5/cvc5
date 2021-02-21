@@ -33,32 +33,28 @@ ApplySubsts::ApplySubsts(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ApplySubsts::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  if (!options::unsatCores())
-  {
-    Chat() << "applying substitutions..." << std::endl;
-    Trace("apply-substs") << "SmtEnginePrivate::processAssertions(): "
-                      << "applying substitutions" << std::endl;
-    // TODO(#1255): Substitutions in incremental mode should be managed with a
-    // proper data structure.
+  Chat() << "applying substitutions..." << std::endl;
+  Trace("apply-substs") << "SmtEnginePrivate::processAssertions(): "
+                        << "applying substitutions" << std::endl;
+  // TODO(#1255): Substitutions in incremental mode should be managed with a
+  // proper data structure.
 
-    theory::TrustSubstitutionMap& tlsm =
-        d_preprocContext->getTopLevelSubstitutions();
-    unsigned size = assertionsToPreprocess->size();
-    for (unsigned i = 0; i < size; ++i)
+  theory::TrustSubstitutionMap& tlsm =
+      d_preprocContext->getTopLevelSubstitutions();
+  unsigned size = assertionsToPreprocess->size();
+  for (unsigned i = 0; i < size; ++i)
+  {
+    if (assertionsToPreprocess->isSubstsIndex(i))
     {
-      if (assertionsToPreprocess->isSubstsIndex(i))
-      {
-        continue;
-      }
-      Trace("apply-substs") << "applying to " << (*assertionsToPreprocess)[i]
-                        << std::endl;
-      d_preprocContext->spendResource(
-          ResourceManager::Resource::PreprocessStep);
-      assertionsToPreprocess->replaceTrusted(
-          i, tlsm.apply((*assertionsToPreprocess)[i]));
-      Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
-                        << std::endl;
+      continue;
     }
+    Trace("apply-substs") << "applying to " << (*assertionsToPreprocess)[i]
+                          << std::endl;
+    d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
+    assertionsToPreprocess->replaceTrusted(
+        i, tlsm.apply((*assertionsToPreprocess)[i]));
+    Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
+                          << std::endl;
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

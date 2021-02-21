@@ -167,8 +167,8 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
             proof->addStep(
                 flem, PfRule::MACRO_SR_PRED_TRANSFORM, {split, k_eq}, {flem});
           }
-          d_data->d_im.addPendingArithLemma(
-              flem, InferenceId::NL_FACTOR, proof);
+          d_data->d_im.addPendingLemma(
+              flem, InferenceId::ARITH_NL_FACTOR, proof);
         }
       }
     }
@@ -178,22 +178,27 @@ void FactoringCheck::check(const std::vector<Node>& asserts,
 Node FactoringCheck::getFactorSkolem(Node n, CDProof* proof)
 {
   std::map<Node, Node>::iterator itf = d_factor_skolem.find(n);
+  Node k;
   if (itf == d_factor_skolem.end())
   {
     NodeManager* nm = NodeManager::currentNM();
-    Node k = nm->getSkolemManager()->mkPurifySkolem(n, "kf");
-    Node k_eq = Rewriter::rewrite(k.eqNode(n));
+    k = nm->getSkolemManager()->mkPurifySkolem(n, "kf");
+    Node k_eq = k.eqNode(n);
     Trace("nl-ext-factor") << "...adding factor skolem " << k << " == " << n
                            << std::endl;
-    if (d_data->isProofEnabled())
-    {
-      proof->addStep(k_eq, PfRule::MACRO_SR_PRED_INTRO, {}, {k_eq});
-    }
-    d_data->d_im.addPendingArithLemma(k_eq, InferenceId::NL_FACTOR, proof);
+    d_data->d_im.addPendingLemma(k_eq, InferenceId::ARITH_NL_FACTOR, proof);
     d_factor_skolem[n] = k;
-    return k;
   }
-  return itf->second;
+  else
+  {
+    k = itf->second;
+  }
+  if (d_data->isProofEnabled())
+  {
+    Node k_eq = k.eqNode(n);
+    proof->addStep(k_eq, PfRule::MACRO_SR_PRED_INTRO, {}, {k_eq});
+  }
+  return k;
 }
 
 }  // namespace nl

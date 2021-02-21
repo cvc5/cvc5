@@ -156,9 +156,9 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /**
    * When given children and args lead to different sets of literals in a
    * conclusion depending on whether macro resolution or chain resolution is
-   * applied, the literals in the difference of the second from the first, from
-   * now on "crowding literals", are literals removed implicitly by macro
-   * resolution. For example
+   * applied, the literals that appear in the chain resolution result, but not
+   * in the macro resolution result, from now on "crowding literals", are
+   * literals removed implicitly by macro resolution. For example
    *
    *      l0 v l0 v l0 v l1 v l2    ~l0 v l1   ~l1
    * (1)  ----------------------------------------- MACRO_RES
@@ -183,18 +183,19 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * via the repetition of the premise responsible for removing more than one
    * occurrence of the crowding literal. The issue however is that this
    * expansion is exponential. Note that (2) has two occurrences of l0 and one
-   * of l1 as crowding literals. However by repeating ~l0 v l1 two times to
-   * remove l0, ~l1, which would originally need to repeated only one time, now
-   * has to be repeated two extra times on top of that one. With a multiple
-   * crowding literals and their elimination depending on premises that
+   * of l1 as crowding literals. However, by repeating ~l0 v l1 two times to
+   * remove l0, the clause ~l1, which would originally need to be repeated only
+   * one time, now has to be repeated two extra times on top of that one. With
+   * multiple crowding literals and their elimination depending on premises that
    * themselves add crowding literals one can easily end up with resolution
-   * chains with thousands of premises. Such examples do occur in practice.
+   * chains going from dozens to thousands of premises. Such examples do occur
+   * in practice, even in our regressions.
    *
    * The second way of expanding MACRO_RES, which avoids this exponential
    * behavior, is so that (1) becomes
    *
    *      l0 v l0 v l0 v l1 v l2
-   * (4)  ----------------------- FACTORING
+   * (4)  ---------------------- FACTORING
    *      l0 v l1 v l2                       ~l0 v l1
    *      ------------------------------------------- CHAIN_RES
    *                   l1 v l1 v l2
@@ -209,6 +210,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * while the former the literals from a direct application of CHAIN_RES). Then
    * it builds a proof such as (4) and adds the steps to cdp. The final
    * conclusion is returned.
+   *
+   * Note that in the example the CHAIN_RES steps introduced had only two
+   * premises, and could thus be replaced by a RESOLUTION step, but since we
+   * general there can be more than two premises we always use CHAIN_RES.
    *
    * @param clauseLits literals in the conclusion of a CHAIN_RESOLUTION step
    * with children and args[1:]

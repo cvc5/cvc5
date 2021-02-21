@@ -48,10 +48,6 @@ class CegSingleInvSol
   std::vector< Node > d_varList;
   std::map< Node, int > d_dterm_size;
   std::map< Node, int > d_dterm_ite_size;
-//solution simplification
-private:
-  bool debugSolution( Node sol );
-  void debugTermSize( Node sol, int& t_size, int& num_ite );
 
  public:
   CegSingleInvSol(QuantifiersEngine* qe);

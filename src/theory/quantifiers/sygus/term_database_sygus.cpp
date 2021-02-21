@@ -46,8 +46,12 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
+TermDbSygus::TermDbSygus(QuantifiersEngine* qe,
+                         QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim)
     : d_quantEngine(qe),
+      d_qstate(qs),
+      d_qim(qim),
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
@@ -935,8 +939,7 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
     if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
-        if (n[1]
-            == d_quantEngine->getTermUtil()->getTypeValue(n[1].getType(), 0))
+        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
         {
           return true;
         }

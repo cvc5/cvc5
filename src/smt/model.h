@@ -20,7 +20,7 @@
 #include <iosfwd>
 #include <vector>
 
-#include "expr/expr.h"
+#include "expr/node.h"
 #include "theory/theory_model.h"
 #include "util/cardinality.h"
 

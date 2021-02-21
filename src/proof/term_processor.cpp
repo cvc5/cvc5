@@ -21,43 +21,15 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace proof {
 
-Node TermProcessCallback::convert(Node n, bool toInternal)
-{
-  return toInternal ? convertInternal(n) : convertExternal(n);
-}
+TermProcessor::TermProcessor() {}
 
-Node TermProcessCallback::convertInternal(Node n) { return Node::null(); }
-
-Node TermProcessCallback::convertExternal(Node n) { return Node::null(); }
-
-TypeNode TermProcessCallback::convertType(TypeNode tn, bool toInternal)
-{
-  return toInternal ? convertInternalType(tn) : convertExternalType(tn);
-}
-TypeNode TermProcessCallback::convertInternalType(TypeNode tn)
-{
-  return TypeNode::null();
-}
-TypeNode TermProcessCallback::convertExternalType(TypeNode tn)
-{
-  return TypeNode::null();
-}
-
-TermProcessor::TermProcessor(TermProcessCallback* cb) : d_cb(cb) {}
-
-Node TermProcessor::toInternal(Node n) { return convert(n, true); }
-Node TermProcessor::toExternal(Node n) { return convert(n, false); }
-
-Node TermProcessor::convert(Node n, bool toInternal)
+Node TermProcessor::convert(Node n)
 {
   if (n.isNull())
   {
     return n;
   }
-  Trace("term-process-debug")
-      << "TermProcessor::convert: " << toInternal << " " << n << std::endl;
-  size_t cachei = toInternal ? 0 : 1;
-  std::unordered_map<Node, Node, NodeHashFunction>& cache = d_cache[cachei];
+  Trace("term-process-debug") << "TermProcessor::convert: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -67,16 +39,23 @@ Node TermProcessor::convert(Node n, bool toInternal)
   {
     cur = visit.back();
     visit.pop_back();
-    it = cache.find(cur);
-    if (it == cache.end())
+    it = d_cache.find(cur);
+    if (it == d_cache.end())
     {
-      cache[cur] = Node::null();
-      visit.push_back(cur);
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      if (!shouldTraverse(cur))
       {
-        visit.push_back(cur.getOperator());
+        d_cache[cur] = cur;
       }
-      visit.insert(visit.end(), cur.begin(), cur.end());
+      else
+      {
+        d_cache[cur] = Node::null();
+        visit.push_back(cur);
+        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          visit.push_back(cur.getOperator());
+        }
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
     }
     else if (it->second.isNull())
     {
@@ -85,16 +64,16 @@ Node TermProcessor::convert(Node n, bool toInternal)
       std::vector<Node> children;
       if (cur.getMetaKind() == metakind::PARAMETERIZED)
       {
-        it = cache.find(cur.getOperator());
-        Assert(it != cache.end());
+        it = d_cache.find(cur.getOperator());
+        Assert(it != d_cache.end());
         Assert(!it->second.isNull());
         childChanged = childChanged || cur.getOperator() != it->second;
         children.push_back(it->second);
       }
       for (const Node& cn : cur)
       {
-        it = cache.find(cn);
-        Assert(it != cache.end());
+        it = d_cache.find(cn);
+        Assert(it != d_cache.end());
         Assert(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
@@ -104,35 +83,27 @@ Node TermProcessor::convert(Node n, bool toInternal)
         ret = nm->mkNode(cur.getKind(), children);
       }
       // run the callback for the current application
-      ret = d_cb->convert(ret, toInternal);
-      cache[cur] = ret;
+      Node cret = runConvert(ret);
+      if (!cret.isNull())
+      {
+        ret = cret;
+      }
+      d_cache[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(cache.find(n) != cache.end());
-  Assert(!cache.find(n)->second.isNull());
-  return cache[n];
+  Assert(d_cache.find(n) != d_cache.end());
+  Assert(!d_cache.find(n)->second.isNull());
+  return d_cache[n];
 }
 
-TypeNode TermProcessor::toInternalType(TypeNode tn)
-{
-  return convertType(tn, true);
-}
-TypeNode TermProcessor::toExternalType(TypeNode tn)
-{
-  return convertType(tn, false);
-}
-
-TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
+TypeNode TermProcessor::convertType(TypeNode tn)
 {
   if (tn.isNull())
   {
     return tn;
   }
   Trace("term-process-debug")
-      << "TermProcessor::convertType: " << toInternal << " " << tn << std::endl;
-  size_t cachei = toInternal ? 0 : 1;
-  std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>& cache =
-      d_tcache[cachei];
+      << "TermProcessor::convertType: " << tn << std::endl;
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction>::iterator it;
   std::vector<TypeNode> visit;
   TypeNode cur;
@@ -141,24 +112,25 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
   {
     cur = visit.back();
     visit.pop_back();
-    it = cache.find(cur);
-    if (it == cache.end())
+    it = d_tcache.find(cur);
+    if (it == d_tcache.end())
     {
       if (cur.getNumChildren() == 0)
       {
-        TypeNode ret = d_cb->convertType(cur, toInternal);
-        cache[cur] = ret;
+        TypeNode ret = runConvertType(cur);
+        d_tcache[cur] = ret;
       }
       else
       {
-        cache[cur] = TypeNode::null();
+        d_tcache[cur] = TypeNode::null();
         visit.push_back(cur);
         visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else if (it->second.isNull())
     {
-      // reconstruct using a node builder
+      // reconstruct using a node builder, which seems to be required for
+      // type nodes.
       NodeBuilder<> nb(cur.getKind());
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
@@ -169,8 +141,8 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
            j != iend;
            ++j)
       {
-        it = cache.find(*j);
-        Assert(it != cache.end());
+        it = d_tcache.find(*j);
+        Assert(it != d_tcache.end());
         Assert(!it->second.isNull());
         nb << it->second;
       }
@@ -178,16 +150,25 @@ TypeNode TermProcessor::convertType(TypeNode tn, bool toInternal)
       TypeNode ret = nb.constructTypeNode();
       Trace("term-process-debug") << cur << " <- " << ret << std::endl;
       // run the callback for the current application
-      ret = d_cb->convertType(ret, toInternal);
+      TypeNode cret = runConvertType(ret);
+      if (!cret.isNull())
+      {
+        ret = cret;
+      }
       Trace("term-process-debug")
           << cur << " <- " << ret << " (post-convert)" << std::endl;
-      cache[cur] = ret;
+      d_tcache[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(cache.find(tn) != cache.end());
-  Assert(!cache.find(tn)->second.isNull());
-  return cache[tn];
+  Assert(d_tcache.find(tn) != d_tcache.end());
+  Assert(!d_tcache.find(tn)->second.isNull());
+  return d_tcache[tn];
 }
+
+Node TermProcessor::runConvert(Node n) { return Node::null(); }
+
+TypeNode TermProcessor::runConvertType(TypeNode tn) { return TypeNode::null(); }
+bool TermProcessor::shouldTraverse(Node n) { return true; }
 
 }  // namespace proof
 }  // namespace CVC4

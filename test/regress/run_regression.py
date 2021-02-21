@@ -376,6 +376,12 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
                '--incremental' not in all_args and \
                '--unconstrained-simp' not in all_args:
                 extra_command_line_args += ['--check-unsat-cores']
+        if unsat_cores and re.search(r'^(unsat|valid)$', expected_output):
+            if '--check-unsat-cores-new' not in all_args and \
+               '--no-check-unsat-cores-new' not in all_args and \
+               '--incremental' not in all_args and \
+               '--unconstrained-simp' not in all_args:
+                extra_command_line_args += ['--check-unsat-cores-new']
         if '--no-check-abducts' not in all_args and \
             '--check-abducts' not in all_args:
             extra_command_line_args += ['--check-abducts']

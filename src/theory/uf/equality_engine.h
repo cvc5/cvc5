@@ -683,22 +683,22 @@ private:
   /**
    * Returns true if this kind is used for congruence closure.
    */
-  bool isFunctionKind(Kind fun) const {
-    return d_congruenceKinds.tst(fun);
-  }
+  bool isFunctionKind(Kind fun) const { return d_congruenceKinds.test(fun); }
 
   /**
    * Returns true if this kind is used for congruence closure + evaluation of constants.
    */
-  bool isInterpretedFunctionKind(Kind fun) const {
-    return d_congruenceKindsInterpreted.tst(fun);
+  bool isInterpretedFunctionKind(Kind fun) const
+  {
+    return d_congruenceKindsInterpreted.test(fun);
   }
 
   /**
    * Returns true if this kind has an operator that is considered external (e.g. not internal).
    */
-  bool isExternalOperatorKind(Kind fun) const {
-    return d_congruenceKindsExtOperators.tst(fun);
+  bool isExternalOperatorKind(Kind fun) const
+  {
+    return d_congruenceKindsExtOperators.test(fun);
   }
 
   /**

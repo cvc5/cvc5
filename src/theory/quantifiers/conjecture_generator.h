@@ -19,7 +19,8 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers/quant_util.h"
+#include "expr/term_canonize.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
@@ -433,8 +434,12 @@ private:  //information about ground equivalence classes
   bool d_hasAddedLemma;
   //flush the waiting conjectures
   unsigned flushWaitingConjectures( unsigned& addedLemmas, int ldepth, int rdepth );
-public:
-  ConjectureGenerator( QuantifiersEngine * qe, context::Context* c );
+
+ public:
+  ConjectureGenerator(QuantifiersEngine* qe,
+                      QuantifiersState& qs,
+                      QuantifiersInferenceManager& qim,
+                      QuantifiersRegistry& qr);
   ~ConjectureGenerator();
 
   /* needs check */
@@ -454,6 +459,8 @@ public:
   unsigned optFullCheckConjectures();
 
   bool optStatsOnly();
+  /** term canonizer */
+  expr::TermCanonize d_termCanon;
 };
 
 

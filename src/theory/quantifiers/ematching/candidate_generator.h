@@ -89,8 +89,6 @@ class CandidateGeneratorQE : public CandidateGenerator
 
  public:
   CandidateGeneratorQE(QuantifiersEngine* qe, Node pat);
-  /** reset instantiation round */
-  void resetInstantiationRound() override;
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -102,8 +100,11 @@ class CandidateGeneratorQE : public CandidateGenerator
   {
     return d_exclude_eqc.find(r) != d_exclude_eqc.end();
   }
-
  protected:
+  /** reset this class for matching operator op in equivalence class eqc */
+  void resetForOperator(Node eqc, Node op);
+  /** the default implementation of getNextCandidate. */
+  Node getNextCandidateInternal();
   /** operator you are looking for */
   Node d_op;
   /** the equality class iterator (for cand_term_eqc) */
@@ -112,7 +113,7 @@ class CandidateGeneratorQE : public CandidateGenerator
   int d_term_iter;
   /** the TermDb index of the current ground term (for cand_term_db) */
   int d_term_iter_limit;
-  /** the term we are matching (for cand_term_ident) */
+  /** the current equivalence class */
   Node d_eqc;
   /** candidate generation modes */
   enum {
@@ -206,6 +207,30 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
   TypeNode d_mpat_type;
   /** we don't care about the operator of n */
   bool isLegalOpCandidate(Node n) override;
+};
+
+/**
+ * Candidate generator for selector applications, which considers both
+ * internal terms corresponding to correctly and incorrectly applied selectors.
+ */
+class CandidateGeneratorSelector : public CandidateGeneratorQE
+{
+ public:
+  CandidateGeneratorSelector(QuantifiersEngine* qe, Node mpat);
+  /** reset */
+  void reset(Node eqc) override;
+  /**
+   * Get next candidate, returns matching candidates that are ground terms
+   * of the selector operator, followed by those that are applications of the
+   * UF corresponding to an invocation of applying this selector to an
+   * application of the wrong constructor.
+   */
+  Node getNextCandidate() override;
+ protected:
+  /** the selector operator */
+  Node d_selOp;
+  /** the UF operator */
+  Node d_ufOp;
 };
 
 }/* CVC4::theory::inst namespace */

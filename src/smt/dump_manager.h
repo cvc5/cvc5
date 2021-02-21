@@ -49,13 +49,10 @@ class DumpManager
    */
   void resetAssertions();
   /**
-   * Add to Model command.  This is used for recording a command
-   * that should be reported during a get-model call.
+   * Add to dump command.  This is used for recording a command
+   * that should be reported via the dumpTag trace.
    */
-  void addToModelCommandAndDump(const NodeCommand& c,
-                                uint32_t flags = 0,
-                                bool userVisible = true,
-                                const char* dumpTag = "declarations");
+  void addToDump(const NodeCommand& c, const char* dumpTag = "declarations");
 
   /**
    * Set that function f should print in the model if and only if p is true.

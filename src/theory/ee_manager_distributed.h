@@ -52,8 +52,9 @@ class EqEngineManagerDistributed : public EqEngineManager
    * per theories and connects them to a master equality engine.
    */
   void initializeTheories() override;
-  /** get the core equality engine */
-  eq::EqualityEngine* getCoreEqualityEngine() override;
+  /** Notify model */
+  void notifyModel(bool incomplete) override;
+
  private:
   /** notify class for master equality engine */
   class MasterNotifyClass : public theory::eq::EqualityEngineNotify

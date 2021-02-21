@@ -18,7 +18,7 @@
 #define CVC4__THEORY__QUANT_SPLIT_H
 
 #include "context/cdo.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,7 +49,10 @@ class QuantDSplit : public QuantifiersModule {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantDSplit( QuantifiersEngine * qe, context::Context* c );
+  QuantDSplit(QuantifiersEngine* qe,
+              QuantifiersState& qs,
+              QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr);
   /** determine whether this quantified formula will be reduced */
   void checkOwnership(Node q) override;
   /* whether this module needs to check this round */

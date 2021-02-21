@@ -37,7 +37,7 @@ class SatSolverFactory
                                              StatisticsRegistry* registry,
                                              const std::string& name = "");
 
-  static MinisatSatSolver* createDPLLMinisat(StatisticsRegistry* registry);
+  static MinisatSatSolver* createCDCLTMinisat(StatisticsRegistry* registry);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry* registry,
                                         const std::string& name = "");

@@ -31,23 +31,20 @@ namespace theory {
 
 class QuantifiersEngine;
 
-namespace inst{
-  class Trigger;
-  class HigherOrderTrigger;
-}
-
 namespace quantifiers {
 
-namespace fmcheck {
-  class FullModelChecker;
-}
+class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
 
-class TermDbSygus;
-class QuantConflictFind;
-class RelevantDomain;
-class ConjectureGenerator;
-class TermGenerator;
-class TermGenEnv;
+/** Context-dependent list of nodes */
+class DbList
+{
+ public:
+  DbList(context::Context* c) : d_list(c) {}
+  /** The list */
+  context::CDList<Node> d_list;
+};
 
 /** Term Database
  *
@@ -69,14 +66,19 @@ class TermGenEnv;
  */
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
-  // TODO: eliminate these
-  friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
-  friend class ::CVC4::theory::quantifiers::TermGenEnv;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+  using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
+  using NodeList = context::CDList<Node>;
+  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using TypeNodeDbListMap = context::
+      CDHashMap<TypeNode, std::shared_ptr<DbList>, TypeNodeHashFunction>;
+  using NodeDbListMap =
+      context::CDHashMap<Node, std::shared_ptr<DbList>, NodeHashFunction>;
 
  public:
-  TermDb(context::Context* c, context::UserContext* u, QuantifiersEngine* qe);
+  TermDb(QuantifiersState& qs,
+         QuantifiersInferenceManager& qim,
+         QuantifiersRegistry& qr,
+         QuantifiersEngine* qe);
   ~TermDb();
   /** presolve (called once per user check-sat) */
   void presolve();
@@ -87,26 +89,26 @@ class TermDb : public QuantifiersUtil {
   /** identify */
   std::string identify() const override { return "TermDb"; }
   /** get number of operators */
-  unsigned getNumOperators();
+  size_t getNumOperators() const;
   /** get operator at index i */
-  Node getOperator(unsigned i);
+  Node getOperator(size_t i) const;
   /** ground terms for operator
   * Get the number of ground terms with operator f that have been added to the
   * database
   */
-  unsigned getNumGroundTerms(Node f) const;
+  size_t getNumGroundTerms(Node f) const;
   /** get ground term for operator
   * Get the i^th ground term with operator f that has been added to the database
   */
-  Node getGroundTerm(Node f, unsigned i) const;
+  Node getGroundTerm(Node f, size_t i) const;
   /** get num type terms
   * Get the number of ground terms of tn that have been added to the database
   */
-  unsigned getNumTypeGroundTerms(TypeNode tn) const;
+  size_t getNumTypeGroundTerms(TypeNode tn) const;
   /** get type ground term
   * Returns the i^th ground term of type tn
   */
-  Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
+  Node getTypeGroundTerm(TypeNode tn, size_t i) const;
   /** get or make ground term
    *
    * Returns the first ground term of type tn, or makes one if none exist. If
@@ -119,15 +121,15 @@ class TermDb : public QuantifiersUtil {
   * variable per type.
   */
   Node getOrMakeTypeFreshVariable(TypeNode tn);
-  /** add a term to the database
-  * withinQuant is whether n is within the body of a quantified formula
-  * withinInstClosure is whether n is within an inst-closure operator (see
-  * Bansal et al CAV 2015).
-  */
-  void addTerm(Node n,
-               std::set<Node>& added,
-               bool withinQuant = false,
-               bool withinInstClosure = false);
+  /**
+   * Add a term to the database, which registers it as a term that may be
+   * matched with via E-matching, and can be used in entailment tests below.
+   */
+  void addTerm(Node n);
+  /** Get the currently added ground terms of the given type */
+  DbList* getOrMkDbListForType(TypeNode tn);
+  /** Get the currently added ground terms for the given operator */
+  DbList* getOrMkDbListForOp(TNode op);
   /** get match operator for term n
   *
   * If n has a kind that we index, this function will
@@ -180,9 +182,9 @@ class TermDb : public QuantifiersUtil {
   /** evaluate term
    *
    * Returns a term n' such that n = n' is entailed based on the equality
-   * information qy.  This function may generate new terms. In particular,
+   * information ee.  This function may generate new terms. In particular,
    * we typically rewrite subterms of n of maximal size to terms that exist in
-   * the equality engine specified by qy.
+   * the equality engine specified by ee.
    *
    * useEntailmentTests is whether to call the theory engine's entailmentTest
    * on literals n for which this call fails to find a term n' that is
@@ -202,59 +204,53 @@ class TermDb : public QuantifiersUtil {
    */
   Node evaluateTerm(TNode n,
                     std::vector<Node>& exp,
-                    EqualityQuery* qy = NULL,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
   /** same as above, without exp */
   Node evaluateTerm(TNode n,
-                    EqualityQuery* qy = NULL,
                     bool useEntailmentTests = false,
                     bool reqHasTerm = false);
   /** get entailed term
    *
-  * If possible, returns a term n' such that:
-  * (1) n' exists in the current equality engine (as specified by qy),
-  * (2) n = n' is entailed in the current context.
-  * It returns null if no such term can be found.
-  * Wrt evaluateTerm, this version does not construct new terms, and
-  * thus is less aggressive.
-  */
-  TNode getEntailedTerm(TNode n, EqualityQuery* qy = NULL);
+   * If possible, returns a term n' such that:
+   * (1) n' exists in the current equality engine (as specified by the state),
+   * (2) n = n' is entailed in the current context.
+   * It returns null if no such term can be found.
+   * Wrt evaluateTerm, this version does not construct new terms, and
+   * thus is less aggressive.
+   */
+  TNode getEntailedTerm(TNode n);
   /** get entailed term
    *
-  * If possible, returns a term n' such that:
-  * (1) n' exists in the current equality engine (as specified by qy),
-  * (2) n * subs = n' is entailed in the current context, where * is denotes
-  * substitution application.
-  * It returns null if no such term can be found.
-  * subsRep is whether the substitution maps to terms that are representatives
-  * according to qy.
-  * Wrt evaluateTerm, this version does not construct new terms, and
-  * thus is less aggressive.
-  */
-  TNode getEntailedTerm(TNode n,
-                        std::map<TNode, TNode>& subs,
-                        bool subsRep,
-                        EqualityQuery* qy = NULL);
+   * If possible, returns a term n' such that:
+   * (1) n' exists in the current equality engine (as specified by the state),
+   * (2) n * subs = n' is entailed in the current context, where * denotes
+   * substitution application.
+   * It returns null if no such term can be found.
+   * subsRep is whether the substitution maps to terms that are representatives
+   * according to the quantifiers state.
+   * Wrt evaluateTerm, this version does not construct new terms, and
+   * thus is less aggressive.
+   */
+  TNode getEntailedTerm(TNode n, std::map<TNode, TNode>& subs, bool subsRep);
   /** is entailed
-  * Checks whether the current context entails n with polarity pol, based on the
-  * equality information qy.
-  * Returns true if the entailment can be successfully shown.
-  */
-  bool isEntailed(TNode n, bool pol, EqualityQuery* qy = NULL);
+   * Checks whether the current context entails n with polarity pol, based on
+   * the equality information in the quantifiers state. Returns true if the
+   * entailment can be successfully shown.
+   */
+  bool isEntailed(TNode n, bool pol);
   /** is entailed
    *
-  * Checks whether the current context entails ( n * subs ) with polarity pol,
-  * based on the equality information qy,
-  * where * denotes substitution application.
-  * subsRep is whether the substitution maps to terms that are representatives
-  * according to qy.
-  */
+   * Checks whether the current context entails ( n * subs ) with polarity pol,
+   * based on the equality information in the quantifiers state,
+   * where * denotes substitution application.
+   * subsRep is whether the substitution maps to terms that are representatives
+   * according to in the quantifiers state.
+   */
   bool isEntailed(TNode n,
                   std::map<TNode, TNode>& subs,
                   bool subsRep,
-                  bool pol,
-                  EqualityQuery* qy = NULL);
+                  bool pol);
   /** is the term n active in the current context?
    *
   * By default, all terms are active. A term is inactive if:
@@ -285,12 +281,6 @@ class TermDb : public QuantifiersUtil {
   bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
-  /** is r a inst closure node?
-   * This terminology was used for specifying
-   * a particular status of nodes for
-   * Bansal et al., CAV 2015.
-   */
-  bool isInstClosure(Node r);
   /** get higher-order type match predicate
    *
    * This predicate is used to force certain functions f of type tn to appear as
@@ -303,10 +293,24 @@ class TermDb : public QuantifiersUtil {
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;
+  /** The quantifiers state object */
+  QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
+  /** A context for the data structures below, when not context-dependent */
+  context::Context d_termsContext;
+  /** The context we are using for the data structures below */
+  context::Context* d_termsContextUse;
   /** terms processed */
-  std::unordered_set< Node, NodeHashFunction > d_processed;
-  /** terms processed */
-  std::unordered_set< Node, NodeHashFunction > d_iclosure_processed;
+  NodeSet d_processed;
+  /** map from types to ground terms for that type */
+  TypeNodeDbListMap d_typeMap;
+  /** list of all operators */
+  NodeList d_ops;
+  /** map from operators to ground terms for that operator */
+  NodeDbListMap d_opMap;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
@@ -314,12 +318,6 @@ class TermDb : public QuantifiersUtil {
   /** boolean terms */
   Node d_true;
   Node d_false;
-  /** list of all operators */
-  std::vector<Node> d_ops;
-  /** map from operators to ground terms for that operator */
-  std::map< Node, std::vector< Node > > d_op_map;
-  /** map from type nodes to terms of that type */
-  std::map< TypeNode, std::vector< Node > > d_type_map;
   /** map from type nodes to a fresh variable we introduced */
   std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_fv;
   /** inactive map */
@@ -348,14 +346,20 @@ class TermDb : public QuantifiersUtil {
   Node evaluateTerm2(TNode n,
                      std::map<TNode, Node>& visited,
                      std::vector<Node>& exp,
-                     EqualityQuery* qy,
                      bool useEntailmentTests,
                      bool computeExp,
                      bool reqHasTerm);
   /** helper for get entailed term */
-  TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
+  TNode getEntailedTerm2(TNode n,
+                         std::map<TNode, TNode>& subs,
+                         bool subsRep,
+                         bool hasSubs);
   /** helper for is entailed */
-  bool isEntailed2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, bool pol, EqualityQuery * qy );
+  bool isEntailed2(TNode n,
+                   std::map<TNode, TNode>& subs,
+                   bool subsRep,
+                   bool hasSubs,
+                   bool pol);
   /** compute uf eqc terms :
   * Ensure entries for f are in d_func_map_eqc_trie for all equivalence classes
   */
@@ -414,10 +418,7 @@ class TermDb : public QuantifiersUtil {
    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
    * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
    */
-  void addTermHo(Node n,
-                 std::set<Node>& added,
-                 bool withinQuant,
-                 bool withinInstClosure);
+  void addTermHo(Node n);
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing

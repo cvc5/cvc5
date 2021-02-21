@@ -1,7 +1,7 @@
 ; EXPECT: unsat
 ; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 
-(set-logic LIA)
+(set-logic NIA)
 
 (synth-fun f ((x Int)) Int
     ((Start Int))

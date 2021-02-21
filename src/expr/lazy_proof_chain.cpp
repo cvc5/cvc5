@@ -41,7 +41,7 @@ const std::map<Node, std::shared_ptr<ProofNode>> LazyCDProofChain::getLinks()
     const
 {
   std::map<Node, std::shared_ptr<ProofNode>> links;
-  for (const std::pair<const Node, ProofGenerator*>& link : d_gens)
+  for (const std::pair<const Node, ProofGenerator* const>& link : d_gens)
   {
     Assert(link.second);
     std::shared_ptr<ProofNode> pfn = link.second->getProofFor(link.first);
@@ -269,7 +269,7 @@ void LazyCDProofChain::addLazyStep(Node expected,
     std::shared_ptr<ProofNode> pfn = pg->getProofFor(expected);
     std::vector<Node> allowedLeaves{assumptions.begin(), assumptions.end()};
     // add all current links in the chain
-    for (const std::pair<const Node, ProofGenerator*>& link : d_gens)
+    for (const std::pair<const Node, ProofGenerator* const>& link : d_gens)
     {
       allowedLeaves.push_back(link.first);
     }

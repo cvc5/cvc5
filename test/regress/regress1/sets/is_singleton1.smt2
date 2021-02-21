@@ -1,3 +1,5 @@
+; COMMAND-LINE: -q
+; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (declare-fun S () (Set Int))

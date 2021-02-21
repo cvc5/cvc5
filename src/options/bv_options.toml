@@ -80,11 +80,11 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "bitvectorAlgebraicSolver"
-  category   = "regular"
+  category   = "experimental"
   long       = "bv-algebraic-solver"
   type       = "bool"
-  default    = "true"
-  help       = "turn on the algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
+  default    = "false"
+  help       = "turn on experimental algebraic solver for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
   name       = "bitvectorAlgebraicBudget"
@@ -128,14 +128,6 @@ header = "options/bv_options.h"
   type       = "bool"
   default    = "true"
   help       = "lift equivalence with one-bit bit-vectors to be boolean operations"
-
-[[option]]
-  name       = "bitvectorDivByZeroConst"
-  category   = "regular"
-  long       = "bv-div-zero-const"
-  type       = "bool"
-  default    = "true"
-  help       = "always return -1 on division by zero"
 
 [[option]]
   name       = "bvExtractArithRewrite"
@@ -244,6 +236,9 @@ header = "options/bv_options.h"
   default    = "LAZY"
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
+[[option.mode.BITBLAST]]
+  name = "bitblast"
+  help = "Enables bitblasting solver."
 [[option.mode.LAZY]]
   name = "lazy"
   help = "Enables the lazy BV solver infrastructure."

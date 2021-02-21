@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "base/check.h"
-#include "expr/expr.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
@@ -83,10 +82,6 @@ void Smt2::addTranscendentalOperators()
 
 void Smt2::addQuantifiersOperators()
 {
-  if (!strictModeEnabled())
-  {
-    addOperator(api::INST_CLOSURE, "inst-closure");
-  }
 }
 
 void Smt2::addBitvectorOperators() {
@@ -551,9 +546,12 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     if(d_logic.areIntegersUsed()) {
       defineType("Int", d_solver->getIntegerSort(), true, true);
       addArithmeticOperators();
-      addOperator(api::INTS_DIVISION, "div");
-      addOperator(api::INTS_MODULUS, "mod");
-      addOperator(api::ABS, "abs");
+      if (!strictModeEnabled() || !d_logic.isLinear())
+      {
+        addOperator(api::INTS_DIVISION, "div");
+        addOperator(api::INTS_MODULUS, "mod");
+        addOperator(api::ABS, "abs");
+      }
       addIndexedOperator(api::DIVISIBLE, api::DIVISIBLE, "divisible");
     }
 
@@ -643,7 +641,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     addOperator(api::INTERSECTION_MIN, "intersection_min");
     addOperator(api::DIFFERENCE_SUBTRACT, "difference_subtract");
     addOperator(api::DIFFERENCE_REMOVE, "difference_remove");
-    addOperator(api::SUBBAG, "bag.is_included");
+    addOperator(api::SUBBAG, "subbag");
     addOperator(api::BAG_COUNT, "bag.count");
     addOperator(api::DUPLICATE_REMOVAL, "duplicate_removal");
     addOperator(api::MK_BAG, "bag");
@@ -1072,13 +1070,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   else if (p.d_kind == api::APPLY_SELECTOR && !p.d_expr.isNull())
   {
     // tuple selector case
-    std::string indexString = p.d_expr.toString();
-    Integer x = p.d_expr.getExpr().getConst<Rational>().getNumerator();
-    if (!x.fitsUnsignedInt())
+    if (!p.d_expr.isUInt64())
     {
-      parseError("index of tupSel is larger than size of unsigned int");
+      parseError("index of tupSel is larger than size of uint64_t");
     }
-    unsigned int n = x.toUnsignedInt();
+    uint64_t n = p.d_expr.getUInt64();
     if (args.size() != 1)
     {
       parseError("tupSel should only be applied to one tuple argument");

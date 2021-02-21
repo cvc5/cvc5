@@ -30,6 +30,8 @@
 namespace CVC4 {
 namespace preprocessing {
 
+using IteSkolemMap = std::unordered_map<size_t, Node>;
+
 /**
  * Assertion Pipeline stores a list of assertions modified by preprocessing
  * passes. It is assumed that all assertions after d_realAssertionsEnd were

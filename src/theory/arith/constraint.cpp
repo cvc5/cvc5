@@ -1507,7 +1507,7 @@ Node Constraint::externalExplainByAssertions(const ConstraintCPVec& b){
   return externalExplain(b, AssertionOrderSentinel);
 }
 
-TrustNode Constraint::externalExplainForPropagation() const
+TrustNode Constraint::externalExplainForPropagation(TNode lit) const
 {
   Assert(hasProof());
   Assert(!isAssumption());
@@ -1517,6 +1517,9 @@ TrustNode Constraint::externalExplainForPropagation() const
   Node n = safeConstructNary(nb);
   if (d_database->isProofEnabled())
   {
+    // Check that the literal we're explaining via this constraint actually
+    // matches the constraint's canonical literal.
+    Assert(Rewriter::rewrite(lit) == getLiteral());
     std::vector<Node> assumptions;
     if (n.getKind() == Kind::AND)
     {
@@ -1526,18 +1529,18 @@ TrustNode Constraint::externalExplainForPropagation() const
     {
       assumptions.push_back(n);
     }
-    if (getProofLiteral() != getLiteral())
+    if (getProofLiteral() != lit)
     {
       pfFromAssumptions = d_database->d_pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, {pfFromAssumptions}, {getLiteral()});
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pfFromAssumptions}, {lit});
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(
-        getLiteral(), safeConstructNary(Kind::AND, assumptions), pf);
+        lit, safeConstructNary(Kind::AND, assumptions), pf);
   }
   else
   {
-    return TrustNode::mkTrustPropExp(getLiteral(), n);
+    return TrustNode::mkTrustPropExp(lit, n);
   }
 }
 

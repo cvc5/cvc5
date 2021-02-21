@@ -23,9 +23,9 @@
 namespace CVC4 {
 namespace prop {
 
-class MinisatSatSolver : public DPLLSatSolverInterface {
-public:
-
+class MinisatSatSolver : public CDCLTSatSolverInterface
+{
+ public:
   MinisatSatSolver(StatisticsRegistry* registry);
   ~MinisatSatSolver() override;
 
@@ -82,11 +82,14 @@ public:
 
   bool isDecision(SatVariable decn) const override;
 
+  /** Retrieve a pointer to the unerlying solver. */
   Minisat::SimpSolver* getSolver() { return d_minisat; }
 
+  /** Retrieve the proof manager of this SAT solver. */
   SatProofManager* getProofManager();
 
-  std::shared_ptr<ProofNode> getProof();
+  /** Retrieve the refutation proof of this SAT solver. */
+  std::shared_ptr<ProofNode> getProof() override;
 
  private:
 
@@ -113,7 +116,7 @@ public:
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;
 
-};/* class MinisatSatSolver */
+}; /* class MinisatSatSolver */
 
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */

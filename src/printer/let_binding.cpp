@@ -55,7 +55,7 @@ void LetBinding::letify(std::vector<Node>& letList)
   // populate the d_letList and d_letMap
   convertCountToLet();
   // add the new entries to the letList
-  letList.insert(letList.end(), d_letList.begin() + prevSize, d_letList.end());
+letList.insert(letList.end(), d_letList.begin() + prevSize, d_letList.end());
 }
 
 void LetBinding::pushScope() { d_context.push(); }

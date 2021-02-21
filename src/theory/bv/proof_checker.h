@@ -26,12 +26,12 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-/** A checker for array reasoning in proofs */
+/** The proof checker for bit-vectors. */
 class BVProofRuleChecker : public ProofRuleChecker
 {
  public:
-  BVProofRuleChecker();
-  ~BVProofRuleChecker() {}
+  BVProofRuleChecker() = default;
+  ~BVProofRuleChecker() = default;
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
@@ -41,9 +41,6 @@ class BVProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-
- private:
-  std::unique_ptr<BBSimple> d_bb;
 };
 
 }  // namespace bv

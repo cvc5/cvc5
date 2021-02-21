@@ -14,6 +14,7 @@
 
 #include "smt/smt_solver.h"
 
+#include "options/smt_options.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/preprocessor.h"
@@ -50,7 +51,6 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
   d_theoryEngine.reset(new TheoryEngine(d_smt.getContext(),
                                         d_smt.getUserContext(),
                                         d_rm,
-                                        d_pp.getTermFormulaRemover(),
                                         logicInfo,
                                         d_smt.getOutputManager(),
                                         d_pnm));
@@ -226,29 +226,41 @@ void SmtSolver::processAssertions(Assertions& as)
   // process the assertions with the preprocessor
   bool noConflict = d_pp.process(as);
 
-  // notify theory engine new preprocessed assertions
-  d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
-
-  // Push the formula to decision engine
+  // Notify the input formulas to theory engine
   if (noConflict)
   {
-    Chat() << "pushing to decision engine..." << endl;
-    d_propEngine->addAssertionsToDecisionEngine(ap);
+    Chat() << "notifying theory engine..." << std::endl;
+    d_propEngine->notifyPreprocessedAssertions(ap.ref());
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  d_pp.postprocess(as);
-
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
-    for (const Node& assertion : ap.ref())
+    const std::vector<Node>& assertions = ap.ref();
+    // It is important to distinguish the input assertions from the skolem
+    // definitions, as the decision justification heuristic treates the latter
+    // specially.
+    preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
+    preprocessing::IteSkolemMap::iterator it;
+    for (size_t i = 0, asize = assertions.size(); i < asize; i++)
     {
-      Chat() << "+ " << assertion << std::endl;
-      d_propEngine->assertFormula(assertion);
+      // is the assertion a skolem definition?
+      it = ism.find(i);
+      if (it == ism.end())
+      {
+        Chat() << "+ input " << assertions[i] << std::endl;
+        d_propEngine->assertFormula(assertions[i]);
+      }
+      else
+      {
+        Chat() << "+ skolem definition " << assertions[i] << " (from "
+               << it->second << ")" << std::endl;
+        d_propEngine->assertSkolemDefinition(assertions[i], it->second);
+      }
     }
   }
 
@@ -261,6 +273,12 @@ void SmtSolver::setProofNodeManager(ProofNodeManager* pnm) { d_pnm = pnm; }
 TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
 prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
+
+theory::QuantifiersEngine* SmtSolver::getQuantifiersEngine()
+{
+  Assert(d_theoryEngine != nullptr);
+  return d_theoryEngine->getQuantifiersEngine();
+}
 
 Preprocessor* SmtSolver::getPreprocessor() { return &d_pp; }
 

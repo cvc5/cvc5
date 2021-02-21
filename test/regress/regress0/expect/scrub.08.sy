@@ -1,8 +1,7 @@
-; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --no-sygus-repair-const
-; SCRUBBER: sed -e 's/The fact in question: .*$/The fact in question: TERM/'
-; EXPECT: (error "A non-linear fact was asserted to arithmetic in a linear logic.
-; EXPECT: The fact in question: TERM
-; EXPECT: ")
+; REQUIRES: no-competition
+; COMMAND-LINE: --lang=sygus2 --sygus-si=all --sygus-out=status --no-sygus-repair-const --strict-parsing
+; ERROR-SCRUBBER: grep -o "Symbol 'div' not declared as a variable"
+; EXPECT-ERROR: Symbol 'div' not declared as a variable
 ; EXIT: 1
 (set-logic LIA)
 (declare-var n Int)

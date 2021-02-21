@@ -24,7 +24,6 @@
 #include "options/sep_options.h"
 #include "options/smt_options.h"
 #include "smt/logic_exception.h"
-#include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -50,7 +49,7 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr),
+      d_im(*this, d_state, nullptr, "theory::sep"),
       d_notify(*this),
       d_reduce(u),
       d_spatial_assertions(c)
@@ -755,7 +754,7 @@ void TheorySep::postCheck(Effort level)
 
       // get model values
       std::map<int, Node> mvals;
-      for (const std::pair<int, Node>& sub_element : d_label_map[satom][slbl])
+      for (const std::pair<const int, Node>& sub_element : d_label_map[satom][slbl])
       {
         int sub_index = sub_element.first;
         Node sub_lbl = sub_element.second;
@@ -990,22 +989,6 @@ void TheorySep::ppNotifyAssertions(const std::vector<Node>& assertions) {
       d_loc_to_data_type[d_type_ref] = d_type_data;
     }
   }
-  // initialize the EPR utility
-  QuantifiersEngine* qe = getQuantifiersEngine();
-  if (qe != nullptr)
-  {
-    quantifiers::QuantEPR* qepr = qe->getQuantEPR();
-    if (qepr != nullptr)
-    {
-      for (const Node& a : assertions)
-      {
-        qepr->registerAssertion(a);
-      }
-      // must handle sources of other new constants e.g. separation logic
-      initializeBounds();
-      qepr->finishInit();
-    }
-  }
 }
 
 //return cardinality
@@ -1030,13 +1013,10 @@ int TheorySep::processAssertion( Node n, std::map< int, std::map< Node, int > >&
       if( quantifiers::TermUtil::hasBoundVarAttr( n[0] ) ){
         TypeNode tn1 = n[0].getType();
         if( d_bound_kind[tn1]!=bound_strict && d_bound_kind[tn1]!=bound_invalid ){
-          if( options::quantEpr() && n[0].getKind()==kind::BOUND_VARIABLE ){
-            // still valid : bound on heap models will include Herbrand universe of n[0].getType()
-            d_bound_kind[tn1] = bound_herbrand;
-          }else{
-            d_bound_kind[tn1] = bound_invalid;
-            Trace("sep-bound") << "reference cannot be bound (due to quantified pto)." << std::endl;
-          }
+          d_bound_kind[tn1] = bound_invalid;
+          Trace("sep-bound")
+              << "reference cannot be bound (due to quantified pto)."
+              << std::endl;
         }
       }else{
         references[index][n].push_back( n[0] );
@@ -1204,24 +1184,6 @@ void TheorySep::initializeBounds() {
     for( std::map< TypeNode, TypeNode >::iterator it = d_loc_to_data_type.begin(); it != d_loc_to_data_type.end(); ++it ){
       TypeNode tn = it->first;
       Trace("sep-bound")  << "Initialize bounds for " << tn << "..." << std::endl;
-      quantifiers::QuantEPR* qepr = getLogicInfo().isQuantified()
-                                        ? getQuantifiersEngine()->getQuantEPR()
-                                        : NULL;
-      //if pto had free variable reference      
-      if( d_bound_kind[tn]==bound_herbrand ){
-        //include Herbrand universe of tn
-        if( qepr && qepr->isEPR( tn ) ){
-          for( unsigned j=0; j<qepr->d_consts[tn].size(); j++ ){
-            Node k = qepr->d_consts[tn][j];
-            if( std::find( d_type_references[tn].begin(), d_type_references[tn].end(), k )==d_type_references[tn].end() ){
-              d_type_references[tn].push_back( k );
-            }
-          }
-        }else{
-          d_bound_kind[tn] = bound_invalid;
-          Trace("sep-bound") << "reference cannot be bound (due to non-EPR variable)." << std::endl;
-        }
-      }
       unsigned n_emp = 0;
       if( d_bound_kind[tn] != bound_invalid ){
         n_emp = d_card_max[tn];  
@@ -1236,18 +1198,7 @@ void TheorySep::initializeBounds() {
         Node e = NodeManager::currentNM()->mkSkolem( "e", tn, "cardinality bound element for seplog" );
         d_type_references_card[tn].push_back( e );
         d_type_ref_card_id[e] = r;
-        //must include this constant back into EPR handling
-        if( qepr && qepr->isEPR( tn ) ){
-          qepr->addEPRConstant( tn, e );
-        }
       }
-      //EPR must include nil ref    
-      if( qepr && qepr->isEPR( tn ) ){
-        Node nr = getNilRef( tn );
-        if( !qepr->isEPRConstant( tn, nr ) ){
-          qepr->addEPRConstant( tn, nr );
-        }
-      }      
     }
   }
 }
@@ -1794,7 +1745,7 @@ void TheorySep::addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity ) 
       Node n_conc = conc.empty() ? d_false : ( conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( kind::OR, conc ) );
       Trace("sep-pto")  << "Conclusion is " << n_conc << std::endl;
       // propagation for (pto x y) ^ ~(pto z w) ^ x = z => y != w
-      sendLemma( exp, n_conc, "PTO_NEG_PROP" );
+      sendLemma( exp, n_conc, InferenceId::SEP_PTO_NEG_PROP);
     }
   }else{
     if( polarity ){
@@ -1819,30 +1770,30 @@ void TheorySep::mergePto( Node p1, Node p2 ) {
     exp.push_back( p1 );
     exp.push_back( p2 );
     //enforces injectiveness of pto : (pto x y) ^ (pto y w) ^ x = y => y = w
-    sendLemma( exp, p1[0][1].eqNode( p2[0][1] ), "PTO_PROP" );
+    sendLemma( exp, p1[0][1].eqNode( p2[0][1] ), InferenceId::SEP_PTO_PROP);
   }
 }
 
-void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer ) {
+void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer ) {
   Trace("sep-lemma-debug") << "Do rewrite on inference : " << conc << std::endl;
   conc = Rewriter::rewrite( conc );
   Trace("sep-lemma-debug") << "Got : " << conc << std::endl;
   if( conc!=d_true ){
     if( infer && conc!=d_false ){
       Node ant_n = NodeManager::currentNM()->mkAnd(ant);
-      Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << c << std::endl;
-      d_im.addPendingFact(conc, ant_n);
+      Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << id << std::endl;
+      d_im.addPendingFact(conc, id, ant_n);
     }else{
       if( conc==d_false ){
-        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c
+        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(ant, nullptr);
+        d_im.conflictExp(id, ant, nullptr);
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
-                           << " by " << c << std::endl;
+                           << " by " << id << std::endl;
         TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
         d_im.addPendingLemma(
-            trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
+            trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }
     }
   }
