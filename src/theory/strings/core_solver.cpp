@@ -764,7 +764,7 @@ Node CoreSolver::getConclusion(Node x,
       // make agnostic to x/y
       conc = x < y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
-    if (options::stringUnifiedVSpt() && options::stringLenConc())
+    if (options::stringUnifiedVSpt())
     {
       // we can assume its length is greater than zero
       Node emp = Word::mkEmptyWord(sk1.getType());
@@ -842,7 +842,6 @@ size_t CoreSolver::getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
 Node CoreSolver::getDecomposeConclusion(Node x,
                                         Node l,
                                         bool isRev,
-                                        bool addLenConc,
                                         SkolemCache* skc,
                                         std::vector<Node>& newSkolems)
 {
@@ -854,12 +853,9 @@ Node CoreSolver::getDecomposeConclusion(Node x,
   Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
   newSkolems.push_back(sk2);
   Node conc = x.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2));
-  if (addLenConc)
-  {
-    Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
-    conc = nm->mkNode(AND, conc, lc);
-  }
-  return conc;
+  // add the length constraint to the conclusion
+  Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
+  return nm->mkNode(AND, conc, lc);
 }
 
 void CoreSolver::getNormalForms(Node eqc,
@@ -1706,11 +1702,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.setId(InferenceId::STRINGS_SSPLIT_VAR);
       iinfo.d_conc =
           getConclusion(x, y, PfRule::CONCAT_SPLIT, isRev, skc, newSkolems);
-      if (options::stringUnifiedVSpt() && !options::stringLenConc())
-      {
-        Assert(newSkolems.size() == 1);
-        iinfo.d_skolems[LENGTH_GEQ_ONE].push_back(newSkolems[0]);
-      }
     }
     else if (lentTestSuccess == 0)
     {
@@ -2180,16 +2171,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
           SkolemCache* skc = d_termReg.getSkolemCache();
           std::vector<Node> newSkolems;
           Node conc = getDecomposeConclusion(
-              nck, d_one, false, options::stringLenConc(), skc, newSkolems);
+              nck, d_one, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          if (options::stringLenConc())
-          {
-            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_IGNORE);
-          }
-          else
-          {
-            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_ONE);
-          }
           std::vector<Node> antecLen;
           antecLen.push_back(nm->mkNode(GEQ, nckLenTerm, d_one));
           d_im.sendInference(antecLen,
@@ -2219,7 +2202,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node uy = r == 0 ? y : x;
           Node uxLen = nm->mkNode(STRING_LENGTH, ux);
           Node uyLen = nm->mkNode(STRING_LENGTH, uy);
-          // We always request the length constraint in the conclusion here
+          // We always add the length constraint in the conclusion here
           // because the skolem needs to have length `uyLen`. If we only assert
           // that the skolem's length is greater or equal to one, we can end up
           // in a loop:
@@ -2232,7 +2215,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           // variable. So we get `x` in the normal form again.
           std::vector<Node> newSkolems;
           Node conc =
-              getDecomposeConclusion(ux, uyLen, false, true, skc, newSkolems);
+              getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           d_termReg.registerTermAtomic(newSkolems[1], LENGTH_GEQ_ONE);
           std::vector<Node> antecLen;
