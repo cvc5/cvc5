@@ -1113,6 +1113,42 @@ enum class PfRule : uint32_t
   // Where l (u) is a valid lower (upper) bound on pi.
   ARITH_TRANS_PI,
 
+  //======== Exp at negative values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (< t 0) (< (exp t) 1))
+  ARITH_TRANS_EXP_NEG,
+  //======== Exp is always positive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (> (exp t) 0)
+  ARITH_TRANS_EXP_POSITIVITY,
+  //======== Exp grows super-linearly for positive values
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (or (<= t 0) (> exp(t) (+ t 1)))
+  ARITH_TRANS_EXP_SUPER_LIN,
+  //======== Exp at zero
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= (= t 0) (= (exp t) 1))
+  ARITH_TRANS_EXP_ZERO,
+  //======== Exp is approximated from below
+  // Children: none
+  // Arguments: (d, t)
+  // ---------------------
+  // Conclusion: (>= (exp t) (maclaurin exp d t))
+  // Where d is an odd positive number and (maclaurin exp d t) is the d'th
+  // taylor polynomial at zero (also called the Maclaurin series) of the
+  // exponential function evaluated at t. The Maclaurin series for the
+  // exponential function is the following:
+  //   e^x = \sum_{n=0}^{\infty} x^n / n!
+  ARITH_TRANS_EXP_APPROX_BELOW,
+
   //======== Sine is always between -1 and 1
   // Children: none
   // Arguments: (t)
