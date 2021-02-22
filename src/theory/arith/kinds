@@ -80,6 +80,7 @@ operator LEQ 2 "less than or equal, x <= y"
 operator GT 2 "greater than, x > y"
 operator GEQ 2 "greater than or equal, x >= y"
 
+# represents an indexed root predicate. See util/indexed_root_predicate.h for more documentation.
 constant INDEXED_ROOT_PREDICATE_OP \
 	::CVC4::IndexedRootPredicate \
 	::CVC4::IndexedRootPredicateHashFunction \
