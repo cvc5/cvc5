@@ -260,8 +260,11 @@ class CoreSolver
    * a conjunction of splitting string x into pieces based on length l, e.g.:
    *   x = k_1 ++ k_2
    * where k_1 (resp. k_2) is a skolem corresponding to a substring of x of
-   * length l if isRev is false (resp. true). The function optionally adds a
-   * length constraint len(k_1) = l (resp. len(k_2) = l).
+   * length l if isRev is false (resp. true). The function also adds a
+   * length constraint len(k_1) = l (resp. len(k_2) = l). Note that adding this
+   * constraint to the conclusion is *not* optional, since the skolems k_1 and
+   * k_2 may be shared, hence their length constraint must be guarded by the
+   * premises of this inference.
    *
    * @param x The string term
    * @param l The length term
