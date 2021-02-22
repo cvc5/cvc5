@@ -570,6 +570,31 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   d_psb.clear();
 }
 
+void ProofCnfStream::ensureLiteral(TNode n)
+{
+  Trace("cnf") << "ProofCnfStream::ensureLiteral(" << n << ")\n";
+  if (d_cnfStream.hasLiteral(n))
+  {
+    d_cnfStream.ensureMappingForLiteral(n);
+    return;
+  }
+  // remove top level negation. We don't need to track this because it's a
+  // literal.
+  n = n.getKind() == kind::NOT ? n[0] : n;
+  if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
+  {
+    SatLiteral lit = toCNF(n, false);
+    // Store backward-mappings
+    // These may already exist
+    d_cnfStream.d_literalToNodeMap.insert_safe(lit, n);
+    d_cnfStream.d_literalToNodeMap.insert_safe(~lit, n.notNode());
+  }
+  else
+  {
+    d_cnfStream.convertAtom(n);
+  }
+}
+
 SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
 {
   Trace("cnf") << "toCNF(" << node

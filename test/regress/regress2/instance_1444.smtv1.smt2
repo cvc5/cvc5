@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-proof-new
+; COMMAND-LINE: --no-proof
 (set-option :incremental false)
 (set-info :status unsat)
 (set-logic QF_UF)

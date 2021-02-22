@@ -195,8 +195,15 @@ void TranscendentalSolver::checkTranscendentalMonotonic()
 
 void TranscendentalSolver::checkTranscendentalTangentPlanes()
 {
-  Trace("nl-ext") << "Get tangent plane lemmas for transcendental functions..."
-                  << std::endl;
+  if (Trace.isOn("nl-ext"))
+  {
+    if (!d_tstate.d_funcMap.empty())
+    {
+      Trace("nl-ext")
+          << "Get tangent plane lemmas for transcendental functions..."
+          << std::endl;
+    }
+  }
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
   for (const std::pair<const Kind, std::vector<Node> >& tfs :

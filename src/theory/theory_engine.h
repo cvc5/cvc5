@@ -19,26 +19,18 @@
 #ifndef CVC4__THEORY_ENGINE_H
 #define CVC4__THEORY_ENGINE_H
 
-#include <deque>
 #include <memory>
-#include <set>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "base/check.h"
-#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "options/options.h"
-#include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "prop/prop_engine.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
@@ -46,13 +38,13 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
+class OutputManager;
 class TheoryEngineProofGenerator;
 
 /**
@@ -92,10 +84,11 @@ class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
-namespace eq {
-class EqualityEngine;
-}  // namespace eq
 }/* CVC4::theory namespace */
+
+namespace prop {
+class PropEngine;
+}
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -164,9 +157,6 @@ class TheoryEngine {
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
-
-  /** Default visitor for pre-registration */
-  PreRegisterVisitor d_preRegistrationVisitor;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
@@ -677,8 +667,6 @@ private:
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
- private:
-  IntStat d_arithSubstitutionsAdded;
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */

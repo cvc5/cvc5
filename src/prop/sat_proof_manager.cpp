@@ -15,6 +15,7 @@
 #include "prop/sat_proof_manager.h"
 
 #include "expr/proof_node_algorithm.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
@@ -227,6 +228,17 @@ void SatProofManager::endResChain(Node conclusion,
                        << conclusion << " is set-equal to premise "
                        << children[0] << "\n";
     return;
+  }
+  // whether trivial cycle
+  for (const Node& child : children)
+  {
+    if (conclusion == child)
+    {
+      Trace("sat-proof")
+          << "SatProofManager::endResChain: no-op. The conclusion "
+          << conclusion << " is equal to a premise\n";
+      return;
+    }
   }
   if (Trace.isOn("sat-proof") && d_resChains.hasGenerator(conclusion))
   {
@@ -639,7 +651,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   } while (expanded);
   // now we should be able to close it
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     std::vector<Node> assumptionsVec;
     for (const Node& a : d_assumptions)

@@ -23,6 +23,7 @@
 
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
 
 namespace CVC4 {
 namespace theory {
@@ -96,6 +97,8 @@ class TheoryBV : public Theory
 
   void presolve() override;
 
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+
   /** Called by abstraction preprocessing pass. */
   bool applyAbstraction(const std::vector<Node>& assertions,
                         std::vector<Node>& new_assertions);
@@ -128,7 +131,10 @@ class TheoryBV : public Theory
   TheoryState d_state;
 
   /** A (default) theory inference manager. */
-  TheoryInferenceManager d_inferMgr;
+  TheoryInferenceManager d_im;
+
+  /** The notify class for equality engine. */
+  TheoryEqNotifyClass d_notify;
 
 }; /* class TheoryBV */
 

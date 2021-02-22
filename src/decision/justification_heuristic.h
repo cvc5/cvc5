@@ -121,9 +121,16 @@ public:
 
   prop::SatLiteral getNext(bool &stopSearch) override;
 
-  void addAssertions(const std::vector<Node>& assertions,
-                     const std::vector<Node>& ppLemmas,
-                     const std::vector<Node>& ppSkolems) override;
+  /**
+   * Notify this class that assertion is an (input) assertion, not corresponding
+   * to a skolem definition.
+   */
+  void addAssertion(TNode assertion) override;
+  /**
+   * Notify this class  that lem is the skolem definition for skolem, which is
+   * a part of the current assertions.
+   */
+  void addSkolemDefinition(TNode lem, TNode skolem) override;
 
  private:
   /* getNext with an option to specify threshold */

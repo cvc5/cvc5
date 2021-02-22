@@ -64,7 +64,9 @@ namespace theory {
  *    apply rewriter
  * )
  *
- * Note that the rewriter must be applied beforehand, since
+ * Note that the rewriter must be applied beforehand, since the rewriter may
+ * rewrite a theory atom into a formula, e.g. quantifiers miniscoping. This
+ * impacts what the inner traversal is applied to.
  */
 class TheoryPreprocessor
 {

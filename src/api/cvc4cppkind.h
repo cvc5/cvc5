@@ -2743,14 +2743,6 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   BOUND_VAR_LIST,
   /*
-   * A predicate for specifying term in instantiation closure.
-   * Parameters: 1
-   *   -[1]: Term
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   */
-  INST_CLOSURE,
-  /*
    * An instantiation pattern.
    * Specifies a (list of) terms to be used as a pattern for quantifier
    * instantiation.

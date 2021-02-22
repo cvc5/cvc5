@@ -27,6 +27,7 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
@@ -45,10 +46,10 @@ namespace smt {
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
   // TEMPORARY for testing
-  if (options::proofNewReq() && !options::proofNew())
+  if (options::proofReq() && !options::proof())
   {
-    AlwaysAssert(false) << "Fail due to --proof-new-req "
-                        << options::proofNew.wasSetByUser();
+    AlwaysAssert(false) << "Fail due to --proof-req "
+                        << options::proof.wasSetByUser();
   }
 
   // implied options
@@ -80,7 +81,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (options::checkUnsatCoresNew())
   {
-    options::proofNew.set(true);
+    options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -124,14 +125,25 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
           "Incremental eager bit-blasting is currently "
           "only supported for QF_BV. Try --bitblast=lazy.");
     }
+
+    // Force lazy solver since we don't handle EAGER_ATOMS in the
+    // BVSolver::BITBLAST solver.
+    options::bvSolver.set(options::BVSolver::LAZY);
   }
 
-  /* BVSolver::SIMPLE does not natively support int2bv and nat2bv, they need to
-   * to be eliminated eagerly. */
-  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  /* Only BVSolver::LAZY natively supports int2bv and nat2bv, for other solvers
+   * we need to eagerly eliminate the operators. */
+  if (options::bvSolver() == options::BVSolver::SIMPLE
+      || options::bvSolver() == options::BVSolver::BITBLAST)
   {
     options::bvLazyReduceExtf.set(false);
     options::bvLazyRewriteExtf.set(false);
+  }
+
+  /* Disable bit-level propagation by default for the BITBLAST solver. */
+  if (options::bvSolver() == options::BVSolver::BITBLAST)
+  {
+    options::bitvectorPropagate.set(false);
   }
 
   if (options::solveIntAsBV() > 0)
@@ -256,7 +268,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
-  //!!!!!!!!!!!! temporary on proof-new, whether it is ok to disable proof-new
+  //!!!!!!!!!!!! temporary on proof, whether it is ok to disable proof
   bool disableProofNewOk = false;
   if (options::globalNegate())
   {
@@ -268,7 +280,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // with new proof system
   if (options::unsatCores() && !options::checkUnsatCoresNew())
   {
-    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
+    // set proofReq/proofEagerChecking/checkProofs to false, since we
     // don't want CI failures
     disableProofNewOk = true;
   }
@@ -314,21 +326,21 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     disableProofNewOk = true;
   }
 
-  //!!!!!!!!!!!! temporary on proof-new
-  if (disableProofNewOk && options::proofNew())
+  //!!!!!!!!!!!! temporary on proof
+  if (disableProofNewOk && options::proof())
   {
-    options::proofNew.set(false);
-    options::proofNewReq.set(false);
-    options::checkProofsNew.set(false);
-    options::proofNewEagerChecking.set(false);
+    options::proof.set(false);
+    options::proofReq.set(false);
+    options::checkProofs.set(false);
+    options::proofEagerChecking.set(false);
   }
 
-  if (options::proofNew())
+  if (options::proof())
   {
     if (!options::stringLenConc.wasSetByUser())
     {
       options::stringLenConc.set(true);
-      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
+      Trace("smt") << "turning on string-len-conc, for proof" << std::endl;
     }
   }
 
@@ -343,7 +355,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE
-       || options::proofNew())
+       || options::proof())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -716,7 +728,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !options::unsatCores();
-    // TODO && !options::unsatCores() && !options::proofNew();
+    // TODO && !options::unsatCores() && !options::proof();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);
@@ -884,11 +896,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel"
              << std::endl;
     options::cegqi.set(false);
-  }
-  // Do we need to track instantiations?
-  if (options::unsatCores() && !options::trackInstLemmas.wasSetByUser())
-  {
-    options::trackInstLemmas.set(true);
   }
 
   if ((options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy())

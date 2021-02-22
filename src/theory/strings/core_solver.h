@@ -40,7 +40,7 @@ namespace strings {
 class CoreInferInfo
 {
  public:
-  CoreInferInfo();
+  CoreInferInfo(InferenceId id);
   ~CoreInferInfo() {}
   /** The infer info of this class */
   InferInfo d_infer;
@@ -78,7 +78,7 @@ class CoreInferInfo
 class CoreSolver
 {
   friend class InferenceManager;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  using NodeIntMap = context::CDHashMap<Node, int, NodeHashFunction>;
 
  public:
   CoreSolver(SolverState& s,

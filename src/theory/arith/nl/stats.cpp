@@ -23,19 +23,16 @@ namespace nl {
 
 NlStats::NlStats()
     : d_mbrRuns("nl::mbrRuns", 0),
-      d_checkRuns("nl::checkRuns", 0),
-      d_inferences("nl::inferences")
+      d_checkRuns("nl::checkRuns", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_mbrRuns);
   smtStatisticsRegistry()->registerStat(&d_checkRuns);
-  smtStatisticsRegistry()->registerStat(&d_inferences);
 }
 
 NlStats::~NlStats()
 {
   smtStatisticsRegistry()->unregisterStat(&d_mbrRuns);
   smtStatisticsRegistry()->unregisterStat(&d_checkRuns);
-  smtStatisticsRegistry()->unregisterStat(&d_inferences);
 }
 
 }  // namespace nl

@@ -18,7 +18,6 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "prop/prop_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -33,7 +32,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/smt_engine_subsolver.h"
-#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -44,16 +42,18 @@ namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
+                                 QuantifiersInferenceManager& qim,
                                  SygusStatistics& s)
     : d_qe(qe),
       d_qstate(qs),
+      d_qim(qim),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(qe)),
       d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess(qe)),
-      d_ceg_gc(new CegGrammarConstructor(qe, this)),
+      d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
       d_exampleInfer(new ExampleInfer(d_tds)),
       d_ceg_pbe(new SygusPbe(qe, this)),
@@ -723,7 +723,7 @@ bool SynthConjecture::doRefine()
   {
     Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
                          << std::endl;
-    bool res = d_qe->addLemma(lem);
+    bool res = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
     if (res)
     {
       ++(d_stats.d_cegqi_lemmas_refine);

@@ -1155,7 +1155,6 @@ enum class PfRule : uint32_t
   // Conclusion: (and (>= real.pi l) (<= real.pi u))
   // Where l (u) is a valid lower (upper) bound on pi.
   ARITH_TRANS_PI,
-
   //======== Exp at negative values
   // Children: none
   // Arguments: (t)
@@ -1221,7 +1220,6 @@ enum class PfRule : uint32_t
   // exponential function is the following:
   //   e^x = \sum_{n=0}^{\infty} x^n / n!
   ARITH_TRANS_EXP_APPROX_BELOW,
-
   //======== Sine is always between -1 and 1
   // Children: none
   // Arguments: (t)

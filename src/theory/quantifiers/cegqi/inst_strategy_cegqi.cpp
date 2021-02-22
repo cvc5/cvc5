@@ -15,7 +15,6 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
-#include "smt/term_formula_removal.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
@@ -26,7 +25,6 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -51,8 +49,9 @@ TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
 
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
-                                     QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                                     QuantifiersInferenceManager& qim,
+                                     QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_irew(new InstRewriterCegqi(this)),
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
@@ -104,12 +103,12 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     //add cbqi lemma
     //get the counterexample literal
     Node ceLit = getCounterexampleLiteral(q);
-    Node ceBody = d_quantEngine->getTermUtil()->getInstConstantBody( q );
+    Node ceBody = d_qreg.getInstConstantBody(q);
     if( !ceBody.isNull() ){
       //add counterexample lemma
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
-      d_quantEngine->addRequirePhase( ceLit, true );
+      d_qim.addPendingPhaseRequirement(ceLit, true);
       Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = Rewriter::rewrite( lem );
@@ -260,7 +259,7 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       clSet = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
-    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+    size_t lastWaiting = d_qim.numPendingLemmas();
     for( int ee=0; ee<=1; ee++ ){
       //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
       //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
@@ -274,15 +273,17 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
           break;
         }
       }
-      if (d_qstate.isInConflict()
-          || d_quantEngine->getNumLemmasWaiting() > lastWaiting)
+      if (d_qstate.isInConflict() || d_qim.numPendingLemmas() > lastWaiting)
       {
         break;
       }
     }
     if( Trace.isOn("cegqi-engine") ){
-      if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
-        Trace("cegqi-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
+      if (d_qim.numPendingLemmas() > lastWaiting)
+      {
+        Trace("cegqi-engine")
+            << "Added lemmas = " << (d_qim.numPendingLemmas() - lastWaiting)
+            << std::endl;
       }
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
       Trace("cegqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
@@ -311,11 +312,12 @@ bool InstStrategyCegqi::checkCompleteFor(Node q)
 
 void InstStrategyCegqi::checkOwnership(Node q)
 {
-  if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
+  if (d_qreg.getOwner(q) == nullptr && doCbqi(q))
+  {
     if (d_do_cbqi[q] == CEG_HANDLED)
     {
       //take full ownership of the quantified formula
-      d_quantEngine->setOwner( q, this );
+      d_qreg.setOwner(q, this);
     }
   }
 }
@@ -367,19 +369,18 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   // must register with the instantiator
   // must explicitly remove ITEs so that we record dependencies
   std::vector<Node> ce_vars;
-  TermUtil* tutil = d_quantEngine->getTermUtil();
-  for (unsigned i = 0, nics = tutil->getNumInstantiationConstants(q); i < nics;
+  for (size_t i = 0, nics = d_qreg.getNumInstantiationConstants(q); i < nics;
        i++)
   {
-    ce_vars.push_back(tutil->getInstantiationConstant(q, i));
+    ce_vars.push_back(d_qreg.getInstantiationConstant(q, i));
   }
   // send the lemma
-  d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+  d_qim.lemma(lem, InferenceId::UNKNOWN);
   // get the preprocessed form of the lemma we just sent
   std::vector<Node> skolems;
   std::vector<Node> skAsserts;
-  Node ppLem = d_quantEngine->getValuation().getPreprocessedTerm(
-      lem, skAsserts, skolems);
+  Node ppLem =
+      d_qstate.getValuation().getPreprocessedTerm(lem, skAsserts, skolems);
   std::vector<Node> lemp{ppLem};
   lemp.insert(lemp.end(), skAsserts.begin(), skAsserts.end());
   ppLem = NodeManager::currentNM()->mkAnd(lemp);
@@ -392,7 +393,7 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   {
     Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
                          << std::endl;
-    d_quantEngine->addLemma(auxLems[i], false);
+    d_qim.addPendingLemma(auxLems[i], InferenceId::UNKNOWN);
   }
 }
 
@@ -491,10 +492,10 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   }
 }
 
-bool InstStrategyCegqi::addLemma( Node lem ) {
-  return d_quantEngine->addLemma( lem );
+bool InstStrategyCegqi::addPendingLemma(Node lem) const
+{
+  return d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
 }
-
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
@@ -534,7 +535,7 @@ bool InstStrategyCegqi::processNestedQe(Node q, bool isPreregister)
       // add lemmas to process
       for (const Node& lem : lems)
       {
-        d_quantEngine->addLemma(lem);
+        d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
       }
       // don't need to process this, since it has been reduced
       return true;

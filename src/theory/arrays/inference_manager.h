@@ -45,16 +45,15 @@ class InferenceManager : public TheoryInferenceManager
    * @return true if the fact was successfully asserted, and false if the
    * fact was redundant.
    */
-  bool assertInference(TNode atom, bool polarity, TNode reason, PfRule id);
+  bool assertInference(TNode atom, bool polarity, InferenceId id, TNode reason, PfRule pfr);
   /**
-   * Send lemma (exp => conc) based on proof rule id with properties p. Cache
-   * the lemma if doCache is true.
+   * Send lemma (exp => conc) based on proof rule id with properties p.
    */
   bool arrayLemma(Node conc,
+                  InferenceId id,
                   Node exp,
-                  PfRule id,
-                  LemmaProperty p = LemmaProperty::NONE,
-                  bool doCache = false);
+                  PfRule pfr,
+                  LemmaProperty p = LemmaProperty::NONE);
 
  private:
   /**

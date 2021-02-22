@@ -16,6 +16,7 @@
 
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"

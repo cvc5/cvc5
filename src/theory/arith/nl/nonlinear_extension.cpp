@@ -82,18 +82,7 @@ void NonlinearExtension::preRegisterTerm(TNode n)
 {
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
-  d_extTheory.registerTermRec(n);
-}
-
-void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
-{
-  for (const NlLemma& nlem : out)
-  {
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_inference
-                          << " : " << nlem.d_node << std::endl;
-    d_im.addPendingArithLemma(nlem);
-    d_stats.d_inferences << nlem.d_inference;
-  }
+  d_extTheory.registerTerm(n);
 }
 
 void NonlinearExtension::processSideEffect(const NlLemma& se)
@@ -117,66 +106,9 @@ void NonlinearExtension::computeRelevantAssertions(
                       << " assertions" << std::endl;
 }
 
-unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
-{
-  Trace("nl-ext-lemma-debug")
-      << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_node << std::endl;
-  lem.d_node = Rewriter::rewrite(lem.d_node);
-
-  if (d_im.hasCachedLemma(lem.d_node, lem.d_property))
-  {
-    Trace("nl-ext-lemma-debug")
-        << "NonlinearExtension::Lemma duplicate : " << lem.d_node << std::endl;
-    return 0;
-  }
-  out.emplace_back(lem);
-  return 1;
-}
-
-unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
-                                          std::vector<NlLemma>& out)
-{
-  if (options::nlExtEntailConflicts())
-  {
-    // check if any are entailed to be false
-    for (const NlLemma& lem : lemmas)
-    {
-      Node ch_lemma = lem.d_node.negate();
-      ch_lemma = Rewriter::rewrite(ch_lemma);
-      Trace("nl-ext-et-debug")
-          << "Check entailment of " << ch_lemma << "..." << std::endl;
-      std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
-          options::TheoryOfMode::THEORY_OF_TYPE_BASED, ch_lemma);
-      Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
-                               << et.second << std::endl;
-      if (et.first)
-      {
-        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
-                           << lem.d_node << std::endl;
-        // return just this lemma
-        if (filterLemma(lem, out) > 0)
-        {
-          lemmas.clear();
-          return 1;
-        }
-      }
-    }
-  }
-
-  unsigned sum = 0;
-  for (const NlLemma& lem : lemmas)
-  {
-    sum += filterLemma(lem, out);
-    d_containing.getOutputChannel().spendResource(
-        ResourceManager::Resource::ArithNlLemmaStep);
-  }
-  lemmas.clear();
-  return sum;
-}
-
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
-  Trace("nl-ext") << "Getting assertions..." << std::endl;
+  Trace("nl-ext-assert-debug") << "Getting assertions..." << std::endl;
   bool useRelevance = false;
   if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
   {
@@ -197,8 +129,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
        ++it)
   {
     const Assertion& assertion = *it;
-    Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
-                    << std::endl;
+    Trace("nl-ext-assert-debug")
+        << "Loaded " << assertion.d_assertion << " from theory" << std::endl;
     Node lit = assertion.d_assertion;
     if (useRelevance && !v.isRelevant(lit))
     {
@@ -234,7 +166,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     auto iait = init_assertions.find(lit);
     if (iait != init_assertions.end())
     {
-      Trace("nl-ext") << "Adding " << lit << std::endl;
+      Trace("nl-ext-assert-debug") << "Adding " << lit << std::endl;
       assertions.push_back(lit);
       init_assertions.erase(iait);
     }
@@ -243,7 +175,7 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   // function by the code above.
   for (const Node& a : init_assertions)
   {
-    Trace("nl-ext") << "Adding " << a << std::endl;
+    Trace("nl-ext-assert-debug") << "Adding " << a << std::endl;
     assertions.push_back(a);
   }
   Trace("nl-ext") << "...keep " << assertions.size() << " / "
@@ -304,7 +236,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   bool ret = d_model.checkModel(passertions, tdegree, lemmas);
   for (const auto& al: lemmas)
   {
-    d_im.addPendingArithLemma(al);
+    d_im.addPendingLemma(al);
   }
   return ret;
 }
@@ -511,8 +443,10 @@ bool NonlinearExtension::modelBasedRefinement()
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
-            d_im.addPendingArithLemma(nsplit, true);
+            d_im.addPendingLemma(split,
+                                 InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT,
+                                 nullptr,
+                                 true);
           }
           if (d_im.hasWaitingLemma())
           {
@@ -599,11 +533,11 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
 {
   ++(d_stats.d_checkRuns);
 
-  if (Trace.isOn("nl-ext"))
+  if (Trace.isOn("nl-strategy"))
   {
     for (const auto& a : assertions)
     {
-      Trace("nl-ext") << "Input assertion: " << a << std::endl;
+      Trace("nl-strategy") << "Input assertion: " << a << std::endl;
     }
   }
   if (!d_strategy.isStrategyInit())
@@ -616,7 +550,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
   while (!stop && steps.hasNext())
   {
     InferStep step = steps.next();
-    Trace("nl-ext") << "Step " << step << std::endl;
+    Trace("nl-strategy") << "Step " << step << std::endl;
     switch (step)
     {
       case InferStep::BREAK: stop = d_im.hasPendingLemma(); break;
@@ -676,6 +610,7 @@ void NonlinearExtension::runStrategy(Theory::Effort effort,
     }
   }
 
+  Trace("nl-ext") << "finished strategy" << std::endl;
   Trace("nl-ext") << "  ...finished with " << d_im.numWaitingLemmas()
                   << " waiting lemmas." << std::endl;
   Trace("nl-ext") << "  ...finished with " << d_im.numPendingLemmas()

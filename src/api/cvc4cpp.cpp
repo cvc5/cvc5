@@ -333,7 +333,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {FORALL, CVC4::Kind::FORALL},
     {EXISTS, CVC4::Kind::EXISTS},
     {BOUND_VAR_LIST, CVC4::Kind::BOUND_VAR_LIST},
-    {INST_CLOSURE, CVC4::Kind::INST_CLOSURE},
     {INST_PATTERN, CVC4::Kind::INST_PATTERN},
     {INST_NO_PATTERN, CVC4::Kind::INST_NO_PATTERN},
     {INST_ATTRIBUTE, CVC4::Kind::INST_ATTRIBUTE},
@@ -629,7 +628,6 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::FORALL, FORALL},
         {CVC4::Kind::EXISTS, EXISTS},
         {CVC4::Kind::BOUND_VAR_LIST, BOUND_VAR_LIST},
-        {CVC4::Kind::INST_CLOSURE, INST_CLOSURE},
         {CVC4::Kind::INST_PATTERN, INST_PATTERN},
         {CVC4::Kind::INST_NO_PATTERN, INST_NO_PATTERN},
         {CVC4::Kind::INST_ATTRIBUTE, INST_ATTRIBUTE},
@@ -5349,8 +5347,8 @@ std::string Solver::getProof(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(d_smtEngine->getOptions()[options::proofNew])
-      << "Cannot get proof explicitly enabled (try --proof-new)";
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::proof])
+      << "Cannot get proof explicitly enabled (try --proof)";
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get proof unless in unsat mode.";
   return d_smtEngine->getProof();

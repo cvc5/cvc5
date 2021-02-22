@@ -20,7 +20,7 @@
 #include "context/cdhashmap.h"
 #include "expr/node_trie.h"
 #include "expr/term_canonize.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {
@@ -438,7 +438,8 @@ private:  //information about ground equivalence classes
  public:
   ConjectureGenerator(QuantifiersEngine* qe,
                       QuantifiersState& qs,
-                      QuantifiersInferenceManager& qim);
+                      QuantifiersInferenceManager& qim,
+                      QuantifiersRegistry& qr);
   ~ConjectureGenerator();
 
   /* needs check */

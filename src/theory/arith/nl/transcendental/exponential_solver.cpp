@@ -45,23 +45,21 @@ void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  NlLemma nlem(
-      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
-  d_data->d_im.addPendingArithLemma(nlem);
+  d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_PURIFY_ARG);
 }
 
 void ExponentialSolver::checkInitialRefine()
 {
   NodeManager* nm = NodeManager::currentNM();
-  Trace("nl-ext")
-      << "Get initial refinement lemmas for transcendental functions..."
-      << std::endl;
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_data->d_funcMap)
   {
     if (tfl.first != Kind::EXPONENTIAL)
     {
       continue;
     }
+    Trace("nl-ext")
+        << "Get initial (exp) refinement lemmas for transcendental functions..."
+        << std::endl;
     Assert(tfl.first == Kind::EXPONENTIAL);
     for (const Node& t : tfl.second)
     {
@@ -78,8 +76,8 @@ void ExponentialSolver::checkInitialRefine()
             proof = d_data->getProof();
             proof->addStep(lem, PfRule::ARITH_TRANS_EXP_POSITIVITY, {}, {t[0]});
           }
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp at zero: (t = 0) <=> (exp(t) = 1)
@@ -92,8 +90,8 @@ void ExponentialSolver::checkInitialRefine()
             proof = d_data->getProof();
             proof->addStep(lem, PfRule::ARITH_TRANS_EXP_ZERO, {}, {t[0]});
           }
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp on negative values: (t < 0) <=> (exp(t) < 1)
@@ -106,8 +104,8 @@ void ExponentialSolver::checkInitialRefine()
             proof = d_data->getProof();
             proof->addStep(lem, PfRule::ARITH_TRANS_EXP_NEG, {}, {t[0]});
           }
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp on positive values: (t <= 0) or (exp(t) > t+1)
@@ -122,8 +120,8 @@ void ExponentialSolver::checkInitialRefine()
             proof = d_data->getProof();
             proof->addStep(lem, PfRule::ARITH_TRANS_EXP_SUPER_LIN, {}, {t[0]});
           }
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, proof);
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
       }
     }
@@ -132,9 +130,6 @@ void ExponentialSolver::checkInitialRefine()
 
 void ExponentialSolver::checkMonotonic()
 {
-  Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
-                  << std::endl;
-
   auto it = d_data->d_funcMap.find(Kind::EXPONENTIAL);
   if (it == d_data->d_funcMap.end())
   {
@@ -142,6 +137,9 @@ void ExponentialSolver::checkMonotonic()
     return;
   }
 
+  Trace("nl-ext")
+      << "Get monotonicity lemmas for (exp) transcendental functions..."
+      << std::endl;
   // sort arguments of all transcendentals
   std::vector<Node> tf_args;
   std::map<Node, Node> tf_arg_to_term;
@@ -187,8 +185,8 @@ void ExponentialSolver::checkMonotonic()
                                  nm->mkNode(Kind::GEQ, t, s));
       Trace("nl-ext-exp") << "Monotonicity lemma : " << mono_lem << std::endl;
 
-      d_data->d_im.addPendingArithLemma(mono_lem,
-                                        InferenceId::NL_T_MONOTONICITY);
+      d_data->d_im.addPendingLemma(mono_lem,
+                                   InferenceId::ARITH_NL_T_MONOTONICITY);
     }
     // store the previous values
     targ = sarg;
@@ -227,8 +225,8 @@ void ExponentialSolver::doTangentLemma(TNode e,
                    {},
                    {nm->mkConst<Rational>(d), e[0]});
   }
-  d_data->d_im.addPendingArithLemma(
-      lem, InferenceId::NL_T_TANGENT, proof, true);
+  d_data->d_im.addPendingLemma(
+      lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
 }
 
 void ExponentialSolver::doSecantLemmas(TNode e,

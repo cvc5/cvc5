@@ -166,7 +166,7 @@ private:
    *   * assertionToEqualityEngine(..)
    *   * equalsConstant(c)
    *   * equalsConstant(lb, ub)
-   * If proofNew is off, then just asserts.
+   * If proof is off, then just asserts.
    */
   void assertLitToEqualityEngine(Node lit,
                                  TNode reason,

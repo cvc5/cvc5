@@ -96,11 +96,10 @@ void IAndSolver::checkInitialRefine()
       conj.push_back(nm->mkNode(LEQ, i, i[1]));
       // x=y => iand(x,y)=x
       conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(i[0])));
-      Node lem =
-          Rewriter::rewrite(conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj));
+      Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
-      d_im.addPendingArithLemma(lem, InferenceId::NL_IAND_INIT_REFINE);
+      d_im.addPendingLemma(lem, InferenceId::ARITH_NL_IAND_INIT_REFINE);
     }
   }
 }
@@ -148,41 +147,35 @@ void IAndSolver::checkFullRefine()
       // ************* additional lemma schemas go here
       if (options::iandMode() == options::IandMode::SUM)
       {
-        Node lem = Rewriter::rewrite(
-            sumBasedLemma(i));  // add lemmas based on sum mode
+        Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; SUM_REFINE" << std::endl;
-        // lemma can contain div/mod so need to tag it with the PREPROCESS lemma property
-        d_im.addPendingArithLemma(lem,
-                                  InferenceId::NL_IAND_SUM_REFINE,
-                                  nullptr,
-                                  true,
-                                  LemmaProperty::PREPROCESS);
+        // note that lemma can contain div/mod, and will be preprocessed in the
+        // prop engine
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_IAND_SUM_REFINE, nullptr, true);
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
         Node lem = bitwiseLemma(i);  // check for violated bitwise axioms
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; BITWISE_REFINE" << std::endl;
-        // lemma can contain div/mod so need to tag it with the PREPROCESS lemma property
-        d_im.addPendingArithLemma(lem,
-                                  InferenceId::NL_IAND_BITWISE_REFINE,
-                                  nullptr,
-                                  true,
-                                  LemmaProperty::PREPROCESS);
+        // note that lemma can contain div/mod, and will be preprocessed in the
+        // prop engine
+        d_im.addPendingLemma(
+            lem, InferenceId::ARITH_NL_IAND_BITWISE_REFINE, nullptr, true);
       }
       else
       {
         // this is the most naive model-based schema based on model values
-        Node lem = Rewriter::rewrite(valueBasedLemma(i));
+        Node lem = valueBasedLemma(i);
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
-        // value lemmas should not contain div/mod so we don't need to tag it with PREPROCESS
-        d_im.addPendingArithLemma(lem,
-                                  InferenceId::NL_IAND_VALUE_REFINE,
-                                  nullptr,
-                                  true,
-                                  LemmaProperty::NONE);
+        // send the value lemma
+        d_im.addPendingLemma(lem,
+                             InferenceId::ARITH_NL_IAND_VALUE_REFINE,
+                             nullptr,
+                             true);
       }
     }
   }

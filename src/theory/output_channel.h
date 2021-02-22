@@ -37,12 +37,10 @@ enum class LemmaProperty : uint32_t
   NONE = 0,
   // whether the lemma is removable
   REMOVABLE = 1,
-  // whether the lemma needs preprocessing
-  PREPROCESS = 2,
   // whether the processing of the lemma should send atoms to the caller
-  SEND_ATOMS = 4,
+  SEND_ATOMS = 2,
   // whether the lemma is part of the justification for answering "sat"
-  NEEDS_JUSTIFY = 8
+  NEEDS_JUSTIFY = 4
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
@@ -54,8 +52,6 @@ LemmaProperty operator&(LemmaProperty lhs, LemmaProperty rhs);
 LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs);
 /** is the removable bit set on p? */
 bool isLemmaPropertyRemovable(LemmaProperty p);
-/** is the preprocess bit set on p? */
-bool isLemmaPropertyPreprocess(LemmaProperty p);
 /** is the send atoms bit set on p? */
 bool isLemmaPropertySendAtoms(LemmaProperty p);
 /** is the needs justify bit set on p? */

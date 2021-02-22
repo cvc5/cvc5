@@ -20,11 +20,11 @@ using namespace api;
 
 namespace test {
 
-class TestApiResultBlack : public TestApi
+class TestApiBlackResult : public TestApi
 {
 };
 
-TEST_F(TestApiResultBlack, isNull)
+TEST_F(TestApiBlackResult, isNull)
 {
   CVC4::api::Result res_null;
   ASSERT_TRUE(res_null.isNull());
@@ -41,7 +41,7 @@ TEST_F(TestApiResultBlack, isNull)
   ASSERT_FALSE(res.isNull());
 }
 
-TEST_F(TestApiResultBlack, eq)
+TEST_F(TestApiBlackResult, eq)
 {
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(u_sort, "x");
@@ -54,7 +54,7 @@ TEST_F(TestApiResultBlack, eq)
   ASSERT_EQ(res3, res2);
 }
 
-TEST_F(TestApiResultBlack, isSat)
+TEST_F(TestApiBlackResult, isSat)
 {
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(u_sort, "x");
@@ -64,7 +64,7 @@ TEST_F(TestApiResultBlack, isSat)
   ASSERT_FALSE(res.isSatUnknown());
 }
 
-TEST_F(TestApiResultBlack, isUnsat)
+TEST_F(TestApiBlackResult, isUnsat)
 {
   Sort u_sort = d_solver.mkUninterpretedSort("u");
   Term x = d_solver.mkVar(u_sort, "x");
@@ -74,7 +74,7 @@ TEST_F(TestApiResultBlack, isUnsat)
   ASSERT_FALSE(res.isSatUnknown());
 }
 
-TEST_F(TestApiResultBlack, isSatUnknown)
+TEST_F(TestApiBlackResult, isSatUnknown)
 {
   d_solver.setLogic("QF_NIA");
   d_solver.setOption("incremental", "false");
@@ -87,7 +87,7 @@ TEST_F(TestApiResultBlack, isSatUnknown)
   ASSERT_TRUE(res.isSatUnknown());
 }
 
-TEST_F(TestApiResultBlack, isEntailed)
+TEST_F(TestApiBlackResult, isEntailed)
 {
   d_solver.setOption("incremental", "true");
   Sort u_sort = d_solver.mkUninterpretedSort("u");
@@ -104,7 +104,7 @@ TEST_F(TestApiResultBlack, isEntailed)
   ASSERT_FALSE(not_entailed.isEntailmentUnknown());
 }
 
-TEST_F(TestApiResultBlack, isEntailmentUnknown)
+TEST_F(TestApiBlackResult, isEntailmentUnknown)
 {
   d_solver.setLogic("QF_NIA");
   d_solver.setOption("incremental", "false");

@@ -2,7 +2,7 @@
 
 # run this in a cvc4 build directory, will print a summary of the overall status of the proof-new branch
 
-echo "Testing proof-new..."
+echo "Testing proof..."
 
 echo > results__summary.txt
 echo > results__summary_short.txt
@@ -39,22 +39,22 @@ function testwith {
 # simply check that make regress passes
 testwith regress ""
 # eager checking, fail if any intermediate proof went wrong
-testwith eager_checking "" --proof-new-req --proof-new-eager-checking
+testwith eager_checking "" --proof-req --proof-eager-checking
 # check proofs, non-pedantic
-testwith check_proofs "" --proof-new-req --check-proofs-new
+testwith check_proofs "" --proof-req --check-proofs
 # check proofs, pedantic level one
-testwith check_proofs_p1 "TRUST, THEORY_LEMMA" --proof-new-req --check-proofs-new --proof-new-pedantic=1
+testwith check_proofs_p1 "TRUST, THEORY_LEMMA" --proof-req --check-proofs --proof-pedantic=1
 # check proofs, pedantic level one
-testwith check_proofs_p2 "ARRAYS_TRUST, INT_TRUST, STRING_TRUST" --proof-new-req --check-proofs-new --proof-new-pedantic=2
+testwith check_proofs_p2 "ARRAYS_TRUST, INT_TRUST, STRING_TRUST" --proof-req --check-proofs --proof-pedantic=2
 # check proofs, highest pedantic level
-testwith check_proofs_p10 "(THEORY_)PREPROCESS, (THEORY_)PREPROCESS_LEMMA, WITNESS_AXIOM" --proof-new-req --check-proofs-new --proof-new-pedantic=10
+testwith check_proofs_p10 "(THEORY_)PREPROCESS, (THEORY_)PREPROCESS_LEMMA, WITNESS_AXIOM" --proof-req --check-proofs --proof-pedantic=10
 # check proofs, sanity check (always fails when a proof is checked)
-testwith check_proofs_fail "" --proof-new-req --check-proofs-new --check-proofs-new-fail
+testwith check_proofs_fail "" --proof-req --check-proofs --check-proofs-fail
 
 # Note that 
-#  --proof-new-req --check-proofs-new --proof-new-pedantic=1
+#  --proof-req --check-proofs --proof-pedantic=1
 # may fail more than 
-#  --proof-new-req --check-proofs-new --check-proofs-new-fail
+#  --proof-req --check-proofs --check-proofs-fail
 # since the former fails when any intermediate proof step uses a rule that fails a pedantic check
 
 echo "Summary of results:"

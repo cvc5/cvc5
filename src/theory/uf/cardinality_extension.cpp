@@ -14,13 +14,14 @@
 
 #include "theory/uf/cardinality_extension.h"
 
+#include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/uf/theory_uf.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -1036,7 +1037,7 @@ int SortModel::addSplit(Region* r)
     //split on the equality s
     Node lem = NodeManager::currentNM()->mkNode( kind::OR, ss, ss.negate() );
     // send lemma, with caching
-    if (d_im.lemma(lem))
+    if (d_im.lemma(lem, InferenceId::UF_CARD_SPLIT))
     {
       Trace("uf-ss-lemma") << "*** Split on " << s << std::endl;
       //tell the sat solver to explore the equals branch first
@@ -1069,7 +1070,7 @@ void SortModel::addCliqueLemma(std::vector<Node>& clique)
   eqs.push_back(d_cardinality_literal[d_cardinality].notNode());
   Node lem = NodeManager::currentNM()->mkNode(OR, eqs);
   // send lemma, with caching
-  if (d_im.lemma(lem))
+  if (d_im.lemma(lem, InferenceId::UF_CARD_CLIQUE))
   {
     Trace("uf-ss-lemma") << "*** Add clique lemma " << lem << std::endl;
     ++(d_thss->d_statistics.d_clique_lemmas);
@@ -1081,7 +1082,7 @@ void SortModel::simpleCheckCardinality() {
     Node lem = NodeManager::currentNM()->mkNode( AND, getCardinalityLiteral( d_cardinality.get() ),
                                                       getCardinalityLiteral( d_maxNegCard.get() ).negate() );
     Trace("uf-ss-lemma") << "*** Simple cardinality conflict : " << lem << std::endl;
-    d_im.conflict(lem);
+    d_im.conflict(lem, InferenceId::UF_CARD_SIMPLE_CONFLICT);
   }
 }
 
@@ -1178,7 +1179,7 @@ bool SortModel::checkLastCall()
         Node lem = NodeManager::currentNM()->mkNode(
             OR, cl, NodeManager::currentNM()->mkAnd(force_cl));
         Trace("uf-ss-lemma") << "*** Enforce negative cardinality constraint lemma : " << lem << std::endl;
-        d_im.lemma(lem, LemmaProperty::NONE, false);
+        d_im.lemma(lem, InferenceId::UF_CARD_ENFORCE_NEGATIVE);
         return false;
       }
     }
@@ -1398,7 +1399,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
           Node eqv_lit = NodeManager::currentNM()->mkNode( CARDINALITY_CONSTRAINT, ct, lit[1] );
           eqv_lit = lit.eqNode( eqv_lit );
           Trace("uf-ss-lemma") << "*** Cardinality equiv lemma : " << eqv_lit << std::endl;
-          d_im.lemma(eqv_lit, LemmaProperty::NONE, false);
+          d_im.lemma(eqv_lit, InferenceId::UF_CARD_EQUIV);
           d_card_assertions_eqv_lemma[lit] = true;
         }
       }
@@ -1527,7 +1528,7 @@ void CardinalityExtension::check(Theory::Effort level)
                     Node eq = Rewriter::rewrite( a.eqNode( b ) );
                     Node lem = NodeManager::currentNM()->mkNode( kind::OR, eq, eq.negate() );
                     Trace("uf-ss-lemma") << "*** Split (no-minimal) : " << lem << std::endl;
-                    d_im.lemma(lem, LemmaProperty::NONE, false);
+                    d_im.lemma(lem, InferenceId::UF_CARD_SPLIT);
                     d_im.requirePhase(eq, true);
                     type_proc[tn] = true;
                     break;
@@ -1706,7 +1707,7 @@ void CardinalityExtension::checkCombinedCardinality()
                              << " : " << cf << std::endl;
         Trace("uf-ss-com-card") << "*** Combined monotone cardinality conflict"
                                 << " : " << cf << std::endl;
-        d_im.conflict(cf);
+        d_im.conflict(cf, InferenceId::UF_CARD_MONOTONE_COMBINED);
         return;
       }
     }
@@ -1744,7 +1745,7 @@ void CardinalityExtension::checkCombinedCardinality()
                            << std::endl;
       Trace("uf-ss-com-card") << "*** Combined cardinality conflict : " << cf
                               << std::endl;
-      d_im.conflict(cf);
+      d_im.conflict(cf, InferenceId::UF_CARD_COMBINED);
     }
   }
 }

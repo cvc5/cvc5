@@ -24,6 +24,7 @@
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -33,8 +34,12 @@ namespace theory {
 namespace inst {
 
 /** trigger class constructor */
-Trigger::Trigger(QuantifiersEngine* qe, Node q, std::vector<Node>& nodes)
-    : d_quantEngine(qe), d_quant(q)
+Trigger::Trigger(QuantifiersEngine* qe,
+                 quantifiers::QuantifiersInferenceManager& qim,
+                 quantifiers::QuantifiersRegistry& qr,
+                 Node q,
+                 std::vector<Node>& nodes)
+    : d_quantEngine(qe), d_qim(qim), d_qreg(qr), d_quant(q)
 {
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.
@@ -119,7 +124,7 @@ uint64_t Trigger::addInstantiations()
         Node eq = k.eqNode(gt);
         Trace("trigger-gt-lemma")
             << "Trigger: ground term purify lemma: " << eq << std::endl;
-        d_quantEngine->addLemma(eq);
+        d_qim.addPendingLemma(eq, InferenceId::UNKNOWN);
         gtAddedLemmas++;
       }
     }
@@ -138,7 +143,7 @@ uint64_t Trigger::addInstantiations()
 
 bool Trigger::sendInstantiation(InstMatch& m)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
 }
 
 bool Trigger::mkTriggerTerms(Node q,
@@ -228,6 +233,8 @@ bool Trigger::mkTriggerTerms(Node q,
 }
 
 Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node f,
                             std::vector<Node>& nodes,
                             bool keepAll,
@@ -268,11 +275,11 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
   Trigger* t;
   if (!ho_apps.empty())
   {
-    t = new HigherOrderTrigger(qe, f, trNodes, ho_apps);
+    t = new HigherOrderTrigger(qe, qim, qr, f, trNodes, ho_apps);
   }
   else
   {
-    t = new Trigger(qe, f, trNodes);
+    t = new Trigger(qe, qim, qr, f, trNodes);
   }
 
   qe->getTriggerDatabase()->addTrigger( trNodes, t );
@@ -280,6 +287,8 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
 }
 
 Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node f,
                             Node n,
                             bool keepAll,
@@ -288,7 +297,7 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
 {
   std::vector< Node > nodes;
   nodes.push_back( n );
-  return mkTrigger(qe, f, nodes, keepAll, trOption, useNVars);
+  return mkTrigger(qe, qim, qr, f, nodes, keepAll, trOption, useNVars);
 }
 
 int Trigger::getActiveScore() {

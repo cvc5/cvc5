@@ -18,7 +18,7 @@
 #define CVC4__THEORY__ARITH__NL__STATS_H
 
 #include "expr/kind.h"
-#include "theory/arith/inference_id.h"
+#include "theory/inference_id.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -41,8 +41,6 @@ class NlStats
   IntStat d_mbrRuns;
   /** Number of calls to NonlinearExtension::checkLastCall */
   IntStat d_checkRuns;
-  /** Counts the number of applications of each type of inference */
-  HistogramStat<InferenceId> d_inferences;
 };
 
 }  // namespace nl

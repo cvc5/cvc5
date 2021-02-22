@@ -29,11 +29,15 @@ namespace theory {
 
 class QuantifiersEngine;
 
+namespace quantifiers {
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
+}
+
 namespace inst {
 
 class IMGenerator;
 class InstMatchGenerator;
-
 /** A collection of nodes representing a trigger.
 *
 * This class encapsulates all implementations of E-matching in CVC4.
@@ -159,6 +163,8 @@ class Trigger {
     TR_RETURN_NULL  //return null if a duplicate is found
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -166,6 +172,8 @@ class Trigger {
                             size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             Node n,
                             bool keepAll = true,
@@ -187,7 +195,11 @@ class Trigger {
 
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
-  Trigger(QuantifiersEngine* ie, Node q, std::vector<Node>& nodes);
+  Trigger(QuantifiersEngine* ie,
+          quantifiers::QuantifiersInferenceManager& qim,
+          quantifiers::QuantifiersRegistry& qr,
+          Node q,
+          std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
    *
    * This calls Instantiate::addInstantiation(...) for instantiations
@@ -233,6 +245,10 @@ class Trigger {
   std::vector<Node> d_groundTerms;
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
+  /** Reference to the quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& d_qreg;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** match generator
