@@ -173,50 +173,50 @@ header = "options/smt_options.h"
   help       = "Print conclusion of proof steps when printing AST"
 
 [[option]]
-  name       = "proofNew"
+  name       = "proof"
   category   = "regular"
-  long       = "proof-new"
+  long       = "proof"
   type       = "bool"
   default    = "true"
-  help       = "do proof production using the new infrastructure"
+  help       = "produce proofs, support check-proofs and get-proof"
 
 [[option]]
-  name       = "proofNewPedantic"
+  name       = "proofPedantic"
   category   = "regular"
-  long       = "proof-new-pedantic=N"
+  long       = "proof-pedantic=N"
   type       = "uint32_t"
   default    = "0"
   read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
+  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
 
 [[option]]
-  name       = "proofNewEagerChecking"
+  name       = "proofEagerChecking"
   category   = "regular"
-  long       = "proof-new-eager-checking"
+  long       = "proof-eager-checking"
   type       = "bool"
   default    = "false"
-  help       = "check proofs eagerly with proof-new for local debugging"
+  help       = "check proofs eagerly with proof for local debugging"
 
 [[option]]
-  name       = "checkProofsNewFail"
+  name       = "checkProofsFail"
   category   = "regular"
-  long       = "check-proofs-new-fail"
+  long       = "check-proofs-fail"
   type       = "bool"
   default    = "false"
   help       = "always fail when the checkProof method is invoked (dummy option)"
 
 [[option]]
-  name       = "proofNewReq"
+  name       = "proofReq"
   category   = "regular"
-  long       = "proof-new-req"
+  long       = "proof-req"
   type       = "bool"
   default    = "false"
-  help       = "always fail during setDefaults if proof-new is not enabled (dummy option)"
+  help       = "always fail during setDefaults if proof is not enabled (dummy option)"
 
 [[option]]
-  name       = "proofNewUpdateDebug"
+  name       = "proofUpdateDebug"
   category   = "regular"
-  long       = "proof-new-update-debug"
+  long       = "proof-update-debug"
   type       = "bool"
   default    = "false"
   help       = "debug proof node updater"
@@ -243,11 +243,11 @@ header = "options/smt_options.h"
   help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
 
 [[option]]
-  name       = "checkProofsNew"
+  name       = "checkProofs"
   category   = "regular"
-  long       = "check-proofs-new"
+  long       = "check-proofs"
   type       = "bool"
-  help       = "after UNSAT/VALID, check the generated proof (with proof-new)"
+  help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
   name       = "dumpInstantiations"

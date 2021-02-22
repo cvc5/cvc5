@@ -204,7 +204,7 @@ void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
   Assert(ppSkolems.size() == ppLemmas.size());
 
   // do final checks on the lemmas we are about to send
-  if (isProofEnabled() && options::proofNewEagerChecking())
+  if (isProofEnabled() && options::proofEagerChecking())
   {
     Assert(tplemma.getGenerator() != nullptr);
     // ensure closed, make the proof node eagerly here to debug

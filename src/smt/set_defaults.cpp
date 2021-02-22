@@ -45,10 +45,10 @@ namespace smt {
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
   // TEMPORARY for testing
-  if (options::proofNewReq() && !options::proofNew())
+  if (options::proofReq() && !options::proof())
   {
-    AlwaysAssert(false) << "Fail due to --proof-new-req "
-                        << options::proofNew.wasSetByUser();
+    AlwaysAssert(false) << "Fail due to --proof-req "
+                        << options::proof.wasSetByUser();
   }
 
   // implied options
@@ -80,7 +80,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (options::checkUnsatCoresNew())
   {
-    options::proofNew.set(true);
+    options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -267,7 +267,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
-  //!!!!!!!!!!!! temporary on proof-new, whether it is ok to disable proof-new
+  //!!!!!!!!!!!! temporary on proof, whether it is ok to disable proof
   bool disableProofNewOk = false;
   if (options::globalNegate())
   {
@@ -279,7 +279,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // with new proof system
   if (options::unsatCores() && !options::checkUnsatCoresNew())
   {
-    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
+    // set proofReq/proofEagerChecking/checkProofs to false, since we
     // don't want CI failures
     disableProofNewOk = true;
   }
@@ -325,21 +325,21 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     disableProofNewOk = true;
   }
 
-  //!!!!!!!!!!!! temporary on proof-new
-  if (disableProofNewOk && options::proofNew())
+  //!!!!!!!!!!!! temporary on proof
+  if (disableProofNewOk && options::proof())
   {
-    options::proofNew.set(false);
-    options::proofNewReq.set(false);
-    options::checkProofsNew.set(false);
-    options::proofNewEagerChecking.set(false);
+    options::proof.set(false);
+    options::proofReq.set(false);
+    options::checkProofs.set(false);
+    options::proofEagerChecking.set(false);
   }
 
-  if (options::proofNew())
+  if (options::proof())
   {
     if (!options::stringLenConc.wasSetByUser())
     {
       options::stringLenConc.set(true);
-      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
+      Trace("smt") << "turning on string-len-conc, for proof" << std::endl;
     }
   }
 
@@ -354,7 +354,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE
-       || options::proofNew())
+       || options::proof())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -727,7 +727,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !options::unsatCores();
-    // TODO && !options::unsatCores() && !options::proofNew();
+    // TODO && !options::unsatCores() && !options::proof();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);

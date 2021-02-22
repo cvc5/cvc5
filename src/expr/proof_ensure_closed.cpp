@@ -31,13 +31,13 @@ void ensureClosedWrtInternal(Node proven,
                              const char* ctx,
                              bool reqGen)
 {
-  if (!options::proofNew())
+  if (!options::proof())
   {
     // proofs not enabled, do not do check
     return;
   }
   bool isTraceDebug = Trace.isOn(c);
-  if (!options::proofNewEagerChecking() && !isTraceDebug)
+  if (!options::proofEagerChecking() && !isTraceDebug)
   {
     // trace is off and proof new eager checking is off, do not do check
     return;

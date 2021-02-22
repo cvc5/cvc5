@@ -1108,7 +1108,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   PfRule r = pn->getRule();
   // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofNewEagerChecking())
+  if (!options::proofEagerChecking())
   {
     if (!d_pedanticFailure)
     {
@@ -1197,7 +1197,7 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
-  if (options::proofNewUpdateDebug())
+  if (options::proofUpdateDebug())
   {
     d_updater.setDebugFreeAssumptions(assertions);
   }

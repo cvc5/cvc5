@@ -31,7 +31,7 @@ namespace CVC4 {
 namespace smt {
 
 PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
-    : d_pchecker(new ProofChecker(options::proofNewPedantic())),
+    : d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_rewriteDb(new theory::RewriteDb),
       d_pppg(new PreprocessProofGenerator(

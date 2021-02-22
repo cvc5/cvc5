@@ -51,7 +51,7 @@ class BoolProofCheckerBlack : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em.get());
     d_smt.reset(new SmtEngine(d_nm, &opts));
     d_smt->setOption("dag-thresh", "0");
-    d_smt->setOption("proof-new", "true");
+    d_smt->setOption("proof", "true");
     d_smt->finishInit();
     // make a proof checker for booleans
     std::unique_ptr<booleans::BoolProofRuleChecker> bpfc(

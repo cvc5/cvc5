@@ -223,7 +223,7 @@ void SmtEngine::finishInit()
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   ProofNodeManager* pnm = nullptr;
-  if (options::proofNew())
+  if (options::proof())
   {
     // ensure bound variable uses canonical bound variables
     d_nodeManager->getBoundVarManager()->enableKeepCacheValues();
@@ -983,15 +983,15 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if (options::checkProofsNew() || options::proofNewEagerChecking())
+    if (options::checkProofs() || options::proofEagerChecking())
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        if ((options::checkProofsNew() || options::proofNewEagerChecking())
-            && !options::proofNew())
+        if ((options::checkProofs() || options::proofEagerChecking())
+            && !options::proof())
         {
           throw ModalException(
-              "Cannot check-proofs-new because proof-new was disabled.");
+              "Cannot check-proofs because proofs were disabled.");
         }
         checkProof();
       }
@@ -1402,11 +1402,11 @@ Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkProof()
 {
-  Assert(options::proofNew());
+  Assert(options::proof());
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     pe->checkProof(d_asserts->getAssertionList());
   }
@@ -1414,11 +1414,11 @@ void SmtEngine::checkProof()
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   // TEMPORARY for testing, this can be used to count how often checkProofs is
   // called
-  if (options::checkProofsNewFail())
+  if (options::checkProofsFail())
   {
-    AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
+    AlwaysAssert(false) << "Fail due to --check-proofs-fail";
   }
-  if (options::checkProofsNew())
+  if (options::checkProofs())
   {
     d_pfManager->checkProof(pePfn, *d_asserts, *d_definedFunctions);
   }
@@ -1473,11 +1473,11 @@ void SmtEngine::checkUnsatCore() {
   coreChecker->getOptions().set(options::unsatCores, false);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
-  coreChecker->getOptions().set(options::proofNew, false);
-  coreChecker->getOptions().set(options::proofNewReq, false);
-  coreChecker->getOptions().set(options::checkProofsNew, false);
+  coreChecker->getOptions().set(options::proof, false);
+  coreChecker->getOptions().set(options::proofReq, false);
+  coreChecker->getOptions().set(options::checkProofs, false);
   coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
-  coreChecker->getOptions().set(options::proofNewEagerChecking, false);
+  coreChecker->getOptions().set(options::proofEagerChecking, false);
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -1567,9 +1567,9 @@ std::string SmtEngine::getProof()
         getOutputManager().getDumpOut());
   }
 #if IS_PROOFS_BUILD
-  if (!options::proofNew())
+  if (!options::proof())
   {
-    throw ModalException("Cannot get a proof when proof-new option is off.");
+    throw ModalException("Cannot get a proof when proof option is off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
@@ -1668,7 +1668,7 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::proofNew() && getSmtMode() == SmtMode::UNSAT)
+  if (options::proof() && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);

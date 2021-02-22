@@ -304,7 +304,7 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     std::unordered_set<const ProofNode*> visited;
     for (const std::shared_ptr<ProofNode>& cpc : children)

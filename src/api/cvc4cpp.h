@@ -3179,7 +3179,7 @@ class CVC4_PUBLIC Solver
   /**
    * Get the refutation proof
    * SMT-LIB: ( get-proof )
-   * Requires to enable option 'proof-new'.
+   * Requires to enable option 'proof'.
    * @return a string representing the proof, according to the the value of
    * proof-format-mode.
    */

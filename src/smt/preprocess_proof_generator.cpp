@@ -235,7 +235,7 @@ std::string PreprocessProofGenerator::identify() const { return d_name; }
 
 void PreprocessProofGenerator::checkEagerPedantic(PfRule r)
 {
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     // catch a pedantic failure now, which otherwise would not be
     // triggered since we are doing lazy proof generation

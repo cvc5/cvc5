@@ -650,7 +650,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   } while (expanded);
   // now we should be able to close it
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     std::vector<Node> assumptionsVec;
     for (const Node& a : d_assumptions)
