@@ -15,11 +15,11 @@
 #include "proof/lfsc/lfsc_post_processor.h"
 #include "proof/lfsc/lfsc_printer.h"
 
-#include "options/proof_options.h"
 #include "expr/lazy_proof.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
 #include "expr/proof_node_updater.h"
+#include "options/proof_options.h"
 
 namespace CVC4 {
 namespace proof {

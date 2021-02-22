@@ -1380,7 +1380,6 @@ enum class PfRule : uint32_t
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
-
   //================================================= Unknown rule
   UNKNOWN,
 };

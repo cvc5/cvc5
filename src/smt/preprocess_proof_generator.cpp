@@ -16,8 +16,8 @@
 #include "smt/preprocess_proof_generator.h"
 
 #include "expr/proof.h"
-#include "theory/rewriter.h"
 #include "options/proof_options.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace smt {
