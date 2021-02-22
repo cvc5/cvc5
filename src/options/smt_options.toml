@@ -137,7 +137,7 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "produce proofs, support check-proofs and get-proof"
-  
+
 [[option]]
   name       = "dumpProofs"
   category   = "regular"
