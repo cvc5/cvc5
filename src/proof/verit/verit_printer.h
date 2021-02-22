@@ -38,7 +38,7 @@ namespace proof {
  * @param i The id of the current step,
  * @param isAssump True, if the current step is an assumption,
  * @return A string consisting of the ids of the subproof followed by the
- * current step printed either as assumption (h) or step (t).
+ * current step printed either as assumption (a) or step (t).
  */
 static std::string veritPrintName(std::vector<int> ids, int i, bool isAssump)
 {
@@ -50,7 +50,7 @@ static std::string veritPrintName(std::vector<int> ids, int i, bool isAssump)
   }
   if (isAssump)
   {
-    name.push_back('h');
+    name.push_back('a');
   }
   else
   {
@@ -237,18 +237,18 @@ static std::vector<int> veritPrintInternal(std::ostream& out,
  */
 static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
-  out << "\n";
-  out << "\n";
+  //out << "\n";
+  //out << "\n";
   std::vector<int> ids;
-  veritPrintInternal(out, pfn, ids, 1, 1);
-  out << "\n";
-  out << "Check proof? (0/1)" << "\n";
-  bool check;
+  veritPrintInternal(out, pfn, ids, 1, 0);
+  //out << "\n";
+  //out << "Check proof? (0/1)" << "\n";
+  /*bool check;
   std::cin >> check;
   if (check)
   {
     veritProofChecker(pfn, out);
-  }
+  }*/
 }
 
 }  // namespace proof
