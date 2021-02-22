@@ -82,7 +82,7 @@ class SygusExtension
    * lemmas to the vector lemmas, for details see assertTesterInternal below.
    * These lemmas are sent out on the output channel of datatypes by the caller.
    */
-  void assertTester(int tindex, TNode n, Node exp, std::vector<Node>& lemmas);
+  void assertTester(int tindex, TNode n, Node exp);
   /**
    * Notify this class that literal n has been asserted with the given
    * polarity. This method may add lemmas to the vector lemmas, for instance
@@ -90,14 +90,14 @@ class SygusExtension
    * (DT_SIZE_BOUND x n), we add the lemma:
    *   (DT_SIZE_BOUND x n) <=> ((DT_SIZE x) <= n )
    */
-  void assertFact(Node n, bool polarity, std::vector<Node>& lemmas);
+  void assertFact(Node n, bool polarity);
   /** pre-register term n
    *
    * This is called when n is pre-registered with the theory of datatypes.
    * If n is a sygus enumerator, then we may add lemmas to the vector lemmas
    * that are used to enforce fairness regarding the size of n.
    */
-  void preRegisterTerm(TNode n, std::vector<Node>& lemmas);
+  void preRegisterTerm(TNode n lemmas);
   /** check
    *
    * This is called at last call effort, when the current model assignment is
@@ -106,7 +106,7 @@ class SygusExtension
    * on dynamic symmetry breaking techniques, based on the model values of
    * all preregistered enumerators.
    */
-  void check(std::vector<Node>& lemmas);
+  void check();
  private:
   /** The theory state of the datatype theory */
   TheoryState& d_state;
@@ -314,13 +314,13 @@ private:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
    * where C1 and C2 are non-nullary constructors.
    */
-  void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
+  void assertTesterInternal( int tindex, TNode n, Node exp );
   /**
    * This function is called when term n is registered to the theory of
    * datatypes. It makes the appropriate call to registerSearchTerm below,
    * if applicable.
    */
-  void registerTerm(Node n, std::vector<Node>& lemmas);
+  void registerTerm(Node n);
 
   //------------------------dynamic symmetry breaking
   /** Register search term
@@ -557,15 +557,12 @@ private:
    * After determining the measure term m for e, if applicable, we initialize
    * SygusSizeDecisionStrategy for m below. This may result in lemmas
    */
-  void registerSizeTerm(Node e, std::vector<Node>& lemmas);
+  void registerSizeTerm(Node e);
   /** A decision strategy for each measure term allocated by this class */
   class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusSizeDecisionStrategy(Node t, context::Context* c, Valuation valuation)
-        : DecisionStrategyFmf(c, valuation), d_this(t), d_curr_search_size(0)
-    {
-    }
+    SygusSizeDecisionStrategy(InferenceManager& im, Node t, TheoryState& s);
     /** the measure term */
     Node d_this;
     /**
@@ -595,7 +592,7 @@ private:
      * literals. Then, if we are enforcing fairness based on the maximum size,
      * we assert: (DT_SIZE e) <= v for all enumerators e.
      */
-    Node getOrMkMeasureValue(std::vector<Node>& lemmas);
+    Node getOrMkMeasureValue();
     /** get or make the active measure value
      *
      * The active measure value av is an integer variable that corresponds to
@@ -613,8 +610,7 @@ private:
      * If the flag mkNew is set to true, then we return a fresh variable and
      * update the active measure value.
      */
-    Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
-                                   bool mkNew = false);
+    Node getOrMkActiveMeasureValue(bool mkNew = false);
     /** Returns the s^th fairness literal for this measure term. */
     Node mkLiteral(unsigned s) override;
     /** identify */
@@ -624,6 +620,8 @@ private:
     }
 
    private:
+    /** The inference manager we are using */
+  InferenceManager& d_im;
     /** the measure value */
     Node d_measure_value;
     /** the sygus measure value */
@@ -652,7 +650,7 @@ private:
    * of how search size affects which lemmas are relevant above
    * addSymBreakLemmasFor.
    */
-  void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
+  void incrementCurrentSearchSize( Node m );
   /**
    * Notify this class that we are currently searching for terms of size at
    * most s as model values for measure term m. Literal exp corresponds to the
@@ -660,7 +658,7 @@ private:
    * incrementSearchSize above, until the total number of times we have called
    * incrementSearchSize so far is at least s.
    */
-  void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
+  void notifySearchSize( Node m, unsigned s, Node exp );
   /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**
@@ -708,7 +706,7 @@ private:
    * method should not ever add anything to lemmas. However, due to its
    * importance, we check this regardless.
    */
-  bool checkValue(Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  bool checkValue(Node n, Node vn, int ind);
   /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted

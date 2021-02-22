@@ -92,20 +92,6 @@ void InferenceManager::sendDtConflict(const std::vector<Node>& conf, InferenceId
   conflictExp(id, conf, d_ipc.get());
 }
 
-bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas,
-                                  InferenceId id)
-{
-  bool ret = false;
-  for (const Node& lem : lemmas)
-  {
-    if (lemma(lem, id))
-    {
-      ret = true;
-    }
-  }
-  return ret;
-}
-
 bool InferenceManager::isProofEnabled() const { return d_ipc != nullptr; }
 
 TrustNode InferenceManager::processDtLemma(Node conc, Node exp, InferenceId id)

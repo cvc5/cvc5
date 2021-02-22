@@ -177,9 +177,7 @@ void TheoryDatatypes::postCheck(Effort level)
   if (level == EFFORT_LAST_CALL)
   {
     Assert(d_sygusExtension != nullptr);
-    std::vector<Node> lemmas;
-    d_sygusExtension->check(lemmas);
-    d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
+    d_sygusExtension->check();
     return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
@@ -390,9 +388,7 @@ void TheoryDatatypes::notifyFact(TNode atom,
   // could be sygus-specific
   if (d_sygusExtension)
   {
-    std::vector< Node > lemmas;
-    d_sygusExtension->assertFact(atom, polarity, lemmas);
-    d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
+    d_sygusExtension->assertFact(atom, polarity);
   }
   //add to tester if applicable
   Node t_arg;
@@ -412,10 +408,8 @@ void TheoryDatatypes::notifyFact(TNode atom,
       if (d_sygusExtension)
       {
         Trace("dt-tester") << "Assert tester to sygus : " << atom << std::endl;
-        std::vector< Node > lemmas;
-        d_sygusExtension->assertTester(tindex, t_arg, atom, lemmas);
+        d_sygusExtension->assertTester(tindex, t_arg, atom);
         Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
-        d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
       }
     }
   }else{
@@ -473,9 +467,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     d_equalityEngine->addTerm(n);
     if (d_sygusExtension)
     {
-      std::vector< Node > lemmas;
-      d_sygusExtension->preRegisterTerm(n, lemmas);
-      d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
+      d_sygusExtension->preRegisterTerm(n);
     }
     break;
   }
