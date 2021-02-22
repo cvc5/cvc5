@@ -665,6 +665,12 @@ void Smt2Printer::toStream(std::ostream& out,
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
     stillNeedToPrintParams = false;
     break;
+  case kind::INDEXED_ROOT_PREDICATE_OP:
+  {
+    const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
+    out << "(_ root_predicate " << irp.d_index << ")";
+    break;
+  }
 
     // arrays theory
   case kind::SELECT:
