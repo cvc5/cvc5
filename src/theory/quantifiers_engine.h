@@ -69,10 +69,6 @@ class QuantifiersEngine {
   TheoryEngine* getTheoryEngine() const;
   /** Get the decision manager */
   DecisionManager* getDecisionManager();
-  /** get default output channel for the quantifiers engine */
-  OutputChannel& getOutputChannel();
-  /** get default valuation for the quantifiers engine */
-  Valuation& getValuation();
   /** The quantifiers state object */
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
