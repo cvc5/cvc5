@@ -74,10 +74,11 @@ void InferenceManager::sendDtLemma(Node lem, InferenceId id, LemmaProperty p)
 {
   if (isProofEnabled())
   {
-    processDtLemma(lem, Node::null(), id);
+    TrustNode trn = processDtLemma(lem, Node::null(), id);
+    trustedLemma(trn, id);
     return;
   }
-  // otherwise send as a normal lemma
+  // otherwise send as a normal lemma directly
   lemma(lem, id, p);
 }
 
