@@ -13,8 +13,11 @@
  **/
 
 #include "expr/proof_node_to_sexpr.h"
+#include "options/proof_options.h"
 
 #include <iostream>
+
+#include "options/proof_options.h"
 
 using namespace CVC4::kind;
 
@@ -24,6 +27,7 @@ ProofNodeToSExpr::ProofNodeToSExpr()
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> types;
+  d_conclusionMarker = nm->mkBoundVar(":conclusion", nm->mkSExprType(types));
   d_argsMarker = nm->mkBoundVar(":args", nm->mkSExprType(types));
 }
 
@@ -53,7 +57,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
             != traversing.end())
         {
           Unhandled() << "ProofNodeToSExpr::convertToSExpr: cyclic proof! (use "
-                         "--proof-new-eager-checking)"
+                         "--proof-eager-checking)"
                       << std::endl;
           return Node::null();
         }
@@ -67,6 +71,11 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
       std::vector<Node> children;
       // add proof rule
       children.push_back(getOrMkPfRuleVariable(cur->getRule()));
+      if (options::proofPrintConclusion())
+      {
+        children.push_back(d_conclusionMarker);
+        children.push_back(cur->getResult());
+      }
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
