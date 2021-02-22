@@ -80,10 +80,13 @@ class ProofNodeUpdater
    * @param cb The callback to apply to each node
    * @param mergeSubproofs Whether to automatically merge subproofs within
    * the same SCOPE that prove the same fact.
+   * @param autoSym Whether intermediate CDProof objects passed to updater
+   * callbacks automatically introduce SYMM steps.
    */
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
-                   bool mergeSubproofs = false);
+                   bool mergeSubproofs = false,
+                   bool autoSym = true);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
@@ -142,6 +145,11 @@ class ProofNodeUpdater
   std::vector<Node> d_freeAssumps;
   /** Whether we are merging subproofs */
   bool d_mergeSubproofs;
+  /**
+   * Whether intermediate CDProof objects passed to updater callbacks
+   * automatically introduce SYMM steps.
+   */
+  bool d_autoSym;
 };
 
 }  // namespace CVC4
