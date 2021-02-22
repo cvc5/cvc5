@@ -15,8 +15,8 @@
 #include "smt/proof_post_processor.h"
 
 #include "expr/skolem_manager.h"
-#include "options/smt_options.h"
 #include "options/proof_options.h"
+#include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"

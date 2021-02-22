@@ -14,8 +14,8 @@
 
 #include "prop/sat_proof_manager.h"
 
-#include "options/proof_options.h"
 #include "expr/proof_node_algorithm.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"

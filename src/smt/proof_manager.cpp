@@ -16,8 +16,8 @@
 
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
-#include "options/smt_options.h"
 #include "options/proof_options.h"
+#include "options/smt_options.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
 
