@@ -42,9 +42,12 @@ typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 struct ContainsUConstAttributeId {};
 typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
 
-//for quantifier instantiation level
+/**
+ * for quantifier instantiation level.
+ */
 struct QuantInstLevelAttributeId {};
-typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttribute;
+typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t>
+    QuantInstLevelAttribute;
 
 /** Attribute for id number */
 struct QuantIdNumAttributeId {};

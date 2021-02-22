@@ -39,7 +39,7 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe,
       d_sqp(qe)
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, qs, qim, d_statistics)));
+      new SynthConjecture(d_quantEngine, qs, qim, qr, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -159,8 +159,8 @@ void SynthEngine::assignConjecture(Node q)
   // allocate a new synthesis conjecture if not assigned
   if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, d_qstate, d_qim, d_statistics)));
+    d_conjs.push_back(std::unique_ptr<SynthConjecture>(new SynthConjecture(
+        d_quantEngine, d_qstate, d_qim, d_qreg, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }
@@ -169,8 +169,8 @@ void SynthEngine::checkOwnership(Node q)
 {
   // take ownership of quantified formulas with sygus attribute, and function
   // definitions when options::sygusRecFun is true.
-  QuantAttributes* qa = d_quantEngine->getQuantAttributes();
-  if (qa->isSygus(q) || (options::sygusRecFun() && qa->isFunDef(q)))
+  QuantAttributes& qa = d_qreg.getQuantAttributes();
+  if (qa.isSygus(q) || (options::sygusRecFun() && qa.isFunDef(q)))
   {
     d_qreg.setOwner(q, this, 2);
   }
@@ -184,7 +184,7 @@ void SynthEngine::registerQuantifier(Node q)
   {
     return;
   }
-  if (d_quantEngine->getQuantAttributes()->isFunDef(q))
+  if (d_qreg.getQuantAttributes().isFunDef(q))
   {
     Assert(options::sygusRecFun());
     // If it is a recursive function definition, add it to the function
