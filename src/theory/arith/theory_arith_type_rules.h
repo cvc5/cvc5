@@ -138,9 +138,6 @@ class IndexedRootPredicateTypeRule
                                      TNode n,
                                      bool check)
   {
-    IndexedRootPredicate info =
-        n.getOperator().getConst<IndexedRootPredicate>();
-
     if (check)
     {
       TypeNode t1 = n[0].getType(check);

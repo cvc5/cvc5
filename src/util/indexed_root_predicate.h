@@ -27,7 +27,7 @@ namespace CVC4 {
 struct CVC4_PUBLIC IndexedRootPredicate
 {
   /** The index of the root */
-  unsigned d_index;
+  std::uint64_t d_index;
 
   IndexedRootPredicate(unsigned index) : d_index(index) {}
 
