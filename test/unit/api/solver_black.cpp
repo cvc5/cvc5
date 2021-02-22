@@ -1732,7 +1732,7 @@ TEST_F(TestApiBlackSolver, blockModelValues1)
                CVC4ApiException);
 }
 
-TEST_F(TestApiSolverBlack, blockModelValues3)
+TEST_F(TestApiBlackSolver, blockModelValues3)
 {
   d_solver.setOption("block-models", "literals");
   Term x = d_solver.mkConst(d_solver.getBooleanSort(), "x");
