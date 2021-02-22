@@ -391,7 +391,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     }
     else if (k == Kind::SINE)
     {
-      d_sineSlv.doTangentLemma(tf, c, poly_approx_c, region);
+      d_sineSlv.doTangentLemma(tf, c, poly_approx_c, region, d);
     }
   }
   else if (is_secant)
