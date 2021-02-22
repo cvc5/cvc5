@@ -393,7 +393,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
   }
   size_t tsize = terms.size();
   failMask.resize(tsize, true);
-  if (tsize==1)
+  if (tsize == 1)
   {
     // will never succeed with 1 variable
     return false;

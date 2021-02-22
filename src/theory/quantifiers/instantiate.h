@@ -157,7 +157,7 @@ class Instantiate : public QuantifiersUtil
    * failMask to "10", indicating that x's value was critical, but y's value
    * was not. In other words, all instantiations including { x -> 4 } will also
    * lead to this method returning false.
-   * 
+   *
    * The parameter expFull is whether try to set all bits of the fail mask to
    * 0. If this argument is true, then we only try to set a suffix of the
    * bits to false.
