@@ -159,7 +159,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "proof"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "produce proofs, support check-proofs and get-proof"
   
 [[option]]
