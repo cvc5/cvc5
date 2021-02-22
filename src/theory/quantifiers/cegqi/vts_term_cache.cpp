@@ -16,7 +16,7 @@
 
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 
 using namespace CVC4::kind;
 
@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-VtsTermCache::VtsTermCache(QuantifiersEngine* qe) : d_qe(qe)
+VtsTermCache::VtsTermCache(QuantifiersInferenceManager& qim) : d_qim(qim)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 }
@@ -66,7 +66,7 @@ Node VtsTermCache::getVtsDelta(bool isFree, bool create)
                        nm->realType(),
                        "free delta for virtual term substitution");
       Node delta_lem = nm->mkNode(GT, d_vts_delta_free, d_zero);
-      d_qe->getOutputChannel().lemma(delta_lem);
+      d_qim.lemma(delta_lem, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA);
     }
     if (d_vts_delta.isNull())
     {

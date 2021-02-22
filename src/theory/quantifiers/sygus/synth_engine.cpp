@@ -94,7 +94,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
   Trace("sygus-engine") << "---Counterexample Guided Instantiation Engine---"
                         << std::endl;
   Trace("sygus-engine-debug") << std::endl;
-  Valuation& valuation = d_quantEngine->getValuation();
+  Valuation& valuation = d_qstate.getValuation();
   std::vector<SynthConjecture*> activeCheckConj;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
@@ -151,7 +151,7 @@ void SynthEngine::assignConjecture(Node q)
     {
       Trace("cegqi-lemma") << "Cegqi::Lemma : qe-preprocess : " << lem
                            << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem);
+      d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_QE_PREPROC);
       // we've reduced the original to a preprocessed version, return
       return;
     }
