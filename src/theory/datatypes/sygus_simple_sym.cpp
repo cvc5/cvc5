@@ -15,7 +15,6 @@
 #include "theory/datatypes/sygus_simple_sym.h"
 
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -24,8 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-SygusSimpleSymBreak::SygusSimpleSymBreak(QuantifiersEngine* qe)
-    : d_tds(qe->getTermDatabaseSygus())
+SygusSimpleSymBreak::SygusSimpleSymBreak(quantifiers::TermDbSygus* tds)
+    : d_tds(tds)
 {
 }
 

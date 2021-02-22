@@ -48,7 +48,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_term_db(new quantifiers::TermDb(qstate, qim, d_qreg, this)),
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
-      d_quant_attr(new quantifiers::QuantAttributes),
       d_instantiate(
           new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
@@ -158,10 +157,6 @@ quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_sygus_tdb.get();
-}
-quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
-{
-  return d_quant_attr.get();
 }
 quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
 {
@@ -650,8 +645,6 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     {
       d_util[i]->registerQuantifier(f);
     }
-    // compute attributes
-    d_quant_attr->computeAttributes(f);
 
     for (QuantifiersModule*& mdl : d_modules)
     {
@@ -875,19 +868,12 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
 
 Node QuantifiersEngine::getNameForQuant(Node q) const
 {
-  Node name = d_quant_attr->getQuantName(q);
-  if (!name.isNull())
-  {
-    return name;
-  }
-  return q;
+  return d_qreg.getNameForQuant(q);
 }
 
 bool QuantifiersEngine::getNameForQuant(Node q, Node& name, bool req) const
 {
-  name = getNameForQuant(q);
-  // if we have a name, or we did not require one
-  return name != q || !req;
+  return d_qreg.getNameForQuant(q, name, req);
 }
 
 bool QuantifiersEngine::getSynthSolutions(

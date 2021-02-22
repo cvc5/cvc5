@@ -43,10 +43,12 @@ namespace quantifiers {
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
                                  SygusStatistics& s)
     : d_qe(qe),
       d_qstate(qs),
       d_qim(qim),
+      d_qreg(qr),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
@@ -223,7 +225,7 @@ void SynthConjecture::assign(Node q)
     Assert(d_master != nullptr);
   }
 
-  Assert(d_qe->getQuantAttributes()->isSygus(q));
+  Assert(d_qreg.getQuantAttributes().isSygus(q));
   // if the base instantiation is an existential, store its variables
   if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
   {

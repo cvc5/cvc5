@@ -53,8 +53,8 @@ Trigger::Trigger(QuantifiersEngine* qe,
   }
   if (Trace.isOn("trigger"))
   {
-    quantifiers::QuantAttributes* qa = d_quantEngine->getQuantAttributes();
-    Trace("trigger") << "Trigger for " << qa->quantToString(q) << ": "
+    quantifiers::QuantAttributes& qa = d_qreg.getQuantAttributes();
+    Trace("trigger") << "Trigger for " << qa.quantToString(q) << ": "
                      << std::endl;
     for (const Node& n : d_nodes)
     {
@@ -145,7 +145,7 @@ uint64_t Trigger::addInstantiations()
 
 bool Trigger::sendInstantiation(InstMatch& m)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
 }
 
 bool Trigger::mkTriggerTerms(Node q,

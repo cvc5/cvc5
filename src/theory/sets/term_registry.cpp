@@ -53,13 +53,13 @@ Node TermRegistry::getProxy(Node n)
   d_proxy_to_term[k] = n;
   Node eq = k.eqNode(n);
   Trace("sets-lemma") << "Sets::Lemma : " << eq << " by proxy" << std::endl;
-  d_im.lemma(eq, InferenceId::SETS_PROXY, LemmaProperty::NONE, false);
+  d_im.lemma(eq, InferenceId::SETS_PROXY);
   if (nk == SINGLETON)
   {
     Node slem = nm->mkNode(MEMBER, n[0], k);
     Trace("sets-lemma") << "Sets::Lemma : " << slem << " by singleton"
                         << std::endl;
-    d_im.lemma(slem, InferenceId::SETS_PROXY_SINGLETON, LemmaProperty::NONE, false);
+    d_im.lemma(slem, InferenceId::SETS_PROXY_SINGLETON);
   }
   return k;
 }
@@ -104,7 +104,7 @@ Node TermRegistry::getUnivSet(TypeNode tn)
       Node ulem = nm->mkNode(SUBSET, n1, n2);
       Trace("sets-lemma") << "Sets::Lemma : " << ulem << " by univ-type"
                           << std::endl;
-      d_im.lemma(ulem, InferenceId::SETS_UNIV_TYPE, LemmaProperty::NONE, false);
+      d_im.lemma(ulem, InferenceId::SETS_UNIV_TYPE);
     }
   }
   d_univset[tn] = n;
