@@ -39,6 +39,22 @@ Node mkBounds(TNode t, TNode lb, TNode ub)
                                      nm->mkNode(Kind::LEQ, t, ub)});
 }
 
+/**
+ * Helper method to construct a secant plane:
+ * ((evall - evalu) / (l - u)) * (t - l) + evall
+ */
+Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(Kind::PLUS,
+                    nm->mkNode(Kind::MULT,
+                               nm->mkNode(Kind::DIVISION,
+                                          nm->mkNode(Kind::MINUS, evall, evalu),
+                                          nm->mkNode(Kind::MINUS, l, u)),
+                               nm->mkNode(Kind::MINUS, t, l)),
+                    evall);
+}
+
 }  // namespace
 
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
