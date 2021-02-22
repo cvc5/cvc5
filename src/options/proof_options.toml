@@ -1,3 +1,12 @@
 id     = "PROOF"
 name   = "Proof"
 header = "options/proof_options.h"
+
+[[option]]
+  name       = "proofPrintConclusion"
+  category   = "regular"
+  long       = "proof-print-conclusion"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "Print conclusion of proof steps when printing AST"

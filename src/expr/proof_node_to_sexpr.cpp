@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 
 using namespace CVC4::kind;
 

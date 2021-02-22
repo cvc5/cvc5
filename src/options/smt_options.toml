@@ -140,15 +140,6 @@ header = "options/smt_options.h"
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
-  name       = "proofPrintConclusion"
-  category   = "regular"
-  long       = "proof-print-conclusion"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "Print conclusion of proof steps when printing AST"
-
-[[option]]
   name       = "proofNew"
   category   = "regular"
   long       = "proof-new"
