@@ -120,21 +120,18 @@ bool VeritProofPostprocessCallback::update(
     Node res,
     PfRule id,
     const std::vector<Node>& children,
-    const std::vector<VeritRule>& childrenRules,
     const std::vector<Node>& args,
     CDProof* cdp,
     bool& continueUpdate)
 {
-  // TODO: WHAT IF CHILD IS SYMM?
-  std::vector<Node> new_args = std::vector<Node>();
   // Test print
   // std::cout << id << std::endl;
 
   Trace("verit-proof") << "- veriT post process callback " << res << " " << id
                        << " " << children << " / " << args << std::endl;
 
-  // If the proof node is the same as the proof term it is left out in the
-  // comments.
+  std::vector<Node> new_args = std::vector<Node>();
+
   switch (id)
   {
     //================================================= Core rules
@@ -557,17 +554,14 @@ bool VeritProofPostprocessCallback::update(
       std::vector<Node>
           current_resolvent;  // Needed to determine if (cl C) or (cl G1 ... Gn)
                               // should be added in the end.
-      // VeritRule vp1_rule =
-      // static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp1)->getArguments()[0].toString()));
-      // VeritRule vp2_rule =
-      // static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp2)->getArguments()[0].toString()));
+       VeritRule vp1_rule =
+       static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp1)->getArguments()[0].toString()));
+       VeritRule vp2_rule =
+       static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp2)->getArguments()[0].toString()));
       // TODO: Check if child rule is SYMM, use equal_Nodes
 
-      VeritRule vp1_rule = childrenRules[0];
-      VeritRule vp2_rule = childrenRules[1];
-
       // If the rule of the child is ASSUME or EQ_RESOLUTION and additional or
-      // step might be needed.
+      // step might be needed. TODO: REPLACE EQ_RESOLUTION
       if ((vp1_rule == VeritRule::ASSUME
            || vp1_rule == VeritRule::EQ_RESOLUTION))
       {
@@ -707,9 +701,9 @@ bool VeritProofPostprocessCallback::update(
       std::vector<Node> new_children = children;
 
       // First child handling
-      // VeritRule child_rule2 =
-      // static_cast<VeritRule>(std::stoul(cdp->getProofFor(children[0])->getArguments()[0].toString()));
-      VeritRule child_rule = childrenRules[0];
+      VeritRule child_rule =
+      static_cast<VeritRule>(std::stoul(cdp->getProofFor(children[0])->getArguments()[0].toString()));
+
       if ((child_rule == VeritRule::ASSUME
            || child_rule == VeritRule::EQ_RESOLUTION))
       {
@@ -757,9 +751,8 @@ bool VeritProofPostprocessCallback::update(
         // Add cl step if children[i] has kind OR and the L before it is not
         // itself E.g. L_{i-1} = c and children[i] = (or a (not c)) -> add OR
         // step E.g. L_{i-1} = (or a (not c)) and children[i] = (or a (not c)) ->
-        // don't add OR step child_rule =
-        // static_cast<VeritRule>(std::stoul(cdp->getProofFor(children[i])->getArguments()[0].toString()));
-        child_rule = childrenRules[i];
+        // don't add OR step
+        child_rule = static_cast<VeritRule>(std::stoul(cdp->getProofFor(children[i])->getArguments()[0].toString()));
         if ((child_rule == VeritRule::ASSUME
              || child_rule == VeritRule::EQ_RESOLUTION))
         {
@@ -980,15 +973,9 @@ bool VeritProofPostprocessCallback::update(
       Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, children[1].notNode(), children[0].notNode(), res);
       Node child1 = children[0];
 
-      // auto child1_proof = cdp->getProofFor(child1);;
-      // while(child1_proof->getRule() == PfRule::SYMM){
-      //	 child1_proof = child1_proof->getChildren()[0];
-      //     }//TODO: might need to replace below
-      //   VeritRule child1_rule =
-      //   static_cast<VeritRule>(std::stoul(child1_proof->getArguments()[0].toString()));
-      // TODO: Whenever cdp->getProof is used there could be SYMM steps
-      // introduced
-      VeritRule child1_rule = childrenRules[0];
+      VeritRule child1_rule =
+        static_cast<VeritRule>(std::stoul(cdp->getProofFor(child1)->getArguments()[0].toString()));
+
       if (child1_rule != VeritRule::ASSUME
           && !isSameModEqual(children[0].notNode(), vp1[1])
           && children[0].getKind() == kind::OR)
@@ -2454,8 +2441,7 @@ VeritProofPostprocess::~VeritProofPostprocess() {}
 
 void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
-  CDProof* cdp = new CDProof(d_pnm);
-
+  CDProof* cdp = new CDProof(d_pnm,nullptr,"CDProof",false);
   processInternal(pf, cdp);
   // processSYMM(pf,cdp); //check when this is necessary
 
@@ -2513,7 +2499,6 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
                                             CDProof* cdp)
 {
   std::vector<Node> children;
-  std::vector<VeritRule> childrenRules;
 
   //First, update children
   for (const std::shared_ptr<ProofNode>& child :pf->getChildren()){
@@ -2537,8 +2522,6 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
       }
     }
     children.push_back(next_child->getResult());
-    childrenRules.push_back(static_cast<VeritRule>(
-        std::stoul(next_child->getArguments()[0].toString())));
     cdp->addProof(next_child);  // Find out if this is necessary
   }
 
@@ -2549,7 +2532,6 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
     if (d_cb->update(pf->getResult(),
                      pf->getRule(),
                      children,
-                     childrenRules,
                      pf->getArguments(),
                      cdp,
                      continueUpdate))
