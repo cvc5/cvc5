@@ -138,7 +138,7 @@ Node SygusExtension::getTermOrderPredicate( Node n1, Node n2 ) {
   return szGeq;
 }
 
-void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
+void SygusExtension::registerTerm( Node n ) {
   if( d_is_top_level.find( n )==d_is_top_level.end() ){
     d_is_top_level[n] = false;
     TypeNode tn = n.getType();
@@ -146,7 +146,7 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
     bool is_top_level = false;
     bool success = false;
     if( n.getKind()==kind::APPLY_SELECTOR_TOTAL ){
-      registerTerm( n[0], lemmas );
+      registerTerm( n[0] );
       std::unordered_map<Node, Node, NodeHashFunction>::iterator it =
           d_term_to_anchor.find(n[0]);
       if( it!=d_term_to_anchor.end() ) {
@@ -175,7 +175,7 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
           << ", type = " << tn.getDType().getName() << std::endl;
       d_term_to_depth[n] = d;
       d_is_top_level[n] = is_top_level;
-      registerSearchTerm( tn, d, n, is_top_level, lemmas );
+      registerSearchTerm( tn, d, n, is_top_level );
     }else{
       Trace("sygus-sb-debug2") << "Term " << n << " is not part of sygus search." << std::endl;
     }
@@ -356,7 +356,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
       IntMap::const_iterator itt = d_testers.find( sel );
       if( itt != d_testers.end() ){
         Assert(d_testers_exp.find(sel) != d_testers_exp.end());
-        assertTesterInternal( (*itt).second, sel, d_testers_exp[sel], lemmas );
+        assertTesterInternal( (*itt).second, sel, d_testers_exp[sel] );
       }
     }
     Trace("sygus-sb-debug") << "...finished" << std::endl;
@@ -927,7 +927,7 @@ TNode SygusExtension::getFreeVar( TypeNode tn ) {
   return d_tds->getFreeVar(tn, 0);
 }
 
-void SygusExtension::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas ) {
+void SygusExtension::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel ) {
   //register this term
   std::unordered_map<Node, Node, NodeHashFunction>::iterator ita =
       d_term_to_anchor.find(n);
@@ -951,7 +951,6 @@ Node SygusExtension::registerSearchValue(Node a,
                                            Node n,
                                            Node nv,
                                            unsigned d,
-                                           std::vector<Node>& lemmas,
                                            bool isVarAgnostic,
                                            bool doSym)
 {
@@ -986,7 +985,6 @@ Node SygusExtension::registerSearchValue(Node a,
                                      sel,
                                      nv[i],
                                      d + 1,
-                                     lemmas,
                                      isVarAgnostic,
                                      doSym && (!isVarAgnostic || i == 0));
       if (nvc.isNull())
@@ -1175,7 +1173,7 @@ void SygusExtension::registerSymBreakLemmaForValue(
   lem = lem.negate();
   Trace("sygus-sb-exc") << "  ........exc lemma is " << lem << ", size = " << sz
                         << std::endl;
-  registerSymBreakLemma(tn, lem, sz, a, lemmas);
+  registerSymBreakLemma(tn, lem, sz, a);
 }
 
 void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, Node a ) {
