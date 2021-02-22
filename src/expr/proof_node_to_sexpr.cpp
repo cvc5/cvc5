@@ -12,10 +12,11 @@
  ** \brief Implementation of proof node to s-expression
  **/
 
-#include "options/smt_options.h"
 #include "expr/proof_node_to_sexpr.h"
 
 #include <iostream>
+
+#include "options/smt_options.h"
 
 using namespace CVC4::kind;
 
