@@ -17,8 +17,6 @@
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
-#include "proof/lfsc/lfsc_post_processor.h"
-#include "proof/lfsc/lfsc_printer.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
 #include "proof/lfsc/lfsc_post_processor.h"
@@ -27,7 +25,6 @@
 #include "proof/verit/verit_printer.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
-#include "proof/lean/lean_printer.h"
 
 namespace CVC4 {
 namespace smt {
@@ -122,10 +119,10 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-  void PfManager::printProof(std::ostream& out,
-                             std::shared_ptr<ProofNode> pfn,
-                             Assertions& as,
-                             DefinedFunctionMap& df)
+void PfManager::printProof(std::ostream& out,
+                           std::shared_ptr<ProofNode> pfn,
+                           Assertions& as,
+                           DefinedFunctionMap& df)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
@@ -137,11 +134,10 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
     getAssertions(as, df, assertions);
     d_lpfpp.reset(new proof::LeanProofPostprocess(d_pnm.get()));
     d_lpfpp->process(fp);
-    CVC4::proof::LeanPrinter::print(out, assertions, fp);
+    proof::LeanPrinter::print(out, assertions, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
-
     d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get()));
     d_vpfpp->process(fp);
     proof::veritPrinter(out, fp);
@@ -151,9 +147,9 @@ void PfManager::setFinalProof(std::shared_ptr<ProofNode> pfn,
     std::vector<Node> assertions;
     getAssertions(as, df, assertions);
     // NOTE: update permanent to fp, which could be reused in incremental mode
-    CVC4::proof::LfscProofPostprocess lpp(d_pnm.get());
+    proof::LfscProofPostprocess lpp(d_pnm.get());
     lpp.process(fp);
-    CVC4::proof::LfscPrinter lp;
+    proof::LfscPrinter lp;
     // print the proof for assertions
     Trace("lfsc-debug") << "(proof\n";
     Trace("lfsc-debug") << *fp;
