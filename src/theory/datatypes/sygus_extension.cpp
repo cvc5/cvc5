@@ -27,6 +27,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_model.h"
+#include "theory/datatypes/inference_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -117,11 +118,11 @@ void SygusExtension::assertFact( Node n, bool polarity ) {
       Node mt = its->second->getOrMkMeasureValue();
       //it relates the measure term to arithmetic
       Node blem = n.eqNode( NodeManager::currentNM()->mkNode( kind::LEQ, mt, n[1] ) );
-      d_qim.lemma(blem, InferenceId::DATATYPES_SYGUS_DT_SIZE_UB);
+      d_im.lemma(blem, InferenceId::DATATYPES_SYGUS_FAIR_SIZE);
     }
     if( polarity ){
       unsigned s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
-      notifySearchSize( m, s, n, lemmas );
+      notifySearchSize( m, s, n );
     }
   }else if( n.getKind() == kind::DT_HEIGHT_BOUND || n.getKind()==DT_SIZE_BOUND ){
     //reduce to arithmetic TODO ?
@@ -260,7 +261,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
       Node conf = NodeManager::currentNM()->mkNode( kind::AND, conflict );
       Trace("sygus-sb-fair") << "Conflict is : " << conf << std::endl;
       Node confn = conf.negate();
-      d_im.lemma(confn, InferenceId::DATATYPES_SYGUS_DT_SIZE_DIRECT_CONFLICT);
+      d_im.lemma(confn, InferenceId::DATATYPES_SYGUS_FAIR_SIZE_CONFLICT);
       return;
     }
   }
@@ -326,7 +327,6 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
     // add the above symmetry breaking predicates to lemmas
     std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
     Node rlv = getRelevancyCondition(n);
-    for (const Node& slem : sbLemmas)
     for (size_t i=0, nlems=sbLemmas.size(); i<nlems; i++)
     {
       Node slem = sbLemmas[i];
@@ -1491,6 +1491,9 @@ void SygusExtension::incrementCurrentSearchSize( Node m ) {
 void SygusExtension::check() {
   Trace("sygus-sb") << "SygusExtension::check" << std::endl;
 
+  // reset the count of lemmas sent
+  d_im.reset();
+  
   // check for externally registered symmetry breaking lemmas
   std::vector<Node> anchors;
   if (d_tds->hasSymBreakLemmas(anchors))
@@ -1523,14 +1526,14 @@ void SygusExtension::check() {
               Trace("dt-sygus-debug")
                   << "DT sym break lemma : " << lem << std::endl;
               // it is a normal lemma
-              d_im.lemma(lem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
+              d_im.lemma(lem, InferenceId::DATATYPES_SYGUS_ENUM_SYM_BREAK);
             }
           }
           d_tds->clearSymBreakLemmas(a);
         }
       }
     }
-    if (!lemmas.empty())
+    if (!d_im.hasSentLemma())
     {
       return;
     }
@@ -1564,7 +1567,7 @@ void SygusExtension::check() {
       }
       // first check that the value progv for prog is what we expected
       bool isExc = true;
-      if (checkValue(prog, progv, 0, lemmas))
+      if (checkValue(prog, progv, 0))
       {
         isExc = false;
         //debugging : ensure fairness was properly handled
@@ -1593,7 +1596,7 @@ void SygusExtension::check() {
           // check that it is unique up to theory-specific rewriting and
           // conjecture-specific symmetry breaking.
           Node rsv = registerSearchValue(
-              prog, prog, progv, 0, lemmas, isVarAgnostic, true);
+              prog, prog, progv, 0, isVarAgnostic, true);
           if (rsv.isNull())
           {
             isExc = true;
@@ -1613,12 +1616,12 @@ void SygusExtension::check() {
   if (needsRecheck)
   {
     Trace("sygus-sb") << " SygusExtension::rechecking..." << std::endl;
-    return check(lemmas);
+    return check();
   }
 
   if (Trace.isOn("sygus-engine") && !d_szinfo.empty())
   {
-    if (lemmas.empty())
+    if (d_im.hasSentLemma())
     {
       Trace("sygus-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
       for (std::pair<const Node, std::unique_ptr<SygusSizeDecisionStrategy>>&
@@ -1633,10 +1636,6 @@ void SygusExtension::check() {
     {
       Trace("sygus-engine")
           << "*** Sygus : produced symmetry breaking lemmas" << std::endl;
-      for (const Node& lem : lemmas)
-      {
-        Trace("sygus-engine-debug") << "  " << lem << std::endl;
-      }
     }
   }
 }
@@ -1726,7 +1725,7 @@ Node SygusExtension::getCurrentTemplate( Node n, std::map< TypeNode, int >& var_
 }
 
 SygusExtension::SygusSizeDecisionStrategy::SygusSizeDecisionStrategy(InferenceManager& im, Node t, TheoryState& s)
-    : DecisionStrategyFmf(s.getSatContext(), s.getValuation()), d_im(im), d_this(t), d_curr_search_size(0)
+    : DecisionStrategyFmf(s.getSatContext(), s.getValuation()), d_this(t), d_curr_search_size(0), d_im(im)
 {
 }
 
@@ -1761,7 +1760,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
   }
   else if (d_measure_value_active.isNull())
   {
-    d_measure_value_active = getOrMkMeasureValue(lemmas);
+    d_measure_value_active = getOrMkMeasureValue();
   }
   return d_measure_value_active;
 }

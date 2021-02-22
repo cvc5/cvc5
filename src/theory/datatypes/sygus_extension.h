@@ -193,7 +193,7 @@ private:
      */
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
     /** A cache of all symmetry breaking lemma templates for (types, sizes). */
-    std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sb_lemmas;
+    std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sbLemmas;
     /** search value
      *
      * For each sygus type, a map from a builtin term to a sygus term for that
@@ -335,7 +335,7 @@ private:
    * are active for n (see description of addSymBreakLemmasFor) are added to
    * lemmas in this call.
    */
-  void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas );
+  void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel );
   /** Register search value
    *
    * This function is called when a selector chain n has been assigned a model
@@ -357,7 +357,7 @@ private:
    * Registering search value d -> x followed by d -> +( x, 0 ) results in the
    * construction of the symmetry breaking lemma template:
    *   ~is_+( z ) V ~is_x( z.1 ) V ~is_0( z.2 )
-   * which is stored in d_cache[a].d_sb_lemmas. This lemma is instantiated with
+   * which is stored in d_cache[a].d_sbLemmas. This lemma is instantiated with
    * z -> t for all terms t of appropriate depth, including d.
    * This function strengthens blocking clauses using generalization techniques
    * described in Reynolds et al SYNT 2017.
@@ -398,7 +398,7 @@ private:
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of
-   * type tn with anchor a. This is added to d_cache[a].d_sb_lemmas. Notice that
+   * type tn with anchor a. This is added to d_cache[a].d_sbLemmas. Notice that
    * we use lem as a template with free variable x, e.g. our template is:
    *   (lambda ((x tn)) lem)
    * where x = getFreeVar( tn ). For all search terms t of the appropriate
@@ -552,7 +552,8 @@ private:
    * decision strategy decides on literals of the form (DT_SYGUS_BOUND m n).
    *
    * After determining the measure term m for e, if applicable, we initialize
-   * SygusSizeDecisionStrategy for m below. This may result in lemmas
+   * SygusSizeDecisionStrategy for m below. This may result in lemmas sent via
+   * the inference manager.
    */
   void registerSizeTerm(Node e);
   /** A decision strategy for each measure term allocated by this class */
@@ -618,7 +619,7 @@ private:
 
    private:
     /** The inference manager we are using */
-  InferenceManager& d_im;
+    InferenceManager& d_im;
     /** the measure value */
     Node d_measure_value;
     /** the sygus measure value */
