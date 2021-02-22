@@ -154,16 +154,21 @@ class Instantiate : public QuantifiersUtil
    * If terms = { 4, 0 }, then this method will return false since
    *   4>5 => P(4,0)
    * is entailed true based on rewriting. This method may additionally set
-   * failMask to { true, false }, indicating that x's value was critical, but
-   * y's value was not. In other words, all instantiations including { x -> 4 }
-   * will also lead to this method returning false.
+   * failMask to "10", indicating that x's value was critical, but y's value
+   * was not. In other words, all instantiations including { x -> 4 } will also
+   * lead to this method returning false.
+   * 
+   * The parameter expFull is whether try to set all bits of the fail mask to
+   * 0. If this argument is true, then we only try to set a suffix of the
+   * bits to false.
    */
   bool addInstantiationExpFail(Node q,
                                std::vector<Node>& terms,
                                std::vector<bool>& failMask,
                                bool mkRep = false,
                                bool modEq = false,
-                               bool doVts = false);
+                               bool doVts = false,
+                               bool expFull = true);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms. This is the

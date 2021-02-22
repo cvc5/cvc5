@@ -384,7 +384,8 @@ bool Instantiate::addInstantiationExpFail(Node q,
                                           std::vector<bool>& failMask,
                                           bool mkRep,
                                           bool modEq,
-                                          bool doVts)
+                                          bool doVts,
+                                          bool expFull)
 {
   if (addInstantiation(q, terms, mkRep, modEq, doVts))
   {
@@ -450,8 +451,11 @@ bool Instantiate::addInstantiationExpFail(Node q,
     {
       subs[vars[ii]] = prev;
       terms[ii] = prev;
-      // currently not necessary to proceed TODO: still continue
-      break;
+      // not necessary to proceed if expFull is false
+      if (!expFull)
+      {
+        break;
+      }
     }
   }
   if (Trace.isOn("inst-exp-fail"))

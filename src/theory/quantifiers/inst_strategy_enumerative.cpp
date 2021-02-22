@@ -324,7 +324,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                 << ", " << ftypes[i] << std::endl;
           }
           std::vector<bool> failMask;
-          if (ie->addInstantiationExpFail(f, terms, failMask))
+          if (ie->addInstantiationExpFail(f, terms, failMask, false))
           {
             Trace("inst-alg-rd") << "Success!" << std::endl;
             ++(d_quantEngine->d_statistics.d_instantiations_guess);
@@ -333,6 +333,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           else
           {
             index--;
+            // currently, we use the failmask only for backtracking, although
+            // more could be learned here (wishue #81).
             Assert(failMask.size() == terms.size());
             while (!failMask.empty() && !failMask.back())
             {
@@ -340,7 +342,6 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
               childIndex.pop_back();
               index--;
             }
-            // If a single value was bad, remember it TODO
           }
           if (d_qstate.isInConflict())
           {
