@@ -281,7 +281,8 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
   NodeManager* nm = NodeManager::currentNM();
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
-    std::vector<Node> sb_lemmas;
+    std::vector<Node> sbLemmas;
+    std::vector<InferenceId> sblIds;
     // symmetry breaking lemmas requiring predicate elimination
     std::map<Node, bool> sb_elim_pred;
     bool usingSymCons = d_tds->usingSymbolicConsForEnumerator(m);
@@ -294,7 +295,8 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
           m, ntn, tindex, ds, usingSymCons, isVarAgnostic);
       if (!ipred.isNull())
       {
-        sb_lemmas.push_back(ipred);
+        sbLemmas.push_back(ipred);
+        sblIds.push_back(InferenceId::DATATYPES_SYGUS_SIMPLE_SYM_BREAK);
         if (ds == 0 && isVarAgnostic)
         {
           sb_elim_pred[ipred] = true;
@@ -314,7 +316,8 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
               conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
           if (!dpred.isNull())
           {
-            sb_lemmas.push_back(dpred);
+            sbLemmas.push_back(dpred);
+            sblIds.push_back(InferenceId::DATATYPES_SYGUS_CDEP_SYM_BREAK);
           }
         }
       }
@@ -323,8 +326,10 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
     // add the above symmetry breaking predicates to lemmas
     std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
     Node rlv = getRelevancyCondition(n);
-    for (const Node& slem : sb_lemmas)
+    for (const Node& slem : sbLemmas)
+    for (size_t i=0, nlems=sbLemmas.size(); i<nlems; i++)
     {
+      Node slem = sbLemmas[i];
       Node sslem = slem.substitute(x, n, cache);
       // if we require predicate elimination
       if (sb_elim_pred.find(slem) != sb_elim_pred.end())
@@ -339,7 +344,7 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp ) {
       {
         sslem = nm->mkNode(OR, rlv, sslem);
       }
-      d_im.lemma(sslem, InferenceId::DATATYPES_SYGUS_SYM_BREAK);
+      d_im.lemma(sslem, sblIds[i]);
     }
   }
   d_simple_proc[exp] = max_depth + 1;
@@ -1185,7 +1190,7 @@ void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, 
   Trace("sygus-sb-debug") << "     size : " << sz << std::endl;
   Assert(!a.isNull());
   SearchCache& sca = d_cache[a];
-  sca.d_sb_lemmas[tn][sz].push_back(lem);
+  sca.d_sbLemmas[tn][sz].push_back(lem);
   TNode x = getFreeVar( tn );
   unsigned csz = getSearchSizeForAnchor( a );
   int max_depth = ((int)csz)-((int)sz);
@@ -1226,10 +1231,10 @@ void SygusExtension::addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, Node
                            << " " << a << std::endl;
   SearchCache& sca = d_cache[a];
   std::map<TypeNode, std::map<unsigned, std::vector<Node>>>::iterator its =
-      sca.d_sb_lemmas.find(tn);
+      sca.d_sbLemmas.find(tn);
   Node rlv = getRelevancyCondition(t);
   NodeManager* nm = NodeManager::currentNM();
-  if (its != sca.d_sb_lemmas.end())
+  if (its != sca.d_sbLemmas.end())
   {
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
@@ -1448,8 +1453,8 @@ void SygusExtension::incrementCurrentSearchSize( Node m ) {
     // check whether a is bounded by m
     Assert(d_anchor_to_measure_term.find(a) != d_anchor_to_measure_term.end());
     if( d_anchor_to_measure_term[a]==m ){
-      for( std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = itc->second.d_sb_lemmas.begin();
-           its != itc->second.d_sb_lemmas.end(); ++its ){
+      for( std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::iterator its = itc->second.d_sbLemmas.begin();
+           its != itc->second.d_sbLemmas.end(); ++its ){
         TypeNode tn = its->first;
         TNode x = getFreeVar( tn );
         for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
