@@ -1470,15 +1470,12 @@ void SygusExtension::incrementCurrentSearchSize(Node m)
     // check whether a is bounded by m
     Assert(d_anchor_to_measure_term.find(a) != d_anchor_to_measure_term.end());
     if( d_anchor_to_measure_term[a]==m ){
-      for (std::map<TypeNode, std::map<unsigned, std::vector<Node>>>::iterator
-               its = itc->second.d_sbLemmas.begin();
-           its != itc->second.d_sbLemmas.end();
-           ++its)
+      for (std::pair<const TypeNode, std::map<unsigned, std::vector<Node>>>& sbl : itc->second.d_sbLemmas)
       {
-        TypeNode tn = its->first;
+        TypeNode tn = sbl.first;
         TNode x = getFreeVar( tn );
-        for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
-          unsigned sz = it->first;
+        for( std::pair< const unsigned, std::vector< Node > >& s : sbl.second ){
+          unsigned sz = s.first;
           int new_depth = ((int)itsz->second->d_curr_search_size) - ((int)sz);
           std::map< unsigned, std::vector< Node > >::iterator itt = itc->second.d_search_terms[tn].find( new_depth );
           if( itt!=itc->second.d_search_terms[tn].end() ){
@@ -1486,11 +1483,11 @@ void SygusExtension::incrementCurrentSearchSize(Node m)
             {
               if (!options::sygusSymBreakLazy()
                   || (d_active_terms.find(t) != d_active_terms.end()
-                      && !it->second.empty()))
+                      && !s.second.empty()))
               {
                 Node rlv = getRelevancyCondition(t);
                 std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-                for (const Node& lem : it->second)
+                for (const Node& lem : s.second)
                 {
                   Node slem = lem.substitute(x, t, cache);
                   if (!rlv.isNull())
@@ -1554,7 +1551,7 @@ void SygusExtension::check()
         }
       }
     }
-    if (!d_im.hasSentLemma())
+    if (d_im.hasSentLemma())
     {
       return;
     }

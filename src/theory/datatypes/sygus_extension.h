@@ -155,7 +155,7 @@ class SygusExtension
    */
   std::unordered_map<Node, Node, NodeHashFunction> d_term_to_anchor;
   /**
-   * Map from anchors to the conjecture they are associated witfh.
+   * Map from anchors to the conjecture they are associated with.
    */
   std::map<Node, quantifiers::SynthConjecture*> d_anchor_to_conj;
   /**
