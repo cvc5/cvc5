@@ -332,9 +332,9 @@ void SatProofManager::processRedundantLit(
 void SatProofManager::explainLit(
     SatLiteral lit, std::unordered_set<TNode, TNodeHashFunction>& premises)
 {
+  Trace("sat-proof") << push << "SatProofManager::explainLit: Lit: " << lit;
   Node litNode = getClauseNode(lit);
-  Trace("sat-proof") << push << "SatProofManager::explainLit: Lit: " << lit
-                     << " [" << litNode << "]\n";
+  Trace("sat-proof") << " [" << litNode << "]\n";
   Minisat::Solver::TCRef reasonRef =
       d_solver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
   if (reasonRef == Minisat::Solver::TCRef_Undef)
@@ -368,7 +368,12 @@ void SatProofManager::explainLit(
   Trace("sat-proof") << push;
   for (unsigned i = 0; i < size; ++i)
   {
-    SatLiteral curr_lit = MinisatSatSolver::toSatLiteral(reason[i]);
+    // Since explainLit calls can reallocate memory in the
+    // SAT solver's, we need to reload the reason ptr each time.
+    const Minisat::Clause& reloadedReason = d_solver->ca[reasonRef];
+    Assert(size == static_cast<unsigned>(reloadedReason.size()));
+    Assert(children[0] == getClauseNode(reloadedReason));
+    SatLiteral curr_lit = MinisatSatSolver::toSatLiteral(reloadedReason[i]);
     // ignore the lit we are trying to explain...
     if (curr_lit == lit)
     {
