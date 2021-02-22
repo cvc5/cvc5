@@ -70,24 +70,42 @@ void ExponentialSolver::checkInitialRefine()
         {
           // exp is always positive: exp(t) > 0
           Node lem = nm->mkNode(Kind::GT, t, d_data->d_zero);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_POSITIVITY, {}, {t[0]});
+          }
           d_data->d_im.addPendingLemma(
-              lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp at zero: (t = 0) <=> (exp(t) = 1)
           Node lem = nm->mkNode(Kind::EQUAL,
                                 t[0].eqNode(d_data->d_zero),
                                 t.eqNode(d_data->d_one));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_ZERO, {}, {t[0]});
+          }
           d_data->d_im.addPendingLemma(
-              lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp on negative values: (t < 0) <=> (exp(t) < 1)
           Node lem = nm->mkNode(Kind::EQUAL,
                                 nm->mkNode(Kind::LT, t[0], d_data->d_zero),
                                 nm->mkNode(Kind::LT, t, d_data->d_one));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_NEG, {}, {t[0]});
+          }
           d_data->d_im.addPendingLemma(
-              lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp on positive values: (t <= 0) or (exp(t) > t+1)
@@ -96,8 +114,14 @@ void ExponentialSolver::checkInitialRefine()
               nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
               nm->mkNode(
                   Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_SUPER_LIN, {}, {t[0]});
+          }
           d_data->d_im.addPendingLemma(
-              lem, InferenceId::ARITH_NL_T_INIT_REFINE, nullptr);
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
       }
     }
@@ -172,7 +196,10 @@ void ExponentialSolver::checkMonotonic()
   }
 }
 
-void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
+void ExponentialSolver::doTangentLemma(TNode e,
+                                       TNode c,
+                                       TNode poly_approx,
+                                       std::uint64_t d)
 {
   NodeManager* nm = NodeManager::currentNM();
   // compute tangent plane
@@ -189,8 +216,17 @@ void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
   Trace("nl-ext-exp") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
+  CDProof* proof = nullptr;
+  if (d_data->isProofEnabled())
+  {
+    proof = d_data->getProof();
+    proof->addStep(lem,
+                   PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
+                   {},
+                   {nm->mkConst<Rational>(d), e[0]});
+  }
   d_data->d_im.addPendingLemma(
-      lem, InferenceId::ARITH_NL_T_TANGENT, nullptr, true);
+      lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
 }
 
 void ExponentialSolver::doSecantLemmas(TNode e,

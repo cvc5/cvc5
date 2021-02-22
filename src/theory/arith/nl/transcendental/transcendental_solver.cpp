@@ -387,7 +387,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == Kind::EXPONENTIAL)
     {
-      d_expSlv.doTangentLemma(tf, c, poly_approx_c);
+      d_expSlv.doTangentLemma(tf, c, poly_approx_c, d);
     }
     else if (k == Kind::SINE)
     {
