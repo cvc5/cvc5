@@ -83,7 +83,7 @@ operator GEQ 2 "greater than or equal, x >= y"
 constant INDEXED_ROOT_PREDICATE_OP \
 	::CVC4::IndexedRootPredicate \
 	::CVC4::IndexedRootPredicateHashFunction \
-	"util/arith.h" \
+	"util/indexed_root_predicate.h" \
 	"operator for the indexed root predicate; payload is an instance of the CVC4::IndexedRootPredicate class"
 parameterized INDEXED_ROOT_PREDICATE INDEXED_ROOT_PREDICATE_OP 2 "indexed root predicate; first parameter is a INDEXED_ROOT_PREDICATE_OP, second is a real variable compared to zero, third is a polynomial"
 

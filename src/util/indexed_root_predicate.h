@@ -1,23 +1,23 @@
 /*********************                                                        */
-/*! \file arith.h
+/*! \file indexed_root_predicate.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli, Dejan Jovanovic
+ **   Gereon Kremer
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utils for arithmetic kinds.
+ ** \brief Utils for indexed root predicates.
  **
- ** Some utils for arithmetic kinds, for example indexed root predicates.
+ ** Some utils for indexed root predicates.
  **/
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__UTIL__ARITH_H
-#define CVC4__UTIL__ARITH_H
+#ifndef CVC4__UTIL__INDEXED_ROOT_PREDICATE_H
+#define CVC4__UTIL__INDEXED_ROOT_PREDICATE_H
 
 namespace CVC4 {
 
