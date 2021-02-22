@@ -28,6 +28,7 @@
 #include "options/option_exception.h"
 #include "options/printer_options.h"
 #include "options/prop_options.h"
+#include "options/proof_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/set_language.h"

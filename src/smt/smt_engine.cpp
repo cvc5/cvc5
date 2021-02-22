@@ -30,6 +30,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "options/proof_options.h"
 #include "printer/printer.h"
 #include "proof/proof_manager.h"
 #include "proof/unsat_core.h"

@@ -28,6 +28,7 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"

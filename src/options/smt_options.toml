@@ -155,6 +155,14 @@ header = "options/smt_options.h"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
+  name       = "proof"
+  category   = "regular"
+  long       = "proof"
+  type       = "bool"
+  default    = "true"
+  help       = "produce proofs, support check-proofs and get-proof"
+  
+[[option]]
   name       = "dumpProofs"
   category   = "regular"
   long       = "dump-proofs"
@@ -162,85 +170,6 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "output proofs after every UNSAT/VALID response"
-
-[[option]]
-  name       = "proofPrintConclusion"
-  category   = "regular"
-  long       = "proof-print-conclusion"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "Print conclusion of proof steps when printing AST"
-
-[[option]]
-  name       = "proof"
-  category   = "regular"
-  long       = "proof"
-  type       = "bool"
-  default    = "true"
-  help       = "produce proofs, support check-proofs and get-proof"
-
-[[option]]
-  name       = "proofPedantic"
-  category   = "regular"
-  long       = "proof-pedantic=N"
-  type       = "uint32_t"
-  default    = "0"
-  read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
-
-[[option]]
-  name       = "proofEagerChecking"
-  category   = "regular"
-  long       = "proof-eager-checking"
-  type       = "bool"
-  default    = "false"
-  help       = "check proofs eagerly with proof for local debugging"
-
-[[option]]
-  name       = "checkProofsFail"
-  category   = "regular"
-  long       = "check-proofs-fail"
-  type       = "bool"
-  default    = "false"
-  help       = "always fail when the checkProof method is invoked (dummy option)"
-
-[[option]]
-  name       = "proofReq"
-  category   = "regular"
-  long       = "proof-req"
-  type       = "bool"
-  default    = "false"
-  help       = "always fail during setDefaults if proof is not enabled (dummy option)"
-
-[[option]]
-  name       = "proofUpdateDebug"
-  category   = "regular"
-  long       = "proof-update-debug"
-  type       = "bool"
-  default    = "false"
-  help       = "debug proof node updater"
-
-[[option]]
-  name       = "proofGranularityMode"
-  category   = "regular"
-  long       = "proof-granularity=MODE"
-  type       = "ProofGranularityMode"
-  default    = "THEORY_REWRITE"
-  help       = "modes for proof granularity"
-  help_mode  = "Modes for proof granularity."
-[[option.mode.OFF]]
-  name = "off"
-  help = "Do not improve the granularity of proofs."
-[[option.mode.REWRITE]]
-  name = "rewrite"
-  help = "Allow rewrite or substitution steps, expand macros."
-[[option.mode.THEORY_REWRITE]]
-  name = "theory-rewrite"
-  help = "Allow theory rewrite steps, expand macros, rewrite and substitution steps."
-[[option.mode.DSL_REWRITE]]
-  name = "dsl-rewrite"
-  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
 
 [[option]]
   name       = "checkProofs"

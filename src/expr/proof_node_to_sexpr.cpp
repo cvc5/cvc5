@@ -13,7 +13,7 @@
  **/
 
 #include "expr/proof_node_to_sexpr.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 
 #include <iostream>
 
