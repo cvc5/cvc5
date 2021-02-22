@@ -41,6 +41,18 @@ bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return (pn->getRule() != PfRule::LEAN_RULE);
 };
 
+bool LeanProofPostProcessCallback::addLeanStep(
+    Node res,
+    LeanRule rule,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(rule));
+  std::vector<Node> lean_args = {lean_id, res};
+  lean_args.insert(lean_args.end(), args.begin(), args.end());
+  return cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
+}
 bool LeanProofPostprocessCallback::update(Node res,
                                           PfRule id,
                                           const std::vector<Node>& children,
@@ -53,31 +65,13 @@ bool LeanProofPostprocessCallback::update(Node res,
   // Trace("Hello") << id << "\n";
   switch (id)
   {
-    case PfRule::REFL:
+    case PfRule::ASSUME:
     {
-      Node lean_id =
-          nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::SMTREFL));
-      std::vector<Node> lean_args = {lean_id, res};
-      lean_args.insert(lean_args.end(), args.begin(), args.end());
-      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
-      break;
+      return addLeanStep(res, LeanRule::ASSUME, children, {}, *cdp);
     }
     case PfRule::SCOPE:
     {  // not sure here
-      Node lean_id =
-          nm->mkConst<Rational>(static_cast<unsigned>(proof::LeanRule::SCOPE));
-      std::vector<Node> lean_args = {lean_id, res};
-      lean_args.insert(lean_args.end(), args.begin(), args.end());
-      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
-      break;
-    }
-    case PfRule::MACRO_RESOLUTION:
-    {
-      Node lean_id =
-          nm->mkConst<Rational>(static_cast<unsigned>(proof::LeanRule::TRUST));
-      std::vector<Node> lean_args = {lean_id, res, args[0]};
-      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
-      break;
+      return addLeanStep(res, LeanRule::SCOPE, children, {}, *cdp);
     }
     case PfRule::CHAIN_RESOLUTION:
     {
@@ -91,29 +85,22 @@ bool LeanProofPostprocessCallback::update(Node res,
             PfRule::RESOLUTION, newChildren, newArgs, Node(), "");
         if (newArgs[0].getConst<bool>())
         {
-          Node lean_id =
-              nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R1));
-          std::vector<Node> lean_args = {lean_id, res, newArgs[1]};
-          cdp->addStep(cur, PfRule::LEAN_RULE, newChildren, lean_args);
+          bool _ = addLeanStep(cur, LeanRule::R1, newChildren, {newArgs[1]}, *cdp);
         }
         else
         {
-          Node lean_id =
-              nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R0));
-          std::vector<Node> lean_args = {lean_id, res, newArgs[1]};
-          cdp->addStep(cur, PfRule::LEAN_RULE, newChildren, lean_args);
+          bool _ = addLeanStep(cur, LeanRule::R0, newChildren, {newArgs[1]}, *cdp);
         }
       }
       break;
     }
-    case PfRule::ASSUME:
+    case PfRule::REFL:
     {
-      Node lean_id =
-          nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::ASSUME));
-      std::vector<Node> lean_args = {lean_id, res};
-      lean_args.insert(lean_args.end(), args.begin(), args.end());
-      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
-      break;
+      return addLeanStep(res, LeanRule::SMTREFL, children, {}, *cdp);
+    }
+    case PfRule::MACRO_RESOLUTION:
+    {
+      return addLeanStep(res, LeanRule::TRUST, children, {}, *cdp);
     }
 
     /*

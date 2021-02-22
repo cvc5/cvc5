@@ -53,6 +53,11 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   ProofChecker* d_pc;
+  bool addLeanStep(Node res,
+                   LeanRule rule,
+                   const std::vector<Node>& children,
+                   const std::vector<Node>& args,
+                   CDProof& cdp);
 };
 
 /**
