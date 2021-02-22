@@ -1179,6 +1179,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= (= t 0) (= (exp t) 1))
   ARITH_TRANS_EXP_ZERO,
+<<<<<<< HEAD
   //======== Exp is approximated from above for negative values
   // Children: none
   // Arguments: (d, t, l, u)
@@ -1209,6 +1210,8 @@ enum class PfRule : uint32_t
   // The lemma states that if t is between l and u, then (exp t) is below the
   // secant of p from l to u.
   ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+=======
+>>>>>>> 71d72df0437607723256bbd7b4f28cd6c89fe40f
   //======== Exp is approximated from below
   // Children: none
   // Arguments: (d, t)
@@ -1220,6 +1223,10 @@ enum class PfRule : uint32_t
   // exponential function is the following:
   //   e^x = \sum_{n=0}^{\infty} x^n / n!
   ARITH_TRANS_EXP_APPROX_BELOW,
+<<<<<<< HEAD
+=======
+
+>>>>>>> 71d72df0437607723256bbd7b4f28cd6c89fe40f
   //======== Sine is always between -1 and 1
   // Children: none
   // Arguments: (t)
