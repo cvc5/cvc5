@@ -41,7 +41,6 @@ class LeanPrinter
                     std::shared_ptr<ProofNode> pfn);
 
  private:
-
   static LeanRule getLeanRule(Node n);
   static std::string kindToLeanString(Kind k);
   static std::string nodeToLeanString(Node n);

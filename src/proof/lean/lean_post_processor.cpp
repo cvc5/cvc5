@@ -13,11 +13,12 @@
  **/
 
 #include "proof/lean/lean_post_processor.h"
-#include "proof/lean/lean_rules.h"
+
 #include "../../expr/proof_node_updater.h"
 #include "expr/lazy_proof.h"
-#include "expr/proof_node_algorithm.h"
 #include "expr/proof_checker.h"
+#include "expr/proof_node_algorithm.h"
+#include "proof/lean/lean_rules.h"
 
 namespace CVC4 {
 
@@ -25,7 +26,7 @@ namespace proof {
 
 LeanProofPostprocessCallback::LeanProofPostprocessCallback(
     ProofNodeManager* pnm)
-  : d_pnm(pnm), d_pc(pnm->getChecker())
+    : d_pnm(pnm), d_pc(pnm->getChecker())
 {
 }
 
@@ -49,28 +50,31 @@ bool LeanProofPostprocessCallback::update(Node res,
 {
   NodeManager* nm = NodeManager::currentNM();
   // change to case
-  //Trace("Hello") << id << "\n";
+  // Trace("Hello") << id << "\n";
   switch (id)
   {
     case PfRule::REFL:
     {
-      Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::SMTREFL));
+      Node lean_id =
+          nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::SMTREFL));
       std::vector<Node> lean_args = {lean_id, res};
       lean_args.insert(lean_args.end(), args.begin(), args.end());
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
       break;
     }
-    case PfRule::SCOPE: { // not sure here
-      Node lean_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(proof::LeanRule::SCOPE));
+    case PfRule::SCOPE:
+    {  // not sure here
+      Node lean_id =
+          nm->mkConst<Rational>(static_cast<unsigned>(proof::LeanRule::SCOPE));
       std::vector<Node> lean_args = {lean_id, res};
       lean_args.insert(lean_args.end(), args.begin(), args.end());
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
       break;
     }
-    case PfRule::MACRO_RESOLUTION: {
-      Node lean_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(proof::LeanRule::TRUST));
+    case PfRule::MACRO_RESOLUTION:
+    {
+      Node lean_id =
+          nm->mkConst<Rational>(static_cast<unsigned>(proof::LeanRule::TRUST));
       std::vector<Node> lean_args = {lean_id, res, args[0]};
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);  // add child
       break;
@@ -83,13 +87,19 @@ bool LeanProofPostprocessCallback::update(Node res,
         std::vector<Node> newChildren{cur, children[i]};
         std::vector<Node> newArgs{args[(i - 1) * 2], args[(i - 1) * 2 + 1]};
 
-        cur = d_pc->checkDebug(PfRule::RESOLUTION, newChildren, newArgs, Node(), "");
-        if (newArgs[0].getConst<bool>()) {
-          Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R1));
+        cur = d_pc->checkDebug(
+            PfRule::RESOLUTION, newChildren, newArgs, Node(), "");
+        if (newArgs[0].getConst<bool>())
+        {
+          Node lean_id =
+              nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R1));
           std::vector<Node> lean_args = {lean_id, res, newArgs[1]};
           cdp->addStep(cur, PfRule::LEAN_RULE, newChildren, lean_args);
-        } else {
-          Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R0));
+        }
+        else
+        {
+          Node lean_id =
+              nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::R0));
           std::vector<Node> lean_args = {lean_id, res, newArgs[1]};
           cdp->addStep(cur, PfRule::LEAN_RULE, newChildren, lean_args);
         }
@@ -98,7 +108,8 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
     case PfRule::ASSUME:
     {
-      Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::ASSUME));
+      Node lean_id =
+          nm->mkConst<Rational>(static_cast<unsigned>(LeanRule::ASSUME));
       std::vector<Node> lean_args = {lean_id, res};
       lean_args.insert(lean_args.end(), args.begin(), args.end());
       cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
@@ -200,12 +211,12 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
     */
     default:
-      {
-        //Trace("Hello") << res << "\n";
-        return false;
-      }
+    {
+      // Trace("Hello") << res << "\n";
+      return false;
+    }
   };
-  //Trace("Hello") << res << "\n";
+  // Trace("Hello") << res << "\n";
   return true;
 }  // namespace proof
 

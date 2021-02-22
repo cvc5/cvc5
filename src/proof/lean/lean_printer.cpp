@@ -12,9 +12,9 @@
  ** \brief The module for printing Lean proof nodes
  **/
 
-#include <iostream>
-
 #include "proof/lean/lean_printer.h"
+
+#include <iostream>
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_checker.h"
@@ -58,7 +58,6 @@ LeanRule LeanPrinter::getLeanRule(Node n)
   return LeanRule::UNKNOWN;
 }
 
-
 std::string LeanPrinter::kindToLeanString(Kind k)
 {
   switch (k)
@@ -84,7 +83,10 @@ std::string LeanPrinter::nodeToLeanString(Node n)
   for (size_t i = 0, size = n.getNumChildren(); i < size; ++i)
   {
     s << nodeToLeanString(n[i]);
-    if (i != size - 1) { s << " "; };
+    if (i != size - 1)
+    {
+      s << " ";
+    };
   }
   s << ")";
   return s.str();
@@ -96,13 +98,14 @@ std::string LeanPrinter::nodeToLeanTypeStringAux(Node n)
   std::stringstream s;
   switch (k)
   {
-  case kind::VARIABLE: s << n.toString(); break;
-  case kind::AND:
-  {
-    s << nodeToLeanTypeStringAux(n[0]) << " -> " << nodeToLeanTypeStringAux(n[1]);
-    break;
-  }
-  default: s << "holds [" << nodeToLeanString(n) << "]"; break;
+    case kind::VARIABLE: s << n.toString(); break;
+    case kind::AND:
+    {
+      s << nodeToLeanTypeStringAux(n[0]) << " -> "
+        << nodeToLeanTypeStringAux(n[1]);
+      break;
+    }
+    default: s << "holds [" << nodeToLeanString(n) << "]"; break;
   }
   return s.str();
 }
@@ -115,8 +118,8 @@ std::string LeanPrinter::nodeToLeanTypeString(Node n)
 }
 
 void LeanPrinter::printInternal(std::ostream& out,
-                                       std::shared_ptr<ProofNode> pfn,
-                                       std::map<Node, std::string>& passumeMap)
+                                std::shared_ptr<ProofNode> pfn,
+                                std::map<Node, std::string>& passumeMap)
 {
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
@@ -174,8 +177,8 @@ void LeanPrinter::printInternal(std::ostream& out,
 }
 
 void LeanPrinter::print(std::ostream& out,
-                               const std::vector<Node>& assertions,
-                               std::shared_ptr<ProofNode> pfn)
+                        const std::vector<Node>& assertions,
+                        std::shared_ptr<ProofNode> pfn)
 {
   std::map<Node, std::string> passumeMap;
   const std::vector<Node>& args = pfn->getArguments();
