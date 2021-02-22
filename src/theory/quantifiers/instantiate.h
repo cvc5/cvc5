@@ -147,9 +147,9 @@ class Instantiate : public QuantifiersUtil
                         bool modEq = false,
                         bool doVts = false);
   /**
-   * Same as above, but we also compute a vector failMask indicates which values
-   * in terms led to the instantiation not being added when this method returns
-   * false.  For example, if q is the formula
+   * Same as above, but we also compute a vector failMask indicating which
+   * values in terms led to the instantiation not being added when this method
+   * returns false.  For example, if q is the formula
    *   forall xy. x>5 => P(x,y)
    * If terms = { 4, 0 }, then this method will return false since
    *   4>5 => P(4,0)
