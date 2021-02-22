@@ -26,7 +26,7 @@ namespace proof {
 
 LeanProofPostprocessCallback::LeanProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pc(pnm->getChecker())
+  : d_pnm(pnm), d_nm(NodeManager::currentNM()), d_pc(pnm->getChecker())
 {
 }
 
@@ -41,17 +41,17 @@ bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
   return (pn->getRule() != PfRule::LEAN_RULE);
 };
 
-bool LeanProofPostProcessCallback::addLeanStep(
+bool LeanProofPostprocessCallback::addLeanStep(
     Node res,
     LeanRule rule,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(rule));
+  Node lean_id = d_nm->mkConst<Rational>(static_cast<unsigned>(rule));
   std::vector<Node> lean_args = {lean_id, res};
   lean_args.insert(lean_args.end(), args.begin(), args.end());
-  return cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
+  return cdp.addStep(res, PfRule::LEAN_RULE, children, lean_args);
 }
 bool LeanProofPostprocessCallback::update(Node res,
                                           PfRule id,
@@ -60,9 +60,6 @@ bool LeanProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  // change to case
-  // Trace("Hello") << id << "\n";
   switch (id)
   {
     case PfRule::ASSUME:
@@ -70,7 +67,7 @@ bool LeanProofPostprocessCallback::update(Node res,
       return addLeanStep(res, LeanRule::ASSUME, children, {}, *cdp);
     }
     case PfRule::SCOPE:
-    {  // not sure here
+    {
       return addLeanStep(res, LeanRule::SCOPE, children, {}, *cdp);
     }
     case PfRule::CHAIN_RESOLUTION:
@@ -80,16 +77,15 @@ bool LeanProofPostprocessCallback::update(Node res,
       {
         std::vector<Node> newChildren{cur, children[i]};
         std::vector<Node> newArgs{args[(i - 1) * 2], args[(i - 1) * 2 + 1]};
-
         cur = d_pc->checkDebug(
             PfRule::RESOLUTION, newChildren, newArgs, Node(), "");
         if (newArgs[0].getConst<bool>())
         {
-          bool _ = addLeanStep(cur, LeanRule::R1, newChildren, {newArgs[1]}, *cdp);
+          addLeanStep(cur, LeanRule::R1, newChildren, {newArgs[1]}, *cdp);
         }
         else
         {
-          bool _ = addLeanStep(cur, LeanRule::R0, newChildren, {newArgs[1]}, *cdp);
+          addLeanStep(cur, LeanRule::R0, newChildren, {newArgs[1]}, *cdp);
         }
       }
       break;
@@ -104,17 +100,6 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
 
     /*
-    case PfRule::RESOLUTION:
-    {
-      Node lean_id = nm->mkConst<Rational>(static_cast<unsigned>(
-          args[0] == nm->mkConst(true) ? proof::LeanRule::R0
-                                       : proof::LeanRule::R1));
-      std::vector<Node> lean_args;
-      lean_args.push_back(lean_id);
-      lean_args.insert(lean_args.end(), args.begin(), args.end());
-      cdp->addStep(res, PfRule::LEAN_RULE, children, lean_args);
-      break;
-    }
     case PfRule::SYMM:
     {
       Node child = children[0];

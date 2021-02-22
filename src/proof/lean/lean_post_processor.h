@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
+#include "proof/lean/lean_rules.h"
 
 namespace CVC4 {
 
@@ -52,6 +53,7 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  NodeManager* d_nm;
   ProofChecker* d_pc;
   bool addLeanStep(Node res,
                    LeanRule rule,
