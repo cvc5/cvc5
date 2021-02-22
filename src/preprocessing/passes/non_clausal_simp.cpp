@@ -232,9 +232,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             c = learnedLiteral[1];
           }
           Assert(!t.isConst());
-          Assert(cps.apply(t) == t);
-          Assert(top_level_substs.apply(t) == t);
-          Assert(nss.apply(t) == t);
+          Assert(Rewriter::rewrite(cps.apply(t)) == Rewriter::rewrite(t));
+          Assert(Rewriter::rewrite(top_level_substs.apply(t)) == Rewriter::rewrite(t));
+          Assert(Rewriter::rewrite(nss.apply(t)) == Rewriter::rewrite(t));
           // also add to learned literal
           ProofGenerator* cpg = constantPropagations->addSubstitutionSolved(
               t, c, tlearnedLiteral);
