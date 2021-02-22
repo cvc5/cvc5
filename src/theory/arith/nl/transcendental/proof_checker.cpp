@@ -64,7 +64,10 @@ void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_TRANS_EXP_POSITIVITY, this);
   pc->registerChecker(PfRule::ARITH_TRANS_EXP_SUPER_LIN, this);
   pc->registerChecker(PfRule::ARITH_TRANS_EXP_ZERO, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG, this);
   pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_BELOW, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_SINE_BOUNDS, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SHIFT, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, this);
@@ -132,6 +135,62 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 1);
     Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
     return nm->mkNode(EQUAL, args[0].eqNode(zero), e.eqNode(one));
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 4);
+    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
+           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
+    std::uint64_t d =
+        args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    Node t = args[1];
+    Node l = args[2];
+    Node u = args[3];
+    TaylorGenerator tg;
+    TaylorGenerator::ApproximationBounds bounds;
+    tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
+    Node evall = Rewriter::rewrite(
+        bounds.d_upperPos.substitute(tg.getTaylorVariable(), l));
+    Node evalu = Rewriter::rewrite(
+        bounds.d_upperPos.substitute(tg.getTaylorVariable(), u));
+    Node evalsecant = mkSecant(t, l, u, evall, evalu);
+    Node lem = nm->mkNode(
+        Kind::IMPLIES,
+        mkBounds(t, l, u),
+        nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
+    return Rewriter::rewrite(lem);
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 4);
+    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
+           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[1].getType().isReal());
+    Assert(args[2].isConst() && args[2].getKind() == Kind::CONST_RATIONAL);
+    Assert(args[3].isConst() && args[3].getKind() == Kind::CONST_RATIONAL);
+    std::uint64_t d =
+        args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    Node t = args[1];
+    Node l = args[2];
+    Node u = args[3];
+    TaylorGenerator tg;
+    TaylorGenerator::ApproximationBounds bounds;
+    tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d / 2, bounds);
+    Node evall = Rewriter::rewrite(
+        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), l));
+    Node evalu = Rewriter::rewrite(
+        bounds.d_upperNeg.substitute(tg.getTaylorVariable(), u));
+    Node evalsecant = mkSecant(t, l, u, evall, evalu);
+    Node lem = nm->mkNode(
+        Kind::IMPLIES,
+        mkBounds(t, l, u),
+        nm->mkNode(Kind::LEQ, nm->mkNode(Kind::EXPONENTIAL, t), evalsecant));
+    return Rewriter::rewrite(lem);
   }
   else if (id == PfRule::ARITH_TRANS_EXP_APPROX_BELOW)
   {
