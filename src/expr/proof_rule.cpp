@@ -162,7 +162,21 @@ const char* toString(PfRule id)
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
+    case PfRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
     case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
+    case PfRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+      return "ARITH_TRANS_SINE_TANGENT_ZERO";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_PI:
+      return "ARITH_TRANS_SINE_TANGENT_PI";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
