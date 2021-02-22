@@ -96,7 +96,8 @@ void IAndSolver::checkInitialRefine()
       conj.push_back(nm->mkNode(LEQ, i, i[1]));
       // x=y => iand(x,y)=x
       conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(i[0])));
-      Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
+      Node lem =
+          Rewriter::rewrite(conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj));
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
       d_im.addPendingLemma(lem, InferenceId::ARITH_NL_IAND_INIT_REFINE);
@@ -147,7 +148,8 @@ void IAndSolver::checkFullRefine()
       // ************* additional lemma schemas go here
       if (options::iandMode() == options::IandMode::SUM)
       {
-        Node lem = sumBasedLemma(i);  // add lemmas based on sum mode
+        Node lem = Rewriter::rewrite(
+            sumBasedLemma(i));  // add lemmas based on sum mode
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; SUM_REFINE" << std::endl;
         // note that lemma can contain div/mod, and will be preprocessed in the
@@ -168,7 +170,7 @@ void IAndSolver::checkFullRefine()
       else
       {
         // this is the most naive model-based schema based on model values
-        Node lem = valueBasedLemma(i);
+        Node lem = Rewriter::rewrite(valueBasedLemma(i));
         Trace("iand-lemma")
             << "IAndSolver::Lemma: " << lem << " ; VALUE_REFINE" << std::endl;
         // send the value lemma
