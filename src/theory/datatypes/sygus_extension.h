@@ -107,6 +107,7 @@ class SygusExtension
    * all preregistered enumerators.
    */
   void check();
+
  private:
   /** The theory state of the datatype theory */
   TheoryState& d_state;
@@ -193,7 +194,7 @@ private:
      */
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
     /** A cache of all symmetry breaking lemma templates for (types, sizes). */
-    std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sbLemmas;
+    std::map<TypeNode, std::map<unsigned, std::vector<Node>>> d_sbLemmas;
     /** search value
      *
      * For each sygus type, a map from a builtin term to a sygus term for that
@@ -313,7 +314,7 @@ private:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
    * where C1 and C2 are non-nullary constructors.
    */
-  void assertTesterInternal( int tindex, TNode n, Node exp );
+  void assertTesterInternal(int tindex, TNode n, Node exp);
   /**
    * This function is called when term n is registered to the theory of
    * datatypes. It makes the appropriate call to registerSearchTerm below,
@@ -335,7 +336,7 @@ private:
    * are active for n (see description of addSymBreakLemmasFor) are added to
    * lemmas in this call.
    */
-  void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel );
+  void registerSearchTerm(TypeNode tn, unsigned d, Node n, bool topLevel);
   /** Register search value
    *
    * This function is called when a selector chain n has been assigned a model
@@ -411,8 +412,7 @@ private:
    * This is equivalent to sum of weights of constructors corresponding to each
    * tester, e.g. above + has weight 1, and x and 0 have weight 0.
    */
-  void registerSymBreakLemma(
-      TypeNode tn, Node lem, unsigned sz, Node a);
+  void registerSymBreakLemma(TypeNode tn, Node lem, unsigned sz, Node a);
   /** Register symmetry breaking lemma for value
    *
    * This function adds a symmetry breaking lemma template for selector chains
@@ -451,10 +451,9 @@ private:
    * a : the anchor of term t,
    * d : the depth of term t.
    */
-  void addSymBreakLemmasFor(
-      TypeNode tn, Node t, unsigned d, Node a);
+  void addSymBreakLemmasFor(TypeNode tn, Node t, unsigned d, Node a);
   /** calls the above function where a is the anchor t */
-  void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d );
+  void addSymBreakLemmasFor(TypeNode tn, Node t, unsigned d);
   //------------------------end dynamic symmetry breaking
 
   /** Get relevancy condition
@@ -648,7 +647,7 @@ private:
    * of how search size affects which lemmas are relevant above
    * addSymBreakLemmasFor.
    */
-  void incrementCurrentSearchSize( Node m );
+  void incrementCurrentSearchSize(Node m);
   /**
    * Notify this class that we are currently searching for terms of size at
    * most s as model values for measure term m. Literal exp corresponds to the
@@ -656,7 +655,7 @@ private:
    * incrementSearchSize above, until the total number of times we have called
    * incrementSearchSize so far is at least s.
    */
-  void notifySearchSize( Node m, unsigned s, Node exp );
+  void notifySearchSize(Node m, unsigned s, Node exp);
   /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**
