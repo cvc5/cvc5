@@ -93,8 +93,7 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
   return d_variableOrdering;
 }
 
-std::vector<CACInterval> CDCAC::getUnsatIntervals(
-    std::size_t cur_variable) const
+std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
   for (const auto& c : d_constraints.getConstraints())
@@ -123,7 +122,7 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
       res.emplace_back(CACInterval{i, l, u, m, d, {n}});
     }
   }
-  cleanIntervals(res);
+  pruneRedundantIntervals(res);
   return res;
 }
 
@@ -363,7 +362,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "Adding integrality interval " << newInterval.d_interval
                      << std::endl;
       intervals.emplace_back(newInterval);
-      cleanIntervals(intervals);
+      pruneRedundantIntervals(intervals);
       continue;
     }
     d_assignment.set(d_variableOrdering[curVariable], sample);
@@ -410,7 +409,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
     Trace("cdcac") << "\torigins: " << intervals.back().d_origins << std::endl;
 
     // Remove redundant intervals
-    cleanIntervals(intervals);
+    pruneRedundantIntervals(intervals);
   }
 
   if (Trace.isOn("cdcac"))
@@ -467,6 +466,11 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
   return std::any_of(roots.begin(), roots.end(), [&val](const poly::Value& r) {
     return r <= val;
   });
+}
+
+void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
+{
+  cleanIntervals(intervals);
 }
 
 }  // namespace cad
