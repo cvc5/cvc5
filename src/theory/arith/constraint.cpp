@@ -1081,7 +1081,7 @@ TrustNode Constraint::split()
   Node lemma = NodeBuilder<3>(OR) << leqNode << geqNode;
 
   TrustNode trustedLemma;
-  if (options::proofNew())
+  if (d_database->isProofEnabled())
   {
     // Farkas proof that this works.
     auto nm = NodeManager::currentNM();
@@ -2068,7 +2068,7 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
   Node la = a->getLiteral();
   Node lb = b->getLiteral();
   Node orN = (la < lb) ? la.orNode(lb) : lb.orNode(la);
-  if (options::proofNew())
+  if (isProofEnabled())
   {
     Assert(b->getNegation()->getType() != ConstraintType::Disequality);
     auto nm = NodeManager::currentNM();
