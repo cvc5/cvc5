@@ -1470,11 +1470,13 @@ void SygusExtension::incrementCurrentSearchSize(Node m)
     // check whether a is bounded by m
     Assert(d_anchor_to_measure_term.find(a) != d_anchor_to_measure_term.end());
     if( d_anchor_to_measure_term[a]==m ){
-      for (std::pair<const TypeNode, std::map<unsigned, std::vector<Node>>>& sbl : itc->second.d_sbLemmas)
+      for (std::pair<const TypeNode, std::map<unsigned, std::vector<Node>>>&
+               sbl : itc->second.d_sbLemmas)
       {
         TypeNode tn = sbl.first;
         TNode x = getFreeVar( tn );
-        for( std::pair< const unsigned, std::vector< Node > >& s : sbl.second ){
+        for (std::pair<const unsigned, std::vector<Node>>& s : sbl.second)
+        {
           unsigned sz = s.first;
           int new_depth = ((int)itsz->second->d_curr_search_size) - ((int)sz);
           std::map< unsigned, std::vector< Node > >::iterator itt = itc->second.d_search_terms[tn].find( new_depth );
