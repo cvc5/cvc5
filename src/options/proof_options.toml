@@ -1,3 +1,50 @@
 id     = "PROOF"
 name   = "Proof"
 header = "options/proof_options.h"
+
+[[option]]
+  name       = "proofPrintConclusion"
+  category   = "regular"
+  long       = "proof-print-conclusion"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "Print conclusion of proof steps when printing AST"
+
+[[option]]
+  name       = "proofPedantic"
+  category   = "regular"
+  long       = "proof-pedantic=N"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof"
+
+[[option]]
+  name       = "proofEagerChecking"
+  category   = "regular"
+  long       = "proof-eager-checking"
+  type       = "bool"
+  default    = "false"
+  help       = "check proofs eagerly with proof for local debugging"
+
+[[option]]
+  name       = "proofGranularityMode"
+  category   = "regular"
+  long       = "proof-granularity=MODE"
+  type       = "ProofGranularityMode"
+  default    = "THEORY_REWRITE"
+  help       = "modes for proof granularity"
+  help_mode  = "Modes for proof granularity."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not improve the granularity of proofs."
+[[option.mode.REWRITE]]
+  name = "rewrite"
+  help = "Allow rewrite or substitution steps, expand macros."
+[[option.mode.THEORY_REWRITE]]
+  name = "theory-rewrite"
+  help = "Allow theory rewrite steps, expand macros, rewrite and substitution steps."
+[[option.mode.DSL_REWRITE]]
+  name = "dsl-rewrite"
+  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."

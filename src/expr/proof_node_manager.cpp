@@ -16,7 +16,7 @@
 
 #include "expr/proof.h"
 #include "expr/proof_node_algorithm.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
@@ -304,7 +304,7 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     std::unordered_set<const ProofNode*> visited;
     for (const std::shared_ptr<ProofNode>& cpc : children)

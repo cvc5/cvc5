@@ -143,7 +143,7 @@ uint64_t Trigger::addInstantiations()
 
 bool Trigger::sendInstantiation(InstMatch& m)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
 }
 
 bool Trigger::mkTriggerTerms(Node q,
