@@ -335,15 +335,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::proofEagerChecking.set(false);
   }
 
-  if (options::proof())
-  {
-    if (!options::stringLenConc.wasSetByUser())
-    {
-      options::stringLenConc.set(true);
-      Trace("smt") << "turning on string-len-conc, for proof" << std::endl;
-    }
-  }
-
   // sygus core connective requires unsat cores
   if (options::sygusCoreConnective())
   {
