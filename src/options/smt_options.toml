@@ -95,30 +95,6 @@ header = "options/smt_options.h"
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
-  name       = "proofFormatMode"
-  category   = "regular"
-  long       = "proof-format-mode=MODE"
-  type       = "ProofFormatMode"
-  default    = "NONE"
-  help       = "select language of proof output"
-  help_mode  = "Proof format modes."
-[[option.mode.NONE]]
-  name       = "none"
-  help       = "Do not translate proof output"
-[[option.mode.DOT]]
-  name       = "dot"
-  help       = "Output DOT proof"
-[[option.mode.LEAN]]
-  name       = "lean"
-  help       = "Output Lean proof"
-[[option.mode.VERIT]]
-  name       = "verit"
-  help       = "Output veriT proof"
-[[option.mode.LFSC]]
-  name       = "lfsc"
-  help       = "Output LFSC proof"
-
-[[option]]
   name       = "modelCoresMode"
   category   = "regular"
   long       = "model-cores=MODE"
