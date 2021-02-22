@@ -87,7 +87,7 @@ class CDCAC
    * Combines unsatisfiable regions from d_constraints evaluated over
    * d_assignment. Implements Algorithm 2.
    */
-  std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable) const;
+  std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable);
 
   /**
    * Sample outside of the set of intervals.
@@ -162,6 +162,13 @@ class CDCAC
    * evaluated over the current assignment).
    */
   bool hasRootBelow(const poly::Polynomial& p, const poly::Value& val) const;
+
+  /**
+   * Sort intervals according to section 4.4.1. and removes fully redundant
+   * intervals as in 4.5. 1. by calling out to cleanIntervals.
+   * Additionally makes sure to prune proofs for removed intervals.
+   */
+  void pruneRedundantIntervals(std::vector<CACInterval>& intervals);
 
   /**
    * The current assignment. When the method terminates with SAT, it contains a
