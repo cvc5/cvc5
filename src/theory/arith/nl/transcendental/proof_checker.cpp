@@ -60,6 +60,11 @@ Node mkSecant(TNode t, TNode l, TNode u, TNode evall, TNode evalu)
 void TranscendentalProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_TRANS_PI, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_NEG, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_POSITIVITY, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_SUPER_LIN, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_ZERO, this);
+  pc->registerChecker(PfRule::ARITH_TRANS_EXP_APPROX_BELOW, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SHIFT, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_SYMMETRY, this);
   pc->registerChecker(PfRule::ARITH_TRANS_SINE_TANGENT_ZERO, this);
@@ -80,9 +85,15 @@ Node TranscendentalProofRuleChecker::checkInternal(
   auto pi = nm->mkNullaryOperator(nm->realType(), Kind::PI);
   auto mpi = nm->mkNode(Kind::MULT, mone, pi);
   Trace("nl-trans-checker") << "Checking " << id << std::endl;
+  Trace("nl-trans-checker") << "Children:" << std::endl;
   for (const auto& c : children)
   {
     Trace("nl-trans-checker") << "\t" << c << std::endl;
+  }
+  Trace("nl-trans-checker") << "Args:" << std::endl;
+  for (const auto& a : args)
+  {
+    Trace("nl-trans-checker") << "\t" << a << std::endl;
   }
   if (id == PfRule::ARITH_TRANS_PI)
   {
@@ -90,6 +101,55 @@ Node TranscendentalProofRuleChecker::checkInternal(
     Assert(args.size() == 2);
     return nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GEQ, pi, args[0]),
                                        nm->mkNode(Kind::LEQ, pi, args[1])});
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_NEG)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(
+        EQUAL, nm->mkNode(LT, args[0], zero), nm->mkNode(LT, e, one));
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_POSITIVITY)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(GT, e, zero);
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_SUPER_LIN)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(OR,
+                      nm->mkNode(LEQ, args[0], zero),
+                      nm->mkNode(GT, e, nm->mkNode(PLUS, args[0], one)));
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_ZERO)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node e = nm->mkNode(Kind::EXPONENTIAL, args[0]);
+    return nm->mkNode(EQUAL, args[0].eqNode(zero), e.eqNode(one));
+  }
+  else if (id == PfRule::ARITH_TRANS_EXP_APPROX_BELOW)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 2);
+    Assert(args[0].isConst() && args[0].getKind() == Kind::CONST_RATIONAL
+           && args[0].getConst<Rational>().isIntegral());
+    Assert(args[1].getType().isReal());
+    std::uint64_t d =
+        args[0].getConst<Rational>().getNumerator().toUnsignedInt();
+    Node t = args[1];
+    TaylorGenerator tg;
+    TaylorGenerator::ApproximationBounds bounds;
+    tg.getPolynomialApproximationBounds(Kind::EXPONENTIAL, d, bounds);
+    Node eval =
+        Rewriter::rewrite(bounds.d_lower.substitute(tg.getTaylorVariable(), t));
+    return nm->mkNode(
+        Kind::GEQ, std::vector<Node>{nm->mkNode(Kind::EXPONENTIAL, t), eval});
   }
   else if (id == PfRule::ARITH_TRANS_SINE_BOUNDS)
   {
