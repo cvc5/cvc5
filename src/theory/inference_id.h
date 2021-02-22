@@ -167,6 +167,14 @@ enum class InferenceId
   DATATYPES_SIZE_POS,
   // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
   DATATYPES_HEIGHT_ZERO,
+  //-------------------- sygus extension
+  DATATYPES_SYGUS_SYM_BREAK,
+  DATATYPES_SYGUS_SIZE,
+  DATATYPES_SYGUS_VAR_AGNOSTIC,
+  DATATYPES_SYGUS_SIZE_CORRECTION,
+  DATATYPES_SYGUS_VALUE_CORRECTION,
+  DATATYPES_SYGUS_MT_POS,
+  DATATYPES_SYGUS_ACTIVE_MT_POS,
   // ---------------------------------- end datatypes theory
 
   // ---------------------------------- sep theory
