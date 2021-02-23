@@ -1106,6 +1106,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+
   //======== Multiplication sign inference
   // Children: none
   // Arguments: (f1, ..., fk, m)
@@ -1360,7 +1361,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LFSC_RULE,
-
   //================================================ Place holder for Lean rules
   // ======== Lean rule
   // Children: (P1 ... Pn)
@@ -1368,7 +1368,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LEAN_RULE,
-
   //================================================ Place holder for veriT
   // rules
   // ======== veriT rule
