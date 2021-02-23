@@ -32,7 +32,7 @@ class DTypeConstructor;
 
 namespace theory {
 
-class QuantifiersEngine;
+class SortInference;
 
 namespace quantifiers {
 
@@ -69,7 +69,7 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersEngine* qe, QuantifiersState& qs, ProofNodeManager* pnm);
+  Skolemize(QuantifiersState& qs, SortInference * si, ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -140,8 +140,6 @@ class Skolemize
                          Node n,
                          TypeNode ntn,
                          std::vector<Node>& selfSel);
-  /** quantifiers engine that owns this module */
-  QuantifiersEngine* d_quantEngine;
   /** quantified formulas that have been skolemized */
   NodeNodeMap d_skolemized;
   /** map from quantified formulas to the list of skolem constants */
@@ -149,6 +147,8 @@ class Skolemize
       d_skolem_constants;
   /** map from quantified formulas to their skolemized body */
   std::unordered_map<Node, Node, NodeHashFunction> d_skolem_body;
+  /** Pointer to the sort inference module */
+  SortInference * d_sortInfer;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** Eager proof generator for skolemization lemmas */

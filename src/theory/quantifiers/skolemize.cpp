@@ -19,7 +19,6 @@
 #include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
 
@@ -29,11 +28,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
+Skolemize::Skolemize(QuantifiersState& qs,
+                     SortInference * si,
                      ProofNodeManager* pnm)
-    : d_quantEngine(qe),
-      d_skolemized(qs.getUserContext()),
+    : d_skolemized(qs.getUserContext()),
+      d_sortInfer(si),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
                            : new EagerProofGenerator(
@@ -355,7 +354,7 @@ Node Skolemize::getSkolemizedBody(Node f)
       for (unsigned i = 0; i < d_skolem_constants[f].size(); i++)
       {
         // carry information for sort inference
-        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar(
+        d_sortInfer->setSkolemVar(
             f, f[0][i], d_skolem_constants[f][i]);
       }
     }

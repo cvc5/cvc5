@@ -32,10 +32,9 @@ namespace CVC4 {
 namespace theory {
   
 class QuantifiersEngine;
+class DecisionManager;
 
 namespace quantifiers {
-
-class DecisionManager;
 
 /**
  * This class is responsible for constructing the vector of modules to be
