@@ -140,6 +140,8 @@ class Skolemize
                          Node n,
                          TypeNode ntn,
                          std::vector<Node>& selfSel);
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** quantified formulas that have been skolemized */
   NodeNodeMap d_skolemized;
   /** map from quantified formulas to the list of skolem constants */

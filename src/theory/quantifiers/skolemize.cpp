@@ -31,7 +31,8 @@ namespace theory {
 namespace quantifiers {
 
 Skolemize::Skolemize(QuantifiersState& qs, ProofNodeManager* pnm)
-    : d_skolemized(qs.getUserContext()),
+    : d_qstate(qs), 
+    d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
                            : new EagerProofGenerator(

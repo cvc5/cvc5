@@ -249,6 +249,11 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
+  
+  if (options::sortInference())
+  {
+    d_sortInfer.reset(new SortInference);
+  }
 
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);

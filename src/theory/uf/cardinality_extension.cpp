@@ -1021,7 +1021,7 @@ int SortModel::addSplit(Region* r)
         AlwaysAssert(false);
       }
     }
-    if (Trace("uf-ss-split-si"))
+    if (Trace.isOn("uf-ss-split-si"))
     {
       SortInference* si = d_state.getSortInference();
       if (si != nullptr)
