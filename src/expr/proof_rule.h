@@ -1106,6 +1106,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+
   //======== Multiplication sign inference
   // Children: none
   // Arguments: (f1, ..., fk, m)
