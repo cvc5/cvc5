@@ -195,9 +195,9 @@ public:
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
-  
+
   //------------------------------------------- access methods for assertions
-  /** 
+  /**
    * The following methods are intended only to be used in limited use cases,
    * for cases where a theory (e.g. quantifiers) requires knowing about the
    * assertions from other theories.

@@ -210,6 +210,6 @@ context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
   Assert(theory != nullptr);
   return theory->facts_end();
 }
-  
+
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
