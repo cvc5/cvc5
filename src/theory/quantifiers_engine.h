@@ -270,6 +270,8 @@ public:
   TheoryEngine* d_te;
   /** Reference to the decision manager of the theory engine */
   DecisionManager* d_decManager;
+  /** Pointer to the proof node manager */
+  ProofNodeManager * d_pnm;
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */

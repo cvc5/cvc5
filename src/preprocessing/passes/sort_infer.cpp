@@ -34,7 +34,7 @@ SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SortInferencePass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  SortInference* si = d_preprocContext->getTheoryEngine()->getSortInference();
+  theory::SortInference* si = d_preprocContext->getTheoryEngine()->getSortInference();
 
   if (options::sortInference())
   {

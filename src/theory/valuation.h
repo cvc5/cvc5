@@ -33,6 +33,7 @@ class TheoryEngine;
 namespace theory {
 
 class TheoryModel;
+class SortInference;
 
 /**
  * The status of an equality in the current context.
@@ -113,6 +114,11 @@ public:
    * check.
    */
   TheoryModel* getModel();
+  /** 
+   * Returns a pointer to the sort inference module, which lives in TheoryEngine
+   * and is non-null when options::sortInference is true.
+   */
+  SortInference* getSortInference();
 
   //-------------------------------------- static configuration of the model
   /**

@@ -81,6 +81,11 @@ class TheoryState
    * check.
    */
   TheoryModel* getModel();
+  /** 
+   * Returns a pointer to the sort inference module, which lives in TheoryEngine
+   * and is non-null when options::sortInference is true.
+   */
+  SortInference* getSortInference();
 
   /** Returns true if n has a current SAT assignment and stores it in value. */
   virtual bool hasSatValue(TNode n, bool& value) const;

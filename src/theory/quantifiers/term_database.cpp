@@ -1090,8 +1090,8 @@ bool TermDb::reset( Theory::Effort effort ){
       }
       Assert(theory != nullptr);
       for (context::CDList<Assertion>::const_iterator
-               it = d_qstate.factsBegin(),
-               it_end = d_qstate.factsEnd();
+               it = d_qstate.factsBegin(theoryId),
+               it_end = d_qstate.factsEnd(theoryId);
            it != it_end;
            ++it)
       {

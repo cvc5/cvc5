@@ -124,6 +124,16 @@ TheoryModel* Valuation::getModel() {
   }
   return d_engine->getModel();
 }
+SortInference* Valuation::getSortInference()
+{
+  if (d_engine == nullptr)
+  {
+    // no theory engine, thus we don't have a sort inference object
+    return nullptr;
+  }
+  return d_engine->getSortInference();
+  
+}
 
 void Valuation::setUnevaluatedKind(Kind k)
 {
