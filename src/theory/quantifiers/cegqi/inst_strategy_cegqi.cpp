@@ -56,7 +56,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(qs.getUserContext()),
-      d_vtsCache(new VtsTermCache(qe)),
+      d_vtsCache(new VtsTermCache(qim)),
       d_bv_invert(nullptr)
 {
   d_small_const =
@@ -147,7 +147,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
         Trace("cegqi-lemma")
             << "Counterexample dependency lemma : " << dep_lemma << std::endl;
-        d_quantEngine->getOutputChannel().lemma(dep_lemma);
+        d_qim.lemma(dep_lemma, InferenceId::QUANTIFIERS_CEGQI_CEX_DEP);
       }
 
       //must register all sub-quantifiers of counterexample lemma, register their lemmas
@@ -166,11 +166,10 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     DecisionStrategy* dlds = nullptr;
     if (itds == d_dstrat.end())
     {
-      d_dstrat[q].reset(
-          new DecisionStrategySingleton("CexLiteral",
-                                        ceLit,
-                                        d_qstate.getSatContext(),
-                                        d_quantEngine->getValuation()));
+      d_dstrat[q].reset(new DecisionStrategySingleton("CexLiteral",
+                                                      ceLit,
+                                                      d_qstate.getSatContext(),
+                                                      d_qstate.getValuation()));
       dlds = d_dstrat[q].get();
     }
     else
@@ -201,10 +200,12 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
         Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
-        if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
+        if (d_qstate.getValuation().hasSatValue(cel, value))
+        {
           Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
-            if( d_quantEngine->getValuation().isDecision( cel ) ){
+            if (d_qstate.getValuation().isDecision(cel))
+            {
               Trace("cegqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
             }else{
               Trace("cegqi") << "Inactive : " << q << std::endl;
@@ -438,14 +439,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
         Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
-        d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
+        d_qim.lemma(delta_lem_ub, InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA);
       }
       std::vector< Node > inf;
       d_vtsCache->getVtsTerms(inf, true, false, false);
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
         Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf[i], NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
-        d_quantEngine->getOutputChannel().lemma( inf_lem_lb );
+        d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
       }
     }
   }
@@ -461,7 +462,7 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
   NodeManager * nm = NodeManager::currentNM();
   Node g = nm->mkSkolem("g", nm->booleanType());
   // ensure that it is a SAT literal
-  Node ceLit = d_quantEngine->getValuation().ensureLiteral(g);
+  Node ceLit = d_qstate.getValuation().ensureLiteral(g);
   d_ce_lit[q] = ceLit;
   return ceLit;
 }
@@ -469,7 +470,8 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
-  if( d_quantEngine->getQuantAttributes()->isQuantElimPartial( d_curr_quant ) ){
+  if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
+  {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
     d_quantEngine->getInstantiate()->recordInstantiation(
