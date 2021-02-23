@@ -354,25 +354,32 @@ void SatProofManager::explainLit(
   }
   // pedantically check that the negation of the literal to explain *does not*
   // occur in the reason, otherwise we will loop forever
+#ifdef CVC4_ASSERTIONS
   for (unsigned i = 0; i < size; ++i)
   {
     AlwaysAssert(~MinisatSatSolver::toSatLiteral(reason[i]) != lit)
         << "cyclic justification\n";
   }
+#endif
   // add the reason clause first
   std::vector<Node> children{getClauseNode(reason)}, args;
   // save in the premises
   premises.insert(children.back());
+  // Since explainLit calls can reallocate memory in the
+  // SAT solver, we directly get the literals we need to explain so we no
+  // longer depend on the reference to reason
+  std::vector<Node> toExplain{children.back().begin(), children.back().end()};
   NodeManager* nm = NodeManager::currentNM();
   Trace("sat-proof") << push;
   for (unsigned i = 0; i < size; ++i)
   {
-    // Since explainLit calls can reallocate memory in the
-    // SAT solver's, we need to reload the reason ptr each time.
+    // pedantically make sure that the reason stays the same
+#ifdef CVC4_ASSERTIONS
     const Minisat::Clause& reloadedReason = d_solver->ca[reasonRef];
-    Assert(size == static_cast<unsigned>(reloadedReason.size()));
-    Assert(children[0] == getClauseNode(reloadedReason));
-    SatLiteral curr_lit = MinisatSatSolver::toSatLiteral(reloadedReason[i]);
+    AlwaysAssert(size == static_cast<unsigned>(reloadedReason.size()));
+    AlwaysAssert(children[0] == getClauseNode(reloadedReason));
+#endif
+    SatLiteral curr_lit = d_cnfStream->getTranslationCache()[toExplain[i]];
     // ignore the lit we are trying to explain...
     if (curr_lit == lit)
     {
