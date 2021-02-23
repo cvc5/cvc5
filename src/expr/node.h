@@ -1451,8 +1451,13 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 
   // otherwise compute
-  Iterator j = find_if(substitutionsBegin, substitutionsEnd,
-                       bind2nd(first_equal_to<typename Iterator::value_type::first_type, typename Iterator::value_type::second_type>(), *this));
+  Iterator j = find_if(
+      substitutionsBegin,
+      substitutionsEnd,
+      std::bind(first_equal_to<typename Iterator::value_type::first_type,
+                               typename Iterator::value_type::second_type>(),
+                std::placeholders::_1,
+                *this));
   if(j != substitutionsEnd) {
     Node n = (*j).second;
     cache[*this] = n;
