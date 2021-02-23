@@ -1367,7 +1367,7 @@ void SygusExtension::registerSizeTerm(Node e)
       slem = mt.eqNode(nm->mkNode(PLUS, new_mt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
-    d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_SIZE);
+    d_im.lemma(slem, InferenceId::DATATYPES_SYGUS_MT_BOUND);
   }
   if (d_tds->isVariableAgnosticEnumerator(e))
   {

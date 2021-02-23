@@ -186,14 +186,16 @@ enum class InferenceId
   // (dt.size t) <= N => (or ~is-C1( t1 ) V ... V ~is-Cn( tn ) ) if using
   // sygus-fair=direct
   DATATYPES_SYGUS_FAIR_SIZE_CONFLICT,
-  // (dt.size t) = (+ (dt.size t.1) ... (dt.size t.n) 1)
-  DATATYPES_SYGUS_SIZE,
   // used for implementing variable agnostic enumeration
   DATATYPES_SYGUS_VAR_AGNOSTIC,
   // handles case the model value for a sygus term violates the size bound
   DATATYPES_SYGUS_SIZE_CORRECTION,
   // handles case the model value for a sygus term does not exist
   DATATYPES_SYGUS_VALUE_CORRECTION,
+  // s <= (dt.size t), where s is a term that must be less than the current
+  // size bound based on our fairness strategy. For instance, s may be
+  // (dt.size e) for (each) enumerator e when multiple enumerators are present.
+  DATATYPES_SYGUS_MT_BOUND,
   // (dt.size t) >= 0
   DATATYPES_SYGUS_MT_POS,
   // ---------------------------------- end datatypes theory
