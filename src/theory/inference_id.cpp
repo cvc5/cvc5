@@ -115,7 +115,8 @@ const char* toString(InferenceId i)
       return "DATATYPES_SYGUS_SIZE_CORRECTION";
     case InferenceId::DATATYPES_SYGUS_VALUE_CORRECTION:
       return "DATATYPES_SYGUS_VALUE_CORRECTION";
-    case InferenceId::DATATYPES_SYGUS_MT_BOUND: return "DATATYPES_SYGUS_MT_BOUND";
+    case InferenceId::DATATYPES_SYGUS_MT_BOUND:
+      return "DATATYPES_SYGUS_MT_BOUND";
     case InferenceId::DATATYPES_SYGUS_MT_POS: return "DATATYPES_SYGUS_MT_POS";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
