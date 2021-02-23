@@ -85,6 +85,7 @@ class SynthConjecture
   SynthConjecture(QuantifiersEngine* qe,
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
+                  QuantifiersRegistry& qr,
                   SygusStatistics& s);
   ~SynthConjecture();
   /** presolve */
@@ -206,6 +207,8 @@ class SynthConjecture
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** reference to the statistics of parent */
   SygusStatistics& d_stats;
   /** term database sygus of d_qe */

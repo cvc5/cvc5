@@ -15,7 +15,7 @@
 #include "prop/sat_proof_manager.h"
 
 #include "expr/proof_node_algorithm.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
 #include "theory/theory_proof_step_buffer.h"
@@ -650,7 +650,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
     }
   } while (expanded);
   // now we should be able to close it
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     std::vector<Node> assumptionsVec;
     for (const Node& a : d_assumptions)

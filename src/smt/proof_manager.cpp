@@ -16,7 +16,7 @@
 
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
 
@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace smt {
 
 PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
-    : d_pchecker(new ProofChecker(options::proofNewPedantic())),
+    : d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
