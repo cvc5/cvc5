@@ -2009,13 +2009,13 @@ void TheoryArithPrivate::outputLemma(TNode lem, InferenceId id) {
 void TheoryArithPrivate::outputTrustedConflict(TrustNode conf, InferenceId id)
 {
   Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
-  d_containing.d_im.trustedConflict(conf, id, true);
+  d_containing.d_im.trustedConflict(conf, id);
   //(d_containing.d_out)->trustedConflict(conf);
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit, InferenceId id) {
   Debug("arith::channel") << "Arith conflict: " << lit << std::endl;
-  d_containing.d_im.conflict(lit, id, true);
+  d_containing.d_im.conflict(lit, id);
   //(d_containing.d_out)->conflict(lit);
 }
 
