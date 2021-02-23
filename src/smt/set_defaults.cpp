@@ -1374,11 +1374,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
-  // !!!!!!!!!!!!!!!! temporary, until proofs are functional
-  if (options::proof())
-  {
-    throw OptionException("--proof is not yet supported.");
-  }
 
   if (logic == LogicInfo("QF_UFNRA"))
   {
