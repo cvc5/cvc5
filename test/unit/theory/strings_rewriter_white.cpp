@@ -54,7 +54,7 @@ TEST_F(TestTheoryWhiteStringsRewriter, rewrite_leq)
 
   {
     Node leq = d_nodeManager->mkNode(STRING_LEQ, ax, bcy);
-    ASERT_EQ(Rewriter::rewrite(leq), d_nodeManager->mkConst(true));
+    ASSERT_EQ(Rewriter::rewrite(leq), d_nodeManager->mkConst(true));
   }
 
   {
