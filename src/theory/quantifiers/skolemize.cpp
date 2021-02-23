@@ -14,16 +14,15 @@
 
 #include "theory/quantifiers/skolemize.h"
 
+#include "expr/dtype.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
-#include "expr/dtype.h"
-#include "theory/sort_inference.h"
 
 using namespace CVC4::kind;
 
@@ -31,8 +30,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersState& qs,
-                     ProofNodeManager* pnm)
+Skolemize::Skolemize(QuantifiersState& qs, ProofNodeManager* pnm)
     : d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
@@ -350,7 +348,7 @@ Node Skolemize::getSkolemizedBody(Node f)
       }
     }
     Assert(d_skolem_constants[f].size() == f[0].getNumChildren());
-      SortInference * si = d_qstate.getSortInference();
+    SortInference* si = d_qstate.getSortInference();
     if (si != nullptr)
     {
       for (unsigned i = 0; i < d_skolem_constants[f].size(); i++)

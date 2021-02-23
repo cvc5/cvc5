@@ -88,10 +88,9 @@ void TheoryUF::finishInit() {
   if (options::finiteModelFind()
       && options::ufssMode() != options::UfssMode::NONE)
   {
-    SortInference * si = nullptr;
+    SortInference* si = nullptr;
     if (options::sortInference())
     {
-      
     }
     d_thss.reset(new CardinalityExtension(d_state, d_im, this));
   }

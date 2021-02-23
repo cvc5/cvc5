@@ -634,11 +634,10 @@ class TheoryEngine {
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
+ theory::SortInference* getSortInference() { return &d_sortInfer; }
 
-  theory::SortInference* getSortInference() { return &d_sortInfer; }
-
-  /** Prints the assertions to the debug stream */
-  void printAssertions(const char* tag);
+ /** Prints the assertions to the debug stream */
+ void printAssertions(const char* tag);
 
 private:
 

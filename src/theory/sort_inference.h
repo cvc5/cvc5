@@ -166,7 +166,7 @@ private:
  bool isHandledApplyUf(Kind k) const;
 };
 
-}
+}  // namespace theory
 }
 
 #endif

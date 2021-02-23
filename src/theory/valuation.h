@@ -114,7 +114,7 @@ public:
    * check.
    */
   TheoryModel* getModel();
-  /** 
+  /**
    * Returns a pointer to the sort inference module, which lives in TheoryEngine
    * and is non-null when options::sortInference is true.
    */

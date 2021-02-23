@@ -740,7 +740,7 @@ void SortModel::check(Theory::Effort level)
   Trace("uf-ss-debug") << "No splits added. " << d_cardinality << std::endl;
   Trace("uf-ss-si") << "Must combine region" << std::endl;
   bool recheck = false;
-  SortInference * si = d_state.getSortInference();
+  SortInference* si = d_state.getSortInference();
   if (si != nullptr)
   {
     // If sort inference is enabled, search for regions with same sort.
@@ -1023,14 +1023,15 @@ int SortModel::addSplit(Region* r)
     }
     if (Trace("uf-ss-split-si"))
     {
-      SortInference * si = d_state.getSortInference();
+      SortInference* si = d_state.getSortInference();
       if (si != nullptr)
       {
-        for( size_t i=0; i<2; i++ ){
+        for (size_t i = 0; i < 2; i++)
+        {
           int sid = si->getSortId(ss[i]);
           Trace("uf-ss-split-si") << sid << " ";
         }
-        Trace("uf-ss-split-si")  << std::endl;
+        Trace("uf-ss-split-si") << std::endl;
       }
     }
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areEqual( s[0], s[1] ) << " ";
@@ -1340,7 +1341,7 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
       if( lit[0]==ct ){
         if( options::ufssFairnessMonotone() ){
-          SortInference * si = d_state.getSortInference();
+          SortInference* si = d_state.getSortInference();
           Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
           if( tn!=d_tn_mono_master ){
             std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );

@@ -132,7 +132,6 @@ SortInference* Valuation::getSortInference()
     return nullptr;
   }
   return d_engine->getSortInference();
-  
 }
 
 void Valuation::setUnevaluatedKind(Kind k)

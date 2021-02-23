@@ -865,5 +865,5 @@ bool SortInference::isHandledApplyUf(Kind k) const
   return k == APPLY_UF && !options::ufHo();
 }
 
-}
-}
+}  // namespace theory
+}  // namespace CVC4
