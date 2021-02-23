@@ -27,8 +27,8 @@ namespace test {
 
 class TestTheoryWhiteLogicInfo : public TestInternal
 {
-#warning \
-    "This test is of questionable compatiblity with contrib/new-theory. Is the new theory id handled correctly by the Logic info."
+  // This test is of questionable compatiblity with contrib/new-theory. Is the
+  // new theory id handled correctly by the Logic info.
  protected:
   void eq(const LogicInfo& logic1, const LogicInfo& logic2) const
   {
