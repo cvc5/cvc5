@@ -26,6 +26,11 @@ namespace theory {
 
 class QuantifiersEngine;
 
+namespace quantifiers {
+class QuantifiersState;
+class QuantifiersInferenceManager;
+}
+
 namespace inst {
 
 class Trigger;
@@ -49,6 +54,8 @@ class Trigger;
 */
 class IMGenerator {
 public:
+  IMGenerator(quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim);
   virtual ~IMGenerator() {}
   /** Reset instantiation round.
   *
@@ -112,6 +119,10 @@ public:
    * lemma cache.
    */
   bool sendInstantiation(Trigger* tparent, InstMatch& m);
+  /** The state of the quantifiers engine */
+  quantifiers::QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
 };/* class IMGenerator */
 
 class CandidateGenerator;
@@ -241,6 +252,8 @@ class InstMatchGenerator : public IMGenerator {
   /** mkInstMatchGenerator for single triggers, calls the method below */
   static InstMatchGenerator* mkInstMatchGenerator(Node q,
                                                   Node pat,
+                                                  quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim,
                                                   QuantifiersEngine* qe);
   /** mkInstMatchGenerator for the multi trigger case
   *
@@ -251,6 +264,8 @@ class InstMatchGenerator : public IMGenerator {
   */
   static InstMatchGenerator* mkInstMatchGeneratorMulti(Node q,
                                                        std::vector<Node>& pats,
+                                                       quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim,
                                                        QuantifiersEngine* qe);
   /** mkInstMatchGenerator
   *
@@ -278,8 +293,8 @@ class InstMatchGenerator : public IMGenerator {
   * These are intentionally private, and are called during linked list
   * construction in mkInstMatchGenerator.
   */
-  InstMatchGenerator(Node pat);
-  InstMatchGenerator();
+  InstMatchGenerator(Node pat, quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim);
   /** The pattern we are producing matches for.
    *
   * This term and d_match_pattern can be different since this

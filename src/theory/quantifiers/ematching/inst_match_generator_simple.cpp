@@ -24,8 +24,9 @@ namespace inst {
 
 InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
                                                    Node pat,
-                                                   QuantifiersEngine* qe)
-    : d_quant(q), d_match_pattern(pat)
+                                                   quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim, QuantifiersEngine* qe)
+    : IMGenerator(qs, qim), d_quant(q), d_match_pattern(pat)
 {
   if (d_match_pattern.getKind() == NOT)
   {
