@@ -43,10 +43,12 @@ namespace quantifiers {
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
                                  SygusStatistics& s)
     : d_qe(qe),
       d_qstate(qs),
       d_qim(qim),
+      d_qreg(qr),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
@@ -56,10 +58,10 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qe, this)),
-      d_ceg_cegis(new Cegis(qe, this)),
-      d_ceg_cegisUnif(new CegisUnif(qe, qs, this)),
-      d_sygus_ccore(new CegisCoreConnective(qe, this)),
+      d_ceg_pbe(new SygusPbe(qe, qim, this)),
+      d_ceg_cegis(new Cegis(qe, qim, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, qs, qim, this)),
+      d_sygus_ccore(new CegisCoreConnective(qe, qim, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -100,7 +102,7 @@ void SynthConjecture::assign(Node q)
   // initialize the guard
   d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
-  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
+  d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
 
   // pre-simplify the quantified formula based on the process utility
@@ -200,7 +202,7 @@ void SynthConjecture::assign(Node q)
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
-    d_qe->getOutputChannel().lemma(infLem);
+    d_qim.lemma(infLem, InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA);
     // we don't need to continue initialization in this case
     return;
   }
@@ -223,7 +225,7 @@ void SynthConjecture::assign(Node q)
     Assert(d_master != nullptr);
   }
 
-  Assert(d_qe->getQuantAttributes()->isSygus(q));
+  Assert(d_qreg.getQuantAttributes().isSygus(q));
   // if the base instantiation is an existential, store its variables
   if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
   {
@@ -238,13 +240,13 @@ void SynthConjecture::assign(Node q)
       new DecisionStrategySingleton("sygus_feasible",
                                     d_feasible_guard,
                                     d_qstate.getSatContext(),
-                                    d_qe->getValuation()));
+                                    d_qstate.getValuation()));
   d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
-  d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
+  d_qim.requirePhase(d_feasible_guard, true);
 
   Node gneg = d_feasible_guard.negate();
   for (unsigned i = 0; i < guarded_lemmas.size(); i++)
@@ -252,7 +254,7 @@ void SynthConjecture::assign(Node q)
     Node lem = nm->mkNode(OR, gneg, guarded_lemmas[i]);
     Trace("cegqi-lemma") << "Cegqi::Lemma : initial (guarded) lemma : " << lem
                          << std::endl;
-    d_qe->getOutputChannel().lemma(lem);
+    d_qim.lemma(lem, InferenceId::UNKNOWN);
   }
 
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation()
@@ -271,7 +273,7 @@ bool SynthConjecture::needsCheck()
   bool value;
   Assert(!d_feasible_guard.isNull());
   // non or fully single invocation : look at guard only
-  if (d_qe->getValuation().hasSatValue(d_feasible_guard, value))
+  if (d_qstate.getValuation().hasSatValue(d_feasible_guard, value))
   {
     if (!value)
     {
@@ -608,7 +610,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // We should set incomplete, since a "sat" answer should not be
       // interpreted as "infeasible", which would make a difference in the rare
       // case where e.g. we had a finite grammar and exhausted the grammar.
-      d_qe->getOutputChannel().setIncomplete();
+      d_qim.setIncomplete();
       return false;
     }
     // otherwise we are unsat, and we will process the solution below
@@ -778,7 +780,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
     {
-      Node gstatus = d_qe->getValuation().getSatValue(g);
+      Node gstatus = d_qstate.getValuation().getSatValue(g);
       if (gstatus.isNull() || !gstatus.getConst<bool>())
       {
         Trace("sygus-engine-debug")
@@ -934,7 +936,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
       TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
       Trace("sygus-active-gen-debug") << std::endl;
     }
-    d_qe->getOutputChannel().lemma(lem);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT);
   }
   else
   {
@@ -1022,7 +1024,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
     exc_lem = exc_lem.negate();
     Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : "
                          << exc_lem << std::endl;
-    d_qe->getOutputChannel().lemma(exc_lem);
+    d_qim.lemma(exc_lem, InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT);
   }
 }
 

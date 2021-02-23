@@ -22,7 +22,6 @@
 #include "theory/datatypes/infer_proof_cons.h"
 #include "theory/datatypes/inference.h"
 #include "theory/inference_manager_buffered.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,16 +44,16 @@ class InferenceManager : public InferenceManagerBuffered
    *
    * @param conc The conclusion of the inference
    * @param exp The explanation of the inference
+   * @param id The inference, used for stats and as a hint for constructing
+   * the proof of (conc => exp)
    * @param forceLemma Whether this inference *must* be processed as a lemma.
    * Otherwise, it may be processed as a fact or lemma based on
    * mustCommunicateFact.
-   * @param i The inference, used for stats and as a hint for constructing
-   * the proof of (conc => exp)
    */
   void addPendingInference(Node conc,
+                           InferenceId id,
                            Node exp,
-                           bool forceLemma = false,
-                           InferenceId i = InferenceId::UNKNOWN);
+                           bool forceLemma = false);
   /**
    * Process the current lemmas and facts. This is a custom method that can
    * be seen as overriding the behavior of calling both doPendingLemmas and
@@ -66,18 +65,17 @@ class InferenceManager : public InferenceManagerBuffered
    * Send lemma immediately on the output channel
    */
   void sendDtLemma(Node lem,
-                   InferenceId i = InferenceId::UNKNOWN,
-                   LemmaProperty p = LemmaProperty::NONE,
-                   bool doCache = true);
+                   InferenceId id,
+                   LemmaProperty p = LemmaProperty::NONE);
   /**
    * Send conflict immediately on the output channel
    */
-  void sendDtConflict(const std::vector<Node>& conf, InferenceId i = InferenceId::UNKNOWN);
+  void sendDtConflict(const std::vector<Node>& conf, InferenceId id);
   /**
    * Send lemmas with property NONE on the output channel immediately.
    * Returns true if any lemma was sent.
    */
-  bool sendLemmas(const std::vector<Node>& lemmas);
+  bool sendLemmas(const std::vector<Node>& lemmas, InferenceId id);
 
  private:
   /** Are proofs enabled? */
@@ -85,15 +83,11 @@ class InferenceManager : public InferenceManagerBuffered
   /**
    * Process datatype inference as a lemma
    */
-  bool processDtLemma(Node conc,
-                      Node exp,
-                      InferenceId id,
-                      LemmaProperty p = LemmaProperty::NONE,
-                      bool doCache = true);
+  TrustNode processDtLemma(Node conc, Node exp, InferenceId id);
   /**
    * Process datatype inference as a fact
    */
-  bool processDtFact(Node conc, Node exp, InferenceId id);
+  Node processDtFact(Node conc, Node exp, InferenceId id, ProofGenerator*& pg);
   /**
    * Helper function for the above methods. Returns the conclusion, which
    * may be modified so that it is compatible with proofs. If proofs are
@@ -109,13 +103,6 @@ class InferenceManager : public InferenceManagerBuffered
   Node prepareDtInference(Node conc, Node exp, InferenceId id, InferProofCons* ipc);
   /** The false node */
   Node d_false;
-  /**
-   * Counts the number of applications of each type of inference processed by
-   * the above method as facts, lemmas and conflicts.
-   */
-  HistogramStat<InferenceId> d_inferenceLemmas;
-  HistogramStat<InferenceId> d_inferenceFacts;
-  HistogramStat<InferenceId> d_inferenceConflicts;
   /** Pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** The inference to proof converter */

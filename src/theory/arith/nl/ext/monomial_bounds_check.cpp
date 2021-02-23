@@ -317,10 +317,21 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
             Trace("nl-ext-bound-lemma")
                 << "*** Bound inference lemma : " << iblem
                 << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
-            // Trace("nl-ext-bound-lemma") << "       intro new
-            // monomials = " << introNewTerms << std::endl;
-            d_data->d_im.addPendingArithLemma(
-                iblem, InferenceId::ARITH_NL_INFER_BOUNDS_NT, nullptr, introNewTerms);
+            CDProof* proof = nullptr;
+            if (d_data->isProofEnabled())
+            {
+              proof = d_data->getProof();
+              proof->addStep(
+                  iblem,
+                  mmv_sign == 1 ? PfRule::ARITH_MULT_POS
+                                : PfRule::ARITH_MULT_NEG,
+                  {},
+                  {mult, d_ci_exp[x][coeff][rhs], nm->mkNode(type, t, rhs)});
+            }
+            d_data->d_im.addPendingLemma(iblem,
+                                         InferenceId::ARITH_NL_INFER_BOUNDS_NT,
+                                         proof,
+                                         introNewTerms);
           }
         }
       }
@@ -478,7 +489,7 @@ void MonomialBoundsCheck::checkResBounds()
                   rblem = Rewriter::rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
-                  d_data->d_im.addPendingArithLemma(
+                  d_data->d_im.addPendingLemma(
                       rblem, InferenceId::ARITH_NL_RES_INFER_BOUNDS);
                 }
               }

@@ -24,7 +24,7 @@ namespace bags {
 InferenceManager::InferenceManager(Theory& t,
                                    SolverState& s,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm), d_state(s)
+    : InferenceManagerBuffered(t, s, pnm, "theory::bags"), d_state(s)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

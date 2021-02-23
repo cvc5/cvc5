@@ -15,6 +15,7 @@
 #include "smt/proof_post_processor.h"
 
 #include "expr/skolem_manager.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
@@ -1110,7 +1111,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   PfRule r = pn->getRule();
   // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofNewEagerChecking())
+  if (!options::proofEagerChecking())
   {
     if (!d_pedanticFailure)
     {

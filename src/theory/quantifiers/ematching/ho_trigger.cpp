@@ -29,12 +29,13 @@ namespace inst {
 
 HigherOrderTrigger::HigherOrderTrigger(
     QuantifiersEngine* qe,
+    quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersInferenceManager& qim,
     quantifiers::QuantifiersRegistry& qr,
     Node q,
     std::vector<Node>& nodes,
     std::map<Node, std::vector<Node> >& ho_apps)
-    : Trigger(qe, qim, qr, q, nodes), d_ho_var_apps(ho_apps)
+    : Trigger(qe, qs, qim, qr, q, nodes), d_ho_var_apps(ho_apps)
 {
   NodeManager* nm = NodeManager::currentNM();
   // process the higher-order variable applications
@@ -368,7 +369,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
   else
   {
     // do not run higher-order matching
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
   }
 }
 
@@ -381,7 +382,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
   }
   else
   {

@@ -93,6 +93,7 @@ class HigherOrderTrigger : public Trigger
 
  private:
   HigherOrderTrigger(QuantifiersEngine* qe,
+                     quantifiers::QuantifiersState& qs,
                      quantifiers::QuantifiersInferenceManager& qim,
                      quantifiers::QuantifiersRegistry& qr,
                      Node q,

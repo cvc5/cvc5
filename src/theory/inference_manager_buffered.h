@@ -34,7 +34,9 @@ class InferenceManagerBuffered : public TheoryInferenceManager
  public:
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
-                           ProofNodeManager* pnm);
+                           ProofNodeManager* pnm,
+                           const std::string& name,
+                           bool cacheLemmas = true);
   virtual ~InferenceManagerBuffered() {}
   /**
    * Do we have a pending fact or lemma?
@@ -143,6 +145,19 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   std::size_t numPendingLemmas() const;
   /** Returns the number of pending facts. */
   std::size_t numPendingFacts() const;
+
+  /**
+   * Send the given theory inference as a lemma on the output channel of this
+   * inference manager. This calls TheoryInferenceManager::trustedLemma based
+   * on the provided theory inference.
+   */
+  void lemmaTheoryInference(TheoryInference* lem);
+  /**
+   * Add the given theory inference as an internal fact. This calls
+   * TheoryInferenceManager::assertInternalFact based on the provided theory
+   * inference.
+   */
+  void assertInternalFactTheoryInference(TheoryInference* fact);
 
  protected:
   /** A set of pending inferences to be processed as lemmas */
