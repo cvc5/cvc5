@@ -1352,7 +1352,7 @@ enum class PfRule : uint32_t
   // (in variables x1...xn-1). It generates the conclusion that no xn exists
   // that extends the Cell and satisfies all assumptions.
   ARITH_NL_CAD_RECURSIVE,
-
+  
   //================================================ Place holder for Lfsc rules
   // ======== Lfsc rule
   // Children: (P1 ... Pn)
@@ -1360,7 +1360,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LFSC_RULE,
-
   //================================================ Place holder for Lean rules
   // ======== Lean rule
   // Children: (P1 ... Pn)
@@ -1368,7 +1367,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LEAN_RULE,
-
   //================================================ Place holder for veriT
   // rules
   // ======== veriT rule
