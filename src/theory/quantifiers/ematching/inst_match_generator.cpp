@@ -35,11 +35,10 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-  
 IMGenerator::IMGenerator(quantifiers::QuantifiersState& qs,
-quantifiers::QuantifiersInferenceManager& qim) : d_qstate(qs), d_qim(qim)
+                         quantifiers::QuantifiersInferenceManager& qim)
+    : d_qstate(qs), d_qim(qim)
 {
-
 }
 
 bool IMGenerator::sendInstantiation(Trigger* tparent, InstMatch& m)
@@ -47,8 +46,12 @@ bool IMGenerator::sendInstantiation(Trigger* tparent, InstMatch& m)
   return tparent->sendInstantiation(m);
 }
 
-InstMatchGenerator::InstMatchGenerator( Node pat, quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim ) : IMGenerator(qs, qim){
+InstMatchGenerator::InstMatchGenerator(
+    Node pat,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim)
+    : IMGenerator(qs, qim)
+{
   d_cg = nullptr;
   d_needsReset = true;
   d_active_add = true;
@@ -189,7 +192,8 @@ void InstMatchGenerator::initialize(Node q,
         }
         else
         {
-          InstMatchGenerator* cimg = getInstMatchGenerator(q, pat, d_qstate, d_qim);
+          InstMatchGenerator* cimg =
+              getInstMatchGenerator(q, pat, d_qstate, d_qim);
           if (cimg)
           {
             d_children.push_back(cimg);
@@ -526,8 +530,7 @@ int InstMatchGenerator::getNextMatch(Node f,
       }
       //get the next candidate term t
       if( success<0 ){
-        t = d_qstate.isInConflict() ? Node::null()
-                                          : d_cg->getNextCandidate();
+        t = d_qstate.isInConflict() ? Node::null() : d_cg->getNextCandidate();
       }else{
         d_curr_first_candidate = d_cg->getNextCandidate();
       }
@@ -576,19 +579,29 @@ uint64_t InstMatchGenerator::addInstantiations(Node f,
   return addedLemmas;
 }
 
-
-InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, Node pat, quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim, QuantifiersEngine* qe ) {
+InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
+    Node q,
+    Node pat,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
+{
   std::vector< Node > pats;
   pats.push_back( pat );
   std::map< Node, InstMatchGenerator * > pat_map_init;
-  return mkInstMatchGenerator( q, pats, qs, qim, qe, pat_map_init );
+  return mkInstMatchGenerator(q, pats, qs, qim, qe, pat_map_init);
 }
 
-InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti( Node q, std::vector< Node >& pats, quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim, QuantifiersEngine* qe ) {
+InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti(
+    Node q,
+    std::vector<Node>& pats,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
+{
   Assert(pats.size() > 1);
-  InstMatchGeneratorMultiLinear * imgm = new InstMatchGeneratorMultiLinear( q, pats, qs, qim );
+  InstMatchGeneratorMultiLinear* imgm =
+      new InstMatchGeneratorMultiLinear(q, pats, qs, qim);
   std::vector< InstMatchGenerator* > gens;
   imgm->initialize(q, qe, gens);
   Assert(gens.size() == pats.size());
@@ -601,13 +614,18 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGeneratorMulti( Node q, std::
     pat_map_init[pn] = g;
   }
   //return mkInstMatchGenerator( q, patsn, qe, pat_map_init );
-  imgm->d_next = mkInstMatchGenerator( q, patsn, qs, qim, qe, pat_map_init );
+  imgm->d_next = mkInstMatchGenerator(q, patsn, qs, qim, qe, pat_map_init);
   return imgm;
 }
 
-InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, std::vector< Node >& pats, quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim, QuantifiersEngine* qe, 
-                                                              std::map< Node, InstMatchGenerator * >& pat_map_init ) {
+InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator(
+    Node q,
+    std::vector<Node>& pats,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe,
+    std::map<Node, InstMatchGenerator*>& pat_map_init)
+{
   size_t pCounter = 0;
   InstMatchGenerator* prev = NULL;
   InstMatchGenerator* oinit = NULL;
@@ -640,8 +658,11 @@ InstMatchGenerator* InstMatchGenerator::mkInstMatchGenerator( Node q, std::vecto
   return oinit;
 }
 
-InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n, quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim)
+InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(
+    Node q,
+    Node n,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim)
 {
   if (n.getKind() != INST_CONSTANT)
   {
@@ -663,7 +684,8 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n, qu
     if (!x.isNull())
     {
       Node s = PatternTermSelector::getInversion(n, x);
-      VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s, qs, qim);
+      VarMatchGeneratorTermSubs* vmg =
+          new VarMatchGeneratorTermSubs(x, s, qs, qim);
       Trace("var-trigger") << "Term substitution trigger : " << n
                            << ", var = " << x << ", subs = " << s << std::endl;
       return vmg;

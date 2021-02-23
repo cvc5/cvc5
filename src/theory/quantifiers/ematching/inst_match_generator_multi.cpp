@@ -23,11 +23,12 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
-                                                 std::vector<Node>& pats,
-                                                 quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim,
-                                                 QuantifiersEngine* qe)
+InstMatchGeneratorMulti::InstMatchGeneratorMulti(
+    Node q,
+    std::vector<Node>& pats,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
     : IMGenerator(qs, qim), d_quant(q)
 {
   Trace("multi-trigger-cache")

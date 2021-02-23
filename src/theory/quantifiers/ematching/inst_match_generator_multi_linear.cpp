@@ -22,8 +22,11 @@ namespace theory {
 namespace inst {
 
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
-    Node q, std::vector<Node>& pats, quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim) : InstMatchGenerator(Node::null(), qs, qim)
+    Node q,
+    std::vector<Node>& pats,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim)
+    : InstMatchGenerator(Node::null(), qs, qim)
 {
   // order patterns to maximize eager matching failures
   std::map<Node, std::vector<Node> > var_contains;

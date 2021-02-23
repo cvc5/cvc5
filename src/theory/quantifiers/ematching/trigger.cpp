@@ -67,14 +67,16 @@ Trigger::Trigger(QuantifiersEngine* qe,
       d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qs, qim, qe);
       ++(qe->d_statistics.d_triggers);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qs, qim, qe);
+      d_mg =
+          InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qs, qim, qe);
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
       d_mg = new InstMatchGeneratorMulti(q, d_nodes, qs, qim, qe);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(q, d_nodes, qs, qim, qe);
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(
+          q, d_nodes, qs, qim, qe);
     }
     if (Trace.isOn("multi-trigger"))
     {

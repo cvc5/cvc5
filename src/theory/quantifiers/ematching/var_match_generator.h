@@ -32,7 +32,9 @@ namespace inst {
 class VarMatchGeneratorTermSubs : public InstMatchGenerator
 {
  public:
-  VarMatchGeneratorTermSubs(Node var, Node subs, quantifiers::QuantifiersState& qs,
+  VarMatchGeneratorTermSubs(Node var,
+                            Node subs,
+                            quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim);
 
   /** Reset */

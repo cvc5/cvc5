@@ -82,7 +82,7 @@ class InstMatchGeneratorMultiLinear : public InstMatchGenerator
   InstMatchGeneratorMultiLinear(Node q,
                                 std::vector<Node>& pats,
                                 quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim);
+                                quantifiers::QuantifiersInferenceManager& qim);
 };
 
 }  // namespace inst
