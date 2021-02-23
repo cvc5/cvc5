@@ -23,7 +23,7 @@ namespace inst {
 
 VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Node var, Node subs, quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim)
-    : IMGenerator(qs, qim), d_var(var), d_subs(subs), d_rm_prev(false)
+    : InstMatchGenerator(Node::null(), qs, qim), d_var(var), d_subs(subs), d_rm_prev(false)
 {
   d_children_types.push_back(d_var.getAttribute(InstVarNumAttribute()));
   d_var_type = d_var.getType();

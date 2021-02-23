@@ -23,7 +23,7 @@ namespace inst {
 
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
     Node q, std::vector<Node>& pats, quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim) : IMGenerator(qs, qim)
+                            quantifiers::QuantifiersInferenceManager& qim) : InstMatchGenerator(Node::null(), qs, qim)
 {
   // order patterns to maximize eager matching failures
   std::map<Node, std::vector<Node> > var_contains;
@@ -99,7 +99,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
   {
     Node po = pats_ordered[i];
     Trace("multi-trigger-linear") << "...make for " << po << std::endl;
-    InstMatchGenerator* cimg = getInstMatchGenerator(q, po);
+    InstMatchGenerator* cimg = getInstMatchGenerator(q, po, qs, qim);
     Assert(cimg != nullptr);
     d_children.push_back(cimg);
     // this could be improved

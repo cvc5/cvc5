@@ -29,7 +29,7 @@ namespace inst {
  * This handles the special case of invertible terms like x+1 (see
  * Trigger::getTermInversionVariable).
  */
-class VarMatchGeneratorTermSubs : public IMGenerator
+class VarMatchGeneratorTermSubs : public InstMatchGenerator
 {
  public:
   VarMatchGeneratorTermSubs(Node var, Node subs, quantifiers::QuantifiersState& qs,

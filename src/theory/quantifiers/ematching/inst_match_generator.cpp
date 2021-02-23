@@ -52,10 +52,13 @@ InstMatchGenerator::InstMatchGenerator( Node pat, quantifiers::QuantifiersState&
   d_cg = nullptr;
   d_needsReset = true;
   d_active_add = true;
-  Assert(quantifiers::TermUtil::hasInstConstAttr(pat));
+  Assert(pat.isNull() || quantifiers::TermUtil::hasInstConstAttr(pat));
   d_pattern = pat;
   d_match_pattern = pat;
-  d_match_pattern_type = pat.getType();
+  if (!pat.isNull())
+  {
+    d_match_pattern_type = pat.getType();
+  }
   d_next = nullptr;
   d_independent_gen = false;
 }
@@ -186,7 +189,7 @@ void InstMatchGenerator::initialize(Node q,
         }
         else
         {
-          InstMatchGenerator* cimg = getInstMatchGenerator(q, pat);
+          InstMatchGenerator* cimg = getInstMatchGenerator(q, pat, d_qstate, d_qim);
           if (cimg)
           {
             d_children.push_back(cimg);
@@ -660,13 +663,13 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n, qu
     if (!x.isNull())
     {
       Node s = PatternTermSelector::getInversion(n, x);
-      VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s);
+      VarMatchGeneratorTermSubs* vmg = new VarMatchGeneratorTermSubs(x, s, qs, qim);
       Trace("var-trigger") << "Term substitution trigger : " << n
                            << ", var = " << x << ", subs = " << s << std::endl;
       return vmg;
     }
   }
-  return new InstMatchGenerator(n);
+  return new InstMatchGenerator(n, qs, qim);
 }
 
 }/* CVC4::theory::inst namespace */

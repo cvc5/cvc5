@@ -283,6 +283,8 @@ class InstMatchGenerator : public IMGenerator {
   static InstMatchGenerator* mkInstMatchGenerator(
       Node q,
       std::vector<Node>& pats,
+                                                       quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim,
       QuantifiersEngine* qe,
       std::map<Node, InstMatchGenerator*>& pat_map_init);
   //-------------------------------end construction of inst match generators
@@ -428,7 +430,8 @@ class InstMatchGenerator : public IMGenerator {
    * appropriate matching algorithm for n within q
    * within a linked list of InstMatchGenerators.
    */
-  static InstMatchGenerator* getInstMatchGenerator(Node q, Node n);
+  static InstMatchGenerator* getInstMatchGenerator(Node q, Node n, quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim);
 };/* class InstMatchGenerator */
 
 }
