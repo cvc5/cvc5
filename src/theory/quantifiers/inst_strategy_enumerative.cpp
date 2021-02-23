@@ -35,8 +35,9 @@ namespace quantifiers {
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
                                    QuantifiersState& qs,
                                    QuantifiersInferenceManager& qim,
+                                   QuantifiersRegistry& qr,
                                    RelevantDomain* rd)
-    : QuantifiersModule(qs, qim, qe), d_rd(rd), d_fullSaturateLimit(-1)
+    : QuantifiersModule(qs, qim, qr, qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
 void InstStrategyEnum::presolve()
@@ -51,7 +52,8 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
   }
   if (options::fullSaturateInterleave())
   {
-    if (d_quantEngine->getInstWhenNeedsCheck(e))
+    // if interleaved, we run at the same time as E-matching
+    if (d_qstate.getInstWhenNeedsCheck(e))
     {
       return true;
     }
@@ -76,7 +78,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     if (options::fullSaturateInterleave())
     {
       // we only add when interleaved with other strategies
-      doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+      doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
     }
     if (options::fullSaturateQuant() && !doCheck)
     {
@@ -130,7 +132,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
       for (unsigned i = 0; i < nquant; i++)
       {
         Node q = fm->getAssertedQuantifier(i, true);
-        bool doProcess = d_quantEngine->hasOwnership(q, this)
+        bool doProcess = d_qreg.hasOwnership(q, this)
                          && fm->isQuantifierActive(q)
                          && alreadyProc.find(q) == alreadyProc.end();
         if (doProcess)
@@ -321,7 +323,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                 << "Incompatible type " << f << ", " << terms[i].getType()
                 << ", " << ftypes[i] << std::endl;
           }
-          if (ie->addInstantiation(f, terms))
+          std::vector<bool> failMask;
+          if (ie->addInstantiationExpFail(f, terms, failMask, false))
           {
             Trace("inst-alg-rd") << "Success!" << std::endl;
             ++(d_quantEngine->d_statistics.d_instantiations_guess);
@@ -330,6 +333,15 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           else
           {
             index--;
+            // currently, we use the failmask only for backtracking, although
+            // more could be learned here (wishue #81).
+            Assert(failMask.size() == terms.size());
+            while (!failMask.empty() && !failMask.back())
+            {
+              failMask.pop_back();
+              childIndex.pop_back();
+              index--;
+            }
           }
           if (d_qstate.isInConflict())
           {

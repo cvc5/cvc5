@@ -18,7 +18,6 @@
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -34,11 +33,8 @@ bool QAttributes::isStandard() const
          && !d_isInternal;
 }
 
-QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 
-d_quantEngine(qe) {
+QuantAttributes::QuantAttributes() {}
 
-}  
-  
 void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::vector< Node >& node_values, std::string str_value ){
   Trace("quant-attr-debug") << "Set " << attr << " " << n << std::endl;
   if (attr == "fun-def")
@@ -182,8 +178,6 @@ void QuantAttributes::computeAttributes( Node q ) {
     }
     d_fun_defs[f] = true;
   }
-  // set ownership of quantified formula q based on the computed attributes
-  d_quantEngine->setOwner(q, qa);
 }
 
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
@@ -269,7 +263,8 @@ bool QuantAttributes::isSygus( Node q ) {
   }
 }
 
-int QuantAttributes::getQuantInstLevel( Node q ) {
+int64_t QuantAttributes::getQuantInstLevel(Node q)
+{
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it==d_qattr.end() ){
     return -1;

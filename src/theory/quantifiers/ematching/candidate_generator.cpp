@@ -189,7 +189,8 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     if( n.getType().isComparableTo( d_match_pattern_type ) ){
       TNode nh = tdb->getEligibleTermInEqc(n);
       if( !nh.isNull() ){
-        if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
+        if (options::instMaxLevel() != -1)
+        {
           nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
           //don't consider this if already the instantiation is ineligible
           if (!nh.isNull() && !tdb->isTermEligibleForInstantiation(nh, d_f))

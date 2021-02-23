@@ -91,8 +91,6 @@ class TheoryStrings : public Theory {
   void presolve() override;
   /** shutdown */
   void shutdown() override {}
-  /** add shared term */
-  void notifySharedTerm(TNode n) override;
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */

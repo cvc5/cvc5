@@ -33,8 +33,18 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
-class ConjectureGenerator;
-class TermGenEnv;
+class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
+
+/** Context-dependent list of nodes */
+class DbList
+{
+ public:
+  DbList(context::Context* c) : d_list(c) {}
+  /** The list */
+  context::CDList<Node> d_list;
+};
 
 /** Term Database
  *
@@ -56,15 +66,18 @@ class TermGenEnv;
  */
 class TermDb : public QuantifiersUtil {
   friend class ::CVC4::theory::QuantifiersEngine;
-  // TODO: eliminate these
-  friend class ::CVC4::theory::quantifiers::ConjectureGenerator;
-  friend class ::CVC4::theory::quantifiers::TermGenEnv;
-  typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
-  typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
+  using NodeBoolMap = context::CDHashMap<Node, bool, NodeHashFunction>;
+  using NodeList = context::CDList<Node>;
+  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+  using TypeNodeDbListMap = context::
+      CDHashMap<TypeNode, std::shared_ptr<DbList>, TypeNodeHashFunction>;
+  using NodeDbListMap =
+      context::CDHashMap<Node, std::shared_ptr<DbList>, NodeHashFunction>;
 
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersInferenceManager& qim,
+         QuantifiersRegistry& qr,
          QuantifiersEngine* qe);
   ~TermDb();
   /** presolve (called once per user check-sat) */
@@ -76,26 +89,26 @@ class TermDb : public QuantifiersUtil {
   /** identify */
   std::string identify() const override { return "TermDb"; }
   /** get number of operators */
-  unsigned getNumOperators();
+  size_t getNumOperators() const;
   /** get operator at index i */
-  Node getOperator(unsigned i);
+  Node getOperator(size_t i) const;
   /** ground terms for operator
   * Get the number of ground terms with operator f that have been added to the
   * database
   */
-  unsigned getNumGroundTerms(Node f) const;
+  size_t getNumGroundTerms(Node f) const;
   /** get ground term for operator
   * Get the i^th ground term with operator f that has been added to the database
   */
-  Node getGroundTerm(Node f, unsigned i) const;
+  Node getGroundTerm(Node f, size_t i) const;
   /** get num type terms
   * Get the number of ground terms of tn that have been added to the database
   */
-  unsigned getNumTypeGroundTerms(TypeNode tn) const;
+  size_t getNumTypeGroundTerms(TypeNode tn) const;
   /** get type ground term
   * Returns the i^th ground term of type tn
   */
-  Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
+  Node getTypeGroundTerm(TypeNode tn, size_t i) const;
   /** get or make ground term
    *
    * Returns the first ground term of type tn, or makes one if none exist. If
@@ -108,15 +121,15 @@ class TermDb : public QuantifiersUtil {
   * variable per type.
   */
   Node getOrMakeTypeFreshVariable(TypeNode tn);
-  /** add a term to the database
-  * withinQuant is whether n is within the body of a quantified formula
-  * withinInstClosure is whether n is within an inst-closure operator (see
-  * Bansal et al CAV 2015).
-  */
-  void addTerm(Node n,
-               std::set<Node>& added,
-               bool withinQuant = false,
-               bool withinInstClosure = false);
+  /**
+   * Add a term to the database, which registers it as a term that may be
+   * matched with via E-matching, and can be used in entailment tests below.
+   */
+  void addTerm(Node n);
+  /** Get the currently added ground terms of the given type */
+  DbList* getOrMkDbListForType(TypeNode tn);
+  /** Get the currently added ground terms for the given operator */
+  DbList* getOrMkDbListForOp(TNode op);
   /** get match operator for term n
   *
   * If n has a kind that we index, this function will
@@ -268,12 +281,6 @@ class TermDb : public QuantifiersUtil {
   bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
-  /** is r a inst closure node?
-   * This terminology was used for specifying
-   * a particular status of nodes for
-   * Bansal et al., CAV 2015.
-   */
-  bool isInstClosure(Node r);
   /** get higher-order type match predicate
    *
    * This predicate is used to force certain functions f of type tn to appear as
@@ -290,10 +297,20 @@ class TermDb : public QuantifiersUtil {
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
+  /** A context for the data structures below, when not context-dependent */
+  context::Context d_termsContext;
+  /** The context we are using for the data structures below */
+  context::Context* d_termsContextUse;
   /** terms processed */
-  std::unordered_set< Node, NodeHashFunction > d_processed;
-  /** terms processed */
-  std::unordered_set< Node, NodeHashFunction > d_iclosure_processed;
+  NodeSet d_processed;
+  /** map from types to ground terms for that type */
+  TypeNodeDbListMap d_typeMap;
+  /** list of all operators */
+  NodeList d_ops;
+  /** map from operators to ground terms for that operator */
+  NodeDbListMap d_opMap;
   /** select op map */
   std::map< Node, std::map< TypeNode, Node > > d_par_op_map;
   /** whether master equality engine is UF-inconsistent */
@@ -301,12 +318,6 @@ class TermDb : public QuantifiersUtil {
   /** boolean terms */
   Node d_true;
   Node d_false;
-  /** list of all operators */
-  std::vector<Node> d_ops;
-  /** map from operators to ground terms for that operator */
-  std::map< Node, std::vector< Node > > d_op_map;
-  /** map from type nodes to terms of that type */
-  std::map< TypeNode, std::vector< Node > > d_type_map;
   /** map from type nodes to a fresh variable we introduced */
   std::unordered_map<TypeNode, Node, TypeNodeHashFunction> d_type_fv;
   /** inactive map */
@@ -407,10 +418,7 @@ class TermDb : public QuantifiersUtil {
    * Above, we set d_ho_fun_op_purify[(@ f 0)] = pfun, and
    * d_ho_purify_to_term[(pfun 1)] = (@ (@ f 0) 1).
    */
-  void addTermHo(Node n,
-                 std::set<Node>& added,
-                 bool withinQuant,
-                 bool withinInstClosure);
+  void addTermHo(Node n);
   /** get operator representative */
   Node getOperatorRepresentative( TNode op ) const;
   //------------------------------end higher-order term indexing

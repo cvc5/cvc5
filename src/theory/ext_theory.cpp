@@ -438,28 +438,6 @@ void ExtTheory::registerTerm(Node n)
   }
 }
 
-void ExtTheory::registerTermRec(Node n)
-{
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-      registerTerm(cur);
-      for (const Node& cc : cur)
-      {
-        visit.push_back(cc);
-      }
-    }
-  } while (!visit.empty());
-}
-
 // mark reduced
 void ExtTheory::markReduced(Node n, bool satDep)
 {

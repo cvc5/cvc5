@@ -131,6 +131,14 @@ header = "options/smt_options.h"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
+  name       = "proof"
+  category   = "regular"
+  long       = "proof"
+  type       = "bool"
+  default    = "false"
+  help       = "produce proofs, support check-proofs and get-proof"
+
+[[option]]
   name       = "dumpProofs"
   category   = "regular"
   long       = "dump-proofs"
@@ -140,58 +148,11 @@ header = "options/smt_options.h"
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
-  name       = "proofNew"
+  name       = "checkProofs"
   category   = "regular"
-  long       = "proof-new"
+  long       = "check-proofs"
   type       = "bool"
-  default    = "false"
-  help       = "do proof production using the new infrastructure"
-
-[[option]]
-  name       = "proofNewPedantic"
-  category   = "regular"
-  long       = "proof-new-pedantic=N"
-  type       = "uint32_t"
-  default    = "0"
-  read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
-
-[[option]]
-  name       = "proofNewEagerChecking"
-  category   = "regular"
-  long       = "proof-new-eager-checking"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "check proofs eagerly with proof-new for local debugging"
-
-[[option]]
-  name       = "proofGranularityMode"
-  category   = "regular"
-  long       = "proof-granularity=MODE"
-  type       = "ProofGranularityMode"
-  default    = "THEORY_REWRITE"
-  help       = "modes for proof granularity"
-  help_mode  = "Modes for proof granularity."
-[[option.mode.OFF]]
-  name = "off"
-  help = "Do not improve the granularity of proofs."
-[[option.mode.REWRITE]]
-  name = "rewrite"
-  help = "allow rewrite or substitution steps, expand macros."
-[[option.mode.THEORY_REWRITE]]
-  name = "theory-rewrite"
-  help = "allow theory rewrite steps, expand macros, rewrite and substitution steps."
-[[option.mode.DSL_REWRITE]]
-  name = "dsl-rewrite"
-  help = "Allow DSL rewrites and evaluation steps, expand macros, rewrite, substitution, and theory rewrite steps."
-
-[[option]]
-  name       = "checkProofsNew"
-  category   = "regular"
-  long       = "check-proofs-new"
-  type       = "bool"
-  help       = "after UNSAT/VALID, check the generated proof (with proof-new)"
+  help       = "after UNSAT/VALID, check the generated proof (with proof)"
 
 [[option]]
   name       = "dumpInstantiations"

@@ -575,83 +575,39 @@ Node TermRegistry::ensureProxyVariableFor(Node n)
   return proxy;
 }
 
-void TermRegistry::inferSubstitutionProxyVars(Node n,
-                                              std::vector<Node>& vars,
-                                              std::vector<Node>& subs,
-                                              std::vector<Node>& unproc) const
+void TermRegistry::removeProxyEqs(Node n, std::vector<Node>& unproc) const
 {
   if (n.getKind() == AND)
   {
     for (const Node& nc : n)
     {
-      inferSubstitutionProxyVars(nc, vars, subs, unproc);
+      removeProxyEqs(nc, unproc);
     }
     return;
   }
-  if (n.getKind() == EQUAL)
+  Trace("strings-subs-proxy") << "Input : " << n << std::endl;
+  Node ns = Rewriter::rewrite(n);
+  if (ns.getKind() == EQUAL)
   {
-    Node ns = n.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-    ns = Rewriter::rewrite(ns);
-    if (ns.getKind() == EQUAL)
+    for (size_t i = 0; i < 2; i++)
     {
-      Node s;
-      Node v;
-      for (unsigned i = 0; i < 2; i++)
+      // determine whether this side has a proxy variable
+      if (ns[i].getAttribute(StringsProxyVarAttribute()))
       {
-        Node ss;
-        // determine whether this side has a proxy variable
-        if (ns[i].getAttribute(StringsProxyVarAttribute()))
+        if (getProxyVariableFor(ns[1 - i]) == ns[i])
         {
-          // it is a proxy variable
-          ss = ns[i];
-        }
-        else if (ns[i].isConst())
-        {
-          ss = getProxyVariableFor(ns[i]);
-        }
-        if (!ss.isNull())
-        {
-          v = ns[1 - i];
-          // if the other side is a constant or variable
-          if (v.getNumChildren() == 0)
-          {
-            if (s.isNull())
-            {
-              s = ss;
-            }
-            else
-            {
-              // both sides of the equality correspond to a proxy variable
-              if (ss == s)
-              {
-                // it is a trivial equality, e.g. between a proxy variable
-                // and its definition
-                return;
-              }
-              else
-              {
-                // equality between proxy variables, non-trivial
-                s = Node::null();
-              }
-            }
-          }
+          Trace("strings-subs-proxy")
+              << "...trivial definition via " << ns[i] << std::endl;
+          // it is a trivial equality, e.g. between a proxy variable
+          // and its definition
+          return;
         }
       }
-      if (!s.isNull())
-      {
-        // the equality can be turned into a substitution
-        subs.push_back(s);
-        vars.push_back(v);
-        return;
-      }
-    }
-    else
-    {
-      n = ns;
     }
   }
   if (!n.isConst() || !n.getConst<bool>())
   {
+    Trace("strings-subs-proxy") << "...unprocessed" << std::endl;
     unproc.push_back(n);
   }
 }

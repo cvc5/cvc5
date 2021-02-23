@@ -15,6 +15,7 @@
 #include "expr/proof_ensure_closed.h"
 
 #include "expr/proof_node_algorithm.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 
 namespace CVC4 {
@@ -31,13 +32,13 @@ void ensureClosedWrtInternal(Node proven,
                              const char* ctx,
                              bool reqGen)
 {
-  if (!options::proofNew())
+  if (!options::proof())
   {
     // proofs not enabled, do not do check
     return;
   }
   bool isTraceDebug = Trace.isOn(c);
-  if (!options::proofNewEagerChecking() && !isTraceDebug)
+  if (!options::proofEagerChecking() && !isTraceDebug)
   {
     // trace is off and proof new eager checking is off, do not do check
     return;

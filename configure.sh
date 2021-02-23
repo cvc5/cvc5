@@ -29,7 +29,8 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
-  --static-binary          enable/disable static binaries
+  --static-binary          statically link against system libraries
+                           (must be disabled for static macOS builds) [default=yes]
   --proofs                 support for proof generation
   --optimized              optimize the build
   --debug-symbols          include debug symbols
@@ -43,8 +44,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
-  --python2                prefer using Python 2 (also for Python bindings)
-  --python3                prefer using Python 3 (also for Python bindings)
+  --python2                force Python 2 (deprecated)
   --python-bindings        build Python bindings based on new C++ API
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
@@ -137,7 +137,6 @@ optimized=default
 profiling=default
 proofs=default
 python2=default
-python3=default
 python_bindings=default
 java_bindings=default
 editline=default
@@ -284,9 +283,6 @@ do
     --python2) python2=ON;;
     --no-python2) python2=OFF;;
 
-    --python3) python3=ON;;
-    --no-python3) python3=OFF;;
-
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
 
@@ -407,8 +403,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
 [ $python2 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
-[ $python3 != default ] \
-  && cmake_opts="$cmake_opts -DUSE_PYTHON3=$python3"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
 [ $java_bindings != default ] \

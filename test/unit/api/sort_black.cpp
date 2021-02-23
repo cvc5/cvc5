@@ -23,11 +23,11 @@ using namespace api;
 
 namespace test {
 
-class TestApiSortBlack : public TestApi
+class TestApiBlackSort : public TestApi
 {
 };
 
-TEST_F(TestApiSortBlack, getDatatype)
+TEST_F(TestApiBlackSort, getDatatype)
 {
   // create datatype sort, check should not fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
@@ -43,7 +43,7 @@ TEST_F(TestApiSortBlack, getDatatype)
   ASSERT_THROW(bvSort.getDatatype(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, datatypeSorts)
+TEST_F(TestApiBlackSort, datatypeSorts)
 {
   Sort intSort = d_solver.getIntegerSort();
   // create datatype sort to test
@@ -93,7 +93,7 @@ TEST_F(TestApiSortBlack, datatypeSorts)
   ASSERT_THROW(booleanSort.getSelectorCodomainSort(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, instantiate)
+TEST_F(TestApiBlackSort, instantiate)
 {
   // instantiate parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
@@ -120,7 +120,7 @@ TEST_F(TestApiSortBlack, instantiate)
       CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getFunctionArity)
+TEST_F(TestApiBlackSort, getFunctionArity)
 {
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
@@ -129,7 +129,7 @@ TEST_F(TestApiSortBlack, getFunctionArity)
   ASSERT_THROW(bvSort.getFunctionArity(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getFunctionDomainSorts)
+TEST_F(TestApiBlackSort, getFunctionDomainSorts)
 {
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
@@ -138,7 +138,7 @@ TEST_F(TestApiSortBlack, getFunctionDomainSorts)
   ASSERT_THROW(bvSort.getFunctionDomainSorts(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getFunctionCodomainSort)
+TEST_F(TestApiBlackSort, getFunctionCodomainSort)
 {
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
@@ -147,7 +147,7 @@ TEST_F(TestApiSortBlack, getFunctionCodomainSort)
   ASSERT_THROW(bvSort.getFunctionCodomainSort(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getArrayIndexSort)
+TEST_F(TestApiBlackSort, getArrayIndexSort)
 {
   Sort elementSort = d_solver.mkBitVectorSort(32);
   Sort indexSort = d_solver.mkBitVectorSort(32);
@@ -156,7 +156,7 @@ TEST_F(TestApiSortBlack, getArrayIndexSort)
   ASSERT_THROW(indexSort.getArrayIndexSort(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getArrayElementSort)
+TEST_F(TestApiBlackSort, getArrayElementSort)
 {
   Sort elementSort = d_solver.mkBitVectorSort(32);
   Sort indexSort = d_solver.mkBitVectorSort(32);
@@ -165,7 +165,7 @@ TEST_F(TestApiSortBlack, getArrayElementSort)
   ASSERT_THROW(indexSort.getArrayElementSort(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getSetElementSort)
+TEST_F(TestApiBlackSort, getSetElementSort)
 {
   Sort setSort = d_solver.mkSetSort(d_solver.getIntegerSort());
   ASSERT_NO_THROW(setSort.getSetElementSort());
@@ -175,7 +175,7 @@ TEST_F(TestApiSortBlack, getSetElementSort)
   ASSERT_THROW(bvSort.getSetElementSort(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getBagElementSort)
+TEST_F(TestApiBlackSort, getBagElementSort)
 {
   Sort bagSort = d_solver.mkBagSort(d_solver.getIntegerSort());
   ASSERT_NO_THROW(bagSort.getBagElementSort());
@@ -185,7 +185,7 @@ TEST_F(TestApiSortBlack, getBagElementSort)
   ASSERT_THROW(bvSort.getBagElementSort(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getSequenceElementSort)
+TEST_F(TestApiBlackSort, getSequenceElementSort)
 {
   Sort seqSort = d_solver.mkSequenceSort(d_solver.getIntegerSort());
   ASSERT_TRUE(seqSort.isSequence());
@@ -195,7 +195,7 @@ TEST_F(TestApiSortBlack, getSequenceElementSort)
   ASSERT_THROW(bvSort.getSequenceElementSort(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getUninterpretedSortName)
+TEST_F(TestApiBlackSort, getUninterpretedSortName)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   ASSERT_NO_THROW(uSort.getUninterpretedSortName());
@@ -203,7 +203,7 @@ TEST_F(TestApiSortBlack, getUninterpretedSortName)
   ASSERT_THROW(bvSort.getUninterpretedSortName(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, isUninterpretedSortParameterized)
+TEST_F(TestApiBlackSort, isUninterpretedSortParameterized)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   ASSERT_FALSE(uSort.isUninterpretedSortParameterized());
@@ -214,7 +214,7 @@ TEST_F(TestApiSortBlack, isUninterpretedSortParameterized)
   ASSERT_THROW(bvSort.isUninterpretedSortParameterized(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getUninterpretedSortParamSorts)
+TEST_F(TestApiBlackSort, getUninterpretedSortParamSorts)
 {
   Sort uSort = d_solver.mkUninterpretedSort("u");
   ASSERT_NO_THROW(uSort.getUninterpretedSortParamSorts());
@@ -225,7 +225,7 @@ TEST_F(TestApiSortBlack, getUninterpretedSortParamSorts)
   ASSERT_THROW(bvSort.getUninterpretedSortParamSorts(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getUninterpretedSortConstructorName)
+TEST_F(TestApiBlackSort, getUninterpretedSortConstructorName)
 {
   Sort sSort = d_solver.mkSortConstructorSort("s", 2);
   ASSERT_NO_THROW(sSort.getSortConstructorName());
@@ -233,7 +233,7 @@ TEST_F(TestApiSortBlack, getUninterpretedSortConstructorName)
   ASSERT_THROW(bvSort.getSortConstructorName(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getUninterpretedSortConstructorArity)
+TEST_F(TestApiBlackSort, getUninterpretedSortConstructorArity)
 {
   Sort sSort = d_solver.mkSortConstructorSort("s", 2);
   ASSERT_NO_THROW(sSort.getSortConstructorArity());
@@ -241,7 +241,7 @@ TEST_F(TestApiSortBlack, getUninterpretedSortConstructorArity)
   ASSERT_THROW(bvSort.getSortConstructorArity(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getBVSize)
+TEST_F(TestApiBlackSort, getBVSize)
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
   ASSERT_NO_THROW(bvSort.getBVSize());
@@ -249,7 +249,7 @@ TEST_F(TestApiSortBlack, getBVSize)
   ASSERT_THROW(setSort.getBVSize(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getFPExponentSize)
+TEST_F(TestApiBlackSort, getFPExponentSize)
 {
   if (CVC4::Configuration::isBuiltWithSymFPU())
   {
@@ -260,7 +260,7 @@ TEST_F(TestApiSortBlack, getFPExponentSize)
   }
 }
 
-TEST_F(TestApiSortBlack, getFPSignificandSize)
+TEST_F(TestApiBlackSort, getFPSignificandSize)
 {
   if (CVC4::Configuration::isBuiltWithSymFPU())
   {
@@ -271,7 +271,7 @@ TEST_F(TestApiSortBlack, getFPSignificandSize)
   }
 }
 
-TEST_F(TestApiSortBlack, getDatatypeParamSorts)
+TEST_F(TestApiBlackSort, getDatatypeParamSorts)
 {
   // create parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
@@ -295,7 +295,7 @@ TEST_F(TestApiSortBlack, getDatatypeParamSorts)
   ASSERT_THROW(dtypeSort.getDatatypeParamSorts(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getDatatypeArity)
+TEST_F(TestApiBlackSort, getDatatypeArity)
 {
   // create datatype sort, check should not fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
@@ -311,7 +311,7 @@ TEST_F(TestApiSortBlack, getDatatypeArity)
   ASSERT_THROW(bvSort.getDatatypeArity(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getTupleLength)
+TEST_F(TestApiBlackSort, getTupleLength)
 {
   Sort tupleSort = d_solver.mkTupleSort(
       {d_solver.getIntegerSort(), d_solver.getIntegerSort()});
@@ -320,7 +320,7 @@ TEST_F(TestApiSortBlack, getTupleLength)
   ASSERT_THROW(bvSort.getTupleLength(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, getTupleSorts)
+TEST_F(TestApiBlackSort, getTupleSorts)
 {
   Sort tupleSort = d_solver.mkTupleSort(
       {d_solver.getIntegerSort(), d_solver.getIntegerSort()});
@@ -329,7 +329,7 @@ TEST_F(TestApiSortBlack, getTupleSorts)
   ASSERT_THROW(bvSort.getTupleSorts(), CVC4ApiException);
 }
 
-TEST_F(TestApiSortBlack, sortCompare)
+TEST_F(TestApiBlackSort, sortCompare)
 {
   Sort boolSort = d_solver.getBooleanSort();
   Sort intSort = d_solver.getIntegerSort();
@@ -341,7 +341,7 @@ TEST_F(TestApiSortBlack, sortCompare)
   ASSERT_TRUE((intSort > bvSort || intSort == bvSort) == (intSort >= bvSort));
 }
 
-TEST_F(TestApiSortBlack, sortSubtyping)
+TEST_F(TestApiBlackSort, sortSubtyping)
 {
   Sort intSort = d_solver.getIntegerSort();
   Sort realSort = d_solver.getRealSort();
@@ -365,7 +365,7 @@ TEST_F(TestApiSortBlack, sortSubtyping)
   ASSERT_FALSE(setSortR.isSubsortOf(setSortI));
 }
 
-TEST_F(TestApiSortBlack, sortScopedToString)
+TEST_F(TestApiBlackSort, sortScopedToString)
 {
   std::string name = "uninterp-sort";
   Sort bvsort8 = d_solver.mkBitVectorSort(8);

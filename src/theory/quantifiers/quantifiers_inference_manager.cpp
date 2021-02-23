@@ -20,11 +20,17 @@ namespace quantifiers {
 
 QuantifiersInferenceManager::QuantifiersInferenceManager(
     Theory& t, QuantifiersState& state, ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm)
+    : InferenceManagerBuffered(t, state, pnm, "theory::quantifiers")
 {
 }
 
 QuantifiersInferenceManager::~QuantifiersInferenceManager() {}
+
+void QuantifiersInferenceManager::doPending()
+{
+  doPendingLemmas();
+  doPendingPhaseRequirements();
+}
 
 }  // namespace quantifiers
 }  // namespace theory

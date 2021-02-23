@@ -564,11 +564,11 @@ void TermDbSygus::registerEnumerator(Node e,
     // make the guard
     Node ag = nm->mkSkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
-    ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_quantEngine->getOutputChannel().requirePhase(ag, true);
-    d_quantEngine->getOutputChannel().lemma(lem);
+    d_qim.requirePhase(ag, true);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
   }
 }
@@ -939,8 +939,7 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
     if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
-        if (n[1]
-            == d_quantEngine->getTermUtil()->getTypeValue(n[1].getType(), 0))
+        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
         {
           return true;
         }

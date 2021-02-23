@@ -28,8 +28,6 @@
 namespace CVC4 {
 namespace theory {
 
-class QuantifiersEngine;
-
 /**
  * Attribute for associating a function-to-synthesize with a first order
  * variable whose type is a sygus datatype type that encodes its grammar.
@@ -53,6 +51,7 @@ typedef expr::Attribute<SygusSynthFunVarListAttributeId, Node>
 namespace quantifiers {
 
 class SynthConjecture;
+class TermDbSygus;
 
 /**
  * Utility for constructing datatypes that correspond to syntactic restrictions,
@@ -61,7 +60,7 @@ class SynthConjecture;
 class CegGrammarConstructor
 {
 public:
- CegGrammarConstructor(QuantifiersEngine* qe, SynthConjecture* p);
+ CegGrammarConstructor(TermDbSygus* tds, SynthConjecture* p);
  ~CegGrammarConstructor() {}
  /** process
   *
@@ -169,8 +168,8 @@ public:
   Node convertToEmbedding(Node n);
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
+  /** The sygus term database we are using */
+  TermDbSygus* d_tds;
   /** parent conjecture
   * This contains global information about the synthesis conjecture.
   */

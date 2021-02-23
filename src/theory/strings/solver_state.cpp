@@ -28,7 +28,7 @@ namespace strings {
 SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
                          Valuation& v)
-    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflictSet(c, false)
+    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflictSet(c, false), d_pendingConflict(InferenceId::UNKNOWN)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -137,8 +137,7 @@ void SolverState::setPendingPrefixConflictWhen(Node conf)
   {
     return;
   }
-  InferInfo iiPrefixConf;
-  iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
+  InferInfo iiPrefixConf(InferenceId::STRINGS_PREFIX_CONFLICT);
   iiPrefixConf.d_conc = d_false;
   utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);

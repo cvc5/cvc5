@@ -236,6 +236,9 @@ header = "options/bv_options.h"
   default    = "LAZY"
   help       = "choose bit-vector solver, see --bv-solver=help"
   help_mode  = "Bit-vector solvers."
+[[option.mode.BITBLAST]]
+  name = "bitblast"
+  help = "Enables bitblasting solver."
 [[option.mode.LAZY]]
   name = "lazy"
   help = "Enables the lazy BV solver infrastructure."

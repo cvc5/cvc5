@@ -24,8 +24,6 @@
 namespace CVC4 {
 namespace theory {
 
-class QuantifiersEngine;
-
 /** Attribute to mark Skolems as virtual terms */
 struct VirtualTermSkolemAttributeId
 {
@@ -34,6 +32,8 @@ typedef expr::Attribute<VirtualTermSkolemAttributeId, bool>
     VirtualTermSkolemAttribute;
 
 namespace quantifiers {
+
+class QuantifiersInferenceManager;
 
 /** Virtual term substitution term cache
  *
@@ -70,7 +70,7 @@ namespace quantifiers {
 class VtsTermCache
 {
  public:
-  VtsTermCache(QuantifiersEngine* qe);
+  VtsTermCache(QuantifiersInferenceManager& qim);
   ~VtsTermCache() {}
   /**
    * Get vts delta. The argument isFree indicates if we are getting the
@@ -122,8 +122,8 @@ class VtsTermCache
   bool containsVtsInfinity(Node n, bool isFree = false);
 
  private:
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** constants */
   Node d_zero;
   /** The virtual term substitution delta */

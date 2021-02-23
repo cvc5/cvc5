@@ -73,7 +73,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (options::checkUnsatCoresNew())
   {
-    options::proofNew.set(true);
+    options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -117,14 +117,25 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
           "Incremental eager bit-blasting is currently "
           "only supported for QF_BV. Try --bitblast=lazy.");
     }
+
+    // Force lazy solver since we don't handle EAGER_ATOMS in the
+    // BVSolver::BITBLAST solver.
+    options::bvSolver.set(options::BVSolver::LAZY);
   }
 
-  /* BVSolver::SIMPLE does not natively support int2bv and nat2bv, they need to
-   * to be eliminated eagerly. */
-  if (options::bvSolver() == options::BVSolver::SIMPLE)
+  /* Only BVSolver::LAZY natively supports int2bv and nat2bv, for other solvers
+   * we need to eagerly eliminate the operators. */
+  if (options::bvSolver() == options::BVSolver::SIMPLE
+      || options::bvSolver() == options::BVSolver::BITBLAST)
   {
     options::bvLazyReduceExtf.set(false);
     options::bvLazyRewriteExtf.set(false);
+  }
+
+  /* Disable bit-level propagation by default for the BITBLAST solver. */
+  if (options::bvSolver() == options::BVSolver::BITBLAST)
+  {
+    options::bitvectorPropagate.set(false);
   }
 
   if (options::solveIntAsBV() > 0)
@@ -837,11 +848,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
              << std::endl;
     options::cegqi.set(false);
   }
-  // Do we need to track instantiations?
-  if (options::unsatCores() && !options::trackInstLemmas.wasSetByUser())
-  {
-    options::trackInstLemmas.set(true);
-  }
 
   if ((options::fmfBoundLazy.wasSetByUser() && options::fmfBoundLazy())
       || (options::fmfBoundInt.wasSetByUser() && options::fmfBoundInt()))
@@ -866,16 +872,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (options::ufHo())
   {
-    // if higher-order, disable proof production
-    if (options::proofNew())
-    {
-      if (options::proofNew.wasSetByUser())
-      {
-        Warning() << "SmtEngine: turning off proof production (not yet "
-                     "supported with --uf-ho)\n";
-      }
-      options::proofNew.set(false);
-    }
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
@@ -1088,16 +1084,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!options::nlExtTangentPlanes.wasSetByUser())
     {
       options::nlExtTangentPlanes.set(true);
-    }
-    // not compatible with proofs
-    if (options::proofNew())
-    {
-      if (options::proofNew.wasSetByUser())
-      {
-        Notice() << "SmtEngine: setting proof-new to false to support SyGuS"
-                 << std::endl;
-      }
-      options::proofNew.set(false);
     }
   }
   // counterexample-guided instantiation for non-sygus
@@ -1388,10 +1374,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
   }
-  // !!!!!!!!!!!!!!!! temporary, until proof-new is functional
-  if (options::proofNew())
+  // !!!!!!!!!!!!!!!! temporary, until proofs are functional
+  if (options::proof())
   {
-    throw OptionException("--proof-new is not yet supported.");
+    throw OptionException("--proof is not yet supported.");
   }
 
   if (logic == LogicInfo("QF_UFNRA"))

@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "theory/quantifiers/ematching/inst_strategy.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_relevance.h"
-#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -50,7 +50,8 @@ class InstantiationEngine : public QuantifiersModule {
  public:
   InstantiationEngine(QuantifiersEngine* qe,
                       QuantifiersState& qs,
-                      QuantifiersInferenceManager& qim);
+                      QuantifiersInferenceManager& qim,
+                      QuantifiersRegistry& qr);
   ~InstantiationEngine();
   void presolve() override;
   bool needsCheck(Theory::Effort e) override;

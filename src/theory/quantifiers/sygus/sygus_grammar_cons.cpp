@@ -25,7 +25,6 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/strings/word.h"
 
 using namespace CVC4::kind;
@@ -34,9 +33,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
+CegGrammarConstructor::CegGrammarConstructor(TermDbSygus* tds,
                                              SynthConjecture* p)
-    : d_qe(qe), d_parent(p), d_is_syntax_restricted(false)
+    : d_tds(tds), d_parent(p), d_is_syntax_restricted(false)
 {
 }
 
@@ -138,7 +137,7 @@ Node CegGrammarConstructor::process(Node q,
       sfvl = preGrammarType.getDType().getSygusVarList();
       tn = preGrammarType;
       // normalize type, if user-provided
-      SygusGrammarNorm sygus_norm(d_qe);
+      SygusGrammarNorm sygus_norm(d_tds);
       tn = sygus_norm.normalizeSygusType(tn, sfvl);
     }else{
       sfvl = SygusUtils::getSygusArgumentListForSynthFun(sf);
@@ -205,7 +204,6 @@ Node CegGrammarConstructor::process(Node q,
 
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
-  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
   {
     Node sf = q[0][i];
@@ -253,7 +251,7 @@ Node CegGrammarConstructor::process(Node q,
         Trace("cegqi-debug") << "  body is now : " << qbody_subs << std::endl;
       }
     }
-    tds->registerSygusType(tn);
+    d_tds->registerSygusType(tn);
     Assert(tn.isDatatype());
     const DType& dt = tn.getDType();
     Assert(dt.isSygus());
@@ -282,7 +280,6 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   std::stack<TNode> visit;
   TNode cur;
   visit.push(n);
-  TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   do {
     cur = visit.top();
     visit.pop();
@@ -347,7 +344,7 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
           //   lambda x1...xn. (DT_SYGUS_EVAL ef x1 ... xn)
           // where ef is the first order variable for the
           // function-to-synthesize.
-          SygusTypeInfo& ti = tds->getTypeInfo(ef.getType());
+          SygusTypeInfo& ti = d_tds->getTypeInfo(ef.getType());
           const std::vector<Node>& vars = ti.getVarList();
           Assert(!vars.empty());
           std::vector<Node> vs;
