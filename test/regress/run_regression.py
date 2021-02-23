@@ -376,16 +376,21 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
                '--incremental' not in all_args and \
                '--unconstrained-simp' not in all_args:
                 extra_command_line_args += ['--check-unsat-cores']
-        if proofs and re.search(r'^(unsat|valid)$', expected_output):
-            if '--no-check-checks' not in all_args and \
-               '--check-proofs' not in all_args:
-                extra_command_line_args += ['--check-proofs']
         if '--no-check-abducts' not in all_args and \
             '--check-abducts' not in all_args:
             extra_command_line_args += ['--check-abducts']
         if extra_command_line_args:
             command_line_args_configs.append(all_args +
                                              extra_command_line_args)
+            
+        extra_command_line_args_proof = []
+        if proofs and re.search(r'^(unsat|valid)$', expected_output):
+            if '--no-check-proofs' not in all_args and \
+               '--check-proofs' not in all_args:
+                extra_command_line_args_proof += ['--check-proofs']
+        if extra_command_line_args_proof:
+            command_line_args_configs.append(all_args +
+                                             extra_command_line_args_proof)
 
     # Run CVC4 on the benchmark with the different option sets and check
     # whether the exit status, stdout output, stderr output are as expected.
