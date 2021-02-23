@@ -347,6 +347,8 @@ libcvc4_add_sources(
   theory/arith/nl/cad/constraints.h
   theory/arith/nl/cad/projections.cpp
   theory/arith/nl/cad/projections.h
+  theory/arith/nl/cad/proof_checker.cpp
+  theory/arith/nl/cad/proof_checker.h
   theory/arith/nl/cad/proof_generator.cpp
   theory/arith/nl/cad/proof_generator.h
   theory/arith/nl/cad/variable_ordering.cpp
