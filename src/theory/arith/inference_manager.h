@@ -84,15 +84,6 @@ class InferenceManager : public InferenceManagerBuffered
    */
   void clearWaitingLemmas();
 
-  /** Add a conflict to this inference manager. */
-  void addConflict(const Node& conf, InferenceId inftype);
-
-  /** Add a conflict with a proof to this inference manager. */
-  void addTrustedConflict(const TrustNode& tconf, InferenceId inftype);
-
-  /** Add a lemma with a proof to this inference manager. */
-  void addTrustedLemma(const TrustNode& tlem, InferenceId inftype);
-
   /**
    * Checks whether we have made any progress, that is whether a conflict,
    * lemma or fact was added or whether a lemma or fact is pending.

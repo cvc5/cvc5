@@ -1268,7 +1268,6 @@ install(FILES
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
-          util/arith.h
           util/bitvector.h
           util/bool.h
           util/cardinality.h
