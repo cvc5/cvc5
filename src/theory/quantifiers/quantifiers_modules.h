@@ -34,7 +34,7 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
-  
+
 class DecisionManager;
 
 /**

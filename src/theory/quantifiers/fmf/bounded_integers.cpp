@@ -88,8 +88,7 @@ BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
                                  QuantifiersRegistry& qr,
-                                 DecisionManager* dm
-                                )
+                                 DecisionManager* dm)
     : QuantifiersModule(qs, qim, qr, qe), d_dm(dm)
 {
 }

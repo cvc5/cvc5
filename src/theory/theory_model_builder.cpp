@@ -59,9 +59,7 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   return n;
 }
 
-TheoryEngineModelBuilder::TheoryEngineModelBuilder()
-{
-}
+TheoryEngineModelBuilder::TheoryEngineModelBuilder() {}
 
 Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
 {

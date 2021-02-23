@@ -21,10 +21,10 @@
 #ifndef CVC4__THEORY__VALUATION_H
 #define CVC4__THEORY__VALUATION_H
 
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
 #include "theory/assertion.h"
-#include "context/cdlist.h"
 
 namespace CVC4 {
 

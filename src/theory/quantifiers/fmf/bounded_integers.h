@@ -166,8 +166,7 @@ private:
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
-                  DecisionManager* dm
-                 );
+                  DecisionManager* dm);
   virtual ~BoundedIntegers();
 
   void presolve() override;

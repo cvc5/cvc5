@@ -22,7 +22,8 @@ namespace quantifiers {
 
 QuantifiersState::QuantifiersState(context::Context* c,
                                    context::UserContext* u,
-                                   Valuation val, const LogicInfo& logicInfo)
+                                   Valuation val,
+                                   const LogicInfo& logicInfo)
     : TheoryState(c, u, val), d_ierCounterc(c), d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
@@ -152,10 +153,7 @@ void QuantifiersState::debugPrintEqualityEngine(const char* c) const
   }
 }
 
-const LogicInfo& QuantifiersState::getLogicInfo() const
-{
-  return d_logicInfo;
-}
+const LogicInfo& QuantifiersState::getLogicInfo() const { return d_logicInfo; }
 
 }  // namespace quantifiers
 }  // namespace theory
