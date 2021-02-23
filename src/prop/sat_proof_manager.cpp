@@ -352,9 +352,9 @@ void SatProofManager::explainLit(
     printClause(reason);
     Trace("sat-proof") << "\n";
   }
+#ifdef CVC4_ASSERTIONS
   // pedantically check that the negation of the literal to explain *does not*
   // occur in the reason, otherwise we will loop forever
-#ifdef CVC4_ASSERTIONS
   for (unsigned i = 0; i < size; ++i)
   {
     AlwaysAssert(~MinisatSatSolver::toSatLiteral(reason[i]) != lit)
@@ -373,8 +373,8 @@ void SatProofManager::explainLit(
   Trace("sat-proof") << push;
   for (unsigned i = 0; i < size; ++i)
   {
-    // pedantically make sure that the reason stays the same
 #ifdef CVC4_ASSERTIONS
+    // pedantically make sure that the reason stays the same
     const Minisat::Clause& reloadedReason = d_solver->ca[reasonRef];
     AlwaysAssert(size == static_cast<unsigned>(reloadedReason.size()));
     AlwaysAssert(children[0] == getClauseNode(reloadedReason));
