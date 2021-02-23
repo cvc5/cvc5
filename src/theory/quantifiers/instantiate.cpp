@@ -100,7 +100,7 @@ bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
+  d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
@@ -379,6 +379,97 @@ bool Instantiate::addInstantiation(
   return true;
 }
 
+bool Instantiate::addInstantiationExpFail(Node q,
+                                          std::vector<Node>& terms,
+                                          std::vector<bool>& failMask,
+                                          bool mkRep,
+                                          bool modEq,
+                                          bool doVts,
+                                          bool expFull)
+{
+  if (addInstantiation(q, terms, mkRep, modEq, doVts))
+  {
+    return true;
+  }
+  size_t tsize = terms.size();
+  failMask.resize(tsize, true);
+  if (tsize == 1)
+  {
+    // will never succeed with 1 variable
+    return false;
+  }
+  Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
+  // set up information for below
+  std::vector<Node>& vars = d_qreg.d_vars[q];
+  Assert(tsize == vars.size());
+  std::map<TNode, TNode> subs;
+  for (size_t i = 0; i < tsize; i++)
+  {
+    subs[vars[i]] = terms[i];
+  }
+  // get the instantiation body
+  Node ibody = getInstantiation(q, vars, terms, doVts);
+  ibody = Rewriter::rewrite(ibody);
+  for (size_t i = 0; i < tsize; i++)
+  {
+    // process consecutively in reverse order, which is important since we use
+    // the fail mask for incrementing in a lexicographic order
+    size_t ii = (tsize - 1) - i;
+    // replace with the identity substitution
+    Node prev = terms[ii];
+    terms[ii] = vars[ii];
+    subs.erase(vars[ii]);
+    if (subs.empty())
+    {
+      // will never succeed with empty substitution
+      break;
+    }
+    Trace("inst-exp-fail") << "- revert " << ii << std::endl;
+    // check whether we are still redundant
+    bool success = false;
+    // check entailment, only if option is set
+    if (options::instNoEntail())
+    {
+      Trace("inst-exp-fail") << "  check entailment" << std::endl;
+      success = d_term_db->isEntailed(q[1], subs, false, true);
+      Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
+    }
+    // check whether the instantiation rewrites to the same thing
+    if (!success)
+    {
+      Node ibodyc = getInstantiation(q, vars, terms, doVts);
+      ibodyc = Rewriter::rewrite(ibodyc);
+      success = (ibodyc == ibody);
+      Trace("inst-exp-fail") << "  rewrite invariant: " << success << std::endl;
+    }
+    if (success)
+    {
+      // if we still fail, we are not critical
+      failMask[ii] = false;
+    }
+    else
+    {
+      subs[vars[ii]] = prev;
+      terms[ii] = prev;
+      // not necessary to proceed if expFull is false
+      if (!expFull)
+      {
+        break;
+      }
+    }
+  }
+  if (Trace.isOn("inst-exp-fail"))
+  {
+    Trace("inst-exp-fail") << "Fail mask: ";
+    for (bool b : failMask)
+    {
+      Trace("inst-exp-fail") << (b ? 1 : 0);
+    }
+    Trace("inst-exp-fail") << std::endl;
+  }
+  return false;
+}
+
 bool Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
                                       bool modEq,
@@ -418,12 +509,12 @@ Node Instantiate::getInstantiation(Node q,
                                    bool doVts,
                                    LazyCDProof* pf)
 {
-  Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
   // Notice that this could be optimized, but no significant performance
   // improvements were observed with alternative implementations (see #1386).
-  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
+  Node body =
+      q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
 
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
