@@ -353,7 +353,7 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code,
             continue
         if not proofs and '--dump-proofs' in all_args:
             print(
-                '# Skipped command line options ({}): proof production not supported without LFSC support'
+                '# Skipped command line options ({}): proof production not supported'
                 .format(all_args))
             continue
 
@@ -482,7 +482,7 @@ def main():
 
     timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
 
-    return run_regression(args.enable_proof, args.with_lfsc, args.dump,
+    return run_regression(args.enable_proof, args.enable_proof, args.dump,
                           args.use_skip_return_code, args.skip_timeout,
                           wrapper, cvc4_binary, args.benchmark, timeout)
 
