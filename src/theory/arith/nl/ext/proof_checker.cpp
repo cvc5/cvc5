@@ -27,6 +27,7 @@ namespace nl {
 
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
+  pc->registerChecker(PfRule::ARITH_MULT_SIGN, this);
   pc->registerChecker(PfRule::ARITH_MULT_POS, this);
   pc->registerChecker(PfRule::ARITH_MULT_NEG, this);
   pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
@@ -47,7 +48,78 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
   {
     Trace("nl-ext-checker") << "\t" << c << std::endl;
   }
-  if (id == PfRule::ARITH_MULT_POS)
+  if (id == PfRule::ARITH_MULT_SIGN)
+  {
+    Assert(children.empty());
+    Assert(args.size() > 1);
+    Node mon = args.back();
+    std::map<Node, int> exps;
+    std::vector<Node> premise = args;
+    premise.pop_back();
+    Assert(mon.getKind() == Kind::MULT
+           || mon.getKind() == Kind::NONLINEAR_MULT);
+    for (const auto& v : mon)
+    {
+      exps[v]++;
+    }
+    std::map<Node, int> signs;
+    for (const auto& f : premise)
+    {
+      if (f.getKind() == Kind::NOT)
+      {
+        Assert(f[0].getKind() == Kind::EQUAL);
+        Assert(f[0][1].isConst() && f[0][1].getConst<Rational>().isZero());
+        Assert(signs.find(f[0][0]) == signs.end());
+        signs.emplace(f[0][0], 0);
+        continue;
+      }
+      Assert(f.getKind() == Kind::LT || f.getKind() == Kind::GT);
+      Assert(f[1].isConst() && f[1].getConst<Rational>().isZero());
+      Assert(signs.find(f[0]) == signs.end());
+      signs.emplace(f[0], f.getKind() == Kind::LT ? -1 : 1);
+    }
+    int sign = 0;
+    for (const auto& ve : exps)
+    {
+      auto sit = signs.find(ve.first);
+      Assert(sit != signs.end());
+      if (ve.second % 2 == 0)
+      {
+        Assert(sit->second == 0);
+        if (sign == 0)
+        {
+          sign = 1;
+        }
+      }
+      else
+      {
+        Assert(sit->second != 0);
+        if (sign == 0)
+        {
+          sign = sit->second;
+        }
+        else
+        {
+          sign *= sit->second;
+        }
+      }
+    }
+    switch (sign)
+    {
+      case -1:
+        return nm->mkNode(
+            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, zero, mon));
+      case 0:
+        return nm->mkNode(Kind::IMPLIES,
+                          nm->mkAnd(premise),
+                          nm->mkNode(Kind::DISTINCT, mon, zero));
+      case 1:
+        return nm->mkNode(
+            Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero));
+      default: Assert(false); return Node();
+    }
+  }
+  else if (id == PfRule::ARITH_MULT_POS)
   {
     Assert(children.empty());
     Assert(args.size() == 3);
