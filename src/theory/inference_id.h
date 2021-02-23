@@ -168,18 +168,34 @@ enum class InferenceId
   // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
   DATATYPES_HEIGHT_ZERO,
   //-------------------- sygus extension
+  // a sygus symmetry breaking lemma (or ~is-C1( t1 ) V ... V ~is-Cn( tn ) )
+  // where t1 ... tn are unique shared selector chains. For details see
+  // Reynolds et al CAV 2019
   DATATYPES_SYGUS_SYM_BREAK,
+  // a conjecture-dependent symmetry breaking lemma, which may be used to
+  // exclude constructors for variables that irrelevant for a synthesis
+  // conjecture
   DATATYPES_SYGUS_CDEP_SYM_BREAK,
+  // an enumerator-specific symmetry breaking lemma, which are used e.g. for
+  // excluding certain kinds of constructors
   DATATYPES_SYGUS_ENUM_SYM_BREAK,
+  // a simple static symmetry breaking lemma (see Reynolds et al CAV 2019)
   DATATYPES_SYGUS_SIMPLE_SYM_BREAK,
+  // (dt.size t) <= N, to implement fair enumeration when sygus-fair=dt-size
   DATATYPES_SYGUS_FAIR_SIZE,
+  // (dt.size t) <= N => (or ~is-C1( t1 ) V ... V ~is-Cn( tn ) ) if using
+  // sygus-fair=direct
   DATATYPES_SYGUS_FAIR_SIZE_CONFLICT,
+  // (dt.size t) = (+ (dt.size t.1) ... (dt.size t.n) 1)
   DATATYPES_SYGUS_SIZE,
+  // used for implementing variable agnostic enumeration
   DATATYPES_SYGUS_VAR_AGNOSTIC,
+  // handles case the model value for a sygus term violates the size bound
   DATATYPES_SYGUS_SIZE_CORRECTION,
+  // handles case the model value for a sygus term does not exist
   DATATYPES_SYGUS_VALUE_CORRECTION,
+  // (dt.size t) >= 0
   DATATYPES_SYGUS_MT_POS,
-  DATATYPES_SYGUS_ACTIVE_MT_POS,
   // ---------------------------------- end datatypes theory
 
   // ---------------------------------- sep theory

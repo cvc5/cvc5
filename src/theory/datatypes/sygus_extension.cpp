@@ -1773,7 +1773,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
     Node new_mt = nm->mkSkolem("mt", nm->integerType());
     Node mtlem = nm->mkNode(kind::GEQ, new_mt, nm->mkConst(Rational(0)));
     d_measure_value_active = new_mt;
-    d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_ACTIVE_MT_POS);
+    d_im.lemma(mtlem, InferenceId::DATATYPES_SYGUS_MT_POS);
   }
   else if (d_measure_value_active.isNull())
   {
