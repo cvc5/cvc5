@@ -65,8 +65,6 @@ class QuantifiersEngine {
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
-  /** get theory engine */
-  TheoryEngine* getTheoryEngine() const;
   /** Get the decision manager */
   DecisionManager* getDecisionManager();
   /** The quantifiers state object */

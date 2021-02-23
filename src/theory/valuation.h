@@ -23,6 +23,8 @@
 
 #include "expr/node.h"
 #include "options/theory_options.h"
+#include "theory/assertion.h"
+#include "context/cdlist.h"
 
 namespace CVC4 {
 

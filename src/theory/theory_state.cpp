@@ -157,6 +157,15 @@ bool TheoryState::hasSatValue(TNode n, bool& value) const
   return d_valuation.hasSatValue(n, value);
 }
 
+context::CDList<Assertion>::const_iterator TheoryState::factsBegin(TheoryId tid)
+{
+  return d_valuation.factsBegin(tid);
+}
+context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
+{
+  return d_valuation.factsEnd(tid);
+}
+
 Valuation& TheoryState::getValuation() { return d_valuation; }
 
 }  // namespace theory

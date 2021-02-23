@@ -84,7 +84,18 @@ class TheoryState
 
   /** Returns true if n has a current SAT assignment and stores it in value. */
   virtual bool hasSatValue(TNode n, bool& value) const;
-
+  
+  //------------------------------------------- access methods for assertions
+  /**
+   * The following methods are intended only to be used in limited use cases,
+   * for cases where a theory (e.g. quantifiers) requires knowing about the
+   * assertions from other theories.
+   */
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
+  
   /** Get the underlying valuation class */
   Valuation& getValuation();
 

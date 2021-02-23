@@ -87,8 +87,10 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
 BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
-                                 QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe)
+                                 QuantifiersRegistry& qr,
+                                 DecisionManager* dm
+                                )
+    : QuantifiersModule(qs, qim, qr, qe), d_dm(dm)
 {
 }
 
@@ -500,9 +502,7 @@ void BoundedIntegers::checkOwnership(Node f)
                                               d_qstate.getUserContext(),
                                               d_qstate.getValuation(),
                                               isProxy));
-            d_quantEngine->getTheoryEngine()
-                ->getDecisionManager()
-                ->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
+            d_dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
                                    d_rms[r].get());
           }
         }

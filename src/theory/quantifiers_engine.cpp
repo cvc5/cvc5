@@ -113,14 +113,12 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   d_decManager = dm;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, dm, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
 }
-
-TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
 
 DecisionManager* QuantifiersEngine::getDecisionManager()
 {
@@ -387,7 +385,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
-      getTheoryEngine()->printAssertions("quant-engine-assert");
+      d_te->printAssertions("quant-engine-assert");
     }
 
     //reset utilities

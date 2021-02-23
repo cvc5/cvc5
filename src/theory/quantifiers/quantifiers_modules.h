@@ -34,6 +34,8 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
+  
+class DecisionManager;
 
 /**
  * This class is responsible for constructing the vector of modules to be
@@ -55,6 +57,7 @@ class QuantifiersModules
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
+                  DecisionManager* dm,
                   std::vector<QuantifiersModule*>& modules);
 
  private:

@@ -45,7 +45,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
       d_qstate(c, u, valuation),
       d_qim(*this, d_qstate, pnm),
-      d_qengine(d_qstate, d_qim, pnm)
+      d_qengine(d_qstate, d_qim, pnm, logicInfo)
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute("qid", this);

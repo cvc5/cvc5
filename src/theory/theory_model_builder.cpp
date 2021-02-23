@@ -17,7 +17,6 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
@@ -60,7 +59,7 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   return n;
 }
 
-TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
+TheoryEngineModelBuilder::TheoryEngineModelBuilder()
 {
 }
 
