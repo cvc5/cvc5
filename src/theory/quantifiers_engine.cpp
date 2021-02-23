@@ -111,7 +111,8 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
 {
   d_te = te;
   d_decManager = dm;
-  d_skolemize.reset(new quantifiers::Skolemize(qstate, te->getSortInference(), pnm));
+  d_skolemize.reset(
+      new quantifiers::Skolemize(qstate, te->getSortInference(), pnm));
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
   d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, dm, d_modules);

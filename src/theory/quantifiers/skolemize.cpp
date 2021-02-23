@@ -29,7 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 Skolemize::Skolemize(QuantifiersState& qs,
-                     SortInference * si,
+                     SortInference* si,
                      ProofNodeManager* pnm)
     : d_skolemized(qs.getUserContext()),
       d_sortInfer(si),
@@ -354,8 +354,7 @@ Node Skolemize::getSkolemizedBody(Node f)
       for (unsigned i = 0; i < d_skolem_constants[f].size(); i++)
       {
         // carry information for sort inference
-        d_sortInfer->setSkolemVar(
-            f, f[0][i], d_skolem_constants[f][i]);
+        d_sortInfer->setSkolemVar(f, f[0][i], d_skolem_constants[f][i]);
       }
     }
     return ret;
