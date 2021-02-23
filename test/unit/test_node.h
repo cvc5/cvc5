@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file test_expr.h
+/*! \file test_node.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -19,7 +19,6 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test.h"
-#include "test_api.h"
 
 namespace CVC4 {
 namespace test {
