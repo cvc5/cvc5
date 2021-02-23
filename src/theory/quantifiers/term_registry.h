@@ -35,6 +35,7 @@ class TermRegistry
  public:
   TermRegistry(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
+               QuantifiersRegistry& qr,
                QuantifiersEngine* qe);
   /**
    * Add term n, which notifies all
@@ -49,6 +50,8 @@ class TermRegistry
   context::CDO<bool> d_presolve;
   /** the set of terms we have seen before presolve */
   NodeSet d_presolveCache;
+  /** term database */
+  std::unique_ptr<quantifiers::TermDb> d_term_db;
 };
 
 }  // namespace quantifiers

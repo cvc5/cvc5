@@ -36,6 +36,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "util/statistics_registry.h"
 
@@ -275,14 +276,14 @@ public:
   //------------- quantifiers utilities
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry d_qreg;
+  /** The term registry */
+  quantifiers::TermRegistry d_treg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** term database */
-  std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** sygus term database */
