@@ -319,7 +319,61 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
   lem = Rewriter::rewrite(lem);
   Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
-  return NlLemma(InferenceId::ARITH_NL_T_SECANT, lem);
+  CDProof* proof = nullptr;
+  if (isProofEnabled())
+  {
+    proof = getProof();
+    if (tf.getKind() == Kind::EXPONENTIAL)
+    {
+      if (csign == 1)
+      {
+        proof->addStep(
+            lem,
+            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+            {},
+            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+      }
+      else
+      {
+        proof->addStep(
+            lem,
+            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+            {},
+            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+      }
+    }
+    else if (tf.getKind() == Kind::SINE)
+    {
+      if (convexity == Convexity::CONCAVE)
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
+                       {},
+                       {nm->mkConst<Rational>(2 * actual_d),
+                        tf[0],
+                        lower,
+                        upper,
+                        lapprox,
+                        uapprox
+
+                       });
+      }
+      else
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+                       {},
+                       {nm->mkConst<Rational>(2 * actual_d),
+                        tf[0],
+                        lower,
+                        upper,
+                        lapprox,
+                        uapprox});
+      }
+    }
+  }
+  return NlLemma(
+      InferenceId::ARITH_NL_T_SECANT, lem, LemmaProperty::NONE, proof);
 }
 
 void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,

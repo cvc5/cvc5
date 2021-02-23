@@ -1137,6 +1137,36 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= (= t 0) (= (exp t) 1))
   ARITH_TRANS_EXP_ZERO,
+  //======== Exp is approximated from above for negative values
+  // Children: none
+  // Arguments: (d, t, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant exp l u t))
+  // Where d is an even positive number, t an arithmetic term and l (u) a lower
+  // (upper) bound on t. Let p be the d'th taylor polynomial at zero (also
+  // called the Maclaurin series) of the exponential function. (secant exp l u
+  // t) denotes the secant of p from (l, exp(l)) to (u, exp(u)) evaluated at t,
+  // calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (exp t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+  //======== Exp is approximated from above for positive values
+  // Children: none
+  // Arguments: (d, t, l, u)
+  // ---------------------
+  // Conclusion: (=> (and (>= t l) (<= t u)) (<= (exp t) (secant-pos exp l u t))
+  // Where d is an even positive number, t an arithmetic term and l (u) a lower
+  // (upper) bound on t. Let p* be a modification of the d'th taylor polynomial
+  // at zero (also called the Maclaurin series) of the exponential function as
+  // follows where p(d-1) is the regular Maclaurin series of degree d-1:
+  //    p* = p(d-1) * (1 + t^n / n!)
+  // (secant-pos exp l u t) denotes the secant of p from (l, exp(l)) to (u,
+  // exp(u)) evaluated at t, calculated as follows:
+  //    (p(l) - p(u)) / (l - u) * (t - l) + p(l)
+  // The lemma states that if t is between l and u, then (exp t) is below the
+  // secant of p from l to u.
+  ARITH_TRANS_EXP_APPROX_ABOVE_POS,
   //======== Exp is approximated from below
   // Children: none
   // Arguments: (d, t)
