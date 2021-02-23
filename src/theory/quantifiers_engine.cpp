@@ -53,14 +53,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
-      d_quants_red(qstate.getUserContext()),
-<<<<<<< HEAD
-      d_ierCounter_c(qstate.getSatContext())
-=======
-      d_presolve(qstate.getUserContext(), true),
-      d_presolve_in(qstate.getUserContext()),
-      d_presolve_cache(qstate.getUserContext())
->>>>>>> f1c384dff82bffa56b9cf9ba18ec1f35aa529b12
+      d_quants_red(qstate.getUserContext())
 {
   //---- utilities
   // quantifiers registry must come before the other utilities
