@@ -131,6 +131,32 @@ class IAndTypeRule
   }
 }; /* class BitVectorConversionTypeRule */
 
+class IndexedRootPredicateTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (check)
+    {
+      TypeNode t1 = n[0].getType(check);
+      if (!t1.isBoolean())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting boolean term as first argument");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isReal())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting polynomial as second argument");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+}; /* class IndexedRootPredicateTypeRule */
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

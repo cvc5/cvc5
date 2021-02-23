@@ -54,10 +54,10 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
     Assert(newSkolems.size() == newAsserts.size());
     for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
     {
-      imap[newSkolems[j]] = assertions->size();
+      imap[assertions->size()] = newSkolems[j];
       assertions->pushBackTrusted(newAsserts[j]);
       // new assertions have a dependence on the node (old pf architecture)
-      if (options::unsatCores() && !options::proofNew())
+      if (options::unsatCores() && !options::proof())
       {
         ProofManager::currentPM()->addDependence(newAsserts[j].getProven(),
                                                  assertion);

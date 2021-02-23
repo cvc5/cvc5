@@ -336,7 +336,7 @@ bool ConjectureGenerator::isGroundTerm( TNode n ) {
 
 bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
   // synchonized with instantiation engine
-  return d_quantEngine->getInstWhenNeedsCheck( e );
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
@@ -349,7 +349,7 @@ bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
       if( !lem.empty() ){
         for (const Node& l : lem)
         {
-          d_qim.addPendingLemma(l);
+          d_qim.addPendingLemma(l, InferenceId::UNKNOWN);
         }
         d_hasAddedLemma = true;
         return false;
@@ -934,7 +934,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[rhs].push_back( lhs );
 
               Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-              d_qim.addPendingLemma(lem);
+              d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
               d_qim.addPendingPhaseRequirement(rsg, false);
               addedLemmas++;
               if( (int)addedLemmas>=options::conjectureGenPerRound() ){

@@ -27,6 +27,17 @@ namespace transcendental {
 class TaylorGenerator
 {
  public:
+  /** Stores the approximation bounds for transcendental functions */
+  struct ApproximationBounds
+  {
+    /** Lower bound */
+    Node d_lower;
+    /** Upper bound for negative values */
+    Node d_upperNeg;
+    /** Upper bound for positive values */
+    Node d_upperPos;
+  };
+
   TaylorGenerator();
 
   /**
@@ -35,23 +46,17 @@ class TaylorGenerator
   TNode getTaylorVariable();
 
   /**
-   * Get Taylor series of degree n for function fa centered around point fa[0].
+   * Get Taylor series of degree n for function fa centered around zero.
    *
-   * Return value is ( P_{n,f(a)}( x ), R_{n+1,f(a)}( x ) ) where
+   * Return value is ( P_{n,f(0)}( x ), R_{n+1,f(0)}( x ) ) where
    * the first part of the pair is the Taylor series expansion :
-   *    P_{n,f(a)}( x ) = sum_{i=0}^n (f^i( a )/i!)*(x-a)^i
+   *    P_{n,f(0)}( x ) = sum_{i=0}^n (f^i(0)/i!)*x^i
    * and the second part of the pair is the Taylor series remainder :
-   *    R_{n+1,f(a),b}( x ) = (f^{n+1}( b )/(n+1)!)*(x-a)^{n+1}
+   *    R_{n+1,f(0)}( x ) = x^{n+1}/(n+1)!
    *
-   * The above values are cached for each (f,n) for a fixed variable "a".
-   * To compute the Taylor series for fa, we compute the Taylor series
-   *   for ( fa.getKind(), n ) then substitute { a -> fa[0] } if fa[0]!=0.
-   * We compute P_{n,f(0)}( x )/R_{n+1,f(0),b}( x ) for ( fa.getKind(), n )
-   *   if fa[0]=0.
-   * In the latter case, note we compute the exponential x^{n+1}
-   * instead of (x-a)^{n+1}, which can be done faster.
+   * The above values are cached for each (f,n).
    */
-  std::pair<Node, Node> getTaylor(TNode fa, std::uint64_t n);
+  std::pair<Node, Node> getTaylor(Kind k, std::uint64_t n);
 
   /**
    * polynomial approximation bounds
@@ -68,8 +73,8 @@ class TaylorGenerator
    * given <k>( c ), use the function below.
    */
   void getPolynomialApproximationBounds(Kind k,
-                                        unsigned d,
-                                        std::vector<Node>& pbounds);
+                                        std::uint64_t d,
+                                        ApproximationBounds& pbounds);
 
   /**
    * polynomial approximation bounds
@@ -82,10 +87,8 @@ class TaylorGenerator
    * @return the actual degree of the polynomial approximations (which may be
    * larger than d).
    */
-  unsigned getPolynomialApproximationBoundForArg(Kind k,
-                                                 Node c,
-                                                 unsigned d,
-                                                 std::vector<Node>& pbounds);
+  std::uint64_t getPolynomialApproximationBoundForArg(
+      Kind k, Node c, std::uint64_t d, ApproximationBounds& pbounds);
 
   /** get transcendental function model bounds
    *
@@ -93,22 +96,20 @@ class TaylorGenerator
    * function application tf based on Taylor of degree 2*d, which is dependent
    * on the model value of its argument.
    */
-  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d, NlModel& model);
+  std::pair<Node, Node> getTfModelBounds(Node tf,
+                                         std::uint64_t d,
+                                         NlModel& model);
 
  private:
   NodeManager* d_nm;
   const Node d_taylor_real_fv;
-  const Node d_taylor_real_fv_base;
-  const Node d_taylor_real_fv_base_rem;
-  std::unordered_map<Node,
-                     std::unordered_map<std::uint64_t, Node>,
-                     NodeHashFunction>
-      s_taylor_sum;
-  std::unordered_map<Node,
-                     std::unordered_map<std::uint64_t, Node>,
-                     NodeHashFunction>
-      d_taylor_rem;
-  std::map<Kind, std::map<unsigned, std::vector<Node>>> d_poly_bounds;
+
+  /**
+   * For every kind (EXP or SINE) and every degree we store the taylor series up
+   * to this degree and the next term in the series.
+   */
+  std::map<Kind, std::map<std::uint64_t, std::pair<Node, Node>>> d_taylor_terms;
+  std::map<Kind, std::map<std::uint64_t, ApproximationBounds>> d_poly_bounds;
 };
 
 }  // namespace transcendental

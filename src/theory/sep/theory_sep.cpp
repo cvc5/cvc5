@@ -49,7 +49,7 @@ TheorySep::TheorySep(context::Context* c,
       d_lemmas_produced_c(u),
       d_bounds_init(false),
       d_state(c, u, valuation),
-      d_im(*this, d_state, nullptr),
+      d_im(*this, d_state, nullptr, "theory::sep"),
       d_notify(*this),
       d_reduce(u),
       d_spatial_assertions(c)
@@ -1745,7 +1745,7 @@ void TheorySep::addPto( HeapAssertInfo * ei, Node ei_n, Node p, bool polarity ) 
       Node n_conc = conc.empty() ? d_false : ( conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( kind::OR, conc ) );
       Trace("sep-pto")  << "Conclusion is " << n_conc << std::endl;
       // propagation for (pto x y) ^ ~(pto z w) ^ x = z => y != w
-      sendLemma( exp, n_conc, "PTO_NEG_PROP" );
+      sendLemma( exp, n_conc, InferenceId::SEP_PTO_NEG_PROP);
     }
   }else{
     if( polarity ){
@@ -1770,30 +1770,30 @@ void TheorySep::mergePto( Node p1, Node p2 ) {
     exp.push_back( p1 );
     exp.push_back( p2 );
     //enforces injectiveness of pto : (pto x y) ^ (pto y w) ^ x = y => y = w
-    sendLemma( exp, p1[0][1].eqNode( p2[0][1] ), "PTO_PROP" );
+    sendLemma( exp, p1[0][1].eqNode( p2[0][1] ), InferenceId::SEP_PTO_PROP);
   }
 }
 
-void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer ) {
+void TheorySep::sendLemma( std::vector< Node >& ant, Node conc, InferenceId id, bool infer ) {
   Trace("sep-lemma-debug") << "Do rewrite on inference : " << conc << std::endl;
   conc = Rewriter::rewrite( conc );
   Trace("sep-lemma-debug") << "Got : " << conc << std::endl;
   if( conc!=d_true ){
     if( infer && conc!=d_false ){
       Node ant_n = NodeManager::currentNM()->mkAnd(ant);
-      Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << c << std::endl;
-      d_im.addPendingFact(conc, ant_n);
+      Trace("sep-lemma") << "Sep::Infer: " << conc << " from " << ant_n << " by " << id << std::endl;
+      d_im.addPendingFact(conc, id, ant_n);
     }else{
       if( conc==d_false ){
-        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << c
+        Trace("sep-lemma") << "Sep::Conflict: " << ant << " by " << id
                            << std::endl;
-        d_im.conflictExp(ant, nullptr);
+        d_im.conflictExp(id, ant, nullptr);
       }else{
         Trace("sep-lemma") << "Sep::Lemma: " << conc << " from " << ant
-                           << " by " << c << std::endl;
+                           << " by " << id << std::endl;
         TrustNode trn = d_im.mkLemmaExp(conc, ant, {});
         d_im.addPendingLemma(
-            trn.getNode(), LemmaProperty::NONE, trn.getGenerator());
+            trn.getNode(), id, LemmaProperty::NONE, trn.getGenerator());
       }
     }
   }
