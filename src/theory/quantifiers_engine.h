@@ -307,20 +307,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-<<<<<<< HEAD
-  /** inst round counters TODO: make context-dependent? */
-  context::CDO<int> d_ierCounter_c;
-  int d_ierCounter;
-  int d_ierCounter_lc;
-  int d_ierCounterLastLc;
-  int d_inst_when_phase;
-=======
-  /** has presolve been called */
-  context::CDO<bool> d_presolve;
-  /** presolve cache */
-  NodeSet d_presolve_in;
-  NodeList d_presolve_cache;
->>>>>>> f1c384dff82bffa56b9cf9ba18ec1f35aa529b12
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */
