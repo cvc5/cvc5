@@ -286,14 +286,10 @@ public:
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** sygus term database */
-  std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
   /** instantiate utility */
   std::unique_ptr<quantifiers::Instantiate> d_instantiate;
   /** skolemize utility */
   std::unique_ptr<quantifiers::Skolemize> d_skolemize;
-  /** term enumeration utility */
-  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.

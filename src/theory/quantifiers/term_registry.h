@@ -20,7 +20,9 @@
 #include <map>
 #include <unordered_set>
 
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,6 +39,8 @@ class TermRegistry
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr,
                QuantifiersEngine* qe);
+  /** Presolve */
+  
   /**
    * Add term n, which notifies all
    *
@@ -52,6 +56,10 @@ class TermRegistry
   NodeSet d_presolveCache;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
+  /** sygus term database */
+  std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
+  /** term enumeration utility */
+  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
 };
 
 }  // namespace quantifiers

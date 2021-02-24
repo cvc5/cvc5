@@ -20,9 +20,8 @@ namespace quantifiers {
 
 TermRegistry::TermRegistry(QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
-                           QuantifiersRegistry& qr,
-                           QuantifiersEngine* qe)
-      d_term_db(new quantifiers::TermDb(qs, qim, qr, qe)),
+                           QuantifiersRegistry& qr)
+      d_term_db(new quantifiers::TermDb(qs, qim, qr)),
 {
 }
 
