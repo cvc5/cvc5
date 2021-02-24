@@ -49,7 +49,11 @@ class InstMatchGeneratorSimple : public IMGenerator
 {
  public:
   /** constructors */
-  InstMatchGeneratorSimple(Node q, Node pat, QuantifiersEngine* qe);
+  InstMatchGeneratorSimple(Node q,
+                           Node pat,
+                           quantifiers::QuantifiersState& qs,
+                           quantifiers::QuantifiersInferenceManager& qim,
+                           QuantifiersEngine* qe);
 
   /** Reset instantiation round. */
   void resetInstantiationRound(QuantifiersEngine* qe) override;

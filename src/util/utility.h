@@ -30,30 +30,6 @@ namespace CVC4 {
 
 
 /**
- * Like std::equal_to<>, but tests equality between the first element
- * of a pair and an element.
- */
-template <class T, class U>
-struct first_equal_to : std::binary_function<std::pair<T, U>, T, bool> {
-  bool operator()(const std::pair<T, U>& pr, const T& x) const {
-    return pr.first == x;
-  }
-};/* struct first_equal_to<T> */
-
-
-/**
- * Like std::equal_to<>, but tests equality between the second element
- * of a pair and an element.
- */
-template <class T, class U>
-struct second_equal_to : std::binary_function<std::pair<T, U>, U, bool> {
-  bool operator()(const std::pair<T, U>& pr, const U& x) const {
-    return pr.second == x;
-  }
-};/* struct first_equal_to<T> */
-
-
-/**
  * Using std::find_if(), finds the first iterator in [first,last)
  * range that satisfies predicate.  If none, return last; otherwise,
  * search for a second one.  If there IS a second one, return last,
