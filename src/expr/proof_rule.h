@@ -1092,6 +1092,34 @@ enum class PfRule : uint32_t
   // Conclusion: (Q)
   INT_TRUST,
 
+  //======== Multiplication sign inference
+  // Children: none
+  // Arguments: (f1, ..., fk, m)
+  // ---------------------
+  // Conclusion: (=> (and f1 ... fk) (~ m 0))
+  // Where f1, ..., fk are variables compared to zero (less, greater or not
+  // equal), m is a monomial from these variables, and ~ is the comparison (less
+  // or greater) that results from the signs of the variables. All variables
+  // with even exponent in m should be given as not equal to zero while all
+  // variables with odd exponent in m should be given as less or greater than
+  // zero.
+  ARITH_MULT_SIGN,
+  //======== Multiplication with positive factor
+  // Children: none
+  // Arguments: (m, orig, lhs, rel, rhs)
+  // ---------------------
+  // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
+  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
+  // symbol.
+  ARITH_MULT_POS,
+  //======== Multiplication with negative factor
+  // Children: none
+  // Arguments: (m, orig, (rel lhs rhs))
+  // ---------------------
+  // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
+  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
+  // symbol and rel_inv the inverted relation symbol.
+  ARITH_MULT_NEG,
   //======== Multiplication tangent plane
   // Children: none
   // Arguments: (t, x, y, a, b, sgn)
@@ -1276,6 +1304,41 @@ enum class PfRule : uint32_t
   // The lemma states that if t is between l and u, then (sin t) is above the
   // secant of p from l to u.
   ARITH_TRANS_SINE_APPROX_BELOW_POS,
+
+  // ================ CAD Lemmas
+  // We use IRP for IndexedRootPredicate.
+  //
+  // A formula "Interval" describes that a variable (xn is none is given) is
+  // within a particular interval whose bounds are given as IRPs. It is either
+  // an open interval or a point interval:
+  //   (IRP k poly) < xn < (IRP k poly)
+  //   xn == (IRP k poly)
+  //
+  // A formula "Cell" describes a portion
+  // of the real space in the following form:
+  //   Interval(x1) and Interval(x2) and ...
+  // We implicitly assume a Cell to go up to n-1 (and can be empty).
+  //
+  // A formula "Covering" is a set of Intervals, implying that xn can be in
+  // neither of these intervals. To be a covering (of the real line), the union
+  // of these intervals should be the real numbers.
+  // ======== CAD direct conflict
+  // Children (Cell, A)
+  // ---------------------
+  // Conclusion: (false)
+  // A direct interval is generated from an assumption A (in variables x1...xn)
+  // over a Cell (in variables x1...xn). It derives that A evaluates to false
+  // over the Cell. In the actual algorithm, it means that xn can not be in the
+  // topmost interval of the Cell.
+  ARITH_NL_CAD_DIRECT,
+  // ======== CAD recursive interval
+  // Children (Cell, Covering)
+  // ---------------------
+  // Conclusion: (false)
+  // A recursive interval is generated from a Covering (for xn) over a Cell
+  // (in variables x1...xn-1). It generates the conclusion that no xn exists
+  // that extends the Cell and satisfies all assumptions.
+  ARITH_NL_CAD_RECURSIVE,
 
   //================================================= Unknown rule
   UNKNOWN,
