@@ -39,11 +39,15 @@ namespace arith {
 namespace nl {
 namespace cad {
 
-CDCAC::CDCAC() {}
-
-CDCAC::CDCAC(const std::vector<poly::Variable>& ordering)
+CDCAC::CDCAC(context::Context* ctx,
+             ProofNodeManager* pnm,
+             const std::vector<poly::Variable>& ordering)
     : d_variableOrdering(ordering)
 {
+  if (pnm != nullptr)
+  {
+    d_proof.reset(new CADProofGenerator(ctx, pnm));
+  }
 }
 
 void CDCAC::reset()
@@ -421,7 +425,29 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
     }
   }
+  if (isProofEnabled())
+  {
+    d_proof->endRecursive();
+  }
   return intervals;
+}
+
+void CDCAC::startNewProof()
+{
+  if (isProofEnabled())
+  {
+    d_proof->startNewProof();
+  }
+}
+
+ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
+{
+  if (isProofEnabled())
+  {
+    d_proof->endScope(assertions);
+    return d_proof->getProofGenerator();
+  }
+  return nullptr;
 }
 
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
