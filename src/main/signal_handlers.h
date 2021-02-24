@@ -30,7 +30,7 @@ void timeout_handler();
 /**
  * Installs (almost) all signal handlers.
  * A handler for SIGALRM is set in time_limit.cpp.
- * Also sets callbacks via std::set_unexpected and std:set_terminate.
+ * Also sets callbacks via std:set_terminate.
  */
 void install();
 
