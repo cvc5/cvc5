@@ -23,10 +23,13 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
-                                                 std::vector<Node>& pats,
-                                                 QuantifiersEngine* qe)
-    : d_quant(q)
+InstMatchGeneratorMulti::InstMatchGeneratorMulti(
+    Node q,
+    std::vector<Node>& pats,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
+    : IMGenerator(qs, qim), d_quant(q)
 {
   Trace("multi-trigger-cache")
       << "Making smart multi-trigger for " << q << std::endl;
@@ -55,7 +58,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
     Node n = pats[i];
     // make the match generator
     InstMatchGenerator* img =
-        InstMatchGenerator::mkInstMatchGenerator(q, n, qe);
+        InstMatchGenerator::mkInstMatchGenerator(q, n, qs, qim, qe);
     img->setActiveAdd(false);
     d_children.push_back(img);
     // compute unique/shared variables
