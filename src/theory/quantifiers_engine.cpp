@@ -92,8 +92,8 @@ QuantifiersEngine::QuantifiersEngine(
     d_model.reset(new quantifiers::FirstOrderModel(
         this, qstate, d_qreg, "FirstOrderModel"));
   }
-  d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
-      qstate, d_model.get()));
+  d_eq_query.reset(
+      new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));
   d_util.insert(d_util.begin(), d_eq_query.get());
 }
 

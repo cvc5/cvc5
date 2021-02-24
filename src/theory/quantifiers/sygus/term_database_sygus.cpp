@@ -43,8 +43,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim)
+TermDbSygus::TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim)
     : d_qstate(qs),
       d_qim(qim),
       d_syexp(new SygusExplain(this)),

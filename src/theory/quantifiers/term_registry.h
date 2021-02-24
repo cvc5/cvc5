@@ -36,13 +36,14 @@ namespace quantifiers {
 class TermRegistry
 {
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+
  public:
   TermRegistry(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr);
   /** Presolve */
   void presolve();
-  
+
   /**
    * Add term n, which notifies all
    *
@@ -57,6 +58,7 @@ class TermRegistry
   TermDbSygus* getTermDatabaseSygus() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
+
  private:
   /** has presolve been called */
   context::CDO<bool> d_presolve;
