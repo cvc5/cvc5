@@ -175,7 +175,7 @@ bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
   {
     return true;
   }
-  else if (d_term_enum->mayComplete(tn))
+  else if (TermEnumeration::mayComplete(tn, options::fmfTypeCompletionThresh()))
   {
     return true;
   }
@@ -232,6 +232,8 @@ void QuantifiersEngine::presolve() {
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
+  // presolve with term registry, which populates the term database based on
+  // terms registered before presolve when in incremental mode
   d_treg.presolve();
 }
 

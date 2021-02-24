@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -24,11 +25,11 @@ namespace quantifiers {
 TermRegistry::TermRegistry(QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr)
-    : d_termEnum(),
+    : d_presolve(qs.getUserContext(), true),
+      d_presolveCache(qs.getUserContext()),
+      d_termEnum(),
       d_termDb(qs, qim, qr),
-      d_presolve(qs.getUserContext(), true),
-      d_presolve_cache(qs.getUserContext())
-
+      d_sygusTdb(nullptr)
 {
   if (options::sygus() || options::sygusInst())
   {
@@ -45,10 +46,10 @@ void TermRegistry::presolve()
   if (options::incrementalSolving() && !options::termDbCd())
   {
     Trace("quant-engine-proc")
-        << "Add presolve cache " << d_presolve_cache.size() << std::endl;
-    for (const Node& t : d_presolve_cache)
+        << "Add presolve cache " << d_presolveCache.size() << std::endl;
+    for (const Node& t : d_presolveCache)
     {
-      addTermToDatabase(t);
+      addTerm(t);
     }
     Trace("quant-engine-proc") << "Done add presolve cache " << std::endl;
   }
@@ -76,14 +77,14 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
   }
 }
 
-TermDb* TermRegistry::getTermDatabase() const { return &d_termDb; }
+TermDb* TermRegistry::getTermDatabase() { return &d_termDb; }
 
-TermDbSygus* TermRegistry::getTermDatabaseSygus() const
+TermDbSygus* TermRegistry::getTermDatabaseSygus()
 {
   return d_sygusTdb.get();
 }
 
-TermEnumeration* TermRegistry::getTermEnumeration() const
+TermEnumeration* TermRegistry::getTermEnumeration()
 {
   return &d_termEnum;
 }

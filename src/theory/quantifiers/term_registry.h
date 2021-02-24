@@ -53,11 +53,11 @@ class TermRegistry
   void addTerm(Node n, bool withinQuant = false);
 
   /** get term database */
-  TermDb* getTermDatabase() const;
+  TermDb* getTermDatabase();
   /** get term database sygus */
-  TermDbSygus* getTermDatabaseSygus() const;
+  TermDbSygus* getTermDatabaseSygus();
   /** get term enumeration utility */
-  TermEnumeration* getTermEnumeration() const;
+  TermEnumeration* getTermEnumeration();
 
  private:
   /** has presolve been called */
@@ -67,7 +67,7 @@ class TermRegistry
   /** term enumeration utility */
   TermEnumeration d_termEnum;
   /** term database */
-  std::unique_ptr<TermDb> d_termDb;
+  TermDb d_termDb;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
 };
