@@ -20,6 +20,7 @@
 #include <map>
 #include <unordered_set>
 
+#include "context/cdhashset.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -34,6 +35,7 @@ namespace quantifiers {
  */
 class TermRegistry
 {
+  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
  public:
   TermRegistry(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,

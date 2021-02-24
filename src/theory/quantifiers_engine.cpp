@@ -59,7 +59,7 @@ QuantifiersEngine::QuantifiersEngine(
   //---- utilities
   // quantifiers registry must come before the other utilities
   d_util.push_back(&d_qreg);
-  d_util.push_back(d_term_db.get());
+  d_util.push_back(d_treg.getTermDatabase());
 
   d_util.push_back(d_instantiate.get());
 
@@ -93,7 +93,7 @@ QuantifiersEngine::QuantifiersEngine(
         this, qstate, d_qreg, "FirstOrderModel"));
   }
   d_eq_query.reset(new quantifiers::EqualityQueryQuantifiersEngine(
-      qstate, d_term_db.get(), d_model.get()));
+      qstate, d_model.get()));
   d_util.insert(d_util.begin(), d_eq_query.get());
 }
 
@@ -234,7 +234,7 @@ void QuantifiersEngine::presolve() {
   for( unsigned i=0; i<d_modules.size(); i++ ){
     d_modules[i]->presolve();
   }
-  d_term_db->presolve();
+  d_treg.presolve();
 }
 
 void QuantifiersEngine::ppNotifyAssertions(
