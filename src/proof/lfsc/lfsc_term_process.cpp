@@ -230,9 +230,10 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
     case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
     case MULT: nullTerm = nm->mkConst(Rational(1)); break;
     case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
-    case REGEXP_CONCAT: 
+    case REGEXP_CONCAT:
       // the language containing only the empty string
-      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String(""))); break;
+      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String("")));
+      break;
     default:
       // not handled as null-terminated
       break;

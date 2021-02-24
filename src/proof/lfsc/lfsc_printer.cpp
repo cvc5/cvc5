@@ -281,7 +281,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   PExprStream pf(pargs);
   // hole
   PExpr h;
-  Trace("lfsc-print-debug2") << "Compute proof args " << r << " #children= " << cs.size() << " #args=" << as.size() << std::endl;
+  Trace("lfsc-print-debug2")
+      << "Compute proof args " << r << " #children= " << cs.size()
+      << " #args=" << as.size() << std::endl;
   switch (r)
   {
     case PfRule::REFL: pf << as[0]; break;
@@ -294,9 +296,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::RESOLUTION:
       pf << h << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1];
       break;
-    case PfRule::REORDERING:
-      pf << h << as[0] << cs[0];
-      break;
+    case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {

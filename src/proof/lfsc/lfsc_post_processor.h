@@ -65,7 +65,6 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
               PfRule ruleFinish);
   /** mkChain */
   static Node mkChain(Kind k, const std::vector<Node>& children);
-  
 };
 
 /**

@@ -109,7 +109,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // from n-ary form.
       for (uint32_t j = 0; j < i; j++)
       {
-        Node cur_r = j==0 ? curChain[1] : cur[1];
+        Node cur_r = j == 0 ? curChain[1] : cur[1];
         cdp->addStep(cur_r,
                      PfRule::LFSC_RULE,
                      {cur},
@@ -121,10 +121,9 @@ bool LfscProofPostprocessCallback::update(Node res,
       // we are taking F from (and F true), in the beginning case, we are
       // taking F from the original n-ary (and F ...).
       cdp->addStep(cur[0],
-                    PfRule::LFSC_RULE,
-                    {cur},
-                    {mkLfscRuleNode(LfscRule::CNF_AND_POS_1), cur[0]});
-      
+                   PfRule::LFSC_RULE,
+                   {cur},
+                   {mkLfscRuleNode(LfscRule::CNF_AND_POS_1), cur[0]});
     }
     break;
     default: return false; break;
@@ -132,9 +131,10 @@ bool LfscProofPostprocessCallback::update(Node res,
   return true;
 }
 
-Node LfscProofPostprocessCallback::mkChain(Kind k, const std::vector<Node>& children)
+Node LfscProofPostprocessCallback::mkChain(Kind k,
+                                           const std::vector<Node>& children)
 {
-  Assert (!children.empty());
+  Assert(!children.empty());
   NodeManager* nm = NodeManager::currentNM();
   size_t nchildren = children.size();
   size_t i = 0;
@@ -142,12 +142,12 @@ Node LfscProofPostprocessCallback::mkChain(Kind k, const std::vector<Node>& chil
   Node ret = LfscTermProcessor::getNullTerminator(k);
   if (ret.isNull())
   {
-    ret = children[nchildren-1];
+    ret = children[nchildren - 1];
     i = 1;
   }
-  while (i<nchildren)
+  while (i < nchildren)
   {
-    ret = nm->mkNode(k, children[(nchildren-1)-i], ret);
+    ret = nm->mkNode(k, children[(nchildren - 1) - i], ret);
     i++;
   }
   return ret;

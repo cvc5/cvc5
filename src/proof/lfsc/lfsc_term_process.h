@@ -40,6 +40,7 @@ class LfscTermProcessor : public TermProcessor
    * Get the null terminator for kind k
    */
   static Node getNullTerminator(Kind k);
+
  private:
   /** Get symbol for term */
   Node getSymbolInternalFor(Node n, const std::string& name, uint32_t v = 0);
