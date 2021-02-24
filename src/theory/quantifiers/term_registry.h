@@ -45,7 +45,8 @@ class TermRegistry
   void presolve();
 
   /**
-   * Add term n, which notifies all
+   * Add term n, which notifies the term database that the ground term n
+   * exists in the current context.
    *
    * @param n the term to add
    * @param withinQuant whether n occurs within a quantified formula body
