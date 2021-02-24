@@ -9,12 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of the Lean post proccessor
+ ** \brief Implementation of the Lean post processor
  **/
 
 #include "proof/lean/lean_post_processor.h"
 
-#include "../../expr/proof_node_updater.h"
 #include "expr/lazy_proof.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
@@ -122,11 +121,9 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
     default:
     {
-      // Trace("Hello") << res << "\n";
       return false;
     }
   };
-  // Trace("Hello") << res << "\n";
   return true;
 }  // namespace proof
 

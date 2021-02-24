@@ -42,10 +42,10 @@ class LeanPrinter
 
  private:
   static LeanRule getLeanRule(Node n);
-  static std::string kindToLeanString(Kind k);
-  static std::string nodeToLeanString(Node n);
-  static std::string nodeToLeanTypeStringAux(Node n);
-  static std::string nodeToLeanTypeString(Node n);
+  static void printKind(std::ostream &s, Kind k);
+  static void printLeanString(std::ostream &s, Node n);
+  static void printLeanType(std::ostream &s, Node n);
+  static void printLeanTypeToBottom(std::ostream &s, Node n);
   static void printInternal(std::ostream& out,
                             std::shared_ptr<ProofNode> pfn,
                             std::map<Node, std::string>& passumeMap);

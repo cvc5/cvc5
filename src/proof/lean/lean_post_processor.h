@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The module for proccessing proof nodes into Lean proof nodes
+ ** \brief The module for processing proof nodes into Lean proof nodes
  **/
 
 #include "cvc4_private.h"
@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace proof {
 
 /**
- * A callback class used by the Lean convereter for post-proccessing proof nodes
+ * A callback class used by the Lean convereter for post-processing proof nodes
  * by replacing internal rules by the rules in the Lean calculus.
  */
 class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
@@ -36,7 +36,7 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   LeanProofPostprocessCallback(ProofNodeManager* pnm);
   /**
-   * Initialize, called once for each new ProofNode to proccess. This
+   * Initialize, called once for each new ProofNode to process. This
    * initializes static information to be used by successive calls to update.
    */
   void initializeUpdate();
@@ -63,7 +63,7 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
 };
 
 /**
- * The proof postprocessor module. This postproccesses a proof node into one
+ * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the Lean calculus.
  */
 class LeanProofPostprocess

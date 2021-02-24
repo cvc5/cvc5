@@ -58,63 +58,67 @@ LeanRule LeanPrinter::getLeanRule(Node n)
   return LeanRule::UNKNOWN;
 }
 
-std::string LeanPrinter::kindToLeanString(Kind k)
+void LeanPrinter::printKind(std::ostream& s, Kind k)
 {
   switch (k)
   {
-    case kind::EQUAL: return "mkEq";
-    case kind::AND: return "mkAnd";
-    case kind::OR: return "mkOr";
-    case kind::NOT: return "mkNot";
-    default: return "mkOther";
+    case kind::EQUAL: s << "mkEq"; break;
+    case kind::AND: s << "mkAnd"; break;
+    case kind::OR: s << "mkOr"; break;
+    case kind::NOT: s << "mkNot"; break;
+    default: s << "mkOther";
   }
 }
 
-std::string LeanPrinter::nodeToLeanString(Node n)
+void LeanPrinter::printLeanString(std::ostream& s, Node n)
 {
   Kind k = n.getKind();
-  std::string kind_string = kindToLeanString(k);
   if (k == kind::VARIABLE)
   {
-    return n.toString();
+    s << n.toString();
   }
-  std::stringstream s;
-  s << "(" << kind_string << " ";
-  for (size_t i = 0, size = n.getNumChildren(); i < size; ++i)
+  else
   {
-    s << nodeToLeanString(n[i]);
-    if (i != size - 1)
+    s << "(";
+    printKind(s, k);
+    s << " ";
+    for (size_t i = 0, size = n.getNumChildren(); i < size; ++i)
     {
-      s << " ";
-    };
+      printLeanString(s, n[i]);
+      if (i != size - 1)
+      {
+        s << " ";
+      };
+    }
+    s << ")";
   }
-  s << ")";
-  return s.str();
 }
 
-std::string LeanPrinter::nodeToLeanTypeStringAux(Node n)
+void LeanPrinter::printLeanType(std::ostream& s, Node n)
 {
   Kind k = n.getKind();
-  std::stringstream s;
   switch (k)
   {
     case kind::VARIABLE: s << n.toString(); break;
     case kind::AND:
     {
-      s << nodeToLeanTypeStringAux(n[0]) << " -> "
-        << nodeToLeanTypeStringAux(n[1]);
+      printLeanType(s, n[0]);
+      s << " -> ";
+      printLeanType(s, n[1]);
       break;
     }
-    default: s << "holds [" << nodeToLeanString(n) << "]"; break;
+    default:
+      s << "holds [";
+      printLeanString(s, n);
+      s << "]";
+      break;
   }
-  return s.str();
 }
 
-std::string LeanPrinter::nodeToLeanTypeString(Node n)
+void LeanPrinter::printLeanTypeToBottom(std::ostream& s, Node n)
 {
-  std::stringstream s;
-  s << nodeToLeanTypeStringAux(n[0]) << " -> holds []";
-  return s.str();
+  printLeanType(s, n[0]);
+  s << " -> holds []";
 }
 
 void LeanPrinter::printInternal(std::ostream& out,
@@ -125,7 +129,7 @@ void LeanPrinter::printInternal(std::ostream& out,
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
   for (const std::shared_ptr<ProofNode>& ch : children)
   {
-    LeanPrinter::printInternal(out, ch, passumeMap);
+    printInternal(out, ch, passumeMap);
   }
   LeanRule id = getLeanRule(args[0]);
   switch (id)
@@ -141,8 +145,9 @@ void LeanPrinter::printInternal(std::ostream& out,
       std::stringstream var_string;
       var_string << "v" << var_index;
       passumeMap[args[1]] = var_string.str();
-      out << "(assume (" << var_string.str() << " : holds ["
-          << nodeToLeanString(args[1]) << "]),\n";
+      out << "(assume (" << var_string.str() << " : holds [";
+      printLeanString(out, args[1]);
+      out << "]),\n";
       break;
     };
     case LeanRule::SCOPE:
@@ -157,29 +162,28 @@ void LeanPrinter::printInternal(std::ostream& out,
     {
       out << "R0 " << passumeMap[args[2]] << " ";
       out << passumeMap[children[0]->getArguments()[1]] << " ";
-      out << nodeToLeanString(children[1]->getArguments()[1]);
+      printLeanString(out, children[1]->getArguments()[1]);
       break;
     }
     case LeanRule::R1:
     {
       out << "R1 " << passumeMap[args[2]] << " ";
       out << passumeMap[children[0]->getArguments()[1]] << " ";
-      out << nodeToLeanString(children[1]->getArguments()[1]);
+      printLeanString(out, children[1]->getArguments()[1]);
       break;
     }
-    //    case LeanRule::SMTREFL:
-    //      {
-    //        out << "@smtrefl " << nodeToLeanString(args[0]) << " ";
-    //        break;
-    //      }
-  case LeanRule::SMTSYMM:
+    case LeanRule::SMTSYMM:
     {
-      out << "@smtsymm" << nodeToLeanString(args[0]) << " ";
+      out << "@smtsymm";
+      printLeanString(out, args[0]);
+      out << " ";
       break;
     }
-  case LeanRule::SMTSYMM_NEG:
+    case LeanRule::SMTSYMM_NEG:
     {
-      out << "@smtsymm_neg" << nodeToLeanString(args[0]) << " ";
+      out << "@smtsymm_neg";
+      printLeanString(out, args[0]);
+      out << " ";
       break;
     }
 
@@ -225,9 +229,10 @@ void LeanPrinter::print(std::ostream& out,
     out << "def " << s << " := const " << sym_count << " " << st << std::endl;
     sym_count += 1;
   }
-  out << "noncomputable theorem th0 : " << nodeToLeanTypeString(args[1])
-      << " := \n";
-  LeanPrinter::printInternal(out, pfn, passumeMap);
+  out << "noncomputable theorem th0 : ";
+  printLeanTypeToBottom(out, args[1]);
+  out << " := \n";
+  printInternal(out, pfn, passumeMap);
   out << "\n";
 }
 
