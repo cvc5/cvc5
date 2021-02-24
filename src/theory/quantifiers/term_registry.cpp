@@ -15,8 +15,8 @@
 #include "theory/quantifiers/term_registry.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "options/smt_options.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -79,15 +79,9 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
 
 TermDb* TermRegistry::getTermDatabase() { return &d_termDb; }
 
-TermDbSygus* TermRegistry::getTermDatabaseSygus()
-{
-  return d_sygusTdb.get();
-}
+TermDbSygus* TermRegistry::getTermDatabaseSygus() { return d_sygusTdb.get(); }
 
-TermEnumeration* TermRegistry::getTermEnumeration()
-{
-  return &d_termEnum;
-}
+TermEnumeration* TermRegistry::getTermEnumeration() { return &d_termEnum; }
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
