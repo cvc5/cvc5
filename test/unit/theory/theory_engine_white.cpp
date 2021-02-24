@@ -48,25 +48,6 @@ using namespace theory::bv;
 
 namespace test {
 
-/** Expected rewrite calls can be PRE- or POST-rewrites */
-enum RewriteType
-{
-  PRE,
-  POST
-};
-
-/**
- * Stores an "expected" rewrite call.  The main test class will set up a
- * sequence of these RewriteItems, then do a rewrite, ensuring that the actual
- * call sequence matches the sequence of expected RewriteItems.
- */
-struct RewriteItem
-{
-  RewriteType d_type;
-  Node d_node;
-  bool d_topLevel;
-};
-
 class FakeTheoryRewriter : public TheoryRewriter
 {
  public:
