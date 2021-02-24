@@ -355,7 +355,8 @@ bool getFreeVariablesScope(TNode n,
     if (itv == visited.end())
     {
       visited.insert(cur);
-      if (cur.getKind() == kind::BOUND_VARIABLE)
+      Kind k = cur.getKind();
+      if (k == kind::BOUND_VARIABLE)
       {
         if (scope.find(cur) == scope.end())
         {
@@ -369,7 +370,12 @@ bool getFreeVariablesScope(TNode n,
           }
         }
       }
-      else if (cur.isClosure())
+      // witness terms do not have free variables, so it's spurious to consider
+      // them. Moreover, they main contain shadowing declarations, since they
+      // replace skolem terms *without* the use of a non-capture-avoiding
+      // substitution, which is not an issue for solving (since we don't solved
+      // based on witness forms) but it's an issue for the assertion below
+      else if (cur.isClosure() && k != kind::WITNESS)
       {
         // add to scope
         for (const TNode& cn : cur[0])
