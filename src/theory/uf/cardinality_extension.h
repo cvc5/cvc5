@@ -25,9 +25,6 @@
 #include "theory/decision_manager.h"
 
 namespace CVC4 {
-
-class SortInference;
-
 namespace theory {
 namespace uf {
 
@@ -366,8 +363,6 @@ class CardinalityExtension
   ~CardinalityExtension();
   /** get theory */
   TheoryUF* getTheory() { return d_th; }
-  /** get sort inference module */
-  SortInference* getSortInference();
   /** new node */
   void newEqClass( Node n );
   /** merge */

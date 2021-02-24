@@ -47,7 +47,7 @@ class TheoryEngineModelBuilder
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
  public:
-  TheoryEngineModelBuilder(TheoryEngine* te);
+  TheoryEngineModelBuilder();
   virtual ~TheoryEngineModelBuilder() {}
   /**
    * Should be called only on models m after they have been prepared
@@ -84,8 +84,6 @@ class TheoryEngineModelBuilder
   void postProcessModel(bool incomplete, TheoryModel* m);
 
  protected:
-  /** pointer to theory engine */
-  TheoryEngine* d_te;
 
   //-----------------------------------virtual functions
   /** pre-process build model
