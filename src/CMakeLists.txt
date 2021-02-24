@@ -150,6 +150,8 @@ libcvc4_add_sources(
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
+  proof/print_expr.cpp
+  proof/print_expr.h
   proof/proof_letify.cpp
   proof/proof_letify.h
   proof/proof_manager.cpp

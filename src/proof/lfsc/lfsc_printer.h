@@ -24,6 +24,7 @@
 #include "expr/proof_node.h"
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_term_process.h"
+#include "proof/print_expr.h"
 
 namespace CVC4 {
 namespace proof {
@@ -125,46 +126,6 @@ class LfscPrinter
   void printInternal(std::ostream& out, TypeNode n);
 
   //------------------------------ printing proofs
-  /** A term or a proof */
-  class PExpr
-  {
-   public:
-    PExpr() : d_node(), d_pnode(nullptr) {}
-    PExpr(Node n) : d_node(n), d_pnode(nullptr) {}
-    PExpr(const ProofNode* pn) : d_node(), d_pnode(pn) {}
-    ~PExpr() {}
-    /** The node */
-    Node d_node;
-    /** The proof node */
-    const ProofNode* d_pnode;
-  };
-  class PExprStream
-  {
-   public:
-    PExprStream(std::vector<PExpr>& stream) : d_stream(stream) {}
-    /** Append a proof node */
-    PExprStream& operator<<(const ProofNode* pn)
-    {
-      d_stream.push_back(PExpr(pn));
-      return *this;
-    }
-    /** Append a node */
-    PExprStream& operator<<(Node n)
-    {
-      d_stream.push_back(PExpr(n));
-      return *this;
-    }
-    /** Append a pexpr */
-    PExprStream& operator<<(PExpr p)
-    {
-      d_stream.push_back(p);
-      return *this;
-    }
-
-   private:
-    /** Reference to the stream */
-    std::vector<PExpr>& d_stream;
-  };
   /**
    * Print proof internal, after term lets and proofs for assumptions have
    * been computed.

@@ -46,6 +46,7 @@ void LfscPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
                         const ProofNode* pn)
 {
+  Trace("lfsc-print-debug") << "; ORIGINAL PROOF: " << *pn << std::endl;
   // closing parentheses
   std::stringstream cparen;
 
@@ -209,6 +210,8 @@ void LfscPrinter::printProofInternal(
           }
           printProofId(out, pletIt->second);
         }
+//        else if (cur->getRule() == PfRule::SCOPE)
+// introduce a?
         else if (cur->getRule() == PfRule::ASSUME)
         {
           // an assumption, must have a name
@@ -290,6 +293,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
+    case PfRule::RESOLUTION: pf << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {

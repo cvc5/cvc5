@@ -51,6 +51,11 @@ void ProofLetify::computeProofCounts(
     if (it == pcount.end())
     {
       pcount[cur] = 0;
+      // do not letify under scope?
+      if (cur->getRule()==PfRule::SCOPE)
+      {
+        continue;
+      }
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
