@@ -123,9 +123,39 @@ Node LfscTermProcessor::runConvert(Node n)
     std::reverse(children.begin(), children.end());
     if (n.getKind() != DISTINCT)
     {
+      Node nullTerm;
+      // Add the null-terminator. This is done to disambiguate the number
+      // of children for term with n-ary operators. In particular note that
+      // (or A B C (or D E)) has representation:
+      //   (or A (or B (or C (or (or D E) false))))
+      // This makes the AST above distinguishable from (or A B C D E),
+      // which otherwise would both have representation:
+      //   (or A (or B (or C (or D E))))
+      switch (k)
+      {
+        case OR: nullTerm = nm->mkConst(false);break;
+        case AND: nullTerm = nm->mkConst(true);break;
+        case PLUS: nullTerm = nm->mkConst(Rational(0));break;
+        case MULT: nullTerm = nm->mkConst(Rational(1));break;
+        case STRING_CONCAT: nullTerm = nm->mkConst(String(""));break;
+        case REGEXP_CONCAT: nullTerm = nm->mkConst(String(""));break;
+        default:
+          // not handled as null-terminated
+          break;
+      }
       // Most operators simply get binarized
-      Node ret = children[0];
-      for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+      Node ret;
+      size_t i =0;
+      if (nullTerm.isNull())
+      {
+        ret = children[0];
+        i = 1;
+      }
+      else
+      {
+        ret = runConvert(nullTerm);
+      }
+      for (size_t nchild = n.getNumChildren(); i < nchild; i++)
       {
         ret = nm->mkNode(k, children[i], ret);
       }
