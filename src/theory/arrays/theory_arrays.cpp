@@ -939,8 +939,7 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
 #ifdef NDEBUG
       CVC4_FALLTHROUGH;
 #endif
-    case EQUALITY_FALSE:
-      CVC4_FALLTHROUGH;
+    case EQUALITY_FALSE: CVC4_FALLTHROUGH;
     case EQUALITY_FALSE_IN_MODEL:
       // This is unlikely, but I think it could happen
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair called when false in model" << std::endl;

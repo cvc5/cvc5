@@ -458,7 +458,6 @@ Node lower_bound_as_node(const Node& var,
   Assert(sl != 0 && su != 0 && sl != su);
 #endif
 
-
   // open:  var <= l  or  (var < u  and  sgn(poly(var)) == sl)
   // !open: var <= l  or  (var < u  and  sgn(poly(var)) == sl/0)
   Kind relation;
