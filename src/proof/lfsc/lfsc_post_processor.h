@@ -57,6 +57,15 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofChecker* d_pc;
   /** The term processor */
   LfscTermProcessor d_tproc;
+  /** update n-ary */
+  bool update(size_t i,
+              const std::vector<Node>& children,
+              CDProof* cdp,
+              PfRule ruleNext,
+              PfRule ruleFinish);
+  /** mkChain */
+  static Node mkChain(Kind k, const std::vector<Node>& children);
+  
 };
 
 /**

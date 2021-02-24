@@ -105,7 +105,7 @@ void LfscPrinter::print(std::ostream& out,
     out << ")" << std::endl;
     cparen << ")";
     // remember the assumption name
-    passumeMap[ia] = i;
+    passumeMap[assertions[i]] = i;
   }
 
   // [4] print the annotation
@@ -204,10 +204,7 @@ void LfscPrinter::printProofInternal(
         if (pletIt != pletMap.end())
         {
           // a letified proof
-          if (visit.empty())
-          {
-            out << " ";
-          }
+          out << " ";
           printProofId(out, pletIt->second);
         }
         //        else if (cur->getRule() == PfRule::SCOPE)
@@ -217,10 +214,7 @@ void LfscPrinter::printProofInternal(
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
-          if (visit.empty())
-          {
-            out << " ";
-          }
+          out << " ";
           printAssumeId(out, passumeIt->second);
         }
         else
@@ -270,6 +264,7 @@ void LfscPrinter::printProofInternal(
       out << " _ ";
     }
   } while (!visit.empty());
+  out << std::endl;
 }
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
@@ -283,10 +278,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   }
   PfRule r = pn->getRule();
   const std::vector<Node>& as = pn->getArguments();
-  LfscRule lr = getLfscRule(as[0]);
   PExprStream pf(pargs);
   // hole
   PExpr h;
+  Trace("lfsc-print-debug2") << "Compute proof args " << r << " #children= " << cs.size() << " #args=" << as.size() << std::endl;
   switch (r)
   {
     case PfRule::REFL: pf << as[0]; break;
@@ -295,12 +290,17 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
+    case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::RESOLUTION:
       pf << h << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1];
+      break;
+    case PfRule::REORDERING:
+      pf << h << as[0] << cs[0];
       break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
+      LfscRule lr = getLfscRule(as[0]);
       switch (lr)
       {
         case LfscRule::SYMM: pf << h << cs[0]; break;

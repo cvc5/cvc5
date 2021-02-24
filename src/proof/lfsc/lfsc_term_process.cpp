@@ -123,7 +123,6 @@ Node LfscTermProcessor::runConvert(Node n)
     std::reverse(children.begin(), children.end());
     if (n.getKind() != DISTINCT)
     {
-      Node nullTerm;
       // Add the null-terminator. This is done to disambiguate the number
       // of children for term with n-ary operators. In particular note that
       // (or A B C (or D E)) has representation:
@@ -131,18 +130,7 @@ Node LfscTermProcessor::runConvert(Node n)
       // This makes the AST above distinguishable from (or A B C D E),
       // which otherwise would both have representation:
       //   (or A (or B (or C (or D E))))
-      switch (k)
-      {
-        case OR: nullTerm = nm->mkConst(false); break;
-        case AND: nullTerm = nm->mkConst(true); break;
-        case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
-        case MULT: nullTerm = nm->mkConst(Rational(1)); break;
-        case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
-        case REGEXP_CONCAT: nullTerm = nm->mkConst(String("")); break;
-        default:
-          // not handled as null-terminated
-          break;
-      }
+      Node nullTerm = getNullTerminator(k);
       // Most operators simply get binarized
       Node ret;
       size_t i = 0;
@@ -153,7 +141,8 @@ Node LfscTermProcessor::runConvert(Node n)
       }
       else
       {
-        ret = runConvert(nullTerm);
+        // must convert recursively, since nullTerm may have subterms.
+        ret = convert(nullTerm);
       }
       for (size_t nchild = n.getNumChildren(); i < nchild; i++)
       {
@@ -228,6 +217,27 @@ Node LfscTermProcessor::getSymbolInternal(Kind k,
   Node sym = NodeManager::currentNM()->mkBoundVar(name, tn);
   d_symbols[key] = sym;
   return sym;
+}
+
+Node LfscTermProcessor::getNullTerminator(Kind k)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node nullTerm;
+  switch (k)
+  {
+    case OR: nullTerm = nm->mkConst(false); break;
+    case AND: nullTerm = nm->mkConst(true); break;
+    case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
+    case MULT: nullTerm = nm->mkConst(Rational(1)); break;
+    case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
+    case REGEXP_CONCAT: 
+      // the language containing only the empty string
+      nullTerm = nm->mkNode(STRING_TO_REGEXP, nm->mkConst(String(""))); break;
+    default:
+      // not handled as null-terminated
+      break;
+  }
+  return nullTerm;
 }
 
 }  // namespace proof

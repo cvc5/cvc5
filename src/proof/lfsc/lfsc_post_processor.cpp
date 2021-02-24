@@ -84,11 +84,13 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::TRANS:
     {
       // nested
+      return false;
     }
     break;
     case PfRule::CONG:
     {
       // nested
+      return false;
     }
     break;
     case PfRule::AND_ELIM:
@@ -96,33 +98,59 @@ bool LfscProofPostprocessCallback::update(Node res,
       uint32_t i;
       bool b = ProofRuleChecker::getUInt32(args[0], i);
       Assert(b);
-      //      Node cur = ics[0];
+      // we start with the n-ary AND
       Node cur = children[0];
+      std::vector<Node> cchildren(cur.begin(), cur.end());
+      // get its chain form
+      Node curChain = mkChain(kind::AND, cchildren);
+      // currently there is assymmetry on how the first step below is handled,
+      // where from n-ary AND we conclude a chained AND. This could be made
+      // symmetric by an explicit, internal-only rule to conclude chained form
+      // from n-ary form.
       for (uint32_t j = 0; j < i; j++)
       {
-        // Assert(cur.getKind() == kind::AND);
-        // Assert(cur.getNumChildren() == 2);
-        //        Node cur_r = cur[1];
-        std::vector<Node> r_children(cur.begin() + 1, cur.end());
-        Node cur_r = nm->mkAnd(r_children);
+        Node cur_r = j==0 ? curChain[1] : cur[1];
         cdp->addStep(cur_r,
                      PfRule::LFSC_RULE,
                      {cur},
                      {mkLfscRuleNode(LfscRule::CNF_AND_POS_2), cur_r});
         cur = cur_r;
       }
-      if (i != children[0].getNumChildren() - 1)
-      {
-        cdp->addStep(cur[0],
-                     PfRule::LFSC_RULE,
-                     {cur},
-                     {mkLfscRuleNode(LfscRule::CNF_AND_POS_1), cur[0]});
-      }
+      // We always get the left child, even if we are at the end
+      // (i=cchildren.size()-1) or at the beginning (i=0). For the end case,
+      // we are taking F from (and F true), in the beginning case, we are
+      // taking F from the original n-ary (and F ...).
+      cdp->addStep(cur[0],
+                    PfRule::LFSC_RULE,
+                    {cur},
+                    {mkLfscRuleNode(LfscRule::CNF_AND_POS_1), cur[0]});
+      
     }
     break;
     default: return false; break;
   }
   return true;
+}
+
+Node LfscProofPostprocessCallback::mkChain(Kind k, const std::vector<Node>& children)
+{
+  Assert (!children.empty());
+  NodeManager* nm = NodeManager::currentNM();
+  size_t nchildren = children.size();
+  size_t i = 0;
+  // do we have a null terminator? If so, we start with it.
+  Node ret = LfscTermProcessor::getNullTerminator(k);
+  if (ret.isNull())
+  {
+    ret = children[nchildren-1];
+    i = 1;
+  }
+  while (i<nchildren)
+  {
+    ret = nm->mkNode(k, children[(nchildren-1)-i], ret);
+    i++;
+  }
+  return ret;
 }
 
 void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)

@@ -36,7 +36,10 @@ class LfscTermProcessor : public TermProcessor
   Node runConvert(Node n) override;
   /** convert to internal */
   TypeNode runConvertType(TypeNode tn) override;
-
+  /**
+   * Get the null terminator for kind k
+   */
+  static Node getNullTerminator(Kind k);
  private:
   /** Get symbol for term */
   Node getSymbolInternalFor(Node n, const std::string& name, uint32_t v = 0);
