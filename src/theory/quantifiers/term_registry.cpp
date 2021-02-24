@@ -27,20 +27,20 @@ TermRegistry::TermRegistry(QuantifiersState& qs,
                            QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
       d_presolveCache(qs.getUserContext()),
-      d_termEnum(),
-      d_termDb(qs, qim, qr),
+      d_termEnum(new TermEnumeration),
+      d_termDb(new TermDatabase(qs, qim, qr)),
       d_sygusTdb(nullptr)
 {
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new quantifiers::TermDbSygus(qs, qim));
+    d_sygusTdb.reset(new TermDbSygus(qs, qim));
   }
 }
 
 void TermRegistry::presolve()
 {
-  d_termDb.presolve();
+  d_termDb->presolve();
   d_presolve = false;
   // add all terms to database
   if (options::incrementalSolving() && !options::termDbCd())
@@ -69,7 +69,7 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
   // only wait if we are doing incremental solving
   if (!d_presolve || !options::incrementalSolving() || options::termDbCd())
   {
-    d_termDb.addTerm(n);
+    d_termDb->addTerm(n);
     if (d_sygusTdb.get() && options::sygusEvalUnfold())
     {
       d_sygusTdb->getEvalUnfold()->registerEvalTerm(n);
@@ -77,11 +77,11 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
   }
 }
 
-TermDb* TermRegistry::getTermDatabase() { return &d_termDb; }
+TermDb* TermRegistry::getTermDatabase() { return d_termDb.get(); }
 
 TermDbSygus* TermRegistry::getTermDatabaseSygus() { return d_sygusTdb.get(); }
 
-TermEnumeration* TermRegistry::getTermEnumeration() { return &d_termEnum; }
+TermEnumeration* TermRegistry::getTermEnumeration() { return d_termEnum.get(); }
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

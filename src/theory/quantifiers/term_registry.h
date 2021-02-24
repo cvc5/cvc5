@@ -65,9 +65,9 @@ class TermRegistry
   /** the set of terms we have seen before presolve */
   NodeSet d_presolveCache;
   /** term enumeration utility */
-  TermEnumeration d_termEnum;
+  std::unique_ptr<TermEnumeration> d_termEnum;
   /** term database */
-  TermDb d_termDb;
+  std::unique_ptr<TermDb> d_termDb;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
 };
