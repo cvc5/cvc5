@@ -217,60 +217,6 @@ void ill_handler(int sig, siginfo_t* info, void*)
 
 static terminate_handler default_terminator;
 
-void cvc4unexpected()
-{
-#if defined(CVC4_DEBUG) && !defined(__WIN32__)
-  safe_print(STDERR_FILENO,
-             "\n"
-             "CVC4 threw an \"unexpected\" exception (one that wasn't properly "
-             "specified\nin the throws() specifier for the throwing function)."
-             "\n\n");
-
-  const char* lastContents = LastExceptionBuffer::currentContents();
-
-  if (lastContents == NULL)
-  {
-    safe_print(
-        STDERR_FILENO,
-        "The exception is unknown (maybe it's not a CVC4::Exception).\n\n");
-  }
-  else
-  {
-    safe_print(STDERR_FILENO, "The exception is:\n");
-    safe_print(STDERR_FILENO, lastContents);
-    safe_print(STDERR_FILENO, "\n\n");
-  }
-  if (!segvSpin)
-  {
-    print_statistics();
-    set_terminate(default_terminator);
-  }
-  else
-  {
-    safe_print(STDERR_FILENO,
-               "Spinning so that a debugger can be connected.\n");
-    safe_print(STDERR_FILENO, "Try:  gdb ");
-    safe_print(STDERR_FILENO, *progName);
-    safe_print(STDERR_FILENO, " ");
-    safe_print<int64_t>(STDERR_FILENO, getpid());
-    safe_print(STDERR_FILENO, "\n");
-    safe_print(STDERR_FILENO, " or:  gdb --pid=");
-    safe_print<int64_t>(STDERR_FILENO, getpid());
-    safe_print(STDERR_FILENO, " ");
-    safe_print(STDERR_FILENO, *progName);
-    safe_print(STDERR_FILENO, "\n");
-    for (;;)
-    {
-      sleep(60);
-    }
-  }
-#else  /* CVC4_DEBUG */
-  safe_print(STDERR_FILENO, "CVC4 threw an \"unexpected\" exception.\n");
-  print_statistics();
-  set_terminate(default_terminator);
-#endif /* CVC4_DEBUG */
-}
-
 void cvc4terminate()
 {
   set_terminate(default_terminator);
@@ -385,7 +331,6 @@ void install()
 
 #endif /* __WIN32__ */
 
-  std::set_unexpected(cvc4unexpected);
   default_terminator = set_terminate(cvc4terminate);
 }
 

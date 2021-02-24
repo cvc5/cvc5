@@ -25,6 +25,7 @@
 #include "expr/type_node.h"
 
 namespace CVC4 {
+namespace theory {
 
 /** sort inference
  *
@@ -165,6 +166,7 @@ private:
  bool isHandledApplyUf(Kind k) const;
 };
 
+}  // namespace theory
 }
 
 #endif
