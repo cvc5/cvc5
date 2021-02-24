@@ -29,7 +29,7 @@ namespace proof {
 /** A term or a proof */
 class PExpr
 {
-  public:
+ public:
   PExpr() : d_node(), d_pnode(nullptr) {}
   PExpr(Node n) : d_node(n), d_pnode(nullptr) {}
   PExpr(const ProofNode* pn) : d_node(), d_pnode(pn) {}
@@ -42,7 +42,7 @@ class PExpr
 
 class PExprStream
 {
-  public:
+ public:
   PExprStream(std::vector<PExpr>& stream);
   /** Append a proof node */
   PExprStream& operator<<(const ProofNode* pn);
@@ -52,6 +52,7 @@ class PExprStream
   PExprStream& operator<<(bool b);
   /** Append a pexpr */
   PExprStream& operator<<(PExpr p);
+
  private:
   /** Builtin nodes */
   Node d_tt;
@@ -59,7 +60,6 @@ class PExprStream
   /** Reference to the stream */
   std::vector<PExpr>& d_stream;
 };
-
 
 }  // namespace proof
 }  // namespace CVC4

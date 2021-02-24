@@ -52,7 +52,7 @@ void ProofLetify::computeProofCounts(
     {
       pcount[cur] = 0;
       // do not letify under scope?
-      if (cur->getRule()==PfRule::SCOPE)
+      if (cur->getRule() == PfRule::SCOPE)
       {
         continue;
       }
