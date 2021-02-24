@@ -84,7 +84,7 @@ Node LfscTermProcessor::runConvert(Node n)
     std::reverse(v.begin(), v.end());
     std::vector<unsigned> tmp;
     tmp.push_back(v[0]);
-    Node ret = nm->mkConst(String(tmp));
+    Node ret = runConvert(nm->mkConst(String(tmp)));
     tmp.pop_back();
     for (unsigned i = 1, size = v.size(); i < size; i++)
     {
