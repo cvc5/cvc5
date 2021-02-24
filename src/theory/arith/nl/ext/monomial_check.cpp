@@ -599,12 +599,11 @@ bool MonomialCheck::compareMonomial(
   return false;
 }
 
-bool MonomialCheck::cmp_holds(
-    Node x,
-    Node y,
-    const std::map<Node, std::map<Node, Node> >& cmp_infers,
-    std::vector<Node>& exp,
-    std::map<Node, bool>& visited)
+bool MonomialCheck::cmp_holds(Node x,
+                              Node y,
+                              std::map<Node, std::map<Node, Node> >& cmp_infers,
+                              std::vector<Node>& exp,
+                              std::map<Node, bool>& visited)
 {
   if (x == y)
   {
@@ -615,10 +614,10 @@ bool MonomialCheck::cmp_holds(
     return false;
   }
   visited[x] = true;
-  std::map<Node, std::map<Node, Node> >::const_iterator it = cmp_infers.find(x);
+  std::map<Node, std::map<Node, Node> >::iterator it = cmp_infers.find(x);
   if (it != cmp_infers.end())
   {
-    for (std::map<Node, Node>::const_iterator itc = it->second.begin();
+    for (std::map<Node, Node>::iterator itc = it->second.begin();
          itc != it->second.end();
          ++itc)
     {
