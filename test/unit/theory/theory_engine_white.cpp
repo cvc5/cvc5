@@ -107,15 +107,14 @@ class FakeTheory : public Theory
   FakeTheoryRewriter d_rewriter;
 };
 
-class TestTheoryWhiteEngine : public TestSmtNoFinishInit
+class TestTheoryWhiteEngine : public TestSmt
 {
  protected:
   void SetUp() override
   {
-    TestSmtNoFinishInit::SetUp();
+    TestSmt::SetUp();
     d_context = d_smtEngine->getContext();
     d_user_context = d_smtEngine->getUserContext();
-    d_smtEngine->finishInit();
 
     d_theoryEngine = d_smtEngine->getTheoryEngine();
     for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id)
