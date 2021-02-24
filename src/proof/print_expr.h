@@ -43,11 +43,7 @@ class PExpr
 class PExprStream
 {
   public:
-  PExprStream(std::vector<PExpr>& stream) : d_stream(stream) {
-    NodeManager * nm = NodeManager::currentNM();
-    d_tt = nm->mkBoundVar("tt", nm->booleanType());
-    d_ff = nm->mkBoundVar("ff", nm->booleanType());
-  }
+  PExprStream(std::vector<PExpr>& stream);
   /** Append a proof node */
   PExprStream& operator<<(const ProofNode* pn);
   /** Append a node */

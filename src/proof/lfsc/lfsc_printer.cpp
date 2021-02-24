@@ -260,7 +260,9 @@ void LfscPrinter::printProofInternal(
     else if (!curn.isNull())
     {
       out << " ";
-      printInternal(out, curn, lbind);
+      // must convert to internal
+      Node curni = d_tproc.convert(curn);
+      printInternal(out, curni, lbind);
     }
     // case 3: a hole
     else
@@ -293,7 +295,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
-    case PfRule::RESOLUTION: pf << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1]; break;
+    case PfRule::RESOLUTION: pf << h << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {

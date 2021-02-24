@@ -12,7 +12,7 @@
  ** \brief Proof print expression utility
  **/
 
-#include "proof/proof_print_expr.h"
+#include "proof/print_expr.h"
 
 namespace CVC4 {
 namespace proof {
@@ -51,5 +51,3 @@ PExprStream& PExprStream::operator<<(PExpr p)
 
 }  // namespace proof
 }  // namespace CVC4
-
-#endif
