@@ -355,6 +355,7 @@ void SatProofManager::explainLit(
 #ifdef CVC4_ASSERTIONS
   // pedantically check that the negation of the literal to explain *does not*
   // occur in the reason, otherwise we will loop forever
+#ifdef CVC4_ASSERTIONS
   for (unsigned i = 0; i < size; ++i)
   {
     AlwaysAssert(~MinisatSatSolver::toSatLiteral(reason[i]) != lit)
