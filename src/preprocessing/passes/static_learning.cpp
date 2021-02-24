@@ -18,6 +18,7 @@
 #include <string>
 
 #include "expr/node.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -43,7 +44,8 @@ PreprocessingPassResult StaticLearning::applyInternal(
     }
     else
     {
-      assertionsToPreprocess->replace(i, learned);
+      assertionsToPreprocess->replace(
+          i, theory::Rewriter::rewrite(learned.constructNode()));
     }
   }
   return PreprocessingPassResult::NO_CONFLICT;
