@@ -214,6 +214,7 @@ void LeanPrinter::printSorts(std::ostream& out,
                              const std::vector<Node>& assertions,
                              std::shared_ptr<ProofNode> pfn)
 {
+  // Print user defined sorts and constants of those sorts
   std::unordered_set<Node, NodeHashFunction> syms;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<Node> iasserts;

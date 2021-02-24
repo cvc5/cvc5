@@ -28,7 +28,20 @@ namespace CVC4 {
 
 namespace proof {
 
+/**
+ * Converts a lean rule to a string.
+ * @param id The lfsc rule
+ * @return The name of the lfsc rule
+ */
 const char* toString(LeanRule id);
+
+/**
+ * Writes a lean rule name to a stream.
+ *
+ * @param out The stream to write to
+ * @param id The lean rule to write to the stream
+ * @return The stream
+ */
 std::ostream& operator<<(std::ostream& out, LeanRule id);
 
 class LeanPrinter
@@ -36,6 +49,10 @@ class LeanPrinter
  public:
   LeanPrinter();
   ~LeanPrinter() {}
+
+  /**
+   * Print the full proof of assertions => false by pfn.
+   */
   static void print(std::ostream& out,
                     const std::vector<Node>& assertions,
                     std::shared_ptr<ProofNode> pfn);
@@ -44,11 +61,23 @@ class LeanPrinter
   static LeanRule getLeanRule(Node n);
   static void printKind(std::ostream& s, Kind k);
   static void printLeanString(std::ostream& s, Node n);
+  /**
+   * Convert from node to lean type syntax
+   */
   static void printLeanType(std::ostream& s, Node n);
+  /**
+   * Print Lean type corresponding to proof of unsatisfiability
+   */
   static void printLeanTypeToBottom(std::ostream& s, Node n);
+  /**
+   * Print user defined sorts and constants of those sorts
+   */
   static void printSorts(std::ostream& out,
                          const std::vector<Node>& assertions,
                          std::shared_ptr<ProofNode> pfn);
+  /**
+   * Print rule specific lean syntax, traversing children before parents in ProofNode tree.
+   */
   static void printProof(std::ostream& out,
                          std::shared_ptr<ProofNode> pfn,
                          std::map<Node, std::string>& passumeMap);
