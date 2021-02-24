@@ -26,7 +26,7 @@ namespace proof {
 
 LeanProofPostprocessCallback::LeanProofPostprocessCallback(
     ProofNodeManager* pnm)
-  : d_pnm(pnm), d_nm(NodeManager::currentNM()), d_pc(pnm->getChecker())
+    : d_pnm(pnm), d_nm(NodeManager::currentNM()), d_pc(pnm->getChecker())
 {
 }
 
@@ -38,7 +38,7 @@ LeanProofPostprocess::LeanProofPostprocess(ProofNodeManager* pnm)
 bool LeanProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 bool& continueUpdate)
 {
-  return (pn->getRule() != PfRule::LEAN_RULE);
+  return pn->getRule() != PfRule::LEAN_RULE;
 };
 
 bool LeanProofPostprocessCallback::addLeanStep(
@@ -48,8 +48,8 @@ bool LeanProofPostprocessCallback::addLeanStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  Node lean_id = d_nm->mkConst<Rational>(static_cast<unsigned>(rule));
-  std::vector<Node> lean_args = {lean_id, res};
+  Node leanId = d_nm->mkConst<Rational>(static_cast<unsigned>(rule));
+  std::vector<Node> lean_args = {leanId, res};
   lean_args.insert(lean_args.end(), args.begin(), args.end());
   return cdp.addStep(res, PfRule::LEAN_RULE, children, lean_args);
 }
@@ -79,14 +79,11 @@ bool LeanProofPostprocessCallback::update(Node res,
         std::vector<Node> newArgs{args[(i - 1) * 2], args[(i - 1) * 2 + 1]};
         cur = d_pc->checkDebug(
             PfRule::RESOLUTION, newChildren, newArgs, Node(), "");
-        if (newArgs[0].getConst<bool>())
-        {
-          addLeanStep(cur, LeanRule::R1, newChildren, {newArgs[1]}, *cdp);
-        }
-        else
-        {
-          addLeanStep(cur, LeanRule::R0, newChildren, {newArgs[1]}, *cdp);
-        }
+        addLeanStep(cur,
+                    newArgs[0].getConst<bool>() ? LeanRule::R1 : LeanRule::R0,
+                    newChildren,
+                    {newArgs[1]},
+                    *cdp);
       }
       break;
     }
@@ -94,12 +91,6 @@ bool LeanProofPostprocessCallback::update(Node res,
     {
       return addLeanStep(res, LeanRule::SMTREFL, children, {}, *cdp);
     }
-    case PfRule::MACRO_RESOLUTION:
-    {
-      return addLeanStep(res, LeanRule::TRUST, children, {}, *cdp);
-    }
-
-    /*
     case PfRule::SYMM:
     {
       Node child = children[0];
@@ -107,81 +98,28 @@ bool LeanProofPostprocessCallback::update(Node res,
       Node new_id, t1, t2, c1, c2, new_res;
       if (k == kind::EQUAL)
       {
-        new_id = nm->mkConst<Rational>(
+        new_id = d_nm->mkConst<Rational>(
             static_cast<unsigned>(proof::LeanRule::SMTSYMM));
         t1 = child[0];
         t2 = child[1];
-        c1 = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, t1, t2));
-        c2 = nm->mkNode(kind::EQUAL, t2, t1);
-        new_res = nm->mkNode(c1, c2);
+        c1 = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, t1, t2));
+        c2 = d_nm->mkNode(kind::EQUAL, t2, t1);
+        new_res = d_nm->mkNode(c1, c2);
       }
       else
       {
-        new_id = nm->mkConst<Rational>(
+        new_id = d_nm->mkConst<Rational>(
             static_cast<unsigned>(proof::LeanRule::SMTSYMM_NEG));
         t1 = child[0][0];
         t2 = child[0][1];
-        c1 = nm->mkNode(kind::EQUAL, t1, t2);
-        c2 = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, t2, t1));
-        new_res = nm->mkNode(c1, c2);
+        c1 = d_nm->mkNode(kind::EQUAL, t1, t2);
+        c2 = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, t2, t1));
+        new_res = d_nm->mkNode(c1, c2);
       }
       std::vector<Node> new_args = {new_id, t1, t2};
       cdp->addStep(new_res, PfRule::LEAN_RULE, {}, new_args);
       break;
     }
-    case PfRule::TRANS:
-    {
-      Node new_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(proof::LeanRule::SMTTRANSN));
-      Node t1, t2, ineq, new_res;
-      std::vector<Node> clauses;
-      for (Node child : children)
-      {
-        t1 = child[0][0];
-        t2 = child[0][1];
-        ineq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, t1, t2));
-        clauses.push_back(ineq);
-      }
-      clauses.push_back(nm->mkNode(
-          kind::EQUAL, children.front()[0][0], children.back()[0][1]));
-      cdp->addStep(res, PfRule::LEAN_RULE, children, args);
-      break;
-    }
-    case (PfRule::CONG):
-    {
-      Node new_id =
-          nm->mkConst<Rational>(static_cast<unsigned>(proof::LeanRule::CONGN));
-      // congn -- lean takes term and two clauses
-      // results in a list of ineqs, than an eq
-      std::vector<Node> conclusion_nodes;
-      for (Node n : children)
-      {
-        Node ineq = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, n[0], n[1]));
-        conclusion_nodes.push_back(ineq);
-      }
-      Node eq_node = nm->mkNode(kind::EQUAL, children.front()[0],
-    children.back()[1]); conclusion_nodes.push_back(eq_node); Node new_res =
-    nm->mkNode(conclusion_nodes);
-      // args will be the function and clauses
-      cdp->addStep(
-          new_res, PfRule::LEAN_RULE, {}, args);  // take no children, only args
-      break;
-    }
-    // chain reso, reordering, implies_elim, scope
-    case (PfRule::IMPLIES_ELIM):
-    {
-      Node new_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(proof::LeanRule::CNF_IMPLIES));
-      cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  // add child
-      break;
-    }
-    case (PfRule::REORDERING): { // not sure here
-      Node new_id = nm->mkConst<Rational>(
-          static_cast<unsigned>(proof::LeanRule::CNF_IMPLIES));
-      cdp->addStep(res, PfRule::LEAN_RULE, children, {new_id});  // add child
-      break;
-    }
-    */
     default:
     {
       // Trace("Hello") << res << "\n";

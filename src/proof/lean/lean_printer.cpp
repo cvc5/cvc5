@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lean_printer.h
+/*! \file lean_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Scott Viteri
@@ -167,8 +167,25 @@ void LeanPrinter::printInternal(std::ostream& out,
       out << nodeToLeanString(children[1]->getArguments()[1]);
       break;
     }
+    //    case LeanRule::SMTREFL:
+    //      {
+    //        out << "@smtrefl " << nodeToLeanString(args[0]) << " ";
+    //        break;
+    //      }
+  case LeanRule::SMTSYMM:
+    {
+      out << "@smtsymm" << nodeToLeanString(args[0]) << " ";
+      break;
+    }
+  case LeanRule::SMTSYMM_NEG:
+    {
+      out << "@smtsymm_neg" << nodeToLeanString(args[0]) << " ";
+      break;
+    }
+
     default:
     {
+      out << args;
       out << " ?\n";
       break;
     }

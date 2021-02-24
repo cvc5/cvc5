@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lean_post_proccessor.h
+/*! \file lean_post_processor.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Scott Viteri
@@ -63,7 +63,7 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
 };
 
 /**
- * The proof postproccessor module. This postproccesses a proof node into one
+ * The proof postprocessor module. This postproccesses a proof node into one
  * using the rules from the Lean calculus.
  */
 class LeanProofPostprocess
