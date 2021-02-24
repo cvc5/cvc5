@@ -25,7 +25,7 @@ namespace proof {
 
 LeanProofPostprocessCallback::LeanProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm), d_nm(NodeManager::currentNM()), d_pc(pnm->getChecker())
+    : d_pnm(pnm), d_pc(pnm->getChecker())
 {
 }
 
@@ -47,6 +47,7 @@ bool LeanProofPostprocessCallback::addLeanStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
+  NodeManager* d_nm = NodeManager::currentNM();
   Node leanId = d_nm->mkConst<Rational>(static_cast<unsigned>(rule));
   std::vector<Node> lean_args = {leanId, res};
   lean_args.insert(lean_args.end(), args.begin(), args.end());
@@ -59,6 +60,7 @@ bool LeanProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
+  NodeManager* d_nm = NodeManager::currentNM();
   switch (id)
   {
     case PfRule::ASSUME:

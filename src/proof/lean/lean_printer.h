@@ -42,13 +42,16 @@ class LeanPrinter
 
  private:
   static LeanRule getLeanRule(Node n);
-  static void printKind(std::ostream &s, Kind k);
-  static void printLeanString(std::ostream &s, Node n);
-  static void printLeanType(std::ostream &s, Node n);
-  static void printLeanTypeToBottom(std::ostream &s, Node n);
-  static void printInternal(std::ostream& out,
-                            std::shared_ptr<ProofNode> pfn,
-                            std::map<Node, std::string>& passumeMap);
+  static void printKind(std::ostream& s, Kind k);
+  static void printLeanString(std::ostream& s, Node n);
+  static void printLeanType(std::ostream& s, Node n);
+  static void printLeanTypeToBottom(std::ostream& s, Node n);
+  static void printSorts(std::ostream& out,
+                         const std::vector<Node>& assertions,
+                         std::shared_ptr<ProofNode> pfn);
+  static void printProof(std::ostream& out,
+                         std::shared_ptr<ProofNode> pfn,
+                         std::map<Node, std::string>& passumeMap);
 };
 
 }  // namespace proof

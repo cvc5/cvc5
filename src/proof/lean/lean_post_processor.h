@@ -53,7 +53,6 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-  NodeManager* d_nm;
   ProofChecker* d_pc;
   bool addLeanStep(Node res,
                    LeanRule rule,

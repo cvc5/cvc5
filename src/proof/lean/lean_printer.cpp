@@ -72,6 +72,8 @@ void LeanPrinter::printKind(std::ostream& s, Kind k)
 
 void LeanPrinter::printLeanString(std::ostream& s, Node n)
 {
+  // convert a node to a Lean term -- must start with mk_ and take children as args
+  // eg) kind::AND (kind::EQUAL a b) c --> mkAnd (mkEq a b) c
   Kind k = n.getKind();
   if (k == kind::VARIABLE)
   {
@@ -90,12 +92,15 @@ void LeanPrinter::printLeanString(std::ostream& s, Node n)
         s << " ";
       };
     }
-    s << ")";
   }
+  s << ")";
 }
 
 void LeanPrinter::printLeanType(std::ostream& s, Node n)
 {
+  // convert from node to Lean Type syntax:
+  // products are curried
+  // types are wrapped in "holds [_]"
   Kind k = n.getKind();
   switch (k)
   {
@@ -117,19 +122,21 @@ void LeanPrinter::printLeanType(std::ostream& s, Node n)
 
 void LeanPrinter::printLeanTypeToBottom(std::ostream& s, Node n)
 {
+  // print Lean type corresponding to proof of unsatisfiability
   printLeanType(s, n[0]);
   s << " -> holds []";
 }
 
-void LeanPrinter::printInternal(std::ostream& out,
+void LeanPrinter::printProof(std::ostream& out,
                                 std::shared_ptr<ProofNode> pfn,
                                 std::map<Node, std::string>& passumeMap)
 {
+  // print rule specific lean syntax, traversing children before parents in ProofNode tree
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
   for (const std::shared_ptr<ProofNode>& ch : children)
   {
-    printInternal(out, ch, passumeMap);
+    printProof(out, ch, passumeMap);
   }
   LeanRule id = getLeanRule(args[0]);
   switch (id)
@@ -141,6 +148,7 @@ void LeanPrinter::printInternal(std::ostream& out,
     }
     case LeanRule::ASSUME:
     {
+      // keep track of variable names in assume statement using passumeMap
       size_t var_index = passumeMap.size();
       std::stringstream var_string;
       var_string << "v" << var_index;
@@ -152,6 +160,8 @@ void LeanPrinter::printInternal(std::ostream& out,
     };
     case LeanRule::SCOPE:
     {
+      // each argument to the scope proof node corresponds to one scope
+      //  to close in the lean proof
       for (size_t j = 2, size = args.size(); j < size; ++j)
       {
         out << ")";
@@ -160,15 +170,19 @@ void LeanPrinter::printInternal(std::ostream& out,
     }
     case LeanRule::R0:
     {
+      //print variable names of clauses to be resolved against
       out << "R0 " << passumeMap[args[2]] << " ";
       out << passumeMap[children[0]->getArguments()[1]] << " ";
+      //print term to resolve with
       printLeanString(out, children[1]->getArguments()[1]);
       break;
     }
     case LeanRule::R1:
     {
+      //print variable names of clauses to be resolved against
       out << "R1 " << passumeMap[args[2]] << " ";
       out << passumeMap[children[0]->getArguments()[1]] << " ";
+      //print term to resolve with
       printLeanString(out, children[1]->getArguments()[1]);
       break;
     }
@@ -186,7 +200,6 @@ void LeanPrinter::printInternal(std::ostream& out,
       out << " ";
       break;
     }
-
     default:
     {
       out << args;
@@ -197,15 +210,10 @@ void LeanPrinter::printInternal(std::ostream& out,
   }
 }
 
-void LeanPrinter::print(std::ostream& out,
-                        const std::vector<Node>& assertions,
-                        std::shared_ptr<ProofNode> pfn)
+void LeanPrinter::printSorts(std::ostream& out,
+                             const std::vector<Node>& assertions,
+                             std::shared_ptr<ProofNode> pfn)
 {
-  std::map<Node, std::string> passumeMap;
-  const std::vector<Node>& args = pfn->getArguments();
-  out << "open smt\n";
-  out << "open smt.sort smt.term\n";
-  // [1a] user declared sorts
   std::unordered_set<Node, NodeHashFunction> syms;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<Node> iasserts;
@@ -222,17 +230,31 @@ void LeanPrinter::print(std::ostream& out,
     TypeNode st = s.getType();
     if (st.isSort() && sts.find(st) == sts.end())
     {
+      // declare a user defined sort, if that sort has not been encountered before
       sts.insert(st);
       out << "def " << st << " := sort.atom " << sort_count << std::endl;
       sort_count += 1;
     }
+    // declare a constant of a predefined sort
     out << "def " << s << " := const " << sym_count << " " << st << std::endl;
     sym_count += 1;
   }
+}
+
+void LeanPrinter::print(std::ostream& out,
+                        const std::vector<Node>& assertions,
+                        std::shared_ptr<ProofNode> pfn)
+{
+  // outer method to print valid lean output from a ProofNode
+  std::map<Node, std::string> passumeMap;
+  const std::vector<Node>& args = pfn->getArguments();
+  out << "open smt\n";
+  out << "open smt.sort smt.term\n";
+  printSorts(out, assertions, pfn);
   out << "noncomputable theorem th0 : ";
   printLeanTypeToBottom(out, args[1]);
   out << " := \n";
-  printInternal(out, pfn, passumeMap);
+  printProof(out, pfn, passumeMap);
   out << "\n";
 }
 
