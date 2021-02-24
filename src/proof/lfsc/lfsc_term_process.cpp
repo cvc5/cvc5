@@ -133,19 +133,19 @@ Node LfscTermProcessor::runConvert(Node n)
       //   (or A (or B (or C (or D E))))
       switch (k)
       {
-        case OR: nullTerm = nm->mkConst(false);break;
-        case AND: nullTerm = nm->mkConst(true);break;
-        case PLUS: nullTerm = nm->mkConst(Rational(0));break;
-        case MULT: nullTerm = nm->mkConst(Rational(1));break;
-        case STRING_CONCAT: nullTerm = nm->mkConst(String(""));break;
-        case REGEXP_CONCAT: nullTerm = nm->mkConst(String(""));break;
+        case OR: nullTerm = nm->mkConst(false); break;
+        case AND: nullTerm = nm->mkConst(true); break;
+        case PLUS: nullTerm = nm->mkConst(Rational(0)); break;
+        case MULT: nullTerm = nm->mkConst(Rational(1)); break;
+        case STRING_CONCAT: nullTerm = nm->mkConst(String("")); break;
+        case REGEXP_CONCAT: nullTerm = nm->mkConst(String("")); break;
         default:
           // not handled as null-terminated
           break;
       }
       // Most operators simply get binarized
       Node ret;
-      size_t i =0;
+      size_t i = 0;
       if (nullTerm.isNull())
       {
         ret = children[0];
