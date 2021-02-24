@@ -53,11 +53,11 @@ class TermRegistry
   void addTerm(Node n, bool withinQuant = false);
 
   /** get term database */
-  TermDb* getTermDatabase();
+  TermDb* getTermDatabase() const;
   /** get term database sygus */
-  TermDbSygus* getTermDatabaseSygus();
+  TermDbSygus* getTermDatabaseSygus() const;
   /** get term enumeration utility */
-  TermEnumeration* getTermEnumeration();
+  TermEnumeration* getTermEnumeration() const;
 
  private:
   /** has presolve been called */

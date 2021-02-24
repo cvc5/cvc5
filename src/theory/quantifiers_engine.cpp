@@ -175,7 +175,7 @@ bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
   {
     return true;
   }
-  else if (TermEnumeration::mayComplete(tn, options::fmfTypeCompletionThresh()))
+  else if (d_treg.getTermEnumeration()->mayComplete(tn))
   {
     return true;
   }
