@@ -48,11 +48,9 @@ QuantifiersEngine::QuantifiersEngine(
       d_model(nullptr),
       d_builder(nullptr),
       d_eq_query(nullptr),
-      d_sygus_tdb(nullptr),
       d_instantiate(
           new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
       d_skolemize(new quantifiers::Skolemize(d_qstate, d_pnm)),
-      d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
 {
@@ -712,6 +710,11 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   }
   // add term to the registry
   d_treg.addTerm(d_qreg.getInstConstantBody(f), true);
+}
+
+
+void QuantifiersEngine::eqNotifyNewClass(TNode t) {
+  d_treg.addTerm( t );
 }
 
 void QuantifiersEngine::markRelevant( Node q ) {

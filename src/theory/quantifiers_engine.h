@@ -168,6 +168,8 @@ private:
  bool reduceQuantifier(Node q);
 
 public:
+ /** notification when master equality engine is updated */	
+ void eqNotifyNewClass(TNode t);
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);

@@ -15,6 +15,7 @@
 #include "theory/quantifiers/term_registry.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -23,13 +24,14 @@ namespace quantifiers {
 TermRegistry::TermRegistry(QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr)
-    : d_termEnum(), d_termDb(qs, qim, qr)
+    : d_termEnum(), d_termDb(qs, qim, qr),      d_presolve(qs.getUserContext(), true),
+      d_presolve_cache(qs.getUserContext())
 
 {
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new quantifiers::TermDbSygus(qstate, qim));
+    d_sygusTdb.reset(new quantifiers::TermDbSygus(qs, qim));
   }
 }
 
@@ -59,11 +61,7 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
   }
   if (options::incrementalSolving() && !options::termDbCd())
   {
-    if (d_presolve_in.find(n) == d_presolve_in.end())
-    {
-      d_presolve_in.insert(n);
-      d_presolve_cache.push_back(n);
-    }
+    d_presolveCache.insert(n);
   }
   // only wait if we are doing incremental solving
   if (!d_presolve || !options::incrementalSolving() || options::termDbCd())
