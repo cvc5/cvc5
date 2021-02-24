@@ -1,0 +1,269 @@
+/*********************                                                        */
+/*! \file theory_engine_white.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Aina Niemetz, Morgan Deters, Andres Noetzli
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief White box testing of CVC4::theory::Theory.
+ **
+ ** White box testing of CVC4::theory::Theory.  This test creates
+ ** "fake" theory interfaces and injects them into TheoryEngine, so we
+ ** can test TheoryEngine's behavior without relying on independent
+ ** theory behavior.  This is done in TheoryEngineWhite::setUp() by
+ ** means of the TheoryEngineWhite::registerTheory() interface.
+ **/
+
+#include <memory>
+#include <string>
+
+#include "base/check.h"
+#include "context/context.h"
+#include "expr/kind.h"
+#include "expr/node.h"
+#include "options/options.h"
+#include "test_smt.h"
+#include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
+#include "theory/rewriter.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
+#include "theory/theory_rewriter.h"
+#include "theory/valuation.h"
+#include "util/integer.h"
+#include "util/rational.h"
+
+namespace CVC4 {
+
+using namespace theory;
+using namespace expr;
+using namespace context;
+using namespace kind;
+using namespace smt;
+using namespace theory::bv;
+
+namespace test {
+
+/** Expected rewrite calls can be PRE- or POST-rewrites */
+enum RewriteType
+{
+  PRE,
+  POST
+};
+
+/**
+ * Stores an "expected" rewrite call.  The main test class will set up a
+ * sequence of these RewriteItems, then do a rewrite, ensuring that the actual
+ * call sequence matches the sequence of expected RewriteItems.
+ */
+struct RewriteItem
+{
+  RewriteType d_type;
+  Node d_node;
+  bool d_topLevel;
+};
+
+class FakeTheoryRewriter : public TheoryRewriter
+{
+ public:
+  RewriteResponse preRewrite(TNode n) override
+  {
+    return RewriteResponse(REWRITE_DONE, n);
+  }
+
+  RewriteResponse postRewrite(TNode n) override
+  {
+    return RewriteResponse(REWRITE_DONE, n);
+  }
+};
+
+/**
+ * Fake Theory interface.  Looks like a Theory, but really all it does is note
+ * when and how rewriting behavior is requested.
+ */
+template <TheoryId theoryId>
+class FakeTheory : public Theory
+{
+ public:
+  FakeTheory(context::Context* ctxt,
+             context::UserContext* uctxt,
+             OutputChannel& out,
+             Valuation valuation,
+             const LogicInfo& logicInfo,
+             ProofNodeManager* pnm)
+      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm)
+  {
+  }
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
+  std::string identify() const override { return "Fake" + d_id; }
+
+  void presolve() override { Unimplemented(); }
+
+  void preRegisterTerm(TNode) override { Unimplemented(); }
+  void registerTerm(TNode) { Unimplemented(); }
+  void propagate(Theory::Effort) override { Unimplemented(); }
+  TrustNode explain(TNode) override
+  {
+    Unimplemented();
+    return TrustNode::null();
+  }
+  Node getValue(TNode n) { return Node::null(); }
+
+ private:
+  /**
+   * This fake theory class is equally useful for bool, uf, arith, etc.  It
+   * keeps an identifier to identify itself.
+   */
+  std::string d_id;
+
+  /** The theory rewriter for this theory. */
+  FakeTheoryRewriter d_rewriter;
+};
+
+class TestTheoryWhiteEngine : public TestSmtNoFinishInit
+{
+ protected:
+  void SetUp() override
+  {
+    TestSmtNoFinishInit::SetUp();
+    d_context = d_smtEngine->getContext();
+    d_user_context = d_smtEngine->getUserContext();
+    d_smtEngine->finishInit();
+
+    d_theoryEngine = d_smtEngine->getTheoryEngine();
+    for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id)
+    {
+      delete d_theoryEngine->d_theoryOut[id];
+      delete d_theoryEngine->d_theoryTable[id];
+      d_theoryEngine->d_theoryOut[id] = NULL;
+      d_theoryEngine->d_theoryTable[id] = NULL;
+    }
+    d_theoryEngine->addTheory<FakeTheory<THEORY_BUILTIN> >(THEORY_BUILTIN);
+    d_theoryEngine->addTheory<FakeTheory<THEORY_BOOL> >(THEORY_BOOL);
+    d_theoryEngine->addTheory<FakeTheory<THEORY_UF> >(THEORY_UF);
+    d_theoryEngine->addTheory<FakeTheory<THEORY_ARITH> >(THEORY_ARITH);
+    d_theoryEngine->addTheory<FakeTheory<THEORY_ARRAYS> >(THEORY_ARRAYS);
+    d_theoryEngine->addTheory<FakeTheory<THEORY_BV> >(THEORY_BV);
+  }
+
+  Context* d_context;
+  UserContext* d_user_context;
+  TheoryEngine* d_theoryEngine;
+};
+
+TEST_F(TestTheoryWhiteEngine, rewriter_simple)
+{
+  Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
+  Node y = d_nodeManager->mkVar("y", d_nodeManager->integerType());
+  Node z = d_nodeManager->mkVar("z", d_nodeManager->integerType());
+
+  // make the expression (PLUS x y (MULT z 0))
+  Node zero = d_nodeManager->mkConst(Rational("0"));
+  Node zTimesZero = d_nodeManager->mkNode(MULT, z, zero);
+  Node n = d_nodeManager->mkNode(PLUS, x, y, zTimesZero);
+
+  Node nExpected = n;
+  Node nOut;
+
+  // do a full rewrite; FakeTheory::preRewrite() and FakeTheory::postRewrite()
+  // assert that the rewrite calls that are made match the expected sequence
+  // set up above
+  nOut = Rewriter::rewrite(n);
+
+  // assert that the rewritten node is what we expect
+  ASSERT_EQ(nOut, nExpected);
+}
+
+TEST_F(TestTheoryWhiteEngine, rewriter_complex)
+{
+  Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
+  Node y = d_nodeManager->mkVar("y", d_nodeManager->realType());
+  TypeNode u = d_nodeManager->mkSort("U");
+  Node z1 = d_nodeManager->mkVar("z1", u);
+  Node z2 = d_nodeManager->mkVar("z2", u);
+  Node f = d_nodeManager->mkVar(
+      "f",
+      d_nodeManager->mkFunctionType(d_nodeManager->integerType(),
+                                    d_nodeManager->integerType()));
+  Node g = d_nodeManager->mkVar(
+      "g",
+      d_nodeManager->mkFunctionType(d_nodeManager->realType(),
+                                    d_nodeManager->integerType()));
+  Node one = d_nodeManager->mkConst(Rational("1"));
+  Node two = d_nodeManager->mkConst(Rational("2"));
+
+  Node f1 = d_nodeManager->mkNode(APPLY_UF, f, one);
+  Node f2 = d_nodeManager->mkNode(APPLY_UF, f, two);
+  Node fx = d_nodeManager->mkNode(APPLY_UF, f, x);
+  Node ffx = d_nodeManager->mkNode(APPLY_UF, f, fx);
+  Node gy = d_nodeManager->mkNode(APPLY_UF, g, y);
+  Node z1eqz2 = d_nodeManager->mkNode(EQUAL, z1, z2);
+  Node f1eqf2 = d_nodeManager->mkNode(EQUAL, f1, f2);
+  Node ffxeqgy = d_nodeManager->mkNode(EQUAL, ffx, gy);
+  Node and1 = d_nodeManager->mkNode(AND, ffxeqgy, z1eqz2);
+  Node ffxeqf1 = d_nodeManager->mkNode(EQUAL, ffx, f1);
+  Node or1 = d_nodeManager->mkNode(OR, and1, ffxeqf1);
+  // make the expression:
+  // (IMPLIES (EQUAL (f 1) (f 2))
+  //   (OR (AND (EQUAL (f (f x)) (g y))
+  //            (EQUAL z1 z2))
+  //       (EQUAL (f (f x)) (f 1))))
+  Node n = d_nodeManager->mkNode(IMPLIES, f1eqf2, or1);
+  Node nExpected = n;
+  Node nOut;
+
+  // do a full rewrite; FakeTheory::preRewrite() and FakeTheory::postRewrite()
+  // assert that the rewrite calls that are made match the expected sequence
+  // set up above
+  nOut = Rewriter::rewrite(n);
+
+  // assert that the rewritten node is what we expect
+  ASSERT_EQ(nOut, nExpected);
+}
+
+TEST_F(TestTheoryWhiteEngine, rewrite_rules)
+{
+  TypeNode t = d_nodeManager->mkBitVectorType(8);
+  Node x = d_nodeManager->mkVar("x", t);
+  Node y = d_nodeManager->mkVar("y", t);
+  Node z = d_nodeManager->mkVar("z", t);
+
+  // (x - y) * z --> (x * z) - (y * z)
+  Node expr = d_nodeManager->mkNode(
+      BITVECTOR_MULT, d_nodeManager->mkNode(BITVECTOR_SUB, x, y), z);
+  Node result = expr;
+  if (RewriteRule<MultDistrib>::applies(expr))
+  {
+    result = RewriteRule<MultDistrib>::apply(expr);
+  }
+  Node expected =
+      d_nodeManager->mkNode(BITVECTOR_SUB,
+                            d_nodeManager->mkNode(BITVECTOR_MULT, x, z),
+                            d_nodeManager->mkNode(BITVECTOR_MULT, y, z));
+  ASSERT_EQ(result, expected);
+
+  // Try to apply MultSlice to a multiplication of two and three different
+  // variables, expect different results (x * y and x * y * z should not get
+  // rewritten to the same term).
+  expr = d_nodeManager->mkNode(BITVECTOR_MULT, x, y, z);
+  result = expr;
+  Node expr2 = d_nodeManager->mkNode(BITVECTOR_MULT, x, y);
+  Node result2 = expr;
+  if (RewriteRule<MultSlice>::applies(expr))
+  {
+    result = RewriteRule<MultSlice>::apply(expr);
+  }
+  if (RewriteRule<MultSlice>::applies(expr2))
+  {
+    result2 = RewriteRule<MultSlice>::apply(expr2);
+  }
+  ASSERT_NE(result, result2);
+}
+}  // namespace test
+}  // namespace CVC4
