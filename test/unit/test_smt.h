@@ -29,9 +29,24 @@ class TestSmt : public TestInternal
   void SetUp() override
   {
     d_nodeManager.reset(new NodeManager(nullptr));
-    d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
+    d_nm_scope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
     d_smtEngine->finishInit();
+  }
+
+  std::unique_ptr<NodeManagerScope> d_nm_scope;
+  std::unique_ptr<NodeManager> d_nodeManager;
+  std::unique_ptr<SmtEngine> d_smtEngine;
+};
+
+class TestSmtNoFinishInit : public TestInternal
+{
+ protected:
+  void SetUp() override
+  {
+    d_nodeManager.reset(new NodeManager(nullptr));
+    d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
+    d_smtEngine.reset(new SmtEngine(d_nodeManager.get()));
   }
 
   std::unique_ptr<NodeManagerScope> d_scope;
