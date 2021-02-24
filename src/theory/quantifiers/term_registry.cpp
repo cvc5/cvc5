@@ -24,7 +24,9 @@ namespace quantifiers {
 TermRegistry::TermRegistry(QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr)
-    : d_termEnum(), d_termDb(qs, qim, qr),      d_presolve(qs.getUserContext(), true),
+    : d_termEnum(),
+      d_termDb(qs, qim, qr),
+      d_presolve(qs.getUserContext(), true),
       d_presolve_cache(qs.getUserContext())
 
 {

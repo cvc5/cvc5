@@ -62,7 +62,7 @@ class TermRegistry
  private:
   /** has presolve been called */
   context::CDO<bool> d_presolve;
-  /** the set of terms we have seen before presolve */	
+  /** the set of terms we have seen before presolve */
   NodeSet d_presolveCache;
   /** term enumeration utility */
   TermEnumeration d_termEnum;

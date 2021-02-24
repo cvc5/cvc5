@@ -712,10 +712,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   d_treg.addTerm(d_qreg.getInstConstantBody(f), true);
 }
 
-
-void QuantifiersEngine::eqNotifyNewClass(TNode t) {
-  d_treg.addTerm( t );
-}
+void QuantifiersEngine::eqNotifyNewClass(TNode t) { d_treg.addTerm(t); }
 
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
