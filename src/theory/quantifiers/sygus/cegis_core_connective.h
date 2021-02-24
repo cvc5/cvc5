@@ -155,7 +155,9 @@ class VariadicTrie
 class CegisCoreConnective : public Cegis
 {
  public:
-  CegisCoreConnective(QuantifiersEngine* qe, SynthConjecture* p);
+  CegisCoreConnective(QuantifiersEngine* qe,
+                      QuantifiersInferenceManager& qim,
+                      SynthConjecture* p);
   ~CegisCoreConnective() {}
   /**
    * Return whether this module has the possibility to construct solutions. This

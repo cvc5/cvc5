@@ -27,7 +27,7 @@ namespace arrays {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : TheoryInferenceManager(t, state, pnm),
+    : TheoryInferenceManager(t, state, pnm, "theory::arrays", false),
       d_lemmaPg(pnm ? new EagerProofGenerator(pnm,
                                               state.getUserContext(),
                                               "ArrayLemmaProofGenerator")
@@ -37,8 +37,9 @@ InferenceManager::InferenceManager(Theory& t,
 
 bool InferenceManager::assertInference(TNode atom,
                                        bool polarity,
+                                       InferenceId id,
                                        TNode reason,
-                                       PfRule id)
+                                       PfRule pfr)
 {
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
                         << (polarity ? Node(atom) : atom.notNode()) << " by "
@@ -52,14 +53,14 @@ bool InferenceManager::assertInference(TNode atom,
     std::vector<Node> children;
     std::vector<Node> args;
     // convert to proof rule application
-    convert(id, fact, reason, children, args);
-    return assertInternalFact(atom, polarity, id, children, args);
+    convert(pfr, fact, reason, children, args);
+    return assertInternalFact(atom, polarity, id, pfr, children, args);
   }
-  return assertInternalFact(atom, polarity, reason);
+  return assertInternalFact(atom, polarity, id, reason);
 }
 
 bool InferenceManager::arrayLemma(
-    Node conc, Node exp, PfRule id, LemmaProperty p, bool doCache)
+    Node conc, InferenceId id, Node exp, PfRule pfr, LemmaProperty p)
 {
   Trace("arrays-infer") << "TheoryArrays::arrayLemma: " << conc << " by " << exp
                         << "; " << id << std::endl;
@@ -69,14 +70,14 @@ bool InferenceManager::arrayLemma(
     std::vector<Node> children;
     std::vector<Node> args;
     // convert to proof rule application
-    convert(id, conc, exp, children, args);
+    convert(pfr, conc, exp, children, args);
     // make the trusted lemma based on the eager proof generator and send
-    TrustNode tlem = d_lemmaPg->mkTrustNode(conc, id, children, args);
-    return trustedLemma(tlem, p, doCache);
+    TrustNode tlem = d_lemmaPg->mkTrustNode(conc, pfr, children, args);
+    return trustedLemma(tlem, id, p);
   }
   // send lemma without proofs
   Node lem = nm->mkNode(IMPLIES, exp, conc);
-  return lemma(lem, p, doCache);
+  return lemma(lem, id, p);
 }
 
 void InferenceManager::convert(PfRule& id,

@@ -81,6 +81,13 @@ public:
     return SAT_VALUE_UNKNOWN;
   };
 
+  /**
+   * Tell SAT solver to only do propagation on next solve().
+   *
+   * @return true if feature is supported, otherwise false.
+   */
+  virtual bool setPropagateOnly() { return false; }
+
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 

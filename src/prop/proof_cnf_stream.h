@@ -85,6 +85,14 @@ class ProofCnfStream : public ProofGenerator
   void convertPropagation(theory::TrustNode ttn);
 
   /**
+   * Ensure that the given node will have a designated SAT literal that is
+   * definitionally equal to it.  The result of this function is that the Node
+   * can be queried via getSatValue(). Essentially, this is like a "convert-but-
+   * don't-assert" version of convertAndAssert().
+   */
+  void ensureLiteral(TNode n);
+
+  /**
    * Blocks a proof, so that it is not further updated by a post processor of
    * this class's proof. */
   void addBlocked(std::shared_ptr<ProofNode> pfn);
@@ -143,13 +151,6 @@ class ProofCnfStream : public ProofGenerator
    * above normalizations on all added clauses.
    */
   void normalizeAndRegister(TNode clauseNode);
-  /**
-   * Are we asserting a removable clause (true) or a permanent clause (false).
-   * This is set at the beginning of convertAndAssert so that it doesn't need to
-   * be passed on over the stack. Only pure clauses can be asserted as
-   * removable.
-   */
-  bool d_removable;
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
   /** The proof manager of underlying SAT solver associated with this stream. */

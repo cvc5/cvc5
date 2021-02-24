@@ -41,6 +41,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
+                                    DecisionManager* dm,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
@@ -73,7 +74,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   // finite model finding
   if (options::fmfBound())
   {
-    d_bint.reset(new BoundedIntegers(qe, qs, qim, qr));
+    d_bint.reset(new BoundedIntegers(qe, qs, qim, qr, dm));
     modules.push_back(d_bint.get());
   }
   if (options::finiteModelFind() || options::fmfBound())
@@ -93,7 +94,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
-    d_rel_dom.reset(new RelevantDomain(qe));
+    d_rel_dom.reset(new RelevantDomain(qe, qr));
     d_fs.reset(new InstStrategyEnum(qe, qs, qim, qr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }

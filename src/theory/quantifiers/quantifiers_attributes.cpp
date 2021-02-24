@@ -263,7 +263,8 @@ bool QuantAttributes::isSygus( Node q ) {
   }
 }
 
-int QuantAttributes::getQuantInstLevel( Node q ) {
+int64_t QuantAttributes::getQuantInstLevel(Node q)
+{
   std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
   if( it==d_qattr.end() ){
     return -1;

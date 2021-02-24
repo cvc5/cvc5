@@ -181,8 +181,11 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.pop_back();
 }
 
-CegInstantiator::CegInstantiator(Node q, InstStrategyCegqi* parent)
+CegInstantiator::CegInstantiator(Node q,
+                                 QuantifiersState& qs,
+                                 InstStrategyCegqi* parent)
     : d_quant(q),
+      d_qstate(qs),
       d_parent(parent),
       d_qe(parent->getQuantifiersEngine()),
       d_is_nested_quant(false),
@@ -1082,8 +1085,9 @@ bool CegInstantiator::doAddInstantiation( std::vector< Node >& vars, std::vector
   }
   Trace("cegqi-inst-debug") << "Do the instantiation...." << std::endl;
   bool ret = d_parent->doAddInstantiation(subs);
-  for( unsigned i=0; i<lemmas.size(); i++ ){
-    d_parent->addLemma(lemmas[i]);
+  for (const Node& l : lemmas)
+  {
+    d_parent->addPendingLemma(l);
   }
   return ret;
 }
@@ -1245,6 +1249,7 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
     bool pol = lit.getKind()!=NOT;
     //arithmetic inequalities and disequalities
     if( atom.getKind()==GEQ || ( atom.getKind()==EQUAL && !pol && atom[0].getType().isReal() ) ){
+      NodeManager* nm = NodeManager::currentNM();
       Assert(atom.getKind() != GEQ || atom[1].isConst());
       Node atom_lhs;
       Node atom_rhs;
@@ -1252,20 +1257,27 @@ Node CegInstantiator::applySubstitutionToLiteral( Node lit, std::vector< Node >&
         atom_lhs = atom[0];
         atom_rhs = atom[1];
       }else{
-        atom_lhs = NodeManager::currentNM()->mkNode( MINUS, atom[0], atom[1] );
+        atom_lhs = nm->mkNode(MINUS, atom[0], atom[1]);
         atom_lhs = Rewriter::rewrite( atom_lhs );
-        atom_rhs = getQuantifiersEngine()->getTermUtil()->d_zero;
+        atom_rhs = nm->mkConst(Rational(0));
       }
       //must be an eligible term
       if( isEligible( atom_lhs ) ){
         //apply substitution to LHS of atom
         TermProperties atom_lhs_prop;
-        atom_lhs = applySubstitution( NodeManager::currentNM()->realType(), atom_lhs, vars, subs, prop, non_basic, atom_lhs_prop );
+        atom_lhs = applySubstitution(nm->realType(),
+                                     atom_lhs,
+                                     vars,
+                                     subs,
+                                     prop,
+                                     non_basic,
+                                     atom_lhs_prop);
         if( !atom_lhs.isNull() ){
           if( !atom_lhs_prop.d_coeff.isNull() ){
-            atom_rhs = Rewriter::rewrite( NodeManager::currentNM()->mkNode( MULT, atom_lhs_prop.d_coeff, atom_rhs ) );
+            atom_rhs = nm->mkNode(MULT, atom_lhs_prop.d_coeff, atom_rhs);
+            atom_rhs = Rewriter::rewrite(atom_rhs);
           }
-          lret = NodeManager::currentNM()->mkNode( atom.getKind(), atom_lhs, atom_rhs );
+          lret = nm->mkNode(atom.getKind(), atom_lhs, atom_rhs);
           if( !pol ){
             lret = lret.negate();
           }
@@ -1328,22 +1340,37 @@ void CegInstantiator::processAssertions() {
     }
   }
   //collect assertions for relevant theories
-  for( unsigned i=0; i<d_tids.size(); i++ ){
-    TheoryId tid = d_tids[i];
-    Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
-    if( theory && d_qe->getTheoryEngine()->isTheoryEnabled(tid) ){
-      Trace("cegqi-proc") << "Collect assertions from theory " << tid << std::endl;
-      d_curr_asserts[tid].clear();
-      //collect all assertions from theory
-      for( context::CDList<Assertion>::const_iterator it = theory->facts_begin(); it != theory->facts_end(); ++ it) {
-        Node lit = (*it).d_assertion;
-        Node atom = lit.getKind()==NOT ? lit[0] : lit;
-        if( d_is_nested_quant || std::find( d_ce_atoms.begin(), d_ce_atoms.end(), atom )!=d_ce_atoms.end() ){
-          d_curr_asserts[tid].push_back( lit );
-          Trace("cegqi-proc-debug") << "...add : " << lit << std::endl;
-        }else{
-          Trace("cegqi-proc") << "...do not consider literal " << tid << " : " << lit << " since it is not part of CE body." << std::endl;
-        }
+  const LogicInfo& logicInfo = d_qstate.getLogicInfo();
+  for (TheoryId tid : d_tids)
+  {
+    if (!logicInfo.isTheoryEnabled(tid))
+    {
+      continue;
+    }
+    Trace("cegqi-proc") << "Collect assertions from theory " << tid
+                        << std::endl;
+    d_curr_asserts[tid].clear();
+    // collect all assertions from theory
+    for (context::CDList<Assertion>::const_iterator
+             it = d_qstate.factsBegin(tid),
+             itEnd = d_qstate.factsEnd(tid);
+         it != itEnd;
+         ++it)
+    {
+      Node lit = (*it).d_assertion;
+      Node atom = lit.getKind() == NOT ? lit[0] : lit;
+      if (d_is_nested_quant
+          || std::find(d_ce_atoms.begin(), d_ce_atoms.end(), atom)
+                 != d_ce_atoms.end())
+      {
+        d_curr_asserts[tid].push_back(lit);
+        Trace("cegqi-proc-debug") << "...add : " << lit << std::endl;
+      }
+      else
+      {
+        Trace("cegqi-proc")
+            << "...do not consider literal " << tid << " : " << lit
+            << " since it is not part of CE body." << std::endl;
       }
     }
   }

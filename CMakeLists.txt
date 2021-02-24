@@ -37,8 +37,9 @@ endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
@@ -152,8 +153,7 @@ option(USE_DRAT2ER            "Include drat2er for making eager BV proofs")
 option(USE_LFSC               "Use LFSC proof checker")
 option(USE_POLY               "Use LibPoly for polynomial arithmetic")
 option(USE_SYMFPU             "Use SymFPU for floating point support")
-option(USE_PYTHON2            "Prefer using Python 2 (for Python bindings)")
-option(USE_PYTHON3            "Prefer using Python 3 (for Python bindings)")
+option(USE_PYTHON2            "Force Python 2 (deprecated)")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -376,10 +376,8 @@ endif()
 
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
-elseif(USE_PYTHON3)
-  find_package(PythonInterp 3 REQUIRED)
 else()
-  find_package(PythonInterp REQUIRED)
+  find_package(PythonInterp 3 REQUIRED)
 endif()
 
 find_package(GMP REQUIRED)
@@ -715,7 +713,6 @@ print_config("Static binary             :" ENABLE_STATIC_BINARY)
 print_config("Python bindings           :" BUILD_BINDINGS_PYTHON)
 print_config("Java bindings             :" BUILD_BINDINGS_JAVA)
 print_config("Python2                   :" USE_PYTHON2)
-print_config("Python3                   :" USE_PYTHON3)
 message("")
 print_config("ABC                       :" USE_ABC)
 print_config("CaDiCaL                   :" USE_CADICAL)

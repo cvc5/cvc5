@@ -24,7 +24,7 @@
 #include "theory/quantifiers/cegqi/nested_qe.h"
 #include "theory/quantifiers/cegqi/vts_term_cache.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -123,8 +123,8 @@ class InstStrategyCegqi : public QuantifiersModule
   //------------------- interface for CegqiOutputInstStrategy
   /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation(std::vector<Node>& subs);
-  /** Add lemma lem via the output channel of this class. */
-  bool addLemma(Node lem);
+  /** Add pending lemma lem via the inference manager of this class. */
+  bool addPendingLemma(Node lem) const;
   //------------------- end interface for CegqiOutputInstStrategy
 
  protected:

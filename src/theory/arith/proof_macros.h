@@ -20,15 +20,12 @@
 
 #include "options/smt_options.h"
 
-#define ARITH_PROOF(x)                                      \
-  if (CVC4::options::proofNew())                            \
-  {                                                         \
-    x;                                                      \
+#define ARITH_PROOF(x)        \
+  if (CVC4::options::proof()) \
+  {                           \
+    x;                        \
   }
-#define ARITH_NULLPROOF(x)                                  \
-  (CVC4::options::proofNew())                               \
-      ? x                                                   \
-      : NULL
-#define ARITH_PROOF_ON() CVC4::options::proofNew()
+#define ARITH_NULLPROOF(x) (CVC4::options::proof()) ? x : NULL
+#define ARITH_PROOF_ON() CVC4::options::proof()
 
 #endif  // CVC4__THEORY__ARITH__PROOF_MACROS_H

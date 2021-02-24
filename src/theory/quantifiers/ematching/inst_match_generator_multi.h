@@ -21,6 +21,7 @@
 #include <vector>
 #include "expr/node_trie.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
+#include "theory/quantifiers/inst_match_trie.h"
 
 namespace CVC4 {
 namespace theory {
@@ -39,6 +40,8 @@ class InstMatchGeneratorMulti : public IMGenerator
   /** constructors */
   InstMatchGeneratorMulti(Node q,
                           std::vector<Node>& pats,
+                          quantifiers::QuantifiersState& qs,
+                          quantifiers::QuantifiersInferenceManager& qim,
                           QuantifiersEngine* qe);
   /** destructor */
   ~InstMatchGeneratorMulti() override;

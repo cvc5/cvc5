@@ -43,7 +43,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      const LogicInfo& logicInfo,
                                      ProofNodeManager* pnm)
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
-      d_qstate(c, u, valuation),
+      d_qstate(c, u, valuation, logicInfo),
       d_qim(*this, d_qstate, pnm),
       d_qengine(d_qstate, d_qim, pnm)
 {
@@ -161,18 +161,6 @@ bool TheoryQuantifiers::preNotifyFact(
   if (k == FORALL)
   {
     getQuantifiersEngine()->assertQuantifier(atom, polarity);
-  }
-  else if (k == INST_CLOSURE)
-  {
-    if (!polarity)
-    {
-      Unhandled() << "Unexpected inst-closure fact " << fact;
-    }
-    getQuantifiersEngine()->addTermToDatabase(atom[0], false, true);
-    if (!options::lteRestrictInstClosure())
-    {
-      d_qstate.getEqualityEngine()->addTerm(atom[0]);
-    }
   }
   else
   {

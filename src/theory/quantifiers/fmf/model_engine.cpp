@@ -21,7 +21,6 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -70,7 +69,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   if( options::mbqiInterleave() ){
-    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
   }
   if( !doCheck ){
     doCheck = quant_e == QEFFORT_MODEL;
@@ -268,7 +267,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermUtil()->getInstantiationConstant( f, i ) << " ";
+        Trace("fmf-exh-inst-debug")
+            << d_qreg.getInstantiationConstant(f, i) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }
@@ -291,7 +291,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if (inst->addInstantiation(f, m, true))
+          if (inst->addInstantiation(f, m.d_vals, true))
           {
             addedLemmas++;
             if (d_qstate.isInConflict())

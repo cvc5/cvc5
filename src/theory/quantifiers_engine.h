@@ -28,8 +28,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/skolemize.h"
@@ -65,18 +65,14 @@ class QuantifiersEngine {
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
-  /** get theory engine */
-  TheoryEngine* getTheoryEngine() const;
   /** Get the decision manager */
   DecisionManager* getDecisionManager();
-  /** get default output channel for the quantifiers engine */
-  OutputChannel& getOutputChannel();
-  /** get default valuation for the quantifiers engine */
-  Valuation& getValuation();
   /** The quantifiers state object */
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
@@ -87,10 +83,6 @@ class QuantifiersEngine {
   quantifiers::TermDb* getTermDatabase() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term utilities */
-  quantifiers::TermUtil* getTermUtil() const;
-  /** get quantifiers attributes */
-  quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
   quantifiers::Instantiate* getInstantiate() const;
   /** get skolemize utility */
@@ -173,52 +165,15 @@ private:
  void registerQuantifierInternal(Node q);
  /** reduceQuantifier, return true if reduced */
  bool reduceQuantifier(Node q);
- /** flush lemmas */
- void flushLemmas();
 
 public:
- /**
-  * Add lemma to the lemma buffer of this quantifiers engine.
-  * @param lem The lemma to send
-  * @param doCache Whether to cache the lemma (to check for duplicate lemmas)
-  * @param doRewrite Whether to rewrite the lemma
-  * @return true if the lemma was successfully added to the buffer
-  */
- bool addLemma(Node lem, bool doCache = true, bool doRewrite = true);
- /**
-  * Add trusted lemma lem, same as above, but where a proof generator may be
-  * provided along with the lemma.
-  */
- bool addTrustedLemma(TrustNode tlem,
-                      bool doCache = true,
-                      bool doRewrite = true);
- /** remove pending lemma */
- bool removeLemma(Node lem);
- /** add require phase */
- void addRequirePhase(Node lit, bool req);
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** has added lemma */
- bool hasAddedLemma() const;
- /** get current q effort */
- QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
- /** get number of waiting lemmas */
- unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
- /** get needs check */
- bool getInstWhenNeedsCheck(Theory::Effort e);
- /** get user pat mode */
- options::UserPatMode getInstUserPatMode();
-
-public:
  /** add term to database */
- void addTermToDatabase(Node n,
-                        bool withinQuant = false,
-                        bool withinInstClosure = false);
+ void addTermToDatabase(Node n, bool withinQuant = false);
  /** notification when master equality engine is updated */
  void eqNotifyNewClass(TNode t);
- /** debug print equality engine */
- void debugPrintEqualityEngine(const char* c);
  /** get internal representative
   *
   * Choose a term that is equivalent to a in the current context that is the
@@ -315,6 +270,8 @@ public:
   TheoryEngine* d_te;
   /** Reference to the decision manager of the theory engine */
   DecisionManager* d_decManager;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */
@@ -328,16 +285,12 @@ public:
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** term utilities */
-  std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** sygus term database */
   std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
-  /** quantifiers attributes */
-  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
   /** instantiate utility */
   std::unique_ptr<quantifiers::Instantiate> d_instantiate;
   /** skolemize utility */
@@ -349,11 +302,6 @@ public:
    * The modules utility, which contains all of the quantifiers modules.
    */
   std::unique_ptr<quantifiers::QuantifiersModules> d_qmodules;
-  //------------- temporary information during check
-  /** current effort level */
-  QuantifiersModule::QEffort d_curr_effort_level;
-  /** has added lemma this round */
-  bool d_hasAddedLemma;
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */
@@ -363,28 +311,11 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** list of all lemmas produced */
-  // std::map< Node, bool > d_lemmas_produced;
-  BoolMap d_lemmas_produced_c;
-  /** lemmas waiting */
-  std::vector<Node> d_lemmas_waiting;
-  /** map from waiting lemmas to their proof generators */
-  std::map<Node, ProofGenerator*> d_lemmasWaitingPg;
-  /** phase requirements waiting */
-  std::map<Node, bool> d_phase_req_waiting;
-  /** inst round counters TODO: make context-dependent? */
-  context::CDO<int> d_ierCounter_c;
-  int d_ierCounter;
-  int d_ierCounter_lc;
-  int d_ierCounterLastLc;
-  int d_inst_when_phase;
   /** has presolve been called */
   context::CDO<bool> d_presolve;
   /** presolve cache */
   NodeSet d_presolve_in;
   NodeList d_presolve_cache;
-  BoolList d_presolve_cache_wq;
-  BoolList d_presolve_cache_wic;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

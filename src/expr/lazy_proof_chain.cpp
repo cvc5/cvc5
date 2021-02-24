@@ -17,7 +17,7 @@
 #include "expr/proof.h"
 #include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 
 namespace CVC4 {
 
@@ -261,8 +261,8 @@ void LazyCDProofChain::addLazyStep(Node expected,
                              << " set to generator " << pg->identify() << "\n";
   // note this will rewrite the generator for expected, if any
   d_gens.insert(expected, pg);
-  // check if chain is closed if options::proofNewEagerChecking() is on
-  if (options::proofNewEagerChecking())
+  // check if chain is closed if options::proofEagerChecking() is on
+  if (options::proofEagerChecking())
   {
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::addLazyStep: Checking closed proof...\n";

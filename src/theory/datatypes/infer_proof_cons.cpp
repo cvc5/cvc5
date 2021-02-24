@@ -44,7 +44,7 @@ void InferProofCons::notifyFact(const std::shared_ptr<DatatypesInference>& di)
   d_lazyFactMap.insert(fact, di);
 }
 
-void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
+void InferProofCons::convert(InferenceId infer, TNode conc, TNode exp, CDProof* cdp)
 {
   Trace("dt-ipc") << "convert: " << infer << ": " << conc << " by " << exp
                   << std::endl;
@@ -68,7 +68,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
   bool success = false;
   switch (infer)
   {
-    case InferId::UNIF:
+    case InferenceId::DATATYPES_UNIF:
     {
       Assert(expv.size() == 1);
       Assert(exp.getKind() == EQUAL && exp[0].getKind() == APPLY_CONSTRUCTOR
@@ -126,7 +126,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       }
     }
     break;
-    case InferId::INST:
+    case InferenceId::DATATYPES_INST:
     {
       if (expv.size() == 1)
       {
@@ -144,7 +144,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       }
     }
     break;
-    case InferId::SPLIT:
+    case InferenceId::DATATYPES_SPLIT:
     {
       Assert(expv.empty());
       Node t = conc.getKind() == OR ? conc[0][0] : conc[0];
@@ -152,7 +152,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::COLLAPSE_SEL:
+    case InferenceId::DATATYPES_COLLAPSE_SEL:
     {
       Assert(exp.getKind() == EQUAL);
       Node concEq = conc;
@@ -189,13 +189,13 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::CLASH_CONFLICT:
+    case InferenceId::DATATYPES_CLASH_CONFLICT:
     {
       cdp->addStep(conc, PfRule::MACRO_SR_PRED_ELIM, {exp}, {});
       success = true;
     }
     break;
-    case InferId::TESTER_CONFLICT:
+    case InferenceId::DATATYPES_TESTER_CONFLICT:
     {
       // rewrites to false under substitution
       Node fn = nm->mkConst(false);
@@ -203,7 +203,7 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
       success = true;
     }
     break;
-    case InferId::TESTER_MERGE_CONFLICT:
+    case InferenceId::DATATYPES_TESTER_MERGE_CONFLICT:
     {
       Assert(expv.size() == 3);
       Node tester1 = expv[0];
@@ -219,9 +219,9 @@ void InferProofCons::convert(InferId infer, TNode conc, TNode exp, CDProof* cdp)
     }
     break;
     // inferences currently not supported
-    case InferId::LABEL_EXH:
-    case InferId::BISIMILAR:
-    case InferId::CYCLE:
+    case InferenceId::DATATYPES_LABEL_EXH:
+    case InferenceId::DATATYPES_BISIMILAR:
+    case InferenceId::DATATYPES_CYCLE:
     default:
       Trace("dt-ipc") << "...no conversion for inference " << infer
                       << std::endl;
@@ -261,7 +261,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   // now go back and convert it to proof steps and add to proof
   std::shared_ptr<DatatypesInference> di = (*it).second;
   // run the conversion
-  convert(di->getInferId(), di->d_conc, di->d_exp, &pf);
+  convert(di->getId(), di->d_conc, di->d_exp, &pf);
   return pf.getProofFor(fact);
 }
 

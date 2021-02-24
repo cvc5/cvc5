@@ -24,9 +24,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class TermDbSygus;
@@ -48,7 +45,7 @@ class SygusRedundantCons
    * qe : pointer to the quantifiers engine,
    * tn : the (sygus) type to compute redundant constructors for
    */
-  void initialize(QuantifiersEngine* qe, TypeNode tn);
+  void initialize(TermDbSygus* tds, TypeNode tn);
   /** Get the indices of the redundant constructors of the register type */
   void getRedundant(std::vector<unsigned>& indices);
   /**
