@@ -84,12 +84,12 @@ class QuantifiersEngine {
   quantifiers::TermDb* getTermDatabase() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get instantiate utility */
   quantifiers::Instantiate* getInstantiate() const;
   /** get skolemize utility */
   quantifiers::Skolemize* getSkolemize() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities

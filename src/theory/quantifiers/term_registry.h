@@ -37,9 +37,9 @@ class TermRegistry
  public:
   TermRegistry(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
-               QuantifiersRegistry& qr,
-               QuantifiersEngine* qe);
+               QuantifiersRegistry& qr);
   /** Presolve */
+  void presolve();
   
   /**
    * Add term n, which notifies all
@@ -49,17 +49,23 @@ class TermRegistry
    */
   void addTerm(Node n, bool withinQuant = false);
 
+  /** get term database */
+  TermDb* getTermDatabase() const;
+  /** get term database sygus */
+  TermDbSygus* getTermDatabaseSygus() const;
+  /** get term enumeration utility */
+  TermEnumeration* getTermEnumeration() const;
  private:
   /** has presolve been called */
   context::CDO<bool> d_presolve;
   /** the set of terms we have seen before presolve */
   NodeSet d_presolveCache;
-  /** term database */
-  std::unique_ptr<quantifiers::TermDb> d_term_db;
-  /** sygus term database */
-  std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
   /** term enumeration utility */
-  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
+  TermEnumeration d_termEnum;
+  /** term database */
+  std::unique_ptr<TermDb> d_termDb;
+  /** sygus term database */
+  std::unique_ptr<TermDbSygus> d_sygusTdb;
 };
 
 }  // namespace quantifiers

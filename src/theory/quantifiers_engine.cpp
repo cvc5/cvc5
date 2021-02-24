@@ -43,10 +43,10 @@ QuantifiersEngine::QuantifiersEngine(
       d_decManager(nullptr),
       d_pnm(pnm),
       d_qreg(),
+      d_treg(qstate, qim, d_qreg),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
-      d_term_db(new quantifiers::TermDb(qstate, qim, d_qreg)),
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
       d_instantiate(
@@ -60,12 +60,6 @@ QuantifiersEngine::QuantifiersEngine(
   // quantifiers registry must come before the other utilities
   d_util.push_back(&d_qreg);
   d_util.push_back(d_term_db.get());
-
-  if (options::sygus() || options::sygusInst())
-  {
-    // must be constructed here since it is required for datatypes finistInit
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(this, qstate, qim));
-  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -148,11 +142,15 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 }
 quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 {
-  return d_term_db.get();
+  return d_treg.getTermDatabase();
 }
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
-  return d_sygus_tdb.get();
+  return d_treg.getTermDatabaseSygus();
+}
+quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
+{
+  return d_treg.getTermEnumeration();
 }
 quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
 {
@@ -161,10 +159,6 @@ quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
 quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
 {
   return d_skolemize.get();
-}
-quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
-{
-  return d_term_enum.get();
 }
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
@@ -716,7 +710,8 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   {
     mdl->assertNode(f);
   }
-  d_term_db->addTerm(d_term_util->getInstConstantBody(f), true);
+  // add term to the registry
+  d_treg.addTerm(d_qreg.getInstConstantBody(f), true);
 }
 
 void QuantifiersEngine::markRelevant( Node q ) {
