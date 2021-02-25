@@ -140,6 +140,8 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::CONG:
     {
+      // TODO: can optimize this for prefixes of equal arugments, which only
+      // require a REFL step.
       Assert(res.getKind() == EQUAL);
       Assert(res[0].getOperator() == res[1].getOperator());
       Kind k = res[0].getKind();
@@ -258,13 +260,21 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::AND_INTRO:
     {
-      // 
-      Node eq = nullTerm.eqNode(nullTerm);
-      cdp->addStep(eq, PfRule::REFL, {}, {nullTerm});
-      Node nullTerm = LfscTermProcessor::getNullTerminator(AND);
+      Node cur = LfscTermProcessor::getNullTerminator(AND);
       size_t nchildren = children.size();
-      for (size_t j = 0, hchildren; j < nchildren; j++)
+      for (size_t j = 0; j < nchildren; j++)
       {
+        size_t jj = (nchildren-1)-j;
+        Node next = nm->mkNode(AND, children[jj], cur);
+        if (j==0)
+        {
+          addLfscRule(cdp, next, {children[jj]}, LfscRule::AND_INTRO1, {});
+        }
+        else
+        {
+          addLfscRule(cdp, next, {children[jj], cur}, LfscRule::AND_INTRO2, {});
+        }
+        cur = next;
       }
     }
     break;

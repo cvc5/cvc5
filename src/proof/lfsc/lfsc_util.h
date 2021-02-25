@@ -43,11 +43,19 @@ enum class LfscRule : uint32_t
 
   // We defined LFSC versions for rules that either don't exist in the internal
   // calculus, or have a different set of arugments/children.
+  
+  // scope has a different structure, e.g. uses lambdas
   SCOPE,
+  // must distinguish equalities and disequalities
   NEG_SYMM,
+  // congruence is done via a higher-order variant of congruence
   CONG,
+  // we use unrolled binary versions of and elim / intro
   AND_ELIM1,
   AND_ELIM2,
+  AND_INTRO1,
+  AND_INTRO2,
+  // needed as a helper for SCOPE
   NOT_AND_REV,
 
   // a lambda with argument
