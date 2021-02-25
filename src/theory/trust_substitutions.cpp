@@ -138,14 +138,8 @@ TrustNode TrustSubstitutionMap::apply(Node n, bool doRewrite)
 {
   Trace("trust-subs") << "TrustSubstitutionMap::addSubstitution: apply " << n
                       << std::endl;
-  Node ns = d_subs.apply(n);
+  Node ns = d_subs.apply(n, doRewrite);
   Trace("trust-subs") << "...subs " << ns << std::endl;
-  // rewrite if indicated
-  if (doRewrite)
-  {
-    ns = Rewriter::rewrite(ns);
-    Trace("trust-subs") << "...rewrite " << ns << std::endl;
-  }
   if (n == ns)
   {
     // no change
