@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;

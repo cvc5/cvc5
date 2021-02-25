@@ -27,6 +27,7 @@
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
