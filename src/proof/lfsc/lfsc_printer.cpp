@@ -99,7 +99,7 @@ void LfscPrinter::print(std::ostream& out,
   // which are already printed above).
   printProofLetify(out, pn->getChildren()[0].get(), lbind, passumeMap);
 
-  out << cparen.str();
+  out << cparen.str() << std::endl;
 }
 
 void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
@@ -319,6 +319,14 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::NOT_XOR_ELIM1:
     case PfRule::NOT_XOR_ELIM2: pf << h << h << cs[0]; break;
     // CNF
+    case PfRule::CNF_EQUIV_POS1: 
+    case PfRule::CNF_EQUIV_POS2: 
+    case PfRule::CNF_EQUIV_NEG1: 
+    case PfRule::CNF_EQUIV_NEG2:
+    case PfRule::CNF_XOR_POS1: 
+    case PfRule::CNF_XOR_POS2: 
+    case PfRule::CNF_XOR_NEG1: 
+    case PfRule::CNF_XOR_NEG2:  pf << as[0][0] << as[0][1]; break;
     // equality
     case PfRule::REFL: pf << as[0]; break;
     case PfRule::SYMM: pf << h << h << cs[0]; break;
@@ -364,9 +372,11 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::SCOPE: pf << h << as[2] << cs[0]; break;
         case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
+        case LfscRule::AND_INTRO1: pf << h << cs[0]; break;
         case LfscRule::AND_ELIM1:
-        case LfscRule::AND_ELIM2: pf << h << h << cs[0]; break;
+        case LfscRule::AND_ELIM2:
         case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
+        case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
         // ---------- arguments of translated rules go here
         default: return false; break;
       }
