@@ -1452,7 +1452,7 @@ set(regress_1_tests
   regress1/bv/cmu-rdk-3.smt2
   regress1/bv/decision-weight00.smt2
   regress1/bv/divtest.smt2
-  regress0/bv/fuzz18.smtv1.smt2
+  regress1/bv/fuzz18.smtv1.smt2
   regress1/bv/fuzz19.smtv1.smt2
   regress1/bv/fuzz34.smtv1.smt2
   regress1/bv/fuzz38.smtv1.smt2
@@ -2115,7 +2115,7 @@ set(regress_1_tests
   regress1/sygus/abduction_1255.corecstrs.readable.smt2
   regress1/sygus/abduction_streq.readable.smt2
   regress1/sygus/abv.sy
-  regress0/sygus/array-grammar-store.sy
+  regress1/sygus/array-grammar-store.sy
   regress1/sygus/array_search_5-Q-easy.sy
   regress1/sygus/bvudiv-by-2.sy
   regress1/sygus/cegar1.sy
