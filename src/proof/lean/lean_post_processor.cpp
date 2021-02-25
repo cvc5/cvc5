@@ -95,7 +95,7 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
     case PfRule::SYMM:
     {
-      addLeanStep(nm->mkNode(kind::OR, ),
+      addLeanStep(res,
                   res.getKind() == kind::EQUAL ? LeanRule::SMTSYMM
                                                : LeanRule::SMTSYMM_NEG,
                   {},
