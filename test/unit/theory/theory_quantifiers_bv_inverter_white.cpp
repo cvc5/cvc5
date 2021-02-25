@@ -26,7 +26,6 @@ using namespace kind;
 using namespace theory;
 using namespace theory::quantifiers;
 using namespace theory::quantifiers::utils;
-using namespace smt;
 
 namespace test {
 
