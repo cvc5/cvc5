@@ -70,7 +70,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         Node fconc = mkDummyPredicate();
         addLfscRule(cdp, fconc, {curr}, LfscRule::PI, {args[ii]});
         Node next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
-        addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {}); 
+        addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {});
         curr = next;
       }
       // TODO: return true
@@ -93,7 +93,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::SYMM:
     {
-      if (res.getKind()!=NOT)
+      if (res.getKind() != NOT)
       {
         // no need to convert (positive) equality symmetry
         return false;

@@ -233,12 +233,12 @@ void LfscPrinter::printProofInternal(
       {
         processedChildren[cur] = true;
         out << ")";
-        if (r==PfRule::LFSC_RULE)
+        if (r == PfRule::LFSC_RULE)
         {
           const std::vector<Node>& cargs = cur->getArguments();
-          Assert (!cargs.empty());
+          Assert(!cargs.empty());
           LfscRule lr = getLfscRule(cargs[0]);
-          if (lr==LfscRule::PI)
+          if (lr == LfscRule::PI)
           {
             // Remove argument from assumption binding, only if it was bound
             // by this call. This is not the case if the assumption is
@@ -267,7 +267,7 @@ void LfscPrinter::printProofInternal(
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
                                    std::vector<PExpr>& pargs,
-                        std::map<Node, uint32_t>& passumeMap)
+                                   std::map<Node, uint32_t>& passumeMap)
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   std::vector<const ProofNode*> cs;
@@ -275,7 +275,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   {
     cs.push_back(c.get());
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   PfRule r = pn->getRule();
   const std::vector<Node>& as = pn->getArguments();
   PExprStream pf(pargs);
@@ -295,9 +295,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
     // CNF
-    case PfRule::EQUIV_ELIM1: 
-    case PfRule::EQUIV_ELIM2:
-      pf << h << h << cs[0]; break;
+    case PfRule::EQUIV_ELIM1:
+    case PfRule::EQUIV_ELIM2: pf << h << h << cs[0]; break;
     // equality
     case PfRule::REFL: pf << as[0]; break;
     case PfRule::SYMM: pf << h << h << cs[0]; break;
@@ -319,12 +318,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
         case LfscRule::AND_ELIM1:
         case LfscRule::AND_ELIM2: pf << h << h << cs[0]; break;
-        case LfscRule::PI: 
+        case LfscRule::PI:
         {
           // allocate an assumption, if necessary
           uint32_t pid;
           std::map<Node, uint32_t>::iterator itp = passumeMap.find(as[2]);
-          if (itp==passumeMap.end())
+          if (itp == passumeMap.end())
           {
             pid = passumeMap.size();
             passumeMap[as[2]] = pid;
@@ -338,7 +337,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           std::stringstream pidNodeName;
           printAssumeId(pidNodeName, pid);
           Node pidNode = nm->mkBoundVar(pidNodeName.str(), nm->booleanType());
-          pf << pidNode << cs[0]; 
+          pf << pidNode << cs[0];
         }
         break;
         // ---------- arguments of translated rules go here
