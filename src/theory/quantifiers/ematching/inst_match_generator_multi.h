@@ -40,6 +40,8 @@ class InstMatchGeneratorMulti : public IMGenerator
   /** constructors */
   InstMatchGeneratorMulti(Node q,
                           std::vector<Node>& pats,
+                          quantifiers::QuantifiersState& qs,
+                          quantifiers::QuantifiersInferenceManager& qim,
                           QuantifiersEngine* qe);
   /** destructor */
   ~InstMatchGeneratorMulti() override;

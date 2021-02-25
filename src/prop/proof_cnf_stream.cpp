@@ -75,7 +75,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false")
                << ", removable = " << (removable ? "true" : "false") << ")\n";
-  d_removable = removable;
+  d_cnfStream.d_removable = removable;
   if (pg)
   {
     Trace("cnf") << "ProofCnfStream::convertAndAssert: pg: " << pg->identify()
@@ -583,6 +583,8 @@ void ProofCnfStream::ensureLiteral(TNode n)
   n = n.getKind() == kind::NOT ? n[0] : n;
   if (theory::Theory::theoryOf(n) == theory::THEORY_BOOL && !n.isVar())
   {
+    // These are not removable
+    d_cnfStream.d_removable = false;
     SatLiteral lit = toCNF(n, false);
     // Store backward-mappings
     // These may already exist
@@ -622,7 +624,9 @@ SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
       lit = node[0].getType().isBoolean() ? handleIff(node)
                                           : d_cnfStream.convertAtom(node);
       break;
-    default: { lit = d_cnfStream.convertAtom(node);
+    default:
+    {
+      lit = d_cnfStream.convertAtom(node);
     }
     break;
   }
@@ -635,7 +639,8 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::AND) << "Expecting an AND expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more than 1 child!";
-  Assert(!d_removable) << "Removable clauses cannot contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses cannot contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleAnd(" << node << ")\n";
   // Number of children
   unsigned size = node.getNumChildren();
@@ -698,7 +703,8 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::OR) << "Expecting an OR expression!";
   Assert(node.getNumChildren() > 1) << "Expecting more then 1 child!";
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleOr(" << node << ")\n";
   // Number of children
   unsigned size = node.getNumChildren();
@@ -754,7 +760,8 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::XOR) << "Expecting an XOR expression!";
   Assert(node.getNumChildren() == 2) << "Expecting exactly 2 children!";
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleXor(" << node << ")\n";
   SatLiteral a = toCNF(node[0]);
   SatLiteral b = toCNF(node[1]);
@@ -871,7 +878,8 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::IMPLIES) << "Expecting an IMPLIES expression!";
   Assert(node.getNumChildren() == 2) << "Expecting exactly 2 children!";
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "ProofCnfStream::handleImplies(" << node << ")\n";
   // Convert the children to cnf
   SatLiteral a = toCNF(node[0]);
@@ -920,7 +928,8 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   Assert(!d_cnfStream.hasLiteral(node)) << "Atom already mapped!";
   Assert(node.getKind() == kind::ITE);
   Assert(node.getNumChildren() == 3);
-  Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
+  Assert(!d_cnfStream.d_removable)
+      << "Removable clauses can not contain Boolean structure";
   Trace("cnf") << "handleIte(" << node[0] << " " << node[1] << " " << node[2]
                << ")\n";
   SatLiteral condLit = toCNF(node[0]);

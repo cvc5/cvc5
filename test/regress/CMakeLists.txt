@@ -751,6 +751,7 @@ set(regress_0_tests
   regress0/precedence/xor-assoc.cvc
   regress0/precedence/xor-or.cvc
   regress0/preprocess/circuit-prop.smt2
+  regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/preprocess_00.cvc
   regress0/preprocess/preprocess_01.cvc
   regress0/preprocess/preprocess_02.cvc
@@ -2029,6 +2030,8 @@ set(regress_1_tests
   regress1/strings/issue5610-2-infer-proxy.smt2
   regress1/strings/issue5611-deq-norm-emp.smt2
   regress1/strings/issue5692-infer-proxy.smt2
+  regress1/strings/issue5940-skc-len-conc.smt2
+  regress1/strings/issue5940-2-skc-len-conc.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

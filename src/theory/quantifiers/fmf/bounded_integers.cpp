@@ -87,8 +87,9 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
 BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
-                                 QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe)
+                                 QuantifiersRegistry& qr,
+                                 DecisionManager* dm)
+    : QuantifiersModule(qs, qim, qr, qe), d_dm(dm)
 {
 }
 
@@ -498,11 +499,9 @@ void BoundedIntegers::checkOwnership(Node f)
                 new IntRangeDecisionHeuristic(r,
                                               d_qstate.getSatContext(),
                                               d_qstate.getUserContext(),
-                                              d_quantEngine->getValuation(),
+                                              d_qstate.getValuation(),
                                               isProxy));
-            d_quantEngine->getTheoryEngine()
-                ->getDecisionManager()
-                ->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
+            d_dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
                                    d_rms[r].get());
           }
         }
@@ -726,7 +725,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem);
+      d_qim.lemma(lem, InferenceId::UNKNOWN);
     }
     return false;
   }else{

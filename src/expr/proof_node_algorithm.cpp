@@ -103,7 +103,7 @@ void getFreeAssumptionsMap(
               != traversing.end())
           {
             Unhandled() << "getFreeAssumptionsMap: cyclic proof! (use "
-                           "--proof-new-eager-checking)"
+                           "--proof-eager-checking)"
                         << std::endl;
           }
           visit.push_back(cp);

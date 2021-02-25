@@ -124,6 +124,15 @@ TheoryModel* Valuation::getModel() {
   }
   return d_engine->getModel();
 }
+SortInference* Valuation::getSortInference()
+{
+  if (d_engine == nullptr)
+  {
+    // no theory engine, thus we don't have a sort inference object
+    return nullptr;
+  }
+  return d_engine->getSortInference();
+}
 
 void Valuation::setUnevaluatedKind(Kind k)
 {
@@ -197,6 +206,19 @@ bool Valuation::needCheck() const{
 }
 
 bool Valuation::isRelevant(Node lit) const { return d_engine->isRelevant(lit); }
+
+context::CDList<Assertion>::const_iterator Valuation::factsBegin(TheoryId tid)
+{
+  Theory* theory = d_engine->theoryOf(tid);
+  Assert(theory != nullptr);
+  return theory->facts_begin();
+}
+context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
+{
+  Theory* theory = d_engine->theoryOf(tid);
+  Assert(theory != nullptr);
+  return theory->facts_end();
+}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
