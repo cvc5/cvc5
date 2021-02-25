@@ -47,7 +47,8 @@ bool LfscProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
-  Trace("lfsc-pp") << "LfscProofPostprocessCallback::update: " << id << std::endl;
+  Trace("lfsc-pp") << "LfscProofPostprocessCallback::update: " << id
+                   << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   Assert(id != PfRule::LFSC_RULE);
   bool isFirstTime = d_firstTime;
@@ -267,7 +268,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       {
         size_t jj = (nchildren - 1) - j;
         // conclude the final conclusion if we are finished
-        Node next = jj==0 ? res : nm->mkNode(AND, children[jj], cur);
+        Node next = jj == 0 ? res : nm->mkNode(AND, children[jj], cur);
         if (j == 0)
         {
           addLfscRule(cdp, next, {children[jj]}, LfscRule::AND_INTRO1, {});
@@ -335,8 +336,8 @@ LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
 void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   d_cb->initializeUpdate();
-  // do not automatically add symmetry steps, since this leads to non-termination
-  // for example on policy_variable.smt2
+  // do not automatically add symmetry steps, since this leads to
+  // non-termination for example on policy_variable.smt2
   ProofNodeUpdater updater(d_pnm, *(d_cb.get()), false, false);
   updater.process(pf);
 }

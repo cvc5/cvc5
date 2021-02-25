@@ -319,14 +319,14 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::NOT_XOR_ELIM1:
     case PfRule::NOT_XOR_ELIM2: pf << h << h << cs[0]; break;
     // CNF
-    case PfRule::CNF_EQUIV_POS1: 
-    case PfRule::CNF_EQUIV_POS2: 
-    case PfRule::CNF_EQUIV_NEG1: 
+    case PfRule::CNF_EQUIV_POS1:
+    case PfRule::CNF_EQUIV_POS2:
+    case PfRule::CNF_EQUIV_NEG1:
     case PfRule::CNF_EQUIV_NEG2:
-    case PfRule::CNF_XOR_POS1: 
-    case PfRule::CNF_XOR_POS2: 
-    case PfRule::CNF_XOR_NEG1: 
-    case PfRule::CNF_XOR_NEG2:  pf << as[0][0] << as[0][1]; break;
+    case PfRule::CNF_XOR_POS1:
+    case PfRule::CNF_XOR_POS2:
+    case PfRule::CNF_XOR_NEG1:
+    case PfRule::CNF_XOR_NEG2: pf << as[0][0] << as[0][1]; break;
     // equality
     case PfRule::REFL: pf << as[0]; break;
     case PfRule::SYMM: pf << h << h << cs[0]; break;
