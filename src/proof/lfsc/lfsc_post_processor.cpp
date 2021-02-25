@@ -57,7 +57,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::SCOPE:
     {
       // FIXME
-      if (true)
+      if (true || isFirstTime)
       {
         // Note that we do not want to modify the top-most SCOPE
         return false;
@@ -73,7 +73,16 @@ bool LfscProofPostprocessCallback::update(Node res,
         // FOL representation for its type.
         Node fconc = mkDummyPredicate();
         addLfscRule(cdp, fconc, {curr}, LfscRule::PI, {args[ii]});
-        Node next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
+        Node next;
+        if (i+1==nargs)
+        {
+          // if at end, take the final conclusion
+          next = res;
+        }
+        else
+        {
+          next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
+        }
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {});
         curr = next;
       }
@@ -141,7 +150,9 @@ bool LfscProofPostprocessCallback::update(Node res,
       Node nullTerm = LfscTermProcessor::getNullTerminator(k);
       // Are we doing congruence of an n-ary operator? If so, notice that op
       // is a binary operator and we must apply congruence in a special way.
-      if (ExprManager::isNAryKind(k) && (nchildren >= 2 || !nullTerm.isNull()))
+      // Note we use the first block of code if we have more than 2 children,
+      // or if we have a null terminator.
+      if (ExprManager::isNAryKind(k) && (nchildren > 2 || !nullTerm.isNull()))
       {
         // get the null terminator for the kind, which may mean we are doing
         // a special kind of congruence for n-ary kinds whose base is a REFL
@@ -150,12 +161,13 @@ bool LfscProofPostprocessCallback::update(Node res,
         if (!nullTerm.isNull())
         {
           currEq = nullTerm.eqNode(nullTerm);
-          // if we have a null terminator, we do a final conclusion to add
-          // the null terminator to both sides
+          // if we have a null terminator, we do a final REFL step to add
+          // the null terminator to both sides.
           cdp->addStep(currEq, PfRule::REFL, {}, {nullTerm});
         }
         else
         {
+          // Otherwise, start with the last argument.
           currEq = children[nchildren - 1];
         }
         for (size_t i = 0; i < nchildren; i++)
@@ -184,6 +196,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       else
       {
+        // non n-ary kinds do not have null terminators
+        Assert (nullTerm.isNull());
         Node curL = op;
         Node curR = op;
         Node currEq = opEq;
@@ -191,10 +205,9 @@ bool LfscProofPostprocessCallback::update(Node res,
         {
           // CONG rules for each child
           Node nextEq;
-          if (i + 1 == nchildren && nullTerm.isNull())
+          if (i + 1 == nchildren)
           {
-            // if we are at the end, we prove the final equality, unless we
-            // have a null terminator.
+            // if we are at the end, we prove the final equality
             nextEq = res;
           }
           else
