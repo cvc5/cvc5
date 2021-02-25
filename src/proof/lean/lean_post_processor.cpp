@@ -95,23 +95,12 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
     case PfRule::SYMM:
     {
-      Node child = children[0];
-      Kind k = child.getKind();
-      Node new_id, t1, t2, c, new_res;
-      if (k == kind::EQUAL)
-      {
-        t1 = child[0];
-        t2 = child[1];
-        c = nm->mkNode(kind::EQUAL, t2, t1);
-        addLeanStep(c, LeanRule::SMTSYMM, {t2,t1}, {}, *cdp);
-      }
-      else
-      {
-        t1 = child[0][0];
-        t2 = child[0][1];
-        c = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, t2, t1));
-        addLeanStep(c, LeanRule::SMTSYMM_NEG, {t2,t1}, {}, *cdp);
-      }
+      addLeanStep(nm->mkNode(kind::OR, ),
+                  res.getKind() == kind::EQUAL ? LeanRule::SMTSYMM
+                                               : LeanRule::SMTSYMM_NEG,
+                  {},
+                  {},
+                  *cdp);
       break;
     }
     default:
