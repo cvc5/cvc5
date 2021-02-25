@@ -74,7 +74,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         Node fconc = mkDummyPredicate();
         addLfscRule(cdp, fconc, {curr}, LfscRule::PI, {args[ii]});
         Node next;
-        if (i+1==nargs)
+        if (i + 1 == nargs)
         {
           // if at end, take the final conclusion
           next = res;
@@ -197,7 +197,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       else
       {
         // non n-ary kinds do not have null terminators
-        Assert (nullTerm.isNull());
+        Assert(nullTerm.isNull());
         Node curL = op;
         Node curR = op;
         Node currEq = opEq;
