@@ -22,8 +22,6 @@
 #ifndef CVC4__NODE_H
 #define CVC4__NODE_H
 
-#include <algorithm>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <unordered_map>

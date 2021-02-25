@@ -17,6 +17,7 @@
 #include "printer/smt2/smt2_printer.h"
 
 #include <iostream>
+#include <list>
 #include <string>
 #include <typeinfo>
 #include <vector>
