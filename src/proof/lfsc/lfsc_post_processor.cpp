@@ -28,13 +28,13 @@ namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pc(pnm->getChecker())
+    : d_pnm(pnm), d_pc(pnm->getChecker()), d_firstTime(false)
 {
 }
 
-LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
-    : d_cb(new proof::LfscProofPostprocessCallback(pnm)), d_pnm(pnm)
+void LfscProofPostprocessCallback::initializeUpdate()
 {
+  d_firstTime = true;
 }
 
 bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
@@ -52,12 +52,19 @@ bool LfscProofPostprocessCallback::update(Node res,
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(id != PfRule::LFSC_RULE);
+  bool isFirstTime = d_firstTime;
+  d_firstTime = false;
 
   switch (id)
   {
-    /*
     case PfRule::SCOPE:
     {
+      // FIXME
+      if (true)
+      {
+        // Note that we do not want to modify the top-most SCOPE
+        return false;
+      }
       // (SCOPE P :args (F1 ... Fn))
       // becomes
       // (scope _ _ (! X1 ... (scope _ _ (! Xn P)) ... ))
@@ -73,10 +80,9 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {});
         curr = next;
       }
-      // TODO: return true
+      return true;
     }
     break;
-    */
     case PfRule::CHAIN_RESOLUTION:
     {
       // turn into binary resolution
@@ -279,6 +285,12 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
 {
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkSkolem("dummy", nm->booleanType());
+}
+
+
+LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
+    : d_cb(new proof::LfscProofPostprocessCallback(pnm)), d_pnm(pnm)
+{
 }
 
 void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)

@@ -58,6 +58,11 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofChecker* d_pc;
   /** The term processor */
   LfscTermProcessor d_tproc;
+  /** 
+   * Are we in the first call to update? This is to distinguish the top-most
+   * SCOPE.
+   */
+  bool d_firstTime;
   /** Add LFSC rule to cdp with children, args, conc */
   void addLfscRule(CDProof* cdp,
                    Node conc,

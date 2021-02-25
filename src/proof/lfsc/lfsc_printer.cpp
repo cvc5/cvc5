@@ -163,6 +163,8 @@ void LfscPrinter::printProofInternal(
     std::map<const ProofNode*, uint32_t>& pletMap,
     std::map<Node, uint32_t>& passumeMap)
 {
+  std::unordered_set<const ProofNode*> noBind;
+  std::unordered_set<const ProofNode*>::iterator itnb;
   // the stack
   std::vector<PExpr> visit;
   // whether we have process children
@@ -207,7 +209,7 @@ void LfscPrinter::printProofInternal(
           // a normal rule application, compute the proof arguments, which
           // notice in the case of PI also may modify our passumeMap.
           std::vector<PExpr> args;
-          if (computeProofArgs(cur, args, passumeMap))
+          if (computeProofArgs(cur, args, passumeMap, noBind))
           {
             processedChildren[cur] = false;
             // will revisit this proof node to close parentheses
@@ -240,10 +242,20 @@ void LfscPrinter::printProofInternal(
           LfscRule lr = getLfscRule(cargs[0]);
           if (lr == LfscRule::PI)
           {
-            // Remove argument from assumption binding, only if it was bound
-            // by this call. This is not the case if the assumption is
-            // shadowing.
-            std::map<Node, uint32_t>::iterator itp = passumeMap.find(cargs[2]);
+            itnb = noBind.find(cur);
+            if (itnb==noBind.end())
+            {
+              Assert (cargs.size()==3);
+              // Remove argument from assumption binding, only if it was bound
+              // by this call. This is not the case if the assumption is
+              // shadowing.
+              Assert (passumeMap.find(cargs[2])!=passumeMap.end());
+              passumeMap.erase(cargs[2]);
+            }
+            else
+            {
+              noBind.erase(cur);
+            }
           }
         }
       }
@@ -267,7 +279,9 @@ void LfscPrinter::printProofInternal(
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
                                    std::vector<PExpr>& pargs,
-                                   std::map<Node, uint32_t>& passumeMap)
+                                   std::map<Node, uint32_t>& passumeMap,
+                                   std::unordered_set<const ProofNode*>& noBind
+                                  )
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   std::vector<const ProofNode*> cs;
@@ -305,6 +319,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::FALSE_INTRO:
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
+    // strings
+    case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
@@ -330,6 +346,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           }
           else
           {
+            // mark that it did *not* bind its assumption
+            noBind.insert(pn);
             pid = itp->second;
           }
           // make the node whose name is the assumption id, where notice that
