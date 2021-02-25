@@ -47,8 +47,8 @@ bool LeanProofPostprocessCallback::addLeanStep(
     const std::vector<Node>& args,
     CDProof& cdp)
 {
-  NodeManager* d_nm = NodeManager::currentNM();
-  Node leanId = d_nm->mkConst<Rational>(static_cast<unsigned>(rule));
+  NodeManager* nm = NodeManager::currentNM();
+  Node leanId = nm->mkConst<Rational>(static_cast<unsigned>(rule));
   std::vector<Node> lean_args = {leanId, res};
   lean_args.insert(lean_args.end(), args.begin(), args.end());
   return cdp.addStep(res, PfRule::LEAN_RULE, children, lean_args);
@@ -60,16 +60,17 @@ bool LeanProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
-  NodeManager* d_nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   switch (id)
   {
     case PfRule::ASSUME:
     {
-      return addLeanStep(res, LeanRule::ASSUME, children, {}, *cdp);
+      Trace("Hi") << args;
+      return addLeanStep(res, LeanRule::ASSUME, children, args, *cdp);
     }
     case PfRule::SCOPE:
     {
-      return addLeanStep(res, LeanRule::SCOPE, children, {}, *cdp);
+      return addLeanStep(res, LeanRule::SCOPE, children, args, *cdp);
     }
     case PfRule::CHAIN_RESOLUTION:
     {
@@ -96,29 +97,21 @@ bool LeanProofPostprocessCallback::update(Node res,
     {
       Node child = children[0];
       Kind k = child.getKind();
-      Node new_id, t1, t2, c1, c2, new_res;
+      Node new_id, t1, t2, c, new_res;
       if (k == kind::EQUAL)
       {
-        new_id = d_nm->mkConst<Rational>(
-            static_cast<unsigned>(proof::LeanRule::SMTSYMM));
         t1 = child[0];
         t2 = child[1];
-        c1 = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, t1, t2));
-        c2 = d_nm->mkNode(kind::EQUAL, t2, t1);
-        new_res = d_nm->mkNode(c1, c2);
+        c = nm->mkNode(kind::EQUAL, t2, t1);
+        addLeanStep(c, LeanRule::SMTSYMM, {t2,t1}, {}, *cdp);
       }
       else
       {
-        new_id = d_nm->mkConst<Rational>(
-            static_cast<unsigned>(proof::LeanRule::SMTSYMM_NEG));
         t1 = child[0][0];
         t2 = child[0][1];
-        c1 = d_nm->mkNode(kind::EQUAL, t1, t2);
-        c2 = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, t2, t1));
-        new_res = d_nm->mkNode(c1, c2);
+        c = nm->mkNode(kind::NOT, nm->mkNode(kind::EQUAL, t2, t1));
+        addLeanStep(c, LeanRule::SMTSYMM_NEG, {t2,t1}, {}, *cdp);
       }
-      std::vector<Node> new_args = {new_id, t1, t2};
-      cdp->addStep(new_res, PfRule::LEAN_RULE, {}, new_args);
       break;
     }
     default:

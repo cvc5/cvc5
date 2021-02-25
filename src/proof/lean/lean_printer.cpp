@@ -92,8 +92,8 @@ void LeanPrinter::printLeanString(std::ostream& s, Node n)
         s << " ";
       };
     }
+    s << ")";
   }
-  s << ")";
 }
 
 void LeanPrinter::printLeanType(std::ostream& s, Node n)
@@ -149,13 +149,15 @@ void LeanPrinter::printProof(std::ostream& out,
     case LeanRule::ASSUME:
     {
       // keep track of variable names in assume statement using passumeMap
+      Trace("Hi2") << args;
       size_t var_index = passumeMap.size();
       std::stringstream var_string;
       var_string << "v" << var_index;
       passumeMap[args[1]] = var_string.str();
-      out << "(assume (" << var_string.str() << " : holds [";
-      printLeanString(out, args[1]);
-      out << "]),\n";
+      out << "(assume (" << var_string.str() << " : ";
+      //printLeanString(out, args[1]);
+      printLeanType(out, args[1]);
+      out << "),\n";
       break;
     };
     case LeanRule::SCOPE:
@@ -188,16 +190,19 @@ void LeanPrinter::printProof(std::ostream& out,
     }
     case LeanRule::SMTSYMM:
     {
-      out << "@smtsymm";
-      printLeanString(out, args[0]);
+      out << "@smtsymm ";
+      out << children[0]->getArguments()[1] << " ";
+      out << children[1]->getArguments()[1];
+      //printLeanString(out, args[0]);
       out << " ";
       break;
     }
     case LeanRule::SMTSYMM_NEG:
     {
-      out << "@smtsymm_neg";
-      printLeanString(out, args[0]);
-      out << " ";
+      out << "@smtsymm_neg ";
+      out << children[0]->getArguments()[1] << " ";
+      out << children[1]->getArguments()[1];
+      //printLeanString(out, args[2]);
       break;
     }
     default:
