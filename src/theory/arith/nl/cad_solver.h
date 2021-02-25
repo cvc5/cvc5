@@ -18,14 +18,16 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
-#include "theory/arith/nl/nl_model.h"
+#include "util/real_algebraic_number.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
 
 /**

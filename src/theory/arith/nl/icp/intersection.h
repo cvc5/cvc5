@@ -18,7 +18,9 @@
 #include "util/real_algebraic_number.h"
 
 #ifdef CVC4_POLY_IMP
-#include <poly/polyxx.h>
+namespace poly {
+  class Interval;
+}
 
 namespace CVC4 {
 namespace theory {

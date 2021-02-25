@@ -23,7 +23,6 @@
 
 #include "expr/node.h"
 #include "theory/arith/bound_inference.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/icp/candidate.h"
 #include "theory/arith/nl/icp/contraction_origins.h"
 #include "theory/arith/nl/icp/intersection.h"
@@ -32,6 +31,9 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
 namespace icp {
 
