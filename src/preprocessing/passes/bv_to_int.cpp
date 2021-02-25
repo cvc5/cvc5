@@ -691,6 +691,9 @@ Node BVToInt::translateWithChildren(Node original,
     {
       // Exists is eliminated by the rewriter.
       Assert(false);
+#ifdef NDEBUG
+      CVC4_FALLTHROUGH;
+#endif
     }
     default:
     {
