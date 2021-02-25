@@ -328,7 +328,8 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
   return nm->mkSkolem("dummy", nm->booleanType());
 }
 
-LfscProofPostprocess::LfscProofPostprocess(LfscTermProcessor& ltp, ProofNodeManager* pnm)
+LfscProofPostprocess::LfscProofPostprocess(LfscTermProcessor& ltp,
+                                           ProofNodeManager* pnm)
     : d_cb(new proof::LfscProofPostprocessCallback(ltp, pnm)), d_pnm(pnm)
 {
 }

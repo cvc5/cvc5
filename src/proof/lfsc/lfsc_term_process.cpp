@@ -116,10 +116,10 @@ Node LfscTermProcessor::runConvert(Node n)
     args.push_back(n[2]);
     return nm->mkNode(APPLY_UF, args);
   }
-  else if (k== MINUS)
+  else if (k == MINUS)
   {
     // note that MINUS is not n-ary
-    Assert (n.getNumChildren()==2);
+    Assert(n.getNumChildren() == 2);
     // TODO: refactor
     std::stringstream opName;
     opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
@@ -177,7 +177,7 @@ Node LfscTermProcessor::runConvert(Node n)
       // check whether we are also changing the operator name, in which case
       // we build a binary uninterpreted function opc
       Node opc;
-      if (k==PLUS || k==MULT)
+      if (k == PLUS || k == MULT)
       {
         std::stringstream opName;
         opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);

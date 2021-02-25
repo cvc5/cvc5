@@ -65,7 +65,7 @@ class LfscTermProcessor : public TermProcessor
   /** the type of LFSC sorts, which can appear in terms */
   TypeNode d_sortType;
   /** Used for getting unique index for variable */
-  std::map< Node, uint32_t> d_varIndex;
+  std::map<Node, uint32_t> d_varIndex;
 };
 
 }  // namespace proof
