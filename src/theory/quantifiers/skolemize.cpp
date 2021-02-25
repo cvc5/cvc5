@@ -383,7 +383,7 @@ void Skolemize::getSkolemTermVectors(
 {
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
       itk;
-  for (const std::pair<const Node, Node>& p : d_skolemized)
+  for (const auto& p : d_skolemized)
   {
     Node q = p.first;
     itk = d_skolem_constants.find(q);
