@@ -79,7 +79,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // In LFSC, we have now proved:
       //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
       // We now must convert this to one of two cases
-      if (res.getKind()==NOT)
+      if (res.getKind() == NOT)
       {
         // we have C = false,
         // convert to (not (and F1 (and F2 ... (and Fn C) ... )))
