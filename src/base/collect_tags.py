@@ -17,24 +17,24 @@ def parse_args():
     return ap.parse_args()
 
 
-def collect_tags(basedir: str):
+def collect_tags(basedir):
     """Collect all tags used in filed within the given base directory.
     Return them sorted lexicographically."""
     tags = set()
     for ext in ['.cc', '.cpp', '.g', '.h']:
-        for filename in glob.iglob(f'{basedir}/**/*{ext}', recursive=True):
+        for filename in glob.iglob('{}/**/*{}'.format(basedir, ext), recursive=True):
             content = open(filename).read()
             for tag in RE_PAT.finditer(content):
                 tags.add(tag.group(1))
     return sorted(tags)
 
 
-def write_file(filename: str, type: str, tags):
+def write_file(filename, type, tags):
     """Render the header file to the given filename."""
     with open(filename, 'w') as out:
-        out.write(f'static char const* const {type}_tags[] = {{\n')
+        out.write('static char const* const {}_tags[] = {{\n'.format(type))
         for t in tags:
-            out.write(f'\"{t}\",\n')
+            out.write('"{}",\n'.format(t))
         out.write('nullptr\n')
         out.write('};\n')
 
@@ -42,9 +42,9 @@ def write_file(filename: str, type: str, tags):
 if __name__ == '__main__':
     # setup
     opts = parse_args()
-    RE_PAT = re.compile(f'{opts.type}(?:\\.isOn)?\\("([^"]+)"\\)')
-    FILENAME_TMP = f'{opts.destdir}/{opts.type}_tags.tmp'
-    FILENAME_DEST = f'{opts.destdir}/{opts.type}_tags.h'
+    RE_PAT = re.compile('{}(?:\\.isOn)?\\("([^"]+)"\\)'.format(opts.type))
+    FILENAME_TMP = '{}/{}_tags.tmp'.format(opts.destdir, opts.type)
+    FILENAME_DEST = '{}/{}_tags.h'.format(opts.destdir, opts.type)
 
     # collect tags
     tags = collect_tags(opts.basedir)
