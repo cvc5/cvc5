@@ -31,7 +31,6 @@ using namespace theory::bv;
 using namespace theory::bv::utils;
 using namespace theory::quantifiers;
 using namespace theory::quantifiers::utils;
-using namespace smt;
 
 namespace test {
 
