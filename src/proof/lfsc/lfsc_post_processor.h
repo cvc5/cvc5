@@ -22,6 +22,7 @@
 
 #include "expr/proof_node_updater.h"
 #include "proof/lfsc/lfsc_term_process.h"
+#include "proof/lfsc/lfsc_util.h"
 
 namespace CVC4 {
 namespace proof {
@@ -57,12 +58,8 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofChecker* d_pc;
   /** The term processor */
   LfscTermProcessor d_tproc;
-  /** update n-ary */
-  bool update(size_t i,
-              const std::vector<Node>& children,
-              CDProof* cdp,
-              PfRule ruleNext,
-              PfRule ruleFinish);
+  /** Add LFSC rule to cdp with children, args, conc */
+  void addLfscRule(CDProof* cdp, Node conc, const std::vector<Node>& children, LfscRule lr, const std::vector<Node>& args);
   /** mkChain */
   static Node mkChain(Kind k, const std::vector<Node>& children);
 };

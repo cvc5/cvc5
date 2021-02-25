@@ -146,8 +146,8 @@ class ProofChecker
   Node checkDebug(PfRule id,
                   const std::vector<Node>& cchildren,
                   const std::vector<Node>& args,
-                  Node expected,
-                  const char* traceTag);
+                  Node expected = Node::null(),
+                  const char* traceTag = "");
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
   /**
