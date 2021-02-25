@@ -53,22 +53,30 @@ bool LfscProofPostprocessCallback::update(Node res,
   NodeManager* nm = NodeManager::currentNM();
   Assert(id != PfRule::LFSC_RULE);
 
-  // convert children to internal form
-  std::vector<Node> ics;
-  for (const Node& c : children)
-  {
-    ics.push_back(d_tproc.convert(c));
-  }
-
-  // convert arguments to internal form
-  std::vector<Node> ias;
-  for (const Node& a : args)
-  {
-    ias.push_back(d_tproc.convert(a));
-  }
-
   switch (id)
   {
+    /*
+    case PfRule::SCOPE:
+    {
+      // (SCOPE P :args (F1 ... Fn))
+      // becomes
+      // (scope _ _ (! X1 ... (scope _ _ (! Xn P)) ... ))
+      Node curr = children[0];
+      for (size_t i=0, nargs = args.size(); i<nargs; i++)
+      {
+        size_t ii = (nargs-1)-i;
+        // Use a dummy conclusion for what PI proves, since there is no
+        // FOL representation for its type.
+        Node fconc = mkDummyPredicate();
+        addLfscRule(cdp, fconc, {curr}, LfscRule::PI, {args[ii]});
+        Node next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
+        addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {}); 
+        curr = next;
+      }
+      // TODO: return true
+    }
+    break;
+    */
     case PfRule::CHAIN_RESOLUTION:
     {
       // turn into binary resolution
@@ -80,6 +88,19 @@ bool LfscProofPostprocessCallback::update(Node res,
         cur = d_pc->checkDebug(PfRule::RESOLUTION, newChildren, newArgs);
         cdp->addStep(cur, PfRule::RESOLUTION, newChildren, newArgs);
       }
+      return true;
+    }
+    break;
+    case PfRule::SYMM:
+    {
+      if (res.getKind()!=NOT)
+      {
+        // no need to convert (positive) equality symmetry
+        return false;
+      }
+      // must use alternate SYMM rule for disequality
+      addLfscRule(cdp, res, {children[0]}, LfscRule::NEG_SYMM, {});
+      return true;
     }
     break;
     case PfRule::TRANS:
@@ -203,14 +224,14 @@ bool LfscProofPostprocessCallback::update(Node res,
       for (uint32_t j = 0; j < i; j++)
       {
         Node cur_r = j == 0 ? curChain[1] : cur[1];
-        addLfscRule(cdp, cur_r, {cur}, LfscRule::CNF_AND_POS_2, {});
+        addLfscRule(cdp, cur_r, {cur}, LfscRule::AND_ELIM2, {});
         cur = cur_r;
       }
       // We always get the left child, even if we are at the end
       // (i=cchildren.size()-1) or at the beginning (i=0). For the end case,
       // we are taking F from (and F true), in the beginning case, we are
       // taking F from the original n-ary (and F ...).
-      addLfscRule(cdp, cur[0], {cur}, LfscRule::CNF_AND_POS_1, {});
+      addLfscRule(cdp, cur[0], {cur}, LfscRule::AND_ELIM1, {});
     }
     break;
     default: return false; break;
@@ -252,6 +273,12 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
     i++;
   }
   return ret;
+}
+
+Node LfscProofPostprocessCallback::mkDummyPredicate()
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkSkolem("dummy", nm->booleanType());
 }
 
 void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)

@@ -98,7 +98,8 @@ class LfscPrinter
   /**
    * Get the arguments for the proof node application
    */
-  bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
+  bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs,
+                        std::map<Node, uint32_t>& passumeMap);
   //------------------------------ end printing proofs
 
   //------------------- helper methods

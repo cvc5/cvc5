@@ -40,12 +40,17 @@ work steps:
 enum class LfscRule : uint32_t
 {
   //----------- translated rules
-  SYMM,
+  
+  // We defined LFSC versions for rules that either don't exist in the internal
+  // calculus, or have a different set of arugments/children.
+  SCOPE,
   NEG_SYMM,
-  TRANS,
   CONG,
-  CNF_AND_POS_1,
-  CNF_AND_POS_2,
+  AND_ELIM1,
+  AND_ELIM2,
+  
+  // a pi with argument
+  PI,
   //----------- unknown
   UNKNOWN,
 };

@@ -21,12 +21,12 @@ const char* toString(LfscRule id)
 {
   switch (id)
   {
-    case LfscRule::SYMM: return "symm";
+    case LfscRule::SCOPE: return "scope";
     case LfscRule::NEG_SYMM: return "neg_symm";
     case LfscRule::CONG: return "cong";
-    case LfscRule::TRANS: return "trans";
-    case LfscRule::CNF_AND_POS_1: return "cnf_and_pos_1";
-    case LfscRule::CNF_AND_POS_2: return "cnf_and_pos_2";
+    case LfscRule::AND_ELIM1: return "and_elim1";
+    case LfscRule::AND_ELIM2: return "and_elim2";
+    case LfscRule::PI: return "!";
     default: return "?";
   }
 }

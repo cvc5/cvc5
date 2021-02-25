@@ -182,6 +182,7 @@ void LfscPrinter::printProofInternal(
     // case 1: printing a proof
     if (cur != nullptr)
     {
+      PfRule r = cur->getRule();
       pit = processedChildren.find(cur);
       if (pit == processedChildren.end())
       {
@@ -193,9 +194,7 @@ void LfscPrinter::printProofInternal(
           out << " ";
           printProofId(out, pletIt->second);
         }
-        //        else if (cur->getRule() == PfRule::SCOPE)
-        // introduce a?
-        else if (cur->getRule() == PfRule::ASSUME)
+        else if (r == PfRule::ASSUME)
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
@@ -205,10 +204,10 @@ void LfscPrinter::printProofInternal(
         }
         else
         {
-          // a normal rule application, compute the proof arguments
+          // a normal rule application, compute the proof arguments, which
+          // notice in the case of PI also may modify our passumeMap.
           std::vector<PExpr> args;
-
-          if (computeProofArgs(cur, args))
+          if (computeProofArgs(cur, args, passumeMap))
           {
             processedChildren[cur] = false;
             // will revisit this proof node to close parentheses
@@ -234,6 +233,19 @@ void LfscPrinter::printProofInternal(
       {
         processedChildren[cur] = true;
         out << ")";
+        if (r==PfRule::LFSC_RULE)
+        {
+          const std::vector<Node>& cargs = cur->getArguments();
+          Assert (!cargs.empty());
+          LfscRule lr = getLfscRule(cargs[0]);
+          if (lr==LfscRule::PI)
+          {
+            // Remove argument from assumption binding, only if it was bound
+            // by this call. This is not the case if the assumption is
+            // shadowing.
+            std::map<Node, uint32_t>::iterator itp = passumeMap.find(cargs[2]);
+          }
+        }
       }
     }
     // case 2: printing a node
@@ -254,7 +266,8 @@ void LfscPrinter::printProofInternal(
 }
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
-                                   std::vector<PExpr>& pargs)
+                                   std::vector<PExpr>& pargs,
+                        std::map<Node, uint32_t>& passumeMap)
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   std::vector<const ProofNode*> cs;
@@ -262,6 +275,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   {
     cs.push_back(c.get());
   }
+  NodeManager * nm = NodeManager::currentNM();
   PfRule r = pn->getRule();
   const std::vector<Node>& as = pn->getArguments();
   PExprStream pf(pargs);
@@ -279,8 +293,14 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       pf << h << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1];
       break;
     case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
+    case PfRule::NOT_AND: pf << h << h << cs[0]; break;
+    // CNF
+    case PfRule::EQUIV_ELIM1: 
+    case PfRule::EQUIV_ELIM2:
+      pf << h << h << cs[0]; break;
     // equality
     case PfRule::REFL: pf << as[0]; break;
+    case PfRule::SYMM: pf << h << h << cs[0]; break;
     case PfRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
     case PfRule::TRUE_INTRO:
     case PfRule::FALSE_INTRO:
@@ -294,12 +314,33 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // begins at index 2
       switch (lr)
       {
-        case LfscRule::SYMM: pf << h << cs[0]; break;
-        case LfscRule::NEG_SYMM: pf << h << cs[0]; break;
-        case LfscRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
+        case LfscRule::SCOPE: pf << h << h << cs[0]; break;
+        case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
-        case LfscRule::CNF_AND_POS_1:
-        case LfscRule::CNF_AND_POS_2: pf << h << h << cs[0]; break;
+        case LfscRule::AND_ELIM1:
+        case LfscRule::AND_ELIM2: pf << h << h << cs[0]; break;
+        case LfscRule::PI: 
+        {
+          // allocate an assumption, if necessary
+          uint32_t pid;
+          std::map<Node, uint32_t>::iterator itp = passumeMap.find(as[2]);
+          if (itp==passumeMap.end())
+          {
+            pid = passumeMap.size();
+            passumeMap[as[2]] = pid;
+          }
+          else
+          {
+            pid = itp->second;
+          }
+          // make the node whose name is the assumption id, where notice that
+          // the type of this node does not matter
+          std::stringstream pidNodeName;
+          printAssumeId(pidNodeName, pid);
+          Node pidNode = nm->mkBoundVar(pidNodeName.str(), nm->booleanType());
+          pf << pidNode << cs[0]; 
+        }
+        break;
         // ---------- arguments of translated rules go here
         default: return false; break;
       }
