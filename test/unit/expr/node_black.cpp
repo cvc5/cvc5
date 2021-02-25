@@ -52,12 +52,12 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager,
 }
 }  // namespace
 
-class TestNodeBlackNode : public TestNodeBlack
+class TestNodeBlackNode : public TestNode
 {
  protected:
   void SetUp() override
   {
-    TestNodeBlack::SetUp();
+    TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
     char* argv[2];
