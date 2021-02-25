@@ -32,7 +32,7 @@ using namespace expr;
 
 namespace test {
 
-class TestNodeBlackNodeManager : public TestNodeBlack
+class TestNodeBlackNodeManager : public TestNode
 {
 };
 
