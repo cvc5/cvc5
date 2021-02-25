@@ -1562,7 +1562,7 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   // may contribute to conflicts due to cardinality (good examples of this are
   // regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  bool forceLemma = true;
+  bool forceLemma = dt.involvesExternalType();
   if (options::dtPoliteOptimize())
   {
     forceLemma = dt[index].hasFiniteExternalArgType(ttn);
