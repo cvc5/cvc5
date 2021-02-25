@@ -1566,7 +1566,9 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   if (options::dtPoliteOptimize())
   {
     forceLemma = dt[index].hasFiniteExternalArgType(ttn);
-  } else {
+  }
+  else
+  {
     forceLemma = dt.involvesExternalType();
   }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
