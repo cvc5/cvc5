@@ -637,6 +637,7 @@ set(regress_0_tests
   regress0/issue5099-model-1.smt2
   regress0/issue5099-model-2.smt2
   regress0/issue5144-resetAssertions.smt2
+  regress0/issue5187-div-justification.smt2
   regress0/issue5370.smt2
   regress0/issue5462.smt2
   regress0/issue5540-2-dump-model.smt2
@@ -751,6 +752,7 @@ set(regress_0_tests
   regress0/precedence/xor-assoc.cvc
   regress0/precedence/xor-or.cvc
   regress0/preprocess/circuit-prop.smt2
+  regress0/preprocess/issue5729-rewritten-assertions.smt2
   regress0/preprocess/preprocess_00.cvc
   regress0/preprocess/preprocess_01.cvc
   regress0/preprocess/preprocess_02.cvc
