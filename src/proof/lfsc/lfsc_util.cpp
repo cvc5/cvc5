@@ -36,6 +36,5 @@ std::ostream& operator<<(std::ostream& out, LfscRule id)
   return out;
 }
 
-
 }  // namespace proof
 }  // namespace CVC4

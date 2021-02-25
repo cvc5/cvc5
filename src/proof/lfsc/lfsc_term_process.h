@@ -47,6 +47,7 @@ class LfscTermProcessor : public TermProcessor
    * a term. An example is for the base REFL step of nested CONG.
    */
   Node getOperatorForTerm(Node n);
+
  private:
   /** Get symbol for term */
   Node getSymbolInternalFor(Node n, const std::string& name, uint32_t v = 0);

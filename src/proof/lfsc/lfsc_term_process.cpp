@@ -14,8 +14,8 @@
 
 #include "proof/lfsc/lfsc_term_process.h"
 
-#include "theory/uf/theory_uf_rewriter.h"
 #include "printer/smt2/smt2_printer.h"
+#include "theory/uf/theory_uf_rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -244,8 +244,8 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
 
 Node LfscTermProcessor::getOperatorForTerm(Node n)
 {
-  Assert (n.hasOperator());
-  if (n.getMetaKind()==metakind::PARAMETERIZED)
+  Assert(n.hasOperator());
+  if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
     return n.getOperator();
   }

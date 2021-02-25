@@ -59,7 +59,11 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The term processor */
   LfscTermProcessor d_tproc;
   /** Add LFSC rule to cdp with children, args, conc */
-  void addLfscRule(CDProof* cdp, Node conc, const std::vector<Node>& children, LfscRule lr, const std::vector<Node>& args);
+  void addLfscRule(CDProof* cdp,
+                   Node conc,
+                   const std::vector<Node>& children,
+                   LfscRule lr,
+                   const std::vector<Node>& args);
   /** mkChain */
   static Node mkChain(Kind k, const std::vector<Node>& children);
 };
