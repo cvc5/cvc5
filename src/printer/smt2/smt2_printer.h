@@ -222,7 +222,9 @@ class Smt2Printer : public CVC4::Printer
   /** Print declaration sequence command */
   void toStreamCmdDeclarationSequence(
       std::ostream& out, const std::vector<Command*>& sequence) const override;
-
+  
+  /** Get the string for a kind k */
+  static std::string smtKindString(Kind k, Variant v = smt2_6_variant);
  private:
   /**
    * The main printing method for nodes n.

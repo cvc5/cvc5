@@ -21,25 +21,6 @@
 namespace CVC4 {
 namespace proof {
 
-const char* toString(LfscRule id)
-{
-  switch (id)
-  {
-    case LfscRule::SYMM: return "symm";
-    case LfscRule::NEG_SYMM: return "neg_symm";
-    case LfscRule::CONG: return "cong";
-    case LfscRule::TRANS: return "trans";
-    case LfscRule::CNF_AND_POS_1: return "cnf_and_pos_1";
-    case LfscRule::CNF_AND_POS_2: return "cnf_and_pos_2";
-    default: return "?";
-  }
-}
-std::ostream& operator<<(std::ostream& out, LfscRule id)
-{
-  out << toString(id);
-  return out;
-}
-
 LfscPrinter::LfscPrinter() {}
 
 void LfscPrinter::print(std::ostream& out,
@@ -158,6 +139,11 @@ void LfscPrinter::printProofLetify(std::ostream& out,
       pletMap[p] = pid;
       out << " (\\ ";
       printProofId(out, pid);
+      // debugging
+      if (Trace.isOn("lfsc-print-debug"))
+      {
+        out << "; proves " << p->getResult();
+      }
       out << std::endl;
       cparen << "))";
     }
@@ -286,21 +272,26 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       << " #args=" << as.size() << std::endl;
   switch (r)
   {
-    case PfRule::REFL: pf << as[0]; break;
-    case PfRule::TRUE_INTRO:
-    case PfRule::FALSE_INTRO:
-    case PfRule::TRUE_ELIM:
-    case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
+    // Boolean
     case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
     case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::RESOLUTION:
       pf << h << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1];
       break;
     case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
+    // equality
+    case PfRule::REFL: pf << as[0]; break;
+    case PfRule::TRANS: pf << h << h << h << cs[0] << cs[1]; break;
+    case PfRule::TRUE_INTRO:
+    case PfRule::FALSE_INTRO:
+    case PfRule::TRUE_ELIM:
+    case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(as[0]);
+      // Note that `as` has 2 builtin arguments, thus the first real argument
+      // begins at index 2
       switch (lr)
       {
         case LfscRule::SYMM: pf << h << cs[0]; break;

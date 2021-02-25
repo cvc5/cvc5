@@ -104,20 +104,85 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::CONG:
     {
       Assert (res.getKind()==EQUAL);
+      Assert (res[0].getOperator()==res[1].getOperator());
+      Kind k = res[0].getKind();
       // We are proving f(t1, ..., tn) = f(s1, ..., sn), nested.
-      // The intermediate proofs prove:
-      // f(t1, ..., tn) = f(t1, ..., tn)
-      // f(t1, ..., tn) = f(s1, t2, ..., tn)
-      // f(t1, ..., tn) = f(s1, s2, t3, ..., tn)
-      // ...
-      // f(t1, ..., tn) = f(s1, ..., sn)
-      //Node cur = res[0].eqNode(res[0]);
-      //cdp->addStep(cur, PfRule::REFL, {}
-      for (size_t i = 1, size = children.size(); i < size; i++)
+      // First, get the operator, which will be used for printing the base
+      // REFL step. Notice this may be for interpreted or uninterpreted
+      // function symbols.
+      Node op = d_tproc.getOperatorForTerm(res[0]);
+      Assert (!op.isNull());
+      // initial base step is REFL
+      Node opEq = op.eqNode(op);
+      cdp->addStep(opEq, PfRule::REFL, {}, {op});
+      size_t nchildren = children.size();
+      Node nullTerm = LfscTermProcessor::getNullTerminator(k);
+      // Are we doing congruence of an n-ary operator? If so, notice that op
+      // is a binary operator and we must apply congruence in a special way.
+      if (ExprManager::isNAryKind(k) && (nchildren >= 2 || !nullTerm.isNull()))
       {
+        // get the null terminator for the kind, which may mean we are doing
+        // a special kind of congruence for n-ary kinds whose base is a REFL
+        // step for the null terminator.
+        Node currEq;
+        if (!nullTerm.isNull())
+        {
+          currEq = nullTerm.eqNode(nullTerm);
+          // if we have a null terminator, we do a final conclusion to add
+          // the null terminator to both sides
+          cdp->addStep(currEq, PfRule::REFL, {}, {nullTerm});
+        }
+        else
+        {
+          currEq = children[nchildren-1];
+        }
+        for (size_t i = 0; i < nchildren; i++)
+        {
+          size_t ii = (nchildren-1)-i;
+          Node argAppEq = nm->mkNode(HO_APPLY, op, children[ii][0]).eqNode(nm->mkNode(HO_APPLY, op, children[ii][1]));
+          addLfscRule(cdp, argAppEq, {opEq, children[ii]}, LfscRule::CONG, {});
+          // now, congruence to the current equality
+          Node nextEq;
+          if (ii==0)
+          { 
+            // use final conclusion
+            nextEq = res;
+          }
+          else
+          {
+            // otherwise continue to apply
+            nextEq = nm->mkNode(HO_APPLY, argAppEq[0], currEq[0]).eqNode(nm->mkNode(HO_APPLY, argAppEq[1], currEq[1]));
+          }
+          addLfscRule(cdp, nextEq, {argAppEq, currEq}, LfscRule::CONG, {});
+          currEq = nextEq;
+        }
       }
-      // nested
-      return false;
+      else
+      {
+        Node curL = op;
+        Node curR = op;
+        Node currEq = opEq;
+        for (size_t i = 0; i < nchildren; i++)
+        {
+          // CONG rules for each child
+          Node nextEq;
+          if (i+1==nchildren && nullTerm.isNull())
+          {
+            // if we are at the end, we prove the final equality, unless we
+            // have a null terminator.
+            nextEq = res;
+          }
+          else
+          {
+            curL = nm->mkNode(HO_APPLY, curL, children[i][0]);
+            curR = nm->mkNode(HO_APPLY, curR, children[i][1]);
+            nextEq = curL.eqNode(curR);
+          }
+          addLfscRule(cdp, nextEq, {currEq, children[i]}, LfscRule::CONG, {});
+          currEq = nextEq;
+        }
+      }
+      return true;
     }
     break;
     case PfRule::AND_ELIM:

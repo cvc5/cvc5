@@ -50,8 +50,6 @@ namespace smt2 {
 
 static OutputLanguage variantToLanguage(Variant v);
 
-static string smtKindString(Kind k, Variant v);
-
 /** returns whether the variant is smt-lib 2.6 or greater */
 bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
 
@@ -1066,7 +1064,7 @@ void Smt2Printer::toStreamCastToType(std::ostream& out,
   toStream(out, nasc, toDepth);
 }
 
-static string smtKindString(Kind k, Variant v)
+std::string Smt2Printer::smtKindString(Kind k, Variant v)
 {
   switch(k) {
     // builtin theory

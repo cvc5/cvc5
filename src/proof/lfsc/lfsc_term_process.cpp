@@ -15,6 +15,7 @@
 #include "proof/lfsc/lfsc_term_process.h"
 
 #include "theory/uf/theory_uf_rewriter.h"
+#include "printer/smt2/smt2_printer.h"
 
 using namespace CVC4::kind;
 
@@ -239,6 +240,32 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
       break;
   }
   return nullTerm;
+}
+
+Node LfscTermProcessor::getOperatorForTerm(Node n)
+{
+  Assert (n.hasOperator());
+  if (n.getMetaKind()==metakind::PARAMETERIZED)
+  {
+    return n.getOperator();
+  }
+  std::vector<TypeNode> argTypes;
+  for (const Node& nc : n)
+  {
+    argTypes.push_back(nc.getType());
+  }
+  Kind k = n.getKind();
+  // we only use binary operators
+  if (ExprManager::isNAryKind(k))
+  {
+    argTypes.resize(2);
+  }
+  TypeNode retType = n.getType();
+  TypeNode ftype = NodeManager::currentNM()->mkFunctionType(argTypes, retType);
+  // most functions are called f_X where X is the SMT-LIB name
+  std::stringstream opName;
+  opName << "f_" << printer::smt2::Smt2Printer::smtKindString(k);
+  return getSymbolInternal(k, ftype, opName.str());
 }
 
 }  // namespace proof

@@ -40,7 +40,13 @@ class LfscTermProcessor : public TermProcessor
    * Get the null terminator for kind k
    */
   static Node getNullTerminator(Kind k);
-
+  /**
+   * Return the properly named operator for n of the form (f t1 ... tn), where
+   * f could be interpreted or uninterpreted.  This method is used for cases
+   * where it is important to get the term corresponding to the operator for
+   * a term. An example is for the base REFL step of nested CONG.
+   */
+  Node getOperatorForTerm(Node n);
  private:
   /** Get symbol for term */
   Node getSymbolInternalFor(Node n, const std::string& name, uint32_t v = 0);
