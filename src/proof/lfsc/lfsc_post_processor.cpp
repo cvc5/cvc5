@@ -256,6 +256,18 @@ bool LfscProofPostprocessCallback::update(Node res,
       addLfscRule(cdp, cur[0], {cur}, LfscRule::AND_ELIM1, {});
     }
     break;
+    case PfRule::AND_INTRO:
+    {
+      // 
+      Node eq = nullTerm.eqNode(nullTerm);
+      cdp->addStep(eq, PfRule::REFL, {}, {nullTerm});
+      Node nullTerm = LfscTermProcessor::getNullTerminator(AND);
+      size_t nchildren = children.size();
+      for (size_t j = 0, hchildren; j < nchildren; j++)
+      {
+      }
+    }
+    break;
     default: return false; break;
   }
   return true;

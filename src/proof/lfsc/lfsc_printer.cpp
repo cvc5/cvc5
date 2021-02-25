@@ -299,17 +299,26 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       << " #args=" << as.size() << std::endl;
   switch (r)
   {
-    // Boolean
-    case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
-    case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
+    // SAT
     case PfRule::RESOLUTION:
       pf << h << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1];
       break;
     case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
+    // Boolean
+    case PfRule::SPLIT: pf << as[0]; break;
+    case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
+    case PfRule::MODUS_PONENS:
+    case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
-    // CNF
     case PfRule::EQUIV_ELIM1:
-    case PfRule::EQUIV_ELIM2: pf << h << h << cs[0]; break;
+    case PfRule::EQUIV_ELIM2:
+    case PfRule::NOT_EQUIV_ELIM1:
+    case PfRule::NOT_EQUIV_ELIM2:  
+    case PfRule::XOR_ELIM1:
+    case PfRule::XOR_ELIM2:
+    case PfRule::NOT_XOR_ELIM1:
+    case PfRule::NOT_XOR_ELIM2: pf << h << h << cs[0]; break;
+    // CNF
     // equality
     case PfRule::REFL: pf << as[0]; break;
     case PfRule::SYMM: pf << h << h << cs[0]; break;
