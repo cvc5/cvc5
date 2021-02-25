@@ -56,7 +56,6 @@ bool LfscProofPostprocessCallback::update(Node res,
   {
     case PfRule::SCOPE:
     {
-      // FIXME
       if (true || isFirstTime)
       {
         // Note that we do not want to modify the top-most SCOPE
@@ -73,18 +72,25 @@ bool LfscProofPostprocessCallback::update(Node res,
         // FOL representation for its type.
         Node fconc = mkDummyPredicate();
         addLfscRule(cdp, fconc, {curr}, LfscRule::PI, {args[ii]});
-        Node next;
-        if (i + 1 == nargs)
-        {
-          // if at end, take the final conclusion
-          next = res;
-        }
-        else
-        {
-          next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
-        }
-        addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {});
+        Node next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
+        addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
+      }
+      // In LFSC, we have now proved:
+      //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
+      // We now must convert this to one of two cases
+      if (res.getKind()==NOT)
+      {
+        // we have C = false,
+        // convert to (not (and F1 (and F2 ... (and Fn C) ... )))
+        addLfscRule(cdp, res, {curr}, LfscRule::NOT_AND_REV, {});
+      }
+      else
+      {
+        // we have C != false
+        // convert to (=> (and F1 (and F2 ... (and Fn false) ... )) C)
+        // FIXME
+        return false;
       }
       return true;
     }
@@ -304,6 +310,7 @@ LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
 
 void LfscProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
+  d_cb->initializeUpdate();
   ProofNodeUpdater updater(d_pnm, *(d_cb.get()));
   updater.process(pf);
 }

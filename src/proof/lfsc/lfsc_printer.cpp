@@ -328,11 +328,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // begins at index 2
       switch (lr)
       {
-        case LfscRule::SCOPE: pf << h << h << cs[0]; break;
-        case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
-        case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
-        case LfscRule::AND_ELIM1:
-        case LfscRule::AND_ELIM2: pf << h << h << cs[0]; break;
         case LfscRule::PI:
         {
           // allocate an assumption, if necessary
@@ -357,6 +352,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           pf << pidNode << cs[0];
         }
         break;
+        case LfscRule::SCOPE: pf << h << as[2] << cs[0]; break;
+        case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
+        case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
+        case LfscRule::AND_ELIM1:
+        case LfscRule::AND_ELIM2: pf << h << h << cs[0]; break;
+        case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
         // ---------- arguments of translated rules go here
         default: return false; break;
       }

@@ -48,6 +48,7 @@ enum class LfscRule : uint32_t
   CONG,
   AND_ELIM1,
   AND_ELIM2,
+  NOT_AND_REV,
 
   // a pi with argument
   PI,
