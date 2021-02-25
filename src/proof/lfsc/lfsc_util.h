@@ -50,8 +50,8 @@ enum class LfscRule : uint32_t
   AND_ELIM2,
   NOT_AND_REV,
 
-  // a pi with argument
-  PI,
+  // a lambda with argument
+  LAMBDA,
   //----------- unknown
   UNKNOWN,
 };

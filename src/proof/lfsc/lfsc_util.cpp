@@ -27,7 +27,7 @@ const char* toString(LfscRule id)
     case LfscRule::AND_ELIM1: return "and_elim1";
     case LfscRule::AND_ELIM2: return "and_elim2";
     case LfscRule::NOT_AND_REV: return "not_and_rev";
-    case LfscRule::PI: return "!";
+    case LfscRule::LAMBDA: return "\\";
     default: return "?";
   }
 }

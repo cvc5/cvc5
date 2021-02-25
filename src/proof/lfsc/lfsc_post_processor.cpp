@@ -56,22 +56,22 @@ bool LfscProofPostprocessCallback::update(Node res,
   {
     case PfRule::SCOPE:
     {
-      if (true || isFirstTime)
+      if (isFirstTime)
       {
         // Note that we do not want to modify the top-most SCOPE
         return false;
       }
       // (SCOPE P :args (F1 ... Fn))
       // becomes
-      // (scope _ _ (! X1 ... (scope _ _ (! Xn P)) ... ))
+      // (scope _ _ (\ X1 ... (scope _ _ (\ Xn P)) ... ))
       Node curr = children[0];
       for (size_t i = 0, nargs = args.size(); i < nargs; i++)
       {
         size_t ii = (nargs - 1) - i;
-        // Use a dummy conclusion for what PI proves, since there is no
+        // Use a dummy conclusion for what LAMBDA proves, since there is no
         // FOL representation for its type.
         Node fconc = mkDummyPredicate();
-        addLfscRule(cdp, fconc, {curr}, LfscRule::PI, {args[ii]});
+        addLfscRule(cdp, fconc, {curr}, LfscRule::LAMBDA, {args[ii]});
         Node next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;

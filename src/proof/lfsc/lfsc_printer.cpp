@@ -240,7 +240,7 @@ void LfscPrinter::printProofInternal(
           const std::vector<Node>& cargs = cur->getArguments();
           Assert(!cargs.empty());
           LfscRule lr = getLfscRule(cargs[0]);
-          if (lr == LfscRule::PI)
+          if (lr == LfscRule::LAMBDA)
           {
             itnb = noBind.find(cur);
             if (itnb == noBind.end())
@@ -328,7 +328,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       // begins at index 2
       switch (lr)
       {
-        case LfscRule::PI:
+        case LfscRule::LAMBDA:
         {
           // allocate an assumption, if necessary
           uint32_t pid;
