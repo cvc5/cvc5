@@ -27,8 +27,8 @@ namespace CVC4 {
 namespace proof {
 
 LfscProofPostprocessCallback::LfscProofPostprocessCallback(
-    ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pc(pnm->getChecker()), d_firstTime(false)
+    LfscTermProcessor& ltp, ProofNodeManager* pnm)
+    : d_pnm(pnm), d_pc(pnm->getChecker()), d_tproc(ltp), d_firstTime(false)
 {
 }
 
@@ -328,8 +328,8 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
   return nm->mkSkolem("dummy", nm->booleanType());
 }
 
-LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
-    : d_cb(new proof::LfscProofPostprocessCallback(pnm)), d_pnm(pnm)
+LfscProofPostprocess::LfscProofPostprocess(LfscTermProcessor& ltp, ProofNodeManager* pnm)
+    : d_cb(new proof::LfscProofPostprocessCallback(ltp, pnm)), d_pnm(pnm)
 {
 }
 

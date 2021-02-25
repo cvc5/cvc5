@@ -34,7 +34,7 @@ namespace proof {
 class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  LfscProofPostprocessCallback(ProofNodeManager* pnm);
+  LfscProofPostprocessCallback(LfscTermProcessor& ltp, ProofNodeManager* pnm);
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -57,7 +57,7 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The proof checker of d_pnm **/
   ProofChecker* d_pc;
   /** The term processor */
-  LfscTermProcessor d_tproc;
+  LfscTermProcessor& d_tproc;
   /**
    * Are we in the first call to update? This is to distinguish the top-most
    * SCOPE.
@@ -82,7 +82,7 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
 class LfscProofPostprocess
 {
  public:
-  LfscProofPostprocess(ProofNodeManager* pnm);
+  LfscProofPostprocess(LfscTermProcessor& ltp, ProofNodeManager* pnm);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 

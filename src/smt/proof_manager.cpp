@@ -149,9 +149,10 @@ void PfManager::printProof(std::ostream& out,
     std::vector<Node> assertions;
     getAssertions(as, df, assertions);
     // NOTE: update permanent to fp, which could be reused in incremental mode
-    proof::LfscProofPostprocess lpp(d_pnm.get());
+    proof::LfscTermProcessor ltp;
+    proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
     lpp.process(fp);
-    proof::LfscPrinter lp;
+    proof::LfscPrinter lp(ltp);
     // print the proof for assertions
     Trace("lfsc-debug") << "(proof\n";
     Trace("lfsc-debug") << *fp;

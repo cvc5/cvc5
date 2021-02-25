@@ -49,6 +49,8 @@ class LfscTermProcessor : public TermProcessor
   Node getOperatorForTerm(Node n);
 
  private:
+  /** Type as node */
+  Node typeAsNode(TypeNode tni);
   /** Get symbol for term */
   Node getSymbolInternalFor(Node n, const std::string& name, uint32_t v = 0);
   /** Get symbol internal */
@@ -62,6 +64,8 @@ class LfscTermProcessor : public TermProcessor
   TypeNode d_arrow;
   /** the type of LFSC sorts, which can appear in terms */
   TypeNode d_sortType;
+  /** Used for getting unique index for variable */
+  std::map< Node, uint32_t> d_varIndex;
 };
 
 }  // namespace proof

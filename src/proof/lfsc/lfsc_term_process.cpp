@@ -49,7 +49,7 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == CONST_RATIONAL)
   {
     TypeNode tnv = nm->mkFunctionType(tn, tn);
-    // FIXME: subtyping makes this incorrect
+    // FIXME: subtyping makes this incorrect, also handle TO_REAL here
     Node rconstf;
     Node arg;
     if (tn.isInteger())
@@ -60,7 +60,7 @@ Node LfscTermProcessor::runConvert(Node n)
     else
     {
       rconstf = getSymbolInternal(k, tnv, "real");
-      // FIXME: ensure rationals are printed properly here
+      // FIXME: ensure rationals are printed properly here using mpq syntax
       arg = n;
     }
     return nm->mkNode(APPLY_UF, rconstf, arg);
@@ -116,8 +116,35 @@ Node LfscTermProcessor::runConvert(Node n)
     args.push_back(n[2]);
     return nm->mkNode(APPLY_UF, args);
   }
+  else if (k== MINUS)
+  {
+    // note that MINUS is not n-ary
+    Assert (n.getNumChildren()==2);
+    // TODO: refactor
+    std::stringstream opName;
+    opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
+    TypeNode type = n.getType();
+    TypeNode ftype = nm->mkFunctionType({type, type}, type);
+    Node opc = getSymbolInternal(k, ftype, opName.str());
+    return nm->mkNode(APPLY_UF, opc, n[0], n[1]);
+  }
+  else if (n.isClosure())
+  {
+    // (forall ((x1 T1) ... (xn Tk)) P) is
+    // ((forall n1 T1) ((forall n2 T2) ... ((forall nk Tk) P))). We use
+    // SEXPR to do this, which avoids the need for indexed operators.
+#if 0
+    for (size_t i=0, nchild = n.getNumChildren(); i<nchild; i++)
+    {
+      Node n;
+      Node tc = typeAsNode(
+      Node sexprOp = nm->mkNode(SEXPR, forallOp, 
+    }
+#endif
+  }
   else if (ExprManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
+    size_t nchild = n.getNumChildren();
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
     // convert all n-ary applications to binary
     std::vector<Node> children(n.begin(), n.end());
@@ -145,9 +172,31 @@ Node LfscTermProcessor::runConvert(Node n)
         // must convert recursively, since nullTerm may have subterms.
         ret = convert(nullTerm);
       }
-      for (size_t nchild = n.getNumChildren(); i < nchild; i++)
+      // the kind to chain
+      Kind ck = k;
+      // check whether we are also changing the operator name, in which case
+      // we build a binary uninterpreted function opc
+      Node opc;
+      if (k==PLUS || k==MULT)
       {
-        ret = nm->mkNode(k, children[i], ret);
+        std::stringstream opName;
+        opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
+        TypeNode type = n.getType();
+        TypeNode ftype = nm->mkFunctionType({type, type}, type);
+        opc = getSymbolInternal(k, ftype, opName.str());
+        ck = APPLY_UF;
+      }
+      // now, iterate over children and make binary conversion
+      for (; i < nchild; i++)
+      {
+        if (!opc.isNull())
+        {
+          ret = nm->mkNode(ck, opc, children[i], ret);
+        }
+        else
+        {
+          ret = nm->mkNode(ck, children[i], ret);
+        }
       }
       return ret;
     }
@@ -156,7 +205,7 @@ Node LfscTermProcessor::runConvert(Node n)
       // DINSTICT(x1,...,xn) --->
       // AND(DISTINCT(x1,x2), AND(,..., AND(,..,DISTINCT(x_{n-1},x_n))))
       Node ret = nm->mkNode(k, children[0], children[1]);
-      for (unsigned i = 0, nchild = n.getNumChildren(); i < nchild; i++)
+      for (unsigned i = 0; i < nchild; i++)
         for (unsigned j = i + 1; j < nchild; j++)
         {
           if (i != 0 && j != 1)
@@ -194,6 +243,12 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
     return cur;
   }
   return tn;
+}
+
+Node LfscTermProcessor::typeAsNode(TypeNode tni)
+{
+  // TODO;
+  return Node::null();
 }
 
 Node LfscTermProcessor::getSymbolInternalFor(Node n,

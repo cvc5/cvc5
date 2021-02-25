@@ -33,7 +33,7 @@ namespace proof {
 class LfscPrinter
 {
  public:
-  LfscPrinter();
+  LfscPrinter(LfscTermProcessor& ltp);
   ~LfscPrinter() {}
 
   /**
@@ -112,7 +112,7 @@ class LfscPrinter
   //------------------- end helper methods
 
   /** The term processor */
-  LfscTermProcessor d_tproc;
+  LfscTermProcessor& d_tproc;
 };
 
 }  // namespace proof

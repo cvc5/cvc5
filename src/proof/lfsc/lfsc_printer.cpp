@@ -21,7 +21,7 @@
 namespace CVC4 {
 namespace proof {
 
-LfscPrinter::LfscPrinter() {}
+LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp) {}
 
 void LfscPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
