@@ -313,7 +313,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::EQUIV_ELIM1:
     case PfRule::EQUIV_ELIM2:
     case PfRule::NOT_EQUIV_ELIM1:
-    case PfRule::NOT_EQUIV_ELIM2:  
+    case PfRule::NOT_EQUIV_ELIM2:
     case PfRule::XOR_ELIM1:
     case PfRule::XOR_ELIM2:
     case PfRule::NOT_XOR_ELIM1:

@@ -264,9 +264,9 @@ bool LfscProofPostprocessCallback::update(Node res,
       size_t nchildren = children.size();
       for (size_t j = 0; j < nchildren; j++)
       {
-        size_t jj = (nchildren-1)-j;
+        size_t jj = (nchildren - 1) - j;
         Node next = nm->mkNode(AND, children[jj], cur);
-        if (j==0)
+        if (j == 0)
         {
           addLfscRule(cdp, next, {children[jj]}, LfscRule::AND_INTRO1, {});
         }
