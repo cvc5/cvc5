@@ -283,6 +283,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if (d_is_single_trigger[patTerms[0]])
     {
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qstate,
                               d_qim,
                               d_qreg,
                               f,
@@ -321,6 +322,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       // will possibly want to get an old trigger
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qstate,
                               d_qim,
                               d_qreg,
                               f,
@@ -364,6 +366,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         {
           d_single_trigger_gen[patTerms[index]] = true;
           Trigger* tr2 = Trigger::mkTrigger(d_quantEngine,
+                                            d_qstate,
                                             d_qim,
                                             d_qreg,
                                             f,

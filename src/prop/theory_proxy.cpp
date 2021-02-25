@@ -81,7 +81,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (CVC4::options::proofNew())
+  if (CVC4::options::proof())
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }

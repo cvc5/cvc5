@@ -32,6 +32,7 @@ using namespace CVC4::kind;
 using namespace std;
 
 namespace CVC4 {
+namespace theory {
 
 void SortInference::UnionFind::print(const char * c){
   for( std::map< int, int >::iterator it = d_eqc.begin(); it != d_eqc.end(); ++it ){
@@ -864,4 +865,5 @@ bool SortInference::isHandledApplyUf(Kind k) const
   return k == APPLY_UF && !options::ufHo();
 }
 
-}/* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC4

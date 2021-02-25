@@ -37,8 +37,9 @@ endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
@@ -233,8 +234,9 @@ include(Config${CMAKE_BUILD_TYPE})
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
+add_check_c_cxx_flag("-Werror")
+add_check_c_cxx_flag("-Wno-unused-private-field")
 add_check_c_flag("-fexceptions")
-add_check_c_cxx_flag("-Wno-deprecated")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")

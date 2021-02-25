@@ -323,14 +323,14 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
     Node v_pab = r == 0 ? mvb.first : mvb.second;
     if (!v_pab.isNull())
     {
-      Trace("nl-ext-tftp-debug2")
-          << "...model value of " << pab << " is " << v_pab << std::endl;
+      Trace("nl-trans") << "...model value of " << pab << " is " << v_pab
+                        << std::endl;
 
       Assert(v_pab.isConst());
       Node comp = nm->mkNode(r == 0 ? LT : GT, v, v_pab);
-      Trace("nl-ext-tftp-debug2") << "...compare : " << comp << std::endl;
+      Trace("nl-trans") << "...compare : " << comp << std::endl;
       Node compr = Rewriter::rewrite(comp);
-      Trace("nl-ext-tftp-debug2") << "...got : " << compr << std::endl;
+      Trace("nl-trans") << "...got : " << compr << std::endl;
       if (compr == d_tstate.d_true)
       {
         poly_approx_c = Rewriter::rewrite(v_pab);
@@ -374,8 +374,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   // Figure 3: P( c )
   if (is_tangent || is_secant)
   {
-    Trace("nl-ext-tftp-debug2")
-        << "...poly approximation at c is " << poly_approx_c << std::endl;
+    Trace("nl-trans") << "...poly approximation at c is " << poly_approx_c
+                      << std::endl;
   }
   else
   {
@@ -387,7 +387,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf, unsigned d)
   {
     if (k == Kind::EXPONENTIAL)
     {
-      d_expSlv.doTangentLemma(tf, c, poly_approx_c);
+      d_expSlv.doTangentLemma(tf, c, poly_approx_c, d);
     }
     else if (k == Kind::SINE)
     {

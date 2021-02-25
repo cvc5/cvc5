@@ -156,7 +156,7 @@ void ProofNodeUpdater::processInternal(
         {
           Unhandled()
               << "ProofNodeUpdater::processInternal: cyclic proof! (use "
-                 "--proof-new-eager-checking)"
+                 "--proof-eager-checking)"
               << std::endl;
         }
         visit.push_back(cp);

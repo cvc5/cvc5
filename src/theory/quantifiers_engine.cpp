@@ -41,17 +41,17 @@ QuantifiersEngine::QuantifiersEngine(
       d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
+      d_pnm(pnm),
       d_qreg(),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
-      d_term_db(new quantifiers::TermDb(qstate, qim, d_qreg, this)),
+      d_term_db(new quantifiers::TermDb(qstate, qim, d_qreg)),
       d_eq_query(nullptr),
       d_sygus_tdb(nullptr),
-      d_quant_attr(new quantifiers::QuantAttributes),
       d_instantiate(
           new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
-      d_skolemize(new quantifiers::Skolemize(this, qstate, pnm)),
+      d_skolemize(new quantifiers::Skolemize(d_qstate, d_pnm)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext()),
@@ -114,25 +114,17 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   d_decManager = dm;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, dm, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
 }
 
-TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
-
 DecisionManager* QuantifiersEngine::getDecisionManager()
 {
   return d_decManager;
 }
-
-OutputChannel& QuantifiersEngine::getOutputChannel()
-{
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getOutputChannel();
-}
-Valuation& QuantifiersEngine::getValuation() { return d_qstate.getValuation(); }
 
 quantifiers::QuantifiersState& QuantifiersEngine::getState()
 {
@@ -164,10 +156,6 @@ quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_sygus_tdb.get();
-}
-quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
-{
-  return d_quant_attr.get();
 }
 quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
 {
@@ -398,7 +386,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     if( Trace.isOn("quant-engine-assert") ){
       Trace("quant-engine-assert") << "Assertions : " << std::endl;
-      getTheoryEngine()->printAssertions("quant-engine-assert");
+      d_te->printAssertions("quant-engine-assert");
     }
 
     //reset utilities
@@ -596,7 +584,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
   {
     if( setIncomplete ){
       Trace("quant-engine") << "Set incomplete flag." << std::endl;
-      getOutputChannel().setIncomplete();
+      d_qim.setIncomplete();
     }
     //output debug stats
     d_instantiate->debugPrintModel();
@@ -614,6 +602,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
   BoolMap::const_iterator it = d_quants_red.find( q );
   if( it==d_quants_red.end() ){
     Node lem;
+    InferenceId id = InferenceId::UNKNOWN;
     std::map< Node, Node >::iterator itr = d_quants_red_lem.find( q );
     if( itr==d_quants_red_lem.end() ){
       if (d_qmodules->d_alpha_equiv)
@@ -621,6 +610,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
         Trace("quant-engine-red") << "Alpha equivalence " << q << "?" << std::endl;
         //add equivalence with another quantified formula
         lem = d_qmodules->d_alpha_equiv->reduceQuantifier(q);
+        id = InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ;
         if( !lem.isNull() ){
           Trace("quant-engine-red") << "...alpha equivalence success." << std::endl;
           ++(d_statistics.d_red_alpha_equiv);
@@ -631,7 +621,7 @@ bool QuantifiersEngine::reduceQuantifier( Node q ) {
       lem = itr->second;
     }
     if( !lem.isNull() ){
-      getOutputChannel().lemma( lem );
+      d_qim.lemma(lem, id);
     }
     d_quants_red[q] = !lem.isNull();
     return !lem.isNull();
@@ -654,8 +644,6 @@ void QuantifiersEngine::registerQuantifierInternal(Node f)
     {
       d_util[i]->registerQuantifier(f);
     }
-    // compute attributes
-    d_quant_attr->computeAttributes(f);
 
     for (QuantifiersModule*& mdl : d_modules)
     {
@@ -728,7 +716,9 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().trustedLemma(lem, LemmaProperty::NEEDS_JUSTIFY);
+      d_qim.trustedLemma(lem,
+                         InferenceId::QUANTIFIERS_SKOLEMIZE,
+                         LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }
@@ -877,19 +867,12 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
 
 Node QuantifiersEngine::getNameForQuant(Node q) const
 {
-  Node name = d_quant_attr->getQuantName(q);
-  if (!name.isNull())
-  {
-    return name;
-  }
-  return q;
+  return d_qreg.getNameForQuant(q);
 }
 
 bool QuantifiersEngine::getNameForQuant(Node q, Node& name, bool req) const
 {
-  name = getNameForQuant(q);
-  // if we have a name, or we did not require one
-  return name != q || !req;
+  return d_qreg.getNameForQuant(q, name, req);
 }
 
 bool QuantifiersEngine::getSynthSolutions(
