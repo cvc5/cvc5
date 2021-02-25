@@ -101,7 +101,7 @@ class LfscPrinter
   bool computeProofArgs(const ProofNode* pn,
                         std::vector<PExpr>& pargs,
                         std::map<Node, uint32_t>& passumeMap,
-                                   std::unordered_set<const ProofNode*>& noBind);
+                        std::unordered_set<const ProofNode*>& noBind);
   //------------------------------ end printing proofs
 
   //------------------- helper methods

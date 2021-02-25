@@ -32,10 +32,7 @@ LfscProofPostprocessCallback::LfscProofPostprocessCallback(
 {
 }
 
-void LfscProofPostprocessCallback::initializeUpdate()
-{
-  d_firstTime = true;
-}
+void LfscProofPostprocessCallback::initializeUpdate() { d_firstTime = true; }
 
 bool LfscProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                 bool& continueUpdate)
@@ -69,9 +66,9 @@ bool LfscProofPostprocessCallback::update(Node res,
       // becomes
       // (scope _ _ (! X1 ... (scope _ _ (! Xn P)) ... ))
       Node curr = children[0];
-      for (size_t i=0, nargs = args.size(); i<nargs; i++)
+      for (size_t i = 0, nargs = args.size(); i < nargs; i++)
       {
-        size_t ii = (nargs-1)-i;
+        size_t ii = (nargs - 1) - i;
         // Use a dummy conclusion for what PI proves, since there is no
         // FOL representation for its type.
         Node fconc = mkDummyPredicate();
@@ -286,7 +283,6 @@ Node LfscProofPostprocessCallback::mkDummyPredicate()
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkSkolem("dummy", nm->booleanType());
 }
-
 
 LfscProofPostprocess::LfscProofPostprocess(ProofNodeManager* pnm)
     : d_cb(new proof::LfscProofPostprocessCallback(pnm)), d_pnm(pnm)

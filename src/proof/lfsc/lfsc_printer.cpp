@@ -243,13 +243,13 @@ void LfscPrinter::printProofInternal(
           if (lr == LfscRule::PI)
           {
             itnb = noBind.find(cur);
-            if (itnb==noBind.end())
+            if (itnb == noBind.end())
             {
-              Assert (cargs.size()==3);
+              Assert(cargs.size() == 3);
               // Remove argument from assumption binding, only if it was bound
               // by this call. This is not the case if the assumption is
               // shadowing.
-              Assert (passumeMap.find(cargs[2])!=passumeMap.end());
+              Assert(passumeMap.find(cargs[2]) != passumeMap.end());
               passumeMap.erase(cargs[2]);
             }
             else
@@ -280,8 +280,7 @@ void LfscPrinter::printProofInternal(
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
                                    std::vector<PExpr>& pargs,
                                    std::map<Node, uint32_t>& passumeMap,
-                                   std::unordered_set<const ProofNode*>& noBind
-                                  )
+                                   std::unordered_set<const ProofNode*>& noBind)
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   std::vector<const ProofNode*> cs;
