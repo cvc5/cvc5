@@ -250,6 +250,11 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryOut[theoryId] = NULL;
   }
 
+  if (options::sortInference())
+  {
+    d_sortInfer.reset(new SortInference);
+  }
+
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);

@@ -272,7 +272,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       {
         if (lits[j] == rhsElim)
         {
-          rhsElim == Node::null();
+          rhsElim = Node::null();
           continue;
         }
         auto it = lhsElim.find(lits[j]);

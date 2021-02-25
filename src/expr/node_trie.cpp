@@ -24,7 +24,7 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(
   const NodeTemplateTrie<ref_count>* tnt = this;
   typename std::map<NodeTemplate<ref_count>,
                     NodeTemplateTrie<ref_count>>::const_iterator it;
-  for (const NodeTemplate<ref_count> r : reps)
+  for (const NodeTemplate<ref_count>& r : reps)
   {
     it = tnt->d_data.find(r);
     if (it == tnt->d_data.end())
@@ -51,7 +51,7 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(
     NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
 {
   NodeTemplateTrie<ref_count>* tnt = this;
-  for (const NodeTemplate<ref_count> r : reps)
+  for (const NodeTemplate<ref_count>& r : reps)
   {
     tnt = &(tnt->d_data[r]);
   }

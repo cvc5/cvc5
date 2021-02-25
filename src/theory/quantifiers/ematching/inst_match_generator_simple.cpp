@@ -22,10 +22,13 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
-                                                   Node pat,
-                                                   QuantifiersEngine* qe)
-    : d_quant(q), d_match_pattern(pat)
+InstMatchGeneratorSimple::InstMatchGeneratorSimple(
+    Node q,
+    Node pat,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
+    : IMGenerator(qs, qim), d_quant(q), d_match_pattern(pat)
 {
   if (d_match_pattern.getKind() == NOT)
   {
@@ -128,7 +131,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     // convert to actual used terms
-    for (const std::pair<unsigned, int>& v : d_var_num)
+    for (const auto& v : d_var_num)
     {
       if (v.second >= 0)
       {

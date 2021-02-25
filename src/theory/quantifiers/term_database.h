@@ -77,8 +77,7 @@ class TermDb : public QuantifiersUtil {
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersInferenceManager& qim,
-         QuantifiersRegistry& qr,
-         QuantifiersEngine* qe);
+         QuantifiersRegistry& qr);
   ~TermDb();
   /** presolve (called once per user check-sat) */
   void presolve();
@@ -291,8 +290,6 @@ class TermDb : public QuantifiersUtil {
   Node getHoTypeMatchPredicate(TypeNode tn);
 
  private:
-  /** reference to the quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
