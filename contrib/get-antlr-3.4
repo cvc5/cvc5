@@ -47,7 +47,8 @@ setup_dep \
 cd "$ANTLR_HOME_DIR/libantlr3c-3.4" || exit 1
 
 # Add aarch64 architecture
-sed -i 's/avr32 \\$/avr32 | aarch64 \\/' config.sub
+sed 's/avr32 \\$/avr32 | aarch64 \\/' config.sub > config.sub.new
+mv  config.sub.new config.sub
 
 # Make antlr3debughandlers.c empty to avoid unreferenced symbols
 rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c
@@ -76,11 +77,6 @@ cp Makefile Makefile.orig
 sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
 make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}"
 make install
-
-#if [[ $WINDOWS_BUILD == "yes" ]]; then
-#  exit 0
-#fi
-#
 
 # Build shared ANTLR library
 
