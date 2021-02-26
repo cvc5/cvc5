@@ -22,6 +22,7 @@ General options;
   --name=STR               use custom build directory name (optionally: +path)
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
+  --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
   --ninja                  use Ninja build system
 
@@ -151,6 +152,7 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+arm64=default
 werror=default
 
 abc_dir=default
@@ -245,6 +247,9 @@ do
 
     --win64) win64=ON;;
     --no-win64) win64=OFF;;
+
+    --arm64) arm64=ON;;
+    --no-arm64) arm64=OFF;;
 
     --ninja) ninja=ON;;
 
@@ -358,6 +363,17 @@ do
 done
 
 #--------------------------------------------------------------------------#
+# Automatically set up dependencies based on configure options
+#--------------------------------------------------------------------------#
+
+
+if [ "$arm64" == "ON" ]; then
+  HOST="aarch64-linux-gnu" contrib/cross-compile-depedencies.sh
+elif [ "$win64" == "ON" ]; then
+  HOST="x86_64-w64-mingw32" contrib/cross-compile-depedencies.sh
+fi
+
+#--------------------------------------------------------------------------#
 
 if [ $werror != default ]; then
   export CFLAGS=-Werror
@@ -393,6 +409,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+[ $arm64 != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
