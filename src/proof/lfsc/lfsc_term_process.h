@@ -62,14 +62,13 @@ class LfscTermProcessor : public TermProcessor
   /** Type as node */
   Node typeAsNode(TypeNode tni) const;
   /** Get symbol for term */
-  Node getSymbolInternalFor(Node n, const std::string& name, size_t v = 0);
-  /** Get symbol internal, (k,tn,v) are for caching, name is the name */
+  Node getSymbolInternalFor(Node n, const std::string& name);
+  /** Get symbol internal, (k,tn,name) are for caching, name is the name */
   Node getSymbolInternal(Kind k,
                          TypeNode tn,
-                         const std::string& name,
-                         size_t v = 0);
+                         const std::string& name);
   /** terms with different syntax than smt2 */
-  std::map<std::tuple<Kind, TypeNode, size_t>, Node> d_symbolsMap;
+  std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
   std::unordered_set<Node, NodeHashFunction> d_symbols;
   /** arrow type constructor */

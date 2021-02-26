@@ -328,19 +328,17 @@ Node LfscTermProcessor::mkInternalSymbol(const std::string& name, TypeNode tn)
 }
 
 Node LfscTermProcessor::getSymbolInternalFor(Node n,
-                                             const std::string& name,
-                                             size_t v)
+                                             const std::string& name)
 {
-  return getSymbolInternal(n.getKind(), n.getType(), name, v);
+  return getSymbolInternal(n.getKind(), n.getType(), name);
 }
 
 Node LfscTermProcessor::getSymbolInternal(Kind k,
                                           TypeNode tn,
-                                          const std::string& name,
-                                          size_t v)
+                                          const std::string& name)
 {
-  std::tuple<Kind, TypeNode, size_t> key(k, tn, v);
-  std::map<std::tuple<Kind, TypeNode, size_t>, Node>::iterator it =
+  std::tuple<Kind, TypeNode, std::string> key(k, tn, name);
+  std::map<std::tuple<Kind, TypeNode, std::string>, Node>::iterator it =
       d_symbolsMap.find(key);
   if (it != d_symbolsMap.end())
   {
@@ -401,8 +399,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n)
     opName << "int.";
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
-  // use a different id, since we hash two kinds (applied and operator)
-  return getSymbolInternal(k, ftype, opName.str(), 1);
+  return getSymbolInternal(k, ftype, opName.str());
 }
 
 size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)
