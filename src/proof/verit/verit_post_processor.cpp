@@ -102,6 +102,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // premises:
     // args: (F1, ..., Fn)
     case PfRule::SCOPE: {
+      return true;
     }
     //================================================= Boolean rules
     // ======== Resolution
@@ -187,7 +188,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // args:
     case PfRule::REORDERING:
     {
-      // TODO skip
+      return true;
     }
     // ======== Split
     // Children: none
@@ -1159,10 +1160,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term:
     // premises:
     // args:
-    case PfRule::HO_APP_ENCODE:
-    {
+    //case PfRule::HO_APP_ENCODE:
+    //{
       // TODO
-    }
+    //}
     // ======== Congruence
     // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
     // Arguments: ()
@@ -1175,10 +1176,10 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term:
     // premises:
     // args:
-    case PfRule::HO_CONG:
-    {
+    //case PfRule::HO_CONG:
+    //{
       // TODO
-    }
+    //}
 
     default:
       return addVeritStep(res, VeritRule::UNDEFINED, children, args, *cdp);
