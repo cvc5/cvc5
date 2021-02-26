@@ -74,7 +74,9 @@ bool LfscProofPostprocessCallback::update(Node res,
         // FOL representation for its type.
         Node fconc = mkDummyPredicate();
         addLfscRule(cdp, fconc, {curr}, LfscRule::LAMBDA, {args[ii]});
-        Node next = d_pc->checkDebug(PfRule::SCOPE, {curr}, {args[ii]});
+        // we use a chained implication (=> F1 ... (=> Fn C)) which avoids
+        // aliasing.
+        Node next = nm->mkNode(IMPLIES,args[ii], curr);
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
@@ -84,7 +86,9 @@ bool LfscProofPostprocessCallback::update(Node res,
       if (res.getKind() == NOT)
       {
         // we have C = false,
-        // convert to (not (and F1 (and F2 ... (and Fn C) ... )))
+        // convert to (not (and F1 (and F2 ... (and Fn true) ... )))
+        // this also handles the case where the conclusion is simply F1,
+        // when n=1.
         addLfscRule(cdp, res, {curr}, LfscRule::NOT_AND_REV, {});
       }
       else
