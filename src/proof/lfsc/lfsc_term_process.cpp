@@ -64,6 +64,7 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == APPLY_UF)
   {
+    Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == HO_APPLY)
@@ -78,13 +79,23 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == CONST_RATIONAL)
   {
     TypeNode tnv = nm->mkFunctionType(tn, tn);
-    // FIXME: subtyping makes this incorrect, also handle TO_REAL here
+    // FIXME: subtyping makes this incorrect, also handle CAST_TO_REAL here
     Node rconstf;
     Node arg;
     if (tn.isInteger())
     {
       rconstf = getSymbolInternal(k, tnv, "int");
-      arg = n;
+      Rational r = n.getConst<Rational>();
+      if (r.sgn()==-1)
+      {
+        // use LFSC syntax for mpz negation
+        Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn,tn), "~");
+        arg = nm->mkNode(APPLY_UF, mpzn, nm->mkConst(r.abs()));
+      }
+      else
+      {
+        arg = n;
+      }
     }
     else
     {
@@ -291,7 +302,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 
 bool LfscTermProcessor::shouldTraverse(Node n)
 {
-  return n.getKind() != BOUND_VAR_LIST;
+  // don't convert bound variable list directly
+  if ( n.getKind() == BOUND_VAR_LIST )
+  {
+    return false;
+  }
+  // should not traverse internal applications
+  return true;
 }
 
 Node LfscTermProcessor::typeAsNode(TypeNode tni) const

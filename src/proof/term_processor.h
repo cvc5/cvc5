@@ -36,7 +36,7 @@ namespace proof {
 class TermProcessor
 {
  public:
-  TermProcessor();
+  TermProcessor(bool forceIdem = true);
   virtual ~TermProcessor() {}
   /**
    * This converts node n based on the runConvert method that can be overriden
@@ -72,10 +72,16 @@ class TermProcessor
   Node convertInternal(Node n);
   /** convert */
   TypeNode convertTypeInternal(TypeNode tn);
+  /** Add to cache */
+  void addToCache(TNode cur, TNode ret);
+  /** Add to type cache */
+  void addToTypeCache(TypeNode cur, TypeNode ret);
   /** Node caches */
   std::unordered_map<Node, Node, NodeHashFunction> d_cache;
   /** TypeNode caches */
   std::unordered_map<TypeNode, TypeNode, TypeNodeHashFunction> d_tcache;
+  /** Whether this term processor is idempotent. */
+  bool d_forceIdem;
 };
 
 }  // namespace proof

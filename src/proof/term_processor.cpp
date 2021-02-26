@@ -21,7 +21,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace proof {
 
-TermProcessor::TermProcessor() {}
+TermProcessor::TermProcessor(bool forceIdem) : d_forceIdem(forceIdem) {}
 
 Node TermProcessor::convert(Node n)
 {
@@ -44,7 +44,7 @@ Node TermProcessor::convert(Node n)
     {
       if (!shouldTraverse(cur))
       {
-        d_cache[cur] = cur;
+        addToCache(cur, cur);
       }
       else
       {
@@ -90,7 +90,7 @@ Node TermProcessor::convert(Node n)
             << "Converting " << ret << " to " << cret << " changes type";
         ret = cret;
       }
-      d_cache[cur] = ret;
+      addToCache(cur, ret);
     }
   } while (!visit.empty());
   Assert(d_cache.find(n) != d_cache.end());
@@ -120,7 +120,7 @@ TypeNode TermProcessor::convertType(TypeNode tn)
       if (cur.getNumChildren() == 0)
       {
         TypeNode ret = runConvertType(cur);
-        d_tcache[cur] = ret;
+        addToTypeCache(cur, ret);
       }
       else
       {
@@ -159,7 +159,7 @@ TypeNode TermProcessor::convertType(TypeNode tn)
       }
       Trace("term-process-debug")
           << cur << " <- " << ret << " (post-convert)" << std::endl;
-      d_tcache[cur] = ret;
+      addToTypeCache(cur, ret);
     }
   } while (!visit.empty());
   Assert(d_tcache.find(tn) != d_tcache.end());
@@ -167,6 +167,26 @@ TypeNode TermProcessor::convertType(TypeNode tn)
   return d_tcache[tn];
 }
 
+
+void TermProcessor::addToCache(TNode cur, TNode ret)
+{
+  d_cache[cur] = ret;
+  // also force idempotency, if specified
+  if (d_forceIdem)
+  {
+    d_cache[ret] = ret;
+  }
+}
+void TermProcessor::addToTypeCache(TypeNode cur, TypeNode ret)
+{
+  d_tcache[cur] = ret;
+  // also force idempotency, if specified
+  if (d_forceIdem)
+  {
+    d_tcache[ret] = ret;
+  }
+}
+      
 Node TermProcessor::runConvert(Node n) { return Node::null(); }
 
 TypeNode TermProcessor::runConvertType(TypeNode tn) { return TypeNode::null(); }
