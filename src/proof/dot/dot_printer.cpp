@@ -14,16 +14,12 @@
 
 #include "proof/dot/dot_printer.h"
 
-#include "options/base_options.h"
-
 namespace CVC4 {
 namespace proof {
 
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
-  // set output language so the dot variant is picked to the SMT-LIB printer
-  options::outputLanguage.set(language::output::LANG_DOT);
 
   out << "digraph proof {\n";
   DotPrinter::printInternal(out, pn, ruleID);
