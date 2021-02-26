@@ -54,7 +54,8 @@ void LfscPrinter::print(std::ostream& out,
   // [1b] user declare function symbols
   for (const Node& s : syms)
   {
-    out << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s) << " ";
+    out << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s)
+        << " ";
     print(out, s.getType());
     out << "))" << std::endl;
   }

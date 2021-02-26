@@ -150,15 +150,16 @@ Node LfscTermProcessor::runConvert(Node n)
     // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
     // SEXPR to do this, which avoids the need for indexed operators.
     Node ret = n[1];
-    TypeNode ftype = nm->mkFunctionType({ intType, d_sortType}, tn);
-    Node forallOp = getSymbolInternal(k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
-    for (size_t i=0, nchild = n[0].getNumChildren(); i<nchild; i++)
+    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
+    Node forallOp = getSymbolInternal(
+        k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
+    for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
     {
-      size_t ii = (nchild-1)-ii;
+      size_t ii = (nchild - 1) - ii;
       Node v = n[0][i];
       Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
       Node tc = typeAsNode(convertType(v.getType()));
-      ret = nm->mkNode(SEXPR, nm->mkNode(APPLY_UF, forallOp, x, tc), ret); 
+      ret = nm->mkNode(SEXPR, nm->mkNode(APPLY_UF, forallOp, x, tc), ret);
     }
     return ret;
   }
@@ -253,7 +254,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
     std::vector<TypeNode> argTypes = tn.getArgTypes();
     // also make the node embedding of the type
     Node arrown = d_typeAsNode[d_arrow];
-    Assert (!arrown.isNull());
+    Assert(!arrown.isNull());
     std::vector<Node> nargs;
     cur = tn.getRangeType();
     tnn = typeAsNode(cur);
@@ -268,13 +269,13 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
     }
   }
-  else if (tn.getNumChildren()==0)
+  else if (tn.getNumChildren() == 0)
   {
     std::stringstream ss;
     ss << tn;
     tnn = getSymbolInternal(k, d_sortType, ss.str());
   }
-  Assert (!tnn.isNull());
+  Assert(!tnn.isNull());
   d_typeAsNode[tn] = tnn;
   return cur;
 }
@@ -284,7 +285,7 @@ Node LfscTermProcessor::typeAsNode(TypeNode tni) const
   // should always exist in the cache, as we always run types through
   // runConvertType before calling this method.
   std::map<TypeNode, Node>::const_iterator it = d_typeAsNode.find(tni);
-  Assert (it !=d_typeAsNode.end());
+  Assert(it != d_typeAsNode.end());
   return it->second;
 }
 
@@ -362,9 +363,9 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n)
 
 size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)
 {
-  Assert (v.isVar());
+  Assert(v.isVar());
   std::map<Node, size_t>::iterator it = d_varIndex.find(v);
-  if (it!=d_varIndex.end())
+  if (it != d_varIndex.end())
   {
     return it->second;
   }

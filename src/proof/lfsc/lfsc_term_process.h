@@ -49,6 +49,7 @@ class LfscTermProcessor : public TermProcessor
   Node getOperatorOfTerm(Node n);
   /** get or assign variable index for variable v */
   size_t getOrAssignIndexForVar(Node v);
+
  private:
   /** Type as node */
   Node typeAsNode(TypeNode tni) const;
