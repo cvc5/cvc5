@@ -349,7 +349,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       std::vector<Node> neg_Nodes;
       neg_Nodes.push_back(d_nm->mkNode(kind::AND, children));
-      for (int i = 0; i < children.size(); i++)
+      for (size_t i = 0; i < children.size(); i++)
       {
         neg_Nodes.push_back(children[i].notNode());
       }
@@ -1187,7 +1187,7 @@ bool VeritProofPostprocessCallback::update(Node res,
 }
 
 VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
-    : d_pnm(pnm), d_cb(new VeritProofPostprocessCallback(d_pnm))
+    : d_cb(new VeritProofPostprocessCallback(d_pnm)), d_pnm(pnm)
 {
   d_debugFreeAssumps = false;
 }

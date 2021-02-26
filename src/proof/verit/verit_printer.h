@@ -41,9 +41,9 @@ static int veritPrintInternal(std::ostream& out,
       == VeritRule::ANCHOR)
   {
     out << "(anchor :step " << last_step << ":args ";
-    for (int i = 2; i < pfn->getArguments().size(); i++)
+    for (size_t ii = 2; ii < pfn->getArguments().size(); ii++)
     {
-      out << " " << pfn->getArguments()[i];
+      out << " " << pfn->getArguments()[ii];
     }
     out << ")\n";
   }
@@ -91,9 +91,9 @@ static int veritPrintInternal(std::ostream& out,
         << veritRuletoString(static_cast<VeritRule>(
                std::stoul(pfn->getArguments()[0].toString())))
         << " :args";
-    for (int i = 2; i < pfn->getArguments().size(); i++)
+    for (size_t ii = 2; ii < pfn->getArguments().size(); ii++)
     {
-      out << " " << pfn->getArguments()[i];
+      out << " " << pfn->getArguments()[ii];
     }
     if (childIds.size() >= 1)
     {

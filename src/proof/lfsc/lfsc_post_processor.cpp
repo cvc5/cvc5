@@ -236,7 +236,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     case PfRule::AND_ELIM:
     {
       uint32_t i;
-      bool b = ProofRuleChecker::getUInt32(args[0], i);
+      bool b CVC4_UNUSED = ProofRuleChecker::getUInt32(args[0], i);
       Assert(b);
       // we start with the n-ary AND
       Node cur = children[0];
