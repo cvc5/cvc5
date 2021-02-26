@@ -86,10 +86,10 @@ Node LfscTermProcessor::runConvert(Node n)
     {
       rconstf = getSymbolInternal(k, tnv, "int");
       Rational r = n.getConst<Rational>();
-      if (r.sgn()==-1)
+      if (r.sgn() == -1)
       {
         // use LFSC syntax for mpz negation
-        Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn,tn), "~");
+        Node mpzn = getSymbolInternal(k, nm->mkFunctionType(tn, tn), "~");
         arg = nm->mkNode(APPLY_UF, mpzn, nm->mkConst(r.abs()));
       }
       else
@@ -303,7 +303,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 bool LfscTermProcessor::shouldTraverse(Node n)
 {
   // don't convert bound variable list directly
-  if ( n.getKind() == BOUND_VAR_LIST )
+  if (n.getKind() == BOUND_VAR_LIST)
   {
     return false;
   }

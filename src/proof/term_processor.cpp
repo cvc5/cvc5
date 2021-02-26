@@ -167,7 +167,6 @@ TypeNode TermProcessor::convertType(TypeNode tn)
   return d_tcache[tn];
 }
 
-
 void TermProcessor::addToCache(TNode cur, TNode ret)
 {
   d_cache[cur] = ret;
@@ -186,7 +185,7 @@ void TermProcessor::addToTypeCache(TypeNode cur, TypeNode ret)
     d_tcache[ret] = ret;
   }
 }
-      
+
 Node TermProcessor::runConvert(Node n) { return Node::null(); }
 
 TypeNode TermProcessor::runConvertType(TypeNode tn) { return TypeNode::null(); }
