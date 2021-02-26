@@ -24,12 +24,7 @@ namespace test {
 
 class TestUtilBlackRational : public TestInternal
 {
- protected:
-  static const char* can_reduce_val;
 };
-
-const char* TestUtilBlackRational::can_reduce_val =
-    "4547897890548754897897897897890789078907890/54878902347890234";
 
 TEST_F(TestUtilBlackRational, fromDecimal)
 {
