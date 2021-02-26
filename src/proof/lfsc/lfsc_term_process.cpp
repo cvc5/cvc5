@@ -14,9 +14,9 @@
 
 #include "proof/lfsc/lfsc_term_process.h"
 
+#include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 
@@ -41,7 +41,7 @@ Node LfscTermProcessor::runConvert(Node n)
   if (k == BOUND_VARIABLE)
   {
     // ignore internally generated symbols
-    if (d_symbols.find(n)!=d_symbols.end())
+    if (d_symbols.find(n) != d_symbols.end())
     {
       return n;
     }
@@ -130,10 +130,12 @@ Node LfscTermProcessor::runConvert(Node n)
   {
     // (ite C A B) is ((ite T) C A B) where T is the return type.
     TypeNode boolType = nm->booleanType();
-    TypeNode itype = nm->mkFunctionType(d_sortType, nm->mkFunctionType({boolType, tn, tn}, tn, false), false);
+    TypeNode itype = nm->mkFunctionType(
+        d_sortType, nm->mkFunctionType({boolType, tn, tn}, tn, false), false);
     Node iteSym = getSymbolInternal(k, itype, "ite");
     Node typeNode = typeAsNode(tn);
-    return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, iteSym, typeNode), n[0], n[1], n[2]);
+    return nm->mkNode(
+        APPLY_UF, nm->mkNode(APPLY_UF, iteSym, typeNode), n[0], n[1], n[2]);
   }
   else if (k == MINUS)
   {
@@ -300,7 +302,6 @@ Node LfscTermProcessor::typeAsNode(TypeNode tni) const
   AlwaysAssert(it != d_typeAsNode.end()) << "Missing typeAsNode " << tni;
   return it->second;
 }
-
 
 Node LfscTermProcessor::mkInternalSymbol(const std::string& name, TypeNode tn)
 {

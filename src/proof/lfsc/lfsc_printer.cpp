@@ -21,8 +21,9 @@
 namespace CVC4 {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp) {
-  NodeManager * nm = NodeManager::currentNM();
+LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
+{
+  NodeManager* nm = NodeManager::currentNM();
   // used for the `flag` type in LFSC
   d_tt = d_tproc.mkInternalSymbol("tt", nm->booleanType());
   d_ff = d_tproc.mkInternalSymbol("ff", nm->booleanType());
@@ -370,7 +371,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           std::stringstream pidNodeName;
           printAssumeId(pidNodeName, pid);
           // must be an internal symbol so that it is not turned into (bvar ...)
-          Node pidNode = d_tproc.mkInternalSymbol(pidNodeName.str(), nm->booleanType());
+          Node pidNode =
+              d_tproc.mkInternalSymbol(pidNodeName.str(), nm->booleanType());
           pf << pidNode << cs[0];
         }
         break;

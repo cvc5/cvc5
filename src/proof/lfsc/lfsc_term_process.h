@@ -49,12 +49,13 @@ class LfscTermProcessor : public TermProcessor
   Node getOperatorOfTerm(Node n);
   /** get or assign variable index for variable v */
   size_t getOrAssignIndexForVar(Node v);
-  /** 
+  /**
    * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
    * has a distinguished status so that it is *not* printed as (bvar ...). The
    * returned variable is always fresh.
    */
   Node mkInternalSymbol(const std::string& name, TypeNode tn);
+
  private:
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;

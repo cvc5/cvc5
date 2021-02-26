@@ -43,7 +43,9 @@ class PExpr
 class PExprStream
 {
  public:
-  PExprStream(std::vector<PExpr>& stream, Node tt=Node::null(), Node ff=Node::null());
+  PExprStream(std::vector<PExpr>& stream,
+              Node tt = Node::null(),
+              Node ff = Node::null());
   /** Append a proof node */
   PExprStream& operator<<(const ProofNode* pn);
   /** Append a node */

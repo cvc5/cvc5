@@ -17,7 +17,8 @@
 namespace CVC4 {
 namespace proof {
 
-PExprStream::PExprStream(std::vector<PExpr>& stream, Node tt, Node ff) : d_stream(stream), d_tt(tt), d_ff(ff)
+PExprStream::PExprStream(std::vector<PExpr>& stream, Node tt, Node ff)
+    : d_stream(stream), d_tt(tt), d_ff(ff)
 {
 }
 
@@ -35,7 +36,7 @@ PExprStream& PExprStream::operator<<(Node n)
 
 PExprStream& PExprStream::operator<<(bool b)
 {
-  Assert (!d_tt.isNull() && !d_ff.isNull());
+  Assert(!d_tt.isNull() && !d_ff.isNull());
   d_stream.push_back(b ? d_tt : d_ff);
   return *this;
 }
