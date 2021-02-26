@@ -46,7 +46,7 @@ class LfscTermProcessor : public TermProcessor
    * where it is important to get the term corresponding to the operator for
    * a term. An example is for the base REFL step of nested CONG.
    */
-  Node getOperatorOfTerm(Node n);
+  Node getOperatorOfTerm(Node n, bool macroApply = false);
   /** get or assign variable index for variable v */
   size_t getOrAssignIndexForVar(Node v);
   /**

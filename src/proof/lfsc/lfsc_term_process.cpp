@@ -72,7 +72,7 @@ Node LfscTermProcessor::runConvert(Node n)
     std::vector<TypeNode> argTypes;
     argTypes.push_back(n[0].getType());
     argTypes.push_back(n[1].getType());
-    TypeNode tnh = nm->mkFunctionType(argTypes, tn);
+    TypeNode tnh = nm->mkFunctionType(argTypes, tn, false);
     Node hconstf = getSymbolInternal(k, tnh, "apply");
     return nm->mkNode(APPLY_UF, hconstf, n[0], n[1]);
   }
@@ -140,23 +140,17 @@ Node LfscTermProcessor::runConvert(Node n)
   else if (k == ITE)
   {
     // (ite C A B) is ((ite T) C A B) where T is the return type.
-    TypeNode boolType = nm->booleanType();
-    TypeNode itype = nm->mkFunctionType(
-        d_sortType, nm->mkFunctionType({boolType, tn, tn}, tn, false), false);
-    Node iteSym = getSymbolInternal(k, itype, "ite");
-    Node typeNode = typeAsNode(tn);
+    Node iteOp = getOperatorOfTerm(n, true);
     return nm->mkNode(
-        APPLY_UF, nm->mkNode(APPLY_UF, iteSym, typeNode), n[0], n[1], n[2]);
+        APPLY_UF, iteOp, n[0], n[1], n[2]);
   }
-  else if (k == MINUS)
+  else if (k==GEQ || k==GT || k==LEQ || k==LT || k == MINUS)
   {
+    // must give special names to SMT-LIB operators with arithmetic subtyping
     // note that MINUS is not n-ary
     Assert(n.getNumChildren() == 2);
-    // TODO: refactor
-    std::stringstream opName;
-    opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
-    TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
-    Node opc = getSymbolInternal(k, ftype, opName.str());
+    // get the macro-apply version of the operator
+    Node opc = getOperatorOfTerm(n, true);
     return nm->mkNode(APPLY_UF, opc, n[0], n[1]);
   }
   else if (n.isClosure())
@@ -302,12 +296,20 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 
 bool LfscTermProcessor::shouldTraverse(Node n)
 {
+  Kind k = n.getKind();
   // don't convert bound variable list directly
-  if (n.getKind() == BOUND_VAR_LIST)
+  if (k == BOUND_VAR_LIST)
   {
     return false;
   }
   // should not traverse internal applications
+  if (k==APPLY_UF)
+  {
+    if (d_symbols.find(n.getOperator()) != d_symbols.end())
+    {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -371,13 +373,14 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
   return nullTerm;
 }
 
-Node LfscTermProcessor::getOperatorOfTerm(Node n)
+Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
 {
   Assert(n.hasOperator());
   if (n.getMetaKind() == metakind::PARAMETERIZED)
   {
     return n.getOperator();
   }
+  NodeManager * nm = NodeManager::currentNM();
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
@@ -389,16 +392,38 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n)
   {
     argTypes.resize(2);
   }
-  TypeNode retType = n.getType();
-  TypeNode ftype = NodeManager::currentNM()->mkFunctionType(argTypes, retType);
-  // most functions are called f_X where X is the SMT-LIB name
+  TypeNode tn = n.getType();
+  TypeNode ftype = nm->mkFunctionType(argTypes, tn, false);
+  // most functions are called f_X where X is the SMT-LIB name, if we are
+  // getting the macroApply variant, then we don't prefix with `f_`.
   std::stringstream opName;
-  opName << "f_";
-  if (k == PLUS || k == MULT || k == MINUS)
+  if (!macroApply)
   {
-    opName << "int.";
+    opName << "f_";
+  }
+  // all arithmetic kinds must explicitly deal with real vs int subtyping
+  if (k == PLUS || k == MULT || k==GEQ || k==GT || k==LEQ || k==LT || k == MINUS )
+  {
+    if (n[0].getType().isInteger())
+    {
+      opName << "int.";
+    }
+    else
+    {
+      opName << "real.";
+    }
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
+  if (k==ITE)
+  {
+    // ITE is indexed by its type
+    TypeNode boolType = nm->booleanType();
+    TypeNode itype = nm->mkFunctionType(
+        d_sortType, ftype, false);
+    Node iteSym = getSymbolInternal(k, itype, opName.str());
+    Node typeNode = typeAsNode(convertType(tn));
+    return nm->mkNode(APPLY_UF, iteSym, typeNode);
+  }
   return getSymbolInternal(k, ftype, opName.str());
 }
 
