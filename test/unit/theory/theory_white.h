@@ -108,7 +108,7 @@ class DummyTheory : public Theory {
     d_theoryState = &d_state;
   }
 
-  TheoryRewriter* getTheoryRewriter() { return nullptr; }
+  TheoryRewriter* getTheoryRewriter() override { return nullptr; }
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once
