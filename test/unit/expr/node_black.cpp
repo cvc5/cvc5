@@ -201,10 +201,11 @@ TEST_F(TestNodeBlackNode, operator_square)
   ASSERT_EQ(eb, ite[2]);
 
 #ifdef CVC4_ASSERTIONS
-  bool r;  // Used to suppress unused comparison warning.
+  bool r = false;;  // Used to suppress unused comparison warning.
   // Bounds check on a node with children
   ASSERT_DEATH(r = (ite == ite[-1]), "i >= 0 && unsigned\\(i\\) < d_nchildren");
   ASSERT_DEATH(r = (ite == ite[4]), "i >= 0 && unsigned\\(i\\) < d_nchildren");
+  (void) r;
 #endif
 }
 
