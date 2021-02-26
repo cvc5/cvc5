@@ -43,7 +43,6 @@ using namespace theory;
 using namespace expr;
 using namespace context;
 using namespace kind;
-using namespace smt;
 using namespace theory::bv;
 
 namespace test {

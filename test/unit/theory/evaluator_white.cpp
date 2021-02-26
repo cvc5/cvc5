@@ -27,7 +27,6 @@
 
 namespace CVC4 {
 
-using namespace smt;
 using namespace theory;
 
 namespace test {
