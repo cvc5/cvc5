@@ -101,8 +101,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term:
     // premises:
     // args: (F1, ..., Fn)
-    case PfRule::SCOPE: {
-      return true;
+    case PfRule::SCOPE: { return true;
     }
     //================================================= Boolean rules
     // ======== Resolution
@@ -186,9 +185,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term:
     // premises:
     // args:
-    case PfRule::REORDERING:
-    {
-      return true;
+    case PfRule::REORDERING: { return true;
     }
     // ======== Split
     // Children: none
@@ -1149,37 +1146,37 @@ bool VeritProofPostprocessCallback::update(Node res,
              && addVeritStep(
                     res, VeritRule::RESOLUTION, {vp1, children[0]}, {}, *cdp);
     }
-    // ======== HO trust
-    // Children: none
-    // Arguments: (t)
-    // ---------------------
-    // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
-    // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
-    //
-    // proof rule:
-    // proof term:
-    // premises:
-    // args:
-    //case PfRule::HO_APP_ENCODE:
-    //{
+      // ======== HO trust
+      // Children: none
+      // Arguments: (t)
+      // ---------------------
+      // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
+      // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+      //
+      // proof rule:
+      // proof term:
+      // premises:
+      // args:
+      // case PfRule::HO_APP_ENCODE:
+      //{
       // TODO
-    //}
-    // ======== Congruence
-    // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
-    // Arguments: ()
-    // ---------------------------------------------
-    // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
-    // Notice that this rule is only used when the application kinds are
-    // APPLY_UF.
-    //
-    // proof rule:
-    // proof term:
-    // premises:
-    // args:
-    //case PfRule::HO_CONG:
-    //{
+      //}
+      // ======== Congruence
+      // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
+      // Arguments: ()
+      // ---------------------------------------------
+      // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
+      // Notice that this rule is only used when the application kinds are
+      // APPLY_UF.
+      //
+      // proof rule:
+      // proof term:
+      // premises:
+      // args:
+      // case PfRule::HO_CONG:
+      //{
       // TODO
-    //}
+      //}
 
     default:
       return addVeritStep(res, VeritRule::UNDEFINED, children, args, *cdp);

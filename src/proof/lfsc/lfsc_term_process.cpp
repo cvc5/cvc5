@@ -141,10 +141,9 @@ Node LfscTermProcessor::runConvert(Node n)
   {
     // (ite C A B) is ((ite T) C A B) where T is the return type.
     Node iteOp = getOperatorOfTerm(n, true);
-    return nm->mkNode(
-        APPLY_UF, iteOp, n[0], n[1], n[2]);
+    return nm->mkNode(APPLY_UF, iteOp, n[0], n[1], n[2]);
   }
-  else if (k==GEQ || k==GT || k==LEQ || k==LT || k == MINUS)
+  else if (k == GEQ || k == GT || k == LEQ || k == LT || k == MINUS)
   {
     // must give special names to SMT-LIB operators with arithmetic subtyping
     // note that MINUS is not n-ary
@@ -303,7 +302,7 @@ bool LfscTermProcessor::shouldTraverse(Node n)
     return false;
   }
   // should not traverse internal applications
-  if (k==APPLY_UF)
+  if (k == APPLY_UF)
   {
     if (d_symbols.find(n.getOperator()) != d_symbols.end())
     {
@@ -329,8 +328,7 @@ Node LfscTermProcessor::mkInternalSymbol(const std::string& name, TypeNode tn)
   return sym;
 }
 
-Node LfscTermProcessor::getSymbolInternalFor(Node n,
-                                             const std::string& name)
+Node LfscTermProcessor::getSymbolInternalFor(Node n, const std::string& name)
 {
   return getSymbolInternal(n.getKind(), n.getType(), name);
 }
@@ -380,7 +378,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   {
     return n.getOperator();
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<TypeNode> argTypes;
   for (const Node& nc : n)
   {
@@ -402,7 +400,8 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     opName << "f_";
   }
   // all arithmetic kinds must explicitly deal with real vs int subtyping
-  if (k == PLUS || k == MULT || k==GEQ || k==GT || k==LEQ || k==LT || k == MINUS )
+  if (k == PLUS || k == MULT || k == GEQ || k == GT || k == LEQ || k == LT
+      || k == MINUS)
   {
     if (n[0].getType().isInteger())
     {
@@ -414,12 +413,11 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
     }
   }
   opName << printer::smt2::Smt2Printer::smtKindString(k);
-  if (k==ITE)
+  if (k == ITE)
   {
     // ITE is indexed by its type
     TypeNode boolType = nm->booleanType();
-    TypeNode itype = nm->mkFunctionType(
-        d_sortType, ftype, false);
+    TypeNode itype = nm->mkFunctionType(d_sortType, ftype, false);
     Node iteSym = getSymbolInternal(k, itype, opName.str());
     Node typeNode = typeAsNode(convertType(tn));
     return nm->mkNode(APPLY_UF, iteSym, typeNode);

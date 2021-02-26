@@ -64,9 +64,7 @@ class LfscTermProcessor : public TermProcessor
   /** Get symbol for term */
   Node getSymbolInternalFor(Node n, const std::string& name);
   /** Get symbol internal, (k,tn,name) are for caching, name is the name */
-  Node getSymbolInternal(Kind k,
-                         TypeNode tn,
-                         const std::string& name);
+  Node getSymbolInternal(Kind k, TypeNode tn, const std::string& name);
   /** terms with different syntax than smt2 */
   std::map<std::tuple<Kind, TypeNode, std::string>, Node> d_symbolsMap;
   /** the set of all internally generated symbols */
