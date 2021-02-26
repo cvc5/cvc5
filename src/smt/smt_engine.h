@@ -225,7 +225,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Set information about the script executing.
    */
-  void setInfo(const std::string& key, Node value);
+  void setInfo(const std::string& key, const std::string& value);
 
   /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
   bool isValidGetInfoFlag(const std::string& key) const;
@@ -237,7 +237,7 @@ class CVC4_PUBLIC SmtEngine
    * Set an aspect of the current SMT execution environment.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const CVC4::SExpr& value);
+  void setOption(const std::string& key, const std::string& value);
 
   /** Set is internal subsolver.
    *
