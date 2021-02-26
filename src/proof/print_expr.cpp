@@ -17,12 +17,8 @@
 namespace CVC4 {
 namespace proof {
 
-PExprStream::PExprStream(std::vector<PExpr>& stream) : d_stream(stream)
+PExprStream::PExprStream(std::vector<PExpr>& stream, Node tt, Node ff) : d_stream(stream), d_tt(tt), d_ff(ff)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  // currently hardcoded for LFSC syntax
-  d_tt = nm->mkBoundVar("tt", nm->booleanType());
-  d_ff = nm->mkBoundVar("ff", nm->booleanType());
 }
 
 PExprStream& PExprStream::operator<<(const ProofNode* pn)
@@ -39,6 +35,7 @@ PExprStream& PExprStream::operator<<(Node n)
 
 PExprStream& PExprStream::operator<<(bool b)
 {
+  Assert (!d_tt.isNull() && !d_ff.isNull());
   d_stream.push_back(b ? d_tt : d_ff);
   return *this;
 }

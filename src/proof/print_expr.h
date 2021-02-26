@@ -43,7 +43,7 @@ class PExpr
 class PExprStream
 {
  public:
-  PExprStream(std::vector<PExpr>& stream);
+  PExprStream(std::vector<PExpr>& stream, Node tt=Node::null(), Node ff=Node::null());
   /** Append a proof node */
   PExprStream& operator<<(const ProofNode* pn);
   /** Append a node */
@@ -54,11 +54,11 @@ class PExprStream
   PExprStream& operator<<(PExpr p);
 
  private:
+  /** Reference to the stream */
+  std::vector<PExpr>& d_stream;
   /** Builtin nodes */
   Node d_tt;
   Node d_ff;
-  /** Reference to the stream */
-  std::vector<PExpr>& d_stream;
 };
 
 }  // namespace proof

@@ -16,6 +16,7 @@
 
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 
@@ -39,7 +40,12 @@ Node LfscTermProcessor::runConvert(Node n)
   TypeNode tn = n.getType();
   if (k == BOUND_VARIABLE)
   {
-    // (bvar x T)
+    // ignore internally generated symbols
+    if (d_symbols.find(n)!=d_symbols.end())
+    {
+      return n;
+    }
+    // bound variable v is (bvar x T)
     TypeNode intType = nm->integerType();
     Node x = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
     Node tc = typeAsNode(convertType(tn));
@@ -47,7 +53,16 @@ Node LfscTermProcessor::runConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  if (k == APPLY_UF)
+  else if (k == SKOLEM)
+  {
+    // skolems v print as their witness forms
+    // v is (skolem W) where W is the witness form of v
+    Node wi = convert(SkolemManager::getWitnessForm(n));
+    TypeNode ftype = nm->mkFunctionType(tn, tn, false);
+    Node skolemOp = getSymbolInternal(k, ftype, "skolem");
+    return nm->mkNode(APPLY_UF, skolemOp, wi);
+  }
+  else if (k == APPLY_UF)
   {
     return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
@@ -133,7 +148,6 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (n.isClosure())
   {
-    return Node::null();
     TypeNode intType = nm->integerType();
     // (forall ((x1 T1) ... (xn Tk)) P) is
     // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
@@ -287,6 +301,14 @@ Node LfscTermProcessor::typeAsNode(TypeNode tni) const
   return it->second;
 }
 
+
+Node LfscTermProcessor::mkInternalSymbol(const std::string& name, TypeNode tn)
+{
+  Node sym = NodeManager::currentNM()->mkBoundVar(name, tn);
+  d_symbols.insert(sym);
+  return sym;
+}
+
 Node LfscTermProcessor::getSymbolInternalFor(Node n,
                                              const std::string& name,
                                              size_t v)
@@ -301,13 +323,13 @@ Node LfscTermProcessor::getSymbolInternal(Kind k,
 {
   std::tuple<Kind, TypeNode, size_t> key(k, tn, v);
   std::map<std::tuple<Kind, TypeNode, size_t>, Node>::iterator it =
-      d_symbols.find(key);
-  if (it != d_symbols.end())
+      d_symbolsMap.find(key);
+  if (it != d_symbolsMap.end())
   {
     return it->second;
   }
-  Node sym = NodeManager::currentNM()->mkBoundVar(name, tn);
-  d_symbols[key] = sym;
+  Node sym = mkInternalSymbol(name, tn);
+  d_symbolsMap[key] = sym;
   return sym;
 }
 

@@ -49,7 +49,12 @@ class LfscTermProcessor : public TermProcessor
   Node getOperatorOfTerm(Node n);
   /** get or assign variable index for variable v */
   size_t getOrAssignIndexForVar(Node v);
-
+  /** 
+   * Make an internal symbol with custom name. This is a BOUND_VARIABLE that
+   * has a distinguished status so that it is *not* printed as (bvar ...). The
+   * returned variable is always fresh.
+   */
+  Node mkInternalSymbol(const std::string& name, TypeNode tn);
  private:
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
@@ -63,7 +68,9 @@ class LfscTermProcessor : public TermProcessor
                          const std::string& name,
                          size_t v = 0);
   /** terms with different syntax than smt2 */
-  std::map<std::tuple<Kind, TypeNode, size_t>, Node> d_symbols;
+  std::map<std::tuple<Kind, TypeNode, size_t>, Node> d_symbolsMap;
+  /** the set of all internally generated symbols */
+  std::unordered_set<Node, NodeHashFunction> d_symbols;
   /** arrow type constructor */
   TypeNode d_arrow;
   /** the type of LFSC sorts, which can appear in terms */

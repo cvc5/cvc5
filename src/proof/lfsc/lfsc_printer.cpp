@@ -21,7 +21,12 @@
 namespace CVC4 {
 namespace proof {
 
-LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp) {}
+LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp) {
+  NodeManager * nm = NodeManager::currentNM();
+  // used for the `flag` type in LFSC
+  d_tt = d_tproc.mkInternalSymbol("tt", nm->booleanType());
+  d_ff = d_tproc.mkInternalSymbol("ff", nm->booleanType());
+}
 
 void LfscPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
@@ -290,7 +295,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   NodeManager* nm = NodeManager::currentNM();
   PfRule r = pn->getRule();
   const std::vector<Node>& as = pn->getArguments();
-  PExprStream pf(pargs);
+  PExprStream pf(pargs, d_tt, d_ff);
   // hole
   PExpr h;
   Trace("lfsc-print-debug2")
@@ -364,7 +369,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           // the type of this node does not matter
           std::stringstream pidNodeName;
           printAssumeId(pidNodeName, pid);
-          Node pidNode = nm->mkBoundVar(pidNodeName.str(), nm->booleanType());
+          // must be an internal symbol so that it is not turned into (bvar ...)
+          Node pidNode = d_tproc.mkInternalSymbol(pidNodeName.str(), nm->booleanType());
           pf << pidNode << cs[0];
         }
         break;

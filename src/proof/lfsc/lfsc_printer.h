@@ -113,6 +113,9 @@ class LfscPrinter
 
   /** The term processor */
   LfscTermProcessor& d_tproc;
+  /** true and false nodes */
+  Node d_tt;
+  Node d_ff;
 };
 
 }  // namespace proof
