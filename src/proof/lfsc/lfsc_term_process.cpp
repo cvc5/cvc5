@@ -37,7 +37,6 @@ Node LfscTermProcessor::runConvert(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   TypeNode tn = n.getType();
-  /*
   if (k == BOUND_VARIABLE)
   {
     // (bvar x T)
@@ -48,7 +47,6 @@ Node LfscTermProcessor::runConvert(Node n)
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
-  */
   if (k == APPLY_UF)
   {
     return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
@@ -145,21 +143,24 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (n.isClosure())
   {
+    return Node::null();
     TypeNode intType = nm->integerType();
     // (forall ((x1 T1) ... (xn Tk)) P) is
     // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
     // SEXPR to do this, which avoids the need for indexed operators.
     Node ret = n[1];
-    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
+    TypeNode bodyType = nm->mkFunctionType(ret.getType(), tn);
+    // We permit non-flat function types here
+    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, bodyType, false);
     Node forallOp = getSymbolInternal(
         k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
     for (size_t i = 0, nchild = n[0].getNumChildren(); i < nchild; i++)
     {
-      size_t ii = (nchild - 1) - ii;
-      Node v = n[0][i];
+      size_t ii = (nchild - 1) - i;
+      Node v = n[0][ii];
       Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
       Node tc = typeAsNode(convertType(v.getType()));
-      ret = nm->mkNode(SEXPR, nm->mkNode(APPLY_UF, forallOp, x, tc), ret);
+      ret = nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, forallOp, x, tc), ret);
     }
     return ret;
   }
@@ -170,59 +171,10 @@ Node LfscTermProcessor::runConvert(Node n)
     // convert all n-ary applications to binary
     std::vector<Node> children(n.begin(), n.end());
     std::reverse(children.begin(), children.end());
-    if (n.getKind() != DISTINCT)
+    // distinct is special case
+    if (k == DISTINCT)
     {
-      // Add the null-terminator. This is done to disambiguate the number
-      // of children for term with n-ary operators. In particular note that
-      // (or A B C (or D E)) has representation:
-      //   (or A (or B (or C (or (or D E) false))))
-      // This makes the AST above distinguishable from (or A B C D E),
-      // which otherwise would both have representation:
-      //   (or A (or B (or C (or D E))))
-      Node nullTerm = getNullTerminator(k);
-      // Most operators simply get binarized
-      Node ret;
-      size_t i = 0;
-      if (nullTerm.isNull())
-      {
-        ret = children[0];
-        i = 1;
-      }
-      else
-      {
-        // must convert recursively, since nullTerm may have subterms.
-        ret = convert(nullTerm);
-      }
-      // the kind to chain
-      Kind ck = k;
-      // check whether we are also changing the operator name, in which case
-      // we build a binary uninterpreted function opc
-      Node opc;
-      if (k == PLUS || k == MULT)
-      {
-        std::stringstream opName;
-        opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
-        TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
-        opc = getSymbolInternal(k, ftype, opName.str());
-        ck = APPLY_UF;
-      }
-      // now, iterate over children and make binary conversion
-      for (; i < nchild; i++)
-      {
-        if (!opc.isNull())
-        {
-          ret = nm->mkNode(ck, opc, children[i], ret);
-        }
-        else
-        {
-          ret = nm->mkNode(ck, children[i], ret);
-        }
-      }
-      return ret;
-    }
-    else
-    {
-      // DINSTICT(x1,...,xn) --->
+      // DISTINCT(x1,...,xn) --->
       // AND(DISTINCT(x1,x2), AND(,..., AND(,..,DISTINCT(x_{n-1},x_n))))
       Node ret = nm->mkNode(k, children[0], children[1]);
       for (unsigned i = 0; i < nchild; i++)
@@ -238,6 +190,54 @@ Node LfscTermProcessor::runConvert(Node n)
                                        << "ret: " << ret << std::endl;
       return ret;
     }
+    // Add the null-terminator. This is done to disambiguate the number
+    // of children for term with n-ary operators. In particular note that
+    // (or A B C (or D E)) has representation:
+    //   (or A (or B (or C (or (or D E) false))))
+    // This makes the AST above distinguishable from (or A B C D E),
+    // which otherwise would both have representation:
+    //   (or A (or B (or C (or D E))))
+    Node nullTerm = getNullTerminator(k);
+    // Most operators simply get binarized
+    Node ret;
+    size_t i = 0;
+    if (nullTerm.isNull())
+    {
+      ret = children[0];
+      i = 1;
+    }
+    else
+    {
+      // must convert recursively, since nullTerm may have subterms.
+      ret = convert(nullTerm);
+    }
+    // the kind to chain
+    Kind ck = k;
+    // check whether we are also changing the operator name, in which case
+    // we build a binary uninterpreted function opc
+    Node opc;
+    if (k == PLUS || k == MULT)
+    {
+      std::stringstream opName;
+      opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
+      TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
+      opc = getSymbolInternal(k, ftype, opName.str());
+      ck = APPLY_UF;
+    }
+    // now, iterate over children and make binary conversion
+    for (; i < nchild; i++)
+    {
+      if (!opc.isNull())
+      {
+        ret = nm->mkNode(ck, opc, children[i], ret);
+      }
+      else
+      {
+        ret = nm->mkNode(ck, children[i], ret);
+      }
+    }
+    return ret;
+  
   }
   return n;
 }
@@ -275,9 +275,18 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
     ss << tn;
     tnn = getSymbolInternal(k, d_sortType, ss.str());
   }
+  else
+  {
+    Assert(false);
+  }
   Assert(!tnn.isNull());
-  d_typeAsNode[tn] = tnn;
+  d_typeAsNode[cur] = tnn;
   return cur;
+}
+
+bool LfscTermProcessor::shouldTraverse(Node n)
+{
+  return n.getKind()!=BOUND_VAR_LIST;
 }
 
 Node LfscTermProcessor::typeAsNode(TypeNode tni) const
@@ -285,7 +294,7 @@ Node LfscTermProcessor::typeAsNode(TypeNode tni) const
   // should always exist in the cache, as we always run types through
   // runConvertType before calling this method.
   std::map<TypeNode, Node>::const_iterator it = d_typeAsNode.find(tni);
-  Assert(it != d_typeAsNode.end());
+  AlwaysAssert(it != d_typeAsNode.end()) << "Missing typeAsNode " << tni;
   return it->second;
 }
 
@@ -357,8 +366,14 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n)
   TypeNode ftype = NodeManager::currentNM()->mkFunctionType(argTypes, retType);
   // most functions are called f_X where X is the SMT-LIB name
   std::stringstream opName;
-  opName << "f_" << printer::smt2::Smt2Printer::smtKindString(k);
-  return getSymbolInternal(k, ftype, opName.str());
+  opName << "f_";
+  if (k==PLUS || k==MULT || k==MINUS)
+  {
+    opName << "int.";
+  }
+  opName << printer::smt2::Smt2Printer::smtKindString(k);
+  // use a different id, since we hash two kinds (applied and operator)
+  return getSymbolInternal(k, ftype, opName.str(), 1);
 }
 
 size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)

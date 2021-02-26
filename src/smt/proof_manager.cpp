@@ -153,11 +153,6 @@ void PfManager::printProof(std::ostream& out,
     proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
     lpp.process(fp);
     proof::LfscPrinter lp(ltp);
-    // print the proof for assertions
-    Trace("lfsc-debug") << "(proof\n";
-    Trace("lfsc-debug") << *fp;
-    Trace("lfsc-debug") << "\n)\n";
-
     lp.print(out, assertions, fp.get());
   }
   else

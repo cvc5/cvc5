@@ -223,7 +223,10 @@ class Smt2Printer : public CVC4::Printer
   void toStreamCmdDeclarationSequence(
       std::ostream& out, const std::vector<Command*>& sequence) const override;
 
-  /** Get the string for a kind k */
+  /**
+   * Get the string for a kind k, which returns how the kind k is printed in
+   * the SMT-LIB format (with variant v).
+   */
   static std::string smtKindString(Kind k, Variant v = smt2_6_variant);
 
  private:
