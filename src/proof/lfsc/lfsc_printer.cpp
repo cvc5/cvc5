@@ -52,13 +52,11 @@ void LfscPrinter::print(std::ostream& out,
     }
   }
   // [1b] user declare function symbols
-  uint32_t vidCounter = 0;
   for (const Node& s : syms)
   {
-    out << "(define " << s << " (var " << vidCounter << " ";
+    out << "(define " << s << " (var " << d_tproc.getOrAssignIndexForVar(s) << " ";
     print(out, s.getType());
     out << "))" << std::endl;
-    vidCounter++;
   }
 
   // [2] print the check command and term lets

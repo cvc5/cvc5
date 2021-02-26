@@ -24,8 +24,12 @@ namespace proof {
 
 LfscTermProcessor::LfscTermProcessor()
 {
-  d_arrow = NodeManager::currentNM()->mkSortConstructor("arrow", 2);
-  d_sortType = NodeManager::currentNM()->mkSort("sortType");
+  NodeManager* nm = NodeManager::currentNM();
+  d_arrow = nm->mkSortConstructor("arrow", 2);
+  d_sortType = nm->mkSort("sortType");
+  // the embedding of arrow into Node, which is binary constructor over sorts
+  TypeNode anfType = nm->mkFunctionType({d_sortType, d_sortType}, d_sortType);
+  d_typeAsNode[d_arrow] = getSymbolInternal(FUNCTION_TYPE, anfType, "arrow");
 }
 
 Node LfscTermProcessor::runConvert(Node n)
@@ -33,6 +37,18 @@ Node LfscTermProcessor::runConvert(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   TypeNode tn = n.getType();
+  /*
+  if (k == BOUND_VARIABLE)
+  {
+    // (bvar x T)
+    TypeNode intType = nm->integerType();
+    Node x = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
+    Node tc = typeAsNode(convertType(tn));
+    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
+    Node bvarOp = getSymbolInternal(k, ftype, "bvar");
+    return nm->mkNode(APPLY_UF, bvarOp, x, tc);
+  }
+  */
   if (k == APPLY_UF)
   {
     return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
@@ -123,24 +139,28 @@ Node LfscTermProcessor::runConvert(Node n)
     // TODO: refactor
     std::stringstream opName;
     opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
-    TypeNode type = n.getType();
-    TypeNode ftype = nm->mkFunctionType({type, type}, type);
+    TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
     Node opc = getSymbolInternal(k, ftype, opName.str());
     return nm->mkNode(APPLY_UF, opc, n[0], n[1]);
   }
   else if (n.isClosure())
   {
+    TypeNode intType = nm->integerType();
     // (forall ((x1 T1) ... (xn Tk)) P) is
-    // ((forall n1 T1) ((forall n2 T2) ... ((forall nk Tk) P))). We use
+    // ((forall x1 T1) ((forall x2 T2) ... ((forall xk Tk) P))). We use
     // SEXPR to do this, which avoids the need for indexed operators.
-#if 0
-    for (size_t i=0, nchild = n.getNumChildren(); i<nchild; i++)
+    Node ret = n[1];
+    TypeNode ftype = nm->mkFunctionType({ intType, d_sortType}, tn);
+    Node forallOp = getSymbolInternal(k, ftype, printer::smt2::Smt2Printer::smtKindString(k));
+    for (size_t i=0, nchild = n[0].getNumChildren(); i<nchild; i++)
     {
-      Node n;
-      Node tc = typeAsNode(
-      Node sexprOp = nm->mkNode(SEXPR, forallOp, 
+      size_t ii = (nchild-1)-ii;
+      Node v = n[0][i];
+      Node x = nm->mkConst(Rational(getOrAssignIndexForVar(v)));
+      Node tc = typeAsNode(convertType(v.getType()));
+      ret = nm->mkNode(SEXPR, nm->mkNode(APPLY_UF, forallOp, x, tc), ret); 
     }
-#endif
+    return ret;
   }
   else if (ExprManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
@@ -181,8 +201,7 @@ Node LfscTermProcessor::runConvert(Node n)
       {
         std::stringstream opName;
         opName << "int." << printer::smt2::Smt2Printer::smtKindString(k);
-        TypeNode type = n.getType();
-        TypeNode ftype = nm->mkFunctionType({type, type}, type);
+        TypeNode ftype = nm->mkFunctionType({tn, tn}, tn);
         opc = getSymbolInternal(k, ftype, opName.str());
         ck = APPLY_UF;
       }
@@ -224,13 +243,20 @@ Node LfscTermProcessor::runConvert(Node n)
 
 TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 {
+  TypeNode cur = tn;
+  Node tnn;
   Kind k = tn.getKind();
   if (k == FUNCTION_TYPE)
   {
     NodeManager* nm = NodeManager::currentNM();
     // (-> T1 ... Tn T) is (arrow T1 .... (arrow Tn T))
     std::vector<TypeNode> argTypes = tn.getArgTypes();
-    TypeNode cur = tn.getRangeType();
+    // also make the node embedding of the type
+    Node arrown = d_typeAsNode[d_arrow];
+    Assert (!arrown.isNull());
+    std::vector<Node> nargs;
+    cur = tn.getRangeType();
+    tnn = typeAsNode(cur);
     for (std::vector<TypeNode>::reverse_iterator it = argTypes.rbegin();
          it != argTypes.rend();
          ++it)
@@ -239,21 +265,32 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
       aargs.push_back(*it);
       aargs.push_back(cur);
       cur = nm->mkSort(d_arrow, aargs);
+      tnn = nm->mkNode(APPLY_UF, arrown, typeAsNode(*it), tnn);
     }
-    return cur;
   }
-  return tn;
+  else if (tn.getNumChildren()==0)
+  {
+    std::stringstream ss;
+    ss << tn;
+    tnn = getSymbolInternal(k, d_sortType, ss.str());
+  }
+  Assert (!tnn.isNull());
+  d_typeAsNode[tn] = tnn;
+  return cur;
 }
 
-Node LfscTermProcessor::typeAsNode(TypeNode tni)
+Node LfscTermProcessor::typeAsNode(TypeNode tni) const
 {
-  // TODO;
-  return Node::null();
+  // should always exist in the cache, as we always run types through
+  // runConvertType before calling this method.
+  std::map<TypeNode, Node>::const_iterator it = d_typeAsNode.find(tni);
+  Assert (it !=d_typeAsNode.end());
+  return it->second;
 }
 
 Node LfscTermProcessor::getSymbolInternalFor(Node n,
                                              const std::string& name,
-                                             uint32_t v)
+                                             size_t v)
 {
   return getSymbolInternal(n.getKind(), n.getType(), name, v);
 }
@@ -261,10 +298,10 @@ Node LfscTermProcessor::getSymbolInternalFor(Node n,
 Node LfscTermProcessor::getSymbolInternal(Kind k,
                                           TypeNode tn,
                                           const std::string& name,
-                                          uint32_t v)
+                                          size_t v)
 {
-  std::tuple<Kind, TypeNode, uint32_t> key(k, tn, v);
-  std::map<std::tuple<Kind, TypeNode, uint32_t>, Node>::iterator it =
+  std::tuple<Kind, TypeNode, size_t> key(k, tn, v);
+  std::map<std::tuple<Kind, TypeNode, size_t>, Node>::iterator it =
       d_symbols.find(key);
   if (it != d_symbols.end())
   {
@@ -297,7 +334,7 @@ Node LfscTermProcessor::getNullTerminator(Kind k)
   return nullTerm;
 }
 
-Node LfscTermProcessor::getOperatorForTerm(Node n)
+Node LfscTermProcessor::getOperatorOfTerm(Node n)
 {
   Assert(n.hasOperator());
   if (n.getMetaKind() == metakind::PARAMETERIZED)
@@ -321,6 +358,19 @@ Node LfscTermProcessor::getOperatorForTerm(Node n)
   std::stringstream opName;
   opName << "f_" << printer::smt2::Smt2Printer::smtKindString(k);
   return getSymbolInternal(k, ftype, opName.str());
+}
+
+size_t LfscTermProcessor::getOrAssignIndexForVar(Node v)
+{
+  Assert (v.isVar());
+  std::map<Node, size_t>::iterator it = d_varIndex.find(v);
+  if (it!=d_varIndex.end())
+  {
+    return it->second;
+  }
+  size_t id = d_varIndex.size();
+  d_varIndex[v] = id;
+  return id;
 }
 
 }  // namespace proof

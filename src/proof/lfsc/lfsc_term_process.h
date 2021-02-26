@@ -46,26 +46,29 @@ class LfscTermProcessor : public TermProcessor
    * where it is important to get the term corresponding to the operator for
    * a term. An example is for the base REFL step of nested CONG.
    */
-  Node getOperatorForTerm(Node n);
-
+  Node getOperatorOfTerm(Node n);
+  /** get or assign variable index for variable v */
+  size_t getOrAssignIndexForVar(Node v);
  private:
   /** Type as node */
-  Node typeAsNode(TypeNode tni);
+  Node typeAsNode(TypeNode tni) const;
   /** Get symbol for term */
-  Node getSymbolInternalFor(Node n, const std::string& name, uint32_t v = 0);
-  /** Get symbol internal */
+  Node getSymbolInternalFor(Node n, const std::string& name, size_t v = 0);
+  /** Get symbol internal, (k,tn,v) are for caching, name is the name */
   Node getSymbolInternal(Kind k,
                          TypeNode tn,
                          const std::string& name,
-                         uint32_t v = 0);
+                         size_t v = 0);
   /** terms with different syntax than smt2 */
-  std::map<std::tuple<Kind, TypeNode, uint32_t>, Node> d_symbols;
+  std::map<std::tuple<Kind, TypeNode, size_t>, Node> d_symbols;
   /** arrow type constructor */
   TypeNode d_arrow;
   /** the type of LFSC sorts, which can appear in terms */
   TypeNode d_sortType;
   /** Used for getting unique index for variable */
-  std::map<Node, uint32_t> d_varIndex;
+  std::map<Node, size_t> d_varIndex;
+  /** Cache for typeAsNode */
+  std::map<TypeNode, Node> d_typeAsNode;
 };
 
 }  // namespace proof

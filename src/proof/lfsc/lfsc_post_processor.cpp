@@ -151,7 +151,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // First, get the operator, which will be used for printing the base
       // REFL step. Notice this may be for interpreted or uninterpreted
       // function symbols.
-      Node op = d_tproc.getOperatorForTerm(res[0]);
+      Node op = d_tproc.getOperatorOfTerm(res[0]);
       Assert(!op.isNull());
       // initial base step is REFL
       Node opEq = op.eqNode(op);
