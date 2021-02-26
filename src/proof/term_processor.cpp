@@ -86,7 +86,8 @@ Node TermProcessor::convert(Node n)
       Node cret = runConvert(ret);
       if (!cret.isNull())
       {
-        AlwaysAssert (cret.getType().isComparableTo(ret.getType())) << "Converting " << ret << " to " << cret << " changes type";
+        AlwaysAssert(cret.getType().isComparableTo(ret.getType()))
+            << "Converting " << ret << " to " << cret << " changes type";
         ret = cret;
       }
       d_cache[cur] = ret;

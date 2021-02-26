@@ -50,7 +50,7 @@ class LfscTermProcessor : public TermProcessor
   /** get or assign variable index for variable v */
   size_t getOrAssignIndexForVar(Node v);
 
- private:  
+ private:
   /** Should we traverse n? */
   bool shouldTraverse(Node n) override;
   /** Type as node */

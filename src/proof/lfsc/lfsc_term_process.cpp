@@ -237,7 +237,6 @@ Node LfscTermProcessor::runConvert(Node n)
       }
     }
     return ret;
-  
   }
   return n;
 }
@@ -286,7 +285,7 @@ TypeNode LfscTermProcessor::runConvertType(TypeNode tn)
 
 bool LfscTermProcessor::shouldTraverse(Node n)
 {
-  return n.getKind()!=BOUND_VAR_LIST;
+  return n.getKind() != BOUND_VAR_LIST;
 }
 
 Node LfscTermProcessor::typeAsNode(TypeNode tni) const
@@ -367,7 +366,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n)
   // most functions are called f_X where X is the SMT-LIB name
   std::stringstream opName;
   opName << "f_";
-  if (k==PLUS || k==MULT || k==MINUS)
+  if (k == PLUS || k == MULT || k == MINUS)
   {
     opName << "int.";
   }
