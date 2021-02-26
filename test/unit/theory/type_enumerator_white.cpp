@@ -282,18 +282,38 @@ TEST_F(TestTheoryWhiteTypeEnumerator, arrays_infinite)
   Node five = d_nodeManager->mkConst(Rational(5));
   Node eleven = d_nodeManager->mkConst(Rational(11));
 
-  // FIXME: the arrays enumerator isn't currently a fair enumerator,
-  // so these will fail; disable them for now
-  // ASSERT_TRUE( elts.find( d_nodeManager->mkNode(STORE, ones, zero, zero) ) !=
-  // elts.end() ); ASSERT_TRUE( elts.find( d_nodeManager->mkNode(STORE, tens,
-  // four, five) ) != elts.end() ); ASSERT_TRUE( elts.find(
-  // d_nodeManager->mkNode(STORE, d_nodeManager->mkNode(STORE,
-  // d_nodeManager->mkNode(STORE, fours, eleven, two), two, one), zero, two) )
-  // != elts.end() ); ASSERT_TRUE( elts.find( threes ) != elts.end() );
-  // ASSERT_TRUE( elts.find( d_nodeManager->mkNode(STORE,
-  // d_nodeManager->mkNode(STORE, d_nodeManager->mkNode(STORE,
-  // d_nodeManager->mkNode(STORE, twos, three, zero), two, zero), one, zero),
-  // zero, zero) ) != elts.end() );
+  ASSERT_EQ(elts.find(d_nodeManager->mkNode(STORE, ones, zero, zero)),
+            elts.end());
+
+  // the arrays enumerator is currently not a fair enumerator -- when it is,
+  // these should be flipped
+  ASSERT_EQ(elts.find(d_nodeManager->mkNode(STORE, tens, four, five)),
+            elts.end());
+  ASSERT_EQ(elts.find(d_nodeManager->mkNode(
+                STORE,
+                d_nodeManager->mkNode(
+                    STORE,
+                    d_nodeManager->mkNode(STORE, fours, eleven, two),
+                    two,
+                    one),
+                zero,
+                two)),
+            elts.end());
+  ASSERT_EQ(elts.find(threes), elts.end());
+  ASSERT_EQ(elts.find(d_nodeManager->mkNode(
+                STORE,
+                d_nodeManager->mkNode(
+                    STORE,
+                    d_nodeManager->mkNode(
+                        STORE,
+                        d_nodeManager->mkNode(STORE, twos, three, zero),
+                        two,
+                        zero),
+                    one,
+                    zero),
+                zero,
+                zero)),
+            elts.end());
 }
 
 TEST_F(TestTheoryWhiteTypeEnumerator, bv)
