@@ -14,9 +14,6 @@
 
 #include "proof/verit/verit_post_processor.h"
 
-#include <memory>
-#include <vector>
-
 namespace CVC4 {
 
 namespace proof {
@@ -37,83 +34,10 @@ void VeritProofPostprocessCallback::initializeUpdate(bool extended)
 bool VeritProofPostprocessCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  bool& continueUpdate)
 {
-  switch (pn->getRule())
-  {
-    case PfRule::VERIT_RULE: return false;
-    default: return true;
-  }
-}
-
-bool VeritProofPostprocessCallback::addVeritStep(
-    Node res,
-    VeritRule rule,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof& cdp)
-{
-  return addVeritStep(res,rule,res,children,args,cdp);
-}
-
-bool VeritProofPostprocessCallback::addVeritStep(
-    Node res,
-    VeritRule rule,
-    Node conclusion,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof& cdp)
-{  // TODO: use *cdp, unify
-  std::vector<Node> new_args = std::vector<Node>();
-  new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(rule)));
-  new_args.push_back(res);
-  new_args.push_back(conclusion);
-  new_args.insert(new_args.end(),args.begin(),args.end());
-  Trace("verit-proof") << "... add veriT step " << res << " / "  << conclusion << " " << children << " / " << new_args << std::endl;
-  return cdp.addStep(res,PfRule::VERIT_RULE,children,new_args);
-}
-
-//Replace a node (or F1 ... Fn) by (cl F1 ... Fn)
-bool VeritProofPostprocessCallback::addVeritStepFromOr(
-    Node res,
-    VeritRule rule,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof& cdp)
-{
-  std::vector<Node> clauses;
-  clauses.push_back(d_cl);
-  clauses.insert(clauses.end(),res.begin(),res.end());
-  Node conclusion = d_nm->mkNode(kind::SEXPR,clauses);
-  return addVeritStep(res,rule,conclusion,children,args,cdp);
-}
-
-bool VeritProofPostprocessCallback::isSameModEqual(Node vp1, Node vp2)
-{
-  if (vp1.getKind() != vp2.getKind())
-  {
+  if(pn->getRule() == PfRule::VERIT_RULE){
     return false;
   }
-  else if (vp1 == vp2)
-  {
-    return true;
-  }
-  else if (vp1.getKind() == kind::EQUAL)
-  {
-    return (isSameModEqual(vp1[0], vp2[1]) && isSameModEqual(vp1[1], vp2[0]))
-           || (isSameModEqual(vp1[0], vp2[0])
-               && isSameModEqual(vp1[1], vp2[1]));
-  }
-  std::vector<Node> vp1s(vp1.begin(), vp1.end());
-  std::vector<Node> vp2s(vp2.begin(), vp2.end());
-  if (vp1s.size() != vp2s.size())
-  {
-    return false;
-  }
-  bool equal = true;
-  for (int i = 0; i < vp1s.size(); i++)
-  {
-    equal &= isSameModEqual(vp1s[i], vp2s[i]);
-  }
-  return equal;
+  return true;
 }
 
 bool VeritProofPostprocessCallback::update(
@@ -251,9 +175,10 @@ bool VeritProofPostprocessCallback::update(
     {
       bool success = true;
 
+      //Build vp1
       std::vector<Node> negNode;
       for(Node arg:args){
-        negNode.push_back(arg.notNode());  // (not F1) ... (not Fn)
+        negNode.push_back(arg.notNode());     // (not F1) ... (not Fn)
       }
       negNode.push_back(children[0]);         // (not F1) ... (not Fn) F
       negNode.insert(negNode.begin(), d_cl);  // (cl (not F1) ... (not F) F)
@@ -261,6 +186,7 @@ bool VeritProofPostprocessCallback::update(
       success &=
           addVeritStep(vp1, VeritRule::ANCHOR_SUBPROOF, children, args, *cdp);
 
+      //Build vp2i
       Node andNode;
       if (args.size() != 1)
       {
@@ -358,7 +284,7 @@ bool VeritProofPostprocessCallback::update(
     // t. This is not an exact translation but should work in most cases.
     //
     // E.g. if the F: (= (* 0 d) 0) and tid = THEORY_ARITH, then prod_simplify
-    // is correctly guessed as the right rule.
+    // is correctly guessed as the rule.
     case PfRule::THEORY_REWRITE:{
       theory::TheoryId tid = static_cast<theory::TheoryId>(std::stoul(args[1].toString()));
       VeritRule vrule = VeritRule::UNDEFINED;
@@ -2425,6 +2351,78 @@ bool VeritProofPostprocessCallback::finalResult(
                           true,
                           CDPOverwrite::ALWAYS);
   return success;
+}
+
+bool VeritProofPostprocessCallback::addVeritStep(
+    Node res,
+    VeritRule rule,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  return addVeritStep(res,rule,res,children,args,cdp);
+}
+
+bool VeritProofPostprocessCallback::addVeritStep(
+    Node res,
+    VeritRule rule,
+    Node conclusion,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{  // TODO: use *cdp, unify
+  std::vector<Node> new_args = std::vector<Node>();
+  new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(rule)));
+  new_args.push_back(res);
+  new_args.push_back(conclusion);
+  new_args.insert(new_args.end(),args.begin(),args.end());
+  Trace("verit-proof") << "... add veriT step " << res << " / "  << conclusion << " " << children << " / " << new_args << std::endl;
+  return cdp.addStep(res,PfRule::VERIT_RULE,children,new_args);
+}
+
+//Replace a node (or F1 ... Fn) by (cl F1 ... Fn)
+bool VeritProofPostprocessCallback::addVeritStepFromOr(
+    Node res,
+    VeritRule rule,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof& cdp)
+{
+  std::vector<Node> clauses;
+  clauses.push_back(d_cl);
+  clauses.insert(clauses.end(),res.begin(),res.end());
+  Node conclusion = d_nm->mkNode(kind::SEXPR,clauses);
+  return addVeritStep(res,rule,conclusion,children,args,cdp);
+}
+
+bool VeritProofPostprocessCallback::isSameModEqual(Node vp1, Node vp2)
+{
+  if (vp1.getKind() != vp2.getKind())
+  {
+    return false;
+  }
+  else if (vp1 == vp2)
+  {
+    return true;
+  }
+  else if (vp1.getKind() == kind::EQUAL)
+  {
+    return (isSameModEqual(vp1[0], vp2[1]) && isSameModEqual(vp1[1], vp2[0]))
+           || (isSameModEqual(vp1[0], vp2[0])
+               && isSameModEqual(vp1[1], vp2[1]));
+  }
+  std::vector<Node> vp1s(vp1.begin(), vp1.end());
+  std::vector<Node> vp2s(vp2.begin(), vp2.end());
+  if (vp1s.size() != vp2s.size())
+  {
+    return false;
+  }
+  bool equal = true;
+  for (int i = 0; i < vp1s.size(); i++)
+  {
+    equal &= isSameModEqual(vp1s[i], vp2s[i]);
+  }
+  return equal;
 }
 
 VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,

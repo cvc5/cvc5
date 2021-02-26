@@ -62,7 +62,6 @@ class VeritProofPostprocessCallback  //: public ProofNodeUpdaterCallback
   bool update(Node res,
               PfRule id,
               const std::vector<Node>& children,
-              const std::vector<VeritRule>& childrenRules,
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate);
