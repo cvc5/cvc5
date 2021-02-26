@@ -28,8 +28,8 @@ class TestUtilBlackBinaryHeap : public TestInternal
  protected:
   struct Elem
   {
-    Elem(int32_t y) : x(y) {}
-    int32_t x;
+    Elem(int32_t y) : d_x(y) {}
+    int32_t d_x;
   };
 
   struct Cmp
@@ -41,7 +41,7 @@ class TestUtilBlackBinaryHeap : public TestInternal
     {
       // ensure BinaryHeap<> calls our Cmp instance and not some fresh one
       Assert(d_valid);
-      return x.x > y.x;
+      return x.d_x > y.d_x;
     }
 
     bool d_valid;
@@ -194,7 +194,7 @@ TEST_F(TestUtilBlackBinaryHeap, large_heap)
   Elem last = heap.top();
   for (int32_t x = 0; x < 800; ++x)
   {
-    ASSERT_LE(last.x, heap.top().x);
+    ASSERT_LE(last.d_x, heap.top().d_x);
     last = heap.top();
     heap.pop();
     ASSERT_EQ(heap.size(), 998u - x);
@@ -211,9 +211,9 @@ TEST_F(TestUtilBlackBinaryHeap, large_heap)
       handles.push_back(heap.push(Elem(x / 10)));
     }
     // change a few
-    heap.update(handles[x / 10], 4 * (*handles[x / 10]).x);
-    heap.update(handles[x / 105], (*handles[x / 4]).x - 294);
-    heap.update(handles[x / 33], 6 * (*handles[x / 82]).x / 5 - 1);
+    heap.update(handles[x / 10], 4 * (*handles[x / 10]).d_x);
+    heap.update(handles[x / 105], (*handles[x / 4]).d_x - 294);
+    heap.update(handles[x / 33], 6 * (*handles[x / 82]).d_x / 5 - 1);
     ASSERT_EQ(heap.size(), size_t(x) + ((x + 4) / 10) + 200);
   }
   ASSERT_EQ(heap.size(), 11199u);
@@ -221,7 +221,7 @@ TEST_F(TestUtilBlackBinaryHeap, large_heap)
   last = heap.top();
   while (!heap.empty())
   {
-    ASSERT_LE(last.x, heap.top().x);
+    ASSERT_LE(last.d_x, heap.top().d_x);
     last = heap.top();
     heap.pop();
   }
