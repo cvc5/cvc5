@@ -2407,8 +2407,11 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
     ss1 = nm->mkNode(SEQ_NTH,n1,k);
     ss2 = nm->mkNode(SEQ_NTH,n2,k);
   }
+  // disequality between nth/substr
   Node conc1 = ss1.eqNode(ss2).negate();
 
+  // The skolem k is in the bounds of at least
+  // one string/sequence
   Node len1 = nm->mkNode(kind::STRING_LENGTH, n1);
   Node len2 = nm->mkNode(kind::STRING_LENGTH, n2);
   Node conc2 = nm->mkNode(kind::LEQ, d_zero, k);
@@ -2417,7 +2420,6 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
   Node conc3 = nm->mkNode(kind::OR, disj1, disj2);
 
   vector<Node> concs = {conc1, conc2, conc3};
-
   Node conc = nm->mkAnd(concs);
   d_im.sendInference({deq}, conc, Inference::DEQ_EXTENSIONALITY, false, true);
 }
