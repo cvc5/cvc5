@@ -1187,7 +1187,7 @@ bool VeritProofPostprocessCallback::update(Node res,
 }
 
 VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
-    : d_cb(new VeritProofPostprocessCallback(d_pnm)), d_pnm(pnm)
+    : d_pnm(pnm), d_cb(new VeritProofPostprocessCallback(pnm))
 {
   d_debugFreeAssumps = false;
 }
