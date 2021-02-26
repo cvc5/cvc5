@@ -786,7 +786,7 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         {
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
-          for( unsigned k=0; k<rr; k++ ){
+          for( long k=0; k<rr; k++ ){
             Node t = NodeManager::currentNM()->mkNode(PLUS, tl, NodeManager::currentNM()->mkConst( Rational(k) ) );
             t = Rewriter::rewrite( t );
             elements.push_back( t );
