@@ -33,11 +33,11 @@ using namespace kind;
 
 namespace test {
 
-class TestNodeBlackNodeTraversalPostorder : public TestNodeBlack
+class TestNodeBlackNodeTraversalPostorder : public TestNode
 {
 };
 
-class TestNodeBlackNodeTraversalPreorder : public TestNodeBlack
+class TestNodeBlackNodeTraversalPreorder : public TestNode
 {
 };
 
