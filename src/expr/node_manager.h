@@ -886,9 +886,15 @@ class NodeManager {
    *
    * @param domain the domain type
    * @param range the range type
+   * @param reqFlat If true, we require flat function types, e.g. the
+   * range type cannot be a function. User-generated function types and those
+   * used in solving must be flat, although some use cases (e.g. LFSC proof
+   * conversion) require non-flat function types.
    * @returns the functional type domain -> range
    */
-  TypeNode mkFunctionType(const TypeNode& domain, const TypeNode& range);
+  TypeNode mkFunctionType(const TypeNode& domain,
+                          const TypeNode& range,
+                          bool reqFlat = true);
 
   /**
    * Make a function type with input types from
@@ -896,18 +902,25 @@ class NodeManager {
    *
    * @param argTypes the domain is a tuple (argTypes[0], ..., argTypes[n])
    * @param range the range type
+   * @param reqFlat Same as above
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
   TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
-                          const TypeNode& range);
+                          const TypeNode& range,
+                          bool reqFlat = true);
 
   /**
    * Make a function type with input types from
    * <code>sorts[0..sorts.size()-2]</code> and result type
    * <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have
    * at least 2 elements.
+   *
+   * @param sorts The argument and range sort of the function type, where the
+   * range type is the last in this vector.
+   * @param reqFlat Same as above
    */
-  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
+  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts,
+                          bool reqFlat = true);
 
   /**
    * Make a predicate type with input types from
@@ -915,7 +928,8 @@ class NodeManager {
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
+  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts,
+                           bool reqFlat = true);
 
   /**
    * Make a tuple type with types from
