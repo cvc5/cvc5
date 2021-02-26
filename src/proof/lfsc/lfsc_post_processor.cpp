@@ -93,8 +93,8 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       else
       {
-        // we have C != false
-        // convert to (=> (and F1 (and F2 ... (and Fn false) ... )) C)
+        // we have that C != false
+        // convert to (=> (and F1 (and F2 ... (and Fn true) ... )) C)
         // FIXME
         return false;
       }
