@@ -167,6 +167,15 @@ header = "options/smt_options.h"
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
+  name       = "produceProofs"
+  category   = "regular"
+  long       = "produce-proofs"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "output proofs after every UNSAT/VALID response"
+
+[[option]]
   name       = "proofPrintConclusion"
   category   = "regular"
   long       = "proof-print-conclusion"
