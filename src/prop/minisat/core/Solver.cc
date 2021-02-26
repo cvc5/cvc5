@@ -278,12 +278,15 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 
     setDecisionVar(v, dvar);
 
+    Debug("minisat") << "new var " << v << std::endl;
+
     // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
-    if (preRegister) {
+    if (preRegister)
+    {
+      Debug("minisat") << "  To register at level " << decisionLevel()
+                       << std::endl;
       variables_to_register.push(VarIntroInfo(v, decisionLevel()));
     }
-
-    Debug("minisat") << "new var " << v << std::endl;
 
     return v;
 }
@@ -981,6 +984,8 @@ Lit Solver::pickBranchLit()
 |________________________________________________________________________________________________@*/
 int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 {
+    Trace("pf::sat") << "Solver::analyze: starting with " << confl << " with decision level " << decisionLevel() << "\n";
+
     int pathC = 0;
     Lit p     = lit_Undef;
 
@@ -1013,12 +1018,26 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           if (c.removable()) claBumpActivity(c);
         }
 
+        if (Trace.isOn("pf::sat"))
+        {
+          Trace("pf::sat") << "Solver::analyze: conflict clause ";
+          for (unsigned i = 0, size = ca[confl].size(); i < size; ++i)
+          {
+            Trace("pf::sat") << ca[confl][i] << " ";
+          }
+          Trace("pf::sat") << "\n";
+        }
+
+        Trace("pf::sat") << CVC4::push;
         for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size();
              j < size;
              j++)
         {
           Lit q = ca[confl][j];
 
+          Trace("pf::sat") << "Lit " << q
+                           << " seen/level: " << (seen[var(q)] ? 1 : 0)
+                           << " / " << level(var(q)) << "\n";
           if (!seen[var(q)] && level(var(q)) > 0)
           {
             varBumpActivity(var(q));
@@ -1052,6 +1071,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             }
           }
         }
+        Trace("pf::sat") << CVC4::pop;
 
         // Select next clause to look at:
         while (!seen[var(trail[index--])]);
@@ -2274,6 +2294,7 @@ CRef Solver::updateLemmas() {
           }
         } else {
           Debug("minisat::lemmas") << "lemma size is " << lemma.size() << std::endl;
+          Debug("minisat::lemmas") << "lemma ref is " << lemma_ref << std::endl;
           uncheckedEnqueue(lemma[0], lemma_ref);
         }
       }
