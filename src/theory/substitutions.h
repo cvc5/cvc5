@@ -133,13 +133,13 @@ public:
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t);
+  Node apply(TNode t, bool doRewrite = false);
 
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t) const {
-    return const_cast<SubstitutionMap*>(this)->apply(t);
+  Node apply(TNode t, bool doRewrite = false) const {
+    return const_cast<SubstitutionMap*>(this)->apply(t, doRewrite);
   }
 
   iterator begin() {

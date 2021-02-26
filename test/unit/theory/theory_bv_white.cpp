@@ -32,7 +32,6 @@ using namespace theory::bv;
 using namespace theory::bv::utils;
 using namespace expr;
 using namespace context;
-using namespace smt;
 
 namespace test {
 
