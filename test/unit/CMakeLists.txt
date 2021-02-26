@@ -57,6 +57,11 @@ macro(cvc4_add_unit_test is_white name output_dir)
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
   endif()
+  # Disable the Wunused-comparison warnings for the unit tests.
+  check_cxx_compiler_flag("-Wno-suggest-override" HAVE_FLAGWno_unused_comparison)
+  if(HAVE_FLAGWno_unused_comparison)
+    target_compile_options(${name} PRIVATE -Wno-unused-comparison)
+  endif()
   add_dependencies(build-units ${name})
   # Generate into bin/test/unit/<output_dir>.
   set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/unit/${output_dir})
