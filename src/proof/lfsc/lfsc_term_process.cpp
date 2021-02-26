@@ -43,7 +43,7 @@ Node LfscTermProcessor::runConvert(Node n)
     TypeNode intType = nm->integerType();
     Node x = nm->mkConst(Rational(getOrAssignIndexForVar(n)));
     Node tc = typeAsNode(convertType(tn));
-    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn);
+    TypeNode ftype = nm->mkFunctionType({intType, d_sortType}, tn, false);
     Node bvarOp = getSymbolInternal(k, ftype, "bvar");
     return nm->mkNode(APPLY_UF, bvarOp, x, tc);
   }
@@ -113,22 +113,12 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == ITE)
   {
-    // TODO: indexed type argument
-    std::vector<TypeNode> argTypes;
-    argTypes.push_back(nm->booleanType());
-    argTypes.push_back(d_sortType);
-    argTypes.push_back(tn);
-    argTypes.push_back(tn);
-    TypeNode tni = nm->mkFunctionType(argTypes, tn);
-    Node itep = getSymbolInternal(k, tni, "ite");
-    std::vector<Node> args;
-    args.push_back(itep);
-    args.push_back(n[0]);
-    Node tv;  // TODO
-    args.push_back(tv);
-    args.push_back(n[1]);
-    args.push_back(n[2]);
-    return nm->mkNode(APPLY_UF, args);
+    // (ite C A B) is ((ite T) C A B) where T is the return type.
+    TypeNode boolType = nm->booleanType();
+    TypeNode itype = nm->mkFunctionType(d_sortType, nm->mkFunctionType({boolType, tn, tn}, tn, false), false);
+    Node iteSym = getSymbolInternal(k, itype, "ite");
+    Node typeNode = typeAsNode(tn);
+    return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, iteSym, typeNode), n[0], n[1], n[2]);
   }
   else if (k == MINUS)
   {
