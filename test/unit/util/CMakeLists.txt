@@ -14,7 +14,7 @@
 cvc4_add_cxx_unit_test_white(array_store_all_white util)
 cvc4_add_cxx_unit_test_white(assert_white util)
 cvc4_add_cxx_unit_test_black(binary_heap_black util)
-cvc4_add_cxx_unit_test_black(bitvector_black util)
+cvc4_add_unit_test_black(bitvector_black util)
 cvc4_add_cxx_unit_test_black(boolean_simplification_black util)
 cvc4_add_cxx_unit_test_black(cardinality_public util)
 cvc4_add_cxx_unit_test_white(check_white util)
