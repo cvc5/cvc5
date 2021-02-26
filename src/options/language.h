@@ -135,6 +135,9 @@ enum CVC4_PUBLIC Language
   /** The CVC3-compatibility output language */
   LANG_CVC3,
 
+  /** A marker for a variant of SMT-LIB's language for DOT printing */
+  LANG_DOT,
+
   /** LANG_MAX is > any valid OutputLanguage id */
   LANG_MAX
 }; /* enum Language */

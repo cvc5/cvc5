@@ -69,6 +69,10 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
     return unique_ptr<Printer>(
         new printer::cvc::CvcPrinter(/* cvc3-mode = */ true));
 
+  case LANG_DOT:
+    return unique_ptr<Printer>(
+        new printer::smt2::Smt2Printer(printer::smt2::dotVariant));
+
   default: Unhandled() << lang;
   }
 }
