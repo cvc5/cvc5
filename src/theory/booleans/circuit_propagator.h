@@ -169,35 +169,6 @@ class CircuitPropagator
     T& d_data;
   }; /* class DataClearer<T> */
 
-  /** Predicate for use in STL functions. */
-  class IsAssigned : public std::unary_function<TNode, bool>
-  {
-    CircuitPropagator& d_circuit;
-
-   public:
-    IsAssigned(CircuitPropagator& circuit) : d_circuit(circuit) {}
-
-    bool operator()(TNode in) const { return d_circuit.isAssigned(in); }
-  }; /* class IsAssigned */
-
-  /** Predicate for use in STL functions. */
-  class IsAssignedTo : public std::unary_function<TNode, bool>
-  {
-    CircuitPropagator& d_circuit;
-    bool d_value;
-
-   public:
-    IsAssignedTo(CircuitPropagator& circuit, bool value)
-        : d_circuit(circuit), d_value(value)
-    {
-    }
-
-    bool operator()(TNode in) const
-    {
-      return d_circuit.isAssignedTo(in, d_value);
-    }
-  }; /* class IsAssignedTo */
-
   /**
    * Assignment status of each node.
    */

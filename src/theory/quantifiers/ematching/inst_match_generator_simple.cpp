@@ -131,7 +131,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     // convert to actual used terms
-    for (const std::pair<unsigned, int>& v : d_var_num)
+    for (const auto& v : d_var_num)
     {
       if (v.second >= 0)
       {

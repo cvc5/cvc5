@@ -533,16 +533,16 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_RE_UNFOLD_POS:
     case InferenceId::STRINGS_RE_UNFOLD_NEG:
     {
-      Assert(!ps.d_children.empty());
+      Assert (!ps.d_children.empty());
       size_t nchild = ps.d_children.size();
-      Node mem = ps.d_children[nchild - 1];
-      if (nchild > 1)
+      Node mem = ps.d_children[nchild-1];
+      if (nchild>1)
       {
         // if more than one, apply MACRO_SR_PRED_ELIM
         std::vector<Node> tcs;
         tcs.insert(tcs.end(),
-                   ps.d_children.begin(),
-                   ps.d_children.begin() + (nchild - 1));
+                          ps.d_children.begin(),
+                          ps.d_children.begin() + (nchild-1));
         mem = psb.applyPredElim(mem, tcs);
         useBuffer = true;
       }
@@ -578,7 +578,7 @@ void InferProofCons::convert(InferenceId infer,
       {
         mem = psb.tryStep(r, {mem}, {});
         // should match the conclusion
-        useBuffer = (mem == conc);
+        useBuffer = (mem==conc);
       }
       else
       {
