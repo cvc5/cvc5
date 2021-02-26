@@ -2412,12 +2412,12 @@ void CoreSolver::processDeqExtensionality(Node n1, Node n2)
 
   // The skolem k is in the bounds of at least
   // one string/sequence
-  Node len1 = nm->mkNode(kind::STRING_LENGTH, n1);
-  Node len2 = nm->mkNode(kind::STRING_LENGTH, n2);
-  Node conc2 = nm->mkNode(kind::LEQ, d_zero, k);
-  Node disj1 = nm->mkNode(kind::LT, k, len1);
-  Node disj2 = nm->mkNode(kind::LT, k, len2);
-  Node conc3 = nm->mkNode(kind::OR, disj1, disj2);
+  Node len1 = nm->mkNode(STRING_LENGTH, n1);
+  Node len2 = nm->mkNode(STRING_LENGTH, n2);
+  Node conc2 = nm->mkNode(LEQ, d_zero, k);
+  Node disj1 = nm->mkNode(LT, k, len1);
+  Node disj2 = nm->mkNode(LT, k, len2);
+  Node conc3 = nm->mkNode(OR, disj1, disj2);
 
   vector<Node> concs = {conc1, conc2, conc3};
   Node conc = nm->mkAnd(concs);
