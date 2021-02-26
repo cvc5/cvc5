@@ -71,7 +71,6 @@ TEST_F(TestTheoryWhiteSetsTypeRuleInternal, singleton_node)
   ASSERT_NO_THROW(
       d_nodeManager->mkSingleton(d_nodeManager->realType(), intConstant));
   // (singleton (singleton_op Int) (/ 1 5))
-  // This fails now with the assertions.
   ASSERT_DEATH(
       d_nodeManager->mkSingleton(d_nodeManager->integerType(), realConstant),
       "Invalid operands for mkSingleton");
