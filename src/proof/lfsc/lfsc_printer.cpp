@@ -233,6 +233,11 @@ void LfscPrinter::printProofInternal(
             Node ni = d_tproc.convert(cur->getResult());
             printInternal(out, ni, lbind);
             out << ") ; from " << cur->getRule() << std::endl;
+            if (d_trustWarned.find(r)==d_trustWarned.end())
+            {
+              d_trustWarned.insert(r);
+              Trace("lfsc-print-warn") << "; WARNING: adding trust step for " << r << std::endl;
+            }
           }
         }
       }
@@ -315,6 +320,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::MODUS_PONENS:
     case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
+    case PfRule::IMPLIES_ELIM:
+    case PfRule::NOT_IMPLIES_ELIM1:
+    case PfRule::NOT_IMPLIES_ELIM2:
     case PfRule::EQUIV_ELIM1:
     case PfRule::EQUIV_ELIM2:
     case PfRule::NOT_EQUIV_ELIM1:
@@ -323,6 +331,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::XOR_ELIM2:
     case PfRule::NOT_XOR_ELIM1:
     case PfRule::NOT_XOR_ELIM2: pf << h << h << cs[0]; break;
+    case PfRule::ITE_ELIM1:
+    case PfRule::ITE_ELIM2:
+    case PfRule::NOT_ITE_ELIM1:
+    case PfRule::NOT_ITE_ELIM2: pf << h << h << h << cs[0]; break;
     // CNF
     case PfRule::CNF_IMPLIES_POS:
     case PfRule::CNF_IMPLIES_NEG1:
@@ -350,6 +362,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     // strings
+    case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
