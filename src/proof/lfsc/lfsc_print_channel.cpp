@@ -86,7 +86,10 @@ LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
 }
 
 void LfscPrintChannelLetifyNode::printNode(TNode n) { d_lbind.process(n); }
-void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src) { d_lbind.process(res); }
+void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
+{
+  d_lbind.process(res);
+}
 
 }  // namespace proof
 }  // namespace CVC4

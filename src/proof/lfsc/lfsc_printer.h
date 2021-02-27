@@ -31,7 +31,7 @@ namespace CVC4 {
 namespace proof {
 
 class LfscPrintChannel;
- 
+
 class LfscPrinter
 {
  public:

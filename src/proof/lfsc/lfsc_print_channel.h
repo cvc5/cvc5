@@ -31,7 +31,7 @@ class LfscPrintChannel
 {
  public:
   LfscPrintChannel() {}
-  virtual ~LfscPrintChannel(){}
+  virtual ~LfscPrintChannel() {}
   virtual void printNode(TNode n) {}
   virtual void printHole() {}
   virtual void printTrust(TNode res, PfRule src) {}
@@ -71,6 +71,7 @@ class LfscPrintChannelLetifyNode : public LfscPrintChannel
   LfscPrintChannelLetifyNode(LetBinding& lbind);
   void printNode(TNode n) override;
   void printTrust(TNode res, PfRule src) override;
+
  private:
   /** The let binding */
   LetBinding& d_lbind;

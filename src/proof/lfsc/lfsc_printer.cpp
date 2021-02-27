@@ -16,8 +16,8 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_checker.h"
-#include "proof/proof_letify.h"
 #include "proof/lfsc/lfsc_print_channel.h"
+#include "proof/proof_letify.h"
 
 namespace CVC4 {
 namespace proof {
@@ -86,7 +86,7 @@ void LfscPrinter::print(std::ostream& out,
   std::map<Node, uint32_t> emptyPassumeMap;
   printProofInternal(out, pn, emptyLetBind, emptyPletMap, emptyPassumeMap);
 #endif
-  
+
   // print the let list
   printLetList(out, cparen, lbind);
 
@@ -134,7 +134,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
                                    std::map<Node, uint32_t>& passumeMap)
 {
   LfscPrintChannelOut lout(out);
-  
+
   // closing parentheses
   std::stringstream cparen;
 
