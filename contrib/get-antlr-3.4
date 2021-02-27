@@ -4,8 +4,11 @@ source "$(dirname "$0")/get-script-header.sh"
 ANTLR_HOME_DIR="$DEPS_DIR/antlr-3.4"
 rm -rf "$ANTLR_HOME_DIR"
 
-if [ -z "${BUILD_TYPE}" ]; then
-  BUILD_TYPE="--disable-shared --enable-static"
+[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="--disable-shared --enable-static"
+if [ -n "$HOST" ]; then
+  ANTLR_CONFIGURE_ARGS="--host=$HOST"
+  MACHINE_TYPE="$(echo "$HOST" | cut -d '-' -f 1)"
+  echo "Using MACHINE_TYPE=$MACHINE_TYPE for HOST=$HOST"
 fi
 
 if [ -z "${MACHINE_TYPE}" ]; then
@@ -54,7 +57,7 @@ mv  config.sub.new config.sub
 rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c
 
 # Enable 64-bit build
-if [[ "${MACHINE_TYPE}" == *"64"* ]]; then
+if [[ "${MACHINE_TYPE}" == *"64" ]]; then
   ANTLR_CONFIGURE_ARGS="$ANTLR_CONFIGURE_ARGS --enable-64bit"
   echo "============== WARNING ===================="
   echo "The script guessed that this machine is 64 bit."

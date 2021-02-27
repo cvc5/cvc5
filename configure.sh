@@ -367,9 +367,11 @@ done
 #--------------------------------------------------------------------------#
 
 if [ "$arm64" == "ON" ]; then
-  HOST="aarch64-linux-gnu" contrib/cross-compile-depedencies.sh
+  HOST="aarch64-linux-gnu" contrib/get-antlr-3.4 || exit 1
+  HOST="aarch64-linux-gnu" contrib/get-gmp-dev || exit 1
 elif [ "$win64" == "ON" ]; then
-  HOST="x86_64-w64-mingw32" contrib/cross-compile-depedencies.sh
+  HOST="x86_64-w64-mingw32" contrib/get-antlr-3.4 || exit 1
+  HOST="x86_64-w64-mingw32" contrib/get-gmp-dev || exit 1
 fi
 
 #--------------------------------------------------------------------------#
