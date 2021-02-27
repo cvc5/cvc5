@@ -14,16 +14,22 @@
 
 #include "proof/dot/dot_printer.h"
 
-#include "options/base_options.h"
-
 namespace CVC4 {
 namespace proof {
+
+void DotPrinter::cleanQuotes(std::string& s)
+{
+  std::string rep("\\\"");
+  for (size_t pos = 0; (pos = s.find("\"", pos)) != std::string::npos;
+       pos += rep.length())
+  {
+    s.replace(pos, rep.length() - 1, rep);
+  }
+}
 
 void DotPrinter::print(std::ostream& out, const ProofNode* pn)
 {
   uint64_t ruleID = 0;
-  // set output language so the dot variant is picked to the SMT-LIB printer
-  options::outputLanguage.set(language::output::LANG_DOT);
 
   out << "digraph proof {\n";
   DotPrinter::printInternal(out, pn, ruleID);
@@ -35,17 +41,27 @@ void DotPrinter::printInternal(std::ostream& out,
                                uint64_t& ruleID)
 {
   uint64_t currentRuleID = ruleID;
-  std::ostringstream currentArguments;
+  std::ostringstream currentArguments, resultStr;
   DotPrinter::ruleArguments(currentArguments, pn);
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
 
   out << "\t\"" << currentRuleID << "\" [ shape = \"box\", label = \""
-      << pn->getRule() << "(" << currentArguments.str() << ")\"];\n";
+      << pn->getRule() << "(";
 
-  out << "\t\"" << currentRuleID << "c\" [ shape = \"ellipse\", label = \""
-      << pn->getResult() << "\" ];\n";
+  // guarantee that arguments do not have unescaped quotes
+  std::string astring = currentArguments.str();
+  cleanQuotes(astring);
 
-  out << "\t\"" << currentRuleID << "\" -> \"" << currentRuleID << "c\";\n";
+  out << astring << ")\"];\n\t\"" << currentRuleID
+      << "c\" [ shape = \"ellipse\", label = \"";
+
+  // guarantee that conclusion does not have unescaped quotes
+  resultStr << pn->getResult();
+  astring = resultStr.str();
+  cleanQuotes(astring);
+
+  out << astring << "\" ];\n\t\"" << currentRuleID << "\" -> \""
+      << currentRuleID << "c\";\n";
 
   for (const std::shared_ptr<ProofNode>& c : children)
   {

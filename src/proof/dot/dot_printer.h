@@ -61,6 +61,11 @@ class DotPrinter
    */
   static void ruleArguments(std::ostringstream& currentArguments,
                             const ProofNode* pn);
+
+  /** Replace all quotes but escaped quotes in given string
+   * @param s The string to have the quotes processed.
+   */
+  static void cleanQuotes(std::string& s);
 };
 
 }  // namespace proof

@@ -231,7 +231,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::CONST_STRING: {
       std::string s = n.getConst<String>().toString();
-      out << (d_variant == dotVariant ? "\\\"" : "\"");
+      out << '"';
       for(size_t i = 0; i < s.size(); ++i) {
         char c = s[i];
         if(c == '"') {
@@ -244,7 +244,7 @@ void Smt2Printer::toStream(std::ostream& out,
           out << c;
         }
       }
-      out << (d_variant == dotVariant ? "\\\"" : "\"");
+      out << '"';
       break;
     }
     case kind::CONST_SEQUENCE:
@@ -303,7 +303,7 @@ void Smt2Printer::toStream(std::ostream& out,
       }
       break;
     }
-
+    
     case kind::UNINTERPRETED_CONSTANT: {
       const UninterpretedConstant& uc = n.getConst<UninterpretedConstant>();
       std::stringstream ss;
@@ -440,7 +440,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     if(n.getNumChildren() != 0) {
       for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-        out << ' ';
+	      out << ' ';
               toStream(out, n[i], toDepth);
       }
       out << ')';
@@ -651,7 +651,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::IS_INTEGER:
   case kind::TO_INTEGER:
   case kind::TO_REAL:
-  case kind::POW:
+  case kind::POW: 
     out << smtKindString(k, d_variant) << " ";
     break;
   case kind::IAND:
@@ -1020,7 +1020,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
   }
   stringstream parens;
-
+  
   for(size_t i = 0, c = 1; i < n.getNumChildren(); ) {
     if(toDepth != 0) {
       toStream(out, n[i], toDepth < 0 ? toDepth : toDepth - c, lbind);
@@ -1115,9 +1115,9 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::GEQ: return ">=";
   case kind::DIVISION:
   case kind::DIVISION_TOTAL: return "/";
-  case kind::INTS_DIVISION_TOTAL:
+  case kind::INTS_DIVISION_TOTAL: 
   case kind::INTS_DIVISION: return "div";
-  case kind::INTS_MODULUS_TOTAL:
+  case kind::INTS_MODULUS_TOTAL: 
   case kind::INTS_MODULUS: return "mod";
   case kind::ABS: return "abs";
   case kind::IS_INTEGER: return "is_int";
@@ -1809,7 +1809,7 @@ void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
                                        SExpr sexpr) const
 {
   out << "(set-option :" << flag << ' ';
-  SExpr::toStream(out, sexpr, language::output::LANG_SMTLIB_V2);
+  SExpr::toStream(out, sexpr, language::output::LANG_SMTLIB_V2_5);
   out << ')' << std::endl;
 }
 
