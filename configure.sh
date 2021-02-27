@@ -366,7 +366,6 @@ done
 # Automatically set up dependencies based on configure options
 #--------------------------------------------------------------------------#
 
-
 if [ "$arm64" == "ON" ]; then
   HOST="aarch64-linux-gnu" contrib/cross-compile-depedencies.sh
 elif [ "$win64" == "ON" ]; then
