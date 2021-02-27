@@ -239,6 +239,7 @@ bool LfscProofPostprocessCallback::update(Node res,
     break;
     case PfRule::AND_ELIM:
     {
+      // TODO: use rule with side condition, delete this block
       uint32_t i;
       bool b CVC4_UNUSED = ProofRuleChecker::getUInt32(args[0], i);
       Assert(b);
@@ -283,6 +284,19 @@ bool LfscProofPostprocessCallback::update(Node res,
         }
         cur = next;
       }
+    }
+    break;
+    case PfRule::CNF_AND_NEG:
+    {
+      // -------------------------- SPLIT
+      // (or (and A B) (not (A B)))
+      // ------------------------------------ CONG* + NOT_AND
+      // (or (and A B) (or (not A) (not B)))
+      Node p = args[0];
+      Node split = nm->mkNode(OR, p, p.notNode());
+      cdp->addStep(split, PfRule::SPLIT, {}, {p});
+      //  ???
+      
     }
     break;
     default: return false; break;

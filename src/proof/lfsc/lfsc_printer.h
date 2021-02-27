@@ -30,8 +30,11 @@
 namespace CVC4 {
 namespace proof {
 
+class LfscPrintChannel;
+
 class LfscPrinter
 {
+  friend class LfscPrintChannel;
  public:
   LfscPrinter(LfscTermProcessor& ltp);
   ~LfscPrinter() {}
@@ -118,6 +121,19 @@ class LfscPrinter
   Node d_ff;
   /** for debugging the open rules, the set of PfRule we have warned about */
   std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
+};
+
+class LfscPrintChannel
+{
+public:
+  virtual void printNode(std::ostream& out, Node n) {}
+  virtual void printHole(std::ostream& out) {}
+  virtual void printTrust(std::ostream& out, Node res) {}
+  virtual void printOpenRule(std::ostream& out, PfRule r) {}
+  virtual void printCloseRule(std::ostream& out) {}
+  virtual void printId(std::ostream& out, uint32_t id) {}
+  virtual void printProofId(std::ostream& out, uint32_t id) {}
+  virtual void printAssumeId(std::ostream& out, uint32_t id) {}
 };
 
 }  // namespace proof
