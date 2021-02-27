@@ -19,32 +19,30 @@
 namespace CVC4 {
 namespace proof {
 
-LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out){}
-void LfscPrintChannelOut::printNode(TNode n) {
-  d_out << n;
-}
-void LfscPrintChannelOut::printHole() {
-  d_out << " _ ";
-}
-void LfscPrintChannelOut::printTrust(TNode res) {
+LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
+void LfscPrintChannelOut::printNode(TNode n) { d_out << n; }
+void LfscPrintChannelOut::printHole() { d_out << " _ "; }
+void LfscPrintChannelOut::printTrust(TNode res)
+{
   d_out << std::endl << "(trust " << res << ")";
 }
 
-void LfscPrintChannelOut::printOpenRule(const ProofNode* pn) {
+void LfscPrintChannelOut::printOpenRule(const ProofNode* pn)
+{
   d_out << std::endl << "(";
   printRule(d_out, cur);
 }
 
-void LfscPrintChannelOut::printCloseRule() {
-  d_out << ")";
-}
+void LfscPrintChannelOut::printCloseRule() { d_out << ")"; }
 
-void LfscPrintChannelOut::printId(uint32_t id) {
-  printId(d_out, id);}
-void LfscPrintChannelOut::printProofId(uint32_t id) {
+void LfscPrintChannelOut::printId(uint32_t id) { printId(d_out, id); }
+void LfscPrintChannelOut::printProofId(uint32_t id)
+{
   d_out << " ";
-  printProofId(d_out, id);}
-void LfscPrintChannelOut::printAssumeId(uint32_t id) {
+  printProofId(d_out, id);
+}
+void LfscPrintChannelOut::printAssumeId(uint32_t id)
+{
   d_out << " ";
   printAssumeId(d_out, id);
 }
@@ -83,16 +81,13 @@ void LfscPrintChannelOut::printAssumeId(std::ostream& out, uint32_t id)
   out << "__a" << id;
 }
 
-LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind) : d_lbind(lbind){}
-
-void LfscPrintChannelLetifyNode::printNode(TNode n) {
-  d_lbind.process(n);
-}
-void LfscPrintChannelLetifyNode::printTrust(TNode res) {
-  d_lbind.process(res);
-  
+LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
+    : d_lbind(lbind)
+{
 }
 
+void LfscPrintChannelLetifyNode::printNode(TNode n) { d_lbind.process(n); }
+void LfscPrintChannelLetifyNode::printTrust(TNode res) { d_lbind.process(res); }
 
 }  // namespace proof
 }  // namespace CVC4

@@ -35,6 +35,7 @@ class LfscPrintChannel;
 class LfscPrinter
 {
   friend class LfscPrintChannel;
+
  public:
   LfscPrinter(LfscTermProcessor& ltp);
   ~LfscPrinter() {}
@@ -125,7 +126,7 @@ class LfscPrinter
 
 class LfscPrintChannel
 {
-public:
+ public:
   virtual void printNode(std::ostream& out, Node n) {}
   virtual void printHole(std::ostream& out) {}
   virtual void printTrust(std::ostream& out, Node res) {}

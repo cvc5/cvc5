@@ -296,7 +296,6 @@ bool LfscProofPostprocessCallback::update(Node res,
       Node split = nm->mkNode(OR, p, p.notNode());
       cdp->addStep(split, PfRule::SPLIT, {}, {p});
       //  ???
-      
     }
     break;
     default: return false; break;

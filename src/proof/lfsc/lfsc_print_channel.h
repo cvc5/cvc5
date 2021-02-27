@@ -29,8 +29,8 @@ namespace proof {
 
 class LfscPrintChannel
 {
-public:
-  LfscPrintChannel(){}
+ public:
+  LfscPrintChannel() {}
   virtual void printNode(TNode n) {}
   virtual void printHole() {}
   virtual void printTrust(TNode res) {}
@@ -43,7 +43,7 @@ public:
 /** Prints the proof to output stream d_out */
 class LfscPrintChannelOut : public LfscPrintChannel
 {
-public:
+ public:
   LfscPrintChannelOut(std::ostream& out);
   void printNode(TNode n) override;
   void printHole() override;
@@ -58,7 +58,7 @@ public:
   static void printProofId(std::ostream& out, uint32_t id);
   static void printAssumeId(std::ostream& out, uint32_t id);
   //------------------- end helper methods
-private:
+ private:
   /** The output stream */
   std::ostream& d_out;
 };
@@ -66,11 +66,12 @@ private:
 /** Computes the letification of nodes that appear in the proof */
 class LfscPrintChannelLetifyNode : public LfscPrintChannel
 {
-public:
+ public:
   LfscPrintChannelLetifyNode(LetBinding& lbind);
   void printNode(TNode n) override;
   void printTrust(TNode res) override;
-private:
+
+ private:
   /** The let binding */
   LetBinding& d_lbind;
 };
