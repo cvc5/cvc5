@@ -146,6 +146,8 @@ libcvc4_add_sources(
   proof/lean/lean_printer.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_print_channel.cpp
+  proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_printer.cpp
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp

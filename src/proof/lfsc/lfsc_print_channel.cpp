@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lfsc_print_channel.h
+/*! \file lfsc_print_channel.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -20,22 +20,21 @@ namespace CVC4 {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
-void LfscPrintChannelOut::printNode(TNode n) { d_out << n; }
+void LfscPrintChannelOut::printNode(TNode n) { d_out << " " << n; }
 void LfscPrintChannelOut::printHole() { d_out << " _ "; }
-void LfscPrintChannelOut::printTrust(TNode res)
+void LfscPrintChannelOut::printTrust(TNode res, PfRule src)
 {
-  d_out << std::endl << "(trust " << res << ")";
+  d_out << std::endl << "(trust " << res << ") ; from " << src << std::endl;
 }
 
 void LfscPrintChannelOut::printOpenRule(const ProofNode* pn)
 {
   d_out << std::endl << "(";
-  printRule(d_out, cur);
+  printRule(d_out, pn);
 }
 
 void LfscPrintChannelOut::printCloseRule() { d_out << ")"; }
 
-void LfscPrintChannelOut::printId(uint32_t id) { printId(d_out, id); }
 void LfscPrintChannelOut::printProofId(uint32_t id)
 {
   d_out << " ";
@@ -87,9 +86,7 @@ LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
 }
 
 void LfscPrintChannelLetifyNode::printNode(TNode n) { d_lbind.process(n); }
-void LfscPrintChannelLetifyNode::printTrust(TNode res) { d_lbind.process(res); }
+void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src) { d_lbind.process(res); }
 
 }  // namespace proof
 }  // namespace CVC4
-
-#endif

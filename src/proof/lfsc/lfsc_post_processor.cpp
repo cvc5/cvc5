@@ -286,6 +286,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
+    /*
     case PfRule::CNF_AND_NEG:
     {
       // -------------------------- SPLIT
@@ -298,6 +299,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       //  ???
     }
     break;
+    */
     default: return false; break;
   }
   return true;

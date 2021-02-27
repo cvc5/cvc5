@@ -31,9 +31,10 @@ class LfscPrintChannel
 {
  public:
   LfscPrintChannel() {}
+  virtual ~LfscPrintChannel(){}
   virtual void printNode(TNode n) {}
   virtual void printHole() {}
-  virtual void printTrust(TNode res) {}
+  virtual void printTrust(TNode res, PfRule src) {}
   virtual void printOpenRule(const ProofNode* pn) {}
   virtual void printCloseRule() {}
   virtual void printProofId(uint32_t id) {}
@@ -47,7 +48,7 @@ class LfscPrintChannelOut : public LfscPrintChannel
   LfscPrintChannelOut(std::ostream& out);
   void printNode(TNode n) override;
   void printHole() override;
-  void printTrust(TNode res) override;
+  void printTrust(TNode res, PfRule src) override;
   void printOpenRule(const ProofNode* pn) override;
   void printCloseRule() override;
   void printProofId(uint32_t id) override;
@@ -69,8 +70,7 @@ class LfscPrintChannelLetifyNode : public LfscPrintChannel
  public:
   LfscPrintChannelLetifyNode(LetBinding& lbind);
   void printNode(TNode n) override;
-  void printTrust(TNode res) override;
-
+  void printTrust(TNode res, PfRule src) override;
  private:
   /** The let binding */
   LetBinding& d_lbind;

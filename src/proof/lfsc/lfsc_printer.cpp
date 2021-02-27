@@ -17,6 +17,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/proof_checker.h"
 #include "proof/proof_letify.h"
+#include "proof/lfsc/lfsc_print_channel.h"
 
 namespace CVC4 {
 namespace proof {
@@ -75,6 +76,17 @@ void LfscPrinter::print(std::ostream& out,
   {
     lbind.process(ia);
   }
+  // now, print the proof using the LetBinding print channel
+#if 0
+  LfscPrintChannelLetifyNode lpcln(lbind);
+  // it is fine to use empty maps, since the printer below always prints
+  // as a dag.
+  LetBinding emptyLetBind;
+  std::map<const ProofNode*, uint32_t> emptyPletMap;
+  std::map<Node, uint32_t> emptyPassumeMap;
+  printProofInternal(out, pn, emptyLetBind, emptyPletMap, emptyPassumeMap);
+#endif
+  
   // print the let list
   printLetList(out, cparen, lbind);
 
@@ -121,6 +133,8 @@ void LfscPrinter::printProofLetify(std::ostream& out,
                                    LetBinding& lbind,
                                    std::map<Node, uint32_t>& passumeMap)
 {
+  LfscPrintChannelOut lout(out);
+  
   // closing parentheses
   std::stringstream cparen;
 
@@ -140,7 +154,7 @@ void LfscPrinter::printProofLetify(std::ostream& out,
       uint32_t pid = itp->second;
       out << "(plet _ _ ";
       pletMap.erase(p);
-      printProofInternal(out, p, lbind, pletMap, passumeMap);
+      printProofInternal(&lout, p, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
       out << " (\\ ";
       printProofId(out, pid);
@@ -156,13 +170,13 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   }
 
   // [2] print the proof body
-  printProofInternal(out, pn, lbind, pletMap, passumeMap);
+  printProofInternal(&lout, pn, lbind, pletMap, passumeMap);
 
   out << cparen.str() << std::endl;
 }
 
 void LfscPrinter::printProofInternal(
-    std::ostream& out,
+    LfscPrintChannel* out,
     const ProofNode* pn,
     LetBinding& lbind,
     std::map<const ProofNode*, uint32_t>& pletMap,
@@ -198,16 +212,14 @@ void LfscPrinter::printProofInternal(
         if (pletIt != pletMap.end())
         {
           // a letified proof
-          out << " ";
-          printProofId(out, pletIt->second);
+          out->printProofId(pletIt->second);
         }
         else if (r == PfRule::ASSUME)
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
-          out << " ";
-          printAssumeId(out, passumeIt->second);
+          out->printAssumeId(passumeIt->second);
         }
         else
         {
@@ -222,17 +234,15 @@ void LfscPrinter::printProofInternal(
             std::reverse(args.begin(), args.end());
             visit.insert(visit.end(), args.begin(), args.end());
             // print the rule name
-            out << std::endl << "(";
-            printRule(out, cur);
+            out->printOpenRule(cur);
           }
           else
           {
             processedChildren[cur] = true;
             // could not print the rule, trust for now
-            out << std::endl << "(trust ";
-            Node ni = d_tproc.convert(cur->getResult());
-            printInternal(out, ni, lbind);
-            out << ") ; from " << cur->getRule() << std::endl;
+            Node res = d_tproc.convert(cur->getResult());
+            res = lbind.convert(res, "__t", true);
+            out->printTrust(res, r);
             if (d_trustWarned.find(r) == d_trustWarned.end())
             {
               d_trustWarned.insert(r);
@@ -245,7 +255,7 @@ void LfscPrinter::printProofInternal(
       else if (!pit->second)
       {
         processedChildren[cur] = true;
-        out << ")";
+        out->printCloseRule();
         if (r == PfRule::LFSC_RULE)
         {
           const std::vector<Node>& cargs = cur->getArguments();
@@ -270,22 +280,26 @@ void LfscPrinter::printProofInternal(
           }
         }
       }
+      else
+      {
+        // this would imply that our proof was not properly letified?
+        Assert(false) << "already processed children";
+      }
     }
     // case 2: printing a node
     else if (!curn.isNull())
     {
-      out << " ";
       // must convert to internal
       Node curni = d_tproc.convert(curn);
-      printInternal(out, curni, lbind);
+      curni = lbind.convert(curni, "__t", true);
+      out->printNode(curni);
     }
     // case 3: a hole
     else
     {
-      out << " _ ";
+      out->printHole();
     }
   } while (!visit.empty());
-  out << std::endl;
 }
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
