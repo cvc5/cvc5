@@ -20,8 +20,6 @@
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "test_smt.h"
 #include "theory/rewriter.h"
 #include "theory/strings/strings_rewriter.h"
@@ -29,7 +27,6 @@
 namespace CVC4 {
 
 using namespace kind;
-using namespace smt;
 using namespace theory;
 using namespace theory::strings;
 
