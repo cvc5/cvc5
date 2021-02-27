@@ -76,7 +76,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, fconc, {curr}, LfscRule::LAMBDA, {args[ii]});
         // we use a chained implication (=> F1 ... (=> Fn C)) which avoids
         // aliasing.
-        Node next = nm->mkNode(IMPLIES,args[ii], curr);
+        Node next = nm->mkNode(IMPLIES, args[ii], curr);
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }

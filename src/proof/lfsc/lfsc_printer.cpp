@@ -233,10 +233,11 @@ void LfscPrinter::printProofInternal(
             Node ni = d_tproc.convert(cur->getResult());
             printInternal(out, ni, lbind);
             out << ") ; from " << cur->getRule() << std::endl;
-            if (d_trustWarned.find(r)==d_trustWarned.end())
+            if (d_trustWarned.find(r) == d_trustWarned.end())
             {
               d_trustWarned.insert(r);
-              Trace("lfsc-print-warn") << "; WARNING: adding trust step for " << r << std::endl;
+              Trace("lfsc-print-warn")
+                  << "; WARNING: adding trust step for " << r << std::endl;
             }
           }
         }
@@ -320,7 +321,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::MODUS_PONENS:
     case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
-    //case PfRule::NOT_OR_ELIM: pf << h << h << 
+    // case PfRule::NOT_OR_ELIM: pf << h << h <<
     case PfRule::IMPLIES_ELIM:
     case PfRule::NOT_IMPLIES_ELIM1:
     case PfRule::NOT_IMPLIES_ELIM2:
