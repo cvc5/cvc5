@@ -320,6 +320,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::MODUS_PONENS:
     case PfRule::EQ_RESOLVE: pf << h << h << cs[0] << cs[1]; break;
     case PfRule::NOT_AND: pf << h << h << cs[0]; break;
+    //case PfRule::NOT_OR_ELIM: pf << h << h << 
     case PfRule::IMPLIES_ELIM:
     case PfRule::NOT_IMPLIES_ELIM1:
     case PfRule::NOT_IMPLIES_ELIM2:

@@ -435,7 +435,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
            || id == PfRule::TRUST_SUBS_MAP)
   {
     // "trusted" rules
-    Assert(children.empty());
     Assert(!args.empty());
     Assert(args[0].getType().isBoolean());
     return args[0];

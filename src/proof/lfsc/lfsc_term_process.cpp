@@ -64,7 +64,7 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == APPLY_UF)
   {
-    Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
+    //Assert(d_symbols.find(n.getOperator()) != d_symbols.end());
     return runConvert(theory::uf::TheoryUfRewriter::getHoApplyForApplyUf(n));
   }
   else if (k == HO_APPLY)
