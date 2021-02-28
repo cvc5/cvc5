@@ -20,9 +20,11 @@ namespace CVC4 {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
-void LfscPrintChannelOut::printNode(TNode n) {
+void LfscPrintChannelOut::printNode(TNode n)
+{
   d_nodeCount++;
-  d_out << " " << n; }
+  d_out << " " << n;
+}
 void LfscPrintChannelOut::printHole() { d_out << " _ "; }
 void LfscPrintChannelOut::printTrust(TNode res, PfRule src)
 {
@@ -88,9 +90,11 @@ LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
 {
 }
 
-void LfscPrintChannelLetifyNode::printNode(TNode n) { 
+void LfscPrintChannelLetifyNode::printNode(TNode n)
+{
   d_nodeCount++;
-  d_lbind.process(n); }
+  d_lbind.process(n);
+}
 void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
 {
   d_trustCount++;

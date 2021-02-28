@@ -35,10 +35,9 @@ void ProofLetify::computeProofLet(const ProofNode* pn,
   convertProofCountToLet(visitList, pcount, pletList, pletMap, thresh);
 }
 
-void ProofLetify::computeProofCounts(
-    const ProofNode* pn,
-    std::vector<const ProofNode*>& visitList,
-    std::map<const ProofNode*, size_t>& pcount)
+void ProofLetify::computeProofCounts(const ProofNode* pn,
+                                     std::vector<const ProofNode*>& visitList,
+                                     std::map<const ProofNode*, size_t>& pcount)
 {
   std::map<const ProofNode*, size_t>::iterator it;
   std::vector<const ProofNode*> visit;

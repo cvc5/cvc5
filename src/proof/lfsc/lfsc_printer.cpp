@@ -36,7 +36,7 @@ void LfscPrinter::print(std::ostream& out,
   Trace("lfsc-print-debug") << "; ORIGINAL PROOF: " << *pn << std::endl;
   // closing parentheses
   std::stringstream cparen;
-  const ProofNode * pnBody = pn->getChildren()[0].get();
+  const ProofNode* pnBody = pn->getChildren()[0].get();
 
   // [1] compute and print the declarations
   std::unordered_set<Node, NodeHashFunction> syms;
@@ -71,7 +71,6 @@ void LfscPrinter::print(std::ostream& out,
     out << "))" << std::endl;
   }
 
-
   // [3] print the check command and term lets
   out << "(check" << std::endl;
   cparen << ")";
@@ -102,8 +101,10 @@ void LfscPrinter::print(std::ostream& out,
   }
   // Print the body of the outermost scope
   printProofInternal(&lpcln, pnBody, emptyLetBind, pletMap, passumeMap);
-  Trace("lfsc-print-debug2") << "node count let " << lpcln.d_nodeCount << std::endl;
-  Trace("lfsc-print-debug2") << "trust count let " << lpcln.d_trustCount << std::endl;
+  Trace("lfsc-print-debug2")
+      << "node count let " << lpcln.d_nodeCount << std::endl;
+  Trace("lfsc-print-debug2")
+      << "trust count let " << lpcln.d_trustCount << std::endl;
 
   // print the let list
   printLetList(out, cparen, lbind);
@@ -130,9 +131,6 @@ void LfscPrinter::print(std::ostream& out,
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
   printProofLetify(out, pnBody, lbind, passumeMap);
-  
-  
-  
 
   out << cparen.str() << std::endl;
 }
@@ -189,8 +187,10 @@ void LfscPrinter::printProofLetify(std::ostream& out,
 
   // [2] print the proof body
   printProofInternal(&lout, pn, lbind, pletMap, passumeMap);
-  Trace("lfsc-print-debug2") << "node count print " << lout.d_nodeCount << std::endl;
-  Trace("lfsc-print-debug2") << "trust count print " << lout.d_trustCount << std::endl;
+  Trace("lfsc-print-debug2")
+      << "node count print " << lout.d_nodeCount << std::endl;
+  Trace("lfsc-print-debug2")
+      << "trust count print " << lout.d_trustCount << std::endl;
 
   out << cparen.str() << std::endl;
 }
