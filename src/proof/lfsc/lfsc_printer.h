@@ -84,8 +84,8 @@ class LfscPrinter
   void printProofLetify(std::ostream& out,
                         const ProofNode* pn,
                         const LetBinding& lbind,
-  const std::vector<const ProofNode*>& pletList,
-  std::map<const ProofNode*, size_t>& pletMap,
+                        const std::vector<const ProofNode*>& pletList,
+                        std::map<const ProofNode*, size_t>& pletMap,
                         std::map<Node, size_t>& passumeMap);
   /**
    * Print proof internal, after all mappings have been computed.

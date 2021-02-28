@@ -70,7 +70,7 @@ void LfscPrinter::print(std::ostream& out,
     print(out, s.getType());
     out << "))" << std::endl;
   }
-  
+
   // [2] compute the proof letification
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, size_t> pletMap;
@@ -136,12 +136,13 @@ void LfscPrinter::print(std::ostream& out,
   out << cparen.str() << std::endl;
 }
 
-void LfscPrinter::printProofLetify(std::ostream& out,
-                                   const ProofNode* pn,
-                                   const LetBinding& lbind,
-  const std::vector<const ProofNode*>& pletList,
-  std::map<const ProofNode*, size_t>& pletMap,
-                                   std::map<Node, size_t>& passumeMap)
+void LfscPrinter::printProofLetify(
+    std::ostream& out,
+    const ProofNode* pn,
+    const LetBinding& lbind,
+    const std::vector<const ProofNode*>& pletList,
+    std::map<const ProofNode*, size_t>& pletMap,
+    std::map<Node, size_t>& passumeMap)
 {
   LfscPrintChannelOut lout(out);
 
