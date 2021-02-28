@@ -20,10 +20,13 @@ namespace CVC4 {
 namespace proof {
 
 LfscPrintChannelOut::LfscPrintChannelOut(std::ostream& out) : d_out(out) {}
-void LfscPrintChannelOut::printNode(TNode n) { d_out << " " << n; }
+void LfscPrintChannelOut::printNode(TNode n) {
+  d_nodeCount++;
+  d_out << " " << n; }
 void LfscPrintChannelOut::printHole() { d_out << " _ "; }
 void LfscPrintChannelOut::printTrust(TNode res, PfRule src)
 {
+  d_trustCount++;
   d_out << std::endl << "(trust " << res << ") ; from " << src << std::endl;
 }
 
@@ -35,12 +38,12 @@ void LfscPrintChannelOut::printOpenRule(const ProofNode* pn)
 
 void LfscPrintChannelOut::printCloseRule() { d_out << ")"; }
 
-void LfscPrintChannelOut::printProofId(uint32_t id)
+void LfscPrintChannelOut::printProofId(size_t id)
 {
   d_out << " ";
   printProofId(d_out, id);
 }
-void LfscPrintChannelOut::printAssumeId(uint32_t id)
+void LfscPrintChannelOut::printAssumeId(size_t id)
 {
   d_out << " ";
   printAssumeId(d_out, id);
@@ -65,17 +68,17 @@ void LfscPrintChannelOut::printRule(std::ostream& out, const ProofNode* pn)
   out << rname;
 }
 
-void LfscPrintChannelOut::printId(std::ostream& out, uint32_t id)
+void LfscPrintChannelOut::printId(std::ostream& out, size_t id)
 {
   out << "__t" << id;
 }
 
-void LfscPrintChannelOut::printProofId(std::ostream& out, uint32_t id)
+void LfscPrintChannelOut::printProofId(std::ostream& out, size_t id)
 {
   out << "__p" << id;
 }
 
-void LfscPrintChannelOut::printAssumeId(std::ostream& out, uint32_t id)
+void LfscPrintChannelOut::printAssumeId(std::ostream& out, size_t id)
 {
   out << "__a" << id;
 }
@@ -85,9 +88,12 @@ LfscPrintChannelLetifyNode::LfscPrintChannelLetifyNode(LetBinding& lbind)
 {
 }
 
-void LfscPrintChannelLetifyNode::printNode(TNode n) { d_lbind.process(n); }
+void LfscPrintChannelLetifyNode::printNode(TNode n) { 
+  d_nodeCount++;
+  d_lbind.process(n); }
 void LfscPrintChannelLetifyNode::printTrust(TNode res, PfRule src)
 {
+  d_trustCount++;
   d_lbind.process(res);
 }
 

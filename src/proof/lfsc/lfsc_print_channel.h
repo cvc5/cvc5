@@ -30,15 +30,18 @@ namespace proof {
 class LfscPrintChannel
 {
  public:
-  LfscPrintChannel() {}
+  LfscPrintChannel() : d_nodeCount(0), d_trustCount(0) {}
   virtual ~LfscPrintChannel() {}
   virtual void printNode(TNode n) {}
   virtual void printHole() {}
   virtual void printTrust(TNode res, PfRule src) {}
   virtual void printOpenRule(const ProofNode* pn) {}
   virtual void printCloseRule() {}
-  virtual void printProofId(uint32_t id) {}
-  virtual void printAssumeId(uint32_t id) {}
+  virtual void printProofId(size_t id) {}
+  virtual void printAssumeId(size_t id) {}
+  /** temproary debug */
+  size_t d_nodeCount;
+  size_t d_trustCount;
 };
 
 /** Prints the proof to output stream d_out */
@@ -51,13 +54,13 @@ class LfscPrintChannelOut : public LfscPrintChannel
   void printTrust(TNode res, PfRule src) override;
   void printOpenRule(const ProofNode* pn) override;
   void printCloseRule() override;
-  void printProofId(uint32_t id) override;
-  void printAssumeId(uint32_t id) override;
+  void printProofId(size_t id) override;
+  void printAssumeId(size_t id) override;
   //------------------- helper methods
   static void printRule(std::ostream& out, const ProofNode* pn);
-  static void printId(std::ostream& out, uint32_t id);
-  static void printProofId(std::ostream& out, uint32_t id);
-  static void printAssumeId(std::ostream& out, uint32_t id);
+  static void printId(std::ostream& out, size_t id);
+  static void printProofId(std::ostream& out, size_t id);
+  static void printAssumeId(std::ostream& out, size_t id);
   //------------------- end helper methods
  private:
   /** The output stream */

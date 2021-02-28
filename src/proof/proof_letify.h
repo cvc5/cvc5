@@ -41,8 +41,8 @@ class ProofLetify
    */
   static void computeProofLet(const ProofNode* pn,
                               std::vector<const ProofNode*>& pletList,
-                              std::map<const ProofNode*, uint32_t>& pletMap,
-                              uint32_t thresh = 2);
+                              std::map<const ProofNode*, size_t>& pletMap,
+                              size_t thresh = 2);
   /**
    * Compute the count of sub proof nodes in pn, store in pcount. Additionally,
    * store each proof node in the domain of pcount in an order in visitList
@@ -50,16 +50,16 @@ class ProofLetify
    */
   static void computeProofCounts(const ProofNode* pn,
                                  std::vector<const ProofNode*>& visitList,
-                                 std::map<const ProofNode*, uint32_t>& pcount);
+                                 std::map<const ProofNode*, size_t>& pcount);
   /**
    * Convert a count to a let list
    */
   static void convertProofCountToLet(
       const std::vector<const ProofNode*>& visitList,
-      const std::map<const ProofNode*, uint32_t>& pcount,
+      const std::map<const ProofNode*, size_t>& pcount,
       std::vector<const ProofNode*>& pletList,
-      std::map<const ProofNode*, uint32_t>& pletMap,
-      uint32_t thresh = 2);
+      std::map<const ProofNode*, size_t>& pletMap,
+      size_t thresh = 2);
   //------------------- end letification of proofs
 };
 

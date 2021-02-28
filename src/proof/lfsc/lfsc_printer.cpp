@@ -15,7 +15,6 @@
 #include "proof/lfsc/lfsc_printer.h"
 
 #include "expr/node_algorithm.h"
-#include "expr/proof_checker.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 #include "proof/proof_letify.h"
 
@@ -37,15 +36,20 @@ void LfscPrinter::print(std::ostream& out,
   Trace("lfsc-print-debug") << "; ORIGINAL PROOF: " << *pn << std::endl;
   // closing parentheses
   std::stringstream cparen;
+  const ProofNode * pnBody = pn->getChildren()[0].get();
 
   // [1] compute and print the declarations
   std::unordered_set<Node, NodeHashFunction> syms;
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<Node> iasserts;
-  for (const Node& a : assertions)
+  std::map<Node, size_t> passumeMap;
+  for (size_t i = 0, nasserts = assertions.size(); i < nasserts; i++)
   {
+    Node a = assertions[i];
     expr::getSymbols(a, syms, visited);
     iasserts.push_back(d_tproc.convert(a));
+    // remember the assumption name
+    passumeMap[a] = i;
   }
   // [1a] user declared sorts
   std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
@@ -67,7 +71,8 @@ void LfscPrinter::print(std::ostream& out,
     out << "))" << std::endl;
   }
 
-  // [2] print the check command and term lets
+
+  // [3] print the check command and term lets
   out << "(check" << std::endl;
   cparen << ")";
   // compute the term lets
@@ -76,45 +81,58 @@ void LfscPrinter::print(std::ostream& out,
   {
     lbind.process(ia);
   }
-  // now, print the proof using the LetBinding print channel
-#if 0
+  // We do a "dry-run" of proof printing here, using the LetBinding print
+  // channel. This pass traverses the proof but does not print it, but instead
+  // updates the let binding data structure for all nodes that appear anywhere
+  // in the proof.
   LfscPrintChannelLetifyNode lpcln(lbind);
-  // it is fine to use empty maps, since the printer below always prints
-  // as a dag.
   LetBinding emptyLetBind;
-  std::map<const ProofNode*, uint32_t> emptyPletMap;
-  std::map<Node, uint32_t> emptyPassumeMap;
-  printProofInternal(out, pn, emptyLetBind, emptyPletMap, emptyPassumeMap);
-#endif
+  std::vector<const ProofNode*> pletList;
+  std::map<const ProofNode*, size_t> pletMap;
+  ProofLetify::computeProofLet(pnBody, pletList, pletMap);
+  std::map<const ProofNode*, size_t>::iterator itp;
+  for (const ProofNode* p : pletList)
+  {
+    itp = pletMap.find(p);
+    Assert(itp != pletMap.end());
+    size_t pid = itp->second;
+    pletMap.erase(p);
+    printProofInternal(&lpcln, p, lbind, pletMap, passumeMap);
+    pletMap[p] = pid;
+  }
+  // Print the body of the outermost scope
+  printProofInternal(&lpcln, pnBody, emptyLetBind, pletMap, passumeMap);
+  Trace("lfsc-print-debug2") << "node count let " << lpcln.d_nodeCount << std::endl;
+  Trace("lfsc-print-debug2") << "trust count let " << lpcln.d_trustCount << std::endl;
 
   // print the let list
   printLetList(out, cparen, lbind);
 
-  // [3] print the assertions, with letification
+  // [4] print the assertions, with letification
   // the assumption identifier mapping
-  std::map<Node, uint32_t> passumeMap;
   for (size_t i = 0, nasserts = iasserts.size(); i < nasserts; i++)
   {
     Node ia = iasserts[i];
     out << "(% ";
-    printAssumeId(out, i);
+    LfscPrintChannelOut::printAssumeId(out, i);
     out << " (holds ";
     printInternal(out, ia, lbind);
     out << ")" << std::endl;
     cparen << ")";
-    // remember the assumption name
-    passumeMap[assertions[i]] = i;
   }
 
-  // [4] print the annotation
+  // [5] print the annotation
   out << "(: (holds false)" << std::endl;
   cparen << ")";
 
-  // [5] print the proof body
+  // [6] print the proof body
   Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
-  printProofLetify(out, pn->getChildren()[0].get(), lbind, passumeMap);
+  printProofLetify(out, pnBody, lbind, passumeMap);
+  
+  
+  
 
   out << cparen.str() << std::endl;
 }
@@ -124,14 +142,14 @@ void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
   // TODO: compute term lets across all terms in the proof?
   LetBinding lbind;
   // empty passume map
-  std::map<Node, uint32_t> passumeMap;
+  std::map<Node, size_t> passumeMap;
   printProofLetify(out, pn, lbind, passumeMap);
 }
 
 void LfscPrinter::printProofLetify(std::ostream& out,
                                    const ProofNode* pn,
                                    LetBinding& lbind,
-                                   std::map<Node, uint32_t>& passumeMap)
+                                   std::map<Node, size_t>& passumeMap)
 {
   LfscPrintChannelOut lout(out);
 
@@ -140,24 +158,24 @@ void LfscPrinter::printProofLetify(std::ostream& out,
 
   // [1] compute and print the proof lets
   std::vector<const ProofNode*> pletList;
-  std::map<const ProofNode*, uint32_t> pletMap;
+  std::map<const ProofNode*, size_t> pletMap;
   ProofLetify::computeProofLet(pn, pletList, pletMap);
   // define the let proofs
   if (!pletList.empty())
   {
     out << "; Let proofs:" << std::endl;
-    std::map<const ProofNode*, uint32_t>::iterator itp;
+    std::map<const ProofNode*, size_t>::iterator itp;
     for (const ProofNode* p : pletList)
     {
       itp = pletMap.find(p);
       Assert(itp != pletMap.end());
-      uint32_t pid = itp->second;
+      size_t pid = itp->second;
       out << "(plet _ _ ";
       pletMap.erase(p);
       printProofInternal(&lout, p, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
       out << " (\\ ";
-      printProofId(out, pid);
+      LfscPrintChannelOut::printProofId(out, pid);
       // debugging
       if (Trace.isOn("lfsc-print-debug"))
       {
@@ -171,6 +189,8 @@ void LfscPrinter::printProofLetify(std::ostream& out,
 
   // [2] print the proof body
   printProofInternal(&lout, pn, lbind, pletMap, passumeMap);
+  Trace("lfsc-print-debug2") << "node count print " << lout.d_nodeCount << std::endl;
+  Trace("lfsc-print-debug2") << "trust count print " << lout.d_trustCount << std::endl;
 
   out << cparen.str() << std::endl;
 }
@@ -178,9 +198,9 @@ void LfscPrinter::printProofLetify(std::ostream& out,
 void LfscPrinter::printProofInternal(
     LfscPrintChannel* out,
     const ProofNode* pn,
-    LetBinding& lbind,
-    std::map<const ProofNode*, uint32_t>& pletMap,
-    std::map<Node, uint32_t>& passumeMap)
+    const LetBinding& lbind,
+    std::map<const ProofNode*, size_t>& pletMap,
+    std::map<Node, size_t>& passumeMap)
 {
   std::unordered_set<const ProofNode*> noBind;
   std::unordered_set<const ProofNode*>::iterator itnb;
@@ -190,8 +210,8 @@ void LfscPrinter::printProofInternal(
   std::map<const ProofNode*, bool> processedChildren;
   // helper iterators
   std::map<const ProofNode*, bool>::iterator pit;
-  std::map<const ProofNode*, uint32_t>::iterator pletIt;
-  std::map<Node, uint32_t>::iterator passumeIt;
+  std::map<const ProofNode*, size_t>::iterator pletIt;
+  std::map<Node, size_t>::iterator passumeIt;
   Node curn;
   const ProofNode* cur;
   visit.push_back(PExpr(pn));
@@ -218,6 +238,7 @@ void LfscPrinter::printProofInternal(
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
+          // TODO: does not hold if we are doing the let computation pass
           Assert(passumeIt != passumeMap.end());
           out->printAssumeId(passumeIt->second);
         }
@@ -304,7 +325,7 @@ void LfscPrinter::printProofInternal(
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
                                    std::vector<PExpr>& pargs,
-                                   std::map<Node, uint32_t>& passumeMap,
+                                   std::map<Node, size_t>& passumeMap,
                                    std::unordered_set<const ProofNode*>& noBind)
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
@@ -391,8 +412,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::LAMBDA:
         {
           // allocate an assumption, if necessary
-          uint32_t pid;
-          std::map<Node, uint32_t>::iterator itp = passumeMap.find(as[2]);
+          size_t pid;
+          std::map<Node, size_t>::iterator itp = passumeMap.find(as[2]);
           if (itp == passumeMap.end())
           {
             pid = passumeMap.size();
@@ -407,7 +428,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
           // make the node whose name is the assumption id, where notice that
           // the type of this node does not matter
           std::stringstream pidNodeName;
-          printAssumeId(pidNodeName, pid);
+          LfscPrintChannelOut::printAssumeId(pidNodeName, pid);
           // must be an internal symbol so that it is not turned into (bvar ...)
           Node pidNode =
               d_tproc.mkInternalSymbol(pidNodeName.str(), nm->booleanType());
@@ -465,14 +486,14 @@ void LfscPrinter::printLetList(std::ostream& out,
 {
   std::vector<Node> letList;
   lbind.letify(letList);
-  std::map<Node, uint32_t>::const_iterator it;
+  std::map<Node, size_t>::const_iterator it;
   for (size_t i = 0, nlets = letList.size(); i < nlets; i++)
   {
     Node nl = letList[i];
     out << "(@ ";
-    uint32_t id = lbind.getId(nl);
+    size_t id = lbind.getId(nl);
     Assert(id != 0);
-    printId(out, id);
+    LfscPrintChannelOut::printId(out, id);
     out << " ";
     // remove, print, insert again
     printInternal(out, nl, lbind, false);
@@ -502,63 +523,6 @@ void LfscPrinter::printInternal(std::ostream& out, TypeNode tn)
   // (internal) types are always printed as-is
   // TODO: smt2 printer
   out << tn;
-}
-
-bool getLfscRule(Node n, LfscRule& lr)
-{
-  uint32_t id;
-  if (ProofRuleChecker::getUInt32(n, id))
-  {
-    lr = static_cast<LfscRule>(id);
-    return true;
-  }
-  return false;
-}
-
-LfscRule getLfscRule(Node n)
-{
-  LfscRule lr = LfscRule::UNKNOWN;
-  getLfscRule(n, lr);
-  return lr;
-}
-
-void LfscPrinter::printRule(std::ostream& out, const ProofNode* pn)
-{
-  if (pn->getRule() == PfRule::LFSC_RULE)
-  {
-    const std::vector<Node>& args = pn->getArguments();
-    out << getLfscRule(args[0]);
-    return;
-  }
-  // Otherwise, convert to lower case
-  std::stringstream ss;
-  ss << pn->getRule();
-  std::string rname = ss.str();
-  std::transform(
-      rname.begin(), rname.end(), rname.begin(), [](unsigned char c) {
-        return std::tolower(c);
-      });
-  out << rname;
-}
-
-void LfscPrinter::printId(std::ostream& out, uint32_t id)
-{
-  out << "__t" << id;
-}
-
-void LfscPrinter::printProofId(std::ostream& out, uint32_t id)
-{
-  out << "__p" << id;
-}
-
-void LfscPrinter::printAssumeId(std::ostream& out, uint32_t id)
-{
-  out << "__a" << id;
-}
-
-Node mkLfscRuleNode(LfscRule r)
-{
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(r)));
 }
 
 }  // namespace proof

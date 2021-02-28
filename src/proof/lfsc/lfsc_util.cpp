@@ -14,6 +14,8 @@
 
 #include "proof/lfsc/lfsc_util.h"
 
+#include "expr/proof_checker.h"
+
 namespace CVC4 {
 namespace proof {
 
@@ -37,6 +39,29 @@ std::ostream& operator<<(std::ostream& out, LfscRule id)
 {
   out << toString(id);
   return out;
+}
+
+bool getLfscRule(Node n, LfscRule& lr)
+{
+  uint32_t id;
+  if (ProofRuleChecker::getUInt32(n, id))
+  {
+    lr = static_cast<LfscRule>(id);
+    return true;
+  }
+  return false;
+}
+
+LfscRule getLfscRule(Node n)
+{
+  LfscRule lr = LfscRule::UNKNOWN;
+  getLfscRule(n, lr);
+  return lr;
+}
+
+Node mkLfscRuleNode(LfscRule r)
+{
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(r)));
 }
 
 }  // namespace proof

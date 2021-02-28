@@ -88,30 +88,23 @@ class LfscPrinter
   void printProofLetify(std::ostream& out,
                         const ProofNode* pn,
                         LetBinding& lbind,
-                        std::map<Node, uint32_t>& passumeMap);
+                        std::map<Node, size_t>& passumeMap);
   /**
    * Print proof internal, after all mappings have been computed.
    */
   void printProofInternal(LfscPrintChannel* out,
                           const ProofNode* pn,
-                          LetBinding& lbind,
-                          std::map<const ProofNode*, uint32_t>& pletMap,
-                          std::map<Node, uint32_t>& passumeMap);
+                          const LetBinding& lbind,
+                          std::map<const ProofNode*, size_t>& pletMap,
+                          std::map<Node, size_t>& passumeMap);
   /**
    * Get the arguments for the proof node application
    */
   bool computeProofArgs(const ProofNode* pn,
                         std::vector<PExpr>& pargs,
-                        std::map<Node, uint32_t>& passumeMap,
+                        std::map<Node, size_t>& passumeMap,
                         std::unordered_set<const ProofNode*>& noBind);
   //------------------------------ end printing proofs
-
-  //------------------- helper methods
-  static void printRule(std::ostream& out, const ProofNode*);
-  static void printId(std::ostream& out, uint32_t id);
-  static void printProofId(std::ostream& out, uint32_t id);
-  static void printAssumeId(std::ostream& out, uint32_t id);
-  //------------------- end helper methods
 
   /** The term processor */
   LfscTermProcessor& d_tproc;
