@@ -38,7 +38,8 @@ Node LfscTermProcessor::runConvert(Node n)
   NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
   TypeNode tn = n.getType();
-  Trace("lfsc-term-process-debug") << "runConvert " << n << " " << k << std::endl;
+  Trace("lfsc-term-process-debug")
+      << "runConvert " << n << " " << k << std::endl;
   if (k == BOUND_VARIABLE)
   {
     // ignore internally generated symbols
@@ -59,7 +60,7 @@ Node LfscTermProcessor::runConvert(Node n)
     // skolems v print as their witness forms
     // v is (skolem W) where W is the witness form of v
     Node wi = SkolemManager::getWitnessForm(n);
-    if (wi.getKind()==WITNESS)
+    if (wi.getKind() == WITNESS)
     {
       wi = convert(wi);
       TypeNode ftype = nm->mkFunctionType(tn, tn, false);

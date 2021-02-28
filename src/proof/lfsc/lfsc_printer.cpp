@@ -330,7 +330,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   for (const Node& a : args)
   {
     Node ac = d_tproc.convert(a);
-    Assert (!ac.isNull());
+    Assert(!ac.isNull());
     as.push_back(ac);
   }
   PExprStream pf(pargs, d_tt, d_ff);
@@ -370,12 +370,14 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::NOT_ITE_ELIM2: pf << h << h << h << cs[0]; break;
     // CNF
     case PfRule::CNF_AND_POS:
-    case PfRule::CNF_OR_NEG: 
+    case PfRule::CNF_OR_NEG:
       // print second argument as a raw integer (mpz)
-      pf << h << as[0] << args[1]; break;
+      pf << h << as[0] << args[1];
+      break;
     case PfRule::CNF_AND_NEG: pf << h << as[0]; break;
     case PfRule::CNF_OR_POS:
-      pf << as[0]; break;
+      pf << as[0];
+      break;
       break;
     case PfRule::CNF_IMPLIES_POS:
     case PfRule::CNF_IMPLIES_NEG1:
