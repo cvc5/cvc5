@@ -300,9 +300,8 @@ void LfscPrinter::printProofInternal(
     // case 2: printing a node
     else if (!curn.isNull())
     {
-      // must convert to internal
-      Node curni = d_tproc.convert(curn);
-      curni = lbind.convert(curni, "__t", true);
+      // it has already been converted to internal form
+      Node curni = lbind.convert(curn, "__t", true);
       out->printNode(curni);
     }
     // case 3: a hole
@@ -326,7 +325,14 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   }
   NodeManager* nm = NodeManager::currentNM();
   PfRule r = pn->getRule();
-  const std::vector<Node>& as = pn->getArguments();
+  const std::vector<Node>& args = pn->getArguments();
+  std::vector<Node> as;
+  for (const Node& a : args)
+  {
+    Node ac = d_tproc.convert(a);
+    Assert (!ac.isNull());
+    as.push_back(ac);
+  }
   PExprStream pf(pargs, d_tt, d_ff);
   // hole
   PExpr h;
@@ -337,7 +343,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   {
     // SAT
     case PfRule::RESOLUTION:
-      pf << h << h << h << cs[0] << cs[1] << as[0].getConst<bool>() << as[1];
+      pf << h << h << h << cs[0] << cs[1] << args[0].getConst<bool>() << as[1];
       break;
     case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
     // Boolean
@@ -363,6 +369,14 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::NOT_ITE_ELIM1:
     case PfRule::NOT_ITE_ELIM2: pf << h << h << h << cs[0]; break;
     // CNF
+    case PfRule::CNF_AND_POS:
+    case PfRule::CNF_OR_NEG: 
+      // print second argument as a raw integer (mpz)
+      pf << h << as[0] << args[1]; break;
+    case PfRule::CNF_AND_NEG: pf << h << as[0]; break;
+    case PfRule::CNF_OR_POS:
+      pf << as[0]; break;
+      break;
     case PfRule::CNF_IMPLIES_POS:
     case PfRule::CNF_IMPLIES_NEG1:
     case PfRule::CNF_IMPLIES_NEG2:
@@ -394,8 +408,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
-      LfscRule lr = getLfscRule(as[0]);
-      // Note that `as` has 2 builtin arguments, thus the first real argument
+      LfscRule lr = getLfscRule(args[0]);
+      // Note that `args` has 2 builtin arguments, thus the first real argument
       // begins at index 2
       switch (lr)
       {
@@ -403,11 +417,11 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         {
           // allocate an assumption, if necessary
           size_t pid;
-          std::map<Node, size_t>::iterator itp = passumeMap.find(as[2]);
+          std::map<Node, size_t>::iterator itp = passumeMap.find(args[2]);
           if (itp == passumeMap.end())
           {
             pid = passumeMap.size();
-            passumeMap[as[2]] = pid;
+            passumeMap[args[2]] = pid;
           }
           else
           {

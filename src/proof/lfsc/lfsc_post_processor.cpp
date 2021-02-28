@@ -286,20 +286,6 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
-    /*
-    case PfRule::CNF_AND_NEG:
-    {
-      // -------------------------- SPLIT
-      // (or (and A B) (not (A B)))
-      // ------------------------------------ CONG* + NOT_AND
-      // (or (and A B) (or (not A) (not B)))
-      Node p = args[0];
-      Node split = nm->mkNode(OR, p, p.notNode());
-      cdp->addStep(split, PfRule::SPLIT, {}, {p});
-      //  ???
-    }
-    break;
-    */
     default: return false; break;
   }
   return true;
