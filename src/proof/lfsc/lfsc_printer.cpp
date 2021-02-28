@@ -70,6 +70,11 @@ void LfscPrinter::print(std::ostream& out,
     print(out, s.getType());
     out << "))" << std::endl;
   }
+  
+  // [2] compute the proof letification
+  std::vector<const ProofNode*> pletList;
+  std::map<const ProofNode*, size_t> pletMap;
+  ProofLetify::computeProofLet(pnBody, pletList, pletMap);
 
   // [3] print the check command and term lets
   out << "(check" << std::endl;
@@ -86,9 +91,6 @@ void LfscPrinter::print(std::ostream& out,
   // in the proof.
   LfscPrintChannelLetifyNode lpcln(lbind);
   LetBinding emptyLetBind;
-  std::vector<const ProofNode*> pletList;
-  std::map<const ProofNode*, size_t> pletMap;
-  ProofLetify::computeProofLet(pnBody, pletList, pletMap);
   std::map<const ProofNode*, size_t>::iterator itp;
   for (const ProofNode* p : pletList)
   {
@@ -96,7 +98,7 @@ void LfscPrinter::print(std::ostream& out,
     Assert(itp != pletMap.end());
     size_t pid = itp->second;
     pletMap.erase(p);
-    printProofInternal(&lpcln, p, lbind, pletMap, passumeMap);
+    printProofInternal(&lpcln, p, emptyLetBind, pletMap, passumeMap);
     pletMap[p] = pid;
   }
   // Print the body of the outermost scope
@@ -105,8 +107,7 @@ void LfscPrinter::print(std::ostream& out,
       << "node count let " << lpcln.d_nodeCount << std::endl;
   Trace("lfsc-print-debug2")
       << "trust count let " << lpcln.d_trustCount << std::endl;
-
-  // print the let list
+  // print the term let list
   printLetList(out, cparen, lbind);
 
   // [4] print the assertions, with letification
@@ -130,23 +131,16 @@ void LfscPrinter::print(std::ostream& out,
   Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
-  printProofLetify(out, pnBody, lbind, passumeMap);
+  printProofLetify(out, pnBody, lbind, pletList, pletMap, passumeMap);
 
   out << cparen.str() << std::endl;
 }
 
-void LfscPrinter::print(std::ostream& out, const ProofNode* pn)
-{
-  // TODO: compute term lets across all terms in the proof?
-  LetBinding lbind;
-  // empty passume map
-  std::map<Node, size_t> passumeMap;
-  printProofLetify(out, pn, lbind, passumeMap);
-}
-
 void LfscPrinter::printProofLetify(std::ostream& out,
                                    const ProofNode* pn,
-                                   LetBinding& lbind,
+                                   const LetBinding& lbind,
+  const std::vector<const ProofNode*>& pletList,
+  std::map<const ProofNode*, size_t>& pletMap,
                                    std::map<Node, size_t>& passumeMap)
 {
   LfscPrintChannelOut lout(out);
@@ -154,10 +148,6 @@ void LfscPrinter::printProofLetify(std::ostream& out,
   // closing parentheses
   std::stringstream cparen;
 
-  // [1] compute and print the proof lets
-  std::vector<const ProofNode*> pletList;
-  std::map<const ProofNode*, size_t> pletMap;
-  ProofLetify::computeProofLet(pn, pletList, pletMap);
   // define the let proofs
   if (!pletList.empty())
   {
@@ -199,7 +189,7 @@ void LfscPrinter::printProofInternal(
     LfscPrintChannel* out,
     const ProofNode* pn,
     const LetBinding& lbind,
-    std::map<const ProofNode*, size_t>& pletMap,
+    const std::map<const ProofNode*, size_t>& pletMap,
     std::map<Node, size_t>& passumeMap)
 {
   std::unordered_set<const ProofNode*> noBind;
@@ -210,7 +200,7 @@ void LfscPrinter::printProofInternal(
   std::map<const ProofNode*, bool> processedChildren;
   // helper iterators
   std::map<const ProofNode*, bool>::iterator pit;
-  std::map<const ProofNode*, size_t>::iterator pletIt;
+  std::map<const ProofNode*, size_t>::const_iterator pletIt;
   std::map<Node, size_t>::iterator passumeIt;
   Node curn;
   const ProofNode* cur;
@@ -238,7 +228,6 @@ void LfscPrinter::printProofInternal(
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
-          // TODO: does not hold if we are doing the let computation pass
           Assert(passumeIt != passumeMap.end());
           out->printAssumeId(passumeIt->second);
         }

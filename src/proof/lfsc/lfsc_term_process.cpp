@@ -174,6 +174,17 @@ Node LfscTermProcessor::runConvert(Node n)
     }
     return ret;
   }
+  else if (k== REGEXP_LOOP)
+  {
+    // ((_ re.loop n1 n2) t) is ((re.loop n1 n2) t)
+    TypeNode intType = nm->integerType();
+    TypeNode relType = nm->mkFunctionType({intType, intType}, nm->mkFunctionType(tn, tn), false);
+    Node rop = getSymbolInternal(k, relType, printer::smt2::Smt2Printer::smtKindString(k));
+    RegExpLoop op = n.getOperator().getConst<RegExpLoop>();
+    Node n1 = nm->mkConst(Rational(op.d_loopMinOcc));
+    Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
+    return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
+  }
   else if (ExprManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
     size_t nchild = n.getNumChildren();

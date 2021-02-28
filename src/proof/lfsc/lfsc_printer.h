@@ -44,10 +44,6 @@ class LfscPrinter
   void print(std::ostream& out,
              const std::vector<Node>& assertions,
              const ProofNode* pn);
-  /**
-   * Print node to stream in the expected format of LFSC.
-   */
-  void print(std::ostream& out, const ProofNode* pn);
 
   /**
    * Print node to stream in the expected format of LFSC.
@@ -87,7 +83,9 @@ class LfscPrinter
    */
   void printProofLetify(std::ostream& out,
                         const ProofNode* pn,
-                        LetBinding& lbind,
+                        const LetBinding& lbind,
+  const std::vector<const ProofNode*>& pletList,
+  std::map<const ProofNode*, size_t>& pletMap,
                         std::map<Node, size_t>& passumeMap);
   /**
    * Print proof internal, after all mappings have been computed.
@@ -95,7 +93,7 @@ class LfscPrinter
   void printProofInternal(LfscPrintChannel* out,
                           const ProofNode* pn,
                           const LetBinding& lbind,
-                          std::map<const ProofNode*, size_t>& pletMap,
+                          const std::map<const ProofNode*, size_t>& pletMap,
                           std::map<Node, size_t>& passumeMap);
   /**
    * Get the arguments for the proof node application
