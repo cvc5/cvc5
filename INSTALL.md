@@ -30,7 +30,6 @@ To build a static binary for macOS, use:
 Cross-compiling CVC4 with Mingw-w64 can be done as follows:
 
 ```
-  HOST=x86_64-w64-mingw32 ./contrib/get-win-dependencies
   ./configure.sh --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
@@ -80,8 +79,8 @@ We recommend using a GCC version > 4.5.1.
 Do **not** install GMP via the provided script `contrib/get-gmp-dev` unless
 your distribution
 * does not ship with the GMP configuration you need, e.g.,
-  script `contrib/get-win-dependencies` uses `contrib/get-gmp-dev` when
-  cross-compiling GMP for Windows.
+  `contrib/get-gmp-dev` is used in `configure.sh` when cross-compiling GMP for
+  Windows.
 * does not ship with static GMP libraries (e.g., Arch Linux)
   and you want to build CVC4 statically.
 
