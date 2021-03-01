@@ -19,7 +19,7 @@
 
 #include "context/context.h"
 #include "context/context_mm.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {

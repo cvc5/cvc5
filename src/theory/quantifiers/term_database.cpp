@@ -36,10 +36,10 @@ namespace quantifiers {
 
 TermDb::TermDb(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
-               QuantifiersEngine* qe)
-    : d_quantEngine(qe),
-      d_qstate(qs),
+               QuantifiersRegistry& qr)
+    : d_qstate(qs),
       d_qim(qim),
+      d_qreg(qr),
       d_termsContext(),
       d_termsContextUse(options::termDbCd() ? qs.getSatContext()
                                             : &d_termsContext),
@@ -65,10 +65,10 @@ TermDb::~TermDb(){
 }
 
 void TermDb::registerQuantifier( Node q ) {
-  Assert(q[0].getNumChildren()
-         == d_quantEngine->getTermUtil()->getNumInstantiationConstants(q));
-  for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-    Node ic = d_quantEngine->getTermUtil()->getInstantiationConstant( q, i );
+  Assert(q[0].getNumChildren() == d_qreg.getNumInstantiationConstants(q));
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  {
+    Node ic = d_qreg.getInstantiationConstant(q, i);
     setTermInactive( ic );
   }
 }
@@ -435,7 +435,7 @@ void TermDb::computeUfTerms( TNode f ) {
             }
             Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
           }
-          d_qim.addPendingLemma(lem);
+          d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
           d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return;
@@ -688,10 +688,10 @@ Node TermDb::evaluateTerm2(TNode n,
         {
           if (ret.getKind() == EQUAL || ret.getKind() == GEQ)
           {
-            TheoryEngine* te = d_quantEngine->getTheoryEngine();
+            Valuation& val = d_qstate.getValuation();
             for (unsigned j = 0; j < 2; j++)
             {
-              std::pair<bool, Node> et = te->entailmentCheck(
+              std::pair<bool, Node> et = val.entailmentCheck(
                   options::TheoryOfMode::THEORY_OF_TYPE_BASED,
                   j == 0 ? ret : ret.negate());
               if (et.first)
@@ -934,7 +934,8 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
   if( options::instMaxLevel()!=-1 ){
     if( n.hasAttribute(InstLevelAttribute()) ){
-      int fml = f.isNull() ? -1 : d_quantEngine->getQuantAttributes()->getQuantInstLevel( f );
+      int64_t fml =
+          f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
       unsigned ml = fml>=0 ? fml : options::instMaxLevel();
 
       if( n.getAttribute(InstLevelAttribute())>ml ){
@@ -1044,7 +1045,7 @@ bool TermDb::reset( Theory::Effort effort ){
           // equality is sent out as a lemma here.
           Trace("term-db-lemma")
               << "Purify equality lemma: " << eq << std::endl;
-          d_qim.addPendingLemma(eq);
+          d_qim.addPendingLemma(eq, InferenceId::UNKNOWN);
           d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return false;
@@ -1080,19 +1081,16 @@ bool TermDb::reset( Theory::Effort effort ){
       }
       ++eqcs_i;
     }
-    TheoryEngine* te = d_quantEngine->getTheoryEngine();
-    const LogicInfo& logicInfo = te->getLogicInfo();
+    const LogicInfo& logicInfo = d_qstate.getLogicInfo();
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
     {
       if (!logicInfo.isTheoryEnabled(theoryId))
       {
         continue;
       }
-      Theory* theory = te->theoryOf(theoryId);
-      Assert(theory != nullptr);
       for (context::CDList<Assertion>::const_iterator
-               it = theory->facts_begin(),
-               it_end = theory->facts_end();
+               it = d_qstate.factsBegin(theoryId),
+               it_end = d_qstate.factsEnd(theoryId);
            it != it_end;
            ++it)
       {

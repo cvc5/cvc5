@@ -28,8 +28,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusPbe::SygusPbe(QuantifiersEngine* qe, SynthConjecture* p)
-    : SygusModule(qe, p)
+SygusPbe::SygusPbe(QuantifiersEngine* qe,
+                   QuantifiersInferenceManager& qim,
+                   SynthConjecture* p)
+    : SygusModule(qe, qim, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

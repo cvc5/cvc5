@@ -60,11 +60,11 @@ class SequencesStatistics
   /** Number of calls to run the strategy */
   IntStat d_strategyRuns;
   //--------------- inferences
-  /** Counts the number of applications of each type of inference */
-  HistogramStat<InferenceId> d_inferences;
   /**
    * Counts the number of applications of each type of inference that were not
-   * processed as a proof step. This is a subset of d_inferences.
+   * processed as a proof step. This is a subset of the statistics in
+   * TheoryInferenceManager, i.e.
+   * (theory::strings::inferences{Facts,Lemmas,Conflicts}).
    */
   HistogramStat<InferenceId> d_inferencesNoPf;
   /**

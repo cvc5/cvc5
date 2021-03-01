@@ -87,8 +87,9 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
 BoundedIntegers::BoundedIntegers(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
-                                 QuantifiersRegistry& qr)
-    : QuantifiersModule(qs, qim, qr, qe)
+                                 QuantifiersRegistry& qr,
+                                 DecisionManager* dm)
+    : QuantifiersModule(qs, qim, qr, qe), d_dm(dm)
 {
 }
 
@@ -294,7 +295,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
     {
       Trace("bound-int-lemma")
           << "*** bound int : proxy lemma : " << prangeLem << std::endl;
-      d_qim.addPendingLemma(prangeLem);
+      d_qim.addPendingLemma(prangeLem, InferenceId::UNKNOWN);
       addedLemma = true;
     }
   }
@@ -498,11 +499,9 @@ void BoundedIntegers::checkOwnership(Node f)
                 new IntRangeDecisionHeuristic(r,
                                               d_qstate.getSatContext(),
                                               d_qstate.getUserContext(),
-                                              d_quantEngine->getValuation(),
+                                              d_qstate.getValuation(),
                                               isProxy));
-            d_quantEngine->getTheoryEngine()
-                ->getDecisionManager()
-                ->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
+            d_dm->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
                                    d_rms[r].get());
           }
         }
@@ -546,7 +545,7 @@ void BoundedIntegers::getBoundVarIndices(Node q,
   {
     for (const Node& v : it->second)
     {
-      indices.push_back(d_quantEngine->getTermUtil()->getVariableNum(q, v));
+      indices.push_back(TermUtil::getVariableNum(q, v));
     }
   }
 }
@@ -726,7 +725,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem);
+      d_qim.lemma(lem, InferenceId::UNKNOWN);
     }
     return false;
   }else{
@@ -783,7 +782,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         Node tu = u;
         getBounds( q, v, rsi, tl, tu );
         Assert(!tl.isNull() && !tu.isNull());
-        if( ra==d_quantEngine->getTermUtil()->d_true ){
+        if (ra.isConst() && ra.getConst<bool>())
+        {
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
           for( unsigned k=0; k<rr; k++ ){

@@ -17,7 +17,6 @@
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/hash.h"
@@ -30,11 +29,13 @@ namespace inst {
 
 HigherOrderTrigger::HigherOrderTrigger(
     QuantifiersEngine* qe,
+    quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersInferenceManager& qim,
+    quantifiers::QuantifiersRegistry& qr,
     Node q,
     std::vector<Node>& nodes,
     std::map<Node, std::vector<Node> >& ho_apps)
-    : Trigger(qe, qim, q, nodes), d_ho_var_apps(ho_apps)
+    : Trigger(qe, qs, qim, qr, q, nodes), d_ho_var_apps(ho_apps)
 {
   NodeManager* nm = NodeManager::currentNM();
   // process the higher-order variable applications
@@ -201,11 +202,10 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     // get substitution corresponding to m
     std::vector<TNode> vars;
     std::vector<TNode> subs;
-    quantifiers::TermUtil* tutil = d_quantEngine->getTermUtil();
     for (unsigned i = 0, size = d_quant[0].getNumChildren(); i < size; i++)
     {
       subs.push_back(m.d_vals[i]);
-      vars.push_back(tutil->getInstantiationConstant(d_quant, i));
+      vars.push_back(d_qreg.getInstantiationConstant(d_quant, i));
     }
 
     Trace("ho-unif-debug") << "Run higher-order unification..." << std::endl;
@@ -369,7 +369,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
   else
   {
     // do not run higher-order matching
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
   }
 }
 
@@ -382,7 +382,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
   }
   else
   {
@@ -498,7 +498,7 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
           {
             Node u = tdb->getHoTypeMatchPredicate(tn);
             Node au = nm->mkNode(kind::APPLY_UF, u, f);
-            if (d_qim.addPendingLemma(au))
+            if (d_qim.addPendingLemma(au, InferenceId::UNKNOWN))
             {
               // this forces f to be a first-class member of the quantifier-free
               // equality engine, which in turn forces the quantifier-free

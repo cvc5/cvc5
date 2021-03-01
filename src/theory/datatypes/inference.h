@@ -57,11 +57,10 @@ class DatatypesInference : public SimpleTheoryInternalFact
    * set to true.
    */
   static bool mustCommunicateFact(Node n, Node exp);
-  /**
-   * Process this fact, possibly as a fact or as a lemma, depending on the
-   * above method.
-   */
-  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  /** Process lemma */
+  TrustNode processLemma(LemmaProperty& p) override;
+  /** Process internal fact */
+  Node processFact(std::vector<Node>& exp, ProofGenerator*& pg) override;
 
  private:
   /** Pointer to the inference manager */

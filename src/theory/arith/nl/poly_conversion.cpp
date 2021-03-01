@@ -452,9 +452,11 @@ Node lower_bound_as_node(const Node& var,
       poly::get_upper(poly::get_isolating_interval(alg)));
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
+#ifndef NDEBUG
   int su = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_upper(poly::get_isolating_interval(alg)));
   Assert(sl != 0 && su != 0 && sl != su);
+#endif
 
   // open:  var <= l  or  (var < u  and  sgn(poly(var)) == sl)
   // !open: var <= l  or  (var < u  and  sgn(poly(var)) == sl/0)
@@ -506,8 +508,10 @@ Node upper_bound_as_node(const Node& var,
       poly::get_lower(poly::get_isolating_interval(alg)));
   Rational u = poly_utils::toRational(
       poly::get_upper(poly::get_isolating_interval(alg)));
+#ifndef NDEBUG
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
+#endif
   int su = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_upper(poly::get_isolating_interval(alg)));
   Assert(sl != 0 && su != 0 && sl != su);

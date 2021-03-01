@@ -750,7 +750,7 @@ class CVC4ApiExceptionStream
    * default to noexcept(true) (else this triggers a call to std::terminate). */
   ~CVC4ApiExceptionStream() noexcept(false)
   {
-    if (!std::uncaught_exception())
+    if (std::uncaught_exceptions() == 0)
     {
       throw CVC4ApiException(d_stream.str());
     }
@@ -771,7 +771,7 @@ class CVC4ApiRecoverableExceptionStream
    * default to noexcept(true) (else this triggers a call to std::terminate). */
   ~CVC4ApiRecoverableExceptionStream() noexcept(false)
   {
-    if (!std::uncaught_exception())
+    if (std::uncaught_exceptions() == 0)
     {
       throw CVC4ApiRecoverableException(d_stream.str());
     }

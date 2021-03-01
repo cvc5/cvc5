@@ -62,8 +62,9 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
     QuantifiersEngine* qe,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
-    QuantRelevance* qr)
-    : InstStrategy(qe, qs, qim), d_quant_rel(qr)
+    QuantifiersRegistry& qr,
+    QuantRelevance* qrlv)
+    : InstStrategy(qe, qs, qim, qr), d_quant_rel(qrlv)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
@@ -282,7 +283,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if (d_is_single_trigger[patTerms[0]])
     {
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qstate,
                               d_qim,
+                              d_qreg,
                               f,
                               patTerms[0],
                               false,
@@ -319,7 +322,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       // will possibly want to get an old trigger
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qstate,
                               d_qim,
+                              d_qreg,
                               f,
                               patTerms,
                               false,
@@ -361,7 +366,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         {
           d_single_trigger_gen[patTerms[index]] = true;
           Trigger* tr2 = Trigger::mkTrigger(d_quantEngine,
+                                            d_qstate,
                                             d_qim,
+                                            d_qreg,
                                             f,
                                             patTerms[index],
                                             false,
@@ -390,7 +397,6 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   bool ntrivTriggers = options::relationalTriggers();
   std::vector<Node> patTermsF;
   std::map<Node, inst::TriggerTermInfo> tinfo;
-  TermUtil* tu = d_quantEngine->getTermUtil();
   NodeManager* nm = NodeManager::currentNM();
   // well-defined function: can assume LHS is only pattern
   if (options::quantFunWellDefined())
@@ -398,7 +404,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
     Node hd = QuantAttributes::getFunDefHead(f);
     if (!hd.isNull())
     {
-      hd = tu->substituteBoundVariablesToInstConstants(hd, f);
+      hd = d_qreg.substituteBoundVariablesToInstConstants(hd, f);
       patTermsF.push_back(hd);
       tinfo[hd].init(f, hd);
     }
@@ -406,7 +412,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
   // otherwise, use algorithm for collecting pattern terms
   if (patTermsF.empty())
   {
-    Node bd = tu->getInstConstantBody(f);
+    Node bd = d_qreg.getInstConstantBody(f);
     PatternTermSelector pts(f, d_tr_strategy, d_user_no_gen[f], true);
     pts.collect(bd, patTermsF, tinfo);
     if (ntrivTriggers)
@@ -486,7 +492,7 @@ bool InstStrategyAutoGenTriggers::generatePatternTerms(Node f)
       std::vector<Node> vcs[2];
       for (size_t i = 0, nchild = f[0].getNumChildren(); i < nchild; i++)
       {
-        Node ic = tu->getInstantiationConstant(f, i);
+        Node ic = d_qreg.getInstantiationConstant(f, i);
         vcs[vcMap.find(ic) == vcMap.end() ? 0 : 1].push_back(f[0][i]);
       }
       for (size_t i = 0; i < 2; i++)
@@ -621,8 +627,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
     NodeManager* nm = NodeManager::currentNM();
     // partial trigger : generate implication to mark user pattern
     Node pat =
-        d_quantEngine->getTermUtil()->substituteInstConstantsToBoundVariables(
-            tr->getInstPattern(), q);
+        d_qreg.substituteInstConstantsToBoundVariables(tr->getInstPattern(), q);
     Node ipl = nm->mkNode(INST_PATTERN_LIST, pat);
     Node qq = nm->mkNode(FORALL,
                          d_vc_partition[1][q],
@@ -632,7 +637,7 @@ void InstStrategyAutoGenTriggers::addTrigger( inst::Trigger * tr, Node q ) {
         << "Make partially specified user pattern: " << std::endl;
     Trace("auto-gen-trigger-partial") << "  " << qq << std::endl;
     Node lem = nm->mkNode(OR, q.negate(), qq);
-    d_qim.addPendingLemma(lem);
+    d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
     return;
   }
   unsigned tindex;

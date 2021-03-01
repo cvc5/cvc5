@@ -104,7 +104,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // infer equality between elements of singleton
             Node exp = s1.eqNode(s2);
             Node eq = s1[0].eqNode(s2[0]);
-            d_im.assertInternalFact(eq, true, InferenceId::UNKNOWN, exp);
+            d_im.assertInternalFact(eq, true, InferenceId::SETS_SINGLETON_EQ, exp);
           }
           else
           {
@@ -137,7 +137,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(facts.size() == 1);
       Trace("sets-prop") << "Propagate eq-mem conflict : " << facts[0]
                          << std::endl;
-      d_im.conflict(facts[0], InferenceId::UNKNOWN);
+      d_im.conflict(facts[0], InferenceId::SETS_EQ_MEM_CONFLICT);
       return;
     }
     for (const Node& f : facts)
@@ -145,7 +145,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
       Assert(f.getKind() == kind::IMPLIES);
       Trace("sets-prop") << "Propagate eq-mem eq inference : " << f[0] << " => "
                          << f[1] << std::endl;
-      d_im.assertInternalFact(f[1], true, InferenceId::UNKNOWN, f[0]);
+      d_im.assertInternalFact(f[1], true, InferenceId::SETS_EQ_MEM, f[0]);
     }
   }
 }
@@ -449,7 +449,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
                 std::vector<Node> exp;
                 exp.push_back(mem);
                 exp.push_back(mem[1].eqNode(eq_set));
-                d_im.assertInference(nmem, exp, "downc");
+                d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
                 if (d_state.isInConflict())
                 {
                   return;
@@ -474,7 +474,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
                   nmem = NodeManager::currentNM()->mkNode(
                       kind::OR, pmem.negate(), nmem);
                 }
-                d_im.assertInference(nmem, exp, "downc");
+                d_im.assertInference(nmem, InferenceId::SETS_DOWN_CLOSURE, exp);
               }
             }
           }
@@ -578,7 +578,8 @@ void TheorySetsPrivate::checkUpwardsClosure()
                   {
                     Node kk = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
-                    d_im.assertInference(fact, exp, "upc", inferType);
+                    d_im.assertInference(
+                        fact, InferenceId::SETS_UP_CLOSURE, exp, inferType);
                     if (d_state.isInConflict())
                     {
                       return;
@@ -605,7 +606,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
                     Node r = d_treg.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, r);
-                    d_im.assertInference(fact, exp, "upc2");
+                    d_im.assertInference(fact, InferenceId::SETS_UP_CLOSURE_2, exp);
                     if (d_state.isInConflict())
                     {
                       return;
@@ -667,7 +668,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 exp.push_back(v.eqNode(it2.second[1]));
               }
               Node fact = nm->mkNode(kind::MEMBER, it2.second[0], u);
-              d_im.assertInference(fact, exp, "upuniv");
+              d_im.assertInference(fact, InferenceId::SETS_UP_UNIV, exp);
               if (d_state.isInConflict())
               {
                 return;
@@ -724,7 +725,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
-    d_im.assertInference(lem, d_true, "diseq", 1);
+    d_im.assertInference(lem, InferenceId::SETS_DEQ, d_true, 1);
     d_im.doPendingLemmas();
     if (d_im.hasSent())
     {
@@ -764,7 +765,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
         nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
-    d_im.lemma(lem, InferenceId::UNKNOWN);
+    d_im.lemma(lem, InferenceId::SETS_COMPREHENSION);
   }
 }
 
@@ -818,14 +819,14 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
             Trace("sets-prop") << "Propagate mem-eq : " << pexp << std::endl;
             Node eq = s[0].eqNode(atom[0]);
             // triggers an internal inference
-            d_im.assertInternalFact(eq, true, InferenceId::UNKNOWN, pexp);
+            d_im.assertInternalFact(eq, true, InferenceId::SETS_MEM_EQ, pexp);
           }
         }
         else
         {
           Trace("sets-prop")
               << "Propagate mem-eq conflict : " << pexp << std::endl;
-          d_im.conflict(pexp, InferenceId::UNKNOWN);
+          d_im.conflict(pexp, InferenceId::SETS_MEM_EQ_CONFLICT);
         }
       }
     }
@@ -896,7 +897,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
                 {
                   Trace("sets-cg-lemma")
                       << "Should split on : " << x << "==" << y << std::endl;
-                  d_im.split(x.eqNode(y));
+                  d_im.split(x.eqNode(y), InferenceId::UNKNOWN);
                 }
               }
             }

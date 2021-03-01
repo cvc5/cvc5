@@ -34,7 +34,7 @@ InferenceManager::InferenceManager(Theory& t,
                                    ExtTheory& e,
                                    SequencesStatistics& statistics,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, s, pnm),
+    : InferenceManagerBuffered(t, s, pnm, "theory::strings", false),
       d_state(s),
       d_termReg(tr),
       d_extt(e),
@@ -288,7 +288,6 @@ void InferenceManager::processConflict(const InferInfo& ii)
 {
   Assert(!d_state.isInConflict());
   // setup the fact to reproduce the proof in the call below
-  d_statistics.d_inferences << ii.getId();
   if (d_ipc != nullptr)
   {
     d_ipc->notifyFact(ii);
@@ -302,65 +301,23 @@ void InferenceManager::processConflict(const InferInfo& ii)
   trustedConflict(tconf, ii.getId());
 }
 
-bool InferenceManager::processFact(InferInfo& ii)
+void InferenceManager::processFact(InferInfo& ii, ProofGenerator*& pg)
 {
-  // Get the fact(s). There are multiple facts if the conclusion is an AND
-  std::vector<Node> facts;
-  if (ii.d_conc.getKind() == AND)
-  {
-    for (const Node& cc : ii.d_conc)
-    {
-      facts.push_back(cc);
-    }
-  }
-  else
-  {
-    facts.push_back(ii.d_conc);
-  }
   Trace("strings-assert") << "(assert (=> " << ii.getPremises() << " "
                           << ii.d_conc << ")) ; fact " << ii.getId() << std::endl;
   Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
                          << ii.getPremises() << " by " << ii.getId()
                          << std::endl;
-  std::vector<Node> exp;
-  for (const Node& ec : ii.d_premises)
+  if (d_ipc != nullptr)
   {
-    utils::flattenOp(AND, ec, exp);
+    // ensure the proof generator is ready to explain this fact in the
+    // current SAT context
+    d_ipc->notifyFact(ii);
+    pg = d_ipc.get();
   }
-  bool ret = false;
-  // convert for each fact
-  for (const Node& fact : facts)
-  {
-    ii.d_conc = fact;
-    d_statistics.d_inferences << ii.getId();
-    bool polarity = fact.getKind() != NOT;
-    TNode atom = polarity ? fact : fact[0];
-    bool curRet = false;
-    if (d_ipc != nullptr)
-    {
-      // ensure the proof generator is ready to explain this fact in the
-      // current SAT context
-      d_ipc->notifyFact(ii);
-      // now, assert the internal fact with d_ipc as proof generator
-      curRet = assertInternalFact(atom, polarity, ii.getId(), exp, d_ipc.get());
-    }
-    else
-    {
-      Node cexp = utils::mkAnd(exp);
-      // without proof generator
-      curRet = assertInternalFact(atom, polarity, ii.getId(), cexp);
-    }
-    ret = ret || curRet;
-    // may be in conflict
-    if (d_state.isInConflict())
-    {
-      break;
-    }
-  }
-  return ret;
 }
 
-bool InferenceManager::processLemma(InferInfo& ii)
+TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
 {
   Assert(!ii.isTrivial());
   Assert(!ii.isConflict());
@@ -387,7 +344,6 @@ bool InferenceManager::processLemma(InferInfo& ii)
   }
   // ensure that the proof generator is ready to explain the final conclusion
   // of the lemma (ii.d_conc).
-  d_statistics.d_inferences << ii.getId();
   if (d_ipc != nullptr)
   {
     d_ipc->notifyFact(ii);
@@ -408,7 +364,6 @@ bool InferenceManager::processLemma(InferInfo& ii)
       d_termReg.registerTermAtomic(n, sks.first);
     }
   }
-  LemmaProperty p = LemmaProperty::NONE;
   if (ii.getId() == InferenceId::STRINGS_REDUCTION)
   {
     p |= LemmaProperty::NEEDS_JUSTIFY;
@@ -419,8 +374,7 @@ bool InferenceManager::processLemma(InferInfo& ii)
                          << ii.getId() << std::endl;
   ++(d_statistics.d_lemmasInfer);
 
-  // call the trusted lemma, without caching
-  return trustedLemma(tlem, ii.getId(), p, false);
+  return tlem;
 }
 
 }  // namespace strings

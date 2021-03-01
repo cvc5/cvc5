@@ -40,12 +40,17 @@ namespace theory {
  */
 enum class InferenceId
 {
-  //-------------------- core
+  // ---------------------------------- arith theory
+  //-------------------- preprocessing
+  ARITH_PP_ELIM_OPERATORS,
+  //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
   // shared term value split (for naive theory combination)
   ARITH_NL_SHARED_TERM_VALUE_SPLIT,
-  //-------------------- incremental linearization solver
+  // checkModel found a conflict with a quadratic equality
+  ARITH_NL_CM_QUADRATIC_EQ,
+  //-------------------- nonlinear incremental linearization solver
   // splitting on zero (NlSolver::checkSplitZero)
   ARITH_NL_SPLIT_ZERO,
   // based on sign (NlSolver::checkMonomialSign)
@@ -62,7 +67,7 @@ enum class InferenceId
   ARITH_NL_RES_INFER_BOUNDS,
   // tangent planes (NlSolver::checkTangentPlanes)
   ARITH_NL_TANGENT_PLANE,
-  //-------------------- transcendental solver
+  //-------------------- nonlinear transcendental solver
   // purification of arguments to transcendental functions
   ARITH_NL_T_PURIFY_ARG,
   // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)
@@ -75,7 +80,7 @@ enum class InferenceId
   ARITH_NL_T_TANGENT,
   // secant refinement, the dual of the above inference
   ARITH_NL_T_SECANT,
-  //-------------------- iand solver
+  //-------------------- nonlinear iand solver
   // initial refinements (IAndSolver::checkInitialRefine)
   ARITH_NL_IAND_INIT_REFINE,
   // value refinements (IAndSolver::checkFullRefine)
@@ -84,19 +89,26 @@ enum class InferenceId
   ARITH_NL_IAND_SUM_REFINE,
   // bitwise refinements (IAndSolver::checkFullRefine)
   ARITH_NL_IAND_BITWISE_REFINE,
-  //-------------------- cad solver
+  //-------------------- nonlinear cad solver
   // conflict / infeasible subset obtained from cad
   ARITH_NL_CAD_CONFLICT,
   // excludes an interval for a single variable
   ARITH_NL_CAD_EXCLUDED_INTERVAL,
-  //-------------------- icp solver
+  //-------------------- nonlinear icp solver
   // conflict obtained from icp
   ARITH_NL_ICP_CONFLICT,
   // propagation / contraction of variable bounds from icp
   ARITH_NL_ICP_PROPAGATION,
-  //-------------------- unknown
+  // ---------------------------------- end arith theory
 
+  // ---------------------------------- arrays theory
+  ARRAYS_EXT,
+  ARRAYS_READ_OVER_WRITE,
+  ARRAYS_READ_OVER_WRITE_1,
+  ARRAYS_READ_OVER_WRITE_CONTRA,
+  // ---------------------------------- end arrays theory
 
+  // ---------------------------------- bags theory
   BAG_NON_NEGATIVE_COUNT,
   BAG_MK_BAG_SAME_ELEMENT,
   BAG_MK_BAG,
@@ -109,13 +121,29 @@ enum class InferenceId
   BAG_DIFFERENCE_SUBTRACT,
   BAG_DIFFERENCE_REMOVE,
   BAG_DUPLICATE_REMOVAL,
+  // ---------------------------------- end bags theory
 
+  // ---------------------------------- bitvector theory
+  BV_BITBLAST_CONFLICT,
+  BV_LAZY_CONFLICT,
+  BV_LAZY_LEMMA,
+  BV_SIMPLE_LEMMA,
+  BV_SIMPLE_BITBLAST_LEMMA,
+  BV_EXTF_LEMMA,
+  BV_EXTF_COLLAPSE,
+  // ---------------------------------- end bitvector theory
+
+  // ---------------------------------- datatypes theory
+  // (= k t) for fresh k
+  DATATYPES_PURIFY,
   // (= (C t1 ... tn) (C s1 .. sn)) => (= ti si)
   DATATYPES_UNIF,
   // ((_ is Ci) t) => (= t (Ci (sel_1 t) ... (sel_n t)))
   DATATYPES_INST,
   // (or ((_ is C1) t) V ... V ((_ is Cn) t))
   DATATYPES_SPLIT,
+  // (or ((_ is Ci) t) V (not ((_ is Ci) t)))
+  DATATYPES_BINARY_SPLIT,
   // (not ((_ is C1) t)) ^ ... [j] ... ^ (not ((_ is Cn) t)) => ((_ is Cj) t)
   DATATYPES_LABEL_EXH,
   // (= t (Ci t1 ... tn)) => (= (sel_j t) rewrite((sel_j (Ci t1 ... tn))))
@@ -128,10 +156,108 @@ enum class InferenceId
   DATATYPES_TESTER_MERGE_CONFLICT,
   // bisimilarity for codatatypes
   DATATYPES_BISIMILAR,
+  // corecursive singleton equality
+  DATATYPES_REC_SINGLETON_EQ,
+  // corecursive singleton equality (not (= k1 k2)) for fresh k1, k2
+  DATATYPES_REC_SINGLETON_FORCE_DEQ,
   // cycle conflict for datatypes
   DATATYPES_CYCLE,
+  //-------------------- datatypes size/height
+  // (>= (dt.size t) 0)
+  DATATYPES_SIZE_POS,
+  // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
+  DATATYPES_HEIGHT_ZERO,
+  // ---------------------------------- end datatypes theory
 
-  //-------------------------------------- base solver
+  //-------------------------------------- quantifiers theory
+  // skolemization
+  QUANTIFIERS_SKOLEMIZE,
+  // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
+  QUANTIFIERS_REDUCE_ALPHA_EQ,
+  //-------------------- counterexample-guided instantiation
+  // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
+  // counterexample literal is G1.
+  QUANTIFIERS_CEGQI_CEX_DEP,
+  // 0 < delta
+  QUANTIFIERS_CEGQI_VTS_LB_DELTA,
+  // delta < c, for positive c
+  QUANTIFIERS_CEGQI_VTS_UB_DELTA,
+  // infinity > c
+  QUANTIFIERS_CEGQI_VTS_LB_INF,
+  //-------------------- sygus solver
+  // preprocessing a sygus conjecture based on quantifier elimination, of the
+  // form Q <=> Q_preprocessed
+  QUANTIFIERS_SYGUS_QE_PREPROC,
+  // G or ~G where G is the active guard for a sygus enumerator
+  QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
+  // manual exclusion of a current solution
+  QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for sygus-stream
+  QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // ~Q where Q is a PBE conjecture with conflicting examples
+  QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  //-------------------------------------- end quantifiers theory
+
+  // ---------------------------------- sep theory
+  // ensures that pto is a function: (pto x y) ^ ~(pto z w) ^ x = z => y != w
+  SEP_PTO_NEG_PROP,
+  // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
+  SEP_PTO_PROP,
+  // ---------------------------------- end sep theory
+
+  // ---------------------------------- sets theory
+  //-------------------- sets core solver
+  SETS_COMPREHENSION,
+  SETS_DEQ,
+  SETS_DOWN_CLOSURE,
+  SETS_EQ_MEM,
+  SETS_EQ_MEM_CONFLICT,
+  SETS_MEM_EQ,
+  SETS_MEM_EQ_CONFLICT,
+  SETS_PROXY,
+  SETS_PROXY_SINGLETON,
+  SETS_SINGLETON_EQ,
+  SETS_UP_CLOSURE,
+  SETS_UP_CLOSURE_2,
+  SETS_UP_UNIV,
+  SETS_UNIV_TYPE,
+  //-------------------- sets cardinality solver
+  // cycle of cardinalities, hence all sets have the same
+  SETS_CARD_CYCLE,
+  // two sets have the same cardinality
+  SETS_CARD_EQUAL,
+  SETS_CARD_GRAPH_EMP,
+  SETS_CARD_GRAPH_EMP_PARENT,
+  SETS_CARD_GRAPH_EQ_PARENT,
+  SETS_CARD_GRAPH_EQ_PARENT_2,
+  SETS_CARD_GRAPH_PARENT_SINGLETON,
+  // cardinality is at least the number of elements we already know
+  SETS_CARD_MINIMAL,
+  // negative members are part of the universe
+  SETS_CARD_NEGATIVE_MEMBER,
+  // all sets have non-negative cardinality
+  SETS_CARD_POSITIVE,
+  // the universe is a superset of every set
+  SETS_CARD_UNIV_SUPERSET,
+  // cardinality of the universe is at most cardinality of the type
+  SETS_CARD_UNIV_TYPE,
+  //-------------------- sets relations solver
+  SETS_RELS_IDENTITY_DOWN,
+  SETS_RELS_IDENTITY_UP,
+  SETS_RELS_JOIN_COMPOSE,
+  SETS_RELS_JOIN_IMAGE_DOWN,
+  SETS_RELS_JOIN_SPLIT_1,
+  SETS_RELS_JOIN_SPLIT_2,
+  SETS_RELS_PRODUCE_COMPOSE,
+  SETS_RELS_PRODUCT_SPLIT,
+  SETS_RELS_TCLOSURE_FWD,
+  SETS_RELS_TRANSPOSE_EQ,
+  SETS_RELS_TRANSPOSE_REV,
+  SETS_RELS_TUPLE_REDUCTION,
+  //-------------------------------------- end sets theory
+
+  //-------------------------------------- strings theory
+  //-------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
   //   x1 ++ ... ++ xn = xi
@@ -167,8 +293,8 @@ enum class InferenceId
   STRINGS_CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
   STRINGS_CARDINALITY,
-  //-------------------------------------- end base solver
-  //-------------------------------------- core solver
+  //-------------------- end base solver
+  //-------------------- core solver
   // A cycle in the empty string equivalence class, e.g.:
   //   x ++ y = "" => x = ""
   // This is typically not applied due to length constraints implying emptiness.
@@ -305,15 +431,15 @@ enum class InferenceId
   // is unknown, we apply the inference:
   //   len(s) != len(t) V len(s) = len(t)
   STRINGS_DEQ_LENGTH_SP,
-  //-------------------------------------- end core solver
-  //-------------------------------------- codes solver
+  //-------------------- end core solver
+  //-------------------- codes solver
   // str.to_code( v ) = rewrite( str.to_code(c) )
   // where v is the proxy variable for c.
   STRINGS_CODE_PROXY,
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
-  //-------------------------------------- end codes solver
-  //-------------------------------------- regexp solver
+  //-------------------- end codes solver
+  //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
   // where y is the normal form computed for x.
@@ -348,8 +474,8 @@ enum class InferenceId
   STRINGS_RE_DELTA_CONF,
   // regular expression derive ???
   STRINGS_RE_DERIVE,
-  //-------------------------------------- end regexp solver
-  //-------------------------------------- extended function solver
+  //-------------------- end regexp solver
+  //-------------------- extended function solver
   // Standard extended function inferences from context-dependent rewriting
   // produced by constant substitutions. See Reynolds et al CAV 2017. These are
   // inferences of the form:
@@ -394,13 +520,71 @@ enum class InferenceId
   // f(x1, .., xn) and P is the reduction predicate for f
   // (see theory_strings_preprocess).
   STRINGS_REDUCTION,
-  //-------------------------------------- end extended function solver
-  //-------------------------------------- prefix conflict
+  //-------------------- end extended function solver
+  //-------------------- prefix conflict
   // prefix conflict (coarse-grained)
   STRINGS_PREFIX_CONFLICT,
-  //-------------------------------------- end prefix conflict
+  //-------------------- end prefix conflict
+  //-------------------------------------- end strings theory
 
-  UNKNOWN,
+  //-------------------------------------- uf theory
+  // Clause from the uf symmetry breaker
+  UF_BREAK_SYMMETRY,
+  //-------------------- cardinality extension to UF
+  // The inferences below are described in Reynolds' thesis 2013.
+  // conflict of the form (card_T n) => (not (distinct t1 ... tn))
+  UF_CARD_CLIQUE,
+  // conflict of the form (not (card_T1 n1)) ^ ... (not (card_Tk nk)) ^ (card n)
+  // where n1 + ... + nk >= n, where (card n) is a combined cardinality
+  // constraint.
+  UF_CARD_COMBINED,
+  // (not (card_T n)) => (distinct t1 ... tn)
+  UF_CARD_ENFORCE_NEGATIVE,
+  // used to make the index terms in cardinality constraints equal
+  UF_CARD_EQUIV,
+  // conflict of the form (not (card_T1 n)) ^ (card_T2 m) where the cardinality
+  // of T2 can be assumed to be without loss of generality larger than T1 due to
+  // monotonicity reasoning (Claessen et al 2011).
+  UF_CARD_MONOTONE_COMBINED,
+  // conflict of the form (not (card_T n)) ^ (card_T m) where n>m
+  UF_CARD_SIMPLE_CONFLICT,
+  // equality split requested by cardinality solver
+  //  (or (= t1 t2) (not (= t1 t2))
+  // to satisfy the cardinality constraints on the type of t1, t2.
+  UF_CARD_SPLIT,
+  //-------------------- end cardinality extension to UF
+  //-------------------- HO extension to UF
+  // Encodes an n-ary application as a chain of binary HO_APPLY applications
+  //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
+  UF_HO_APP_ENCODE,
+  // A lemma corresponding to the definition of a skolem k used to convert
+  // HO_APPLY terms to APPLY_UF terms. This is of the form:
+  //   (forall x1 ... xn) (@ (@ k x1) ... xn) = t
+  // where notice that t is a function whose free variables (if any) are
+  // x1 ... xn.
+  UF_HO_APP_CONV_SKOLEM,
+  // Adds an extensionality lemma to witness that disequal functions have
+  // different applications
+  //   (not (= (f sk1 .. skn) (g sk1 .. skn))
+  UF_HO_EXTENSIONALITY,
+  //-------------------- model-construction specific part
+  // These rules are necessary to ensure that we build models properly. For more
+  // details see Section 3.3 of Barbosa et al. CADE'19.
+  //
+  // Enforces that a regular APPLY_UF term in the model is equal to its HO_APPLY
+  // equivalent by adding the equality as a lemma
+  //   (= (f t1 ... tn) (@ (@ ... (@ f t1) ...) tn))
+  UF_HO_MODEL_APP_ENCODE,
+  // Adds an extensionality lemma to witness that disequal functions have
+  // different applications
+  //   (not (= (f sk1 .. skn) (g sk1 .. skn))
+  UF_HO_MODEL_EXTENSIONALITY,
+  //-------------------- end model-construction specific part
+  //-------------------- end HO extension to UF
+  //-------------------------------------- end uf theory
+
+  //-------------------------------------- unknown
+  UNKNOWN
 };
 
 /**

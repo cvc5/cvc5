@@ -22,14 +22,13 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-bool NlLemma::process(TheoryInferenceManager* im, bool asLemma)
+TrustNode NlLemma::processLemma(LemmaProperty& p)
 {
-  bool res = ArithLemma::process(im, asLemma);
   if (d_nlext != nullptr)
   {
     d_nlext->processSideEffect(*this);
   }
-  return res;
+  return SimpleTheoryLemma::processLemma(p);
 }
 
 std::ostream& operator<<(std::ostream& out, NlLemma& n)

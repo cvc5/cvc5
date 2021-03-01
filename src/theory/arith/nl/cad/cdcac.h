@@ -30,6 +30,7 @@
 
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
+#include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
 #include "theory/arith/nl/nl_model.h"
 
@@ -46,10 +47,10 @@ namespace cad {
 class CDCAC
 {
  public:
-  /** Initialize without a variable ordering. */
-  CDCAC();
   /** Initialize this method with the given variable ordering. */
-  CDCAC(const std::vector<poly::Variable>& ordering);
+  CDCAC(context::Context* ctx,
+        ProofNodeManager* pnm,
+        const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
   void reset();
@@ -87,7 +88,7 @@ class CDCAC
    * Combines unsatisfiable regions from d_constraints evaluated over
    * d_assignment. Implements Algorithm 2.
    */
-  std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable) const;
+  std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable);
 
   /**
    * Sample outside of the set of intervals.
@@ -138,7 +139,20 @@ class CDCAC
   std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
                                          bool returnFirstInterval = false);
 
+  void startNewProof();
+  /**
+   * Finish the generated proof (if proofs are enabled) with a scope over the
+   * given assertions.
+   */
+  ProofGenerator* closeProof(const std::vector<Node>& assertions);
+
+  /** Get the proof generator */
+  CADProofGenerator* getProof() { return d_proof.get(); }
+
  private:
+  /** Check whether proofs are enabled */
+  bool isProofEnabled() const { return d_proof != nullptr; }
+
   /**
    * Check whether the current sample satisfies the integrality condition of the
    * current variable. Returns true if the variable is not integral or the
@@ -164,6 +178,13 @@ class CDCAC
   bool hasRootBelow(const poly::Polynomial& p, const poly::Value& val) const;
 
   /**
+   * Sort intervals according to section 4.4.1. and removes fully redundant
+   * intervals as in 4.5. 1. by calling out to cleanIntervals.
+   * Additionally makes sure to prune proofs for removed intervals.
+   */
+  void pruneRedundantIntervals(std::vector<CACInterval>& intervals);
+
+  /**
    * The current assignment. When the method terminates with SAT, it contains a
    * model for the input constraints.
    */
@@ -180,6 +201,9 @@ class CDCAC
 
   /** The linear assignment used as an initial guess. */
   std::vector<poly::Value> d_initialAssignment;
+
+  /** The proof generator */
+  std::unique_ptr<CADProofGenerator> d_proof;
 };
 
 }  // namespace cad
