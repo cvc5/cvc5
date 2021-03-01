@@ -75,8 +75,6 @@ typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
 // ----------------------- end datatype attributes
 
 class DTypeConstructor;
-class DTypeSelector;
-class NodeManager;
 
 /**
  * The Node-level representation of an inductive datatype, which currently
