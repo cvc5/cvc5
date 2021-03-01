@@ -20,17 +20,11 @@
 #include <map>
 #include <unordered_map>
 
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "theory/quantifiers/fmf/model_builder.h"
-#include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -40,6 +34,8 @@ class TheoryEngine;
 namespace theory {
 
 class DecisionManager;
+class QuantifiersModule;
+class RepSetIterator;
 
 namespace inst {
 class TriggerTrie;
@@ -47,9 +43,15 @@ class TriggerTrie;
 namespace quantifiers {
 class EqualityQueryQuantifiersEngine;
 class FirstOrderModel;
+class Instantiate;
+class QModelBuilder;
 class QuantifiersInferenceManager;
 class QuantifiersModules;
 class QuantifiersState;
+class Skolemize;
+class TermDb;
+class TermDbSygus;
+class TermEnumeration;
 }
 
 // TODO: organize this more/review this, github issue #1163
