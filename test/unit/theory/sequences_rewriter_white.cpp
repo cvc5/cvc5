@@ -30,7 +30,6 @@
 
 namespace CVC4 {
 
-using namespace smt;
 using namespace theory;
 using namespace theory::quantifiers;
 using namespace theory::strings;
