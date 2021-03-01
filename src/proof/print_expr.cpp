@@ -34,6 +34,12 @@ PExprStream& PExprStream::operator<<(Node n)
   return *this;
 }
 
+PExprStream& PExprStream::operator<<(TypeNode tn)
+{
+  d_stream.push_back(PExpr(tn));
+  return *this;
+}
+
 PExprStream& PExprStream::operator<<(bool b)
 {
   Assert(!d_tt.isNull() && !d_ff.isNull());

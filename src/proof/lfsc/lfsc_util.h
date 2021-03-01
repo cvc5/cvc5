@@ -58,6 +58,11 @@ enum class LfscRule : uint32_t
   // needed as a helper for SCOPE
   NOT_AND_REV,
 
+  // form of quantifier rules varies from internal calculus
+  INSTANTIATE,
+  SKOLEMIZE,
+  EXISTS_INTRO,
+
   // a lambda with argument
   LAMBDA,
   //----------- unknown

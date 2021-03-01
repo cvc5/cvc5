@@ -69,7 +69,6 @@ Node StringsPreprocess::reduce(Node t,
     Node m = t[2];
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
     Node t12 = nm->mkNode(PLUS, n, m);
-    t12 = Rewriter::rewrite(t12);
     Node lt0 = nm->mkNode(STRING_LENGTH, s);
     //start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);

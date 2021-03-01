@@ -286,6 +286,14 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
+    case PfRule::SKOLEMIZE:
+      // TODO: convert to curried
+      return false;
+      break;
+    case PfRule::INSTANTIATE:
+      // TODO: convert to curried
+      return false;
+      break;
     default: return false; break;
   }
   return true;

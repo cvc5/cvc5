@@ -17,6 +17,9 @@
 #include "expr/node_algorithm.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 #include "proof/proof_letify.h"
+#include "expr/skolem_manager.h"
+
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace proof {
@@ -204,11 +207,13 @@ void LfscPrinter::printProofInternal(
   std::map<const ProofNode*, size_t>::const_iterator pletIt;
   std::map<Node, size_t>::iterator passumeIt;
   Node curn;
+  TypeNode curtn;
   const ProofNode* cur;
   visit.push_back(PExpr(pn));
   do
   {
     curn = visit.back().d_node;
+    curtn = visit.back().d_typeNode;
     cur = visit.back().d_pnode;
     visit.pop_back();
     // case 1: printing a proof
@@ -304,7 +309,12 @@ void LfscPrinter::printProofInternal(
       Node curni = lbind.convert(curn, "__t", true);
       out->printNode(curni);
     }
-    // case 3: a hole
+    // case 3: printing a type node
+    else if (!curtn.isNull())
+    {
+      out->printTypeNode(curtn);
+    }
+    // case 4: a hole
     else
     {
       out->printHole();
@@ -346,6 +356,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       pf << h << h << h << cs[0] << cs[1] << args[0].getConst<bool>() << as[1];
       break;
     case PfRule::REORDERING: pf << h << as[0] << cs[0]; break;
+    case PfRule::FACTORING: pf << h << h << cs[0]; break;
     // Boolean
     case PfRule::SPLIT: pf << as[0]; break;
     case PfRule::CONTRA: pf << h << cs[0] << cs[1]; break;
@@ -407,6 +418,29 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
+    /*
+    case PfRule::STRING_REDUCTION:
+    {
+      Node res = pn->getResult();
+      Trace("ajr-temp") << "String reduction " << res << std::endl;
+      Trace("ajr-temp") << "String reduction internal : " << d_tproc.convert(res) << std::endl;
+      Assert (res.getKind()==AND);
+      Node resw = res[res.getNumChildren()-1];
+      Assert (resw.getKind()==EQUAL);
+      Node k = resw[1];
+      Assert (k.getKind()==SKOLEM);
+      Node w = SkolemManager::getWitnessForm(k);
+      Trace("ajr-temp") << "Witness " << w << std::endl;
+      Assert (w.getKind()==WITNESS);
+      Node v = w[0][0];
+      TypeNode vti = d_tproc.convertType(v.getType());
+      Node n = nm->mkConst(Rational(d_tproc.getOrAssignIndexForVar(v)));
+      pf << h << n << vti << as[0];
+    }
+      break;
+      */
+    // quantifiers
+    //case PfRule::WITNESS_INTRO: pf << h << h << h << h << cs[0]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {

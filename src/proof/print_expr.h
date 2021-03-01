@@ -30,14 +30,17 @@ namespace proof {
 class PExpr
 {
  public:
-  PExpr() : d_node(), d_pnode(nullptr) {}
-  PExpr(Node n) : d_node(n), d_pnode(nullptr) {}
-  PExpr(const ProofNode* pn) : d_node(), d_pnode(pn) {}
+  PExpr() : d_node(), d_pnode(nullptr), d_typeNode() {}
+  PExpr(Node n) : d_node(n), d_pnode(nullptr), d_typeNode() {}
+  PExpr(const ProofNode* pn) : d_node(), d_pnode(pn), d_typeNode() {}
+  PExpr(TypeNode tn) : d_node(), d_pnode(nullptr), d_typeNode(tn) {}
   ~PExpr() {}
   /** The node */
   Node d_node;
   /** The proof node */
   const ProofNode* d_pnode;
+  /** The type node */
+  TypeNode d_typeNode;
 };
 
 class PExprStream
@@ -50,6 +53,8 @@ class PExprStream
   PExprStream& operator<<(const ProofNode* pn);
   /** Append a node */
   PExprStream& operator<<(Node n);
+  /** Append a type node */
+  PExprStream& operator<<(TypeNode tn);
   /** Append a Boolean */
   PExprStream& operator<<(bool b);
   /** Append a pexpr */

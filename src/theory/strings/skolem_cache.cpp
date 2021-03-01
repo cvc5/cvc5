@@ -79,6 +79,8 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it != d_skolemCache[a][b].end())
   {
+    Trace("skolem-cache") << "...return existing " << it->second
+                          << std::endl;
     // already cached
     return it->second;
   }
@@ -120,6 +122,7 @@ Node SkolemCache::mkTypedSkolemCached(
     }
     break;
   }
+  Trace("skolem-cache") << "...returned " << sk << std::endl;
   d_allSkolems.insert(sk);
   d_skolemCache[a][b][id] = sk;
   return sk;
@@ -265,9 +268,11 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     b = Node::null();
   }
 
-  a = a.isNull() ? a : Rewriter::rewrite(a);
-  b = b.isNull() ? b : Rewriter::rewrite(b);
-
+  if (d_useOpts)
+  {
+    a = a.isNull() ? a : Rewriter::rewrite(a);
+    b = b.isNull() ? b : Rewriter::rewrite(b);
+  }
   Trace("skolem-cache") << "normalizeStringSkolem end: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   return std::make_tuple(id, a, b);

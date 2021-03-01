@@ -51,6 +51,12 @@ struct PurifySkolemAttributeId
 };
 typedef expr::Attribute<PurifySkolemAttributeId, Node> PurifySkolemAttribute;
 
+// Maps terms to their purify skolem variables
+struct RevPurifySkolemAttributeId
+{
+};
+typedef expr::Attribute<RevPurifySkolemAttributeId, Node> RevPurifySkolemAttribute;
+
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
@@ -190,6 +196,9 @@ Node SkolemManager::mkPurifySkolem(Node t,
   Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
   t.setAttribute(psa, k);
+  // TODO: use set instead
+  RevPurifySkolemAttribute rpsa;
+  k.setAttribute(rpsa, t);
   return k;
 }
 
