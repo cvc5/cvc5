@@ -990,7 +990,6 @@ libcvc4_add_sources(
   theory/theory_rewriter.h
   theory/theory_state.cpp
   theory/theory_state.h
-  theory/theory_test_utils.h
   theory/trust_node.cpp
   theory/trust_node.h
   theory/trust_substitutions.cpp

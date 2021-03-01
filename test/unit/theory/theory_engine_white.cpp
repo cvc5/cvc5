@@ -29,11 +29,7 @@
 #include "test_smt.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
-#include "theory/rewriter.h"
-#include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_rewriter.h"
-#include "theory/valuation.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
@@ -46,65 +42,6 @@ using namespace kind;
 using namespace theory::bv;
 
 namespace test {
-
-class FakeTheoryRewriter : public TheoryRewriter
-{
- public:
-  RewriteResponse preRewrite(TNode n) override
-  {
-    return RewriteResponse(REWRITE_DONE, n);
-  }
-
-  RewriteResponse postRewrite(TNode n) override
-  {
-    return RewriteResponse(REWRITE_DONE, n);
-  }
-};
-
-/**
- * Fake Theory interface.  Looks like a Theory, but really all it does is note
- * when and how rewriting behavior is requested.
- */
-template <TheoryId theoryId>
-class FakeTheory : public Theory
-{
- public:
-  FakeTheory(context::Context* ctxt,
-             context::UserContext* uctxt,
-             OutputChannel& out,
-             Valuation valuation,
-             const LogicInfo& logicInfo,
-             ProofNodeManager* pnm)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm)
-  {
-  }
-
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  std::string identify() const override { return "Fake" + d_id; }
-
-  void presolve() override { Unimplemented(); }
-
-  void preRegisterTerm(TNode) override { Unimplemented(); }
-  void registerTerm(TNode) { Unimplemented(); }
-  void propagate(Theory::Effort) override { Unimplemented(); }
-  TrustNode explain(TNode) override
-  {
-    Unimplemented();
-    return TrustNode::null();
-  }
-  Node getValue(TNode n) { return Node::null(); }
-
- private:
-  /**
-   * This fake theory class is equally useful for bool, uf, arith, etc.  It
-   * keeps an identifier to identify itself.
-   */
-  std::string d_id;
-
-  /** The theory rewriter for this theory. */
-  FakeTheoryRewriter d_rewriter;
-};
 
 class TestTheoryWhiteEngine : public TestSmt
 {
@@ -120,15 +57,15 @@ class TestTheoryWhiteEngine : public TestSmt
     {
       delete d_theoryEngine->d_theoryOut[id];
       delete d_theoryEngine->d_theoryTable[id];
-      d_theoryEngine->d_theoryOut[id] = NULL;
-      d_theoryEngine->d_theoryTable[id] = NULL;
+      d_theoryEngine->d_theoryOut[id] = nullptr;
+      d_theoryEngine->d_theoryTable[id] = nullptr;
     }
-    d_theoryEngine->addTheory<FakeTheory<THEORY_BUILTIN> >(THEORY_BUILTIN);
-    d_theoryEngine->addTheory<FakeTheory<THEORY_BOOL> >(THEORY_BOOL);
-    d_theoryEngine->addTheory<FakeTheory<THEORY_UF> >(THEORY_UF);
-    d_theoryEngine->addTheory<FakeTheory<THEORY_ARITH> >(THEORY_ARITH);
-    d_theoryEngine->addTheory<FakeTheory<THEORY_ARRAYS> >(THEORY_ARRAYS);
-    d_theoryEngine->addTheory<FakeTheory<THEORY_BV> >(THEORY_BV);
+    d_theoryEngine->addTheory<DummyTheory<THEORY_BUILTIN> >(THEORY_BUILTIN);
+    d_theoryEngine->addTheory<DummyTheory<THEORY_BOOL> >(THEORY_BOOL);
+    d_theoryEngine->addTheory<DummyTheory<THEORY_UF> >(THEORY_UF);
+    d_theoryEngine->addTheory<DummyTheory<THEORY_ARITH> >(THEORY_ARITH);
+    d_theoryEngine->addTheory<DummyTheory<THEORY_ARRAYS> >(THEORY_ARRAYS);
+    d_theoryEngine->addTheory<DummyTheory<THEORY_BV> >(THEORY_BV);
   }
 
   Context* d_context;
@@ -150,7 +87,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_simple)
   Node nExpected = n;
   Node nOut;
 
-  // do a full rewrite; FakeTheory::preRewrite() and FakeTheory::postRewrite()
+  // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
   nOut = Rewriter::rewrite(n);
@@ -197,7 +134,7 @@ TEST_F(TestTheoryWhiteEngine, rewriter_complex)
   Node nExpected = n;
   Node nOut;
 
-  // do a full rewrite; FakeTheory::preRewrite() and FakeTheory::postRewrite()
+  // do a full rewrite; DummyTheory::preRewrite() and DummyTheory::postRewrite()
   // assert that the rewrite calls that are made match the expected sequence
   // set up above
   nOut = Rewriter::rewrite(n);
@@ -244,5 +181,6 @@ TEST_F(TestTheoryWhiteEngine, rewrite_rules)
   }
   ASSERT_NE(result, result2);
 }
+
 }  // namespace test
 }  // namespace CVC4
