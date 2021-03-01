@@ -18,6 +18,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"

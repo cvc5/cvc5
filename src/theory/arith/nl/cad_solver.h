@@ -30,6 +30,8 @@ class InferenceManager;
 
 namespace nl {
 
+class NlModel;
+
 /**
  * A solver for nonlinear arithmetic that implements the CAD-based method
  * described in https://arxiv.org/pdf/2003.05633.pdf.

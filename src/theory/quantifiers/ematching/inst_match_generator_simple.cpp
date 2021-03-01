@@ -14,6 +14,7 @@
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 
 #include "theory/quantifiers/ematching/trigger_term_info.h"
+#include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;

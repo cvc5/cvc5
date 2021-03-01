@@ -17,8 +17,6 @@
 
 #include "util/statistics.h"
 
-#include <typeinfo>
-
 #include "util/safe_print.h"
 #include "util/statistics_registry.h" // for details about class Stat
 
