@@ -136,7 +136,7 @@ public:
    */
   std::string toString() const {
     std::ostringstream os;
-    os << (isNegated()? "~" : "") << getSatVariable() << " ";
+    os << (isNegated() ? "~" : "") << getSatVariable();
     return os.str();
   }
 
