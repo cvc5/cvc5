@@ -28,7 +28,6 @@ namespace CVC4 {
 using namespace kind;
 using namespace context;
 using namespace theory;
-using namespace smt;
 
 namespace test {
 

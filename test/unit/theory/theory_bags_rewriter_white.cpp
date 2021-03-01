@@ -19,7 +19,6 @@
 
 namespace CVC4 {
 
-using namespace smt;
 using namespace theory;
 using namespace kind;
 using namespace theory::bags;
