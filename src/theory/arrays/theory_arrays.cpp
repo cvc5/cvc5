@@ -934,11 +934,11 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): missed propagation" << std::endl;
       break;
     case EQUALITY_FALSE_AND_PROPAGATED:
-      // Should have been propagated to us
-      Assert(false);
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair "
                                   "called when false in model"
                                << std::endl;
+      // Should have been propagated to us
+      Assert(false);
       break;
     case EQUALITY_FALSE: CVC4_FALLTHROUGH;
     case EQUALITY_FALSE_IN_MODEL:
