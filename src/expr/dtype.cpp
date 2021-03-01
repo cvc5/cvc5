@@ -13,6 +13,7 @@
  **/
 #include "expr/dtype.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/type_matcher.h"
 

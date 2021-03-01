@@ -20,10 +20,8 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "expr/dtype_cons.h"
-#include "expr/dtype_selector.h"
+#include "expr/attribute.h"
 #include "expr/node.h"
-#include "expr/node_manager_attributes.h"
 #include "expr/type_node.h"
 
 namespace CVC4 {
@@ -76,6 +74,8 @@ struct DTypeUFiniteComputedTag
 typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
 // ----------------------- end datatype attributes
 
+class DTypeConstructor;
+class DTypeSelector;
 class NodeManager;
 
 /**

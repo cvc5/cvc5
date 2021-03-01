@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_unif_strat.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"

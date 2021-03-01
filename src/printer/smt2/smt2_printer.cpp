@@ -24,6 +24,7 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"

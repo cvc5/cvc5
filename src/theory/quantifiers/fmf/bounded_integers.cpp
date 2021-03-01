@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
