@@ -22,6 +22,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "base/configuration.h"
 #include "options/fp_options.h"
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"

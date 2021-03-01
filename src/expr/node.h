@@ -30,14 +30,12 @@
 #include <vector>
 
 #include "base/check.h"
-#include "base/configuration.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
-#include "expr/metakind.h"
-#include "expr/type.h"
+//#include "expr/metakind.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/hash.h"
@@ -978,7 +976,6 @@ std::ostream& operator<<(
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
-#include "expr/type_checker.h"
 
 namespace CVC4 {
 
