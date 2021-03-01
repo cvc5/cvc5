@@ -20,23 +20,18 @@
 #define CVC4__THEORY__THEORY_H
 
 #include <iosfwd>
-#include <map>
 #include <set>
 #include <string>
 #include <unordered_set>
 
-#include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "options/options.h"
 #include "options/theory_options.h"
 #include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
-#include "theory/decision_manager.h"
-#include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
@@ -55,9 +50,11 @@ class ProofNodeManager;
 
 namespace theory {
 
+class DecisionManager;
+struct EeSetupInfo;
 class QuantifiersEngine;
-class TheoryModel;
 class SubstitutionMap;
+class TheoryModel;
 class TheoryRewriter;
 
 namespace rrinst {

@@ -35,7 +35,7 @@
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
-//#include "expr/metakind.h"
+#include "expr/metakind.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/hash.h"
