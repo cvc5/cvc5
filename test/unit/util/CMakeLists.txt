@@ -11,7 +11,7 @@
 #-----------------------------------------------------------------------------#
 # Add unit tests
 
-cvc4_add_cxx_unit_test_white(array_store_all_white util)
+cvc4_add_unit_test_white(array_store_all_white util)
 cvc4_add_unit_test_white(assert_white util)
 cvc4_add_unit_test_black(binary_heap_black util)
 cvc4_add_cxx_unit_test_black(bitvector_black util)
@@ -25,7 +25,7 @@ if(CVC4_USE_SYMFPU)
 cvc4_add_cxx_unit_test_black(floatingpoint_black util)
 endif()
 cvc4_add_cxx_unit_test_black(integer_black util)
-cvc4_add_cxx_unit_test_white(integer_white util)
+cvc4_add_unit_test_white(integer_white util)
 cvc4_add_cxx_unit_test_black(output_black util)
 cvc4_add_cxx_unit_test_black(rational_black util)
 cvc4_add_cxx_unit_test_white(rational_white util)
