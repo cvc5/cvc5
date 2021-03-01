@@ -20,6 +20,7 @@
 #ifndef CVC4__CONTEXT__CDLIST_H
 #define CVC4__CONTEXT__CDLIST_H
 
+#include <cstring>
 #include <iterator>
 #include <memory>
 #include <string>
