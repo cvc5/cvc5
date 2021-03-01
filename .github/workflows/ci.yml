@@ -155,7 +155,8 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --prefix=$(pwd)/build/install \
-          --unit-testing
+          --unit-testing \
+          --werror
 
     - name: Build
       run: make -j2
