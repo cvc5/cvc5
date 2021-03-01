@@ -29,37 +29,30 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
-#include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/logic_info.h"
-#include "theory/output_channel.h"
 #include "theory/theory_id.h"
-#include "theory/theory_inference_manager.h"
-#include "theory/theory_rewriter.h"
-#include "theory/theory_state.h"
 #include "theory/trust_node.h"
-#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
-class TheoryEngine;
 class ProofNodeManager;
+class TheoryEngine;
 
 namespace theory {
 
 class DecisionManager;
 struct EeSetupInfo;
+class OutputChannel;
 class QuantifiersEngine;
-class SubstitutionMap;
+class TheoryInferenceManager;
 class TheoryModel;
 class TheoryRewriter;
-
-namespace rrinst {
-  class CandidateGenerator;
-}/* CVC4::theory::rrinst namespace */
+class TheoryState;
+class TrustSubstitutionMap;
 
 namespace eq {
   class EqualityEngine;

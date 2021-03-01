@@ -30,6 +30,7 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 using namespace CVC4::theory::bv::utils;
 

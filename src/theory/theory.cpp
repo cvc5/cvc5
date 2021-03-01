@@ -30,6 +30,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"
 #include "theory/theory_rewriter.h"
+#include "theory/trust_substitutions.h"
 
 using namespace std;
 

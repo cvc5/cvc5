@@ -31,6 +31,7 @@
 #include "theory/decision_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 
 using namespace std;

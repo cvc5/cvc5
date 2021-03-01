@@ -17,6 +17,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
+#include "smt/logic_request.h"
 
 namespace CVC4 {
 namespace preprocessing {
