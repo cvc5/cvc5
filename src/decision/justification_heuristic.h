@@ -65,7 +65,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * A copy of the assertions that need to be justified
    * directly. Doesn't have ones introduced during during term removal.
    */
-  context::CDList<TNode> d_assertions;
+  context::CDList<Node> d_assertions;
   //TNode is fine since decisionEngine has them too
 
   /** map from skolems introduced in term removal to the corresponding assertion

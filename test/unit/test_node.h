@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace test {
 
-class TestNodeBlack : public TestInternal
+class TestNode : public TestInternal
 {
  protected:
   void SetUp() override
@@ -44,18 +44,6 @@ class TestNodeBlack : public TestInternal
   std::unique_ptr<TypeNode> d_realTypeNode;
 };
 
-class TestNodeWhite : public TestInternal
-{
- protected:
-  void SetUp() override
-  {
-    d_nodeManager.reset(new NodeManager(nullptr));
-    d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
-  }
-
-  std::unique_ptr<NodeManagerScope> d_scope;
-  std::unique_ptr<NodeManager> d_nodeManager;
-};
 }  // namespace test
 }  // namespace CVC4
 #endif
