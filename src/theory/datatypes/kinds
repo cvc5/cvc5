@@ -142,7 +142,7 @@ typerule MATCH_BIND_CASE ::CVC4::theory::datatypes::MatchBindCaseTypeRule
 constant TUPLE_PROJECT_OP \
 	::CVC4::TupleProjectOp \
 	::CVC4::TupleProjectOpHashFunction \
-	"theory/datatypes/project_op.h" \
+	"theory/datatypes/tuple_project_op.h" \
 	"operator for TUPLE_PROJECT; payload is an instance of the CVC4::TupleProjectOp class"
 
 parameterized TUPLE_PROJECT TUPLE_PROJECT_OP 1 \

@@ -2559,15 +2559,6 @@ class CVC4_PUBLIC Solver
   Term mkTuple(const std::vector<Sort>& sorts,
                const std::vector<Term>& terms) const;
 
-  /**
-   * returns a term that represents ((_ tupSel index) tuple)
-   * @param index represents the index of the selected element in the tuple
-   * @param tuple a node that has a tuple type
-   * @pre sort of tuple is (Tuple T1 ... Tn) and index < n
-   * @return the element at the given index in tuple
-   */
-  Term tupleSelect(uint32_t index, Term tuple) const;
-
   /* .................................................................... */
   /* Create Operators                                                     */
   /* .................................................................... */

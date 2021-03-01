@@ -2297,28 +2297,6 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
   ASSERT_THROW(slv.getSynthSolutions({x}), CVC4ApiException);
 }
 
-TEST_F(TestApiBlackSolver, tupleSelect)
-{
-  std::vector<Sort> sorts = {d_solver.getBooleanSort(),
-                             d_solver.getIntegerSort(),
-                             d_solver.getStringSort(),
-                             d_solver.mkSetSort(d_solver.getStringSort())};
-  std::vector<Term> elements = {
-      d_solver.mkBoolean(true),
-      d_solver.mkInteger(3),
-      d_solver.mkString("C"),
-      d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
-
-  Term tuple = d_solver.mkTuple(sorts, elements);
-
-  for (size_t i = 0; i < elements.size(); i++)
-  {
-    Term selectedTerm = d_solver.tupleSelect(i, tuple);
-    Term simplifiedTerm = d_solver.simplify(selectedTerm);
-    ASSERT_EQ(elements[i], simplifiedTerm);
-  }
-}
-
 TEST_F(TestApiBlackSolver, tupleProject)
 {
   std::vector<Sort> sorts = {d_solver.getBooleanSort(),
@@ -2359,9 +2337,13 @@ TEST_F(TestApiBlackSolver, tupleProject)
   Op op = d_solver.mkOp(TUPLE_PROJECT, indices);
   Term projection = d_solver.mkTerm(op, tuple);
 
+  Datatype datatype = tuple.getSort().getDatatype();
+  DatatypeConstructor constructor = datatype[0];
+
   for (size_t i = 0; i < indices.size(); i++)
   {
-    Term selectedTerm = d_solver.tupleSelect(i, projection);
+    Term selectorTerm = constructor[indices[i]].getSelectorTerm();
+    Term selectedTerm = d_solver.mkTerm(APPLY_SELECTOR, selectorTerm, tuple);
     Term simplifiedTerm = d_solver.simplify(selectedTerm);
     ASSERT_EQ(elements[indices[i]], simplifiedTerm);
   }
