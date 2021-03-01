@@ -51,6 +51,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
+  --werror                 build with -Werror
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
@@ -150,6 +151,7 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+werror=default
 
 abc_dir=default
 antlr_dir=default
@@ -185,6 +187,8 @@ do
 
     --tsan) tsan=ON;;
     --no-tsan) tsan=OFF;;
+
+    --werror) werror=ON;;
 
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
@@ -354,6 +358,11 @@ do
 done
 
 #--------------------------------------------------------------------------#
+
+if [ $werror != default ]; then
+  export CFLAGS=-Werror
+  export CXXFLAGS=-Werror
+fi
 
 cmake_opts=""
 

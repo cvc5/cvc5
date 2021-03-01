@@ -27,7 +27,7 @@ using namespace CVC4::expr;
 
 namespace test {
 
-class TestNodeWhiteNodeManager : public TestNodeWhite
+class TestNodeWhiteNodeManager : public TestNode
 {
 };
 

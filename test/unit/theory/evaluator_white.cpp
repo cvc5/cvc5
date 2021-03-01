@@ -22,12 +22,10 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
-#include "theory/theory_test_utils.h"
 #include "util/rational.h"
 
 namespace CVC4 {
 
-using namespace smt;
 using namespace theory;
 
 namespace test {
