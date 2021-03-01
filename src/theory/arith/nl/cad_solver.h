@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "context/context.h"
 #include "expr/node.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
