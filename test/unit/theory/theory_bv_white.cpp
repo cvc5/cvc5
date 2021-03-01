@@ -24,7 +24,6 @@
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_test_utils.h"
 
 namespace CVC4 {
 
@@ -33,7 +32,6 @@ using namespace theory::bv;
 using namespace theory::bv::utils;
 using namespace expr;
 using namespace context;
-using namespace smt;
 
 namespace test {
 
