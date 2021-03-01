@@ -246,10 +246,8 @@ do
     --no-kissat) kissat=OFF;;
 
     --win64) win64=ON;;
-    --no-win64) win64=OFF;;
 
     --arm64) arm64=ON;;
-    --no-arm64) arm64=OFF;;
 
     --ninja) ninja=ON;;
 
