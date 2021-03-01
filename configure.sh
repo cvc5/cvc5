@@ -367,9 +367,11 @@ done
 #--------------------------------------------------------------------------#
 
 if [ "$arm64" == "ON" ]; then
+  echo "Setting up dependencies for ARM 64-bit build"
   HOST="aarch64-linux-gnu" contrib/get-antlr-3.4 || exit 1
   HOST="aarch64-linux-gnu" contrib/get-gmp-dev || exit 1
 elif [ "$win64" == "ON" ]; then
+  echo "Setting up dependencies for Windows 64-bit build"
   HOST="x86_64-w64-mingw32" contrib/get-antlr-3.4 || exit 1
   HOST="x86_64-w64-mingw32" contrib/get-gmp-dev || exit 1
 fi
@@ -497,6 +499,7 @@ root_dir=$(pwd)
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
 [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
+[ $arm64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
 mkdir -p "$build_dir"
 
 cd "$build_dir"
