@@ -189,13 +189,6 @@ for a package named "libedit-dev" or "libedit-devel" or similar.
 The [Boost](http://www.boost.org) C++ base library is needed for some examples
 provided with CVC4.
 
-### CxxTest Unit Testing Framework (Unit Tests)
-
-[CxxTest](http://cxxtest.com) is required to optionally run CVC4's unit tests
-(included with the distribution). 
-See [Testing CVC4](#Testing-CVC4) below for more details.
-
-
 ### Google Test Unit Testing Framework (Unit Tests)
 
 [Google Test](https://github.com/google/googletest) is required to optionally
