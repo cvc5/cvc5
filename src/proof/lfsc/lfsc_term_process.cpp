@@ -59,7 +59,7 @@ Node LfscTermProcessor::runConvert(Node n)
   {
     // skolems v print as their witness forms
     // v is (skolem W) where W is the witness form of v
-    Node wi = SkolemManager::getWitnessForm(n);
+    Node wi = SkolemManager::getOriginalForm(n);
     if (wi.getKind() == WITNESS)
     {
       wi = convert(wi);

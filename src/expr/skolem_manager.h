@@ -32,9 +32,9 @@ class ProofGenerator;
  * predicate that the introduced variable is intended to witness.
  *
  * It is implemented by mapping terms to an attribute corresponding to their
- * "witness form" as described below. Hence, this class does not impact the
- * reference counting of skolem variables which may be deleted if they are not
- * used.
+ * "original form" and "witness form" as described below. Hence, this class does
+ * not impact the reference counting of skolem variables which may be deleted if
+ * they are not used.
  */
 class SkolemManager
 {
@@ -110,11 +110,10 @@ class SkolemManager
    * returns:
    *   (P w1 w2)
    * where w1 and w2 are skolems with witness forms:
-   *   (witness ((x Int)) (exists ((y' Int)) (P x y')))
+   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
    *   (witness ((y Int)) (P w1 y))
    * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * Notice that y is renamed to y' in the witness form of w1 to avoid variable
-   * shadowing.
+   * Notice that y is *not* renamed in the witness form of w1.
    *
    * In contrast to mkSkolem, the proof generator is for the *entire*
    * existentially quantified formula q, which may have multiple variables in
@@ -161,35 +160,27 @@ class SkolemManager
    */
   ProofGenerator* getProofGenerator(Node q) const;
   /**
-   * Convert to witness form, where notice this recursively replaces *all*
-   * skolems in n by their corresponding witness term. This is intended to be
-   * used by the proof checker only.
+   * Convert to witness form, which gets the witness form of a skolem k.
    *
-   * @param n The term or formula to convert to witness form described above
-   * @return n in witness form.
+   * @param k The variable to convert to witness form described above
+   * @return k in witness form.
    */
-  static Node getWitnessForm(Node n);
+  static Node getWitnessForm(Node k);
   /**
-   * Convert to Skolem form, which recursively replaces all witness terms in n
-   * by their corresponding Skolems.
+   * Convert to original form, which recursively replaces all skolems terms in n
+   * by the term they purify.
    *
-   * @param n The term or formula to convert to Skolem form described above
-   * @return n in Skolem form.
+   * @param n The term or formula to convert to original form described above
+   * @return n in original form.
    */
-  static Node getSkolemForm(Node n);
-  /** convert to witness form vector */
-  static void convertToWitnessFormVec(std::vector<Node>& vec);
-  /** convert to Skolem form vector */
-  static void convertToSkolemFormVec(std::vector<Node>& vec);
+  static Node getOriginalForm(Node n);
 
  private:
   /**
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
-  /** Convert to witness or skolem form */
-  static Node convertInternal(Node n, bool toWitness);
-  /** Get or make skolem attribute for witness term w */
+  /** Get or make skolem attribute for term w, which may be a witness term */
   static Node getOrMakeSkolem(Node w,
                               const std::string& prefix,
                               const std::string& comment,

@@ -433,7 +433,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       Assert (resw.getKind()==EQUAL);
       Node k = resw[1];
       Assert (k.getKind()==SKOLEM);
-      Node w = SkolemManager::getWitnessForm(k);
+      Node w = SkolemManager::getOriginalForm(k);
       Trace("ajr-temp") << "Witness " << w << std::endl;
       Assert (w.getKind()==WITNESS);
       Node v = w[0][0];
@@ -444,7 +444,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       break;
       */
     // quantifiers
-    //case PfRule::WITNESS_INTRO: pf << h << h << h << h << cs[0]; break;
+    //case PfRule::SKOLEM_INTRO: pf << as[0]; break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
