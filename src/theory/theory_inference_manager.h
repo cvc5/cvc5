@@ -23,9 +23,8 @@
 #include "expr/node.h"
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
-#include "theory/theory_state.h"
 #include "theory/trust_node.h"
-#include "theory/uf/proof_equality_engine.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -34,8 +33,10 @@ class ProofNodeManager;
 namespace theory {
 
 class Theory;
+class TheoryState;
 namespace eq {
 class EqualityEngine;
+class ProofEqEngine;
 }
 
 /**

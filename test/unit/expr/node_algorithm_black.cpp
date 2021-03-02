@@ -32,7 +32,7 @@ using namespace kind;
 
 namespace test {
 
-class TestNodeBlackNodeAlgorithm : public TestNodeBlack
+class TestNodeBlackNodeAlgorithm : public TestNode
 {
 };
 

@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;

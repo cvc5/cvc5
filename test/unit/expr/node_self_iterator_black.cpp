@@ -26,7 +26,7 @@ using namespace expr;
 
 namespace test {
 
-class TestNodeBlackNodeSelfIterator : public TestNodeBlack
+class TestNodeBlackNodeSelfIterator : public TestNode
 {
 };
 

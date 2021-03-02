@@ -17,7 +17,6 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
@@ -29,9 +28,8 @@ namespace theory {
 namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
-    QuantifiersState& qs, TermDb* tdb, FirstOrderModel* m)
+    QuantifiersState& qs, FirstOrderModel* m)
     : d_qstate(qs),
-      d_tdb(tdb),
       d_model(m),
       d_eqi_counter(qs.getSatContext()),
       d_reset_count(0)

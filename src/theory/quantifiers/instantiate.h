@@ -19,6 +19,8 @@
 
 #include <map>
 
+#include "context/cdhashset.h"
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof.h"
 #include "theory/quantifiers/inst_match_trie.h"

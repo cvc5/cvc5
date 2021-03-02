@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/uf/equality_engine_iterator.h"
 
 namespace CVC4 {
 namespace theory {

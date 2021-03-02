@@ -15,6 +15,7 @@
 #include "theory/datatypes/sygus_extension.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"

@@ -12,6 +12,7 @@
  ** \brief Whitebox tests for theory Arithmetic.
  **/
 
+#include <list>
 #include <vector>
 
 #include "context/context.h"
@@ -21,7 +22,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "theory/theory_test_utils.h"
 #include "util/rational.h"
 
 namespace CVC4 {
@@ -103,7 +103,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
 
   Context* d_context;
   UserContext* d_user_context;
-  TestOutputChannel d_outputChannel;
+  DummyOutputChannel d_outputChannel;
   LogicInfo d_logicInfo;
   Theory::Effort d_level = Theory::EFFORT_FULL;
   TheoryArith* d_arith;
