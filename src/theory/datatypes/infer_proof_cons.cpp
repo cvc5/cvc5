@@ -14,6 +14,7 @@
 
 #include "theory/datatypes/infer_proof_cons.h"
 
+#include "expr/proof.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/rewriter.h"
 

@@ -26,6 +26,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"

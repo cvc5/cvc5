@@ -19,6 +19,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/uf/equality_engine_iterator.h"
 
 using namespace CVC4::context;
 

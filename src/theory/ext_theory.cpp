@@ -20,7 +20,9 @@
 
 #include "base/check.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/output_channel.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/substitutions.h"
 
 using namespace std;

@@ -18,7 +18,6 @@
 #define CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
 
 #include <map>
-#include <unordered_set>
 
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -54,8 +53,6 @@ struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 
 namespace quantifiers {
-
-class TermDatabase;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
 class TermUtil

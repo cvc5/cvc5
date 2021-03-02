@@ -14,8 +14,10 @@
 
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
+#include "expr/proof.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {

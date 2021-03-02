@@ -22,9 +22,10 @@
 
 #include "expr/proof.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
 
 /**
  * A (context-dependent) lazy proof. This class is an extension of CDProof

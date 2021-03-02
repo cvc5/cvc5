@@ -39,6 +39,8 @@
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/dtype_selector.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
