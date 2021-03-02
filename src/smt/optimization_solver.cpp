@@ -58,8 +58,8 @@ OptResult OptimizationSolver::checkOpt()
   optChecker->setOption("produce-models", "true");
 
   // Move assertions from the parent solver to the subsolver
-  std::vector<Node> axioms = d_parent->getExpandedAssertions();
-  for (const Node& e : axioms)
+  std::vector<Node> p_assertions = d_parent->getExpandedAssertions();
+  for (const Node& e : p_assertions)
   {
     optChecker->assertFormula(e);
   }

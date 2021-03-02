@@ -52,11 +52,9 @@ enum CVC4_PUBLIC OptResult
   // the optimization loop finished and optimal
   OPT_OPTIMAL,
 
-  // The last two values are here as a preparation for future work
-  // in which partial and approximate optimizations will be supported.
+  // The last value is here as a preparation for future work
+  // in which pproximate optimizations will be supported.
 
-  // if the optimized value is only partial
-  OPT_SAT_PARTIAL,
   // if the solver halted early and value is only approximate
   OPT_SAT_APPROX
 };
