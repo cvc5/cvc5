@@ -16,6 +16,7 @@
 
 #include "preprocessing/passes/nl_ext_purify.h"
 
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace preprocessing {

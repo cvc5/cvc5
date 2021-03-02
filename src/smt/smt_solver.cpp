@@ -69,12 +69,12 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(d_theoryEngine.get(),
-                                    d_smt.getContext(),
-                                    d_smt.getUserContext(),
-                                    d_rm,
-                                    d_smt.getOutputManager(),
-                                    d_pnm));
+  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(),
+                                          d_smt.getContext(),
+                                          d_smt.getUserContext(),
+                                          d_rm,
+                                          d_smt.getOutputManager(),
+                                          d_pnm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -90,12 +90,12 @@ void SmtSolver::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(d_theoryEngine.get(),
-                                    d_smt.getContext(),
-                                    d_smt.getUserContext(),
-                                    d_rm,
-                                    d_smt.getOutputManager(),
-                                    d_pnm));
+  d_propEngine.reset(new prop::PropEngine(d_theoryEngine.get(),
+                                          d_smt.getContext(),
+                                          d_smt.getUserContext(),
+                                          d_rm,
+                                          d_smt.getOutputManager(),
+                                          d_pnm));
   d_theoryEngine->setPropEngine(getPropEngine());
   // Notice that we do not reset TheoryEngine, nor does it require calling
   // finishInit again. In particular, TheoryEngine::finishInit does not

@@ -17,6 +17,7 @@
 #include "preprocessing/passes/theory_preprocess.h"
 
 #include "options/smt_options.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "prop/prop_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
@@ -36,7 +37,7 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
   d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
-  PropEngine* propEngine = d_preprocContext->getPropEngine();
+  prop::PropEngine* propEngine = d_preprocContext->getPropEngine();
   // Remove all of the ITE occurrences and normalize
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {

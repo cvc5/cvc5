@@ -14,6 +14,7 @@
 
 #include "preprocessing/passes/theory_rewrite_eq.h"
 
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::theory;

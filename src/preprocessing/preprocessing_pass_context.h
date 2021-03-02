@@ -21,12 +21,9 @@
 #ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
-#include "context/cdo.h"
 #include "context/context.h"
-#include "decision/decision_engine.h"
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
-#include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
 #include "theory/trust_substitutions.h"

@@ -16,7 +16,9 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/dump_manager.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 

@@ -18,8 +18,6 @@
 #define CVC4__PREPROCESSING__PASSES__THEORY_REWRITE_EQ_H
 
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace preprocessing {

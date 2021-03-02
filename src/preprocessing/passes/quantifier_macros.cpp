@@ -20,6 +20,8 @@
 
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"

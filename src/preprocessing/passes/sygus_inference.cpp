@@ -14,6 +14,7 @@
 
 #include "preprocessing/passes/sygus_inference.h"
 
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"

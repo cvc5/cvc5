@@ -19,6 +19,7 @@
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/dump.h"
+#include "smt/preprocess_proof_generator.h"
 #include "smt/smt_engine.h"
 
 using namespace std;

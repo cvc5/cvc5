@@ -18,6 +18,7 @@
 #include <string>
 
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
