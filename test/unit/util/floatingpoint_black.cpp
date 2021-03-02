@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file floatingpoint_black.h
+/*! \file floatingpoint_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -13,22 +13,18 @@
  **
  ** Black box testing of CVC4::FloatingPoint.
  **/
-#include <cxxtest/TestSuite.h>
 
+#include "test.h"
 #include "util/floatingpoint.h"
 
-using namespace CVC4;
+namespace CVC4 {
+namespace test {
 
-class FloatingPointBlack : public CxxTest::TestSuite
+class TestUtilBlackFloatingPoint : public TestInternal
 {
- public:
-  void testMakeMinSubnormal();
-  void testMakeMaxSubnormal();
-  void testMakeMinNormal();
-  void testMakeMaxNormal();
 };
 
-void FloatingPointBlack::testMakeMinSubnormal()
+TEST_F(TestUtilBlackFloatingPoint, makeMinSubnormal)
 {
   FloatingPointSize size16(5, 11);
   FloatingPointSize size32(8, 24);
@@ -36,27 +32,27 @@ void FloatingPointBlack::testMakeMinSubnormal()
   FloatingPointSize size128(15, 113);
 
   FloatingPoint fp16 = FloatingPoint::makeMinSubnormal(size16, true);
-  TS_ASSERT(fp16.isSubnormal());
+  ASSERT_TRUE(fp16.isSubnormal());
   FloatingPoint mfp16 = FloatingPoint::makeMinSubnormal(size16, false);
-  TS_ASSERT(mfp16.isSubnormal());
+  ASSERT_TRUE(mfp16.isSubnormal());
 
   FloatingPoint fp32 = FloatingPoint::makeMinSubnormal(size32, true);
-  TS_ASSERT(fp32.isSubnormal());
+  ASSERT_TRUE(fp32.isSubnormal());
   FloatingPoint mfp32 = FloatingPoint::makeMinSubnormal(size32, false);
-  TS_ASSERT(mfp32.isSubnormal());
+  ASSERT_TRUE(mfp32.isSubnormal());
 
   FloatingPoint fp64 = FloatingPoint::makeMinSubnormal(size64, true);
-  TS_ASSERT(fp64.isSubnormal());
+  ASSERT_TRUE(fp64.isSubnormal());
   FloatingPoint mfp64 = FloatingPoint::makeMinSubnormal(size64, false);
-  TS_ASSERT(mfp64.isSubnormal());
+  ASSERT_TRUE(mfp64.isSubnormal());
 
   FloatingPoint fp128 = FloatingPoint::makeMinSubnormal(size128, true);
-  TS_ASSERT(fp128.isSubnormal());
+  ASSERT_TRUE(fp128.isSubnormal());
   FloatingPoint mfp128 = FloatingPoint::makeMinSubnormal(size128, false);
-  TS_ASSERT(mfp128.isSubnormal());
+  ASSERT_TRUE(mfp128.isSubnormal());
 }
 
-void FloatingPointBlack::testMakeMaxSubnormal()
+TEST_F(TestUtilBlackFloatingPoint, makeMaxSubnormal)
 {
   FloatingPointSize size16(5, 11);
   FloatingPointSize size32(8, 24);
@@ -64,27 +60,27 @@ void FloatingPointBlack::testMakeMaxSubnormal()
   FloatingPointSize size128(15, 113);
 
   FloatingPoint fp16 = FloatingPoint::makeMaxSubnormal(size16, true);
-  TS_ASSERT(fp16.isSubnormal());
+  ASSERT_TRUE(fp16.isSubnormal());
   FloatingPoint mfp16 = FloatingPoint::makeMaxSubnormal(size16, false);
-  TS_ASSERT(mfp16.isSubnormal());
+  ASSERT_TRUE(mfp16.isSubnormal());
 
   FloatingPoint fp32 = FloatingPoint::makeMaxSubnormal(size32, true);
-  TS_ASSERT(fp32.isSubnormal());
+  ASSERT_TRUE(fp32.isSubnormal());
   FloatingPoint mfp32 = FloatingPoint::makeMaxSubnormal(size32, false);
-  TS_ASSERT(mfp32.isSubnormal());
+  ASSERT_TRUE(mfp32.isSubnormal());
 
   FloatingPoint fp64 = FloatingPoint::makeMaxSubnormal(size64, true);
-  TS_ASSERT(fp64.isSubnormal());
+  ASSERT_TRUE(fp64.isSubnormal());
   FloatingPoint mfp64 = FloatingPoint::makeMaxSubnormal(size64, false);
-  TS_ASSERT(mfp64.isSubnormal());
+  ASSERT_TRUE(mfp64.isSubnormal());
 
   FloatingPoint fp128 = FloatingPoint::makeMaxSubnormal(size128, true);
-  TS_ASSERT(fp128.isSubnormal());
+  ASSERT_TRUE(fp128.isSubnormal());
   FloatingPoint mfp128 = FloatingPoint::makeMaxSubnormal(size128, false);
-  TS_ASSERT(mfp128.isSubnormal());
+  ASSERT_TRUE(mfp128.isSubnormal());
 }
 
-void FloatingPointBlack::testMakeMinNormal()
+TEST_F(TestUtilBlackFloatingPoint, makeMinNormal)
 {
   FloatingPointSize size16(5, 11);
   FloatingPointSize size32(8, 24);
@@ -92,27 +88,27 @@ void FloatingPointBlack::testMakeMinNormal()
   FloatingPointSize size128(15, 113);
 
   FloatingPoint fp16 = FloatingPoint::makeMinNormal(size16, true);
-  TS_ASSERT(fp16.isNormal());
+  ASSERT_TRUE(fp16.isNormal());
   FloatingPoint mfp16 = FloatingPoint::makeMinNormal(size16, false);
-  TS_ASSERT(mfp16.isNormal());
+  ASSERT_TRUE(mfp16.isNormal());
 
   FloatingPoint fp32 = FloatingPoint::makeMinNormal(size32, true);
-  TS_ASSERT(fp32.isNormal());
+  ASSERT_TRUE(fp32.isNormal());
   FloatingPoint mfp32 = FloatingPoint::makeMinNormal(size32, false);
-  TS_ASSERT(mfp32.isNormal());
+  ASSERT_TRUE(mfp32.isNormal());
 
   FloatingPoint fp64 = FloatingPoint::makeMinNormal(size64, true);
-  TS_ASSERT(fp64.isNormal());
+  ASSERT_TRUE(fp64.isNormal());
   FloatingPoint mfp64 = FloatingPoint::makeMinNormal(size64, false);
-  TS_ASSERT(mfp64.isNormal());
+  ASSERT_TRUE(mfp64.isNormal());
 
   FloatingPoint fp128 = FloatingPoint::makeMinNormal(size128, true);
-  TS_ASSERT(fp128.isNormal());
+  ASSERT_TRUE(fp128.isNormal());
   FloatingPoint mfp128 = FloatingPoint::makeMinNormal(size128, false);
-  TS_ASSERT(mfp128.isNormal());
+  ASSERT_TRUE(mfp128.isNormal());
 }
 
-void FloatingPointBlack::testMakeMaxNormal()
+TEST_F(TestUtilBlackFloatingPoint, makeMaxNormal)
 {
   FloatingPointSize size16(5, 11);
   FloatingPointSize size32(8, 24);
@@ -120,22 +116,24 @@ void FloatingPointBlack::testMakeMaxNormal()
   FloatingPointSize size128(15, 113);
 
   FloatingPoint fp16 = FloatingPoint::makeMaxNormal(size16, true);
-  TS_ASSERT(fp16.isNormal());
+  ASSERT_TRUE(fp16.isNormal());
   FloatingPoint mfp16 = FloatingPoint::makeMaxNormal(size16, false);
-  TS_ASSERT(mfp16.isNormal());
+  ASSERT_TRUE(mfp16.isNormal());
 
   FloatingPoint fp32 = FloatingPoint::makeMaxNormal(size32, true);
-  TS_ASSERT(fp32.isNormal());
+  ASSERT_TRUE(fp32.isNormal());
   FloatingPoint mfp32 = FloatingPoint::makeMaxNormal(size32, false);
-  TS_ASSERT(mfp32.isNormal());
+  ASSERT_TRUE(mfp32.isNormal());
 
   FloatingPoint fp64 = FloatingPoint::makeMaxNormal(size64, true);
-  TS_ASSERT(fp64.isNormal());
+  ASSERT_TRUE(fp64.isNormal());
   FloatingPoint mfp64 = FloatingPoint::makeMaxNormal(size64, false);
-  TS_ASSERT(mfp64.isNormal());
+  ASSERT_TRUE(mfp64.isNormal());
 
   FloatingPoint fp128 = FloatingPoint::makeMaxNormal(size128, true);
-  TS_ASSERT(fp128.isNormal());
+  ASSERT_TRUE(fp128.isNormal());
   FloatingPoint mfp128 = FloatingPoint::makeMaxNormal(size128, false);
-  TS_ASSERT(mfp128.isNormal());
+  ASSERT_TRUE(mfp128.isNormal());
 }
+}  // namespace test
+}  // namespace CVC4
