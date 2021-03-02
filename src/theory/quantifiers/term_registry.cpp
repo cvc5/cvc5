@@ -79,9 +79,15 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
 
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }
 
-TermDbSygus* TermRegistry::getTermDatabaseSygus() const { return d_sygusTdb.get(); }
+TermDbSygus* TermRegistry::getTermDatabaseSygus() const
+{
+  return d_sygusTdb.get();
+}
 
-TermEnumeration* TermRegistry::getTermEnumeration() const { return d_termEnum.get(); }
+TermEnumeration* TermRegistry::getTermEnumeration() const
+{
+  return d_termEnum.get();
+}
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
