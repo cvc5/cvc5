@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_registry.h"
+#include "theory/quantifiers/term_registry.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
