@@ -17,6 +17,8 @@
 
 #include "expr/kind.h"
 
+#include <sstream>
+
 namespace CVC4 {
 namespace kind {
 

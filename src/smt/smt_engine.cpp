@@ -34,6 +34,7 @@
 #include "printer/printer.h"
 #include "proof/proof_manager.h"
 #include "proof/unsat_core.h"
+#include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"

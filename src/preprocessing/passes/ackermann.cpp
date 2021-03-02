@@ -197,7 +197,7 @@ size_t getBVSkolemSize(size_t capacity)
  * a sufficient bit-vector size.
  * Populate usVarsToBVVars so that it maps variables with uninterpreted sort to
  * the fresh skolem BV variables. variables */
-void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& vars,
+void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
                        const USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& usVarsToBVVars)
 {

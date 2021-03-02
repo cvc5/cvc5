@@ -24,15 +24,15 @@
 #define CVC4__DECISION__JUSTIFICATION_HEURISTIC
 
 #include <unordered_set>
+#include <utility>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "decision/decision_attributes.h"
-#include "decision/decision_engine.h"
+#include "context/cdo.h"
 #include "decision/decision_strategy.h"
+#include "options/decision_weight.h"
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "prop/sat_solver_types.h"
 
 namespace CVC4 {
@@ -42,12 +42,12 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   //                   TRUE           FALSE         MEH
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
-  typedef std::vector<pair<TNode, TNode> > SkolemList;
+  typedef std::vector<std::pair<TNode, TNode> > SkolemList;
   typedef context::CDHashMap<TNode, SkolemList, TNodeHashFunction> SkolemCache;
   typedef std::vector<TNode> ChildList;
-  typedef context::CDHashMap<TNode,pair<ChildList,ChildList>,TNodeHashFunction> ChildCache;
+  typedef context::CDHashMap<TNode,std::pair<ChildList,ChildList>,TNodeHashFunction> ChildCache;
   typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
-  typedef context::CDHashMap<TNode,pair<DecisionWeight,DecisionWeight>,TNodeHashFunction> WeightCache;
+  typedef context::CDHashMap<TNode,std::pair<DecisionWeight,DecisionWeight>,TNodeHashFunction> WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
   typedef context::CDHashSet<Node,NodeHashFunction> JustifiedSet;
@@ -91,7 +91,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   std::unordered_set<TNode, TNodeHashFunction> d_visitedComputeSkolems;
 
   /** current decision for the recursive call */
-  SatLiteral d_curDecision;
+  prop::SatLiteral d_curDecision;
   /** current threshold for the recursive call */
   DecisionWeight d_curThreshold;
 
@@ -136,12 +136,12 @@ public:
   /* getNext with an option to specify threshold */
   prop::SatLiteral getNextThresh(bool &stopSearch, DecisionWeight threshold);
 
-  SatLiteral findSplitter(TNode node, SatValue desiredVal);
+  prop::SatLiteral findSplitter(TNode node, prop::SatValue desiredVal);
 
   /**
    * Do all the hard work.
    */
-  SearchResult findSplitterRec(TNode node, SatValue value);
+  SearchResult findSplitterRec(TNode node, prop::SatValue value);
 
   /* Helper functions */
   void setJustified(TNode);
@@ -151,7 +151,7 @@ public:
   void setPrvsIndex(int);
   int  getPrvsIndex();
   DecisionWeight getWeightPolarized(TNode n, bool polarity);
-  DecisionWeight getWeightPolarized(TNode n, SatValue);
+  DecisionWeight getWeightPolarized(TNode n, prop::SatValue);
   static DecisionWeight getWeight(TNode);
   bool compareByWeightFalse(TNode, TNode);
   bool compareByWeightTrue(TNode, TNode);
@@ -159,7 +159,7 @@ public:
 
   /* If literal exists corresponding to the node return
      that. Otherwise an UNKNOWN */
-  SatValue tryGetSatValue(Node n);
+  prop::SatValue tryGetSatValue(Node n);
 
   /* Get list of all term-ITEs for the atomic formula v */
   JustificationHeuristic::SkolemList getSkolems(TNode n);
@@ -176,13 +176,13 @@ public:
   /* Compute all term-removal skolems in a node recursively */
   void computeSkolems(TNode n, SkolemList& l);
 
-  SearchResult handleAndOrEasy(TNode node, SatValue desiredVal);
-  SearchResult handleAndOrHard(TNode node, SatValue desiredVal);
-  SearchResult handleBinaryEasy(TNode node1, SatValue desiredVal1,
-                        TNode node2, SatValue desiredVal2);
-  SearchResult handleBinaryHard(TNode node1, SatValue desiredVal1,
-                        TNode node2, SatValue desiredVal2);
-  SearchResult handleITE(TNode node, SatValue desiredVal);
+  SearchResult handleAndOrEasy(TNode node, prop::SatValue desiredVal);
+  SearchResult handleAndOrHard(TNode node, prop::SatValue desiredVal);
+  SearchResult handleBinaryEasy(TNode node1, prop::SatValue desiredVal1,
+                        TNode node2, prop::SatValue desiredVal2);
+  SearchResult handleBinaryHard(TNode node1, prop::SatValue desiredVal1,
+                        TNode node2, prop::SatValue desiredVal2);
+  SearchResult handleITE(TNode node, prop::SatValue desiredVal);
   SearchResult handleEmbeddedSkolems(TNode node);
 };/* class JustificationHeuristic */
 

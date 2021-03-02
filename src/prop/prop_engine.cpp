@@ -41,6 +41,8 @@
 #include "util/resource_manager.h"
 #include "util/result.h"
 
+using namespace std;
+
 namespace CVC4 {
 namespace prop {
 

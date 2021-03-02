@@ -28,6 +28,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 namespace {

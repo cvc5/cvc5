@@ -57,7 +57,7 @@ class ForeignTheoryRewrite : public PreprocessingPass
   /** construct a node with the same operator as originalNode whose children are
    * processedChildren
    */
-  static Node reconstructNode(Node originalNode, vector<Node> newChildren);
+  static Node reconstructNode(Node originalNode, std::vector<Node> newChildren);
   /** A cache to store the simplified nodes */
   CDNodeMap d_cache;
 };

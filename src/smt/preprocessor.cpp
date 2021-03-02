@@ -21,6 +21,7 @@
 #include "smt/dump.h"
 #include "smt/smt_engine.h"
 
+using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
 

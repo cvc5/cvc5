@@ -23,6 +23,8 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
 
+using namespace std;
+
 namespace CVC4 {
 namespace smt {
 

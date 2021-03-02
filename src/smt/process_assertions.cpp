@@ -35,6 +35,7 @@
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
+using namespace std;
 using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
 using namespace CVC4::kind;

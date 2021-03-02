@@ -21,6 +21,7 @@
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
 
+using namespace std;
 using namespace CVC4;
 using namespace CVC4::theory;
 

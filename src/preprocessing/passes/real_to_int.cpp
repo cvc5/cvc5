@@ -26,6 +26,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
