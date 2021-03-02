@@ -25,6 +25,7 @@
 #include "context/context.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
+#include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"

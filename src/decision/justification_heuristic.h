@@ -34,6 +34,7 @@
 #include "options/decision_weight.h"
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace decision {

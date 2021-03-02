@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+#include "expr/proof_node.h"
 #include "options/proof_options.h"
 
 using namespace CVC4::kind;

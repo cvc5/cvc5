@@ -14,6 +14,8 @@
 
 #include "theory/theory_engine_proof_generator.h"
 
+#include "expr/proof_node.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
