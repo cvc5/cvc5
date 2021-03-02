@@ -27,7 +27,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class TermDb;
 class FirstOrderModel;
 
 /** EqualityQueryQuantifiersEngine class
@@ -44,7 +43,6 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
 {
  public:
   EqualityQueryQuantifiersEngine(QuantifiersState& qs,
-                                 TermDb* tdb,
                                  FirstOrderModel* m);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
@@ -72,8 +70,6 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
  private:
   /** the quantifiers state */
   QuantifiersState& d_qstate;
-  /** Pointer to the term database */
-  TermDb* d_tdb;
   /** Pointer to the model */
   FirstOrderModel* d_model;
   /** quantifiers equality inference */

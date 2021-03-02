@@ -32,12 +32,14 @@
 #include "theory/arith/nl/cad/constraints.h"
 #include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
-#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+class NlModel;
+
 namespace cad {
 
 /**

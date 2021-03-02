@@ -22,6 +22,7 @@
 #include "options/arith_options.h"
 #include "theory/arith/nl/cad/projections.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace std {
 /** Generic streaming operator for std::vector. */

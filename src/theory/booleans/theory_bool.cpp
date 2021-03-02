@@ -25,6 +25,7 @@
 #include "theory/booleans/theory_bool_rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
 

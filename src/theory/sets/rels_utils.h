@@ -18,6 +18,7 @@
 #define SRC_THEORY_SETS_RELS_UTILS_H_
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node.h"
 
 namespace CVC4 {

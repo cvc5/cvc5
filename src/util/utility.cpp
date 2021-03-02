@@ -19,7 +19,6 @@
 #include <unistd.h>
 
 #include <cstdlib>
-#include <iostream>
 
 #include "base/check.h"
 

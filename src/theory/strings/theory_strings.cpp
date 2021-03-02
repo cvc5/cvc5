@@ -19,6 +19,7 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "smt/logic_exception.h"
+#include "theory/decision_manager.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"

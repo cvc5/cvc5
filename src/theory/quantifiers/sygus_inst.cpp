@@ -18,11 +18,14 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
