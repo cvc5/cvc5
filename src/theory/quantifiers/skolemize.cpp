@@ -15,6 +15,7 @@
 #include "theory/quantifiers/skolemize.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"

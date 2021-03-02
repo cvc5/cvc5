@@ -20,7 +20,7 @@
 #define CVC4__UTIL__OSTREAM_UTIL_H
 
 #include <ios>
-#include <ostream>
+#include <iosfwd>
 
 namespace CVC4 {
 

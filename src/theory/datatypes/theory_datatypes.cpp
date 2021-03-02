@@ -19,7 +19,9 @@
 
 #include "base/check.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"

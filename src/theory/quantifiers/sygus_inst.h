@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "context/cdhashset.h"
+#include "theory/decision_strategy.h"
 #include "theory/quantifiers/quant_module.h"
 
 namespace CVC4 {

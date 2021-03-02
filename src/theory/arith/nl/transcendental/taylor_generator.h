@@ -16,12 +16,14 @@
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
 
 #include "expr/node.h"
-#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+class NlModel;
+
 namespace transcendental {
 
 class TaylorGenerator

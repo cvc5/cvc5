@@ -28,8 +28,10 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/skolem_cache.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/decision_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 
 using namespace std;

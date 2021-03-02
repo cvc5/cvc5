@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/quant_conflict_find.h"
 
+#include "base/configuration.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"

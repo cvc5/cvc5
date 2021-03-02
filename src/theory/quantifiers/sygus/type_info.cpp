@@ -16,6 +16,7 @@
 
 #include "base/check.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"

@@ -22,9 +22,10 @@
 
 #include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
 
 /**
  * A (context-dependent) lazy generator for proof chains. This class is an

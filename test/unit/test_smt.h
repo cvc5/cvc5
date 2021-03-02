@@ -15,12 +15,16 @@
 #ifndef CVC4__TEST__UNIT__TEST_SMT_H
 #define CVC4__TEST__UNIT__TEST_SMT_H
 
+#include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "test.h"
+#include "theory/output_channel.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 #include "util/unsafe_interrupt_exception.h"

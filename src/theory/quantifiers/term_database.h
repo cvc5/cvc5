@@ -20,6 +20,8 @@
 #include <map>
 #include <unordered_set>
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_util.h"
