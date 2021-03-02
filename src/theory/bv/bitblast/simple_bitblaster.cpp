@@ -15,6 +15,7 @@
 #include "theory/bv/bitblast/simple_bitblaster.h"
 
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {

@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 
+#include "theory/decision_strategy.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 

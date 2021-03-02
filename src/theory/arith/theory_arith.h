@@ -22,13 +22,15 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
+class NonlinearExtension;
+}
 
 class TheoryArithPrivate;
 

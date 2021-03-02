@@ -16,7 +16,7 @@
 #ifndef CVC4__THEORY__ARITH__IAND_TABLE_H
 #define CVC4__THEORY__ARITH__IAND_TABLE_H
 
-#include <tuple>
+#include <map>
 #include <vector>
 
 #include "expr/node.h"

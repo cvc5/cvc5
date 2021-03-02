@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/monomial.h"
 #include "theory/arith/nl/nl_model.h"

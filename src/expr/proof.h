@@ -24,10 +24,11 @@
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
 
 /**
  * A (context-dependent) proof.

@@ -18,6 +18,8 @@
 
 #include <iostream>
 
+#include <poly/polyxx.h>
+
 #include "base/check.h"
 #include "base/output.h"
 #include "theory/arith/nl/poly_conversion.h"

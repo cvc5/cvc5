@@ -21,10 +21,7 @@
 #include <map>
 #include <vector>
 
-#include "context/cdlist.h"
-#include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad_solver.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
@@ -35,18 +32,24 @@
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
+namespace eq {
+  class EqualityEngine;
+}
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
+
+class NlLemma;
 
 /** Non-linear extension class
  *

@@ -16,6 +16,7 @@
 
 #include "smt/dump.h"
 
+#include "base/configuration.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
 #include "preprocessing/preprocessing_pass_registry.h"

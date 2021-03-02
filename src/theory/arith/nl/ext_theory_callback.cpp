@@ -15,6 +15,7 @@
 #include "theory/arith/nl/ext_theory_callback.h"
 
 #include "theory/arith/arith_utilities.h"
+#include "theory/uf/equality_engine.h"
 
 using namespace CVC4::kind;
 

@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"

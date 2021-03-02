@@ -19,6 +19,7 @@
 
 #include "theory/bags/rewrites.h"
 #include "theory/rewriter.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
