@@ -134,6 +134,7 @@ void LeanPrinter::printProof(std::ostream& out,
   // print rule specific lean syntax, traversing children before parents in ProofNode tree
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
+  // change control flow for scope rule?
   for (const std::shared_ptr<ProofNode>& ch : children)
   {
     printProof(out, ch, passumeMap);
@@ -149,26 +150,31 @@ void LeanPrinter::printProof(std::ostream& out,
     case LeanRule::ASSUME:
     {
       // keep track of variable names in assume statement using passumeMap
-      Trace("Hi2") << args;
       size_t var_index = passumeMap.size();
       std::stringstream var_string;
       var_string << "v" << var_index;
       passumeMap[args[1]] = var_string.str();
-      out << "(assume (" << var_string.str() << " : ";
+      //out << "(assume (" << var_string.str() << " : ";
       //printLeanString(out, args[1]);
-      printLeanType(out, args[1]);
-      out << "),\n";
       break;
     };
     case LeanRule::SCOPE:
     {
       // each argument to the scope proof node corresponds to one scope
       //  to close in the lean proof
+      for (size_t i = 2, size = args.size(); i < size; ++i) {
+        out << "(assume (" << passumeMap[args[i]] << " : ";
+        printLeanType(out, args[i]);
+        out << ")";
+        out << ",\n";
+      }
+      Trace("Hoops") << children[0]->getArguments();
       for (size_t j = 2, size = args.size(); j < size; ++j)
       {
         out << ")";
       }
       break;
+
     }
     case LeanRule::R0:
     {
@@ -190,19 +196,23 @@ void LeanPrinter::printProof(std::ostream& out,
     }
     case LeanRule::SMTSYMM:
     {
-      out << "@smtsymm ";
-      out << children[0]->getArguments()[1] << " ";
-      out << children[1]->getArguments()[1];
+      out << "@symm ";
+      //out << children[0]->getArguments()[1] << " ";
+      //out << children[1]->getArguments()[1];
       //printLeanString(out, args[0]);
       out << " ";
       break;
     }
     case LeanRule::SMTSYMM_NEG:
     {
-      out << "@smtsymm_neg ";
-      out << children[0]->getArguments()[1] << " ";
-      out << children[1]->getArguments()[1];
-      //printLeanString(out, args[2]);
+      out << "@negSymm ";
+      //Trace("Hi") << children[0];
+      //Trace("Hi") << children[1];
+      //out << children[0]->getArguments()[1] << " ";
+      //out << children[1]->getArguments()[1];
+      printLeanString(out, args[1]);
+      Trace("Hoops") << args[1];
+      out << " ";
       break;
     }
     default:
