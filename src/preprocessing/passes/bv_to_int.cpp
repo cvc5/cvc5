@@ -687,16 +687,9 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = translateQuantifiedFormula(original);
       break;
     }
-    case kind::EXISTS:
-    {
-      // Exists is eliminated by the rewriter.
-      Assert(false);
-#ifdef NDEBUG
-      CVC4_FALLTHROUGH;
-#endif
-    }
     default:
     {
+      Assert(oldKind != kind::EXISTS);  // Exists is eliminated by the rewriter.
       // In the default case, we have reached an operator that we do not
       // translate directly to integers. The children whose types have
       // changed from bv to int should be adjusted back to bv and then

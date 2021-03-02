@@ -21,18 +21,15 @@
 #ifndef CVC4__RESOURCE_MANAGER_H
 #define CVC4__RESOURCE_MANAGER_H
 
-#include <sys/time.h>
-
+#include <stdint.h>
 #include <chrono>
 #include <memory>
-
-#include "base/exception.h"
-#include "base/listener.h"
-#include "options/options.h"
-#include "util/unsafe_interrupt_exception.h"
+#include <vector>
 
 namespace CVC4 {
 
+class Listener;
+class Options;
 class StatisticsRegistry;
 
 /**

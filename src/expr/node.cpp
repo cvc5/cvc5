@@ -21,6 +21,7 @@
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/attribute.h"
+#include "expr/type_checker.h"
 
 using namespace std;
 

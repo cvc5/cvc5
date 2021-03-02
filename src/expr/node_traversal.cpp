@@ -14,6 +14,8 @@
 
 #include "node_traversal.h"
 
+#include <functional>
+
 namespace CVC4 {
 
 NodeDfsIterator::NodeDfsIterator(TNode n,

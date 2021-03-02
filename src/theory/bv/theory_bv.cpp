@@ -21,6 +21,7 @@
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 namespace theory {

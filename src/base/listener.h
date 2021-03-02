@@ -20,8 +20,6 @@
 #ifndef CVC4__LISTENER_H
 #define CVC4__LISTENER_H
 
-#include <list>
-
 namespace CVC4 {
 
 /**

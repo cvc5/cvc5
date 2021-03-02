@@ -14,6 +14,7 @@
 
 #include "smt/listeners.h"
 
+#include "base/configuration.h"
 #include "expr/attribute.h"
 #include "expr/node_manager_attributes.h"
 #include "options/smt_options.h"

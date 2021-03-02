@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "theory/booleans/proof_circuit_propagator.h"
 #include "util/utility.h"
 

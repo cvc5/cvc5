@@ -14,6 +14,8 @@
 
 #include "expr/proof.h"
 
+#include "expr/proof_node_manager.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {

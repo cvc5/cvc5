@@ -16,7 +16,10 @@
 
 #include "util/cardinality.h"
 
+#include <ostream>
+
 #include "base/check.h"
+#include "base/exception.h"
 
 namespace CVC4 {
 

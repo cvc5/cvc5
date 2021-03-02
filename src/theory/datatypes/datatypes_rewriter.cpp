@@ -17,6 +17,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
