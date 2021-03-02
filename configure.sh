@@ -74,7 +74,6 @@ Optional Path to Optional Packages:
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
   --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
   --drat2er-dir=PATH       path to the top level of the drat2er installation
-  --cxxtest-dir=PATH       path to CxxTest installation
   --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
   --kissat-dir=PATH        path to top level of Kissat source tree
@@ -160,7 +159,6 @@ antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
 drat2er_dir=default
-cxxtest_dir=default
 glpk_dir=default
 gmp_dir=default
 kissat_dir=default
@@ -319,9 +317,6 @@ do
     --cryptominisat-dir) die "missing argument to $1 (try -h)" ;;
     --cryptominisat-dir=*) cryptominisat_dir=${1##*=} ;;
 
-    --cxxtest-dir) die "missing argument to $1 (try -h)" ;;
-    --cxxtest-dir=*) cxxtest_dir=${1##*=} ;;
-
     --drat2er-dir) die "missing argument to $1 (try -h)" ;;
     --drat2er-dir=*) drat2er_dir=${1##*=} ;;
 
@@ -469,8 +464,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
 [ "$cryptominisat_dir" != default ] \
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
-[ "$cxxtest_dir" != default ] \
-  && cmake_opts="$cmake_opts -DCXXTEST_DIR=$cxxtest_dir"
 [ "$drat2er_dir" != default ] \
   && cmake_opts="$cmake_opts -DDRAT2ER_DIR=$drat2er_dir"
 [ "$glpk_dir" != default ] \
