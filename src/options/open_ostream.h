@@ -21,11 +21,9 @@
 #define CVC4__OPEN_OSTREAM_H
 
 #include <map>
-#include <ostream>
+#include <iosfwd>
 #include <string>
 #include <utility>
-
-#include "options/option_exception.h"
 
 namespace CVC4 {
 

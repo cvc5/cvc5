@@ -16,6 +16,11 @@
 
 #include "options/language.h"
 
+#include <sstream>
+
+#include "base/exception.h"
+#include "options/option_exception.h"
+
 namespace CVC4 {
 namespace language {
 
