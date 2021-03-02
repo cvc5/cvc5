@@ -444,7 +444,11 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       break;
       */
     // quantifiers
-    //case PfRule::SKOLEM_INTRO: pf << as[0]; break;
+    case PfRule::SKOLEM_INTRO:
+    {
+      pf << d_tproc.convert(SkolemManager::getOriginalForm(args[0]));
+    }
+      break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {
