@@ -20,9 +20,8 @@
 
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
-#include "util/integer.h"
+#include "theory/arith/bound_inference.h"
 #include "util/poly_util.h"
-#include "util/rational.h"
 
 namespace CVC4 {
 namespace theory {

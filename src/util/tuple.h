@@ -20,7 +20,6 @@
 #define CVC4__TUPLE_H
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include <utility>
 

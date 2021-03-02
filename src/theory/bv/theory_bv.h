@@ -24,6 +24,7 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {

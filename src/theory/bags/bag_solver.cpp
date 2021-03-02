@@ -17,6 +17,7 @@
 #include "theory/bags/bag_solver.h"
 
 #include "theory/bags/inference_generator.h"
+#include "theory/uf/equality_engine_iterator.h"
 
 using namespace std;
 using namespace CVC4::context;

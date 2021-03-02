@@ -19,6 +19,8 @@
 
 #include "cvc4_private.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/rewriter.h"
+
 namespace CVC4 {
 namespace theory {
 namespace arith {

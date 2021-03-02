@@ -23,15 +23,18 @@
 
 #include <poly/polyxx.h>
 
-#include <iostream>
+#include <cstddef>
+#include <map>
+#include <utility>
 
 #include "expr/node.h"
-#include "theory/arith/bound_inference.h"
-#include "util/real_algebraic_number.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+class BoundInference;
+
 namespace nl {
 
 /** Bijective mapping between CVC4 variables and poly variables. */

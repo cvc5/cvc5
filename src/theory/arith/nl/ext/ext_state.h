@@ -19,14 +19,20 @@
 
 #include "expr/node.h"
 #include "expr/proof_set.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/ext/monomial.h"
-#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
+
+class CDProof;
+
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
+
+class NlModel;
 
 struct ExtState
 {

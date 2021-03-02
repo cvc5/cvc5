@@ -16,10 +16,12 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/term_enumeration.h"
@@ -786,7 +788,8 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
         {
           long rr = range.getConst<Rational>().getNumerator().getLong()+1;
           Trace("bound-int-rsi")  << "Actual bound range is " << rr << std::endl;
-          for( unsigned k=0; k<rr; k++ ){
+          for (long k = 0; k < rr; k++)
+          {
             Node t = NodeManager::currentNM()->mkNode(PLUS, tl, NodeManager::currentNM()->mkConst( Rational(k) ) );
             t = Rewriter::rewrite( t );
             elements.push_back( t );

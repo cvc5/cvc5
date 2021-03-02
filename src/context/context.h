@@ -20,10 +20,8 @@
 #define CVC4__CONTEXT__CONTEXT_H
 
 #include <cstdlib>
-#include <cstring>
 #include <iostream>
 #include <memory>
-#include <new>
 #include <typeinfo>
 #include <vector>
 

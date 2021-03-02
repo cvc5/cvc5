@@ -39,6 +39,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "util/sexpr.h"
+#include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
 using namespace std;

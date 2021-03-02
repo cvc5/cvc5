@@ -15,6 +15,7 @@
 #include "expr/buffered_proof_generator.h"
 
 #include "expr/proof.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 
