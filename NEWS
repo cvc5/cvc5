@@ -37,6 +37,7 @@ Changes:
 * SMT-LIB output for `get-model` command now conforms with the standard,
   and does *not* begin with the keyword `model`. The output
   is the same as before, only with this word removed from the beginning.
+* Building with Python 2 is now deprecated.
 
 
 Changes since 1.7

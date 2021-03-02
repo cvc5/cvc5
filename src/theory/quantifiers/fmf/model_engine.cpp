@@ -21,7 +21,6 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;
@@ -35,8 +34,9 @@ using namespace CVC4::theory::inst;
 //Model Engine constructor
 ModelEngine::ModelEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                         QuantifiersInferenceManager& qim,
+                         QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_incomplete_check(true),
       d_addedLemmas(0),
       d_triedLemmas(0),
@@ -69,7 +69,7 @@ void ModelEngine::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   if( options::mbqiInterleave() ){
-    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    doCheck = quant_e == QEFFORT_STANDARD && d_qim.hasPendingLemma();
   }
   if( !doCheck ){
     doCheck = quant_e == QEFFORT_MODEL;
@@ -187,7 +187,8 @@ int ModelEngine::checkModel(){
   if( Trace.isOn("model-engine") ){
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
-      if( d_quantEngine->getModel()->isQuantifierActive( f ) && d_quantEngine->hasOwnership( f, this ) ){
+      if (fm->isQuantifierActive(f) && d_qreg.hasOwnership(f, this))
+      {
         int totalInst = 1;
         for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
           TypeNode tn = f[0][j].getType();
@@ -213,7 +214,8 @@ int ModelEngine::checkModel(){
       Node q = fm->getAssertedQuantifier( i, true );
       Trace("fmf-exh-inst") << "-> Exhaustive instantiate " << q << ", effort = " << e << "..." << std::endl;
       //determine if we should check this quantifier
-      if( d_quantEngine->getModel()->isQuantifierActive( q ) && d_quantEngine->hasOwnership( q, this ) ){
+      if (fm->isQuantifierActive(q) && d_qreg.hasOwnership(q, this))
+      {
         exhaustiveInstantiate( q, e );
         if (d_qstate.isInConflict())
         {
@@ -265,7 +267,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
       for( size_t i=0; i<f[0].getNumChildren(); i++ ){
-        Trace("fmf-exh-inst-debug") << d_quantEngine->getTermUtil()->getInstantiationConstant( f, i ) << " ";
+        Trace("fmf-exh-inst-debug")
+            << d_qreg.getInstantiationConstant(f, i) << " ";
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }
@@ -288,7 +291,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if (inst->addInstantiation(f, m, true))
+          if (inst->addInstantiation(f, m.d_vals, true))
           {
             addedLemmas++;
             if (d_qstate.isInConflict())
@@ -318,7 +321,8 @@ void ModelEngine::debugPrint( const char* c ){
   Trace( c ) << "Quantifiers: " << std::endl;
   for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
     Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-    if( d_quantEngine->hasOwnership( q, this ) ){
+    if (d_qreg.hasOwnership(q, this))
+    {
       Trace( c ) << "   ";
       if( !d_quantEngine->getModel()->isQuantifierActive( q ) ){
         Trace( c ) << "*Inactive* ";

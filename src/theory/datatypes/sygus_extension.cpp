@@ -22,12 +22,10 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/datatypes/theory_datatypes.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;
@@ -36,16 +34,19 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
-SygusExtension::SygusExtension(TheoryDatatypes* td,
-                                   QuantifiersEngine* qe,
-                                   context::Context* c)
-    : d_td(td),
-      d_tds(qe->getTermDatabaseSygus()),
-      d_ssb(qe),
-      d_testers(c),
-      d_testers_exp(c),
-      d_active_terms(c),
-      d_currTermSize(c)
+SygusExtension::SygusExtension(TheoryState& s,
+                               InferenceManager& im,
+                               quantifiers::TermDbSygus* tds,
+                               DecisionManager* dm)
+    : d_state(s),
+      d_im(im),
+      d_tds(tds),
+      d_dm(dm),
+      d_ssb(tds),
+      d_testers(s.getSatContext()),
+      d_testers_exp(s.getSatContext()),
+      d_active_terms(s.getSatContext()),
+      d_currTermSize(s.getSatContext())
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -1303,12 +1304,11 @@ void SygusExtension::registerSizeTerm(Node e, std::vector<Node>& lemmas)
       d_anchor_to_ag_strategy[e].reset(
           new DecisionStrategySingleton("sygus_enum_active",
                                         ag,
-                                        d_td->getSatContext(),
-                                        d_td->getValuation()));
+                                        d_state.getSatContext(),
+                                        d_state.getValuation()));
     }
-    d_td->getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
-        d_anchor_to_ag_strategy[e].get());
+    d_dm->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
+                           d_anchor_to_ag_strategy[e].get());
   }
   Node m;
   if (!ag.isNull())
@@ -1387,10 +1387,10 @@ void SygusExtension::registerMeasureTerm( Node m ) {
   if( it==d_szinfo.end() ){
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
     d_szinfo[m].reset(new SygusSizeDecisionStrategy(
-        m, d_td->getSatContext(), d_td->getValuation()));
+        m, d_state.getSatContext(), d_state.getValuation()));
     // register this as a decision strategy
-    d_td->getDecisionManager()->registerStrategy(
-        DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
+    d_dm->registerStrategy(DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE,
+                           d_szinfo[m].get());
   }
 }
 
@@ -1561,7 +1561,7 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
       Trace("dt-sygus-debug") << "Checking model value of " << prog << "..."
                               << std::endl;
       Assert(prog.getType().isDatatype());
-      Node progv = d_td->getValuation().getModel()->getValue( prog );
+      Node progv = d_state.getValuation().getModel()->getValue(prog);
       if (Trace.isOn("dt-sygus"))
       {
         Trace("dt-sygus") << "* DT model : " << prog << " -> ";
@@ -1578,7 +1578,7 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
         if (options::sygusFair() == options::SygusFairMode::DT_SIZE)
         {
           Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, prog );
-          Node prog_szv = d_td->getValuation().getModel()->getValue( prog_sz );
+          Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
           Node progv_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, progv );
             
           Trace("sygus-sb") << "  Mv[" << prog << "] = " << progv << ", size = " << prog_szv << std::endl;
@@ -1663,7 +1663,7 @@ bool SygusExtension::checkValue(Node n,
   if (Trace.isOn("sygus-sb-check-value"))
   {
     Node prog_sz = nm->mkNode(DT_SIZE, n);
-    Node prog_szv = d_td->getValuation().getModel()->getValue( prog_sz );
+    Node prog_szv = d_state.getValuation().getModel()->getValue(prog_sz);
     for( int i=0; i<ind; i++ ){
       Trace("sygus-sb-check-value") << "  ";
     }
@@ -1676,11 +1676,11 @@ bool SygusExtension::checkValue(Node n,
   // ensure that the expected size bound is met
   int cindex = utils::indexOf(vn.getOperator());
   Node tst = utils::mkTester(n, cindex, dt);
-  bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
+  bool hastst = d_state.getEqualityEngine()->hasTerm(tst);
   Node tstrep;
   if (hastst)
   {
-    tstrep = d_td->getEqualityEngine()->getRepresentative(tst);
+    tstrep = d_state.getEqualityEngine()->getRepresentative(tst);
   }
   if (!hastst || tstrep != d_true)
   {
@@ -1789,7 +1789,8 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
 
 int SygusExtension::getGuardStatus( Node g ) {
   bool value;
-  if( d_td->getValuation().hasSatValue( g, value ) ) {
+  if (d_state.getValuation().hasSatValue(g, value))
+  {
     if( value ){
       return 1;
     }else{

@@ -24,7 +24,6 @@ namespace strings {
 SequencesStatistics::SequencesStatistics()
     : d_checkRuns("theory::strings::checkRuns", 0),
       d_strategyRuns("theory::strings::strategyRuns", 0),
-      d_inferences("theory::strings::inferences"),
       d_inferencesNoPf("theory::strings::inferencesNoPf"),
       d_cdSimplifications("theory::strings::cdSimplifications"),
       d_reductions("theory::strings::reductions"),
@@ -43,7 +42,6 @@ SequencesStatistics::SequencesStatistics()
 {
   smtStatisticsRegistry()->registerStat(&d_checkRuns);
   smtStatisticsRegistry()->registerStat(&d_strategyRuns);
-  smtStatisticsRegistry()->registerStat(&d_inferences);
   smtStatisticsRegistry()->registerStat(&d_inferencesNoPf);
   smtStatisticsRegistry()->registerStat(&d_cdSimplifications);
   smtStatisticsRegistry()->registerStat(&d_reductions);
@@ -64,7 +62,6 @@ SequencesStatistics::~SequencesStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_checkRuns);
   smtStatisticsRegistry()->unregisterStat(&d_strategyRuns);
-  smtStatisticsRegistry()->unregisterStat(&d_inferences);
   smtStatisticsRegistry()->unregisterStat(&d_inferencesNoPf);
   smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
   smtStatisticsRegistry()->unregisterStat(&d_reductions);

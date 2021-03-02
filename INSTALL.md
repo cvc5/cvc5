@@ -22,6 +22,8 @@ using Mingw-w64.  We recommend a 64-bit operating system.
 On macOS, we recommend using Homebrew (https://brew.sh/) to install the
 dependencies.  We also have a Homebrew Tap available at
 https://github.com/CVC4/homebrew-cvc4 .
+To build a static binary for macOS, use:
+`./configure.sh --static --no-static-binary`.
 
 ### Cross-compiling for Windows
 
@@ -29,7 +31,7 @@ Cross-compiling CVC4 with Mingw-w64 can be done as follows:
 
 ```
   HOST=x86_64-w64-mingw32 ./contrib/get-win-dependencies
-  ./configure --win64 --static <configure options...>
+  ./configure.sh --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -48,7 +50,7 @@ compatible.
   or [Clang](https://clang.llvm.org) (reasonably recent versions)
 - [CMake >= 3.9](https://cmake.org)
 - [GNU Bash](https://www.gnu.org/software/bash/)
-- [Python >= 2.7](https://www.python.org)
+- [Python 3.x](https://www.python.org)
   + module [toml](https://pypi.org/project/toml/)
 - [GMP v4.2 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
 - [libantlr3c v3.2 or v3.4 (ANTLR parser generator C support library)](http://www.antlr3.org/)

@@ -19,6 +19,7 @@
 
 #include <map>
 #include "expr/node.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 
@@ -33,7 +34,10 @@ namespace quantifiers {
 class InstStrategyUserPatterns : public InstStrategy
 {
  public:
-  InstStrategyUserPatterns(QuantifiersEngine* qe, QuantifiersState& qs);
+  InstStrategyUserPatterns(QuantifiersEngine* qe,
+                           QuantifiersState& qs,
+                           QuantifiersInferenceManager& qim,
+                           QuantifiersRegistry& qr);
   ~InstStrategyUserPatterns();
   /** add pattern */
   void addUserPattern(Node q, Node pat);

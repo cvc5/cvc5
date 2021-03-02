@@ -23,7 +23,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 
 namespace CVC4 {
 namespace theory {
@@ -234,7 +234,8 @@ private:  //for equivalence classes
  public:
   QuantConflictFind(QuantifiersEngine* qe,
                     QuantifiersState& qs,
-                    QuantifiersInferenceManager& qim);
+                    QuantifiersInferenceManager& qim,
+                    QuantifiersRegistry& qr);
 
   /** register quantifier */
   void registerQuantifier(Node q) override;
@@ -248,7 +249,7 @@ private:  //for equivalence classes
    *
    * This method attempts to construct a conflicting or propagating instance.
    * If such an instance exists, then it makes a call to
-   * Instantiation::addInstantiation or QuantifiersEngine::addLemma.
+   * Instantiation::addInstantiation.
    */
   void check(Theory::Effort level, QEffort quant_e) override;
 

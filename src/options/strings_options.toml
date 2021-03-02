@@ -216,14 +216,6 @@ header = "options/strings_options.h"
   help       = "use a single skolem for the variable splitting rule"
 
 [[option]]
-  name       = "stringLenConc"
-  category   = "regular"
-  long       = "strings-len-conc"
-  type       = "bool"
-  default    = "false"
-  help       = "add skolem length constraints in conclusions of inferences"
-
-[[option]]
   name       = "stringEagerEval"
   category   = "regular"
   long       = "strings-eager-eval"

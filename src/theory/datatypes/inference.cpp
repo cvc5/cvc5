@@ -25,36 +25,11 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-const char* toString(InferId i)
-{
-  switch (i)
-  {
-    case InferId::NONE: return "NONE";
-    case InferId::UNIF: return "UNIF";
-    case InferId::INST: return "INST";
-    case InferId::SPLIT: return "SPLIT";
-    case InferId::LABEL_EXH: return "LABEL_EXH";
-    case InferId::COLLAPSE_SEL: return "COLLAPSE_SEL";
-    case InferId::CLASH_CONFLICT: return "CLASH_CONFLICT";
-    case InferId::TESTER_CONFLICT: return "TESTER_CONFLICT";
-    case InferId::TESTER_MERGE_CONFLICT: return "TESTER_MERGE_CONFLICT";
-    case InferId::BISIMILAR: return "BISIMILAR";
-    case InferId::CYCLE: return "CYCLE";
-    default: return "?";
-  }
-}
-
-std::ostream& operator<<(std::ostream& out, InferId i)
-{
-  out << toString(i);
-  return out;
-}
-
 DatatypesInference::DatatypesInference(InferenceManager* im,
                                        Node conc,
                                        Node exp,
-                                       InferId i)
-    : SimpleTheoryInternalFact(conc, exp, nullptr), d_im(im), d_id(i)
+                                       InferenceId i)
+    : SimpleTheoryInternalFact(i, conc, exp, nullptr), d_im(im)
 {
   // false is not a valid explanation
   Assert(d_exp.isNull() || !d_exp.isConst() || d_exp.getConst<bool>());
@@ -86,19 +61,22 @@ bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
   return false;
 }
 
-bool DatatypesInference::process(TheoryInferenceManager* im, bool asLemma)
+TrustNode DatatypesInference::processLemma(LemmaProperty& p)
 {
-  // Check to see if we have to communicate it to the rest of the system.
-  // The flag asLemma is true when the inference was marked that it must be
-  // sent as a lemma in addPendingInference below.
-  if (asLemma || mustCommunicateFact(d_conc, d_exp))
-  {
-    return d_im->processDtLemma(d_conc, d_exp, d_id);
-  }
-  return d_im->processDtFact(d_conc, d_exp, d_id);
+  // we don't pass lemma property p currently, as it is always default
+  return d_im->processDtLemma(d_conc, d_exp, getId());
 }
 
-InferId DatatypesInference::getInferId() const { return d_id; }
+Node DatatypesInference::processFact(std::vector<Node>& exp,
+                                     ProofGenerator*& pg)
+{
+  // add to the explanation vector if applicable (when non-trivial)
+  if (!d_exp.isNull() && !d_exp.isConst())
+  {
+    exp.push_back(d_exp);
+  }
+  return d_im->processDtFact(d_conc, d_exp, getId(), pg);
+}
 
 }  // namespace datatypes
 }  // namespace theory
