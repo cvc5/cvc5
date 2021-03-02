@@ -35,8 +35,8 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("cegqi-full", CVC4::SExpr(true));
-    d_smtEngine->setOption("produce-models", CVC4::SExpr(true));
+    d_smtEngine->setOption("cegqi-full", "true");
+    d_smtEngine->setOption("produce-models", "true");
     d_smtEngine->finishInit();
 
     d_s = d_nodeManager->mkVar("s", d_nodeManager->mkBitVectorType(4));

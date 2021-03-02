@@ -40,7 +40,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("incremental", CVC4::SExpr(false));
+    d_smtEngine->setOption("incremental", "false");
     d_smtEngine->finishInit();
     d_context = d_smtEngine->getContext();
     d_user_context = d_smtEngine->getUserContext();

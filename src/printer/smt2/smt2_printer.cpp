@@ -48,8 +48,6 @@ namespace CVC4 {
 namespace printer {
 namespace smt2 {
 
-static OutputLanguage variantToLanguage(Variant v);
-
 /** returns whether the variant is smt-lib 2.6 or greater */
 bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
 
@@ -2210,16 +2208,6 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
     return true;
   }
   return false;
-}
-
-static OutputLanguage variantToLanguage(Variant variant)
-{
-  switch(variant) {
-  case smt2_0_variant:
-    return language::output::LANG_SMTLIB_V2_0;
-  case no_variant:
-  default: return language::output::LANG_SMTLIB_V2_6;
-  }
 }
 
 }/* CVC4::printer::smt2 namespace */
