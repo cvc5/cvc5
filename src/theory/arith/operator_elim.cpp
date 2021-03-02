@@ -52,10 +52,7 @@ TrustNode OperatorElim::eliminate(Node n, bool partialOnly)
   Node nn = eliminateOperators(n, tg, partialOnly);
   if (nn != n)
   {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    Node nnr = eliminateOperatorsRec(nn, tg, partialOnly);
-    return TrustNode::mkTrustRewrite(n, nnr, nullptr);
+    return TrustNode::mkTrustRewrite(n, nn, nullptr);
   }
   return TrustNode::null();
 }
@@ -110,12 +107,11 @@ Node OperatorElim::eliminateOperatorsRec(Node n,
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
-      Node retElim = eliminateOperators(ret, tg, partialOnly);
-      if (retElim != ret)
+      else
       {
-        // recursively eliminate operators in result, since some eliminations
-        // are defined in terms of other non-standard operators.
-        ret = eliminateOperatorsRec(retElim, tg, partialOnly);
+        // only eliminate operators from children that did not change. This
+        // is to ensure that we do not construct nested witness terms
+        ret = eliminateOperators(ret, tg, partialOnly);
       }
       visited[cur] = ret;
     }
