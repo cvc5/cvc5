@@ -3944,7 +3944,7 @@ bool Solver::isValidInteger(const std::string& s) const
 
   if (s[index] == '0' && s.length() > (index + 1))
   {
-    // From SMT-Lib 2.6: A〈numeral〉is the digit 0 or a non-empty sequence of
+    // From SMT-Lib 2.6: A <numeral> is the digit 0 or a non-empty sequence of
     // digits not starting with 0. So integers like 001, 000 are not allowed
     return false;
   }

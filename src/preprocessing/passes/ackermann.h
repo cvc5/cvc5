@@ -18,7 +18,7 @@
  ** described in
  **   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
  **   Bit-vectors in Satisfiability Modulo Theories.
-￼**   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
+ **   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  **/
 
 #include "cvc4_private.h"
