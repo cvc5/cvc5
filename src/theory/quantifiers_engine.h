@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_registry.h"
+#include "theory/quantifiers/term_registry.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -86,12 +87,12 @@ class QuantifiersEngine {
   quantifiers::TermDb* getTermDatabase() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get instantiate utility */
   quantifiers::Instantiate* getInstantiate() const;
   /** get skolemize utility */
   quantifiers::Skolemize* getSkolemize() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
@@ -170,13 +171,11 @@ private:
  bool reduceQuantifier(Node q);
 
 public:
+ /** notification when master equality engine is updated */
+ void eqNotifyNewClass(TNode t);
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** add term to database */
- void addTermToDatabase(Node n, bool withinQuant = false);
- /** notification when master equality engine is updated */
- void eqNotifyNewClass(TNode t);
  /** get internal representative
   *
   * Choose a term that is equivalent to a in the current context that is the
@@ -282,24 +281,20 @@ public:
   //------------- quantifiers utilities
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry d_qreg;
+  /** The term registry */
+  quantifiers::TermRegistry d_treg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** term database */
-  std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** sygus term database */
-  std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
   /** instantiate utility */
   std::unique_ptr<quantifiers::Instantiate> d_instantiate;
   /** skolemize utility */
   std::unique_ptr<quantifiers::Skolemize> d_skolemize;
-  /** term enumeration utility */
-  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.
@@ -314,11 +309,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** has presolve been called */
-  context::CDO<bool> d_presolve;
-  /** presolve cache */
-  NodeSet d_presolve_in;
-  NodeList d_presolve_cache;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */
