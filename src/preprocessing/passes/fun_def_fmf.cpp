@@ -14,6 +14,8 @@
 
 #include "preprocessing/passes/fun_def_fmf.h"
 
+#include <sstream>
+
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"

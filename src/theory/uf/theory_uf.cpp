@@ -18,6 +18,7 @@
 #include "theory/uf/theory_uf.h"
 
 #include <memory>
+#include <sstream>
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_node_manager.h"

@@ -14,6 +14,8 @@
 
 #include "theory/uf/cardinality_extension.h"
 
+#include <sstream>
+
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/term_database.h"

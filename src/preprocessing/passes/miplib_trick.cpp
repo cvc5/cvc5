@@ -15,6 +15,7 @@
 
 #include "preprocessing/passes/miplib_trick.h"
 
+#include <sstream>
 #include <vector>
 
 #include "expr/node_self_iterator.h"
