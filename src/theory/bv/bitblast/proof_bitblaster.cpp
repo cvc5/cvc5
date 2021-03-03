@@ -47,7 +47,7 @@ void BBProof::bbAtom(TNode node)
     }
     else
     {
-      if (Theory::isLeafOf(n, theory::THEORY_BV))
+      if (Theory::isLeafOf(n, theory::THEORY_BV) && !n.isConst())
       {
         // unused for now, will be needed for proof logging
         Bits bits;
