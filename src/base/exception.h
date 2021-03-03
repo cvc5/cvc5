@@ -151,7 +151,7 @@ public:
   static void setCurrent(LastExceptionBuffer* buffer) { s_currentBuffer = buffer; }
 
   static const char* currentContents() {
-    return (getCurrent() == NULL) ? NULL : getCurrent()->getContents();
+    return (getCurrent() == nullptr) ? nullptr : getCurrent()->getContents();
   }
 
 private:

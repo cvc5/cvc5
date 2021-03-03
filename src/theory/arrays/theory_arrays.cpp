@@ -28,8 +28,10 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/skolem_cache.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/decision_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 
 using namespace std;
@@ -934,9 +936,13 @@ void TheoryArrays::checkPair(TNode r1, TNode r2)
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): missed propagation" << std::endl;
       break;
     case EQUALITY_FALSE_AND_PROPAGATED:
+      Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair "
+                                  "called when false in model"
+                               << std::endl;
       // Should have been propagated to us
       Assert(false);
-    case EQUALITY_FALSE:
+      break;
+    case EQUALITY_FALSE: CVC4_FALLTHROUGH;
     case EQUALITY_FALSE_IN_MODEL:
       // This is unlikely, but I think it could happen
       Debug("arrays::sharing") << "TheoryArrays::computeCareGraph(): checkPair called when false in model" << std::endl;

@@ -18,6 +18,8 @@
 
 #include "util/bitvector.h"
 
+#include "base/exception.h"
+
 namespace CVC4 {
 
 unsigned BitVector::getSize() const { return d_size; }

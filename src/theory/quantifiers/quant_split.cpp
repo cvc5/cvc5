@@ -13,6 +13,9 @@
  **/
 
 #include "theory/quantifiers/quant_split.h"
+
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"

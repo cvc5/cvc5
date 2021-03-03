@@ -33,6 +33,7 @@
 #include "prop/prop_proof_manager.h"
 #include "prop/sat_solver_types.h"
 #include "theory/trust_node.h"
+#include "theory/theory_inference_manager.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"

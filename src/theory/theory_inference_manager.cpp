@@ -15,8 +15,11 @@
 #include "theory/theory_inference_manager.h"
 
 #include "smt/smt_statistics_registry.h"
+#include "theory/output_channel.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 
 using namespace CVC4::kind;
 

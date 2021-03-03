@@ -26,7 +26,7 @@ using namespace expr;
 
 namespace test {
 
-class TestNodeWhiteNode : public TestNodeWhite
+class TestNodeWhiteNode : public TestNode
 {
 };
 

@@ -21,8 +21,8 @@
 
 #include <set>
 
-#include "expr/kind.h"  // For TheoryId.
 #include "expr/node.h"
+#include "theory/theory_id.h"
 
 namespace CVC4 {
 namespace theory {

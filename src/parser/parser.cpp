@@ -17,6 +17,7 @@
 #include "parser/parser.h"
 
 #include <cassert>
+#include <clocale>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -737,21 +738,41 @@ SymbolManager* Parser::getSymbolManager() { return d_symman; }
 
 std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 {
+  std::wstring ws;
+  {
+    std::setlocale(LC_ALL, "en_US.utf8");
+    std::mbtowc(nullptr, nullptr, 0);
+    const char* end = s.data() + s.size();
+    const char* ptr = s.data();
+    for (wchar_t c; ptr != end; ) {
+      int res = std::mbtowc(&c, ptr, end - ptr);
+      if (res == -1) {
+        std::cerr << "Invalid escape sequence in " << s << std::endl;
+        break;
+      } else if (res == 0) {
+        break;
+      } else {
+        ws += c;
+        ptr += res;
+      }
+    }
+  }
+
   std::vector<unsigned> str;
   unsigned i = 0;
-  while (i < s.size())
+  while (i < ws.size())
   {
     // get the current character
-    if (s[i] != '\\')
+    if (ws[i] != '\\')
     {
       // don't worry about printable here
-      str.push_back(static_cast<unsigned>(s[i]));
+      str.push_back(static_cast<unsigned>(ws[i]));
       ++i;
       continue;
     }
     // slash is always escaped
     ++i;
-    if (i >= s.size())
+    if (i >= ws.size())
     {
       // slash cannot be the last character if we are parsing escape sequences
       std::stringstream serr;
@@ -759,7 +780,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
            << "\" should be handled by lexer";
       parseError(serr.str());
     }
-    switch (s[i])
+    switch (ws[i])
     {
       case 'n':
       {
@@ -812,12 +833,12 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
       case 'x':
       {
         bool isValid = false;
-        if (i + 2 < s.size())
+        if (i + 2 < ws.size())
         {
-          if (std::isxdigit(s[i + 1]) && std::isxdigit(s[i + 2]))
+          if (std::isxdigit(ws[i + 1]) && std::isxdigit(ws[i + 2]))
           {
-            std::stringstream shex;
-            shex << s[i + 1] << s[i + 2];
+            std::wstringstream shex;
+            shex << ws[i + 1] << ws[i + 2];
             unsigned val;
             shex >> std::hex >> val;
             str.push_back(val);
@@ -836,19 +857,19 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
       break;
       default:
       {
-        if (std::isdigit(s[i]))
+        if (std::isdigit(ws[i]))
         {
           // octal escape sequences  TODO : revisit (issue #1251).
-          unsigned num = static_cast<unsigned>(s[i]) - 48;
+          unsigned num = static_cast<unsigned>(ws[i]) - 48;
           bool flag = num < 4;
-          if (i + 1 < s.size() && num < 8 && std::isdigit(s[i + 1])
-              && s[i + 1] < '8')
+          if (i + 1 < ws.size() && num < 8 && std::isdigit(ws[i + 1])
+              && ws[i + 1] < '8')
           {
-            num = num * 8 + static_cast<unsigned>(s[i + 1]) - 48;
-            if (flag && i + 2 < s.size() && std::isdigit(s[i + 2])
-                && s[i + 2] < '8')
+            num = num * 8 + static_cast<unsigned>(ws[i + 1]) - 48;
+            if (flag && i + 2 < ws.size() && std::isdigit(ws[i + 2])
+                && ws[i + 2] < '8')
             {
-              num = num * 8 + static_cast<unsigned>(s[i + 2]) - 48;
+              num = num * 8 + static_cast<unsigned>(ws[i + 2]) - 48;
               str.push_back(num);
               i += 3;
             }

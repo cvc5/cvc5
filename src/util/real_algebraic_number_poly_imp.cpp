@@ -60,6 +60,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
                                          long lower,
                                          long upper)
 {
+#ifndef NDEBUG
   for (long c : coefficients)
   {
     Assert(std::numeric_limits<std::int32_t>::min() <= c
@@ -67,6 +68,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
         << "Coefficients need to fit within 32 bit integers. Please use the "
            "constructor based on Integer instead.";
   }
+#endif
   d_value = poly::AlgebraicNumber(poly::UPolynomial(coefficients),
                                   poly::DyadicInterval(lower, upper));
 }

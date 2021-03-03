@@ -14,12 +14,14 @@
 
 #include "theory/quantifiers/skolemize.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
 
@@ -29,10 +31,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
-                     ProofNodeManager* pnm)
-    : d_quantEngine(qe),
+Skolemize::Skolemize(QuantifiersState& qs, ProofNodeManager* pnm)
+    : d_qstate(qs),
       d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
@@ -350,13 +350,13 @@ Node Skolemize::getSkolemizedBody(Node f)
       }
     }
     Assert(d_skolem_constants[f].size() == f[0].getNumChildren());
-    if (options::sortInference())
+    SortInference* si = d_qstate.getSortInference();
+    if (si != nullptr)
     {
       for (unsigned i = 0; i < d_skolem_constants[f].size(); i++)
       {
         // carry information for sort inference
-        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar(
-            f, f[0][i], d_skolem_constants[f][i]);
+        si->setSkolemVar(f, f[0][i], d_skolem_constants[f][i]);
       }
     }
     return ret;
@@ -384,7 +384,7 @@ void Skolemize::getSkolemTermVectors(
 {
   std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
       itk;
-  for (const std::pair<const Node, Node>& p : d_skolemized)
+  for (const auto& p : d_skolemized)
   {
     Node q = p.first;
     itk = d_skolem_constants.find(q);

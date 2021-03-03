@@ -21,8 +21,9 @@
 #define CVC4__DIVISIBLE_H
 
 #include <iosfwd>
+#include <ostream>
+#include <stddef.h>
 
-#include "base/exception.h"
 #include "util/integer.h"
 
 namespace CVC4 {

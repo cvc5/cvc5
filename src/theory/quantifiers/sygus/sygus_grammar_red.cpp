@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"

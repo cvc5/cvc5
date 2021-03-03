@@ -17,7 +17,11 @@
 #include "expr/dtype.h"
 #include "options/datatypes_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/eager_proof_generator.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
+#include "theory/trust_substitutions.h"
 
 using namespace CVC4::kind;
 

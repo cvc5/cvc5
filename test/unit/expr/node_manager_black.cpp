@@ -21,7 +21,6 @@
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
 #include "test_node.h"
-#include "test_utils.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
@@ -32,7 +31,7 @@ using namespace expr;
 
 namespace test {
 
-class TestNodeBlackNodeManager : public TestNodeBlack
+class TestNodeBlackNodeManager : public TestNode
 {
 };
 

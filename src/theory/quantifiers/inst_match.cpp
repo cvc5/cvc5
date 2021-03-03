@@ -15,6 +15,7 @@
 #include "theory/quantifiers/inst_match.h"
 
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
 
