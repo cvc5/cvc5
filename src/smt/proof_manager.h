@@ -31,7 +31,7 @@ class ProofNodeManager;
 class SmtEngine;
 
 namespace theory {
-  class RewriteDb;
+class RewriteDb;
 }
 
 namespace smt {
