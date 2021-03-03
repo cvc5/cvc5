@@ -18,6 +18,7 @@
 #ifndef CVC4__PREPROCESSING__PASSES__MIPLIB_TRICK_H
 #define CVC4__PREPROCESSING__PASSES__MIPLIB_TRICK_H
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace CVC4 {

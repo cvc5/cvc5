@@ -20,10 +20,8 @@
 #define CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
 
 #include "context/cdhashmap.h"
-#include "context/cdo.h"
-#include "context/context.h"
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {

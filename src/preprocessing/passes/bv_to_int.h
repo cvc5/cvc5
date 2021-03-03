@@ -69,10 +69,8 @@
 #define __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
 
 #include "context/cdhashmap.h"
-#include "context/cdo.h"
-#include "context/context.h"
+#include "context/cdhashset.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/nl/iand_utils.h"
 
 namespace CVC4 {

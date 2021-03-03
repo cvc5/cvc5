@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"

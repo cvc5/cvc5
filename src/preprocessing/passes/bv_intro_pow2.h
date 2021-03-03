@@ -22,7 +22,6 @@
 #define CVC4__PREPROCESSING__PASSES__BV_INTRO_POW2_H
 
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {

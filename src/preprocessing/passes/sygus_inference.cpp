@@ -14,6 +14,7 @@
 
 #include "preprocessing/passes/sygus_inference.h"
 
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -22,6 +23,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_utils.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace std;

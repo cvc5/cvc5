@@ -18,6 +18,7 @@
 
 #include <string>
 
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"

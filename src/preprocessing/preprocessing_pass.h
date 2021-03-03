@@ -33,12 +33,12 @@
 
 #include <string>
 
-#include "preprocessing/assertion_pipeline.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace preprocessing {
 
+class AssertionPipeline;
 class PreprocessingPassContext;
 
 /**

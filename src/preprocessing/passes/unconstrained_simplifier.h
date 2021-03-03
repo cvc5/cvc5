@@ -24,13 +24,15 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "context/context.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/substitutions.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+namespace context {
+  class Context;
+}
 namespace preprocessing {
 namespace passes {
 

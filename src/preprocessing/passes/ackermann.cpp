@@ -27,6 +27,8 @@
 #include "expr/node_algorithm.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;

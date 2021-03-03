@@ -23,10 +23,12 @@
 
 #include "expr/node.h"
 #include "expr/node_visitor.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace preprocessing {

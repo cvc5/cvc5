@@ -20,10 +20,13 @@
 
 #include "context/cdo.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/booleans/circuit_propagator.h"
 #include "theory/theory.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 

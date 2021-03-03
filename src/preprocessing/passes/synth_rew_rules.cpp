@@ -19,6 +19,7 @@
 #include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"

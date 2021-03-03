@@ -21,6 +21,7 @@
 
 #include <utility>
 
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/rewrite.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"

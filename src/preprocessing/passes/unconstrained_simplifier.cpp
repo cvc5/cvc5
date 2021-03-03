@@ -19,7 +19,9 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
 #include "expr/dtype.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"

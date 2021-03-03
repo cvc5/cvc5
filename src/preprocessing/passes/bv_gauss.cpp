@@ -18,6 +18,8 @@
 #include "preprocessing/passes/bv_gauss.h"
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"

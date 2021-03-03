@@ -18,8 +18,10 @@
 #include <string>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace preprocessing {

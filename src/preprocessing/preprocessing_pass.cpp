@@ -16,6 +16,7 @@
 
 #include "preprocessing/preprocessing_pass.h"
 
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/dump.h"

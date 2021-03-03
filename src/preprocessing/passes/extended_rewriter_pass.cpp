@@ -17,6 +17,8 @@
 #include "preprocessing/passes/extended_rewriter_pass.h"
 
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
 namespace CVC4 {

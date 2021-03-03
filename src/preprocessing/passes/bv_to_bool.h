@@ -19,9 +19,8 @@
 #ifndef CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H
 #define CVC4__PREPROCESSING__PASSES__BV_TO_BOOL_H
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

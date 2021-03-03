@@ -26,6 +26,8 @@
 #include "expr/node_traversal.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"

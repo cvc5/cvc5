@@ -19,6 +19,11 @@
 #ifndef __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
 #define __CVC4__PREPROCESSING__PASSES__HO_ELIM_PASS_H
 
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
+
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 
 namespace CVC4 {
