@@ -20,9 +20,11 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 
 namespace CVC4 {
+
+class ProofNode;
+
 namespace expr {
 
 /**

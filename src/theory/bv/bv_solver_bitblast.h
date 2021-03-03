@@ -21,6 +21,7 @@
 
 #include <unordered_map>
 
+#include "context/cdqueue.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "theory/bv/bitblast/simple_bitblaster.h"

@@ -40,10 +40,7 @@
 #include <unistd.h>
 
 #include <cstring>
-#include <type_traits>
-
-#include "lib/clock_gettime.h"
-#include "util/result.h"
+#include <string>
 
 namespace CVC4 {
 

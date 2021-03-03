@@ -17,10 +17,10 @@
 #ifndef CVC4__UTIL__STRING_H
 #define CVC4__UTIL__STRING_H
 
-#include <functional>
-#include <ostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
+
 #include "util/rational.h"
 
 namespace CVC4 {

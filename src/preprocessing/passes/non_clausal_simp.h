@@ -17,16 +17,23 @@
 #ifndef CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
 #define CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
 
-#include <vector>
-
-#include "expr/lazy_proof.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "smt/preprocess_proof_generator.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
+
+class LazyCDProof;
+class ProofNodeManager;
+
+namespace smt {
+class PreprocessProofGenerator;
+}
+namespace theory {
+class TrustSubstitutionMap;
+}
+
 namespace preprocessing {
 namespace passes {
 

@@ -17,14 +17,16 @@
 #ifndef CVC4__SMT__PREPROCESSOR_H
 #define CVC4__SMT__PREPROCESSOR_H
 
-#include <vector>
+#include <memory>
 
-#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
 namespace CVC4 {
+namespace preprocessing {
+class PreprocessingPassContext;
+}
 namespace smt {
 
 class AbstractValues;

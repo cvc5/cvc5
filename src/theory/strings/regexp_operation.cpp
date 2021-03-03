@@ -16,6 +16,8 @@
 
 #include "theory/strings/regexp_operation.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"

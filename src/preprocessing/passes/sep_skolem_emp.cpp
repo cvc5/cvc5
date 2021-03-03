@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -28,6 +29,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 namespace {

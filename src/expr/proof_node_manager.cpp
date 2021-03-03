@@ -15,6 +15,8 @@
 #include "expr/proof_node_manager.h"
 
 #include "expr/proof.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node.h"
 #include "expr/proof_node_algorithm.h"
 #include "options/proof_options.h"
 #include "theory/rewriter.h"

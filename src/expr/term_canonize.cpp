@@ -14,6 +14,8 @@
 
 #include "expr/term_canonize.h"
 
+#include <sstream>
+
 // TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 

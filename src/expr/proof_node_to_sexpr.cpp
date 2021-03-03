@@ -15,7 +15,9 @@
 #include "expr/proof_node_to_sexpr.h"
 
 #include <iostream>
+#include <sstream>
 
+#include "expr/proof_node.h"
 #include "options/proof_options.h"
 
 using namespace CVC4::kind;
