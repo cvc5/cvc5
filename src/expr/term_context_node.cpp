@@ -14,8 +14,6 @@
 
 #include "expr/term_context_node.h"
 
-#include <sstream>
-
 #include "expr/term_context.h"
 
 namespace CVC4 {
