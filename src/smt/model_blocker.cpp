@@ -18,6 +18,8 @@
 #include "expr/node.h"
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace CVC4::kind;
 

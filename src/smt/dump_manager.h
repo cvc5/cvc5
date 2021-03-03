@@ -18,8 +18,9 @@
 #define CVC4__SMT__DUMP_MANAGER_H
 
 #include <memory>
+#include <vector>
 
-#include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/node.h"
 
 namespace CVC4 {

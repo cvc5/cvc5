@@ -26,7 +26,6 @@
 #include "expr/node.h"
 #include "expr/term_context.h"
 #include "theory/trust_node.h"
-#include "util/bool.h"
 #include "util/hash.h"
 
 namespace CVC4 {
