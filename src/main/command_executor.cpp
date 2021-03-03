@@ -163,7 +163,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     if (d_options.getDumpModels()
         && (res.isSat()
             || (res.isSatUnknown()
-                && res.getResult().whyUnknown() == Result::INCOMPLETE)))
+                && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
@@ -176,7 +176,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
         && ((d_options.getInstFormatMode() != options::InstFormatMode::SZS
              && (res.isSat()
                  || (res.isSatUnknown()
-                     && res.getResult().whyUnknown() == Result::INCOMPLETE)))
+                     && res.getUnknownExplanation()
+                            == api::Result::INCOMPLETE)))
             || isResultUnsat))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());

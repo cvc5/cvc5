@@ -936,22 +936,49 @@ bool Result::operator!=(const Result& r) const
   return *d_result != *r.d_result;
 }
 
-std::string Result::getUnknownExplanation(void) const
+Result::UnknownExplanation Result::getUnknownExplanation(void) const
 {
-  std::stringstream ss;
-  ss << d_result->whyUnknown();
-  return ss.str();
+  CVC4::Result::UnknownExplanation expl = d_result->whyUnknown();
+  switch (expl)
+  {
+    case CVC4::Result::REQUIRES_FULL_CHECK: return REQUIRES_FULL_CHECK;
+    case CVC4::Result::INCOMPLETE: return INCOMPLETE;
+    case CVC4::Result::TIMEOUT: return TIMEOUT;
+    case CVC4::Result::RESOURCEOUT: return RESOURCEOUT;
+    case CVC4::Result::MEMOUT: return MEMOUT;
+    case CVC4::Result::INTERRUPTED: return INTERRUPTED;
+    case CVC4::Result::NO_STATUS: return NO_STATUS;
+    case CVC4::Result::UNSUPPORTED: return UNSUPPORTED;
+    case CVC4::Result::OTHER: return OTHER;
+    default: return UNKNOWN_REASON;
+  }
+  return UNKNOWN_REASON;
 }
 
 std::string Result::toString(void) const { return d_result->toString(); }
 
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::Result Result::getResult(void) const { return *d_result; }
-
 std::ostream& operator<<(std::ostream& out, const Result& r)
 {
   out << r.toString();
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
+{
+  switch (e)
+  {
+    case Result::REQUIRES_FULL_CHECK: out << "REQUIRES_FULL_CHECK"; break;
+    case Result::INCOMPLETE: out << "INCOMPLETE"; break;
+    case Result::TIMEOUT: out << "TIMEOUT"; break;
+    case Result::RESOURCEOUT: out << "RESOURCEOUT"; break;
+    case Result::MEMOUT: out << "MEMOUT"; break;
+    case Result::INTERRUPTED: out << "INTERRUPTED"; break;
+    case Result::NO_STATUS: out << "NO_STATUS"; break;
+    case Result::UNSUPPORTED: out << "UNSUPPORTED"; break;
+    case Result::OTHER: out << "OTHER"; break;
+    case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
+    default: Unhandled() << e;
+  }
   return out;
 }
 
