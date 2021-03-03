@@ -24,9 +24,9 @@
 
 #include <string>
 
-#include "base/exception.h"
 #include "util/integer.h"
 #include "util/maybe.h"
+#include "util/gmp_util.h"
 
 namespace CVC4 {
 

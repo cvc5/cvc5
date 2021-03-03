@@ -21,11 +21,8 @@
 #define CVC4__INTEGER_H
 
 #include <iosfwd>
-#include <limits>
 #include <string>
-
-#include "base/exception.h"
-#include "util/gmp_util.h"
+#include <gmpxx.h>
 
 namespace CVC4 {
 

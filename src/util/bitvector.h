@@ -22,6 +22,7 @@
 #include <iosfwd>
 #include <iostream>
 
+#include "base/exception.h"
 #include "util/integer.h"
 
 namespace CVC4 {

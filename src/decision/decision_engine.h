@@ -26,6 +26,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
+#include "util/result.h"
 
 using namespace CVC4::prop;
 using namespace CVC4::decision;

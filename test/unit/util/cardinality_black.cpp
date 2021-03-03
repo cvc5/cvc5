@@ -18,6 +18,7 @@
 #include <string>
 
 #include "test.h"
+#include "base/exception.h"
 #include "util/cardinality.h"
 #include "util/integer.h"
 

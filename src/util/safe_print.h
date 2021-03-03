@@ -37,13 +37,9 @@
 #ifndef CVC4__SAFE_PRINT_H
 #define CVC4__SAFE_PRINT_H
 
-#include <unistd.h>
-
 #include <cstring>
-#include <type_traits>
-
-#include "lib/clock_gettime.h"
-#include "util/result.h"
+#include <string>
+#include <unistd.h>
 
 namespace CVC4 {
 

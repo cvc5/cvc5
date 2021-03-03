@@ -23,6 +23,7 @@
 
 #include "theory/evaluator.h"
 #include "theory/quantifiers/sygus/cegis.h"
+#include "util/result.h"
 
 namespace CVC4 {
 namespace theory {

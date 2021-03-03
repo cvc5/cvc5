@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <sstream>
 
 #include "base/exception.h"
 #include "base/output.h"
