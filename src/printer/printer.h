@@ -19,7 +19,6 @@
 #ifndef CVC4__PRINTER__PRINTER_H
 #define CVC4__PRINTER__PRINTER_H
 
-#include <map>
 #include <string>
 
 #include "expr/node.h"

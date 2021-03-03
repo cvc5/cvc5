@@ -18,7 +18,6 @@
 #define CVC4__SMT__DUMP_MANAGER_H
 
 #include <memory>
-#include <vector>
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -26,6 +25,10 @@
 namespace CVC4 {
 
 class NodeCommand;
+
+namespace context {
+class UserContext;
+}
 
 namespace smt {
 

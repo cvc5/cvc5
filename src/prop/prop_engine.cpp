@@ -32,6 +32,7 @@
 #include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/minisat/minisat.h"
+#include "prop/prop_proof_manager.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "prop/theory_proxy.h"

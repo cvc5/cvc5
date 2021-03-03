@@ -20,9 +20,11 @@
 #define CVC4__DECISION__DECISION_ENGINE_H
 
 #include "base/output.h"
+#include "context/cdo.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
+#include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 
 using namespace CVC4::prop;

@@ -19,6 +19,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/registrar.h"
+#include "prop/sat_solver.h"
 #include "prop/theory_proxy.h"
 #include "test_smt.h"
 #include "theory/arith/theory_arith.h"
