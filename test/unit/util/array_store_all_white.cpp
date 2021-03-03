@@ -18,7 +18,6 @@
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "test_smt.h"
-#include "test_utils.h"
 
 namespace CVC4 {
 namespace test {

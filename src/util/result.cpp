@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include "base/check.h"

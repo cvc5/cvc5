@@ -19,12 +19,8 @@
 #ifndef CVC4__EXCEPTION_H
 #define CVC4__EXCEPTION_H
 
-#include <cstdarg>
-#include <cstdlib>
 #include <exception>
 #include <iosfwd>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 
 namespace CVC4 {
@@ -61,12 +57,7 @@ class CVC4_PUBLIC Exception : public std::exception {
    * toString(), there is no stream, so the parameters are default
    * and you'll get exprs and types printed using the AST language.
    */
-  std::string toString() const
-  {
-    std::stringstream ss;
-    toStream(ss);
-    return ss.str();
-  }
+  std::string toString() const;
 
   /**
    * Printing: feel free to redefine toStream().  When overridden in
@@ -151,7 +142,7 @@ public:
   static void setCurrent(LastExceptionBuffer* buffer) { s_currentBuffer = buffer; }
 
   static const char* currentContents() {
-    return (getCurrent() == NULL) ? NULL : getCurrent()->getContents();
+    return (getCurrent() == nullptr) ? nullptr : getCurrent()->getContents();
   }
 
 private:

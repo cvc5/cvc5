@@ -16,6 +16,7 @@
 
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 
 using namespace CVC4::kind;
 

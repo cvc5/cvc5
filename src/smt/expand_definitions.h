@@ -20,16 +20,22 @@
 #include <unordered_map>
 
 #include "expr/node.h"
-#include "expr/term_conversion_proof_generator.h"
-#include "preprocessing/assertion_pipeline.h"
-#include "smt/smt_engine_stats.h"
-#include "util/resource_manager.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 
+class ProofNodeManager;
+class ResourceManager;
 class SmtEngine;
+class TConvProofGenerator;
+
+namespace preprocessing {
+class AssertionPipeline;
+}
 
 namespace smt {
+
+struct SmtEngineStatistics;
 
 /**
  * Module in charge of expanding definitions for an SMT engine.

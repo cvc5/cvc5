@@ -23,7 +23,6 @@
 #define CVC4__COMMAND_H
 
 #include <iosfwd>
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -40,8 +39,6 @@ class Term;
 }  // namespace api
 
 class SymbolManager;
-class UnsatCore;
-class SmtEngine;
 class Command;
 class CommandStatus;
 
@@ -1298,13 +1295,13 @@ class CVC4_PUBLIC SetInfoCommand : public Command
 {
  protected:
   std::string d_flag;
-  std::string d_sexpr;
+  std::string d_value;
 
  public:
-  SetInfoCommand(std::string flag, const std::string& sexpr);
+  SetInfoCommand(const std::string& flag, const std::string& value);
 
-  std::string getFlag() const;
-  const std::string& getSExpr() const;
+  const std::string& getFlag() const;
+  const std::string& getValue() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
@@ -1343,13 +1340,13 @@ class CVC4_PUBLIC SetOptionCommand : public Command
 {
  protected:
   std::string d_flag;
-  std::string d_sexpr;
+  std::string d_value;
 
  public:
-  SetOptionCommand(std::string flag, const std::string& sexpr);
+  SetOptionCommand(const std::string& flag, const std::string& value);
 
-  std::string getFlag() const;
-  const std::string& getSExpr() const;
+  const std::string& getFlag() const;
+  const std::string& getValue() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;

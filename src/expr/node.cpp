@@ -15,12 +15,14 @@
  **/
 #include "expr/node.h"
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/attribute.h"
+#include "expr/type_checker.h"
 
 using namespace std;
 

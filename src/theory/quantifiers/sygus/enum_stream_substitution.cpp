@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
+#include "expr/dtype_cons.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"

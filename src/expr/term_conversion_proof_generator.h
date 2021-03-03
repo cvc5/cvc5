@@ -20,10 +20,11 @@
 #include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "expr/term_context.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+class TermContext;
 
 /** A policy for how rewrite steps are applied in TConvProofGenerator */
 enum class TConvPolicy : uint32_t

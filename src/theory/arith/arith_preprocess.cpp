@@ -14,6 +14,8 @@
 
 #include "theory/arith/arith_preprocess.h"
 
+#include "theory/arith/inference_manager.h"
+
 namespace CVC4 {
 namespace theory {
 namespace arith {

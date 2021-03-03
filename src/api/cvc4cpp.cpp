@@ -39,6 +39,8 @@
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/dtype_selector.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -230,6 +232,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {TUPLE_UPDATE, CVC4::Kind::TUPLE_UPDATE},
     {RECORD_UPDATE, CVC4::Kind::RECORD_UPDATE},
     {DT_SIZE, CVC4::Kind::DT_SIZE},
+    {TUPLE_PROJECT, CVC4::Kind::TUPLE_PROJECT},
     /* Separation Logic ---------------------------------------------------- */
     {SEP_NIL, CVC4::Kind::SEP_NIL},
     {SEP_EMP, CVC4::Kind::SEP_EMP},
@@ -536,6 +539,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::RECORD_UPDATE_OP, RECORD_UPDATE},
         {CVC4::Kind::RECORD_UPDATE, RECORD_UPDATE},
         {CVC4::Kind::DT_SIZE, DT_SIZE},
+        {CVC4::Kind::TUPLE_PROJECT, TUPLE_PROJECT},
         /* Separation Logic ------------------------------------------------ */
         {CVC4::Kind::SEP_NIL, SEP_NIL},
         {CVC4::Kind::SEP_EMP, SEP_EMP},
@@ -3942,7 +3946,7 @@ bool Solver::isValidInteger(const std::string& s) const
 
   if (s[index] == '0' && s.length() > (index + 1))
   {
-    // From SMT-Lib 2.6: A〈numeral〉is the digit 0 or a non-empty sequence of
+    // From SMT-Lib 2.6: A <numeral> is the digit 0 or a non-empty sequence of
     // digits not starting with 0. So integers like 001, 000 are not allowed
     return false;
   }
@@ -4740,6 +4744,35 @@ Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
     default:
       CVC4_API_KIND_CHECK_EXPECTED(false, kind)
           << "operator kind with two uint32_t arguments";
+  }
+  Assert(!res.isNull());
+  return res;
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_KIND_CHECK(kind);
+
+  Op res;
+  switch (kind)
+  {
+    case TUPLE_PROJECT:
+    {
+      res = Op(this,
+               kind,
+               *mkValHelper<CVC4::TupleProjectOp>(CVC4::TupleProjectOp(args))
+                    .d_node);
+    }
+    break;
+    default:
+    {
+      std::string message = "operator kind with " + std::to_string(args.size())
+                            + " uint32_t arguments";
+      CVC4_API_KIND_CHECK_EXPECTED(false, kind) << message;
+    }
   }
   Assert(!res.isNull());
   return res;

@@ -20,10 +20,11 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
 
 namespace CVC4 {
+
+class ProofChecker;
 
 /**
  * Information for constructing a step in a CDProof. Notice that the conclusion

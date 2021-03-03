@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/sygus/sygus_utils.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"

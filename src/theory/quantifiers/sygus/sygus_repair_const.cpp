@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 
 #include "api/cvc4cpp.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -236,9 +237,9 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                       options::sygusRepairConstTimeout.wasSetByUser(),
                       options::sygusRepairConstTimeout());
   // renable options disabled by sygus
-  repcChecker->setOption("miniscope-quant", true);
-  repcChecker->setOption("miniscope-quant-fv", true);
-  repcChecker->setOption("quant-split", true);
+  repcChecker->setOption("miniscope-quant", "true");
+  repcChecker->setOption("miniscope-quant-fv", "true");
+  repcChecker->setOption("quant-split", "true");
   repcChecker->assertFormula(fo_body);
   // check satisfiability
   Result r = repcChecker->checkSat();

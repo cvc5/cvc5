@@ -16,6 +16,7 @@
 
 #include "theory/strings/core_solver.h"
 
+#include "base/configuration.h"
 #include "options/strings_options.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"

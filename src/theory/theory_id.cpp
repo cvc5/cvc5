@@ -17,6 +17,8 @@
 
 #include "theory/theory_id.h"
 
+#include <sstream>
+
 #include "base/check.h"
 #include "lib/ffs.h"
 

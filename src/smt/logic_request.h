@@ -26,7 +26,7 @@
 #ifndef CVC4__LOGIC_REQUEST_H
 #define CVC4__LOGIC_REQUEST_H
 
-#include "expr/kind.h"
+#include "theory/theory_id.h"
 
 namespace CVC4 {
 

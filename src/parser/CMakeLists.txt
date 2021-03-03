@@ -8,7 +8,6 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-set(ANTLR_HOME ${ANTLR_DIR})
 find_package(ANTLR REQUIRED)
 
 if(NOT HAVE_ANTLR3_FILE_STREAM_NEW)

@@ -65,6 +65,7 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"

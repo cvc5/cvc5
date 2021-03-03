@@ -17,12 +17,14 @@
 #include "printer/smt2/smt2_printer.h"
 
 #include <iostream>
+#include <list>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -47,8 +49,6 @@ using namespace std;
 namespace CVC4 {
 namespace printer {
 namespace smt2 {
-
-static OutputLanguage variantToLanguage(Variant v);
 
 /** returns whether the variant is smt-lib 2.6 or greater */
 bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
@@ -900,6 +900,21 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
     }
     break;
+  }
+  case kind::TUPLE_PROJECT:
+  {
+    TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (tuple_project tuple)
+      out << "project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ tuple_project 2 4 4) tuple)
+      out << "(_ tuple_project" << op << ") " << n[0] << ")";
+    }
+    return;
   }
   case kind::CONSTRUCTOR_TYPE:
   {
@@ -1791,11 +1806,9 @@ void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
-                                     SExpr sexpr) const
+                                     const std::string& value) const
 {
-  out << "(set-info :" << flag << ' ';
-  SExpr::toStream(out, sexpr, variantToLanguage(d_variant));
-  out << ')' << std::endl;
+  out << "(set-info :" << flag << ' ' << value << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
@@ -1806,11 +1819,9 @@ void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
 
 void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
                                        const std::string& flag,
-                                       SExpr sexpr) const
+                                       const std::string& value) const
 {
-  out << "(set-option :" << flag << ' ';
-  SExpr::toStream(out, sexpr, language::output::LANG_SMTLIB_V2_5);
-  out << ')' << std::endl;
+  out << "(set-option :" << flag << ' ' << value << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetOption(std::ostream& out,
@@ -2214,16 +2225,6 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
     return true;
   }
   return false;
-}
-
-static OutputLanguage variantToLanguage(Variant variant)
-{
-  switch(variant) {
-  case smt2_0_variant:
-    return language::output::LANG_SMTLIB_V2_0;
-  case no_variant:
-  default: return language::output::LANG_SMTLIB_V2_6;
-  }
 }
 
 }/* CVC4::printer::smt2 namespace */

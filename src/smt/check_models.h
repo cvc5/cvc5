@@ -19,11 +19,12 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "smt/model.h"
-#include "smt/smt_solver.h"
 
 namespace CVC4 {
 namespace smt {
+
+class Model;
+class SmtSolver;
 
 /**
  * This utility is responsible for checking the current model.

@@ -14,6 +14,8 @@
 
 #include "theory/inference_id.h"
 
+#include <iostream>
+
 namespace CVC4 {
 namespace theory {
 

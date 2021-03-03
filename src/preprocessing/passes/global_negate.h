@@ -25,8 +25,8 @@
 #ifndef CVC4__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
 #define CVC4__PREPROCESSING__PASSES__GLOBAL_NEGATE_H
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {

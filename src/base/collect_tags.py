@@ -23,7 +23,7 @@ def collect_tags(basedir):
     tags = set()
     for ext in ['.cc', '.cpp', '.g', '.h']:
         for filename in glob.iglob('{}/**/*{}'.format(basedir, ext), recursive=True):
-            content = open(filename).read()
+            content = open(filename, 'rb').read().decode()
             for tag in RE_PAT.finditer(content):
                 tags.add(tag.group(1))
     return sorted(tags)

@@ -15,17 +15,18 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 #include "base/check.h"
+#include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/arith/arith_msum.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -46,11 +47,8 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim)
-    : d_quantEngine(qe),
-      d_qstate(qs),
+TermDbSygus::TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim)
+    : d_qstate(qs),
       d_qim(qim),
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),

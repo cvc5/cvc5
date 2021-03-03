@@ -399,7 +399,6 @@ inline std::ostream& operator<<(std::ostream& out, const NodeValue& nv);
 }/* CVC4 namespace */
 
 #include "expr/node_manager.h"
-#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace expr {
@@ -501,7 +500,6 @@ inline NodeValue* NodeValue::getChild(int i) const {
 }/* CVC4 namespace */
 
 #include "expr/node.h"
-#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace expr {

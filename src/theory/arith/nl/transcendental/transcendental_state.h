@@ -23,6 +23,7 @@
 #include "theory/arith/nl/transcendental/taylor_generator.h"
 
 namespace CVC4 {
+class CDProof;
 namespace theory {
 namespace arith {
 namespace nl {
