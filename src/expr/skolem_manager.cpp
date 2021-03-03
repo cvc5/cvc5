@@ -23,7 +23,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 
 // witness, original are analogous, but share skolems
-  
+
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
 struct WitnessFormAttributeId
@@ -41,7 +41,6 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
-
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
@@ -50,7 +49,8 @@ Node SkolemManager::mkSkolem(Node v,
                              ProofGenerator* pg,
                              bool retWitness)
 {
-  //AlwaysAssert (!expr::hasSubtermKind(WITNESS, pred)) << "Witness term with nested witness " << pred;
+  // AlwaysAssert (!expr::hasSubtermKind(WITNESS, pred)) << "Witness term with
+  // nested witness " << pred;
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
   NodeManager* nm = NodeManager::currentNM();
@@ -160,7 +160,8 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    int flags)
 {
   Node to = getOriginalForm(t);
-  //AlwaysAssert (!expr::hasSubtermKind(WITNESS, to)) << "Purifying a term with witness " << to;
+  // AlwaysAssert (!expr::hasSubtermKind(WITNESS, to)) << "Purifying a term with
+  // witness " << to;
 
   Node k = mkSkolemInternal(to, prefix, comment, flags);
   // set original form attribute for k
@@ -271,11 +272,10 @@ Node SkolemManager::getOriginalForm(Node n)
   return visited[n];
 }
 
-
 Node SkolemManager::mkSkolemInternal(Node w,
-                                    const std::string& prefix,
-                                    const std::string& comment,
-                                    int flags)
+                                     const std::string& prefix,
+                                     const std::string& comment,
+                                     int flags)
 {
   NodeManager* nm = NodeManager::currentNM();
   // w is not necessarily a witness term
