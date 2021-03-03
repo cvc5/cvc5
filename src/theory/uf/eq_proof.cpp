@@ -15,6 +15,7 @@
 
 #include "theory/uf/eq_proof.h"
 
+#include "base/configuration.h"
 #include "expr/proof.h"
 #include "options/uf_options.h"
 

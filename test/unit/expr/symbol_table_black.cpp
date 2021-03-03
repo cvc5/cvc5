@@ -14,8 +14,6 @@
  ** Black box testing of CVC4::SymbolTable.
  **/
 
-#include <cxxtest/TestSuite.h>
-
 #include <sstream>
 #include <string>
 

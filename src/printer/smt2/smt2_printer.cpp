@@ -17,12 +17,14 @@
 #include "printer/smt2/smt2_printer.h"
 
 #include <iostream>
+#include <list>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -898,6 +900,21 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
     }
     break;
+  }
+  case kind::TUPLE_PROJECT:
+  {
+    TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (tuple_project tuple)
+      out << "project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ tuple_project 2 4 4) tuple)
+      out << "(_ tuple_project" << op << ") " << n[0] << ")";
+    }
+    return;
   }
   case kind::CONSTRUCTOR_TYPE:
   {

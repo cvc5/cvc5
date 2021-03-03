@@ -18,7 +18,10 @@
 #include "options/smt_options.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
 #include "util/iand.h"
 
 using namespace CVC4::kind;

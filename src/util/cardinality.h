@@ -20,10 +20,8 @@
 #ifndef CVC4__CARDINALITY_H
 #define CVC4__CARDINALITY_H
 
-#include <iostream>
-#include <utility>
+#include <iosfwd>
 
-#include "base/exception.h"
 #include "util/integer.h"
 
 namespace CVC4 {

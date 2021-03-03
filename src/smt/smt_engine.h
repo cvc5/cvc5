@@ -23,20 +23,15 @@
 #include <vector>
 #include <map>
 
-#include "base/modal_exception.h"
 #include "context/cdhashmap_forward.h"
-#include "context/cdhashset_forward.h"
 #include "context/cdlist_forward.h"
 #include "options/options.h"
-#include "smt/logic_exception.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
-#include "util/hash.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/statistics.h"
-#include "util/unsafe_interrupt_exception.h"
 
 // In terms of abstraction, this is below (and provides services to)
 // ValidityChecker and above (and requires the services of)
@@ -51,7 +46,6 @@ class TypeNode;
 struct NodeHashFunction;
 
 class NodeManager;
-class DecisionEngine;
 class TheoryEngine;
 class ProofManager;
 class UnsatCore;

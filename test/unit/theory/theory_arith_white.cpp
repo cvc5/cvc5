@@ -12,6 +12,7 @@
  ** \brief Whitebox tests for theory Arithmetic.
  **/
 
+#include <list>
 #include <vector>
 
 #include "context/context.h"

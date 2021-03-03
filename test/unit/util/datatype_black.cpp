@@ -18,6 +18,7 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/expr.h"
 #include "expr/type_node.h"
 #include "test_expr.h"

@@ -17,6 +17,7 @@
 #include "theory/sets/theory_sets_rewriter.h"
 
 #include "expr/attribute.h"
+#include "expr/dtype_cons.h"
 #include "options/sets_options.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/rels_utils.h"

@@ -14,6 +14,7 @@
 #include "theory/theory_model_builder.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"

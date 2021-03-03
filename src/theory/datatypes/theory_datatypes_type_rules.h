@@ -20,6 +20,7 @@
 #define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/type_matcher.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
@@ -570,6 +571,60 @@ class MatchBindCaseTypeRule
     return n[2].getType(check);
   }
 }; /* class MatchBindCaseTypeRule */
+
+class TupleProjectTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nm, TNode n, bool check)
+  {
+    Assert(n.getKind() == kind::TUPLE_PROJECT && n.hasOperator()
+           && n.getOperator().getKind() == kind::TUPLE_PROJECT_OP);
+    TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+    const std::vector<uint32_t>& indices = op.getIndices();
+    if (check)
+    {
+      if (n.getNumChildren() != 1)
+      {
+        std::stringstream ss;
+        ss << "operands in term " << n << " are " << n.getNumChildren()
+           << ", but TUPLE_PROJECT expects 1 operand.";
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+      TypeNode tupleType = n[0].getType(check);
+      if (!tupleType.isTuple())
+      {
+        std::stringstream ss;
+        ss << "TUPLE_PROJECT expects a tuple for " << n[0] << ". Found" << tupleType;
+        throw TypeCheckingExceptionPrivate(n, ss.str());
+      }
+
+      // make sure all indices are less than the length of the tuple type
+      DType dType = tupleType.getDType();
+      DTypeConstructor constructor = dType[0];
+      size_t numArgs = constructor.getNumArgs();
+      for (uint32_t index : indices)
+      {
+        std::stringstream ss;
+        if (index >= numArgs)
+        {
+          ss << "Project index " << index << " in term " << n
+             << " is >= " << numArgs << " which is the length of tuple " << n[0]
+             << std::endl;
+          throw TypeCheckingExceptionPrivate(n, ss.str());
+        }
+      }
+    }
+    TypeNode tupleType = n[0].getType(check);
+    std::vector<TypeNode> types;
+    DType dType = tupleType.getDType();
+    DTypeConstructor constructor = dType[0];
+    for (uint32_t index : indices)
+    {
+      types.push_back(constructor.getArgType(index));
+    }
+    return nm->mkTupleType(types);
+  }
+}; /* class TupleProjectTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */

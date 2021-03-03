@@ -20,6 +20,7 @@
 #include "options/theory_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/theory_model.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
