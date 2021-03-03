@@ -42,8 +42,6 @@
 #include "util/resource_manager.h"
 #include "util/result.h"
 
-using namespace std;
-
 namespace CVC4 {
 namespace prop {
 
@@ -86,7 +84,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_resourceManager(rm),
       d_outMgr(outMgr)
 {
-  Debug("prop") << "Constructing the PropEngine" << endl;
+  Debug("prop") << "Constructing the PropEngine" << std::endl;
 
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
   d_decisionEngine->init();  // enable appropriate strategies
@@ -149,7 +147,7 @@ void PropEngine::finishInit()
 }
 
 PropEngine::~PropEngine() {
-  Debug("prop") << "Destructing the PropEngine" << endl;
+  Debug("prop") << "Destructing the PropEngine" << std::endl;
   d_decisionEngine->shutdown();
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
@@ -182,7 +180,7 @@ void PropEngine::notifyPreprocessedAssertions(
 
 void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "assertFormula(" << node << ")" << endl;
+  Debug("prop") << "assertFormula(" << node << ")" << std::endl;
   d_decisionEngine->addAssertion(node);
   assertInternal(node, false, false, true);
 }
@@ -190,7 +188,7 @@ void PropEngine::assertFormula(TNode node) {
 void PropEngine::assertSkolemDefinition(TNode node, TNode skolem)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "assertFormula(" << node << ")" << endl;
+  Debug("prop") << "assertFormula(" << node << ")" << std::endl;
   d_decisionEngine->addSkolemDefinition(node, skolem);
   assertInternal(node, false, false, true);
 }
@@ -238,7 +236,7 @@ void PropEngine::assertTrustedLemmaInternal(theory::TrustNode trn,
                                             bool removable)
 {
   Node node = trn.getNode();
-  Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
+  Debug("prop::lemmas") << "assertLemma(" << node << ")" << std::endl;
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
   Assert(!isProofEnabled() || trn.getGenerator() != nullptr);
   assertInternal(trn.getNode(), negated, removable, false, trn.getGenerator());
@@ -295,7 +293,7 @@ void PropEngine::assertLemmasInternal(
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
-  Debug("prop") << "requirePhase(" << n << ", " << phase << ")" << endl;
+  Debug("prop") << "requirePhase(" << n << ", " << phase << ")" << std::endl;
 
   Assert(n.getType().isBoolean());
   SatLiteral lit = d_cnfStream->getLiteral(n);
@@ -310,26 +308,26 @@ bool PropEngine::isDecision(Node lit) const {
 void PropEngine::printSatisfyingAssignment(){
   const CnfStream::NodeToLiteralMap& transCache =
     d_cnfStream->getTranslationCache();
-  Debug("prop-value") << "Literal | Value | Expr" << endl
+  Debug("prop-value") << "Literal | Value | Expr" << std::endl
                       << "----------------------------------------"
-                      << "-----------------" << endl;
+                      << "-----------------" << std::endl;
   for(CnfStream::NodeToLiteralMap::const_iterator i = transCache.begin(),
       end = transCache.end();
       i != end;
       ++i) {
-    pair<Node, SatLiteral> curr = *i;
+    std::pair<Node, SatLiteral> curr = *i;
     SatLiteral l = curr.second;
     if(!l.isNegated()) {
       Node n = curr.first;
       SatValue value = d_satSolver->modelValue(l);
-      Debug("prop-value") << "'" << l << "' " << value << " " << n << endl;
+      Debug("prop-value") << "'" << l << "' " << value << " " << n << std::endl;
     }
   }
 }
 
 Result PropEngine::checkSat() {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "PropEngine::checkSat()" << endl;
+  Debug("prop") << "PropEngine::checkSat()" << std::endl;
 
   // Mark that we are in the checkSat
   ScopedBool scopedBool(d_inCheckSat);
@@ -363,7 +361,7 @@ Result PropEngine::checkSat() {
     printSatisfyingAssignment();
   }
 
-  Debug("prop") << "PropEngine::checkSat() => " << result << endl;
+  Debug("prop") << "PropEngine::checkSat() => " << result << std::endl;
   if(result == SAT_VALUE_TRUE && d_theoryEngine->isIncomplete()) {
     return Result(Result::SAT_UNKNOWN, Result::INCOMPLETE);
   }
@@ -494,20 +492,20 @@ void PropEngine::push()
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
-  Debug("prop") << "push()" << endl;
+  Debug("prop") << "push()" << std::endl;
 }
 
 void PropEngine::pop()
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
-  Debug("prop") << "pop()" << endl;
+  Debug("prop") << "pop()" << std::endl;
 }
 
 void PropEngine::resetTrail()
 {
   d_satSolver->resetTrail();
-  Debug("prop") << "resetTrail()" << endl;
+  Debug("prop") << "resetTrail()" << std::endl;
 }
 
 unsigned PropEngine::getAssertionLevel() const
@@ -525,7 +523,7 @@ void PropEngine::interrupt()
 
   d_interrupted = true;
   d_satSolver->interrupt();
-  Debug("prop") << "interrupt()" << endl;
+  Debug("prop") << "interrupt()" << std::endl;
 }
 
 void PropEngine::spendResource(ResourceManager::Resource r)
