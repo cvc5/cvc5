@@ -14,6 +14,8 @@
 
 #include "expr/proof_ensure_closed.h"
 
+#include <sstream>
+
 #include "expr/proof_generator.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_algorithm.h"
