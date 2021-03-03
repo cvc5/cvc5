@@ -181,7 +181,7 @@ class SkolemManager
    */
   std::map<Node, ProofGenerator*> d_gens;
   /** Get or make skolem attribute for term w, which may be a witness term */
-  static Node getOrMakeSkolem(Node w,
+  static Node mkSkolemInternal(Node w,
                               const std::string& prefix,
                               const std::string& comment,
                               int flags);

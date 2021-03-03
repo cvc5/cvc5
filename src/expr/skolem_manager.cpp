@@ -22,6 +22,8 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
+// witness, original are analogous, but share skolems
+  
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
 struct WitnessFormAttributeId
@@ -34,16 +36,11 @@ struct SkolemFormAttributeId
 };
 typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
 
-// Maps terms to their purify skolem variables
-struct PurifySkolemAttributeId
-{
-};
-typedef expr::Attribute<PurifySkolemAttributeId, Node> PurifySkolemAttribute;
-
 struct OriginalFormAttributeId
 {
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
+
 
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
@@ -53,6 +50,7 @@ Node SkolemManager::mkSkolem(Node v,
                              ProofGenerator* pg,
                              bool retWitness)
 {
+  //AlwaysAssert (!expr::hasSubtermKind(WITNESS, pred)) << "Witness term with nested witness " << pred;
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
   NodeManager* nm = NodeManager::currentNM();
@@ -71,7 +69,7 @@ Node SkolemManager::mkSkolem(Node v,
     // matter since either should be able to prove q.
     d_gens[q] = pg;
   }
-  Node k = getOrMakeSkolem(w, prefix, comment, flags);
+  Node k = mkSkolemInternal(w, prefix, comment, flags);
   // set witness form attribute for k
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
@@ -162,9 +160,13 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    int flags)
 {
   Node to = getOriginalForm(t);
-  Node k = getOrMakeSkolem(to, prefix, comment, flags);
+  //AlwaysAssert (!expr::hasSubtermKind(WITNESS, to)) << "Purifying a term with witness " << to;
+
+  Node k = mkSkolemInternal(to, prefix, comment, flags);
+  // set original form attribute for k
   OriginalFormAttribute ofa;
   k.setAttribute(ofa, to);
+
   Trace("sk-manager-skolem")
       << "skolem: " << k << " purify " << to << std::endl;
   return k;
@@ -270,21 +272,21 @@ Node SkolemManager::getOriginalForm(Node n)
 }
 
 
-Node SkolemManager::getOrMakeSkolem(Node w,
+Node SkolemManager::mkSkolemInternal(Node w,
                                     const std::string& prefix,
                                     const std::string& comment,
                                     int flags)
 {
+  NodeManager* nm = NodeManager::currentNM();
   // w is not necessarily a witness term
   SkolemFormAttribute sfa;
+  Node k;
   // could already have a skolem if we used w already
   if (w.hasAttribute(sfa))
   {
     return w.getAttribute(sfa);
   }
-  NodeManager* nm = NodeManager::currentNM();
   // make the new skolem
-  Node k;
   if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
   {
     Assert (w.getType().isBoolean());
@@ -294,8 +296,8 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   {
     k = nm->mkSkolem(prefix, w.getType(), comment, flags);
   }
-  // set skolem form attribute for w
   w.setAttribute(sfa, k);
+  // set skolem form attribute for w
   Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
                       << std::endl;
   return k;
