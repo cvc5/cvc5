@@ -14,6 +14,8 @@
 
 #include "expr/sygus_datatype.h"
 
+#include <sstream>
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
