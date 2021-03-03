@@ -91,7 +91,7 @@ Node RewriteRule<ConcatExtractMerge>::apply(TNode node) {
     // If the next one can be merged, try to merge
     bool merged = false;
     if (next.getKind() == kind::BITVECTOR_EXTRACT && current[0] == next[0]) {
-      //x[i : j] @ x[j − 1 : k] -> c x[i : k]
+      // x[i : j] @ x[j - 1 : k] -> c x[i : k]
       unsigned nextHigh = utils::getExtractHigh(next);
       unsigned nextLow  = utils::getExtractLow(next);
       if(nextHigh + 1 == currentLow) {
