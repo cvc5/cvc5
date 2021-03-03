@@ -21,12 +21,14 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/theory_model.h"
-#include "util/cardinality.h"
 
 namespace CVC4 {
 
 class SmtEngine;
+
+namespace theory {
+class TheoryModel;
+}
 
 namespace smt {
 

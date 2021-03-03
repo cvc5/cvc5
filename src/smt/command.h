@@ -23,7 +23,6 @@
 #define CVC4__COMMAND_H
 
 #include <iosfwd>
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -40,8 +39,6 @@ class Term;
 }  // namespace api
 
 class SymbolManager;
-class UnsatCore;
-class SmtEngine;
 class Command;
 class CommandStatus;
 

@@ -15,6 +15,8 @@
  ** \todo document this file
  **/
 
+#include <sstream>
+
 #include "expr/kind.h"
 
 namespace CVC4 {

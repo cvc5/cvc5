@@ -16,6 +16,7 @@
 #include "theory/datatypes/theory_datatypes.h"
 
 #include <map>
+#include <sstream>
 
 #include "base/check.h"
 #include "expr/dtype.h"

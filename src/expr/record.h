@@ -19,7 +19,6 @@
 #ifndef CVC4__RECORD_H
 #define CVC4__RECORD_H
 
-#include <functional>
 #include <iostream>
 #include <string>
 #include <vector>

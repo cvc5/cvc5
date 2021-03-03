@@ -14,11 +14,16 @@
 
 #include "preprocessing/passes/fun_def_fmf.h"
 
+#include <sstream>
+
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "proof/proof_manager.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;

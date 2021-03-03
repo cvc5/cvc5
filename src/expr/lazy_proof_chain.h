@@ -17,7 +17,6 @@
 #ifndef CVC4__EXPR__LAZY_PROOF_CHAIN_H
 #define CVC4__EXPR__LAZY_PROOF_CHAIN_H
 
-#include <unordered_map>
 #include <vector>
 
 #include "context/cdhashmap.h"

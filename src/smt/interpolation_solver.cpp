@@ -14,6 +14,8 @@
 
 #include "smt/interpolation_solver.h"
 
+#include <sstream>
+
 #include "options/smt_options.h"
 #include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"

@@ -14,6 +14,7 @@
 
 #include "expr/sequence.h"
 
+#include <sstream>
 #include <vector>
 
 #include "expr/node.h"

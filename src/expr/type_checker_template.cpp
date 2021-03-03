@@ -14,6 +14,8 @@
  ** TypeChecker implementation.
  **/
 
+#include <sstream>
+
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/type_checker.h"

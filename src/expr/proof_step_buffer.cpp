@@ -14,6 +14,8 @@
 
 #include "expr/proof_step_buffer.h"
 
+#include "expr/proof_checker.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {

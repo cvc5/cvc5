@@ -16,11 +16,14 @@
 
 #include "preprocessing/passes/nl_ext_purify.h"
 
+#include "preprocessing/assertion_pipeline.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 Node NlExtPurify::purifyNlTerms(TNode n,

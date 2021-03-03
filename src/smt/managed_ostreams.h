@@ -22,10 +22,9 @@
 
 #include <ostream>
 
-#include "options/open_ostream.h"
-#include "smt/update_ostream.h"
-
 namespace CVC4 {
+
+class OstreamOpener;
 
 /** This abstracts the management of ostream memory and initialization. */
 class ManagedOstream {

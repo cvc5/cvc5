@@ -887,8 +887,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
  private:
   /* .......................................................................  */
-  /** The type of our internal assertion list */
-  typedef context::CDList<Node> AssertionList;
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;

@@ -17,6 +17,7 @@
 #include <limits>
 #include <sstream>
 
+#include "base/exception.h"
 #include "test.h"
 #include "util/integer.h"
 

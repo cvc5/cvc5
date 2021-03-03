@@ -33,13 +33,13 @@
 
 #include <string>
 
-#include "preprocessing/assertion_pipeline.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "smt/smt_engine_scope.h"
-#include "theory/logic_info.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace preprocessing {
+
+class AssertionPipeline;
+class PreprocessingPassContext;
 
 /**
  * Preprocessing passes return a result which indicates whether a conflict has

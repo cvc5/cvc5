@@ -14,6 +14,9 @@
 
 #include "expr/term_conversion_proof_generator.h"
 
+#include "expr/proof_checker.h"
+#include "expr/proof_node.h"
+#include "expr/term_context.h"
 #include "expr/term_context_stack.h"
 
 using namespace CVC4::kind;

@@ -17,10 +17,15 @@
 #include <vector>
 
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
+#include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 
+using namespace std;
 using namespace CVC4;
 using namespace CVC4::theory;
 
