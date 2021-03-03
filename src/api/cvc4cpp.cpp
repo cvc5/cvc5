@@ -5594,11 +5594,6 @@ void Solver::resetAssertions(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Node stringToSexpr(const std::string& value)
-{
-  return Node::null();
-}
-
 /**
  *  ( set-info <attribute> )
  */
