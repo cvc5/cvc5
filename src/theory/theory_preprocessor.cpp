@@ -312,7 +312,7 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (tid != THEORY_BOOL)
     {
-      Node ppRewritten = ppTheoryRewrite(current);
+      Node ppRewritten = ppTheoryRewrite(current, newLemmas, newSkolems);
       Assert(Rewriter::rewrite(ppRewritten) == ppRewritten);
       if (isProofEnabled() && ppRewritten != current)
       {
@@ -399,7 +399,9 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
@@ -408,7 +410,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   }
   if (term.getNumChildren() == 0)
   {
-    return preprocessWithProof(term);
+    return preprocessWithProof(term, newLemmas, newSkolems);
   }
   // should be in rewritten form here
   Assert(term == Rewriter::rewrite(term));
@@ -424,12 +426,12 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     }
     for (const Node& nt : term)
     {
-      newNode << ppTheoryRewrite(nt);
+      newNode << ppTheoryRewrite(nt, newLemmas, newSkolems);
     }
     newTerm = Node(newNode);
     newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
   }
-  newTerm = preprocessWithProof(newTerm);
+  newTerm = preprocessWithProof(newTerm, newLemmas, newSkolems);
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
   return newTerm;
@@ -455,7 +457,9 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
   return termr;
 }
 
-Node TheoryPreprocessor::preprocessWithProof(Node term)
+Node TheoryPreprocessor::preprocessWithProof(Node term,
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems)
 {
   // Important that it is in rewritten form, to ensure that the rewrite steps
   // recorded in d_tpg are functional. In other words, there should not
@@ -481,20 +485,36 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   }
   // call ppRewrite for the given theory
   TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
-  if (trn.isNull())
+  Node termr = term;
+  if (!trn.isNull())
   {
-    // no change, return original term
-    return term;
+    termr = trn.getNode();
+    Assert(term != termr);
+    Assert(term != termr);
+    if (isProofEnabled())
+    {
+      registerTrustedRewrite(trn, d_tpg.get(), false);
+    }
   }
-  Node termr = trn.getNode();
-  Assert(term != termr);
-  if (isProofEnabled())
+  // if witness, we must eliminate eagerly
+  if (false && termr.getKind()==kind::WITNESS)
   {
-    registerTrustedRewrite(trn, d_tpg.get(), false);
+    TrustNode ttfr = d_tfr.run(termr, newLemmas, newSkolems, false);
+    Assert (!ttfr.isNull());
+    if (isProofEnabled())
+    {
+      registerTrustedRewrite(ttfr, d_tpg.get(), false);
+    }
+    termr = ttfr.getNode();
+  }
+  if (termr==term)
+  {
+    // no change, return
+    return term;
   }
   // Rewrite again here, which notice is a *pre* rewrite.
   termr = rewriteWithProof(termr, d_tpg.get(), true);
-  return ppTheoryRewrite(termr);
+  return ppTheoryRewrite(termr, newLemmas, newSkolems);
 }
 
 bool TheoryPreprocessor::isProofEnabled() const { return d_tpg != nullptr; }

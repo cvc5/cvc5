@@ -188,7 +188,9 @@ class TheoryPreprocessor
    * applies ppRewrite and rewriting until fixed point on term using
    * the method preprocessWithProof helper below.
    */
-  Node ppTheoryRewrite(TNode term);
+  Node ppTheoryRewrite(TNode term,
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems);
   /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
@@ -204,7 +206,9 @@ class TheoryPreprocessor
    * the preprocessed and rewritten form of term. It should be the case that
    * term is already in rewritten form.
    */
-  Node preprocessWithProof(Node term);
+  Node preprocessWithProof(Node term,
+                                    std::vector<TrustNode>& newLemmas,
+                                    std::vector<Node>& newSkolems);
   /**
    * Register rewrite trn based on trust node into term conversion generator
    * pg, which uses THEORY_PREPROCESS as a step if no proof generator is
