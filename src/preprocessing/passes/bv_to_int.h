@@ -69,10 +69,8 @@
 #define __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
 
 #include "context/cdhashmap.h"
-#include "context/cdo.h"
-#include "context/context.h"
+#include "context/cdhashset.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/nl/iand_utils.h"
 
 namespace CVC4 {
@@ -104,7 +102,7 @@ class BVToInt : public PreprocessingPass
    * @return a node representing the shift.
    *
    */
-  Node createShiftNode(vector<Node> children,
+  Node createShiftNode(std::vector<Node> children,
                        uint64_t bvsize,
                        bool isLeftShift);
 
@@ -209,7 +207,7 @@ class BVToInt : public PreprocessingPass
    */
   Node reconstructNode(Node originalNode,
                        TypeNode resultType,
-                       const vector<Node>& translated_children);
+                       const std::vector<Node>& translated_children);
 
   /**
    * A useful utility function.
@@ -247,7 +245,7 @@ class BVToInt : public PreprocessingPass
    * that have children.
    */
   Node translateWithChildren(Node original,
-                             const vector<Node>& translated_children);
+                             const std::vector<Node>& translated_children);
 
   /**
    * Performs the actual translation to integers for nodes

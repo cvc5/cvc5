@@ -27,16 +27,16 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace preprocessing {
+
+class AssertionPipeline;
+
 namespace util {
 
-class IncomingArcCounter;
-class TermITEHeightCounter;
 class ITECompressor;
 class ITESimplifier;
 class ITECareSimplifier;

@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 
 using namespace std;

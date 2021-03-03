@@ -17,14 +17,11 @@
 #ifndef CVC4__EXPR__LAZY_PROOF_H
 #define CVC4__EXPR__LAZY_PROOF_H
 
-#include <unordered_map>
-#include <vector>
-
 #include "expr/proof.h"
-#include "expr/proof_generator.h"
 
 namespace CVC4 {
 
+class ProofGenerator;
 class ProofNodeManager;
 
 /**

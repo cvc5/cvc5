@@ -20,6 +20,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"

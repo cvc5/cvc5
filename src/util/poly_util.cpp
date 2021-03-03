@@ -27,6 +27,7 @@
 #include <poly/polyxx.h>
 
 #include <map>
+#include <sstream>
 
 #include "base/check.h"
 #include "maybe.h"

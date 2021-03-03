@@ -18,12 +18,9 @@
 #define CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
 
 #include <map>
-#include <string>
 #include <vector>
 #include "expr/node.h"
-#include "expr/type_node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {

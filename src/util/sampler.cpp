@@ -17,8 +17,11 @@
 
 #include "util/sampler.h"
 
+#include <sstream>
+
 #include "base/check.h"
 #include "util/bitvector.h"
+#include "util/random.h"
 
 namespace CVC4 {
 

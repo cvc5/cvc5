@@ -16,6 +16,8 @@
 
 #include "smt/node_command.h"
 
+#include <sstream>
+
 #include "printer/printer.h"
 
 namespace CVC4 {

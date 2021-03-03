@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
