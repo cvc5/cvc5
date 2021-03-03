@@ -217,7 +217,7 @@ class Printer
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const;
+                                  const std::string& value) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,
@@ -226,7 +226,7 @@ class Printer
   /** Print set-option command */
   virtual void toStreamCmdSetOption(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const;
+                                    const std::string& value) const;
 
   /** Print get-option command */
   virtual void toStreamCmdGetOption(std::ostream& out,

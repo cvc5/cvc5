@@ -76,7 +76,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   Assert (!query.isNull());
   initializeSubsolver(checker);
   // also set the options
-  checker->setOption("sygus-rr-synth-input", false);
+  checker->setOption("sygus-rr-synth-input", "false");
   checker->setOption("input-language", "smt2");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
