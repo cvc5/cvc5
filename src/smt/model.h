@@ -27,7 +27,7 @@ namespace CVC4 {
 class SmtEngine;
 
 namespace theory {
-  class TheoryModel;
+class TheoryModel;
 }
 
 namespace smt {

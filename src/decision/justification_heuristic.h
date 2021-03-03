@@ -31,8 +31,8 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "decision/decision_strategy.h"
-#include "options/decision_weight.h"
 #include "expr/node.h"
+#include "options/decision_weight.h"
 #include "prop/sat_solver_types.h"
 #include "util/statistics_registry.h"
 
@@ -46,9 +46,14 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   typedef std::vector<std::pair<TNode, TNode> > SkolemList;
   typedef context::CDHashMap<TNode, SkolemList, TNodeHashFunction> SkolemCache;
   typedef std::vector<TNode> ChildList;
-  typedef context::CDHashMap<TNode,std::pair<ChildList,ChildList>,TNodeHashFunction> ChildCache;
+  typedef context::
+      CDHashMap<TNode, std::pair<ChildList, ChildList>, TNodeHashFunction>
+          ChildCache;
   typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
-  typedef context::CDHashMap<TNode,std::pair<DecisionWeight,DecisionWeight>,TNodeHashFunction> WeightCache;
+  typedef context::CDHashMap<TNode,
+                             std::pair<DecisionWeight, DecisionWeight>,
+                             TNodeHashFunction>
+      WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
   typedef context::CDHashSet<Node,NodeHashFunction> JustifiedSet;
@@ -179,10 +184,14 @@ public:
 
   SearchResult handleAndOrEasy(TNode node, prop::SatValue desiredVal);
   SearchResult handleAndOrHard(TNode node, prop::SatValue desiredVal);
-  SearchResult handleBinaryEasy(TNode node1, prop::SatValue desiredVal1,
-                        TNode node2, prop::SatValue desiredVal2);
-  SearchResult handleBinaryHard(TNode node1, prop::SatValue desiredVal1,
-                        TNode node2, prop::SatValue desiredVal2);
+  SearchResult handleBinaryEasy(TNode node1,
+                                prop::SatValue desiredVal1,
+                                TNode node2,
+                                prop::SatValue desiredVal2);
+  SearchResult handleBinaryHard(TNode node1,
+                                prop::SatValue desiredVal1,
+                                TNode node2,
+                                prop::SatValue desiredVal2);
   SearchResult handleITE(TNode node, prop::SatValue desiredVal);
   SearchResult handleEmbeddedSkolems(TNode node);
 };/* class JustificationHeuristic */

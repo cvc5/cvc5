@@ -25,7 +25,7 @@
 
 namespace CVC4 {
 namespace preprocessing {
-  class PreprocessingPassContext;
+class PreprocessingPassContext;
 }
 namespace smt {
 

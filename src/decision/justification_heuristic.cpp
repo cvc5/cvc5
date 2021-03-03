@@ -18,14 +18,14 @@
  **/
 #include "justification_heuristic.h"
 
-#include "decision/decision_engine.h"
 #include "decision/decision_attributes.h"
+#include "decision/decision_engine.h"
 #include "expr/kind.h"
 #include "expr/node_manager.h"
 #include "options/decision_options.h"
-#include "theory/rewriter.h"
-#include "smt/term_formula_removal.h"
 #include "smt/smt_statistics_registry.h"
+#include "smt/term_formula_removal.h"
+#include "theory/rewriter.h"
 #include "util/random.h"
 
 namespace CVC4 {
@@ -70,8 +70,10 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
 {
   if(options::decisionThreshold() > 0) {
     bool stopSearchTmp = false;
-    prop::SatLiteral lit = getNextThresh(stopSearchTmp, options::decisionThreshold());
-    if(lit != prop::undefSatLiteral) {
+    prop::SatLiteral lit =
+        getNextThresh(stopSearchTmp, options::decisionThreshold());
+    if (lit != prop::undefSatLiteral)
+    {
       Assert(stopSearchTmp == false);
       return lit;
     }
@@ -91,8 +93,9 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
     for(JustifiedSet::key_iterator i = d_justified.key_begin();
         i != d_justified.key_end(); ++i) {
       TNode n = *i;
-      prop::SatLiteral l = d_decisionEngine->hasSatLiteral(n) ?
-        d_decisionEngine->getSatLiteral(n) : -1;
+      prop::SatLiteral l = d_decisionEngine->hasSatLiteral(n)
+                               ? d_decisionEngine->getSatLiteral(n)
+                               : -1;
       prop::SatValue v = tryGetSatValue(n);
       Trace("justified") <<"{ "<<l<<"}" << n <<": "<<v << std::endl;
     }
@@ -110,7 +113,8 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
 
     litDecision = findSplitter(d_assertions[i], desiredVal);
 
-    if(litDecision != prop::undefSatLiteral) {
+    if (litDecision != prop::undefSatLiteral)
+    {
       setPrvsIndex(i);
       Trace("decision") << "jh: splitting on " << litDecision << std::endl;
       ++d_helpfulness;
@@ -139,23 +143,24 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, D
 
   // SAT solver can stop...
   stopSearch = true;
-  if(d_curThreshold == 0)
-    d_decisionEngine->setResult(prop::SAT_VALUE_TRUE);
+  if (d_curThreshold == 0) d_decisionEngine->setResult(prop::SAT_VALUE_TRUE);
   return prop::undefSatLiteral;
 }
 
-
-inline void computeXorIffDesiredValues
-(Kind k, prop::SatValue desiredVal, prop::SatValue &desiredVal1, prop::SatValue &desiredVal2)
+inline void computeXorIffDesiredValues(Kind k,
+                                       prop::SatValue desiredVal,
+                                       prop::SatValue& desiredVal1,
+                                       prop::SatValue& desiredVal2)
 {
   Assert(k == kind::EQUAL || k == kind::XOR);
 
   bool shouldInvert =
-    (desiredVal == prop::SAT_VALUE_TRUE && k == kind::EQUAL) ||
-    (desiredVal == prop::SAT_VALUE_FALSE && k == kind::XOR);
+      (desiredVal == prop::SAT_VALUE_TRUE && k == kind::EQUAL)
+      || (desiredVal == prop::SAT_VALUE_FALSE && k == kind::XOR);
 
-  if(desiredVal1 == prop::SAT_VALUE_UNKNOWN &&
-     desiredVal2 == prop::SAT_VALUE_UNKNOWN) {
+  if (desiredVal1 == prop::SAT_VALUE_UNKNOWN
+      && desiredVal2 == prop::SAT_VALUE_UNKNOWN)
+  {
     // CHOICE: pick one of them arbitarily
     desiredVal1 = prop::SAT_VALUE_FALSE;
   }
@@ -217,9 +222,9 @@ bool JustificationHeuristic::checkJustified(TNode n)
 
 DecisionWeight JustificationHeuristic::getExploredThreshold(TNode n)
 {
-  return
-    d_exploredThreshold.find(n) == d_exploredThreshold.end() ?
-    std::numeric_limits<DecisionWeight>::max() : d_exploredThreshold[n];
+  return d_exploredThreshold.find(n) == d_exploredThreshold.end()
+             ? std::numeric_limits<DecisionWeight>::max()
+             : d_exploredThreshold[n];
 }
 
 void JustificationHeuristic::setExploredThreshold(TNode n)
@@ -279,9 +284,9 @@ DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity
         }
       } else if(k == kind::IMPLIES) {
         dW1 = std::min(getWeightPolarized(n[0], false),
-                  getWeightPolarized(n[1], true));
+                       getWeightPolarized(n[1], true));
         dW2 = std::max(getWeightPolarized(n[0], true),
-                  getWeightPolarized(n[1], false));
+                       getWeightPolarized(n[1], false));
       } else if(k == kind::NOT) {
         dW1 = getWeightPolarized(n[0], false);
         dW2 = getWeightPolarized(n[0], true);

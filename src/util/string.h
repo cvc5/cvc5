@@ -20,6 +20,7 @@
 #include <iosfwd>
 #include <string>
 #include <vector>
+
 #include "util/rational.h"
 
 namespace CVC4 {

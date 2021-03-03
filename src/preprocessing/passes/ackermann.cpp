@@ -22,7 +22,9 @@
  **/
 
 #include "preprocessing/passes/ackermann.h"
+
 #include <cmath>
+
 #include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "options/options.h"

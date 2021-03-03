@@ -37,9 +37,10 @@
 #ifndef CVC4__SAFE_PRINT_H
 #define CVC4__SAFE_PRINT_H
 
+#include <unistd.h>
+
 #include <cstring>
 #include <string>
-#include <unistd.h>
 
 namespace CVC4 {
 

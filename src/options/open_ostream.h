@@ -20,8 +20,8 @@
 #ifndef CVC4__OPEN_OSTREAM_H
 #define CVC4__OPEN_OSTREAM_H
 
-#include <map>
 #include <iosfwd>
+#include <map>
 #include <string>
 #include <utility>
 

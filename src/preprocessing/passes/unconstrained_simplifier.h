@@ -31,7 +31,7 @@
 
 namespace CVC4 {
 namespace context {
-  class Context;
+class Context;
 }
 namespace preprocessing {
 namespace passes {

@@ -179,9 +179,9 @@ bool isInputLang_smt2(InputLanguage lang) CVC4_PUBLIC;
 bool isOutputLang_smt2(OutputLanguage lang) CVC4_PUBLIC;
 
 /**
-  * Is the language smtlib 2.5 or above? If exact=true, then this method returns
-  * false if the input language is not exactly SMT-LIB 2.5.
-  */
+ * Is the language smtlib 2.5 or above? If exact=true, then this method returns
+ * false if the input language is not exactly SMT-LIB 2.5.
+ */
 bool isInputLang_smt2_5(InputLanguage lang, bool exact = false) CVC4_PUBLIC;
 bool isOutputLang_smt2_5(OutputLanguage lang, bool exact = false) CVC4_PUBLIC;
 /**

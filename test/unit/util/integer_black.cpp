@@ -17,8 +17,8 @@
 #include <limits>
 #include <sstream>
 
-#include "test.h"
 #include "base/exception.h"
+#include "test.h"
 #include "util/integer.h"
 
 namespace CVC4 {

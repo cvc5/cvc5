@@ -27,13 +27,13 @@
 #include "util/resource_manager.h"
 
 namespace CVC4 {
-  class SmtEngine;
-  class TheoryEngine;
+class SmtEngine;
+class TheoryEngine;
 namespace theory::booleans {
-  class CircuitPropagator;
+class CircuitPropagator;
 }
 namespace prop {
-  class PropEngine;
+class PropEngine;
 }
 namespace preprocessing {
 

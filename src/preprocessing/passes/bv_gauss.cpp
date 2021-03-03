@@ -17,6 +17,9 @@
 
 #include "preprocessing/passes/bv_gauss.h"
 
+#include <unordered_map>
+#include <vector>
+
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -24,10 +27,6 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
-
-#include <unordered_map>
-#include <vector>
-
 
 using namespace CVC4;
 using namespace CVC4::theory;

@@ -30,11 +30,11 @@ using namespace std;
 namespace CVC4 {
 
 std::string Exception::toString() const
-  {
-    std::stringstream ss;
-    toStream(ss);
-    return ss.str();
-  }
+{
+  std::stringstream ss;
+  toStream(ss);
+  return ss.str();
+}
 
 thread_local LastExceptionBuffer* LastExceptionBuffer::s_currentBuffer = nullptr;
 

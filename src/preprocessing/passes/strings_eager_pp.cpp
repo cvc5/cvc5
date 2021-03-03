@@ -15,8 +15,8 @@
 #include "preprocessing/passes/strings_eager_pp.h"
 
 #include "preprocessing/assertion_pipeline.h"
-#include "theory/strings/theory_strings_preprocess.h"
 #include "theory/rewriter.h"
+#include "theory/strings/theory_strings_preprocess.h"
 
 using namespace CVC4::theory;
 

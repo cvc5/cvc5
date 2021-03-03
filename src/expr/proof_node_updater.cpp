@@ -15,9 +15,9 @@
 #include "expr/proof_node_updater.h"
 
 #include "expr/lazy_proof.h"
-#include "expr/proof_node_manager.h"
 #include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 
