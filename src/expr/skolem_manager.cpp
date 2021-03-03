@@ -75,7 +75,8 @@ Node SkolemManager::mkSkolem(Node v,
   // set witness form attribute for k
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);
-  Trace("sk-manager-skolem") << "skolem: " << k << " witness " << w << std::endl;
+  Trace("sk-manager-skolem")
+      << "skolem: " << k << " witness " << w << std::endl;
   // return the witness term or the skolem based on retWitness
   return retWitness ? w : k;
 }
@@ -164,7 +165,8 @@ Node SkolemManager::mkPurifySkolem(Node t,
   Node k = getOrMakeSkolem(to, prefix, comment, flags);
   OriginalFormAttribute ofa;
   k.setAttribute(ofa, to);
-  Trace("sk-manager-skolem") << "skolem: " << k << " purify " << to << std::endl;
+  Trace("sk-manager-skolem")
+      << "skolem: " << k << " purify " << to << std::endl;
   return k;
 }
 
@@ -185,7 +187,7 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
 
 Node SkolemManager::getWitnessForm(Node k)
 {
-  Assert (k.getKind()==SKOLEM);
+  Assert(k.getKind() == SKOLEM);
   // simply look up the witness form for k via an attribute
   WitnessFormAttribute wfa;
   return k.getAttribute(wfa);
@@ -197,7 +199,8 @@ Node SkolemManager::getOriginalForm(Node n)
   {
     return n;
   }
-  Trace("sk-manager-debug") << "SkolemManager::getOriginalForm " << n << std::endl;
+  Trace("sk-manager-debug")
+      << "SkolemManager::getOriginalForm " << n << std::endl;
   OriginalFormAttribute ofa;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;

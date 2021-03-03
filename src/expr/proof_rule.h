@@ -141,11 +141,11 @@ enum class PfRule : uint32_t
   // More generally, this rule also holds when:
   //   Rewriter::rewrite(toOriginal(F')) == true
   // where F' is the result of the left hand side of the equality above. Here,
-  // notice that we apply rewriting on the original form of F', meaning that this
-  // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. For example, this rule may justify the
-  // conclusion (= k t) where k is the purification Skolem for t, e.g. where
-  // the original form of k is t.
+  // notice that we apply rewriting on the original form of F', meaning that
+  // this rule may conclude an F whose Skolem form is justified by the
+  // definition of its (fresh) Skolem variables. For example, this rule may
+  // justify the conclusion (= k t) where k is the purification Skolem for t,
+  // e.g. where the original form of k is t.
   //
   // Furthermore, notice that the rewriting and substitution is applied only
   // within the side condition, meaning the rewritten form of the witness form

@@ -79,8 +79,7 @@ Node SkolemCache::mkTypedSkolemCached(
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it != d_skolemCache[a][b].end())
   {
-    Trace("skolem-cache") << "...return existing " << it->second
-                          << std::endl;
+    Trace("skolem-cache") << "...return existing " << it->second << std::endl;
     // already cached
     return it->second;
   }

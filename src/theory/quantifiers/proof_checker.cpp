@@ -67,7 +67,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   else if (id == PfRule::SKOLEM_INTRO)
   {
     Assert(children.empty());
-    Assert(args.size()==1);
+    Assert(args.size() == 1);
     Node t = SkolemManager::getOriginalForm(args[0]);
     return args[0].eqNode(t);
   }

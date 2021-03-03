@@ -76,6 +76,7 @@ class LfscPrintChannelLetifyNode : public LfscPrintChannel
   LfscPrintChannelLetifyNode(LetBinding& lbind);
   void printNode(TNode n) override;
   void printTrust(TNode res, PfRule src) override;
+
  private:
   /** The let binding */
   LetBinding& d_lbind;

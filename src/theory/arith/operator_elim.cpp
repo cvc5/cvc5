@@ -94,11 +94,8 @@ Node OperatorElim::eliminateOperators(Node node,
         Node zero = mkRationalNode(0);
         Node diff = nm->mkNode(MINUS, node[0], v);
         Node lem = mkInRange(diff, zero, one);
-        toIntSkolem =
-            mkWitnessTerm(v,
-                         lem,
-                         "toInt",
-                         "a conversion of a Real term to its Integer part");
+        toIntSkolem = mkWitnessTerm(
+            v, lem, "toInt", "a conversion of a Real term to its Integer part");
         d_to_int_skolem[node[0]] = toIntSkolem;
       }
       else
@@ -198,10 +195,8 @@ Node OperatorElim::eliminateOperators(Node node,
                               nm->mkNode(
                                   PLUS, v, nm->mkConst(Rational(-1))))))));
         }
-        intVar = mkWitnessTerm(v,
-                              lem,
-                              "linearIntDiv",
-                              "the result of an intdiv-by-k term");
+        intVar = mkWitnessTerm(
+            v, lem, "linearIntDiv", "the result of an intdiv-by-k term");
         d_int_div_skolem[rw] = intVar;
       }
       else
@@ -245,10 +240,8 @@ Node OperatorElim::eliminateOperators(Node node,
         Node lem = nm->mkNode(IMPLIES,
                               den.eqNode(nm->mkConst(Rational(0))).negate(),
                               nm->mkNode(MULT, den, v).eqNode(num));
-        var = mkWitnessTerm(v,
-                           lem,
-                           "nonlinearDiv",
-                           "the result of a non-linear div term");
+        var = mkWitnessTerm(
+            v, lem, "nonlinearDiv", "the result of a non-linear div term");
         d_div_skolem[rw] = var;
       }
       else
@@ -481,18 +474,14 @@ Node OperatorElim::getArithSkolemApp(Node n, ArithSkolemId asi)
 }
 
 Node OperatorElim::mkWitnessTerm(Node v,
-              Node pred,
-              const std::string& prefix,
-              const std::string& comment)
+                                 Node pred,
+                                 const std::string& prefix,
+                                 const std::string& comment)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node k = sm->mkSkolem(v,
-                         pred,
-                         prefix, comment,
-                         NodeManager::SKOLEM_DEFAULT,
-                         this,
-                         true);
+  Node k = sm->mkSkolem(
+      v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this, true);
   return k;
 }
 

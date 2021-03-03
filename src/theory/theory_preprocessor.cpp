@@ -400,8 +400,8 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
 Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
-                                    std::vector<TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems)
+                                         std::vector<TrustNode>& newLemmas,
+                                         std::vector<Node>& newSkolems)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
@@ -458,8 +458,8 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
 }
 
 Node TheoryPreprocessor::preprocessWithProof(Node term,
-                                    std::vector<TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems)
+                                             std::vector<TrustNode>& newLemmas,
+                                             std::vector<Node>& newSkolems)
 {
   // Important that it is in rewritten form, to ensure that the rewrite steps
   // recorded in d_tpg are functional. In other words, there should not
@@ -497,17 +497,17 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
     }
   }
   // if witness, we must eliminate eagerly
-  if (false && termr.getKind()==kind::WITNESS)
+  if (false && termr.getKind() == kind::WITNESS)
   {
     TrustNode ttfr = d_tfr.run(termr, newLemmas, newSkolems, false);
-    Assert (!ttfr.isNull());
+    Assert(!ttfr.isNull());
     if (isProofEnabled())
     {
       registerTrustedRewrite(ttfr, d_tpg.get(), false);
     }
     termr = ttfr.getNode();
   }
-  if (termr==term)
+  if (termr == term)
   {
     // no change, return
     return term;

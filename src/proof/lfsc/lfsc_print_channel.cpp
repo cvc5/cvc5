@@ -26,10 +26,7 @@ void LfscPrintChannelOut::printNode(TNode n)
   d_out << " " << n;
 }
 
-void LfscPrintChannelOut::printTypeNode(TypeNode tn)
-{
-  d_out << " " << tn;
-}
+void LfscPrintChannelOut::printTypeNode(TypeNode tn) { d_out << " " << tn; }
 
 void LfscPrintChannelOut::printHole() { d_out << " _ "; }
 void LfscPrintChannelOut::printTrust(TNode res, PfRule src)

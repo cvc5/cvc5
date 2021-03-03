@@ -108,13 +108,13 @@ class OperatorElim : public EagerProofGenerator
    * does not already exist.
    */
   Node getArithSkolem(ArithSkolemId asi);
-  /** 
+  /**
    * Make the witness term
    */
   Node mkWitnessTerm(Node v,
-                Node pred,
-                const std::string& prefix,
-                const std::string& comment);
+                     Node pred,
+                     const std::string& prefix,
+                     const std::string& comment);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function
