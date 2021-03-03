@@ -25,6 +25,9 @@
 #include "proof/lfsc/lfsc_util.h"
 
 namespace CVC4 {
+
+class ProofChecker;
+
 namespace proof {
 
 /**

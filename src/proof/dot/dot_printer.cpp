@@ -14,6 +14,9 @@
 
 #include "proof/dot/dot_printer.h"
 
+#include "expr/proof_node_manager.h"
+#include <sstream>
+
 namespace CVC4 {
 namespace proof {
 

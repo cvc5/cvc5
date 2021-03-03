@@ -30,6 +30,7 @@
 #include "smt/defined_function.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
+#include "theory/rewrite_db.h"
 
 namespace CVC4 {
 namespace smt {

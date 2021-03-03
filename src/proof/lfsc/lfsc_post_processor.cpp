@@ -19,7 +19,9 @@
 #include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
 #include "expr/proof_node_updater.h"
+#include "expr/proof_node_manager.h"
 #include "options/proof_options.h"
+#include "expr/proof_checker.h"
 
 using namespace CVC4::kind;
 

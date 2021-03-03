@@ -30,6 +30,10 @@ class ProofNode;
 class ProofNodeManager;
 class SmtEngine;
 
+namespace theory {
+  class RewriteDb;
+}
+
 namespace smt {
 
 class Assertions;

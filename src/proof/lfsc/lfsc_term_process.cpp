@@ -14,6 +14,8 @@
 
 #include "proof/lfsc/lfsc_term_process.h"
 
+#include <sstream>
+
 #include "expr/skolem_manager.h"
 #include "printer/smt2/smt2_printer.h"
 #include "theory/uf/theory_uf_rewriter.h"

@@ -14,9 +14,10 @@
 
 #include "theory/rewrite_proof_rule.h"
 
+#include <sstream>
+
 #include "theory/rewrite_db_sc.h"
 #include "theory/rewrite_db_term_process.h"
-
 #include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
