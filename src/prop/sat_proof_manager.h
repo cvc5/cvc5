@@ -21,10 +21,7 @@
 #include "expr/buffered_proof_generator.h"
 #include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
-#include "expr/proof.h"
-#include "expr/proof_node_manager.h"
 #include "prop/minisat/core/SolverTypes.h"
-#include "prop/cnf_stream.h"
 #include "prop/sat_solver_types.h"
 
 namespace Minisat {
@@ -32,7 +29,12 @@ class Solver;
 }
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
 namespace prop {
+
+class CnfStream;
 
 /**
  * This class is responsible for managing the proof production of the SAT

@@ -15,8 +15,9 @@
  **/
 #include "expr/node.h"
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 
 #include "base/exception.h"
 #include "base/output.h"

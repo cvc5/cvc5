@@ -15,14 +15,18 @@
 
 #include "preprocessing/passes/miplib_trick.h"
 
+#include <sstream>
 #include <vector>
 
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
@@ -30,6 +34,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 namespace {

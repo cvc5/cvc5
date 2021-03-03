@@ -15,8 +15,10 @@
 #include "smt/check_models.h"
 
 #include "options/smt_options.h"
+#include "smt/model.h"
 #include "smt/node_command.h"
 #include "smt/preprocessor.h"
+#include "smt/smt_solver.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"

@@ -20,9 +20,11 @@
 #include <map>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
+#include "expr/proof_rule.h"
 
 namespace CVC4 {
+
+class ProofNode;
 
 /** A class to convert ProofNode objects to s-expressions */
 class ProofNodeToSExpr

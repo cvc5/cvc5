@@ -14,6 +14,8 @@
 
 #include "expr/subs.h"
 
+#include <sstream>
+
 #include "theory/rewriter.h"
 
 namespace CVC4 {

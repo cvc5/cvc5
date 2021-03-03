@@ -21,7 +21,6 @@
 #define CVC4__UTIL_FLOATINGPOINT_SAMPLER_H
 
 #include "util/floatingpoint.h"
-#include "util/random.h"
 
 namespace CVC4 {
 

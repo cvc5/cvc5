@@ -25,10 +25,8 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
-#include "context/context.h"
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/substitutions.h"
 #include "util/maybe.h"
 #include "util/rational.h"

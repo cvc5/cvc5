@@ -18,13 +18,16 @@
 #define CVC4__EXPR__PROOF_NODE_UPDATER_H
 
 #include <map>
-#include <unordered_set>
+#include <memory>
 
-#include "expr/proof.h"
+#include "expr/node.h"
 #include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
+
+class CDProof;
+class ProofNode;
+class ProofNodeManager;
 
 /**
  * A virtual callback class for updating ProofNode. An example use case of this

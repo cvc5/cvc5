@@ -36,6 +36,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/utils/Options.h"
 #include "prop/sat_proof_manager.h"
 #include "theory/theory.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 template <class Solver> class TSatProof;

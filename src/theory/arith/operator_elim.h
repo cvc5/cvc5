@@ -109,7 +109,8 @@ class OperatorElim : public EagerProofGenerator
    */
   Node getArithSkolem(ArithSkolemId asi);
   /**
-   * Make the witness term
+   * Make the witness term, which creates a witness term based on the skolem
+   * manager with this class as a proof generator.
    */
   Node mkWitnessTerm(Node v,
                      Node pred,

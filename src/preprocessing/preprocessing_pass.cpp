@@ -16,9 +16,13 @@
 
 #include "preprocessing/preprocessing_pass.h"
 
-#include "smt/dump.h"
-#include "smt/smt_statistics_registry.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
+#include "smt/dump.h"
+#include "smt/output_manager.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 namespace preprocessing {

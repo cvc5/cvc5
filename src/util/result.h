@@ -19,10 +19,9 @@
 #ifndef CVC4__RESULT_H
 #define CVC4__RESULT_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
-#include "base/exception.h"
 #include "options/language.h"
 
 namespace CVC4 {

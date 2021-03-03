@@ -218,9 +218,8 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Set information about the script executing.
-   * @throw OptionException, ModalException
    */
-  void setInfo(const std::string& key, const CVC4::SExpr& value);
+  void setInfo(const std::string& key, const std::string& value);
 
   /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
   bool isValidGetInfoFlag(const std::string& key) const;
@@ -232,7 +231,7 @@ class CVC4_PUBLIC SmtEngine
    * Set an aspect of the current SMT execution environment.
    * @throw OptionException, ModalException
    */
-  void setOption(const std::string& key, const CVC4::SExpr& value);
+  void setOption(const std::string& key, const std::string& value);
 
   /** Set is internal subsolver.
    *
@@ -899,8 +898,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
  private:
   /* .......................................................................  */
-  /** The type of our internal assertion list */
-  typedef context::CDList<Node> AssertionList;
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;

@@ -2572,18 +2572,19 @@ void SetBenchmarkLogicCommand::toStream(std::ostream& out,
 /* class SetInfoCommand                                                       */
 /* -------------------------------------------------------------------------- */
 
-SetInfoCommand::SetInfoCommand(std::string flag, const std::string& sexpr)
-    : d_flag(flag), d_sexpr(sexpr)
+SetInfoCommand::SetInfoCommand(const std::string& flag,
+                               const std::string& value)
+    : d_flag(flag), d_value(value)
 {
 }
 
-std::string SetInfoCommand::getFlag() const { return d_flag; }
-const std::string& SetInfoCommand::getSExpr() const { return d_sexpr; }
+const std::string& SetInfoCommand::getFlag() const { return d_flag; }
+const std::string& SetInfoCommand::getValue() const { return d_value; }
 void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->setInfo(d_flag, d_sexpr);
+    solver->setInfo(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException&)
@@ -2599,7 +2600,7 @@ void SetInfoCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* SetInfoCommand::clone() const
 {
-  return new SetInfoCommand(d_flag, d_sexpr);
+  return new SetInfoCommand(d_flag, d_value);
 }
 
 std::string SetInfoCommand::getCommandName() const { return "set-info"; }
@@ -2609,7 +2610,7 @@ void SetInfoCommand::toStream(std::ostream& out,
                               size_t dag,
                               OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetInfo(out, d_flag, d_sexpr);
+  Printer::getPrinter(language)->toStreamCmdSetInfo(out, d_flag, d_value);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2672,18 +2673,19 @@ void GetInfoCommand::toStream(std::ostream& out,
 /* class SetOptionCommand                                                     */
 /* -------------------------------------------------------------------------- */
 
-SetOptionCommand::SetOptionCommand(std::string flag, const std::string& sexpr)
-    : d_flag(flag), d_sexpr(sexpr)
+SetOptionCommand::SetOptionCommand(const std::string& flag,
+                                   const std::string& value)
+    : d_flag(flag), d_value(value)
 {
 }
 
-std::string SetOptionCommand::getFlag() const { return d_flag; }
-const std::string& SetOptionCommand::getSExpr() const { return d_sexpr; }
+const std::string& SetOptionCommand::getFlag() const { return d_flag; }
+const std::string& SetOptionCommand::getValue() const { return d_value; }
 void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
   try
   {
-    solver->setOption(d_flag, d_sexpr);
+    solver->setOption(d_flag, d_value);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException&)
@@ -2698,7 +2700,7 @@ void SetOptionCommand::invoke(api::Solver* solver, SymbolManager* sm)
 
 Command* SetOptionCommand::clone() const
 {
-  return new SetOptionCommand(d_flag, d_sexpr);
+  return new SetOptionCommand(d_flag, d_value);
 }
 
 std::string SetOptionCommand::getCommandName() const { return "set-option"; }
@@ -2708,7 +2710,7 @@ void SetOptionCommand::toStream(std::ostream& out,
                                 size_t dag,
                                 OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetOption(out, d_flag, d_sexpr);
+  Printer::getPrinter(language)->toStreamCmdSetOption(out, d_flag, d_value);
 }
 
 /* -------------------------------------------------------------------------- */

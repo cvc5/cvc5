@@ -2620,6 +2620,14 @@ class CVC4_PUBLIC Solver
    */
   Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
 
+  /**
+   * Create operator of Kind:
+   *   - TUPLE_PROJECT
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   */
+  Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
+
   /* .................................................................... */
   /* Create Constants                                                     */
   /* .................................................................... */

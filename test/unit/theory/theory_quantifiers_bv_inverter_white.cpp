@@ -35,11 +35,11 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("cegqi-full", CVC4::SExpr(true));
-    d_smtEngine->setOption("produce-models", CVC4::SExpr(true));
-    // don't insist on proofs here !!!! temporary not necessary on master, since
+    d_smtEngine->setOption("cegqi-full", "true");
+    d_smtEngine->setOption("produce-models", "true");
+    // don't insist on proofs here !!!! will not be necessary on master, since
     // proof is not default true
-    d_smt->setOption("proof", CVC4::SExpr(false));
+    d_smt->setOption("proof", "false");
     d_smtEngine->finishInit();
 
     d_s = d_nodeManager->mkVar("s", d_nodeManager->mkBitVectorType(4));

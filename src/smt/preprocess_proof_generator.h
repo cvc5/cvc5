@@ -20,12 +20,10 @@
 #include <map>
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
 #include "expr/lazy_proof.h"
 #include "expr/proof_set.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
