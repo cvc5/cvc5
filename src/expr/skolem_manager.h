@@ -181,12 +181,6 @@ class SkolemManager
    */
   ProofGenerator* getProofGenerator(Node q) const;
   /**
-   * Get skolem lemma, where if k has witness form (witness ((x T)) (P x))
-   * and was created with the flag sendLemma = true, then this is the lemma
-   * (P k). Otherwise, we return the null node.
-   */
-  Node getSkolemLemma(Node k) const;
-  /**
    * Convert to witness form, which gets the witness form of a skolem k.
    * Notice this method is *not* recursive, instead, it is a simple attribute
    * lookup.
