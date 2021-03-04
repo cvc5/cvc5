@@ -62,7 +62,7 @@ Node LfscTermProcessor::runConvert(Node n)
     // skolems v print as their witness forms
     // v is (skolem W) where W is the original or witness form of v
     Node on = SkolemManager::getOriginalForm(n);
-    Node wi = on == n ? SkolemManager::getOriginalForm(n) : on;
+    Node wi = on == n ? SkolemManager::getWitnessForm(n) : on;
     if (wi != n)
     {
       wi = convert(wi);
