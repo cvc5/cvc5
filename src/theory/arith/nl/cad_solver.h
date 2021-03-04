@@ -21,7 +21,6 @@
 #include "expr/node.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/cad/proof_checker.h"
-#include "util/real_algebraic_number.h"
 
 namespace CVC4 {
 namespace theory {

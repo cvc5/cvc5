@@ -17,8 +17,6 @@
 #ifndef CVC4__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
 #define CVC4__THEORY__ARITH__NL__CAD__PROOF_GENERATOR_H
 
-#include "util/real_algebraic_number.h"
-
 #ifdef CVC4_POLY_IMP
 
 #include <poly/polyxx.h>
