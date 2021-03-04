@@ -174,6 +174,11 @@ TrustNode TheoryInferenceManager::mkConflictExp(const std::vector<Node>& exp,
 
 bool TheoryInferenceManager::propagateLit(TNode lit)
 {
+  // If already in conflict, no more propagation
+  if (d_theoryState.isInConflict())
+  {
+    return false;
+  }
   // Propagate out
   bool ok = d_out.propagate(lit);
   if (!ok)
