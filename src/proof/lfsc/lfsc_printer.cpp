@@ -423,6 +423,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " << d_tproc.convert(pn->getResult()) << std::endl;
       pf << h << h << h << cs[0]; 
       break; 
+      */
     case PfRule::STRING_REDUCTION:
     {
       Node res = pn->getResult();
@@ -434,15 +435,9 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       Node k = resw[1];
       Assert (k.getKind()==SKOLEM);
       Node w = SkolemManager::getOriginalForm(k);
-      Trace("ajr-temp") << "Witness " << w << std::endl;
-      Assert (w.getKind()==WITNESS);
-      Node v = w[0][0];
-      TypeNode vti = d_tproc.convertType(v.getType());
-      Node n = nm->mkConst(Rational(d_tproc.getOrAssignIndexForVar(v)));
       pf << h << n << vti << as[0];
     }
       break;
-      */
     // quantifiers
     case PfRule::SKOLEM_INTRO:
     {
