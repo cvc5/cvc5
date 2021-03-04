@@ -464,7 +464,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
         Node w = SkolemManager::getWitnessForm(term);
         Assert(w.getKind() == kind::WITNESS);
         Node exists = nm->mkNode(kind::EXISTS, w[0], w[1]);
-        ProofGenerator* pg = sm->getProofGenerator(exists);
+        // FIXME: connect proof
+        //ProofGenerator* pg = sm->getProofGenerator(exists);
         d_lp->addLazyStep(klem,
                           nullptr,
                           PfRule::THEORY_PREPROCESS_LEMMA,
