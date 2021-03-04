@@ -536,6 +536,11 @@ if(GPL_LIBS)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Provide targets to inspect iwyu suggestions
+
+include(IWYU)
+
+#-----------------------------------------------------------------------------#
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
