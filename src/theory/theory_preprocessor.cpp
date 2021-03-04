@@ -149,7 +149,8 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   }
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
-  Trace("tpp") << "TheoryPreprocessor::preprocess: return " << tret.getNode() << std::endl;
+  Trace("tpp") << "TheoryPreprocessor::preprocess: return " << tret.getNode()
+               << std::endl;
   if (procLemmas)
   {
     // Also must preprocess the new lemmas. This is especially important for
@@ -379,7 +380,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
   // do not rewrite inside quantifiers
   Node newTerm = term;
-  if (!term.isClosure() && term.getNumChildren()>0)
+  if (!term.isClosure() && term.getNumChildren() > 0)
   {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
