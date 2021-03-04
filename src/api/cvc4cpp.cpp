@@ -2343,14 +2343,6 @@ std::string DatatypeConstructorDecl::toString() const
   return ss.str();
 }
 
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-const CVC4::DTypeConstructor& DatatypeConstructorDecl::getDatatypeConstructor(
-    void) const
-{
-  return *d_ctor;
-}
-
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeConstructorDecl& ctordecl)
 {
@@ -2444,15 +2436,13 @@ std::string DatatypeDecl::getName() const
 
 bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
-
 std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 {
   out << dtdecl.toString();
   return out;
 }
+
+CVC4::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 /* DatatypeSelector --------------------------------------------------------- */
 
@@ -2493,13 +2483,6 @@ std::string DatatypeSelector::toString() const
   std::stringstream ss;
   ss << *d_stor;
   return ss.str();
-}
-
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::DTypeSelector DatatypeSelector::getDatatypeConstructorArg(void) const
-{
-  return *d_stor;
 }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
@@ -2682,14 +2665,6 @@ std::string DatatypeConstructor::toString() const
   return ss.str();
 }
 
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-const CVC4::DTypeConstructor& DatatypeConstructor::getDatatypeConstructor(
-    void) const
-{
-  return *d_ctor;
-}
-
 DatatypeSelector DatatypeConstructor::getSelectorForName(
     const std::string& name) const
 {
@@ -2799,10 +2774,6 @@ Datatype::const_iterator Datatype::end() const
 {
   return Datatype::const_iterator(d_solver, *d_dtype, false);
 }
-
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-const CVC4::DType& Datatype::getDatatype(void) const { return *d_dtype; }
 
 DatatypeConstructor Datatype::getConstructorForName(
     const std::string& name) const
