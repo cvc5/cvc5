@@ -1001,6 +1001,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     Node emp = Word::mkEmptyWord(atom.getType());
+    // TODO: use skolem manager
     Node ret = nm->mkNode(
         WITNESS,
         bvl,
