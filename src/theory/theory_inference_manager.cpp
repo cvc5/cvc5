@@ -107,23 +107,17 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 
 void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
-  if (!d_theoryState.isInConflict())
-  {
-    d_conflictIdStats << id;
-    d_theoryState.notifyInConflict();
-    d_out.conflict(conf);
-    ++d_numConflicts;
-  }
+  d_conflictIdStats << id;
+  d_theoryState.notifyInConflict();
+  d_out.conflict(conf);
+  ++d_numConflicts;
 }
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
-  if (!d_theoryState.isInConflict())
-  {
-    d_conflictIdStats << id;
-    d_theoryState.notifyInConflict();
-    d_out.trustedConflict(tconf);
-  }
+  d_conflictIdStats << id;
+  d_theoryState.notifyInConflict();
+  d_out.trustedConflict(tconf);
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,
