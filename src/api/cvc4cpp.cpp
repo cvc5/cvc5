@@ -1604,15 +1604,6 @@ std::string Op::toString() const
   }
 }
 
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::Expr Op::getExpr(void) const
-{
-  if (d_node->isNull()) return Expr();
-  NodeManagerScope scope(d_solver->getNodeManager());
-  return d_node->toExpr();
-}
-
 std::ostream& operator<<(std::ostream& out, const Op& t)
 {
   out << t.toString();
