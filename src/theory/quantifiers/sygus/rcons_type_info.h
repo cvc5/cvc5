@@ -25,13 +25,15 @@ namespace quantifiers {
 
 /**
  * A utility class for Sygus Reconstruct datatype types (grammar non-terminals).
+ * This class is mainly responsible for enumerating sygus datatype type terms
+ * and building sets of equivalent builtin terms for the rcons algorithm.
  */
 class RConsTypeInfo
 {
  public:
   /**
-   * Initialize a sygus enumerator and a candidate rewrite database for the
-   * corresponding sygus datatype type.
+   * Initialize a sygus enumerator and a candidate rewrite database for this
+   * class' sygus datatype type.
    *
    * @param tds Database for sygus terms
    * @param s Statistics managed for the synth engine
@@ -47,18 +49,17 @@ class RConsTypeInfo
   /**
    * Returns the next enumerated term for the given sygus datatype type.
    *
-   * @param stn The sygus datatype type to enumerate a term for
    * @return The enumerated sygus term
    */
   Node nextEnum();
 
   /**
-   * Add a ground term to the candidate rewrite database for the corresponding
-   * sygus datatype type.
+   * Add a pure term to the candidate rewrite database.
    *
    * @param n The term to add to the database
    * @return A previous term `eq_n` added to this class, such that `n` is
-   * equivalent to `eq_n`
+   * equivalent to `eq_n`. If no previous term equivalent to `n` exists then the
+   * result is `n` itself
    */
   Node addTerm(Node n);
 
@@ -78,21 +79,19 @@ class RConsTypeInfo
    */
   Node builtinToOb(Node builtin);
 
-  /**
-   * Reset the state of this RConsTypeInfo object.
-   */
-  void clear();
-
  private:
-  /** Sygus terms enumerator for the corresponding Sygus datatype type */
+  /** Sygus terms enumerator for this class' Sygus datatype type */
   std::unique_ptr<SygusEnumerator> d_enumerator;
-  /** Candidate rewrite database for the corresponding sygus datatype type */
+  /** Candidate rewrite database for this class' sygus datatype type */
   std::unique_ptr<CandidateRewriteDatabase> d_crd;
   /** Sygus sampler needed for initializing the candidate rewrite database */
   SygusSampler d_sygusSampler;
-  /** a map from a builtin term to its obligation. The sygus type of the
-   * obligation is needed as different sygus types may have obligations to
-   * reconstruct the same builtin term */
+  /** A map from a builtin term to its obligation.
+   *
+   * Each sygus datatype type has its own version of this map because it is
+   * possible to have multiple obligations to reconstruct the same builtin term
+   * from different sygus datatype types.
+   */
   std::unordered_map<Node, Node, NodeHashFunction> d_ob;
 };
 

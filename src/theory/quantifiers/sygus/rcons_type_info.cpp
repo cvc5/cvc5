@@ -30,7 +30,9 @@ void RConsTypeInfo::initialize(TermDbSygus* tds,
   d_enumerator.reset(new SygusEnumerator(tds, nullptr, s, true));
   d_enumerator->initialize(nm->mkSkolem("sygus_rcons", stn));
   d_crd.reset(new CandidateRewriteDatabase(true, false, true, false));
-  d_sygusSampler.initialize(stn, builtinVars, 5);
+  // since initial samples are not always useful for equivalence checks, set
+  // their number to 0
+  d_sygusSampler.initialize(stn, builtinVars, 0);
   d_crd->initialize(builtinVars, &d_sygusSampler);
 }
 

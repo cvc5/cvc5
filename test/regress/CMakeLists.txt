@@ -2522,9 +2522,10 @@ set(regression_disabled_tests
   regress1/sygus/interpol_from_pono_3.smt2
   regress1/sygus/interpol_dt.smt2
   regress1/sygus/inv_gen_fig8.sy
-  # new reconstruct algorithm is slow at reconstructing random constants
+  # new reconstruct algorithm is slow at reconstructing random constants (see wishue #82)
   regress0/sygus/c100.sy
-  # terms require rewrites not in database and are too big to enumerate
+  # For the six regressions below, solution terms require rewrites not in
+  # database and are too big to enumerate
   regress0/sygus/aig-si.sy
   regress0/sygus/parity-AIG-d0.sy
   regress1/sygus/array_search_2.sy

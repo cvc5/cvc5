@@ -71,7 +71,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   size_t count = 0;
 
   // algorithm
-  while (d_sol[mainOb] == Node::null() && count < enumLimit)
+  while (d_sol[mainOb].isNull() && count < enumLimit)
   {
     // enumeration phase
     // a temporary set of new obligations cached for processing in the match
@@ -82,7 +82,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
       // enumerate a new term
       Trace("sygus-rcons") << "enum: " << stn << ": ";
       Node sz = d_stnInfo[pair.first].nextEnum();
-      if (sz == Node::null())
+      if (sz.isNull())
       {
         continue;
       }
@@ -94,7 +94,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         Node rep = d_stnInfo[pair.first].addTerm(builtin);
         Node k = d_stnInfo[pair.first].builtinToOb(rep);
         // check if the enumerated term solves an obligation
-        if (k == Node::null())
+        if (k.isNull())
         {
           // if not, create an "artifical" obligation whose solution would be
           // the enumerated term
@@ -104,8 +104,8 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         }
         // mark the obligation as solved
         markSolved(k, sz);
-        // with the candidate rewrite database, there is no point in adding
-        // ground terms to the pool
+        // Since we added the term to the candidate rewrite database, there is
+        // no point in adding it to the pool too
         continue;
       }
       // if there are no matches (all calls to notify return true)...
@@ -116,7 +116,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         pool[pair.first].push_back(sz);
         for (Node k : pair.second)
         {
-          if (d_sol[k] == Node::null())
+          if (d_sol[k].isNull())
           {
             Trace("sygus-rcons")
                 << "ob: " << RConsObligationInfo::obToString(k, d_obInfo[k])
@@ -144,7 +144,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
         for (const Node& k : pair.second)
         {
           unsolvedObs[pair.first].emplace(k);
-          if (d_sol[k] == Node::null())
+          if (d_sol[k].isNull())
           {
             Trace("sygus-rcons")
                 << "ob: " << RConsObligationInfo::obToString(k, d_obInfo[k])
@@ -179,18 +179,21 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   }
 
   // if the main obligation is solved, return the solution
-  if (d_sol[mainOb] != Node::null())
+  if (!d_sol[mainOb].isNull())
   {
     reconstructed = 1;
-  }
-  else
-  {
-    // we ran out of elements, return null
-    reconstructed = -1;
-    Warning() << CommandFailure(
-        "Cannot get synth function: reconstruction to syntax failed.");
+    // The algorithm mostly works with rewritten terms and may not notice that
+    // the original terms contain variables eliminated by the rewriter. For
+    // example, rewrite((ite true 0 z)) = 0. In such cases, we replace those
+    // variables with ground values.
+    return d_sol[mainOb].isConst() ? Node(d_sol[mainOb])
+                                   : mkGround(d_sol[mainOb]);
   }
 
+  // we ran out of elements, return null
+  reconstructed = -1;
+  Warning() << CommandFailure(
+      "Cannot get synth function: reconstruction to syntax failed.");
   return d_sol[mainOb];
 }
 
@@ -203,9 +206,9 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
   // even solved) those obligations, hence the name "candidate obligations"
   std::unordered_map<Node, Node, NodeHashFunction> candObs;
   // the builtin terms corresponding to sygus variables in the grammar are bound
-  // variables. However, we want the match function to treat them as ground
+  // variables. However, we want the `match` method to treat them as ground
   // terms. So, we add redundant substitutions
-  candObs.insert(d_groundVars.cbegin(), d_groundVars.cend());
+  candObs.insert(d_sygusVars.cbegin(), d_sygusVars.cend());
 
   // try to match the obligation's builtin term with the pattern sz
   if (expr::match(Rewriter::rewrite(datatypes::utils::sygusToBuiltin(sz)),
@@ -217,7 +220,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
     std::vector<std::pair<Node, Node>> subs;
     Trace("sygus-rcons") << "-- ct: " << sz << std::endl;
     // remove redundant substitutions
-    for (const std::pair<const Node, Node>& pair : d_groundVars)
+    for (const std::pair<const Node, Node>& pair : d_sygusVars)
     {
       candObs.erase(pair.first);
     }
@@ -229,7 +232,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
       Node newVar;
       // have we come across a similar obligation before?
       Node rep = d_stnInfo[stn].addTerm(candOb.second);
-      if (d_stnInfo[stn].builtinToOb(rep) != Node::null())
+      if (!d_stnInfo[stn].builtinToOb(rep).isNull())
       {
         // if so, use the original obligation
         newVar = d_stnInfo[stn].builtinToOb(rep);
@@ -267,7 +270,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
     bool isSolved = true;
     for (const std::pair<Node, Node>& sub : subs)
     {
-      if (d_sol[sub.second] == Node::null())
+      if (d_sol[sub.second].isNull())
       {
         isSolved = false;
         d_subObs[sz].push_back(sub.second);
@@ -294,7 +297,7 @@ TypeObligationSetMap SygusReconstruct::matchNewObs(Node k, Node sz)
 void SygusReconstruct::markSolved(Node k, Node s)
 {
   // return if obligation k is already solved
-  if (d_sol[k] != Node::null())
+  if (!d_sol[k].isNull())
   {
     return;
   }
@@ -302,14 +305,6 @@ void SygusReconstruct::markSolved(Node k, Node s)
   Trace("sygus-rcons") << "sol: " << s << std::endl;
   Trace("sygus-rcons") << "builtin sol: " << datatypes::utils::sygusToBuiltin(s)
                        << std::endl;
-
-  // some free terms in the reconstructed solution get eliminated by the
-  // rewriter. For example, rewrite((ite true 0 z)) = 0. We replace those with
-  // ground values.
-  if (!s.isConst())
-  {
-    s = mkGround(s);
-  }
 
   // First, mark `k` as solved
   d_obInfo[k].addCandidateSolution(s);
@@ -330,7 +325,7 @@ void SygusReconstruct::markSolved(Node k, Node s)
       // remove `curr` and (possibly) other solved obligations from its list
       // of children
       while (!d_subObs[parent].empty()
-             && d_sol[d_subObs[parent].back()] != Node::null())
+             && !d_sol[d_subObs[parent].back()].isNull())
       {
         d_subObs[parent].pop_back();
       }
@@ -341,15 +336,9 @@ void SygusReconstruct::markSolved(Node k, Node s)
         // then it is completely solved and can be used as a solution of its
         // corresponding obligation
         Node parentSol = parent.substitute(d_sol);
-        // but first, make sure that all free variables eliminated by the
-        // rewriter are replaced with ground values
-        if (!parentSol.isConst())
-        {
-          parentSol = mkGround(parentSol);
-        }
         Node parentOb = d_parentOb[parent];
         // proceed only if parent obligation is not already solved
-        if (d_sol[parentOb] == Node::null())
+        if (d_sol[parentOb].isNull())
         {
           d_obInfo[parentOb].addCandidateSolution(parentSol);
           d_sol[parentOb] = parentSol;
@@ -374,14 +363,14 @@ void SygusReconstruct::initialize(TypeNode stn)
   std::vector<Node> builtinVars;
 
   // Cache the sygus variables introduced by the problem (which we treat as
-  // ground terms when calling the match function) as opposed to the sygus
+  // ground terms when calling the `match` method) as opposed to the sygus
   // variables introduced by the enumerators (which we treat as bound
   // variables).
   for (Node sv : stn.getDType().getSygusVarList())
   {
     builtinVars.push_back(datatypes::utils::sygusToBuiltin(sv));
-    d_groundVars.emplace(datatypes::utils::sygusToBuiltin(sv),
-                         datatypes::utils::sygusToBuiltin(sv));
+    d_sygusVars.emplace(datatypes::utils::sygusToBuiltin(sv),
+                        datatypes::utils::sygusToBuiltin(sv));
   }
 
   SygusTypeInfo stnInfo;
@@ -409,7 +398,7 @@ void SygusReconstruct::removeSolvedObs(TypeObligationSetMap& unsolvedObs)
     ObligationSet::iterator it = tempPair.second.begin();
     while (it != tempPair.second.end())
     {
-      if (d_sol[*it] == Node::null())
+      if (d_sol[*it].isNull())
       {
         ++it;
       }
@@ -448,9 +437,9 @@ bool SygusReconstruct::notify(Node s,
   {
     // We consider sygus variables as ground terms. So, if they are not equal to
     // their substitution, then s is not matchable with n and we try the next
-    // term s Example: If s = (+ z x) and n = (+ z y), then s is not matchable
+    // term s. Example: If s = (+ z x) and n = (+ z y), then s is not matchable
     // with n and we return true
-    if (d_groundVars.find(vars[i]) != d_groundVars.cend() && vars[i] != subs[i])
+    if (d_sygusVars.find(vars[i]) != d_sygusVars.cend() && vars[i] != subs[i])
     {
       return true;
     }
@@ -467,7 +456,7 @@ void SygusReconstruct::clear()
   d_sol.clear();
   d_subObs.clear();
   d_parentOb.clear();
-  d_groundVars.clear();
+  d_sygusVars.clear();
   d_poolTrie.clear();
 }
 

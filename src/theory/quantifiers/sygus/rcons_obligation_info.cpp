@@ -55,13 +55,13 @@ std::string RConsObligationInfo::obToString(Node k,
 }
 
 void RConsObligationInfo::printCandSols(
-    const Node& mainOb,
+    const Node& root,
     const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
         obInfo)
 {
   std::unordered_set<Node, NodeHashFunction> visited;
   std::vector<Node> stack;
-  stack.push_back(mainOb);
+  stack.push_back(root);
 
   Trace("sygus-rcons") << "\nEq classes: \n[";
 

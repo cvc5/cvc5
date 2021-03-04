@@ -39,7 +39,7 @@ class RConsObligationInfo
   explicit RConsObligationInfo(Node builtin = Node::null());
 
   /**
-   * @return builtin term to reconstruct for the corresponding obligation
+   * @return builtin term to reconstruct for this class' obligation
    */
   Node getBuiltin() const;
 
@@ -52,7 +52,7 @@ class RConsObligationInfo
   void addCandidateSolution(Node candSol);
 
   /**
-   * @return set of candidate solutions for the corresponding obligation
+   * @return set of candidate solutions for this class' obligation
    */
   const std::unordered_set<Node, NodeHashFunction>& getCandidateSolutions()
       const;
@@ -66,7 +66,7 @@ class RConsObligationInfo
   void addCandidateSolutionToWatchSet(Node candSol);
 
   /**
-   * @return set of candidate solutions waiting for the corresponding obligation
+   * @return set of candidate solutions waiting for this class' obligation
    * to be solved
    */
   const std::unordered_set<Node, NodeHashFunction>& getWatchSet() const;
@@ -84,40 +84,54 @@ class RConsObligationInfo
    * Print all reachable obligations and their candidate solutions from
    * the `root` obligation and its candidate solutions.
    *
+   * An obligation is reachable from the `root` obligation if it is the `root`
+   * obligation or is needed by one of the candidate solutions of other
+   * reachable obligations.
+   *
+   * For example, if we have:
+   *
+   * Obs = {c_z1, c_z2, c_z3, c_z4} // list of obligations in rcons algorithm
+   * CandSols = {c_z1 -> {(c_+ c_1 c_z2)}, c_z2 -> {(c_- c_z3)},
+   *             c_z3 -> {c_x}, c_z4 -> {}}
+   * root = c_z1
+   *
+   * Then, the set of reachable obligations from `root` is {c_z1, c_z2, c_z3}
+   *
    * \note requires enabling "sygus-rcons" trace
    *
    * @param root The root obligation to start from
    * @param obInfo a map from obligations to their corresponding infos
    */
   static void printCandSols(
-      const Node& mainOb,
+      const Node& root,
       const std::unordered_map<Node, RConsObligationInfo, NodeHashFunction>&
           obInfo);
 
  private:
-  /**
-   * builtin term for the corresponding obligation. To solve the obligation,
-   * this builtin term must be reconstructed in the specified grammar (sygus
-   * datatype type).
+  /** Builtin term for this class' obligation.
+   *
+   * To solve the obligation, this builtin term must be reconstructed in the
+   * specified grammar (sygus datatype type) of this class' obligation.
    */
   Node d_builtin;
-  /**
-   * a set of candidate solutions to the corresponding obligation. Each
-   * candidate solution is a sygus datatype term containing skolem subterms
+  /** A set of candidate solutions to this class' obligation.
+   *
+   * Each candidate solution is a sygus datatype term containing skolem subterms
    * (sub-obligations). By replacing all sub-obligations with their
-   * corresponding solution, we get a term whose builtin analog rewrites to
+   * corresponding solutions, we get a term whose builtin analog rewrites to
    * `d_builtin` and hence solves this obligation. For example, given:
-   * d_builtin = (+ x y)
+   *   d_builtin = (+ x y)
    * a possible set of candidate solutions would be:
-   * d_candSols = {(c_+ c_z1 c_z2), (c_+ c_x c_z2), (c_+ c_z1 c_y),
-   *               (c_+ c_x c_y)}
+   *   d_candSols = {(c_+ c_z1 c_z2), (c_+ c_x c_z2), (c_+ c_z1 c_y),
+   *                 (c_+ c_x c_y)}
    * where c_z1 and c_z2 are skolems. Notice that `d_candSols` may contain a
-   * ground term that solves the obligation ((c_+ c_x c_y) in this example).
+   * pure term that solves the obligation ((c_+ c_x c_y) in this example).
    */
   std::unordered_set<Node, NodeHashFunction> d_candSols;
-  /**
-   * a set of candidate solutions waiting for the corresponding obligation to
-   * be solved. In the example above, (c_+ c_z1 c_z2) and (c_+ c_x c_z2) are in
+  /** A set of candidate solutions waiting for this class' obligation to
+   * be solved.
+   *
+   * In the example above, (c_+ c_z1 c_z2) and (c_+ c_x c_z2) are in
    * the watch-set of c_z2. Similarly, (c_+ c_z1 c_z2) and (c_+ c_z1 c_y) are in
    * the watch-set of c_z1.
    */
