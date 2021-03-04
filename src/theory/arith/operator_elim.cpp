@@ -52,77 +52,9 @@ TrustNode OperatorElim::eliminate(Node n, bool partialOnly)
   Node nn = eliminateOperators(n, tg, partialOnly);
   if (nn != n)
   {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    Node nnr = eliminateOperatorsRec(nn, tg, partialOnly);
-    return TrustNode::mkTrustRewrite(n, nnr, nullptr);
+    return TrustNode::mkTrustRewrite(n, nn, nullptr);
   }
   return TrustNode::null();
-}
-
-Node OperatorElim::eliminateOperatorsRec(Node n,
-                                         TConvProofGenerator* tg,
-                                         bool partialOnly)
-{
-  Trace("arith-elim") << "Begin elim: " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, Node, TNodeHashFunction> visited;
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
-  std::vector<Node> visit;
-  Node cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (Theory::theoryOf(cur) != THEORY_ARITH)
-    {
-      visited[cur] = cur;
-    }
-    else if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      Node retElim = eliminateOperators(ret, tg, partialOnly);
-      if (retElim != ret)
-      {
-        // recursively eliminate operators in result, since some eliminations
-        // are defined in terms of other non-standard operators.
-        ret = eliminateOperatorsRec(retElim, tg, partialOnly);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
 }
 
 Node OperatorElim::eliminateOperators(Node node,
@@ -130,8 +62,6 @@ Node OperatorElim::eliminateOperators(Node node,
                                       bool partialOnly)
 {
   NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-
   Kind k = node.getKind();
   switch (k)
   {
@@ -164,14 +94,8 @@ Node OperatorElim::eliminateOperators(Node node,
         Node zero = mkRationalNode(0);
         Node diff = nm->mkNode(MINUS, node[0], v);
         Node lem = mkInRange(diff, zero, one);
-        toIntSkolem =
-            sm->mkSkolem(v,
-                         lem,
-                         "toInt",
-                         "a conversion of a Real term to its Integer part",
-                         NodeManager::SKOLEM_DEFAULT,
-                         this,
-                         true);
+        toIntSkolem = mkWitnessTerm(
+            v, lem, "toInt", "a conversion of a Real term to its Integer part");
         d_to_int_skolem[node[0]] = toIntSkolem;
       }
       else
@@ -271,13 +195,8 @@ Node OperatorElim::eliminateOperators(Node node,
                               nm->mkNode(
                                   PLUS, v, nm->mkConst(Rational(-1))))))));
         }
-        intVar = sm->mkSkolem(v,
-                              lem,
-                              "linearIntDiv",
-                              "the result of an intdiv-by-k term",
-                              NodeManager::SKOLEM_DEFAULT,
-                              this,
-                              true);
+        intVar = mkWitnessTerm(
+            v, lem, "linearIntDiv", "the result of an intdiv-by-k term");
         d_int_div_skolem[rw] = intVar;
       }
       else
@@ -321,13 +240,8 @@ Node OperatorElim::eliminateOperators(Node node,
         Node lem = nm->mkNode(IMPLIES,
                               den.eqNode(nm->mkConst(Rational(0))).negate(),
                               nm->mkNode(MULT, den, v).eqNode(num));
-        var = sm->mkSkolem(v,
-                           lem,
-                           "nonlinearDiv",
-                           "the result of a non-linear div term",
-                           NodeManager::SKOLEM_DEFAULT,
-                           this,
-                           true);
+        var = mkWitnessTerm(
+            v, lem, "nonlinearDiv", "the result of a non-linear div term");
         d_div_skolem[rw] = var;
       }
       else
@@ -404,6 +318,11 @@ Node OperatorElim::eliminateOperators(Node node,
     case ARCSECANT:
     case ARCCOTANGENT:
     {
+      if (partialOnly)
+      {
+        // not eliminating total operators
+        return node;
+      }
       checkNonLinearLogic(node);
       // eliminate inverse functions here
       std::map<Node, Node>::const_iterator it =
@@ -469,14 +388,11 @@ Node OperatorElim::eliminateOperators(Node node,
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
         Assert(!lem.isNull());
-        Node ret = sm->mkSkolem(
+        Node ret = mkWitnessTerm(
             var,
             lem,
             "tfk",
-            "Skolem to eliminate a non-standard transcendental function",
-            NodeManager::SKOLEM_DEFAULT,
-            this,
-            true);
+            "Skolem to eliminate a non-standard transcendental function");
         Assert(ret.getKind() == WITNESS);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
@@ -555,6 +471,18 @@ Node OperatorElim::getArithSkolemApp(Node n, ArithSkolemId asi)
     skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
   }
   return skolem;
+}
+
+Node OperatorElim::mkWitnessTerm(Node v,
+                                 Node pred,
+                                 const std::string& prefix,
+                                 const std::string& comment)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
+  Node k = sm->mkSkolem(
+      v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this, true);
+  return k;
 }
 
 }  // namespace arith

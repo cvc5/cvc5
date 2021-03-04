@@ -17,6 +17,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

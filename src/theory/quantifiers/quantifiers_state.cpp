@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 
 #include "options/quantifiers_options.h"
+#include "theory/uf/equality_engine_iterator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -22,8 +23,9 @@ namespace quantifiers {
 
 QuantifiersState::QuantifiersState(context::Context* c,
                                    context::UserContext* u,
-                                   Valuation val)
-    : TheoryState(c, u, val), d_ierCounterc(c)
+                                   Valuation val,
+                                   const LogicInfo& logicInfo)
+    : TheoryState(c, u, val), d_ierCounterc(c), d_logicInfo(logicInfo)
 {
   // allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;
@@ -151,6 +153,8 @@ void QuantifiersState::debugPrintEqualityEngine(const char* c) const
     Trace(c) << "# eqc for " << t.first << " : " << t.second << std::endl;
   }
 }
+
+const LogicInfo& QuantifiersState::getLogicInfo() const { return d_logicInfo; }
 
 }  // namespace quantifiers
 }  // namespace theory

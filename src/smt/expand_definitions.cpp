@@ -18,8 +18,10 @@
 #include <utility>
 
 #include "expr/node_manager_attributes.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "smt/defined_function.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_stats.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::preprocessing;

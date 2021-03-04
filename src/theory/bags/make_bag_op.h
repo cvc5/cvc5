@@ -34,7 +34,7 @@ class TypeNode;
 class MakeBagOp
 {
  public:
-  MakeBagOp(const TypeNode& elementType);
+  explicit MakeBagOp(const TypeNode& elementType);
   MakeBagOp(const MakeBagOp& op);
 
   /** return the type of the current object */
@@ -43,7 +43,6 @@ class MakeBagOp
   bool operator==(const MakeBagOp& op) const;
 
  private:
-  MakeBagOp();
   /** a pointer to the type of the bag element */
   std::unique_ptr<TypeNode> d_type;
 }; /* class MakeBagOp */

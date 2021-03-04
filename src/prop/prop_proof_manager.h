@@ -27,6 +27,8 @@ namespace CVC4 {
 
 namespace prop {
 
+class CDCLTSatSolverInterface;
+
 /**
  * This class is responsible for managing the proof output of PropEngine, both
  * building and checking it.

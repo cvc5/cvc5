@@ -22,10 +22,12 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -64,17 +66,19 @@ Trigger::Trigger(QuantifiersEngine* qe,
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
-      d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qe);
+      d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qs, qim, qe);
       ++(qe->d_statistics.d_triggers);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qe);
+      d_mg =
+          InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qs, qim, qe);
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
-      d_mg = new InstMatchGeneratorMulti(q, d_nodes, qe);
+      d_mg = new InstMatchGeneratorMulti(q, d_nodes, qs, qim, qe);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(q, d_nodes, qe);
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(
+          q, d_nodes, qs, qim, qe);
     }
     if (Trace.isOn("multi-trigger"))
     {

@@ -10,7 +10,7 @@ jobs:
           production,
           production-clang,
           debug,
-          debug-cln
+          debug-cln-clang
         ]
 
         exclude:
@@ -18,7 +18,7 @@ jobs:
             os: macos-latest
           - name: debug
             os: macos-latest
-          - name: debug-cln
+          - name: debug-cln-clang
             os: macos-latest
 
         include:
@@ -43,9 +43,10 @@ jobs:
             os: ubuntu-latest
             exclude_regress: 1-4
 
-          - name: debug-cln
+          - name: debug-cln-clang
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs --poly
-            cache-key: debug-cln
+            cache-key: debug-cln-clang
+            env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 1-4
 
@@ -63,7 +64,6 @@ jobs:
         sudo apt-get install -y \
           build-essential \
           ccache \
-          cxxtest \
           libcln-dev \
           libgmp-dev \
           libgtest-dev \
@@ -86,7 +86,6 @@ jobs:
       run: |
         brew install \
           ccache \
-          cxxtest \
           cln \
           gmp \
           pkgconfig \
@@ -154,7 +153,8 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --prefix=$(pwd)/build/install \
-          --unit-testing
+          --unit-testing \
+          --werror
 
     - name: Build
       run: make -j2

@@ -20,6 +20,7 @@
 #include "preprocessing/passes/quantifiers_preprocess.h"
 
 #include "base/output.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/rewriter.h"
 
@@ -27,6 +28,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 QuantifiersPreprocess::QuantifiersPreprocess(PreprocessingPassContext* preprocContext)

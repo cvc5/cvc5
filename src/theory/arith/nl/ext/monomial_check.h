@@ -16,6 +16,7 @@
 #define CVC4__THEORY__ARITH__NL__EXT__MONOMIAL_CHECK_H
 
 #include "expr/node.h"
+#include "theory/theory_inference.h"
 #include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {

@@ -15,6 +15,7 @@
 
 #include <sstream>
 #include <string>
+#include "util/hash.h"
 #include "util/integer.h"
 
 using namespace std;
