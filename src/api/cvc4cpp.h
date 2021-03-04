@@ -97,14 +97,19 @@ class CVC4_PUBLIC Result
   friend class Solver;
 
  public:
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param r the internal result that is to be wrapped by this result
-   * @return the Result
-   */
-  Result(const CVC4::Result& r);
+  enum UnknownExplanation
+  {
+    REQUIRES_FULL_CHECK,
+    INCOMPLETE,
+    TIMEOUT,
+    RESOURCEOUT,
+    MEMOUT,
+    INTERRUPTED,
+    NO_STATUS,
+    UNSUPPORTED,
+    OTHER,
+    UNKNOWN_REASON
+  };
 
   /** Constructor. */
   Result();
@@ -167,18 +172,21 @@ class CVC4_PUBLIC Result
   /**
    * @return an explanation for an unknown query result.
    */
-  std::string getUnknownExplanation() const;
+  UnknownExplanation getUnknownExplanation() const;
 
   /**
    * @return a string representation of this result.
    */
   std::string toString() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Result getResult(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param r the internal result that is to be wrapped by this result
+   * @return the Result
+   */
+  Result(const CVC4::Result& r);
+
   /**
    * The interal result wrapped by this result.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Result is
@@ -188,12 +196,21 @@ class CVC4_PUBLIC Result
 };
 
 /**
- * Serialize a result to given stream.
+ * Serialize a Result to given stream.
  * @param out the output stream
  * @param r the result to be serialized to the given output stream
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_PUBLIC;
+
+/**
+ * Serialize an UnknownExplanation to given stream.
+ * @param out the output stream
+ * @param r the explanation to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out,
+                         enum Result::UnknownExplanation e) CVC4_PUBLIC;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */

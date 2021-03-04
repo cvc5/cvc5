@@ -51,7 +51,8 @@ class CVC4_PUBLIC Result {
     TYPE_NONE
   };
 
-  enum UnknownExplanation {
+  enum UnknownExplanation
+  {
     REQUIRES_FULL_CHECK,
     INCOMPLETE,
     TIMEOUT,

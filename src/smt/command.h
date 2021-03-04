@@ -28,7 +28,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "util/result.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
