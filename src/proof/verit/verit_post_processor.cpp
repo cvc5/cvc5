@@ -54,8 +54,10 @@ bool VeritProofPostprocessCallback::update(
   Trace("verit-proof") << "- veriT post process callback " << res << " " << id
                        << " " << children << " / " << args << std::endl;
 
+  d_nm = NodeManager::currentNM();
   std::vector<Node> new_args = std::vector<Node>();
 
+  //Basic rules (non-extended mode)
   switch (id)
   {
     //================================================= Core rules
@@ -484,6 +486,7 @@ bool VeritProofPostprocessCallback::update(
        static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp1)->getArguments()[0].toString()));
        VeritRule vp2_rule =
        static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp2)->getArguments()[0].toString()));
+
       // TODO: Check if child rule is SYMM, use equal_Nodes
 
       // If the rule of the child is ASSUME or EQ_RESOLUTION and additional or
@@ -775,37 +778,6 @@ bool VeritProofPostprocessCallback::update(
                           {},
                           *cdp);
     }
-    // ======== Reordering
-    // Children: (P:C1)
-    // Arguments: (C2)
-    // ---------------------
-    // Conclusion: C2
-    // where
-    //  Set representations of C1 and C2 is the same but the number of literals
-    //  in C2 is the same of that of C1
-    //
-    // TODO: This is here to show how the extended format could work. In the
-    // sense of REORDERING it might not make sense to store the information.
-    // Also should this be tautolgy + resolution style?
-    //
-    // This rule is skipped in VeritProofPostprocess::processInternal when in
-    // verit proof-format-mode. In verit-extended mode:
-    //
-    // Let C2 = (or F1 ... Fn)
-    //
-    // proof rule: reordering
-    // proof node: C2
-    // proof term: (cl F1 ... Fn)
-    // premises: P
-    // args: ()
-    case PfRule::REORDERING:
-    {
-      if (d_extended)  // not needed here since skipped anyway
-      {
-        return addVeritStepFromOr(res, VeritRule::REORDER, children, {}, *cdp);
-      }
-      return true;
-    }
     // ======== Split
     // Children: none
     // Arguments: (F)
@@ -959,6 +931,7 @@ bool VeritProofPostprocessCallback::update(
     // Arguments: none
     // ---------------------
     // Conclusion: (F2)
+    //
     //
     // proof rule: implies
     // proof term: (VP1:(cl (not F1) F2))
@@ -1736,37 +1709,6 @@ bool VeritProofPostprocessCallback::update(
     {
       return addVeritStep(res, VeritRule::REFL, d_nm->mkNode(kind::SEXPR,d_cl,res), children, {}, *cdp);
     }
-    // ======== Symmetric
-    // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
-    // Arguments: none
-    // -----------------------
-    // Conclusion: (= t2 t1) or (not (= t2 t1))
-    //
-    // This rule is skipped in VeritProofPostprocess::processInternal when in
-    // verit proof-format-mode. In verit-extended mode:
-    //
-    // proof rule: symm
-    // proof node: (= t2 t1) or (not (= t2 t1))
-    // proof term: (cl (= t2 t1)) or (cl (not (= t2 t1)))
-    // premises: ((P:(= t1 t2)) or (P:(not (= t1 t2))
-    // args: ()
-    //
-    // TODO: See note on PfRule::REORDER. If clauses are treated as sets not
-    // necessary
-    case PfRule::SYMM:  // TODO:Is probably not used.
-    {
-      // if (d_extended)
-      //{
-      std::cout << "In Symm rule" << std::endl;
-      return addVeritStep(res,
-                          VeritRule::REFL,
-                          d_nm->mkNode(kind::SEXPR, d_cl, res),
-                          children,
-                          {},
-                          *cdp);
-
-      //}
-    }
     // ======== Transitivity
     // Children: (P1:(= t1 t2), ..., Pn:(= t{n-1} tn))
     // Arguments: none
@@ -2275,30 +2217,116 @@ bool VeritProofPostprocessCallback::update(
     // or 1. tplane is the tangent plane of x*y at (a,b): b*x + a*y - a*b
     // ARITH_MULT_TANGENT,
 
-    default:
+    default://TBD
     {
-      std::cout << id << std::endl;
+      if(!d_extended){
+        std::cout << "Not implemented yet " << id << std::endl;
+        return addVeritStep(res, VeritRule::UNDEFINED, d_nm->mkNode(kind::SEXPR,d_cl,res),children, args, *cdp);
+      }
+    }
+  }
+
+  if(!d_extended){
+    return false;
+  }
+
+  //Extended rules
+  switch (id)
+  {
+    // ======== Symmetric
+    // Children: (P:(= t1 t2)) or (P:(not (= t1 t2)))
+    // Arguments: none
+    // -----------------------
+    // Conclusion: (= t2 t1) or (not (= t2 t1))
+    //
+    //
+    // proof rule: symm
+    // proof node: (= t2 t1) or (not (= t2 t1))
+    // proof term: (cl (= t2 t1)) or (cl (not (= t2 t1)))
+    // premises: ((P:(= t1 t2)) or (P:(not (= t1 t2))
+    // args: ()
+    case PfRule::SYMM:
+    {
+      return addVeritStep(res,
+                          VeritRule::SYMM,
+                          d_nm->mkNode(kind::SEXPR, d_cl, res),
+                          children,
+                          {},
+                          *cdp);
+
+    }
+    // ======== Reordering
+    // Children: (P:C1)
+    // Arguments: (C2)
+    // ---------------------
+    // Conclusion: C2
+    // where
+    //  Set representations of C1 and C2 is the same but the number of literals
+    //  in C2 is the same of that of C1
+    //
+    //
+    // Let C2 = (or F1 ... Fn)
+    //
+    // proof rule: reordering
+    // proof node: C2
+    // proof term: (cl F1 ... Fn)
+    // premises: P
+    // args: ()
+    case PfRule::REORDERING:
+    {
+      return addVeritStepFromOr(res, VeritRule::REORDER, children, {}, *cdp);
+    }
+    default://TBD
+    {
+      std::cout << "Not implemented yet " << id << std::endl;
       return addVeritStep(res, VeritRule::UNDEFINED, d_nm->mkNode(kind::SEXPR,d_cl,res),children, args, *cdp);
     }
   }
-  return false;  // TODO: Make something with return value
+
+  Trace("verit-proof") << "... error translating rule "
+                       << id << " / "
+                       << res << " "
+                       << children << " " << args << std::endl;
+  return false;
 }
 
-// Does not work yet
-bool VeritProofPostprocessCallback::finalResult(
+VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
+    ProofNodeManager* pnm)
+    : d_pnm(pnm)
+{
+  d_nm = NodeManager::currentNM();
+  d_cl = d_nm->mkBoundVar("cl",d_nm->stringType());
+}
+
+bool VeritProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
+                                                 bool& continueUpdate)
+{
+  d_nm = NodeManager::currentNM();
+  if (pn->getArguments()[2][1].toString() == d_nm->mkConst(false).toString()){
+    return true;
+  }
+  return false;
+}
+
+bool VeritProofPostprocessFinalCallback::update(
     Node res,
-    VeritRule vrule,
+    PfRule id,
     const std::vector<Node>& children,
     const std::vector<Node>& args,
-    CDProof* cdp)
+    CDProof* cdp,
+    bool& continueUpdate)
 {
   bool success = true;
+  d_nm = NodeManager::currentNM();
   Node falseNotNode = d_nm->mkConst(false).notNode();
 
   Node res2 = d_nm->mkNode(kind::SEXPR, d_cl);
   Node res3 = d_nm->mkNode(kind::SEXPR, res);
-
+ std::cout << "hi " << std::endl;
   std::vector<Node> new_args = std::vector<Node>();
+  VeritRule vrule =
+        static_cast<VeritRule>(std::stoul(args[0].toString()));
+ std::cout << "vrule " << args[0] << std::endl;
   new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(vrule)));
   new_args.push_back(d_nm->mkNode(kind::SEXPR, res));  //(false)
   if (vrule == VeritRule::ASSUME)
@@ -2439,38 +2467,47 @@ VeritProofPostprocess::~VeritProofPostprocess() {}
 
 void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
-  CDProof* cdp = new CDProof(d_pnm,nullptr,"CDProof",false);
-  processInternal(pf, cdp);
-  // processSYMM(pf,cdp); //check when this is necessary
+  CDProof* cdp;
 
-  NodeManager* nm = NodeManager::currentNM();
-
-  // TODO: Rather check if third argument is (cl false)
-  try
-  {
-    if (pf->getArguments()[1].toString() == nm->mkConst(false).toString())
-    {
-      std::vector<Node> children;
-      for (auto c : pf->getChildren())
-      {
-        cdp->addProof(c);
-        children.push_back(c->getResult());
-      }
-      VeritRule vrule =
-          static_cast<VeritRule>(std::stoul(pf->getArguments()[0].toString()));
-      d_cb->finalResult(pf->getResult(), vrule, children, {}, cdp);
-      // finalResult(pf,pf->getRule(),pf->getChildren(),pf->getArguments(),cdp);
-      d_pnm->updateNode(pf.get(), cdp->getProofFor(pf->getResult()).get());
-    }
+  if(d_extended){//TODO: Move to processInternal
+    cdp = new CDProof(d_pnm, nullptr, "CDProof", false);
   }
-  catch (...)
-  {  // TODO: find out what kind of exception this is
-    std::cout << "what is here" << std::endl;
+  else{
+    cdp = new CDProof(d_pnm, nullptr, "CDProof", true);
+  }
+
+  processInternal(pf, cdp);
+
+  // In extended format mode symmetry steps should be printed. However, every time cpd->getProofFor() is used in the update method of the callback function additional SYMM steps might be introduced. Therefore, the whole proof node has to be traversed again to translate SYMM steps.
+  // TODO: I would like to fix this directly in RESOLUTION, CHAIN_RESOLUTION and EQ_RESOLUTION
+  if(d_extended){
+    processSYMM(pf,cdp);
+  }
+
+  // In veriT the last step is always (cl). However, after the translate the final step might be (cl false). In that case additional steps are required.
+  NodeManager* nm = NodeManager::currentNM();
+  VeritProofPostprocessFinalCallback* fcb = new VeritProofPostprocessFinalCallback(d_pnm);
+  bool continueUpdate = true;
+  if (fcb->shouldUpdate(pf,continueUpdate))
+  {
+    std::vector<Node> children;
+    for (auto c : pf->getChildren())
+    {
+      //cdp->addProof(c);
+      children.push_back(c->getResult());
+    }
+    if(fcb->update(pf->getResult(), PfRule::VERIT_RULE, children, pf->getArguments(), cdp, continueUpdate)){
+      d_pnm->updateNode(pf.get(), cdp->getProofFor(pf->getResult()).get());
+      Trace("verit-proof") << "... updated proof for " << pf->getResult() << std::endl;
+    }
+    else{
+      Trace("verit-proof") << "... error updating proof for " << pf->getResult()
+                           << std::endl;
+    }
   }
 }
 
-// TEMP: Traverses entire proof node again, should be incoperated below. Find
-// out why update does not do this, maybe SYMM steps are added later?
+//Traverses proof node and translates PfRule::SYMM into VeritRule::SYMM without adding any additional PfRule::SYMM steps
 void VeritProofPostprocess::processSYMM(std::shared_ptr<ProofNode> pf,
                                         CDProof* cdp)
 {

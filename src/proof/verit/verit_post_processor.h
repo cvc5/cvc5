@@ -28,7 +28,7 @@ namespace proof {
  * A callback class used by the veriT converter for post-processing proof nodes
  * by replacing internal rules by the rules in the veriT calculus.
  */
-class VeritProofPostprocessCallback  //: public ProofNodeUpdaterCallback
+class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
   VeritProofPostprocessCallback(ProofNodeManager* pnm);
@@ -66,11 +66,11 @@ class VeritProofPostprocessCallback  //: public ProofNodeUpdaterCallback
               CDProof* cdp,
               bool& continueUpdate);
   // TODO: Add comment
-  bool finalResult(Node res,
+  /*bool finalResult(Node res,
                    VeritRule id,
                    const std::vector<Node>& children,
                    const std::vector<Node>& args,
-                   CDProof* cdp);
+                   CDProof* cdp);*/
 
  private:
   /** The proof node manager */
@@ -137,6 +137,48 @@ class VeritProofPostprocessCallback  //: public ProofNodeUpdaterCallback
 };
 
 /**
+ * Final callback class used by the veriT to add last step to proof in certain cases.
+ */
+class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
+{
+ public:
+  VeritProofPostprocessFinalCallback(ProofNodeManager* pnm);
+  ~VeritProofPostprocessFinalCallback() {}
+  /** Should proof pn be updated?
+   *
+   * @param pn the proof node that maybe should be updated
+   * @param continueUpdate indicates whether we should continue recursively updating pn
+   * @return whether we should run the update method on pn
+   */
+  bool shouldUpdate(std::shared_ptr<ProofNode> pn,
+                    bool& continueUpdate);
+  /**
+   * This method gets a proof node pn = false printed as (cl false) and updates the proof for false such that (cl) is printed.
+   *
+   * @param res The expected result of the application,
+   * @param rule The id of the veriT rule,
+   * @param children The children of the application,
+   * @param args The arguments of the application,
+   * @param cdp The proof to add to,
+   * @return True if the step could be added, or null if not.
+   */
+  bool update(Node res,
+              PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp,
+              bool& continueUpdate);
+ private:
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The node manager */
+  NodeManager* d_nm;
+  /** The variable cl **/
+  Node d_cl;
+};
+
+
+/**
  * The proof postprocessor module. This postprocesses a proof node into one
  * using the rules from the veriT calculus.
  */
@@ -147,12 +189,11 @@ class VeritProofPostprocess
   ~VeritProofPostprocess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
-
  private:
-  /** The post process callback */
-  std::unique_ptr<VeritProofPostprocessCallback> d_cb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The post process callback */
+  std::unique_ptr<VeritProofPostprocessCallback> d_cb;
   /** Internal processing for a proof node*/
   void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdp);
   /** Special processing for SYMM rules*/
