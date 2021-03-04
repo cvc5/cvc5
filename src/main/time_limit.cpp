@@ -19,7 +19,7 @@
  ** std::thread: we can spawn a new thread which waits for the time limit.
  ** Unless we use std::jthread (from C++20), std::thread is not interruptible
  ** and thus we need a synchronization mechanism so that the main thread can
- ** communicate to the timer thread that is wants to finish. Apparently, this
+ ** communicate to the timer thread that it wants to finish. Apparently, this
  ** is the only platform independent way.
  **
  ** POSIX setitimer: a very simple way that instructs the kernel to send a
