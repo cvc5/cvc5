@@ -83,8 +83,6 @@ Node SkolemManager::mkSkolem(Node v,
   // if we are sending lemma, set the attribute
   if (sendLemma)
   {
-    // FIXME
-    return w;
     TNode tv = v;
     TNode tk = k;
     Node lem = pred.substitute(tv, tk);
