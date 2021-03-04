@@ -2,11 +2,9 @@
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic UFDTSLIA)
-(set-info :smt-lib-version 2.5)
 
-(declare-datatypes () (
-    (Response (Response$Response (Response$Response$success Bool)))
-    ) )
+(declare-datatype 
+    Response (Response$Response (Response$Response$success Bool)))
 
 
 (push 1)
