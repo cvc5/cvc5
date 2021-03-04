@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
 #define CVC4__THEORY__BV__BITBLAST_SIMPLE_BITBLASTER_H
 
-#include "theory/bv/bitblast/lazy_bitblaster.h"
+#include "theory/bv/bitblast/bitblaster.h"
 
 namespace CVC4 {
 namespace theory {
