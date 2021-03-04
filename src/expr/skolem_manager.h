@@ -35,6 +35,27 @@ class ProofGenerator;
  * "original form" and "witness form" as described below. Hence, this class does
  * not impact the reference counting of skolem variables which may be deleted if
  * they are not used.
+ *
+ * We distinguish two kinds of mappings between terms and skolems:
+ * 
+ * (1) "Original form", which associates skolems with the terms they purify.
+ * This is used in mkPurifySkolem below.
+ * 
+ * (2) "Witness form", which associates skolems with their formal definition
+ * as a witness term. This is used in mkSkolem below.
+ *
+ * It is possible to unify these so that purification skolems for t are skolems
+ * whose witness form is (witness ((x T)) (= x t)). However, there are
+ * motivations not to do so. In particular, witness terms in most contexts
+ * should be seen as black boxes, converting something to witness form may have
+ * unintended consequences e.g. variable shadowing. In contrast, converting to
+ * original form does not have these complications. Furthermore, having original
+ * form greatly simplifies reasoning in the proof, in particular, it avoids the
+ * need to reason about variable identifiers for the introduced binders x.
+ * 
+ * Furthermore, note that original form and witness form may share skolems
+ * in the rare case that a witness term is purified. This is currently only the
+ * case for algorithms that introduce witness, e.g. BV/set instantiation.
  */
 class SkolemManager
 {
@@ -169,6 +190,8 @@ class SkolemManager
   Node getSkolemLemma(Node k) const;
   /**
    * Convert to witness form, which gets the witness form of a skolem k.
+   * Notice this method is *not* recursive, instead, it is a simple attribute
+   * lookup.
    *
    * @param k The variable to convert to witness form described above
    * @return k in witness form.

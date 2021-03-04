@@ -54,8 +54,7 @@ Node SkolemManager::mkSkolem(Node v,
                              ProofGenerator* pg,
                              bool sendLemma)
 {
-  // AlwaysAssert (!expr::hasSubtermKind(WITNESS, pred)) << "Witness term with
-  // nested witness " << pred;
+  // We do not currently insist that pred does not contain witness terms
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
   NodeManager* nm = NodeManager::currentNM();
@@ -173,8 +172,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    int flags)
 {
   Node to = getOriginalForm(t);
-  // AlwaysAssert (!expr::hasSubtermKind(WITNESS, to)) << "Purifying a term with
-  // witness " << to;
+  // We do not currently insist that to does not contain witness terms
 
   Node k = mkSkolemInternal(to, prefix, comment, flags);
   // set original form attribute for k
