@@ -37,10 +37,10 @@ class ProofGenerator;
  * they are not used.
  *
  * We distinguish two kinds of mappings between terms and skolems:
- * 
+ *
  * (1) "Original form", which associates skolems with the terms they purify.
  * This is used in mkPurifySkolem below.
- * 
+ *
  * (2) "Witness form", which associates skolems with their formal definition
  * as a witness term. This is used in mkSkolem below.
  *
@@ -52,7 +52,7 @@ class ProofGenerator;
  * original form does not have these complications. Furthermore, having original
  * form greatly simplifies reasoning in the proof, in particular, it avoids the
  * need to reason about variable identifiers for the introduced binders x.
- * 
+ *
  * Furthermore, note that original form and witness form may share skolems
  * in the rare case that a witness term is purified. This is currently only the
  * case for algorithms that introduce witness, e.g. BV/set instantiation.
