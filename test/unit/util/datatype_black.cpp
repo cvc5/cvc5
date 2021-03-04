@@ -21,17 +21,17 @@
 #include "expr/dtype_cons.h"
 #include "expr/expr.h"
 #include "expr/type_node.h"
-#include "test_node.h"
+#include "test_smt.h"
 
 namespace CVC4 {
 namespace test {
 
-class TestUtilBlackDatatype : public TestNode
+class TestUtilBlackDatatype : public TestSmt
 {
  public:
   void SetUp() override
   {
-    TestNode::SetUp();
+    TestSmt::SetUp();
     Debug.on("datatypes");
     Debug.on("groundterms");
   }
