@@ -148,41 +148,6 @@ TrustNode TheoryPreprocessor::preprocessInternal(
     tret = TrustNode::mkTrustRewrite(node, ppNode, nullptr);
   }
 
-  // now, rewrite the lemmas
-  Trace("tpp-debug") << "TheoryPreprocessor::preprocess: process lemmas"
-                     << std::endl;
-  for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
-  {
-    // get the trust node to process
-    TrustNode trn = newLemmas[i];
-    trn.debugCheckClosed(
-        "tpp-debug", "TheoryPreprocessor::lemma_new_initial", false);
-    Assert(trn.getKind() == TrustNodeKind::LEMMA);
-    Node assertion = trn.getNode();
-    // rewrite, which is independent of d_tpg, since additional lemmas
-    // are justified separately.
-    Node rewritten = Rewriter::rewrite(assertion);
-    if (assertion != rewritten)
-    {
-      if (isProofEnabled())
-      {
-        Assert(d_lp != nullptr);
-        // store in the lazy proof
-        d_lp->addLazyStep(assertion,
-                          trn.getGenerator(),
-                          PfRule::THEORY_PREPROCESS_LEMMA,
-                          true,
-                          "TheoryPreprocessor::rewrite_lemma_new");
-        d_lp->addStep(rewritten,
-                      PfRule::MACRO_SR_PRED_TRANSFORM,
-                      {assertion},
-                      {rewritten});
-      }
-      newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_lp.get());
-    }
-    Assert(!isProofEnabled() || newLemmas[i].getGenerator() != nullptr);
-    newLemmas[i].debugCheckClosed("tpp-debug", "TheoryPreprocessor::lemma_new");
-  }
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
   if (procLemmas)
