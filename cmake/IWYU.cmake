@@ -18,7 +18,6 @@ if(IWYU_PATH)
     if(LLVM_INCLUDE_DIR)
         set(LLVM_INCLUDE_DIR "-I${LLVM_INCLUDE_DIR}/include")
     endif()
-    message(STATUS "Found LLVM at ${LLVM_INCLUDE_DIR}")
 
     # add a target to run iwyu on all files (within the compilation database)
     add_custom_target(iwyu-all
