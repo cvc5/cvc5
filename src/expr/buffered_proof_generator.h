@@ -19,11 +19,11 @@
 
 #include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_step_buffer.h"
 
 namespace CVC4 {
 
 class ProofNodeManager;
+class ProofStep;
 
 /**
  * The proof generator for buffered steps. This class is a context-dependent

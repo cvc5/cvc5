@@ -350,24 +350,6 @@ endif()
 enable_testing()
 
 #-----------------------------------------------------------------------------#
-# Check GCC version.
-#
-# GCC version 4.5.1 builds MiniSat incorrectly with -O2, which results in
-# incorrect answers.
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  execute_process(
-    COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
-    OUTPUT_VARIABLE GCC_VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(GCC_VERSION VERSION_EQUAL "4.5.1")
-    message(FATAL_ERROR
-      "GCC 4.5.1's optimizer is known to build MiniSat incorrectly "
-      "(and by extension CVC4).")
-  endif()
-endif()
-
-#-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
 
 if(USE_PYTHON2)

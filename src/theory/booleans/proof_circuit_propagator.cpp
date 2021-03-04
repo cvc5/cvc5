@@ -16,6 +16,8 @@
 
 #include "theory/booleans/proof_circuit_propagator.h"
 
+#include <sstream>
+
 #include "expr/proof_node_manager.h"
 
 namespace CVC4 {

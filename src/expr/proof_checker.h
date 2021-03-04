@@ -20,12 +20,13 @@
 #include <map>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
+#include "expr/proof_rule.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
 class ProofChecker;
+class ProofNode;
 
 /** A virtual base class for checking a proof rule */
 class ProofRuleChecker

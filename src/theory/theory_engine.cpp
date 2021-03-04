@@ -16,6 +16,8 @@
 
 #include "theory/theory_engine.h"
 
+#include <sstream>
+
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"

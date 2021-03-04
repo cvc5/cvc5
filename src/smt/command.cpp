@@ -1213,7 +1213,7 @@ void DefineSortCommand::toStream(std::ostream& out,
   Printer::getPrinter(language)->toStreamCmdDefineType(
       out,
       d_symbol,
-      api::sortVectorToTypeNodes(d_params),
+      api::Sort::sortVectorToTypeNodes(d_params),
       d_sort.getTypeNode());
 }
 
@@ -2809,7 +2809,7 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out,
                                           OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDatatypeDeclaration(
-      out, api::sortVectorToTypeNodes(d_datatypes));
+      out, api::Sort::sortVectorToTypeNodes(d_datatypes));
 }
 
 }  // namespace CVC4

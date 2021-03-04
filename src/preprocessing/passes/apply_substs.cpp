@@ -18,6 +18,8 @@
 #include "preprocessing/passes/apply_substs.h"
 
 #include "context/cdo.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 

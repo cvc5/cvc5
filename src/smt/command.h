@@ -23,13 +23,11 @@
 #define CVC4__COMMAND_H
 
 #include <iosfwd>
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "util/result.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
@@ -40,8 +38,6 @@ class Term;
 }  // namespace api
 
 class SymbolManager;
-class UnsatCore;
-class SmtEngine;
 class Command;
 class CommandStatus;
 

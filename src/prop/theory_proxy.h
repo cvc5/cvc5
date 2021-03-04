@@ -23,19 +23,16 @@
 // Optional blocks below will be unconditionally included
 #define CVC4_USE_MINISAT
 
-#include <iosfwd>
 #include <unordered_set>
 
-#include "context/cdhashmap.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "prop/registrar.h"
-#include "prop/sat_solver.h"
+#include "prop/sat_solver_types.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

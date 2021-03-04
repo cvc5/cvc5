@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/node_traversal.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -32,6 +33,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;

@@ -31,10 +31,13 @@
 #include "printer/printer.h"
 #include "smt/defined_function.h"
 #include "smt/dump.h"
+#include "smt/expand_definitions.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
+using namespace std;
 using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
