@@ -485,8 +485,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   }
   else if (term.isVar())
   {
-    NodeManager * nm = NodeManager::currentNM();
-    SkolemManager * sm = nm->getSkolemManager();
+    NodeManager* nm = NodeManager::currentNM();
+    SkolemManager* sm = nm->getSkolemManager();
     // look up the lemma for the variable
     Node klem = sm->getSkolemLemma(term);
     if (!klem.isNull())
@@ -494,9 +494,9 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
       if (isProofEnabled())
       {
         Node w = SkolemManager::getWitnessForm(term);
-        Assert (w.getKind()==kind::WITNESS);
+        Assert(w.getKind() == kind::WITNESS);
         Node exists = nm->mkNode(kind::EXISTS, w[0], w[1]);
-        ProofGenerator * pg = sm->getProofGenerator(exists);
+        ProofGenerator* pg = sm->getProofGenerator(exists);
         d_lp->addLazyStep(klem,
                           pg,
                           PfRule::THEORY_PREPROCESS_LEMMA,

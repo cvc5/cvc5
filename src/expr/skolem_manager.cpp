@@ -46,7 +46,6 @@ struct SkolemLemmaAttributeId
 };
 typedef expr::Attribute<SkolemLemmaAttributeId, Node> SkolemLemmaAttribute;
 
-
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
@@ -84,7 +83,7 @@ Node SkolemManager::mkSkolem(Node v,
   // if we are sending lemma, set the attribute
   if (sendLemma)
   {
-    // FIXME 
+    // FIXME
     return w;
     TNode tv = v;
     TNode tk = k;
@@ -290,9 +289,9 @@ Node SkolemManager::getOriginalForm(Node n)
 
 Node SkolemManager::getSkolemLemma(Node k) const
 {
-  Assert (k.isVar());
+  Assert(k.isVar());
   std::map<Node, Node>::const_iterator it = d_skolemLemmas.find(k);
-  if (it==d_skolemLemmas.end())
+  if (it == d_skolemLemmas.end())
   {
     return Node::null();
   }
