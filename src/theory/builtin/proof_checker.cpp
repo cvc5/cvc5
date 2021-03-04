@@ -350,10 +350,10 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     Trace("builtin-pfcheck") << "Result is " << res << std::endl;
     Trace("builtin-pfcheck") << "Witness form is "
-                             << SkolemManager::getWitnessForm(res) << std::endl;
+                             << SkolemManager::getOriginalForm(res) << std::endl;
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
-    res = Rewriter::rewrite(SkolemManager::getWitnessForm(res));
+    res = Rewriter::rewrite(SkolemManager::getOriginalForm(res));
     if (!res.isConst() || !res.getConst<bool>())
     {
       Trace("builtin-pfcheck")
@@ -400,8 +400,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     if (res1 != res2)
     {
       // can rewrite the witness forms
-      res1 = Rewriter::rewrite(SkolemManager::getWitnessForm(res1));
-      res2 = Rewriter::rewrite(SkolemManager::getWitnessForm(res2));
+      res1 = Rewriter::rewrite(SkolemManager::getOriginalForm(res1));
+      res2 = Rewriter::rewrite(SkolemManager::getOriginalForm(res2));
       if (res1.isNull() || res1 != res2)
       {
         Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
