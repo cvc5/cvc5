@@ -30,8 +30,6 @@ namespace test {
 
 struct MyContextNotifyObj : public ContextNotifyObj
 {
-  int32_t d_ncalls;
-
   MyContextNotifyObj(Context* context, bool pre)
       : ContextNotifyObj(context, pre), d_ncalls(0)
   {
@@ -40,20 +38,20 @@ struct MyContextNotifyObj : public ContextNotifyObj
   ~MyContextNotifyObj() override {}
 
   void contextNotifyPop() override { ++d_ncalls; }
+
+  int32_t d_ncalls;
 };
 
 class MyContextObj : public ContextObj
 {
-  MyContextNotifyObj& notify;
-
  public:
   MyContextObj(Context* context, MyContextNotifyObj& n)
-      : ContextObj(context), notify(n), d_ncalls(0), d_nsaves(0)
+      : ContextObj(context), d_ncalls(0), d_nsaves(0), d_notify(n)
   {
   }
 
   MyContextObj(bool topScope, Context* context, MyContextNotifyObj& n)
-      : ContextObj(topScope, context), notify(n), d_ncalls(0), d_nsaves(0)
+      : ContextObj(topScope, context), d_ncalls(0), d_nsaves(0), d_notify(n)
   {
   }
 
@@ -65,18 +63,22 @@ class MyContextObj : public ContextObj
     return new (pcmm) MyContextObj(*this);
   }
 
-  void restore(ContextObj* contextObj) override { d_ncalls = notify.d_ncalls; }
+  void restore(ContextObj* contextObj) override
+  {
+    d_ncalls = d_notify.d_ncalls;
+  }
 
   void makeCurrent() { ContextObj::makeCurrent(); }
 
-  int d_ncalls;
-  int d_nsaves;
+  int32_t d_ncalls;
+  int32_t d_nsaves;
 
  private:
   MyContextObj(const MyContextObj& other)
-      : ContextObj(other), notify(other.notify), d_ncalls(0), d_nsaves(0)
+      : ContextObj(other), d_ncalls(0), d_nsaves(0), d_notify(other.d_notify)
   {
   }
+  MyContextNotifyObj& d_notify;
 };
 
 class TestContextBlack : public TestContext
@@ -100,7 +102,7 @@ TEST_F(TestContextBlack, dtor)
   // Destruction of ContextObj was broken in revision 324 (bug #45) when
   // at a higher context level with an intervening modification.
   // (The following caused a "pure virtual method called" error.)
-  CDO<int> i(d_context.get());
+  CDO<int32_t> i(d_context.get());
   d_context->push();
   i = 5;
 }
