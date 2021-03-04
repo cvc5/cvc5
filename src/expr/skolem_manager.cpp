@@ -47,7 +47,7 @@ Node SkolemManager::mkSkolem(Node v,
                              const std::string& comment,
                              int flags,
                              ProofGenerator* pg,
-                             bool sendLemma)
+                             bool retWitness)
 {
   // We do not currently insist that pred does not contain witness terms
   Assert(v.getKind() == BOUND_VARIABLE);
