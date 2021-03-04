@@ -483,34 +483,43 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   {
     return term;
   }
+  else if (term.isVar())
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    SkolemManager * sm = nm->getSkolemManager();
+    // look up the lemma for the variable
+    Node klem = sm->getSkolemLemma(term);
+    if (!klem.isNull())
+    {
+      if (isProofEnabled())
+      {
+        Node w = SkolemManager::getWitnessForm(term);
+        Assert (w.getKind()==kind::WITNESS);
+        Node exists = nm->mkNode(kind::EXISTS, w[0], w[1]);
+        ProofGenerator * pg = sm->getProofGenerator(exists);
+        d_lp->addLazyStep(klem,
+                          pg,
+                          PfRule::THEORY_PREPROCESS_LEMMA,
+                          true,
+                          "TheoryPreprocessor::skolem_lemma");
+      }
+      TrustNode tklem = TrustNode::mkTrustLemma(klem, d_lp.get());
+      newLemmas.push_back(tklem);
+      newSkolems.push_back(term);
+    }
+  }
   // call ppRewrite for the given theory
   TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
-  Node termr = term;
-  if (!trn.isNull())
-  {
-    termr = trn.getNode();
-    Assert(term != termr);
-    Assert(term != termr);
-    if (isProofEnabled())
-    {
-      registerTrustedRewrite(trn, d_tpg.get(), false);
-    }
-  }
-  // if witness, we must eliminate eagerly
-  if (false && termr.getKind() == kind::WITNESS)
-  {
-    TrustNode ttfr = d_tfr.run(termr, newLemmas, newSkolems, false);
-    Assert(!ttfr.isNull());
-    if (isProofEnabled())
-    {
-      registerTrustedRewrite(ttfr, d_tpg.get(), false);
-    }
-    termr = ttfr.getNode();
-  }
-  if (termr == term)
+  if (trn.isNull())
   {
     // no change, return
     return term;
+  }
+  Node termr = trn.getNode();
+  Assert(term != termr);
+  if (isProofEnabled())
+  {
+    registerTrustedRewrite(trn, d_tpg.get(), false);
   }
   // Rewrite again here, which notice is a *pre* rewrite.
   termr = rewriteWithProof(termr, d_tpg.get(), true);

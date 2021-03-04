@@ -41,13 +41,19 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
+struct SkolemLemmaAttributeId
+{
+};
+typedef expr::Attribute<SkolemLemmaAttributeId, Node> SkolemLemmaAttribute;
+
+
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
                              const std::string& comment,
                              int flags,
                              ProofGenerator* pg,
-                             bool retWitness)
+                             bool sendLemma)
 {
   // AlwaysAssert (!expr::hasSubtermKind(WITNESS, pred)) << "Witness term with
   // nested witness " << pred;
@@ -75,8 +81,18 @@ Node SkolemManager::mkSkolem(Node v,
   k.setAttribute(wfa, w);
   Trace("sk-manager-skolem")
       << "skolem: " << k << " witness " << w << std::endl;
-  // return the witness term or the skolem based on retWitness
-  return retWitness ? w : k;
+  // if we are sending lemma, set the attribute
+  if (sendLemma)
+  {
+    // FIXME 
+    return w;
+    TNode tv = v;
+    TNode tk = k;
+    Node lem = pred.substitute(tv, tk);
+    d_skolemLemmas[k] = lem;
+    Trace("sk-manager-skolem") << "Lemma is " << lem << std::endl;
+  }
+  return k;
 }
 
 Node SkolemManager::mkSkolemize(Node q,
@@ -272,6 +288,17 @@ Node SkolemManager::getOriginalForm(Node n)
   return visited[n];
 }
 
+Node SkolemManager::getSkolemLemma(Node k) const
+{
+  Assert (k.isVar());
+  std::map<Node, Node>::const_iterator it = d_skolemLemmas.find(k);
+  if (it==d_skolemLemmas.end())
+  {
+    return Node::null();
+  }
+  return it->second;
+}
+
 Node SkolemManager::mkSkolemInternal(Node w,
                                      const std::string& prefix,
                                      const std::string& comment,
@@ -296,8 +323,8 @@ Node SkolemManager::mkSkolemInternal(Node w,
   {
     k = nm->mkSkolem(prefix, w.getType(), comment, flags);
   }
-  w.setAttribute(sfa, k);
   // set skolem form attribute for w
+  w.setAttribute(sfa, k);
   Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
                       << std::endl;
   return k;

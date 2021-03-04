@@ -393,7 +393,6 @@ Node OperatorElim::eliminateOperators(Node node,
             lem,
             "tfk",
             "Skolem to eliminate a non-standard transcendental function");
-        Assert(ret.getKind() == WITNESS);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
       }
@@ -480,9 +479,9 @@ Node OperatorElim::mkWitnessTerm(Node v,
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
-  Node k = sm->mkSkolem(
+  // we mark that we should send a lemma
+  return sm->mkSkolem(
       v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this, true);
-  return k;
 }
 
 }  // namespace arith
