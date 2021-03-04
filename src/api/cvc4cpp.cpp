@@ -981,6 +981,38 @@ Sort::~Sort()
   }
 }
 
+std::set<TypeNode> Sort::sortSetToTypeNodes(const std::set<Sort>& sorts)
+{
+  std::set<TypeNode> types;
+  for (const Sort& s : sorts)
+  {
+    types.insert(s.getTypeNode());
+  }
+  return types;
+}
+
+std::vector<TypeNode> Sort::sortVectorToTypeNodes(
+    const std::vector<Sort>& sorts)
+{
+  std::vector<TypeNode> typeNodes;
+  for (const Sort& sort : sorts)
+  {
+    typeNodes.push_back(sort.getTypeNode());
+  }
+  return typeNodes;
+}
+
+std::vector<Sort> Sort::typeNodeVectorToSorts(
+    const Solver* slv, const std::vector<TypeNode>& types)
+{
+  std::vector<Sort> sorts;
+  for (size_t i = 0, tsize = types.size(); i < tsize; i++)
+  {
+    sorts.push_back(Sort(slv, types[i]));
+  }
+  return sorts;
+}
+
 /* Helpers                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -1117,14 +1149,6 @@ std::string Sort::toString() const
   return d_type->toString();
 }
 
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::Type Sort::getType(void) const
-{
-  if (d_type->isNull()) return Type();
-  NodeManagerScope scope(d_solver->getNodeManager());
-  return d_type->toType();
-}
 const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 /* Constructor sort ------------------------------------------------------- */
@@ -2341,7 +2365,7 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            bool isCoDatatype)
     : d_solver(slv)
 {
-  std::vector<TypeNode> tparams = sortVectorToTypeNodes(params);
+  std::vector<TypeNode> tparams = Sort::sortVectorToTypeNodes(params);
   d_dtype = std::shared_ptr<CVC4::DType>(
       new CVC4::DType(name, tparams, isCoDatatype));
 }
@@ -3113,7 +3137,7 @@ void Grammar::addSygusConstructorTerm(
         d_solver->getExprManager()->mkExpr(
             CVC4::kind::LAMBDA, {lbvl.d_node->toExpr(), op.d_node->toExpr()}));
   }
-  std::vector<TypeNode> cargst = sortVectorToTypeNodes(cargs);
+  std::vector<TypeNode> cargst = Sort::sortVectorToTypeNodes(cargs);
   dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
 }
 
@@ -3495,10 +3519,10 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     CVC4_API_SOLVER_CHECK_SORT(sort);
   }
 
-  std::set<TypeNode> utypes = sortSetToTypeNodes(unresolvedSorts);
+  std::set<TypeNode> utypes = Sort::sortSetToTypeNodes(unresolvedSorts);
   std::vector<CVC4::TypeNode> dtypes =
       getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
-  std::vector<Sort> retTypes = typeNodeVectorToSorts(this, dtypes);
+  std::vector<Sort> retTypes = Sort::typeNodeVectorToSorts(this, dtypes);
   return retTypes;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3506,18 +3530,6 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
 
 /* Helpers for converting vectors.                                            */
 /* .......................................................................... */
-
-std::vector<Type> Solver::sortVectorToTypes(
-    const std::vector<Sort>& sorts) const
-{
-  std::vector<Type> res;
-  for (const Sort& s : sorts)
-  {
-    CVC4_API_SOLVER_CHECK_SORT(s);
-    res.push_back(s.d_type->toType());
-  }
-  return res;
-}
 
 std::vector<Expr> Solver::termVectorToExprs(
     const std::vector<Term>& terms) const
@@ -3742,7 +3754,7 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
       << "first-class sort as codomain sort for function sort";
   Assert(!codomain.isFunction()); /* A function sort is not first-class. */
 
-  std::vector<TypeNode> argTypes = sortVectorToTypeNodes(sorts);
+  std::vector<TypeNode> argTypes = Sort::sortVectorToTypeNodes(sorts);
   return Sort(this,
               getNodeManager()->mkFunctionType(argTypes, *codomain.d_type));
 
@@ -3777,7 +3789,7 @@ Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
         sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
         << "first-class sort as parameter sort for predicate sort";
   }
-  std::vector<TypeNode> types = sortVectorToTypeNodes(sorts);
+  std::vector<TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
 
   return Sort(this, getNodeManager()->mkPredicateType(types));
 
@@ -3883,7 +3895,7 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
         !sorts[i].isFunctionLike(), "parameter sort", sorts[i], i)
         << "non-function-like sort as parameter sort for tuple sort";
   }
-  std::vector<TypeNode> typeNodes = sortVectorToTypeNodes(sorts);
+  std::vector<TypeNode> typeNodes = Sort::sortVectorToTypeNodes(sorts);
   return Sort(this, getNodeManager()->mkTupleType(typeNodes));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4951,7 +4963,7 @@ Term Solver::declareFun(const std::string& symbol,
   TypeNode type = *sort.d_type;
   if (!sorts.empty())
   {
-    std::vector<TypeNode> types = sortVectorToTypeNodes(sorts);
+    std::vector<TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = getNodeManager()->mkFunctionType(types, type);
   }
   return Term(this, d_exprMgr->mkVar(symbol, type.toType()));
@@ -6040,36 +6052,6 @@ std::vector<Node> termVectorToNodes(const std::vector<Term>& terms)
   return res;
 }
 
-std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts)
-{
-  std::vector<Type> types;
-  for (size_t i = 0, ssize = sorts.size(); i < ssize; i++)
-  {
-    types.push_back(sorts[i].getTypeNode().toType());
-  }
-  return types;
-}
-
-std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts)
-{
-  std::vector<TypeNode> typeNodes;
-  for (const Sort& sort : sorts)
-  {
-    typeNodes.push_back(sort.getTypeNode());
-  }
-  return typeNodes;
-}
-
-std::set<TypeNode> sortSetToTypeNodes(const std::set<Sort>& sorts)
-{
-  std::set<TypeNode> types;
-  for (const Sort& s : sorts)
-  {
-    types.insert(s.getTypeNode());
-  }
-  return types;
-}
-
 std::vector<Term> exprVectorToTerms(const Solver* slv,
                                     const std::vector<Expr>& exprs)
 {
@@ -6079,27 +6061,6 @@ std::vector<Term> exprVectorToTerms(const Solver* slv,
     terms.push_back(Term(slv, exprs[i]));
   }
   return terms;
-}
-
-std::vector<Sort> typeVectorToSorts(const Solver* slv,
-                                    const std::vector<Type>& types)
-{
-  std::vector<Sort> sorts;
-  for (size_t i = 0, tsize = types.size(); i < tsize; i++)
-  {
-    sorts.push_back(Sort(slv, TypeNode::fromType(types[i])));
-  }
-  return sorts;
-}
-std::vector<Sort> typeNodeVectorToSorts(const Solver* slv,
-                                        const std::vector<TypeNode>& types)
-{
-  std::vector<Sort> sorts;
-  for (size_t i = 0, tsize = types.size(); i < tsize; i++)
-  {
-    sorts.push_back(Sort(slv, types[i]));
-  }
-  return sorts;
 }
 
 }  // namespace api
