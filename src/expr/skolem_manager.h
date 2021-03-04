@@ -107,14 +107,12 @@ class SkolemManager
    * @param pg The proof generator for this skolem. If non-null, this proof
    * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
-   * @param sendLemma If this is true, we mark that the skolem is associated
-   * with a lemma that is to be sent via the theory prepreprocessor. If a
-   * skolem k has witness form (witness ((x T)) (P x)), its lemma is (P k).
-   * This lemma can be accessed via getSkolemLemma. A typical use case of this
-   * feature is for skolems created in contexts where lemmas are not available.
-   * In particular, arithmetic ppRewrite eliminates terms using skolems that
-   * require lemmas and should use this feature, since ppRewrite should not
-   * send lemmas.
+   * @param retWitness Whether we wish to return the witness term for the
+   * given Skolem, which notice is of the form (witness v. pred), where pred
+   * is in Skolem form. A typical use case of setting this flag to true
+   * is preprocessing passes that eliminate terms. Using a witness term
+   * instead of its corresponding Skolem indicates that the body of the witness
+   * term needs to be added as an assertion, e.g. by the term formula remover.
    * @return The skolem whose witness form is registered by this class.
    */
   Node mkSkolem(Node v,
@@ -123,7 +121,7 @@ class SkolemManager
                 const std::string& comment = "",
                 int flags = NodeManager::SKOLEM_DEFAULT,
                 ProofGenerator* pg = nullptr,
-                bool sendLemma = false);
+                bool retWitness = false);
   /**
    * Make skolemized form of existentially quantified formula q, and store its
    * Skolems into the argument skolems.
@@ -211,8 +209,6 @@ class SkolemManager
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
-  /** The lemmas */
-  std::map<Node, Node> d_skolemLemmas;
   /** Get or make skolem attribute for term w, which may be a witness term */
   static Node mkSkolemInternal(Node w,
                                const std::string& prefix,
