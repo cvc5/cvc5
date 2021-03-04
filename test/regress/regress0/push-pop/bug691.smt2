@@ -4,7 +4,7 @@
 (set-logic UFDTSLIA)
 
 (declare-datatype 
-    Response (Response$Response (Response$Response$success Bool)))
+    Response ((Response$Response (Response$Response$success Bool))))
 
 
 (push 1)
