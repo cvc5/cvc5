@@ -17,6 +17,7 @@
 #include <sstream>
 #include <string>
 
+#include "base/exception.h"
 #include "test.h"
 #include "util/cardinality.h"
 #include "util/integer.h"

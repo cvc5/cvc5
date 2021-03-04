@@ -16,6 +16,8 @@
 #include "smt/preprocess_proof_generator.h"
 
 #include "expr/proof.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node.h"
 #include "options/proof_options.h"
 #include "theory/rewriter.h"
 

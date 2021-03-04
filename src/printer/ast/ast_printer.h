@@ -124,7 +124,7 @@ class AstPrinter : public CVC4::Printer
   /** Print set-info command */
   void toStreamCmdSetInfo(std::ostream& out,
                           const std::string& flag,
-                          SExpr sexpr) const override;
+                          const std::string& value) const override;
 
   /** Print get-info command */
   void toStreamCmdGetInfo(std::ostream& out,
@@ -133,7 +133,7 @@ class AstPrinter : public CVC4::Printer
   /** Print set-option command */
   void toStreamCmdSetOption(std::ostream& out,
                             const std::string& flag,
-                            SExpr sexpr) const override;
+                            const std::string& value) const override;
 
   /** Print get-option command */
   void toStreamCmdGetOption(std::ostream& out,

@@ -23,6 +23,7 @@
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/attribute.h"
+#include "theory/decision_strategy.h"
 
 namespace CVC4 {
 namespace theory {

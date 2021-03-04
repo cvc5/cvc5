@@ -17,6 +17,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
@@ -221,6 +222,41 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     }
     Trace("dt-rewrite-match")
         << "Rewrite match: " << in << " ... " << ret << std::endl;
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+  }
+  else if (kind == TUPLE_PROJECT)
+  {
+    // returns a tuple that represents
+    // (mkTuple ((_ tupSel i_1) t) ... ((_ tupSel i_n) t))
+    // where each i_j is less than the length of t
+
+    Trace("dt-rewrite-project") << "Rewrite project: " << in << std::endl;
+    TupleProjectOp op = in.getOperator().getConst<TupleProjectOp>();
+    std::vector<uint32_t> indices = op.getIndices();
+    Node tuple = in[0];
+    std::vector<TypeNode> tupleTypes = tuple.getType().getTupleTypes();
+    std::vector<TypeNode> types;
+    std::vector<Node> elements;
+    for (uint32_t index : indices)
+    {
+      TypeNode type = tupleTypes[index];
+      types.push_back(type);
+    }
+    TypeNode projectType = nm->mkTupleType(types);
+    const DType& dt = projectType.getDType();
+    elements.push_back(dt[0].getConstructor());
+    const DType& tupleDType = tuple.getType().getDType();
+    const DTypeConstructor& constructor = tupleDType[0];
+    for (uint32_t index : indices)
+    {
+      Node selector = constructor[index].getSelector();
+      Node element = nm->mkNode(kind::APPLY_SELECTOR, selector, tuple);
+      elements.push_back(element);
+    }
+    Node ret = nm->mkNode(kind::APPLY_CONSTRUCTOR, elements);
+
+    Trace("dt-rewrite-project")
+        << "Rewrite project: " << in << " ... " << ret << std::endl;
     return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
 

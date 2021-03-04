@@ -20,11 +20,7 @@
 #ifndef CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H
 #define CVC4__PREPROCESSING__PASSES__ITE_REMOVAL_H
 
-#include <unordered_set>
-#include <vector>
-
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {

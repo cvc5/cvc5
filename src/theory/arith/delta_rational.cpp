@@ -18,6 +18,8 @@
 
 #include "theory/arith/delta_rational.h"
 
+#include <sstream>
+
 using namespace std;
 
 namespace CVC4 {

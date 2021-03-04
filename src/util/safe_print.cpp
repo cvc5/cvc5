@@ -20,7 +20,10 @@
 
 #include "safe_print.h"
 
+#include <time.h>
 #include <unistd.h>
+
+#include <cstdlib>
 
 /* Size of buffers used */
 #define BUFFER_SIZE 20

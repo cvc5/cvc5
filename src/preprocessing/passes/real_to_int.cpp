@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -26,6 +28,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)

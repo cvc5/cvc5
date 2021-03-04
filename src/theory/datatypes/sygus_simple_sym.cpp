@@ -14,6 +14,7 @@
 
 #include "theory/datatypes/sygus_simple_sym.h"
 
+#include "expr/dtype_cons.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;

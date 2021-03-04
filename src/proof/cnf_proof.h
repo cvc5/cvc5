@@ -21,14 +21,12 @@
 #ifndef CVC4__CNF_PROOF_H
 #define CVC4__CNF_PROOF_H
 
-#include <iosfwd>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "proof/clause_id.h"
-#include "proof/sat_proof.h"
-#include "util/maybe.h"
+#include "proof/proof_manager.h"
 
 namespace CVC4 {
 namespace prop {

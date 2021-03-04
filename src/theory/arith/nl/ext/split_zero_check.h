@@ -16,6 +16,7 @@
 #define CVC4__THEORY__ARITH__NL__EXT__SPLIT_ZERO_CHECK_H
 
 #include "expr/node.h"
+#include "context/cdhashset.h"
 #include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {

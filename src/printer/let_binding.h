@@ -17,7 +17,6 @@
 #ifndef CVC4__PRINTER__LET_BINDING_H
 #define CVC4__PRINTER__LET_BINDING_H
 
-#include <map>
 #include <vector>
 
 #include "context/cdhashmap.h"

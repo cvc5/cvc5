@@ -18,22 +18,21 @@
 #define CVC4__SMT__PROOF_MANAGER_H
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
-#include "smt/preprocess_proof_generator.h"
-#include "smt/proof_post_processor.h"
 
 namespace CVC4 {
 
+class ProofChecker;
+class ProofNode;
+class ProofNodeManager;
 class SmtEngine;
 
 namespace smt {
 
 class Assertions;
 class DefinedFunction;
+class PreprocessProofGenerator;
+class ProofPostproccess;
 
 /**
  * This class is responsible for managing the proof output of SmtEngine, as

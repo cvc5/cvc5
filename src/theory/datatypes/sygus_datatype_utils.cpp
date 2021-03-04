@@ -16,7 +16,10 @@
 
 #include "theory/datatypes/sygus_datatype_utils.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "smt/smt_engine.h"

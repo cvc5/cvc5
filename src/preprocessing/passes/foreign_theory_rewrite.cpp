@@ -17,6 +17,9 @@
 #include "preprocessing/passes/foreign_theory_rewrite.h"
 
 #include "expr/node_traversal.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"
 
 namespace CVC4 {

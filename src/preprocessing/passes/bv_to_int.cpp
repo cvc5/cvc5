@@ -18,6 +18,7 @@
 #include "preprocessing/passes/bv_to_int.h"
 
 #include <cmath>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -26,6 +27,8 @@
 #include "expr/node_traversal.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
@@ -34,6 +37,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
@@ -687,16 +691,9 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = translateQuantifiedFormula(original);
       break;
     }
-    case kind::EXISTS:
-    {
-      // Exists is eliminated by the rewriter.
-      Assert(false);
-#ifdef NDEBUG
-      CVC4_FALLTHROUGH;
-#endif
-    }
     default:
     {
+      Assert(oldKind != kind::EXISTS);  // Exists is eliminated by the rewriter.
       // In the default case, we have reached an operator that we do not
       // translate directly to integers. The children whose types have
       // changed from bv to int should be adjusted back to bv and then

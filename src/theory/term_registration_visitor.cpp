@@ -15,6 +15,7 @@
 
 #include "theory/term_registration_visitor.h"
 
+#include "base/configuration.h"
 #include "options/quantifiers_options.h"
 #include "theory/theory_engine.h"
 

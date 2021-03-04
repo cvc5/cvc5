@@ -9,37 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
- **/
-
-/*********************                                                        */
-/*! \file transcendental_solver.h
- ** \verbatim
- ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
  ** \brief Solving for handling transcendental functions.
  **/
 
 #ifndef CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TRANSCENDENTAL_SOLVER_H
 
-#include <map>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/exponential_solver.h"
 #include "theory/arith/nl/transcendental/sine_solver.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"
@@ -47,7 +25,13 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
+
+class NlModel;
+
 namespace transcendental {
 
 /** Transcendental solver class

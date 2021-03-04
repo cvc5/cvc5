@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus_sampler.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -22,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/lazy_trie.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 #include "util/random.h"
 #include "util/sampler.h"

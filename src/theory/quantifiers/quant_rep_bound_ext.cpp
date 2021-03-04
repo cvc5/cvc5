@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/first_order_model.h"
 
 using namespace CVC4::kind;
 

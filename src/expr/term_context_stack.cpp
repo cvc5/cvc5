@@ -14,6 +14,8 @@
 
 #include "expr/term_context_stack.h"
 
+#include "expr/term_context.h"
+
 namespace CVC4 {
 
 TCtxStack::TCtxStack(const TermContext* tctx) : d_tctx(tctx) {}

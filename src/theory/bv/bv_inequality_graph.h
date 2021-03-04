@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
 #include "theory/theory.h"

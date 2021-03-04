@@ -20,12 +20,10 @@
 #ifndef CVC4__INTEGER_H
 #define CVC4__INTEGER_H
 
-#include <iosfwd>
-#include <limits>
-#include <string>
+#include <gmpxx.h>
 
-#include "base/exception.h"
-#include "util/gmp_util.h"
+#include <iosfwd>
+#include <string>
 
 namespace CVC4 {
 

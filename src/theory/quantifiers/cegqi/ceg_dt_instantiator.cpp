@@ -15,6 +15,7 @@
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
