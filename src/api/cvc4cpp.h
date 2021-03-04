@@ -719,6 +719,7 @@ struct CVC4_PUBLIC SortHashFunction
 class CVC4_PUBLIC Op
 {
   friend class Solver;
+  friend class Term;
   friend struct OpHashFunction;
 
  public:
@@ -726,37 +727,6 @@ class CVC4_PUBLIC Op
    * Constructor.
    */
   Op();
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor for a single kind (non-indexed operator).
-   * @param slv the associated solver object
-   * @param k the kind of this Op
-   */
-  Op(const Solver* slv, const Kind k);
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param k the kind of this Op
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param k the kind of this Op
-   * @param n the internal node that is to be wrapped by this term
-   * @return the Term
-   */
-  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
 
   /**
    * Destructor.
@@ -814,11 +784,32 @@ class CVC4_PUBLIC Op
    */
   std::string toString() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Expr getExpr(void) const;
-
  private:
+  /**
+   * Constructor for a single kind (non-indexed operator).
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   */
+  Op(const Solver* slv, const Kind k);
+
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
+
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
+
   /**
    * Helper for isNull checks. This prevents calling an API function with
    * CVC4_API_CHECK_NOT_NULL

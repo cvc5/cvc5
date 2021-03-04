@@ -1328,13 +1328,8 @@ TEST_F(TestApiBlackSolver, getOp)
   Term listhead = d_solver.mkTerm(APPLY_SELECTOR, headTerm, listcons1);
 
   ASSERT_TRUE(listnil.hasOp());
-  ASSERT_EQ(listnil.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-
   ASSERT_TRUE(listcons1.hasOp());
-  ASSERT_EQ(listcons1.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-
   ASSERT_TRUE(listhead.hasOp());
-  ASSERT_EQ(listhead.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 
 TEST_F(TestApiBlackSolver, getOption)
