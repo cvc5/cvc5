@@ -197,6 +197,8 @@ TEST_F(TestContextBlack, pre_post_notify)
   d_context.reset(nullptr);
 }
 
+// TODO: reenable after #2607 is merged in (issue 6047)
+#if 0
 TEST_F(TestContextBlack, top_scope_context_obj)
 {
   // this test's implementation is based on the fact that a
@@ -234,6 +236,7 @@ TEST_F(TestContextBlack, top_scope_context_obj)
   ASSERT_EQ(x.d_nsaves, 1);
   ASSERT_EQ(y.d_nsaves, 2);
 }
+#endif
 
 }  // namespace test
 }  // namespace CVC4
