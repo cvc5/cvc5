@@ -10,7 +10,8 @@ if(IWYU_PATH)
     )
 
     # find the standard library directory
-    execute_process(COMMAND clang -print-resource-dir
+    find_program(CLANG_PATH clang REQUIRED)
+    execute_process(COMMAND ${CLANG_PATH} -print-resource-dir
         OUTPUT_VARIABLE LLVM_INCLUDE_DIR
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -18,7 +19,6 @@ if(IWYU_PATH)
         set(LLVM_INCLUDE_DIR "-I${LLVM_INCLUDE_DIR}/include")
     endif()
     message(STATUS "Found LLVM at ${LLVM_INCLUDE_DIR}")
-    message(STATUS "Run IWYU with ${CTEST_NTHREADS} threads")
 
     # add a target to run iwyu on all files (within the compilation database)
     add_custom_target(iwyu-all
