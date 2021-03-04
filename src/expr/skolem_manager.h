@@ -35,6 +35,27 @@ class ProofGenerator;
  * "original form" and "witness form" as described below. Hence, this class does
  * not impact the reference counting of skolem variables which may be deleted if
  * they are not used.
+ *
+ * We distinguish two kinds of mappings between terms and skolems:
+ * 
+ * (1) "Original form", which associates skolems with the terms they purify.
+ * This is used in mkPurifySkolem below.
+ * 
+ * (2) "Witness form", which associates skolems with their formal definition
+ * as a witness term. This is used in mkSkolem below.
+ *
+ * It is possible to unify these so that purification skolems for t are skolems
+ * whose witness form is (witness ((x T)) (= x t)). However, there are
+ * motivations not to do so. In particular, witness terms in most contexts
+ * should be seen as black boxes, converting something to witness form may have
+ * unintended consequences e.g. variable shadowing. In contrast, converting to
+ * original form does not have these complications. Furthermore, having original
+ * form greatly simplifies reasoning in the proof, in particular, it avoids the
+ * need to reason about variable identifiers for the introduced binders x.
+ * 
+ * Furthermore, note that original form and witness form may share skolems
+ * in the rare case that a witness term is purified. This is currently only the
+ * case for algorithms that introduce witness, e.g. BV/set instantiation.
  */
 class SkolemManager
 {
@@ -86,6 +107,14 @@ class SkolemManager
    * @param pg The proof generator for this skolem. If non-null, this proof
    * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
+   * @param sendLemma If this is true, we mark that the skolem is associated
+   * with a lemma that is to be sent via the theory prepreprocessor. If a
+   * skolem k has witness form (witness ((x T)) (P x)), its lemma is (P k).
+   * This lemma can be accessed via getSkolemLemma. A typical use case of this
+   * feature is for skolems created in contexts where lemmas are not available.
+   * In particular, arithmetic ppRewrite eliminates terms using skolems that
+   * require lemmas and should use this feature, since ppRewrite should not
+   * send lemmas.
    * @return The skolem whose witness form is registered by this class.
    */
   Node mkSkolem(Node v,
@@ -154,12 +183,15 @@ class SkolemManager
    */
   ProofGenerator* getProofGenerator(Node q) const;
   /**
-   * Get skolem lemma, where if k has witness form (witness ((x T)) P),
-   * this is the lemma P * { x -> k }.
+   * Get skolem lemma, where if k has witness form (witness ((x T)) (P x))
+   * and was created with the flag sendLemma = true, then this is the lemma
+   * (P k). Otherwise, we return the null node.
    */
   Node getSkolemLemma(Node k) const;
   /**
    * Convert to witness form, which gets the witness form of a skolem k.
+   * Notice this method is *not* recursive, instead, it is a simple attribute
+   * lookup.
    *
    * @param k The variable to convert to witness form described above
    * @return k in witness form.
