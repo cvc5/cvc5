@@ -8,30 +8,6 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-<<<<<<< HEAD
-cvc4_add_cxx_unit_test_black(regexp_operation_black theory)
-cvc4_add_cxx_unit_test_black(theory_black theory)
-cvc4_add_cxx_unit_test_white(evaluator_white theory)
-cvc4_add_cxx_unit_test_white(logic_info_white theory)
-cvc4_add_cxx_unit_test_white(sequences_rewriter_white theory)
-cvc4_add_cxx_unit_test_white(strings_rewriter_white theory)
-cvc4_add_cxx_unit_test_white(theory_arith_white theory)
-cvc4_add_cxx_unit_test_white(theory_bags_normal_form_white theory)
-cvc4_add_cxx_unit_test_white(theory_bags_rewriter_white theory)
-cvc4_add_cxx_unit_test_white(theory_bags_type_rules_white theory)
-cvc4_add_cxx_unit_test_white(theory_bv_rewriter_white theory)
-cvc4_add_cxx_unit_test_white(theory_bv_white theory)
-cvc4_add_cxx_unit_test_white(theory_engine_white theory)
-cvc4_add_cxx_unit_test_white(theory_quantifiers_bv_instantiator_white theory)
-cvc4_add_cxx_unit_test_white(theory_quantifiers_bv_inverter_white theory)
-cvc4_add_cxx_unit_test_white(theory_sets_type_enumerator_white theory)
-cvc4_add_cxx_unit_test_white(theory_sets_type_rules_white theory)
-cvc4_add_cxx_unit_test_white(theory_strings_skolem_cache_black theory)
-cvc4_add_cxx_unit_test_white(theory_strings_word_white theory)
-cvc4_add_cxx_unit_test_white(theory_white theory)
-cvc4_add_cxx_unit_test_white(type_enumerator_white theory)
-cvc4_add_cxx_unit_test_white(theory_int_opt_white theory)
-=======
 cvc4_add_unit_test_black(regexp_operation_black theory)
 cvc4_add_unit_test_black(theory_black theory)
 cvc4_add_unit_test_white(evaluator_white theory)
@@ -53,4 +29,4 @@ cvc4_add_unit_test_white(theory_strings_skolem_cache_black theory)
 cvc4_add_unit_test_white(theory_strings_word_white theory)
 cvc4_add_unit_test_white(theory_white theory)
 cvc4_add_unit_test_white(type_enumerator_white theory)
->>>>>>> 8562fbebb7bcc6b6c07938d6866b4092715c2a55
+cvc4_add_unit_test_white(theory_int_opt_white theory)
