@@ -352,6 +352,10 @@ enable_testing()
 #-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
 
+# required for time limits on non-POSIX systems
+find_package(Threads REQUIRED)
+add_cxx_flag(${CMAKE_THREAD_LIBS_INIT})
+
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
 else()
