@@ -71,7 +71,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_EQ(heap.top(), 5);
   ASSERT_EQ(heap.size(), 1u);
   ASSERT_FALSE(heap.empty());
-  ASSERT_NE(heap.begin(), heap.end());
+  ASSERT_FALSE(heap.begin() == heap.end());
   ASSERT_EQ(*h5, 5);
   ASSERT_EQ(*heap.begin(), 5);
   ASSERT_NO_THROW(heap.erase(h5));
