@@ -483,8 +483,7 @@ Node OperatorElim::mkWitnessTerm(Node v,
   Node k = sm->mkSkolem(
       v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this, true);
   // TODO: store proof
-  
-  
+
   return k;
 }
 

@@ -93,8 +93,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
 
-  Trace("tpp") << "TheoryPreprocessor::preprocess: start " << node
-                     << std::endl;
+  Trace("tpp") << "TheoryPreprocessor::preprocess: start " << node << std::endl;
 
   // We must rewrite before preprocessing, because some terms when rewritten
   // may introduce new terms that are not top-level and require preprocessing.
@@ -137,7 +136,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
       i++;
     }
   }
-  
+
   if (node == ppNode)
   {
     Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned no change"
@@ -167,7 +166,8 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
   Trace("tpp") << "TheoryPreprocessor::preprocess: return " << tret.getNode()
-               << ", procLemmas=" << procLemmas << ", # lemmas = " << newLemmas.size() << std::endl;
+               << ", procLemmas=" << procLemmas
+               << ", # lemmas = " << newLemmas.size() << std::endl;
   return tret;
 }
 
