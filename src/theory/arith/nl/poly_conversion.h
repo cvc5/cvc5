@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
 #define CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
 
-#include "util/real_algebraic_number.h"
+#include "cvc4_private.h"
 
 #ifdef CVC4_POLY_IMP
 
@@ -28,6 +28,7 @@
 #include <utility>
 
 #include "expr/node.h"
+#include "util/real_algebraic_number.h"
 
 namespace CVC4 {
 namespace theory {
