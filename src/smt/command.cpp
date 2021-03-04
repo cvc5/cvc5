@@ -532,7 +532,7 @@ void CheckSatAssumingCommand::toStream(std::ostream& out,
                                        OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdCheckSatAssuming(
-      out, api::termVectorToNodes(d_terms));
+      out, api::Term::termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -678,7 +678,7 @@ void SynthFunCommand::toStream(std::ostream& out,
                                size_t dag,
                                OutputLanguage language) const
 {
-  std::vector<Node> nodeVars = termVectorToNodes(d_vars);
+  std::vector<Node> nodeVars = api::Term::termVectorToNodes(d_vars);
   Printer::getPrinter(language)->toStreamCmdSynthFun(
       out,
       d_fun.getNode(),
@@ -1213,7 +1213,7 @@ void DefineSortCommand::toStream(std::ostream& out,
   Printer::getPrinter(language)->toStreamCmdDefineType(
       out,
       d_symbol,
-      api::sortVectorToTypeNodes(d_params),
+      api::Sort::sortVectorToTypeNodes(d_params),
       d_sort.getTypeNode());
 }
 
@@ -1289,7 +1289,7 @@ void DefineFunctionCommand::toStream(std::ostream& out,
   Printer::getPrinter(language)->toStreamCmdDefineFunction(
       out,
       d_func.toString(),
-      api::termVectorToNodes(d_formals),
+      api::Term::termVectorToNodes(d_formals),
       d_func.getNode().getType().getRangeType(),
       d_formula.getNode());
 }
@@ -1369,14 +1369,14 @@ void DefineFunctionRecCommand::toStream(std::ostream& out,
   formals.reserve(d_formals.size());
   for (const std::vector<api::Term>& formal : d_formals)
   {
-    formals.push_back(api::termVectorToNodes(formal));
+    formals.push_back(api::Term::termVectorToNodes(formal));
   }
 
   Printer::getPrinter(language)->toStreamCmdDefineFunctionRec(
       out,
-      api::termVectorToNodes(d_funcs),
+      api::Term::termVectorToNodes(d_funcs),
       formals,
-      api::termVectorToNodes(d_formulas));
+      api::Term::termVectorToNodes(d_formulas));
 }
 /* -------------------------------------------------------------------------- */
 /* class DeclareHeapCommand                                                   */
@@ -1456,7 +1456,7 @@ void SetUserAttributeCommand::invoke(api::Solver* solver, SymbolManager* sm)
       solver->getSmtEngine()->setUserAttribute(
           d_attr,
           d_term.getNode(),
-          api::termVectorToNodes(d_termValues),
+          api::Term::termVectorToNodes(d_termValues),
           d_strValue);
     }
     d_commandStatus = CommandSuccess::instance();
@@ -1617,7 +1617,7 @@ void GetValueCommand::toStream(std::ostream& out,
                                OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdGetValue(
-      out, api::termVectorToNodes(d_terms));
+      out, api::Term::termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1870,7 +1870,7 @@ void BlockModelValuesCommand::toStream(std::ostream& out,
                                        OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdBlockModelValues(
-      out, api::termVectorToNodes(d_terms));
+      out, api::Term::termVectorToNodes(d_terms));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2374,7 +2374,7 @@ void GetUnsatCoreCommand::printResult(std::ostream& out,
     if (options::dumpUnsatCoresFull())
     {
       // use the assertions
-      UnsatCore ucr(api::termVectorToNodes(d_result));
+      UnsatCore ucr(api::Term::termVectorToNodes(d_result));
       ucr.toStream(out);
     }
     else
@@ -2809,7 +2809,7 @@ void DatatypeDeclarationCommand::toStream(std::ostream& out,
                                           OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDatatypeDeclaration(
-      out, api::sortVectorToTypeNodes(d_datatypes));
+      out, api::Sort::sortVectorToTypeNodes(d_datatypes));
 }
 
 }  // namespace CVC4
