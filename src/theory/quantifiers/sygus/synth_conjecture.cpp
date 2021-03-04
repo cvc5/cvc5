@@ -1031,7 +1031,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
   Trace("cegqi-sol-debug") << "Printing synth solution..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
   std::vector<Node> sols;
-  std::vector<int> statuses;
+  std::vector<int8_t> statuses;
   if (!getSynthSolutionsInternal(sols, statuses))
   {
     return;
@@ -1043,7 +1043,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
     if (!sol.isNull())
     {
       Node prog = d_embed_quant[0][i];
-      int status = statuses[i];
+      int8_t status = statuses[i];
       TypeNode tn = prog.getType();
       const DType& dt = tn.getDType();
       std::stringstream ss;
@@ -1155,7 +1155,7 @@ bool SynthConjecture::getSynthSolutions(
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sols;
-  std::vector<int> statuses;
+  std::vector<int8_t> statuses;
   Trace("cegqi-debug") << "getSynthSolutions..." << std::endl;
   if (!getSynthSolutionsInternal(sols, statuses))
   {
@@ -1167,7 +1167,7 @@ bool SynthConjecture::getSynthSolutions(
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
     Node sol = sols[i];
-    int status = statuses[i];
+    int8_t status = statuses[i];
     Trace("cegqi-debug") << "...got " << i << ": " << sol
                          << ", status=" << status << std::endl;
     // get the builtin solution
@@ -1214,7 +1214,7 @@ void SynthConjecture::recordSolution(std::vector<Node>& vs)
 }
 
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
-                                                std::vector<int>& statuses)
+                                                std::vector<int8_t>& statuses)
 {
   if (!d_hasSolution)
   {
@@ -1228,7 +1228,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     Assert(tn.isDatatype());
     // get the solution
     Node sol;
-    int status = -1;
+    int8_t status = -1;
     if (isSingleInvocation())
     {
       Assert(d_ceg_si != NULL);

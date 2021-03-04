@@ -152,8 +152,8 @@ class SygusReconstruct : public expr::NotifyMatch
    */
   Node reconstructSolution(Node sol,
                            TypeNode stn,
-                           int& reconstructed,
-                           int enumLimit);
+                           int8_t& reconstructed,
+                           uint64_t enumLimit);
 
  private:
   /** Match obligation `k`'s builtin term with pattern `sz`.

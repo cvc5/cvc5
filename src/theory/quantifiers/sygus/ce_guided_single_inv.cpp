@@ -293,7 +293,7 @@ struct sortSiInstanceIndices {
 
 Node CegSingleInv::getSolution(size_t sol_index,
                                TypeNode stn,
-                               int& reconstructed,
+                               int8_t& reconstructed,
                                bool rconsSygus)
 {
   Assert(sol_index < d_quant[0].getNumChildren());
@@ -424,7 +424,7 @@ void CegSingleInv::setSolution()
 
 Node CegSingleInv::reconstructToSyntax(Node s,
                                        TypeNode stn,
-                                       int& reconstructed,
+                                       int8_t& reconstructed,
                                        bool rconsSygus)
 {
   // extract the lambda body
@@ -437,7 +437,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
           != options::CegqiSingleInvRconsMode::NONE
       && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus)
   {
-    int enumLimit = -1;
+    int64_t enumLimit = -1;
     if (options::cegqiSingleInvReconstruct()
         == options::CegqiSingleInvRconsMode::TRY)
     {

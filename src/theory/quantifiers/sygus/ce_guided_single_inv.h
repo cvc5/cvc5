@@ -133,11 +133,13 @@ class CegSingleInv
    */
   Node getSolution(size_t sol_index,
                    TypeNode stn,
-                   int& reconstructed,
+                   int8_t& reconstructed,
                    bool rconsSygus = true);
   //reconstruct to syntax
-  Node reconstructToSyntax( Node s, TypeNode stn, int& reconstructed,
-                            bool rconsSygus = true );
+  Node reconstructToSyntax(Node s,
+                           TypeNode stn,
+                           int8_t& reconstructed,
+                           bool rconsSygus = true);
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
   /** preregister conjecture */

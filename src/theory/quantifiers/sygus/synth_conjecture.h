@@ -385,7 +385,7 @@ class SynthConjecture
    * the sygus datatype constructor corresponding to variable x.
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
-                                 std::vector<int>& status);
+                                 std::vector<int8_t>& status);
   //-------------------------------- sygus stream
   /**
    * Prints the current synthesis solution to the output stream indicated by

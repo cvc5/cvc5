@@ -31,8 +31,8 @@ SygusReconstruct::SygusReconstruct(TermDbSygus* tds, SygusStatistics& s)
 
 Node SygusReconstruct::reconstructSolution(Node sol,
                                            TypeNode stn,
-                                           int& reconstructed,
-                                           int enumLimit)
+                                           int8_t& reconstructed,
+                                           uint64_t enumLimit)
 {
   Trace("sygus-rcons") << "SygusReconstruct::reconstructSolution: " << sol
                        << std::endl;
@@ -68,7 +68,7 @@ Node SygusReconstruct::reconstructSolution(Node sol,
   // matching
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction> pool;
 
-  size_t count = 0;
+  uint64_t count = 0;
 
   // algorithm
   while (d_sol[mainOb].isNull() && count < enumLimit)
