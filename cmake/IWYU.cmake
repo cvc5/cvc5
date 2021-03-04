@@ -1,7 +1,8 @@
-find_program(IWYU_PATH iwyu_tool)
+find_program(IWYU_PATH NAMES iwyu_tool iwyu-tool)
 
 if(IWYU_PATH)
     # iwyu is available
+    message(STATUS "Found IWYU: ${IWYU_PATH}")
 
     # add a target to inspect number of times headers are included.
     add_custom_target(iwyu-list-includes
@@ -9,16 +10,19 @@ if(IWYU_PATH)
     )
 
     # find the standard library directory
-    file(GLOB_RECURSE LLVM_INCLUDE /usr/lib*/llvm*/**/stddef.h)
-    if(LLVM_INCLUDE)
-        list(GET LLVM_INCLUDE 0 LLVM_INCLUDE)
-        get_filename_component(LLVM_INCLUDE "${LLVM_INCLUDE}" DIRECTORY)
-        set(LLVM_INCLUDE "-I${LLVM_INCLUDE}")
+    execute_process(COMMAND clang -print-resource-dir
+        OUTPUT_VARIABLE LLVM_INCLUDE_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(LLVM_INCLUDE_DIR)
+        set(LLVM_INCLUDE_DIR "-I${LLVM_INCLUDE_DIR}/include")
     endif()
+    message(STATUS "Found LLVM at ${LLVM_INCLUDE_DIR}")
+    message(STATUS "Run IWYU with ${CTEST_NTHREADS} threads")
 
     # add a target to run iwyu on all files (within the compilation database)
     add_custom_target(iwyu-all
-        COMMAND ${IWYU_PATH} -o clang -p . -- -Xiwyu --cxx17ns ${LLVM_INCLUDE}
+        COMMAND ${IWYU_PATH} -o clang -p . -- -Xiwyu --cxx17ns ${LLVM_INCLUDE_DIR}
     )
 
     file(GLOB subdirs ${PROJECT_SOURCE_DIR}/src/*)
@@ -30,7 +34,7 @@ if(IWYU_PATH)
         )
         get_filename_component(dirname ${dir} NAME)
         add_custom_target(iwyu-${dirname}
-            COMMAND ${IWYU_PATH} -o clang -j4 -p . ${source_files} -- -Xiwyu --cxx17ns ${LLVM_INCLUDE}
+            COMMAND ${IWYU_PATH} -o clang -p . ${source_files} -- -Xiwyu --cxx17ns ${LLVM_INCLUDE_DIR}
         )
     endforeach()
 endif()
