@@ -426,16 +426,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
       */
     case PfRule::STRING_REDUCTION:
     {
-      Node res = pn->getResult();
-      Trace("ajr-temp") << "String reduction " << res << std::endl;
-      Trace("ajr-temp") << "String reduction internal : " << d_tproc.convert(res) << std::endl;
-      Assert (res.getKind()==AND);
-      Node resw = res[res.getNumChildren()-1];
-      Assert (resw.getKind()==EQUAL);
-      Node k = resw[1];
-      Assert (k.getKind()==SKOLEM);
-      Node w = SkolemManager::getOriginalForm(k);
-      pf << h << n << vti << as[0];
+      pf << h << as[0];
     }
       break;
     // quantifiers
