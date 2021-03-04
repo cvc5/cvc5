@@ -1933,8 +1933,8 @@ void TheoryArithPrivate::outputConflicts(){
   if(!conflictQueueEmpty()){
     Assert(!d_conflicts.empty());
     for(size_t i = 0, i_end = d_conflicts.size(); i < i_end; ++i){
-      std::pair<ConstraintCP, InferenceId> conf = d_conflicts[i];
-      ConstraintCP confConstraint = conf.first;
+      const std::pair<ConstraintCP, InferenceId>& conf = d_conflicts[i];
+      const ConstraintCP& confConstraint = conf.first;
       bool hasProof = confConstraint->hasProof();
       Assert(confConstraint->inConflict());
       const ConstraintRule& pf = confConstraint->getConstraintRule();
