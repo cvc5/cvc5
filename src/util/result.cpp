@@ -270,38 +270,20 @@ ostream& operator<<(ostream& out, enum Result::Entailment e)
   return out;
 }
 
-ostream& operator<<(ostream& out, enum Result::UnknownExplanation e) {
-  switch (e) {
-    case Result::REQUIRES_FULL_CHECK:
-      out << "REQUIRES_FULL_CHECK";
-      break;
-    case Result::INCOMPLETE:
-      out << "INCOMPLETE";
-      break;
-    case Result::TIMEOUT:
-      out << "TIMEOUT";
-      break;
-    case Result::RESOURCEOUT:
-      out << "RESOURCEOUT";
-      break;
-    case Result::MEMOUT:
-      out << "MEMOUT";
-      break;
-    case Result::INTERRUPTED:
-      out << "INTERRUPTED";
-      break;
-    case Result::NO_STATUS:
-      out << "NO_STATUS";
-      break;
-    case Result::UNSUPPORTED:
-      out << "UNSUPPORTED";
-      break;
-    case Result::OTHER:
-      out << "OTHER";
-      break;
-    case Result::UNKNOWN_REASON:
-      out << "UNKNOWN_REASON";
-      break;
+ostream& operator<<(ostream& out, enum Result::UnknownExplanation e)
+{
+  switch (e)
+  {
+    case Result::REQUIRES_FULL_CHECK: out << "REQUIRES_FULL_CHECK"; break;
+    case Result::INCOMPLETE: out << "INCOMPLETE"; break;
+    case Result::TIMEOUT: out << "TIMEOUT"; break;
+    case Result::RESOURCEOUT: out << "RESOURCEOUT"; break;
+    case Result::MEMOUT: out << "MEMOUT"; break;
+    case Result::INTERRUPTED: out << "INTERRUPTED"; break;
+    case Result::NO_STATUS: out << "NO_STATUS"; break;
+    case Result::UNSUPPORTED: out << "UNSUPPORTED"; break;
+    case Result::OTHER: out << "OTHER"; break;
+    case Result::UNKNOWN_REASON: out << "UNKNOWN_REASON"; break;
     default: Unhandled() << e;
   }
   return out;
