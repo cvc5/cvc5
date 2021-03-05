@@ -45,7 +45,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return whether we should run the update method on pn
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    bool& continueUpdate);
+                    bool& continueUpdate) override;
   /**
    * This method updates the proof rule application by splitting on the given
    * rule and translating it into a proof node in terms of the veriT rules.
@@ -62,7 +62,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
-              bool& continueUpdate);
+              bool& continueUpdate) override;
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -142,7 +142,7 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
    * @return whether we should run the update method on pn
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
-                    bool& continueUpdate);
+                    bool& continueUpdate) override;
   /**
    * This method gets a proof node pn = false printed as (cl false) and updates the proof for false such that (cl) is printed.
    *
@@ -158,7 +158,7 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp,
-              bool& continueUpdate);
+              bool& continueUpdate) override;
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -194,9 +194,7 @@ class VeritProofPostprocess
   /** The updater, which is responsible for adding additional steps to the end of the proof */
   //ProofNodeUpdater d_finalize;
   /** Internal processing for a proof node*/
-  void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdp);
-  /** Special processing for SYMM rules*/
-  void processSYMM(std::shared_ptr<ProofNode> pf, CDProof *cdp);
+  void processInternal(std::shared_ptr<ProofNode> pf,CDProof* cdb);
   /** Flag to indicate whether proof format should be extended */
   bool d_extended;
 };

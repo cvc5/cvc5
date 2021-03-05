@@ -48,9 +48,6 @@ bool VeritProofPostprocessCallback::update(
     CDProof* cdp,
     bool& continueUpdate)
 {
-  // Test print
-  // std::cout << id << std::endl;
-
   Trace("verit-proof") << "- veriT post process callback " << res << " " << id
                        << " " << children << " / " << args << std::endl;
 
@@ -101,15 +98,23 @@ bool VeritProofPostprocessCallback::update(
     // Fn)) for i times
     //
     // proof rule: resolution
-    // proof node: (VP2:(cl (not (and F1 ... Fn))^n F))
-    // proof term: (cl (not (and F1 ... Fn))^n F)
+    // proof node: (VP2a:(cl F (not (and F1 ... Fn))^n))
+    // proof term: (cl F (not (and F1 ... Fn))^n)
     // premises: VP1, VP2_i for all i in {1..n},
+    // args: ()
+    //
+    // In extended mode add reordering step:
+    //
+    // proof rule: reorder
+    // proof node: (VP2b:(cl (not (and F1 ... Fn))^n F))
+    // proof term: (cl (not (and F1 ... Fn))^n F)
+    // premises: VP2a
     // args: ()
     //
     // proof rule: duplicated_literals
     // proof node: (VP3:(cl (not (and F1 ... Fn)) F))
     // proof term: (cl (not (and F1 ... Fn)) F)
-    // premises: VP2
+    // premises: VP2a or VP2b
     // args: ()
     //
     // proof rule: implies_neg1
@@ -121,7 +126,7 @@ bool VeritProofPostprocessCallback::update(
     // proof rule: resolution
     // proof node: (VP5:(cl (=> (and F1 ... Fn) F) F))
     // proof term: (cl (=> (and F1 ... Fn) F) F)
-    // premises: VP3 VP4
+    // premises: VP4 VP3
     // args: ()
     //
     // proof rule: implies_neg2
@@ -199,9 +204,9 @@ bool VeritProofPostprocessCallback::update(
         andNode = args[0];  // F1
       }
       std::vector<Node> premisesVP2 = {vp1};
-      std::vector<Node> notAnd = {d_cl};
+      std::vector<Node> notAnd = {d_cl,children[0]}; // cl F
       Node vp2_i;
-      for (int i = 0; i < args.size(); i++)
+      for (long unsigned int i = 0; i < args.size(); i++)
       {
         vp2_i = d_nm->mkNode(kind::SEXPR,
                              d_cl,
@@ -209,13 +214,21 @@ bool VeritProofPostprocessCallback::update(
                              args[i]);  // (cl (not (and F1 ... Fn)) Fi)
         success &= addVeritStep(vp2_i, VeritRule::AND_POS, {}, {}, *cdp);
         premisesVP2.push_back(vp2_i);
-        notAnd.push_back(andNode.notNode());  // cl (not (and F1 ... Fn))^i
+        notAnd.push_back(andNode.notNode());  // cl F (not (and F1 ... Fn))^i
       }
-      notAnd.push_back(children[0]);  // cl (not (and F1 ... Fn))^n F
 
-      Node vp2 = d_nm->mkNode(kind::SEXPR,notAnd);
+      Node vp2a = d_nm->mkNode(kind::SEXPR,notAnd); // (cl F (not (and F1 ... Fn))^n)
       success &=
-          addVeritStep(vp2, VeritRule::RESOLUTION, premisesVP2, {}, *cdp);
+          addVeritStep(vp2a, VeritRule::RESOLUTION, premisesVP2, {}, *cdp);
+      Node vp2 = vp2a;
+      if(d_extended){
+	 notAnd.erase(notAnd.begin()+1);  //(cl (not (and F1 ... Fn))^n F)
+	 notAnd.push_back(children[0]);   //(cl (not (and F1 ... Fn))^n F)
+         Node vp2b = d_nm->mkNode(kind::SEXPR,notAnd);
+         success &=
+          addVeritStep(vp2b, VeritRule::REORDER, {vp2a}, {}, *cdp);
+	 vp2=vp2b;
+      }
 
       Node vp3 =
           d_nm->mkNode(kind::SEXPR, d_cl, andNode.notNode(), children[0]);
@@ -229,7 +242,7 @@ bool VeritProofPostprocessCallback::update(
       success &= addVeritStep(vp4, VeritRule::IMPLIES_NEG1, {}, {}, *cdp);
 
       Node vp5 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], children[0]);
-      success &= addVeritStep(vp5, VeritRule::RESOLUTION, {vp3, vp4}, {}, *cdp);
+      success &= addVeritStep(vp5, VeritRule::RESOLUTION, {vp4, vp3}, {}, *cdp);
 
       Node vp6 = d_nm->mkNode(kind::SEXPR, d_cl, vp8[1], children[0].notNode());
       success &= addVeritStep(vp6, VeritRule::IMPLIES_NEG2, {}, {}, *cdp);
@@ -302,7 +315,7 @@ bool VeritProofPostprocessCallback::update(
 	     }
 	     case kind::EQUAL:
              {  // Test equiv_simplify
-                // std::cout << "What happens here " << t << std::endl;
+                std::cout << "What happens here " << t << std::endl;
                vrule = VeritRule::EQ_SIMPLIFY; break;
              }
              case kind::AND:{
@@ -318,10 +331,13 @@ bool VeritProofPostprocessCallback::update(
 	       vrule = VeritRule::IMPLIES_SIMPLIFY; break;
 	     }
 	     default:{
-               // std::cout << "t kind " << t.getKind() << std::endl;
-               // td::cout << "(= t t')" << res << std::endl;
+               std::cout << "tid " << tid << std::endl;
+               std::cout << "t kind " << t.getKind() << std::endl;
+               std::cout << "(= t t')" << res << std::endl;
+	       break;
              }
 	  }
+	  break;
 	}
         case theory::TheoryId::THEORY_BOOL:
         {
@@ -400,7 +416,6 @@ bool VeritProofPostprocessCallback::update(
         case theory::TheoryId::THEORY_LAST:{break;}
 	default:{};
       }
-      //std::cout << "theory rewrite " << res << std::endl;;
       return addVeritStep(res,
                           vrule,
                           d_nm->mkNode(kind::SEXPR, d_cl, res),
@@ -621,12 +636,12 @@ bool VeritProofPostprocessCallback::update(
     // premises:
     // args: ()
     case PfRule::CHAIN_RESOLUTION:  // TODO
-    {
+    {//TODO: check if id necessary
       bool success = true;
       Node trueNode = d_nm->mkConst(true);
       Node falseNode = d_nm->mkConst(false);
 
-      Node id = args[0];
+      Node pivot_id = args[0];
       Node L = args[1];
       std::vector<Node> current_resolvent;
       std::vector<Node> new_children = children;
@@ -677,7 +692,7 @@ bool VeritProofPostprocessCallback::update(
       }*/
 
       // All further children
-      for (int i = 1; i < children.size(); i++)
+      for (unsigned long int i = 1; i < children.size(); i++)
       {
         // Add cl step if children[i] has kind OR and the L before it is not
         // itself E.g. L_{i-1} = c and children[i] = (or a (not c)) -> add OR
@@ -726,7 +741,7 @@ bool VeritProofPostprocessCallback::update(
 
         if (i < children.size() - 1)
         {
-          id = args[2 * i];
+          pivot_id = args[2 * i];
           L = args[2 * i + 1];
         }
       }
@@ -1044,7 +1059,7 @@ bool VeritProofPostprocessCallback::update(
       std::vector<Node> neg_Nodes;
       neg_Nodes.push_back(d_cl);
       neg_Nodes.push_back(res);
-      for (int i = 0; i < children.size(); i++)
+      for (unsigned long int i = 0; i < children.size(); i++)
       {
         neg_Nodes.push_back(children[i].notNode());
       }
@@ -1975,8 +1990,7 @@ bool VeritProofPostprocessCallback::update(
     // args: ()
     case PfRule::INSTANTIATE:
     {
-      std::vector<Node> new_args;
-      for (int i = 0; i < args.size(); i++)
+      for (unsigned long int i = 0; i < args.size(); i++)
       {
         new_args.push_back(
             d_nm->mkNode(kind::EQUAL, children[0][0][i], args[i]));
@@ -2303,9 +2317,10 @@ VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
 bool VeritProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
                                                  bool& continueUpdate)
 {
-  d_nm = NodeManager::currentNM();
-  if (pn->getArguments()[2][1].toString() == d_nm->mkConst(false).toString()){
-    return true;
+  if((pn->getArguments()[2].end()-pn->getArguments()[2].begin()) > 1){
+    if (pn->getArguments()[2][1].toString() == d_nm->mkConst(false).toString()){
+      return true;
+    }
   }
   return false;
 }
@@ -2446,7 +2461,7 @@ bool VeritProofPostprocessCallback::isSameModEqual(Node vp1, Node vp2)
     return false;
   }
   bool equal = true;
-  for (int i = 0; i < vp1s.size(); i++)
+  for (unsigned long int i = 0; i < vp1s.size(); i++)
   {
     equal &= isSameModEqual(vp1s[i], vp2s[i]);
   }
@@ -2474,19 +2489,12 @@ VeritProofPostprocess::~VeritProofPostprocess() {}
 void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   CDProof* cdp = new CDProof(d_pnm, nullptr, "CDProof", false);
-
-  /*if(d_extended){//TODO: Move to processInternal
-    cdp = new CDProof(d_pnm, nullptr, "CDProof", false);
-  }
-  else{
-    cdp = new CDProof(d_pnm, nullptr, "CDProof", true);
-  }*/
-
   //d_updater.process(pf);
-  processInternal(pf, cdp);
+  processInternal(pf,cdp);
 
   // In veriT the last step is always (cl). However, after the translate the final step might be (cl false). In that case additional steps are required.
-  NodeManager* nm = NodeManager::currentNM();
+  //d_finalize.process(pf);
+  //CDProof* cdp = new CDProof(d_pnm, nullptr, "CDProof", false);
   VeritProofPostprocessFinalCallback* fcb = new VeritProofPostprocessFinalCallback(d_pnm);
   bool continueUpdate = true;
   if (fcb->shouldUpdate(pf,continueUpdate))
@@ -2494,7 +2502,6 @@ void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
     std::vector<Node> children;
     for (auto c : pf->getChildren())
     {
-      //cdp->addProof(c);
       children.push_back(c->getResult());
     }
     if(fcb->update(pf->getResult(), PfRule::VERIT_RULE, children, pf->getArguments(), cdp, continueUpdate)){
@@ -2506,34 +2513,26 @@ void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
                            << std::endl;
     }
   }
-
-  //d_finalize.process(pf);
 }
 
-
-void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
-                                            CDProof* cdp)
+void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdp)
 {
-  std::vector<Node> children;
-
   //First, update children
+  std::vector<Node> children;
   for (const std::shared_ptr<ProofNode>& child :pf->getChildren()){
     std::shared_ptr<ProofNode> next_child = child;
-
     //In non-extended mode symm and reordering should be skipped.
     if(!d_extended && (next_child->getRule() == PfRule::REORDERING || next_child->getRule() == PfRule::SYMM)){
       while (next_child->getRule() == PfRule::SYMM || next_child->getRule() == PfRule::REORDERING){
         next_child = next_child->getChildren()[0];
       }
     }
-    processInternal(next_child, cdp);
+    processInternal(next_child,cdp);
     children.push_back(next_child->getResult());
-    cdp->addProof(next_child);  // Find out if this is necessary
   }
 
   // Then, update proof node
   bool continueUpdate = true;
-
   if (d_cb->shouldUpdate(pf, continueUpdate))
   {
     if (d_cb->update(pf->getResult(),
