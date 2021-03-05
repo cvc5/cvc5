@@ -15,9 +15,9 @@
 #include "proof/lfsc/lfsc_printer.h"
 
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_print_channel.h"
 #include "proof/proof_letify.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 
@@ -419,22 +419,20 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
     /*
-    case PfRule::RE_UNFOLD_POS: 
-      Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " << d_tproc.convert(pn->getResult()) << std::endl;
-      pf << h << h << h << cs[0]; 
-      break; 
-      */
-    case PfRule::STRING_REDUCTION:
-    {
-      pf << h << as[0];
-    }
+    case PfRule::RE_UNFOLD_POS:
+      Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " <<
+    d_tproc.convert(pn->getResult()) << std::endl; pf << h << h << h << cs[0];
       break;
+      */
+    case PfRule::STRING_REDUCTION: { pf << h << as[0];
+    }
+    break;
     // quantifiers
     case PfRule::SKOLEM_INTRO:
     {
       pf << d_tproc.convert(SkolemManager::getOriginalForm(args[0]));
     }
-      break;
+    break;
     // ---------- arguments of non-translated rules go here
     case PfRule::LFSC_RULE:
     {

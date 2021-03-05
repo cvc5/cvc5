@@ -38,7 +38,9 @@ class OperatorElim : public EagerProofGenerator
     * transcendental functions), then we replace it by a form that eliminates
     * that operator. This may involve the introduction of witness terms.
     */
-  TrustNode eliminate(Node n, std::vector<SkolemLemma>& lems, bool partialOnly = false);
+  TrustNode eliminate(Node n,
+                      std::vector<SkolemLemma>& lems,
+                      bool partialOnly = false);
   /**
    * Get axiom for term n. This returns the axiom that this class uses to
    * eliminate the term n, which is determined by its top-most symbol.
@@ -93,7 +95,10 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(Node n, std::vector<SkolemLemma>& lems, TConvProofGenerator* tg, bool partialOnly);
+  Node eliminateOperators(Node n,
+                          std::vector<SkolemLemma>& lems,
+                          TConvProofGenerator* tg,
+                          bool partialOnly);
   /** get arithmetic skolem
    *
    * Returns the Skolem in the above map for the given id, creating it if it
@@ -107,7 +112,8 @@ class OperatorElim : public EagerProofGenerator
   Node mkWitnessTerm(Node v,
                      Node pred,
                      const std::string& prefix,
-                     const std::string& comment, std::vector<SkolemLemma>& lems);
+                     const std::string& comment,
+                     std::vector<SkolemLemma>& lems);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function

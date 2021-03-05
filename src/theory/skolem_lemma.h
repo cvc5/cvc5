@@ -25,7 +25,7 @@ namespace theory {
 
 class SkolemLemma
 {
-public:
+ public:
   SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k) {}
   /** The lemma, a trust node of kind LEMMA */
   TrustNode d_lemma;

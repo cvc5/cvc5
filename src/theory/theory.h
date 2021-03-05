@@ -732,7 +732,10 @@ class Theory {
    * and in theory preprocessing, where n is a (non-equality) term occurring
    * in the input or generated in a lemma.
    */
-  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) { return TrustNode::null(); }
+  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+  {
+    return TrustNode::null();
+  }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

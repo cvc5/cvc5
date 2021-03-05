@@ -104,7 +104,7 @@ TrustNode TheoryArith::expandDefinition(Node node)
   // call eliminate operators, to eliminate partial operators only
   std::vector<SkolemLemma> lems;
   TrustNode ret = d_arithPreproc.eliminate(node, lems, true);
-  Assert (lems.empty());
+  Assert(lems.empty());
   return ret;
 }
 
@@ -131,7 +131,7 @@ TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 
 TrustNode TheoryArith::ppRewriteEq(TNode atom)
 {
-  Assert (atom.getKind()==kind::EQUAL);
+  Assert(atom.getKind() == kind::EQUAL);
   if (!options::arithRewriteEq())
   {
     return TrustNode::null();

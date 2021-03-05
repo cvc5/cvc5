@@ -14,14 +14,14 @@
 
 #include "theory/arith/operator_elim.h"
 
+#include "expr/attribute.h"
+#include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "expr/bound_var_manager.h"
-#include "expr/attribute.h"
 
 using namespace CVC4::kind;
 
@@ -29,19 +29,21 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-/** 
+/**
  * Attribute used for constructing unique bound variables that are binders
  * for witness terms below.
  */
 struct ArithWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ArithWitnessVarAttributeId, Node> ArithWitnessVarAttribute;
+typedef expr::Attribute<ArithWitnessVarAttributeId, Node>
+    ArithWitnessVarAttribute;
 /** Similar to above, shared for to_int and is_int */
 struct ToIntWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ToIntWitnessVarAttributeId, Node> ToIntWitnessVarAttribute;
+typedef expr::Attribute<ToIntWitnessVarAttributeId, Node>
+    ToIntWitnessVarAttribute;
 
 OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
     : EagerProofGenerator(pnm), d_info(info)
@@ -62,7 +64,9 @@ void OperatorElim::checkNonLinearLogic(Node term)
   }
 }
 
-TrustNode OperatorElim::eliminate(Node n, std::vector<SkolemLemma>& lems, bool partialOnly)
+TrustNode OperatorElim::eliminate(Node n,
+                                  std::vector<SkolemLemma>& lems,
+                                  bool partialOnly)
 {
   TConvProofGenerator* tg = nullptr;
   Node nn = eliminateOperators(n, lems, tg, partialOnly);
@@ -73,7 +77,8 @@ TrustNode OperatorElim::eliminate(Node n, std::vector<SkolemLemma>& lems, bool p
   return TrustNode::null();
 }
 
-Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
+Node OperatorElim::eliminateOperators(Node node,
+                                      std::vector<SkolemLemma>& lems,
                                       TConvProofGenerator* tg,
                                       bool partialOnly)
 {
@@ -102,13 +107,18 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
       // node[0] - 1 < toIntSkolem <= node[0]
       // -1 < toIntSkolem - node[0] <= 0
       // 0 <= node[0] - toIntSkolem < 1
-      Node v = bvm->mkBoundVar<ToIntWitnessVarAttribute>(node[0], nm->integerType());
+      Node v =
+          bvm->mkBoundVar<ToIntWitnessVarAttribute>(node[0], nm->integerType());
       Node one = mkRationalNode(1);
       Node zero = mkRationalNode(0);
       Node diff = nm->mkNode(MINUS, node[0], v);
       Node lem = mkInRange(diff, zero, one);
-      Node toIntSkolem = mkWitnessTerm(
-          v, lem, "toInt", "a conversion of a Real term to its Integer part", lems);
+      Node toIntSkolem =
+          mkWitnessTerm(v,
+                        lem,
+                        "toInt",
+                        "a conversion of a Real term to its Integer part",
+                        lems);
       if (k == IS_INTEGER)
       {
         return nm->mkNode(EQUAL, node[0], toIntSkolem);
@@ -148,8 +158,8 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
                   LT,
                   num,
                   nm->mkNode(MULT,
-                              den,
-                              nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
+                             den,
+                             nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
         }
         else
         {
@@ -159,10 +169,9 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
               nm->mkNode(
                   LT,
                   num,
-                  nm->mkNode(
-                      MULT,
-                      den,
-                      nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))));
+                  nm->mkNode(MULT,
+                             den,
+                             nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))));
         }
       }
       else
@@ -195,8 +204,7 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
                         nm->mkNode(
                             MULT,
                             den,
-                            nm->mkNode(
-                                PLUS, v, nm->mkConst(Rational(-1))))))));
+                            nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))))));
       }
       Node intVar = mkWitnessTerm(
           v, lem, "linearIntDiv", "the result of an intdiv-by-k term", lems);
@@ -311,7 +319,8 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
       }
       checkNonLinearLogic(node);
       // eliminate inverse functions here
-      Node var = bvm->mkBoundVar<ArithWitnessVarAttribute>(node, nm->realType());
+      Node var =
+          bvm->mkBoundVar<ArithWitnessVarAttribute>(node, nm->realType());
       Node lem;
       if (k == SQRT)
       {
@@ -329,9 +338,9 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
         // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
         // model.
         lem = nm->mkNode(ITE,
-                          nm->mkNode(GEQ, node[0], nm->mkConst(Rational(0))),
-                          nonNeg,
-                          uf);
+                         nm->mkNode(GEQ, node[0], nm->mkConst(Rational(0))),
+                         nonNeg,
+                         uf);
       }
       else
       {
@@ -356,16 +365,16 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
                             nm->mkNode(LT, var, pi));
         }
 
-        Kind rk = k == ARCSINE
-                      ? SINE
-                      : (k == ARCCOSINE
-                              ? COSINE
-                              : (k == ARCTANGENT
-                                    ? TANGENT
-                                    : (k == ARCCOSECANT
-                                            ? COSECANT
-                                            : (k == ARCSECANT ? SECANT
-                                                              : COTANGENT))));
+        Kind rk =
+            k == ARCSINE
+                ? SINE
+                : (k == ARCCOSINE
+                       ? COSINE
+                       : (k == ARCTANGENT
+                              ? TANGENT
+                              : (k == ARCCOSECANT
+                                     ? COSECANT
+                                     : (k == ARCSECANT ? SECANT : COTANGENT))));
         Node invTerm = nm->mkNode(rk, var);
         lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
       }
@@ -374,7 +383,8 @@ Node OperatorElim::eliminateOperators(Node node, std::vector<SkolemLemma>& lems,
           var,
           lem,
           "tfk",
-          "Skolem to eliminate a non-standard transcendental function", lems);
+          "Skolem to eliminate a non-standard transcendental function",
+          lems);
       break;
     }
 
@@ -453,19 +463,21 @@ Node OperatorElim::getArithSkolemApp(Node n, ArithSkolemId asi)
 Node OperatorElim::mkWitnessTerm(Node v,
                                  Node pred,
                                  const std::string& prefix,
-                                 const std::string& comment, std::vector<SkolemLemma>& lems)
+                                 const std::string& comment,
+                                 std::vector<SkolemLemma>& lems)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   // we mark that we should send a lemma
-  Node k = sm->mkSkolem(
-      v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this);
+  Node k =
+      sm->mkSkolem(v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this);
   TNode tv = v;
   TNode tk = k;
   Node lem = pred.substitute(tv, tk);
-  if (d_pnm!=nullptr)
+  if (d_pnm != nullptr)
   {
-    TrustNode tlem = mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
+    TrustNode tlem =
+        mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
     lems.push_back(SkolemLemma(tlem, k));
   }
   else

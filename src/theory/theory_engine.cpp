@@ -799,7 +799,7 @@ theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
   std::vector<SkolemLemma> lems;
   TrustNode trn = theoryOf(eq)->ppRewrite(eq, lems);
   // should never introduce a skolem to eliminate an equality
-  Assert (lems.empty());
+  Assert(lems.empty());
   return trn;
 }
 

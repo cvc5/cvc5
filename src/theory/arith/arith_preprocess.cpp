@@ -27,7 +27,9 @@ ArithPreprocess::ArithPreprocess(ArithState& state,
     : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
 {
 }
-TrustNode ArithPreprocess::eliminate(TNode n, std::vector<SkolemLemma>& lems, bool partialOnly)
+TrustNode ArithPreprocess::eliminate(TNode n,
+                                     std::vector<SkolemLemma>& lems,
+                                     bool partialOnly)
 {
   return d_opElim.eliminate(n, lems, partialOnly);
 }

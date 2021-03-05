@@ -374,14 +374,15 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term, std::vector<SkolemLemma>& lems)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
+                                         std::vector<SkolemLemma>& lems)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
   {
     return (*find).second;
   }
-  if (term.getNumChildren()==0)
+  if (term.getNumChildren() == 0)
   {
     return preprocessWithProof(term, lems);
   }
@@ -430,14 +431,16 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
   return termr;
 }
 
-Node TheoryPreprocessor::preprocessWithProof(Node term, std::vector<SkolemLemma>& lems)
+Node TheoryPreprocessor::preprocessWithProof(Node term,
+                                             std::vector<SkolemLemma>& lems)
 {
   // Important that it is in rewritten form, to ensure that the rewrite steps
   // recorded in d_tpg are functional. In other words, there should not
   // be steps from the same term to multiple rewritten forms, which would be
   // the case if we registered a preprocessing step for a non-rewritten term.
   Assert(term == Rewriter::rewrite(term));
-  Trace("tpp-debug2") << "preprocessWithProof " << term << ", #lems = " << lems.size() << std::endl;
+  Trace("tpp-debug2") << "preprocessWithProof " << term
+                      << ", #lems = " << lems.size() << std::endl;
   // We never call ppRewrite on equalities here, since equalities have a
   // special status. In particular, notice that theory preprocessing can be
   // called on all formulas asserted to theory engine, including those generated
@@ -457,7 +460,8 @@ Node TheoryPreprocessor::preprocessWithProof(Node term, std::vector<SkolemLemma>
   }
   // call ppRewrite for the given theory
   TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term, lems);
-  Trace("tpp-debug2") << "preprocessWithProof returned " << trn << ", #lems = " << lems.size() << std::endl;
+  Trace("tpp-debug2") << "preprocessWithProof returned " << trn
+                      << ", #lems = " << lems.size() << std::endl;
   if (trn.isNull())
   {
     // no change, return
