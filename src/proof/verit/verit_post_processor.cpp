@@ -482,6 +482,7 @@ bool VeritProofPostprocessCallback::update(
       std::vector<Node>
           current_resolvent;  // Needed to determine if (cl C) or (cl G1 ... Gn)
                               // should be added in the end.
+
        VeritRule vp1_rule =
        static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp1)->getArguments()[0].toString()));
        VeritRule vp2_rule =
@@ -489,13 +490,14 @@ bool VeritProofPostprocessCallback::update(
 
       // TODO: Check if child rule is SYMM, use equal_Nodes
 
+
       // If the rule of the child is ASSUME or EQ_RESOLUTION and additional or
       // step might be needed. TODO: REPLACE EQ_RESOLUTION
       if ((vp1_rule == VeritRule::ASSUME
            || vp1_rule == VeritRule::EQ_RESOLUTION))
       {
         if (children[0].getKind() == kind::OR
-            && children[0] != children[1].notNode())
+            && !isSameModEqual(children[0], children[1].notNode())) //TODO: isSameModeEqual
         {
           success &= addVeritStepFromOr(
               children[0], VeritRule::OR, {children[0]}, {}, *cdp);
@@ -531,7 +533,7 @@ bool VeritProofPostprocessCallback::update(
            || vp2_rule == VeritRule::EQ_RESOLUTION))
       {
         if (children[1].getKind() == kind::OR
-            && children[1] != children[0].notNode())
+            && !isSameModEqual(children[1], children[0].notNode()))
         {  // TODO: vp1_rule == PfRule::ASSUME &&
           success &= addVeritStepFromOr(
               children[1], VeritRule::OR, {children[1]}, {}, *cdp);
@@ -2322,11 +2324,9 @@ bool VeritProofPostprocessFinalCallback::update(
 
   Node res2 = d_nm->mkNode(kind::SEXPR, d_cl);
   Node res3 = d_nm->mkNode(kind::SEXPR, res);
- std::cout << "hi " << std::endl;
   std::vector<Node> new_args = std::vector<Node>();
   VeritRule vrule =
         static_cast<VeritRule>(std::stoul(args[0].toString()));
- std::cout << "vrule " << args[0] << std::endl;
   new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(vrule)));
   new_args.push_back(d_nm->mkNode(kind::SEXPR, res));  //(false)
   if (vrule == VeritRule::ASSUME)
@@ -2457,8 +2457,14 @@ VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,
                                              bool extended)
     : d_pnm(pnm),
       d_cb(new VeritProofPostprocessCallback(d_pnm)),
+      d_fcb(new VeritProofPostprocessFinalCallback(d_pnm)),
+      //d_cb(d_pnm),
+      //d_updater(d_pnm, d_cb,false,false), //TODO: Look up parameters
+      //d_fcb(d_pnm),
+      //d_finalize(d_pnm, d_fcb,false,false),
       d_extended(extended)
 {
+  //d_cb.initializeUpdate(extended);
   d_cb->initializeUpdate(extended);
 }
 
@@ -2467,22 +2473,17 @@ VeritProofPostprocess::~VeritProofPostprocess() {}
 
 void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
-  CDProof* cdp;
+  CDProof* cdp = new CDProof(d_pnm, nullptr, "CDProof", false);
 
-  if(d_extended){//TODO: Move to processInternal
+  /*if(d_extended){//TODO: Move to processInternal
     cdp = new CDProof(d_pnm, nullptr, "CDProof", false);
   }
   else{
     cdp = new CDProof(d_pnm, nullptr, "CDProof", true);
-  }
+  }*/
 
+  //d_updater.process(pf);
   processInternal(pf, cdp);
-
-  // In extended format mode symmetry steps should be printed. However, every time cpd->getProofFor() is used in the update method of the callback function additional SYMM steps might be introduced. Therefore, the whole proof node has to be traversed again to translate SYMM steps.
-  // TODO: I would like to fix this directly in RESOLUTION, CHAIN_RESOLUTION and EQ_RESOLUTION
-  if(d_extended){
-    processSYMM(pf,cdp);
-  }
 
   // In veriT the last step is always (cl). However, after the translate the final step might be (cl false). In that case additional steps are required.
   NodeManager* nm = NodeManager::currentNM();
@@ -2505,30 +2506,10 @@ void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
                            << std::endl;
     }
   }
+
+  //d_finalize.process(pf);
 }
 
-//Traverses proof node and translates PfRule::SYMM into VeritRule::SYMM without adding any additional PfRule::SYMM steps
-void VeritProofPostprocess::processSYMM(std::shared_ptr<ProofNode> pf,
-                                        CDProof* cdp)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<std::shared_ptr<ProofNode>> new_children;
-  for (const std::shared_ptr<ProofNode>& child :pf->getChildren()){
-    processSYMM(child, cdp);
-    new_children.push_back(child);
-    cdp->addProof(child);
-  }
-
-  if (pf->getRule() == PfRule::SYMM)
-  {
-    std::vector<Node> new_args = std::vector<Node>();
-    new_args.push_back(
-        nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::SYMM)));
-    new_args.push_back(pf->getResult());
-    new_args.push_back(pf->getResult());
-    d_pnm->updateNode(pf.get(), PfRule::VERIT_RULE, new_children, new_args);
-  }
-};
 
 void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
                                             CDProof* cdp)
@@ -2538,6 +2519,7 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
   //First, update children
   for (const std::shared_ptr<ProofNode>& child :pf->getChildren()){
     std::shared_ptr<ProofNode> next_child = child;
+
     //In non-extended mode symm and reordering should be skipped.
     if(!d_extended && (next_child->getRule() == PfRule::REORDERING || next_child->getRule() == PfRule::SYMM)){
       while (next_child->getRule() == PfRule::SYMM || next_child->getRule() == PfRule::REORDERING){
@@ -2545,23 +2527,13 @@ void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
       }
     }
     processInternal(next_child, cdp);
-    // TODO: Find better solution
-    if (!d_extended
-        && (next_child->getRule() == PfRule::REORDERING
-            || next_child->getRule() == PfRule::SYMM))
-    {
-      while (next_child->getRule() == PfRule::SYMM
-             || next_child->getRule() == PfRule::REORDERING)
-      {
-        next_child = next_child->getChildren()[0];
-      }
-    }
     children.push_back(next_child->getResult());
     cdp->addProof(next_child);  // Find out if this is necessary
   }
 
   // Then, update proof node
   bool continueUpdate = true;
+
   if (d_cb->shouldUpdate(pf, continueUpdate))
   {
     if (d_cb->update(pf->getResult(),

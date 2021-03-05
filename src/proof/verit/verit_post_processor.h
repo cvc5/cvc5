@@ -12,8 +12,6 @@
  ** \brief The module for processing proof nodes into veriT proof nodes
  **/
 
-#include "cvc4_private.h"
-
 #ifndef CVC4__PROOF__VERIT_PROOF_PROCESSOR_H
 #define CVC4__PROOF__VERIT_PROOF_PROCESSOR_H
 
@@ -65,13 +63,6 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate);
-  // TODO: Add comment
-  /*bool finalResult(Node res,
-                   VeritRule id,
-                   const std::vector<Node>& children,
-                   const std::vector<Node>& args,
-                   CDProof* cdp);*/
-
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -160,7 +151,7 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
    * @param children The children of the application,
    * @param args The arguments of the application,
    * @param cdp The proof to add to,
-   * @return True if the step could be added, or null if not.
+   * @return True if the step could be added, or false if not.
    */
   bool update(Node res,
               PfRule id,
@@ -193,7 +184,15 @@ class VeritProofPostprocess
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The post process callback */
+  //VeritProofPostprocessCallback d_cb;
   std::unique_ptr<VeritProofPostprocessCallback> d_cb;
+  /** The updater, which is responsible for translating proof rules */
+  //ProofNodeUpdater d_updater;
+  /** The final post process callback */
+  //VeritProofPostprocessFinalCallback d_fcb;
+  std::unique_ptr<VeritProofPostprocessFinalCallback> d_fcb;
+  /** The updater, which is responsible for adding additional steps to the end of the proof */
+  //ProofNodeUpdater d_finalize;
   /** Internal processing for a proof node*/
   void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdp);
   /** Special processing for SYMM rules*/
