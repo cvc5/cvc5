@@ -20,7 +20,11 @@ class TestTheoryWhiteIntOpt : public TestSmt
     d_smtEngine->setOption("produce-assertions", "true");
     d_smtEngine->setOption("incremental", "true");
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
-  };
+  }
+
+  std::unique_ptr<OptimizationSolver> d_optslv;
+  std::unique_ptr<TypeNode> d_intType;
+};
 
 TEST_F(TestTheoryWhiteIntOpt, max)
 {
