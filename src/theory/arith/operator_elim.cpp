@@ -469,8 +469,8 @@ Node OperatorElim::mkWitnessTerm(Node v,
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();
   // we mark that we should send a lemma
-  Node k =
-      sm->mkSkolem(v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this, true);
+  Node k = sm->mkSkolem(
+      v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this, true);
   // TODO: (project #37) add to lems
   return k;
 }

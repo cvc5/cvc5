@@ -140,7 +140,7 @@ class TheoryArith : public Theory {
   }
 
  private:
-  /** 
+  /**
    * Preprocess equality, applies ppRewrite for equalities. This method is
    * distinct from ppRewrite since it is not allowed to construct lemmas.
    */
