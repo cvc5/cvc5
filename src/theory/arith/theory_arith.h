@@ -140,7 +140,10 @@ class TheoryArith : public Theory {
   }
 
  private:
-  /** Preprocess equality */
+  /** 
+   * Preprocess equality, applies ppRewrite for equalities. This method is
+   * distinct from ppRewrite since it is not allowed to construct lemmas.
+   */
   TrustNode ppRewriteEq(TNode eq);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();

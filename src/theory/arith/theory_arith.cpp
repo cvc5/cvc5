@@ -25,7 +25,6 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
-#include "theory/skolem_lemma.h"
 
 using namespace std;
 using namespace CVC4::kind;

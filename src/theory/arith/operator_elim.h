@@ -37,6 +37,13 @@ class OperatorElim : public EagerProofGenerator
     * one (including division, int division, mod, to_int, is_int, syntactic sugar
     * transcendental functions), then we replace it by a form that eliminates
     * that operator. This may involve the introduction of witness terms.
+    * 
+    * @param n The node to eliminate
+    * @param lems The lemmas that we wish to add concerning n. It is the
+    * responsbility of the caller to process these lemmas.
+    * @param partialOnly Whether we only want to eliminate partial operators.
+    * @return the trust node of kind REWRITE encapsulating the eliminated form
+    * of n and a proof generator for proving this equivalence.
     */
   TrustNode eliminate(Node n,
                       std::vector<SkolemLemma>& lems,
