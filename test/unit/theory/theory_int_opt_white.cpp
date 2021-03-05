@@ -9,16 +9,16 @@ using namespace smt;
 
 namespace test {
 
-class TestTheoryWhiteIntOpt : public TestSmt
+class TestTheoryWhiteIntOpt : public TestSmtNoFinishInit
 {
  protected:
   void SetUp() override
   {
-    TestSmt::SetUp();
-    d_optslv.reset(new OptimizationSolver(d_smtEngine.get()));
-
+    TestSmtNoFinishInit::SetUp();
     d_smtEngine->setOption("produce-assertions", "true");
-    d_smtEngine->setOption("incremental", "true");
+    d_smtEngine->finishInit();
+
+    d_optslv.reset(new OptimizationSolver(d_smtEngine.get()));
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
   }
 
