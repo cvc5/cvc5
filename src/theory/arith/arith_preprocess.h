@@ -22,6 +22,7 @@
 #include "theory/arith/inference_manager.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
+#include "theory/skolem_lemma.h"
 
 namespace CVC4 {
 namespace theory {
@@ -52,7 +53,9 @@ class ArithPreprocess
    * @return the trust node proving (= n nr) where nr is the return of
    * eliminating operators in n, or the null trust node if n was unchanged.
    */
-  TrustNode eliminate(TNode n, bool partialOnly = false);
+  TrustNode eliminate(TNode n,
+                      std::vector<SkolemLemma>& lems,
+                      bool partialOnly = false);
   /**
    * Reduce assertion. This sends a lemma via the inference manager if atom
    * contains any extended operators. When applicable, the lemma is of the form:
