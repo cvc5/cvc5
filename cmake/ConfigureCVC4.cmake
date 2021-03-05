@@ -102,5 +102,7 @@ check_c_source_compiles(
 set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
 # Defined if using the GMP multi-precision arithmetic library.
 set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
+# Defined if using the libpoly polynomial library.
+set(CVC4_POLY_IMP ${CVC4_USE_POLY_IMP})
 # Define the full name of this package.
 set(CVC4_PACKAGE_NAME "${PROJECT_NAME}")

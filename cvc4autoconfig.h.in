@@ -28,6 +28,9 @@
 /* Define to use the GMP multi-precision arithmetic library. */
 #cmakedefine CVC4_GMP_IMP
 
+/* Define to use the libpoly polynomial library. */
+#cmakedefine CVC4_POLY_IMP
+
 /* Define to 1 if Boost threading library has support for thread attributes. */
 #cmakedefine01 BOOST_HAS_THREAD_ATTR
 
