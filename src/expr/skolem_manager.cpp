@@ -41,18 +41,12 @@ struct OriginalFormAttributeId
 };
 typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
-struct SkolemLemmaAttributeId
-{
-};
-typedef expr::Attribute<SkolemLemmaAttributeId, Node> SkolemLemmaAttribute;
-
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
                              const std::string& comment,
                              int flags,
-                             ProofGenerator* pg,
-                             bool sendLemma)
+                             ProofGenerator* pg)
 {
   // We do not currently insist that pred does not contain witness terms
   Assert(v.getKind() == BOUND_VARIABLE);
@@ -79,15 +73,6 @@ Node SkolemManager::mkSkolem(Node v,
   k.setAttribute(wfa, w);
   Trace("sk-manager-skolem")
       << "skolem: " << k << " witness " << w << std::endl;
-  // if we are sending lemma, set the attribute
-  if (sendLemma)
-  {
-    TNode tv = v;
-    TNode tk = k;
-    Node lem = pred.substitute(tv, tk);
-    d_skolemLemmas[k] = lem;
-    Trace("sk-manager-skolem") << "Lemma is " << lem << std::endl;
-  }
   return k;
 }
 
@@ -281,17 +266,6 @@ Node SkolemManager::getOriginalForm(Node n)
   Assert(!visited.find(n)->second.isNull());
   Trace("sk-manager-debug") << "..return " << visited[n] << std::endl;
   return visited[n];
-}
-
-Node SkolemManager::getSkolemLemma(Node k) const
-{
-  Assert(k.isVar());
-  std::map<Node, Node>::const_iterator it = d_skolemLemmas.find(k);
-  if (it == d_skolemLemmas.end())
-  {
-    return Node::null();
-  }
-  return it->second;
 }
 
 Node SkolemManager::mkSkolemInternal(Node w,

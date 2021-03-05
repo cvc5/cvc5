@@ -796,7 +796,11 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
 theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
 {
   Assert(eq.getKind() == kind::EQUAL);
-  return theoryOf(eq)->ppRewrite(eq);
+  std::vector<SkolemLemma> lems;
+  TrustNode trn = theoryOf(eq)->ppRewrite(eq, lems);
+  // should never introduce a skolem to eliminate an equality
+  Assert (lems.empty());
+  return trn;
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(

@@ -454,7 +454,7 @@ TrustNode TheoryFp::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
   // first, see if we need to expand definitions

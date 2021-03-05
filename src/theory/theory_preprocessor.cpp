@@ -281,7 +281,13 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (tid != THEORY_BOOL)
     {
-      Node ppRewritten = ppTheoryRewrite(current, newLemmas, newSkolems);
+      std::vector<SkolemLemma> lems;
+      Node ppRewritten = ppTheoryRewrite(current, lems);
+      for (const SkolemLemma& lem : lems)
+      {
+        newLemmas.push_back(lem.d_lemma);
+        newSkolems.push_back(lem.d_skolem);
+      }
       Assert(Rewriter::rewrite(ppRewritten) == ppRewritten);
       if (isProofEnabled() && ppRewritten != current)
       {
@@ -368,21 +374,23 @@ TrustNode TheoryPreprocessor::theoryPreprocess(
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
-                                         std::vector<TrustNode>& newLemmas,
-                                         std::vector<Node>& newSkolems)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
   {
     return (*find).second;
   }
+  if (term.getNumChildren()==0)
+  {
+    return preprocessWithProof(term, lems);
+  }
   // should be in rewritten form here
   Assert(term == Rewriter::rewrite(term));
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
   // do not rewrite inside quantifiers
   Node newTerm = term;
-  if (!term.isClosure() && term.getNumChildren() > 0)
+  if (!term.isClosure())
   {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -391,12 +399,12 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term,
     }
     for (const Node& nt : term)
     {
-      newNode << ppTheoryRewrite(nt, newLemmas, newSkolems);
+      newNode << ppTheoryRewrite(nt, lems);
     }
     newTerm = Node(newNode);
     newTerm = rewriteWithProof(newTerm, d_tpg.get(), false);
   }
-  newTerm = preprocessWithProof(newTerm, newLemmas, newSkolems);
+  newTerm = preprocessWithProof(newTerm, lems);
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
   return newTerm;
@@ -422,16 +430,14 @@ Node TheoryPreprocessor::rewriteWithProof(Node term,
   return termr;
 }
 
-Node TheoryPreprocessor::preprocessWithProof(Node term,
-                                             std::vector<TrustNode>& newLemmas,
-                                             std::vector<Node>& newSkolems)
+Node TheoryPreprocessor::preprocessWithProof(Node term, std::vector<SkolemLemma>& lems)
 {
   // Important that it is in rewritten form, to ensure that the rewrite steps
   // recorded in d_tpg are functional. In other words, there should not
   // be steps from the same term to multiple rewritten forms, which would be
   // the case if we registered a preprocessing step for a non-rewritten term.
   Assert(term == Rewriter::rewrite(term));
-  Trace("tpp-debug2") << "preprocessWithProof " << term << std::endl;
+  Trace("tpp-debug2") << "preprocessWithProof " << term << ", #lems = " << lems.size() << std::endl;
   // We never call ppRewrite on equalities here, since equalities have a
   // special status. In particular, notice that theory preprocessing can be
   // called on all formulas asserted to theory engine, including those generated
@@ -449,36 +455,9 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   {
     return term;
   }
-  else if (term.isVar())
-  {
-    // a skolem that has been marked with a lemma
-    NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
-    // look up the lemma for the variable
-    Node klem = sm->getSkolemLemma(term);
-    if (!klem.isNull())
-    {
-      Trace("tpp-debug2") << "...add lemma " << klem << std::endl;
-      if (isProofEnabled())
-      {
-        Node w = SkolemManager::getWitnessForm(term);
-        Assert(w.getKind() == kind::WITNESS);
-        Node exists = nm->mkNode(kind::EXISTS, w[0], w[1]);
-        // FIXME: connect proof
-        //ProofGenerator* pg = sm->getProofGenerator(exists);
-        d_lp->addLazyStep(klem,
-                          nullptr,
-                          PfRule::THEORY_PREPROCESS_LEMMA,
-                          true,
-                          "TheoryPreprocessor::skolem_lemma");
-      }
-      TrustNode tklem = TrustNode::mkTrustLemma(klem, d_lp.get());
-      newLemmas.push_back(tklem);
-      newSkolems.push_back(term);
-    }
-  }
   // call ppRewrite for the given theory
-  TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
+  TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term, lems);
+  Trace("tpp-debug2") << "preprocessWithProof returned " << trn << ", #lems = " << lems.size() << std::endl;
   if (trn.isNull())
   {
     // no change, return
@@ -492,7 +471,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term,
   }
   // Rewrite again here, which notice is a *pre* rewrite.
   termr = rewriteWithProof(termr, d_tpg.get(), true);
-  return ppTheoryRewrite(termr, newLemmas, newSkolems);
+  return ppTheoryRewrite(termr, lems);
 }
 
 bool TheoryPreprocessor::isProofEnabled() const { return d_tpg != nullptr; }

@@ -599,7 +599,7 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
   return TrustNode::null();
 }
 
-TrustNode TheoryDatatypes::ppRewrite(TNode in)
+TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // first, see if we need to expand definitions

@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The trust node utility
+ ** \brief The skolem lemma utility
  **/
 
 #include "cvc4_private.h"
@@ -26,7 +26,7 @@ namespace theory {
 class SkolemLemma
 {
 public:
-  SkolemLemma(TrustNode lem, Node k ) : d_lemma(lem), d_skolem(k) {}
+  SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k) {}
   /** The lemma, a trust node of kind LEMMA */
   TrustNode d_lemma;
   /** The skolem associated with that lemma */

@@ -24,6 +24,7 @@ const char* toString(InferenceId i)
   switch (i)
   {
     case InferenceId::ARITH_PP_ELIM_OPERATORS: return "ARITH_PP_ELIM_OPERATORS";
+    case InferenceId::ARITH_PP_ELIM_OPERATORS_LEMMA: return "ARITH_PP_ELIM_OPERATORS_LEMMA";
     case InferenceId::ARITH_NL_CONGRUENCE: return "ARITH_NL_CONGRUENCE";
     case InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT:
       return "ARITH_NL_SHARED_TERM_VALUE_SPLIT";

@@ -318,7 +318,7 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
   return term;
 }
 
-TrustNode TheoryArrays::ppRewrite(TNode term)
+TrustNode TheoryArrays::ppRewrite(TNode term, std::vector<SkolemLemma>& lems)
 {
   // first, see if we need to expand definitions
   TrustNode texp = expandDefinition(term);

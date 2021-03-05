@@ -986,7 +986,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-TrustNode TheoryStrings::ppRewrite(TNode atom)
+TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   if (atom.getKind() == STRING_FROM_CODE)

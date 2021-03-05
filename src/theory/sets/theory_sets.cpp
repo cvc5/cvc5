@@ -135,7 +135,7 @@ TrustNode TheorySets::expandDefinition(Node n)
   return d_internal->expandDefinition(n);
 }
 
-TrustNode TheorySets::ppRewrite(TNode n)
+TrustNode TheorySets::ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
 {
   Kind nk = n.getKind();
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
@@ -159,7 +159,7 @@ TrustNode TheorySets::ppRewrite(TNode n)
       throw LogicException(ss.str());
     }
   }
-  return d_internal->ppRewrite(n);
+  return d_internal->ppRewrite(n, lems);
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(

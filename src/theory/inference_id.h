@@ -44,6 +44,8 @@ enum class InferenceId
   //-------------------- preprocessing
   // equivalence of term and its preprocessed form
   ARITH_PP_ELIM_OPERATORS,
+  // a lemma from arithmetic preprocessing
+  ARITH_PP_ELIM_OPERATORS_LEMMA,
   //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,

@@ -253,7 +253,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t)
+TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
   // first, see if we need to expand definitions
   TrustNode texp = expandDefinition(t);
