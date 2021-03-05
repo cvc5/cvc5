@@ -56,14 +56,12 @@ operator BITVECTOR_MULT 2: "multiplication of two or more bit-vectors"
 operator BITVECTOR_NEG 1 "unary negation of a bit-vector"
 operator BITVECTOR_PLUS 2: "addition of two or more bit-vectors"
 operator BITVECTOR_SUB 2 "subtraction of two bit-vectors"
-operator BITVECTOR_UDIV 2 "unsigned division of two bit-vectors, truncating towards 0 (undefined if divisor is 0)"
-operator BITVECTOR_UREM 2 "unsigned remainder from truncating division of two bit-vectors (undefined if divisor is 0)"
+operator BITVECTOR_UDIV 2 "unsigned division of two bit-vectors, truncating towards 0 (defined to be the all-ones bit pattern, if divisor is 0)"
+operator BITVECTOR_UREM 2 "unsigned remainder from truncating division of two bit-vectors (defined to be equal to the dividend, if divisor is 0)"
 operator BITVECTOR_SDIV 2 "2's complement signed division"
 operator BITVECTOR_SMOD 2 "2's complement signed remainder (sign follows divisor)"
 operator BITVECTOR_SREM 2 "2's complement signed remainder (sign follows dividend)"
 # total division kinds
-operator BITVECTOR_UDIV_TOTAL 2 "unsigned division of two bit-vectors, truncating towards 0 (defined to be the all-ones bit pattern, if divisor is 0)"
-operator BITVECTOR_UREM_TOTAL 2 "unsigned remainder from truncating division of two bit-vectors (defined to be equal to the dividend, if divisor is 0)"
 
 ## shift kinds
 operator BITVECTOR_ASHR 2 "bit-vector arithmetic shift right (the two bit-vector parameters must have same width)"
@@ -183,9 +181,6 @@ typerule BITVECTOR_UREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SDIV ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SMOD ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SREM ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-# total division kinds
-typerule BITVECTOR_UDIV_TOTAL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_UREM_TOTAL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 
 ## shift kinds
 typerule BITVECTOR_ASHR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule

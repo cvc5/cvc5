@@ -741,10 +741,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_PLUS: out << "bvadd "; forceBinary = true; break;
   case kind::BITVECTOR_SUB: out << "bvsub "; break;
   case kind::BITVECTOR_NEG: out << "bvneg "; break;
-  case kind::BITVECTOR_UDIV:
-  case kind::BITVECTOR_UDIV_TOTAL: out << "bvudiv "; break;
-  case kind::BITVECTOR_UREM:
-  case kind::BITVECTOR_UREM_TOTAL: out << "bvurem "; break;
+  case kind::BITVECTOR_UDIV: out << "bvudiv "; break;
+  case kind::BITVECTOR_UREM: out << "bvurem "; break;
   case kind::BITVECTOR_SDIV: out << "bvsdiv "; break;
   case kind::BITVECTOR_SREM: out << "bvsrem "; break;
   case kind::BITVECTOR_SMOD: out << "bvsmod "; break;
@@ -1144,9 +1142,7 @@ std::string Smt2Printer::smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_PLUS: return "bvadd";
   case kind::BITVECTOR_SUB: return "bvsub";
   case kind::BITVECTOR_NEG: return "bvneg";
-  case kind::BITVECTOR_UDIV_TOTAL:
   case kind::BITVECTOR_UDIV: return "bvudiv";
-  case kind::BITVECTOR_UREM_TOTAL:
   case kind::BITVECTOR_UREM: return "bvurem";
   case kind::BITVECTOR_SDIV: return "bvsdiv";
   case kind::BITVECTOR_SREM: return "bvsrem";
