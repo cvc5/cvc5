@@ -1,43 +1,28 @@
 #include <iostream>
-#include "api/cvc4cpp.h"
 #include "smt/optimization_solver.h"
-#include "expr/expr_manager.h"
-#include "expr/node.h"
-#include "expr/node_builder.h"
-#include "expr/node_manager.h"
-#include "expr/node_value.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
 #include "test_smt.h"
 
 namespace CVC4 {
 
 using namespace theory;
-using namespace expr;
-using namespace context;
-using namespace kind;
 using namespace smt;
 
 namespace test {
 
-class TestTheoryIntOptWhite : public TestSmt
+class TestTheoryWhiteIntOpt : public TestSmt
 {
  protected:
   void SetUp() override
   {
     TestSmt::SetUp();
-    d_optslv = new OptimizationSolver(d_smtEngine.get());
+    d_optslv.reset(new OptimizationSolver(d_smtEngine.get()));
 
-    //d_slv = new api::Solver();
     d_smtEngine->setOption("produce-assertions", "true");
     d_smtEngine->setOption("incremental", "true");
     d_intType.reset(new TypeNode(d_nodeManager->integerType()));
-  }
-  OptimizationSolver* d_optslv;
-  std::unique_ptr<TypeNode> d_intType;
-};
+  };
 
-TEST_F(TestTheoryIntOptWhite, max)
+TEST_F(TestTheoryWhiteIntOpt, max)
 {
   Node ub = d_nodeManager->mkConst(Rational("100"));
   Node lb = d_nodeManager->mkConst(Rational("0"));
@@ -70,7 +55,7 @@ TEST_F(TestTheoryIntOptWhite, max)
             << d_optslv->objectiveGetValue() << std::endl;
 }
 
-TEST_F(TestTheoryIntOptWhite, min)
+TEST_F(TestTheoryWhiteIntOpt, min)
 {
   Node ub = d_nodeManager->mkConst(Rational("100"));
   Node lb = d_nodeManager->mkConst(Rational("0"));
@@ -103,7 +88,7 @@ TEST_F(TestTheoryIntOptWhite, min)
             << d_optslv->objectiveGetValue() << std::endl;
 }
 
-TEST_F(TestTheoryIntOptWhite, result)
+TEST_F(TestTheoryWhiteIntOpt, result)
 {
   Node ub = d_nodeManager->mkConst(Rational("100"));
   Node lb = d_nodeManager->mkConst(Rational("0"));
