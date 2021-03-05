@@ -1419,9 +1419,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   friend class Solver;
 
  public:
-  /**
-   * Nullary constructor for Cython.
-   */
+  /** Constructor.  */
   DatatypeConstructorDecl();
 
   /**
@@ -1445,10 +1443,6 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * @return a string representation of this datatype constructor declaration
    */
   std::string toString() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1485,9 +1479,7 @@ class CVC4_PUBLIC DatatypeDecl
   friend class Grammar;
 
  public:
-  /**
-   * Nullary constructor for Cython.
-   */
+  /** Constructor.  */
   DatatypeDecl();
 
   /**
@@ -1519,10 +1511,6 @@ class CVC4_PUBLIC DatatypeDecl
 
   /** @return the name of this datatype declaration. */
   std::string getName() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1562,6 +1550,9 @@ class CVC4_PUBLIC DatatypeDecl
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
 
+  /** @return the internal wrapped Dtype of this datatype declaration. */
+  CVC4::DType& getDatatype(void) const;
+
   /**
    * Helper for isNull checks. This prevents calling an API function with
    * CVC4_API_CHECK_NOT_NULL
@@ -1595,16 +1586,6 @@ class CVC4_PUBLIC DatatypeSelector
    */
   DatatypeSelector();
 
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param stor the internal datatype selector to be wrapped
-   * @return the DatatypeSelector
-   */
-  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
-
   /**
    * Destructor.
    */
@@ -1627,11 +1608,15 @@ class CVC4_PUBLIC DatatypeSelector
    */
   std::string toString() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::DTypeSelector getDatatypeConstructorArg(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param stor the internal datatype selector to be wrapped
+   * @return the DatatypeSelector
+   */
+  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
+
   /**
    * The associated solver object.
    */
@@ -1658,15 +1643,6 @@ class CVC4_PUBLIC DatatypeConstructor
    * Constructor.
    */
   DatatypeConstructor();
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param ctor the internal datatype constructor to be wrapped
-   * @return the DatatypeConstructor
-   */
-  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1839,11 +1815,14 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   const_iterator end() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param ctor the internal datatype constructor to be wrapped
+   * @return the DatatypeConstructor
+   */
+  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
+
   /**
    * Return selector for name.
    * @param name The name of selector to find
@@ -1873,16 +1852,7 @@ class CVC4_PUBLIC Datatype
   friend class Sort;
 
  public:
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param dtype the internal datatype to be wrapped
-   * @return the Datatype
-   */
-  Datatype(const Solver* slv, const CVC4::DType& dtype);
-
-  // Nullary constructor for Cython
+  /** Constructor. */
   Datatype();
 
   /**
@@ -2053,11 +2023,14 @@ class CVC4_PUBLIC Datatype
    */
   const_iterator end() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::DType& getDatatype(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param dtype the internal datatype to be wrapped
+   * @return the Datatype
+   */
+  Datatype(const Solver* slv, const CVC4::DType& dtype);
+
   /**
    * Return constructor for name.
    * @param name The name of constructor to find
