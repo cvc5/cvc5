@@ -36,8 +36,9 @@ namespace theory {
 class SkolemLemma
 {
  public:
-  SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k) {
-    Assert (lem.getKind()==TrustNodeKind::LEMMA);
+  SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
+  {
+    Assert(lem.getKind() == TrustNodeKind::LEMMA);
   }
   /** The lemma, a trust node of kind LEMMA */
   TrustNode d_lemma;
