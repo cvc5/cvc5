@@ -98,7 +98,9 @@ class InstLemmaList
  */
 class Instantiate : public QuantifiersUtil
 {
-  typedef context::CDHashMap<Node, std::shared_ptr<InstLemmaList>, NodeHashFunction> NodeInstListMap;
+  typedef context::
+      CDHashMap<Node, std::shared_ptr<InstLemmaList>, NodeHashFunction>
+          NodeInstListMap;
 
  public:
   Instantiate(QuantifiersEngine* qe,
@@ -268,10 +270,10 @@ class Instantiate : public QuantifiersUtil
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node> > >& insts);
- /** 
-  * Get instantiations for quantified formula q. If q is (forall ((x T)) (P x)),
-  * this is a list of the form (P t1) ... (P tn) for ground terms ti.
-  */
+  /**
+   * Get instantiations for quantified formula q. If q is (forall ((x T)) (P
+   * x)), this is a list of the form (P t1) ... (P tn) for ground terms ti.
+   */
   void getInstantiations(Node q, std::vector<Node>& insts);
   //--------------------------------------end user-level interface utilities
 

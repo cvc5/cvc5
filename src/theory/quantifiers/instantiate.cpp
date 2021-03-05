@@ -717,12 +717,11 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (NodeInstListMap::iterator it = d_insts.begin();
-         it != d_insts.end();
+    for (NodeInstListMap::iterator it = d_insts.begin(); it != d_insts.end();
          ++it)
     {
-      Trace("inst-per-quant")
-          << " * " << (*it).second.d_list.size() << " for " << (*it).first << std::endl;
+      Trace("inst-per-quant") << " * " << (*it).second.d_list.size() << " for "
+                              << (*it).first << std::endl;
     }
   }
 }
@@ -750,7 +749,8 @@ InstLemmaList* Instantiate::getOrMkInstList(TNode q)
   {
     return it->second.get();
   }
-  std::shared_ptr<InstLemmaList> ill = std::make_shared<InstLemmaList>(d_qstate.getUserContext());
+  std::shared_ptr<InstLemmaList> ill =
+      std::make_shared<InstLemmaList>(d_qstate.getUserContext());
   d_insts.insert(q, ill);
   return ill.get();
 }
