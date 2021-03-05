@@ -68,6 +68,15 @@ class InstantiationRewriter
                                          bool doVts) = 0;
 };
 
+/** Context-dependent list of nodes */
+class InstLemmaList
+{
+ public:
+  InstLemmaList(context::Context* c) : d_list(c) {}
+  /** The list */
+  context::CDList<Node> d_list;
+};
+
 /** Instantiate
  *
  * This class is used for generating instantiation lemmas.  It maintains an
@@ -89,7 +98,7 @@ class InstantiationRewriter
  */
 class Instantiate : public QuantifiersUtil
 {
-  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
+  typedef context::CDHashMap<Node, std::shared_ptr<InstLemmaList>, NodeHashFunction> NodeInstListMap;
 
  public:
   Instantiate(QuantifiersEngine* qe,
@@ -259,6 +268,11 @@ class Instantiate : public QuantifiersUtil
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node> > >& insts);
+ /** 
+  * Get instantiations for quantified formula q. If q is (forall ((x T)) (P x)),
+  * this is a list of the form (P t1) ... (P tn) for ground terms ti.
+  */
+  void getInstantiations(Node q, std::vector<Node>& insts);
   //--------------------------------------end user-level interface utilities
 
   /** Are proofs enabled for this object? */
@@ -301,6 +315,8 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
+  /** Get or make the instantiation list for quantified formula q */
+  InstLemmaList* getOrMkInstLemmaList(TNode q);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
@@ -318,7 +334,7 @@ class Instantiate : public QuantifiersUtil
   std::vector<InstantiationRewriter*> d_instRewrite;
 
   /** statistics for debugging total instantiations per quantifier */
-  NodeUIntMap d_total_inst_debug;
+  NodeInstListMap d_insts;
   /** statistics for debugging total instantiations per quantifier per round */
   std::map<Node, uint32_t> d_temp_inst_debug;
 

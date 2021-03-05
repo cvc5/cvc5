@@ -48,7 +48,7 @@ Instantiate::Instantiate(QuantifiersEngine* qe,
       d_qreg(qr),
       d_pnm(pnm),
       d_term_db(nullptr),
-      d_total_inst_debug(qs.getUserContext()),
+      d_insts(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
@@ -330,7 +330,9 @@ bool Instantiate::addInstantiation(
     return false;
   }
 
-  d_total_inst_debug[q] = d_total_inst_debug[q] + 1;
+  // add to list of instantiations
+  InstLemmaList* ill = getOrMkInstList(q);
+  ill->d_nodes.push_back(body);
   d_temp_inst_debug[q]++;
   if (Trace.isOn("inst"))
   {
@@ -675,6 +677,12 @@ void Instantiate::getInstantiationTermVectors(
   }
 }
 
+void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
+{
+  InstLemmaList* ill = getOrMkInstList(q);
+  insts.insert(insts.end(), ill->d_nodes.begin(), ill->d_nodes.end());
+}
+
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
 void Instantiate::debugPrint(std::ostream& out)
@@ -709,12 +717,12 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
-         it != d_total_inst_debug.end();
+    for (NodeInstListMap::iterator it = d_insts.begin();
+         it != d_insts.end();
          ++it)
     {
       Trace("inst-per-quant")
-          << " * " << (*it).second << " for " << (*it).first << std::endl;
+          << " * " << (*it).second.d_list.size() << " for " << (*it).first << std::endl;
     }
   }
 }
@@ -733,6 +741,18 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
     return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
   }
   return Node::null();
+}
+
+InstLemmaList* Instantiate::getOrMkInstList(TNode q)
+{
+  NodeInstListMap::iterator it = d_insts.find(tn);
+  if (it != d_insts.end())
+  {
+    return it->second.get();
+  }
+  std::shared_ptr<InstLemmaList> ill = std::make_shared<InstLemmaList>(d_qstate.getUserContext());
+  d_insts.insert(q, ill);
+  return ill.get();
 }
 
 Instantiate::Statistics::Statistics()
