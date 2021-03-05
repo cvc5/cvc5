@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --fmf-fun --no-check-models
 ; EXPECT: sat
 
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-option :produce-models true)
 (set-logic ALL)
 (define-funs-rec (
