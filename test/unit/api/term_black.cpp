@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of the Term class
+ ** \brief Black box testing of the Term class.
  **/
 
 #include "test_api.h"
@@ -158,10 +158,8 @@ TEST_F(TestApiBlackTerm, getOp)
   Term extb = d_solver.mkTerm(ext, b);
 
   ASSERT_TRUE(ab.hasOp());
-  ASSERT_EQ(ab.getOp(), Op(&d_solver, SELECT));
   ASSERT_FALSE(ab.getOp().isIndexed());
   // can compare directly to a Kind (will invoke Op constructor)
-  ASSERT_EQ(ab.getOp(), Op(&d_solver, SELECT));
   ASSERT_TRUE(extb.hasOp());
   ASSERT_TRUE(extb.getOp().isIndexed());
   ASSERT_EQ(extb.getOp(), ext);
@@ -172,7 +170,6 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_FALSE(f.hasOp());
   ASSERT_THROW(f.getOp(), CVC4ApiException);
   ASSERT_TRUE(fx.hasOp());
-  ASSERT_EQ(fx.getOp(), Op(&d_solver, APPLY_UF));
   std::vector<Term> children(fx.begin(), fx.end());
   // testing rebuild from op and children
   ASSERT_EQ(fx, d_solver.mkTerm(fx.getOp(), children));
@@ -207,11 +204,6 @@ TEST_F(TestApiBlackTerm, getOp)
   ASSERT_TRUE(consTerm.hasOp());
   ASSERT_TRUE(headTerm.hasOp());
   ASSERT_TRUE(tailTerm.hasOp());
-
-  ASSERT_EQ(nilTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-  ASSERT_EQ(consTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-  ASSERT_EQ(headTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
-  ASSERT_EQ(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 
   // Test rebuilding
   children.clear();
