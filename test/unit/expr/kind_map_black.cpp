@@ -19,7 +19,7 @@
 #include <string>
 
 #include "expr/kind_map.h"
-#include "test_expr.h"
+#include "test.h"
 
 namespace CVC4 {
 
@@ -27,7 +27,7 @@ using namespace kind;
 
 namespace test {
 
-class TestExprBlackKindMap : public TestExprBlack
+class TestExprBlackKindMap : public TestInternal
 {
 };
 

@@ -76,6 +76,13 @@ check_symbol_exists(optreset "getopt.h" HAVE_DECL_OPTRESET)
 check_symbol_exists(sigaltstack "signal.h" HAVE_SIGALTSTACK)
 check_symbol_exists(strerror_r "string.h" HAVE_STRERROR_R)
 check_symbol_exists(strtok_r "string.h" HAVE_STRTOK_R)
+check_symbol_exists(setitimer "sys/time.h" HAVE_SETITIMER)
+
+# on non-POSIX systems, time limit is implemented with threads
+if(NOT HAVE_SETITIMER)
+  find_package(Threads REQUIRED)
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+endif()
 
 # Determine if we have the POSIX (int) or GNU (char *) variant of strerror_r.
 check_c_source_compiles(
@@ -95,5 +102,7 @@ check_c_source_compiles(
 set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
 # Defined if using the GMP multi-precision arithmetic library.
 set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
+# Defined if using the libpoly polynomial library.
+set(CVC4_POLY_IMP ${CVC4_USE_POLY_IMP})
 # Define the full name of this package.
 set(CVC4_PACKAGE_NAME "${PROJECT_NAME}")

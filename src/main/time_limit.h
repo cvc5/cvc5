@@ -23,14 +23,28 @@ namespace CVC4 {
 namespace main {
 
 /**
+ * This class makes sure that the main thread signals back to the time
+ * limit mechanism when it wants to terminate. This is necessary if we
+ * use our custom std::thread-based timers. Following RAII, we signal
+ * this using a destructor so that we can never forget to abort the time
+ * limit thread.
+ */
+struct TimeLimit
+{
+    ~TimeLimit();
+};
+
+/**
  * Installs an overall wall-clock time limit for the solver binary.
  * It retrieves the time limit and creates a POSIX timer (via setitimer()).
  * This timer signals its expiration with an SIGALRM that is handled by
  * timeout_handler() in signal_handler.cpp.
- * For windows, we use a timer (via SetWaitableTimer()) that uses
- * timeout_handler() as callback function.
+ * If the POSIX timers are not available (e.g., we are running on windows)
+ * we implement our own timer based on std::thread. In this case, the main
+ * thread needs to communicate back to the timer thread when it wants to
+ * terminate, which is done via the TimeLimit object.
  */
-void install_time_limit(const Options& opts);
+TimeLimit install_time_limit(const Options& opts);
 
 }  // namespace main
 }  // namespace CVC4
