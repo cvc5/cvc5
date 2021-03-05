@@ -95,7 +95,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::bitvectorAlgebraicSolver.set(true);
   }
 
-  bool is_sygus = language::isInputLangSygus(options::inputLanguage());
+  bool isSygus = language::isInputLangSygus(options::inputLanguage());
+  bool usesSygus = isSygus;
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -307,24 +308,32 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::produceAbducts()
         || options::produceInterpols() != options::ProduceInterpols::NONE
-        || options::sygusInference() || options::sygusRewSynthInput()
-        || options::sygusInst())
+        || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
-      is_sygus = true;
+      isSygus = true;
+      usesSygus = true;
+    }
+    else if (options::sygusInst())
+    {
+      // sygus instantiation uses sygus, but it is not a sygus problem
+      usesSygus = true;
     }
   }
 
-  // We now know whether the input is sygus. Update the logic to incorporate
+  // We now know whether the input uses sygus. Update the logic to incorporate
   // the theories we need internally for handling sygus problems.
-  if (is_sygus)
+  if (usesSygus)
   {
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
-    // When sygus answers "unsat", it is not due to showing a set of
-    // formulas is unsat in the standard way. Thus, proofs do not apply.
-    disableProofNewOk = true;
+    if (isSygus)
+    {
+      // When sygus answers "unsat", it is not due to showing a set of
+      // formulas is unsat in the standard way. Thus, proofs do not apply.
+      disableProofNewOk = true;
+    }
   }
 
   //!!!!!!!!!!!! temporary on proof
@@ -583,7 +592,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || is_sygus))
+          || usesSygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
     options::produceModels.set(true);
@@ -813,8 +822,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (!options::decisionMode.wasSetByUser())
   {
     options::DecisionMode decMode =
-        // sygus uses internal
-        is_sygus ? options::DecisionMode::INTERNAL :
+        // anything that uses sygus uses internal
+        usesSygus ? options::DecisionMode::INTERNAL :
                  // ALL
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
@@ -976,7 +985,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
-  if (is_sygus)
+  if (usesSygus)
   {
     if (!options::sygus())
     {
