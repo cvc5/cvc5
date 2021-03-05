@@ -42,13 +42,13 @@
 
 #include "time_limit.h"
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
+#if HAVE_SETITIMER
+#include <signal.h>
+#include <sys/time.h>
+#else
 #include <atomic>
 #include <chrono>
 #include <thread>
-#else
-#include <signal.h>
-#include <sys/time.h>
 #endif
 
 #include <cerrno>
@@ -59,19 +59,19 @@
 namespace CVC4 {
 namespace main {
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
-std::atomic<bool> abort_timer_flag;
-
-TimeLimit::~TimeLimit()
-{
-  abort_timer_flag.store(true);
-}
-#else
+#if HAVE_SETITIMER
 TimeLimit::~TimeLimit() {}
 
 void posix_timeout_handler(int sig, siginfo_t* info, void*)
 {
   signal_handlers::timeout_handler();
+}
+#else
+std::atomic<bool> abort_timer_flag;
+
+TimeLimit::~TimeLimit()
+{
+  abort_timer_flag.store(true);
 }
 #endif
 
@@ -83,24 +83,7 @@ TimeLimit install_time_limit(const Options& opts)
     return TimeLimit();
   }
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
-  abort_timer_flag.store(false);
-  std::thread t([ms]()
-  {
-    // when to stop
-    auto limit = std::chrono::system_clock::now() + std::chrono::milliseconds(ms);
-    while (limit > std::chrono::system_clock::now())
-    {
-      // check if the main thread is done
-      if (abort_timer_flag.load()) return;
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    // trigger the timeout handler
-    signal_handlers::timeout_handler();
-  });
-  // detach the thread
-  t.detach();
-#else
+#if HAVE_SETITIMER
   // Install a signal handler for SIGALRM
   struct sigaction sact;
   sact.sa_sigaction = posix_timeout_handler;
@@ -126,6 +109,23 @@ TimeLimit install_time_limit(const Options& opts)
   {
     throw Exception(std::string("timer_settime() failure: ") + strerror(errno));
   }
+#else
+  abort_timer_flag.store(false);
+  std::thread t([ms]()
+  {
+    // when to stop
+    auto limit = std::chrono::system_clock::now() + std::chrono::milliseconds(ms);
+    while (limit > std::chrono::system_clock::now())
+    {
+      // check if the main thread is done
+      if (abort_timer_flag.load()) return;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    // trigger the timeout handler
+    signal_handlers::timeout_handler();
+  });
+  // detach the thread
+  t.detach();
 #endif
   return TimeLimit();
 }
