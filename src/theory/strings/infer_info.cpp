@@ -59,7 +59,8 @@ bool InferInfo::isFact() const
   // we could process inferences with conjunctive conclusions as facts, where
   // the explanation is copied. However, for simplicity, we always send these
   // as lemmas. This case happens very infrequently.
-  return !atom.isConst() && atom.getKind() != kind::OR && atom.getKind() != kind::AND && d_noExplain.empty();
+  return !atom.isConst() && atom.getKind() != kind::OR
+         && atom.getKind() != kind::AND && d_noExplain.empty();
 }
 
 Node InferInfo::getPremises() const
