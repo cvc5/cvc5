@@ -243,12 +243,12 @@ static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
   veritPrintInternal(out, pfn, ids, 1, 0);
   //out << "\n";
   //out << "Check proof? (0/1)" << "\n";
-  /*bool check;
+  bool check;
   std::cin >> check;
   if (check)
   {
     veritProofChecker(pfn, out);
-  }*/
+  }
 }
 
 }  // namespace proof

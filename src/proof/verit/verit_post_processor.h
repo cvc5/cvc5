@@ -63,6 +63,7 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate) override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -128,7 +129,8 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
 };
 
 /**
- * Final callback class used by the veriT to add last step to proof in certain cases.
+ * Final callback class used by the veriT to add last step to proof in certain
+ * cases.
  */
 class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
@@ -138,13 +140,15 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   /** Should proof pn be updated?
    *
    * @param pn the proof node that maybe should be updated
-   * @param continueUpdate indicates whether we should continue recursively updating pn
+   * @param continueUpdate indicates whether we should continue recursively
+   * updating pn
    * @return whether we should run the update method on pn
    */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     bool& continueUpdate) override;
   /**
-   * This method gets a proof node pn = false printed as (cl false) and updates the proof for false such that (cl) is printed.
+   * This method gets a proof node pn = false printed as (cl false) and updates
+   * the proof for false such that (cl) is printed.
    *
    * @param res The expected result of the application,
    * @param rule The id of the veriT rule,
@@ -159,6 +163,7 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
               const std::vector<Node>& args,
               CDProof* cdp,
               bool& continueUpdate) override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
@@ -167,7 +172,6 @@ class VeritProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   /** The variable cl **/
   Node d_cl;
 };
-
 
 /**
  * The proof postprocessor module. This postprocesses a proof node into one
@@ -184,17 +188,18 @@ class VeritProofPostprocess
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The post process callback */
-  //VeritProofPostprocessCallback d_cb;
+  // VeritProofPostprocessCallback d_cb;
   std::unique_ptr<VeritProofPostprocessCallback> d_cb;
   /** The updater, which is responsible for translating proof rules */
-  //ProofNodeUpdater d_updater;
+  // ProofNodeUpdater d_updater;
   /** The final post process callback */
-  //VeritProofPostprocessFinalCallback d_fcb;
+  // VeritProofPostprocessFinalCallback d_fcb;
   std::unique_ptr<VeritProofPostprocessFinalCallback> d_fcb;
-  /** The updater, which is responsible for adding additional steps to the end of the proof */
-  //ProofNodeUpdater d_finalize;
+  /** The updater, which is responsible for adding additional steps to the end
+   * of the proof */
+  // ProofNodeUpdater d_finalize;
   /** Internal processing for a proof node*/
-  void processInternal(std::shared_ptr<ProofNode> pf,CDProof* cdb);
+  void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdb);
   /** Flag to indicate whether proof format should be extended */
   bool d_extended;
 };

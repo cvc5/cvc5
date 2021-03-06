@@ -23,7 +23,7 @@ namespace CVC4 {
 
 namespace proof {
 
-//TODO: Are detailled comments needed?
+// TODO: Are detailled comments needed?
 // + If veriT rules would change, maintenance would be hard
 // - Convolution of this file with unnecessary information
 enum class VeritRule : uint32_t
@@ -43,7 +43,8 @@ enum class VeritRule : uint32_t
   ANCHOR_SUBPROOF,
   ANCHOR_BIND,
   ASSUME,
-  //================================================= Rules of the veriT calculus
+  //================================================= Rules of the veriT
+  //calculus
   // ======== input
   // > i. F
   // , where F is equivalent to a formula asserted in the input problem.
@@ -123,19 +124,20 @@ enum class VeritRule : uint32_t
   // > i.  (cl (not (= F1 F2)) ... (not (= F_{n-1} Fn)) (= F1 Fn))
   EQ_TRANSITIVE,
   // ======== eq_congruent
-  // > i.  (cl (not (= F1 G1)) ... (not (= Fn Gn)) (= f(F1,...,Fn) f(G1,...,Gn)))
+  // > i.  (cl (not (= F1 G1)) ... (not (= Fn Gn)) (= f(F1,...,Fn)
+  // f(G1,...,Gn)))
   EQ_CONGRUENT,
   // ======== eq_congruent_pred
-  // > i.  (cl (not (= F1 G1)) ... (not (= Fn Gn)) (= P(F1,...,Fn) P(G1,...,Gn)))
+  // > i.  (cl (not (= F1 G1)) ... (not (= Fn Gn)) (= P(F1,...,Fn)
+  // P(G1,...,Gn)))
   EQ_CONGRUENT_PRED,
   // ======== distinct_elim
   // If called with one argument:
   // > i. (= (distinct F) true)
-  // If applied to terms of type Bool more than two terms can never be distinct. Two cases can be possible:
-  // > i. (= (distinct F G) (not (= F G)))
-  // > i. (= (distinct F1 F2 F3 ...) false)
-  // In general:
-  // > i. (= (distinct F1 ... Fn) (/\ )) TODO
+  // If applied to terms of type Bool more than two terms can never be distinct.
+  // Two cases can be possible: > i. (= (distinct F G) (not (= F G))) > i. (=
+  // (distinct F1 F2 F3 ...) false) In general: > i. (= (distinct F1 ... Fn) (/\
+  // )) TODO
   DISTINCT_ELIM,
   // ======== la_rw_eq
   // > i. (= (= F G) (and (<= F G) (<= G F)))
@@ -206,7 +208,7 @@ enum class VeritRule : uint32_t
   SKO_EX,
   SKO_FORALL,
   /** Special Rules*/
-  UNDEFINED,  // TBD
+  UNDEFINED,      // TBD
   EQ_RESOLUTION,  // TODO: DELETE LATER
   /** Extended Rules */
   SYMM,
