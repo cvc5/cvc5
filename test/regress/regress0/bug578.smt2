@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :status sat)
 (set-logic QF_BV)
 (declare-fun v0 () (_ BitVec 1))

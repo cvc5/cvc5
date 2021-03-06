@@ -1,15 +1,11 @@
 ; COMMAND-LINE: --finite-model-find -q
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "unknown")
 (set-info :status sat)
-(declare-datatypes () 
-((UNIT  (Unit))
-))
-(declare-datatypes () 
-((BOOL  (Truth)  (Falsity))
-))
+(declare-datatype UNIT ((Unit)))
+(declare-datatype BOOL ((Truth)  (Falsity)))
 (declare-sort resource$type 0)
 (declare-sort process$type 0)
 (declare-fun null () resource$type)

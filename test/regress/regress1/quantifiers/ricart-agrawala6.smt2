@@ -1,6 +1,6 @@
 (set-logic AUFLIA)
 (set-info :source | An Optimal Algorithm for Mutual Exclusion in Computer Networks. Glenn Ricart and Ashok K. Agrawala. Communications of the ACM Vol.: 24 Number: 1. This is a benchmark of the haRVey theorem prover. It was translated to SMT-LIB by Leonardo  de Moura |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun p () Int)

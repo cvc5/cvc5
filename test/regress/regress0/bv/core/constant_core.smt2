@@ -1,5 +1,5 @@
 (set-logic QF_BV)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-fun x () (_ BitVec 3))

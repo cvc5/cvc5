@@ -4,7 +4,7 @@
 
 (set-logic FP)
 (set-info :source |Written by Mathias Preiner for issue #2932|)
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-info :category crafted)
 (set-info :status unsat)
 

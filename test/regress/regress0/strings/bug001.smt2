@@ -1,4 +1,4 @@
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-logic QF_S)
 (set-info :status sat)
 
@@ -6,10 +6,10 @@
 (declare-fun y () String)
 (declare-fun z () String)
 
-(assert (= "\x4a" x))
-(assert (= "\x6a" y))
+(assert (= "J" x))
+(assert (= "j" y))
 
-(assert (= "\x4A" z))
+(assert (= "J" z))
 
 (assert (= x z))
 
