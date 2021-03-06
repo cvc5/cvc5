@@ -208,7 +208,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
   if (fact.getKind() == kind::EQUAL)
   {
     NodeManager* nm = NodeManager::currentNM();
-    if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[0].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[0];
       TNode result = fact[1];
@@ -220,7 +220,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
           kind::OR, divisor_eq_0, nm->mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
-    if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[1].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[1];
       TNode result = fact[0];

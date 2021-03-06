@@ -278,7 +278,7 @@ Node getICBvMult(
 Node getICBvUrem(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  Assert(k == BITVECTOR_UREM_TOTAL);
+  Assert(k == BITVECTOR_UREM);
   Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
          || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
@@ -586,7 +586,7 @@ Node getICBvUrem(
 Node getICBvUdiv(
     bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  Assert(k == BITVECTOR_UDIV_TOTAL);
+  Assert(k == BITVECTOR_UDIV);
   Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
          || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
@@ -618,7 +618,7 @@ Node getICBvUdiv(
          * umulo(s, t) is true if s * t produces and overflow
          * and z = 0 with getSize(z) = w  */
         Node mul = nm->mkNode(BITVECTOR_MULT, s, t);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, mul, s);
+        Node div = nm->mkNode(BITVECTOR_UDIV, mul, s);
         scl = nm->mkNode(EQUAL, div, t);
       }
       else
@@ -655,8 +655,8 @@ Node getICBvUdiv(
          *
          * where
          * z = 0 with getSize(z) = w  */
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, s, t);
-        scl = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV_TOTAL, s, div), t);
+        Node div = nm->mkNode(BITVECTOR_UDIV, s, t);
+        scl = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_UDIV, s, div), t);
       }
       else
       {
@@ -701,7 +701,7 @@ Node getICBvUdiv(
          * with invertibility condition (synthesized):
          * (= (bvand (bvudiv (bvmul s t) t) s) s)  */
         Node mul = nm->mkNode(BITVECTOR_MULT, s, t);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, mul, t);
+        Node div = nm->mkNode(BITVECTOR_UDIV, mul, t);
         scl = nm->mkNode(EQUAL, nm->mkNode(BITVECTOR_AND, div, s), s);
       }
     }
@@ -739,7 +739,7 @@ Node getICBvUdiv(
          * where
          * ones = ~0 with getSize(ones) = w  */
         Node ones = bv::utils::mkOnes(w);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
+        Node div = nm->mkNode(BITVECTOR_UDIV, ones, s);
         scl = nm->mkNode(BITVECTOR_UGT, div, t);
       }
       else
@@ -792,7 +792,7 @@ Node getICBvUdiv(
          * and min is the minimum signed value with getSize(min) = w  */
         Node min = bv::utils::mkMinSigned(w);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
-        Node div = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
+        Node div = nm->mkNode(BITVECTOR_UDIV, min, s);
         Node slt = nm->mkNode(BITVECTOR_SLT, div, t);
         scl = nm->mkNode(IMPLIES, sle, slt);
       }
@@ -808,8 +808,8 @@ Node getICBvUdiv(
          * and max is the maximum signed value with getSize(max) = w  */
         Node max = bv::utils::mkMaxSigned(w);
         Node ones = bv::utils::mkOnes(w);
-        Node udiv1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
-        Node udiv2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, max, s);
+        Node udiv1 = nm->mkNode(BITVECTOR_UDIV, ones, s);
+        Node udiv2 = nm->mkNode(BITVECTOR_UDIV, max, s);
         Node sge1 = nm->mkNode(BITVECTOR_SGE, udiv1, t);
         Node sge2 = nm->mkNode(BITVECTOR_SGE, udiv2, t);
         scl = nm->mkNode(OR, sge1, sge2);
@@ -877,9 +877,9 @@ Node getICBvUdiv(
          * and max is the maximum signed value with getSize(max) = w  */
         Node max = bv::utils::mkMaxSigned(w);
         Node ones = bv::utils::mkOnes(w);
-        Node div1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, ones, s);
+        Node div1 = nm->mkNode(BITVECTOR_UDIV, ones, s);
         Node sgt1 = nm->mkNode(BITVECTOR_SGT, div1, t);
-        Node div2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, max, s);
+        Node div2 = nm->mkNode(BITVECTOR_UDIV, max, s);
         Node sgt2 = nm->mkNode(BITVECTOR_SGT, div2, t);
         scl = nm->mkNode(OR, sgt1, sgt2);
       }
@@ -894,11 +894,11 @@ Node getICBvUdiv(
          * z = 0 with getSize(z) = w
          * and min is the minimum signed value with getSize(min) = w  */
         Node mul = nm->mkNode(BITVECTOR_MULT, s, t);
-        Node div1 = nm->mkNode(BITVECTOR_UDIV_TOTAL, mul, s);
+        Node div1 = nm->mkNode(BITVECTOR_UDIV, mul, s);
         Node o1 = nm->mkNode(EQUAL, div1, t);
         Node min = bv::utils::mkMinSigned(w);
         Node sle = nm->mkNode(BITVECTOR_SLE, t, z);
-        Node div2 = nm->mkNode(BITVECTOR_UDIV_TOTAL, min, s);
+        Node div2 = nm->mkNode(BITVECTOR_UDIV, min, s);
         Node slt = nm->mkNode(BITVECTOR_SLT, div2, t);
         Node o2 = nm->mkNode(IMPLIES, sle, slt);
         scl = nm->mkNode(OR, o1, o2);
