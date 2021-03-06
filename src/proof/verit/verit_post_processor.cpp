@@ -314,8 +314,7 @@ bool VeritProofPostprocessCallback::update(
 	       vrule = VeritRule::ITE_SIMPLIFY; break;
 	     }
 	     case kind::EQUAL:
-             {  // Test equiv_simplify
-                std::cout << "What happens here " << t << std::endl;
+             {
                vrule = VeritRule::EQ_SIMPLIFY; break;
              }
              case kind::AND:{
@@ -330,10 +329,15 @@ bool VeritProofPostprocessCallback::update(
 	     case kind::IMPLIES:{
 	       vrule = VeritRule::IMPLIES_SIMPLIFY; break;
 	     }
+	     case kind::WITNESS:{
+               vrule = VeritRule::QNT_SIMPLIFY;break;
+ 	     }
 	     default:{
-               std::cout << "tid " << tid << std::endl;
-               std::cout << "t kind " << t.getKind() << std::endl;
-               std::cout << "(= t t')" << res << std::endl;
+	       //In this case the rule is undefined
+	       //TODO: Should this be BOOL_SIMPLIFY?
+               //std::cout << "tid " << tid << std::endl;
+               //std::cout << "t kind " << t.getKind() << std::endl;
+               //std::cout << "(= t t')" << res << std::endl;
 	       break;
              }
 	  }
@@ -343,22 +347,21 @@ bool VeritProofPostprocessCallback::update(
         {
           vrule = VeritRule::BOOL_SIMPLIFY;
           break;
-        }  // TODO: Should there be a case distinction with kinds here?
+        }
         case theory::TheoryId::THEORY_UF:{
 	  switch(t.getKind()){
             case kind::EQUAL:
             {  // A lot of these seem to be symmetry rules but not all....
-              // std::cout << "What happens here2: " << std::endl;
-              //		std::cout << "tid2 " << tid << std::endl;
-              // std::cout << "t kind2 " << t.getKind() << std::endl;
-              //  std::cout << "(= t t')2 " << res << std::endl;
               vrule = VeritRule::EQUIV_SIMPLIFY;
               break;
             }
-             default:{
-               // std::cout << "t kind 3" << t.getKind() << std::endl;
-               // std::cout << "(= t t') 3" << res << std::endl;
-             }
+            default:{
+	       //In this case the rule is undefined
+               //std::cout << "tid " << tid << std::endl;
+               //std::cout << "t kind " << t.getKind() << std::endl;
+               //std::cout << "(= t t')" << res << std::endl;
+	       break;
+            }
 	  }
 	  break;
 	}
@@ -367,7 +370,7 @@ bool VeritProofPostprocessCallback::update(
 	     case kind::DIVISION:{
 	       vrule = VeritRule::DIV_SIMPLIFY; break;
 	     }
-	     case kind::PRODUCT:{ //What is this?
+	     case kind::PRODUCT:{
 	       vrule = VeritRule::PROD_SIMPLIFY; break;
              }
 	     case kind::MINUS:{
@@ -382,10 +385,10 @@ bool VeritProofPostprocessCallback::update(
 	     case kind::MULT:{
 	       vrule = VeritRule::PROD_SIMPLIFY;break;
 	     }
-	     case kind::EQUAL:{}
-	     case kind::LT:{}
-	     case kind::GT:{}
-	     case kind::GEQ:{}
+	     case kind::EQUAL:{[[fallthrough]];}
+	     case kind::LT:{[[fallthrough]];}
+	     case kind::GT:{[[fallthrough]];}
+	     case kind::GEQ:{[[fallthrough]];}
 	     case kind::LEQ:{
 	       vrule = VeritRule::COMP_SIMPLIFY; break;
 	     }
@@ -398,8 +401,10 @@ bool VeritProofPostprocessCallback::update(
                                    *cdp);
 	     }
 	     default:{
-               // std::cout << "t kind " << t.getKind() << std::endl;
-               // std::cout << "(= t t')" << res << std::endl;
+	       //In this case the rule is undefined
+               //std::cout << "tid " << tid << std::endl;
+               //std::cout << "t kind " << t.getKind() << std::endl;
+               //std::cout << "(= t t')" << res << std::endl;
              }
 	  }
 	  break;
@@ -445,25 +450,43 @@ bool VeritProofPostprocessCallback::update(
     //   otherwise it's an OR node of the resulting literals.
     //
     //
-    // In case that C1 = (or F1 ... Fn) and C2 != (not (or F1 ... Fn)):
+    // In the case that C = (or G1 ... Gn) the result is ambigous. E.g.,
     //
-    // proof rule: or
-    // proof node: (VP1:(cl F1 ... Fn))
-    // proof term: (cl F1 ... Fn)
-    // premises: P1
-    // args: ()
+    // (cl F1 (or F2 F3))    (cl (not F1))
+    // -------------------------------------- RESOLUTION
+    // (cl (or F2 F3))
     //
-    // Otherwise VP1 = P1
+    // (cl F1 F2 F3)        (cl (not F1))
+    // -------------------------------------- RESOLUTION
+    // (cl F2 F3)
     //
-    // In case that C2 = (or F1 ... Fn) and C1 != (not (or F1 ... Fn)):
+    // both (cl (or F2 F3)) and (cl F2 F3) correspond to the same proof node (or F2 F3). Therefore, the translation has to keep track of the current resolvent that is then compared to the result. E.g. in the first case current_resolvent = {(or F2 F3)} indicates that the result is a singleton clause, in the second current_resolvent={F2,F3} that it is an or node.
     //
-    // proof rule: or
-    // proof node: (VP2:(cl F1 ... Fn))
-    // proof term: (cl F1 ... Fn)
-    // premises: P2
-    // args: ()
+    // It is always clear what clauses to add to the current_resolvent, except for when a child is an assumption or the result of an equality resolution step. In these cases it might be necessary to add an additional or step.
     //
-    // Otherwise VP2 = P2
+    // If rule(C1) = ASSUME or rule(C1) = EQ_RESOLVE:
+    //
+    //   If C1 = (or F1 ... Fn) and C2 != (not (or F1 ... Fn)):
+    //
+    //   proof rule: or
+    //   proof node: (VP1:(cl F1 ... Fn))
+    //   proof term: (cl F1 ... Fn)
+    //   premises: P1
+    //   args: ()
+    //
+    //   Otherwise VP1 = P1
+    //
+    // If rule(C2) = ASSUME or rule(C2) = EQ_RESOLVE:
+    //
+    //   If C2 = (or F1 ... Fn) and C1 != (not (or F1 ... Fn)):
+    //
+    //   proof rule: or
+    //   proof node: (VP2:(cl F1 ... Fn))
+    //   proof term: (cl F1 ... Fn)
+    //   premises: P2
+    //   args: ()
+    //
+    //   Otherwise VP2 = P2
     //
     // If C = (or G1 ... Gn) then except if id = true (false) and C1 = L or C2 =
     // not L (C2 = L and C1 = not L):
@@ -494,25 +517,19 @@ bool VeritProofPostprocessCallback::update(
       Node vp1 = children[0];
       Node vp2 = children[1];
 
-      std::vector<Node>
-          current_resolvent;  // Needed to determine if (cl C) or (cl G1 ... Gn)
-                              // should be added in the end.
+      // Needed to determine if (cl C) or (cl G1 ... Gn) should be added in the end.
+      std::vector<Node> current_resolvent;
 
-       VeritRule vp1_rule =
-       static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp1)->getArguments()[0].toString()));
-       VeritRule vp2_rule =
-       static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp2)->getArguments()[0].toString()));
-
-      // TODO: Check if child rule is SYMM, use equal_Nodes
-
+      VeritRule vp1_rule = static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp1)->getArguments()[0].toString()));
+      VeritRule vp2_rule = static_cast<VeritRule>(std::stoul(cdp->getProofFor(vp2)->getArguments()[0].toString()));
 
       // If the rule of the child is ASSUME or EQ_RESOLUTION and additional or
-      // step might be needed. TODO: REPLACE EQ_RESOLUTION
+      // step might be needed.
       if ((vp1_rule == VeritRule::ASSUME
            || vp1_rule == VeritRule::EQ_RESOLUTION))
       {
         if (children[0].getKind() == kind::OR
-            && !isSameModEqual(children[0], children[1].notNode())) //TODO: isSameModeEqual
+            && children[0] != children[1].notNode())
         {
           success &= addVeritStepFromOr(
               children[0], VeritRule::OR, {children[0]}, {}, *cdp);
@@ -548,8 +565,8 @@ bool VeritProofPostprocessCallback::update(
            || vp2_rule == VeritRule::EQ_RESOLUTION))
       {
         if (children[1].getKind() == kind::OR
-            && !isSameModEqual(children[1], children[0].notNode()))
-        {  // TODO: vp1_rule == PfRule::ASSUME &&
+            && children[1] != children[0].notNode())
+        {
           success &= addVeritStepFromOr(
               children[1], VeritRule::OR, {children[1]}, {}, *cdp);
           vp2 = d_nm->mkNode(kind::SEXPR, d_cl, vp2);
@@ -597,7 +614,7 @@ bool VeritProofPostprocessCallback::update(
                                        d_nm->mkNode(kind::SEXPR, d_cl),
                                        {vp1, vp2},
                                        {},
-                                       *cdp);
+                                       *cdp);  //(cl false)
       }
       return success &= addVeritStep(res,
                                      VeritRule::RESOLUTION,
