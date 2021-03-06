@@ -331,8 +331,9 @@ bool Instantiate::addInstantiation(
   }
 
   // add to list of instantiations
-  InstLemmaList* ill = getOrMkInstList(q);
-  ill->d_nodes.push_back(body);
+  InstLemmaList* ill = getOrMkInstLemmaList(q);
+  ill->d_list.push_back(body);
+  // add to temporary debug statistics (# inst on this round)
   d_temp_inst_debug[q]++;
   if (Trace.isOn("inst"))
   {
@@ -679,8 +680,8 @@ void Instantiate::getInstantiationTermVectors(
 
 void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
 {
-  InstLemmaList* ill = getOrMkInstList(q);
-  insts.insert(insts.end(), ill->d_nodes.begin(), ill->d_nodes.end());
+  InstLemmaList* ill = getOrMkInstLemmaList(q);
+  insts.insert(insts.end(), ill->d_list.begin(), ill->d_list.end());
 }
 
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
@@ -720,7 +721,7 @@ void Instantiate::debugPrintModel()
     for (NodeInstListMap::iterator it = d_insts.begin(); it != d_insts.end();
          ++it)
     {
-      Trace("inst-per-quant") << " * " << (*it).second.d_list.size() << " for "
+      Trace("inst-per-quant") << " * " << (*it).second->d_list.size() << " for "
                               << (*it).first << std::endl;
     }
   }
@@ -742,9 +743,9 @@ Node Instantiate::ensureType(Node n, TypeNode tn)
   return Node::null();
 }
 
-InstLemmaList* Instantiate::getOrMkInstList(TNode q)
+InstLemmaList* Instantiate::getOrMkInstLemmaList(TNode q)
 {
-  NodeInstListMap::iterator it = d_insts.find(tn);
+  NodeInstListMap::iterator it = d_insts.find(q);
   if (it != d_insts.end())
   {
     return it->second.get();

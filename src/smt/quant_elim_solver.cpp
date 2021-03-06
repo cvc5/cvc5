@@ -99,21 +99,11 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
       Assert(topq.getKind() == FORALL);
       Trace("smt-qe") << "Get qe based on preprocessed quantified formula "
                       << topq << std::endl;
-      std::vector<std::vector<Node>> insts;
-      qe->getInstantiationTermVectors(topq, insts);
-      std::vector<Node> vars(ne[0].begin(), ne[0].end());
-      std::vector<Node> conjs;
-      // apply the instantiation on the original body
-      for (const std::vector<Node>& inst : insts)
-      {
-        // note we do not convert to witness form here, since we could be
-        // an internal subsolver
-        Subs s;
-        s.add(vars, inst);
-        Node c = s.apply(ne[1].negate());
-        conjs.push_back(c);
-      }
-      ret = nm->mkAnd(conjs);
+      std::vector<Node> insts;
+      qe->getInstantiations(topq, insts);
+      // note we do not convert to witness form here, since we could be
+      // an internal subsolver
+      ret = nm->mkAnd(insts);
       Trace("smt-qe") << "QuantElimSolver returned : " << ret << std::endl;
       if (q.getKind() == EXISTS)
       {
