@@ -44,7 +44,7 @@ enum class VeritRule : uint32_t
   ANCHOR_BIND,
   ASSUME,
   //================================================= Rules of the veriT
-  //calculus
+  // calculus
   // ======== input
   // > i. F
   // , where F is equivalent to a formula asserted in the input problem.
@@ -136,7 +136,7 @@ enum class VeritRule : uint32_t
   // > i. (= (distinct F) true)
   // If applied to terms of type Bool more than two terms can never be distinct.
   // Two cases can be possible: > i. (= (distinct F G) (not (= F G))) > i. (=
-  // (distinct F1 F2 F3 ...) false) In general: > i. (= (distinct F1 ... Fn) (/\
+  // (distinct F1 F2 F3 ...) false) In general: > i. (= (distinct F1 ... Fn) (
   // )) TODO
   DISTINCT_ELIM,
   // ======== la_rw_eq
