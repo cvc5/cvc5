@@ -486,7 +486,7 @@ bool VeritProofPostprocessCallback::update(
     // F2 F3). Therefore, the translation has to keep track of the current
     // resolvent that is then compared to the result. E.g. in the first case
     // current_resolvent = {(or F2 F3)} indicates that the result is a singleton
-    // clause, in the second current_resolvent={F2,F3} that it is an or node.
+    // clause, in the second current_resolvent = {F2,F3} that it is an or node.
     //
     // It is always clear what clauses to add to the current_resolvent, except
     // for when a child is an assumption or the result of an equality resolution
@@ -542,101 +542,59 @@ bool VeritProofPostprocessCallback::update(
     //  args: ()
     case PfRule::RESOLUTION:{
       bool success = true;
-      Node vp1 = children[0];
-      Node vp2 = children[1];
+      std::vector<Node> vps = children;
 
       // Needed to determine if (cl C) or (cl G1 ... Gn) should be added in the
       // end.
       std::vector<Node> current_resolvent;
 
-      //VeritRule vp1_rule = static_cast<VeritRule>(
-      //    std::stoul(cdp->getProofFor(vp1)->getArguments()[0].toString()));
-      //VeritRule vp2_rule = static_cast<VeritRule>(
-      //    std::stoul(cdp->getProofFor(vp2)->getArguments()[0].toString()));
-
       // If the rule of the child is ASSUME or EQ_RESOLUTION and additional or
       // step might be needed.
-      //if ((vp1_rule == VeritRule::ASSUME
-      //     || vp1_rule == VeritRule::EQ_RESOLUTION))
-      //{
-      if(cdp->getProofFor(vp1)->getRule() == PfRule::ASSUME || cdp->getProofFor(vp1)->getRule() == PfRule::EQ_RESOLVE){
-        if (children[0].getKind() == kind::OR
-            && children[0] != children[1].notNode())
-        {//TODO: Controll change
-	  /*std::vector<Node> clauses;
- 	  clauses.push_back(d_cl);
- 	  clauses.insert(clauses.end(),children[0].begin(),children[0].end());
-          Node conclusion = d_nm->mkNode(kind::SEXPR,clauses);
-  	  success &= addVeritStep(conclusion,VeritRule::OR,conclusion,{children[0]},{},*cdp);
-          vp1 = conclusion;*/
-	  success &= addVeritStepFromOr(children[0], VeritRule::OR, {children[0]}, {}, *cdp);
-	  vp1 = d_nm->mkNode(kind::SEXPR,d_cl,vp1);
-          // If this is the case the literals in C1 are added to the
-          // current_resolvent.
-          current_resolvent.insert(
-              current_resolvent.end(), children[0].begin(), children[0].end());
+      for(unsigned long int i=0; i < 2; i++){
+        if(cdp->getProofFor(children[i])->getRule() == PfRule::ASSUME || cdp->getProofFor(children[i])->getRule() == PfRule::EQ_RESOLVE){
+	  // This is if the child is not resolved as a whole against the other child
+	  Node child2;
+	  if(i==0){child2 = children[1];}else{child2 = children[0];}
+          if (children[i].getKind() == kind::OR
+              && children[i] != child2.notNode())
+          {
+	    std::vector<Node> clauses;
+ 	    clauses.push_back(d_cl);
+ 	    clauses.insert(clauses.end(),children[i].begin(),children[i].end());
+            vps[i] = d_nm->mkNode(kind::SEXPR,clauses);
+  	    success &= addVeritStep(vps[i],VeritRule::OR,{children[i]},{},*cdp);
+            // If this is the case the literals in C1 are added to the
+            // current_resolvent.
+            current_resolvent.insert(
+                current_resolvent.end(), children[i].begin(), children[i].end());
+          }
+          else
+          {
+            // Otherwise, the whole clause is added.
+            current_resolvent.push_back(children[i]);
+          }
         }
+        // For all other rules it is easy to determine if the whole clause or the
+        // literals in the clause should be added. If the node is an or node add
+        // literals otherwise the whole clause.
         else
         {
-          // Otherwise, the whole clause is added.
-          current_resolvent.push_back(children[0]);
-        }
-      }
-      // For all other rules it is easy to determine if the whole clause or the
-      // literals in the clause should be added. If the node is an or node add
-      // literals otherwise the whole clause.
-      else
-      {
-        if (children[0].getKind() == kind::OR)
-        {
-          current_resolvent.insert(
-              current_resolvent.end(), children[0].begin(), children[0].end());
-        }
-        else
-        {
-          current_resolvent.push_back(children[0]);
-        }
-      }
-      // The same is done to the second child.
-      //if ((vp2_rule == VeritRule::ASSUME
-      //     || vp2_rule == VeritRule::EQ_RESOLUTION))
-      //{
-      if(cdp->getProofFor(vp2)->getRule() == PfRule::ASSUME || cdp->getProofFor(vp2)->getRule() == PfRule::EQ_RESOLVE){
-        if (children[1].getKind() == kind::OR
-            && children[1] != children[0].notNode())
-        {
-	  /*std::vector<Node> clauses;
- 	  clauses.push_back(d_cl);
- 	  clauses.insert(clauses.end(),children[1].begin(),children[1].end());
-          Node conclusion = d_nm->mkNode(kind::SEXPR,clauses);
-  	  success &= addVeritStep(conclusion,VeritRule::OR,conclusion,{children[1]},{},*cdp);
-          vp2 = conclusion;*/
-          success &= addVeritStepFromOr(children[1], VeritRule::OR, {children[1]}, {}, *cdp);
-	  vp2 = d_nm->mkNode(kind::SEXPR,d_cl,vp2);
-          current_resolvent.insert(
-              current_resolvent.end(), children[1].begin(), children[1].end());
-        }
-        else
-        {
-          current_resolvent.push_back(children[1]);
-        }
-      }
-      else
-      {
-        if (children[1].getKind() == kind::OR)
-        {
-          current_resolvent.insert(
-              current_resolvent.end(), children[1].begin(), children[1].end());
-        }
-        else
-        {
-          current_resolvent.push_back(children[1]);
+          if (children[i].getKind() == kind::OR)
+          {
+            current_resolvent.insert(
+                current_resolvent.end(), children[i].begin(), children[i].end());
+          }
+          else
+          {
+            current_resolvent.push_back(children[i]);
+          }
         }
       }
 
       // The pivot and its negation are deleted from the current_resolvent
-      current_resolvent.erase(std::find(
-          current_resolvent.begin(), current_resolvent.end(), args[1]));
+      current_resolvent.erase(std::find(current_resolvent.begin(),
+			                current_resolvent.end(),
+					args[1]));
       current_resolvent.erase(std::find(current_resolvent.begin(),
                                         current_resolvent.end(),
                                         args[1].notNode()));
@@ -646,23 +604,23 @@ bool VeritProofPostprocessCallback::update(
       {
         return success &= addVeritStepFromOr(res,
                                              VeritRule::RESOLUTION,
-                                             {vp1, vp2},
+                                             vps,
                                              {},
                                              *cdp);  //(cl G1 ... Gn)
       }
-      if (res == d_nm->mkConst(false))
+      else if (res == d_nm->mkConst(false))
       {
         return success &= addVeritStep(res,
                                        VeritRule::RESOLUTION,
                                        d_nm->mkNode(kind::SEXPR, d_cl),
-                                       {vp1, vp2},
+                                       vps,
                                        {},
                                        *cdp);  //(cl)
       }
       return success &= addVeritStep(res,
                                      VeritRule::RESOLUTION,
                                      d_nm->mkNode(kind::SEXPR, d_cl, res),
-                                     {vp1, vp2},
+                                     vps,
                                      {},
                                      *cdp);  //(cl C)
     }
@@ -716,24 +674,15 @@ bool VeritProofPostprocessCallback::update(
     case PfRule::CHAIN_RESOLUTION:
     {
       bool success = true;
-      Node trueNode = d_nm->mkConst(true);
-      Node falseNode = d_nm->mkConst(false);
-
       Node L = args[1];
       std::vector<Node> current_resolvent;
       std::vector<Node> new_children = children;
-      VeritRule child_rule;
 
       for (unsigned long int i = 0; i < children.size(); i++)
       {
-        // Add cl step if children[i] has kind OR and the L before it is not
-        // itself E.g. L_{i-1} = c and children[i] = (or a (not c)) -> add OR
-        // step E.g. L_{i-1} = (or a (not c)) and children[i] = (or a (not c)) ->
-        // don't add OR step
-        //child_rule = static_cast<VeritRule>(std::stoul(cdp->getProofFor(children[i])->getArguments()[0].toString()));
-        //if ((child_rule == VeritRule::ASSUME
-        //     || child_rule == VeritRule::EQ_RESOLUTION))
-        //{
+        // Add cl step if children[i] has kind OR and it is not resolved as a singleton. This is only the case if C itself is the privot L_{i-1}
+	// E.g. If L_{i-1} = c and children[i] = (or a (not c)), then add OR step to obtain (cl a (not c))
+	// E.g. If L_{i-1} = (or a (not c)) and children[i] = (or a (not c)), then don't add OR step
         if(cdp->getProofFor(children[i])->getRule() == PfRule::ASSUME || cdp->getProofFor(children[i])->getRule() == PfRule::EQ_RESOLVE){
           if (children[i].getKind() == kind::OR && children[i] != L)
           {
@@ -2052,13 +2001,13 @@ bool VeritProofPostprocessCallback::update(
     }
 
     //================================================= Arithmetic rules
-  // ======== Adding Inequalities
-  // Note: an ArithLiteral is a term of the form (>< poly const)
-  // where
-  //   >< is >=, >, ==, <, <=, or not(== ...).
-  //   poly is a polynomial
-  //   const is a rational constant
-
+    // ======== Adding Inequalities
+    // Note: an ArithLiteral is a term of the form (>< poly const)
+    // where
+    //   >< is >=, >, ==, <, <=, or not(== ...).
+    //   poly is a polynomial
+    //   const is a rational constant
+    //
     // Children: (P1:l1, ..., Pn:ln)
     //           where each li is an ArithLiteral
     //           not(= ...) is dis-allowed!
@@ -2504,8 +2453,8 @@ bool VeritProofPostprocessFinalCallback::update(
                           PfRule::VERIT_RULE,
                           {},
                           new_args,
-                          true,
-                          CDPOverwrite::ALWAYS); //TODO: ALWAYS not needed?
+			  true,
+			  CDPOverwrite::ALWAYS);
 
   new_args.clear();
   new_args.push_back(
