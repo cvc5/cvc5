@@ -188,16 +188,14 @@ class VeritProofPostprocess
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The post process callback */
-  // VeritProofPostprocessCallback d_cb;
-  std::unique_ptr<VeritProofPostprocessCallback> d_cb;
+  VeritProofPostprocessCallback d_cb;
   /** The updater, which is responsible for translating proof rules */
-  // ProofNodeUpdater d_updater;
+  ProofNodeUpdater d_updater;
   /** The final post process callback */
-  // VeritProofPostprocessFinalCallback d_fcb;
-  std::unique_ptr<VeritProofPostprocessFinalCallback> d_fcb;
+  VeritProofPostprocessFinalCallback d_fcb;
   /** The updater, which is responsible for adding additional steps to the end
    * of the proof */
-  // ProofNodeUpdater d_finalize;
+  ProofNodeUpdater d_finalize;
   /** Internal processing for a proof node*/
   void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdb);
   /** Flag to indicate whether proof format should be extended */
