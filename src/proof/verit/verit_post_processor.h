@@ -125,7 +125,6 @@ class VeritProofPostprocessCallback : public ProofNodeUpdaterCallback
                           const std::vector<Node>& children,
                           const std::vector<Node>& args,
                           CDProof& cdp);
-  bool isSameModEqual(Node vp1, Node vp2);
 };
 
 /**
@@ -196,8 +195,6 @@ class VeritProofPostprocess
   /** The updater, which is responsible for adding additional steps to the end
    * of the proof */
   ProofNodeUpdater d_finalize;
-  /** Internal processing for a proof node*/
-  void processInternal(std::shared_ptr<ProofNode> pf, CDProof* cdb);
   /** Flag to indicate whether proof format should be extended */
   bool d_extended;
 };

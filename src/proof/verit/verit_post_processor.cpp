@@ -20,9 +20,9 @@ namespace proof {
 
 VeritProofPostprocessCallback::VeritProofPostprocessCallback(
     ProofNodeManager* pnm)
-    : d_pnm(pnm)
+    : d_pnm(pnm),
+      d_nm(NodeManager::currentNM())
 {
-  d_nm = NodeManager::currentNM();
   d_cl = d_nm->mkBoundVar("cl",d_nm->stringType());
 }
 
@@ -936,7 +936,7 @@ bool VeritProofPostprocessCallback::update(
 
       //if (child1_rule != VeritRule::ASSUME
       if(cdp->getProofFor(child1)->getRule() !=PfRule::ASSUME //TODO: What about EQ_RESOLVE
-          && !isSameModEqual(children[0].notNode(), vp1[1])
+          && children[0].notNode() != vp1[1]
           && children[0].getKind() == kind::OR)
       {
         std::vector<Node> clauses;
@@ -2365,98 +2365,6 @@ bool VeritProofPostprocessCallback::update(
   return false;
 }
 
-VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
-    ProofNodeManager* pnm)
-    : d_pnm(pnm)
-{
-  d_nm = NodeManager::currentNM();
-  d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
-}
-
-bool VeritProofPostprocessFinalCallback::shouldUpdate(
-    std::shared_ptr<ProofNode> pn, bool& continueUpdate)
-{
-  continueUpdate = false;
-  if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) > 1)
-  {
-    if (pn->getArguments()[2][1].toString() == d_nm->mkConst(false).toString())
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool VeritProofPostprocessFinalCallback::update(
-    Node res,
-    PfRule id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args,
-    CDProof* cdp,
-    bool& continueUpdate)
-{
-  bool success = true;
-  d_nm = NodeManager::currentNM();
-  Node falseNotNode = d_nm->mkConst(false).notNode();
-
-  Node res2 = d_nm->mkNode(kind::SEXPR, d_cl);
-  Node res3 = d_nm->mkNode(kind::SEXPR, res);
-  std::vector<Node> new_args = std::vector<Node>();
-  VeritRule vrule = static_cast<VeritRule>(std::stoul(args[0].toString()));
-  new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(vrule)));
-  new_args.push_back(d_nm->mkNode(kind::SEXPR, res));  //(false)
-  if (vrule == VeritRule::ASSUME)
-  {
-    new_args.push_back(res);
-  }
-  else
-  {
-    new_args.push_back(d_nm->mkNode(kind::SEXPR, d_cl, res));
-  }  // (cl false)
-  Trace("verit-proof") << "... add veriT step "
-                       << d_nm->mkNode(kind::SEXPR, res) << " / "
-                       << d_nm->mkNode(kind::SEXPR, d_cl, res) << " "
-                       << children << " / {}" << std::endl;
-  success &= cdp->addStep(d_nm->mkNode(kind::SEXPR, res),
-                          PfRule::VERIT_RULE,
-                          children,
-                          new_args,
-                          true,
-                          CDPOverwrite::ALWAYS);
-
-  new_args.clear();
-  new_args.push_back(
-      d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::FALSE)));
-  new_args.push_back(falseNotNode);  // (not false)
-  new_args.push_back(
-      d_nm->mkNode(kind::SEXPR, d_cl, falseNotNode));  // (cl (not false))
-  Trace("verit-proof") << "... add veriT step " << falseNotNode << " / "
-                       << d_nm->mkNode(kind::SEXPR, d_cl, falseNotNode)
-                       << " {} / {}" << std::endl;
-  success &= cdp->addStep(falseNotNode,
-                          PfRule::VERIT_RULE,
-                          {},
-                          new_args,
-                          true,
-                          CDPOverwrite::ALWAYS);
-
-  new_args.clear();
-  new_args.push_back(
-      d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::RESOLUTION)));
-  new_args.push_back(res);
-  new_args.push_back(res2);
-  Trace("verit-proof") << "... add veriT step " << res << " / " << res2 << " {"
-                       << falseNotNode << ", " << d_nm->mkNode(kind::SEXPR, res)
-                       << " / {}" << std::endl;
-  success &= cdp->addStep(res,
-                          PfRule::VERIT_RULE,
-                          {falseNotNode, d_nm->mkNode(kind::SEXPR, res)},
-                          new_args,
-                          true,
-                          CDPOverwrite::ALWAYS);
-  return success;
-}
-
 bool VeritProofPostprocessCallback::addVeritStep(
     Node res,
     VeritRule rule,
@@ -2499,41 +2407,126 @@ bool VeritProofPostprocessCallback::addVeritStepFromOr(
   return addVeritStep(res,rule,conclusion,children,args,cdp);
 }
 
-bool VeritProofPostprocessCallback::isSameModEqual(Node vp1, Node vp2)
+VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
+    ProofNodeManager* pnm)
+    : d_pnm(pnm),
+      d_nm(NodeManager::currentNM())
 {
-  if (vp1.getKind() != vp2.getKind())
+  d_cl = d_nm->mkBoundVar("cl", d_nm->stringType());
+}
+
+bool VeritProofPostprocessFinalCallback::shouldUpdate(
+    std::shared_ptr<ProofNode> pn, bool& continueUpdate)
+{
+  // The proof node should not be traversed further
+  continueUpdate = false;
+  // If the proof node has result (false) additional steps have to be added.
+  if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) > 1)
   {
-    return false;
+    if (pn->getArguments()[2][1].toString() == d_nm->mkConst(false).toString())
+    {
+      return true;
+    }
   }
-  else if (vp1 == vp2)
+  return false;
+}
+
+// Children:  (P1:C1) ... (Pn:Cn)
+// Arguments: (VeritRule::vrule,false,(cl false))
+// ---------------------
+// Conclusion: (false)
+//
+// proof rule: vrule
+// proof node: (VP1:((false)))
+// proof term: (cl false)
+// premises: P
+// args: ()
+//
+// proof rule: false
+// proof node: (VP2:(not true))
+// proof term: (cl (not true))
+// premises: ()
+// args: ()
+//
+// proof rule: resolution
+// proof node: (false)
+// proof term: (cl)
+// premises: VP1 VP2
+bool VeritProofPostprocessFinalCallback::update(
+    Node res,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args,
+    CDProof* cdp,
+    bool& continueUpdate)
+{
+  bool success = true;
+  d_nm = NodeManager::currentNM();
+  std::vector<Node> new_args = std::vector<Node>();
+
+  Node vp1 = d_nm->mkNode(kind::SEXPR, res);    // ((false))
+  Node vp2 = d_nm->mkConst(false).notNode();    // (not true)
+  Node res2 = d_nm->mkNode(kind::SEXPR, d_cl);  // (cl)
+
+  VeritRule vrule = static_cast<VeritRule>(std::stoul(args[0].toString()));
+  new_args.push_back(d_nm->mkConst<Rational>(static_cast<unsigned>(vrule)));
+  new_args.push_back(vp1);
+  //In the special case that false is an assumption, we print false instead of (cl false)
+  if (vrule == VeritRule::ASSUME)
   {
-    return true;
+    new_args.push_back(res); // (false)
   }
-  else if (vp1.getKind() == kind::EQUAL)
+  else
   {
-    return (isSameModEqual(vp1[0], vp2[1]) && isSameModEqual(vp1[1], vp2[0]))
-           || (isSameModEqual(vp1[0], vp2[0])
-               && isSameModEqual(vp1[1], vp2[1]));
+    new_args.push_back(d_nm->mkNode(kind::SEXPR, d_cl, res)); // (cl false)
   }
-  std::vector<Node> vp1s(vp1.begin(), vp1.end());
-  std::vector<Node> vp2s(vp2.begin(), vp2.end());
-  if (vp1s.size() != vp2s.size())
-  {
-    return false;
-  }
-  bool equal = true;
-  for (unsigned long int i = 0; i < vp1s.size(); i++)
-  {
-    equal &= isSameModEqual(vp1s[i], vp2s[i]);
-  }
-  return equal;
+  Trace("verit-proof") << "... add veriT step "
+                       << vp1 << " / "
+                       << d_nm->mkNode(kind::SEXPR, d_cl, res) << " "
+                       << children << " / {}" << std::endl;
+  success &= cdp->addStep(vp1,
+                          PfRule::VERIT_RULE,
+                          children,
+                          new_args,
+                          true,
+                          CDPOverwrite::ALWAYS);
+
+  new_args.clear();
+  new_args.push_back(
+      d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::FALSE)));
+  new_args.push_back(vp2);
+  new_args.push_back(
+      d_nm->mkNode(kind::SEXPR, d_cl, vp2));  // (cl (not false))
+  Trace("verit-proof") << "... add veriT step " << vp2 << " / "
+                       << d_nm->mkNode(kind::SEXPR, d_cl, vp2)
+                       << " {} / {}" << std::endl;
+  success &= cdp->addStep(vp2,
+                          PfRule::VERIT_RULE,
+                          {},
+                          new_args,
+                          true,
+                          CDPOverwrite::ALWAYS); //TODO: ALWAYS not needed?
+
+  new_args.clear();
+  new_args.push_back(
+      d_nm->mkConst<Rational>(static_cast<unsigned>(VeritRule::RESOLUTION)));
+  new_args.push_back(res);
+  new_args.push_back(res2);
+  Trace("verit-proof") << "... add veriT step " << res << " / " << res2 << " {"
+                       << vp2 << ", " << vp1
+                       << " / {}" << std::endl;
+  success &= cdp->addStep(res,
+                          PfRule::VERIT_RULE,
+                          {vp2, vp1},
+                          new_args,
+                          true,
+                          CDPOverwrite::ALWAYS);
+  return success;
 }
 
 VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,
                                              bool extended)
     : d_pnm(pnm),
-      //d_cb(new VeritProofPostprocessCallback(d_pnm)),
-      //d_fcb(new VeritProofPostprocessFinalCallback(d_pnm)),
       d_cb(d_pnm),
       d_updater(d_pnm, d_cb,true,false),
       d_fcb(d_pnm),
@@ -2541,7 +2534,6 @@ VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,
       d_extended(extended)
 {
   d_cb.initializeUpdate(extended);
-  //d_cb->initializeUpdate(extended);
 }
 
 VeritProofPostprocess::~VeritProofPostprocess() {}
@@ -2549,80 +2541,13 @@ VeritProofPostprocess::~VeritProofPostprocess() {}
 
 void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
+  // Translate proof node
   d_updater.process(pf);
 
-  // In veriT the last step is always (cl). However, after the translate the
-  // final step might be (cl false). In that case additional steps are required.
+  // In the veriT proof format the final step has to be (cl). However, after the translation it might be (cl false). In that case additional steps are required.
   d_finalize.process(pf);
-
-  /*CDProof* cdp = new CDProof(d_pnm, nullptr, "CDProof", false);
-  bool continueUpdate = true;
-  if (d_fcb->shouldUpdate(pf, continueUpdate))
-  {
-    std::vector<Node> children;
-    for (auto c : pf->getChildren())
-    {
-      cdp->addProof(c);
-      children.push_back(c->getResult());
-    }
-    if (d_fcb->update(pf->getResult(),
-                    PfRule::VERIT_RULE,
-                    children,
-                    pf->getArguments(),
-                    cdp,
-                    continueUpdate))
-    {
-      d_pnm->updateNode(pf.get(), cdp->getProofFor(pf->getResult()).get());
-      Trace("verit-proof") << "... updated proof for " << pf->getResult()
-                           << std::endl;
-    }
-    else
-    {
-      Trace("verit-proof") << "... error updating proof for " << pf->getResult()
-                           << std::endl;
-    }
-  }*/
 }
 
-void VeritProofPostprocess::processInternal(std::shared_ptr<ProofNode> pf,
-                                            CDProof* cdp)
-{
-  /*//First, update children
-  std::vector<Node> children;
-  for (const std::shared_ptr<ProofNode>& child :pf->getChildren()){
-    std::shared_ptr<ProofNode> next_child = child;
-    //In non-extended mode symm and reordering should be skipped.
-    if(!d_extended && (next_child->getRule() == PfRule::REORDERING || next_child->getRule() == PfRule::SYMM)){
-      while (next_child->getRule() == PfRule::SYMM || next_child->getRule() == PfRule::REORDERING){
-        next_child = next_child->getChildren()[0];
-      }
-    }
-    processInternal(next_child, cdp);
-    children.push_back(next_child->getResult());
-  }
-
-  // Then, update proof node
-  bool continueUpdate = true;
-  if (d_cb->shouldUpdate(pf, continueUpdate))
-  {
-    if (d_cb->update(pf->getResult(),
-                     pf->getRule(),
-                     children,
-                     pf->getArguments(),
-                     cdp,
-                     continueUpdate))
-    {
-      d_pnm->updateNode(pf.get(), cdp->getProofFor(pf->getResult()).get());
-      Trace("verit-proof") << "... updated proof for " << pf->getResult()
-                           << std::endl;
-    }
-    else
-    {
-      Trace("verit-proof") << "... error updating proof for " << pf->getResult()
-                           << std::endl;
-    }
-  }*/
-}
 
 }  // namespace proof
 
