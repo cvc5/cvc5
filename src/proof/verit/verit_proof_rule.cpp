@@ -69,7 +69,7 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
     case VeritRule::TH_RESOLUTION: return "th_resolution";
     case VeritRule::RESOLUTION: return "resolution";
     case VeritRule::EQ_RESOLUTION:
-      return "resolution";  // TODO: change to resolution
+      return "eq_resolution";  // TODO: change to resolution
     case VeritRule::REFL: return "refl";
     case VeritRule::TRANS: return "trans";
     case VeritRule::CONG: return "cong";

@@ -1095,6 +1095,10 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
     case VeritRule::MINUS_SIMPLIFY:{return CheckResult::NoCheck;}
     case VeritRule::SUM_SIMPLIFY:{return CheckResult::NoCheck;}
     case VeritRule::COMP_SIMPLIFY:{return CheckResult::NoCheck;}
+    case VeritRule::REORDER:
+    {
+      return CheckResult::True;
+    }
     default:
     {
       return CheckResult::NotTranslated;
