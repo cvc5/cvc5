@@ -182,7 +182,7 @@ class SharedTermsVisitor {
   SharedTermsDatabase& d_sharedTerms;
   /** Cache of nodes we have visited in this traversal */
   TNodeVisitedMap d_visited;
-  /** Cache of nodes we have preregistered */
+  /** (Global) cache of nodes we have preregistered in this SAT context */
   TNodeToTheorySetMap d_preregistered;
 };
 
