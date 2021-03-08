@@ -83,36 +83,10 @@ OptResult OptimizationSolver::checkOpt()
   Node increment;
 
   // the less-than operator for comparison, this is used for optimization!
-  Kind less_than_operator;
-
-  // the datatype of the objective
-  // currently we support Integer/Real and BitVector
-  // gets the objective datatype with type checking
-  TypeNode objective_type = this->d_activatedObjective.getNode().getType(true);
-
-  if (objective_type.isInteger() || objective_type.isReal())
+  Kind less_than_operator = this->getLessThanOperatorForObjective();
+  // doesn't support comparison or objective datatype not-yet supported
+  if (less_than_operator == kind::NULL_EXPR)
   {
-    // Integer and Real both share the same LT operator
-    less_than_operator = kind::LT;
-  }
-  else if (objective_type.isBitVector())
-  {
-    // is it signed comparison?
-    if (this->d_activatedObjective.getSigned())
-    {
-      // signed comparison for BitVectors
-      less_than_operator = kind::BITVECTOR_SLT;
-    }
-    else
-    {
-      // unsigned comparison for BitVectors
-      less_than_operator = kind::BITVECTOR_ULT;
-    }
-  }  // FloatingPoints?
-  else
-  {
-    // the current objective datatype is not-yet supported
-    // or doesn't support comparison (no total order)
     return OPT_UNKNOWN;
   }
 
@@ -163,6 +137,40 @@ Node OptimizationSolver::objectiveGetValue()
 {
   Assert(!d_savedValue.isNull());
   return d_savedValue;
+}
+
+Kind OptimizationSolver::getLessThanOperatorForObjective()
+{
+  // the datatype of the objective
+  // currently we support Integer/Real and BitVector
+  // gets the objective datatype with type checking
+  TypeNode objective_type = this->d_activatedObjective.getNode().getType(true);
+
+  if (objective_type.isInteger() || objective_type.isReal())
+  {
+    // Integer and Real both share the same LT operator
+    return kind::LT;
+  }
+  else if (objective_type.isBitVector())
+  {
+    // is it signed comparison?
+    if (this->d_activatedObjective.getSigned())
+    {
+      // signed comparison for BitVectors
+      return kind::BITVECTOR_SLT;
+    }
+    else
+    {
+      // unsigned comparison for BitVectors
+      return kind::BITVECTOR_ULT;
+    }
+  }  // FloatingPoints?
+  else
+  {
+    // the current objective datatype is not-yet supported
+    // or doesn't support comparison (no total order)
+    return kind::NULL_EXPR;
+  }
 }
 
 Objective::Objective(Node obj, ObjectiveType type, bool bv_is_signed_compare)

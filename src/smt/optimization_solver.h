@@ -113,6 +113,10 @@ class OptimizationSolver
   Node objectiveGetValue();
 
  private:
+  /** Returns the less than operator for the activated objective **/
+  Kind getLessThanOperatorForObjective();
+
+ private:
   /** The parent SMT engine **/
   SmtEngine* d_parent;
   /** The objectives to optimize for **/
