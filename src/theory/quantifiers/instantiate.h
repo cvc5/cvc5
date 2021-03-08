@@ -195,7 +195,8 @@ class Instantiate : public QuantifiersUtil
    * same as addInstantiation, but does not enqueue an instantiation lemma.
    */
   void recordInstantiation(Node q,
-                           std::vector<Node>& terms, bool doVts = false);
+                           std::vector<Node>& terms,
+                           bool doVts = false);
   /** exists instantiation
    *
    * Returns true if and only if the instantiation already was added or
@@ -332,7 +333,7 @@ class Instantiate : public QuantifiersUtil
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 
-  /** 
+  /**
    * The list of all instantiation lemma bodies per quantifier. This is used
    * for debugging and for quantifier elimination.
    */

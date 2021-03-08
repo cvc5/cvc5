@@ -127,9 +127,9 @@ class SharedTermsVisitor {
   /**
    * Cache from preprocessing of atoms.
    */
-  using TNodeVisitedMap = std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>;
+  typedef std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      TNodeVisitedMap;
   TNodeVisitedMap d_visited;
-  using TNodeToTheorySetMap = context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>;
 
   /**
    * String representation of the visited map, for debugging purposes.
