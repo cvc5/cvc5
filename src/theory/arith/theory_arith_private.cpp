@@ -1419,7 +1419,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
 }
 
 void TheoryArithPrivate::setupAtom(TNode atom) {
-  Assert(isRelationOperator(atom.getKind()));
+  Assert(isRelationOperator(atom.getKind())) << atom;
   Assert(Comparison::isNormalAtom(atom));
   Assert(!isSetup(atom));
   Assert(!d_constraintDatabase.hasLiteral(atom));
