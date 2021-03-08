@@ -58,10 +58,17 @@ class LeanPrinter
                     std::shared_ptr<ProofNode> pfn);
 
  private:
+  /**
+   * Convert a CVC4 Node holding an id to the corresponding LeanRule
+   */
   static LeanRule getLeanRule(Node n);
-  static Node getId(std::shared_ptr<ProofNode> n);
-  static Node getConclusion(std::shared_ptr<ProofNode> n);
+  //static Node getId(std::shared_ptr<ProofNode> n);
+  //static Node getConclusion(std::shared_ptr<ProofNode> n);
   static void printKind(std::ostream& s, Kind k);
+  /**
+   * Convert a node to a Lean term -- must start with mk_ and take children as args
+   * Example: kind::AND (kind::EQUAL a b) c --> mkAnd (mkEq a b) c
+   */
   static void printLeanString(std::ostream& s, Node n);
   /**
    * Convert from node to lean type syntax
