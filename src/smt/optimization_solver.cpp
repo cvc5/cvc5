@@ -83,9 +83,9 @@ OptResult OptimizationSolver::checkOpt()
   Node increment;
 
   // the less-than operator for comparison, this is used for optimization!
-  Kind less_than_operator = this->getLessThanOperatorForObjective();
+  Kind lessThanOperator = this->getLessThanOperatorForObjective();
   // doesn't support comparison or objective datatype not-yet supported
-  if (less_than_operator == kind::NULL_EXPR)
+  if (lessThanOperator == kind::NULL_EXPR)
   {
     return OPT_UNKNOWN;
   }
@@ -98,6 +98,16 @@ OptResult OptimizationSolver::checkOpt()
   {
     // get the model-value of objective in last sat call
     value = optChecker->getValue(d_activatedObjective.getNode());
+    if (value.isConst()) { 
+      std::cout << value.getConst<BitVector>().getSize() << std::endl;
+      // try {
+      //   std::cout << value.getConst<BitVector>().getSize() << std::endl;
+      // } catch(...) {
+      //   std::cerr << "exception" << std::endl;
+      // }
+      
+      // std::cerr << value.getConst<Rational>().getDenominator().getLong() << std::endl;
+    }
 
     // We need to save the value since we need the model value just before the
     // unsat call
@@ -111,12 +121,12 @@ OptResult OptimizationSolver::checkOpt()
     if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
     {
       increment =
-          nm->mkNode(less_than_operator, value, d_activatedObjective.getNode());
+          nm->mkNode(lessThanOperator, value, d_activatedObjective.getNode());
     }
     else
     {
       increment =
-          nm->mkNode(less_than_operator, d_activatedObjective.getNode(), value);
+          nm->mkNode(lessThanOperator, d_activatedObjective.getNode(), value);
     }
     optChecker->assertFormula(increment);
     loop_r = optChecker->checkSat();

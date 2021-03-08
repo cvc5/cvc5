@@ -113,7 +113,8 @@ class OptimizationSolver
   Node objectiveGetValue();
 
  private:
-  /** Returns the less than operator for the activated objective **/
+  /** Returns the less than operator for the activated objective
+   * if objective does not support comparison, return kind::NULL_EXPR **/
   Kind getLessThanOperatorForObjective();
 
  private:
@@ -123,6 +124,78 @@ class OptimizationSolver
   Objective d_activatedObjective;
   /** A saved value of the objective from the last sat call. **/
   Node d_savedValue;
+};
+
+struct OMTSearchState 
+{
+  virtual ~OMTSearchState() {}
+  virtual bool setLowerBound(const Node &lowerBoundNode) = 0;
+  virtual bool setUpperBound(const Node &upperBoundNode) = 0;
+  virtual Node getLowerBound() = 0;
+  virtual Node getUpperBound() = 0;
+  virtual Node constructLTExpr(NodeManager *nm, const Node &a, const Node &b) = 0;
+  virtual Node constructLEQExpr(NodeManager *nm, const Node &a, const Node &b) = 0;
+  virtual Node computePivot(NodeManager* nm) = 0;
+  virtual bool shouldPerformBinarySearchStep() = 0;
+};
+
+/**
+ * The class storing the search states of the binary search. 
+ * Including upper and lower bounds. 
+ */
+template <typename T>
+struct OMTSearchStateImpl : OMTSearchState
+{ // empty implementation 
+};
+
+template <>
+struct OMTSearchStateImpl<Rational> : OMTSearchState
+{
+private:
+  Node lowerBound; 
+  Node upperBound;
+public: 
+  void checkNode(const Node &node) {
+    Assert(node.isConst());
+    Assert(node.getType().isInteger());
+  }
+  OMTSearchStateImpl(const Node &lowerBound, const Node &upperBound) {
+    checkNode(lowerBound);
+    checkNode(upperBound);
+    this->lowerBound = lowerBound;
+    this->upperBound = upperBound;
+  }
+  virtual bool setLowerBound(const Node &lowerBoundNode) {
+    checkNode(lowerBoundNode);
+    this->lowerBound = lowerBoundNode;
+    return true;
+  }
+  virtual bool setUpperBound(const Node &upperBoundNode) {
+    checkNode(upperBoundNode);
+    this->upperBound = upperBoundNode;
+    return true;
+  }
+  virtual Node getLowerBound() {
+    return this->lowerBound;
+  }
+  virtual Node getUpperBound() {
+    return this->upperBound;
+  }
+  virtual Node constructLTExpr(NodeManager *nm, const Node &a, const Node &b) {
+    return nm->mkNode(kind::LT, a, b);
+  }
+  virtual Node constructLEQExpr(NodeManager *nm, const Node &a, const Node &b) {
+    return nm->mkNode(kind::LEQ, a, b);
+  }
+  virtual Node computePivot(NodeManager* nm) {
+    Rational upper = this->upperBound.getConst<Rational>();
+    Rational lower = this->lowerBound.getConst<Rational>();
+    Rational pivot = (upper + lower) / Rational(2);
+    return nm->mkConst(pivot);
+  }
+  virtual bool shouldPerformBinarySearchStep() {
+    return true;
+  }
 };
 
 }  // namespace smt
