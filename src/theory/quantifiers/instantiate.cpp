@@ -65,17 +65,8 @@ Instantiate::~Instantiate()
 
 bool Instantiate::reset(Theory::Effort e)
 {
-  if (!d_recorded_inst.empty())
-  {
-    Trace("quant-engine-debug") << "Removing " << d_recorded_inst.size()
-                                << " instantiations..." << std::endl;
-    // remove explicitly recorded instantiations
-    for (std::pair<Node, std::vector<Node> >& r : d_recorded_inst)
-    {
-      removeInstantiationInternal(r.first, r.second);
-    }
-    d_recorded_inst.clear();
-  }
+  // clear explicitly recorded instantiations
+  d_recorded_inst.clear();
   d_term_db = d_qe->getTermDatabase();
   return true;
 }
@@ -474,12 +465,12 @@ bool Instantiate::addInstantiationExpFail(Node q,
   return false;
 }
 
-bool Instantiate::recordInstantiation(Node q,
+void Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
-                                      bool modEq,
-                                      bool addedLem)
+                                      bool modEq)
 {
-  return recordInstantiationInternal(q, terms, modEq, addedLem);
+  Node inst = getInstantiation(q, terms, doVts);
+  d_recorded_inst[q].push_back(inst);
 }
 
 bool Instantiate::existsInstantiation(Node q,
@@ -558,14 +549,8 @@ Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 
 bool Instantiate::recordInstantiationInternal(Node q,
                                               std::vector<Node>& terms,
-                                              bool modEq,
-                                              bool addedLem)
+                                              bool modEq)
 {
-  if (!addedLem)
-  {
-    // record the instantiation for deletion later
-    d_recorded_inst.push_back(std::pair<Node, std::vector<Node> >(q, terms));
-  }
   if (options::incrementalSolving())
   {
     Trace("inst-add-debug")

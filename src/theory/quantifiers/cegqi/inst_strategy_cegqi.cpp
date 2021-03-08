@@ -469,17 +469,17 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
+  //check if we need virtual term substitution (if used delta or infinity)
+  bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
   {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
     d_quantEngine->getInstantiate()->recordInstantiation(
-        d_curr_quant, subs, false, false);
+        d_curr_quant, subs, used_vts);
     return true;
   }else{
-    //check if we need virtual term substitution (if used delta or infinity)
-    bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
     if (d_quantEngine->getInstantiate()->addInstantiation(
             d_curr_quant, subs, false, false, used_vts))
     {
