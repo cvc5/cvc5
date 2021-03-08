@@ -113,7 +113,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
 
   // call the preregistration on current, parent or type theories and update
   // visitedTheories.
-  preRegister(d_engine, visitedTheories, current, parent);
+  preRegister(d_engine, visitedTheories, current, parent, visitedTheories);
 
   Debug("register::internal")
       << "PreRegisterVisitor::visit(" << current << "," << parent
@@ -128,17 +128,18 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
 void PreRegisterVisitor::preRegister(TheoryEngine* te,
                                      TheoryIdSet& visitedTheories,
                                      TNode current,
-                                     TNode parent)
+                                     TNode parent,
+                                     TheoryIdSet& preregTheories)
 {
   // Preregister with the current theory, if necessary
   TheoryId currentTheoryId = Theory::theoryOf(current);
-  preRegisterWithTheory(te, visitedTheories, currentTheoryId, current, parent);
+  preRegisterWithTheory(te, visitedTheories, currentTheoryId, current, parent, preregTheories);
 
   if (current != parent)
   {
     // preregister with parent theory, if necessary
     TheoryId parentTheoryId = Theory::theoryOf(parent);
-    preRegisterWithTheory(te, visitedTheories, parentTheoryId, current, parent);
+    preRegisterWithTheory(te, visitedTheories, parentTheoryId, current, parent, preregTheories);
 
     // Note that if enclosed by different theories it's shared, for example,
     // in read(a, f(a)), f(a) should be shared with integers.
@@ -147,7 +148,7 @@ void PreRegisterVisitor::preRegister(TheoryEngine* te,
     {
       // preregister with the type's theory, if necessary
       TheoryId typeTheoryId = Theory::theoryOf(type);
-      preRegisterWithTheory(te, visitedTheories, typeTheoryId, current, parent);
+      preRegisterWithTheory(te, visitedTheories, typeTheoryId, current, parent, preregTheories);
     }
   }
 }
@@ -155,11 +156,18 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
                                                TheoryIdSet& visitedTheories,
                                                TheoryId id,
                                                TNode current,
-                                               TNode parent)
+                                               TNode parent,
+                                     TheoryIdSet& preregTheories)
 {
   if (TheoryIdSetUtil::setContains(id, visitedTheories))
   {
-    // already registered
+    // already visited
+    return;
+  }
+  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
+  if (TheoryIdSetUtil::setContains(id, preregTheories))
+  {
+    // already pregregistered
     return;
   }
   if (Configuration::isAssertionBuild())
@@ -191,7 +199,6 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
     }
   }
   // call the theory's preRegisterTerm method
-  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
   Theory* th = te->theoryOf(id);
   th->preRegisterTerm(current);
 }
@@ -243,7 +250,9 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
   TheoryIdSet visitedTheories = d_visited[current];
 
   // preregister the term with the current, parent or type theories, as needed
-  PreRegisterVisitor::preRegister(d_engine, visitedTheories, current, parent);
+  TheoryIdSet preregTheories = d_preregistered[current];
+  PreRegisterVisitor::preRegister(d_engine, visitedTheories, current, parent, preregTheories);
+  d_preregistered[current] = preregTheories;
 
   // Record the new theories that we visited
   d_visited[current] = visitedTheories;
