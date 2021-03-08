@@ -287,8 +287,6 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   auto                           attempt to automatically determine language\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
   smt | smtlib | smt2 |\n\
-  smt2.0 | smtlib2 | smtlib2.0   SMT-LIB format 2.0\n\
-  smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
   sygus | sygus2                 SyGuS version 2.0\n\
@@ -298,8 +296,6 @@ Languages currently supported as arguments to the --output-lang option:\n\
   cvc4 | presentation | pl       CVC4 presentation language\n\
   cvc3                           CVC3 presentation language\n\
   smt | smtlib | smt2 |\n\
-  smt2.0 | smtlib2.0 | smtlib2   SMT-LIB format 2.0\n\
-  smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format\n\
   ast                            internal format (simple syntax trees)\n\

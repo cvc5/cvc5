@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --ackermann --no-check-models --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_ALIA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 

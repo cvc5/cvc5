@@ -98,7 +98,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
 
-  install_time_limit(opts);
+  auto limit = install_time_limit(opts);
 
   string progNameStr = opts.getBinaryName();
   progName = &progNameStr;

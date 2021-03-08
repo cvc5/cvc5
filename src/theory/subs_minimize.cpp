@@ -426,8 +426,8 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
-  if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV_TOTAL
-      || k == BITVECTOR_UREM_TOTAL
+  if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV
+      || k == BITVECTOR_UREM
       || (arg == 0
           && (k == BITVECTOR_SHL || k == BITVECTOR_LSHR
               || k == BITVECTOR_ASHR)))

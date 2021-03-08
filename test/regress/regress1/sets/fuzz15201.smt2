@@ -1,7 +1,7 @@
 ; symptom: unsat instead of sat
 ; issue/fix: buggy rewriter for setminus
 (set-info :source |fuzzsmt|)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "random")
 (set-info :status sat)
 (set-logic QF_UFLIAFS)

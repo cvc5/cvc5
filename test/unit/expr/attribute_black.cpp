@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_value.h"
-#include "test_expr.h"
+#include "test_node.h"
 
 namespace CVC4 {
 
@@ -30,7 +30,7 @@ using namespace smt;
 
 namespace test {
 
-class TestExprBlackAttribute : public TestExprBlack
+class TestExprBlackAttribute : public TestNode
 {
  protected:
   struct PrimitiveIntAttributeId
