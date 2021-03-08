@@ -555,6 +555,7 @@ set(regress_0_tests
   regress0/fmf/issue4850-force-card.smt2
   regress0/fmf/issue4872-qf_ufc.smt2
   regress0/fmf/issue5239-uf-ss-tot.smt2
+  regress0/fmf/issue5922-fmf-not-x.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
   regress0/fmf/QEpres-uf.855035.smtv1.smt2
