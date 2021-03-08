@@ -4,31 +4,26 @@ source "$(dirname "$0")/get-script-header.sh"
 ANTLR_HOME_DIR="$DEPS_DIR/antlr-3.4"
 rm -rf "$ANTLR_HOME_DIR"
 
-[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="--disable-shared --enable-static"
-if [ -n "$HOST" ]; then
-  ANTLR_CONFIGURE_ARGS="--host=$HOST"
-  MACHINE_TYPE="$(echo "$HOST" | cut -d '-' -f 1)"
-  echo "Using MACHINE_TYPE=$MACHINE_TYPE for HOST=$HOST"
-fi
+while :; do
+  case $1 in
+    --host=?*)
+      host=${1#*=}
+      ANTLR_CONFIGURE_ARGS="--host=$host"
+      MACHINE_TYPE="$(echo "$host" | cut -d '-' -f 1)"
+      echo "Using MACHINE_TYPE=$MACHINE_TYPE for --host=$host"
+      ;;
+    --host=)
+      echo "Error: empty --host="
+      exit 1
+      ;;
+    *)
+      break
+  esac
+  shift
+done
 
-if [ -z "${MACHINE_TYPE}" ]; then
-  CONFIG_GUESS_SCRIPT="$ANTLR_HOME_DIR/config.guess"
-  if ! [ -e "${CONFIG_GUESS_SCRIPT}" ]; then
-    mkdir -p "$ANTLR_HOME_DIR"
-    # Attempt to download once
-    webget 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' $CONFIG_GUESS_SCRIPT
-    if [ -e "$CONFIG_GUESS_SCRIPT" ]; then
-     chmod +x "$CONFIG_GUESS_SCRIPT"
-   else
-     echo "$(basename $0): I need the file config/config.guess to tell MACHINE_TYPE" >&2
-     echo "Try running ./autogen.sh, or set the MACHINE_TYPE environment variable" >&2
-     echo "(e.g., \"export MACHINE_TYPE=x86_64\")." >&2
-     exit 1
-    fi
-  fi
-  # get first nibble from config.guess (x86_64, i686, ...)
-  MACHINE_TYPE=$(${CONFIG_GUESS_SCRIPT} | sed 's,-.*,,')
-fi
+[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="--disable-shared --enable-static"
+[ -z "${MACHINE_TYPE}" ] && MACHINE_TYPE="$(uname -m)"
 
 mkdir -p "$INSTALL_DIR/share/java"
 webget \
@@ -48,6 +43,10 @@ setup_dep \
   "https://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz" \
   "$ANTLR_HOME_DIR/libantlr3c-3.4"
 cd "$ANTLR_HOME_DIR/libantlr3c-3.4" || exit 1
+
+# Update config.guess for libantlr3c
+webget 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' config.guess.new
+[ -f "config.guess.new" ] && mv config.guess.new config.guess
 
 # Add aarch64 architecture
 sed 's/avr32 \\$/avr32 | aarch64 \\/' config.sub > config.sub.new
