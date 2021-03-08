@@ -20,7 +20,6 @@
 
 #include <memory>
 
-#include "theory/decision_manager.h"
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
@@ -28,8 +27,6 @@
 #include "theory/quantifiers/sygus/cegis_unif.h"
 #include "theory/quantifiers/sygus/example_eval_cache.h"
 #include "theory/quantifiers/sygus/example_infer.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
@@ -39,6 +36,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class CegGrammarConstructor;
+class SygusPbe;
 class SygusStatistics;
 
 /**

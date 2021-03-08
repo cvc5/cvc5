@@ -20,11 +20,13 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/quantifiers/sygus/sygus_invariance.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+class SygusInvarianceTest;
+class TermDbSygus;
 
 /** Recursive term builder
  *

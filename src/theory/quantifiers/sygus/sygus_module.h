@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 
-#include <map>
 #include <vector>
 
 #include "expr/node.h"

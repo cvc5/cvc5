@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/instantiate.h"
 
+#include "expr/lazy_proof.h"
 #include "expr/node_algorithm.h"
 #include "expr/proof_node_manager.h"
 #include "options/printer_options.h"

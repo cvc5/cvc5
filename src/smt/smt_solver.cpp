@@ -21,6 +21,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
+#include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_traits.h"
 

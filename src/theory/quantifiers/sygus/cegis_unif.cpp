@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/cegis_unif.h"
 
+#include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"

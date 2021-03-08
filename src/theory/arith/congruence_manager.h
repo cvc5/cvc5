@@ -23,7 +23,6 @@
 #include "context/cdlist.h"
 #include "context/cdmaybe.h"
 #include "context/cdtrail_queue.h"
-#include "context/context.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/callbacks.h"
@@ -36,6 +35,11 @@
 namespace CVC4 {
 
 class ProofNodeManager;
+
+namespace context {
+class Context;
+class UserContext;
+}
 
 namespace theory {
 

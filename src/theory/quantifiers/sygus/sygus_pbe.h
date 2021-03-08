@@ -17,14 +17,13 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_PBE_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_PBE_H
 
-#include "context/cdhashmap.h"
 #include "theory/quantifiers/sygus/sygus_module.h"
-#include "theory/quantifiers/sygus/sygus_unif_io.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class SygusUnifIo;
 class SynthConjecture;
 
 /** SygusPbe
