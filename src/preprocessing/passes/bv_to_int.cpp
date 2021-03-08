@@ -191,20 +191,6 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SgtEliminate>,
                                   RewriteRule<SgeEliminate>>::apply(current);
 
-      // expanding definitions of udiv and urem
-      if (k == kind::BITVECTOR_UDIV)
-      {
-        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
-                                         currentEliminated[0],
-                                         currentEliminated[1]);
-      }
-      else if (k == kind::BITVECTOR_UREM)
-      {
-        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
-                                         currentEliminated[0],
-                                         currentEliminated[1]);
-      }
-
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
       // also assign the eliminated now to itself to avoid revisiting.
@@ -357,10 +343,6 @@ Node BVToInt::translateWithChildren(Node original,
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
-  // Assert that BITVECTOR_UDIV/UREM were replaced by their
-  // *_TOTAL versions
-  Assert(oldKind != kind::BITVECTOR_UDIV);
-  Assert(oldKind != kind::BITVECTOR_UREM);
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
@@ -381,7 +363,7 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
       break;
     }
-    case kind::BITVECTOR_UDIV_TOTAL:
+    case kind::BITVECTOR_UDIV:
     {
       uint64_t bvsize = original[0].getType().getBitVectorSize();
       // we use an ITE for the case where the second operand is 0.
@@ -395,7 +377,7 @@ Node BVToInt::translateWithChildren(Node original,
           divNode);
       break;
     }
-    case kind::BITVECTOR_UREM_TOTAL:
+    case kind::BITVECTOR_UREM:
     {
       // we use an ITE for the case where the second operand is 0.
       Node modNode =

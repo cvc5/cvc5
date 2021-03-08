@@ -542,7 +542,6 @@ set(regress_0_tests
   regress0/fmf/Arrow_Order-smtlib.778341.smtv1.smt2
   regress0/fmf/bounded_sets.smt2
   regress0/fmf/bug-041417-set-options.cvc
-  regress0/fmf/bug652.smt2
   regress0/fmf/bug782.smt2
   regress0/fmf/cruanes-no-minimal-unk.smt2
   regress0/fmf/fc-simple.smt2
@@ -556,6 +555,7 @@ set(regress_0_tests
   regress0/fmf/issue4850-force-card.smt2
   regress0/fmf/issue4872-qf_ufc.smt2
   regress0/fmf/issue5239-uf-ss-tot.smt2
+  regress0/fmf/issue5922-fmf-not-x.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
   regress0/fmf/QEpres-uf.855035.smtv1.smt2
@@ -645,7 +645,6 @@ set(regress_0_tests
   regress0/ite2.smt2
   regress0/ite3.smt2
   regress0/ite4.smt2
-  regress0/lang_opts_2_5.smt2
   regress0/lang_opts_2_6_1.smt2
   regress0/lemmas/clocksynchro_5clocks.main_invar.base.model.smtv1.smt2
   regress0/lemmas/fs_not_sc_seen.induction.smtv1.smt2

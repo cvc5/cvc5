@@ -469,15 +469,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
   {
     language::input::Language ilang = language::input::LANG_AUTO;
 
-    if (value == "2" || value == "2.0")
-    {
-      ilang = language::input::LANG_SMTLIB_V2_0;
-    }
-    else if (value == "2.5")
-    {
-      ilang = language::input::LANG_SMTLIB_V2_5;
-    }
-    else if (value == "2.6")
+    if (value == "2.6")
     {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }

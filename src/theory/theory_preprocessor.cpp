@@ -163,6 +163,7 @@ TrustNode TheoryPreprocessor::preprocessInternal(
   {
     tret = TrustNode::mkTrustRewrite(node, ppNode, nullptr);
   }
+
   Trace("tpp-debug") << "...TheoryPreprocessor::preprocess returned "
                      << tret.getNode() << std::endl;
   Trace("tpp") << "TheoryPreprocessor::preprocess: return " << tret.getNode()

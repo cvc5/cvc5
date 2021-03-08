@@ -31,19 +31,28 @@ namespace arith {
 
 /**
  * Attribute used for constructing unique bound variables that are binders
- * for witness terms below.
+ * for witness terms below. In other words, this attribute maps nodes to
+ * the bound variable of a witness term for eliminating that node.
+ *
+ * Notice we use the same attribute for most bound variables below, since using
+ * a node itself is a sufficient cache key for constructing a bound variable.
+ * The exception is to_int / is_int, which share a skolem based on their
+ * argument.
  */
 struct ArithWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ArithWitnessVarAttributeId, Node>
-    ArithWitnessVarAttribute;
-/** Similar to above, shared for to_int and is_int */
+using ArithWitnessVarAttribute = expr::Attribute<ArithWitnessVarAttributeId, Node>;
+/**
+ * Similar to above, shared for to_int and is_int. This is used for introducing
+ * an integer bound variable used to construct the witness term for t in the
+ * contexts (to_int t) and (is_int t).
+ */
 struct ToIntWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ToIntWitnessVarAttributeId, Node>
-    ToIntWitnessVarAttribute;
+using ToIntWitnessVarAttribute
+ = expr::Attribute<ToIntWitnessVarAttributeId, Node>;
 
 OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
     : EagerProofGenerator(pnm), d_info(info)

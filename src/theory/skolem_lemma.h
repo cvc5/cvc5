@@ -23,10 +23,23 @@
 namespace CVC4 {
 namespace theory {
 
+/**
+ * A skolem lemma is a pair containing a trust node repreresenting a lemma
+ * and the skolem it is for. A common example would be the trust node proving
+ * the lemma:
+ *    (ite C (= k A) (= k B))
+ * and the skolem k.
+ *
+ * Skolem lemmas can be used as a way of tracking the relevance of a lemma.
+ * They can be used for things like term formula removal and preprocessing.
+ */
 class SkolemLemma
 {
  public:
-  SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k) {}
+  SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
+  {
+    Assert(lem.getKind() == TrustNodeKind::LEMMA);
+  }
   /** The lemma, a trust node of kind LEMMA */
   TrustNode d_lemma;
   /** The skolem associated with that lemma */

@@ -1,7 +1,7 @@
-; COMMAND-LINE: --lang=smt2.0
 ; EXPECT: sat
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
+(set-info :smt-lib-version 2.6)
 (set-option :strings-exp true)
 (declare-fun value () String)
 (declare-fun name () String)
@@ -11,12 +11,12 @@
 (assert (not (not (= (ite (> (str.indexof value ":" 0) 0) 1 0) 0)))) 
 (assert (not (= (ite (not (= (str.len value) 0)) 1 0) 0))) 
 (assert (not (not (= (ite (str.contains value "'") 1 0) 0)))) 
-(assert (not (not (= (ite (str.contains value "\"") 1 0) 0)))) 
+(assert (not (not (= (ite (str.contains value "\\""") 1 0) 0)))) 
 (assert (not (not (= (ite (str.contains value ">") 1 0) 0)))) 
 (assert (not (not (= (ite (str.contains value "<") 1 0) 0)))) 
 (assert (not (not (= (ite (str.contains value "&") 1 0) 0)))) 
 (assert (not (not (= (ite (str.contains name "'") 1 0) 0)))) 
-(assert (not (not (= (ite (str.contains name "\"") 1 0) 0)))) 
+(assert (not (not (= (ite (str.contains name "\\""") 1 0) 0)))) 
 (assert (not (not (= (ite (str.contains name ">") 1 0) 0)))) 
 (assert (not (not (= (ite (str.contains name "<") 1 0) 0)))) 
 (assert (not (not (= (ite (str.contains name "&") 1 0) 0)))) 

@@ -4,7 +4,7 @@ Unbounded version of the queue lock algorithm.
 
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status sat)
 (declare-fun x_0 () Int)

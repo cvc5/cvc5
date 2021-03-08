@@ -1269,6 +1269,7 @@ TEST_F(TestApiBlackSolver, getInfo)
 
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
+  d_solver.setLogic("QF_LIA");
   d_solver.setOption("produce-interpols", "default");
   d_solver.setOption("incremental", "false");
 
@@ -1282,7 +1283,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   d_solver.assertFormula(
       d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
   d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
-  // Conjecture for interpolation: y + z > 0 /\ z < 0
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj =
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),

@@ -62,6 +62,8 @@ Node SkolemCache::mkTypedSkolemCached(
   Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   SkolemId idOrig = id;
+  // do not rewrite beforehand if we are not using optimizations, this is so
+  // that the proof checker does not depend on the rewriter.
   if (d_useOpts)
   {
     a = a.isNull() ? a : Rewriter::rewrite(a);
