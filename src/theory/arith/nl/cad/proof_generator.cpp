@@ -16,6 +16,8 @@
 
 #ifdef CVC4_POLY_IMP
 
+#include "theory/arith/nl/poly_conversion.h"
+
 namespace CVC4 {
 namespace theory {
 namespace arith {

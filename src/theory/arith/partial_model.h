@@ -21,7 +21,6 @@
 #ifndef CVC4__THEORY__ARITH__PARTIAL_MODEL_H
 #define CVC4__THEORY__ARITH__PARTIAL_MODEL_H
 
-#include <list>
 #include <vector>
 
 #include "context/cdlist.h"

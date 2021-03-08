@@ -16,6 +16,7 @@
 
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/nl/ext/monomial.h"
 
 using namespace CVC4::kind;
 

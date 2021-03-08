@@ -21,7 +21,6 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/arith/nl/iand_utils.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 
 namespace CVC4 {
 namespace theory {

@@ -62,7 +62,6 @@ namespace arith {
 
 
 class ErrorSet;
-class ErrorInfoMap;
 
 class ComparatorPivotRule {
 private:

@@ -18,13 +18,15 @@
 #pragma once
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
 #include "theory/arith/constraint_forward.h"
 #include "util/rational.h"
 
 namespace CVC4 {
+
+class ProofNode;
+
 namespace theory {
 namespace arith {
 

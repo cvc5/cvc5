@@ -19,12 +19,12 @@
 
 #include "expr/node.h"
 #include "infer_info.h"
-#include "theory/bags/inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
 
+class InferenceManager;
 class SolverState;
 
 /**
