@@ -124,42 +124,56 @@ TEST_F(TestTheoryWhiteIntOpt, result)
   std::cout << "Result is :" << r << std::endl;
 }
 
-// TEST_F(TestTheoryWhiteIntOpt, open_interval)
-// {
-//   Term ub1 = d_slv->mkInteger(100);
-//   Term lb1 = d_slv->mkInteger(0);
-//   Term lb2 = d_slv->mkInteger(110);
+TEST_F(TestTheoryWhiteIntOpt, open_interval)
+{
+  Node ub1 = d_nodeManager->mkConst(Rational("100"));
+  Node lb1 = d_nodeManager->mkConst(Rational("0"));
+  Node lb2 = d_nodeManager->mkConst(Rational("110"));
 
-//   Term cost1 = d_slv->mkConst(d_slv->getIntegerSort(), "cost3");
-//   Term cost2 = d_slv->mkConst(d_slv->getIntegerSort(), "cost4");
-//   // 0 < cost1 < 100
-//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LT, lb1, cost1));
-//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LT, cost1, ub1));
-//   // 110 < cost2
-//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LT, lb2, cost2));
+  Node cost1 = d_nodeManager->mkVar(*d_intType);
+  Node cost2 = d_nodeManager->mkVar(*d_intType);
 
-//   Term cost3 = d_slv->mkTerm(CVC4::api::PLUS, cost1, cost2);
+  /* Result of assertion is:
+      0 < cost1 < 100
+      110 < cost2
+  */
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb1, cost1));
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::LT, cost1, ub1));
 
-//   const ObjectiveType min_type = OBJECTIVE_MINIMIZE;
-//   d_optslv->activateObj(*cost3.d_node, min_type);
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::LT, lb2, cost2));
 
-//   OptResult r = d_optslv->checkOpt();
+  /* Optimization objective:
+      cost1 + cost2
+  */
+  Node cost3 = d_nodeManager->mkNode(kind::PLUS, cost1, cost2);
 
-//   TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(), d_nm->mkConst(Rational(112)));
-//   std::cout << "Result is :" << r << std::endl;
-//   std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue()
-//             << std::endl;
-// }
+  const ObjectiveType min_type = OBJECTIVE_MINIMIZE;
+  d_optslv->activateObj(cost3, min_type);
 
+  OptResult r = d_optslv->checkOpt();
+
+  // expect the minimum result of cost3 = cost1 + cost2 to be 1 + 111 = 112
+  ASSERT_EQ(d_optslv->objectiveGetValue(),
+            d_nodeManager->mkConst(Rational("112")));
+  std::cout << "Result is :" << r << std::endl;
+  std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue()
+            << std::endl;
+}
+
+// Below is a test case for real, but it's not guaranteed to run into completion
+// because CVC4 might keep finding "bad" values for real numbers
+// especially real has infinite domain!
 // TEST_F(TestTheoryWhiteIntOpt, open_interval_real)
 // {
-//   // WARNING: domain is infinite, though it's bounded, it's still possible not
-//   // run to completion!
+//   // WARNING:
+//   //   domain is infinite,
+//   //   though it's bounded,
+//   //   it's still possible not run to completion!
 //   Term ub1 = d_slv->mkReal(100);
 //   Term lb1 = d_slv->mkReal(0);
 //   Term lb2 = d_slv->mkReal(110);
 //   Term ub2 = d_slv->mkReal(120);
-
+//
 //   Term cost1 = d_slv->mkConst(d_slv->getRealSort(), "cost3");
 //   Term cost2 = d_slv->mkConst(d_slv->getRealSort(), "cost4");
 //   // 0 <= cost1 <= 100
@@ -168,19 +182,20 @@ TEST_F(TestTheoryWhiteIntOpt, result)
 //   // 110 <= cost2 <= 120
 //   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LEQ, lb2, cost2));
 //   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LEQ, cost2, ub2));
-
+//
 //   Term cost3 = d_slv->mkTerm(CVC4::api::PLUS, cost1, cost2);
-
+//
 //   const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
 //   d_optslv->activateObj(*cost3.d_node, obj_type);
-
+//
 //   OptResult r = d_optslv->checkOpt();
-
+//
 //   // TS_ASSERT_EQUALS(ub1, ub2);
-
-//   TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(), d_nm->mkConst(Rational(110)));
-//   std::cout << "Result is :" << r << std::endl;
-//   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+//
+//   TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(),
+//   d_nm->mkConst(Rational(110))); std::cout << "Result is :" << r <<
+//   std::endl; std::cout << "Optimized value is: " <<
+//   d_optslv->objectiveGetValue()
 //             << std::endl;
 // }
 

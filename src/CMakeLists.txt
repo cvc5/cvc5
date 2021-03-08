@@ -242,8 +242,6 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/node_command.cpp
   smt/node_command.h
-  smt/opt_solver.cpp
-  smt/opt_solver.h
   smt/optimization_solver.cpp
   smt/optimization_solver.h
   smt/options_manager.cpp

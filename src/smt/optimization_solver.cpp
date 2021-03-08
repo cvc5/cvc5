@@ -113,7 +113,7 @@ OptResult OptimizationSolver::checkOpt()
   {
     // the current objective datatype is not-yet supported
     // or doesn't support comparison (no total order)
-    return OPT_UNKNOWN
+    return OPT_UNKNOWN;
   }
 
   // Workhorse of linear optimization:
@@ -174,7 +174,7 @@ ObjectiveType Objective::getType() { return d_type; }
 
 Node Objective::getNode() { return d_node; }
 
-bool Objective::getSigned() { return is_signed; }
+bool Objective::getSigned() { return d_signed; }
 
 }  // namespace smt
 }  // namespace CVC4
