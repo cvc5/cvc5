@@ -20,6 +20,7 @@
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
+#include "theory/skolem_lemma.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,13 +32,22 @@ class OperatorElim : public EagerProofGenerator
   OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
   ~OperatorElim() {}
   /** Eliminate operators in this term.
-    *
-    * Eliminate operators in term n. If n has top symbol that is not a core
-    * one (including division, int division, mod, to_int, is_int, syntactic sugar
-    * transcendental functions), then we replace it by a form that eliminates
-    * that operator. This may involve the introduction of witness terms.
-    */
-  TrustNode eliminate(Node n, bool partialOnly = false);
+   *
+   * Eliminate operators in term n. If n has top symbol that is not a core
+   * one (including division, int division, mod, to_int, is_int, syntactic sugar
+   * transcendental functions), then we replace it by a form that eliminates
+   * that operator. This may involve the introduction of witness terms.
+   *
+   * @param n The node to eliminate
+   * @param lems The lemmas that we wish to add concerning n. It is the
+   * responsbility of the caller to process these lemmas.
+   * @param partialOnly Whether we only want to eliminate partial operators.
+   * @return the trust node of kind REWRITE encapsulating the eliminated form
+   * of n and a proof generator for proving this equivalence.
+   */
+  TrustNode eliminate(Node n,
+                      std::vector<SkolemLemma>& lems,
+                      bool partialOnly = false);
   /**
    * Get axiom for term n. This returns the axiom that this class uses to
    * eliminate the term n, which is determined by its top-most symbol.
@@ -47,15 +57,6 @@ class OperatorElim : public EagerProofGenerator
  private:
   /** Logic info of the owner of this class */
   const LogicInfo& d_info;
-
-  /**
-   *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
-   *  non-linear operators that are introduced during ppRewriteTerms.
-   */
-  std::map<Node, Node> d_to_int_skolem;
-  std::map<Node, Node> d_div_skolem;
-  std::map<Node, Node> d_int_div_skolem;
-  std::map<Node, Node> d_nlin_inverse_skolem;
 
   /** Arithmetic skolem identifier */
   enum class ArithSkolemId
@@ -101,7 +102,10 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(Node n, TConvProofGenerator* tg, bool partialOnly);
+  Node eliminateOperators(Node n,
+                          std::vector<SkolemLemma>& lems,
+                          TConvProofGenerator* tg,
+                          bool partialOnly);
   /** get arithmetic skolem
    *
    * Returns the Skolem in the above map for the given id, creating it if it
@@ -115,7 +119,8 @@ class OperatorElim : public EagerProofGenerator
   Node mkWitnessTerm(Node v,
                      Node pred,
                      const std::string& prefix,
-                     const std::string& comment);
+                     const std::string& comment,
+                     std::vector<SkolemLemma>& lems);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function
