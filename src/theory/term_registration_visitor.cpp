@@ -260,9 +260,10 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
 
   // Record the new theories that we visited
   d_visited[current] = visitedTheories;
-  
+
   // add visited theories to those who have preregistered
-  d_preregistered[current] = TheoryIdSetUtil::setUnion(preregTheories, visitedTheories);
+  d_preregistered[current] =
+      TheoryIdSetUtil::setUnion(preregTheories, visitedTheories);
 
   // If there is more than two theories and a new one has been added notify the shared terms database
   TheoryId currentTheoryId = Theory::theoryOf(current);
