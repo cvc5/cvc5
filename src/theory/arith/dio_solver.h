@@ -24,18 +24,18 @@
 #include <utility>
 #include <vector>
 
-#include "base/output.h"
 #include "context/cdlist.h"
 #include "context/cdmaybe.h"
 #include "context/cdo.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/partial_model.h"
 #include "util/rational.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+namespace context {
+class Context;
+}
 namespace theory {
 namespace arith {
 

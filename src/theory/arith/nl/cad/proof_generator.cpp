@@ -16,6 +16,7 @@
 
 #ifdef CVC4_POLY_IMP
 
+#include "theory/lazy_tree_proof_generator.h"
 #include "theory/arith/nl/poly_conversion.h"
 
 namespace CVC4 {

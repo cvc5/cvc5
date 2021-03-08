@@ -22,6 +22,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
+#include "theory/arith/partial_model.h"
 #include "theory/ee_setup_info.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "options/arith_options.h"

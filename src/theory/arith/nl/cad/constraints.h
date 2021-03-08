@@ -26,8 +26,6 @@
 #include <tuple>
 #include <vector>
 
-#include "expr/kind.h"
-#include "expr/node_manager_attributes.h"
 #include "theory/arith/nl/poly_conversion.h"
 
 namespace CVC4 {

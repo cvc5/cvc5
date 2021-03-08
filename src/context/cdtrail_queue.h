@@ -22,12 +22,13 @@
 #ifndef CVC4__CONTEXT__CDTRAIL_QUEUE_H
 #define CVC4__CONTEXT__CDTRAIL_QUEUE_H
 
-#include "context/context.h"
 #include "context/cdlist.h"
+#include "context/cdo.h"
 
 namespace CVC4 {
 namespace context {
 
+class Context;
 
 template <class T>
 class CDTrailQueue {

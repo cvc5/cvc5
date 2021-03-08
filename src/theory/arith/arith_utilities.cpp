@@ -14,6 +14,8 @@
 
 #include "arith_utilities.h"
 
+#include <cmath>
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -114,7 +116,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   Rational cr = c.getConst<Rational>();
 
   unsigned lower = 0;
-  unsigned upper = pow(10, prec);
+  unsigned upper = std::pow(10, prec);
 
   Rational den = Rational(upper);
   if (cr.getDenominator() < den.getNumerator())

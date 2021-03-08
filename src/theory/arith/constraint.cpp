@@ -27,6 +27,8 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/normal_form.h"
+#include "theory/arith/partial_model.h"
+#include "theory/rewriter.h"
 
 
 using namespace std;

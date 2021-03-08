@@ -84,13 +84,11 @@
 #include "base/configuration_private.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "expr/node.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
-#include "theory/arith/partial_model.h"
 #include "theory/arith/proof_macros.h"
 #include "theory/trust_node.h"
 #include "util/statistics_registry.h"
@@ -99,6 +97,9 @@ namespace CVC4 {
 
 class ProofNodeManager;
 
+namespace context {
+class Context;
+}
 namespace theory {
 
 class EagerProofGenerator;
@@ -107,6 +108,7 @@ namespace arith {
 
 class Comparison;
 class ArithCongruenceManager;
+class ArithVariables;
 
 /**
  * Logs the types of different proofs.
