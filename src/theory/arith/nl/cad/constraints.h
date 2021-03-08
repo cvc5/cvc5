@@ -23,7 +23,6 @@
 
 #include <poly/polyxx.h>
 
-#include <map>
 #include <tuple>
 #include <vector>
 

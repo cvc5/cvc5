@@ -18,15 +18,16 @@
 #define CVC4__THEORY__BAGS__TERM_REGISTRY_H
 
 #include <map>
-#include <vector>
 
 #include "context/cdhashmap.h"
-#include "theory/bags/inference_manager.h"
-#include "theory/bags/solver_state.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
+
+class InferenceManager;
+class SolverState;
 
 /**
  * Term registry, the purpose of this class is to maintain a database of

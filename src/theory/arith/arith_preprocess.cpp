@@ -14,6 +14,7 @@
 
 #include "theory/arith/arith_preprocess.h"
 
+#include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
 
 namespace CVC4 {

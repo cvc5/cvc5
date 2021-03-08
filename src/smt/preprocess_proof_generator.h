@@ -17,16 +17,18 @@
 #ifndef CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
 #define CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
 
-#include <map>
-
 #include "context/cdhashmap.h"
 #include "expr/lazy_proof.h"
+#include "expr/proof.h"
 #include "expr/proof_set.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
+
+class LazyCDProof;
+class ProofNodeManager;
+
 namespace smt {
 
 /**

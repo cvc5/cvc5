@@ -21,18 +21,21 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/type_node.h"
-#include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "smt/assertions.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
 
 class SmtEngine;
 
+namespace preprocessing {
+class AssertionPipeline;
+class PreprocessingPass;
+class PreprocessingPassContext;
+}
+
 namespace smt {
 
+class Assertions;
 class ExpandDefs;
 struct SmtEngineStatistics;
 

@@ -19,8 +19,6 @@
 #ifndef CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
 #define CVC4__THEORY__BV__BV_SOLVER_SIMPLE_H
 
-#include <unordered_map>
-
 #include "theory/bv/bitblast/proof_bitblaster.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/proof_checker.h"

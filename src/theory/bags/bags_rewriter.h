@@ -18,7 +18,7 @@
 #define CVC4__THEORY__BAGS__THEORY_BAGS_REWRITER_H
 
 #include "theory/bags/rewrites.h"
-#include "theory/rewriter.h"
+#include "theory/theory_rewriter.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

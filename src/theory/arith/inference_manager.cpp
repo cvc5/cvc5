@@ -15,6 +15,7 @@
 #include "theory/arith/inference_manager.h"
 
 #include "options/arith_options.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/rewriter.h"
 

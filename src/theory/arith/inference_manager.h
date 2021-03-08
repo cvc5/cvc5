@@ -17,18 +17,16 @@
 #ifndef CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
 #define CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
 
-#include <map>
 #include <vector>
 
-#include "theory/arith/arith_state.h"
 #include "theory/inference_id.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
+class ArithState;
 class TheoryArith;
 
 /**

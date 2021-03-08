@@ -19,7 +19,6 @@
 #ifndef CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 #define CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 
-#include <list>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>

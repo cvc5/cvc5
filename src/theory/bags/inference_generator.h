@@ -17,17 +17,15 @@
 #ifndef CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
 #define CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
 
-#include <map>
-#include <vector>
-
 #include "expr/node.h"
 #include "infer_info.h"
 #include "theory/bags/inference_manager.h"
-#include "theory/bags/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
+
+class SolverState;
 
 /**
  * An inference generator class. This class is used by the core solver to

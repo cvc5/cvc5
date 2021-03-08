@@ -16,18 +16,16 @@
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
 
 #include <map>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/nl/transcendental/transcendental_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
+
+struct TranscendentalState;
 
 /** Transcendental solver class
  *

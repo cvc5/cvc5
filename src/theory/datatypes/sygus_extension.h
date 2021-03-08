@@ -22,8 +22,6 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "context/cdlist.h"
-#include "context/cdo.h"
 #include "context/context.h"
 #include "expr/dtype.h"
 #include "expr/node.h"

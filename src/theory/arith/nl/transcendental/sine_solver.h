@@ -16,9 +16,6 @@
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__SINE_SOLVER_H
 
 #include <map>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 #include "expr/node.h"
 #include "theory/arith/nl/transcendental/transcendental_state.h"

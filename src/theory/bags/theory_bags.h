@@ -17,8 +17,6 @@
 #ifndef CVC4__THEORY__BAGS__THEORY_BAGS_H
 #define CVC4__THEORY__BAGS__THEORY_BAGS_H
 
-#include <memory>
-
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
@@ -27,7 +25,6 @@
 #include "theory/bags/solver_state.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

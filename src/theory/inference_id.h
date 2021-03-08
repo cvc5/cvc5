@@ -14,13 +14,10 @@
 
 #include "cvc4_private.h"
 
+#include <iosfwd>
+
 #ifndef CVC4__THEORY__INFERENCE_ID_H
 #define CVC4__THEORY__INFERENCE_ID_H
-
-#include <map>
-#include <vector>
-
-#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {

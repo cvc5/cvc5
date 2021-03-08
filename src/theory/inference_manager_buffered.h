@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
 #define CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
 
-#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"

@@ -24,20 +24,29 @@
 #include "context/cdo.h"
 #include "context/cdtrail_queue.h"
 #include "context/context.h"
-#include "expr/proof_node_manager.h"
 #include "theory/arith/arithvar.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/partial_model.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/ee_setup_info.h"
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/proof_equality_engine.h"
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
 namespace theory {
+
+class EagerProofGenerator;
+class EeSetupInfo;
+
+namespace eq {
+class ProofEqEngine;
+}
+
 namespace arith {
 
 class ArithCongruenceManager {

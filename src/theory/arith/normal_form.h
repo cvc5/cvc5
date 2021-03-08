@@ -21,7 +21,6 @@
 #define CVC4__THEORY__ARITH__NORMAL_FORM_H
 
 #include <algorithm>
-#include <list>
 
 #include "base/output.h"
 #include "expr/node.h"

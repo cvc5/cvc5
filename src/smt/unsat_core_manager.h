@@ -17,7 +17,6 @@
 #ifndef CVC4__SMT__UNSAT_CORE_MANAGER_H
 #define CVC4__SMT__UNSAT_CORE_MANAGER_H
 
-#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"

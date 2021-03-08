@@ -19,8 +19,6 @@
 #ifndef CVC4__THEORY__BV__THEORY_BV_H
 #define CVC4__THEORY__BV__THEORY_BV_H
 
-#include <unordered_map>
-
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"

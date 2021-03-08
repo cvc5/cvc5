@@ -20,7 +20,6 @@
 #include <memory>
 #include <vector>
 
-#include "context/context.h"
 #include "expr/node.h"
 
 namespace CVC4 {

@@ -30,6 +30,7 @@ class PreprocessingPassContext;
 namespace smt {
 
 class AbstractValues;
+class PreprocessProofGenerator;
 
 /**
  * The preprocessor module of an SMT engine.

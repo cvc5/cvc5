@@ -19,7 +19,6 @@
 #define CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 
 #include <iostream>
-#include <map>
 #include <tuple>
 #include <unordered_map>
 

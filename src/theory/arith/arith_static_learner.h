@@ -20,11 +20,10 @@
 #ifndef CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 #define CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
-#include <set>
-
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/delta_rational.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
