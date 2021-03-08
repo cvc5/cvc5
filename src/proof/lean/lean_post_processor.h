@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
+#include "expr/proof_checker.h"
 #include "proof/lean/lean_rules.h"
 
 namespace CVC4 {

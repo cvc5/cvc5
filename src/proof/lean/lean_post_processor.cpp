@@ -17,6 +17,7 @@
 #include "expr/lazy_proof.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "proof/lean/lean_rules.h"
 
 namespace CVC4 {
