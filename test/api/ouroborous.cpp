@@ -39,16 +39,6 @@ using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::language;
 
-const std::string declarations =
-    "\
-(declare-sort U 0)\n\
-(declare-fun f (U) U)\n\
-(declare-fun x () U)\n\
-(declare-fun y () U)\n\
-(assert (= (f x) x))\n\
-(declare-fun a () (Array U (Array U U)))\n\
-";
-
 int runTest();
 
 int main()
@@ -79,17 +69,38 @@ std::string parse(std::string instr,
   assert(input_language == "smt2" || input_language == "cvc4");
   assert(output_language == "smt2" || output_language == "cvc4");
 
-  std::cout << "# instr " << instr << std::endl;
+  std::string declarations;
+
+  if (input_language == "smt2")
+  {
+    declarations =
+        "\
+  (declare-sort U 0)\n\
+  (declare-fun f (U) U)\n\
+  (declare-fun x () U)\n\
+  (declare-fun y () U)\n\
+  (assert (= (f x) x))\n\
+  (declare-fun a () (Array U (Array U U)))\n\
+  ";
+  }
+  else
+  {
+    declarations =
+        "\
+      U: TYPE;\n\
+      f: U -> U;\n\
+      x,y: U;\n\
+      a: ARRAY U OF (ARRAY U OF U);\n\
+      ASSERT f(x) = x;\n\
+  ";
+  }
+
   api::Solver solver;
   InputLanguage ilang =
       input_language == "smt2" ? input::LANG_SMTLIB_V2 : input::LANG_CVC4;
 
   solver.setOption("input-language", input_language);
   solver.setOption("output-language", output_language);
-  std::cout << "# input-language: " << input_language << " got "
-            << solver.getOption("input-language") << std::endl;
-  std::cout << "# output=language: " << output_language << " got "
-            << solver.getOption("output-language") << std::endl;
   SymbolManager symman(&solver);
   Parser* parser = ParserBuilder(&solver, &symman, "internal-buffer")
                        .withStringInput(declarations)
@@ -102,7 +113,6 @@ std::string parse(std::string instr,
     delete c;
   }
   assert(parser->done());  // parser should be done
-  std::cout << "#### " << instr << std::endl;
   parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));
   api::Term e = parser->nextExpression();
   std::string s = e.toString();
@@ -142,12 +152,12 @@ std::string translate(std::string instr,
   return outstr;
 }
 
-void runTestString(std::string instr)
+void runTestString(std::string instr, std::string instr_language)
 {
   std::cout << std::endl
             << "starting with: " << instr << std::endl
             << "   in language " << input::LANG_SMTLIB_V2 << std::endl;
-  std::string smt2str = translate(instr, "smt2", "smt2");
+  std::string smt2str = translate(instr, instr_language, "smt2");
   std::cout << "in SMT2      : " << smt2str << std::endl;
   std::string cvcstr = translate(smt2str, "smt2", "cvc4");
   std::cout << "in CVC       : " << cvcstr << std::endl;
@@ -159,9 +169,9 @@ void runTestString(std::string instr)
 
 int32_t runTest()
 {
-  runTestString("(= (f (f y)) x)");
-  runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10");
-  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]");
-  runTestString("a[x][y] = a[y][x]");
+  runTestString("(= (f (f y)) x)", "smt2");
+  runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10", "cvc4");
+  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]", "cvc4");
+  runTestString("a[x][y] = a[y][x]", "cvc4");
   return 0;
 }
