@@ -43,16 +43,16 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   //                   TRUE           FALSE         MEH
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
-  typedef std::vector<std::pair<TNode, TNode> > SkolemList;
-  typedef context::CDHashMap<TNode, SkolemList, TNodeHashFunction> SkolemCache;
-  typedef std::vector<TNode> ChildList;
+  typedef std::vector<std::pair<Node, Node> > SkolemList;
+  typedef context::CDHashMap<Node, SkolemList, NodeHashFunction> SkolemCache;
+  typedef std::vector<Node> ChildList;
   typedef context::
-      CDHashMap<TNode, std::pair<ChildList, ChildList>, TNodeHashFunction>
+      CDHashMap<Node, std::pair<ChildList, ChildList>, NodeHashFunction>
           ChildCache;
-  typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
-  typedef context::CDHashMap<TNode,
+  typedef context::CDHashMap<Node,Node,NodeHashFunction> SkolemMap;
+  typedef context::CDHashMap<Node,
                              std::pair<DecisionWeight, DecisionWeight>,
-                             TNodeHashFunction>
+                             NodeHashFunction>
       WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
@@ -72,14 +72,11 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * directly. Doesn't have ones introduced during during term removal.
    */
   context::CDList<Node> d_assertions;
-  //TNode is fine since decisionEngine has them too
 
   /** map from skolems introduced in term removal to the corresponding assertion
    */
   SkolemMap d_skolemAssertions;
-  // 'key' being TNode is fine since if a skolem didn't exist anywhere,
-  // we won't look it up. as for 'value', same reason as d_assertions
-
+  
   /** Cache for skolems present in a atomic formula */
   SkolemCache d_skolemCache;
 
@@ -88,13 +85,13 @@ class JustificationHeuristic : public ITEDecisionStrategy {
    * splitter. Can happen when exploring assertion corresponding to a
    * term-ITE.
    */
-  std::unordered_set<TNode,TNodeHashFunction> d_visited;
+  std::unordered_set<Node,NodeHashFunction> d_visited;
 
   /**
    * Set to track visited nodes in a dfs search done in computeSkolems
    * function
    */
-  std::unordered_set<TNode, TNodeHashFunction> d_visitedComputeSkolems;
+  std::unordered_set<Node, NodeHashFunction> d_visitedComputeSkolems;
 
   /** current decision for the recursive call */
   prop::SatLiteral d_curDecision;
@@ -174,7 +171,7 @@ public:
    * For big and/or nodes, a cache to save starting index into children
    * for efficiently.
    */
-  typedef context::CDHashMap<TNode, int, TNodeHashFunction> StartIndexCache;
+  typedef context::CDHashMap<Node, int, NodeHashFunction> StartIndexCache;
   StartIndexCache d_startIndexCache;
   int getStartIndex(TNode node);
   void saveStartIndex(TNode node, int val);

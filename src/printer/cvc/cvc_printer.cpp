@@ -663,14 +663,8 @@ void CvcPrinter::toStreamNode(std::ostream& out,
     case kind::BITVECTOR_UDIV:
       op << "BVUDIV";
       break;
-    case kind::BITVECTOR_UDIV_TOTAL:
-      op << "BVUDIV_TOTAL";
-      break;
     case kind::BITVECTOR_UREM:
       op << "BVUREM";
-      break;
-    case kind::BITVECTOR_UREM_TOTAL:
-      op << "BVUREM_TOTAL";
       break;
     case kind::BITVECTOR_SDIV:
       op << "BVSDIV";

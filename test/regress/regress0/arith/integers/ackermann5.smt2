@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --ackermann --no-check-models
 ; EXPECT: sat
 (set-logic QF_UFLIA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (declare-fun v0 () Int)
 (declare-fun f (Int) Int)
