@@ -66,7 +66,7 @@ enum CVC4_PUBLIC OptResult
 class Objective
 {
  public:
-  Objective(Node n, ObjectiveType type, bool is_signed=false);
+  Objective(Node n, ObjectiveType type, bool is_signed = false);
   ~Objective(){};
 
   /** A getter for d_type **/
@@ -84,41 +84,41 @@ class Objective
   /** The node associated to the term that was used to construct the objective.
    * **/
   Node d_node;
-  /** If the objective type is BitVector, 
+  /** If the objective type is BitVector,
    * we need to specify whether it's signed or unsigned comparison   **/
   bool is_signed;
-  };
+};
 
-  /**
-   * A solver for optimization queries.
-   * 
-   * This class is responsible for responding to optmization queries. It
-   * spawns a subsolver SmtEngine that captures the parent assertions and 
-   * implements a linear optimization loop. Supports activateObjective, 
-   * checkOpt, and objectiveGetValue in that order.
-   */
-  class OptimizationSolver
-  {
-   public:
-    /** parent is the smt_solver that the user added their assertions to **/
-    OptimizationSolver(SmtEngine* parent);
-    ~OptimizationSolver();
+/**
+ * A solver for optimization queries.
+ *
+ * This class is responsible for responding to optmization queries. It
+ * spawns a subsolver SmtEngine that captures the parent assertions and
+ * implements a linear optimization loop. Supports activateObjective,
+ * checkOpt, and objectiveGetValue in that order.
+ */
+class OptimizationSolver
+{
+ public:
+  /** parent is the smt_solver that the user added their assertions to **/
+  OptimizationSolver(SmtEngine* parent);
+  ~OptimizationSolver();
 
-    /** Runs the optimization loop for the activated objective **/
-    OptResult checkOpt();
-    /** Activates an objective: will be optimized for **/
-    void activateObj(const Node& obj, const int& type, bool is_signed=false);
-    /** Gets the value of the optimized objective after checkopt is called **/
-    Node objectiveGetValue();
+  /** Runs the optimization loop for the activated objective **/
+  OptResult checkOpt();
+  /** Activates an objective: will be optimized for **/
+  void activateObj(const Node& obj, const int& type, bool is_signed = false);
+  /** Gets the value of the optimized objective after checkopt is called **/
+  Node objectiveGetValue();
 
-   private:
-    /** The parent SMT engine **/
-    SmtEngine* d_parent;
-    /** The objectives to optimize for **/
-    Objective d_activatedObjective;
-    /** A saved value of the objective from the last sat call. **/
-    Node d_savedValue;
-  };
+ private:
+  /** The parent SMT engine **/
+  SmtEngine* d_parent;
+  /** The objectives to optimize for **/
+  Objective d_activatedObjective;
+  /** A saved value of the objective from the last sat call. **/
+  Node d_savedValue;
+};
 
 }  // namespace smt
 }  // namespace CVC4

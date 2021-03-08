@@ -82,40 +82,44 @@ OptResult OptimizationSolver::checkOpt()
   // asserts objective > old_value (used in optimization loop)
   Node increment;
 
-  // Kind greater_than_operator; 
-  Kind less_than_operator;  // operator used for < comparison 
+  // Kind greater_than_operator;
+  Kind less_than_operator;  // operator used for < comparison
 
-  TypeNode target_type = this->d_activatedObjective.getNode().getType(true); // gets the type with type checking 
-  if (target_type.isInteger() || target_type.isReal())    // if the objective type is integer 
+  TypeNode target_type = this->d_activatedObjective.getNode().getType(
+      true);  // gets the type with type checking
+  if (target_type.isInteger()
+      || target_type.isReal())  // if the objective type is integer
   {
     // greater_than_operator = kind::GT;
     less_than_operator = kind::LT;
   }
-  else if (target_type.isBitVector())  // if the objective type is bit vector 
+  else if (target_type.isBitVector())  // if the objective type is bit vector
   {
-    if (this->d_activatedObjective.isSigned()) 
+    if (this->d_activatedObjective.isSigned())
     {
       // greater_than_operator = kind::BITVECTOR_SGT;
       less_than_operator = kind::BITVECTOR_SLT;
     }
-    else 
+    else
     {
       // greater_than_operator = kind::BITVECTOR_UGT;
       less_than_operator = kind::BITVECTOR_ULT;
     }
   }
-  // else if (target_type.isFloatingPoint())            // if the objective type is floating point, not yet tested
+  // else if (target_type.isFloatingPoint())            // if the objective type
+  // is floating point, not yet tested
   // {
   //   // greater_than_operator = kind::FLOATINGPOINT_GT;
   //   less_than_operator = kind::FLOATINGPOINT_LT;
   // }
-  // else if (target_type.isString())     // if the objective type is string, not yet supported
+  // else if (target_type.isString())     // if the objective type is string,
+  // not yet supported
   // {
   //   less_than_operator = kind::STRING_LT;
   // }
-  else 
+  else
   {
-    return OPT_UNKNOWN;  // Objective type not supported for optimization 
+    return OPT_UNKNOWN;  // Objective type not supported for optimization
   }
 
   // Workhorse of linear optimization:
@@ -137,11 +141,13 @@ OptResult OptimizationSolver::checkOpt()
     // if we're minimizing increment = objective < old_objective value
     if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
     {
-      increment = nm->mkNode(less_than_operator, value, d_activatedObjective.getNode());
+      increment =
+          nm->mkNode(less_than_operator, value, d_activatedObjective.getNode());
     }
     else
     {
-      increment = nm->mkNode(less_than_operator, d_activatedObjective.getNode(), value);
+      increment =
+          nm->mkNode(less_than_operator, d_activatedObjective.getNode(), value);
     }
     optChecker->assertFormula(increment);
     loop_r = optChecker->checkSat();
@@ -150,7 +156,9 @@ OptResult OptimizationSolver::checkOpt()
   return OPT_OPTIMAL;
 }
 
-void OptimizationSolver::activateObj(const Node& obj, const int& type, bool is_signed)
+void OptimizationSolver::activateObj(const Node& obj,
+                                     const int& type,
+                                     bool is_signed)
 {
   d_activatedObjective = Objective(obj, (ObjectiveType)type, is_signed);
 }
@@ -161,7 +169,8 @@ Node OptimizationSolver::objectiveGetValue()
   return d_savedValue;
 }
 
-Objective::Objective(Node obj, ObjectiveType type, bool is_signed) : d_type(type), d_node(obj), is_signed(is_signed)
+Objective::Objective(Node obj, ObjectiveType type, bool is_signed)
+    : d_type(type), d_node(obj), is_signed(is_signed)
 {
 }
 
