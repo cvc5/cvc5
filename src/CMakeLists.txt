@@ -155,9 +155,6 @@ libcvc4_add_sources(
   proof/proof_letify.h
   proof/proof_manager.cpp
   proof/proof_manager.h
-  proof/lean/lean_post_processor.cpp
-  proof/lean/lean_post_processor.h
-  proof/lean/lean_printer.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/term_processor.cpp
