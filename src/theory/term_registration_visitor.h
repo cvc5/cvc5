@@ -125,8 +125,10 @@ class PreRegisterVisitor {
  * been visited already, we need to visit it again, since we need to associate it with both atoms.
  */
 class SharedTermsVisitor {
-  using TNodeVisitedMap = std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>;
-  using TNodeToTheorySetMap = context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>;
+  using TNodeVisitedMap =
+      std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>;
+  using TNodeToTheorySetMap =
+      context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>;
   /**
    * String representation of the visited map, for debugging purposes.
    */
@@ -141,7 +143,9 @@ class SharedTermsVisitor {
   /** required to instantiate template for NodeVisitor */
   using return_type = void;
 
-  SharedTermsVisitor(TheoryEngine* te, SharedTermsDatabase& sharedTerms, context::Context* c)
+  SharedTermsVisitor(TheoryEngine* te,
+                     SharedTermsDatabase& sharedTerms,
+                     context::Context* c)
       : d_engine(te), d_sharedTerms(sharedTerms), d_preregistered(c)
   {
   }
