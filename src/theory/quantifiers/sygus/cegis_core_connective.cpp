@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/cegis_core_connective.h"
 
+#include "expr/dtype_cons.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"
@@ -69,8 +70,9 @@ bool VariadicTrie::hasSubset(const std::vector<Node>& is) const
 }
 
 CegisCoreConnective::CegisCoreConnective(QuantifiersEngine* qe,
+                                         QuantifiersInferenceManager& qim,
                                          SynthConjecture* p)
-    : Cegis(qe, p)
+    : Cegis(qe, qim, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

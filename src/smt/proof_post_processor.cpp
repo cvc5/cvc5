@@ -14,6 +14,7 @@
 
 #include "smt/proof_post_processor.h"
 
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
@@ -993,7 +994,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
 Node ProofPostprocessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
 {
-  Node tw = SkolemManager::getWitnessForm(t);
+  Node tw = SkolemManager::getOriginalForm(t);
   Node eq = t.eqNode(tw);
   if (t == tw)
   {

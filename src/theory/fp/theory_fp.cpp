@@ -22,9 +22,12 @@
 #include <unordered_set>
 #include <vector>
 
+#include "base/configuration.h"
 #include "options/fp_options.h"
+#include "smt/logic_exception.h"
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
+#include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
@@ -451,7 +454,7 @@ TrustNode TheoryFp::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
   // first, see if we need to expand definitions

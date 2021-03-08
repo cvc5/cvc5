@@ -26,12 +26,10 @@
 #ifndef CVC4__SEXPR_H
 #define CVC4__SEXPR_H
 
-#include <iomanip>
 #include <iosfwd>
 #include <string>
 #include <vector>
 
-#include "base/exception.h"
 #include "options/language.h"
 #include "util/integer.h"
 #include "util/rational.h"

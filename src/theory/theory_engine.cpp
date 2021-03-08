@@ -16,6 +16,8 @@
 
 #include "theory/theory_engine.h"
 
+#include <sstream>
+
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
@@ -248,6 +250,11 @@ TheoryEngine::TheoryEngine(context::Context* context,
   {
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
+  }
+
+  if (options::sortInference())
+  {
+    d_sortInfer.reset(new SortInference);
   }
 
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
@@ -789,7 +796,11 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
 theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
 {
   Assert(eq.getKind() == kind::EQUAL);
-  return theoryOf(eq)->ppRewrite(eq);
+  std::vector<SkolemLemma> lems;
+  TrustNode trn = theoryOf(eq)->ppRewrite(eq, lems);
+  // should never introduce a skolem to eliminate an equality
+  Assert(lems.empty());
+  return trn;
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(

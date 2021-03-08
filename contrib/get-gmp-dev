@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # This script should only be used if your distribution does not ship with the
-# GMP configuration you need. For example, contrib/get-win-dependencies
-# cross-compiles GMP for Windows. You can also use the script if your
+# GMP configuration you need. For example, for cross-compiling GMP for Windows
+# or Linux ARM platforms. You can also use the script if your
 # distribution does not ship with static GMP libraries (e.g., Arch Linux) and
 # you want to build CVC4 statically.
 # In most of the cases the GMP version installed on your system is the one you
@@ -16,14 +16,15 @@ source "$(dirname "$0")/get-script-header.sh"
 [ -z "$GMPVERSION" ] && GMPVERSION=6.2.0
 
 GMP_DIR="$DEPS_DIR/gmp-$GMPVERSION"
+rm -rf "$GMP_DIR"
 
 echo =============================================================================
 echo
 echo "This script should only be used if your distribution does not ship with the"
-echo "GMP configuration you need. For example, contrib/get-win-dependencies cross-"
-echo "compiles GMP for Windows. You can also use the script if your distribution"
-echo "does not ship with static GMP libraries (e.g., Arch Linux) and you want to"
-echo "build CVC4 statically."
+echo "GMP configuration you need. For example, for cross-compiling GMP for"
+echo "Windows or Linux ARM platforms. You can also use the script if your Linux"
+echo "distribution does not ship with static GMP libraries (e.g., Arch Linux)"
+echo "and you want to build CVC4 statically."
 echo
 echo "In most of the cases the GMP version installed on your system is the one you"
 echo "want and should use."

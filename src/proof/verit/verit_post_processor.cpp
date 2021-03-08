@@ -19,8 +19,10 @@
 #include <memory>
 #include <vector>
 
+#include "expr/proof.h"
 #include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 
@@ -101,7 +103,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term:
     // premises:
     // args: (F1, ..., Fn)
-    case PfRule::SCOPE: {
+    case PfRule::SCOPE: { return true;
     }
     //================================================= Boolean rules
     // ======== Resolution
@@ -185,9 +187,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     // proof term:
     // premises:
     // args:
-    case PfRule::REORDERING:
-    {
-      // TODO skip
+    case PfRule::REORDERING: { return true;
     }
     // ======== Split
     // Children: none
@@ -349,7 +349,7 @@ bool VeritProofPostprocessCallback::update(Node res,
     {
       std::vector<Node> neg_Nodes;
       neg_Nodes.push_back(d_nm->mkNode(kind::AND, children));
-      for (int i = 0; i < children.size(); i++)
+      for (size_t i = 0; i < children.size(); i++)
       {
         neg_Nodes.push_back(children[i].notNode());
       }
@@ -1148,37 +1148,37 @@ bool VeritProofPostprocessCallback::update(Node res,
              && addVeritStep(
                     res, VeritRule::RESOLUTION, {vp1, children[0]}, {}, *cdp);
     }
-    // ======== HO trust
-    // Children: none
-    // Arguments: (t)
-    // ---------------------
-    // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
-    // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
-    //
-    // proof rule:
-    // proof term:
-    // premises:
-    // args:
-    case PfRule::HO_APP_ENCODE:
-    {
+      // ======== HO trust
+      // Children: none
+      // Arguments: (t)
+      // ---------------------
+      // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
+      // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+      //
+      // proof rule:
+      // proof term:
+      // premises:
+      // args:
+      // case PfRule::HO_APP_ENCODE:
+      //{
       // TODO
-    }
-    // ======== Congruence
-    // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
-    // Arguments: ()
-    // ---------------------------------------------
-    // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
-    // Notice that this rule is only used when the application kinds are
-    // APPLY_UF.
-    //
-    // proof rule:
-    // proof term:
-    // premises:
-    // args:
-    case PfRule::HO_CONG:
-    {
+      //}
+      // ======== Congruence
+      // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
+      // Arguments: ()
+      // ---------------------------------------------
+      // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
+      // Notice that this rule is only used when the application kinds are
+      // APPLY_UF.
+      //
+      // proof rule:
+      // proof term:
+      // premises:
+      // args:
+      // case PfRule::HO_CONG:
+      //{
       // TODO
-    }
+      //}
 
     default:
       return addVeritStep(res, VeritRule::UNDEFINED, children, args, *cdp);
@@ -1187,7 +1187,7 @@ bool VeritProofPostprocessCallback::update(Node res,
 }
 
 VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm)
-    : d_pnm(pnm), d_cb(new VeritProofPostprocessCallback(d_pnm))
+    : d_pnm(pnm), d_cb(new VeritProofPostprocessCallback(pnm))
 {
   d_debugFreeAssumps = false;
 }

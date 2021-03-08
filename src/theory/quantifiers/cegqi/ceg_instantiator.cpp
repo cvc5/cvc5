@@ -18,6 +18,8 @@
 #include "theory/quantifiers/cegqi/ceg_bv_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
@@ -181,8 +183,11 @@ void SolvedForm::pop_back(Node pv, Node n, TermProperties& pv_prop)
   d_theta.pop_back();
 }
 
-CegInstantiator::CegInstantiator(Node q, InstStrategyCegqi* parent)
+CegInstantiator::CegInstantiator(Node q,
+                                 QuantifiersState& qs,
+                                 InstStrategyCegqi* parent)
     : d_quant(q),
+      d_qstate(qs),
       d_parent(parent),
       d_qe(parent->getQuantifiersEngine()),
       d_is_nested_quant(false),
@@ -1337,22 +1342,37 @@ void CegInstantiator::processAssertions() {
     }
   }
   //collect assertions for relevant theories
-  for( unsigned i=0; i<d_tids.size(); i++ ){
-    TheoryId tid = d_tids[i];
-    Theory* theory = d_qe->getTheoryEngine()->theoryOf( tid );
-    if( theory && d_qe->getTheoryEngine()->isTheoryEnabled(tid) ){
-      Trace("cegqi-proc") << "Collect assertions from theory " << tid << std::endl;
-      d_curr_asserts[tid].clear();
-      //collect all assertions from theory
-      for( context::CDList<Assertion>::const_iterator it = theory->facts_begin(); it != theory->facts_end(); ++ it) {
-        Node lit = (*it).d_assertion;
-        Node atom = lit.getKind()==NOT ? lit[0] : lit;
-        if( d_is_nested_quant || std::find( d_ce_atoms.begin(), d_ce_atoms.end(), atom )!=d_ce_atoms.end() ){
-          d_curr_asserts[tid].push_back( lit );
-          Trace("cegqi-proc-debug") << "...add : " << lit << std::endl;
-        }else{
-          Trace("cegqi-proc") << "...do not consider literal " << tid << " : " << lit << " since it is not part of CE body." << std::endl;
-        }
+  const LogicInfo& logicInfo = d_qstate.getLogicInfo();
+  for (TheoryId tid : d_tids)
+  {
+    if (!logicInfo.isTheoryEnabled(tid))
+    {
+      continue;
+    }
+    Trace("cegqi-proc") << "Collect assertions from theory " << tid
+                        << std::endl;
+    d_curr_asserts[tid].clear();
+    // collect all assertions from theory
+    for (context::CDList<Assertion>::const_iterator
+             it = d_qstate.factsBegin(tid),
+             itEnd = d_qstate.factsEnd(tid);
+         it != itEnd;
+         ++it)
+    {
+      Node lit = (*it).d_assertion;
+      Node atom = lit.getKind() == NOT ? lit[0] : lit;
+      if (d_is_nested_quant
+          || std::find(d_ce_atoms.begin(), d_ce_atoms.end(), atom)
+                 != d_ce_atoms.end())
+      {
+        d_curr_asserts[tid].push_back(lit);
+        Trace("cegqi-proc-debug") << "...add : " << lit << std::endl;
+      }
+      else
+      {
+        Trace("cegqi-proc")
+            << "...do not consider literal " << tid << " : " << lit
+            << " since it is not part of CE body." << std::endl;
       }
     }
   }

@@ -139,13 +139,13 @@ enum class PfRule : uint32_t
   // where ids and idr are method identifiers.
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toWitness(F')) == true
+  //   Rewriter::rewrite(toOriginal(F')) == true
   // where F' is the result of the left hand side of the equality above. Here,
-  // notice that we apply rewriting on the witness form of F', meaning that this
-  // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. For example, this rule may justify the
-  // conclusion (= k t) where k is the purification Skolem for t, whose
-  // witness form is (witness ((x T)) (= x t)).
+  // notice that we apply rewriting on the original form of F', meaning that
+  // this rule may conclude an F whose Skolem form is justified by the
+  // definition of its (fresh) Skolem variables. For example, this rule may
+  // justify the conclusion (= k t) where k is the purification Skolem for t,
+  // e.g. where the original form of k is t.
   //
   // Furthermore, notice that the rewriting and substitution is applied only
   // within the side condition, meaning the rewritten form of the witness form
@@ -182,7 +182,7 @@ enum class PfRule : uint32_t
   //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toWitness(F')) == Rewriter::rewrite(toWitness(G'))
+  //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
   // where F' and G' are the result of each side of the equation above. Here,
   // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
@@ -779,13 +779,13 @@ enum class PfRule : uint32_t
   DT_TRUST,
 
   //================================================= Quantifiers rules
-  // ======== Witness intro
-  // Children: (P:(exists ((x T)) F[x]))
-  // Arguments: none
+  // ======== Skolem intro
+  // Children: none
+  // Arguments: (k)
   // ----------------------------------------
-  // Conclusion: (= k (witness ((x T)) F[x]))
-  // where k is the Skolem form of (witness ((x T)) F[x]).
-  WITNESS_INTRO,
+  // Conclusion: (= k t)
+  // where t is the original form of skolem k.
+  SKOLEM_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
   // Arguments: ((exists ((x T)) F[x]))
@@ -1106,6 +1106,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+
   //======== Multiplication sign inference
   // Children: none
   // Arguments: (f1, ..., fk, m)
@@ -1360,7 +1361,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   LFSC_RULE,
-
   //================================================ Place holder for Lean rules
   // ======== Lean rule
   // Children: (P1 ... Pn)
@@ -1371,7 +1371,6 @@ enum class PfRule : uint32_t
   // This allows us to specify which rule in the Lean calculus the current rule
   // corresponds to.
   LEAN_RULE,
-
   //================================================ Place holder for veriT
   // rules
   // ======== veriT rule

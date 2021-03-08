@@ -147,10 +147,16 @@ libcvc4_add_sources(
   proof/lean/lean_printer.h
   proof/lfsc/lfsc_post_processor.cpp
   proof/lfsc/lfsc_post_processor.h
+  proof/lfsc/lfsc_print_channel.cpp
+  proof/lfsc/lfsc_print_channel.h
   proof/lfsc/lfsc_printer.cpp
   proof/lfsc/lfsc_printer.h
   proof/lfsc/lfsc_term_process.cpp
   proof/lfsc/lfsc_term_process.h
+  proof/lfsc/lfsc_util.cpp
+  proof/lfsc/lfsc_util.h
+  proof/print_expr.cpp
+  proof/print_expr.h
   proof/proof_letify.cpp
   proof/proof_letify.h
   proof/proof_manager.cpp
@@ -537,6 +543,8 @@ libcvc4_add_sources(
   theory/bv/bitblast/eager_bitblaster.h
   theory/bv/bitblast/lazy_bitblaster.cpp
   theory/bv/bitblast/lazy_bitblaster.h
+  theory/bv/bitblast/proof_bitblaster.cpp
+  theory/bv/bitblast/proof_bitblaster.h
   theory/bv/bitblast/simple_bitblaster.cpp
   theory/bv/bitblast/simple_bitblaster.h
   theory/bv/bv_eager_solver.cpp
@@ -605,6 +613,8 @@ libcvc4_add_sources(
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/theory_datatypes_utils.cpp
   theory/datatypes/theory_datatypes_utils.h
+  theory/datatypes/tuple_project_op.cpp
+  theory/datatypes/tuple_project_op.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
   theory/decision_manager.cpp
@@ -863,6 +873,8 @@ libcvc4_add_sources(
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp
   theory/quantifiers/term_enumeration.h
+  theory/quantifiers/term_registry.cpp
+  theory/quantifiers/term_registry.h
   theory/quantifiers/term_util.cpp
   theory/quantifiers/term_util.h
   theory/quantifiers/theory_quantifiers.cpp
@@ -923,6 +935,7 @@ libcvc4_add_sources(
   theory/shared_solver_distributed.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
+  theory/skolem_lemma.h
   theory/smt_engine_subsolver.cpp
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp
@@ -1019,7 +1032,6 @@ libcvc4_add_sources(
   theory/theory_rewriter.h
   theory/theory_state.cpp
   theory/theory_state.h
-  theory/theory_test_utils.h
   theory/trust_node.cpp
   theory/trust_node.h
   theory/trust_substitutions.cpp
@@ -1269,7 +1281,6 @@ install(FILES
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
-          util/arith.h
           util/bitvector.h
           util/bool.h
           util/cardinality.h

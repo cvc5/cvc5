@@ -16,6 +16,8 @@
 
 #include "theory/strings/theory_strings_utils.h"
 
+#include <sstream>
+
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/arith_entail.h"

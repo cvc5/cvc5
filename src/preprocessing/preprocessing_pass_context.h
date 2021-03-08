@@ -21,18 +21,20 @@
 #ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
-#include "context/cdo.h"
-#include "context/context.h"
-#include "decision/decision_engine.h"
-#include "preprocessing/util/ite_utilities.h"
+#include "context/cdhashset.h"
 #include "smt/smt_engine.h"
-#include "smt/term_formula_removal.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/theory_engine.h"
 #include "theory/trust_substitutions.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
+class SmtEngine;
+class TheoryEngine;
+namespace theory::booleans {
+class CircuitPropagator;
+}
+namespace prop {
+class PropEngine;
+}
 namespace preprocessing {
 
 class PreprocessingPassContext

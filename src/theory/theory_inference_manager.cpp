@@ -15,8 +15,11 @@
 #include "theory/theory_inference_manager.h"
 
 #include "smt/smt_statistics_registry.h"
+#include "theory/output_channel.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 
 using namespace CVC4::kind;
 
@@ -104,23 +107,17 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 
 void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
-  if (!d_theoryState.isInConflict())
-  {
-    d_conflictIdStats << id;
-    d_theoryState.notifyInConflict();
-    d_out.conflict(conf);
-    ++d_numConflicts;
-  }
+  d_conflictIdStats << id;
+  d_theoryState.notifyInConflict();
+  d_out.conflict(conf);
+  ++d_numConflicts;
 }
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
-  if (!d_theoryState.isInConflict())
-  {
-    d_conflictIdStats << id;
-    d_theoryState.notifyInConflict();
-    d_out.trustedConflict(tconf);
-  }
+  d_conflictIdStats << id;
+  d_theoryState.notifyInConflict();
+  d_out.trustedConflict(tconf);
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,

@@ -95,10 +95,10 @@ class VeritProofPostprocess
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
-  /** The post process callback */
-  std::unique_ptr<ProofNodeUpdaterCallback> d_cb;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The post process callback */
+  std::unique_ptr<ProofNodeUpdaterCallback> d_cb;
 
   // TODO: infrastructure from ProofNodeUpdater
   void processInternal(std::shared_ptr<ProofNode> pf,

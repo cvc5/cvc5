@@ -25,6 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -142,7 +143,7 @@ private:
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  TrustNode ppRewrite(TNode node) override;
+  TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 

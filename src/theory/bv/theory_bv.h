@@ -24,6 +24,7 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -91,7 +92,7 @@ class TheoryBV : public Theory
   PPAssertStatus ppAssert(TrustNode in,
                           TrustSubstitutionMap& outSubstitutions) override;
 
-  TrustNode ppRewrite(TNode t) override;
+  TrustNode ppRewrite(TNode t, std::vector<SkolemLemma>& lems) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 

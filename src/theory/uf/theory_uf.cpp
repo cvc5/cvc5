@@ -18,6 +18,7 @@
 #include "theory/uf/theory_uf.h"
 
 #include <memory>
+#include <sstream>
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_node_manager.h"
@@ -204,7 +205,7 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 }
 //--------------------------------- end standard check
 
-TrustNode TheoryUF::ppRewrite(TNode node)
+TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
                       << std::endl;

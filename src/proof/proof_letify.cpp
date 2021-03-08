@@ -19,8 +19,8 @@ namespace proof {
 
 void ProofLetify::computeProofLet(const ProofNode* pn,
                                   std::vector<const ProofNode*>& pletList,
-                                  std::map<const ProofNode*, uint32_t>& pletMap,
-                                  uint32_t thresh)
+                                  std::map<const ProofNode*, size_t>& pletMap,
+                                  size_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
   if (thresh == 0)
@@ -29,18 +29,17 @@ void ProofLetify::computeProofLet(const ProofNode* pn,
     return;
   }
   std::vector<const ProofNode*> visitList;
-  std::map<const ProofNode*, uint32_t> pcount;
+  std::map<const ProofNode*, size_t> pcount;
   computeProofCounts(pn, visitList, pcount);
   // Now populate the pletList and pletMap
   convertProofCountToLet(visitList, pcount, pletList, pletMap, thresh);
 }
 
-void ProofLetify::computeProofCounts(
-    const ProofNode* pn,
-    std::vector<const ProofNode*>& visitList,
-    std::map<const ProofNode*, uint32_t>& pcount)
+void ProofLetify::computeProofCounts(const ProofNode* pn,
+                                     std::vector<const ProofNode*>& visitList,
+                                     std::map<const ProofNode*, size_t>& pcount)
 {
-  std::map<const ProofNode*, uint32_t>::iterator it;
+  std::map<const ProofNode*, size_t>::iterator it;
   std::vector<const ProofNode*> visit;
   const ProofNode* cur;
   visit.push_back(pn);
@@ -51,6 +50,11 @@ void ProofLetify::computeProofCounts(
     if (it == pcount.end())
     {
       pcount[cur] = 0;
+      // do not letify under scope?
+      if (cur->getRule() == PfRule::SCOPE)
+      {
+        continue;
+      }
       const std::vector<std::shared_ptr<ProofNode>>& pc = cur->getChildren();
       for (const std::shared_ptr<ProofNode>& cp : pc)
       {
@@ -71,10 +75,10 @@ void ProofLetify::computeProofCounts(
 
 void ProofLetify::convertProofCountToLet(
     const std::vector<const ProofNode*>& visitList,
-    const std::map<const ProofNode*, uint32_t>& pcount,
+    const std::map<const ProofNode*, size_t>& pcount,
     std::vector<const ProofNode*>& pletList,
-    std::map<const ProofNode*, uint32_t>& pletMap,
-    uint32_t thresh)
+    std::map<const ProofNode*, size_t>& pletMap,
+    size_t thresh)
 {
   Assert(pletList.empty() && pletMap.empty());
   if (thresh == 0)
@@ -84,7 +88,7 @@ void ProofLetify::convertProofCountToLet(
   }
   // Assign ids for those whose count is > 1, traverse in reverse order
   // so that deeper proofs are assigned lower identifiers
-  std::map<const ProofNode*, uint32_t>::const_iterator itc;
+  std::map<const ProofNode*, size_t>::const_iterator itc;
   for (const ProofNode* pn : visitList)
   {
     itc = pcount.find(pn);

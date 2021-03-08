@@ -18,6 +18,8 @@
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 
 #include "base/output.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"

@@ -115,7 +115,7 @@ TEST_F(TestApiBlackResult, isEntailmentUnknown)
   CVC4::api::Result res = d_solver.checkEntailed(x.eqTerm(x));
   ASSERT_FALSE(res.isEntailed());
   ASSERT_TRUE(res.isEntailmentUnknown());
-  ASSERT_EQ(res.getUnknownExplanation(), "UNKNOWN_REASON");
+  ASSERT_EQ(res.getUnknownExplanation(), api::Result::UNKNOWN_REASON);
 }
 }  // namespace test
 }  // namespace CVC4

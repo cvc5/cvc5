@@ -18,6 +18,9 @@
 
 #include "preprocessing/passes/bv_eager_atoms.h"
 
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {

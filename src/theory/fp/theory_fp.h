@@ -23,9 +23,11 @@
 #include <string>
 #include <utility>
 
+#include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -62,7 +64,7 @@ class TheoryFp : public Theory
 
   void preRegisterTerm(TNode node) override;
 
-  TrustNode ppRewrite(TNode node) override;
+  TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems) override;
 
   //--------------------------------- standard check
   /** Do we need a check call at last call effort? */

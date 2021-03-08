@@ -25,6 +25,9 @@
 
 namespace CVC4 {
 namespace theory {
+
+class EagerProofGenerator;
+
 namespace datatypes {
 
 /**

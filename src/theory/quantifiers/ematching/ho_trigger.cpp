@@ -16,7 +16,10 @@
 
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "util/hash.h"
@@ -29,12 +32,13 @@ namespace inst {
 
 HigherOrderTrigger::HigherOrderTrigger(
     QuantifiersEngine* qe,
+    quantifiers::QuantifiersState& qs,
     quantifiers::QuantifiersInferenceManager& qim,
     quantifiers::QuantifiersRegistry& qr,
     Node q,
     std::vector<Node>& nodes,
     std::map<Node, std::vector<Node> >& ho_apps)
-    : Trigger(qe, qim, qr, q, nodes), d_ho_var_apps(ho_apps)
+    : Trigger(qe, qs, qim, qr, q, nodes), d_ho_var_apps(ho_apps)
 {
   NodeManager* nm = NodeManager::currentNM();
   // process the higher-order variable applications

@@ -15,6 +15,8 @@
 #include "expr/lazy_proof.h"
 
 #include "expr/proof_ensure_closed.h"
+#include "expr/proof_node.h"
+#include "expr/proof_node_manager.h"
 
 using namespace CVC4::kind;
 

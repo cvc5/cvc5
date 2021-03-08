@@ -19,10 +19,13 @@
 
 #include <vector>
 
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
+#include "expr/node.h"
+#include "expr/proof_rule.h"
 
 namespace CVC4 {
+
+class ProofChecker;
+class ProofNode;
 
 /**
  * A manager for proof node objects. This is a trusted interface for creating

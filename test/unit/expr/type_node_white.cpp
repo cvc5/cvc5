@@ -32,12 +32,12 @@ using namespace context;
 
 namespace test {
 
-class TestNodeWhiteTypeNode : public TestNodeWhite
+class TestNodeWhiteTypeNode : public TestNode
 {
  protected:
   void SetUp() override
   {
-    TestNodeWhite::SetUp();
+    TestNode::SetUp();
     d_smt.reset(new SmtEngine(d_nodeManager.get()));
   }
   std::unique_ptr<SmtEngine> d_smt;
