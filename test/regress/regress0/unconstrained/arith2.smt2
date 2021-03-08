@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --unconstrained-simp --no-check-models
 (set-logic QF_AUFLIRA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-fun v1 () Int)

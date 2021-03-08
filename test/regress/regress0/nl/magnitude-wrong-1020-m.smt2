@@ -7,7 +7,7 @@ From termination analysis of term rewriting.
 Submitted by Harald Roman Zankl <Harald.Zankl@uibk.ac.at>
 
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status sat)
   (define-fun x6 () Real

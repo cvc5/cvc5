@@ -725,7 +725,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             Node req_const;
             if (nk == GT || nk == LT || nk == XOR || nk == MINUS
                 || nk == BITVECTOR_SUB || nk == BITVECTOR_XOR
-                || nk == BITVECTOR_UREM_TOTAL)
+                || nk == BITVECTOR_UREM)
             {
               // must have the zero element
               req_const = quantifiers::TermUtil::mkTypeValue(tnb, 0);
