@@ -28,10 +28,13 @@ set(CVC4_API_TEST_FLAGS
   -D__BUILDING_CVC4_API_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 
 macro(cvc4_add_api_test name)
+  set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/)
   add_executable(${name} ${name}.cpp)
   target_link_libraries(${name} main-test)
   target_compile_definitions(${name} PRIVATE ${CVC4_API_TEST_FLAGS})
-  add_test(api/${name} ${CMAKE_CURRENT_BINARY_DIR}/${name})
+  set_target_properties(${name}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
+  add_test(api/${name} ${test_bin_dir}/${name})
   set_tests_properties(api/${name} PROPERTIES LABELS "api")
   add_dependencies(build-apitests ${name})
 endmacro()
