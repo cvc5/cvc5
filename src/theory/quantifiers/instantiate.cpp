@@ -606,7 +606,9 @@ Node Instantiate::getTermForType(TypeNode tn)
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
 {
-  for (NodeInstListMap::const_iterator it = d_insts.begin(); it != d_insts.end(); ++it)
+  for (NodeInstListMap::const_iterator it = d_insts.begin();
+       it != d_insts.end();
+       ++it)
   {
     qs.push_back(it->first);
   }
@@ -661,8 +663,9 @@ void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
   InstLemmaList* ill = getOrMkInstLemmaList(q);
   insts.insert(insts.end(), ill->d_list.begin(), ill->d_list.end());
   // also include recorded instantations (for qe-partial)
-  std::map<Node, std::vector<Node> >::const_iterator it = d_recordedInst.find(q);
-  if (it!=d_recordedInst.end())
+  std::map<Node, std::vector<Node> >::const_iterator it =
+      d_recordedInst.find(q);
+  if (it != d_recordedInst.end())
   {
     insts.insert(insts.end(), it->second.begin(), it->second.end());
   }
