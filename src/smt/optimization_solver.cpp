@@ -2,7 +2,7 @@
 /*! \file optimization_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Michael Chang, Yancheng Ou 
+ **   Michael Chang, Yancheng Ou
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -108,7 +108,7 @@ OptResult OptimizationSolver::checkOpt()
       // unsigned comparison for BitVectors
       less_than_operator = kind::BITVECTOR_ULT;
     }
-  }  // FloatingPoints? 
+  }  // FloatingPoints?
   else
   {
     // the current objective datatype is not-yet supported
@@ -133,14 +133,16 @@ OptResult OptimizationSolver::checkOpt()
     // increment on the model-value of objective:
     // if we're maximizing increment = objective > old_objective value
     // if we're minimizing increment = objective < old_objective value
-    // we only use the less than operator 
+    // we only use the less than operator
     if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
     {
-      increment = nm->mkNode(less_than_operator, value, d_activatedObjective.getNode());
+      increment =
+          nm->mkNode(less_than_operator, value, d_activatedObjective.getNode());
     }
     else
     {
-      increment = nm->mkNode(less_than_operator, d_activatedObjective.getNode(), value);
+      increment =
+          nm->mkNode(less_than_operator, d_activatedObjective.getNode(), value);
     }
     optChecker->assertFormula(increment);
     loop_r = optChecker->checkSat();
@@ -149,9 +151,12 @@ OptResult OptimizationSolver::checkOpt()
   return OPT_OPTIMAL;
 }
 
-void OptimizationSolver::activateObj(const Node& obj, const int& type, bool is_signed)
+void OptimizationSolver::activateObj(const Node& obj,
+                                     const int& type,
+                                     bool bv_is_signed_compare)
 {
-  d_activatedObjective = Objective(obj, (ObjectiveType)type, is_signed);
+  d_activatedObjective =
+      Objective(obj, (ObjectiveType)type, bv_is_signed_compare);
 }
 
 Node OptimizationSolver::objectiveGetValue()
@@ -161,7 +166,7 @@ Node OptimizationSolver::objectiveGetValue()
 }
 
 Objective::Objective(Node obj, ObjectiveType type, bool bv_is_signed_compare)
-    : d_type(type), d_node(obj), is_signed(bv_is_signed_compare)
+    : d_type(type), d_node(obj), d_signed(bv_is_signed_compare)
 {
 }
 

@@ -2,7 +2,7 @@
 /*! \file optimization_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Michael Chang, Yancheng Ou 
+ **   Michael Chang, Yancheng Ou
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -62,7 +62,7 @@ enum CVC4_PUBLIC OptResult
 class Objective
 {
  public:
-  Objective(Node n, ObjectiveType type, bool is_signed = true);
+  Objective(Node n, ObjectiveType type, bool bv_is_signed_compare = true);
   ~Objective(){};
 
   /** A getter for d_type **/
@@ -83,7 +83,7 @@ class Objective
   /** Specify whether to use signed or unsigned comparison
    * for BitVectors (only for BitVectors), this variable is defaulted to true
    * **/
-  bool is_signed;
+  bool d_signed;
 };
 
 /**
@@ -106,7 +106,9 @@ class OptimizationSolver
   /** Activates an objective: will be optimized for
    * Parameter is_signed specifies whether we should use signed/unsigned
    * comparison for BitVectors (only effective for BitVectors) **/
-  void activateObj(const Node& obj, const int& type, bool is_signed = true);
+  void activateObj(const Node& obj,
+                   const int& type,
+                   bool bv_is_signed_compare = true);
   /** Gets the value of the optimized objective after checkopt is called **/
   Node objectiveGetValue();
 
