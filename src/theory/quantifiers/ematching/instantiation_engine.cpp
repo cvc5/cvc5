@@ -263,8 +263,8 @@ bool InstantiationEngine::shouldProcess(Node q)
     return false;
   }
   // also ignore internal quantifiers
-  QuantAttributes* qattr = d_quantEngine->getQuantAttributes();
-  if (qattr->isInternal(q))
+  QuantAttributes& qattr = d_qreg.getQuantAttributes();
+  if (qattr.isInternal(q))
   {
     return false;
   }

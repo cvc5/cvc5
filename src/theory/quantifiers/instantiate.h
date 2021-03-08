@@ -146,6 +146,36 @@ class Instantiate : public QuantifiersUtil
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
+  /**
+   * Same as above, but we also compute a vector failMask indicating which
+   * values in terms led to the instantiation not being added when this method
+   * returns false.  For example, if q is the formula
+   *   forall xy. x>5 => P(x,y)
+   * If terms = { 4, 0 }, then this method will return false since
+   *   4>5 => P(4,0)
+   * is entailed true based on rewriting. This method may additionally set
+   * failMask to "10", indicating that x's value was critical, but y's value
+   * was not. In other words, all instantiations including { x -> 4 } will also
+   * lead to this method returning false.
+   *
+   * The bits of failMask are computed in a greedy fashion, in reverse order.
+   * That is, we check whether each variable is critical one at a time, starting
+   * from the end.
+   *
+   * The parameter expFull is whether try to set all bits of the fail mask to
+   * 0. If this argument is true, then we only try to set a suffix of the
+   * bits in failMask to false. The motivation for expFull=false is for callers
+   * of this method that are enumerating tuples in lexiocographic order. The
+   * number of false bits in the suffix of failMask tells the caller how many
+   * "decimal" places to increment their iterator.
+   */
+  bool addInstantiationExpFail(Node q,
+                               std::vector<Node>& terms,
+                               std::vector<bool>& failMask,
+                               bool mkRep = false,
+                               bool modEq = false,
+                               bool doVts = false,
+                               bool expFull = true);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms. This is the
