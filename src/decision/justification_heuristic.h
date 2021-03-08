@@ -43,16 +43,16 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   //                   TRUE           FALSE         MEH
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
-  typedef std::vector<std::pair<TNode, TNode> > SkolemList;
-  typedef context::CDHashMap<TNode, SkolemList, TNodeHashFunction> SkolemCache;
-  typedef std::vector<TNode> ChildList;
+  typedef std::vector<std::pair<Node, Node> > SkolemList;
+  typedef context::CDHashMap<Node, SkolemList, NodeHashFunction> SkolemCache;
+  typedef std::vector<Node> ChildList;
   typedef context::
-      CDHashMap<TNode, std::pair<ChildList, ChildList>, TNodeHashFunction>
+      CDHashMap<Node, std::pair<ChildList, ChildList>, NodeHashFunction>
           ChildCache;
-  typedef context::CDHashMap<TNode,TNode,TNodeHashFunction> SkolemMap;
-  typedef context::CDHashMap<TNode,
+  typedef context::CDHashMap<Node,Node,NodeHashFunction> SkolemMap;
+  typedef context::CDHashMap<Node,
                              std::pair<DecisionWeight, DecisionWeight>,
-                             TNodeHashFunction>
+                             NodeHashFunction>
       WeightCache;
 
   // being 'justified' is monotonic with respect to decisions
