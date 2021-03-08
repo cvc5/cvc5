@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 

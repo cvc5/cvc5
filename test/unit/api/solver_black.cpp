@@ -554,6 +554,10 @@ TEST_F(TestApiBlackSolver, mkOp)
   // mkOp(Kind kind, uint32_t arg1, uint32_t arg2)
   ASSERT_NO_THROW(d_solver.mkOp(BITVECTOR_EXTRACT, 1, 1));
   ASSERT_THROW(d_solver.mkOp(DIVISIBLE, 1, 2), CVC4ApiException);
+
+  // mkOp(Kind kind, std::vector<uint32_t> args)
+  std::vector<uint32_t> args = {1, 2, 2};
+  ASSERT_NO_THROW(d_solver.mkOp(TUPLE_PROJECT, args));
 }
 
 TEST_F(TestApiBlackSolver, mkPi) { ASSERT_NO_THROW(d_solver.mkPi()); }
@@ -975,7 +979,8 @@ TEST_F(TestApiBlackSolver, defineSort)
   Sort arraySort1 = d_solver.mkArraySort(sortVar0, sortVar1);
   // Now create instantiations of the defined sorts
   ASSERT_NO_THROW(arraySort0.substitute(sortVar0, intSort));
-  ASSERT_NO_THROW(arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
+  ASSERT_NO_THROW(
+      arraySort1.substitute({sortVar0, sortVar1}, {intSort, realSort}));
 }
 
 TEST_F(TestApiBlackSolver, defineFun)
@@ -1264,6 +1269,7 @@ TEST_F(TestApiBlackSolver, getInfo)
 
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
+  d_solver.setLogic("QF_LIA");
   d_solver.setOption("produce-interpols", "default");
   d_solver.setOption("incremental", "false");
 
@@ -1277,7 +1283,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   d_solver.assertFormula(
       d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
   d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
-  // Conjecture for interpolation: y + z > 0 /\ z < 0
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj =
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
@@ -1323,13 +1329,8 @@ TEST_F(TestApiBlackSolver, getOp)
   Term listhead = d_solver.mkTerm(APPLY_SELECTOR, headTerm, listcons1);
 
   ASSERT_TRUE(listnil.hasOp());
-  ASSERT_EQ(listnil.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-
   ASSERT_TRUE(listcons1.hasOp());
-  ASSERT_EQ(listcons1.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-
   ASSERT_TRUE(listhead.hasOp());
-  ASSERT_EQ(listhead.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 
 TEST_F(TestApiBlackSolver, getOption)
@@ -2290,6 +2291,63 @@ TEST_F(TestApiBlackSolver, getSynthSolutions)
 
   Solver slv;
   ASSERT_THROW(slv.getSynthSolutions({x}), CVC4ApiException);
+}
+
+TEST_F(TestApiBlackSolver, tupleProject)
+{
+  std::vector<Sort> sorts = {d_solver.getBooleanSort(),
+                             d_solver.getIntegerSort(),
+                             d_solver.getStringSort(),
+                             d_solver.mkSetSort(d_solver.getStringSort())};
+  std::vector<Term> elements = {
+      d_solver.mkBoolean(true),
+      d_solver.mkInteger(3),
+      d_solver.mkString("C"),
+      d_solver.mkTerm(SINGLETON, d_solver.mkString("Z"))};
+
+  Term tuple = d_solver.mkTuple(sorts, elements);
+
+  std::vector<uint32_t> indices1 = {};
+  std::vector<uint32_t> indices2 = {0};
+  std::vector<uint32_t> indices3 = {0, 1};
+  std::vector<uint32_t> indices4 = {0, 0, 2, 2, 3, 3, 0};
+  std::vector<uint32_t> indices5 = {4};
+  std::vector<uint32_t> indices6 = {0, 4};
+
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices1), tuple));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices2), tuple));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices3), tuple));
+  ASSERT_NO_THROW(
+      d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices4), tuple));
+
+  ASSERT_THROW(d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices5), tuple),
+               CVC4ApiException);
+  ASSERT_THROW(d_solver.mkTerm(d_solver.mkOp(TUPLE_PROJECT, indices6), tuple),
+               CVC4ApiException);
+
+  std::vector<uint32_t> indices = {0, 3, 2, 0, 1, 2};
+
+  Op op = d_solver.mkOp(TUPLE_PROJECT, indices);
+  Term projection = d_solver.mkTerm(op, tuple);
+
+  Datatype datatype = tuple.getSort().getDatatype();
+  DatatypeConstructor constructor = datatype[0];
+
+  for (size_t i = 0; i < indices.size(); i++)
+  {
+    Term selectorTerm = constructor[indices[i]].getSelectorTerm();
+    Term selectedTerm = d_solver.mkTerm(APPLY_SELECTOR, selectorTerm, tuple);
+    Term simplifiedTerm = d_solver.simplify(selectedTerm);
+    ASSERT_EQ(elements[indices[i]], simplifiedTerm);
+  }
+
+  ASSERT_EQ(
+      "((_ tuple_project 0 3 2 0 1 2) (mkTuple true 3 \"C\" (singleton "
+      "\"Z\")))",
+      projection.toString());
 }
 
 }  // namespace test

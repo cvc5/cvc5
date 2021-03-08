@@ -19,7 +19,6 @@
 #ifndef CVC4__PROOF_MANAGER_H
 #define CVC4__PROOF_MANAGER_H
 
-#include <iosfwd>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,7 +27,6 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

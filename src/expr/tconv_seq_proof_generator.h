@@ -20,10 +20,11 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
 
 /**
  * The term conversion sequence proof generator. This is used for maintaining

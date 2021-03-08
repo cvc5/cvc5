@@ -43,7 +43,6 @@
 #include <vector>
 
 #include "base/exception.h"
-#include "lib/clock_gettime.h"
 #include "util/safe_print.h"
 #include "util/statistics.h"
 

@@ -16,7 +16,10 @@
 
 #include "theory/datatypes/sygus_datatype_utils.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "smt/smt_engine.h"
@@ -121,15 +124,7 @@ Kind getEliminateKind(Kind ok)
   Kind nk = ok;
   // We also must ensure that builtin operators which are eliminated
   // during expand definitions are replaced by the proper operator.
-  if (ok == BITVECTOR_UDIV)
-  {
-    nk = BITVECTOR_UDIV_TOTAL;
-  }
-  else if (ok == BITVECTOR_UREM)
-  {
-    nk = BITVECTOR_UREM_TOTAL;
-  }
-  else if (ok == DIVISION)
+  if (ok == DIVISION)
   {
     nk = DIVISION_TOTAL;
   }

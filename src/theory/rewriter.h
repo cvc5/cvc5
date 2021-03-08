@@ -19,19 +19,20 @@
 #pragma once
 
 #include "expr/node.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "theory/theory_rewriter.h"
-#include "theory/trust_node.h"
-#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
+
+class TConvProofGenerator;
+class ProofNodeManager;
+
 namespace theory {
+
+class TrustNode;
 
 namespace builtin {
 class BuiltinProofRuleChecker;
 }
-
-class RewriterInitializer;
 
 /**
  * The rewrite environment holds everything that the individual rewrites have

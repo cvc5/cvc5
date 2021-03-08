@@ -20,8 +20,6 @@
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
 #define CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
 
-#include "util/real_algebraic_number.h"
-
 #ifdef CVC4_POLY_IMP
 
 #include <poly/polyxx.h>
@@ -30,13 +28,16 @@
 
 #include "theory/arith/nl/cad/cdcac_utils.h"
 #include "theory/arith/nl/cad/constraints.h"
+#include "theory/arith/nl/cad/proof_generator.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
-#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+class NlModel;
+
 namespace cad {
 
 /**
@@ -46,10 +47,10 @@ namespace cad {
 class CDCAC
 {
  public:
-  /** Initialize without a variable ordering. */
-  CDCAC();
   /** Initialize this method with the given variable ordering. */
-  CDCAC(const std::vector<poly::Variable>& ordering);
+  CDCAC(context::Context* ctx,
+        ProofNodeManager* pnm,
+        const std::vector<poly::Variable>& ordering = {});
 
   /** Reset this instance. */
   void reset();
@@ -138,7 +139,20 @@ class CDCAC
   std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
                                          bool returnFirstInterval = false);
 
+  void startNewProof();
+  /**
+   * Finish the generated proof (if proofs are enabled) with a scope over the
+   * given assertions.
+   */
+  ProofGenerator* closeProof(const std::vector<Node>& assertions);
+
+  /** Get the proof generator */
+  CADProofGenerator* getProof() { return d_proof.get(); }
+
  private:
+  /** Check whether proofs are enabled */
+  bool isProofEnabled() const { return d_proof != nullptr; }
+
   /**
    * Check whether the current sample satisfies the integrality condition of the
    * current variable. Returns true if the variable is not integral or the
@@ -187,6 +201,9 @@ class CDCAC
 
   /** The linear assignment used as an initial guess. */
   std::vector<poly::Value> d_initialAssignment;
+
+  /** The proof generator */
+  std::unique_ptr<CADProofGenerator> d_proof;
 };
 
 }  // namespace cad

@@ -15,6 +15,8 @@
  **/
 #include "util/ostream_util.h"
 
+#include <ostream>
+
 namespace CVC4 {
 
 StreamFormatScope::StreamFormatScope(std::ostream& out)

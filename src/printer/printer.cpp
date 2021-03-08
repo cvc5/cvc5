@@ -39,13 +39,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   using namespace CVC4::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB_V2_0:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant));
-
-  case LANG_SMTLIB_V2_5:
-    return unique_ptr<Printer>(new printer::smt2::Smt2Printer());
-
   case LANG_SMTLIB_V2_6:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
@@ -388,7 +381,7 @@ void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void Printer::toStreamCmdSetInfo(std::ostream& out,
                                  const std::string& flag,
-                                 SExpr sexpr) const
+                                 const std::string& value) const
 {
   printUnknownCommand(out, "set-info");
 }
@@ -401,7 +394,7 @@ void Printer::toStreamCmdGetInfo(std::ostream& out,
 
 void Printer::toStreamCmdSetOption(std::ostream& out,
                                    const std::string& flag,
-                                   SExpr sexpr) const
+                                   const std::string& value) const
 {
   printUnknownCommand(out, "set-option");
 }

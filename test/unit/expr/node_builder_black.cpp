@@ -36,7 +36,7 @@ using namespace kind;
 
 namespace test {
 
-class TestNodeBlackNodeBuilder : public TestNodeBlack
+class TestNodeBlackNodeBuilder : public TestNode
 {
  protected:
   template <unsigned N>

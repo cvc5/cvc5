@@ -16,6 +16,8 @@
 
 #include "theory/theory_engine.h"
 
+#include <sstream>
+
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
@@ -248,6 +250,11 @@ TheoryEngine::TheoryEngine(context::Context* context,
   {
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
+  }
+
+  if (options::sortInference())
+  {
+    d_sortInfer.reset(new SortInference);
   }
 
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);

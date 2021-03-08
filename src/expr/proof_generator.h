@@ -18,11 +18,11 @@
 #define CVC4__EXPR__PROOF_GENERATOR_H
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 
 namespace CVC4 {
 
 class CDProof;
+class ProofNode;
 
 /** An overwrite policy for CDProof */
 enum class CDPOverwrite : uint32_t

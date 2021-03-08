@@ -14,29 +14,42 @@
 
 #include "theory/arith/nl/cad_solver.h"
 
-#ifdef CVC4_POLY_IMP
-#include <poly/polyxx.h>
-#endif
-
-#include "options/arith_options.h"
 #include "theory/inference_id.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/poly_conversion.h"
-#include "util/poly_util.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
 
-CadSolver::CadSolver(InferenceManager& im, NlModel& model)
-    : d_foundSatisfiability(false), d_im(im), d_model(model)
+CadSolver::CadSolver(InferenceManager& im,
+                     NlModel& model,
+                     context::Context* ctx,
+                     ProofNodeManager* pnm)
+    :
+#ifdef CVC4_POLY_IMP
+      d_CAC(ctx, pnm),
+#endif
+      d_foundSatisfiability(false),
+      d_im(im),
+      d_model(model)
 {
   d_ranVariable =
       NodeManager::currentNM()->mkSkolem("__z",
                                          NodeManager::currentNM()->realType(),
                                          "",
                                          NodeManager::SKOLEM_EXACT_NAME);
+#ifdef CVC4_POLY_IMP
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_proofChecker.registerTo(pc);
+  }
+#endif
 }
 
 CadSolver::~CadSolver() {}
@@ -75,6 +88,7 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "No constraints. Return." << std::endl;
     return;
   }
+  d_CAC.startNewProof();
   auto covering = d_CAC.getUnsatCover();
   if (covering.empty())
   {
@@ -88,12 +102,9 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "Collected MIS: " << mis << std::endl;
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
-    for (auto& n : mis)
-    {
-      n = n.negate();
-    }
-    d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
-                         InferenceId::ARITH_NL_CAD_CONFLICT);
+    Node lem = NodeManager::currentNM()->mkAnd(mis).negate();
+    ProofGenerator* proof = d_CAC.closeProof(mis);
+    d_im.addPendingLemma(lem, InferenceId::ARITH_NL_CAD_CONFLICT, proof);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "

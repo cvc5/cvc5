@@ -15,15 +15,15 @@
 #ifndef CVC4__SMT__OPTIONS_MANAGER_H
 #define CVC4__SMT__OPTIONS_MANAGER_H
 
-#include "options/options.h"
 #include "options/options_listener.h"
 #include "smt/managed_ostreams.h"
 
 namespace CVC4 {
 
-class SmtEngine;
 class LogicInfo;
+class Options;
 class ResourceManager;
+class SmtEngine;
 
 namespace smt {
 

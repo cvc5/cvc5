@@ -17,16 +17,13 @@
 #ifndef CVC4__EXPR__BUFFERED_PROOF_GENERATOR_H
 #define CVC4__EXPR__BUFFERED_PROOF_GENERATOR_H
 
-#include <map>
-#include <vector>
-
 #include "context/cdhashmap.h"
-#include "context/cdhashset.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "expr/proof_step_buffer.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+class ProofStep;
 
 /**
  * The proof generator for buffered steps. This class is a context-dependent

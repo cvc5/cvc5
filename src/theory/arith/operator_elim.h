@@ -102,20 +102,20 @@ class OperatorElim : public EagerProofGenerator
    * @return The (single step) eliminated form of n.
    */
   Node eliminateOperators(Node n, TConvProofGenerator* tg, bool partialOnly);
-  /**
-   * Recursively ensure that n has no non-standard operators. This applies
-   * the above method on all subterms of n.
-   *
-   * @param n The node to eliminate operators from.
-   * @return The eliminated form of n.
-   */
-  Node eliminateOperatorsRec(Node n, TConvProofGenerator* tg, bool partialOnly);
   /** get arithmetic skolem
    *
    * Returns the Skolem in the above map for the given id, creating it if it
    * does not already exist.
    */
   Node getArithSkolem(ArithSkolemId asi);
+  /**
+   * Make the witness term, which creates a witness term based on the skolem
+   * manager with this class as a proof generator.
+   */
+  Node mkWitnessTerm(Node v,
+                     Node pred,
+                     const std::string& prefix,
+                     const std::string& comment);
   /** get arithmetic skolem application
    *
    * By default, this returns the term f( n ), where f is the Skolem function

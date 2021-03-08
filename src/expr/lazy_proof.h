@@ -17,14 +17,12 @@
 #ifndef CVC4__EXPR__LAZY_PROOF_H
 #define CVC4__EXPR__LAZY_PROOF_H
 
-#include <unordered_map>
-#include <vector>
-
 #include "expr/proof.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
+
+class ProofGenerator;
+class ProofNodeManager;
 
 /**
  * A (context-dependent) lazy proof. This class is an extension of CDProof

@@ -18,7 +18,7 @@
  ** described in
  **   Liana Hadarean, An Efficient and Trustworthy Theory Solver for
  **   Bit-vectors in Satisfiability Modulo Theories.
-￼**   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
+ **   https://cs.nyu.edu/media/publications/hadarean_liana.pdf
  **/
 
 #include "cvc4_private.h"
@@ -27,9 +27,11 @@
 #define CVC4__PREPROCESSING__PASSES__ACKERMANN_H
 
 #include <unordered_map>
+
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/logic_info.h"
+#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace preprocessing {

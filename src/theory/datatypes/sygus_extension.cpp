@@ -15,6 +15,7 @@
 #include "theory/datatypes/sygus_extension.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
@@ -724,7 +725,7 @@ Node SygusExtension::getSimpleSymBreakPred(Node e,
             Node req_const;
             if (nk == GT || nk == LT || nk == XOR || nk == MINUS
                 || nk == BITVECTOR_SUB || nk == BITVECTOR_XOR
-                || nk == BITVECTOR_UREM_TOTAL)
+                || nk == BITVECTOR_UREM)
             {
               // must have the zero element
               req_const = quantifiers::TermUtil::mkTypeValue(tnb, 0);

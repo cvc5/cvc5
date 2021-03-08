@@ -37,8 +37,9 @@ endif()
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
@@ -66,9 +67,6 @@ if(CADICAL_DIR)
 endif()
 if(CRYPTOMINISAT_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${CRYPTOMINISAT_DIR}")
-endif()
-if(CXXTEST_DIR)
-  list(APPEND CMAKE_PREFIX_PATH "${CXXTEST_DIR}")
 endif()
 if(DRAT2ER_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${DRAT2ER_DIR}")
@@ -163,7 +161,6 @@ set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
 set(ANTLR_DIR         "" CACHE STRING "Set ANTLR3 install directory")
 set(CADICAL_DIR       "" CACHE STRING "Set CaDiCaL install directory")
 set(CRYPTOMINISAT_DIR "" CACHE STRING "Set CryptoMiniSat install directory")
-set(CXXTEST_DIR       "" CACHE STRING "Set CxxTest install directory")
 set(DRAT2ER_DIR       "" CACHE STRING "Set drat2er install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
@@ -233,8 +230,8 @@ include(Config${CMAKE_BUILD_TYPE})
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
 add_check_c_cxx_flag("-Wall")
+add_check_c_cxx_flag("-Wno-unused-private-field")
 add_check_c_flag("-fexceptions")
-add_check_c_cxx_flag("-Wno-deprecated")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
 add_check_c_cxx_flag("-Wimplicit-fallthrough")
@@ -351,24 +348,6 @@ endif()
 # This needs to be enabled here rather than in subdirectory test in order to
 # allow calling ctest from the root build directory.
 enable_testing()
-
-#-----------------------------------------------------------------------------#
-# Check GCC version.
-#
-# GCC version 4.5.1 builds MiniSat incorrectly with -O2, which results in
-# incorrect answers.
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-  execute_process(
-    COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
-    OUTPUT_VARIABLE GCC_VERSION
-    OUTPUT_STRIP_TRAILING_WHITESPACE)
-  if(GCC_VERSION VERSION_EQUAL "4.5.1")
-    message(FATAL_ERROR
-      "GCC 4.5.1's optimizer is known to build MiniSat incorrectly "
-      "(and by extension CVC4).")
-  endif()
-endif()
 
 #-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
@@ -555,6 +534,11 @@ if(GPL_LIBS)
   endif()
   set(CVC4_GPL_DEPS 1)
 endif()
+
+#-----------------------------------------------------------------------------#
+# Provide targets to inspect iwyu suggestions
+
+include(IWYU)
 
 #-----------------------------------------------------------------------------#
 # Generate CVC4's cvc4autoconfig.h header

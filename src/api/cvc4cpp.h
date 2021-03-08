@@ -39,19 +39,41 @@ namespace CVC4 {
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
+
+class AssertCommand;
+class BlockModelValuesCommand;
+class CheckSatCommand;
+class CheckSatAssumingCommand;
 class Expr;
+class DatatypeDeclarationCommand;
+class DeclareFunctionCommand;
+class DeclareHeapCommand;
+class DeclareSortCommand;
+class DeclareSygusVarCommand;
+class DefineFunctionCommand;
+class DefineFunctionRecCommand;
+class DefineSortCommand;
 class DType;
 class DTypeConstructor;
 class DTypeSelector;
 class ExprManager;
 class GetAbductCommand;
 class GetInterpolCommand;
+class GetModelCommand;
+class GetQuantifierEliminationCommand;
+class GetUnsatCoreCommand;
+class GetValueCommand;
 class NodeManager;
+class SetUserAttributeCommand;
+class SimplifyCommand;
 class SmtEngine;
+class SygusConstraintCommand;
+class SygusInvConstraintCommand;
 class SynthFunCommand;
 class Type;
 class TypeNode;
 class Options;
+class QueryCommand;
 class Random;
 class Result;
 
@@ -97,14 +119,19 @@ class CVC4_PUBLIC Result
   friend class Solver;
 
  public:
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param r the internal result that is to be wrapped by this result
-   * @return the Result
-   */
-  Result(const CVC4::Result& r);
+  enum UnknownExplanation
+  {
+    REQUIRES_FULL_CHECK,
+    INCOMPLETE,
+    TIMEOUT,
+    RESOURCEOUT,
+    MEMOUT,
+    INTERRUPTED,
+    NO_STATUS,
+    UNSUPPORTED,
+    OTHER,
+    UNKNOWN_REASON
+  };
 
   /** Constructor. */
   Result();
@@ -167,18 +194,21 @@ class CVC4_PUBLIC Result
   /**
    * @return an explanation for an unknown query result.
    */
-  std::string getUnknownExplanation() const;
+  UnknownExplanation getUnknownExplanation() const;
 
   /**
    * @return a string representation of this result.
    */
   std::string toString() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Result getResult(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param r the internal result that is to be wrapped by this result
+   * @return the Result
+   */
+  Result(const CVC4::Result& r);
+
   /**
    * The interal result wrapped by this result.
    * This is a shared_ptr rather than a unique_ptr since CVC4::Result is
@@ -188,12 +218,21 @@ class CVC4_PUBLIC Result
 };
 
 /**
- * Serialize a result to given stream.
+ * Serialize a Result to given stream.
  * @param out the output stream
  * @param r the result to be serialized to the given output stream
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_PUBLIC;
+
+/**
+ * Serialize an UnknownExplanation to given stream.
+ * @param out the output stream
+ * @param r the explanation to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out,
+                         enum Result::UnknownExplanation e) CVC4_PUBLIC;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -206,8 +245,19 @@ class Datatype;
  */
 class CVC4_PUBLIC Sort
 {
+  friend class CVC4::DatatypeDeclarationCommand;
+  friend class CVC4::DeclareFunctionCommand;
+  friend class CVC4::DeclareHeapCommand;
+  friend class CVC4::DeclareSortCommand;
+  friend class CVC4::DeclareSygusVarCommand;
+  friend class CVC4::DefineSortCommand;
+  friend class CVC4::GetAbductCommand;
+  friend class CVC4::GetInterpolCommand;
+  friend class CVC4::GetModelCommand;
+  friend class CVC4::SynthFunCommand;
   friend class DatatypeConstructor;
   friend class DatatypeConstructorDecl;
+  friend class DatatypeSelector;
   friend class DatatypeDecl;
   friend class Op;
   friend class Solver;
@@ -216,17 +266,6 @@ class CVC4_PUBLIC Sort
   friend class Term;
 
  public:
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param t the internal type that is to be wrapped by this sort
-   * @return the Sort
-   */
-  Sort(const Solver* slv, const CVC4::Type& t);
-  Sort(const Solver* slv, const CVC4::TypeNode& t);
-
   /**
    * Constructor.
    */
@@ -502,11 +541,6 @@ class CVC4_PUBLIC Sort
    */
   std::string toString() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Type getType(void) const;
-  const CVC4::TypeNode& getTypeNode(void) const;
-
   /* Constructor sort ------------------------------------------------------- */
 
   /**
@@ -671,6 +705,27 @@ class CVC4_PUBLIC Sort
   std::vector<Sort> getTupleSorts() const;
 
  private:
+  /** @return the internal wrapped TypeNode of this sort. */
+  const CVC4::TypeNode& getTypeNode(void) const;
+
+  /** Helper to convert a set of Sorts to internal TypeNodes. */
+  std::set<TypeNode> static sortSetToTypeNodes(const std::set<Sort>& sorts);
+  /* Helper to convert a vector of Sorts to internal TypeNodes. */
+  std::vector<TypeNode> static sortVectorToTypeNodes(
+      const std::vector<Sort>& sorts);
+  /** Helper to convert a vector of internal TypeNodes to Sorts. */
+  std::vector<Sort> static typeNodeVectorToSorts(
+      const Solver* slv, const std::vector<TypeNode>& types);
+
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param t the internal type that is to be wrapped by this sort
+   * @return the Sort
+   */
+  Sort(const Solver* slv, const CVC4::Type& t);
+  Sort(const Solver* slv, const CVC4::TypeNode& t);
+
   /**
    * Helper for isNull checks. This prevents calling an API function with
    * CVC4_API_CHECK_NOT_NULL
@@ -719,6 +774,7 @@ struct CVC4_PUBLIC SortHashFunction
 class CVC4_PUBLIC Op
 {
   friend class Solver;
+  friend class Term;
   friend struct OpHashFunction;
 
  public:
@@ -726,37 +782,6 @@ class CVC4_PUBLIC Op
    * Constructor.
    */
   Op();
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor for a single kind (non-indexed operator).
-   * @param slv the associated solver object
-   * @param k the kind of this Op
-   */
-  Op(const Solver* slv, const Kind k);
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param k the kind of this Op
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param k the kind of this Op
-   * @param n the internal node that is to be wrapped by this term
-   * @return the Term
-   */
-  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
 
   /**
    * Destructor.
@@ -814,11 +839,32 @@ class CVC4_PUBLIC Op
    */
   std::string toString() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Expr getExpr(void) const;
-
  private:
+  /**
+   * Constructor for a single kind (non-indexed operator).
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   */
+  Op(const Solver* slv, const Kind k);
+
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
+
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
+
   /**
    * Helper for isNull checks. This prevents calling an API function with
    * CVC4_API_CHECK_NOT_NULL
@@ -859,33 +905,33 @@ class CVC4_PUBLIC Op
  */
 class CVC4_PUBLIC Term
 {
+  friend class CVC4::AssertCommand;
+  friend class CVC4::BlockModelValuesCommand;
+  friend class CVC4::CheckSatCommand;
+  friend class CVC4::CheckSatAssumingCommand;
+  friend class CVC4::DeclareSygusVarCommand;
+  friend class CVC4::DefineFunctionCommand;
+  friend class CVC4::DefineFunctionRecCommand;
+  friend class CVC4::GetAbductCommand;
+  friend class CVC4::GetInterpolCommand;
+  friend class CVC4::GetModelCommand;
+  friend class CVC4::GetQuantifierEliminationCommand;
+  friend class CVC4::GetUnsatCoreCommand;
+  friend class CVC4::GetValueCommand;
+  friend class CVC4::SetUserAttributeCommand;
+  friend class CVC4::SimplifyCommand;
+  friend class CVC4::SygusConstraintCommand;
+  friend class CVC4::SygusInvConstraintCommand;
+  friend class CVC4::SynthFunCommand;
+  friend class CVC4::QueryCommand;
   friend class Datatype;
   friend class DatatypeConstructor;
+  friend class DatatypeSelector;
   friend class Solver;
   friend class Grammar;
   friend struct TermHashFunction;
 
  public:
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  Term(const Solver* slv, const CVC4::Expr& e);
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param n the internal node that is to be wrapped by this term
-   * @return the Term
-   */
-  Term(const Solver* slv, const CVC4::Node& n);
-
   /**
    * Constructor.
    */
@@ -942,11 +988,7 @@ class CVC4_PUBLIC Term
    */
   bool operator>=(const Term& t) const;
 
-  /**
-   * Returns the number of children of this term.
-   *
-   * @return the number of term
-   */
+  /** @return the number of children of this term  */
   size_t getNumChildren() const;
 
   /**
@@ -1162,60 +1204,62 @@ class CVC4_PUBLIC Term
   // to the new API. !!!
   CVC4::Expr getExpr(void) const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::Node& getNode(void) const;
-
   /**
-   * Returns true if the term is an integer that fits within std::int32_t.
+   * @return true if the term is an integer that fits within std::int32_t.
    */
   bool isInt32() const;
   /**
-   * Returns the stored integer as a std::int32_t. Asserts isInt32().
+   * @return the stored integer as a std::int32_t.
+   * Note: Asserts isInt32().
    */
   std::int32_t getInt32() const;
   /**
-   * Returns true if the term is an integer that fits within std::uint32_t.
+   * @return true if the term is an integer that fits within std::uint32_t.
    */
   bool isUInt32() const;
   /**
-   * Returns the stored integer as a std::uint32_t. Asserts isUInt32().
+   * @return the stored integer as a std::uint32_t.
+   * Note: Asserts isUInt32().
    */
   std::uint32_t getUInt32() const;
   /**
-   * Returns true if the term is an integer that fits within std::int64_t.
+   * @return true if the term is an integer that fits within std::int64_t.
    */
   bool isInt64() const;
   /**
-   * Returns the stored integer as a std::int64_t. Asserts isInt64().
+   * @return the stored integer as a std::int64_t.
+   * Note: Asserts isInt64().
    */
   std::int64_t getInt64() const;
   /**
-   * Returns true if the term is an integer that fits within std::uint64_t.
+   * @return true if the term is an integer that fits within std::uint64_t.
    */
   bool isUInt64() const;
   /**
-   * Returns the stored integer as a std::uint64_t. Asserts isUInt64().
+   * @return the stored integer as a std::uint64_t.
+   * Note: Asserts isUInt64().
    */
   std::uint64_t getUInt64() const;
   /**
-   * Returns true if the term is an integer.
+   * @return true if the term is an integer.
    */
   bool isInteger() const;
   /**
-   * Returns the stored integer in (decimal) string representation. Asserts
-   * isInteger().
+   * @return the stored integer in (decimal) string representation.
+   * Note: Asserts isInteger().
    */
   std::string getInteger() const;
 
   /**
-   * Returns true if the term is a string constant.
+   * @return true if the term is a string constant.
    */
   bool isString() const;
   /**
-   * Returns the stored string constant. This method is not to be confused with
-   * toString() which returns the term in some string representation, whatever
-   * data it may hold. Asserts isString().
+   * @return the stored string constant.
+   *
+   * Note: This method is not to be confused with toString() which returns the
+   *       term in some string representation, whatever data it may hold.
+   *       Asserts isString().
    */
   std::wstring getString() const;
 
@@ -1226,6 +1270,28 @@ class CVC4_PUBLIC Term
   const Solver* d_solver;
 
  private:
+  /* Helper to convert a vector of Terms to internal Nodes. */
+  std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
+
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  Term(const Solver* slv, const CVC4::Expr& e);
+
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Term(const Solver* slv, const CVC4::Node& n);
+
+  /** @return the internal wrapped Node of this term. */
+  const CVC4::Node& getNode(void) const;
+
   /**
    * Helper for isNull checks. This prevents calling an API function with
    * CVC4_API_CHECK_NOT_NULL
@@ -1240,7 +1306,7 @@ class CVC4_PUBLIC Term
   Kind getKindHelper() const;
 
   /**
-   * returns true if the current term is a constant integer that is casted into
+   * @return true if the current term is a constant integer that is casted into
    * real using the operator CAST_TO_REAL, and returns false otherwise
    */
   bool isCastedReal() const;
@@ -1353,9 +1419,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   friend class Solver;
 
  public:
-  /**
-   * Nullary constructor for Cython.
-   */
+  /** Constructor.  */
   DatatypeConstructorDecl();
 
   /**
@@ -1379,10 +1443,6 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * @return a string representation of this datatype constructor declaration
    */
   std::string toString() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1408,6 +1468,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 };
 
 class Solver;
+
 /**
  * A CVC4 datatype declaration.
  */
@@ -1418,9 +1479,7 @@ class CVC4_PUBLIC DatatypeDecl
   friend class Grammar;
 
  public:
-  /**
-   * Nullary constructor for Cython.
-   */
+  /** Constructor.  */
   DatatypeDecl();
 
   /**
@@ -1452,10 +1511,6 @@ class CVC4_PUBLIC DatatypeDecl
 
   /** @return the name of this datatype declaration. */
   std::string getName() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1495,6 +1550,9 @@ class CVC4_PUBLIC DatatypeDecl
                const std::vector<Sort>& params,
                bool isCoDatatype = false);
 
+  /** @return the internal wrapped Dtype of this datatype declaration. */
+  CVC4::DType& getDatatype(void) const;
+
   /**
    * Helper for isNull checks. This prevents calling an API function with
    * CVC4_API_CHECK_NOT_NULL
@@ -1528,16 +1586,6 @@ class CVC4_PUBLIC DatatypeSelector
    */
   DatatypeSelector();
 
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param stor the internal datatype selector to be wrapped
-   * @return the DatatypeSelector
-   */
-  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
-
   /**
    * Destructor.
    */
@@ -1560,11 +1608,15 @@ class CVC4_PUBLIC DatatypeSelector
    */
   std::string toString() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::DTypeSelector getDatatypeConstructorArg(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param stor the internal datatype selector to be wrapped
+   * @return the DatatypeSelector
+   */
+  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
+
   /**
    * The associated solver object.
    */
@@ -1591,15 +1643,6 @@ class CVC4_PUBLIC DatatypeConstructor
    * Constructor.
    */
   DatatypeConstructor();
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param ctor the internal datatype constructor to be wrapped
-   * @return the DatatypeConstructor
-   */
-  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1772,11 +1815,14 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   const_iterator end() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param ctor the internal datatype constructor to be wrapped
+   * @return the DatatypeConstructor
+   */
+  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
+
   /**
    * Return selector for name.
    * @param name The name of selector to find
@@ -1806,16 +1852,7 @@ class CVC4_PUBLIC Datatype
   friend class Sort;
 
  public:
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param dtype the internal datatype to be wrapped
-   * @return the Datatype
-   */
-  Datatype(const Solver* slv, const CVC4::DType& dtype);
-
-  // Nullary constructor for Cython
+  /** Constructor. */
   Datatype();
 
   /**
@@ -1986,11 +2023,14 @@ class CVC4_PUBLIC Datatype
    */
   const_iterator end() const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  const CVC4::DType& getDatatype(void) const;
-
  private:
+  /**
+   * Constructor.
+   * @param dtype the internal datatype to be wrapped
+   * @return the Datatype
+   */
+  Datatype(const Solver* slv, const CVC4::DType& dtype);
+
   /**
    * Return constructor for name.
    * @param name The name of constructor to find
@@ -2129,7 +2169,6 @@ class CVC4_PUBLIC Grammar
           const std::vector<Term>& ntSymbols);
 
   /**
-   * Returns the resolved datatype of the Start symbol of the grammar.
    * @return the resolved datatype of the Start symbol of the grammar
    */
   Sort resolve();
@@ -2156,7 +2195,8 @@ class CVC4_PUBLIC Grammar
       Term term,
       const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const;
 
-  /** Purify sygus grammar term
+  /**
+   * Purify SyGuS grammar term.
    *
    * This returns a term where all occurrences of non-terminal symbols (those
    * in the domain of <ntsToUnres>) are replaced by fresh variables. For
@@ -2619,6 +2659,14 @@ class CVC4_PUBLIC Solver
    * @param arg2 the second uint32_t argument to this operator
    */
   Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const;
+
+  /**
+   * Create operator of Kind:
+   *   - TUPLE_PROJECT
+   * See enum Kind for a description of the parameters.
+   * @param kind the kind of the operator
+   */
+  Op mkOp(Kind kind, const std::vector<uint32_t>& args) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -3514,9 +3562,7 @@ class CVC4_PUBLIC Solver
   Options& getOptions(void);
 
  private:
-  /* Helper to convert a vector of internal types to sorts. */
-  std::vector<Type> sortVectorToTypes(const std::vector<Sort>& vector) const;
-  /* Helper to convert a vector of sorts to internal types. */
+  /* Helper to convert a vector of Terms to internal Exprs. */
   std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
   /* Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
@@ -3609,16 +3655,6 @@ class CVC4_PUBLIC Solver
 // !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
-std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
-std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
-std::vector<TypeNode> sortVectorToTypeNodes(const std::vector<Sort>& sorts);
-std::set<TypeNode> sortSetToTypeNodes(const std::set<Sort>& sorts);
-std::vector<Term> exprVectorToTerms(const Solver* slv,
-                                    const std::vector<Expr>& terms);
-std::vector<Sort> typeVectorToSorts(const Solver* slv,
-                                    const std::vector<Type>& sorts);
-std::vector<Sort> typeNodeVectorToSorts(const Solver* slv,
-                                        const std::vector<TypeNode>& types);
 
 }  // namespace api
 

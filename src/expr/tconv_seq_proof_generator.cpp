@@ -14,6 +14,10 @@
 
 #include "expr/tconv_seq_proof_generator.h"
 
+#include <sstream>
+
+#include "expr/proof_node_manager.h"
+
 namespace CVC4 {
 
 TConvSeqProofGenerator::TConvSeqProofGenerator(

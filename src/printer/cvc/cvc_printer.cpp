@@ -25,6 +25,8 @@
 #include <vector>
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/dtype_selector.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -661,14 +663,8 @@ void CvcPrinter::toStreamNode(std::ostream& out,
     case kind::BITVECTOR_UDIV:
       op << "BVUDIV";
       break;
-    case kind::BITVECTOR_UDIV_TOTAL:
-      op << "BVUDIV_TOTAL";
-      break;
     case kind::BITVECTOR_UREM:
       op << "BVUREM";
-      break;
-    case kind::BITVECTOR_UREM_TOTAL:
-      op << "BVUREM_TOTAL";
       break;
     case kind::BITVECTOR_SDIV:
       op << "BVSDIV";
@@ -1418,13 +1414,9 @@ void CvcPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void CvcPrinter::toStreamCmdSetInfo(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const
+                                    const std::string& value) const
 {
-  out << "% (set-info " << flag << ' ';
-  OutputLanguage language =
-      d_cvc3Mode ? language::output::LANG_CVC3 : language::output::LANG_CVC4;
-  SExpr::toStream(out, sexpr, language);
-  out << ')' << std::endl;
+  out << "% (set-info " << flag << ' ' << value << ')' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetInfo(std::ostream& out,
@@ -1435,11 +1427,9 @@ void CvcPrinter::toStreamCmdGetInfo(std::ostream& out,
 
 void CvcPrinter::toStreamCmdSetOption(std::ostream& out,
                                       const std::string& flag,
-                                      SExpr sexpr) const
+                                      const std::string& value) const
 {
-  out << "OPTION \"" << flag << "\" ";
-  SExpr::toStream(out, sexpr, language::output::LANG_CVC4);
-  out << ';' << std::endl;
+  out << "OPTION \"" << flag << "\" " << value << ';' << std::endl;
 }
 
 void CvcPrinter::toStreamCmdGetOption(std::ostream& out,

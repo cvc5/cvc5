@@ -15,10 +15,15 @@
 #ifndef CVC4__THEORY__ARITH__ICP__INTERSECTION_H
 #define CVC4__THEORY__ARITH__ICP__INTERSECTION_H
 
-#include "util/real_algebraic_number.h"
+#include "cvc4_private.h"
 
 #ifdef CVC4_POLY_IMP
-#include <poly/polyxx.h>
+
+#include <cstddef>
+
+namespace poly {
+  class Interval;
+}
 
 namespace CVC4 {
 namespace theory {

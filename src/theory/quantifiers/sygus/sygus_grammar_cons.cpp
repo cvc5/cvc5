@@ -16,6 +16,7 @@
 
 #include <stack>
 
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -816,8 +817,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
                                      BITVECTOR_PLUS,
                                      BITVECTOR_SUB,
                                      BITVECTOR_MULT,
-                                     BITVECTOR_UDIV_TOTAL,
-                                     BITVECTOR_UREM_TOTAL,
+                                     BITVECTOR_UDIV,
+                                     BITVECTOR_UREM,
                                      BITVECTOR_SDIV,
                                      BITVECTOR_SREM,
                                      BITVECTOR_SHL,

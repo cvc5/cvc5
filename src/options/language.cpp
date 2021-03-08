@@ -16,39 +16,34 @@
 
 #include "options/language.h"
 
+#include <sstream>
+
+#include "base/exception.h"
+#include "options/option_exception.h"
+
 namespace CVC4 {
 namespace language {
 
 /** define the end points of smt2 languages */
 namespace input {
+Language LANG_SMTLIB_V2_START = LANG_SMTLIB_V2_6;
 Language LANG_SMTLIB_V2_END = LANG_SMTLIB_V2_6;
 }
 namespace output {
+Language LANG_SMTLIB_V2_START = LANG_SMTLIB_V2_6;
 Language LANG_SMTLIB_V2_END = LANG_SMTLIB_V2_6;
 }
 
 bool isInputLang_smt2(InputLanguage lang)
 {
-  return lang >= input::LANG_SMTLIB_V2_0 && lang <= input::LANG_SMTLIB_V2_END;
+  return lang >= input::LANG_SMTLIB_V2_START
+         && lang <= input::LANG_SMTLIB_V2_END;
 }
 
 bool isOutputLang_smt2(OutputLanguage lang)
 {
-  return lang >= output::LANG_SMTLIB_V2_0 && lang <= output::LANG_SMTLIB_V2_END;
-}
-
-bool isInputLang_smt2_5(InputLanguage lang, bool exact)
-{
-  return exact ? lang == input::LANG_SMTLIB_V2_5
-               : (lang >= input::LANG_SMTLIB_V2_5
-                  && lang <= input::LANG_SMTLIB_V2_END);
-}
-
-bool isOutputLang_smt2_5(OutputLanguage lang, bool exact)
-{
-  return exact ? lang == output::LANG_SMTLIB_V2_5
-               : (lang >= output::LANG_SMTLIB_V2_5
-                  && lang <= output::LANG_SMTLIB_V2_END);
+  return lang >= output::LANG_SMTLIB_V2_START
+         && lang <= output::LANG_SMTLIB_V2_END;
 }
 
 bool isInputLang_smt2_6(InputLanguage lang, bool exact)
@@ -77,8 +72,6 @@ bool isOutputLangSygus(OutputLanguage lang)
 
 InputLanguage toInputLanguage(OutputLanguage language) {
   switch(language) {
-  case output::LANG_SMTLIB_V2_0:
-  case output::LANG_SMTLIB_V2_5:
   case output::LANG_SMTLIB_V2_6:
   case output::LANG_TPTP:
   case output::LANG_CVC4:
@@ -97,8 +90,6 @@ InputLanguage toInputLanguage(OutputLanguage language) {
 
 OutputLanguage toOutputLanguage(InputLanguage language) {
   switch(language) {
-  case input::LANG_SMTLIB_V2_0:
-  case input::LANG_SMTLIB_V2_5:
   case input::LANG_SMTLIB_V2_6:
   case input::LANG_TPTP:
   case input::LANG_CVC4:
@@ -128,14 +119,6 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_CVC4;
   } else if(language == "cvc3" || language == "LANG_CVC3") {
     return output::LANG_CVC3;
-  }
-  else if (language == "smtlib2.0" || language == "smt2.0"
-           || language == "LANG_SMTLIB_V2_0")
-  {
-    return output::LANG_SMTLIB_V2_0;
-  } else if(language == "smtlib2.5" || language == "smt2.5" ||
-            language == "LANG_SMTLIB_V2_5") {
-    return output::LANG_SMTLIB_V2_5;
   }
   else if (language == "smtlib" || language == "smt" || language == "smtlib2"
            || language == "smt2" || language == "smtlib2.6"
@@ -168,12 +151,6 @@ InputLanguage toInputLanguage(std::string language) {
      language == "presentation" || language == "native" ||
      language == "LANG_CVC4") {
     return input::LANG_CVC4;
-  } else if(language == "smtlib2.0" || language == "smt2.0" ||
-            language == "LANG_SMTLIB_V2_0") {
-    return input::LANG_SMTLIB_V2_0;
-  } else if(language == "smtlib2.5" || language == "smt2.5" ||
-            language == "LANG_SMTLIB_V2_5") {
-    return input::LANG_SMTLIB_V2_5;
   } else if(language == "smtlib" || language == "smt" ||
             language == "smtlib2" || language == "smt2" ||
             language == "smtlib2.6" || language == "smt2.6" ||

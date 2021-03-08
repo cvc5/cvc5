@@ -16,10 +16,13 @@
 #include "theory/datatypes/theory_datatypes.h"
 
 #include <map>
+#include <sstream>
 
 #include "base/check.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
@@ -1562,10 +1565,14 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   // may contribute to conflicts due to cardinality (good examples of this are
   // regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  bool forceLemma = true;
+  bool forceLemma;
   if (options::dtPoliteOptimize())
   {
     forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  }
+  else
+  {
+    forceLemma = dt.involvesExternalType();
   }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;

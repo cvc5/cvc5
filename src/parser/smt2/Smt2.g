@@ -480,12 +480,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
 
     /* New SMT-LIB 2.5 command set */
   | smt25Command[cmd]
-    { if(PARSER_STATE->v2_0() && PARSER_STATE->strictModeEnabled()) {
-        PARSER_STATE->parseError(
-            "SMT-LIB 2.5 commands are not permitted while operating in strict "
-            "compliance mode and in SMT-LIB 2.0 mode.");
-      }
-    }
 
     /* CVC4-extended SMT-LIB commands */
   | extendedCommand[cmd]
@@ -900,9 +894,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
-  : DECLARE_DATATYPES_2_5_TOK datatypes_2_5_DefCommand[false, cmd]
-  | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
-  | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
+  : DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
@@ -1079,32 +1071,6 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
                                  "parentheses?");
       }
     )
-  ;
-
-
-datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
-@declarations {
-  std::vector<api::DatatypeDecl> dts;
-  std::string name;
-  std::vector<api::Sort> sorts;
-  std::vector<std::string> dnames;
-  std::vector<unsigned> arities;
-}
-  : { PARSER_STATE->checkThatLogicIsSet();
-    /* open a scope to keep the UnresolvedTypes contained */
-    PARSER_STATE->pushScope(); }
-  LPAREN_TOK /* parametric sorts */
-  ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-    {
-      sorts.push_back(PARSER_STATE->mkSort(name));
-    }
-  )*
-  RPAREN_TOK
-  LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
-  { PARSER_STATE->popScope();
-    cmd->reset(new DatatypeDeclarationCommand(
-        PARSER_STATE->bindMutualDatatypeTypes(dts, true)));
-  }
   ;
 
 datatypeDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
@@ -1549,6 +1515,12 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
     }
     expr = SOLVER->mkTuple(sorts, terms);
   }
+  | LPAREN_TOK TUPLE_PROJECT_TOK term[expr,expr2] RPAREN_TOK
+  {
+    std::vector<uint32_t> indices;
+    api::Op op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
+    expr = SOLVER->mkTerm(op, expr);
+  }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm; }
   ;
@@ -1671,6 +1643,19 @@ identifier[CVC4::ParseOp& p]
         p.d_kind = api::APPLY_SELECTOR;
         // put m in expr so that the caller can deal with this case
         p.d_expr = SOLVER->mkInteger(AntlrInput::tokenToUnsigned($m));
+      }
+    | TUPLE_PROJECT_TOK nonemptyNumeralList[numerals]
+      {
+        // we adopt a special syntax (_ tuple_project i_1 ... i_n) where
+        // i_1, ..., i_n are numerals
+        p.d_kind = api::TUPLE_PROJECT;
+        std::vector<uint32_t> indices(numerals.size());
+        for(size_t i = 0; i < numerals.size(); ++i)
+        {
+          // convert uint64_t to uint32_t
+          indices[i] = numerals[i];
+        }
+        p.d_op = SOLVER->mkOp(api::TUPLE_PROJECT, indices);
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
@@ -2207,7 +2192,7 @@ GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
-RESET_TOK : { PARSER_STATE->v2_5() }? 'reset';
+RESET_TOK : 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
 LET_TOK : 'let';
 ATTRIBUTE_TOK : '!';
@@ -2279,6 +2264,7 @@ EMP_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_SEP) }? 'emp';
 CHAR_TOK : { PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) }? 'char';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'mkTuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tupSel';
+TUPLE_PROJECT_TOK: { PARSER_STATE->isTheoryEnabled(theory::THEORY_DATATYPES) }? 'tuple_project';
 
 HO_ARROW_TOK : { PARSER_STATE->isHoEnabled() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->isHoEnabled() }? 'lambda';

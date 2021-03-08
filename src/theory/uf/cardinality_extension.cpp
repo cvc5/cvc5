@@ -14,6 +14,8 @@
 
 #include "theory/uf/cardinality_extension.h"
 
+#include <sstream>
+
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/term_database.h"
@@ -740,7 +742,7 @@ void SortModel::check(Theory::Effort level)
   Trace("uf-ss-debug") << "No splits added. " << d_cardinality << std::endl;
   Trace("uf-ss-si") << "Must combine region" << std::endl;
   bool recheck = false;
-  SortInference* si = d_thss->getSortInference();
+  SortInference* si = d_state.getSortInference();
   if (si != nullptr)
   {
     // If sort inference is enabled, search for regions with same sort.
@@ -1021,14 +1023,18 @@ int SortModel::addSplit(Region* r)
         AlwaysAssert(false);
       }
     }
-    SortInference* si = d_thss->getSortInference();
-    if (si != nullptr)
+    if (Trace.isOn("uf-ss-split-si"))
     {
-      for( int i=0; i<2; i++ ){
-        int sid = si->getSortId(ss[i]);
-        Trace("uf-ss-split-si") << sid << " ";
+      SortInference* si = d_state.getSortInference();
+      if (si != nullptr)
+      {
+        for (size_t i = 0; i < 2; i++)
+        {
+          int sid = si->getSortId(ss[i]);
+          Trace("uf-ss-split-si") << sid << " ";
+        }
+        Trace("uf-ss-split-si") << std::endl;
       }
-      Trace("uf-ss-split-si")  << std::endl;
     }
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areEqual( s[0], s[1] ) << " ";
     //Trace("uf-ss-lemma") << d_th->getEqualityEngine()->areDisequal( s[0], s[1] ) << std::endl;
@@ -1247,20 +1253,6 @@ CardinalityExtension::~CardinalityExtension()
   }
 }
 
-SortInference* CardinalityExtension::getSortInference()
-{
-  if (!options::sortInference())
-  {
-    return nullptr;
-  }
-  QuantifiersEngine* qe = d_th->getQuantifiersEngine();
-  if (qe != nullptr)
-  {
-    return qe->getTheoryEngine()->getSortInference();
-  }
-  return nullptr;
-}
-
 /** ensure eqc */
 void CardinalityExtension::ensureEqc(SortModel* c, Node a)
 {
@@ -1351,12 +1343,12 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
       Trace("uf-ss-debug") << "...check cardinality terms : " << lit[0] << " " << ct << std::endl;
       if( lit[0]==ct ){
         if( options::ufssFairnessMonotone() ){
+          SortInference* si = d_state.getSortInference();
           Trace("uf-ss-com-card-debug") << "...set master/slave" << std::endl;
           if( tn!=d_tn_mono_master ){
             std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
             if( it==d_tn_mono_slave.end() ){
               bool isMonotonic;
-              SortInference* si = getSortInference();
               if (si != nullptr)
               {
                 isMonotonic = si->isMonotonic(tn);

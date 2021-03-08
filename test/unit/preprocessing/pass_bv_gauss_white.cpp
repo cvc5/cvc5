@@ -20,6 +20,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "preprocessing/passes/bv_gauss.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -959,7 +960,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique2)
       d_x);
   Node y_mul_one = d_nodeManager->mkNode(
       kind::BITVECTOR_MULT,
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM_TOTAL, d_one, d_five),
+      d_nodeManager->mkNode(kind::BITVECTOR_UREM, d_one, d_five),
       d_y);
   Node z_mul_one =
       d_nodeManager->mkNode(kind::BITVECTOR_MULT, bv::utils::mkOne(32), d_z);
@@ -988,7 +989,7 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_unique2)
   Node x_mul_four = d_nodeManager->mkNode(
       kind::BITVECTOR_MULT,
       d_nodeManager->mkNode(
-          kind::BITVECTOR_UDIV_TOTAL,
+          kind::BITVECTOR_UDIV,
           d_nodeManager->mkNode(
               kind::BITVECTOR_PLUS,
               d_nodeManager->mkNode(kind::BITVECTOR_MULT,
@@ -2192,11 +2193,11 @@ TEST_F(TestPPWhiteBVGauss, elim_rewrite_for_urem_not_invalid1)
    * ------------------------------------------------------------------- */
 
   Node n1 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UDIV_TOTAL,
+      kind::BITVECTOR_UDIV,
       d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_three, d_x),
       d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_two, d_y));
   Node n2 = d_nodeManager->mkNode(
-      kind::BITVECTOR_UREM_TOTAL,
+      kind::BITVECTOR_UREM,
       d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_two, d_x),
       d_nodeManager->mkNode(kind::BITVECTOR_MULT, d_five, d_y));
 
@@ -2698,39 +2699,29 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw1)
   Node concat2x = bv::utils::mkConcat(bv::utils::mkZero(16), zext48x);
   ASSERT_EQ(BVGauss::getMinBwExpr(concat2x), 16);
 
-  Node udiv1p =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48p, zext48p);
+  Node udiv1p = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48p, zext48p);
   ASSERT_EQ(BVGauss::getMinBwExpr(udiv1p), 1);
-  Node udiv1x =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48x, zext48x);
+  Node udiv1x = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48x, zext48x);
   ASSERT_EQ(BVGauss::getMinBwExpr(udiv1x), 48);
 
-  Node udiv2p =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48p, zext48p8);
+  Node udiv2p = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48p, zext48p8);
   ASSERT_EQ(BVGauss::getMinBwExpr(udiv2p), 1);
-  Node udiv2x =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, zext48x, zext48x8);
+  Node udiv2x = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, zext48x, zext48x8);
   ASSERT_EQ(BVGauss::getMinBwExpr(udiv2x), 48);
 
-  Node urem1p =
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48p, zext48p);
+  Node urem1p = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48p, zext48p);
   ASSERT_EQ(BVGauss::getMinBwExpr(urem1p), 1);
-  Node urem1x =
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48x, zext48x);
+  Node urem1x = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48x, zext48x);
   ASSERT_EQ(BVGauss::getMinBwExpr(urem1x), 1);
 
-  Node urem2p =
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48p, zext48p8);
+  Node urem2p = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48p, zext48p8);
   ASSERT_EQ(BVGauss::getMinBwExpr(urem2p), 1);
-  Node urem2x =
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48x, zext48x8);
+  Node urem2x = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48x, zext48x8);
   ASSERT_EQ(BVGauss::getMinBwExpr(urem2x), 16);
 
-  Node urem3p =
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48p8, zext48p);
+  Node urem3p = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48p8, zext48p);
   ASSERT_EQ(BVGauss::getMinBwExpr(urem3p), 1);
-  Node urem3x =
-      d_nodeManager->mkNode(kind::BITVECTOR_UREM_TOTAL, zext48x8, zext48x);
+  Node urem3x = d_nodeManager->mkNode(kind::BITVECTOR_UREM, zext48x8, zext48x);
   ASSERT_EQ(BVGauss::getMinBwExpr(urem3x), 8);
 
   Node add1p = d_nodeManager->mkNode(kind::BITVECTOR_PLUS, extp, extp);
@@ -2805,11 +2796,11 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw3a)
   Node z = d_nodeManager->mkVar("z", d_nodeManager->mkBitVectorType(16));
   Node zextop5 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, x, y);
+  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, x, y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
   Node ext1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2 = bv::utils::mkExtract(z, 4, 0);
-  Node udiv2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1, ext2);
+  Node udiv2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1, ext2);
   Node zext2 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2);
   ASSERT_EQ(BVGauss::getMinBwExpr(zext2), 5);
 }
@@ -2821,11 +2812,11 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw3b)
    *             ((_ extract 4 0) z)))  */
   Node zextop5 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(5));
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, d_x, d_y);
+  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, d_x, d_y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
   Node ext1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2 = bv::utils::mkExtract(d_z, 4, 0);
-  Node udiv2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1, ext2);
+  Node udiv2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1, ext2);
   Node zext2 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2);
   ASSERT_EQ(BVGauss::getMinBwExpr(zext2), 5);
 }
@@ -2847,19 +2838,17 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw4a)
   Node zextop7 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(7));
 
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, x, y);
+  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, x, y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
 
   Node ext1_1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2_1 = bv::utils::mkExtract(z, 4, 0);
-  Node udiv2_1 =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_1, ext2_1);
+  Node udiv2_1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_1, ext2_1);
   Node zext2_1 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2_1);
 
   Node ext1_2 = bv::utils::mkExtract(zext1, 2, 0);
   Node ext2_2 = bv::utils::mkExtract(z, 2, 0);
-  Node udiv2_2 =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_2, ext2_2);
+  Node udiv2_2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_2, ext2_2);
   Node zext2_2 = d_nodeManager->mkNode(zextop7, udiv2_2);
 
   Node plus = d_nodeManager->mkNode(kind::BITVECTOR_PLUS, zext2_1, zext2_2);
@@ -2881,19 +2870,17 @@ TEST_F(TestPPWhiteBVGauss, get_min_bw4b)
   Node zextop7 =
       d_nodeManager->mkConst<BitVectorZeroExtend>(BitVectorZeroExtend(7));
 
-  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, d_x, d_y);
+  Node udiv1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, d_x, d_y);
   Node zext1 = d_nodeManager->mkNode(zextop5, udiv1);
 
   Node ext1_1 = bv::utils::mkExtract(zext1, 4, 0);
   Node ext2_1 = bv::utils::mkExtract(d_z, 4, 0);
-  Node udiv2_1 =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_1, ext2_1);
+  Node udiv2_1 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_1, ext2_1);
   Node zext2_1 = bv::utils::mkConcat(bv::utils::mkZero(5), udiv2_1);
 
   Node ext1_2 = bv::utils::mkExtract(zext1, 2, 0);
   Node ext2_2 = bv::utils::mkExtract(d_z, 2, 0);
-  Node udiv2_2 =
-      d_nodeManager->mkNode(kind::BITVECTOR_UDIV_TOTAL, ext1_2, ext2_2);
+  Node udiv2_2 = d_nodeManager->mkNode(kind::BITVECTOR_UDIV, ext1_2, ext2_2);
   Node zext2_2 = d_nodeManager->mkNode(zextop7, udiv2_2);
 
   Node plus = d_nodeManager->mkNode(kind::BITVECTOR_PLUS, zext2_1, zext2_2);

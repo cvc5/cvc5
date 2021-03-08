@@ -31,7 +31,6 @@ namespace smt2 {
 enum Variant
 {
   no_variant,
-  smt2_0_variant,  // old-style 2.0 syntax, when it makes a difference
   smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
                    // support for the string standard
 };                 /* enum Variant */
@@ -178,7 +177,7 @@ class Smt2Printer : public CVC4::Printer
   /** Print set-info command */
   void toStreamCmdSetInfo(std::ostream& out,
                           const std::string& flag,
-                          SExpr sexpr) const override;
+                          const std::string& value) const override;
 
   /** Print get-info command */
   void toStreamCmdGetInfo(std::ostream& out,
@@ -187,7 +186,7 @@ class Smt2Printer : public CVC4::Printer
   /** Print set-option command */
   void toStreamCmdSetOption(std::ostream& out,
                             const std::string& flag,
-                            SExpr sexpr) const override;
+                            const std::string& value) const override;
 
   /** Print get-option command */
   void toStreamCmdGetOption(std::ostream& out,
@@ -222,6 +221,12 @@ class Smt2Printer : public CVC4::Printer
   /** Print declaration sequence command */
   void toStreamCmdDeclarationSequence(
       std::ostream& out, const std::vector<Command*>& sequence) const override;
+
+  /**
+   * Get the string for a kind k, which returns how the kind k is printed in
+   * the SMT-LIB format (with variant v).
+   */
+  static std::string smtKindString(Kind k, Variant v = smt2_6_variant);
 
  private:
   /**

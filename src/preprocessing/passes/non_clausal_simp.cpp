@@ -20,7 +20,13 @@
 
 #include "context/cdo.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "smt/preprocess_proof_generator.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/booleans/circuit_propagator.h"
+#include "theory/theory.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
@@ -232,7 +238,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
             c = learnedLiteral[1];
           }
           Assert(!t.isConst());
-          Assert(cps.apply(t) == t);
+          Assert(cps.apply(t, true) == t);
           Assert(top_level_substs.apply(t) == t);
           Assert(nss.apply(t) == t);
           // also add to learned literal
@@ -289,7 +295,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << "Resize non-clausal learned literals to " << j << std::endl;
   learned_literals.resize(j);
 
-  unordered_set<TNode, TNodeHashFunction> s;
+  std::unordered_set<TNode, TNodeHashFunction> s;
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Node assertion = (*assertionsToPreprocess)[i];

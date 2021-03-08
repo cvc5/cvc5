@@ -1092,6 +1092,18 @@ enum class PfRule : uint32_t
   // Conclusion: (Q)
   INT_TRUST,
 
+  //======== Multiplication sign inference
+  // Children: none
+  // Arguments: (f1, ..., fk, m)
+  // ---------------------
+  // Conclusion: (=> (and f1 ... fk) (~ m 0))
+  // Where f1, ..., fk are variables compared to zero (less, greater or not
+  // equal), m is a monomial from these variables, and ~ is the comparison (less
+  // or greater) that results from the signs of the variables. All variables
+  // with even exponent in m should be given as not equal to zero while all
+  // variables with odd exponent in m should be given as less or greater than
+  // zero.
+  ARITH_MULT_SIGN,
   //======== Multiplication with positive factor
   // Children: none
   // Arguments: (m, orig, lhs, rel, rhs)

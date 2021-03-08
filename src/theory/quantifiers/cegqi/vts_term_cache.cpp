@@ -17,6 +17,7 @@
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 

@@ -24,6 +24,7 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -106,23 +107,8 @@ class TheoryBV : public Theory
  private:
   void notifySharedTerm(TNode t) override;
 
-  /**
-   * Return the UF symbol corresponding to division-by-zero for this particular
-   * bit-width.
-   * @param k should be UREM or UDIV
-   * @param width bit-width
-   */
-  Node getUFDivByZero(Kind k, unsigned width);
-
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
-
-  /**
-   * Maps from bit-vector width to division-by-zero uninterpreted
-   * function symbols.
-   */
-  std::unordered_map<unsigned, Node> d_ufDivByZero;
-  std::unordered_map<unsigned, Node> d_ufRemByZero;
 
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;

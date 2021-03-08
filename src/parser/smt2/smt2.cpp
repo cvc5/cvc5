@@ -180,26 +180,12 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_UNIT, "seq.unit");
     addOperator(api::SEQ_NTH, "seq.nth");
   }
-  // at the moment, we only use this syntax for smt2.6
-  if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-      || getLanguage() == language::input::LANG_SYGUS_V2)
-  {
-    addOperator(api::STRING_FROM_INT, "str.from_int");
-    addOperator(api::STRING_TO_INT, "str.to_int");
-    addOperator(api::STRING_IN_REGEXP, "str.in_re");
-    addOperator(api::STRING_TO_REGEXP, "str.to_re");
-    addOperator(api::STRING_TO_CODE, "str.to_code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
-  }
-  else
-  {
-    addOperator(api::STRING_FROM_INT, "int.to.str");
-    addOperator(api::STRING_TO_INT, "str.to.int");
-    addOperator(api::STRING_IN_REGEXP, "str.in.re");
-    addOperator(api::STRING_TO_REGEXP, "str.to.re");
-    addOperator(api::STRING_TO_CODE, "str.code");
-    addOperator(api::STRING_REPLACE_ALL, "str.replaceall");
-  }
+  addOperator(api::STRING_FROM_INT, "str.from_int");
+  addOperator(api::STRING_TO_INT, "str.to_int");
+  addOperator(api::STRING_IN_REGEXP, "str.in_re");
+  addOperator(api::STRING_TO_REGEXP, "str.to_re");
+  addOperator(api::STRING_TO_CODE, "str.to_code");
+  addOperator(api::STRING_REPLACE_ALL, "str.replace_all");
 
   addOperator(api::REGEXP_CONCAT, "re.++");
   addOperator(api::REGEXP_UNION, "re.union");
@@ -656,15 +642,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     defineType("RegLan", d_solver->getRegExpSort(), true, true);
     defineType("Int", d_solver->getIntegerSort(), true, true);
 
-    if (getLanguage() == language::input::LANG_SMTLIB_V2_6
-        || getLanguage() == language::input::LANG_SYGUS_V2)
-    {
-      defineVar("re.none", d_solver->mkRegexpEmpty());
-    }
-    else
-    {
-      defineVar("re.nostr", d_solver->mkRegexpEmpty());
-    }
+    defineVar("re.none", d_solver->mkRegexpEmpty());
     defineVar("re.allchar", d_solver->mkRegexpSigma());
 
     // Boolean is a placeholder
@@ -1095,6 +1073,12 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     api::Term ret = d_solver->mkTerm(
         api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
+    return ret;
+  }
+  else if (p.d_kind == api::TUPLE_PROJECT)
+  {
+    api::Term ret = d_solver->mkTerm(p.d_op, args[0]);
+    Debug("parser") << "applyParseOp: return projection " << ret << std::endl;
     return ret;
   }
   else if (p.d_kind != api::NULL_EXPR)

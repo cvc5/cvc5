@@ -18,6 +18,7 @@
 #include "preprocessing/passes/bv_to_int.h"
 
 #include <cmath>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -26,6 +27,8 @@
 #include "expr/node_traversal.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
@@ -34,6 +37,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
@@ -187,20 +191,6 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SgtEliminate>,
                                   RewriteRule<SgeEliminate>>::apply(current);
 
-      // expanding definitions of udiv and urem
-      if (k == kind::BITVECTOR_UDIV)
-      {
-        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UDIV_TOTAL,
-                                         currentEliminated[0],
-                                         currentEliminated[1]);
-      }
-      else if (k == kind::BITVECTOR_UREM)
-      {
-        currentEliminated = d_nm->mkNode(kind::BITVECTOR_UREM_TOTAL,
-                                         currentEliminated[0],
-                                         currentEliminated[1]);
-      }
-
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
       // also assign the eliminated now to itself to avoid revisiting.
@@ -353,10 +343,6 @@ Node BVToInt::translateWithChildren(Node original,
   // The following variable will only be used in assertions.
   CVC4_UNUSED uint64_t originalNumChildren = original.getNumChildren();
   Node returnNode;
-  // Assert that BITVECTOR_UDIV/UREM were replaced by their
-  // *_TOTAL versions
-  Assert(oldKind != kind::BITVECTOR_UDIV);
-  Assert(oldKind != kind::BITVECTOR_UREM);
   switch (oldKind)
   {
     case kind::BITVECTOR_PLUS:
@@ -377,7 +363,7 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, mult, p2);
       break;
     }
-    case kind::BITVECTOR_UDIV_TOTAL:
+    case kind::BITVECTOR_UDIV:
     {
       uint64_t bvsize = original[0].getType().getBitVectorSize();
       // we use an ITE for the case where the second operand is 0.
@@ -391,7 +377,7 @@ Node BVToInt::translateWithChildren(Node original,
           divNode);
       break;
     }
-    case kind::BITVECTOR_UREM_TOTAL:
+    case kind::BITVECTOR_UREM:
     {
       // we use an ITE for the case where the second operand is 0.
       Node modNode =
@@ -687,13 +673,9 @@ Node BVToInt::translateWithChildren(Node original,
       returnNode = translateQuantifiedFormula(original);
       break;
     }
-    case kind::EXISTS:
-    {
-      // Exists is eliminated by the rewriter.
-      Assert(false);
-    }
     default:
     {
+      Assert(oldKind != kind::EXISTS);  // Exists is eliminated by the rewriter.
       // In the default case, we have reached an operator that we do not
       // translate directly to integers. The children whose types have
       // changed from bv to int should be adjusted back to bv and then

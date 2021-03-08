@@ -20,7 +20,6 @@
 #define CVC4__PREPROCESSING__PASSES__EXTENDED_REWRITER_PASS_H
 
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {

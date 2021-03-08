@@ -14,11 +14,15 @@
 
 #include "smt/proof_manager.h"
 
+#include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
+#include "smt/preprocess_proof_generator.h"
+#include "smt/proof_post_processor.h"
 
 namespace CVC4 {
 namespace smt {

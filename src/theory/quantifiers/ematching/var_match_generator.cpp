@@ -13,7 +13,9 @@
  **/
 #include "theory/quantifiers/ematching/var_match_generator.h"
 
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -21,8 +23,15 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Node var, Node subs)
-    : InstMatchGenerator(), d_var(var), d_subs(subs), d_rm_prev(false)
+VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(
+    Node var,
+    Node subs,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim)
+    : InstMatchGenerator(Node::null(), qs, qim),
+      d_var(var),
+      d_subs(subs),
+      d_rm_prev(false)
 {
   d_children_types.push_back(d_var.getAttribute(InstVarNumAttribute()));
   d_var_type = d_var.getType();
