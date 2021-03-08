@@ -98,9 +98,8 @@ class InstLemmaList
  */
 class Instantiate : public QuantifiersUtil
 {
-  typedef context::
-      CDHashMap<Node, std::shared_ptr<InstLemmaList>, NodeHashFunction>
-          NodeInstListMap;
+  using NodeInstListMap = context::
+      CDHashMap<Node, std::shared_ptr<InstLemmaList>, NodeHashFunction>;
 
  public:
   Instantiate(QuantifiersEngine* qe,
