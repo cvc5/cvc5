@@ -34,7 +34,7 @@ macro(cvc4_add_api_test name)
   target_compile_definitions(${name} PRIVATE ${CVC4_API_TEST_FLAGS})
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
-  add_test(api/${name} ${test_bin_dir})
+  add_test(api/${name} ${test_bin_dir}/${name})
   set_tests_properties(api/${name} PROPERTIES LABELS "api")
   add_dependencies(build-apitests ${name})
 endmacro()
