@@ -41,7 +41,7 @@ class ProofNodeManager;
 namespace theory {
 
 class EagerProofGenerator;
-class EeSetupInfo;
+struct EeSetupInfo;
 
 namespace eq {
 class ProofEqEngine;
