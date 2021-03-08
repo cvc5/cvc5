@@ -98,12 +98,15 @@ class PreRegisterVisitor {
    * @param visitedTheories The theories that have already preregistered current
    * @param current The term to preregister
    * @param parent The parent term of current
+   * @param preregTheories The theories that have already preregistered current.
+   * If there is no theory sharing, this coincides with visitedTheories.
+   * Otherwise, visitedTheories may be a subset of preregTheories.
    */
   static void preRegister(TheoryEngine* te,
                           theory::TheoryIdSet& visitedTheories,
                           TNode current,
                           TNode parent,
-                          theory::TheoryIdSet& preregTheories);
+                          theory::TheoryIdSet preregTheories);
 
  private:
   /**
@@ -115,7 +118,7 @@ class PreRegisterVisitor {
                                     theory::TheoryId id,
                                     TNode current,
                                     TNode parent,
-                                    theory::TheoryIdSet& preregTheories);
+                                    theory::TheoryIdSet preregTheories);
 };
 
 
