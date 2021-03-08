@@ -340,10 +340,8 @@ bool ProcessAssertions::apply(Assertions& as)
   d_passes["theory-rewrite-eq"]->apply(&assertions);
   // apply theory preprocess, which includes ITE removal
   d_passes["theory-preprocess"]->apply(&assertions);
-  // This is needed because when solving incrementally, removeITEs may
-  // introduce skolems that were solved for earlier and thus appear in the
-  // substitution map.
-  d_passes["apply-substs"]->apply(&assertions);
+  // notice that we do not apply substitutions as a last step here, since
+  // the range of substitutions is not theory-preprocessed.
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
