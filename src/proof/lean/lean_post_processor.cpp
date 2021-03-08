@@ -50,9 +50,9 @@ bool LeanProofPostprocessCallback::addLeanStep(
 {
   NodeManager* nm = NodeManager::currentNM();
   Node leanId = nm->mkConst<Rational>(static_cast<unsigned>(rule));
-  std::vector<Node> lean_args = {leanId, res};
-  lean_args.insert(lean_args.end(), args.begin(), args.end());
-  return cdp.addStep(res, PfRule::LEAN_RULE, children, lean_args);
+  std::vector<Node> leanArgs = {leanId, res};
+  leanArgs.insert(leanArgs.end(), args.begin(), args.end());
+  return cdp.addStep(res, PfRule::LEAN_RULE, children, leanArgs);
 }
 
 bool LeanProofPostprocessCallback::update(Node res,
@@ -67,7 +67,6 @@ bool LeanProofPostprocessCallback::update(Node res,
   {
     case PfRule::ASSUME:
     {
-      Trace("Hi") << args;
       return addLeanStep(res, LeanRule::ASSUME, children, args, *cdp);
     }
     case PfRule::SCOPE:

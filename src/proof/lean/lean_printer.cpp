@@ -151,10 +151,10 @@ void LeanPrinter::printProof(std::ostream& out,
     //  to close in the lean proof
     for (size_t i = 2, size = args.size(); i < size; ++i)
     {
-      size_t var_index = passumeMap.size();
-      std::stringstream var_string;
-      var_string << "v" << var_index;
-      passumeMap[args[i]] = var_string.str();
+      size_t varIndex = passumeMap.size();
+      std::stringstream varString;
+      varString << "v" << varIndex;
+      passumeMap[args[i]] = varString.str();
 
       out << "(assume (" << passumeMap[args[i]] << " : ";
       printLeanType(out, args[i]);
@@ -211,10 +211,10 @@ void LeanPrinter::printProof(std::ostream& out,
     }
     case LeanRule::SMTSYMM:
     {
-      size_t var_index = passumeMap.size();
-      std::stringstream var_string;
-      var_string << "v" << var_index;
-      passumeMap[args[1]] = var_string.str();
+      size_t varIndex = passumeMap.size();
+      std::stringstream varString;
+      varString << "v" << varIndex;
+      passumeMap[args[1]] = varString.str();
       out << "let " << passumeMap[args[1]];
       out << " := symm " << passumeMap[children[0]->getArguments()[0]];
       out << " in \n";
@@ -222,10 +222,10 @@ void LeanPrinter::printProof(std::ostream& out,
     }
     case LeanRule::SMTSYMM_NEG:
     {
-      size_t var_index = passumeMap.size();
-      std::stringstream var_string;
-      var_string << "v" << var_index;
-      passumeMap[args[1]] = var_string.str();
+      size_t varIndex = passumeMap.size();
+      std::stringstream varString;
+      varString << "v" << varIndex;
+      passumeMap[args[1]] = varString.str();
       out << "let " << passumeMap[args[1]];
       out << " := negSymm " << passumeMap[children[0]->getArguments()[0]];
       out << " in \n";
@@ -254,8 +254,8 @@ void LeanPrinter::printSorts(std::ostream& out,
     expr::getSymbols(a, syms, visited);
     iasserts.push_back(a);
   }
-  int sort_count = 1;
-  int sym_count = 1;
+  int sortCount = 1;
+  int symCount = 1;
   std::unordered_set<TypeNode, TypeNodeHashFunction> sts;
   for (const Node& s : syms)
   {
@@ -265,12 +265,12 @@ void LeanPrinter::printSorts(std::ostream& out,
       // declare a user defined sort, if that sort has not been encountered
       // before
       sts.insert(st);
-      out << "def " << st << " := sort.atom " << sort_count << std::endl;
-      sort_count += 1;
+      out << "def " << st << " := sort.atom " << sortCount << std::endl;
+      sortCount += 1;
     }
     // declare a constant of a predefined sort
-    out << "def " << s << " := const " << sym_count << " " << st << std::endl;
-    sym_count += 1;
+    out << "def " << s << " := const " << symCount << " " << st << std::endl;
+    symCount += 1;
   }
 }
 
