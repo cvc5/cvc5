@@ -26,6 +26,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
@@ -769,40 +770,44 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       nm, rec, index + 1);
 }
 
-TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
+TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts,
+                                     bool reqFlat)
 {
   Assert(sorts.size() >= 2);
-  CheckArgument(!sorts[sorts.size() - 1].isFunction(),
+  CheckArgument(!reqFlat || !sorts[sorts.size() - 1].isFunction(),
                 sorts[sorts.size() - 1],
                 "must flatten function types");
   return mkTypeNode(kind::FUNCTION_TYPE, sorts);
 }
 
-TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts)
+TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts,
+                                      bool reqFlat)
 {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   sortNodes.insert(sortNodes.end(), sorts.begin(), sorts.end());
   sortNodes.push_back(booleanType());
-  return mkFunctionType(sortNodes);
+  return mkFunctionType(sortNodes, reqFlat);
 }
 
 TypeNode NodeManager::mkFunctionType(const TypeNode& domain,
-                                     const TypeNode& range)
+                                     const TypeNode& range,
+                                     bool reqFlat)
 {
   std::vector<TypeNode> sorts;
   sorts.push_back(domain);
   sorts.push_back(range);
-  return mkFunctionType(sorts);
+  return mkFunctionType(sorts, reqFlat);
 }
 
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
-                                     const TypeNode& range)
+                                     const TypeNode& range,
+                                     bool reqFlat)
 {
   Assert(argTypes.size() >= 1);
   std::vector<TypeNode> sorts(argTypes);
   sorts.push_back(range);
-  return mkFunctionType(sorts);
+  return mkFunctionType(sorts, reqFlat);
 }
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {

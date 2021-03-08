@@ -18,7 +18,6 @@
 #define CVC4__THEORY__QUANTIFIERS__TERM_UTIL_H
 
 #include <map>
-#include <unordered_set>
 
 #include "expr/attribute.h"
 #include "expr/node.h"
@@ -42,17 +41,18 @@ typedef expr::Attribute<TermDepthAttributeId, uint64_t> TermDepthAttribute;
 struct ContainsUConstAttributeId {};
 typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttribute;
 
-//for quantifier instantiation level
+/**
+ * for quantifier instantiation level.
+ */
 struct QuantInstLevelAttributeId {};
-typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttribute;
+typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t>
+    QuantInstLevelAttribute;
 
 /** Attribute for id number */
 struct QuantIdNumAttributeId {};
 typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
 
 namespace quantifiers {
-
-class TermDatabase;
 
 // TODO : #1216 split this class, most of the functions in this class should be dispersed to where they are used.
 class TermUtil

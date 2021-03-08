@@ -50,11 +50,11 @@ struct TreeProofNode
 /**
  * This class supports the lazy creation of a tree-shaped proof.
  * The core idea is that the lazy creation is necessary because proof rules
- * depend on some assumption that is only known after the whole subtree has been
+ * depend on assumptions that are only known after the whole subtree has been
  * finished.
  *
  * We indend to argue about proofs that roughly go as follows:
- * - we assume the set of assumptions
+ * - we assume a set of assumptions
  * - we do a case split
  * - for every case, we derive false, possibly by nested case splits
  *
@@ -62,7 +62,7 @@ struct TreeProofNode
  * composing the final proof, we explicitly extend the premise of every proof
  * step with the scope (the currently selected case) that this proof step lives
  * in. When doing this, we ignore the outermost scope (which assumes the
- * assertion set) to allows for having conflicts that are only a subset of the
+ * assertion set) to allow for having conflicts that are only a subset of the
  * assertion set.
  *
  * Consider the example  x*x<1 and x>2  and the intended proof
@@ -79,10 +79,10 @@ struct TreeProofNode
  *    )
  *    :args [ x*x<1, x>2 ]
  *  )
- * We obtain this proof in a way that (in general) only gives us the assumptions
+ * We obtain this proof in a way that (in general) gives us the assumptions
  * for the scopes (x<=2, x>=1) only when the scope children have been fully
  * computed. Thus, we store the proof in an intermediate form and add the scope
- * arguments when we have them. Once we have completed the proof, we can easily
+ * arguments when we learn them. Once we have completed the proof, we can easily
  * transform it into proper ProofNodes.
  *
  * This class is stateful in the sense that the interface (in particular

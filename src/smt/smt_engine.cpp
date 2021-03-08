@@ -28,20 +28,22 @@
 #include "options/language.h"
 #include "options/main_options.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "printer/printer.h"
 #include "proof/proof_manager.h"
 #include "proof/unsat_core.h"
+#include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/check_models.h"
 #include "smt/defined_function.h"
+#include "smt/dump.h"
 #include "smt/dump_manager.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
-#include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/node_command.h"
@@ -223,7 +225,7 @@ void SmtEngine::finishInit()
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   ProofNodeManager* pnm = nullptr;
-  if (options::proofNew())
+  if (options::proof())
   {
     // ensure bound variable uses canonical bound variables
     d_nodeManager->getBoundVarManager()->enableKeepCacheValues();
@@ -435,53 +437,51 @@ void SmtEngine::setLogicInternal()
   d_userLogic.lock();
 }
 
-void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
+void SmtEngine::setInfo(const std::string& key, const std::string& value)
 {
   SmtScope smts(this);
 
   Trace("smt") << "SMT setInfo(" << key << ", " << value << ")" << endl;
 
-  if(Dump.isOn("benchmark")) {
-    if(key == "status") {
-      string s = value.getValue();
+  if (Dump.isOn("benchmark"))
+  {
+    if (key == "status")
+    {
       Result::Sat status =
-          (s == "sat") ? Result::SAT
-                       : ((s == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
+          (value == "sat")
+              ? Result::SAT
+              : ((value == "unsat") ? Result::UNSAT : Result::SAT_UNKNOWN);
       getOutputManager().getPrinter().toStreamCmdSetBenchmarkStatus(
           getOutputManager().getDumpOut(), status);
-    } else {
+    }
+    else
+    {
       getOutputManager().getPrinter().toStreamCmdSetInfo(
           getOutputManager().getDumpOut(), key, value);
     }
   }
 
-  // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
-  if (key == "source" || key == "category" || key == "difficulty"
-      || key == "notes" || key == "name" || key == "license")
+  if (key == "filename")
   {
-    // ignore these
-    return;
-  }
-  else if (key == "filename")
-  {
-    d_state->setFilename(value.getValue());
-    return;
+    d_state->setFilename(value);
   }
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
   {
     language::input::Language ilang = language::input::LANG_AUTO;
-    if( (value.isInteger() && value.getIntegerValue() == Integer(2)) ||
-        (value.isRational() && value.getRationalValue() == Rational(2)) ||
-        value.getValue() == "2" ||
-        value.getValue() == "2.0" ) {
+
+    if (value == "2" || value == "2.0")
+    {
       ilang = language::input::LANG_SMTLIB_V2_0;
-    } else if( (value.isRational() && value.getRationalValue() == Rational(5, 2)) ||
-               value.getValue() == "2.5" ) {
+    }
+    else if (value == "2.5")
+    {
       ilang = language::input::LANG_SMTLIB_V2_5;
-    } else if( (value.isRational() && value.getRationalValue() == Rational(13, 5)) ||
-               value.getValue() == "2.6" ) {
+    }
+    else if (value == "2.6")
+    {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }
+
     options::inputLanguage.set(ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
@@ -493,18 +493,10 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
         *options::out() << language::SetLanguage(olang);
       }
     }
-    return;
-  } else if(key == "status") {
-    string s;
-    if(value.isAtom()) {
-      s = value.getValue();
-    }
-    if(s != "sat" && s != "unsat" && s != "unknown") {
-      throw OptionException("argument to (set-info :status ..) must be "
-                            "`sat' or `unsat' or `unknown'");
-    }
-    d_state->notifyExpectedStatus(s);
-    return;
+  }
+  else if (key == "status")
+  {
+    d_state->notifyExpectedStatus(value);
   }
 }
 
@@ -983,15 +975,15 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if (options::checkProofsNew() || options::proofNewEagerChecking())
+    if (options::checkProofs() || options::proofEagerChecking())
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        if ((options::checkProofsNew() || options::proofNewEagerChecking())
-            && !options::proofNew())
+        if ((options::checkProofs() || options::proofEagerChecking())
+            && !options::proof())
         {
           throw ModalException(
-              "Cannot check-proofs-new because proof-new was disabled.");
+              "Cannot check-proofs because proofs were disabled.");
         }
         checkProof();
       }
@@ -1402,11 +1394,11 @@ Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkProof()
 {
-  Assert(options::proofNew());
+  Assert(options::proof());
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     pe->checkProof(d_asserts->getAssertionList());
   }
@@ -1414,11 +1406,11 @@ void SmtEngine::checkProof()
   std::shared_ptr<ProofNode> pePfn = pe->getProof();
   // TEMPORARY for testing, this can be used to count how often checkProofs is
   // called
-  if (options::checkProofsNewFail())
+  if (options::checkProofsFail())
   {
-    AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
+    AlwaysAssert(false) << "Fail due to --check-proofs-fail";
   }
-  if (options::checkProofsNew())
+  if (options::checkProofs())
   {
     d_pfManager->checkProof(pePfn, *d_asserts, *d_definedFunctions);
   }
@@ -1473,11 +1465,11 @@ void SmtEngine::checkUnsatCore() {
   coreChecker->getOptions().set(options::unsatCores, false);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
-  coreChecker->getOptions().set(options::proofNew, false);
-  coreChecker->getOptions().set(options::proofNewReq, false);
-  coreChecker->getOptions().set(options::checkProofsNew, false);
+  coreChecker->getOptions().set(options::proof, false);
+  coreChecker->getOptions().set(options::proofReq, false);
+  coreChecker->getOptions().set(options::checkProofs, false);
   coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
-  coreChecker->getOptions().set(options::proofNewEagerChecking, false);
+  coreChecker->getOptions().set(options::proofEagerChecking, false);
 
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
@@ -1567,9 +1559,9 @@ std::string SmtEngine::getProof()
         getOutputManager().getDumpOut());
   }
 #if IS_PROOFS_BUILD
-  if (!options::proofNew())
+  if (!options::proof())
   {
-    throw ModalException("Cannot get a proof when proof-new option is off.");
+    throw ModalException("Cannot get a proof when proof option is off.");
   }
   if (d_state->getMode() != SmtMode::UNSAT)
   {
@@ -1668,7 +1660,7 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::proofNew() && getSmtMode() == SmtMode::UNSAT)
+  if (options::proof() && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);
@@ -1937,16 +1929,9 @@ void SmtEngine::setUserAttribute(const std::string& attr,
   te->setUserAttribute(attr, expr, expr_values, str_value);
 }
 
-void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
+void SmtEngine::setOption(const std::string& key, const std::string& value)
 {
-  // Always check whether the SmtEngine has been initialized (which is done
-  // upon entering Assert mode the first time). No option can  be set after
-  // initialized.
-  if (d_state->isFullyInited())
-  {
-    throw ModalException("SmtEngine::setOption called after initialization.");
-  }
-  NodeManagerScope nms(d_nodeManager);
+    NodeManagerScope nms(d_nodeManager);
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if(Dump.isOn("benchmark")) {
@@ -1955,28 +1940,29 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   }
 
   if(key == "command-verbosity") {
-    if(!value.isAtom()) {
-      const vector<SExpr>& cs = value.getChildren();
-      if(cs.size() == 2 &&
-         (cs[0].isKeyword() || cs[0].isString()) &&
-         cs[1].isInteger()) {
-        string c = cs[0].getValue();
-        const Integer& v = cs[1].getIntegerValue();
-        if(v < 0 || v > 2) {
-          throw OptionException("command-verbosity must be 0, 1, or 2");
-        }
-        d_commandVerbosity[c] = v;
-        return;
+    size_t fstIndex = value.find(" ");
+    size_t sndIndex = value.find(" ", fstIndex + 1);
+    if (sndIndex == std::string::npos)
+    {
+      string c = value.substr(1, fstIndex - 1);
+      int v =
+          std::stoi(value.substr(fstIndex + 1, value.length() - fstIndex - 1));
+      if (v < 0 || v > 2)
+      {
+        throw OptionException("command-verbosity must be 0, 1, or 2");
       }
+      d_commandVerbosity[c] = v;
+      return;
     }
     throw OptionException("command-verbosity value must be a tuple (command-name, integer)");
   }
 
-  if(!value.isAtom()) {
+  if (value.find(" ") != std::string::npos)
+  {
     throw OptionException("bad value for :" + key);
   }
 
-  string optionarg = value.getValue();
+  std::string optionarg = value;
   d_options.setOption(key, optionarg);
 }
 

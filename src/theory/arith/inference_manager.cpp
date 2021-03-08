@@ -93,29 +93,6 @@ void InferenceManager::clearWaitingLemmas()
   d_waitingLem.clear();
 }
 
-void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
-{
-  Trace("arith::infman") << "Adding conflict: " << inftype << " " << conf
-                         << std::endl;
-  conflict(conf, inftype);
-}
-
-void InferenceManager::addTrustedConflict(const TrustNode& tconf,
-                                          InferenceId inftype)
-{
-  Trace("arith::infman") << "Adding conflict: " << inftype << " " << tconf
-                         << std::endl;
-  trustedConflict(tconf, inftype);
-}
-
-void InferenceManager::addTrustedLemma(const TrustNode& tlem,
-                                       InferenceId inftype)
-{
-  Trace("arith::infman") << "Adding lemma: " << inftype << " " << tlem
-                         << std::endl;
-  trustedLemma(tlem, inftype);
-}
-
 bool InferenceManager::hasUsed() const
 {
   return hasSent() || hasPending();

@@ -18,11 +18,14 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
+#include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -218,11 +221,11 @@ void SygusInst::reset_round(Theory::Effort e)
       Node lit = getCeLiteral(q);
 
       bool value;
-      if (d_quantEngine->getValuation().hasSatValue(lit, value))
+      if (d_qstate.getValuation().hasSatValue(lit, value))
       {
         if (!value)
         {
-          if (!d_quantEngine->getValuation().isDecision(lit))
+          if (!d_qstate.getValuation().isDecision(lit))
           {
             model->setQuantifierActive(q, false);
             d_active_quant.erase(q);
@@ -459,7 +462,7 @@ Node SygusInst::getCeLiteral(Node q)
 
   NodeManager* nm = NodeManager::currentNM();
   Node sk = nm->mkSkolem("CeLiteral", nm->booleanType());
-  Node lit = d_quantEngine->getValuation().ensureLiteral(sk);
+  Node lit = d_qstate.getValuation().ensureLiteral(sk);
   d_ce_lits[q] = lit;
   return lit;
 }
@@ -517,11 +520,8 @@ void SygusInst::registerCeLemma(Node q, std::vector<TypeNode>& types)
    * counterexample literal is decided on first. It is user-context dependent.
    */
   Assert(d_dstrat.find(q) == d_dstrat.end());
-  DecisionStrategy* ds =
-      new DecisionStrategySingleton("CeLiteral",
-                                    lit,
-                                    d_qstate.getSatContext(),
-                                    d_quantEngine->getValuation());
+  DecisionStrategy* ds = new DecisionStrategySingleton(
+      "CeLiteral", lit, d_qstate.getSatContext(), d_qstate.getValuation());
 
   d_dstrat[q].reset(ds);
   d_quantEngine->getDecisionManager()->registerStrategy(

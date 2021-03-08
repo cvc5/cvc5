@@ -32,7 +32,7 @@
 #include "proof/proof_manager.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/registrar.h"
-#include "prop/theory_proxy.h"
+#include "prop/sat_solver_types.h"
 
 namespace CVC4 {
 
@@ -41,6 +41,8 @@ class OutputManager;
 namespace prop {
 
 class ProofCnfStream;
+class PropEngine;
+class SatSolver;
 
 /** A policy for how literals for formulas are handled in cnf_stream */
 enum class FormulaLitPolicy : uint32_t

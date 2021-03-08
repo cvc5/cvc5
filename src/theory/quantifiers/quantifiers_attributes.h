@@ -139,7 +139,7 @@ struct QAttributes
   Node d_sygusSideCondition;
   /** stores the maximum instantiation level allowed for this quantified formula
    * (-1 means allow any) */
-  int d_qinstLevel;
+  int64_t d_qinstLevel;
   /** is this formula marked for quantifier elimination? */
   bool d_quant_elim;
   /** is this formula marked for partial quantifier elimination? */
@@ -214,7 +214,7 @@ class QuantAttributes
   /** is sygus conjecture */
   bool isSygus( Node q );
   /** get instantiation level */
-  int getQuantInstLevel( Node q );
+  int64_t getQuantInstLevel(Node q);
   /** is quant elim */
   bool isQuantElim( Node q );
   /** is quant elim partial */

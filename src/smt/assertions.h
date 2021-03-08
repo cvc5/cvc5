@@ -20,13 +20,13 @@
 #include <vector>
 
 #include "context/cdlist.h"
-#include "context/context.h"
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
-#include "smt/abstract_values.h"
 
 namespace CVC4 {
 namespace smt {
+
+class AbstractValues;
 
 /**
  * Contains all information pertaining to the assertions of an SMT engine.

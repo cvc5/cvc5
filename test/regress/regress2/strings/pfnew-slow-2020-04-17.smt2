@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --proof-new --no-re-elim
+; COMMAND-LINE: --strings-exp --proof --no-re-elim
 ; EXPECT: sat
 (set-logic ALL)
 (declare-const actionName String)

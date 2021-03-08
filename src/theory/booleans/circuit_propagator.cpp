@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "expr/node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "theory/booleans/proof_circuit_propagator.h"
 #include "util/utility.h"
 
@@ -252,8 +253,10 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
       else
       {
         // AND = FALSE: if all children BUT ONE == TRUE, assign(c = FALSE)
-        TNode::iterator holdout = find_if_unique(
-            parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
+        TNode::iterator holdout =
+            find_if_unique(parent.begin(), parent.end(), [this](TNode x) {
+              return !isAssignedTo(x, true);
+            });
         if (holdout != parent.end())
         {
           assignAndEnqueue(*holdout, false, prover.andFalse(parent, holdout));
@@ -264,8 +267,10 @@ void CircuitPropagator::propagateBackward(TNode parent, bool parentAssignment)
       if (parentAssignment)
       {
         // OR = TRUE: if all children BUT ONE == FALSE, assign(c = TRUE)
-        TNode::iterator holdout = find_if_unique(
-            parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
+        TNode::iterator holdout =
+            find_if_unique(parent.begin(), parent.end(), [this](TNode x) {
+              return !isAssignedTo(x, false);
+            });
         if (holdout != parent.end())
         {
           assignAndEnqueue(*holdout, true, prover.orTrue(parent, holdout));
@@ -450,8 +455,10 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
         if (childAssignment)
         {
           TNode::iterator holdout;
-          holdout = find_if(
-              parent.begin(), parent.end(), not1(IsAssignedTo(*this, true)));
+          holdout = find_if(parent.begin(), parent.end(), [this](TNode x) {
+            return !isAssignedTo(x, true);
+          });
+
           if (holdout == parent.end())
           {  // all children are assigned TRUE
             // AND ...(x=TRUE)...: if all children now assigned to TRUE,
@@ -461,8 +468,10 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           else if (isAssignedTo(parent, false))
           {  // the AND is FALSE
             // is the holdout unique ?
-            TNode::iterator other = find_if(
-                holdout + 1, parent.end(), not1(IsAssignedTo(*this, true)));
+            TNode::iterator other =
+                find_if(holdout + 1, parent.end(), [this](TNode x) {
+                  return !isAssignedTo(x, true);
+                });
             if (other == parent.end())
             {  // the holdout is unique
               // AND ...(x=TRUE)...: if all children BUT ONE now assigned to
@@ -487,8 +496,9 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
         else
         {
           TNode::iterator holdout;
-          holdout = find_if(
-              parent.begin(), parent.end(), not1(IsAssignedTo(*this, false)));
+          holdout = find_if(parent.begin(), parent.end(), [this](TNode x) {
+            return !isAssignedTo(x, false);
+          });
           if (holdout == parent.end())
           {  // all children are assigned FALSE
             // OR ...(x=FALSE)...: if all children now assigned to FALSE,
@@ -498,8 +508,10 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment)
           else if (isAssignedTo(parent, true))
           {  // the OR is TRUE
             // is the holdout unique ?
-            TNode::iterator other = find_if(
-                holdout + 1, parent.end(), not1(IsAssignedTo(*this, false)));
+            TNode::iterator other =
+                find_if(holdout + 1, parent.end(), [this](TNode x) {
+                  return !isAssignedTo(x, false);
+                });
             if (other == parent.end())
             {  // the holdout is unique
               // OR ...(x=FALSE)...: if all children BUT ONE now assigned to

@@ -17,17 +17,17 @@
 #ifndef CVC4__EXPR__PROOF_H
 #define CVC4__EXPR__PROOF_H
 
-#include <map>
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
 
 namespace CVC4 {
+
+class ProofNode;
+class ProofNodeManager;
 
 /**
  * A (context-dependent) proof.

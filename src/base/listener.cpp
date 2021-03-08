@@ -16,10 +16,6 @@
 
 #include "base/listener.h"
 
-#include <list>
-
-#include "base/check.h"
-
 namespace CVC4 {
 
 Listener::Listener(){}

@@ -1067,7 +1067,7 @@ bool VeritProofPostprocessCallback::update(
       std::vector<Node> neg_Nodes;
       neg_Nodes.push_back(d_cl);
       neg_Nodes.push_back(res);
-      for (unsigned long int i = 0; i < children.size(); i++)
+      for (size_t i = 0; i < children.size(); i++)
       {
         neg_Nodes.push_back(children[i].notNode());
       }

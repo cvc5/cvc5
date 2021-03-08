@@ -16,6 +16,8 @@
 
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"

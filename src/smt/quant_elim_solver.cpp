@@ -131,7 +131,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     // internally generated skolems should not escape
     if (!isInternalSubsolver)
     {
-      ret = SkolemManager::getWitnessForm(ret);
+      ret = SkolemManager::getOriginalForm(ret);
     }
     return ret;
   }

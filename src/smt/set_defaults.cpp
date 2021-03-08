@@ -27,6 +27,7 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
@@ -35,6 +36,7 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/logic_exception.h"
 #include "theory/theory.h"
 
 using namespace CVC4::theory;
@@ -45,10 +47,10 @@ namespace smt {
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
   // TEMPORARY for testing
-  if (options::proofNewReq() && !options::proofNew())
+  if (options::proofReq() && !options::proof())
   {
-    AlwaysAssert(false) << "Fail due to --proof-new-req "
-                        << options::proofNew.wasSetByUser();
+    AlwaysAssert(false) << "Fail due to --proof-req "
+                        << options::proof.wasSetByUser();
   }
 
   // implied options
@@ -80,7 +82,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   if (options::checkUnsatCoresNew())
   {
-    options::proofNew.set(true);
+    options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -93,7 +95,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::bitvectorAlgebraicSolver.set(true);
   }
 
-  bool is_sygus = language::isInputLangSygus(options::inputLanguage());
+  bool isSygus = language::isInputLangSygus(options::inputLanguage());
+  bool usesSygus = isSygus;
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -267,7 +270,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
-  //!!!!!!!!!!!! temporary on proof-new, whether it is ok to disable proof-new
+  //!!!!!!!!!!!! temporary on proof, whether it is ok to disable proof
   bool disableProofNewOk = false;
   if (options::globalNegate())
   {
@@ -279,7 +282,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // with new proof system
   if (options::unsatCores() && !options::checkUnsatCoresNew())
   {
-    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
+    // set proofReq/proofEagerChecking/checkProofs to false, since we
     // don't want CI failures
     disableProofNewOk = true;
   }
@@ -305,42 +308,41 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::produceAbducts()
         || options::produceInterpols() != options::ProduceInterpols::NONE
-        || options::sygusInference() || options::sygusRewSynthInput()
-        || options::sygusInst())
+        || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
-      is_sygus = true;
+      isSygus = true;
+      usesSygus = true;
+    }
+    else if (options::sygusInst())
+    {
+      // sygus instantiation uses sygus, but it is not a sygus problem
+      usesSygus = true;
     }
   }
 
-  // We now know whether the input is sygus. Update the logic to incorporate
+  // We now know whether the input uses sygus. Update the logic to incorporate
   // the theories we need internally for handling sygus problems.
-  if (is_sygus)
+  if (usesSygus)
   {
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
-    // When sygus answers "unsat", it is not due to showing a set of
-    // formulas is unsat in the standard way. Thus, proofs do not apply.
-    disableProofNewOk = true;
-  }
-
-  //!!!!!!!!!!!! temporary on proof-new
-  if (disableProofNewOk && options::proofNew())
-  {
-    options::proofNew.set(false);
-    options::proofNewReq.set(false);
-    options::checkProofsNew.set(false);
-    options::proofNewEagerChecking.set(false);
-  }
-
-  if (options::proofNew())
-  {
-    if (!options::stringLenConc.wasSetByUser())
+    if (isSygus)
     {
-      options::stringLenConc.set(true);
-      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
+      // When sygus answers "unsat", it is not due to showing a set of
+      // formulas is unsat in the standard way. Thus, proofs do not apply.
+      disableProofNewOk = true;
     }
+  }
+
+  //!!!!!!!!!!!! temporary on proof
+  if (disableProofNewOk && options::proof())
+  {
+    options::proof.set(false);
+    options::proofReq.set(false);
+    options::checkProofs.set(false);
+    options::proofEagerChecking.set(false);
   }
 
   // sygus core connective requires unsat cores
@@ -354,7 +356,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE
-       || options::proofNew())
+       || options::proof())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -590,7 +592,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || is_sygus))
+          || usesSygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
     options::produceModels.set(true);
@@ -727,7 +729,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !options::unsatCores();
-    // TODO && !options::unsatCores() && !options::proofNew();
+    // TODO && !options::unsatCores() && !options::proof();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);
@@ -820,8 +822,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (!options::decisionMode.wasSetByUser())
   {
     options::DecisionMode decMode =
-        // sygus uses internal
-        is_sygus ? options::DecisionMode::INTERNAL :
+        // anything that uses sygus uses internal
+        usesSygus ? options::DecisionMode::INTERNAL :
                  // ALL
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
@@ -983,7 +985,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
-  if (is_sygus)
+  if (usesSygus)
   {
     if (!options::sygus())
     {

@@ -19,6 +19,7 @@
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
+#include "smt/abstract_values.h"
 #include "smt/smt_engine.h"
 
 using namespace CVC4::theory;

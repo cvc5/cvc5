@@ -19,10 +19,9 @@
 #ifndef CVC4__RESULT_H
 #define CVC4__RESULT_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
-#include "base/exception.h"
 #include "options/language.h"
 
 namespace CVC4 {
@@ -52,7 +51,8 @@ class CVC4_PUBLIC Result {
     TYPE_NONE
   };
 
-  enum UnknownExplanation {
+  enum UnknownExplanation
+  {
     REQUIRES_FULL_CHECK,
     INCOMPLETE,
     TIMEOUT,

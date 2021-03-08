@@ -22,6 +22,7 @@ General options;
   --name=STR               use custom build directory name (optionally: +path)
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
+  --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
   --ninja                  use Ninja build system
 
@@ -51,6 +52,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
+  --werror                 build with -Werror
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
@@ -72,7 +74,6 @@ Optional Path to Optional Packages:
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
   --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
   --drat2er-dir=PATH       path to the top level of the drat2er installation
-  --cxxtest-dir=PATH       path to CxxTest installation
   --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
   --kissat-dir=PATH        path to top level of Kissat source tree
@@ -150,13 +151,14 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+arm64=default
+werror=default
 
 abc_dir=default
 antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
 drat2er_dir=default
-cxxtest_dir=default
 glpk_dir=default
 gmp_dir=default
 kissat_dir=default
@@ -185,6 +187,8 @@ do
 
     --tsan) tsan=ON;;
     --no-tsan) tsan=OFF;;
+
+    --werror) werror=ON;;
 
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
@@ -240,7 +244,8 @@ do
     --no-kissat) kissat=OFF;;
 
     --win64) win64=ON;;
-    --no-win64) win64=OFF;;
+
+    --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
 
@@ -312,9 +317,6 @@ do
     --cryptominisat-dir) die "missing argument to $1 (try -h)" ;;
     --cryptominisat-dir=*) cryptominisat_dir=${1##*=} ;;
 
-    --cxxtest-dir) die "missing argument to $1 (try -h)" ;;
-    --cxxtest-dir=*) cxxtest_dir=${1##*=} ;;
-
     --drat2er-dir) die "missing argument to $1 (try -h)" ;;
     --drat2er-dir=*) drat2er_dir=${1##*=} ;;
 
@@ -354,6 +356,25 @@ do
 done
 
 #--------------------------------------------------------------------------#
+# Automatically set up dependencies based on configure options
+#--------------------------------------------------------------------------#
+
+if [ "$arm64" == "ON" ]; then
+  echo "Setting up dependencies for ARM 64-bit build"
+  HOST="aarch64-linux-gnu" contrib/get-antlr-3.4 || exit 1
+  HOST="aarch64-linux-gnu" contrib/get-gmp-dev || exit 1
+elif [ "$win64" == "ON" ]; then
+  echo "Setting up dependencies for Windows 64-bit build"
+  HOST="x86_64-w64-mingw32" contrib/get-antlr-3.4 || exit 1
+  HOST="x86_64-w64-mingw32" contrib/get-gmp-dev || exit 1
+fi
+
+#--------------------------------------------------------------------------#
+
+if [ $werror != default ]; then
+  export CFLAGS=-Werror
+  export CXXFLAGS=-Werror
+fi
 
 cmake_opts=""
 
@@ -384,6 +405,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+[ $arm64 != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
@@ -441,8 +464,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
 [ "$cryptominisat_dir" != default ] \
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
-[ "$cxxtest_dir" != default ] \
-  && cmake_opts="$cmake_opts -DCXXTEST_DIR=$cxxtest_dir"
 [ "$drat2er_dir" != default ] \
   && cmake_opts="$cmake_opts -DDRAT2ER_DIR=$drat2er_dir"
 [ "$glpk_dir" != default ] \
@@ -469,6 +490,7 @@ root_dir=$(pwd)
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
 [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
+[ $arm64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
 mkdir -p "$build_dir"
 
 cd "$build_dir"

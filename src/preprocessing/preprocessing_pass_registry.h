@@ -19,15 +19,14 @@
 #ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
 #define CVC4__PREPROCESSING__PREPROCESSING_PASS_REGISTRY_H
 
-#include <memory>
+#include <functional>
 #include <string>
 #include <unordered_map>
-
-#include "preprocessing/preprocessing_pass.h"
 
 namespace CVC4 {
 namespace preprocessing {
 
+class PreprocessingPass;
 class PreprocessingPassContext;
 
 /**

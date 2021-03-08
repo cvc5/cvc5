@@ -18,11 +18,11 @@
 #define CVC4__EXPR__TERM_CONTEXT_NODE_H
 
 #include "expr/node.h"
-#include "expr/term_context.h"
 
 namespace CVC4 {
 
 class TCtxStack;
+class TermContext;
 
 /**
  * A (term-context) sensitive term. This is a wrapper around a Node that

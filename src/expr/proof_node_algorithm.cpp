@@ -14,6 +14,8 @@
 
 #include "expr/proof_node_algorithm.h"
 
+#include "expr/proof_node.h"
+
 namespace CVC4 {
 namespace expr {
 
@@ -103,7 +105,7 @@ void getFreeAssumptionsMap(
               != traversing.end())
           {
             Unhandled() << "getFreeAssumptionsMap: cyclic proof! (use "
-                           "--proof-new-eager-checking)"
+                           "--proof-eager-checking)"
                         << std::endl;
           }
           visit.push_back(cp);

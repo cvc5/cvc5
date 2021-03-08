@@ -55,7 +55,7 @@ namespace {
  */
 bool assertionLevelOnly()
 {
-  return (options::proofNew() || options::unsatCores())
+  return (options::proof() || options::unsatCores())
          && options::incrementalSolving();
 }
 
@@ -984,21 +984,22 @@ Lit Solver::pickBranchLit()
 |________________________________________________________________________________________________@*/
 int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 {
-    Trace("pf::sat") << "Solver::analyze: starting with " << confl << " with decision level " << decisionLevel() << "\n";
+  Trace("pf::sat") << "Solver::analyze: starting with " << confl
+                   << " with decision level " << decisionLevel() << "\n";
 
-    int pathC = 0;
-    Lit p     = lit_Undef;
+  int pathC = 0;
+  Lit p = lit_Undef;
 
-    // Generate conflict clause:
-    //
-    out_learnt.push();      // (leave room for the asserting literal)
-    int index   = trail.size() - 1;
+  // Generate conflict clause:
+  //
+  out_learnt.push();  // (leave room for the asserting literal)
+  int index = trail.size() - 1;
 
-    int max_resolution_level = 0; // Maximal level of the resolved clauses
+  int max_resolution_level = 0;  // Maximal level of the resolved clauses
 
-    if (options::unsatCores() && !isProofEnabled())
-    {
-      ProofManager::getSatProof()->startResChain(confl);
+  if (options::unsatCores() && !isProofEnabled())
+  {
+    ProofManager::getSatProof()->startResChain(confl);
     }
     if (isProofEnabled())
     {
@@ -1036,8 +1037,8 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           Lit q = ca[confl][j];
 
           Trace("pf::sat") << "Lit " << q
-                           << " seen/level: " << (seen[var(q)] ? 1 : 0)
-                           << " / " << level(var(q)) << "\n";
+                           << " seen/level: " << (seen[var(q)] ? 1 : 0) << " / "
+                           << level(var(q)) << "\n";
           if (!seen[var(q)] && level(var(q)) > 0)
           {
             varBumpActivity(var(q));

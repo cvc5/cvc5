@@ -14,8 +14,9 @@
 
 #include "smt/proof_post_processor.h"
 
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
@@ -993,7 +994,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
 Node ProofPostprocessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
 {
-  Node tw = SkolemManager::getWitnessForm(t);
+  Node tw = SkolemManager::getOriginalForm(t);
   Node eq = t.eqNode(tw);
   if (t == tw)
   {
@@ -1108,7 +1109,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   PfRule r = pn->getRule();
   // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofNewEagerChecking())
+  if (!options::proofEagerChecking())
   {
     if (!d_pedanticFailure)
     {
@@ -1197,7 +1198,7 @@ void ProofPostproccess::setEliminateRule(PfRule rule)
 void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
 {
   // for debugging (slow)
-  if (options::proofNewUpdateDebug())
+  if (options::proofUpdateDebug())
   {
     d_updater.setDebugFreeAssumptions(assertions);
   }

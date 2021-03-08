@@ -22,8 +22,6 @@
 #ifndef CVC4__NODE_H
 #define CVC4__NODE_H
 
-#include <algorithm>
-#include <functional>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -32,14 +30,12 @@
 #include <vector>
 
 #include "base/check.h"
-#include "base/configuration.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
-#include "expr/type.h"
 #include "options/language.h"
 #include "options/set_language.h"
 #include "util/hash.h"
@@ -980,7 +976,6 @@ std::ostream& operator<<(
 
 //#include "expr/attribute.h"
 #include "expr/node_manager.h"
-#include "expr/type_checker.h"
 
 namespace CVC4 {
 
@@ -1451,8 +1446,10 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
   }
 
   // otherwise compute
-  Iterator j = find_if(substitutionsBegin, substitutionsEnd,
-                       bind2nd(first_equal_to<typename Iterator::value_type::first_type, typename Iterator::value_type::second_type>(), *this));
+  Iterator j = find_if(
+      substitutionsBegin,
+      substitutionsEnd,
+      [this](const auto& subst){ return subst.first == *this; });
   if(j != substitutionsEnd) {
     Node n = (*j).second;
     cache[*this] = n;

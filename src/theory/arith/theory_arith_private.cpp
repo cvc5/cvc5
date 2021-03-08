@@ -65,6 +65,7 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -3756,7 +3757,7 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
     TrustNode teq;
     if (Theory::theoryOf(eq) == THEORY_ARITH)
     {
-      teq = d_containing.ppRewrite(eq);
+      teq = d_containing.ppRewriteEq(eq);
       eq = teq.isNull() ? eq : teq.getNode();
     }
     Node literal = d_containing.getValuation().ensureLiteral(eq);

@@ -14,9 +14,11 @@
 
 #include "smt/proof_manager.h"
 
+#include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "options/base_options.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "proof/dot/dot_printer.h"
 #include "proof/lean/lean_post_processor.h"
 #include "proof/lean/lean_printer.h"
@@ -26,12 +28,15 @@
 #include "proof/verit/verit_printer.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
+#include "smt/preprocess_proof_generator.h"
+#include "smt/proof_post_processor.h"
+#include "theory/rewrite_db.h"
 
 namespace CVC4 {
 namespace smt {
 
 PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
-    : d_pchecker(new ProofChecker(options::proofNewPedantic())),
+    : d_pchecker(new ProofChecker(options::proofPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_rewriteDb(new theory::RewriteDb),
       d_pppg(new PreprocessProofGenerator(
@@ -155,14 +160,10 @@ void PfManager::printProof(std::ostream& out,
     std::vector<Node> assertions;
     getAssertions(as, df, assertions);
     // NOTE: update permanent to fp, which could be reused in incremental mode
-    proof::LfscProofPostprocess lpp(d_pnm.get());
+    proof::LfscTermProcessor ltp;
+    proof::LfscProofPostprocess lpp(ltp, d_pnm.get());
     lpp.process(fp);
-    proof::LfscPrinter lp;
-    // print the proof for assertions
-    Trace("lfsc-debug") << "(proof\n";
-    Trace("lfsc-debug") << *fp;
-    Trace("lfsc-debug") << "\n)\n";
-
+    proof::LfscPrinter lp(ltp);
     lp.print(out, assertions, fp.get());
   }
   else

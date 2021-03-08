@@ -21,6 +21,8 @@
 #include "options/uf_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
@@ -36,10 +38,8 @@ namespace quantifiers {
 
 TermDb::TermDb(QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
-               QuantifiersRegistry& qr,
-               QuantifiersEngine* qe)
-    : d_quantEngine(qe),
-      d_qstate(qs),
+               QuantifiersRegistry& qr)
+    : d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_termsContext(),
@@ -936,7 +936,8 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
 {
   if( options::instMaxLevel()!=-1 ){
     if( n.hasAttribute(InstLevelAttribute()) ){
-      int fml = f.isNull() ? -1 : d_quantEngine->getQuantAttributes()->getQuantInstLevel( f );
+      int64_t fml =
+          f.isNull() ? -1 : d_qreg.getQuantAttributes().getQuantInstLevel(f);
       unsigned ml = fml>=0 ? fml : options::instMaxLevel();
 
       if( n.getAttribute(InstLevelAttribute())>ml ){
@@ -1082,19 +1083,16 @@ bool TermDb::reset( Theory::Effort effort ){
       }
       ++eqcs_i;
     }
-    TheoryEngine* te = d_quantEngine->getTheoryEngine();
-    const LogicInfo& logicInfo = te->getLogicInfo();
+    const LogicInfo& logicInfo = d_qstate.getLogicInfo();
     for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
     {
       if (!logicInfo.isTheoryEnabled(theoryId))
       {
         continue;
       }
-      Theory* theory = te->theoryOf(theoryId);
-      Assert(theory != nullptr);
       for (context::CDList<Assertion>::const_iterator
-               it = theory->facts_begin(),
-               it_end = theory->facts_end();
+               it = d_qstate.factsBegin(theoryId),
+               it_end = d_qstate.factsEnd(theoryId);
            it != it_end;
            ++it)
       {

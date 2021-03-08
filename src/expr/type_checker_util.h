@@ -19,6 +19,8 @@
 
 #include "cvc4_private.h"
 
+#include <sstream>
+
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"

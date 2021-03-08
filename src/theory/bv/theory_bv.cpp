@@ -21,6 +21,7 @@
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 namespace theory {
@@ -252,7 +253,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t)
+TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
   // first, see if we need to expand definitions
   TrustNode texp = expandDefinition(t);

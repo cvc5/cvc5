@@ -22,8 +22,12 @@
 
 #include "expr/proof_node_updater.h"
 #include "proof/lfsc/lfsc_term_process.h"
+#include "proof/lfsc/lfsc_util.h"
 
 namespace CVC4 {
+
+class ProofChecker;
+
 namespace proof {
 
 /**
@@ -33,7 +37,7 @@ namespace proof {
 class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  LfscProofPostprocessCallback(ProofNodeManager* pnm);
+  LfscProofPostprocessCallback(LfscTermProcessor& ltp, ProofNodeManager* pnm);
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
@@ -56,7 +60,22 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The proof checker of d_pnm **/
   ProofChecker* d_pc;
   /** The term processor */
-  LfscTermProcessor d_tproc;
+  LfscTermProcessor& d_tproc;
+  /**
+   * Are we in the first call to update? This is to distinguish the top-most
+   * SCOPE.
+   */
+  bool d_firstTime;
+  /** Add LFSC rule to cdp with children, args, conc */
+  void addLfscRule(CDProof* cdp,
+                   Node conc,
+                   const std::vector<Node>& children,
+                   LfscRule lr,
+                   const std::vector<Node>& args);
+  /** Make chained form of a term */
+  static Node mkChain(Kind k, const std::vector<Node>& children);
+  /** Make fresh dummy predicate */
+  static Node mkDummyPredicate();
 };
 
 /**
@@ -66,7 +85,7 @@ class LfscProofPostprocessCallback : public ProofNodeUpdaterCallback
 class LfscProofPostprocess
 {
  public:
-  LfscProofPostprocess(ProofNodeManager* pnm);
+  LfscProofPostprocess(LfscTermProcessor& ltp, ProofNodeManager* pnm);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 

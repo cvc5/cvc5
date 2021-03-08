@@ -21,9 +21,12 @@
 
 #include "expr/node.h"
 #include "options/smt_options.h"
-#include "theory/theory_model.h"
 
 namespace CVC4 {
+
+namespace theory {
+class TheoryModel;
+}
 
 /**
  * A utility for blocking the current model.

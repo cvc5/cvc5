@@ -16,9 +16,13 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/dump_manager.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 
@@ -34,7 +38,8 @@ SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SortInferencePass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  SortInference* si = d_preprocContext->getTheoryEngine()->getSortInference();
+  theory::SortInference* si =
+      d_preprocContext->getTheoryEngine()->getSortInference();
 
   if (options::sortInference())
   {

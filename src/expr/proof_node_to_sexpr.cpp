@@ -13,9 +13,12 @@
  **/
 
 #include "expr/proof_node_to_sexpr.h"
-#include "options/smt_options.h"
 
 #include <iostream>
+#include <sstream>
+
+#include "expr/proof_node.h"
+#include "options/proof_options.h"
 
 using namespace CVC4::kind;
 
@@ -55,7 +58,7 @@ Node ProofNodeToSExpr::convertToSExpr(const ProofNode* pn)
             != traversing.end())
         {
           Unhandled() << "ProofNodeToSExpr::convertToSExpr: cyclic proof! (use "
-                         "--proof-new-eager-checking)"
+                         "--proof-eager-checking)"
                       << std::endl;
           return Node::null();
         }

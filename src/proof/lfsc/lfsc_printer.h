@@ -24,62 +24,18 @@
 #include "expr/proof_node.h"
 #include "printer/let_binding.h"
 #include "proof/lfsc/lfsc_term_process.h"
+#include "proof/lfsc/lfsc_util.h"
+#include "proof/print_expr.h"
 
 namespace CVC4 {
 namespace proof {
 
-/**
-work steps:
-1. make new rules in the lfsc signature
-2. add to LfscRule enum
-3. print in toString
-4. convert PfRule to LfscRule in the postprocessor
-5. Add printing code to computeProofArgs
-*/
-
-/**
- * LFSC rules
- */
-enum class LfscRule : uint32_t
-{
-  //----------- translated rules
-  SYMM,
-  NEG_SYMM,
-  TRANS,
-  CONG,
-  CNF_AND_POS_1,
-  CNF_AND_POS_2,
-  //----------- unknown
-  UNKNOWN,
-};
-
-/**
- * Converts a lfsc rule to a string. Note: This function is also used in
- * `safe_print()`. Changing this function name or signature will result in
- * `safe_print()` printing "<unsupported>" instead of the proper strings for
- * the enum values.
- *
- * @param id The lfsc rule
- * @return The name of the lfsc rule
- */
-const char* toString(LfscRule id);
-
-/**
- * Writes a lfsc rule name to a stream.
- *
- * @param out The stream to write to
- * @param id The lfsc rule to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, LfscRule id);
-LfscRule getLfscRule(Node n);
-bool getLfscRule(Node n, LfscRule& lr);
-Node mkLfscRuleNode(LfscRule r);
+class LfscPrintChannel;
 
 class LfscPrinter
 {
  public:
-  LfscPrinter();
+  LfscPrinter(LfscTermProcessor& ltp);
   ~LfscPrinter() {}
 
   /**
@@ -88,10 +44,6 @@ class LfscPrinter
   void print(std::ostream& out,
              const std::vector<Node>& assertions,
              const ProofNode* pn);
-  /**
-   * Print node to stream in the expected format of LFSC.
-   */
-  void print(std::ostream& out, const ProofNode* pn);
 
   /**
    * Print node to stream in the expected format of LFSC.
@@ -125,77 +77,40 @@ class LfscPrinter
   void printInternal(std::ostream& out, TypeNode n);
 
   //------------------------------ printing proofs
-  /** A term or a proof */
-  class PExpr
-  {
-   public:
-    PExpr() : d_node(), d_pnode(nullptr) {}
-    PExpr(Node n) : d_node(n), d_pnode(nullptr) {}
-    PExpr(const ProofNode* pn) : d_node(), d_pnode(pn) {}
-    ~PExpr() {}
-    /** The node */
-    Node d_node;
-    /** The proof node */
-    const ProofNode* d_pnode;
-  };
-  class PExprStream
-  {
-   public:
-    PExprStream(std::vector<PExpr>& stream) : d_stream(stream) {}
-    /** Append a proof node */
-    PExprStream& operator<<(const ProofNode* pn)
-    {
-      d_stream.push_back(PExpr(pn));
-      return *this;
-    }
-    /** Append a node */
-    PExprStream& operator<<(Node n)
-    {
-      d_stream.push_back(PExpr(n));
-      return *this;
-    }
-    /** Append a pexpr */
-    PExprStream& operator<<(PExpr p)
-    {
-      d_stream.push_back(p);
-      return *this;
-    }
-
-   private:
-    /** Reference to the stream */
-    std::vector<PExpr>& d_stream;
-  };
   /**
    * Print proof internal, after term lets and proofs for assumptions have
    * been computed.
    */
   void printProofLetify(std::ostream& out,
                         const ProofNode* pn,
-                        LetBinding& lbind,
-                        std::map<Node, uint32_t>& passumeMap);
+                        const LetBinding& lbind,
+                        const std::vector<const ProofNode*>& pletList,
+                        std::map<const ProofNode*, size_t>& pletMap,
+                        std::map<Node, size_t>& passumeMap);
   /**
    * Print proof internal, after all mappings have been computed.
    */
-  void printProofInternal(std::ostream& out,
+  void printProofInternal(LfscPrintChannel* out,
                           const ProofNode* pn,
-                          LetBinding& lbind,
-                          std::map<const ProofNode*, uint32_t>& pletMap,
-                          std::map<Node, uint32_t>& passumeMap);
+                          const LetBinding& lbind,
+                          const std::map<const ProofNode*, size_t>& pletMap,
+                          std::map<Node, size_t>& passumeMap);
   /**
    * Get the arguments for the proof node application
    */
-  bool computeProofArgs(const ProofNode* pn, std::vector<PExpr>& pargs);
+  bool computeProofArgs(const ProofNode* pn,
+                        std::vector<PExpr>& pargs,
+                        std::map<Node, size_t>& passumeMap,
+                        std::unordered_set<const ProofNode*>& noBind);
   //------------------------------ end printing proofs
 
-  //------------------- helper methods
-  static void printRule(std::ostream& out, const ProofNode*);
-  static void printId(std::ostream& out, uint32_t id);
-  static void printProofId(std::ostream& out, uint32_t id);
-  static void printAssumeId(std::ostream& out, uint32_t id);
-  //------------------- end helper methods
-
   /** The term processor */
-  LfscTermProcessor d_tproc;
+  LfscTermProcessor& d_tproc;
+  /** true and false nodes */
+  Node d_tt;
+  Node d_ff;
+  /** for debugging the open rules, the set of PfRule we have warned about */
+  std::unordered_set<PfRule, PfRuleHashFunction> d_trustWarned;
 };
 
 }  // namespace proof

@@ -22,13 +22,15 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
+class NonlinearExtension;
+}
 
 class TheoryArithPrivate;
 
@@ -110,7 +112,15 @@ class TheoryArith : public Theory {
   void notifyRestart() override;
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
-  TrustNode ppRewrite(TNode atom) override;
+  /**
+   * Preprocess rewrite terms, return the trust node encapsulating the
+   * preprocessed form of n, and the proof generator that can provide the
+   * proof for the equivalence of n and this term.
+   *
+   * This calls the operator elimination utility to eliminate extended
+   * symbols.
+   */
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }
@@ -130,15 +140,8 @@ class TheoryArith : public Theory {
   }
 
  private:
-  /**
-   * Preprocess rewrite terms, return the trust node encapsulating the
-   * preprocessed form of n, and the proof generator that can provide the
-   * proof for the equivalence of n and this term.
-   *
-   * This calls the operator elimination utility to eliminate extended
-   * symbols.
-   */
-  TrustNode ppRewriteTerms(TNode n);
+  /** Preprocess equality */
+  TrustNode ppRewriteEq(TNode eq);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */

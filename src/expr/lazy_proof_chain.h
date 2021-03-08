@@ -17,14 +17,14 @@
 #ifndef CVC4__EXPR__LAZY_PROOF_CHAIN_H
 #define CVC4__EXPR__LAZY_PROOF_CHAIN_H
 
-#include <unordered_map>
 #include <vector>
 
 #include "context/cdhashmap.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
 
 /**
  * A (context-dependent) lazy generator for proof chains. This class is an

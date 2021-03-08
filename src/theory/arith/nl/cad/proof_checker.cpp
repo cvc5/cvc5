@@ -36,7 +36,6 @@ Node CADProofRuleChecker::checkInternal(PfRule id,
                                         const std::vector<Node>& children,
                                         const std::vector<Node>& args)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Trace("nl-cad-checker") << "Checking " << id << std::endl;
   for (const auto& c : children)
   {

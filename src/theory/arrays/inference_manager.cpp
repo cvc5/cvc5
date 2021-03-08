@@ -16,6 +16,7 @@
 
 #include "options/smt_options.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
 using namespace CVC4::kind;

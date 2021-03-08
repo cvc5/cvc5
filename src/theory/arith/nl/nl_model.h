@@ -19,15 +19,20 @@
 #include <unordered_map>
 #include <vector>
 
-#include "context/cdo.h"
-#include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
-#include "theory/theory_model.h"
 
 namespace CVC4 {
+
+namespace context {
+class Context;
+}
+
 namespace theory {
+
+class TheoryModel;
+
 namespace arith {
 namespace nl {
 

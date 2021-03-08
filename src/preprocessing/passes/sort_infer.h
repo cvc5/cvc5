@@ -15,13 +15,7 @@
 #ifndef CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
 #define CVC4__PREPROCESSING__PASSES__SORT_INFERENCE_PASS_H_
 
-#include <map>
-#include <string>
-#include <vector>
-
-#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {

@@ -26,6 +26,7 @@
 #include "expr/tconv_seq_proof_generator.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "smt/term_formula_removal.h"
+#include "theory/skolem_lemma.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -188,7 +189,7 @@ class TheoryPreprocessor
    * applies ppRewrite and rewriting until fixed point on term using
    * the method preprocessWithProof helper below.
    */
-  Node ppTheoryRewrite(TNode term);
+  Node ppTheoryRewrite(TNode term, std::vector<SkolemLemma>& lems);
   /**
    * Rewrite with proof, which stores a REWRITE step in pg if necessary
    * and returns the rewritten form of term.
@@ -204,7 +205,7 @@ class TheoryPreprocessor
    * the preprocessed and rewritten form of term. It should be the case that
    * term is already in rewritten form.
    */
-  Node preprocessWithProof(Node term);
+  Node preprocessWithProof(Node term, std::vector<SkolemLemma>& lems);
   /**
    * Register rewrite trn based on trust node into term conversion generator
    * pg, which uses THEORY_PREPROCESS as a step if no proof generator is
