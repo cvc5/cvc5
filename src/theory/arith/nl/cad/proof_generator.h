@@ -33,6 +33,9 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+struct VariableMapper;
+
 namespace cad {
 
 /**
