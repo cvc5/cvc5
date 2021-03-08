@@ -167,13 +167,14 @@ void PreRegisterVisitor::preRegisterWithTheory(TheoryEngine* te,
     // already visited
     return;
   }
+  bool isPreregistered = TheoryIdSetUtil::setContains(id, preregTheories);
   visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
-  if (TheoryIdSetUtil::setContains(id, preregTheories))
+  if (isPreregistered)
   {
     // already pregregistered
     return;
   }
-  preregTheories = TheoryIdSetUtil::setInsert(id, preregTheories);
+  visitedTheories = TheoryIdSetUtil::setInsert(id, visitedTheories);
   if (Configuration::isAssertionBuild())
   {
     Debug("register::internal")
