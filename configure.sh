@@ -361,12 +361,12 @@ done
 
 if [ "$arm64" == "ON" ]; then
   echo "Setting up dependencies for ARM 64-bit build"
-  HOST="aarch64-linux-gnu" contrib/get-antlr-3.4 || exit 1
-  HOST="aarch64-linux-gnu" contrib/get-gmp-dev || exit 1
+  contrib/get-antlr-3.4 --host=aarch64-linux-gnu || exit 1
+  contrib/get-gmp-dev --host=aarch64-linux-gnu || exit 1
 elif [ "$win64" == "ON" ]; then
   echo "Setting up dependencies for Windows 64-bit build"
-  HOST="x86_64-w64-mingw32" contrib/get-antlr-3.4 || exit 1
-  HOST="x86_64-w64-mingw32" contrib/get-gmp-dev || exit 1
+  contrib/get-antlr-3.4 --host=x86_64-w64-mingw32 || exit 1
+  contrib/get-gmp-dev --host=x86_64-w64-mingw32 || exit 1
 fi
 
 #--------------------------------------------------------------------------#
