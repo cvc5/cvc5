@@ -31,6 +31,7 @@ const char* toString(LfscRule id)
     case LfscRule::AND_INTRO1: return "and_intro1";
     case LfscRule::AND_INTRO2: return "and_intro2";
     case LfscRule::NOT_AND_REV: return "not_and_rev";
+    case LfscRule::PROCESS_SCOPE: return "process_scope";
     case LfscRule::INSTANTIATE: return "instantiate";
     case LfscRule::SKOLEMIZE: return "skolemize";
     case LfscRule::EXISTS_INTRO: return "exists_intro";

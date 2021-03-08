@@ -57,6 +57,7 @@ enum class LfscRule : uint32_t
   AND_INTRO2,
   // needed as a helper for SCOPE
   NOT_AND_REV,
+  PROCESS_SCOPE,
 
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,

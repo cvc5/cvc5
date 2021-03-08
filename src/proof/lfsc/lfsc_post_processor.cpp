@@ -77,7 +77,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, fconc, {curr}, LfscRule::LAMBDA, {args[ii]});
         // we use a chained implication (=> F1 ... (=> Fn C)) which avoids
         // aliasing.
-        Node next = nm->mkNode(IMPLIES, args[ii], curr);
+        Node next = nm->mkNode(OR, args[ii].notNode(), curr);
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
@@ -94,12 +94,12 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       else
       {
-        // we have that C != false
-        // convert to (=> (and F1 (and F2 ... (and Fn true) ... )) C)
         // FIXME
         return false;
+        // we have that C != false
+        // convert to (=> (and F1 (and F2 ... (and Fn true) ... )) C)
+        addLfscRule(cdp, res, {curr}, LfscRule::PROCESS_SCOPE, {children[0]});
       }
-      return true;
     }
     break;
     case PfRule::CHAIN_RESOLUTION:
@@ -113,7 +113,6 @@ bool LfscProofPostprocessCallback::update(Node res,
         cur = d_pc->checkDebug(PfRule::RESOLUTION, newChildren, newArgs);
         cdp->addStep(cur, PfRule::RESOLUTION, newChildren, newArgs);
       }
-      return true;
     }
     break;
     case PfRule::SYMM:
@@ -125,24 +124,23 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       // must use alternate SYMM rule for disequality
       addLfscRule(cdp, res, {children[0]}, LfscRule::NEG_SYMM, {});
-      return true;
     }
     break;
     case PfRule::TRANS:
     {
-      if (children.size() > 2)
+      if (children.size() <= 2)
       {
-        // turn into binary
-        Node cur = children[0];
-        for (size_t i = 1, size = children.size(); i < size; i++)
-        {
-          std::vector<Node> newChildren{cur, children[i]};
-          cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
-          cdp->addStep(cur, PfRule::TRANS, newChildren, {});
-        }
-        return true;
+        // no need to change
+        return false;
       }
-      return false;
+      // turn into binary
+      Node cur = children[0];
+      for (size_t i = 1, size = children.size(); i < size; i++)
+      {
+        std::vector<Node> newChildren{cur, children[i]};
+        cur = d_pc->checkDebug(PfRule::TRANS, newChildren, {});
+        cdp->addStep(cur, PfRule::TRANS, newChildren, {});
+      }
     }
     break;
     case PfRule::CONG:
@@ -235,7 +233,6 @@ bool LfscProofPostprocessCallback::update(Node res,
           currEq = nextEq;
         }
       }
-      return true;
     }
     break;
     case PfRule::AND_ELIM:

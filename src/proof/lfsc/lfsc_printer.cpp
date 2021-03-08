@@ -474,6 +474,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
         case LfscRule::AND_ELIM1:
         case LfscRule::AND_ELIM2:
         case LfscRule::NOT_AND_REV: pf << h << h << cs[0]; break;
+        case LfscRule::PROCESS_SCOPE: pf << h << h << as[2] << cs[0]; break;
         case LfscRule::AND_INTRO2: pf << h << h << cs[0] << cs[1]; break;
         // ---------- arguments of translated rules go here
         default: return false; break;
