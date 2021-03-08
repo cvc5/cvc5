@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include "smt/optimization_solver.h"
 #include "test_smt.h"
 
@@ -52,11 +53,11 @@ TEST_F(TestTheoryWhiteIntOpt, max)
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->objectiveGetValue(),
-                    d_nodeManager->mkConst(Rational("99")));
+            d_nodeManager->mkConst(Rational("99")));
 
   std::cout << "Result is :" << r << std::endl;
-  std::cout << "Optimized max value is: "
-            << d_optslv->objectiveGetValue() << std::endl;
+  std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue()
+            << std::endl;
 }
 
 TEST_F(TestTheoryWhiteIntOpt, min)
@@ -85,11 +86,11 @@ TEST_F(TestTheoryWhiteIntOpt, min)
 
   // We expect max_cost == 99
   ASSERT_EQ(d_optslv->objectiveGetValue(),
-                    d_nodeManager->mkConst(Rational("1")));
+            d_nodeManager->mkConst(Rational("1")));
 
   std::cout << "Result is :" << r << std::endl;
-  std::cout << "Optimized max value is: "
-            << d_optslv->objectiveGetValue() << std::endl;
+  std::cout << "Optimized max value is: " << d_optslv->objectiveGetValue()
+            << std::endl;
 }
 
 TEST_F(TestTheoryWhiteIntOpt, result)
@@ -122,5 +123,66 @@ TEST_F(TestTheoryWhiteIntOpt, result)
 
   std::cout << "Result is :" << r << std::endl;
 }
+
+// TEST_F(TestTheoryWhiteIntOpt, open_interval)
+// {
+//   Term ub1 = d_slv->mkInteger(100);
+//   Term lb1 = d_slv->mkInteger(0);
+//   Term lb2 = d_slv->mkInteger(110);
+
+//   Term cost1 = d_slv->mkConst(d_slv->getIntegerSort(), "cost3");
+//   Term cost2 = d_slv->mkConst(d_slv->getIntegerSort(), "cost4");
+//   // 0 < cost1 < 100
+//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LT, lb1, cost1));
+//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LT, cost1, ub1));
+//   // 110 < cost2
+//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LT, lb2, cost2));
+
+//   Term cost3 = d_slv->mkTerm(CVC4::api::PLUS, cost1, cost2);
+
+//   const ObjectiveType min_type = OBJECTIVE_MINIMIZE;
+//   d_optslv->activateObj(*cost3.d_node, min_type);
+
+//   OptResult r = d_optslv->checkOpt();
+
+//   TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(), d_nm->mkConst(Rational(112)));
+//   std::cout << "Result is :" << r << std::endl;
+//   std::cout << "Optimized min value is: " << d_optslv->objectiveGetValue()
+//             << std::endl;
+// }
+
+// TEST_F(TestTheoryWhiteIntOpt, open_interval_real)
+// {
+//   // WARNING: domain is infinite, though it's bounded, it's still possible not
+//   // run to completion!
+//   Term ub1 = d_slv->mkReal(100);
+//   Term lb1 = d_slv->mkReal(0);
+//   Term lb2 = d_slv->mkReal(110);
+//   Term ub2 = d_slv->mkReal(120);
+
+//   Term cost1 = d_slv->mkConst(d_slv->getRealSort(), "cost3");
+//   Term cost2 = d_slv->mkConst(d_slv->getRealSort(), "cost4");
+//   // 0 <= cost1 <= 100
+//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LEQ, lb1, cost1));
+//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LEQ, cost1, ub1));
+//   // 110 <= cost2 <= 120
+//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LEQ, lb2, cost2));
+//   d_slv->assertFormula(d_slv->mkTerm(CVC4::api::Kind::LEQ, cost2, ub2));
+
+//   Term cost3 = d_slv->mkTerm(CVC4::api::PLUS, cost1, cost2);
+
+//   const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
+//   d_optslv->activateObj(*cost3.d_node, obj_type);
+
+//   OptResult r = d_optslv->checkOpt();
+
+//   // TS_ASSERT_EQUALS(ub1, ub2);
+
+//   TS_ASSERT_EQUALS(d_optslv->objectiveGetValue(), d_nm->mkConst(Rational(110)));
+//   std::cout << "Result is :" << r << std::endl;
+//   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+//             << std::endl;
+// }
+
 }  // namespace test
 }  // namespace CVC4
