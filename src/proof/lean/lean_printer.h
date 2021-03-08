@@ -59,6 +59,8 @@ class LeanPrinter
 
  private:
   static LeanRule getLeanRule(Node n);
+  static Node getId(std::shared_ptr<ProofNode> n);
+  static Node getConclusion(std::shared_ptr<ProofNode> n);
   static void printKind(std::ostream& s, Kind k);
   static void printLeanString(std::ostream& s, Node n);
   /**

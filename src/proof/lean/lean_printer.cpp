@@ -58,6 +58,16 @@ LeanRule LeanPrinter::getLeanRule(Node n)
   return LeanRule::UNKNOWN;
 }
 
+Node LeanPrinter::getId(std::shared_ptr<ProofNode> n)
+{
+  return n->getArguments()[0];
+}
+
+Node LeanPrinter::getConclusion(std::shared_ptr<ProofNode> n)
+{
+  return n->getArguments()[1];
+}
+
 void LeanPrinter::printKind(std::ostream& s, Kind k)
 {
   switch (k)
@@ -72,8 +82,8 @@ void LeanPrinter::printKind(std::ostream& s, Kind k)
 
 void LeanPrinter::printLeanString(std::ostream& s, Node n)
 {
-  // convert a node to a Lean term -- must start with mk_ and take children as args
-  // eg) kind::AND (kind::EQUAL a b) c --> mkAnd (mkEq a b) c
+  // convert a node to a Lean term -- must start with mk_ and take children as
+  // args eg) kind::AND (kind::EQUAL a b) c --> mkAnd (mkEq a b) c
   Kind k = n.getKind();
   if (k == kind::VARIABLE)
   {
@@ -113,9 +123,8 @@ void LeanPrinter::printLeanType(std::ostream& s, Node n)
       break;
     }
     default:
-      s << "holds [";
+      s << "thHolds ";
       printLeanString(s, n);
-      s << "]";
       break;
   }
 }
@@ -128,20 +137,48 @@ void LeanPrinter::printLeanTypeToBottom(std::ostream& s, Node n)
 }
 
 void LeanPrinter::printProof(std::ostream& out,
-                                std::shared_ptr<ProofNode> pfn,
-                                std::map<Node, std::string>& passumeMap)
+                             std::shared_ptr<ProofNode> pfn,
+                             std::map<Node, std::string>& passumeMap)
 {
-  // print rule specific lean syntax, traversing children before parents in ProofNode tree
+  // print rule specific lean syntax, traversing children before parents in
+  // ProofNode tree
   const std::vector<Node>& args = pfn->getArguments();
   const std::vector<std::shared_ptr<ProofNode>>& children = pfn->getChildren();
-  // change control flow for scope rule?
-  for (const std::shared_ptr<ProofNode>& ch : children)
-  {
-    printProof(out, ch, passumeMap);
-  }
   LeanRule id = getLeanRule(args[0]);
+  if (id == LeanRule::SCOPE)
+  {
+    // each argument to the scope proof node corresponds to one scope
+    //  to close in the lean proof
+    for (size_t i = 2, size = args.size(); i < size; ++i)
+    {
+      size_t var_index = passumeMap.size();
+      std::stringstream var_string;
+      var_string << "v" << var_index;
+      passumeMap[args[i]] = var_string.str();
+
+      out << "(assume (" << passumeMap[args[i]] << " : ";
+      printLeanType(out, args[i]);
+      out << "),\n";
+    }
+    for (const std::shared_ptr<ProofNode>& ch : children)
+    {
+      printProof(out, ch, passumeMap);
+    }
+    for (size_t j = 2, size = args.size(); j < size; ++j)
+    {
+      out << ")";
+    }
+  }
+  else
+  {
+    for (const std::shared_ptr<ProofNode>& ch : children)
+    {
+      printProof(out, ch, passumeMap);
+    }
+  }
   switch (id)
   {
+    case LeanRule::SCOPE: break;
     case LeanRule::TRUST:
     {
       out << "trust\n";
@@ -149,70 +186,50 @@ void LeanPrinter::printProof(std::ostream& out,
     }
     case LeanRule::ASSUME:
     {
-      // keep track of variable names in assume statement using passumeMap
-      size_t var_index = passumeMap.size();
-      std::stringstream var_string;
-      var_string << "v" << var_index;
-      passumeMap[args[1]] = var_string.str();
-      //out << "(assume (" << var_string.str() << " : ";
-      //printLeanString(out, args[1]);
+      // get variable name
       break;
     };
-    case LeanRule::SCOPE:
-    {
-      // each argument to the scope proof node corresponds to one scope
-      //  to close in the lean proof
-      for (size_t i = 2, size = args.size(); i < size; ++i) {
-        out << "(assume (" << passumeMap[args[i]] << " : ";
-        printLeanType(out, args[i]);
-        out << ")";
-        out << ",\n";
-      }
-      Trace("Hoops") << children[0]->getArguments();
-      for (size_t j = 2, size = args.size(); j < size; ++j)
-      {
-        out << ")";
-      }
-      break;
-
-    }
     case LeanRule::R0:
     {
-      //print variable names of clauses to be resolved against
-      out << "R0 " << passumeMap[args[2]] << " ";
-      out << passumeMap[children[0]->getArguments()[1]] << " ";
-      //print term to resolve with
-      printLeanString(out, children[1]->getArguments()[1]);
+      // print variable names of clauses to be resolved against
+      out << "R0 ";
+      out << "(clAssume ";
+      out << passumeMap[children[0]->getArguments()[1]] << ") ";
+      out << "(clAssume ";
+      out << passumeMap[children[1]->getArguments()[1]] << ") ";
+      printLeanString(out, args[2]);
       break;
     }
     case LeanRule::R1:
     {
-      //print variable names of clauses to be resolved against
-      out << "R1 " << passumeMap[args[2]] << " ";
+      // print variable names of clauses to be resolved against
+      out << "R1 ";
       out << passumeMap[children[0]->getArguments()[1]] << " ";
-      //print term to resolve with
-      printLeanString(out, children[1]->getArguments()[1]);
+      out << passumeMap[children[1]->getArguments()[1]] << " ";
+      printLeanString(out, args[2]);
       break;
     }
     case LeanRule::SMTSYMM:
     {
-      out << "@symm ";
-      //out << children[0]->getArguments()[1] << " ";
-      //out << children[1]->getArguments()[1];
-      //printLeanString(out, args[0]);
-      out << " ";
+      size_t var_index = passumeMap.size();
+      std::stringstream var_string;
+      var_string << "v" << var_index;
+      passumeMap[args[1]] = var_string.str();
+      out << "let " << passumeMap[args[1]];
+      out << " := symm " << passumeMap[children[0]->getArguments()[0]];
+      out << " in \n";
       break;
     }
     case LeanRule::SMTSYMM_NEG:
     {
-      out << "@negSymm ";
-      //Trace("Hi") << children[0];
-      //Trace("Hi") << children[1];
-      //out << children[0]->getArguments()[1] << " ";
-      //out << children[1]->getArguments()[1];
-      printLeanString(out, args[1]);
-      Trace("Hoops") << args[1];
-      out << " ";
+      size_t var_index = passumeMap.size();
+      std::stringstream var_string;
+      var_string << "v" << var_index;
+      passumeMap[args[1]] = var_string.str();
+      out << "let " << passumeMap[args[1]];
+      out << " := negSymm " << passumeMap[children[0]->getArguments()[0]];
+      out << " in \n";
+      //maybe add type to annotate term
       break;
     }
     default:
@@ -221,7 +238,6 @@ void LeanPrinter::printProof(std::ostream& out,
       out << " ?\n";
       break;
     }
-      out << ")";
   }
 }
 
@@ -246,7 +262,8 @@ void LeanPrinter::printSorts(std::ostream& out,
     TypeNode st = s.getType();
     if (st.isSort() && sts.find(st) == sts.end())
     {
-      // declare a user defined sort, if that sort has not been encountered before
+      // declare a user defined sort, if that sort has not been encountered
+      // before
       sts.insert(st);
       out << "def " << st << " := sort.atom " << sort_count << std::endl;
       sort_count += 1;

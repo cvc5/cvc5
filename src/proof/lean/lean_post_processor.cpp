@@ -53,6 +53,7 @@ bool LeanProofPostprocessCallback::addLeanStep(
   lean_args.insert(lean_args.end(), args.begin(), args.end());
   return cdp.addStep(res, PfRule::LEAN_RULE, children, lean_args);
 }
+
 bool LeanProofPostprocessCallback::update(Node res,
                                           PfRule id,
                                           const std::vector<Node>& children,
@@ -91,7 +92,7 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
     case PfRule::REFL:
     {
-      return addLeanStep(res, LeanRule::SMTREFL, children, {}, *cdp);
+      return addLeanStep(res, LeanRule::SMTREFL, {}, {}, *cdp);
     }
     case PfRule::SYMM:
     {
