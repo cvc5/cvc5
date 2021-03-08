@@ -82,6 +82,40 @@ OptResult OptimizationSolver::checkOpt()
   // asserts objective > old_value (used in optimization loop)
   Node increment;
 
+  // the less-than operator for comparison, this is used for optimization!
+  Kind less_than_operator;
+
+  // the datatype of the objective
+  // currently we support Integer/Real and BitVector
+  // gets the objective datatype with type checking
+  TypeNode objective_type = this->d_activatedObjective.getNode().getType(true);
+
+  if (objective_type.isInteger() || objective_type.isReal())
+  {
+    // Integer and Real both share the same LT operator
+    less_than_operator = kind::LT;
+  }
+  else if (objective_type.isBitVector())
+  {
+    // is it signed comparison?
+    if (this->d_activatedObjective.getSigned())
+    {
+      // signed comparison for BitVectors
+      less_than_operator = kind::BITVECTOR_SLT;
+    }
+    else
+    {
+      // unsigned comparison for BitVectors
+      less_than_operator = kind::BITVECTOR_ULT;
+    }
+  }  // FloatingPoints? 
+  else
+  {
+    // the current objective datatype is not-yet supported
+    // or doesn't support comparison (no total order)
+    return OPT_UNKNOWN
+  }
+
   // Workhorse of linear optimization:
   // This loop will keep incrmenting the objective until unsat
   // When unsat is hit, the optimized value is the model value just before the
@@ -99,13 +133,14 @@ OptResult OptimizationSolver::checkOpt()
     // increment on the model-value of objective:
     // if we're maximizing increment = objective > old_objective value
     // if we're minimizing increment = objective < old_objective value
+    // we only use the less than operator 
     if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
     {
-      increment = nm->mkNode(kind::GT, d_activatedObjective.getNode(), value);
+      increment = nm->mkNode(less_than_operator, value, d_activatedObjective.getNode());
     }
     else
     {
-      increment = nm->mkNode(kind::LT, d_activatedObjective.getNode(), value);
+      increment = nm->mkNode(less_than_operator, d_activatedObjective.getNode(), value);
     }
     optChecker->assertFormula(increment);
     loop_r = optChecker->checkSat();
@@ -114,9 +149,9 @@ OptResult OptimizationSolver::checkOpt()
   return OPT_OPTIMAL;
 }
 
-void OptimizationSolver::activateObj(const Node& obj, const int& type)
+void OptimizationSolver::activateObj(const Node& obj, const int& type, bool is_signed)
 {
-  d_activatedObjective = Objective(obj, (ObjectiveType)type);
+  d_activatedObjective = Objective(obj, (ObjectiveType)type, is_signed);
 }
 
 Node OptimizationSolver::objectiveGetValue()
@@ -125,13 +160,16 @@ Node OptimizationSolver::objectiveGetValue()
   return d_savedValue;
 }
 
-Objective::Objective(Node obj, ObjectiveType type) : d_type(type), d_node(obj)
+Objective::Objective(Node obj, ObjectiveType type, bool bv_is_signed_compare)
+    : d_type(type), d_node(obj), is_signed(bv_is_signed_compare)
 {
 }
 
 ObjectiveType Objective::getType() { return d_type; }
 
 Node Objective::getNode() { return d_node; }
+
+bool Objective::getSigned() { return is_signed; }
 
 }  // namespace smt
 }  // namespace CVC4

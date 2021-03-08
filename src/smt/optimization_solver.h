@@ -62,13 +62,15 @@ enum CVC4_PUBLIC OptResult
 class Objective
 {
  public:
-  Objective(Node n, ObjectiveType type);
+  Objective(Node n, ObjectiveType type, bool is_signed = true);
   ~Objective(){};
 
   /** A getter for d_type **/
   ObjectiveType getType();
   /** A getter for d_node **/
   Node getNode();
+  /** A getter for is_signed **/
+  bool getSigned();
 
  private:
   /** The type of objective this is, either OBJECTIVE_MAXIMIZE OR
@@ -77,6 +79,11 @@ class Objective
   /** The node associated to the term that was used to construct the objective.
    * **/
   Node d_node;
+
+  /** Specify whether to use signed or unsigned comparison
+   * for BitVectors (only for BitVectors), this variable is defaulted to true
+   * **/
+  bool is_signed;
 };
 
 /**
@@ -96,8 +103,10 @@ class OptimizationSolver
 
   /** Runs the optimization loop for the activated objective **/
   OptResult checkOpt();
-  /** Activates an objective: will be optimized for **/
-  void activateObj(const Node& obj, const int& type);
+  /** Activates an objective: will be optimized for
+   * Parameter is_signed specifies whether we should use signed/unsigned
+   * comparison for BitVectors (only effective for BitVectors) **/
+  void activateObj(const Node& obj, const int& type, bool is_signed = true);
   /** Gets the value of the optimized objective after checkopt is called **/
   Node objectiveGetValue();
 
