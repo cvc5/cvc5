@@ -25,7 +25,6 @@
  **/
 
 #include <iostream>
-#include <sstream>
 #include <string>
 
 #include "api/cvc4cpp.h"
@@ -39,9 +38,9 @@
 using namespace CVC4;
 using namespace CVC4::parser;
 using namespace CVC4::language;
-using namespace std;
 
-const string declarations = "\
+const std::string declarations =
+    "\
 (declare-sort U 0)\n\
 (declare-fun f (U) U)\n\
 (declare-fun x () U)\n\
@@ -50,90 +49,119 @@ const string declarations = "\
 (declare-fun a () (Array U (Array U U)))\n\
 ";
 
-Parser* psr = NULL;
-
 int runTest();
 
-int main() {
-  try {
+int main()
+{
+  try
+  {
     return runTest();
-  } catch(Exception& e) {
-    cerr << e << endl;
-  } catch(...) {
-    cerr << "non-cvc4 exception thrown." << endl;
+  }
+  catch (api::CVC4ApiException& e)
+  {
+    std::cerr << e.getMessage() << std::endl;
+  }
+  catch (parser::ParserException& e)
+  {
+    std::cerr << e.getMessage() << std::endl;
+  }
+  catch (...)
+  {
+    std::cerr << "non-cvc4 exception thrown" << std::endl;
   }
   return 1;
 }
 
-string translate(string in, InputLanguage inlang, OutputLanguage outlang) {
-  cout << "==============================================" << endl
-       << "translating from " << inlang << " to " << outlang << " this string:" << endl
-       << in << endl;
-  psr->setInput(Input::newStringInput(inlang, in, "internal-buffer"));
-  Expr e = psr->nextExpression().getExpr();
-  stringstream ss;
-  ss << language::SetLanguage(outlang) << expr::ExprSetDepth(-1) << e;
-  assert(psr->nextExpression().isNull());// next expr should be null
-  assert(psr->done());// parser should be done
-  string s = ss.str();
-  cout << "got this:" << endl
-       << s << endl
-       << "reparsing as " << outlang << endl;
+std::string parse(std::string instr,
+                  std::string input_language,
+                  std::string output_language)
+{
+  assert(input_language == "smt2" || input_language == "cvc4");
+  assert(output_language == "smt2" || output_language == "cvc4");
 
-  psr->setInput(Input::newStringInput(toInputLanguage(outlang), s, "internal-buffer"));
-  Expr f = psr->nextExpression().getExpr();
-  assert(e == f);
-  cout << "got same expressions " << e.getId() << " and " << f.getId() << endl
-       << "==============================================" << endl;
+  std::cout << "# instr " << instr << std::endl;
+  api::Solver solver;
+  InputLanguage ilang =
+      input_language == "smt2" ? input::LANG_SMTLIB_V2 : input::LANG_CVC4;
 
+  solver.setOption("input-language", input_language);
+  solver.setOption("output-language", output_language);
+  std::cout << "# input-language: " << input_language << " got "
+            << solver.getOption("input-language") << std::endl;
+  std::cout << "# output=language: " << output_language << " got "
+            << solver.getOption("output-language") << std::endl;
+  SymbolManager symman(&solver);
+  Parser* parser = ParserBuilder(&solver, &symman, "internal-buffer")
+                       .withStringInput(declarations)
+                       .withInputLanguage(ilang)
+                       .build();
+  // we don't need to execute the commands, but we DO need to parse them to
+  // get the declarations
+  while (Command* c = parser->nextCommand())
+  {
+    delete c;
+  }
+  assert(parser->done());  // parser should be done
+  std::cout << "#### " << instr << std::endl;
+  parser->setInput(Input::newStringInput(ilang, instr, "internal-buffer"));
+  api::Term e = parser->nextExpression();
+  std::string s = e.toString();
+  assert(parser->nextExpression().isNull());  // next expr should be null
+  delete parser;
   return s;
 }
 
-void runTestString(std::string instr, InputLanguage instrlang = input::LANG_SMTLIB_V2) {
-  cout << endl
-       << "starting with: " << instr << endl
-       << "   in language " << instrlang << endl;
-  string smt2 = translate(instr, instrlang, output::LANG_SMTLIB_V2);
-  cout << "in SMT2      : " << smt2 << endl;
-  /* -- SMT-LIBv1 doesn't have a functional printer yet
-  string smt1 = translate(smt2, input::LANG_SMTLIB_V2, output::LANG_SMTLIB);
-  cout << "in SMT1      : " << smt1 << endl;
-  */
-  string cvc = translate(smt2, input::LANG_SMTLIB_V2, output::LANG_CVC4);
-  cout << "in CVC       : " << cvc << endl;
-  string out = translate(cvc, input::LANG_CVC4, output::LANG_SMTLIB_V2);
-  cout << "back to SMT2 : " << out << endl << endl;
+std::string translate(std::string instr,
+                      std::string input_language,
+                      std::string output_language)
+{
+  assert(input_language == "smt2" || input_language == "cvc4");
+  assert(output_language == "smt2" || output_language == "cvc4");
 
-  assert(out == smt2);// differences in output
+  std::cout << "==============================================" << std::endl
+            << "translating from "
+            << (input_language == "smt2" ? input::LANG_SMTLIB_V2
+                                         : input::LANG_CVC4)
+            << " to "
+            << (output_language == "smt2" ? output::LANG_SMTLIB_V2
+                                          : output::LANG_CVC4)
+            << " this string:" << std::endl
+            << instr << std::endl;
+  std::string outstr = parse(instr, input_language, output_language);
+  std::cout << "got this:" << std::endl
+            << outstr << std::endl
+            << "reparsing as "
+            << (output_language == "smt2" ? input::LANG_SMTLIB_V2
+                                          : input::LANG_CVC4)
+            << std::endl;
+  std::string poutstr = parse(outstr, output_language, output_language);
+  assert(outstr == poutstr);
+  std::cout << "got same expressions " << outstr << " and " << poutstr
+            << std::endl
+            << "==============================================" << std::endl;
+  return outstr;
 }
 
+void runTestString(std::string instr)
+{
+  std::cout << std::endl
+            << "starting with: " << instr << std::endl
+            << "   in language " << input::LANG_SMTLIB_V2 << std::endl;
+  std::string smt2str = translate(instr, "smt2", "smt2");
+  std::cout << "in SMT2      : " << smt2str << std::endl;
+  std::string cvcstr = translate(smt2str, "smt2", "cvc4");
+  std::cout << "in CVC       : " << cvcstr << std::endl;
+  std::string outstr = translate(cvcstr, "cvc4", "smt2");
+  std::cout << "back to SMT2 : " << outstr << std::endl << std::endl;
 
-int runTest() {
-  std::unique_ptr<api::Solver> solver =
-      std::unique_ptr<api::Solver>(new api::Solver());
-  std::unique_ptr<SymbolManager> symman(new SymbolManager(solver.get()));
-  psr = ParserBuilder(solver.get(), symman.get(), "internal-buffer")
-            .withStringInput(declarations)
-            .withInputLanguage(input::LANG_SMTLIB_V2)
-            .build();
+  assert(outstr == smt2str);  // differences in output
+}
 
-  // we don't need to execute them, but we DO need to parse them to
-  // get the declarations
-  while(Command* c = psr->nextCommand()) {
-    delete c;
-  }
-
-  assert(psr->done());// parser should be done
-
-  cout << expr::ExprSetDepth(-1);
-
+int32_t runTest()
+{
   runTestString("(= (f (f y)) x)");
-  runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10", input::LANG_CVC4);
-  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]", input::LANG_CVC4);
-  runTestString("a[x][y] = a[y][x]", input::LANG_CVC4);
-
-  delete psr;
-  psr = NULL;
-
+  runTestString("~BVPLUS(3, 0bin00, 0bin11)[2:1] = 0bin10");
+  runTestString("~BVPLUS(3, BVMULT(2, 0bin01, 0bin11), 0bin11)[2:0]");
+  runTestString("a[x][y] = a[y][x]");
   return 0;
 }
