@@ -42,8 +42,7 @@ namespace arith {
 struct ArithWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ArithWitnessVarAttributeId, Node>
-    ArithWitnessVarAttribute;
+using ArithWitnessVarAttribute = expr::Attribute<ArithWitnessVarAttributeId, Node>;
 /**
  * Similar to above, shared for to_int and is_int. This is used for introducing
  * an integer bound variable used to construct the witness term for t in the
@@ -52,8 +51,8 @@ typedef expr::Attribute<ArithWitnessVarAttributeId, Node>
 struct ToIntWitnessVarAttributeId
 {
 };
-typedef expr::Attribute<ToIntWitnessVarAttributeId, Node>
-    ToIntWitnessVarAttribute;
+using ToIntWitnessVarAttribute
+ = expr::Attribute<ToIntWitnessVarAttributeId, Node>;
 
 OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
     : EagerProofGenerator(pnm), d_info(info)
