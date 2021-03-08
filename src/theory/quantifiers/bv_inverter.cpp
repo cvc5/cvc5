@@ -108,10 +108,10 @@ static bool isInvertible(Kind k, unsigned index)
   return k == NOT || k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT
          || k == BITVECTOR_COMP || k == BITVECTOR_NOT || k == BITVECTOR_NEG
          || k == BITVECTOR_CONCAT || k == BITVECTOR_SIGN_EXTEND
-         || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
-         || k == BITVECTOR_UREM_TOTAL || k == BITVECTOR_UDIV_TOTAL
-         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
-         || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR || k == BITVECTOR_SHL;
+         || k == BITVECTOR_PLUS || k == BITVECTOR_MULT || k == BITVECTOR_UREM
+         || k == BITVECTOR_UDIV || k == BITVECTOR_AND || k == BITVECTOR_OR
+         || k == BITVECTOR_XOR || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR
+         || k == BITVECTOR_SHL;
 }
 
 Node BvInverter::getPathToPv(
@@ -314,11 +314,11 @@ Node BvInverter::solveBvLit(Node sv,
     {
       ic = utils::getICBvShl(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_UREM_TOTAL)
+    else if (k == BITVECTOR_UREM)
     {
       ic = utils::getICBvUrem(pol, litk, k, index, x, s, t);
     }
-    else if (k == BITVECTOR_UDIV_TOTAL)
+    else if (k == BITVECTOR_UDIV)
     {
       ic = utils::getICBvUdiv(pol, litk, k, index, x, s, t);
     }

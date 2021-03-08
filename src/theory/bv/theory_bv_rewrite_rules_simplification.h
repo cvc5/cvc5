@@ -1393,7 +1393,7 @@ template <>
 inline bool RewriteRule<UdivPow2>::applies(TNode node)
 {
   bool isNeg = false;
-  if (node.getKind() == kind::BITVECTOR_UDIV_TOTAL
+  if (node.getKind() == kind::BITVECTOR_UDIV
       && utils::isPow2Const(node[1], isNeg))
   {
     return !isNeg;
@@ -1439,8 +1439,8 @@ inline Node RewriteRule<UdivPow2>::apply(TNode node)
 
 template <>
 inline bool RewriteRule<UdivZero>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
-          node[1] == utils::mkConst(utils::getSize(node), 0));
+  return (node.getKind() == kind::BITVECTOR_UDIV
+          && node[1] == utils::mkConst(utils::getSize(node), 0));
 }
 
 template <>
@@ -1459,8 +1459,8 @@ inline Node RewriteRule<UdivZero>::apply(TNode node) {
 
 template <>
 inline bool RewriteRule<UdivOne>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UDIV_TOTAL &&
-          node[1] == utils::mkConst(utils::getSize(node), 1));
+  return (node.getKind() == kind::BITVECTOR_UDIV
+          && node[1] == utils::mkConst(utils::getSize(node), 1));
 }
 
 template <>
@@ -1481,7 +1481,7 @@ template <>
 inline bool RewriteRule<UremPow2>::applies(TNode node)
 {
   bool isNeg;
-  if (node.getKind() == kind::BITVECTOR_UREM_TOTAL
+  if (node.getKind() == kind::BITVECTOR_UREM
       && utils::isPow2Const(node[1], isNeg))
   {
     return !isNeg;
@@ -1521,8 +1521,8 @@ inline Node RewriteRule<UremPow2>::apply(TNode node)
 
 template<> inline
 bool RewriteRule<UremOne>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UREM_TOTAL &&
-          node[1] == utils::mkConst(utils::getSize(node), 1));
+  return (node.getKind() == kind::BITVECTOR_UREM
+          && node[1] == utils::mkConst(utils::getSize(node), 1));
 }
 
 template<> inline
@@ -1541,8 +1541,7 @@ Node RewriteRule<UremOne>::apply(TNode node) {
 
 template<> inline
 bool RewriteRule<UremSelf>::applies(TNode node) {
-  return (node.getKind() == kind::BITVECTOR_UREM_TOTAL &&
-          node[0] == node[1]);
+  return (node.getKind() == kind::BITVECTOR_UREM && node[0] == node[1]);
 }
 
 template<> inline
@@ -1590,7 +1589,7 @@ template <>
 inline bool RewriteRule<UgtUrem>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_UGT
-          && node[0].getKind() == kind::BITVECTOR_UREM_TOTAL
+          && node[0].getKind() == kind::BITVECTOR_UREM
           && node[0][1] == node[1]);
 }
 
