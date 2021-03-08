@@ -124,15 +124,7 @@ Kind getEliminateKind(Kind ok)
   Kind nk = ok;
   // We also must ensure that builtin operators which are eliminated
   // during expand definitions are replaced by the proper operator.
-  if (ok == BITVECTOR_UDIV)
-  {
-    nk = BITVECTOR_UDIV_TOTAL;
-  }
-  else if (ok == BITVECTOR_UREM)
-  {
-    nk = BITVECTOR_UREM_TOTAL;
-  }
-  else if (ok == DIVISION)
+  if (ok == DIVISION)
   {
     nk = DIVISION_TOTAL;
   }

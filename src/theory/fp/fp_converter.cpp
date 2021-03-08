@@ -498,9 +498,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator/(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV, *this, op));
 }
 
 template <bool isSigned>
@@ -508,9 +506,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator%(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM, *this, op));
 }
 
 template <bool isSigned>

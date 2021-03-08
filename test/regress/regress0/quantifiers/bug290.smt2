@@ -1,6 +1,6 @@
 (set-logic AUFLIA)
 (set-info :source | Simple list theorem |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-sort List 0)

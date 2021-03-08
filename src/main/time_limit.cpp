@@ -12,15 +12,45 @@
  ** \brief Implementation of time limits.
  **
  ** Implementation of time limits that are imposed by the --tlimit option.
+ **
+ ** There are various strategies to implement time limits, with different
+ ** advantages and disadvantages:
+ **
+ ** std::thread: we can spawn a new thread which waits for the time limit.
+ ** Unless we use std::jthread (from C++20), std::thread is not interruptible
+ ** and thus we need a synchronization mechanism so that the main thread can
+ ** communicate to the timer thread that it wants to finish. Apparently, this
+ ** is the only platform independent way.
+ **
+ ** POSIX setitimer: a very simple way that instructs the kernel to send a
+ ** signal after some time. If available, this is what we want!
+ **
+ ** Win32 CreateWaitableTimer: unfortunately, this mechanism only calls the
+ ** completion routine (the callback) when the main thread "enters an
+ ** alertable wait state", i.e. it sleeps. We don't want our main thread to
+ ** sleep, thus this approach is not appropriate.
+ **
+ ** Win32 SetTimer: while we can specify a callback function, we still need
+ ** to process the windows event queue for the callback to be called. (see
+ ** https://stackoverflow.com/a/15406527/2375725). We don't want our main
+ ** thread to continuously monitor the event queue.
+ **
+ **
+ ** We thus use the setitimer variant whenever possible, and the std::thread
+ ** variant otherwise.
  **/
 
 #include "time_limit.h"
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
-#include <windows.h>
-#else
+#include "cvc4autoconfig.h"
+
+#if HAVE_SETITIMER
 #include <signal.h>
 #include <sys/time.h>
+#else
+#include <atomic>
+#include <chrono>
+#include <thread>
 #endif
 
 #include <cerrno>
@@ -31,43 +61,31 @@
 namespace CVC4 {
 namespace main {
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
-void CALLBACK win_timeout_handler(LPVOID lpArg,
-                                  DWORD dwTimerLowValue,
-                                  DWORD dwTimerHighValue)
-{
-  signal_handlers::timeout_handler();
-}
-#else
+#if HAVE_SETITIMER
+TimeLimit::~TimeLimit() {}
+
 void posix_timeout_handler(int sig, siginfo_t* info, void*)
 {
   signal_handlers::timeout_handler();
 }
+#else
+std::atomic<bool> abort_timer_flag;
+
+TimeLimit::~TimeLimit()
+{
+  abort_timer_flag.store(true);
+}
 #endif
 
-void install_time_limit(const Options& opts)
+TimeLimit install_time_limit(const Options& opts)
 {
   unsigned long ms = opts.getCumulativeTimeLimit();
   // Skip if no time limit shall be set.
-  if (ms == 0) return;
+  if (ms == 0) {
+    return TimeLimit();
+  }
 
-#if defined(__MINGW32__) || defined(__MINGW64__)
-  HANDLE hTimer = CreateWaitableTimer(nullptr, true, TEXT("CVC4::Timeout"));
-  if (hTimer == nullptr)
-  {
-    throw Exception(std::string("CreateWaitableTimer() failure: ")
-                    + std::to_string(GetLastError()));
-  }
-  LARGE_INTEGER liDueTime;
-  liDueTime.LowPart = (DWORD)(ms & 0xFFFFFFFF);
-  liDueTime.HighPart = 0;
-  if (!SetWaitableTimer(
-          hTimer, &liDueTime, 0, win_timeout_handler, nullptr, false))
-  {
-    throw Exception(std::string("SetWaitableTimer() failure: ")
-                    + std::to_string(GetLastError()));
-  }
-#else
+#if HAVE_SETITIMER
   // Install a signal handler for SIGALRM
   struct sigaction sact;
   sact.sa_sigaction = posix_timeout_handler;
@@ -93,7 +111,25 @@ void install_time_limit(const Options& opts)
   {
     throw Exception(std::string("timer_settime() failure: ") + strerror(errno));
   }
+#else
+  abort_timer_flag.store(false);
+  std::thread t([ms]()
+  {
+    // when to stop
+    auto limit = std::chrono::system_clock::now() + std::chrono::milliseconds(ms);
+    while (limit > std::chrono::system_clock::now())
+    {
+      // check if the main thread is done
+      if (abort_timer_flag.load()) return;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    // trigger the timeout handler
+    signal_handlers::timeout_handler();
+  });
+  // detach the thread
+  t.detach();
 #endif
+  return TimeLimit();
 }
 
 }  // namespace main

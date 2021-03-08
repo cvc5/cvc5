@@ -2,7 +2,7 @@
 ; EXPECT: sat
 
 (set-logic UFDTLIA)
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 
 (define-funs-rec
   (
@@ -22,8 +22,8 @@
   )
 )
 
-(declare-datatypes (T) ( (List (Nil) (Cstr (head T) (tail List) ) ) ) )
-(declare-datatypes (T S) ( (Pair (Pair (first T) (second S)) ) ) )
+(declare-datatypes ((List 1)) ((par (T)((Nil) (Cstr (head T) (tail (List T)))))))
+(declare-datatypes ((Pair 2)) ((par (T S)((Pair (first T) (second S))))))
 
 (define-funs-rec
   (

@@ -440,18 +440,6 @@ RewriteResponse TheoryBVRewriter::RewriteNeg(TNode node, bool prerewrite) {
 RewriteResponse TheoryBVRewriter::RewriteUdiv(TNode node, bool prerewrite){
   Node resultNode = node;
 
-  return RewriteUdivTotal(node, prerewrite);
-}
-
-RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool prerewrite){
-  Node resultNode = node;
-
-  return RewriteUremTotal(node, prerewrite);
-}
-
-RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
-  Node resultNode = node;
-
   if(RewriteRule<UdivPow2>::applies(node)) {
     resultNode = RewriteRule<UdivPow2>::run <false> (node);
     return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
@@ -464,7 +452,8 @@ RewriteResponse TheoryBVRewriter::RewriteUdivTotal(TNode node, bool prerewrite){
   return RewriteResponse(REWRITE_DONE, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteUremTotal(TNode node, bool prerewrite) {
+RewriteResponse TheoryBVRewriter::RewriteUrem(TNode node, bool prerewrite)
+{
   Node resultNode = node;
 
   if(RewriteRule<UremPow2>::applies(node)) {
@@ -477,7 +466,7 @@ RewriteResponse TheoryBVRewriter::RewriteUremTotal(TNode node, bool prerewrite) 
       RewriteRule<UremOne>,
       RewriteRule<UremSelf>
       >::apply(node);
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteSmod(TNode node, bool prerewrite) {
@@ -705,8 +694,6 @@ void TheoryBVRewriter::initializeRewrites() {
   d_rewriteTable [ kind::BITVECTOR_NEG ] = RewriteNeg;
   d_rewriteTable [ kind::BITVECTOR_UDIV ] = RewriteUdiv;
   d_rewriteTable [ kind::BITVECTOR_UREM ] = RewriteUrem;
-  d_rewriteTable [ kind::BITVECTOR_UDIV_TOTAL ] = RewriteUdivTotal;
-  d_rewriteTable [ kind::BITVECTOR_UREM_TOTAL ] = RewriteUremTotal;
   d_rewriteTable [ kind::BITVECTOR_SMOD ] = RewriteSmod;
   d_rewriteTable [ kind::BITVECTOR_SDIV ] = RewriteSdiv;
   d_rewriteTable [ kind::BITVECTOR_SREM ] = RewriteSrem;
