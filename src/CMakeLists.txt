@@ -242,6 +242,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/node_command.cpp
   smt/node_command.h
+  smt/optimization_solver.cpp
+  smt/optimization_solver.h
   smt/options_manager.cpp
   smt/options_manager.h
   smt/output_manager.cpp
@@ -898,6 +900,7 @@ libcvc4_add_sources(
   theory/shared_solver_distributed.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
+  theory/skolem_lemma.h
   theory/smt_engine_subsolver.cpp
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp

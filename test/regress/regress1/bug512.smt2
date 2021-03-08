@@ -3,7 +3,7 @@
 ; EXPECT: (:reason-unknown incomplete)
 ; EXPECT: unsat
 (set-option :print-success false)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 ;(set-option :AUTO_CONFIG false)
 ;(set-option :MODEL_HIDE_UNUSED_PARTITIONS false)
 ;(set-option :MODEL_V2 true)

@@ -39,13 +39,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   using namespace CVC4::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB_V2_0:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant));
-
-  case LANG_SMTLIB_V2_5:
-    return unique_ptr<Printer>(new printer::smt2::Smt2Printer());
-
   case LANG_SMTLIB_V2_6:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));

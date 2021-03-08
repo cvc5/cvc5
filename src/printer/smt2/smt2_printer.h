@@ -31,7 +31,6 @@ namespace smt2 {
 enum Variant
 {
   no_variant,
-  smt2_0_variant,  // old-style 2.0 syntax, when it makes a difference
   smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
                    // support for the string standard
 };                 /* enum Variant */

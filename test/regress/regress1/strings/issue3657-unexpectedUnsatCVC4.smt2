@@ -10,10 +10,10 @@
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 (set-option :produce-models true)
 (set-logic ALL)
-(declare-datatypes () ((a0(c0$0)(c0$1)(c0$2)(c0$3(c0$3$0 a1)(c0$3$1 Int)(c0$3$2 String)(c0$3$3 Int))(c0$4(c0$4$0 Int))(c0$5))(a1(c1$0(c1$0$0 a0)(c1$0$1 a0)(c1$0$2 String)(c1$0$3 Int))(c1$1(c1$1$0 Int))(c1$2)(c1$3(c1$3$0 Int))(c1$4)(c1$5))(a2(c2$0(c2$0$0 Int)(c2$0$1 a0))(c2$1(c2$1$0 String)(c2$1$1 a0)(c2$1$2 a1)))))
+(declare-datatypes ((a0 0)(a1 0)(a2 0)) (((c0$0) (c0$1) (c0$2) (c0$3 (c0$3$0 a1) (c0$3$1 Int) (c0$3$2 String) (c0$3$3 Int)) (c0$4 (c0$4$0 Int)) (c0$5))((c1$0 (c1$0$0 a0) (c1$0$1 a0) (c1$0$2 String) (c1$0$3 Int)) (c1$1 (c1$1$0 Int)) (c1$2) (c1$3 (c1$3$0 Int)) (c1$4) (c1$5))((c2$0 (c2$0$0 Int) (c2$0$1 a0)) (c2$1 (c2$1$0 String) (c2$1$1 a0) (c2$1$2 a1)))))
 (push 1)
 (pop 1)
 (push 1)

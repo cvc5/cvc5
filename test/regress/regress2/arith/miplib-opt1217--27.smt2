@@ -6,7 +6,7 @@ Relaxation of the Mixed-Integer Programming
 optimization problem opt1217 from the MIPLIB (http://miplib.zib.de/)
 by Enric Rodriguez-Carbonell (erodri@lsi.upc.edu)
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun tmp766 () Real)

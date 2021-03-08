@@ -3757,7 +3757,7 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
     TrustNode teq;
     if (Theory::theoryOf(eq) == THEORY_ARITH)
     {
-      teq = d_containing.ppRewrite(eq);
+      teq = d_containing.ppRewriteEq(eq);
       eq = teq.isNull() ? eq : teq.getNode();
     }
     Node literal = d_containing.getValuation().ensureLiteral(eq);
