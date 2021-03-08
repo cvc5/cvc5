@@ -23,6 +23,9 @@
 #include "theory/arith/nl/cad/proof_checker.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
 namespace theory {
 namespace arith {
 
