@@ -66,7 +66,7 @@ Instantiate::~Instantiate()
 bool Instantiate::reset(Theory::Effort e)
 {
   // clear explicitly recorded instantiations
-  d_recorded_inst.clear();
+  d_recordedInst.clear();
   d_term_db = d_qe->getTermDatabase();
   return true;
 }
@@ -74,7 +74,7 @@ bool Instantiate::reset(Theory::Effort e)
 void Instantiate::registerQuantifier(Node q) {}
 bool Instantiate::checkComplete()
 {
-  if (!d_recorded_inst.empty())
+  if (!d_recordedInst.empty())
   {
     Trace("quant-engine-debug")
         << "Set incomplete due to recorded instantiations." << std::endl;
@@ -467,10 +467,10 @@ bool Instantiate::addInstantiationExpFail(Node q,
 
 void Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
-                                      bool modEq)
+                                      bool doVts)
 {
   Node inst = getInstantiation(q, terms, doVts);
-  d_recorded_inst[q].push_back(inst);
+  d_recordedInst[q].push_back(inst);
 }
 
 bool Instantiate::existsInstantiation(Node q,
@@ -667,6 +667,12 @@ void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
 {
   InstLemmaList* ill = getOrMkInstLemmaList(q);
   insts.insert(insts.end(), ill->d_list.begin(), ill->d_list.end());
+  // also include recorded instantations (for qe-partial)
+  std::map<Node, std::vector<Node> >::const_iterator it = d_recordedInst.find(q);
+  if (it!=d_recordedInst.end())
+  {
+    insts.insert(insts.end(), it->second.begin(), it->second.end());
+  }
 }
 
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }

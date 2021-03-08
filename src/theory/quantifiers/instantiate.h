@@ -342,9 +342,10 @@ class Instantiate : public QuantifiersUtil
    *
    * Sometimes an instantiation is recorded internally but not sent out as a
    * lemma, for instance, for partial quantifier elimination. This is a map
-   * of these instantiations, for each quantified formula.
+   * of these instantiations, for each quantified formula. This map is cleared
+   * on presolve, e.g. it is local to a check-sat call.
    */
-  std::map<Node, std::vector<Node> > d_recorded_inst;
+  std::map<Node, std::vector<Node> > d_recordedInst;
   /** statistics for debugging total instantiations per quantifier per round */
   std::map<Node, uint32_t> d_temp_inst_debug;
 
