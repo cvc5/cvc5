@@ -65,6 +65,7 @@ Instantiate::~Instantiate()
 
 bool Instantiate::reset(Theory::Effort e)
 {
+  Trace("inst-debug") << "Reset, effort " << e << std::endl;
   // clear explicitly recorded instantiations
   d_recordedInst.clear();
   d_term_db = d_qe->getTermDatabase();
@@ -469,6 +470,10 @@ void Instantiate::recordInstantiation(Node q,
                                       std::vector<Node>& terms,
                                       bool doVts)
 {
+  Trace("inst-debug") << "Record instantiation for " << q << std::endl;
+  // get the instantiation list, which ensures that q is marked as a quantified
+  // formula we instantiated, despite only recording an instantiation here
+  getOrMkInstLemmaList(q);
   Node inst = getInstantiation(q, terms, doVts);
   d_recordedInst[q].push_back(inst);
 }
@@ -599,24 +604,11 @@ Node Instantiate::getTermForType(TypeNode tn)
   return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
-void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
+void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const
 {
-  if (options::incrementalSolving())
+  for (NodeInstListMap::const_iterator it = d_insts.begin(); it != d_insts.end(); ++it)
   {
-    for (context::CDHashSet<Node, NodeHashFunction>::const_iterator it =
-             d_c_inst_match_trie_dom.begin();
-         it != d_c_inst_match_trie_dom.end();
-         ++it)
-    {
-      qs.push_back(*it);
-    }
-  }
-  else
-  {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-    {
-      qs.push_back(t.first);
-    }
+    qs.push_back(it->first);
   }
 }
 
@@ -665,6 +657,7 @@ void Instantiate::getInstantiationTermVectors(
 
 void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
 {
+  Trace("inst-debug") << "get instantiations for " << q << std::endl;
   InstLemmaList* ill = getOrMkInstLemmaList(q);
   insts.insert(insts.end(), ill->d_list.begin(), ill->d_list.end());
   // also include recorded instantations (for qe-partial)

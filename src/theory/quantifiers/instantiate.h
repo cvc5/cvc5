@@ -254,7 +254,7 @@ class Instantiate : public QuantifiersUtil
    * Get the list of quantified formulas that were instantiated in the current
    * user context, store them in qs.
    */
-  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
+  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs) const;
   /** get instantiation term vectors
    *
    * Get term vectors corresponding to for all instantiations lemmas added in
