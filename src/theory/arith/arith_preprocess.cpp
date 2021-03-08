@@ -16,6 +16,7 @@
 
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/skolem_lemma.h"
 
 namespace CVC4 {
 namespace theory {

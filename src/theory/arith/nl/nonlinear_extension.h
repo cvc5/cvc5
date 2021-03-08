@@ -46,6 +46,7 @@ namespace eq {
 namespace arith {
 
 class InferenceManager;
+class TheoryArith;
 
 namespace nl {
 

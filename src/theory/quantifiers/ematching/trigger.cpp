@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "expr/skolem_manager.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
@@ -23,12 +24,14 @@
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/valuation.h"
 
 using namespace CVC4::kind;
 

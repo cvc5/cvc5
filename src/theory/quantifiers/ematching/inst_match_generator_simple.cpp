@@ -13,6 +13,7 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
 #include "theory/quantifiers/instantiate.h"

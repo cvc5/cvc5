@@ -17,17 +17,13 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 #define CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 
-#include <map>
-
 #include "expr/node.h"
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+class Valuation;
 
 namespace quantifiers {
 class QuantifiersState;
@@ -38,6 +34,7 @@ class QuantifiersRegistry;
 namespace inst {
 
 class IMGenerator;
+class InstMatch;
 class InstMatchGenerator;
 /** A collection of nodes representing a trigger.
 *
