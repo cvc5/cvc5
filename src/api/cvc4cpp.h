@@ -3639,7 +3639,6 @@ class CVC4_PUBLIC Solver
   std::unique_ptr<Random> d_rng;
 };
 
-// !!! Only temporarily public until the parser is fully migrated to the
 }  // namespace api
 
 // !!! Only temporarily public until the parser is fully migrated to the
