@@ -353,13 +353,15 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
             if check_proofs and \
                '--no-check-proofs' not in all_args and \
                '--check-proofs' not in all_args:
-                extra_command_line_args.append('--check-proofs')
+                extra_command_line_args += ['--check-proofs']
         if '--no-check-abducts' not in all_args and \
-            '--check-abducts' not in all_args:
+            '--check-abducts' not in all_args and \
+            '(get-abduct)' in benchmark_content:
             extra_command_line_args += ['--check-abducts']
-        if extra_command_line_args:
-            command_line_args_configs.append(all_args +
-                                             extra_command_line_args)
+
+        # Create a test case for each extra argument
+        for extra_arg in extra_command_line_args:
+            command_line_args_configs.append(all_args + [extra_arg])
 
     # Run CVC4 on the benchmark with the different option sets and check
     # whether the exit status, stdout output, stderr output are as expected.
