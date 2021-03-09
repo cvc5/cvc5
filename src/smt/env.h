@@ -37,7 +37,7 @@ class ResourceManager;
 namespace context {
 class Context;
 class UserContext;
-}
+}  // namespace context
 
 namespace smt {
 class DumpManager;
@@ -50,6 +50,7 @@ class Rewriter;
 class Env
 {
   friend class SmtEngine;
+
  public:
   /**
    * Construct an Env with the given node manager. If provided, optr is a
@@ -138,7 +139,6 @@ class Env
    */
   std::unique_ptr<ResourceManager> d_resourceManager;
 }; /* class Env */
-
 
 }  // namespace CVC4
 
