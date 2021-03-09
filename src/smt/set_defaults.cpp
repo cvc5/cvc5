@@ -824,7 +824,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::DecisionMode decMode =
         // anything that uses sygus uses internal
         usesSygus ? options::DecisionMode::INTERNAL :
-                 // ALL
+                  // ALL
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV

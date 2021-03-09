@@ -97,8 +97,7 @@ void LfscPrinter::print(std::ostream& out,
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, size_t> pletMap;
   LfscProofLetifyTraverseCallback lpltc;
-  ProofLetify::computeProofLet(
-      pnBody, pletList, pletMap, 2, &lpltc);
+  ProofLetify::computeProofLet(pnBody, pletList, pletMap, 2, &lpltc);
 
   // [3] print the check command and term lets
   out << "(check" << std::endl;
