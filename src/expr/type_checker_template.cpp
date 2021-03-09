@@ -44,7 +44,7 @@ ${typerules}
 
   default:
     Debug("getType") << "FAILURE" << std::endl;
-    Unhandled() << n.getKind();
+    Unhandled() << " " << n.getKind();
   }
 
   nodeManager->setAttribute(n, TypeAttr(), typeNode);
