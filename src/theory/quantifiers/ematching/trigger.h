@@ -2,9 +2,9 @@
 /*! \file trigger.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,19 +17,16 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 #define CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 
-#include <map>
-
 #include "expr/node.h"
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+class Valuation;
 
 namespace quantifiers {
+class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
 }
@@ -37,6 +34,7 @@ class QuantifiersRegistry;
 namespace inst {
 
 class IMGenerator;
+class InstMatch;
 class InstMatchGenerator;
 /** A collection of nodes representing a trigger.
 *
@@ -163,6 +161,7 @@ class Trigger {
     TR_RETURN_NULL  //return null if a duplicate is found
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim,
                             quantifiers::QuantifiersRegistry& qr,
                             Node q,
@@ -172,6 +171,7 @@ class Trigger {
                             size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim,
                             quantifiers::QuantifiersRegistry& qr,
                             Node q,
@@ -196,6 +196,7 @@ class Trigger {
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
   Trigger(QuantifiersEngine* ie,
+          quantifiers::QuantifiersState& qs,
           quantifiers::QuantifiersInferenceManager& qim,
           quantifiers::QuantifiersRegistry& qr,
           Node q,
@@ -245,6 +246,8 @@ class Trigger {
   std::vector<Node> d_groundTerms;
   /** The quantifiers engine associated with this trigger. */
   QuantifiersEngine* d_quantEngine;
+  /** Reference to the quantifiers state */
+  quantifiers::QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */

@@ -4,18 +4,19 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief implementation of class for constructing inductive datatypes that correspond to
- ** grammars that encode syntactic restrictions for SyGuS.
+ ** \brief implementation of class for constructing inductive datatypes that
+ ** correspond to grammars that encode syntactic restrictions for SyGuS.
  **/
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
 #include <stack>
 
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -25,6 +26,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/strings/word.h"
 
 using namespace CVC4::kind;
@@ -816,8 +818,8 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
                                      BITVECTOR_PLUS,
                                      BITVECTOR_SUB,
                                      BITVECTOR_MULT,
-                                     BITVECTOR_UDIV_TOTAL,
-                                     BITVECTOR_UREM_TOTAL,
+                                     BITVECTOR_UDIV,
+                                     BITVECTOR_UREM,
                                      BITVECTOR_SDIV,
                                      BITVECTOR_SREM,
                                      BITVECTOR_SHL,

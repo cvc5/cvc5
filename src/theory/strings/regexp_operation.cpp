@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tianyi Liang, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,8 @@
  **/
 
 #include "theory/strings/regexp_operation.h"
+
+#include <sstream>
 
 #include "expr/node_algorithm.h"
 #include "options/strings_options.h"

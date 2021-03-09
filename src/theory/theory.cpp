@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,10 +26,16 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/ee_setup_info.h"
 #include "theory/ext_theory.h"
+#include "theory/output_channel.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"
+#include "theory/theory_inference_manager.h"
+#include "theory/theory_model.h"
 #include "theory/theory_rewriter.h"
+#include "theory/theory_state.h"
+#include "theory/trust_substitutions.h"
 
 using namespace std;
 

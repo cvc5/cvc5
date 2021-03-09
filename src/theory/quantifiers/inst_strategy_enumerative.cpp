@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -323,7 +323,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                 << "Incompatible type " << f << ", " << terms[i].getType()
                 << ", " << ftypes[i] << std::endl;
           }
-          if (ie->addInstantiation(f, terms))
+          std::vector<bool> failMask;
+          if (ie->addInstantiationExpFail(f, terms, failMask, false))
           {
             Trace("inst-alg-rd") << "Success!" << std::endl;
             ++(d_quantEngine->d_statistics.d_instantiations_guess);
@@ -332,6 +333,15 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           else
           {
             index--;
+            // currently, we use the failmask only for backtracking, although
+            // more could be learned here (wishue #81).
+            Assert(failMask.size() == terms.size());
+            while (!failMask.empty() && !failMask.back())
+            {
+              failMask.pop_back();
+              childIndex.pop_back();
+              index--;
+            }
           }
           if (d_qstate.isInConflict())
           {

@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** [[ Add lengthier description here ]]
  ** \todo document this file
-**/
+ **/
 
 #include "cvc4_private.h"
 
@@ -23,11 +23,13 @@
 #include "context/cdhashmap.h"
 #include "context/context.h"
 #include "expr/attribute.h"
+#include "theory/decision_strategy.h"
 
 namespace CVC4 {
 namespace theory {
 
 class RepSetIterator;
+class DecisionManager;
 
 /**
  * Attribute set to 1 for literals that comprise the bounds of a quantified
@@ -164,7 +166,8 @@ private:
   BoundedIntegers(QuantifiersEngine* qe,
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
-                  QuantifiersRegistry& qr);
+                  QuantifiersRegistry& qr,
+                  DecisionManager* dm);
   virtual ~BoundedIntegers();
 
   void presolve() override;
@@ -231,6 +234,8 @@ private:
   Node matchBoundVar( Node v, Node t, Node e );
   
   bool getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi );
+  /** Pointer to the decision manager */
+  DecisionManager* d_dm;
 };
 
 }

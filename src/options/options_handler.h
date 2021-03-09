@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,17 +22,18 @@
 #include <ostream>
 #include <string>
 
-#include "base/modal_exception.h"
 #include "options/base_handlers.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "options/language.h"
 #include "options/option_exception.h"
-#include "options/options.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_options.h"
 
 namespace CVC4 {
+
+class Options;
+
 namespace options {
 
 /**

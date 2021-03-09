@@ -2,9 +2,9 @@
 /*! \file term_database.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,10 @@
 #define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include <map>
-#include <unordered_set>
+#include <unordered_map>
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/quantifiers/quant_util.h"
@@ -77,8 +79,7 @@ class TermDb : public QuantifiersUtil {
  public:
   TermDb(QuantifiersState& qs,
          QuantifiersInferenceManager& qim,
-         QuantifiersRegistry& qr,
-         QuantifiersEngine* qe);
+         QuantifiersRegistry& qr);
   ~TermDb();
   /** presolve (called once per user check-sat) */
   void presolve();
@@ -291,8 +292,6 @@ class TermDb : public QuantifiersUtil {
   Node getHoTypeMatchPredicate(TypeNode tn);
 
  private:
-  /** reference to the quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager */

@@ -2,9 +2,9 @@
 /*! \file arith_preprocess.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,10 @@
  **/
 
 #include "theory/arith/arith_preprocess.h"
+
+#include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/skolem_lemma.h"
 
 namespace CVC4 {
 namespace theory {
@@ -25,10 +29,13 @@ ArithPreprocess::ArithPreprocess(ArithState& state,
     : d_im(im), d_opElim(pnm, info), d_reduced(state.getUserContext())
 {
 }
-TrustNode ArithPreprocess::eliminate(TNode n, bool partialOnly)
+TrustNode ArithPreprocess::eliminate(TNode n,
+                                     std::vector<SkolemLemma>& lems,
+                                     bool partialOnly)
 {
-  return d_opElim.eliminate(n, partialOnly);
+  return d_opElim.eliminate(n, lems, partialOnly);
 }
+
 bool ArithPreprocess::reduceAssertion(TNode atom)
 {
   context::CDHashMap<Node, bool, NodeHashFunction>::const_iterator it =
@@ -38,7 +45,12 @@ bool ArithPreprocess::reduceAssertion(TNode atom)
     // already computed
     return (*it).second;
   }
-  TrustNode tn = eliminate(atom);
+  std::vector<SkolemLemma> lems;
+  TrustNode tn = eliminate(atom, lems);
+  for (const SkolemLemma& lem : lems)
+  {
+    d_im.trustedLemma(lem.d_lemma, InferenceId::ARITH_PP_ELIM_OPERATORS_LEMMA);
+  }
   if (tn.isNull())
   {
     // did not reduce

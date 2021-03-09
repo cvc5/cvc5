@@ -2,9 +2,9 @@
 /*! \file proof_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,11 +14,15 @@
 
 #include "smt/proof_manager.h"
 
+#include "expr/proof_checker.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
+#include "smt/preprocess_proof_generator.h"
+#include "smt/proof_post_processor.h"
 
 namespace CVC4 {
 namespace smt {

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,12 +18,13 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
-#include "options/theory_options.h"
 #include "theory/arith/arith_state.h"
-#include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::kind;
@@ -54,7 +55,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState),
       d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_im, d_model),
+      d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
       d_builtModel(containing.getSatContext(), false)

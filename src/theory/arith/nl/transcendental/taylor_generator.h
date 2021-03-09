@@ -2,9 +2,9 @@
 /*! \file taylor_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
+ **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,12 +16,14 @@
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__TAYLOR_GENERATOR_H
 
 #include "expr/node.h"
-#include "theory/arith/nl/nl_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+class NlModel;
+
 namespace transcendental {
 
 class TaylorGenerator

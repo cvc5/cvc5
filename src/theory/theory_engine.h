@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -274,7 +274,7 @@ class TheoryEngine {
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
   /** sort inference module */
-  SortInference d_sortInfer;
+  std::unique_ptr<theory::SortInference> d_sortInfer;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
@@ -634,11 +634,10 @@ class TheoryEngine {
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
+ theory::SortInference* getSortInference() { return d_sortInfer.get(); }
 
-  SortInference* getSortInference() { return &d_sortInfer; }
-
-  /** Prints the assertions to the debug stream */
-  void printAssertions(const char* tag);
+ /** Prints the assertions to the debug stream */
+ void printAssertions(const char* tag);
 
 private:
 

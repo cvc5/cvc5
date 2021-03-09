@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,9 +36,12 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "options/options.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
 
 class StatisticsRegistry;
 class ResourceManager;
@@ -82,15 +85,18 @@ class NodeManagerListener {
   virtual void nmNotifyDeleteNode(TNode n) {}
 }; /* class NodeManagerListener */
 
-class NodeManager {
-  template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
-  friend class NodeManagerScope;
+class NodeManager
+{
+  friend class api::Solver;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
-
   // friends so they can access mkVar() here, which is private
   friend Expr ExprManager::mkVar(const std::string&, Type);
   friend Expr ExprManager::mkVar(Type);
+
+  template <unsigned nchild_thresh>
+  friend class NodeBuilder;
+  friend class NodeManagerScope;
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -886,9 +892,15 @@ class NodeManager {
    *
    * @param domain the domain type
    * @param range the range type
+   * @param reqFlat If true, we require flat function types, e.g. the
+   * range type cannot be a function. User-generated function types and those
+   * used in solving must be flat, although some use cases (e.g. LFSC proof
+   * conversion) require non-flat function types.
    * @returns the functional type domain -> range
    */
-  TypeNode mkFunctionType(const TypeNode& domain, const TypeNode& range);
+  TypeNode mkFunctionType(const TypeNode& domain,
+                          const TypeNode& range,
+                          bool reqFlat = true);
 
   /**
    * Make a function type with input types from
@@ -896,18 +908,25 @@ class NodeManager {
    *
    * @param argTypes the domain is a tuple (argTypes[0], ..., argTypes[n])
    * @param range the range type
+   * @param reqFlat Same as above
    * @returns the functional type (argTypes[0], ..., argTypes[n]) -> range
    */
   TypeNode mkFunctionType(const std::vector<TypeNode>& argTypes,
-                          const TypeNode& range);
+                          const TypeNode& range,
+                          bool reqFlat = true);
 
   /**
    * Make a function type with input types from
    * <code>sorts[0..sorts.size()-2]</code> and result type
    * <code>sorts[sorts.size()-1]</code>. <code>sorts</code> must have
    * at least 2 elements.
+   *
+   * @param sorts The argument and range sort of the function type, where the
+   * range type is the last in this vector.
+   * @param reqFlat Same as above
    */
-  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts);
+  TypeNode mkFunctionType(const std::vector<TypeNode>& sorts,
+                          bool reqFlat = true);
 
   /**
    * Make a predicate type with input types from
@@ -915,7 +934,8 @@ class NodeManager {
    * <code>BOOLEAN</code>. <code>sorts</code> must have at least one
    * element.
    */
-  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts);
+  TypeNode mkPredicateType(const std::vector<TypeNode>& sorts,
+                           bool reqFlat = true);
 
   /**
    * Make a tuple type with types from
@@ -1133,7 +1153,7 @@ class NodeManager {
    * any published code!
    */
   void debugHook(int debugFlag);
-};/* class NodeManager */
+}; /* class NodeManager */
 
 /**
  * This class changes the "current" thread-global

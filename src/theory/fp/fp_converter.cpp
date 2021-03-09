@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,8 @@
 
 #include <vector>
 
+#include "base/check.h"
+#include "expr/node_builder.h"
 #include "theory/theory.h"  // theory.h Only needed for the leaf test
 #include "util/floatingpoint.h"
 #include "util/floatingpoint_literal_symfpu.h"
@@ -498,9 +500,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator/(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SDIV : kind::BITVECTOR_UDIV, *this, op));
 }
 
 template <bool isSigned>
@@ -508,9 +508,7 @@ symbolicBitVector<isSigned> symbolicBitVector<isSigned>::operator%(
     const symbolicBitVector<isSigned> &op) const
 {
   return symbolicBitVector<isSigned>(NodeManager::currentNM()->mkNode(
-      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM_TOTAL,
-      *this,
-      op));
+      (isSigned) ? kind::BITVECTOR_SREM : kind::BITVECTOR_UREM, *this, op));
 }
 
 template <bool isSigned>

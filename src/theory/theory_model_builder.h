@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,7 +47,7 @@ class TheoryEngineModelBuilder
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
  public:
-  TheoryEngineModelBuilder(TheoryEngine* te);
+  TheoryEngineModelBuilder();
   virtual ~TheoryEngineModelBuilder() {}
   /**
    * Should be called only on models m after they have been prepared
@@ -84,8 +84,6 @@ class TheoryEngineModelBuilder
   void postProcessModel(bool incomplete, TheoryModel* m);
 
  protected:
-  /** pointer to theory engine */
-  TheoryEngine* d_te;
 
   //-----------------------------------virtual functions
   /** pre-process build model

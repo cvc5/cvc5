@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,49 +20,39 @@
 #define CVC4__THEORY__THEORY_H
 
 #include <iosfwd>
-#include <map>
 #include <set>
 #include <string>
 #include <unordered_set>
 
-#include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "options/options.h"
 #include "options/theory_options.h"
-#include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
-#include "theory/decision_manager.h"
-#include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
-#include "theory/output_channel.h"
 #include "theory/theory_id.h"
-#include "theory/theory_inference_manager.h"
-#include "theory/theory_rewriter.h"
-#include "theory/theory_state.h"
 #include "theory/trust_node.h"
-#include "theory/trust_substitutions.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
-class TheoryEngine;
 class ProofNodeManager;
+class TheoryEngine;
 
 namespace theory {
 
+class DecisionManager;
+struct EeSetupInfo;
+class OutputChannel;
 class QuantifiersEngine;
+class TheoryInferenceManager;
 class TheoryModel;
-class SubstitutionMap;
 class TheoryRewriter;
-
-namespace rrinst {
-  class CandidateGenerator;
-}/* CVC4::theory::rrinst namespace */
+class TheoryState;
+class TrustSubstitutionMap;
 
 namespace eq {
   class EqualityEngine;

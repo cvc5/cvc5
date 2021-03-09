@@ -1,6 +1,6 @@
 (set-logic QF_UFLIA)
 (set-info :source | Simplify Theorem Prover Benchmark Suite |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status sat)
 (declare-fun true_term () Int)

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa, Dejan Jovanovic, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -151,13 +151,6 @@ class ProofCnfStream : public ProofGenerator
    * above normalizations on all added clauses.
    */
   void normalizeAndRegister(TNode clauseNode);
-  /**
-   * Are we asserting a removable clause (true) or a permanent clause (false).
-   * This is set at the beginning of convertAndAssert so that it doesn't need to
-   * be passed on over the stack. Only pure clauses can be asserted as
-   * removable.
-   */
-  bool d_removable;
   /** Reference to the underlying cnf stream. */
   CnfStream& d_cnfStream;
   /** The proof manager of underlying SAT solver associated with this stream. */

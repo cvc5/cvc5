@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Liana Hadarean, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -91,7 +91,7 @@ Node RewriteRule<ConcatExtractMerge>::apply(TNode node) {
     // If the next one can be merged, try to merge
     bool merged = false;
     if (next.getKind() == kind::BITVECTOR_EXTRACT && current[0] == next[0]) {
-      //x[i : j] @ x[j − 1 : k] -> c x[i : k]
+      // x[i : j] @ x[j - 1 : k] -> c x[i : k]
       unsigned nextHigh = utils::getExtractHigh(next);
       unsigned nextLow  = utils::getExtractLow(next);
       if(nextHigh + 1 == currentLow) {

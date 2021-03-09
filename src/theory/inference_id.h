@@ -2,9 +2,9 @@
 /*! \file inference_id.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Yoni Zohar
+ **   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,13 +14,10 @@
 
 #include "cvc4_private.h"
 
+#include <iosfwd>
+
 #ifndef CVC4__THEORY__INFERENCE_ID_H
 #define CVC4__THEORY__INFERENCE_ID_H
-
-#include <map>
-#include <vector>
-
-#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,7 +39,10 @@ enum class InferenceId
 {
   // ---------------------------------- arith theory
   //-------------------- preprocessing
+  // equivalence of term and its preprocessed form
   ARITH_PP_ELIM_OPERATORS,
+  // a lemma from arithmetic preprocessing
+  ARITH_PP_ELIM_OPERATORS_LEMMA,
   //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
@@ -199,6 +199,35 @@ enum class InferenceId
   // (dt.size t) >= 0
   DATATYPES_SYGUS_MT_POS,
   // ---------------------------------- end datatypes theory
+
+  //-------------------------------------- quantifiers theory
+  // skolemization
+  QUANTIFIERS_SKOLEMIZE,
+  // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
+  QUANTIFIERS_REDUCE_ALPHA_EQ,
+  //-------------------- counterexample-guided instantiation
+  // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
+  // counterexample literal is G1.
+  QUANTIFIERS_CEGQI_CEX_DEP,
+  // 0 < delta
+  QUANTIFIERS_CEGQI_VTS_LB_DELTA,
+  // delta < c, for positive c
+  QUANTIFIERS_CEGQI_VTS_UB_DELTA,
+  // infinity > c
+  QUANTIFIERS_CEGQI_VTS_LB_INF,
+  //-------------------- sygus solver
+  // preprocessing a sygus conjecture based on quantifier elimination, of the
+  // form Q <=> Q_preprocessed
+  QUANTIFIERS_SYGUS_QE_PREPROC,
+  // G or ~G where G is the active guard for a sygus enumerator
+  QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT,
+  // manual exclusion of a current solution
+  QUANTIFIERS_SYGUS_EXCLUDE_CURRENT,
+  // manual exclusion of a current solution for sygus-stream
+  QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
+  // ~Q where Q is a PBE conjecture with conflicting examples
+  QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory
   // ensures that pto is a function: (pto x y) ^ ~(pto z w) ^ x = z => y != w

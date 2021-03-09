@@ -2,9 +2,9 @@
 /*! \file shared_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,18 +18,19 @@
 #define CVC4__THEORY__SHARED_SOLVER__H
 
 #include "expr/node.h"
-#include "expr/proof_node_manager.h"
-#include "theory/ee_setup_info.h"
-#include "theory/logic_info.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
 
 namespace CVC4 {
 
+class LogicInfo;
+class ProofNodeManager;
 class TheoryEngine;
 
 namespace theory {
+
+struct EeSetupInfo;
 
 /**
  * A base class for shared solver. The shared solver is the component of theory

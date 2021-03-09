@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A graph representation of the currently asserted bv inequalities. 
+ ** \brief A graph representation of the currently asserted bv inequalities.
  **
- ** A graph representation of the currently asserted bv inequalities. 
+ ** A graph representation of the currently asserted bv inequalities.
  **/
 
 #include "theory/bv/bv_inequality_graph.h"

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4;
@@ -982,8 +983,15 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
 
 void FullModelChecker::doNegate( Def & dc ) {
   for (unsigned i=0; i<dc.d_cond.size(); i++) {
-    if (!dc.d_value[i].isNull()) {
-      dc.d_value[i] = dc.d_value[i]==d_true ? d_false : ( dc.d_value[i]==d_false ? d_true : dc.d_value[i] );
+    Node v = dc.d_value[i];
+    if (!v.isNull())
+    {
+      // In the case that the value is not-constant, we cannot reason about
+      // its value (since the range of this must be a constant or variable).
+      // In particular, returning null here is important if we have (not x)
+      // where x is a bound variable.
+      dc.d_value[i] =
+          v == d_true ? d_false : (v == d_false ? d_true : Node::null());
     }
   }
 }

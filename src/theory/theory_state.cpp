@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -152,9 +152,23 @@ bool TheoryState::isSatLiteral(TNode lit) const
 
 TheoryModel* TheoryState::getModel() { return d_valuation.getModel(); }
 
+SortInference* TheoryState::getSortInference()
+{
+  return d_valuation.getSortInference();
+}
+
 bool TheoryState::hasSatValue(TNode n, bool& value) const
 {
   return d_valuation.hasSatValue(n, value);
+}
+
+context::CDList<Assertion>::const_iterator TheoryState::factsBegin(TheoryId tid)
+{
+  return d_valuation.factsBegin(tid);
+}
+context::CDList<Assertion>::const_iterator TheoryState::factsEnd(TheoryId tid)
+{
+  return d_valuation.factsEnd(tid);
 }
 
 Valuation& TheoryState::getValuation() { return d_valuation; }

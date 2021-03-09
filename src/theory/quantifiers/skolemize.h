@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,7 +32,7 @@ class DTypeConstructor;
 
 namespace theory {
 
-class QuantifiersEngine;
+class SortInference;
 
 namespace quantifiers {
 
@@ -69,7 +69,7 @@ class Skolemize
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  Skolemize(QuantifiersEngine* qe, QuantifiersState& qs, ProofNodeManager* pnm);
+  Skolemize(QuantifiersState& qs, ProofNodeManager* pnm);
   ~Skolemize() {}
   /** skolemize quantified formula q
    * If the return value ret of this function is non-null, then ret is a trust
@@ -140,8 +140,8 @@ class Skolemize
                          Node n,
                          TypeNode ntn,
                          std::vector<Node>& selfSel);
-  /** quantifiers engine that owns this module */
-  QuantifiersEngine* d_quantEngine;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** quantified formulas that have been skolemized */
   NodeNodeMap d_skolemized;
   /** map from quantified formulas to the list of skolem constants */

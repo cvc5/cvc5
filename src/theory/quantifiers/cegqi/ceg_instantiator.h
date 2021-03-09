@@ -4,14 +4,13 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** \brief counterexample-guided quantifier instantiation
  **/
-
 
 #include "cvc4_private.h"
 
@@ -33,6 +32,7 @@ namespace quantifiers {
 class Instantiator;
 class InstantiatorPreprocess;
 class InstStrategyCegqi;
+class QuantifiersState;
 
 /**
  * Descriptions of the types of constraints that a term was solved for in.
@@ -209,7 +209,7 @@ class CegInstantiator {
    * The instantiator will be constructing instantiations for quantified formula
    * q, parent is the owner of this object.
    */
-  CegInstantiator(Node q, InstStrategyCegqi* parent);
+  CegInstantiator(Node q, QuantifiersState& qs, InstStrategyCegqi* parent);
   virtual ~CegInstantiator();
   /** check
    * This adds instantiations based on the state of d_vars in current context
@@ -353,6 +353,8 @@ class CegInstantiator {
  private:
   /** The quantified formula of this instantiator */
   Node d_quant;
+  /** Reference to the quantifiers state */
+  QuantifiersState& d_qstate;
   /** The parent of this instantiator */
   InstStrategyCegqi* d_parent;
   /** quantified formula associated with this instantiator */

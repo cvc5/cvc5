@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,15 +19,15 @@
 #ifndef CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 #define CVC4__THEORY__BV__BV_INEQUALITY__GRAPH_H
 
-#include <list>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
 
+#include "context/cdhashmap.h"
+#include "context/cdhashset.h"
+#include "context/cdo.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
-#include "theory/theory.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

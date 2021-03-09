@@ -2,9 +2,9 @@
 /*! \file theory_inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Gereon Kremer
+ **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,12 @@
 #include "theory/theory_inference_manager.h"
 
 #include "smt/smt_statistics_registry.h"
+#include "theory/output_channel.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 
 using namespace CVC4::kind;
 
@@ -104,23 +108,17 @@ void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
 
 void TheoryInferenceManager::conflict(TNode conf, InferenceId id)
 {
-  if (!d_theoryState.isInConflict())
-  {
-    d_conflictIdStats << id;
-    d_theoryState.notifyInConflict();
-    d_out.conflict(conf);
-    ++d_numConflicts;
-  }
+  d_conflictIdStats << id;
+  d_theoryState.notifyInConflict();
+  d_out.conflict(conf);
+  ++d_numConflicts;
 }
 
 void TheoryInferenceManager::trustedConflict(TrustNode tconf, InferenceId id)
 {
-  if (!d_theoryState.isInConflict())
-  {
-    d_conflictIdStats << id;
-    d_theoryState.notifyInConflict();
-    d_out.trustedConflict(tconf);
-  }
+  d_conflictIdStats << id;
+  d_theoryState.notifyInConflict();
+  d_out.trustedConflict(tconf);
 }
 
 void TheoryInferenceManager::conflictExp(InferenceId id,

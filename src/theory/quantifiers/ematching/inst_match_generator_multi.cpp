@@ -2,9 +2,9 @@
 /*! \file inst_match_generator_multi.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,9 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi.h"
 
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/uf/equality_engine_iterator.h"
 
 using namespace CVC4::kind;
 
@@ -23,10 +25,13 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
-                                                 std::vector<Node>& pats,
-                                                 QuantifiersEngine* qe)
-    : d_quant(q)
+InstMatchGeneratorMulti::InstMatchGeneratorMulti(
+    Node q,
+    std::vector<Node>& pats,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
+    : IMGenerator(qs, qim), d_quant(q)
 {
   Trace("multi-trigger-cache")
       << "Making smart multi-trigger for " << q << std::endl;
@@ -55,7 +60,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Node q,
     Node n = pats[i];
     // make the match generator
     InstMatchGenerator* img =
-        InstMatchGenerator::mkInstMatchGenerator(q, n, qe);
+        InstMatchGenerator::mkInstMatchGenerator(q, n, qs, qim, qe);
     img->setActiveAdd(false);
     d_children.push_back(img);
     // compute unique/shared variables

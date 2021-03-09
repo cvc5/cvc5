@@ -2,9 +2,9 @@
 /*! \file signal_handlers.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Gereon Kremer, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,7 +30,7 @@ void timeout_handler();
 /**
  * Installs (almost) all signal handlers.
  * A handler for SIGALRM is set in time_limit.cpp.
- * Also sets callbacks via std::set_unexpected and std:set_terminate.
+ * Also sets callbacks via std:set_terminate.
  */
 void install();
 

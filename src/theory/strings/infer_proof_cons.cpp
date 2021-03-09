@@ -2,9 +2,9 @@
 /*! \file infer_proof_cons.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
@@ -533,16 +534,34 @@ void InferProofCons::convert(InferenceId infer,
     case InferenceId::STRINGS_RE_UNFOLD_POS:
     case InferenceId::STRINGS_RE_UNFOLD_NEG:
     {
-      if (infer == InferenceId::STRINGS_RE_UNFOLD_POS)
+      Assert (!ps.d_children.empty());
+      size_t nchild = ps.d_children.size();
+      Node mem = ps.d_children[nchild-1];
+      if (nchild>1)
       {
-        ps.d_rule = PfRule::RE_UNFOLD_POS;
+        // if more than one, apply MACRO_SR_PRED_ELIM
+        std::vector<Node> tcs;
+        tcs.insert(tcs.end(),
+                          ps.d_children.begin(),
+                          ps.d_children.begin() + (nchild-1));
+        mem = psb.applyPredElim(mem, tcs);
+        useBuffer = true;
+      }
+      PfRule r = PfRule::UNKNOWN;
+      if (mem.isNull())
+      {
+        // failed to eliminate above
+        Assert(false) << "Failed to apply MACRO_SR_PRED_ELIM for RE unfold";
+        useBuffer = false;
+      }
+      else if (infer == InferenceId::STRINGS_RE_UNFOLD_POS)
+      {
+        r = PfRule::RE_UNFOLD_POS;
       }
       else
       {
-        ps.d_rule = PfRule::RE_UNFOLD_NEG;
+        r = PfRule::RE_UNFOLD_NEG;
         // it may be an optimized form of concat simplification
-        Assert(ps.d_children.size() == 1);
-        Node mem = ps.d_children[0];
         Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
         if (mem[0][1].getKind() == REGEXP_CONCAT)
         {
@@ -552,9 +571,19 @@ void InferProofCons::convert(InferenceId infer,
           // version
           if (!reLen.isNull())
           {
-            ps.d_rule = PfRule::RE_UNFOLD_NEG_CONCAT_FIXED;
+            r = PfRule::RE_UNFOLD_NEG_CONCAT_FIXED;
           }
         }
+      }
+      if (useBuffer)
+      {
+        mem = psb.tryStep(r, {mem}, {});
+        // should match the conclusion
+        useBuffer = (mem==conc);
+      }
+      else
+      {
+        ps.d_rule = r;
       }
     }
     break;

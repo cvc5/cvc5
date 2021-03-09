@@ -1,7 +1,7 @@
 ;(set-option :produce-unsat-cores true)
 (set-option :incremental true)
 (set-option :print-success false)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :status sat)
 (set-option :produce-models true)
 (set-logic ALL_SUPPORTED)

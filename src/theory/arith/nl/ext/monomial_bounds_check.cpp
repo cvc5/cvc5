@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,11 +15,14 @@
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/nl_model.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -317,11 +320,20 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
             Trace("nl-ext-bound-lemma")
                 << "*** Bound inference lemma : " << iblem
                 << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
-            // Trace("nl-ext-bound-lemma") << "       intro new
-            // monomials = " << introNewTerms << std::endl;
+            CDProof* proof = nullptr;
+            if (d_data->isProofEnabled())
+            {
+              proof = d_data->getProof();
+              proof->addStep(
+                  iblem,
+                  mmv_sign == 1 ? PfRule::ARITH_MULT_POS
+                                : PfRule::ARITH_MULT_NEG,
+                  {},
+                  {mult, d_ci_exp[x][coeff][rhs], nm->mkNode(type, t, rhs)});
+            }
             d_data->d_im.addPendingLemma(iblem,
                                          InferenceId::ARITH_NL_INFER_BOUNDS_NT,
-                                         nullptr,
+                                         proof,
                                          introNewTerms);
           }
         }

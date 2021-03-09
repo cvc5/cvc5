@@ -1,9 +1,9 @@
 #####################
 ## Toolchain-mingw64.cmake
 ## Top contributors (to current version):
-##   Mathias Preiner
+##   Mathias Preiner, Gereon Kremer
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -16,8 +16,8 @@ SET(CMAKE_SYSTEM_NAME Windows)
 
 set(TOOLCHAIN_PREFIX x86_64-w64-mingw32)
 
-SET(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc)
-SET(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
+SET(CMAKE_C_COMPILER ${TOOLCHAIN_PREFIX}-gcc-posix)
+SET(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++-posix)
 SET(CMAKE_RC_COMPILER ${TOOLCHAIN_PREFIX}-windres)
 
 # Set target environment path

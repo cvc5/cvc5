@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,8 @@
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/quant_relevance.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers_engine.h"
 #include "util/random.h"
 
@@ -283,6 +285,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if (d_is_single_trigger[patTerms[0]])
     {
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qstate,
                               d_qim,
                               d_qreg,
                               f,
@@ -321,6 +324,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       // will possibly want to get an old trigger
       tr = Trigger::mkTrigger(d_quantEngine,
+                              d_qstate,
                               d_qim,
                               d_qreg,
                               f,
@@ -364,6 +368,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         {
           d_single_trigger_gen[patTerms[index]] = true;
           Trigger* tr2 = Trigger::mkTrigger(d_quantEngine,
+                                            d_qstate,
                                             d_qim,
                                             d_qreg,
                                             f,

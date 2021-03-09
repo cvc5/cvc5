@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,7 +30,10 @@ namespace quantifiers {
 class QuantifiersState : public TheoryState
 {
  public:
-  QuantifiersState(context::Context* c, context::UserContext* u, Valuation val);
+  QuantifiersState(context::Context* c,
+                   context::UserContext* u,
+                   Valuation val,
+                   const LogicInfo& logicInfo);
   ~QuantifiersState() {}
   /**
    * Increment the instantiation counters, called once at the beginning of when
@@ -51,6 +54,8 @@ class QuantifiersState : public TheoryState
   uint64_t getInstRounds() const;
   /** debug print equality engine on trace c */
   void debugPrintEqualityEngine(const char* c) const;
+  /** get the logic info */
+  const LogicInfo& getLogicInfo() const;
 
  private:
   /** The number of instantiation rounds in this SAT context */
@@ -70,6 +75,8 @@ class QuantifiersState : public TheoryState
    * combination.
    */
   uint64_t d_instWhenPhase;
+  /** Information about the logic we're operating within. */
+  const LogicInfo& d_logicInfo;
 };
 
 }  // namespace quantifiers

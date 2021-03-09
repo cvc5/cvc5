@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,19 +16,26 @@
 #include "theory/datatypes/theory_datatypes.h"
 
 #include <map>
+#include <sstream>
 
 #include "base/check.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/logic_info.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
 
@@ -1554,10 +1561,14 @@ void TheoryDatatypes::instantiate( EqcInfo* eqc, Node n ){
   // may contribute to conflicts due to cardinality (good examples of this are
   // regress0/datatypes/dt-param-card4-bool-sat.smt2 and
   // regress0/datatypes/list-bool.smt2).
-  bool forceLemma = true;
+  bool forceLemma;
   if (options::dtPoliteOptimize())
   {
     forceLemma = dt[index].hasFiniteExternalArgType(ttn);
+  }
+  else
+  {
+    forceLemma = dt.involvesExternalType();
   }
   Trace("datatypes-infer-debug") << "DtInstantiate : " << eqc << " " << eq
                                  << " forceLemma = " << forceLemma << std::endl;

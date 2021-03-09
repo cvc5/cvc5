@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,12 +15,15 @@
 #include "smt/preprocessor.h"
 
 #include "options/smt_options.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/dump.h"
+#include "smt/preprocess_proof_generator.h"
 #include "smt/smt_engine.h"
 
+using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
 

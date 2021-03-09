@@ -2,9 +2,9 @@
 /*! \file inst_match_generator_simple.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -49,7 +49,11 @@ class InstMatchGeneratorSimple : public IMGenerator
 {
  public:
   /** constructors */
-  InstMatchGeneratorSimple(Node q, Node pat, QuantifiersEngine* qe);
+  InstMatchGeneratorSimple(Node q,
+                           Node pat,
+                           quantifiers::QuantifiersState& qs,
+                           quantifiers::QuantifiersInferenceManager& qim,
+                           QuantifiersEngine* qe);
 
   /** Reset instantiation round. */
   void resetInstantiationRound(QuantifiersEngine* qe) override;

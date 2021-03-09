@@ -2,14 +2,15 @@
 /*! \file inst_strategy_cegqi.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of counterexample-guided quantifier instantiation strategies
+ ** \brief Implementation of counterexample-guided quantifier instantiation
+ **  strategies
  **/
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 
@@ -25,6 +26,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -56,7 +58,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe,
       d_cbqi_set_quant_inactive(false),
       d_incomplete_check(false),
       d_added_cbqi_lemma(qs.getUserContext()),
-      d_vtsCache(new VtsTermCache(qe)),
+      d_vtsCache(new VtsTermCache(qim)),
       d_bv_invert(nullptr)
 {
   d_small_const =
@@ -147,7 +149,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
         Trace("cegqi-lemma")
             << "Counterexample dependency lemma : " << dep_lemma << std::endl;
-        d_quantEngine->getOutputChannel().lemma(dep_lemma);
+        d_qim.lemma(dep_lemma, InferenceId::QUANTIFIERS_CEGQI_CEX_DEP);
       }
 
       //must register all sub-quantifiers of counterexample lemma, register their lemmas
@@ -166,11 +168,10 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     DecisionStrategy* dlds = nullptr;
     if (itds == d_dstrat.end())
     {
-      d_dstrat[q].reset(
-          new DecisionStrategySingleton("CexLiteral",
-                                        ceLit,
-                                        d_qstate.getSatContext(),
-                                        d_quantEngine->getValuation()));
+      d_dstrat[q].reset(new DecisionStrategySingleton("CexLiteral",
+                                                      ceLit,
+                                                      d_qstate.getSatContext(),
+                                                      d_qstate.getValuation()));
       dlds = d_dstrat[q].get();
     }
     else
@@ -201,10 +202,12 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
         Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
-        if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
+        if (d_qstate.getValuation().hasSatValue(cel, value))
+        {
           Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
-            if( d_quantEngine->getValuation().isDecision( cel ) ){
+            if (d_qstate.getValuation().isDecision(cel))
+            {
               Trace("cegqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
             }else{
               Trace("cegqi") << "Inactive : " << q << std::endl;
@@ -438,14 +441,14 @@ void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
       if( !delta.isNull() ){
         Trace("quant-vts-debug") << "Delta lemma for " << d_small_const << std::endl;
         Node delta_lem_ub = NodeManager::currentNM()->mkNode( LT, delta, d_small_const );
-        d_quantEngine->getOutputChannel().lemma( delta_lem_ub );
+        d_qim.lemma(delta_lem_ub, InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA);
       }
       std::vector< Node > inf;
       d_vtsCache->getVtsTerms(inf, true, false, false);
       for( unsigned i=0; i<inf.size(); i++ ){
         Trace("quant-vts-debug") << "Infinity lemma for " << inf[i] << " " << d_small_const << std::endl;
         Node inf_lem_lb = NodeManager::currentNM()->mkNode( GT, inf[i], NodeManager::currentNM()->mkConst( Rational(1)/d_small_const.getConst<Rational>() ) );
-        d_quantEngine->getOutputChannel().lemma( inf_lem_lb );
+        d_qim.lemma(inf_lem_lb, InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF);
       }
     }
   }
@@ -461,7 +464,7 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
   NodeManager * nm = NodeManager::currentNM();
   Node g = nm->mkSkolem("g", nm->booleanType());
   // ensure that it is a SAT literal
-  Node ceLit = d_quantEngine->getValuation().ensureLiteral(g);
+  Node ceLit = d_qstate.getValuation().ensureLiteral(g);
   d_ce_lit[q] = ceLit;
   return ceLit;
 }
@@ -502,7 +505,7 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
       d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(q, this));
+    d_cinst[q].reset(new CegInstantiator(q, d_qstate, this));
     return d_cinst[q].get();
   }
   return it->second.get();

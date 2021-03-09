@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1715,6 +1715,22 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   DT_SIZE,
+  /**
+   * Operator for tuple projection indices
+   * Parameters: 1
+   *   -[1]: The tuple projection indices
+   * Create with:
+   *   mkOp(Kind TUPLE_PROJECT, std::vector<uint32_t> param)
+   *
+   * constructs a new tuple from an existing one using the elements at the
+   * given indices
+   * Parameters: 1
+   *   -[1]: a term of tuple sort
+   * Create with:
+   *   mkTerm(Op op, Term child)
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   */
+  TUPLE_PROJECT,
 #if 0
   /* datatypes height bound */
   DT_HEIGHT_BOUND,

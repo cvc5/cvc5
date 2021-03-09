@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "expr/node.h"
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
+#include "theory/assertion.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
@@ -124,6 +125,15 @@ TheoryModel* Valuation::getModel() {
   }
   return d_engine->getModel();
 }
+SortInference* Valuation::getSortInference()
+{
+  if (d_engine == nullptr)
+  {
+    // no theory engine, thus we don't have a sort inference object
+    return nullptr;
+  }
+  return d_engine->getSortInference();
+}
 
 void Valuation::setUnevaluatedKind(Kind k)
 {
@@ -197,6 +207,19 @@ bool Valuation::needCheck() const{
 }
 
 bool Valuation::isRelevant(Node lit) const { return d_engine->isRelevant(lit); }
+
+context::CDList<Assertion>::const_iterator Valuation::factsBegin(TheoryId tid)
+{
+  Theory* theory = d_engine->theoryOf(tid);
+  Assert(theory != nullptr);
+  return theory->facts_begin();
+}
+context::CDList<Assertion>::const_iterator Valuation::factsEnd(TheoryId tid)
+{
+  Theory* theory = d_engine->theoryOf(tid);
+  Assert(theory != nullptr);
+  return theory->facts_end();
+}
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

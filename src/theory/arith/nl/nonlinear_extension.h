@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,11 +21,9 @@
 #include <map>
 #include <vector>
 
-#include "context/cdlist.h"
-#include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
@@ -35,18 +33,26 @@
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/icp/icp_solver.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
-#include "theory/uf/equality_engine.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
+namespace eq {
+  class EqualityEngine;
+}
 namespace arith {
+
+class InferenceManager;
+class TheoryArith;
+
 namespace nl {
+
+class NlLemma;
 
 /** Non-linear extension class
  *

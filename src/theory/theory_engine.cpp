@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,8 @@
  **/
 
 #include "theory/theory_engine.h"
+
+#include <sstream>
 
 #include "base/map_util.h"
 #include "decision/decision_engine.h"
@@ -30,12 +32,14 @@
 #include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
+#include "theory/shared_solver.h"
 #include "theory/theory.h"
 #include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_id.h"
@@ -46,7 +50,6 @@
 
 using namespace std;
 
-using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
 
 namespace CVC4 {
@@ -248,6 +251,11 @@ TheoryEngine::TheoryEngine(context::Context* context,
   {
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
+  }
+
+  if (options::sortInference())
+  {
+    d_sortInfer.reset(new SortInference);
   }
 
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);

@@ -2,9 +2,9 @@
 /*! \file iand_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar, Gereon Kremer
+ **   Andrew Reynolds, Makai Mann, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,11 @@
 #include "options/smt_options.h"
 #include "preprocessing/passes/bv_to_int.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/arith_state.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
+#include "theory/rewriter.h"
 #include "util/iand.h"
 
 using namespace CVC4::kind;

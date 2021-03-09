@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,15 +17,23 @@
 
 #include <vector>
 
+#include "context/context.h"
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad/cdcac.h"
-#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/cad/proof_checker.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
+
+class NlModel;
 
 /**
  * A solver for nonlinear arithmetic that implements the CAD-based method
@@ -34,7 +42,10 @@ namespace nl {
 class CadSolver
 {
  public:
-  CadSolver(InferenceManager& im, NlModel& model);
+  CadSolver(InferenceManager& im,
+            NlModel& model,
+            context::Context* ctx,
+            ProofNodeManager* pnm);
   ~CadSolver();
 
   /**
@@ -81,6 +92,8 @@ class CadSolver
    * The object implementing the actual decision procedure.
    */
   cad::CDCAC d_CAC;
+  /** The proof checker for cad proofs */
+  cad::CADProofRuleChecker d_proofChecker;
 #endif
   /**
    * Indicates whether we found satisfiability in the last call to
