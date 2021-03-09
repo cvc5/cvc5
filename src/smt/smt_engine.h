@@ -1041,6 +1041,12 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
+  /** 
+   * The statistics registry. Notice that this definition must be before the
+   * other members since it must be destroyed last if exceptions occur in the
+   * constructor of SmtEngine.
+   */
+  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
   /**
    * The environment object, which contains all utilities that are globally
    * available to internal code.
@@ -1122,19 +1128,11 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
-  /** The statistics registry */
-  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
-
   /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
-
-  /**
-   * Manager for limiting time and abstract resource usage.
-   */
-  std::unique_ptr<ResourceManager> d_resourceManager;
   /**
    * The options manager, which is responsible for implementing core options
    * such as those related to time outs and printing. It is also responsible
