@@ -71,16 +71,16 @@ class Env
   Env(NodeManager* nm, Options* optr = nullptr);
   /** Destruct the env.  */
   ~Env();
-  
+
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
-  
+
   /** Get a pointer to the UserContext owned by this Env. */
   context::UserContext* getUserContext();
-  
+
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
-  
+
   /** Get the underlying proof node manager */
   ProofNodeManager* getProofNodeManager();
 
@@ -92,7 +92,7 @@ class Env
 
   /** Get the options object (const version only) */
   const Options& getOptions() const;
-  
+
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
 
@@ -101,9 +101,9 @@ class Env
 
   /** Get a pointer to the StatisticsRegistry owned by this Env. */
   StatisticsRegistry* getStatisticsRegistry();
-  
-  
-  /* Option helpers -------------------------------------------------------------- */
+
+  /* Option helpers
+   * -------------------------------------------------------------- */
 
   /** Get the current printer based on the current options
    *
@@ -116,9 +116,8 @@ class Env
    * @return the output stream
    */
   std::ostream& getDumpOut();
-  
- private:
 
+ private:
   /* Members -------------------------------------------------------------- */
 
   /** Expr manager context */

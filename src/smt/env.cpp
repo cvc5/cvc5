@@ -16,6 +16,7 @@
 #include "smt/env.h"
 
 #include "expr/node.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
@@ -23,7 +24,6 @@
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
 #include "util/resource_manager.h"
-#include "expr/term_conversion_proof_generator.h"
 
 using namespace CVC4::smt;
 
@@ -81,9 +81,6 @@ const Printer& Env::getPrinter()
   return *Printer::getPrinter(d_options[options::outputLanguage]);
 }
 
-std::ostream& Env::getDumpOut()
-{
-  return *d_options.getOut();
-}
+std::ostream& Env::getDumpOut() { return *d_options.getOut(); }
 
 }  // namespace CVC4
