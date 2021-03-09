@@ -309,6 +309,8 @@ void SmtEngine::shutdown() {
   d_state->shutdown();
 
   d_smtSolver->shutdown();
+  
+  d_env->shutdown();
 }
 
 SmtEngine::~SmtEngine()
@@ -337,7 +339,6 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
-    d_env.reset(nullptr);
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
 
@@ -355,10 +356,11 @@ SmtEngine::~SmtEngine()
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     d_pp.reset(nullptr);
-    // getResourceManager() must be destroyed before d_statisticsRegistry
     d_statisticsRegistry.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
+    // destroy the environment
+    d_env.reset(nullptr);
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;

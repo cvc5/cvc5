@@ -119,7 +119,13 @@ class Env
   /** Set proof node manager if it exists */
   void setProofNodeManager(ProofNodeManager* pnm);
 
-  /* Members -------------------------------------------------------------- */
+  /* Private shutdown ------------------------------------------------------- */
+  /** 
+   * Shutdown method, which destroys the non-essential members of this class
+   * in preparation for destroying SMT engine.
+   */
+  void shutdown();
+  /* Members ---------------------------------------------------------------- */
 
   /** Expr manager context */
   std::unique_ptr<context::Context> d_context;

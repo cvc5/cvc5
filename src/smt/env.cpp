@@ -68,6 +68,14 @@ void Env::setProofNodeManager(ProofNodeManager* pnm)
   d_rewriter->setProofNodeManager(pnm);
 }
 
+void Env::shutdown()
+{
+  d_rewriter.reset(nullptr);
+  d_dumpm.reset(nullptr);
+  // d_resourceManager must be destroyed before d_statisticsRegistry
+  d_resourceManager.reset(nullptr);
+}
+
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
 context::Context* Env::getContext() { return d_context.get(); }
