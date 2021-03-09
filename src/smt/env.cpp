@@ -16,13 +16,14 @@
 #include "smt/env.h"
 
 #include "expr/node.h"
-#include "options/printer_options.h"
+#include "options/base_options.h"
 #include "printer/printer.h"
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
 #include "util/resource_manager.h"
+#include "expr/term_conversion_proof_generator.h"
 
 using namespace CVC4::smt;
 
@@ -33,12 +34,11 @@ Env::Env(NodeManager* nm, Options* optr)
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
       d_pnm(nullptr),
-      d_dumpm(new DumpManager(d_userContext.get())),
       d_rewriter(new theory::Rewriter()),
+      d_dumpm(new DumpManager(d_userContext.get())),
       d_logic(),
       d_statisticsRegistry(nullptr),
-      d_outMgr(this),
-      d_resourceManager(nullptr),
+      d_resourceManager(nullptr)
 {
   if (optr != nullptr)
   {
@@ -54,99 +54,36 @@ Env::Env(NodeManager* nm, Options* optr)
 Env::~Env() {}
 
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
+
 context::Context* Env::getContext() { return d_context.get(); }
-
-void Env::finishInit()
-{
-  // dump out a set-logic command only when raw-benchmark is disabled to avoid
-  // dumping the command twice.
-  if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
-  {
-    LogicInfo everything;
-    everything.lock();
-    d_outMgr.getPrinter().toStreamCmdComment(
-        d_outMgr.getDumpOut(),
-        "CVC4 always dumps the most general, all-supported logic (below), as "
-        "some internals might require the use of a logic more general than "
-        "the input.");
-    d_outMgr.getPrinter().toStreamCmdSetBenchmarkLogic(
-        d_outMgr.getDumpOut(), everything.getLogicString());
-  }
-
-  // initialize the dump manager
-  d_dumpm->finishInit();
-}
-
-const LogicInfo& Env::getLogicInfo() const { return d_logic; }
-
-LogicInfo Env::getUserLogicInfo() const
-{
-  // Lock the logic to make sure that this logic can be queried. We create a
-  // copy of the user logic here to keep this method const.
-  LogicInfo res = d_userLogic;
-  res.lock();
-  return res;
-}
-
-void Env::setResourceLimit(unsigned long units, bool cumulative)
-{
-  d_resourceManager->setResourceLimit(units, cumulative);
-}
-void Env::setTimeLimit(unsigned long milis)
-{
-  d_resourceManager->setTimeLimit(milis);
-}
-
-unsigned long Env::getResourceUsage() const
-{
-  return d_resourceManager->getResourceUsage();
-}
-
-unsigned long Env::getTimeUsage() const
-{
-  return d_resourceManager->getTimeUsage();
-}
-
-unsigned long Env::getResourceRemaining() const
-{
-  return d_resourceManager->getResourceRemaining();
-}
 
 NodeManager* Env::getNodeManager() const { return d_nodeManager; }
 
-Statistics Env::getStatistics() const
-{
-  return Statistics(*d_statisticsRegistry);
-}
+ProofNodeManager* Env::getProofNodeManager() { return d_pnm; }
 
-SExpr Env::getStatistic(std::string name) const
-{
-  return d_statisticsRegistry->getStatistic(name);
-}
+theory::Rewriter* Env::getRewriter() { return d_rewriter.get(); }
 
-void Env::flushStatistics(std::ostream& out) const
-{
-  d_nodeManager->getStatisticsRegistry()->flushInformation(out);
-  d_statisticsRegistry->flushInformation(out);
-}
+DumpManager* Env::getDumpManager() { return d_dumpm.get(); }
 
-void Env::safeFlushStatistics(int fd) const
+const LogicInfo& Env::getLogicInfo() const { return d_logic; }
+
+StatisticsRegistry* Env::getStatisticsRegistry()
 {
-  d_nodeManager->getStatisticsRegistry()->safeFlushInformation(fd);
-  d_statisticsRegistry->safeFlushInformation(fd);
+  return d_statisticsRegistry.get();
 }
 
 const Options& Env::getOptions() const { return d_options; }
 
 ResourceManager* Env::getResourceManager() { return d_resourceManager.get(); }
 
-DumpManager* Env::getDumpManager() { return d_dumpm.get(); }
-
-const Printer* Env::getPrinter() const
+const Printer& Env::getPrinter()
 {
-  return Printer::getPrinter(d_options[options::outputLanguage]);
+  return *Printer::getPrinter(d_options[options::outputLanguage]);
 }
 
-OutputManager& Env::getOutputManager() { return d_outMgr; }
+std::ostream& Env::getDumpOut()
+{
+  return *d_options.getOut();
+}
 
 }  // namespace CVC4
