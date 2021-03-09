@@ -555,7 +555,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               newVars.push_back(varRef);
             }
-            d_preprocContext->enableIntegers();
           }
           Node sum;
           if (pos.getKind() == kind::AND)
