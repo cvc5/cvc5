@@ -217,7 +217,7 @@ void LeanPrinter::printProof(std::ostream& out,
       out << "let " << passumeMap[args[1]];
       out << " := negSymm " << passumeMap[children[0]->getArguments()[0]];
       out << " in \n";
-      //maybe add type to annotate term
+      // maybe add type to annotate term
       break;
     }
     default:
@@ -230,8 +230,8 @@ void LeanPrinter::printProof(std::ostream& out,
 }
 
 void LeanPrinter::printSortsAndConstants(std::ostream& out,
-                             const std::vector<Node>& assertions,
-                             std::shared_ptr<ProofNode> pfn)
+                                         const std::vector<Node>& assertions,
+                                         std::shared_ptr<ProofNode> pfn)
 {
   // Print user defined sorts and constants of those sorts
   std::unordered_set<Node, NodeHashFunction> syms;

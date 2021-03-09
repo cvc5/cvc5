@@ -20,8 +20,8 @@
 #include <map>
 #include <unordered_set>
 
-#include "expr/proof_node_updater.h"
 #include "expr/proof_checker.h"
+#include "expr/proof_node_updater.h"
 #include "proof/lean/lean_rules.h"
 
 namespace CVC4 {
@@ -69,7 +69,8 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
    *  The id argument is a LeanRule, as defined in proof/lean/lean_rules.h
    *  This allows us to specify which rule in the Lean calculus the current rule
    *  corresponds to.
-   * addLeanStep encapsulates translation boilerplate by adding id and Q to arguments, and children and args are passed along verbatim.
+   * addLeanStep encapsulates translation boilerplate by adding id and Q to
+   * arguments, and children and args are passed along verbatim.
    */
   bool addLeanStep(Node res,
                    LeanRule rule,

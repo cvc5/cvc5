@@ -63,11 +63,10 @@ class LeanPrinter
    */
   static LeanRule getLeanRule(Node n);
   /**
-   * The Lean calculus uses rules such as mkEq, which wraps (eq x y)
-   *  with a check that the x and y have the same sort.
-   * printKind cases of proof rule kinds such as equality,
-   *  logical and, or logical not, and translating to mkEq,
-   *  mkAnd, and mkNot
+   * The Lean calculus represents x = y as (mkEq x y) and
+   *  x ∧ y as (mkAnd x y).
+   * printKind cases on the kind of node, and prints the
+   *  corresponding Lean command among mkEq, mkAnd, mkOr, mkNot, etc
    */
   static void printKind(std::ostream& s, Kind k);
   /**
