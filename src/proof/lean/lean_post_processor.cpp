@@ -62,7 +62,6 @@ bool LeanProofPostprocessCallback::update(Node res,
                                           CDProof* cdp,
                                           bool& continueUpdate)
 {
-  NodeManager* nm = NodeManager::currentNM();
   switch (id)
   {
     case PfRule::ASSUME:
@@ -110,7 +109,7 @@ bool LeanProofPostprocessCallback::update(Node res,
     }
   };
   return true;
-}  // namespace proof
+}
 
 void LeanProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {

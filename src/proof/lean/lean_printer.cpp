@@ -229,7 +229,7 @@ void LeanPrinter::printProof(std::ostream& out,
   }
 }
 
-void LeanPrinter::printSorts(std::ostream& out,
+void LeanPrinter::printSortsAndConstants(std::ostream& out,
                              const std::vector<Node>& assertions,
                              std::shared_ptr<ProofNode> pfn)
 {
@@ -271,7 +271,7 @@ void LeanPrinter::print(std::ostream& out,
   const std::vector<Node>& args = pfn->getArguments();
   out << "open smt\n";
   out << "open smt.sort smt.term\n";
-  printSorts(out, assertions, pfn);
+  printSortsAndConstants(out, assertions, pfn);
   out << "noncomputable theorem th0 : ";
   printLeanTypeToBottom(out, args[1]);
   out << " := \n";

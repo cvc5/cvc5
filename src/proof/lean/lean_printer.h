@@ -30,8 +30,8 @@ namespace proof {
 
 /**
  * Converts a lean rule to a string.
- * @param id The lfsc rule
- * @return The name of the lfsc rule
+ * @param id The lean rule
+ * @return The name of the lean rule
  */
 const char* toString(LeanRule id);
 
@@ -71,8 +71,8 @@ class LeanPrinter
    */
   static void printKind(std::ostream& s, Kind k);
   /**
-   * Convert a node to a Lean term -- must start with mk_ and take children as args
-   * Example: kind::AND (kind::EQUAL a b) c --> mkAnd (mkEq a b) c
+   * Convert a node to a Lean term -- must start with mk_ and take children as
+   * args Example: kind::AND (kind::EQUAL a b) c --> mkAnd (mkEq a b) c
    */
   static void printLeanString(std::ostream& s, Node n);
   /**
@@ -86,9 +86,9 @@ class LeanPrinter
   /**
    * Print user defined sorts and constants of those sorts
    */
-  static void printSorts(std::ostream& out,
-                         const std::vector<Node>& assertions,
-                         std::shared_ptr<ProofNode> pfn);
+  static void printSortsAndConstants(std::ostream& out,
+                                     const std::vector<Node>& assertions,
+                                     std::shared_ptr<ProofNode> pfn);
 
   /**
    * For each proof node, the final lean output's formatting depends on
