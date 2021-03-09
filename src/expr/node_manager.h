@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,9 +36,12 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "options/options.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
 
 class StatisticsRegistry;
 class ResourceManager;
@@ -82,15 +85,18 @@ class NodeManagerListener {
   virtual void nmNotifyDeleteNode(TNode n) {}
 }; /* class NodeManagerListener */
 
-class NodeManager {
-  template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
-  friend class NodeManagerScope;
+class NodeManager
+{
+  friend class api::Solver;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
-
   // friends so they can access mkVar() here, which is private
   friend Expr ExprManager::mkVar(const std::string&, Type);
   friend Expr ExprManager::mkVar(Type);
+
+  template <unsigned nchild_thresh>
+  friend class NodeBuilder;
+  friend class NodeManagerScope;
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -1147,7 +1153,7 @@ class NodeManager {
    * any published code!
    */
   void debugHook(int debugFlag);
-};/* class NodeManager */
+}; /* class NodeManager */
 
 /**
  * This class changes the "current" thread-global

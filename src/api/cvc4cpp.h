@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -44,7 +44,6 @@ class AssertCommand;
 class BlockModelValuesCommand;
 class CheckSatCommand;
 class CheckSatAssumingCommand;
-class Expr;
 class DatatypeDeclarationCommand;
 class DeclareFunctionCommand;
 class DeclareHeapCommand;
@@ -56,7 +55,6 @@ class DefineSortCommand;
 class DType;
 class DTypeConstructor;
 class DTypeSelector;
-class ExprManager;
 class GetAbductCommand;
 class GetInterpolCommand;
 class GetModelCommand;
@@ -211,8 +209,8 @@ class CVC4_PUBLIC Result
 
   /**
    * The interal result wrapped by this result.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Result is
-   * not ref counted.
+   * Note: This is a shared_ptr rather than a unique_ptr since CVC4::Result is
+   *       not ref counted.
    */
   std::shared_ptr<CVC4::Result> d_result;
 };
@@ -710,7 +708,7 @@ class CVC4_PUBLIC Sort
 
   /** Helper to convert a set of Sorts to internal TypeNodes. */
   std::set<TypeNode> static sortSetToTypeNodes(const std::set<Sort>& sorts);
-  /* Helper to convert a vector of Sorts to internal TypeNodes. */
+  /** Helper to convert a vector of Sorts to internal TypeNodes. */
   std::vector<TypeNode> static sortVectorToTypeNodes(
       const std::vector<Sort>& sorts);
   /** Helper to convert a vector of internal TypeNodes to Sorts. */
@@ -739,9 +737,9 @@ class CVC4_PUBLIC Sort
 
   /**
    * The interal type wrapped by this sort.
-   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
-   * memory allocation (CVC4::Type is already ref counted, so this could be
-   * a unique_ptr instead).
+   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
+   *       to memory allocation (CVC4::Type is already ref counted, so this
+   *       could be a unique_ptr instead).
    */
   std::shared_ptr<CVC4::TypeNode> d_type;
 };
@@ -851,15 +849,6 @@ class CVC4_PUBLIC Op
    * Constructor.
    * @param slv the associated solver object
    * @param k the kind of this Op
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
-
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param k the kind of this Op
    * @param n the internal node that is to be wrapped by this term
    * @return the Term
    */
@@ -872,7 +861,7 @@ class CVC4_PUBLIC Op
   bool isNullHelper() const;
 
   /**
-   * Note: An indexed operator has a non-null internal expr, d_expr
+   * Note: An indexed operator has a non-null internal node, d_node
    * Note 2: We use a helper method to avoid having API functions call
    *         other API functions (we need to call this internally)
    * @return true iff this Op is indexed
@@ -884,14 +873,14 @@ class CVC4_PUBLIC Op
    */
   const Solver* d_solver;
 
-  /* The kind of this operator. */
+  /** The kind of this operator. */
   Kind d_kind;
 
   /**
-   * The internal expression wrapped by this operator.
-   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
-   * memory allocation (CVC4::Expr is already ref counted, so this could be
-   * a unique_ptr instead).
+   * The internal node wrapped by this operator.
+   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
+   *       to memory allocation (CVC4::Node is already ref counted, so this
+   *       could be a unique_ptr instead).
    */
   std::shared_ptr<CVC4::Node> d_node;
 };
@@ -1128,7 +1117,7 @@ class CVC4_PUBLIC Term
     /**
      * Constructor
      * @param slv the associated solver object
-     * @param e a shared pointer to the expression that we're iterating over
+     * @param e a shared pointer to the node that we're iterating over
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
@@ -1184,9 +1173,9 @@ class CVC4_PUBLIC Term
      * The associated solver object.
      */
     const Solver* d_solver;
-    /* The original node to be iterated over */
+    /** The original node to be iterated over. */
     std::shared_ptr<CVC4::Node> d_origNode;
-    /* Keeps track of the iteration position */
+    /** Keeps track of the iteration position. */
     uint32_t d_pos;
   };
 
@@ -1199,10 +1188,6 @@ class CVC4_PUBLIC Term
    * @return an iterator to one-off-the-last child of this Term
    */
   const_iterator end() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Expr getExpr(void) const;
 
   /**
    * @return true if the term is an integer that fits within std::int32_t.
@@ -1270,16 +1255,8 @@ class CVC4_PUBLIC Term
   const Solver* d_solver;
 
  private:
-  /* Helper to convert a vector of Terms to internal Nodes. */
+  /** Helper to convert a vector of Terms to internal Nodes. */
   std::vector<Node> static termVectorToNodes(const std::vector<Term>& terms);
-
-  /**
-   * Constructor.
-   * @param slv the associated solver object
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  Term(const Solver* slv, const CVC4::Expr& e);
 
   /**
    * Constructor.
@@ -1311,10 +1288,10 @@ class CVC4_PUBLIC Term
    */
   bool isCastedReal() const;
   /**
-   * The internal expression wrapped by this term.
-   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
-   * memory allocation (CVC4::Expr is already ref counted, so this could be
-   * a unique_ptr instead).
+   * The internal node wrapped by this term.
+   * Note: This is a shared_ptr rather than a unique_ptr to avoid overhead due
+   *       to memory allocation (CVC4::Node is already ref counted, so this
+   *       could be a unique_ptr instead).
    */
   std::shared_ptr<CVC4::Node> d_node;
 };
@@ -1461,8 +1438,8 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   /**
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
-   * This is a shared_ptr rather than a unique_ptr since
-   * CVC4::DTypeConstructor is not ref counted.
+   * Note: This is a shared_ptr rather than a unique_ptr since
+   *       CVC4::DTypeConstructor is not ref counted.
    */
   std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
@@ -1564,10 +1541,11 @@ class CVC4_PUBLIC DatatypeDecl
    */
   const Solver* d_solver;
 
-  /* The internal (intermediate) datatype wrapped by this datatype
-   * declaration
-   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
-   * not ref counted.
+  /**
+   * The internal (intermediate) datatype wrapped by this datatype
+   * declaration.
+   * Note: This is a shared_ptr rather than a unique_ptr since CVC4::DType is
+   *       not ref counted.
    */
   std::shared_ptr<CVC4::DType> d_dtype;
 };
@@ -1624,8 +1602,8 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
-   * not ref counted.
+   * Note: This is a shared_ptr rather than a unique_ptr since CVC4::DType is
+   *       not ref counted.
    */
   std::shared_ptr<CVC4::DTypeSelector> d_stor;
 };
@@ -1793,15 +1771,17 @@ class CVC4_PUBLIC DatatypeConstructor
      */
     const Solver* d_solver;
 
-    /* A pointer to the list of selectors of the internal datatype
+    /**
+     * A pointer to the list of selectors of the internal datatype
      * constructor to iterate over.
-     * This pointer is maintained for operators == and != only. */
+     * This pointer is maintained for operators == and != only.
+     */
     const void* d_int_stors;
 
-    /* The list of datatype selector (wrappers) to iterate over. */
+    /** The list of datatype selector (wrappers) to iterate over. */
     std::vector<DatatypeSelector> d_stors;
 
-    /* The current index of the iterator. */
+    /** The current index of the iterator. */
     size_t d_idx;
   };
 
@@ -1837,8 +1817,8 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
-   * not ref counted.
+   * Note: This is a shared_ptr rather than a unique_ptr since CVC4::DType is
+   *       not ref counted.
    */
   std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
@@ -2001,15 +1981,17 @@ class CVC4_PUBLIC Datatype
      */
     const Solver* d_solver;
 
-    /* A pointer to the list of constructors of the internal datatype
+    /**
+     * A pointer to the list of constructors of the internal datatype
      * to iterate over.
-     * This pointer is maintained for operators == and != only. */
+     * This pointer is maintained for operators == and != only.
+     */
     const void* d_int_ctors;
 
-    /* The list of datatype constructor (wrappers) to iterate over. */
+    /** The list of datatype constructor (wrappers) to iterate over. */
     std::vector<DatatypeConstructor> d_ctors;
 
-    /* The current index of the iterator. */
+    /** The current index of the iterator. */
     size_t d_idx;
   };
 
@@ -2045,8 +2027,8 @@ class CVC4_PUBLIC Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
-   * not ref counted.
+   * Note: This is a shared_ptr rather than a unique_ptr since CVC4::DType is
+   *       not ref counted.
    */
   std::shared_ptr<CVC4::DType> d_dtype;
 };
@@ -2286,6 +2268,16 @@ struct CVC4_PUBLIC RoundingModeHashFunction
  */
 class CVC4_PUBLIC Solver
 {
+  friend class Datatype;
+  friend class DatatypeDecl;
+  friend class DatatypeConstructor;
+  friend class DatatypeConstructorDecl;
+  friend class DatatypeSelector;
+  friend class Grammar;
+  friend class Op;
+  friend class Sort;
+  friend class Term;
+
  public:
   /* .................................................................... */
   /* Constructors/Destructors                                             */
@@ -3545,13 +3537,6 @@ class CVC4_PUBLIC Solver
    */
   void printSynthSolution(std::ostream& out) const;
 
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  ExprManager* getExprManager(void) const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  NodeManager* getNodeManager(void) const;
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
@@ -3562,29 +3547,30 @@ class CVC4_PUBLIC Solver
   Options& getOptions(void);
 
  private:
-  /* Helper to convert a vector of Terms to internal Exprs. */
-  std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
-  /* Helper to check for API misuse in mkOp functions. */
+  /** @return the node manager of this solver */
+  NodeManager* getNodeManager(void) const;
+
+  /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
-  /* Helper for mk-functions that call d_exprMgr->mkConst(). */
+  /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
   template <typename T>
   Term mkValHelper(T t) const;
-  /* Helper for mkReal functions that take a string as argument. */
+  /** Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(const std::string& s) const;
-  /* Helper for mkBitVector functions that take a string as argument. */
+  /** Helper for mkBitVector functions that take a string as argument. */
   Term mkBVFromStrHelper(const std::string& s, uint32_t base) const;
-  /* Helper for mkBitVector functions that take a string and a size as
-   * arguments. */
+  /**
+   * Helper for mkBitVector functions that take a string and a size as
+   * arguments.
+   */
   Term mkBVFromStrHelper(uint32_t size,
                          const std::string& s,
                          uint32_t base) const;
-  /* Helper for mkBitVector functions that take an integer as argument. */
+  /** Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
-  /* Helper for setLogic. */
-  void setLogicHelper(const std::string& logic) const;
-  /* Helper for mkTerm functions that create Term from a Kind */
+  /** Helper for mkTerm functions that create Term from a Kind */
   Term mkTermFromKind(Kind kind) const;
-  /* Helper for mkChar functions that take a string as argument. */
+  /** Helper for mkChar functions that take a string as argument. */
   Term mkCharFromStrHelper(const std::string& s) const;
   /** Get value helper, which accounts for subtyping */
   Term getValueHelper(Term term) const;
@@ -3641,20 +3627,16 @@ class CVC4_PUBLIC Solver
                       bool isInv = false,
                       Grammar* g = nullptr) const;
 
-  /** check whether string s is a valid decimal integer */
+  /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
 
-  /* The expression manager of this solver. */
-  std::unique_ptr<ExprManager> d_exprMgr;
-  /* The SMT engine of this solver. */
+  /** The node manager of this solver. */
+  std::unique_ptr<NodeManager> d_nodeMgr;
+  /** The SMT engine of this solver. */
   std::unique_ptr<SmtEngine> d_smtEngine;
-  /* The random number generator of this solver. */
+  /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
 };
-
-// !!! Only temporarily public until the parser is fully migrated to the
-// new API. !!!
-std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
 
 }  // namespace api
 

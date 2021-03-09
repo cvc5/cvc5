@@ -2,9 +2,9 @@
 /*! \file inference_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,17 +17,15 @@
 #ifndef CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
 #define CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
 
-#include <map>
-#include <vector>
-
 #include "expr/node.h"
 #include "infer_info.h"
-#include "theory/bags/inference_manager.h"
-#include "theory/bags/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
+
+class InferenceManager;
+class SolverState;
 
 /**
  * An inference generator class. This class is used by the core solver to

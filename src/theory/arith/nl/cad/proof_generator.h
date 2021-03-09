@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,18 +23,21 @@
 
 #include <vector>
 
-#include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/proof_generator.h"
 #include "expr/proof_set.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
-#include "theory/arith/nl/poly_conversion.h"
 #include "theory/lazy_tree_proof_generator.h"
 
 namespace CVC4 {
+
+class ProofGenerator;
+
 namespace theory {
 namespace arith {
 namespace nl {
+
+struct VariableMapper;
+
 namespace cad {
 
 /**
