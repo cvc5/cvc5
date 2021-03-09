@@ -40,7 +40,6 @@
 #include "options/smt_options.h"  // for incrementalSolving()
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/logic_exception.h"
-#include "smt/logic_request.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"

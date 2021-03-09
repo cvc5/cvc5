@@ -35,22 +35,10 @@ PreprocessingPassContext::PreprocessingPassContext(
 {
 }
 
-void PreprocessingPassContext::widenLogic(theory::TheoryId id)
-{
-  LogicRequest req(*d_smt);
-  req.widenLogic(id);
-}
-
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
   return d_topLevelSubstitutions;
-}
-
-void PreprocessingPassContext::enableIntegers()
-{
-  LogicRequest req(*d_smt);
-  req.enableIntegers();
 }
 
 void PreprocessingPassContext::recordSymbolsInAssertions(

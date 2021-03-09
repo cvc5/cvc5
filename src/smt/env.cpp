@@ -30,7 +30,7 @@ using namespace CVC4::smt;
 
 namespace CVC4 {
 
-Env::Env(NodeManager* nm, Options* optr)
+Env::Env(NodeManager* nm)
     : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
@@ -41,18 +41,33 @@ Env::Env(NodeManager* nm, Options* optr)
       d_statisticsRegistry(nullptr),
       d_resourceManager(nullptr)
 {
+}
+
+Env::~Env() {}
+
+void Env::setOptions(Options* optr)
+{
   if (optr != nullptr)
   {
     // if we provided a set of options, copy their values to the options
     // owned by this Env.
     d_options.copyValues(*optr);
   }
-  d_statisticsRegistry.reset(new StatisticsRegistry());
-  d_resourceManager.reset(
-      new ResourceManager(*d_statisticsRegistry.get(), d_options));
 }
 
-Env::~Env() {}
+void Env::setStatisticsRegistry(StatisticsRegistry* statReg)
+{
+  d_statisticsRegistry = statReg;
+  // now initialize resource manager
+  d_resourceManager.reset(
+      new ResourceManager(*statReg, d_options));
+}
+
+void Env::setProofNodeManager(ProofNodeManager* pnm)
+{
+  d_pnm = pnm;
+  d_rewriter->setProofNodeManager(pnm);
+}
 
 context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 
@@ -70,7 +85,7 @@ const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
 StatisticsRegistry* Env::getStatisticsRegistry()
 {
-  return d_statisticsRegistry.get();
+  return d_statisticsRegistry;
 }
 
 const Options& Env::getOptions() const { return d_options; }

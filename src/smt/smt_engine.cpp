@@ -16,6 +16,7 @@
 
 #include "smt/smt_engine.h"
 
+#include "smt/env.h"
 #include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/exception.h"
@@ -81,11 +82,10 @@ using namespace CVC4::theory;
 namespace CVC4 {
 
 SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
-    : d_state(new SmtEngineState(*this)),
-      d_nodeManager(nm),
-      d_absValues(new AbstractValues(d_nodeManager)),
+    : d_env(new Env(nm)),
+      d_state(new SmtEngineState(getContext(), getUserContext(), *this)),
+      d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
-      d_dumpm(new DumpManager(getUserContext())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get(), d_outMgr)),
       d_smtSolver(nullptr),
@@ -94,19 +94,15 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_checkModels(nullptr),
       d_pfManager(nullptr),
       d_ucManager(nullptr),
-      d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
-      d_logic(),
       d_originalOptions(),
       d_isInternalSubsolver(false),
-      d_statisticsRegistry(nullptr),
       d_stats(nullptr),
       d_outMgr(this),
-      d_resourceManager(nullptr),
       d_optm(nullptr),
       d_pp(nullptr),
       d_scope(nullptr)
@@ -124,20 +120,19 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // On the other hand, this hack breaks use cases where multiple SmtEngine
   // objects are created by the user.
   d_scope.reset(new SmtScope(this));
-  if (optr != nullptr)
-  {
-    // if we provided a set of options, copy their values to the options
-    // owned by this SmtEngine.
-    d_options.copyValues(*optr);
-  }
+  // now construct the statistics registry
   d_statisticsRegistry.reset(new StatisticsRegistry());
-  d_resourceManager.reset(
-      new ResourceManager(*d_statisticsRegistry.get(), d_options));
-  d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
+  // set options in the environment, which makes a deep copy of optr if non-null
+  d_env->setOptions(optr);
+  // initialize the environment, which keeps a pointer to statistics registry
+  // and sets up resource manager
+  d_env->setStatisticsRegistry(d_statisticsRegistry.get());
+  // set the options manager
+  d_optm.reset(new smt::OptionsManager(&getOptions(), getResourceManager()));
   // listen to node manager events
-  d_nodeManager->subscribeEvents(d_snmListener.get());
+  getNodeManager()->subscribeEvents(d_snmListener.get());
   // listen to resource out
-  d_resourceManager->registerListener(d_routListener.get());
+  getResourceManager()->registerListener(d_routListener.get());
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // reset the preprocessor
@@ -145,7 +140,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       *this, getUserContext(), *d_absValues.get(), *d_stats));
   // make the SMT solver
   d_smtSolver.reset(
-      new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
+      new SmtSolver(*this, *d_state, getResourceManager(), *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(
       new SygusSolver(*d_smtSolver, *d_pp, getUserContext(), d_outMgr));
@@ -185,9 +180,9 @@ Result SmtEngine::getStatusOfLastCommand() const
 }
 context::UserContext* SmtEngine::getUserContext()
 {
-  return d_state->getUserContext();
+  return d_env->getUserContext();
 }
-context::Context* SmtEngine::getContext() { return d_state->getContext(); }
+context::Context* SmtEngine::getContext() { return d_env->getContext(); }
 
 TheoryEngine* SmtEngine::getTheoryEngine()
 {
@@ -229,7 +224,7 @@ void SmtEngine::finishInit()
   if (options::proof())
   {
     // ensure bound variable uses canonical bound variables
-    d_nodeManager->getBoundVarManager()->enableKeepCacheValues();
+    getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
     // make the proof manager
     d_pfManager.reset(new PfManager(getUserContext(), this));
     PreprocessProofGenerator* pppg = d_pfManager->getPreprocessProofGenerator();
@@ -237,8 +232,8 @@ void SmtEngine::finishInit()
     d_ucManager.reset(new UnsatCoreManager());
     // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
-    // enable proof support in the rewriter
-    d_rewriter->setProofNodeManager(pnm);
+    // enable proof support in the environment/rewriter
+    d_env->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
     d_asserts->setProofGenerator(pppg);
     // enable it in the SmtSolver
@@ -341,13 +336,12 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
-    d_rewriter.reset(nullptr);
+    d_env.reset(nullptr);
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
-    d_dumpm.reset(nullptr);
     d_model.reset(nullptr);
 
     d_sygusSolver.reset(nullptr);
@@ -355,13 +349,12 @@ SmtEngine::~SmtEngine()
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
-    d_nodeManager->unsubscribeEvents(d_snmListener.get());
+    getNodeManager()->unsubscribeEvents(d_snmListener.get());
     d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     d_pp.reset(nullptr);
-    // d_resourceManager must be destroyed before d_statisticsRegistry
-    d_resourceManager.reset(nullptr);
+    // getResourceManager() must be destroyed before d_statisticsRegistry
     d_statisticsRegistry.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
@@ -422,7 +415,7 @@ void SmtEngine::notifyStartParsing(std::string filename)
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
-  d_originalOptions.copyValues(d_options);
+  d_originalOptions.copyValues(getOptions());
 }
 
 const std::string& SmtEngine::getFilename() const
@@ -513,7 +506,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    StatisticsRegistry* sr = d_nodeManager->getStatisticsRegistry();
+    StatisticsRegistry* sr = getNodeManager()->d_statisticsRegistry;
     for (StatisticsRegistry::const_iterator i = sr->begin(); i != sr->end();
          ++i)
     {
@@ -993,12 +986,12 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
 
     return r;
   } catch (UnsafeInterruptException& e) {
-    AlwaysAssert(d_resourceManager->out());
+    AlwaysAssert(getResourceManager()->out());
     // Notice that we do not notify the state of this result. If we wanted to
     // make the solver resume a working state after an interupt, then we would
     // implement a different callback and use it here, e.g.
     // d_state.notifyCheckSatInterupt.
-    Result::UnknownExplanation why = d_resourceManager->outOfResources()
+    Result::UnknownExplanation why = getResourceManager()->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
     return Result(Result::SAT_UNKNOWN, why, d_state->getFilename());
@@ -1158,7 +1151,7 @@ Node SmtEngine::simplify(const Node& ex)
 
 Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
-  d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
+  getResourceManager()->spendResource(ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
@@ -1173,7 +1166,7 @@ Node SmtEngine::getValue(const Node& ex) const
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    d_outMgr.getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
+    getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
   }
   TypeNode expectedType = ex.getType();
 
@@ -1330,7 +1323,7 @@ std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
         "separation logic theory.";
     throw RecoverableModalException(msg);
   }
-  NodeManagerScope nms(d_nodeManager);
+  NodeManagerScope nms(getNodeManager());
   Node heap;
   Node nil;
   Model* m = getAvailableModel("get separation logic heap and nil");
@@ -1401,6 +1394,11 @@ void SmtEngine::checkProof()
   {
     d_pfManager->checkProof(pePfn, *d_asserts, *d_definedFunctions);
   }
+}
+
+StatisticsRegistry* SmtEngine::d_statisticsRegistry
+{
+  return d_env->d_statisticsRegistry;
 }
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
@@ -1795,7 +1793,7 @@ void SmtEngine::reset()
   Options opts;
   opts.copyValues(d_originalOptions);
   this->~SmtEngine();
-  new (this) SmtEngine(d_nodeManager, &opts);
+  new (this) SmtEngine(getNodeManager(), &opts);
   // Restore data set after creation
   notifyStartParsing(filename);
 }
@@ -1842,27 +1840,27 @@ void SmtEngine::interrupt()
 }
 
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
-  d_resourceManager->setResourceLimit(units, cumulative);
+  getResourceManager()->setResourceLimit(units, cumulative);
 }
 void SmtEngine::setTimeLimit(unsigned long milis)
 {
-  d_resourceManager->setTimeLimit(milis);
+  getResourceManager()->setTimeLimit(milis);
 }
 
 unsigned long SmtEngine::getResourceUsage() const {
-  return d_resourceManager->getResourceUsage();
+  return getResourceManager()->getResourceUsage();
 }
 
 unsigned long SmtEngine::getTimeUsage() const {
-  return d_resourceManager->getTimeUsage();
+  return getResourceManager()->getTimeUsage();
 }
 
 unsigned long SmtEngine::getResourceRemaining() const
 {
-  return d_resourceManager->getResourceRemaining();
+  return getResourceManager()->getResourceRemaining();
 }
 
-NodeManager* SmtEngine::getNodeManager() const { return d_nodeManager; }
+NodeManager* SmtEngine::getNodeManager() const { return d_env->getNodeManager(); }
 
 Statistics SmtEngine::getStatistics() const
 {
@@ -1876,13 +1874,13 @@ SExpr SmtEngine::getStatistic(std::string name) const
 
 void SmtEngine::flushStatistics(std::ostream& out) const
 {
-  d_nodeManager->getStatisticsRegistry()->flushInformation(out);
+  getNodeManager()->d_statisticsRegistry->flushInformation(out);
   d_statisticsRegistry->flushInformation(out);
 }
 
 void SmtEngine::safeFlushStatistics(int fd) const
 {
-  d_nodeManager->getStatisticsRegistry()->safeFlushInformation(fd);
+  getNodeManager()->d_statisticsRegistry->safeFlushInformation(fd);
   d_statisticsRegistry->safeFlushInformation(fd);
 }
 
@@ -1900,7 +1898,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
 
 void SmtEngine::setOption(const std::string& key, const std::string& value)
 {
-    NodeManagerScope nms(d_nodeManager);
+    NodeManagerScope nms(getNodeManager());
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if(Dump.isOn("benchmark")) {
@@ -1932,7 +1930,7 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
   }
 
   std::string optionarg = value;
-  d_options.setOption(key, optionarg);
+  getOptions().setOption(key, optionarg);
 }
 
 void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
@@ -1941,7 +1939,7 @@ bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 {
-  NodeManagerScope nms(d_nodeManager);
+  NodeManagerScope nms(getNodeManager());
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
 
@@ -1959,7 +1957,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   }
 
   if(Dump.isOn("benchmark")) {
-    d_outMgr.getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
+    getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
   }
 
   if(key == "command-verbosity") {
@@ -1991,25 +1989,27 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
     return SExpr(result);
   }
 
-  return SExpr::parseAtom(d_options.getOption(key));
+  return SExpr::parseAtom(getOptions().getOption(key));
 }
 
-Options& SmtEngine::getOptions() { return d_options; }
+Options& SmtEngine::getOptions() { return d_env->getOptions(); }
 
-const Options& SmtEngine::getOptions() const { return d_options; }
+const Options& SmtEngine::getOptions() const { return d_env->getOptions(); }
 
 ResourceManager* SmtEngine::getResourceManager()
 {
-  return d_resourceManager.get();
+  return d_env->getResourceManager();
 }
 
-DumpManager* SmtEngine::getDumpManager() { return d_dumpm.get(); }
+DumpManager* SmtEngine::getDumpManager() { return d_env->getDumpManager(); }
 
 const Printer* SmtEngine::getPrinter() const
 {
-  return Printer::getPrinter(d_options[options::outputLanguage]);
+  return d_env->getPrinter();
 }
 
 OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
+
+theory::Rewriter* SmtEngine::getRewriter() { return d_env->getRewriter(); }
 
 }/* CVC4 namespace */

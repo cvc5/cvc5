@@ -56,10 +56,11 @@ class Env
    * pointer to a set of options that should initialize the values of the
    * options object owned by this class.
    */
-  Env(NodeManager* nm, Options* optr = nullptr);
+  Env(NodeManager* nm);
   /** Destruct the env.  */
   ~Env();
 
+  /* Access to members------------------------------------------------------- */
   /** Get a pointer to the Context owned by this Env. */
   context::Context* getContext();
 
@@ -69,7 +70,11 @@ class Env
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
-  /** Get the underlying proof node manager */
+  /** 
+   * Get the underlying proof node manager. Note since proofs depend on option
+   * initialization, this is only available after the SmtEngine that owns this
+   * environment is initialized, and only if proofs are enabled.
+   */
   ProofNodeManager* getProofNodeManager();
 
   /** Get a pointer to the Rewriter owned by this Env. */
@@ -105,6 +110,13 @@ class Env
   std::ostream& getDumpOut();
 
  private:
+  /* Private initialization ------------------------------------------------- */
+  /** Set options, which makes a deep copy of optr if non-null */
+  void setOptions(Options* optr = nullptr);
+  /** Set the statistics registry */
+  void setStatisticsRegistry(StatisticsRegistry* statReg);
+  /** Set proof node manager if it exists */
+  void setProofNodeManager(ProofNodeManager* pnm);
   /* Members -------------------------------------------------------------- */
 
   /** Expr manager context */
@@ -130,7 +142,7 @@ class Env
    */
   LogicInfo d_logic;
   /** The statistics registry */
-  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
+  StatisticsRegistry* d_statisticsRegistry;
   /** The options object */
   Options d_options;
   /**

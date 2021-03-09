@@ -230,8 +230,6 @@ libcvc4_add_sources(
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
-  smt/logic_request.cpp
-  smt/logic_request.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
   smt/managed_ostreams.cpp
