@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Francois Bobot, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
  ** for tracking the next element to dequeue from the list and additional
  ** size_t for tracking the previous size of the list.
  **/
-
 
 #include "cvc4_private.h"
 
