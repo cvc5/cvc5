@@ -22,8 +22,6 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-// witness, original are analogous, but share skolems
-
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
 struct WitnessFormAttributeId
@@ -279,6 +277,7 @@ Node SkolemManager::mkSkolemInternal(Node w,
                                      const std::string& comment,
                                      int flags)
 {
+  // note that witness, original forms are independent, but share skolems
   NodeManager* nm = NodeManager::currentNM();
   // w is not necessarily a witness term
   SkolemFormAttribute sfa;
