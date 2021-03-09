@@ -52,7 +52,7 @@ Node SkolemManager::mkSkolem(Node v,
   // make the witness term
   NodeManager* nm = NodeManager::currentNM();
   Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-  // Make the witness term, where notice that pred may contain skolem. We do
+  // Make the witness term, where notice that pred may contain skolems. We do
   // not recursively convert pred to witness form, since witness terms should
   // be treated as opaque. Moreover, the use of witness forms leads to
   // variable shadowing issues in e.g. skolemization.
