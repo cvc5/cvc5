@@ -16,17 +16,17 @@
 
 namespace CVC4 {
 namespace proof {
-  
-bool ProofLetifyTraverseCallback::shouldTraverse(const ProofNode * pn)
+
+bool ProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
 {
-  return pn->getRule()!=PfRule::SCOPE;
+  return pn->getRule() != PfRule::SCOPE;
 }
 
 void ProofLetify::computeProofLet(const ProofNode* pn,
                                   std::vector<const ProofNode*>& pletList,
                                   std::map<const ProofNode*, size_t>& pletMap,
                                   size_t thresh,
-                              ProofLetifyTraverseCallback * pltc)
+                                  ProofLetifyTraverseCallback* pltc)
 {
   Assert(pletList.empty() && pletMap.empty());
   if (thresh == 0)
@@ -36,7 +36,7 @@ void ProofLetify::computeProofLet(const ProofNode* pn,
   }
   std::vector<const ProofNode*> visitList;
   std::map<const ProofNode*, size_t> pcount;
-  if (pltc==nullptr)
+  if (pltc == nullptr)
   {
     // use default callback
     ProofLetifyTraverseCallback defaultPltc;
@@ -53,7 +53,7 @@ void ProofLetify::computeProofLet(const ProofNode* pn,
 void ProofLetify::computeProofCounts(const ProofNode* pn,
                                      std::vector<const ProofNode*>& visitList,
                                      std::map<const ProofNode*, size_t>& pcount,
-                                 ProofLetifyTraverseCallback* pltc)
+                                     ProofLetifyTraverseCallback* pltc)
 {
   std::map<const ProofNode*, size_t>::iterator it;
   std::vector<const ProofNode*> visit;
@@ -109,7 +109,7 @@ void ProofLetify::convertProofCountToLet(
   {
     itc = pcount.find(pn);
     Assert(itc != pcount.end());
-    if (itc->second >= thresh && pn->getRule()!=PfRule::ASSUME)
+    if (itc->second >= thresh && pn->getRule() != PfRule::ASSUME)
     {
       pletList.push_back(pn);
       // start with id 1

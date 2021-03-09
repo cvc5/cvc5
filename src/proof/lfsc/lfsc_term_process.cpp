@@ -63,12 +63,13 @@ Node LfscTermProcessor::runConvert(Node n)
     // v is (skolem W) where W is the original or witness form of v
     Node on = SkolemManager::getOriginalForm(n);
     Node wi = on == n ? SkolemManager::getWitnessForm(n) : on;
-    Assert (!wi.isNull()) << "Missing skolem definition for " << n;
+    Assert(!wi.isNull()) << "Missing skolem definition for " << n;
     if (!wi.isNull() && wi != n)
     {
       Trace("lfsc-term-process-debug") << "...witness form " << wi << std::endl;
       wi = convert(wi);
-      Trace("lfsc-term-process-debug") << "...converted witness for " << wi << std::endl;
+      Trace("lfsc-term-process-debug")
+          << "...converted witness for " << wi << std::endl;
       TypeNode ftype = nm->mkFunctionType(tn, tn, false);
       Node skolemOp = getSymbolInternal(k, ftype, "skolem");
       return nm->mkNode(APPLY_UF, skolemOp, wi);

@@ -23,13 +23,13 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace proof {
-  
+
 class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
 {
-public:
-  bool shouldTraverse(const ProofNode * pn) override
+ public:
+  bool shouldTraverse(const ProofNode* pn) override
   {
-    if( pn->getRule()==PfRule::SCOPE )
+    if (pn->getRule() == PfRule::SCOPE)
     {
       return false;
     }
@@ -97,7 +97,8 @@ void LfscPrinter::print(std::ostream& out,
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, size_t> pletMap;
   LfscProofLetifyTraverseCallback lpltc;
-  ProofLetify::computeProofLet(pnBody, pletList, pletMap, 2, nullptr); // &lpltc);  // FIXME
+  ProofLetify::computeProofLet(
+      pnBody, pletList, pletMap, 2, nullptr);  // &lpltc);  // FIXME
 
   // [3] print the check command and term lets
   out << "(check" << std::endl;
