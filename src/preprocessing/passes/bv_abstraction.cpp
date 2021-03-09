@@ -54,12 +54,6 @@ PreprocessingPassResult BvAbstraction::applyInternal(
   {
     assertionsToPreprocess->replace(i, Rewriter::rewrite(new_assertions[i]));
   }
-  // If we are using the lazy solver and the abstraction applies, then UF
-  // symbols were introduced.
-  if (options::bitblastMode() == options::BitblastMode::LAZY && changed)
-  {
-    d_preprocContext->widenLogic(theory::THEORY_UF);
-  }
   return PreprocessingPassResult::NO_CONFLICT;
 }
 

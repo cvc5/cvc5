@@ -87,7 +87,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_absValues(new AbstractValues(getNodeManager())),
       d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
       d_routListener(new ResourceOutListener(*this)),
-      d_snmListener(new SmtNodeManagerListener(*d_dumpm.get(), d_outMgr)),
+      d_snmListener(new SmtNodeManagerListener(*getDumpManager(), d_outMgr)),
       d_smtSolver(nullptr),
       d_proofManager(nullptr),
       d_model(nullptr),
@@ -207,7 +207,8 @@ void SmtEngine::finishInit()
   // of SMT-LIB 2.6 standard.
 
   // set the logic
-  if (!d_logic.isLocked())
+  LogicInfo& logic = d_env->getLogicInfo();
+  if (!logic.isLocked())
   {
     setLogicInternal();
   }
@@ -218,7 +219,7 @@ void SmtEngine::finishInit()
   // Call finish init on the options manager. This inializes the resource
   // manager based on the options, and sets up the best default options
   // based on our heuristics.
-  d_optm->finishInit(d_logic, d_isInternalSubsolver);
+  d_optm->finishInit(logic, d_isInternalSubsolver);
 
   ProofNodeManager* pnm = nullptr;
   if (options::proof())
@@ -243,7 +244,7 @@ void SmtEngine::finishInit()
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit(const_cast<const LogicInfo&>(d_logic));
+  d_smtSolver->finishInit(const_cast<const LogicInfo&>(logic));
 
   // now can construct the SMT-level model object
   TheoryEngine* te = d_smtSolver->getTheoryEngine();
@@ -297,7 +298,7 @@ void SmtEngine::finishInit()
       << "The PropEngine has pushed but the SmtEngine "
          "hasn't finished initializing!";
 
-  Assert(d_logic.isLocked());
+  Assert(getLogicInfo().isLocked());
 
   // store that we are finished initializing
   d_state->finishInit();
@@ -372,7 +373,7 @@ void SmtEngine::setLogic(const LogicInfo& logic)
     throw ModalException("Cannot set logic in SmtEngine after the engine has "
                          "finished initializing.");
   }
-  d_logic = logic;
+  d_env->d_logic = logic;
   d_userLogic = logic;
   setLogicInternal();
 }
@@ -387,7 +388,7 @@ void SmtEngine::setLogic(const std::string& s)
     if (Dump.isOn("raw-benchmark"))
     {
       getOutputManager().getPrinter().toStreamCmdSetBenchmarkLogic(
-          getOutputManager().getDumpOut(), d_logic.getLogicString());
+          getOutputManager().getDumpOut(), getLogicInfo().getLogicString());
     }
   }
   catch (IllegalArgumentException& e)
@@ -398,7 +399,7 @@ void SmtEngine::setLogic(const std::string& s)
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 
-const LogicInfo& SmtEngine::getLogicInfo() const { return d_logic; }
+const LogicInfo& SmtEngine::getLogicInfo() const { return d_env->getLogicInfo(); }
 
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
@@ -427,7 +428,7 @@ void SmtEngine::setLogicInternal()
   Assert(!d_state->isFullyInited())
       << "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run";
-  d_logic.lock();
+  d_env->d_logic.lock();
   d_userLogic.lock();
 }
 
@@ -1316,7 +1317,7 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& exprs)
 
 std::pair<Node, Node> SmtEngine::getSepHeapAndNilExpr(void)
 {
-  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  if (!getLogicInfo().isTheoryEnabled(THEORY_SEP))
   {
     const char* msg =
         "Cannot obtain separation logic expressions if not using the "
@@ -1354,7 +1355,7 @@ std::vector<Node> SmtEngine::getExpandedAssertions()
 
 void SmtEngine::declareSepHeap(TypeNode locT, TypeNode dataT)
 {
-  if (!d_logic.isTheoryEnabled(THEORY_SEP))
+  if (!getLogicInfo().isTheoryEnabled(THEORY_SEP))
   {
     const char* msg =
         "Cannot declare heap if not using the separation logic theory.";
@@ -1658,8 +1659,9 @@ Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
 {
   SmtScope smts(this);
   finishInit();
-  if(!d_logic.isPure(THEORY_ARITH) && strict){
-    Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
+  LogicInfo& logic = getLogicInfo();
+  if(!logic.isPure(THEORY_ARITH) && strict){
+    Warning() << "Unexpected logic for quantifier elimination " << logic << endl;
   }
   return d_quantElimSolver->getQuantifierElimination(
       *d_asserts, q, doFull, d_isInternalSubsolver);
