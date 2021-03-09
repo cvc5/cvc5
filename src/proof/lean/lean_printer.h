@@ -29,17 +29,17 @@ namespace CVC4 {
 namespace proof {
 
 /**
- * Converts a lean rule to a string.
- * @param id The lean rule
- * @return The name of the lean rule
+ * Converts a Lean rule to a string.
+ * @param id The Lean rule
+ * @return The name of the Lean rule
  */
 const char* toString(LeanRule id);
 
 /**
- * Writes a lean rule name to a stream.
+ * Writes a Lean rule name to a stream.
  *
  * @param out The stream to write to
- * @param id The lean rule to write to the stream
+ * @param id The Lean rule to write to the stream
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, LeanRule id);
@@ -76,11 +76,15 @@ class LeanPrinter
    */
   static void printLeanString(std::ostream& s, Node n);
   /**
-   * Convert from node to lean type syntax
+   * Convert from node to Lean type syntax
    */
   static void printLeanType(std::ostream& s, Node n);
   /**
-   * Print Lean type corresponding to proof of unsatisfiability
+   * Print Lean type corresponding to proof of unsatisfiability.
+   * This method is a wrapper around printLeanType.
+   *  The full proof node will always be a proof of unsatisfiability
+   *  via resolution. So the type printed to Lean will always end
+   *  in "-> holds []", which acts like a proof of contradiction, or false.
    */
   static void printLeanTypeToBottom(std::ostream& s, Node n);
   /**
@@ -91,7 +95,7 @@ class LeanPrinter
                                      std::shared_ptr<ProofNode> pfn);
 
   /**
-   * For each proof node, the final lean output's formatting depends on
+   * For each proof node, the final Lean output's formatting depends on
    *  the particular proof rule. For example, a chain resolution must be
    *  converted into a series of sequential resolutions.
    * This method cases on the Lean proof rules (./lean_rules.h) and prints

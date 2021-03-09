@@ -136,7 +136,7 @@ void LeanPrinter::printProof(std::ostream& out,
   if (id == LeanRule::SCOPE)
   {
     // each argument to the scope proof node corresponds to one scope
-    //  to close in the lean proof
+    //  to close in the Lean proof
     for (size_t i = 2, size = args.size(); i < size; ++i)
     {
       size_t varIndex = passumeMap.size();
@@ -266,7 +266,7 @@ void LeanPrinter::print(std::ostream& out,
                         const std::vector<Node>& assertions,
                         std::shared_ptr<ProofNode> pfn)
 {
-  // outer method to print valid lean output from a ProofNode
+  // outer method to print valid Lean output from a ProofNode
   std::map<Node, std::string> passumeMap;
   const std::vector<Node>& args = pfn->getArguments();
   out << "open smt\n";
