@@ -80,12 +80,10 @@ sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
 make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}"
 make install
 
+# Find and move the static build
+rename_installed_lib "libantlr3c.a" "libantlr3c-static.a"
+
 # Build shared ANTLR library
-
-# On some systems the library may be installed to lib64/ instead of lib/
-LIB_DIR="$(dirname "$(find "$INSTALL_DIR" -name libantlr3c.a)")"
-
-mv "$LIB_DIR/libantlr3c.a" "$LIB_DIR/libantlr3c-static.a"
 make clean
 
 ./configure --with-pic --disable-antlrdebug --prefix="$INSTALL_DIR" $ANTLR_CONFIGURE_ARGS $BUILD_TYPE
@@ -94,8 +92,9 @@ cp Makefile Makefile.orig
 sed 's,^\(CFLAGS = .*\),\1 -fexceptions,' Makefile.orig > Makefile
 make CFLAGS="${MAKE_CFLAGS}" CXXFLAGS="${MAKE_CXXFLAGS}" LDFLAGS="${MAKE_LDFLAGS}"
 make install
-mv "$LIB_DIR/libantlr3c.la" "$LIB_DIR/libantlr3c.la.orig"
+rename_installed_lib "libantlr3c.la" "libantlr3c.la.orig"
 
+LIB_DIR=$(guess_lib_dir "libantlr3c.la.orig")
 awk '/^old_library=/ {print "old_library='\''libantlr3c-static.a'\''"} /^library_names=/ {print "library_names='\''libantlr3c.a'\''"} !/^old_library=/ && !/^library_names=/ {print}' < "$LIB_DIR/libantlr3c.la.orig" > "$LIB_DIR/libantlr3c.la"
 rm "$LIB_DIR/libantlr3c.la.orig"
 
