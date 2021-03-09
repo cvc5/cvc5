@@ -120,7 +120,7 @@ class Env
   void setProofNodeManager(ProofNodeManager* pnm);
 
   /* Private shutdown ------------------------------------------------------- */
-  /** 
+  /**
    * Shutdown method, which destroys the non-essential members of this class
    * in preparation for destroying SMT engine.
    */

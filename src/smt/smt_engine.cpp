@@ -309,7 +309,7 @@ void SmtEngine::shutdown() {
   d_state->shutdown();
 
   d_smtSolver->shutdown();
-  
+
   d_env->shutdown();
 }
 
