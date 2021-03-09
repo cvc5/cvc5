@@ -59,10 +59,26 @@
 #include "theory/theory_model.h"
 #include "util/random.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 #include "util/utility.h"
 
 namespace CVC4 {
 namespace api {
+
+/* -------------------------------------------------------------------------- */
+/* Statistics                                                                 */
+/* -------------------------------------------------------------------------- */
+
+struct Statistics
+{
+  Statistics()
+      : d_consts("api::CONSTANT"), d_vars("api::VARIABLE"), d_terms("api::TERM")
+  {
+  }
+  IntegralHistogramStat<TypeConstant> d_consts;
+  IntegralHistogramStat<TypeConstant> d_vars;
+  IntegralHistogramStat<Kind> d_terms;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -3255,6 +3271,12 @@ Solver::Solver(Options* opts)
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
+#if CVC4_STATISTICS_ON
+  d_stats.reset(new Statistics());
+  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
+  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
+  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
+#endif
 }
 
 Solver::~Solver() {}
@@ -3263,6 +3285,31 @@ Solver::~Solver() {}
 /* -------------------------------------------------------------------------- */
 
 NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
+
+void Solver::increment_term_stats(Kind kind) const
+{
+#ifdef CVC4_STATISTICS_ON
+  d_stats->d_terms << kind;
+#endif
+}
+
+void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
+{
+#ifdef CVC4_STATISTICS_ON
+  const TypeNode tn = sort.getTypeNode();
+  TypeConstant tc = tn.getKind() == CVC4::kind::TYPE_CONSTANT
+                        ? tn.getConst<TypeConstant>()
+                        : LAST_TYPE;
+  if (is_var)
+  {
+    d_stats->d_vars << tc;
+  }
+  else
+  {
+    d_stats->d_consts << tc;
+  }
+#endif
+}
 
 /* Split out to avoid nested API calls (problematic with API tracing).        */
 /* .......................................................................... */
@@ -3387,6 +3434,7 @@ Term Solver::mkTermFromKind(Kind kind) const
     res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), CVC4::kind::PI);
   }
   (void)res.getType(true); /* kick off type checking */
+  increment_term_stats(kind);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3485,6 +3533,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   }
 
   (void)res.getType(true); /* kick off type checking */
+  increment_term_stats(kind);
   return Term(this, res);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4410,6 +4459,7 @@ Term Solver::mkConst(Sort sort, const std::string& symbol) const
 
   Node res = d_nodeMgr->mkVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, false);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4424,6 +4474,7 @@ Term Solver::mkConst(Sort sort) const
 
   Node res = d_nodeMgr->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, false);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4442,6 +4493,7 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   Node res = symbol.empty() ? d_nodeMgr->mkBoundVar(*sort.d_type)
                             : d_nodeMgr->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, true);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
