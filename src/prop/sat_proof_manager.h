@@ -2,9 +2,9 @@
 /*! \file sat_proof_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,10 +21,7 @@
 #include "expr/buffered_proof_generator.h"
 #include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
-#include "expr/proof.h"
-#include "expr/proof_node_manager.h"
 #include "prop/minisat/core/SolverTypes.h"
-#include "prop/cnf_stream.h"
 #include "prop/sat_solver_types.h"
 
 namespace Minisat {
@@ -32,7 +29,12 @@ class Solver;
 }
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
 namespace prop {
+
+class CnfStream;
 
 /**
  * This class is responsible for managing the proof production of the SAT

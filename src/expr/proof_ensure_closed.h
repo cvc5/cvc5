@@ -2,9 +2,9 @@
 /*! \file proof_ensure_closed.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,10 +18,11 @@
 #define CVC4__EXPR__PROOF_ENSURE_CLOSED_H
 
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node.h"
 
 namespace CVC4 {
+
+class ProofGenerator;
+class ProofNode;
 
 /**
  * Debug check closed on Trace c. Context ctx is string for debugging.

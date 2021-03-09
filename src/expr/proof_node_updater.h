@@ -2,9 +2,9 @@
 /*! \file proof_node_updater.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,13 +18,16 @@
 #define CVC4__EXPR__PROOF_NODE_UPDATER_H
 
 #include <map>
-#include <unordered_set>
+#include <memory>
 
-#include "expr/proof.h"
+#include "expr/node.h"
 #include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
+
+class CDProof;
+class ProofNode;
+class ProofNodeManager;
 
 /**
  * A virtual callback class for updating ProofNode. An example use case of this

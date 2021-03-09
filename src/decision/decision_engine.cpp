@@ -2,9 +2,9 @@
 /*! \file decision_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Aina Niemetz, Andres Noetzli
+ **   Kshitij Bansal, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 

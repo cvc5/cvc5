@@ -2,9 +2,9 @@
 /*! \file term_formula_removal.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,21 +18,21 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/term_context_stack.h"
-#include "expr/term_conversion_proof_generator.h"
-#include "theory/eager_proof_generator.h"
+#include "expr/term_context.h"
 #include "theory/trust_node.h"
-#include "util/bool.h"
 #include "util/hash.h"
 
 namespace CVC4 {
+
+class LazyCDProof;
+class ProofNodeManager;
+class TConvProofGenerator;
 
 class RemoveTermFormulas {
  public:

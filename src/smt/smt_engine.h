@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,12 +19,12 @@
 #ifndef CVC4__SMT_ENGINE_H
 #define CVC4__SMT_ENGINE_H
 
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "context/cdhashmap_forward.h"
-#include "context/cdlist_forward.h"
 #include "options/options.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -87,7 +87,6 @@ class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
-class ExprNames;
 class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
@@ -110,7 +109,6 @@ class DefinedFunction;
 
 struct SmtEngineStatistics;
 class SmtScope;
-class ProcessAssertions;
 class PfManager;
 class UnsatCoreManager;
 
@@ -120,7 +118,6 @@ ProofManager* currentProofManager();
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
-  class TheoryModel;
   class Rewriter;
   class QuantifiersEngine;
 }/* CVC4::theory namespace */
@@ -887,8 +884,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
  private:
   /* .......................................................................  */
-  /** The type of our internal assertion list */
-  typedef context::CDList<Node> AssertionList;
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;

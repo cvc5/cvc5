@@ -2,9 +2,9 @@
 /*! \file decision_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Mathias Preiner
+ **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,18 +19,15 @@
 #ifndef CVC4__DECISION__DECISION_ENGINE_H
 #define CVC4__DECISION__DECISION_ENGINE_H
 
-#include <vector>
-
 #include "base/output.h"
+#include "context/cdo.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
-#include "prop/prop_engine.h"
+#include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/term_formula_removal.h"
+#include "util/result.h"
 
-using namespace std;
 using namespace CVC4::prop;
 using namespace CVC4::decision;
 

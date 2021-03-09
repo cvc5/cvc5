@@ -2,9 +2,9 @@
 /*! \file kind_map_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,7 @@
 #include <string>
 
 #include "expr/kind_map.h"
-#include "test_expr.h"
+#include "test.h"
 
 namespace CVC4 {
 
@@ -27,7 +27,7 @@ using namespace kind;
 
 namespace test {
 
-class TestExprBlackKindMap : public TestExprBlack
+class TestExprBlackKindMap : public TestInternal
 {
 };
 

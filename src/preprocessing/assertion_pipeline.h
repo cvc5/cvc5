@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,13 +21,15 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "smt/preprocess_proof_generator.h"
-#include "smt/term_formula_removal.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
+
+class ProofGenerator;
+namespace smt {
+class PreprocessProofGenerator;
+}
+
 namespace preprocessing {
 
 using IteSkolemMap = std::unordered_map<size_t, Node>;

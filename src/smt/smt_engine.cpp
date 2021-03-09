@@ -2,9 +2,9 @@
 /*! \file smt_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,14 +34,17 @@
 #include "printer/printer.h"
 #include "proof/proof_manager.h"
 #include "proof/unsat_core.h"
+#include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/check_models.h"
 #include "smt/defined_function.h"
+#include "smt/dump.h"
 #include "smt/dump_manager.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
+#include "smt/logic_exception.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/node_command.h"
@@ -467,15 +470,7 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
   {
     language::input::Language ilang = language::input::LANG_AUTO;
 
-    if (value == "2" || value == "2.0")
-    {
-      ilang = language::input::LANG_SMTLIB_V2_0;
-    }
-    else if (value == "2.5")
-    {
-      ilang = language::input::LANG_SMTLIB_V2_5;
-    }
-    else if (value == "2.6")
+    if (value == "2.6")
     {
       ilang = language::input::LANG_SMTLIB_V2_6;
     }

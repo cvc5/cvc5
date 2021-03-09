@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,7 @@
  ** An ANTLR3 bounded token stream. The stream has a bounded
  ** lookahead/behind k. Calling LT(i) with i > k or i < -k will raise
  ** an exception. Only use this factory if you *know* that the grammar
- ** has bounded lookahead (e.g., if you've set the k parameter in the 
+ ** has bounded lookahead (e.g., if you've set the k parameter in the
  ** parser.
  **
  ** NOTE: ANTLR3 puts "hidden" tokens into this buffer too, so

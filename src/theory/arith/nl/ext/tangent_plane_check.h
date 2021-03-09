@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,13 +15,16 @@
 #ifndef CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
 #define CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
 
+#include <map>
+
 #include "expr/node.h"
-#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+struct ExtState;
 
 class TangentPlaneCheck
 {

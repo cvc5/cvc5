@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -663,14 +663,8 @@ void CvcPrinter::toStreamNode(std::ostream& out,
     case kind::BITVECTOR_UDIV:
       op << "BVUDIV";
       break;
-    case kind::BITVECTOR_UDIV_TOTAL:
-      op << "BVUDIV_TOTAL";
-      break;
     case kind::BITVECTOR_UREM:
       op << "BVUREM";
-      break;
-    case kind::BITVECTOR_UREM_TOTAL:
-      op << "BVUREM_TOTAL";
       break;
     case kind::BITVECTOR_SDIV:
       op << "BVSDIV";

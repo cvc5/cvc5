@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,17 +21,17 @@
 #include "expr/dtype_cons.h"
 #include "expr/expr.h"
 #include "expr/type_node.h"
-#include "test_expr.h"
+#include "test_smt.h"
 
 namespace CVC4 {
 namespace test {
 
-class TestUtilBlackDatatype : public TestExprBlack
+class TestUtilBlackDatatype : public TestSmt
 {
  public:
   void SetUp() override
   {
-    TestExprBlack::SetUp();
+    TestSmt::SetUp();
     Debug.on("datatypes");
     Debug.on("groundterms");
   }

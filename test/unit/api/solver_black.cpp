@@ -2,9 +2,9 @@
 /*! \file solver_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli, Abdalrhman Mohamed
+ **   Aina Niemetz, Mudathir Mohamed, Ying Sheng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1269,6 +1269,7 @@ TEST_F(TestApiBlackSolver, getInfo)
 
 TEST_F(TestApiBlackSolver, getInterpolant)
 {
+  d_solver.setLogic("QF_LIA");
   d_solver.setOption("produce-interpols", "default");
   d_solver.setOption("incremental", "false");
 
@@ -1282,7 +1283,7 @@ TEST_F(TestApiBlackSolver, getInterpolant)
   d_solver.assertFormula(
       d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, x, y), zero));
   d_solver.assertFormula(d_solver.mkTerm(LT, x, zero));
-  // Conjecture for interpolation: y + z > 0 /\ z < 0
+  // Conjecture for interpolation: y + z > 0 \/ z < 0
   Term conj =
       d_solver.mkTerm(OR,
                       d_solver.mkTerm(GT, d_solver.mkTerm(PLUS, y, z), zero),
@@ -1328,13 +1329,8 @@ TEST_F(TestApiBlackSolver, getOp)
   Term listhead = d_solver.mkTerm(APPLY_SELECTOR, headTerm, listcons1);
 
   ASSERT_TRUE(listnil.hasOp());
-  ASSERT_EQ(listnil.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-
   ASSERT_TRUE(listcons1.hasOp());
-  ASSERT_EQ(listcons1.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
-
   ASSERT_TRUE(listhead.hasOp());
-  ASSERT_EQ(listhead.getOp(), Op(&d_solver, APPLY_SELECTOR));
 }
 
 TEST_F(TestApiBlackSolver, getOption)

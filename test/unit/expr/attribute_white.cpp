@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,7 @@
 #include "expr/node_value.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "test_expr.h"
+#include "test_node.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf.h"
@@ -54,12 +54,12 @@ using TestFlag3 = Attribute<Test3, bool>;
 using TestFlag4 = Attribute<Test4, bool>;
 using TestFlag5 = Attribute<Test5, bool>;
 
-class TestExprWhiteAttribute : public TestExprWhite
+class TestExprWhiteAttribute : public TestNode
 {
  protected:
   void SetUp() override
   {
-    TestExprWhite::SetUp();
+    TestNode::SetUp();
     d_booleanType.reset(new TypeNode(d_nodeManager->booleanType()));
   }
   std::unique_ptr<TypeNode> d_booleanType;
