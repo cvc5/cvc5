@@ -659,13 +659,37 @@ const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
 
 namespace {
 
+/** Convert a CVC4::Kind (internal) to a CVC4::api::Kind (external). */
+CVC4::api::Kind intToExtKind(CVC4::Kind k)
+{
+  auto it = api::s_kinds_internal.find(k);
+  if (it == api::s_kinds_internal.end())
+  {
+    return api::INTERNAL_KIND;
+  }
+  return it->second;
+}
+
+/** Convert a CVC4::api::Kind (external) to a CVC4::Kind (internal). */
+CVC4::Kind extToIntKind(CVC4::api::Kind k)
+{
+  auto it = api::s_kinds.find(k);
+  if (it == api::s_kinds.end())
+  {
+    return CVC4::Kind::UNDEFINED_KIND;
+  }
+  return it->second;
+}
+
+/** Return true if given kind is a defined external kind. */
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 
-/** Returns true if the internal kind is one where the API term structure
- *  differs from internal structure. This happens for APPLY_* kinds.
- *  The API takes a "higher-order" perspective and treats functions as well
- *  as datatype constructors/selectors/testers as terms
- *  but interally they are not
+/**
+ * Return true if the internal kind is one where the API term structure
+ * differs from internal structure. This happens for APPLY_* kinds.
+ * The API takes a "higher-order" perspective and treats functions as well
+ * as datatype constructors/selectors/testers as terms
+ * but interally they are not
  */
 bool isApplyKind(CVC4::Kind k)
 {
@@ -674,12 +698,14 @@ bool isApplyKind(CVC4::Kind k)
 }
 
 #ifdef CVC4_ASSERTIONS
+/** Return true if given kind is a defined internal kind. */
 bool isDefinedIntKind(CVC4::Kind k)
 {
   return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
 }
 #endif
 
+/** Return the minimum arity of given kind. */
 uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
@@ -695,6 +721,7 @@ uint32_t minArity(Kind k)
   return min;
 }
 
+/** Return the maximum arity of given kind. */
 uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
@@ -5968,29 +5995,5 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 }  // namespace api
-
-/* -------------------------------------------------------------------------- */
-/* Kind Conversions                                                           */
-/* -------------------------------------------------------------------------- */
-
-CVC4::api::Kind intToExtKind(CVC4::Kind k)
-{
-  auto it = api::s_kinds_internal.find(k);
-  if (it == api::s_kinds_internal.end())
-  {
-    return api::INTERNAL_KIND;
-  }
-  return it->second;
-}
-
-CVC4::Kind extToIntKind(CVC4::api::Kind k)
-{
-  auto it = api::s_kinds.find(k);
-  if (it == api::s_kinds.end())
-  {
-    return CVC4::Kind::UNDEFINED_KIND;
-  }
-  return it->second;
-}
 
 }  // namespace CVC4
