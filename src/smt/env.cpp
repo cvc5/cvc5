@@ -59,8 +59,7 @@ void Env::setStatisticsRegistry(StatisticsRegistry* statReg)
 {
   d_statisticsRegistry = statReg;
   // now initialize resource manager
-  d_resourceManager.reset(
-      new ResourceManager(*statReg, d_options));
+  d_resourceManager.reset(new ResourceManager(*statReg, d_options));
 }
 
 void Env::setProofNodeManager(ProofNodeManager* pnm)

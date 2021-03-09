@@ -16,7 +16,6 @@
 
 #include "smt/smt_engine.h"
 
-#include "smt/env.h"
 #include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/exception.h"
@@ -43,6 +42,7 @@
 #include "smt/defined_function.h"
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
+#include "smt/env.h"
 #include "smt/interpolation_solver.h"
 #include "smt/listeners.h"
 #include "smt/logic_exception.h"
@@ -399,7 +399,10 @@ void SmtEngine::setLogic(const std::string& s)
 
 void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 
-const LogicInfo& SmtEngine::getLogicInfo() const { return d_env->getLogicInfo(); }
+const LogicInfo& SmtEngine::getLogicInfo() const
+{
+  return d_env->getLogicInfo();
+}
 
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
@@ -1152,7 +1155,8 @@ Node SmtEngine::simplify(const Node& ex)
 
 Node SmtEngine::expandDefinitions(const Node& ex, bool expandOnly)
 {
-  getResourceManager()->spendResource(ResourceManager::Resource::PreprocessStep);
+  getResourceManager()->spendResource(
+      ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
   finishInit();
@@ -1660,8 +1664,10 @@ Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
   SmtScope smts(this);
   finishInit();
   LogicInfo& logic = getLogicInfo();
-  if(!logic.isPure(THEORY_ARITH) && strict){
-    Warning() << "Unexpected logic for quantifier elimination " << logic << endl;
+  if (!logic.isPure(THEORY_ARITH) && strict)
+  {
+    Warning() << "Unexpected logic for quantifier elimination " << logic
+              << endl;
   }
   return d_quantElimSolver->getQuantifierElimination(
       *d_asserts, q, doFull, d_isInternalSubsolver);
@@ -1862,7 +1868,10 @@ unsigned long SmtEngine::getResourceRemaining() const
   return getResourceManager()->getResourceRemaining();
 }
 
-NodeManager* SmtEngine::getNodeManager() const { return d_env->getNodeManager(); }
+NodeManager* SmtEngine::getNodeManager() const
+{
+  return d_env->getNodeManager();
+}
 
 Statistics SmtEngine::getStatistics() const
 {
@@ -1900,7 +1909,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
 
 void SmtEngine::setOption(const std::string& key, const std::string& value)
 {
-    NodeManagerScope nms(getNodeManager());
+  NodeManagerScope nms(getNodeManager());
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
   if(Dump.isOn("benchmark")) {
@@ -2005,10 +2014,7 @@ ResourceManager* SmtEngine::getResourceManager()
 
 DumpManager* SmtEngine::getDumpManager() { return d_env->getDumpManager(); }
 
-const Printer* SmtEngine::getPrinter() const
-{
-  return d_env->getPrinter();
-}
+const Printer* SmtEngine::getPrinter() const { return d_env->getPrinter(); }
 
 OutputManager& SmtEngine::getOutputManager() { return d_outMgr; }
 

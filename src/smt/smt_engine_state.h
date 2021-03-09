@@ -47,7 +47,7 @@ namespace smt {
 class SmtEngineState
 {
  public:
-  SmtEngineState(context::Context * c, context::UserContext * u, SmtEngine& smt);
+  SmtEngineState(context::Context* c, context::UserContext* u, SmtEngine& smt);
   ~SmtEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the

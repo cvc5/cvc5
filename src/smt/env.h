@@ -70,7 +70,7 @@ class Env
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
-  /** 
+  /**
    * Get the underlying proof node manager. Note since proofs depend on option
    * initialization, this is only available after the SmtEngine that owns this
    * environment is initialized, and only if proofs are enabled.

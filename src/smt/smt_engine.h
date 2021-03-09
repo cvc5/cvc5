@@ -1041,7 +1041,7 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /** 
+  /**
    * The environment object, which contains all utilities that are globally
    * available to internal code.
    */
@@ -1102,9 +1102,9 @@ class CVC4_PUBLIC SmtEngine
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
 
-  /** 
+  /**
    * The logic set by the user. The actual logic, which may extend the user's
-   * logic, lives in the Env class. 
+   * logic, lives in the Env class.
    */
   LogicInfo d_userLogic;
 

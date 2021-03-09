@@ -584,8 +584,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::bvAbstraction())
   {
     // bv abstraction may require UF
-    Notice() << "Enabling UF because bvAbstraction requires it."
-              << std::endl;
+    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
     needsUf = true;
   }
   if (needsUf
@@ -612,7 +611,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       if (!needsUf)
       {
         Notice() << "Enabling UF because " << logic << " requires it."
-                << std::endl;
+                 << std::endl;
       }
       log.enableTheory(THEORY_UF);
       logic = log;
@@ -626,7 +625,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       // enable integers
       LogicInfo log(logic.getUnlockedCopy());
       Notice() << "Enabling integers because arithMLTrick requires it."
-                << std::endl;
+               << std::endl;
       log.enableIntegers();
       logic = log;
       logic.lock();
