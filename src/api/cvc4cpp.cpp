@@ -659,13 +659,37 @@ const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
 
 namespace {
 
+/** Convert a CVC4::Kind (internal) to a CVC4::api::Kind (external). */
+CVC4::api::Kind intToExtKind(CVC4::Kind k)
+{
+  auto it = api::s_kinds_internal.find(k);
+  if (it == api::s_kinds_internal.end())
+  {
+    return api::INTERNAL_KIND;
+  }
+  return it->second;
+}
+
+/** Convert a CVC4::api::Kind (external) to a CVC4::Kind (internal). */
+CVC4::Kind extToIntKind(CVC4::api::Kind k)
+{
+  auto it = api::s_kinds.find(k);
+  if (it == api::s_kinds.end())
+  {
+    return CVC4::Kind::UNDEFINED_KIND;
+  }
+  return it->second;
+}
+
+/** Return true if given kind is a defined external kind. */
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 
-/** Returns true if the internal kind is one where the API term structure
- *  differs from internal structure. This happens for APPLY_* kinds.
- *  The API takes a "higher-order" perspective and treats functions as well
- *  as datatype constructors/selectors/testers as terms
- *  but interally they are not
+/**
+ * Return true if the internal kind is one where the API term structure
+ * differs from internal structure. This happens for APPLY_* kinds.
+ * The API takes a "higher-order" perspective and treats functions as well
+ * as datatype constructors/selectors/testers as terms
+ * but interally they are not
  */
 bool isApplyKind(CVC4::Kind k)
 {
@@ -674,12 +698,14 @@ bool isApplyKind(CVC4::Kind k)
 }
 
 #ifdef CVC4_ASSERTIONS
+/** Return true if given kind is a defined internal kind. */
 bool isDefinedIntKind(CVC4::Kind k)
 {
   return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
 }
 #endif
 
+/** Return the minimum arity of given kind. */
 uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
@@ -695,6 +721,7 @@ uint32_t minArity(Kind k)
   return min;
 }
 
+/** Return the maximum arity of given kind. */
 uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
@@ -3232,8 +3259,10 @@ Solver::Solver(Options* opts)
 
 Solver::~Solver() {}
 
-/* Helpers                                                                    */
+/* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
+
+NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
 
 /* Split out to avoid nested API calls (problematic with API tracing).        */
 /* .......................................................................... */
@@ -3494,6 +3523,126 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   return retTypes;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::synthFunHelper(const std::string& symbol,
+                            const std::vector<Term>& boundVars,
+                            const Sort& sort,
+                            bool isInv,
+                            Grammar* g) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_NOT_NULL(sort);
+
+  std::vector<TypeNode> varTypes;
+  for (size_t i = 0, n = boundVars.size(); i < n; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
+        << "bound variable associated to this solver object";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
+        << "a non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
+        "bound variable",
+        boundVars[i],
+        i)
+        << "a bound variable";
+    varTypes.push_back(boundVars[i].d_node->getType());
+  }
+  CVC4_API_SOLVER_CHECK_SORT(sort);
+
+  if (g != nullptr)
+  {
+    CVC4_API_CHECK(g->d_ntSyms[0].d_node->getType() == *sort.d_type)
+        << "Invalid Start symbol for Grammar g, Expected Start's sort to be "
+        << *sort.d_type << " but found " << g->d_ntSyms[0].d_node->getType();
+  }
+
+  TypeNode funType = varTypes.empty() ? *sort.d_type
+                                      : getNodeManager()->mkFunctionType(
+                                          varTypes, *sort.d_type);
+
+  Node fun = getNodeManager()->mkBoundVar(symbol, funType);
+  (void)fun.getType(true); /* kick off type checking */
+
+  std::vector<Node> bvns = Term::termVectorToNodes(boundVars);
+
+  d_smtEngine->declareSynthFun(
+      fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
+
+  return Term(this, fun);
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
+{
+  CVC4_API_CHECK(term.getSort() == sort
+                 || (term.getSort().isInteger() && sort.isReal()))
+      << "Expected conversion from Int to Real";
+
+  Sort t = term.getSort();
+  if (term.getSort() == sort)
+  {
+    return term;
+  }
+
+  // Integers are reals, too
+  Assert(t.isReal());
+  Term res = term;
+  if (t.isInteger())
+  {
+    // Must cast to Real to ensure correct type is passed to parametric type
+    // constructors. We do this cast using division with 1. This has the
+    // advantage wrt using TO_REAL since (constant) division is always included
+    // in the theory.
+    res = Term(this,
+               d_nodeMgr->mkNode(extToIntKind(DIVISION),
+                                 *res.d_node,
+                                 d_nodeMgr->mkConst(CVC4::Rational(1))));
+  }
+  Assert(res.getSort() == sort);
+  return res;
+}
+
+bool Solver::isValidInteger(const std::string& s) const
+{
+  if (s.length() == 0)
+  {
+    // string should not be empty
+    return false;
+  }
+
+  size_t index = 0;
+  if (s[index] == '-')
+  {
+    if (s.length() == 1)
+    {
+      // negative integers should contain at least one digit
+      return false;
+    }
+    index = 1;
+  }
+
+  if (s[index] == '0' && s.length() > (index + 1))
+  {
+    // From SMT-Lib 2.6: A <numeral> is the digit 0 or a non-empty sequence of
+    // digits not starting with 0. So integers like 001, 000 are not allowed
+    return false;
+  }
+
+  // all remaining characters should be decimal digits
+  for (; index < s.length(); ++index)
+  {
+    if (!std::isdigit(s[index]))
+    {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /* Helpers for mkTerm checks.                                                 */
@@ -3888,44 +4037,6 @@ Term Solver::mkPi() const
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-bool Solver::isValidInteger(const std::string& s) const
-{
-  if (s.length() == 0)
-  {
-    // string should not be empty
-    return false;
-  }
-
-  size_t index = 0;
-  if (s[index] == '-')
-  {
-    if (s.length() == 1)
-    {
-      // negative integers should contain at least one digit
-      return false;
-    }
-    index = 1;
-  }
-
-  if (s[index] == '0' && s.length() > (index + 1))
-  {
-    // From SMT-Lib 2.6: A <numeral> is the digit 0 or a non-empty sequence of
-    // digits not starting with 0. So integers like 001, 000 are not allowed
-    return false;
-  }
-
-  // all remaining characters should be decimal digits
-  for (; index < s.length(); ++index)
-  {
-    if (!std::isdigit(s[index]))
-    {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 Term Solver::mkInteger(const std::string& s) const
@@ -5645,36 +5756,6 @@ void Solver::setOption(const std::string& option,
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
-{
-  CVC4_API_CHECK(term.getSort() == sort
-                 || (term.getSort().isInteger() && sort.isReal()))
-      << "Expected conversion from Int to Real";
-
-  Sort t = term.getSort();
-  if (term.getSort() == sort)
-  {
-    return term;
-  }
-
-  // Integers are reals, too
-  Assert(t.isReal());
-  Term res = term;
-  if (t.isInteger())
-  {
-    // Must cast to Real to ensure correct type is passed to parametric type
-    // constructors. We do this cast using division with 1. This has the
-    // advantage wrt using TO_REAL since (constant) division is always included
-    // in the theory.
-    res = Term(this,
-               d_nodeMgr->mkNode(extToIntKind(DIVISION),
-                                 *res.d_node,
-                                 d_nodeMgr->mkConst(CVC4::Rational(1))));
-  }
-  Assert(res.getSort() == sort);
-  return res;
-}
-
 Term Solver::mkSygusVar(Sort sort, const std::string& symbol) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -5762,58 +5843,6 @@ Term Solver::synthInv(const std::string& symbol,
 {
   return synthFunHelper(
       symbol, boundVars, Sort(this, getNodeManager()->booleanType()), true, &g);
-}
-
-Term Solver::synthFunHelper(const std::string& symbol,
-                            const std::vector<Term>& boundVars,
-                            const Sort& sort,
-                            bool isInv,
-                            Grammar* g) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULL(sort);
-
-  std::vector<TypeNode> varTypes;
-  for (size_t i = 0, n = boundVars.size(); i < n; ++i)
-  {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
-        << "bound variable associated to this solver object";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
-        << "a non-null term";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
-        "bound variable",
-        boundVars[i],
-        i)
-        << "a bound variable";
-    varTypes.push_back(boundVars[i].d_node->getType());
-  }
-  CVC4_API_SOLVER_CHECK_SORT(sort);
-
-  if (g != nullptr)
-  {
-    CVC4_API_CHECK(g->d_ntSyms[0].d_node->getType() == *sort.d_type)
-        << "Invalid Start symbol for Grammar g, Expected Start's sort to be "
-        << *sort.d_type << " but found " << g->d_ntSyms[0].d_node->getType();
-  }
-
-  TypeNode funType = varTypes.empty() ? *sort.d_type
-                                      : getNodeManager()->mkFunctionType(
-                                            varTypes, *sort.d_type);
-
-  Node fun = getNodeManager()->mkBoundVar(symbol, funType);
-  (void)fun.getType(true); /* kick off type checking */
-
-  std::vector<Node> bvns = Term::termVectorToNodes(boundVars);
-
-  d_smtEngine->declareSynthFun(
-      fun, g == nullptr ? funType : *g->resolve().d_type, isInv, bvns);
-
-  return Term(this, fun);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 void Solver::addSygusConstraint(Term term) const
@@ -5957,12 +5986,6 @@ void Solver::printSynthSolution(std::ostream& out) const
  * !!! This is only temporarily available until the parser is fully migrated to
  * the new API. !!!
  */
-NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
-
-/**
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 
 /**
@@ -5972,29 +5995,5 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 }  // namespace api
-
-/* -------------------------------------------------------------------------- */
-/* Kind Conversions                                                           */
-/* -------------------------------------------------------------------------- */
-
-CVC4::api::Kind intToExtKind(CVC4::Kind k)
-{
-  auto it = api::s_kinds_internal.find(k);
-  if (it == api::s_kinds_internal.end())
-  {
-    return api::INTERNAL_KIND;
-  }
-  return it->second;
-}
-
-CVC4::Kind extToIntKind(CVC4::api::Kind k)
-{
-  auto it = api::s_kinds.find(k);
-  if (it == api::s_kinds.end())
-  {
-    return CVC4::Kind::UNDEFINED_KIND;
-  }
-  return it->second;
-}
 
 }  // namespace CVC4
