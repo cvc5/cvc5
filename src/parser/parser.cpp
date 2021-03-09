@@ -16,7 +16,6 @@
 
 #include "parser/parser.h"
 
-#include <cassert>
 #include <clocale>
 #include <fstream>
 #include <iostream>
@@ -25,6 +24,7 @@
 #include <unordered_set>
 
 #include "api/cvc4cpp.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/kind.h"
 #include "options/options.h"
@@ -75,8 +75,8 @@ api::Solver* Parser::getSolver() const { return d_solver; }
 api::Term Parser::getSymbol(const std::string& name, SymbolType type)
 {
   checkDeclaration(name, CHECK_DECLARED, type);
-  assert(isDeclared(name, type));
-  assert(type == SYM_VARIABLE);
+  Assert(isDeclared(name, type));
+  Assert(type == SYM_VARIABLE);
   // Functions share var namespace
   return d_symtab->lookup(name);
 }
@@ -100,7 +100,7 @@ api::Term Parser::getExpressionForName(const std::string& name)
 api::Term Parser::getExpressionForNameAndType(const std::string& name,
                                               api::Sort t)
 {
-  assert(isDeclared(name));
+  Assert(isDeclared(name));
   // first check if the variable is declared and not overloaded
   api::Term expr = getVariable(name);
   if(expr.isNull()) {
@@ -117,7 +117,7 @@ api::Term Parser::getExpressionForNameAndType(const std::string& name,
     }
   }
   // now, post-process the expression
-  assert( !expr.isNull() );
+  Assert(!expr.isNull());
   api::Sort te = expr.getSort();
   if (te.isConstructor() && te.getConstructorArity() == 0)
   {
@@ -154,7 +154,7 @@ api::Kind Parser::getKindForFunction(api::Term fun)
 api::Sort Parser::getSort(const std::string& name)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  assert(isDeclared(name, SYM_SORT));
+  Assert(isDeclared(name, SYM_SORT));
   api::Sort t = d_symtab->lookupType(name);
   return t;
 }
@@ -163,14 +163,14 @@ api::Sort Parser::getSort(const std::string& name,
                           const std::vector<api::Sort>& params)
 {
   checkDeclaration(name, CHECK_DECLARED, SYM_SORT);
-  assert(isDeclared(name, SYM_SORT));
+  Assert(isDeclared(name, SYM_SORT));
   api::Sort t = d_symtab->lookupType(name, params);
   return t;
 }
 
 size_t Parser::getArity(const std::string& sort_name) {
   checkDeclaration(sort_name, CHECK_DECLARED, SYM_SORT);
-  assert(isDeclared(sort_name, SYM_SORT));
+  Assert(isDeclared(sort_name, SYM_SORT));
   return d_symtab->lookupArity(sort_name);
 }
 
@@ -263,7 +263,7 @@ void Parser::defineVar(const std::string& name,
     ss << ", maybe the symbol has already been defined?";
     parseError(ss.str());
   }
-  assert(isDeclared(name));
+  Assert(isDeclared(name));
 }
 
 void Parser::defineType(const std::string& name,
@@ -273,11 +273,11 @@ void Parser::defineType(const std::string& name,
 {
   if (skipExisting && isDeclared(name, SYM_SORT))
   {
-    assert(d_symtab->lookupType(name) == type);
+    Assert(d_symtab->lookupType(name) == type);
     return;
   }
   d_symtab->bindType(name, type, levelZero);
-  assert(isDeclared(name, SYM_SORT));
+  Assert(isDeclared(name, SYM_SORT));
 }
 
 void Parser::defineType(const std::string& name,
@@ -286,7 +286,7 @@ void Parser::defineType(const std::string& name,
                         bool levelZero)
 {
   d_symtab->bindType(name, params, type, levelZero);
-  assert(isDeclared(name, SYM_SORT));
+  Assert(isDeclared(name, SYM_SORT));
 }
 
 void Parser::defineParameterizedType(const std::string& name,
@@ -378,7 +378,7 @@ std::vector<api::Sort> Parser::bindMutualDatatypeTypes(
     std::vector<api::Sort> types =
         d_solver->mkDatatypeSorts(datatypes, d_unresolved);
 
-    assert(datatypes.size() == types.size());
+    Assert(datatypes.size() == types.size());
     bool globalDecls = d_symman->getGlobalDeclarations();
 
     for (unsigned i = 0; i < datatypes.size(); ++i) {
@@ -611,7 +611,7 @@ bool Parser::isDeclared(const std::string& name, SymbolType type) {
     case SYM_SORT:
       return d_symtab->isBoundType(name);
   }
-  assert(false);  // Unhandled(type);
+  Assert(false);  // Unhandled(type);
   return false;
 }
 
@@ -644,8 +644,7 @@ void Parser::checkDeclaration(const std::string& varName,
     case CHECK_NONE:
       break;
 
-    default:
-      assert(false);  // Unhandled(check);
+    default: Assert(false);  // Unhandled(check);
   }
 }
 

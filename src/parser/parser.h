@@ -19,12 +19,12 @@
 #ifndef CVC4__PARSER__PARSER_H
 #define CVC4__PARSER__PARSER_H
 
-#include <cassert>
 #include <list>
 #include <set>
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
@@ -273,7 +273,7 @@ public:
 
   virtual void forceLogic(const std::string& logic)
   {
-    assert(!d_logicIsForced);
+    Assert(!d_logicIsForced);
     d_logicIsForced = true;
     d_forcedLogic = logic;
   }

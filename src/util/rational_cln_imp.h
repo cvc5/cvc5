@@ -29,10 +29,10 @@
 #include <cln/rational_io.h>
 #include <cln/real.h>
 
-#include <cassert>
 #include <sstream>
 #include <string>
 
+#include "base/check.h"
 #include "base/exception.h"
 #include "util/integer.h"
 #include "util/maybe.h"
@@ -222,7 +222,7 @@ class CVC4_PUBLIC Rational
     }
     else
     {
-      assert(cln::plusp(d_value));
+      Assert(cln::plusp(d_value));
       return 1;
     }
   }
