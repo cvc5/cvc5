@@ -5343,7 +5343,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 std::string Solver::getProof(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::proof])
       << "Cannot get proof explicitly enabled (try --proof)";
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
