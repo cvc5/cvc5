@@ -59,10 +59,26 @@
 #include "theory/theory_model.h"
 #include "util/random.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 #include "util/utility.h"
 
 namespace CVC4 {
 namespace api {
+
+/* -------------------------------------------------------------------------- */
+/* Statistics                                                                 */
+/* -------------------------------------------------------------------------- */
+
+struct Statistics
+{
+  Statistics()
+      : d_consts("api::CONSTANT"), d_vars("api::VARIABLE"), d_terms("api::TERM")
+  {
+  }
+  IntegralHistogramStat<TypeConstant> d_consts;
+  IntegralHistogramStat<TypeConstant> d_vars;
+  IntegralHistogramStat<Kind> d_terms;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -659,13 +675,37 @@ const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
 
 namespace {
 
+/** Convert a CVC4::Kind (internal) to a CVC4::api::Kind (external). */
+CVC4::api::Kind intToExtKind(CVC4::Kind k)
+{
+  auto it = api::s_kinds_internal.find(k);
+  if (it == api::s_kinds_internal.end())
+  {
+    return api::INTERNAL_KIND;
+  }
+  return it->second;
+}
+
+/** Convert a CVC4::api::Kind (external) to a CVC4::Kind (internal). */
+CVC4::Kind extToIntKind(CVC4::api::Kind k)
+{
+  auto it = api::s_kinds.find(k);
+  if (it == api::s_kinds.end())
+  {
+    return CVC4::Kind::UNDEFINED_KIND;
+  }
+  return it->second;
+}
+
+/** Return true if given kind is a defined external kind. */
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 
-/** Returns true if the internal kind is one where the API term structure
- *  differs from internal structure. This happens for APPLY_* kinds.
- *  The API takes a "higher-order" perspective and treats functions as well
- *  as datatype constructors/selectors/testers as terms
- *  but interally they are not
+/**
+ * Return true if the internal kind is one where the API term structure
+ * differs from internal structure. This happens for APPLY_* kinds.
+ * The API takes a "higher-order" perspective and treats functions as well
+ * as datatype constructors/selectors/testers as terms
+ * but interally they are not
  */
 bool isApplyKind(CVC4::Kind k)
 {
@@ -674,12 +714,14 @@ bool isApplyKind(CVC4::Kind k)
 }
 
 #ifdef CVC4_ASSERTIONS
+/** Return true if given kind is a defined internal kind. */
 bool isDefinedIntKind(CVC4::Kind k)
 {
   return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
 }
 #endif
 
+/** Return the minimum arity of given kind. */
 uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
@@ -695,6 +737,7 @@ uint32_t minArity(Kind k)
   return min;
 }
 
+/** Return the maximum arity of given kind. */
 uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
@@ -3228,6 +3271,12 @@ Solver::Solver(Options* opts)
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
+#if CVC4_STATISTICS_ON
+  d_stats.reset(new Statistics());
+  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
+  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
+  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
+#endif
 }
 
 Solver::~Solver() {}
@@ -3236,6 +3285,31 @@ Solver::~Solver() {}
 /* -------------------------------------------------------------------------- */
 
 NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
+
+void Solver::increment_term_stats(Kind kind) const
+{
+#ifdef CVC4_STATISTICS_ON
+  d_stats->d_terms << kind;
+#endif
+}
+
+void Solver::increment_vars_consts_stats(const Sort& sort, bool is_var) const
+{
+#ifdef CVC4_STATISTICS_ON
+  const TypeNode tn = sort.getTypeNode();
+  TypeConstant tc = tn.getKind() == CVC4::kind::TYPE_CONSTANT
+                        ? tn.getConst<TypeConstant>()
+                        : LAST_TYPE;
+  if (is_var)
+  {
+    d_stats->d_vars << tc;
+  }
+  else
+  {
+    d_stats->d_consts << tc;
+  }
+#endif
+}
 
 /* Split out to avoid nested API calls (problematic with API tracing).        */
 /* .......................................................................... */
@@ -3360,6 +3434,7 @@ Term Solver::mkTermFromKind(Kind kind) const
     res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), CVC4::kind::PI);
   }
   (void)res.getType(true); /* kick off type checking */
+  increment_term_stats(kind);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -3458,6 +3533,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   }
 
   (void)res.getType(true); /* kick off type checking */
+  increment_term_stats(kind);
   return Term(this, res);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4383,6 +4459,7 @@ Term Solver::mkConst(Sort sort, const std::string& symbol) const
 
   Node res = d_nodeMgr->mkVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, false);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4397,6 +4474,7 @@ Term Solver::mkConst(Sort sort) const
 
   Node res = d_nodeMgr->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, false);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4415,6 +4493,7 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   Node res = symbol.empty() ? d_nodeMgr->mkBoundVar(*sort.d_type)
                             : d_nodeMgr->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
+  increment_vars_consts_stats(sort, true);
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5968,29 +6047,5 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 }  // namespace api
-
-/* -------------------------------------------------------------------------- */
-/* Kind Conversions                                                           */
-/* -------------------------------------------------------------------------- */
-
-CVC4::api::Kind intToExtKind(CVC4::Kind k)
-{
-  auto it = api::s_kinds_internal.find(k);
-  if (it == api::s_kinds_internal.end())
-  {
-    return api::INTERNAL_KIND;
-  }
-  return it->second;
-}
-
-CVC4::Kind extToIntKind(CVC4::api::Kind k)
-{
-  auto it = api::s_kinds.find(k);
-  if (it == api::s_kinds.end())
-  {
-    return CVC4::Kind::UNDEFINED_KIND;
-  }
-  return it->second;
-}
 
 }  // namespace CVC4

@@ -20,10 +20,6 @@
 #define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
-// !!! Only temporarily public until the parser is fully migrated to the new
-// API. !!!
-#include "expr/kind.h"
-// !!!
 
 #include <map>
 #include <memory>
@@ -78,6 +74,7 @@ class Result;
 namespace api {
 
 class Solver;
+struct Statistics;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -3630,20 +3627,21 @@ class CVC4_PUBLIC Solver
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
 
+  /** Increment the term stats counter. */
+  void increment_term_stats(Kind kind) const;
+  /** Increment the vars stats (if 'is_var') or consts stats counter. */
+  void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
+
   /** The node manager of this solver. */
   std::unique_ptr<NodeManager> d_nodeMgr;
   /** The SMT engine of this solver. */
   std::unique_ptr<SmtEngine> d_smtEngine;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
+  /** The statistics collected on the Api level. */
+  std::unique_ptr<Statistics> d_stats;
 };
 
 }  // namespace api
-
-// !!! Only temporarily public until the parser is fully migrated to the
-// new API. !!!
-CVC4::api::Kind intToExtKind(CVC4::Kind k);
-CVC4::Kind extToIntKind(CVC4::api::Kind k);
-
 }  // namespace CVC4
 #endif
