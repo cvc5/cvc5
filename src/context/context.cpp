@@ -210,6 +210,7 @@ ContextObj* ContextObj::restoreAndContinue()
 
     Debug("context") << "NULL restore object! " << this << std::endl;
     pContextObjNext = d_pContextObjNext;
+    d_pScope = nullptr;
 
     // Nothing else to do
   } else {
@@ -238,21 +239,26 @@ ContextObj* ContextObj::restoreAndContinue()
 
 void ContextObj::destroy()
 {
+  /* The object to destroy may never be invalid. */
+  Assert(d_pScope != nullptr);
   /* Context can be big and complicated, so we only want to process this output
    * if we're really going to use it. (Same goes below.) */
   Debug("context") << "before destroy " << this << " (level " << getLevel()
                    << "):" << std::endl << *getContext() << std::endl;
 
-  for(;;) {
+  for (;;)
+  {
     // If valgrind reports invalid writes on the next few lines,
     // here's a hint: make sure all classes derived from ContextObj in
     // the system properly call destroy() in their destructors.
     // That's needed to maintain this linked list properly.
-    if(next() != NULL) {
+    if (next() != nullptr)
+    {
       next()->prev() = prev();
     }
     *prev() = next();
-    if(d_pContextObjRestore == NULL) {
+    if (d_pContextObjRestore == nullptr)
+    {
       break;
     }
     Debug("context") << "in destroy " << this << ", restore object is "
