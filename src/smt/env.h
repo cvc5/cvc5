@@ -2,7 +2,7 @@
 /*! \file env.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -18,11 +18,8 @@
 #ifndef CVC4__SMT__ENV_H
 #define CVC4__SMT__ENV_H
 
-#include "context/context.h"
 #include "options/options.h"
-#include "smt/output_manager.h"
 #include "theory/logic_info.h"
-#include "util/result.h"
 #include "util/sexpr.h"
 #include "util/statistics.h"
 

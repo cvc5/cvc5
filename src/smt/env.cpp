@@ -2,7 +2,7 @@
 /*! \file env.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -15,6 +15,7 @@
 
 #include "smt/env.h"
 
+#include "context/context.h"
 #include "expr/node.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "options/base_options.h"
