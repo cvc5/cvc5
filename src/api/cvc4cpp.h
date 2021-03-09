@@ -74,6 +74,7 @@ class Result;
 namespace api {
 
 class Solver;
+struct Statistics;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -3634,12 +3635,19 @@ class CVC4_PUBLIC Solver
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
 
+  /** Increment the term stats counter. */
+  void increment_term_stats(Kind kind) const;
+  /** Increment the vars stats (if 'is_var') or consts stats counter. */
+  void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
+
   /** The node manager of this solver. */
   std::unique_ptr<NodeManager> d_nodeMgr;
   /** The SMT engine of this solver. */
   std::unique_ptr<SmtEngine> d_smtEngine;
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
+  /** The statistics collected on the Api level. */
+  std::unique_ptr<Statistics> d_stats;
 };
 
 }  // namespace api
