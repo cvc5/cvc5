@@ -17,12 +17,13 @@
 
 #include "expr/node.h"
 #include "context/cdhashset.h"
-#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+struct ExtState;
 
 class SplitZeroCheck
 {

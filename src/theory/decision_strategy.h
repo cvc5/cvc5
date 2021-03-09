@@ -18,7 +18,6 @@
 #ifndef CVC4__THEORY__DECISION_STRATEGY__H
 #define CVC4__THEORY__DECISION_STRATEGY__H
 
-#include <map>
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/valuation.h"

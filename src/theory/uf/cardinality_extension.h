@@ -19,10 +19,9 @@
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
+#include "theory/decision_strategy.h"
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
-
-#include "theory/decision_manager.h"
 
 namespace CVC4 {
 namespace theory {

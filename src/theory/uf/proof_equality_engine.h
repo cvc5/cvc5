@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
 #define CVC4__THEORY__UF__PROOF_EQUALITY_ENGINE_H
 
-#include <map>
 #include <vector>
 
 #include "context/cdhashmap.h"
@@ -25,14 +24,17 @@
 #include "expr/buffered_proof_generator.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 #include "theory/eager_proof_generator.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
+
+class ProofNode;
+class ProofNodeManager;
+
 namespace theory {
 namespace eq {
+
+class EqualityEngine;
 
 /**
  * A layer on top of an EqualityEngine. The goal of this class is manage the

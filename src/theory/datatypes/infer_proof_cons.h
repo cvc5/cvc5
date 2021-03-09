@@ -17,14 +17,15 @@
 #ifndef CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H
 #define CVC4__THEORY__DATATYPES__INFER_PROOF_CONS_H
 
-#include <vector>
-
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "theory/datatypes/inference.h"
-#include "theory/theory_proof_step_buffer.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
 namespace theory {
 namespace datatypes {
 

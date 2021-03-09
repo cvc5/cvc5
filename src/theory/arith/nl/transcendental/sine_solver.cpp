@@ -23,6 +23,9 @@
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {

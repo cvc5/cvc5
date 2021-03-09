@@ -15,6 +15,7 @@
 #include "smt/preprocessor.h"
 
 #include "options/smt_options.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"

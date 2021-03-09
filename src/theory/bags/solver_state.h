@@ -18,7 +18,6 @@
 #define CVC4__THEORY__BAGS__THEORY_SOLVER_STATE_H
 
 #include <map>
-#include <vector>
 
 #include "theory/theory_state.h"
 

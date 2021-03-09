@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
@@ -37,6 +38,7 @@
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -46,6 +48,7 @@ namespace eq {
 namespace arith {
 
 class InferenceManager;
+class TheoryArith;
 
 namespace nl {
 

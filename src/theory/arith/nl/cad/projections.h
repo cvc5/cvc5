@@ -23,8 +23,6 @@
 
 #include <poly/polyxx.h>
 
-#include <algorithm>
-#include <iostream>
 #include <vector>
 
 namespace CVC4 {

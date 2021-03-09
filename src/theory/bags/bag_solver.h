@@ -17,18 +17,15 @@
 #ifndef CVC4__THEORY__BAG__SOLVER_H
 #define CVC4__THEORY__BAG__SOLVER_H
 
-#include "context/cdhashset.h"
-#include "context/cdlist.h"
-#include "theory/bags/infer_info.h"
 #include "theory/bags/inference_generator.h"
-#include "theory/bags/inference_manager.h"
-#include "theory/bags/normal_form.h"
-#include "theory/bags/solver_state.h"
-#include "theory/bags/term_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
+
+class InferenceManager;
+class SolverState;
+class TermRegistry;
 
 /** The solver for the theory of bags
  *

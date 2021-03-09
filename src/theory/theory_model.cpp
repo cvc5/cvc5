@@ -19,6 +19,7 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;

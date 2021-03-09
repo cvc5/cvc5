@@ -19,12 +19,12 @@
 #ifndef CVC4__SMT_ENGINE_H
 #define CVC4__SMT_ENGINE_H
 
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "context/cdhashmap_forward.h"
-#include "context/cdlist_forward.h"
 #include "options/options.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -87,7 +87,6 @@ class Model;
 class SmtEngineState;
 class AbstractValues;
 class Assertions;
-class ExprNames;
 class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
@@ -110,7 +109,6 @@ class DefinedFunction;
 
 struct SmtEngineStatistics;
 class SmtScope;
-class ProcessAssertions;
 class PfManager;
 class UnsatCoreManager;
 
@@ -120,7 +118,6 @@ ProofManager* currentProofManager();
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
-  class TheoryModel;
   class Rewriter;
   class QuantifiersEngine;
 }/* CVC4::theory namespace */

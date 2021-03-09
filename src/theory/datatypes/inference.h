@@ -17,10 +17,10 @@
 #ifndef CVC4__THEORY__DATATYPES__INFERENCE_H
 #define CVC4__THEORY__DATATYPES__INFERENCE_H
 
-#include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "theory/inference_manager_buffered.h"
 #include "theory/inference_id.h"
+#include "theory/theory_inference.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {

@@ -19,16 +19,17 @@
 
 #include <unordered_set>
 #include "expr/node.h"
-#include "theory/logic_info.h"
 
 namespace CVC4 {
+
+class LogicInfo;
+
 namespace theory {
 
 class QuantifiersEngine;
 
 namespace quantifiers {
 
-class CegConjecture;
 class TermDbSygus;
 
 /** SygusRepairConst

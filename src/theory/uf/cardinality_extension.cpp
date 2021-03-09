@@ -18,6 +18,8 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "smt/logic_exception.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"

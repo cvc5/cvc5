@@ -15,10 +15,7 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS__SYGUS_QE_PREPROC_H
 
-#include <string>
-#include <vector>
 #include "expr/node.h"
-#include "expr/type_node.h"
 
 namespace CVC4 {
 namespace theory {

@@ -18,7 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include <map>
-#include <unordered_set>
+#include <unordered_map>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"

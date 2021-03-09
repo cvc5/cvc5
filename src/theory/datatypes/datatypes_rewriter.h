@@ -19,9 +19,7 @@
 #ifndef CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 #define CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
-#include "expr/node_manager_attributes.h"
 #include "theory/theory_rewriter.h"
-#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {

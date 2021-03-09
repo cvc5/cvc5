@@ -21,13 +21,11 @@
 #define CVC4__THEORY__BV__THEORY_BV_REWRITER_H
 
 #include "theory/theory_rewriter.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-struct AllRewriteRules;
 typedef RewriteResponse (*RewriteFunction) (TNode, bool);
 
 class TheoryBVRewriter : public TheoryRewriter

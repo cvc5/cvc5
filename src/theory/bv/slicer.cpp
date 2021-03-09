@@ -15,6 +15,8 @@
  **/
 #include "theory/bv/slicer.h"
 
+#include <sstream>
+
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 

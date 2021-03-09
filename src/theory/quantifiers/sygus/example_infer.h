@@ -18,8 +18,6 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__EXAMPLE_INFER_H
 #define CVC4__THEORY__QUANTIFIERS__EXAMPLE_INFER_H
 
-#include "context/cdhashmap.h"
-#include "theory/quantifiers/sygus/sygus_module.h"
 #include "theory/quantifiers/sygus/sygus_unif_io.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 

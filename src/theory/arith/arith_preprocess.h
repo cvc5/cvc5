@@ -18,15 +18,18 @@
 #define CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
 
 #include "context/cdhashmap.h"
-#include "theory/arith/arith_state.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
-#include "theory/skolem_lemma.h"
 
 namespace CVC4 {
 namespace theory {
+
+class SkolemLemma;
+
 namespace arith {
+
+class ArithState;
+class InferenceManager;
 
 /**
  * This module can be used for (on demand) elimination of extended arithmetic

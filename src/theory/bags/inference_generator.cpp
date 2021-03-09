@@ -17,6 +17,8 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
+#include "theory/bags/inference_manager.h"
+#include "theory/bags/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {

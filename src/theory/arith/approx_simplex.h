@@ -66,7 +66,6 @@ class NodeLog;
 class TreeLog;
 class ArithVariables;
 class CutInfo;
-class RowsDeleted;
 
 class ApproximateSimplex{
  public:

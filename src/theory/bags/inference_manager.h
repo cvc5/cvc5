@@ -17,13 +17,13 @@
 #ifndef CVC4__THEORY__BAGS__INFERENCE_MANAGER_H
 #define CVC4__THEORY__BAGS__INFERENCE_MANAGER_H
 
-#include "theory/bags/infer_info.h"
-#include "theory/bags/solver_state.h"
 #include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
+
+class SolverState;
 
 /** Inference manager
  *

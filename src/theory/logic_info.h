@@ -23,7 +23,8 @@
 
 #include <string>
 #include <vector>
-#include "expr/kind.h"
+
+#include "theory/theory_id.h"
 
 namespace CVC4 {
 

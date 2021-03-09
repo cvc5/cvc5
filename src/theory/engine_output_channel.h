@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 #include "theory/output_channel.h"
-#include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -27,6 +27,8 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
+
+class Theory;
 
 /**
  * An output channel for Theory that passes messages back to a TheoryEngine

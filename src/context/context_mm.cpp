@@ -15,9 +15,11 @@
  **/
 
 #include <cstdlib>
-#include <vector>
 #include <deque>
+#include <limits>
 #include <new>
+#include <ostream>
+#include <vector>
 
 #ifdef CVC4_VALGRIND
 #include <valgrind/memcheck.h>
@@ -165,6 +167,12 @@ void ContextMemoryManager::pop() {
     free(d_freeChunks.front());
     d_freeChunks.pop_front();
   }
+}
+#else
+
+unsigned ContextMemoryManager::getMaxAllocationSize()
+{
+  return std::numeric_limits<unsigned>::max();
 }
 
 #endif /* CVC4_DEBUG_CONTEXT_MEMORY_MANAGER */

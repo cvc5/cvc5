@@ -18,10 +18,8 @@
 #define CVC4__THEORY__QUANTIFIERS__SYGUS__TYPE_INFO_H
 
 #include <map>
-#include <unordered_set>
 
 #include "expr/node.h"
-#include "theory/quantifiers/sygus/type_node_id_trie.h"
 
 namespace CVC4 {
 namespace theory {

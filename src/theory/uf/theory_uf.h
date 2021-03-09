@@ -20,15 +20,12 @@
 #ifndef CVC4__THEORY__UF__THEORY_UF_H
 #define CVC4__THEORY__UF__THEORY_UF_H
 
-#include "context/cdo.h"
 #include "expr/node.h"
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 #include "theory/theory_state.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
-#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 

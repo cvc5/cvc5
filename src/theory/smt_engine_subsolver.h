@@ -18,7 +18,6 @@
 #ifndef CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H
 #define CVC4__THEORY__SMT_ENGINE_SUBSOLVER_H
 
-#include <map>
 #include <memory>
 #include <vector>
 

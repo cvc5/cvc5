@@ -14,6 +14,8 @@
 
 #include "theory/bags/inference_manager.h"
 
+#include "theory/bags/solver_state.h"
+
 using namespace std;
 using namespace CVC4::kind;
 

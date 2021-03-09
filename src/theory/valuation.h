@@ -24,7 +24,6 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
-#include "theory/assertion.h"
 
 namespace CVC4 {
 
@@ -32,6 +31,7 @@ class TheoryEngine;
 
 namespace theory {
 
+struct Assertion;
 class TheoryModel;
 class SortInference;
 

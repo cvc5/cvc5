@@ -17,8 +17,6 @@
 #ifndef CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
 #define CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
 
-#include <memory>
-
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
 

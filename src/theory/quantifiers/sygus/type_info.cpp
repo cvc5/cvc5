@@ -20,6 +20,7 @@
 #include "expr/sygus_datatype.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/sygus/type_node_id_trie.h"
 
 using namespace CVC4::kind;
 

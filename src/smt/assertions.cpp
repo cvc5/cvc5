@@ -14,6 +14,8 @@
 
 #include "smt/assertions.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/language.h"

@@ -36,7 +36,6 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "options/options.h"
 
 namespace CVC4 {
 

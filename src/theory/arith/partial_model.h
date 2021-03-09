@@ -21,11 +21,9 @@
 #ifndef CVC4__THEORY__ARITH__PARTIAL_MODEL_H
 #define CVC4__THEORY__ARITH__PARTIAL_MODEL_H
 
-#include <list>
 #include <vector>
 
 #include "context/cdlist.h"
-#include "context/context.h"
 #include "expr/node.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -35,6 +33,9 @@
 #include "theory/arith/delta_rational.h"
 
 namespace CVC4 {
+namespace context {
+class Context;
+}
 namespace theory {
 namespace arith {
 

@@ -16,6 +16,7 @@
 
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
+#include "theory/theory_model_builder.h"
 
 namespace CVC4 {
 namespace theory {

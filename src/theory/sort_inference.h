@@ -17,10 +17,9 @@
 #ifndef CVC4__SORT_INFERENCE_H
 #define CVC4__SORT_INFERENCE_H
 
-#include <iostream>
-#include <string>
-#include <vector>
 #include <map>
+#include <vector>
+
 #include "expr/node.h"
 #include "expr/type_node.h"
 

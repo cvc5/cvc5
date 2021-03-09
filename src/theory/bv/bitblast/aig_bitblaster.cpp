@@ -20,6 +20,7 @@
 #include "cvc4_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
+#include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 

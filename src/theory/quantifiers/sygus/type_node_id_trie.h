@@ -26,8 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class TermDbSygus;
-
 /**
  * A trie indexed by types that assigns unique identifiers to nodes based on
  * a vector of types.

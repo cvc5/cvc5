@@ -23,18 +23,21 @@
 
 #include <vector>
 
-#include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/proof_generator.h"
 #include "expr/proof_set.h"
 #include "theory/arith/nl/cad/cdcac_utils.h"
-#include "theory/arith/nl/poly_conversion.h"
 #include "theory/lazy_tree_proof_generator.h"
 
 namespace CVC4 {
+
+class ProofGenerator;
+
 namespace theory {
 namespace arith {
 namespace nl {
+
+struct VariableMapper;
+
 namespace cad {
 
 /**

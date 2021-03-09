@@ -20,7 +20,6 @@
 #include <map>
 
 #include "context/cdhashset.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof.h"
 #include "theory/quantifiers/inst_match_trie.h"
@@ -28,6 +27,9 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+class LazyCDProof;
+
 namespace theory {
 
 class QuantifiersEngine;

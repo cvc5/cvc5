@@ -18,14 +18,11 @@
 #ifndef CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 #define CVC4__THEORY__ARRAYS__ARRAY_INFO_H
 
-#include <iostream>
-#include <map>
 #include <tuple>
 #include <unordered_map>
 
 #include "context/backtrackable.h"
 #include "context/cdlist.h"
-#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "util/statistics_registry.h"
 

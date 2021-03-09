@@ -17,6 +17,7 @@
 
 #include "base/configuration.h"
 #include "options/quantifiers_options.h"
+#include "smt/logic_exception.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::theory;

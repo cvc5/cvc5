@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
 #define CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
 
-#include <map>
 #include "expr/dtype.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 

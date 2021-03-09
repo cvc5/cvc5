@@ -15,6 +15,8 @@
 #include "theory/shared_solver.h"
 
 #include "expr/node_visitor.h"
+#include "theory/ee_setup_info.h"
+#include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {

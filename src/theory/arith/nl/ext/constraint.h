@@ -20,12 +20,13 @@
 
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl/ext/monomial.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+class MonomialDb;
 
 /** constraint information
  *

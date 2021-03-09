@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/ext_theory.h"

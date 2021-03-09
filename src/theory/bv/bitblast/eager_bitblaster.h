@@ -19,11 +19,11 @@
 #ifndef CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
 #define CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
 
+#include <memory>
 #include <unordered_set>
 
 #include "theory/bv/bitblast/bitblaster.h"
 
-#include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 
 namespace CVC4 {

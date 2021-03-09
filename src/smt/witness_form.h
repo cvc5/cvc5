@@ -19,7 +19,6 @@
 
 #include <unordered_set>
 
-#include "expr/node_manager.h"
 #include "expr/proof.h"
 #include "expr/proof_generator.h"
 #include "expr/term_conversion_proof_generator.h"

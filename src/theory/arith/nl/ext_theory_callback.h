@@ -20,6 +20,9 @@
 
 namespace CVC4 {
 namespace theory {
+namespace eq {
+class EqualityEngine;
+}
 namespace arith {
 namespace nl {
 

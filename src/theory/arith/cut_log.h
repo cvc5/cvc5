@@ -22,13 +22,11 @@
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <vector>
 
 #include "expr/kind.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -230,7 +228,6 @@ public:
 };
 std::ostream& operator<<(std::ostream& os, const NodeLog& nl);
 
-class ApproximateSimplex;
 class TreeLog {
 private:
   int next_exec_ord;

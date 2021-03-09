@@ -14,7 +14,6 @@
 
 #include "smt/process_assertions.h"
 
-#include <stack>
 #include <utility>
 
 #include "expr/node_manager_attributes.h"
@@ -27,8 +26,10 @@
 #include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
+#include "smt/assertions.h"
 #include "smt/defined_function.h"
 #include "smt/dump.h"
 #include "smt/expand_definitions.h"

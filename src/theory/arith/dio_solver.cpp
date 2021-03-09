@@ -20,6 +20,7 @@
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/partial_model.h"
 
 using namespace std;
 

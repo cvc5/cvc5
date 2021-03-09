@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__VAR_MATCH_GENERATOR_H
 #define CVC4__THEORY__QUANTIFIERS__VAR_MATCH_GENERATOR_H
 
-#include <map>
 #include "expr/node.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 

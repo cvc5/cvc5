@@ -16,6 +16,8 @@
 
 #include "theory/builtin/type_enumerator.h"
 
+#include "theory/builtin/theory_builtin_rewriter.h"
+
 namespace CVC4 {
 namespace theory {
 namespace builtin {

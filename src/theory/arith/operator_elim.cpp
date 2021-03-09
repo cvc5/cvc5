@@ -17,6 +17,7 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/skolem_manager.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "theory/arith/arith_utilities.h"

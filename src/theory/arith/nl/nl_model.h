@@ -21,7 +21,6 @@
 
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 
 namespace CVC4 {
 
@@ -36,6 +35,7 @@ class TheoryModel;
 namespace arith {
 namespace nl {
 
+class NlLemma;
 class NonlinearExtension;
 
 /** Non-linear model finder

@@ -19,9 +19,6 @@
 #ifndef CVC4__THEORY__BV__BV_EAGER_SOLVER_H
 #define CVC4__THEORY__BV__BV_EAGER_SOLVER_H
 
-#include <unordered_set>
-#include <vector>
-
 #include "expr/node.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/theory_model.h"

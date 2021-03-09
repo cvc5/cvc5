@@ -17,14 +17,13 @@
 #ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
 #define CVC4__INST_STRATEGY_ENUMERATIVE_H
 
-#include "context/context.h"
-#include "context/context_mm.h"
 #include "theory/quantifiers/quant_module.h"
-#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+class RelevantDomain;
 
 /** Enumerative instantiation
  *

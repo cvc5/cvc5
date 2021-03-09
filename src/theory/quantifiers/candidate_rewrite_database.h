@@ -17,10 +17,8 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 #define CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 
-#include <map>
-#include <memory>
-#include <unordered_set>
 #include <vector>
+
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/sygus_sampler.h"

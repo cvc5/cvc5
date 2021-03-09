@@ -17,9 +17,12 @@
 
 #include "theory/uf/equality_engine.h"
 
+#include "base/output.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/rewriter.h"
+#include "theory/uf/eq_proof.h"
 
 namespace CVC4 {
 namespace theory {
