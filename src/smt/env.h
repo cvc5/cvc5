@@ -34,35 +34,23 @@ class ProofNodeManager;
 class Printer;
 class ResourceManager;
 
-/* -------------------------------------------------------------------------- */
-
 namespace context {
 class Context;
 class UserContext;
-}  // namespace context
-
-/* -------------------------------------------------------------------------- */
+}
 
 namespace smt {
-/** Utilities */
 class DumpManager;
-}  // namespace smt
-
-/* -------------------------------------------------------------------------- */
+}
 
 namespace theory {
 class Rewriter;
-}  // namespace theory
-
-/* -------------------------------------------------------------------------- */
+}
 
 class Env
 {
   friend class SmtEngine;
-  /* .......................................................................  */
  public:
-  /* .......................................................................  */
-
   /**
    * Construct an Env with the given node manager. If provided, optr is a
    * pointer to a set of options that should initialize the values of the
@@ -102,8 +90,7 @@ class Env
   /** Get a pointer to the StatisticsRegistry owned by this Env. */
   StatisticsRegistry* getStatisticsRegistry();
 
-  /* Option helpers
-   * -------------------------------------------------------------- */
+  /* Option helpers---------------------------------------------------------- */
 
   /** Get the current printer based on the current options
    *
@@ -152,7 +139,6 @@ class Env
   std::unique_ptr<ResourceManager> d_resourceManager;
 }; /* class Env */
 
-/* -------------------------------------------------------------------------- */
 
 }  // namespace CVC4
 
