@@ -98,7 +98,7 @@ void LfscPrinter::print(std::ostream& out,
   std::map<const ProofNode*, size_t> pletMap;
   LfscProofLetifyTraverseCallback lpltc;
   ProofLetify::computeProofLet(
-      pnBody, pletList, pletMap, 2, nullptr);  // &lpltc);  // FIXME
+      pnBody, pletList, pletMap, 2, &lpltc);
 
   // [3] print the check command and term lets
   out << "(check" << std::endl;
@@ -222,9 +222,9 @@ void LfscPrinter::printProofInternal(
   // the stack
   std::vector<PExpr> visit;
   // whether we have process children
-  std::map<const ProofNode*, bool> processedChildren;
+  std::unordered_set<const ProofNode*> processingChildren;
   // helper iterators
-  std::map<const ProofNode*, bool>::iterator pit;
+  std::unordered_set<const ProofNode*>::iterator pit;
   std::map<const ProofNode*, size_t>::const_iterator pletIt;
   std::map<Node, size_t>::iterator passumeIt;
   Node curn;
@@ -241,17 +241,18 @@ void LfscPrinter::printProofInternal(
     if (cur != nullptr)
     {
       PfRule r = cur->getRule();
-      pit = processedChildren.find(cur);
-      if (pit == processedChildren.end())
+      // maybe it is letified
+      pletIt = pletMap.find(cur);
+      if (pletIt != pletMap.end())
       {
-        // maybe it is letified
-        pletIt = pletMap.find(cur);
-        if (pletIt != pletMap.end())
-        {
-          // a letified proof
-          out->printProofId(pletIt->second);
-        }
-        else if (r == PfRule::ASSUME)
+        // a letified proof
+        out->printProofId(pletIt->second);
+        continue;
+      }
+      pit = processingChildren.find(cur);
+      if (pit == processingChildren.end())
+      {
+        if (r == PfRule::ASSUME)
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
@@ -265,7 +266,7 @@ void LfscPrinter::printProofInternal(
           std::vector<PExpr> args;
           if (computeProofArgs(cur, args, passumeMap, noBind))
           {
-            processedChildren[cur] = false;
+            processingChildren.insert(cur);
             // will revisit this proof node to close parentheses
             visit.push_back(PExpr(cur));
             std::reverse(args.begin(), args.end());
@@ -275,7 +276,6 @@ void LfscPrinter::printProofInternal(
           }
           else
           {
-            processedChildren[cur] = true;
             // could not print the rule, trust for now
             Node res = d_tproc.convert(cur->getResult());
             res = lbind.convert(res, "__t", true);
@@ -289,9 +289,9 @@ void LfscPrinter::printProofInternal(
           }
         }
       }
-      else if (!pit->second)
+      else
       {
-        processedChildren[cur] = true;
+        processingChildren.erase(cur);
         out->printCloseRule();
         if (r == PfRule::LFSC_RULE)
         {
@@ -316,11 +316,6 @@ void LfscPrinter::printProofInternal(
             }
           }
         }
-      }
-      else
-      {
-        // this would imply that our proof was not properly letified?
-        Assert(false) << "already processed children";
       }
     }
     // case 2: printing a node
