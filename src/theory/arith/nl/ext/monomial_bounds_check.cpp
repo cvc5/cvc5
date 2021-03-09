@@ -314,22 +314,26 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
                     mmv_sign == 1 ? Kind::GT : Kind::LT, mult, d_data->d_zero),
                 d_ci_exp[x][coeff][rhs]);
             Node iblem = nm->mkNode(Kind::IMPLIES, exp, infer);
-            Node pr_iblem = iblem;
-            iblem = Rewriter::rewrite(iblem);
-            bool introNewTerms = hasNewMonomials(iblem, d_data->d_ms);
+            Node iblem_rw = Rewriter::rewrite(iblem);
+            bool introNewTerms = hasNewMonomials(iblem_rw, d_data->d_ms);
             Trace("nl-ext-bound-lemma")
-                << "*** Bound inference lemma : " << iblem
-                << " (pre-rewrite : " << pr_iblem << ")" << std::endl;
+                << "*** Bound inference lemma : " << iblem_rw
+                << " (pre-rewrite : " << iblem << ")" << std::endl;
             CDProof* proof = nullptr;
+            Node orig = d_ci_exp[x][coeff][rhs];
             if (d_data->isProofEnabled())
             {
               proof = d_data->getProof();
+              proof->addStep(nm->mkNode(type, t, rhs),
+                             PfRule::MACRO_SR_PRED_TRANSFORM,
+                             {orig},
+                             {nm->mkNode(type, t, rhs)});
               proof->addStep(
                   iblem,
                   mmv_sign == 1 ? PfRule::ARITH_MULT_POS
                                 : PfRule::ARITH_MULT_NEG,
                   {},
-                  {mult, d_ci_exp[x][coeff][rhs], nm->mkNode(type, t, rhs)});
+                  {mult, nm->mkNode(type, t, rhs)});
             }
             d_data->d_im.addPendingLemma(iblem,
                                          InferenceId::ARITH_NL_INFER_BOUNDS_NT,
