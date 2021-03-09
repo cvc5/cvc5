@@ -1041,7 +1041,7 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /** 
+  /**
    * The statistics registry. Notice that this definition must be before the
    * other members since it must be destroyed last if exceptions occur in the
    * constructor of SmtEngine.
