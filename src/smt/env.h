@@ -18,6 +18,8 @@
 #ifndef CVC4__SMT__ENV_H
 #define CVC4__SMT__ENV_H
 
+#include <memory>
+
 #include "options/options.h"
 #include "theory/logic_info.h"
 #include "util/sexpr.h"
