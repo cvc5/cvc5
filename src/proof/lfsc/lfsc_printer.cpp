@@ -14,6 +14,8 @@
 
 #include "proof/lfsc/lfsc_printer.h"
 
+#include <sstream>
+
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_print_channel.h"

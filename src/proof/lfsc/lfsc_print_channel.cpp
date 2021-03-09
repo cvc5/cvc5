@@ -14,6 +14,8 @@
 
 #include "proof/lfsc/lfsc_print_channel.h"
 
+#include <sstream>
+
 #include "proof/lfsc/lfsc_util.h"
 
 namespace CVC4 {
