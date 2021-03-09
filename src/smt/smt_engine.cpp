@@ -1783,6 +1783,8 @@ void SmtEngine::pop() {
 
 void SmtEngine::reset()
 {
+  // save pointer to the current node manager
+  NodeManager * nm = getNodeManager();
   SmtScope smts(this);
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
@@ -1792,7 +1794,7 @@ void SmtEngine::reset()
   Options opts;
   opts.copyValues(d_originalOptions);
   this->~SmtEngine();
-  new (this) SmtEngine(getNodeManager(), &opts);
+  new (this) SmtEngine(nm, &opts);
   // Restore data set after creation
   notifyStartParsing(filename);
 }
