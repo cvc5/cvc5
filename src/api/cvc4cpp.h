@@ -20,10 +20,6 @@
 #define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
-// !!! Only temporarily public until the parser is fully migrated to the new
-// API. !!!
-#include "expr/kind.h"
-// !!!
 
 #include <map>
 #include <memory>
@@ -3639,11 +3635,5 @@ class CVC4_PUBLIC Solver
 };
 
 }  // namespace api
-
-// !!! Only temporarily public until the parser is fully migrated to the
-// new API. !!!
-CVC4::api::Kind intToExtKind(CVC4::Kind k);
-CVC4::Kind extToIntKind(CVC4::api::Kind k);
-
 }  // namespace CVC4
 #endif
