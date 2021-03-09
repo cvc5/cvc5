@@ -71,6 +71,7 @@ while [ $# -gt 0 ]; do
     sed 's/ayveejay/Andrew V. Jones/' | \
     sed 's/FabianWolff/Fabian Wolff/' | \
     sed 's/mudathirmahgoub/Mudathir Mohamed/' | \
+    sed 's/mcjuneho/Michael Chang/' | \
 
     # Determine top three contributors
     sort | uniq -c | sort -rn | head -n3 | \
