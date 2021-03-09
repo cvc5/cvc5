@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/quant_conflict_find.h"
 
+#include "base/configuration.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
@@ -27,6 +28,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -628,8 +630,8 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
     //check constraints
     for( std::map< Node, bool >::iterator it = d_tconstraints.begin(); it != d_tconstraints.end(); ++it ){
       //apply substitution to the tconstraint
-      Node cons =
-          p->getTermUtil()->substituteBoundVariables(it->first, d_q, terms);
+      Node cons = p->getQuantifiersRegistry().substituteBoundVariables(
+          it->first, d_q, terms);
       cons = it->second ? cons : cons.negate();
       if (!entailmentTest(p, cons, p->atConflictEffort())) {
         return true;

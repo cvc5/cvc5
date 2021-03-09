@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,10 @@
 #include "expr/proof_node_manager.h"
 
 #include "expr/proof.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node.h"
 #include "expr/proof_node_algorithm.h"
-#include "options/smt_options.h"
+#include "options/proof_options.h"
 #include "theory/rewriter.h"
 
 using namespace CVC4::kind;
@@ -304,7 +306,7 @@ bool ProofNodeManager::updateNodeInternal(
 {
   Assert(pn != nullptr);
   // ---------------- check for cyclic
-  if (options::proofNewEagerChecking())
+  if (options::proofEagerChecking())
   {
     std::unordered_set<const ProofNode*> visited;
     for (const std::shared_ptr<ProofNode>& cpc : children)

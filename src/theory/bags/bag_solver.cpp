@@ -2,9 +2,9 @@
 /*! \file bag_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,11 @@
 #include "theory/bags/bag_solver.h"
 
 #include "theory/bags/inference_generator.h"
+#include "theory/bags/inference_manager.h"
+#include "theory/bags/normal_form.h"
+#include "theory/bags/solver_state.h"
+#include "theory/bags/term_registry.h"
+#include "theory/uf/equality_engine_iterator.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -27,7 +32,7 @@ namespace theory {
 namespace bags {
 
 BagSolver::BagSolver(SolverState& s, InferenceManager& im, TermRegistry& tr)
-    : d_state(s), d_ig(&d_state), d_im(im), d_termReg(tr)
+    : d_state(s), d_ig(&s, &im), d_im(im), d_termReg(tr)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -102,7 +107,7 @@ void BagSolver::checkEmpty(const Node& n)
   for (const Node& e : d_state.getElements(n))
   {
     InferInfo i = d_ig.empty(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -113,7 +118,7 @@ void BagSolver::checkUnionDisjoint(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.unionDisjoint(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -124,7 +129,7 @@ void BagSolver::checkUnionMax(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.unionMax(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -135,7 +140,7 @@ void BagSolver::checkIntersectionMin(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.intersection(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -146,7 +151,7 @@ void BagSolver::checkDifferenceSubtract(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.differenceSubtract(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -159,13 +164,13 @@ void BagSolver::checkMkBag(const Node& n)
   for (const Node& e : d_state.getElements(n))
   {
     InferInfo i = d_ig.mkBag(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 void BagSolver::checkNonNegativeCountTerms(const Node& bag, const Node& element)
 {
   InferInfo i = d_ig.nonNegativeCount(bag, element);
-  i.process(&d_im, true);
+  d_im.lemmaTheoryInference(&i);
 }
 
 void BagSolver::checkDifferenceRemove(const Node& n)
@@ -175,7 +180,7 @@ void BagSolver::checkDifferenceRemove(const Node& n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.differenceRemove(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -192,7 +197,7 @@ void BagSolver::checkDuplicateRemoval(Node n)
   for (const Node& e : elements)
   {
     InferInfo i = d_ig.duplicateRemoval(n, e);
-    i.process(&d_im, true);
+    d_im.lemmaTheoryInference(&i);
   }
 }
 
@@ -201,7 +206,7 @@ void BagSolver::checkDisequalBagTerms()
   for (const Node& n : d_state.getDisequalBagTerms())
   {
     InferInfo info = d_ig.bagDisequality(n);
-    info.process(&d_im, true);
+    d_im.lemmaTheoryInference(&info);
   }
 }
 

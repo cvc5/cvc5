@@ -1,6 +1,6 @@
 ; COMMAND-LINE: --incremental --nl-ext --fmf-fun-rlv --no-check-models
 (set-logic UFNIA)
-(set-info :smt-lib-version 2.5)
+(set-info :smt-lib-version 2.6)
 
 ; EXPECT: sat
 (declare-fun fixedAdd() Int)

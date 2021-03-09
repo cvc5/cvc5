@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,7 +27,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class TermDb;
 class FirstOrderModel;
 
 /** EqualityQueryQuantifiersEngine class
@@ -44,7 +43,6 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
 {
  public:
   EqualityQueryQuantifiersEngine(QuantifiersState& qs,
-                                 TermDb* tdb,
                                  FirstOrderModel* m);
   virtual ~EqualityQueryQuantifiersEngine();
   /** reset */
@@ -72,8 +70,6 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
  private:
   /** the quantifiers state */
   QuantifiersState& d_qstate;
-  /** Pointer to the term database */
-  TermDb* d_tdb;
   /** Pointer to the model */
   FirstOrderModel* d_model;
   /** quantifiers equality inference */

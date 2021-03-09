@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,10 +14,12 @@
 #include "theory/theory_model_builder.h"
 
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;
@@ -60,9 +62,7 @@ Node TheoryEngineModelBuilder::Assigner::getNextAssignment()
   return n;
 }
 
-TheoryEngineModelBuilder::TheoryEngineModelBuilder(TheoryEngine* te) : d_te(te)
-{
-}
+TheoryEngineModelBuilder::TheoryEngineModelBuilder() {}
 
 Node TheoryEngineModelBuilder::evaluateEqc(TheoryModel* m, TNode r)
 {

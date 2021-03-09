@@ -2,9 +2,9 @@
 /*! \file theory_arith_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Christopher L. Conway
+ **   Andrew Reynolds, Gereon Kremer, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -130,6 +130,32 @@ class IAndTypeRule
     return nodeManager->integerType();
   }
 }; /* class BitVectorConversionTypeRule */
+
+class IndexedRootPredicateTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (check)
+    {
+      TypeNode t1 = n[0].getType(check);
+      if (!t1.isBoolean())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting boolean term as first argument");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isReal())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting polynomial as second argument");
+      }
+    }
+    return nodeManager->booleanType();
+  }
+}; /* class IndexedRootPredicateTypeRule */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

@@ -2,9 +2,9 @@
 /*! \file inst_match_generator_multi.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include <vector>
 #include "expr/node_trie.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
+#include "theory/quantifiers/inst_match_trie.h"
 
 namespace CVC4 {
 namespace theory {
@@ -39,6 +40,8 @@ class InstMatchGeneratorMulti : public IMGenerator
   /** constructors */
   InstMatchGeneratorMulti(Node q,
                           std::vector<Node>& pats,
+                          quantifiers::QuantifiersState& qs,
+                          quantifiers::QuantifiersInferenceManager& qim,
                           QuantifiersEngine* qe);
   /** destructor */
   ~InstMatchGeneratorMulti() override;

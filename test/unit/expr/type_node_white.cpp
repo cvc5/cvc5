@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,12 +32,12 @@ using namespace context;
 
 namespace test {
 
-class TestNodeWhiteTypeNode : public TestNodeWhite
+class TestNodeWhiteTypeNode : public TestNode
 {
  protected:
   void SetUp() override
   {
-    TestNodeWhite::SetUp();
+    TestNode::SetUp();
     d_smt.reset(new SmtEngine(d_nodeManager.get()));
   }
   std::unique_ptr<SmtEngine> d_smt;

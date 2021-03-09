@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -93,7 +93,9 @@ class HigherOrderTrigger : public Trigger
 
  private:
   HigherOrderTrigger(QuantifiersEngine* qe,
+                     quantifiers::QuantifiersState& qs,
                      quantifiers::QuantifiersInferenceManager& qim,
+                     quantifiers::QuantifiersRegistry& qr,
                      Node q,
                      std::vector<Node>& nodes,
                      std::map<Node, std::vector<Node> >& ho_apps);

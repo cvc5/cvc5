@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,12 +18,13 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
-#include "options/theory_options.h"
 #include "theory/arith/arith_state.h"
-#include "theory/arith/arith_utilities.h"
 #include "theory/arith/bound_inference.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::kind;
@@ -54,7 +55,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_monomialSlv(&d_extState),
       d_splitZeroSlv(&d_extState),
       d_tangentPlaneSlv(&d_extState),
-      d_cadSlv(d_im, d_model),
+      d_cadSlv(d_im, d_model, state.getUserContext(), pnm),
       d_icpSlv(d_im),
       d_iandSlv(d_im, state, d_model),
       d_builtModel(containing.getSatContext(), false)
@@ -85,17 +86,6 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   d_extTheory.registerTerm(n);
 }
 
-void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
-{
-  for (const NlLemma& nlem : out)
-  {
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_inference
-                          << " : " << nlem.d_node << std::endl;
-    d_im.addPendingArithLemma(nlem);
-    d_stats.d_inferences << nlem.d_inference;
-  }
-}
-
 void NonlinearExtension::processSideEffect(const NlLemma& se)
 {
   d_trSlv.processSideEffect(se);
@@ -115,63 +105,6 @@ void NonlinearExtension::computeRelevantAssertions(
   }
   Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size()
                       << " assertions" << std::endl;
-}
-
-unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
-{
-  Trace("nl-ext-lemma-debug")
-      << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_node << std::endl;
-  lem.d_node = Rewriter::rewrite(lem.d_node);
-
-  if (d_im.hasCachedLemma(lem.d_node, lem.d_property))
-  {
-    Trace("nl-ext-lemma-debug")
-        << "NonlinearExtension::Lemma duplicate : " << lem.d_node << std::endl;
-    return 0;
-  }
-  out.emplace_back(lem);
-  return 1;
-}
-
-unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
-                                          std::vector<NlLemma>& out)
-{
-  if (options::nlExtEntailConflicts())
-  {
-    // check if any are entailed to be false
-    for (const NlLemma& lem : lemmas)
-    {
-      Node ch_lemma = lem.d_node.negate();
-      ch_lemma = Rewriter::rewrite(ch_lemma);
-      Trace("nl-ext-et-debug")
-          << "Check entailment of " << ch_lemma << "..." << std::endl;
-      std::pair<bool, Node> et = d_containing.getValuation().entailmentCheck(
-          options::TheoryOfMode::THEORY_OF_TYPE_BASED, ch_lemma);
-      Trace("nl-ext-et-debug") << "entailment test result : " << et.first << " "
-                               << et.second << std::endl;
-      if (et.first)
-      {
-        Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
-                           << lem.d_node << std::endl;
-        // return just this lemma
-        if (filterLemma(lem, out) > 0)
-        {
-          lemmas.clear();
-          return 1;
-        }
-      }
-    }
-  }
-
-  unsigned sum = 0;
-  for (const NlLemma& lem : lemmas)
-  {
-    sum += filterLemma(lem, out);
-    d_containing.getOutputChannel().spendResource(
-        ResourceManager::Resource::ArithNlLemmaStep);
-  }
-  lemmas.clear();
-  return sum;
 }
 
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
@@ -304,7 +237,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
   bool ret = d_model.checkModel(passertions, tdegree, lemmas);
   for (const auto& al: lemmas)
   {
-    d_im.addPendingArithLemma(al);
+    d_im.addPendingLemma(al);
   }
   return ret;
 }
@@ -511,8 +444,10 @@ bool NonlinearExtension::modelBasedRefinement()
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
-            d_im.addPendingArithLemma(nsplit, true);
+            d_im.addPendingLemma(split,
+                                 InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT,
+                                 nullptr,
+                                 true);
           }
           if (d_im.hasWaitingLemma())
           {

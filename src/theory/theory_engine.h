@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,6 @@
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
@@ -159,9 +158,6 @@ class TheoryEngine {
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
 
-  /** Default visitor for pre-registration */
-  PreRegisterVisitor d_preRegistrationVisitor;
-
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
 
@@ -278,7 +274,7 @@ class TheoryEngine {
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
   /** sort inference module */
-  SortInference d_sortInfer;
+  std::unique_ptr<theory::SortInference> d_sortInfer;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
@@ -638,11 +634,10 @@ class TheoryEngine {
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
+ theory::SortInference* getSortInference() { return d_sortInfer.get(); }
 
-  SortInference* getSortInference() { return &d_sortInfer; }
-
-  /** Prints the assertions to the debug stream */
-  void printAssertions(const char* tag);
+ /** Prints the assertions to the debug stream */
+ void printAssertions(const char* tag);
 
 private:
 

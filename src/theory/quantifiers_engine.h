@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Haniel Barbosa
+ **   Andrew Reynolds, Morgan Deters, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,23 +20,12 @@
 #include <map>
 #include <unordered_map>
 
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "expr/attribute.h"
-#include "theory/quantifiers/ematching/trigger_trie.h"
-#include "theory/quantifiers/equality_query.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/model_builder.h"
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_inference_manager.h"
-#include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/quantifiers_registry.h"
+#include "theory/quantifiers/term_registry.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -46,9 +35,24 @@ class TheoryEngine;
 namespace theory {
 
 class DecisionManager;
+class QuantifiersModule;
+class RepSetIterator;
 
+namespace inst {
+class TriggerTrie;
+}
 namespace quantifiers {
+class EqualityQueryQuantifiersEngine;
+class FirstOrderModel;
+class Instantiate;
+class QModelBuilder;
+class QuantifiersInferenceManager;
 class QuantifiersModules;
+class QuantifiersState;
+class Skolemize;
+class TermDb;
+class TermDbSygus;
+class TermEnumeration;
 }
 
 // TODO: organize this more/review this, github issue #1163
@@ -65,18 +69,14 @@ class QuantifiersEngine {
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
-  /** get theory engine */
-  TheoryEngine* getTheoryEngine() const;
   /** Get the decision manager */
   DecisionManager* getDecisionManager();
-  /** get default output channel for the quantifiers engine */
-  OutputChannel& getOutputChannel();
-  /** get default valuation for the quantifiers engine */
-  Valuation& getValuation();
   /** The quantifiers state object */
   quantifiers::QuantifiersState& getState();
   /** The quantifiers inference manager */
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
@@ -87,16 +87,12 @@ class QuantifiersEngine {
   quantifiers::TermDb* getTermDatabase() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term utilities */
-  quantifiers::TermUtil* getTermUtil() const;
-  /** get quantifiers attributes */
-  quantifiers::QuantAttributes* getQuantAttributes() const;
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get instantiate utility */
   quantifiers::Instantiate* getInstantiate() const;
   /** get skolemize utility */
   quantifiers::Skolemize* getSkolemize() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
@@ -175,21 +171,11 @@ private:
  bool reduceQuantifier(Node q);
 
 public:
+ /** notification when master equality engine is updated */
+ void eqNotifyNewClass(TNode t);
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** get needs check */
- bool getInstWhenNeedsCheck(Theory::Effort e);
- /** get user pat mode */
- options::UserPatMode getInstUserPatMode();
-
-public:
- /** add term to database */
- void addTermToDatabase(Node n, bool withinQuant = false);
- /** notification when master equality engine is updated */
- void eqNotifyNewClass(TNode t);
- /** debug print equality engine */
- void debugPrintEqualityEngine(const char* c);
  /** get internal representative
   *
   * Choose a term that is equivalent to a in the current context that is the
@@ -286,6 +272,8 @@ public:
   TheoryEngine* d_te;
   /** Reference to the decision manager of the theory engine */
   DecisionManager* d_decManager;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */
@@ -293,28 +281,20 @@ public:
   //------------- quantifiers utilities
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry d_qreg;
+  /** The term registry */
+  quantifiers::TermRegistry d_treg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** term utilities */
-  std::unique_ptr<quantifiers::TermUtil> d_term_util;
-  /** term database */
-  std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** sygus term database */
-  std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
-  /** quantifiers attributes */
-  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
   /** instantiate utility */
   std::unique_ptr<quantifiers::Instantiate> d_instantiate;
   /** skolemize utility */
   std::unique_ptr<quantifiers::Skolemize> d_skolemize;
-  /** term enumeration utility */
-  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.
@@ -329,17 +309,6 @@ public:
   /** quantifiers reduced */
   BoolMap d_quants_red;
   std::map<Node, Node> d_quants_red_lem;
-  /** inst round counters TODO: make context-dependent? */
-  context::CDO<int> d_ierCounter_c;
-  int d_ierCounter;
-  int d_ierCounter_lc;
-  int d_ierCounterLastLc;
-  int d_inst_when_phase;
-  /** has presolve been called */
-  context::CDO<bool> d_presolve;
-  /** presolve cache */
-  NodeSet d_presolve_in;
-  NodeList d_presolve_cache;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

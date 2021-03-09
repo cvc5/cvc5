@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,17 +17,15 @@
 #ifndef CVC4__THEORY__BAGS__THEORY_BAGS_H
 #define CVC4__THEORY__BAGS__THEORY_BAGS_H
 
-#include <memory>
-
 #include "theory/bags/bag_solver.h"
 #include "theory/bags/bags_rewriter.h"
 #include "theory/bags/bags_statistics.h"
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/bags/term_registry.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

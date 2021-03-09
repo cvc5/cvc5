@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,7 @@
 #include "theory/uf/theory_uf.h"
 
 #include <memory>
+#include <sstream>
 
 #include "expr/node_algorithm.h"
 #include "expr/proof_node_manager.h"
@@ -25,6 +26,7 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/logic_exception.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
@@ -51,7 +53,7 @@ TheoryUF::TheoryUF(context::Context* c,
       d_functionsTerms(c),
       d_symb(u, instanceName),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm),
+      d_im(*this, d_state, pnm, "theory::uf", false),
       d_notify(d_im, *this)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -315,7 +317,7 @@ void TheoryUF::presolve() {
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
       // no proof generator provided
-      d_im.lemma(*i);
+      d_im.lemma(*i, InferenceId::UF_BREAK_SYMMETRY);
     }
   }
   if( d_thss ){

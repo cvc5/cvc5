@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 
 #include "expr/sequence.h"
 #include "options/strings_options.h"
+#include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -108,7 +109,7 @@ void BaseSolver::checkInit()
               {
                 // (seq.unit x) = C => false if |C| != 1.
                 d_im.sendInference(
-                    exp, d_false, Inference::UNIT_CONST_CONFLICT);
+                    exp, d_false, InferenceId::STRINGS_UNIT_CONST_CONFLICT);
                 return;
               }
             }
@@ -117,7 +118,7 @@ void BaseSolver::checkInit()
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x=c
               Assert(s.getType() == t.getType());
-              d_im.sendInference(exp, s.eqNode(t), Inference::UNIT_INJ);
+              d_im.sendInference(exp, s.eqNode(t), InferenceId::STRINGS_UNIT_INJ);
             }
           }
           // update best content
@@ -187,7 +188,7 @@ void BaseSolver::checkInit()
                     }
                   }
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(nc), Inference::I_NORM);
+                  d_im.sendInference(exp, n.eqNode(nc), InferenceId::STRINGS_I_NORM);
                 }
                 else
                 {
@@ -237,7 +238,7 @@ void BaseSolver::checkInit()
                   }
                   AlwaysAssert(foundNEmpty);
                   // infer the equality
-                  d_im.sendInference(exp, n.eqNode(ns), Inference::I_NORM_S);
+                  d_im.sendInference(exp, n.eqNode(ns), InferenceId::STRINGS_I_NORM_S);
                 }
                 d_congruent.insert(n);
                 congruentCount[k].first++;
@@ -440,7 +441,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       }
       else if (d_state.hasTerm(c))
       {
-        d_im.sendInference(exp, n.eqNode(c), Inference::I_CONST_MERGE);
+        d_im.sendInference(exp, n.eqNode(c), InferenceId::STRINGS_I_CONST_MERGE);
         return;
       }
       else if (!d_im.hasProcessed())
@@ -473,7 +474,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             exp.push_back(bei.d_exp);
             d_im.addToExplanation(n, bei.d_base, exp);
           }
-          d_im.sendInference(exp, d_false, Inference::I_CONST_CONFLICT);
+          d_im.sendInference(exp, d_false, InferenceId::STRINGS_I_CONST_CONFLICT);
           return;
         }
         else
@@ -622,7 +623,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
         if (!d_state.areDisequal(*itr1, *itr2))
         {
           // add split lemma
-          if (d_im.sendSplit(*itr1, *itr2, Inference::CARD_SP))
+          if (d_im.sendSplit(*itr1, *itr2, InferenceId::STRINGS_CARD_SP))
           {
             return;
           }
@@ -660,7 +661,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       if (!cons.isConst() || !cons.getConst<bool>())
       {
         d_im.sendInference(
-            expn, expn, cons, Inference::CARDINALITY, false, true);
+            expn, expn, cons, InferenceId::STRINGS_CARDINALITY, false, true);
         return;
       }
     }

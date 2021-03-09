@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
 #ifndef CVC4__PRINTER__PRINTER_H
 #define CVC4__PRINTER__PRINTER_H
 
-#include <map>
 #include <string>
 
 #include "expr/node.h"
@@ -217,7 +216,7 @@ class Printer
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const;
+                                  const std::string& value) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,
@@ -226,7 +225,7 @@ class Printer
   /** Print set-option command */
   virtual void toStreamCmdSetOption(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const;
+                                    const std::string& value) const;
 
   /** Print get-option command */
   virtual void toStreamCmdGetOption(std::ostream& out,

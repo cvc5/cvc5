@@ -2,9 +2,9 @@
 /*! \file equality_query.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,6 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;
@@ -29,9 +28,8 @@ namespace theory {
 namespace quantifiers {
 
 EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
-    QuantifiersState& qs, TermDb* tdb, FirstOrderModel* m)
+    QuantifiersState& qs, FirstOrderModel* m)
     : d_qstate(qs),
-      d_tdb(tdb),
       d_model(m),
       d_eqi_counter(qs.getSatContext()),
       d_reset_count(0)

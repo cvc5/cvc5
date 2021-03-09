@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -416,9 +416,9 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_inferManager.lemma(lemma);
+    d_bv->d_im.lemma(lemma, InferenceId::BV_LAZY_LEMMA);
   } else {
-    d_bv->d_inferManager.lemma(d_cnf->getNode(clause[0]));
+    d_bv->d_im.lemma(d_cnf->getNode(clause[0]), InferenceId::BV_LAZY_LEMMA);
   }
 }
 
@@ -429,7 +429,7 @@ void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
 
 void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 {
-  d_bv->d_inferManager.safePoint(r);
+  d_bv->d_im.safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)

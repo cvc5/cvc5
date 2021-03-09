@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersRegistry;
+
 /** Relevant Domain
  *
  * This class computes the relevant domain of
@@ -40,7 +42,7 @@ namespace quantifiers {
 class RelevantDomain : public QuantifiersUtil
 {
  public:
-  RelevantDomain(QuantifiersEngine* qe);
+  RelevantDomain(QuantifiersEngine* qe, QuantifiersRegistry& qr);
   virtual ~RelevantDomain();
   /** Reset. */
   bool reset(Theory::Effort e) override;
@@ -117,6 +119,8 @@ class RelevantDomain : public QuantifiersUtil
   std::map< RDomain *, int > d_ri_map;
   /** Quantifiers engine associated with this utility. */
   QuantifiersEngine* d_qe;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** have we computed the relevant domain on this full effort check? */
   bool d_is_computed;
   /** relevant domain literal

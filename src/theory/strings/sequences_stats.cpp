@@ -4,14 +4,13 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** \brief Statistics for the theory of strings/sequences
  **/
-
 
 #include "theory/strings/sequences_stats.h"
 
@@ -24,7 +23,6 @@ namespace strings {
 SequencesStatistics::SequencesStatistics()
     : d_checkRuns("theory::strings::checkRuns", 0),
       d_strategyRuns("theory::strings::strategyRuns", 0),
-      d_inferences("theory::strings::inferences"),
       d_inferencesNoPf("theory::strings::inferencesNoPf"),
       d_cdSimplifications("theory::strings::cdSimplifications"),
       d_reductions("theory::strings::reductions"),
@@ -43,7 +41,6 @@ SequencesStatistics::SequencesStatistics()
 {
   smtStatisticsRegistry()->registerStat(&d_checkRuns);
   smtStatisticsRegistry()->registerStat(&d_strategyRuns);
-  smtStatisticsRegistry()->registerStat(&d_inferences);
   smtStatisticsRegistry()->registerStat(&d_inferencesNoPf);
   smtStatisticsRegistry()->registerStat(&d_cdSimplifications);
   smtStatisticsRegistry()->registerStat(&d_reductions);
@@ -64,7 +61,6 @@ SequencesStatistics::~SequencesStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_checkRuns);
   smtStatisticsRegistry()->unregisterStat(&d_strategyRuns);
-  smtStatisticsRegistry()->unregisterStat(&d_inferences);
   smtStatisticsRegistry()->unregisterStat(&d_inferencesNoPf);
   smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
   smtStatisticsRegistry()->unregisterStat(&d_reductions);

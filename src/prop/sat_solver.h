@@ -2,9 +2,9 @@
 /*! \file sat_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
+ **   Dejan Jovanovic, Liana Hadarean, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -80,6 +80,13 @@ public:
     Unimplemented() << "Solving under assumptions not implemented";
     return SAT_VALUE_UNKNOWN;
   };
+
+  /**
+   * Tell SAT solver to only do propagation on next solve().
+   *
+   * @return true if feature is supported, otherwise false.
+   */
+  virtual bool setPropagateOnly() { return false; }
 
   /** Interrupt the solver */
   virtual void interrupt() = 0;

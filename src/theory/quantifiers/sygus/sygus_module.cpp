@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusModule::SygusModule(QuantifiersEngine* qe, SynthConjecture* p)
-    : d_qe(qe), d_tds(qe->getTermDatabaseSygus()), d_parent(p)
+SygusModule::SygusModule(QuantifiersEngine* qe,
+                         QuantifiersInferenceManager& qim,
+                         SynthConjecture* p)
+    : d_qe(qe), d_qim(qim), d_tds(qe->getTermDatabaseSygus()), d_parent(p)
 {
 }
 

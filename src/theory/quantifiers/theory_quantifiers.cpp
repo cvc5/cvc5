@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,7 +43,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      const LogicInfo& logicInfo,
                                      ProofNodeManager* pnm)
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
-      d_qstate(c, u, valuation),
+      d_qstate(c, u, valuation, logicInfo),
       d_qim(*this, d_qstate, pnm),
       d_qengine(d_qstate, d_qim, pnm)
 {

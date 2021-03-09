@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,7 @@
 #ifndef CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
 #define CVC4__THEORY__ARITH__ICP__ICP_SOLVER_H
 
-#include "util/real_algebraic_number.h"
+#include "cvc4_private.h"
 
 #ifdef CVC4_POLY_IMP
 #include <poly/polyxx.h>
@@ -23,7 +23,6 @@
 
 #include "expr/node.h"
 #include "theory/arith/bound_inference.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/icp/candidate.h"
 #include "theory/arith/nl/icp/contraction_origins.h"
 #include "theory/arith/nl/icp/intersection.h"
@@ -32,6 +31,9 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
+
+class InferenceManager;
+
 namespace nl {
 namespace icp {
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "util/random.h"
 
 using namespace CVC4;
@@ -336,7 +337,7 @@ bool ConjectureGenerator::isGroundTerm( TNode n ) {
 
 bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
   // synchonized with instantiation engine
-  return d_quantEngine->getInstWhenNeedsCheck( e );
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
@@ -349,7 +350,7 @@ bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
       if( !lem.empty() ){
         for (const Node& l : lem)
         {
-          d_qim.addPendingLemma(l);
+          d_qim.addPendingLemma(l, InferenceId::UNKNOWN);
         }
         d_hasAddedLemma = true;
         return false;
@@ -934,7 +935,7 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[rhs].push_back( lhs );
 
               Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-              d_qim.addPendingLemma(lem);
+              d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
               d_qim.addPendingPhaseRequirement(rsg, false);
               addedLemmas++;
               if( (int)addedLemmas>=options::conjectureGenPerRound() ){

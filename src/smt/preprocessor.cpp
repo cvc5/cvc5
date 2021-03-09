@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,12 +15,15 @@
 #include "smt/preprocessor.h"
 
 #include "options/smt_options.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "printer/printer.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
 #include "smt/dump.h"
+#include "smt/preprocess_proof_generator.h"
 #include "smt/smt_engine.h"
 
+using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
 
@@ -80,12 +83,10 @@ bool Preprocessor::process(Assertions& as)
   }
 
   // process the assertions, return true if no conflict is discovered
-  return d_processor.apply(as);
-}
+  bool noConflict = d_processor.apply(as);
 
-void Preprocessor::postprocess(Assertions& as)
-{
-  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
+  // now, post-process the assertions
+
   // if incremental, compute which variables are assigned
   if (options::incrementalSolving())
   {
@@ -94,6 +95,8 @@ void Preprocessor::postprocess(Assertions& as)
 
   // mark that we've processed assertions
   d_assertionsProcessed = true;
+
+  return noConflict;
 }
 
 void Preprocessor::clearLearnedLiterals()

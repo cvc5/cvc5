@@ -2,9 +2,9 @@
 /*! \file term_formula_removal.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ **   Andrew Reynolds, Dejan Jovanovic, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,11 @@
 #include <vector>
 
 #include "expr/attribute.h"
+#include "expr/lazy_proof.h"
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
+#include "expr/term_context_stack.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 

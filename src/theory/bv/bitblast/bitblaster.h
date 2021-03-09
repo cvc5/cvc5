@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,7 @@
 #include "prop/sat_solver_types.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
+#include "theory/theory.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
 
@@ -159,10 +160,8 @@ void TBitblaster<T>::initTermBBStrategies()
   d_termBBStrategies[kind::BITVECTOR_PLUS] = DefaultPlusBB<T>;
   d_termBBStrategies[kind::BITVECTOR_SUB] = DefaultSubBB<T>;
   d_termBBStrategies[kind::BITVECTOR_NEG] = DefaultNegBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UDIV] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_UREM] = UndefinedTermBBStrategy<T>;
-  d_termBBStrategies[kind::BITVECTOR_UDIV_TOTAL] = DefaultUdivBB<T>;
-  d_termBBStrategies[kind::BITVECTOR_UREM_TOTAL] = DefaultUremBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_UDIV] = DefaultUdivBB<T>;
+  d_termBBStrategies[kind::BITVECTOR_UREM] = DefaultUremBB<T>;
   d_termBBStrategies[kind::BITVECTOR_SDIV] = UndefinedTermBBStrategy<T>;
   d_termBBStrategies[kind::BITVECTOR_SREM] = UndefinedTermBBStrategy<T>;
   d_termBBStrategies[kind::BITVECTOR_SMOD] = UndefinedTermBBStrategy<T>;

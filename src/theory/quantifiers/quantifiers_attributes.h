@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -139,7 +139,7 @@ struct QAttributes
   Node d_sygusSideCondition;
   /** stores the maximum instantiation level allowed for this quantified formula
    * (-1 means allow any) */
-  int d_qinstLevel;
+  int64_t d_qinstLevel;
   /** is this formula marked for quantifier elimination? */
   bool d_quant_elim;
   /** is this formula marked for partial quantifier elimination? */
@@ -214,7 +214,7 @@ class QuantAttributes
   /** is sygus conjecture */
   bool isSygus( Node q );
   /** get instantiation level */
-  int getQuantInstLevel( Node q );
+  int64_t getQuantInstLevel(Node q);
   /** is quant elim */
   bool isQuantElim( Node q );
   /** is quant elim partial */

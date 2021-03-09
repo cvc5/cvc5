@@ -2,9 +2,9 @@
 /*! \file minisat.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Tim King
+ **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -160,7 +160,7 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable) {
   }
   d_minisat->addClause(minisat_clause, removable, clause_id);
   // FIXME: to be deleted when we kill old proof code for unsat cores
-  Assert(!options::unsatCores() || options::proofNew()
+  Assert(!options::unsatCores() || options::proof()
          || clause_id != ClauseIdError);
   return clause_id;
 }

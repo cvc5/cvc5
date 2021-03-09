@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,8 @@
 #include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -62,7 +64,7 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
   // not have a model builder
   if (d_modelBuilder == nullptr)
   {
-    d_alocModelBuilder.reset(new TheoryEngineModelBuilder(&d_te));
+    d_alocModelBuilder.reset(new TheoryEngineModelBuilder);
     d_modelBuilder = d_alocModelBuilder.get();
   }
   // notice that the equality engine of the model has yet to be assigned.

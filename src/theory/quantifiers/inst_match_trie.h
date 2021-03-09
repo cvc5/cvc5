@@ -4,12 +4,12 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief inst match class
+ ** \brief inst match trie class
  **/
 
 #include "cvc4_private.h"
@@ -22,14 +22,13 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "expr/node.h"
-#include "theory/quantifiers/inst_match.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
 
-namespace {
+namespace quantifiers {
 class QuantifiersState;
 }
 
@@ -65,23 +64,10 @@ class InstMatchTrie
    */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
-                       InstMatch& m,
+                       const std::vector<Node>& m,
                        bool modEq = false,
-                       ImtIndexOrder* imtio = NULL,
-                       unsigned index = 0)
-  {
-    return !addInstMatch(qs, q, m, modEq, imtio, true, index);
-  }
-  /** exists inst match, vector version */
-  bool existsInstMatch(quantifiers::QuantifiersState& qs,
-                       Node q,
-                       std::vector<Node>& m,
-                       bool modEq = false,
-                       ImtIndexOrder* imtio = NULL,
-                       unsigned index = 0)
-  {
-    return !addInstMatch(qs, q, m, modEq, imtio, true, index);
-  }
+                       ImtIndexOrder* imtio = nullptr,
+                       unsigned index = 0);
   /** add inst match
    *
    * This method adds (the suffix of) m starting at the given index to this
@@ -91,21 +77,10 @@ class InstMatchTrie
    * equalities in the equality engine of qs.
    */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
-                    Node q,
-                    InstMatch& m,
-                    bool modEq = false,
-                    ImtIndexOrder* imtio = NULL,
-                    bool onlyExist = false,
-                    unsigned index = 0)
-  {
-    return addInstMatch(qs, q, m.d_vals, modEq, imtio, onlyExist, index);
-  }
-  /** add inst match, vector version */
-  bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node f,
-                    std::vector<Node>& m,
+                    const std::vector<Node>& m,
                     bool modEq = false,
-                    ImtIndexOrder* imtio = NULL,
+                    ImtIndexOrder* imtio = nullptr,
                     bool onlyExist = false,
                     unsigned index = 0);
   /** remove inst match
@@ -115,68 +90,18 @@ class InstMatchTrie
    * The domain of m is the bound variables of quantified formula q.
    */
   bool removeInstMatch(Node f,
-                       std::vector<Node>& m,
-                       ImtIndexOrder* imtio = NULL,
-                       unsigned index = 0);
-  /** record instantiation lemma
-   *
-   * This records that the instantiation lemma lem corresponds to the entry
-   * given by (the suffix of) m starting at the given index.
-   */
-  bool recordInstLemma(Node q,
-                       std::vector<Node>& m,
-                       Node lem,
-                       ImtIndexOrder* imtio = NULL,
+                       const std::vector<Node>& m,
+                       ImtIndexOrder* imtio = nullptr,
                        unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */
   void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
-  /** get instantiations
-   *
-   * This gets the set of instantiation lemmas that were recorded in this trie
-   * via calls to recordInstLemma. If useActive is true, we only add
-   * instantiations that occur in active.
-   */
-  void getInstantiations(std::vector<Node>& insts,
-                         Node q,
-                         QuantifiersEngine* qe,
-                         bool useActive,
-                         std::vector<Node>& active)
-  {
-    std::vector<Node> terms;
-    getInstantiations(insts, q, terms, qe, useActive, active);
-  }
-  /** get explanation for inst lemmas
-   *
-   * This gets the explanation for the instantiation lemmas in lems for
-   * quantified formula q, for which this trie stores instantiation matches for.
-   * For each instantiation lemma lem recording in this trie via calls to
-   * recordInstLemma, we map lem to q in map quant, and lem to its corresponding
-   * vector of terms in tvec.
-   */
-  void getExplanationForInstLemmas(
-      Node q,
-      const std::vector<Node>& lems,
-      std::map<Node, Node>& quant,
-      std::map<Node, std::vector<Node> >& tvec) const
-  {
-    std::vector<Node> terms;
-    getExplanationForInstLemmas(q, terms, lems, quant, tvec);
-  }
-
   /** clear the data of this class */
-  void clear() { d_data.clear(); }
+  void clear();
   /** print this class */
-  void print(std::ostream& out,
-             Node q,
-             bool useActive,
-             std::vector<Node>& active) const
-  {
-    std::vector<TNode> terms;
-    print(out, q, terms, useActive, active);
-  }
+  void print(std::ostream& out, Node q) const;
   /** the data */
   std::map<Node, InstMatchTrie> d_data;
 
@@ -188,39 +113,7 @@ class InstMatchTrie
   /** helper for print
    * terms accumulates the path we are on in the trie.
    */
-  void print(std::ostream& out,
-             Node q,
-             std::vector<TNode>& terms,
-             bool useActive,
-             std::vector<Node>& active) const;
-  /** helper for get instantiations
-   * terms accumulates the path we are on in the trie.
-   */
-  void getInstantiations(std::vector<Node>& insts,
-                         Node q,
-                         std::vector<Node>& terms,
-                         QuantifiersEngine* qe,
-                         bool useActive,
-                         std::vector<Node>& active) const;
-  /** helper for get explantaion for inst lemmas
-   * terms accumulates the path we are on in the trie.
-   */
-  void getExplanationForInstLemmas(
-      Node q,
-      std::vector<Node>& terms,
-      const std::vector<Node>& lems,
-      std::map<Node, Node>& quant,
-      std::map<Node, std::vector<Node> >& tvec) const;
-  /** set instantiation lemma at this node in the trie */
-  void setInstLemma(Node n)
-  {
-    d_data.clear();
-    d_data[n].clear();
-  }
-  /** does this node of the trie store an instantiation lemma? */
-  bool hasInstLemma() const { return !d_data.empty(); }
-  /** get the instantiation lemma stored in this node of the trie */
-  Node getInstLemma() const { return d_data.begin()->first; }
+  void print(std::ostream& out, Node q, std::vector<TNode>& terms) const;
 };
 
 /** trie for InstMatch objects
@@ -244,21 +137,9 @@ class CDInstMatchTrie
    */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
-                       InstMatch& m,
+                       const std::vector<Node>& m,
                        bool modEq = false,
-                       unsigned index = 0)
-  {
-    return !addInstMatch(qs, q, m, modEq, index, true);
-  }
-  /** exists inst match, vector version */
-  bool existsInstMatch(quantifiers::QuantifiersState& qs,
-                       Node q,
-                       std::vector<Node>& m,
-                       bool modEq = false,
-                       unsigned index = 0)
-  {
-    return !addInstMatch(qs, q, m, modEq, index, true);
-  }
+                       unsigned index = 0);
   /** add inst match
    *
    * This method adds (the suffix of) m starting at the given index to this
@@ -270,17 +151,7 @@ class CDInstMatchTrie
    */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
-                    InstMatch& m,
-                    bool modEq = false,
-                    unsigned index = 0,
-                    bool onlyExist = false)
-  {
-    return addInstMatch(qs, q, m.d_vals, modEq, index, onlyExist);
-  }
-  /** add inst match, vector version */
-  bool addInstMatch(quantifiers::QuantifiersState& qs,
-                    Node q,
-                    std::vector<Node>& m,
+                    const std::vector<Node>& m,
                     bool modEq = false,
                     unsigned index = 0,
                     bool onlyExist = false);
@@ -290,109 +161,28 @@ class CDInstMatchTrie
    * It returns true if and only if this entry existed in this trie.
    * The domain of m is the bound variables of quantified formula q.
    */
-  bool removeInstMatch(Node q, std::vector<Node>& m, unsigned index = 0);
-  /** record instantiation lemma
-   *
-   * This records that the instantiation lemma lem corresponds to the entry
-   * given by (the suffix of) m starting at the given index.
-   */
-  bool recordInstLemma(Node q,
-                       std::vector<Node>& m,
-                       Node lem,
-                       unsigned index = 0);
+  bool removeInstMatch(Node q, const std::vector<Node>& m, unsigned index = 0);
   /**
    * Adds the instantiations for q into insts.
    */
   void getInstantiations(Node q, std::vector<std::vector<Node>>& insts) const;
 
-  /** get instantiations
-   *
-   * This gets the set of instantiation lemmas that were recorded in this class
-   * via calls to recordInstLemma. If useActive is true, we only add
-   * instantiations that occur in active.
-   */
-  void getInstantiations(std::vector<Node>& insts,
-                         Node q,
-                         QuantifiersEngine* qe,
-                         bool useActive,
-                         std::vector<Node>& active)
-  {
-    std::vector<Node> terms;
-    getInstantiations(insts, q, terms, qe, useActive, active);
-  }
-  /** get explanation for inst lemmas
-   *
-   * This gets the explanation for the instantiation lemmas in lems for
-   * quantified formula q, for which this trie stores instantiation matches for.
-   * For each instantiation lemma lem recording in this trie via calls to
-   * recordInstLemma, we map lem to q in map quant, and lem to its corresponding
-   * vector of terms in tvec.
-   */
-  void getExplanationForInstLemmas(
-      Node q,
-      const std::vector<Node>& lems,
-      std::map<Node, Node>& quant,
-      std::map<Node, std::vector<Node> >& tvec) const
-  {
-    std::vector<Node> terms;
-    getExplanationForInstLemmas(q, terms, lems, quant, tvec);
-  }
-
   /** print this class */
-  void print(std::ostream& out,
-             Node q,
-             bool useActive,
-             std::vector<Node>& active) const
-  {
-    std::vector<TNode> terms;
-    print(out, q, terms, useActive, active);
-  }
+  void print(std::ostream& out, Node q) const;
 
  private:
   /** Helper for getInstantiations.*/
   void getInstantiations(Node q,
                          std::vector<std::vector<Node>>& insts,
                          std::vector<Node>& terms) const;
+  /** helper for print
+   * terms accumulates the path we are on in the trie.
+   */
+  void print(std::ostream& out, Node q, std::vector<TNode>& terms) const;
   /** the data */
   std::map<Node, CDInstMatchTrie*> d_data;
   /** is valid */
   context::CDO<bool> d_valid;
-  /** helper for print
-   * terms accumulates the path we are on in the trie.
-   */
-  void print(std::ostream& out,
-             Node q,
-             std::vector<TNode>& terms,
-             bool useActive,
-             std::vector<Node>& active) const;
-  /** helper for get instantiations
-   * terms accumulates the path we are on in the trie.
-   */
-  void getInstantiations(std::vector<Node>& insts,
-                         Node q,
-                         std::vector<Node>& terms,
-                         QuantifiersEngine* qe,
-                         bool useActive,
-                         std::vector<Node>& active) const;
-  /** helper for get explanation for inst lemma
-   * terms accumulates the path we are on in the trie.
-   */
-  void getExplanationForInstLemmas(
-      Node q,
-      std::vector<Node>& terms,
-      const std::vector<Node>& lems,
-      std::map<Node, Node>& quant,
-      std::map<Node, std::vector<Node> >& tvec) const;
-  /** set instantiation lemma at this node in the trie */
-  void setInstLemma(Node n)
-  {
-    d_data.clear();
-    d_data[n] = NULL;
-  }
-  /** does this node of the trie store an instantiation lemma? */
-  bool hasInstLemma() const { return !d_data.empty(); }
-  /** get the instantiation lemma stored in this node of the trie */
-  Node getInstLemma() const { return d_data.begin()->first; }
 };
 
 /** inst match trie ordered
@@ -417,11 +207,8 @@ class InstMatchTrieOrdered
    */
   bool addInstMatch(quantifiers::QuantifiersState& qs,
                     Node q,
-                    InstMatch& m,
-                    bool modEq = false)
-  {
-    return d_imt.addInstMatch(qs, q, m, modEq, d_imtio);
-  }
+                    const std::vector<Node>& m,
+                    bool modEq = false);
   /** returns true if this trie contains m
    *
    * This method returns true if the match m exists in this
@@ -430,11 +217,8 @@ class InstMatchTrieOrdered
    */
   bool existsInstMatch(quantifiers::QuantifiersState& qs,
                        Node q,
-                       InstMatch& m,
-                       bool modEq = false)
-  {
-    return d_imt.existsInstMatch(qs, q, m, modEq, d_imtio);
-  }
+                       const std::vector<Node>& m,
+                       bool modEq = false);
 
  private:
   /** the ordering */

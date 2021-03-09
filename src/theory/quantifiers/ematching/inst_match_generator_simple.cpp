@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,7 +13,13 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
+#include "theory/quantifiers/ematching/trigger_trie.h"
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -22,10 +28,13 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
-                                                   Node pat,
-                                                   QuantifiersEngine* qe)
-    : d_quant(q), d_match_pattern(pat)
+InstMatchGeneratorSimple::InstMatchGeneratorSimple(
+    Node q,
+    Node pat,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim,
+    QuantifiersEngine* qe)
+    : IMGenerator(qs, qim), d_quant(q), d_match_pattern(pat)
 {
   if (d_match_pattern.getKind() == NOT)
   {
@@ -128,7 +137,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     // convert to actual used terms
-    for (const std::pair<unsigned, int>& v : d_var_num)
+    for (const auto& v : d_var_num)
     {
       if (v.second >= 0)
       {
@@ -140,7 +149,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (qe->getInstantiate()->addInstantiation(d_quant, m))
+    if (qe->getInstantiate()->addInstantiation(d_quant, m.d_vals))
     {
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,7 +13,10 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/ematching/trigger_trie.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
 
@@ -22,7 +25,11 @@ namespace theory {
 namespace inst {
 
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
-    Node q, std::vector<Node>& pats, QuantifiersEngine* qe)
+    Node q,
+    std::vector<Node>& pats,
+    quantifiers::QuantifiersState& qs,
+    quantifiers::QuantifiersInferenceManager& qim)
+    : InstMatchGenerator(Node::null(), qs, qim)
 {
   // order patterns to maximize eager matching failures
   std::map<Node, std::vector<Node> > var_contains;
@@ -98,7 +105,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
   {
     Node po = pats_ordered[i];
     Trace("multi-trigger-linear") << "...make for " << po << std::endl;
-    InstMatchGenerator* cimg = getInstMatchGenerator(q, po);
+    InstMatchGenerator* cimg = getInstMatchGenerator(q, po, qs, qim);
     Assert(cimg != nullptr);
     d_children.push_back(cimg);
     // this could be improved

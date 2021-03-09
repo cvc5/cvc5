@@ -2,9 +2,9 @@
 /*! \file decision_strategy.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Mathias Preiner, Morgan Deters
+ **   Kshitij Bansal, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,10 +46,6 @@ public:
   virtual ~DecisionStrategy() { }
 
   virtual prop::SatLiteral getNext(bool&) = 0;
-
-  virtual bool needIteSkolemMap() { return false; }
-
-  virtual void notifyAssertionsAvailable() { return; }
 };/* class DecisionStrategy */
 
 class ITEDecisionStrategy : public DecisionStrategy {
@@ -57,27 +53,17 @@ public:
   ITEDecisionStrategy(DecisionEngine* de, context::Context *c) :
     DecisionStrategy(de, c) {
   }
-
-  bool needIteSkolemMap() override { return true; }
-
   /**
-   * Add a list of assertions, as well as lemmas coming from preprocessing
-   * (ppLemmas) and pairwise the skolems they constrain (ppSkolems).
+   * Add that assertion is an (input) assertion, not corresponding to a
+   * skolem definition.
    */
-  virtual void addAssertions(const std::vector<Node>& assertions,
-                             const std::vector<Node>& ppLemmas,
-                             const std::vector<Node>& ppSkolems) = 0;
+  virtual void addAssertion(TNode assertion) = 0;
+  /**
+   * Add that lem is the skolem definition for skolem, which is a part of
+   * the current assertions.
+   */
+  virtual void addSkolemDefinition(TNode lem, TNode skolem) = 0;
 };/* class ITEDecisionStrategy */
-
-class RelevancyStrategy : public ITEDecisionStrategy {
-public:
-  RelevancyStrategy(DecisionEngine* de, context::Context *c) :
-    ITEDecisionStrategy(de, c) {
-  }
-
-  virtual bool isRelevant(TNode n) = 0;
-  virtual prop::SatValue getPolarity(TNode n) = 0;
-};/* class RelevancyStrategy */
 
 }/* CVC4::decision namespace */
 }/* CVC4 namespace */

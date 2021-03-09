@@ -2,9 +2,9 @@
 /*! \file theory_arith_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
+ **   Tim King, Andrew Reynolds, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,22 +18,15 @@
 #pragma once
 
 #include <map>
-#include <queue>
 #include <vector>
 
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/proof_generator.h"
-#include "options/arith_options.h"
-#include "smt/logic_exception.h"
-#include "smt_util/boolean_simplification.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -43,6 +36,7 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
+#include "theory/arith/error_set.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
@@ -50,12 +44,8 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
-#include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
@@ -66,6 +56,10 @@
 
 namespace CVC4 {
 namespace theory {
+
+class EagerProofGenerator;
+class TheoryModel;
+
 namespace arith {
 
 class BranchCutInfo;

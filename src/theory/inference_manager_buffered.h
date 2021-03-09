@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
 #define CVC4__THEORY__INFERENCE_MANAGER_BUFFERED_H
 
-#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"
@@ -34,7 +33,9 @@ class InferenceManagerBuffered : public TheoryInferenceManager
  public:
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
-                           ProofNodeManager* pnm);
+                           ProofNodeManager* pnm,
+                           const std::string& name,
+                           bool cacheLemmas = true);
   virtual ~InferenceManagerBuffered() {}
   /**
    * Do we have a pending fact or lemma?
@@ -54,6 +55,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * doPendingLemmas.
    *
    * @param lem The lemma to send
+   * @param id The identifier of the inference
    * @param p The property of the lemma
    * @param pg The proof generator which can provide a proof for lem
    * @param checkCache Whether we want to check that the lemma is already in
@@ -62,6 +64,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * false if the lemma is already cached.
    */
   bool addPendingLemma(Node lem,
+                       InferenceId id,
                        LemmaProperty p = LemmaProperty::NONE,
                        ProofGenerator* pg = nullptr,
                        bool checkCache = true);
@@ -79,8 +82,12 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    *
    * Pending facts are sent to the equality engine of this class using
    * doPendingFacts.
+   * @param conc The conclustion
+   * @param id The identifier of the inference
+   * @param exp The explanation in the equality engine of the theory
+   * @param pg The proof generator which can provide a proof for conc
    */
-  void addPendingFact(Node conc, Node exp, ProofGenerator* pg = nullptr);
+  void addPendingFact(Node conc, InferenceId id, Node exp, ProofGenerator* pg = nullptr);
   /**
    * Add pending fact, where fact can be a (derived) class of the
    * theory inference base class.
@@ -137,6 +144,19 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   std::size_t numPendingLemmas() const;
   /** Returns the number of pending facts. */
   std::size_t numPendingFacts() const;
+
+  /**
+   * Send the given theory inference as a lemma on the output channel of this
+   * inference manager. This calls TheoryInferenceManager::trustedLemma based
+   * on the provided theory inference.
+   */
+  void lemmaTheoryInference(TheoryInference* lem);
+  /**
+   * Add the given theory inference as an internal fact. This calls
+   * TheoryInferenceManager::assertInternalFact based on the provided theory
+   * inference.
+   */
+  void assertInternalFactTheoryInference(TheoryInference* fact);
 
  protected:
   /** A set of pending inferences to be processed as lemmas */

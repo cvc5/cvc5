@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/relevant_domain.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,6 +42,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
+                                    DecisionManager* dm,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
@@ -73,7 +75,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   // finite model finding
   if (options::fmfBound())
   {
-    d_bint.reset(new BoundedIntegers(qe, qs, qim, qr));
+    d_bint.reset(new BoundedIntegers(qe, qs, qim, qr, dm));
     modules.push_back(d_bint.get());
   }
   if (options::finiteModelFind() || options::fmfBound())
@@ -93,7 +95,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())
   {
-    d_rel_dom.reset(new RelevantDomain(qe));
+    d_rel_dom.reset(new RelevantDomain(qe, qr));
     d_fs.reset(new InstStrategyEnum(qe, qs, qim, qr, d_rel_dom.get()));
     modules.push_back(d_fs.get());
   }

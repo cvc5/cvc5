@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,22 +22,21 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "context/cdlist.h"
-#include "context/cdo.h"
 #include "context/context.h"
-#include "expr/dtype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
-#include "theory/quantifiers/sygus/sygus_explain.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
+class SynthConjecture;
+}
 namespace datatypes {
 
-class TheoryDatatypes;
+class InferenceManager;
 
 /**
  * This is the sygus extension of the decision procedure for quantifier-free
@@ -70,9 +69,10 @@ class SygusExtension
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  SygusExtension(TheoryDatatypes* td,
-                   QuantifiersEngine* qe,
-                   context::Context* c);
+  SygusExtension(TheoryState& s,
+                 InferenceManager& im,
+                 quantifiers::TermDbSygus* tds,
+                 DecisionManager* dm);
   ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for
@@ -106,10 +106,14 @@ class SygusExtension
    */
   void check(std::vector<Node>& lemmas);
  private:
-  /** Pointer to the datatype theory that owns this class. */
-  TheoryDatatypes* d_td;
+  /** The theory state of the datatype theory */
+  TheoryState& d_state;
+  /** The inference manager of the datatype theory */
+  InferenceManager& d_im;
   /** Pointer to the sygus term database */
   quantifiers::TermDbSygus* d_tds;
+  /** Pointer to the decision manager */
+  DecisionManager* d_dm;
   /** the simple symmetry breaking utility */
   SygusSimpleSymBreak d_ssb;
   /**

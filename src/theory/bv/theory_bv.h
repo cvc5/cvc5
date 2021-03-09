@@ -2,9 +2,9 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,10 +19,10 @@
 #ifndef CVC4__THEORY__BV__THEORY_BV_H
 #define CVC4__THEORY__BV__THEORY_BV_H
 
-#include <unordered_map>
-
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -105,23 +105,8 @@ class TheoryBV : public Theory
  private:
   void notifySharedTerm(TNode t) override;
 
-  /**
-   * Return the UF symbol corresponding to division-by-zero for this particular
-   * bit-width.
-   * @param k should be UREM or UDIV
-   * @param width bit-width
-   */
-  Node getUFDivByZero(Kind k, unsigned width);
-
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
-
-  /**
-   * Maps from bit-vector width to division-by-zero uninterpreted
-   * function symbols.
-   */
-  std::unordered_map<unsigned, Node> d_ufDivByZero;
-  std::unordered_map<unsigned, Node> d_ufRemByZero;
 
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;
@@ -130,7 +115,10 @@ class TheoryBV : public Theory
   TheoryState d_state;
 
   /** A (default) theory inference manager. */
-  TheoryInferenceManager d_inferMgr;
+  TheoryInferenceManager d_im;
+
+  /** The notify class for equality engine. */
+  TheoryEqNotifyClass d_notify;
 
 }; /* class TheoryBV */
 

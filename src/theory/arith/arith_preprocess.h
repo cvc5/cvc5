@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,14 +18,18 @@
 #define CVC4__THEORY__ARITH__ARITH_PREPROCESS_H
 
 #include "context/cdhashmap.h"
-#include "theory/arith/arith_state.h"
-#include "theory/arith/inference_manager.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/logic_info.h"
 
 namespace CVC4 {
 namespace theory {
+
+class SkolemLemma;
+
 namespace arith {
+
+class ArithState;
+class InferenceManager;
 
 /**
  * This module can be used for (on demand) elimination of extended arithmetic
@@ -52,7 +56,9 @@ class ArithPreprocess
    * @return the trust node proving (= n nr) where nr is the return of
    * eliminating operators in n, or the null trust node if n was unchanged.
    */
-  TrustNode eliminate(TNode n, bool partialOnly = false);
+  TrustNode eliminate(TNode n,
+                      std::vector<SkolemLemma>& lems,
+                      bool partialOnly = false);
   /**
    * Reduce assertion. This sends a lemma via the inference manager if atom
    * contains any extended operators. When applicable, the lemma is of the form:

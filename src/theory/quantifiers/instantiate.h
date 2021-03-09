@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 
 #include <map>
 
+#include "context/cdhashset.h"
 #include "expr/node.h"
 #include "expr/proof.h"
 #include "theory/quantifiers/inst_match_trie.h"
@@ -26,6 +27,9 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+class LazyCDProof;
+
 namespace theory {
 
 class QuantifiersEngine;
@@ -33,7 +37,9 @@ class QuantifiersEngine;
 namespace quantifiers {
 
 class TermDb;
-class TermUtil;
+class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
 
 /** Instantiation rewriter
  *
@@ -91,6 +97,7 @@ class Instantiate : public QuantifiersUtil
   Instantiate(QuantifiersEngine* qe,
               QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -117,7 +124,7 @@ class Instantiate : public QuantifiersUtil
   /** do instantiation specified by m
    *
    * This function returns true if the instantiation lemma for quantified
-   * formula q for the substitution specified by m is successfully enqueued
+   * formula q for the substitution specified by terms is successfully enqueued
    * via a call to QuantifiersInferenceManager::addPendingLemma.
    *   mkRep : whether to take the representatives of the terms in the range of
    *           the substitution m,
@@ -139,25 +146,40 @@ class Instantiate : public QuantifiersUtil
    *
    */
   bool addInstantiation(Node q,
-                        InstMatch& m,
-                        bool mkRep = false,
-                        bool modEq = false,
-                        bool doVts = false);
-  /** add instantiation
-   *
-   * Same as above, but the substitution we are considering maps the variables
-   * of q to the vector terms, in order.
-   */
-  bool addInstantiation(Node q,
                         std::vector<Node>& terms,
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
-  /** remove pending instantiation
+  /**
+   * Same as above, but we also compute a vector failMask indicating which
+   * values in terms led to the instantiation not being added when this method
+   * returns false.  For example, if q is the formula
+   *   forall xy. x>5 => P(x,y)
+   * If terms = { 4, 0 }, then this method will return false since
+   *   4>5 => P(4,0)
+   * is entailed true based on rewriting. This method may additionally set
+   * failMask to "10", indicating that x's value was critical, but y's value
+   * was not. In other words, all instantiations including { x -> 4 } will also
+   * lead to this method returning false.
    *
-   * Removes the instantiation lemma lem from the instantiation trie.
+   * The bits of failMask are computed in a greedy fashion, in reverse order.
+   * That is, we check whether each variable is critical one at a time, starting
+   * from the end.
+   *
+   * The parameter expFull is whether try to set all bits of the fail mask to
+   * 0. If this argument is true, then we only try to set a suffix of the
+   * bits in failMask to false. The motivation for expFull=false is for callers
+   * of this method that are enumerating tuples in lexiocographic order. The
+   * number of false bits in the suffix of failMask tells the caller how many
+   * "decimal" places to increment their iterator.
    */
-  bool removeInstantiation(Node q, Node lem, std::vector<Node>& terms);
+  bool addInstantiationExpFail(Node q,
+                               std::vector<Node>& terms,
+                               std::vector<bool>& failMask,
+                               bool mkRep = false,
+                               bool modEq = false,
+                               bool doVts = false,
+                               bool expFull = true);
   /** record instantiation
    *
    * Explicitly record that q has been instantiated with terms. This is the
@@ -193,11 +215,6 @@ class Instantiate : public QuantifiersUtil
                         LazyCDProof* pf = nullptr);
   /** get instantiation
    *
-   * Same as above, but with vars/terms specified by InstMatch m.
-   */
-  Node getInstantiation(Node q, InstMatch& m, bool doVts = false);
-  /** get instantiation
-   *
    * Same as above but with vars equal to the bound variables of q.
    */
   Node getInstantiation(Node q, std::vector<Node>& terms, bool doVts = false);
@@ -230,19 +247,6 @@ class Instantiate : public QuantifiersUtil
    * user context, store them in qs.
    */
   void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for quantified formula q, store them in insts.
-   */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  /** get instantiations
-   *
-   * Get the body of all instantiation lemmas added in the current user context
-   * for all quantified formulas stored in the domain of insts, store them in
-   * the range of insts.
-   */
-  void getInstantiations(std::map<Node, std::vector<Node> >& insts);
   /** get instantiation term vectors
    *
    * Get term vectors corresponding to for all instantiations lemmas added in
@@ -257,29 +261,6 @@ class Instantiate : public QuantifiersUtil
    */
   void getInstantiationTermVectors(
       std::map<Node, std::vector<std::vector<Node> > >& insts);
-  /** get instantiated conjunction
-   *
-   * This gets a conjunction of the bodies of instantiation lemmas added in the
-   * current user context for quantified formula q.  For example, if we added:
-   *   ~forall x. P( x ) V P( a )
-   *   ~forall x. P( x ) V P( b )
-   * Then, this method returns P( a ) ^ P( b ).
-   */
-  Node getInstantiatedConjunction(Node q);
-  /** get unsat core lemmas
-   *
-   * If this method returns true, then it appends to activeLemmas all lemmas
-   * that are in the unsat core that originated from the theory of quantifiers.
-   * This method returns false if the unsat core is not available.
-   */
-  bool getUnsatCoreLemmas(std::vector<Node>& activeLemmas);
-  /** get explanation for instantiation lemmas
-   *
-   *
-   */
-  void getExplanationForInstLemmas(const std::vector<Node>& lems,
-                                   std::map<Node, Node>& quant,
-                                   std::map<Node, std::vector<Node> >& tvec);
   //--------------------------------------end user-level interface utilities
 
   /** Are proofs enabled for this object? */
@@ -329,12 +310,12 @@ class Instantiate : public QuantifiersUtil
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */
   TermDb* d_term_db;
-  /** cache of term util for quantifiers engine */
-  TermUtil* d_term_util;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 
