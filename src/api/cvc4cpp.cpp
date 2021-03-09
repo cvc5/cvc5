@@ -41,9 +41,6 @@
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/dtype_selector.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
-#include "expr/expr_manager_scope.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
@@ -687,7 +684,7 @@ uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  uint32_t min = CVC4::ExprManager::minArity(extToIntKind(k));
+  uint32_t min = CVC4::kind::metakind::getLowerBoundForKind(extToIntKind(k));
 
   // At the API level, we treat functions/constructors/selectors/testers as
   // normal terms instead of making them part of the operator
@@ -702,7 +699,7 @@ uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  uint32_t max = CVC4::ExprManager::maxArity(extToIntKind(k));
+  uint32_t max = CVC4::kind::metakind::getUpperBoundForKind(extToIntKind(k));
 
   // At the API level, we treat functions/constructors/selectors/testers as
   // normal terms instead of making them part of the operator
@@ -1401,11 +1398,6 @@ Op::Op(const Solver* slv, const Kind k)
 {
 }
 
-Op::Op(const Solver* slv, const Kind k, const CVC4::Expr& e)
-    : d_solver(slv), d_kind(k), d_node(new CVC4::Node(Node::fromExpr(e)))
-{
-}
-
 Op::Op(const Solver* slv, const Kind k, const CVC4::Node& n)
     : d_solver(slv), d_kind(k), d_node(new CVC4::Node(n))
 {
@@ -1636,7 +1628,7 @@ size_t OpHashFunction::operator()(const Op& t) const
 {
   if (t.isIndexedHelper())
   {
-    return ExprHashFunction()(t.d_node->toExpr());
+    return NodeHashFunction()(*t.d_node);
   }
   else
   {
@@ -1649,13 +1641,6 @@ size_t OpHashFunction::operator()(const Op& t) const
 /* -------------------------------------------------------------------------- */
 
 Term::Term() : d_solver(nullptr), d_node(new CVC4::Node()) {}
-
-Term::Term(const Solver* slv, const CVC4::Expr& e) : d_solver(slv)
-{
-  // Ensure that we create the node in the correct node manager.
-  NodeManagerScope scope(d_solver->getNodeManager());
-  d_node.reset(new CVC4::Node(e));
-}
 
 Term::Term(const Solver* slv, const CVC4::Node& n) : d_solver(slv)
 {
@@ -1768,12 +1753,12 @@ Term Term::operator[](size_t index) const
     if (index == 0)
     {
       // return the operator
-      return Term(d_solver, d_node->getOperator().toExpr());
+      return Term(d_solver, d_node->getOperator());
     }
     // otherwise we are looking up child at (index-1)
     index--;
   }
-  return Term(d_solver, (*d_node)[index].toExpr());
+  return Term(d_solver, (*d_node)[index]);
 }
 
 uint64_t Term::getId() const
@@ -1870,7 +1855,7 @@ bool Term::isNull() const { return isNullHelper(); }
 
 Term Term::getConstArrayBase() const
 {
-  CVC4::ExprManagerScope exmgrs(*(d_solver->getExprManager()));
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK_NOT_NULL;
   // CONST_ARRAY kind maps to STORE_ALL internal kind
   CVC4_API_CHECK(d_node->getKind() == CVC4::Kind::STORE_ALL)
@@ -2120,18 +2105,6 @@ Term::const_iterator Term::end() const
     ++endpos;
   }
   return Term::const_iterator(d_solver, d_node, endpos);
-}
-
-//// !!! This is only temporarily available until the parser is fully migrated
-//// to the new API. !!!
-CVC4::Expr Term::getExpr(void) const
-{
-  if (d_node->isNull())
-  {
-    return Expr();
-  }
-  NodeManagerScope scope(d_solver->getNodeManager());
-  return d_node->toExpr();
 }
 
 const CVC4::Node& Term::getNode(void) const { return *d_node; }
@@ -3045,9 +3018,10 @@ Sort Grammar::resolve()
 
   if (!d_sygusVars.empty())
   {
-    bvl = Term(d_solver,
-               d_solver->getExprManager()->mkExpr(
-                   CVC4::kind::BOUND_VAR_LIST, termVectorToExprs(d_sygusVars)));
+    bvl = Term(
+        d_solver,
+        d_solver->getNodeManager()->mkNode(
+            CVC4::kind::BOUND_VAR_LIST, Term::termVectorToNodes(d_sygusVars)));
   }
 
   std::unordered_map<Term, Sort, TermHashFunction> ntsToUnres(d_ntSyms.size());
@@ -3124,14 +3098,14 @@ void Grammar::addSygusConstructorTerm(
   ssCName << op.getKind();
   if (!args.empty())
   {
-    Term lbvl = Term(d_solver,
-                     d_solver->getExprManager()->mkExpr(
-                         CVC4::kind::BOUND_VAR_LIST, termVectorToExprs(args)));
+    Term lbvl =
+        Term(d_solver,
+             d_solver->getNodeManager()->mkNode(CVC4::kind::BOUND_VAR_LIST,
+                                                Term::termVectorToNodes(args)));
     // its operator is a lambda
-    op = Term(
-        d_solver,
-        d_solver->getExprManager()->mkExpr(
-            CVC4::kind::LAMBDA, {lbvl.d_node->toExpr(), op.d_node->toExpr()}));
+    op = Term(d_solver,
+              d_solver->getNodeManager()->mkNode(
+                  CVC4::kind::LAMBDA, *lbvl.d_node, *op.d_node));
   }
   std::vector<TypeNode> cargst = Sort::sortVectorToTypeNodes(cargs);
   dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
@@ -3161,8 +3135,7 @@ Term Grammar::purifySygusGTerm(
     Term ptermc = purifySygusGTerm(
         Term(d_solver, (*term.d_node)[i]), args, cargs, ntsToUnres);
     pchildren.push_back(ptermc);
-    childChanged =
-        childChanged || ptermc.d_node->toExpr() != (term.d_node->toExpr())[i];
+    childChanged = childChanged || *ptermc.d_node != (*term.d_node)[i];
   }
   if (!childChanged)
   {
@@ -3250,8 +3223,8 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  d_exprMgr.reset(new ExprManager);
-  d_smtEngine.reset(new SmtEngine(d_exprMgr->getNodeManager(), opts));
+  d_nodeMgr.reset(new NodeManager(nullptr));
+  d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), opts));
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
@@ -3366,22 +3339,23 @@ Term Solver::getValueHelper(Term term) const
 
 Term Solver::mkTermFromKind(Kind kind) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_KIND_CHECK_EXPECTED(
       kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
       << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
 
-  Expr res;
+  Node res;
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
     CVC4::Kind k = extToIntKind(kind);
     Assert(isDefinedIntKind(k));
-    res = d_exprMgr->mkExpr(k, std::vector<Expr>());
+    res = d_nodeMgr->mkNode(k, std::vector<Node>());
   }
   else
   {
     Assert(kind == PI);
-    res = d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+    res = d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), CVC4::kind::PI);
   }
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
@@ -3403,48 +3377,48 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
         << "a child term associated to this solver object";
   }
 
-  std::vector<Expr> echildren = termVectorToExprs(children);
+  std::vector<Node> echildren = Term::termVectorToNodes(children);
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k))
       << "Not a defined internal kind : " << k << " " << kind;
 
-  Expr res;
+  Node res;
   if (echildren.size() > 2)
   {
     if (kind == INTS_DIVISION || kind == XOR || kind == MINUS
         || kind == DIVISION || kind == HO_APPLY || kind == REGEXP_DIFF)
     {
       // left-associative, but CVC4 internally only supports 2 args
-      res = d_exprMgr->mkLeftAssociative(k, echildren);
+      res = d_nodeMgr->mkLeftAssociative(k, echildren);
     }
     else if (kind == IMPLIES)
     {
       // right-associative, but CVC4 internally only supports 2 args
-      res = d_exprMgr->mkRightAssociative(k, echildren);
+      res = d_nodeMgr->mkRightAssociative(k, echildren);
     }
     else if (kind == EQUAL || kind == LT || kind == GT || kind == LEQ
              || kind == GEQ)
     {
       // "chainable", but CVC4 internally only supports 2 args
-      res = d_exprMgr->mkChain(k, echildren);
+      res = d_nodeMgr->mkChain(k, echildren);
     }
     else if (kind::isAssociative(k))
     {
       // mkAssociative has special treatment for associative operators with lots
       // of children
-      res = d_exprMgr->mkAssociative(k, echildren);
+      res = d_nodeMgr->mkAssociative(k, echildren);
     }
     else
     {
       // default case, must check kind
       checkMkTerm(kind, children.size());
-      res = d_exprMgr->mkExpr(k, echildren);
+      res = d_nodeMgr->mkNode(k, echildren);
     }
   }
   else if (kind::isAssociative(k))
   {
     // associative case, same as above
-    res = d_exprMgr->mkAssociative(k, echildren);
+    res = d_nodeMgr->mkAssociative(k, echildren);
   }
   else
   {
@@ -3460,8 +3434,7 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // integers and reals (both are Rationals).
       // At the API, mkReal and mkInteger are different and therefore the
       // element type can be used safely here.
-      Node singleton = getNodeManager()->mkSingleton(type, *children[0].d_node);
-      res = Term(this, singleton).getExpr();
+      res = getNodeManager()->mkSingleton(type, *children[0].d_node);
     }
     else if (kind == api::MK_BAG)
     {
@@ -3473,13 +3446,12 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
       // integers and reals (both are Rationals).
       // At the API, mkReal and mkInteger are different and therefore the
       // element type can be used safely here.
-      Node bag = getNodeManager()->mkBag(
+      res = getNodeManager()->mkBag(
           type, *children[0].d_node, *children[1].d_node);
-      res = Term(this, bag).getExpr();
     }
     else
     {
-      res = d_exprMgr->mkExpr(k, echildren);
+      res = d_nodeMgr->mkNode(k, echildren);
     }
   }
 
@@ -3522,21 +3494,6 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   return retTypes;
 
   CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-/* Helpers for converting vectors.                                            */
-/* .......................................................................... */
-
-std::vector<Expr> Solver::termVectorToExprs(
-    const std::vector<Term>& terms) const
-{
-  std::vector<Expr> res;
-  for (const Term& t : terms)
-  {
-    CVC4_API_SOLVER_CHECK_TERM(t);
-    res.push_back(t.d_node->toExpr());
-  }
-  return res;
 }
 
 /* Helpers for mkTerm checks.                                                 */
@@ -3903,21 +3860,21 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 Term Solver::mkTrue(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return Term(this, d_exprMgr->mkConst<bool>(true));
+  return Term(this, d_nodeMgr->mkConst<bool>(true));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::mkFalse(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return Term(this, d_exprMgr->mkConst<bool>(false));
+  return Term(this, d_nodeMgr->mkConst<bool>(false));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term Solver::mkBoolean(bool val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return Term(this, d_exprMgr->mkConst<bool>(val));
+  return Term(this, d_nodeMgr->mkConst<bool>(val));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -3925,8 +3882,8 @@ Term Solver::mkPi() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
-  Expr res =
-      d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+  Node res =
+      d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), CVC4::kind::PI);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -4037,8 +3994,8 @@ Term Solver::mkRegexpEmpty() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
-  Expr res =
-      d_exprMgr->mkExpr(CVC4::kind::REGEXP_EMPTY, std::vector<CVC4::Expr>());
+  Node res =
+      d_nodeMgr->mkNode(CVC4::kind::REGEXP_EMPTY, std::vector<CVC4::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -4049,8 +4006,8 @@ Term Solver::mkRegexpSigma() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
-  Expr res =
-      d_exprMgr->mkExpr(CVC4::kind::REGEXP_SIGMA, std::vector<CVC4::Expr>());
+  Node res =
+      d_nodeMgr->mkNode(CVC4::kind::REGEXP_SIGMA, std::vector<CVC4::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -4133,7 +4090,7 @@ Term Solver::mkEmptySequence(Sort sort) const
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
   std::vector<Node> seq;
-  Expr res = d_exprMgr->mkConst(Sequence(*sort.d_type, seq));
+  Node res = d_nodeMgr->mkConst(Sequence(*sort.d_type, seq));
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4180,7 +4137,7 @@ Term Solver::mkBitVector(uint32_t size,
 Term Solver::mkConstArray(Sort sort, Term val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
   CVC4_API_ARG_CHECK_NOT_NULL(val);
   CVC4_API_SOLVER_CHECK_SORT(sort);
@@ -4340,7 +4297,7 @@ Term Solver::mkConst(Sort sort, const std::string& symbol) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  Expr res = d_exprMgr->mkVar(symbol, sort.d_type->toType());
+  Node res = d_nodeMgr->mkVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -4354,7 +4311,7 @@ Term Solver::mkConst(Sort sort) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  Expr res = d_exprMgr->mkVar(sort.d_type->toType());
+  Node res = d_nodeMgr->mkVar(*sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -4366,13 +4323,13 @@ Term Solver::mkConst(Sort sort) const
 
 Term Solver::mkVar(Sort sort, const std::string& symbol) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  Expr res = symbol.empty()
-                 ? d_exprMgr->mkBoundVar(sort.d_type->toType())
-                 : d_exprMgr->mkBoundVar(symbol, sort.d_type->toType());
+  Node res = symbol.empty() ? d_nodeMgr->mkBoundVar(*sort.d_type)
+                            : d_nodeMgr->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
 
@@ -4610,8 +4567,8 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
     case BITVECTOR_REPEAT:
       res = Op(this,
                kind,
-               mkValHelper<CVC4::BitVectorRepeat>(CVC4::BitVectorRepeat(arg))
-                   .d_node->toExpr());
+               *mkValHelper<CVC4::BitVectorRepeat>(CVC4::BitVectorRepeat(arg))
+                    .d_node);
       break;
     case BITVECTOR_ZERO_EXTEND:
       res = Op(this,
@@ -4794,11 +4751,11 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
 Term Solver::simplify(const Term& term)
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_SOLVER_CHECK_TERM(term);
 
-  return Term(this, d_smtEngine->simplify(term.d_node->toExpr()));
+  return Term(this, d_smtEngine->simplify(*term.d_node));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4806,7 +4763,7 @@ Term Solver::simplify(const Term& term)
 Result Solver::checkEntailed(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -4823,7 +4780,7 @@ Result Solver::checkEntailed(Term term) const
 Result Solver::checkEntailed(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -4862,7 +4819,7 @@ void Solver::assertFormula(Term term) const
 Result Solver::checkSat(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -4878,7 +4835,7 @@ Result Solver::checkSat(void) const
 Result Solver::checkSatAssuming(Term assumption) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -4895,7 +4852,7 @@ Result Solver::checkSatAssuming(Term assumption) const
 Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade() || assumptions.size() == 0
                  || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
@@ -4962,7 +4919,7 @@ Term Solver::declareFun(const std::string& symbol,
     std::vector<TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
     type = getNodeManager()->mkFunctionType(types, type);
   }
-  return Term(this, d_exprMgr->mkVar(symbol, type.toType()));
+  return Term(this, d_nodeMgr->mkVar(symbol, type));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -5020,7 +4977,7 @@ Term Solver::defineFun(const std::string& symbol,
   {
     type = nm->mkFunctionType(domain_types, type);
   }
-  Node fun = Node::fromExpr(d_exprMgr->mkVar(symbol, type.toType()));
+  Node fun = d_nodeMgr->mkVar(symbol, type);
   std::vector<Node> ebound_vars = Term::termVectorToNodes(bound_vars);
   d_smtEngine->defineFunction(fun, ebound_vars, *term.d_node, global);
   return Term(this, fun);
@@ -5128,10 +5085,9 @@ Term Solver::defineFunRec(const std::string& symbol,
   {
     type = nm->mkFunctionType(domain_types, type);
   }
-  Node fun = Node::fromExpr(d_exprMgr->mkVar(symbol, type.toType()));
+  Node fun = d_nodeMgr->mkVar(symbol, type);
   std::vector<Node> ebound_vars = Term::termVectorToNodes(bound_vars);
-  d_smtEngine->defineFunctionRec(
-      fun, ebound_vars, term.d_node->toExpr(), global);
+  d_smtEngine->defineFunctionRec(fun, ebound_vars, *term.d_node, global);
   return Term(this, fun);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5333,7 +5289,7 @@ std::string Solver::getOption(const std::string& option) const
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot get unsat assumptions unless incremental solving is enabled "
          "(try --incremental)";
@@ -5348,9 +5304,9 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
    *   return std::vector<Term>(uassumptions.begin(), uassumptions.end());
    * here since constructor is private */
   std::vector<Term> res;
-  for (const Node& e : uassumptions)
+  for (const Node& n : uassumptions)
   {
-    res.push_back(Term(this, e.toExpr()));
+    res.push_back(Term(this, n));
   }
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5362,7 +5318,7 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
@@ -5398,7 +5354,7 @@ Term Solver::getValue(Term term) const
 std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
@@ -5422,7 +5378,7 @@ Term Solver::getQuantifierElimination(api::Term q) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(q);
   CVC4_API_SOLVER_CHECK_TERM(q);
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   return Term(this,
               d_smtEngine->getQuantifierElimination(q.getNode(), true, true));
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5433,7 +5389,7 @@ Term Solver::getQuantifierEliminationDisjunct(api::Term q) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(q);
   CVC4_API_SOLVER_CHECK_TERM(q);
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   return Term(
       this, d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5457,7 +5413,7 @@ Term Solver::getSeparationHeap() const
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
@@ -5474,7 +5430,7 @@ Term Solver::getSeparationNilTerm() const
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
@@ -5490,7 +5446,7 @@ Term Solver::getSeparationNilTerm() const
 void Solver::pop(uint32_t nscopes) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot pop when not solving incrementally (use --incremental)";
   CVC4_API_CHECK(nscopes <= d_smtEngine->getNumUserLevels())
@@ -5507,7 +5463,7 @@ void Solver::pop(uint32_t nscopes) const
 bool Solver::getInterpolant(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   Node result;
   bool success = d_smtEngine->getInterpol(*conj.d_node, result);
   if (success)
@@ -5521,7 +5477,7 @@ bool Solver::getInterpolant(Term conj, Term& output) const
 bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   Node result;
   bool success =
       d_smtEngine->getInterpol(*conj.d_node, *g.resolve().d_type, result);
@@ -5536,7 +5492,7 @@ bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 bool Solver::getAbduct(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   Node result;
   bool success = d_smtEngine->getAbduct(*conj.d_node, result);
   if (success)
@@ -5550,7 +5506,7 @@ bool Solver::getAbduct(Term conj, Term& output) const
 bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   Node result;
   bool success =
       d_smtEngine->getAbduct(*conj.d_node, *g.resolve().d_type, result);
@@ -5565,7 +5521,7 @@ bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
 void Solver::blockModel() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
@@ -5594,7 +5550,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
         this == terms[i].d_solver, "term", terms[i], i)
         << "a term associated to this solver object";
   }
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   d_smtEngine->blockModelValues(Term::termVectorToNodes(terms));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5602,7 +5558,7 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
 void Solver::printInstantiations(std::ostream& out) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   d_smtEngine->printInstantiations(out);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5613,7 +5569,7 @@ void Solver::printInstantiations(std::ostream& out) const
 void Solver::push(uint32_t nscopes) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot push when not solving incrementally (use --incremental)";
 
@@ -5711,9 +5667,9 @@ Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
     // advantage wrt using TO_REAL since (constant) division is always included
     // in the theory.
     res = Term(this,
-               d_exprMgr->mkExpr(extToIntKind(DIVISION),
-                                 res.d_node->toExpr(),
-                                 d_exprMgr->mkConst(CVC4::Rational(1))));
+               d_nodeMgr->mkNode(extToIntKind(DIVISION),
+                                 *res.d_node,
+                                 d_nodeMgr->mkConst(CVC4::Rational(1))));
   }
   Assert(res.getSort() == sort);
   return res;
@@ -6001,16 +5957,7 @@ void Solver::printSynthSolution(std::ostream& out) const
  * !!! This is only temporarily available until the parser is fully migrated to
  * the new API. !!!
  */
-ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
-
-/**
- * !!! This is only temporarily available until the parser is fully migrated to
- * the new API. !!!
- */
-NodeManager* Solver::getNodeManager(void) const
-{
-  return d_exprMgr->getNodeManager();
-}
+NodeManager* Solver::getNodeManager(void) const { return d_nodeMgr.get(); }
 
 /**
  * !!! This is only temporarily available until the parser is fully migrated to
@@ -6023,20 +5970,6 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
  * the new API. !!!
  */
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
-
-/* -------------------------------------------------------------------------- */
-/* Conversions                                                                */
-/* -------------------------------------------------------------------------- */
-
-std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms)
-{
-  std::vector<Expr> exprs;
-  for (size_t i = 0, tsize = terms.size(); i < tsize; i++)
-  {
-    exprs.push_back(terms[i].getExpr());
-  }
-  return exprs;
-}
 
 }  // namespace api
 
