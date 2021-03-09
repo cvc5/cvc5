@@ -239,7 +239,11 @@ ContextObj* ContextObj::restoreAndContinue()
 
 void ContextObj::destroy()
 {
-  /* The object to destroy may never be invalid. */
+  /* The object to destroy must be valid, i.e., its current state must belong
+   * to a scope. We remove the object and its previous versions from their
+   * respective scopes below. If this assertion is failing, you may have
+   * created an object at a non-zero level and let it outlive the destruction
+   * of that level. */
   Assert(d_pScope != nullptr);
   /* Context can be big and complicated, so we only want to process this output
    * if we're really going to use it. (Same goes below.) */
