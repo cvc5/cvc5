@@ -48,7 +48,7 @@ class Rewriter;
 
 /**
  * The environment class.
- * 
+ *
  * This class lives in the SmtEngine and contains all utilities that are
  * globally available to all internal code.
  */

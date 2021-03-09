@@ -1784,7 +1784,7 @@ void SmtEngine::pop() {
 void SmtEngine::reset()
 {
   // save pointer to the current node manager
-  NodeManager * nm = getNodeManager();
+  NodeManager* nm = getNodeManager();
   SmtScope smts(this);
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
