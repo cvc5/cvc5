@@ -49,7 +49,7 @@ PreprocessingPassResult BvAbstraction::applyInternal(
                                assertionsToPreprocess->end());
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
   bv::TheoryBV* bv_theory = static_cast<bv::TheoryBV*>(te->theoryOf(THEORY_BV));
-  bool changed = bv_theory->applyAbstraction(assertions, new_assertions);
+  bv_theory->applyAbstraction(assertions, new_assertions);
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(i, Rewriter::rewrite(new_assertions[i]));

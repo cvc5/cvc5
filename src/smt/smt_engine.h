@@ -852,13 +852,13 @@ class CVC4_PUBLIC SmtEngine
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
   /** Get the resource manager of this SMT engine */
-  ResourceManager* getResourceManager();
+  ResourceManager* getResourceManager() const;
 
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
   /** Get the printer used by this SMT engine */
-  const Printer* getPrinter() const;
+  const Printer& getPrinter() const;
 
   /** Get the output manager for this SMT engine */
   OutputManager& getOutputManager();
