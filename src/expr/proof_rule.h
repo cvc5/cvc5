@@ -781,7 +781,9 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method. Alternatively, can use negated forall as a premise.
+  // method. Alternatively, can use negated forall as a premise. The witness
+  // terms for the returned skolems can be obtained by
+  // SkolemManager::getWitnessForm.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
