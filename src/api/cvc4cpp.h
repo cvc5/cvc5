@@ -3545,6 +3545,7 @@ class CVC4_PUBLIC Solver
  private:
   /** @return the node manager of this solver */
   NodeManager* getNodeManager(void) const;
+
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /** Helper for mk-functions that call d_nodeMgr->mkConst(). */
@@ -3563,8 +3564,6 @@ class CVC4_PUBLIC Solver
                          uint32_t base) const;
   /** Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
-  /** Helper for setLogic. */
-  void setLogicHelper(const std::string& logic) const;
   /** Helper for mkTerm functions that create Term from a Kind */
   Term mkTermFromKind(Kind kind) const;
   /** Helper for mkChar functions that take a string as argument. */
@@ -3624,7 +3623,7 @@ class CVC4_PUBLIC Solver
                       bool isInv = false,
                       Grammar* g = nullptr) const;
 
-  /** check whether string s is a valid decimal integer */
+  /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
 
   /** The node manager of this solver. */
