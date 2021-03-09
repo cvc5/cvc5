@@ -89,7 +89,10 @@ StatisticsRegistry* Env::getStatisticsRegistry()
 
 const Options& Env::getOptions() const { return d_options; }
 
-ResourceManager* Env::getResourceManager() const { return d_resourceManager.get(); }
+ResourceManager* Env::getResourceManager() const
+{
+  return d_resourceManager.get();
+}
 
 const Printer& Env::getPrinter()
 {
