@@ -30,6 +30,10 @@
 #include "theory/arith/normal_form.h"
 #include "theory/eager_proof_generator.h"
 
+#ifdef CVC4_USE_GLPK
+#include "theory/arith/partial_model.h"
+#endif
+
 using namespace std;
 
 namespace CVC4 {
