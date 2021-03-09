@@ -203,9 +203,9 @@ class SmtEngineState
   /** Reference to the SmtEngine */
   SmtEngine& d_smt;
   /** Expr manager context */
-  context::Context* d_context;
+  std::unique_ptr<context::Context> d_context;
   /** User level context */
-  context::UserContext* d_userContext;
+  std::unique_ptr<context::UserContext> d_userContext;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 

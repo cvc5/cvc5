@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file smt_engine.cpp
+/*! \file env.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
@@ -9,74 +9,22 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The main entry point into the CVC4 library's SMT interface
- **
- ** The main entry point into the CVC4 library's SMT interface.
+ ** \brief Smt Environment, main access to global utilities available to
+ ** internal code.
  **/
 
-#include "smt/smt_engine.h"
+#include "smt/env.h"
 
-#include "api/cvc4cpp.h"
-#include "base/check.h"
-#include "base/exception.h"
-#include "base/modal_exception.h"
-#include "base/output.h"
-#include "decision/decision_engine.h"
-#include "expr/bound_var_manager.h"
 #include "expr/node.h"
-#include "options/base_options.h"
-#include "options/language.h"
-#include "options/main_options.h"
 #include "options/printer_options.h"
-#include "options/proof_options.h"
-#include "options/smt_options.h"
-#include "options/theory_options.h"
 #include "printer/printer.h"
-#include "proof/proof_manager.h"
-#include "proof/unsat_core.h"
-#include "prop/prop_engine.h"
-#include "smt/abduction_solver.h"
-#include "smt/abstract_values.h"
-#include "smt/assertions.h"
-#include "smt/check_models.h"
-#include "smt/defined_function.h"
 #include "smt/dump.h"
 #include "smt/dump_manager.h"
-#include "smt/interpolation_solver.h"
-#include "smt/listeners.h"
-#include "smt/logic_exception.h"
-#include "smt/model_blocker.h"
-#include "smt/model_core_builder.h"
-#include "smt/node_command.h"
-#include "smt/options_manager.h"
-#include "smt/preprocessor.h"
-#include "smt/proof_manager.h"
-#include "smt/quant_elim_solver.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
-#include "smt/smt_solver.h"
-#include "smt/sygus_solver.h"
-#include "smt/unsat_core_manager.h"
-#include "theory/quantifiers/instantiation_list.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
-#include "theory/smt_engine_subsolver.h"
-#include "theory/theory_engine.h"
-#include "util/random.h"
 #include "util/resource_manager.h"
 
-// required for hacks related to old proofs for unsat cores
-#include "base/configuration.h"
-#include "base/configuration_private.h"
-
-using namespace std;
 using namespace CVC4::smt;
-using namespace CVC4::preprocessing;
-using namespace CVC4::prop;
-using namespace CVC4::context;
-using namespace CVC4::theory;
 
 namespace CVC4 {
 
