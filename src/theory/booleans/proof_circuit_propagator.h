@@ -22,9 +22,13 @@
 #include <memory>
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
+#include "expr/proof_rule.h"
 
 namespace CVC4 {
+
+class ProofNode;
+class ProofNodeManager;
+
 namespace theory {
 namespace booleans {
 

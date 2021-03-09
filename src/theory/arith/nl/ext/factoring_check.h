@@ -18,12 +18,16 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
+
+class CDProof;
+
 namespace theory {
 namespace arith {
 namespace nl {
+
+class ExtState;
 
 class FactoringCheck
 {

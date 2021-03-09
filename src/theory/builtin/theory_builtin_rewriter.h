@@ -20,7 +20,6 @@
 #ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 #define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 
-#include "theory/theory.h"
 #include "theory/theory_rewriter.h"
 
 namespace CVC4 {

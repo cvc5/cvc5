@@ -20,7 +20,7 @@
 #pragma once
 
 #include "expr/node.h"
-#include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "context/cdlist.h"
 #include "context/cdhashset.h"
 #include "context/cdhashmap.h"

@@ -23,12 +23,14 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
-#include "prop/cnf_stream.h"
-#include "prop/registrar.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
 namespace CVC4 {
+namespace prop {
+class CnfStream;
+class NullRegistrat;
+}
 namespace theory {
 namespace bv {
 

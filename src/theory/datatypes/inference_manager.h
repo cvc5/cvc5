@@ -17,10 +17,8 @@
 #ifndef CVC4__THEORY__DATATYPES__INFERENCE_MANAGER_H
 #define CVC4__THEORY__DATATYPES__INFERENCE_MANAGER_H
 
-#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/datatypes/infer_proof_cons.h"
-#include "theory/datatypes/inference.h"
 #include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {

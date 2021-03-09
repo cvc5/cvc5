@@ -22,7 +22,6 @@
 #include "expr/kind.h"
 #include "expr/type_node.h"
 #include "expr/uninterpreted_constant.h"
-#include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/type_enumerator.h"
 #include "util/integer.h"
 

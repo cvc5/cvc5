@@ -15,13 +15,16 @@
 #ifndef CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
 #define CVC4__THEORY__ARITH__NL__EXT__TANGENT_PLANE_CHECK_H
 
+#include <map>
+
 #include "expr/node.h"
-#include "theory/arith/nl/ext/ext_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+class ExtState;
 
 class TangentPlaneCheck
 {

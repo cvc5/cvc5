@@ -18,7 +18,6 @@
 #pragma once
 
 #include <map>
-#include <queue>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -30,10 +29,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/proof_generator.h"
 #include "options/arith_options.h"
-#include "smt/logic_exception.h"
-#include "smt_util/boolean_simplification.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -54,9 +50,6 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
@@ -67,6 +60,10 @@
 
 namespace CVC4 {
 namespace theory {
+
+class EagerProofGenerator;
+class TheoryModel;
+
 namespace arith {
 
 class BranchCutInfo;
