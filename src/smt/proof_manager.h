@@ -2,9 +2,9 @@
 /*! \file proof_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,22 +18,21 @@
 #define CVC4__SMT__PROOF_MANAGER_H
 
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
-#include "smt/preprocess_proof_generator.h"
-#include "smt/proof_post_processor.h"
 
 namespace CVC4 {
 
+class ProofChecker;
+class ProofNode;
+class ProofNodeManager;
 class SmtEngine;
 
 namespace smt {
 
 class Assertions;
 class DefinedFunction;
+class PreprocessProofGenerator;
+class ProofPostproccess;
 
 /**
  * This class is responsible for managing the proof output of SmtEngine, as

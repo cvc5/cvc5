@@ -2,9 +2,9 @@
 /*! \file preprocessor.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Haniel Barbosa
+ **   Andrew Reynolds, Morgan Deters, Justin Xu
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,17 +17,20 @@
 #ifndef CVC4__SMT__PREPROCESSOR_H
 #define CVC4__SMT__PREPROCESSOR_H
 
-#include <vector>
+#include <memory>
 
-#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/expand_definitions.h"
 #include "smt/process_assertions.h"
 #include "theory/booleans/circuit_propagator.h"
 
 namespace CVC4 {
+namespace preprocessing {
+class PreprocessingPassContext;
+}
 namespace smt {
 
 class AbstractValues;
+class PreprocessProofGenerator;
 
 /**
  * The preprocessor module of an SMT engine.

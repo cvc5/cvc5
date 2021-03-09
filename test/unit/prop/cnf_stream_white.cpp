@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Christopher L. Conway, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "prop/registrar.h"
+#include "prop/sat_solver.h"
 #include "prop/theory_proxy.h"
 #include "test_smt.h"
 #include "theory/arith/theory_arith.h"

@@ -2,9 +2,9 @@
 /*! \file theory_preprocess.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,10 @@
 #include "preprocessing/passes/theory_preprocess.h"
 
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "proof/proof_manager.h"
+#include "prop/prop_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
@@ -35,7 +39,7 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
   d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   IteSkolemMap& imap = assertions->getIteSkolemMap();
-  PropEngine* propEngine = d_preprocContext->getPropEngine();
+  prop::PropEngine* propEngine = d_preprocContext->getPropEngine();
   // Remove all of the ITE occurrences and normalize
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {

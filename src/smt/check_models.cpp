@@ -2,9 +2,9 @@
 /*! \file check_models.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Yoni Zohar
+ **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,10 @@
 #include "smt/check_models.h"
 
 #include "options/smt_options.h"
+#include "smt/model.h"
 #include "smt/node_command.h"
 #include "smt/preprocessor.h"
+#include "smt/smt_solver.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_engine.h"

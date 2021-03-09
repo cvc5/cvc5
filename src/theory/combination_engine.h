@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,10 +20,7 @@
 #include <vector>
 #include <memory>
 
-#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager.h"
-#include "theory/model_manager.h"
-#include "theory/shared_solver.h"
 #include "theory/valuation.h"
 
 namespace CVC4 {
@@ -31,6 +28,10 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
+
+class EagerProofGenerator;
+class ModelManager;
+class SharedSolver;
 
 /**
  * Manager for doing theory combination. This class is responsible for:

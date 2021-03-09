@@ -2,9 +2,9 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Gereon Kremer, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,18 +17,16 @@
 #ifndef CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
 #define CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
 
-#include <map>
 #include <vector>
 
-#include "theory/arith/arith_state.h"
 #include "theory/inference_id.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
+class ArithState;
 class TheoryArith;
 
 /**

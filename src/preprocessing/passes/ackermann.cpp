@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Ying Sheng, Yoni Zohar, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,11 +22,15 @@
  **/
 
 #include "preprocessing/passes/ackermann.h"
+
 #include <cmath>
+
 #include "base/check.h"
 #include "expr/node_algorithm.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -197,7 +201,7 @@ size_t getBVSkolemSize(size_t capacity)
  * a sufficient bit-vector size.
  * Populate usVarsToBVVars so that it maps variables with uninterpreted sort to
  * the fresh skolem BV variables. variables */
-void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& vars,
+void collectUSortsToBV(const std::unordered_set<TNode, TNodeHashFunction>& vars,
                        const USortToBVSizeMap& usortCardinality,
                        SubstitutionMap& usVarsToBVVars)
 {

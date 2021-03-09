@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Yoni Zohar, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "expr/node_traversal.h"
 #include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -32,6 +33,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;

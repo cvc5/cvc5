@@ -4,12 +4,12 @@
  ** Top contributors (to current version):
  **   Makai Mann, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of the Term class
+ ** \brief Black box testing of the Op class.
  **/
 
 #include "test_api.h"
@@ -41,12 +41,7 @@ TEST_F(TestApiBlackOp, isNull)
 
 TEST_F(TestApiBlackOp, opFromKind)
 {
-  Op plus(&d_solver, PLUS);
-  ASSERT_FALSE(plus.isIndexed());
-  ASSERT_THROW(plus.getIndices<uint32_t>(), CVC4ApiException);
-
   ASSERT_NO_THROW(d_solver.mkOp(PLUS));
-  ASSERT_EQ(plus, d_solver.mkOp(PLUS));
   ASSERT_THROW(d_solver.mkOp(BITVECTOR_EXTRACT), CVC4ApiException);
 }
 

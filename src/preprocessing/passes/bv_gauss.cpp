@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,15 +17,16 @@
 
 #include "preprocessing/passes/bv_gauss.h"
 
+#include <unordered_map>
+#include <vector>
+
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
-
-#include <unordered_map>
-#include <vector>
-
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -163,7 +164,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_UREM_TOTAL:
+        case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
         {
@@ -212,7 +213,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
 
         default:
         {
-          /* BITVECTOR_UDIV_TOTAL (since x / 0 = -1)
+          /* BITVECTOR_UDIV (since x / 0 = -1)
            * BITVECTOR_NOT
            * BITVECTOR_NEG
            * BITVECTOR_SHL */

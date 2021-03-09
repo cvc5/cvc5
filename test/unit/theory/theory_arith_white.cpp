@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,7 +41,7 @@ class TestTheoryWhiteArith : public TestSmtNoFinishInit
   void SetUp() override
   {
     TestSmtNoFinishInit::SetUp();
-    d_smtEngine->setOption("incremental", CVC4::SExpr(false));
+    d_smtEngine->setOption("incremental", "false");
     d_smtEngine->finishInit();
     d_context = d_smtEngine->getContext();
     d_user_context = d_smtEngine->getUserContext();

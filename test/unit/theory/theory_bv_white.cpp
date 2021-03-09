@@ -2,9 +2,9 @@
 /*! \file theory_bv_white.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+ **   Aina Niemetz, Abdalrhman Mohamed, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,8 +43,8 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
 {
   d_smtEngine->setLogic("QF_BV");
 
-  d_smtEngine->setOption("bitblast", SExpr("eager"));
-  d_smtEngine->setOption("incremental", SExpr("false"));
+  d_smtEngine->setOption("bitblast", "eager");
+  d_smtEngine->setOption("incremental", "false");
   // Notice that this unit test uses the theory engine of a created SMT
   // engine d_smtEngine. We must ensure that d_smtEngine is properly initialized
   // via the following call, which constructs its underlying theory engine.
@@ -72,7 +72,7 @@ TEST_F(TestTheoryWhiteBv, bitblaster_core)
 
 TEST_F(TestTheoryWhiteBv, mkUmulo)
 {
-  d_smtEngine->setOption("incremental", SExpr("true"));
+  d_smtEngine->setOption("incremental", "true");
   for (uint32_t w = 1; w < 16; ++w)
   {
     d_smtEngine->push();

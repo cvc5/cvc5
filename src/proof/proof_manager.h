@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
 #ifndef CVC4__PROOF_MANAGER_H
 #define CVC4__PROOF_MANAGER_H
 
-#include <iosfwd>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
@@ -28,7 +27,6 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "proof/clause_id.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

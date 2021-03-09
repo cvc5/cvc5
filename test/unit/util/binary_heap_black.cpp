@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,14 +64,14 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_DEATH(heap.top(), "!empty\\(\\)");
   ASSERT_DEATH(heap.pop(), "!empty\\(\\)");
 #endif
-  ASSERT_EQ(heap.begin(), heap.end());
+  ASSERT_TRUE(heap.begin() == heap.end());
 
   BinaryHeap<int32_t>::handle h5 = heap.push(5);
   ASSERT_TRUE(h5 == h5);
   ASSERT_EQ(heap.top(), 5);
   ASSERT_EQ(heap.size(), 1u);
   ASSERT_FALSE(heap.empty());
-  ASSERT_NE(heap.begin(), heap.end());
+  ASSERT_TRUE(heap.begin() != heap.end());
   ASSERT_EQ(*h5, 5);
   ASSERT_EQ(*heap.begin(), 5);
   ASSERT_NO_THROW(heap.erase(h5));
@@ -93,7 +93,7 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_NE(h3, h10);
   ASSERT_NE(h3, h2);
   ASSERT_NE(h10, h2);
-  ASSERT_NE(heap.begin(), heap.end());
+  ASSERT_TRUE(heap.begin() != heap.end());
   ASSERT_EQ(*heap.begin(), 10);
   ASSERT_EQ(*h2, 2);
   ASSERT_EQ(*h3, 3);
@@ -102,37 +102,37 @@ TEST_F(TestUtilBlackBinaryHeap, heap_series)
   ASSERT_EQ(heap.top(), 10);
   // test the iterator (note the order of elements isn't guaranteed!)
   BinaryHeap<int32_t>::const_iterator i = heap.begin();
-  ASSERT_NE(i, heap.end());
+  ASSERT_TRUE(i != heap.end());
   ASSERT_NO_THROW(*i++);
-  ASSERT_NE(i, heap.end());
+  ASSERT_TRUE(i != heap.end());
   ASSERT_NO_THROW(*i++);
-  ASSERT_NE(i, heap.end());
+  ASSERT_TRUE(i != heap.end());
   ASSERT_NO_THROW(*i++);
-  ASSERT_NE(i, heap.end());
+  ASSERT_TRUE(i != heap.end());
   ASSERT_NO_THROW(*i++);
-  ASSERT_EQ(i, heap.end());
+  ASSERT_TRUE(i == heap.end());
   ASSERT_FALSE(heap.empty());
   ASSERT_EQ(heap.size(), 4u);
   ASSERT_NO_THROW(heap.pop());
-  ASSERT_NE(heap.begin(), heap.end());
+  ASSERT_TRUE(i != heap.end());
   ASSERT_EQ(*heap.begin(), 5);
   ASSERT_EQ(heap.top(), 5);
   ASSERT_FALSE(heap.empty());
   ASSERT_EQ(heap.size(), 3u);
   ASSERT_NO_THROW(heap.pop());
-  ASSERT_NE(heap.begin(), heap.end());
+  ASSERT_TRUE(heap.begin() != heap.end());
   ASSERT_EQ(*heap.begin(), 3);
   ASSERT_EQ(heap.top(), 3);
   ASSERT_FALSE(heap.empty());
   ASSERT_EQ(heap.size(), 2u);
   ASSERT_NO_THROW(heap.pop());
-  ASSERT_NE(heap.begin(), heap.end());
+  ASSERT_TRUE(heap.begin() != heap.end());
   ASSERT_EQ(*heap.begin(), 2);
   ASSERT_EQ(heap.top(), 2);
   ASSERT_FALSE(heap.empty());
   ASSERT_EQ(heap.size(), 1u);
   ASSERT_NO_THROW(heap.pop());
-  ASSERT_EQ(heap.begin(), heap.end());
+  ASSERT_TRUE(heap.begin() == heap.end());
   ASSERT_TRUE(heap.empty());
   ASSERT_EQ(heap.size(), 0u);
 #ifdef CVC4_ASSERTIONS

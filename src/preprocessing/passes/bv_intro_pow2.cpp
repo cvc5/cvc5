@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,8 @@
 
 #include <unordered_map>
 
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 

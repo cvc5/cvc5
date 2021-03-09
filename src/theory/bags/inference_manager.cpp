@@ -2,9 +2,9 @@
 /*! \file inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed, Morgan Deters, Dejan Jovanovic
+ **   Mudathir Mohamed, Morgan Deters, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,8 @@
  **/
 
 #include "theory/bags/inference_manager.h"
+
+#include "theory/bags/solver_state.h"
 
 using namespace std;
 using namespace CVC4::kind;

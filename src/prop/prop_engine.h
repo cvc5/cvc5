@@ -2,9 +2,9 @@
 /*! \file prop_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,40 +21,26 @@
 #ifndef CVC4__PROP_ENGINE_H
 #define CVC4__PROP_ENGINE_H
 
-#include <sys/time.h>
-
-#include "base/modal_exception.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
-#include "options/options.h"
-#include "proof/proof_manager.h"
-#include "prop/minisat/core/Solver.h"
-#include "prop/minisat/minisat.h"
-#include "prop/proof_cnf_stream.h"
-#include "prop/prop_proof_manager.h"
-#include "prop/sat_solver_types.h"
+#include "theory/output_channel.h"
 #include "theory/trust_node.h"
-#include "theory/theory_inference_manager.h"
-#include "util/resource_manager.h"
 #include "util/result.h"
-#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
 class DecisionEngine;
 class OutputManager;
+class ProofNodeManager;
 class TheoryEngine;
-
-namespace theory {
-  class TheoryRegistrar;
-}/* CVC4::theory namespace */
 
 namespace prop {
 
 class CnfStream;
 class CDCLTSatSolverInterface;
-
-class PropEngine;
+class ProofCnfStream;
+class PropPfManager;
 
 /**
  * PropEngine is the abstraction of a Sat Solver, providing methods for

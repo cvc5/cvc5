@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,6 @@
 #define CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
-#include "prop/sat_solver.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -35,6 +34,9 @@ class Cnf_Dat_t_;
 typedef Cnf_Dat_t_ Cnf_Dat_t;
 
 namespace CVC4 {
+namespace prop {
+class SatSolver;
+}
 namespace theory {
 namespace bv {
 
