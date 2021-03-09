@@ -72,8 +72,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
-  if (options::checkUnsatCoresNew())
+  if (options::checkProofs() || options::checkUnsatCoresNew())
   {
+    Notice() << "SmtEngine: setting proof" << std::endl;
     options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
@@ -310,7 +311,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceAbducts()
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
-       || options::blockModelsMode() != options::BlockModelsMode::NONE)
+       || options::blockModelsMode() != options::BlockModelsMode::NONE
+       || options::proof())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -1374,11 +1376,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "Note that in a QF_BV problem UF symbols can be introduced for "
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
-  }
-  // !!!!!!!!!!!!!!!! temporary, until proofs are functional
-  if (options::proof())
-  {
-    throw OptionException("--proof is not yet supported.");
   }
 
   if (logic == LogicInfo("QF_UFNRA"))
