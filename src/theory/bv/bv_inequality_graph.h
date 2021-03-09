@@ -23,11 +23,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdo.h"
 #include "context/cdqueue.h"
 #include "context/context.h"
-#include "theory/theory.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

@@ -34,16 +34,17 @@
 #define CVC4__THEORY__EXT_THEORY_H
 
 #include <map>
-#include <set>
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
+#include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
+
+class OutputChannel;
 
 /**
  * A callback class for ExtTheory below. This class is responsible for

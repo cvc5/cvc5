@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__BAGS_STATISTICS_H
 #define CVC4__THEORY__BAGS_STATISTICS_H
 
-#include "expr/kind.h"
 #include "theory/bags/rewrites.h"
 #include "util/statistics_registry.h"
 

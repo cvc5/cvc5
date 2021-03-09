@@ -32,6 +32,7 @@ namespace CVC4 {
 class ResourceManager;
 class DecisionEngine;
 class OutputManager;
+class ProofNodeManager;
 class TheoryEngine;
 
 namespace prop {

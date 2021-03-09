@@ -56,19 +56,20 @@
 
 #include <unordered_map>
 
+#include "options/arith_options.h"
 #include "theory/arith/arithvar.h"
-#include "theory/arith/delta_rational.h"
-#include "theory/arith/linear_equality.h"
 #include "theory/arith/partial_model.h"
-#include "theory/arith/tableau.h"
 #include "util/dense_map.h"
 #include "util/result.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
 class ErrorSet;
+class LinearEqualityModule;
+class Tableau;
 
 class SimplexDecisionProcedure {
 protected:

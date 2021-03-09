@@ -27,6 +27,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -34,6 +35,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
 

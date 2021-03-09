@@ -19,7 +19,6 @@
 
 #include "expr/node.h"
 #include "expr/proof_checker.h"
-#include "expr/proof_node.h"
 
 namespace CVC4 {
 namespace theory {

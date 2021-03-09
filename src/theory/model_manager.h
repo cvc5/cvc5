@@ -21,14 +21,15 @@
 
 #include "theory/ee_manager.h"
 #include "theory/logic_info.h"
-#include "theory/theory_model.h"
-#include "theory/theory_model_builder.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
 
 namespace theory {
+
+class TheoryEngineModelBuilder;
+class TheoryModel;
 
 /**
  * A base class for managing models. Its main feature is to implement a

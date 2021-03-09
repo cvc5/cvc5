@@ -17,12 +17,14 @@
 #include <map>
 
 #include "expr/node.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 
 namespace CVC4 {
+
+class TConvProofGenerator;
+
 namespace theory {
 namespace arith {
 

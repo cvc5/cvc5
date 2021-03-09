@@ -14,6 +14,8 @@
 
 #include "printer/let_binding.h"
 
+#include <sstream>
+
 namespace CVC4 {
 
 LetBinding::LetBinding(uint32_t thresh)

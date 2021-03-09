@@ -21,6 +21,8 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/error_set.h"
+#include "theory/arith/linear_equality.h"
+#include "theory/arith/tableau.h"
 
 using namespace std;
 

@@ -14,6 +14,7 @@
 
 #include "theory/bags/theory_bags.h"
 
+#include "smt/logic_exception.h"
 #include "theory/bags/normal_form.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"

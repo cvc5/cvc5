@@ -24,7 +24,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-class ExtState;
+struct ExtState;
 
 class TangentPlaneCheck
 {

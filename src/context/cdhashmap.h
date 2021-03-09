@@ -86,7 +86,6 @@
 #include <functional>
 #include <iterator>
 #include <unordered_map>
-#include <vector>
 
 #include "base/check.h"
 #include "context/cdhashmap_forward.h"

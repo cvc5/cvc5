@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
 #include "options/quantifiers_options.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"

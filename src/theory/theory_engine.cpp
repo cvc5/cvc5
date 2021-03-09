@@ -32,6 +32,7 @@
 #include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -49,7 +50,6 @@
 
 using namespace std;
 
-using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
 
 namespace CVC4 {

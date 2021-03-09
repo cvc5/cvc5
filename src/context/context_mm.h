@@ -20,8 +20,9 @@
 #ifndef CVC4__CONTEXT__CONTEXT_MM_H
 #define CVC4__CONTEXT__CONTEXT_MM_H
 
+#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 #include <deque>
-#include <limits>
+#endif
 #include <vector>
 
 namespace CVC4 {
@@ -161,10 +162,7 @@ class ContextMemoryManager {
 class ContextMemoryManager
 {
  public:
-  static unsigned getMaxAllocationSize()
-  {
-    return std::numeric_limits<unsigned>::max();
-  }
+  static unsigned getMaxAllocationSize();
 
   ContextMemoryManager() { d_allocations.push_back(std::vector<char*>()); }
   ~ContextMemoryManager()

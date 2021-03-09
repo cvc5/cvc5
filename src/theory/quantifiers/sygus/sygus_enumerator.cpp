@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/type_node_id_trie.h"

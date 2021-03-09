@@ -23,17 +23,17 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
-#include "expr/dtype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/decision_manager.h"
-#include "theory/quantifiers/sygus/sygus_explain.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
+class SynthConjecture;
+}
 namespace datatypes {
 
 class InferenceManager;

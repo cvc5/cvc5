@@ -21,6 +21,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
+#include "expr/proof_rule.h"
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
 #include "theory/trust_node.h"

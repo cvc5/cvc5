@@ -20,7 +20,7 @@
 #ifndef CVC4__THEORY__THEORY_ID_H
 #define CVC4__THEORY__THEORY_ID_H
 
-#include <iostream>
+#include <iosfwd>
 
 namespace CVC4 {
 namespace theory {

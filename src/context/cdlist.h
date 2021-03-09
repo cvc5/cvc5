@@ -22,9 +22,7 @@
 
 #include <cstring>
 #include <iterator>
-#include <memory>
 #include <string>
-#include <sstream>
 
 #include "base/check.h"
 #include "context/cdlist_forward.h"

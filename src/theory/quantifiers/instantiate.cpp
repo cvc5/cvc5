@@ -21,6 +21,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"

@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "smt/logic_exception.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"

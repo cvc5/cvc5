@@ -16,6 +16,8 @@
 
 #include <vector>
 
+#include "base/check.h"
+#include "expr/node_builder.h"
 #include "theory/theory.h"  // theory.h Only needed for the leaf test
 #include "util/floatingpoint.h"
 #include "util/floatingpoint_literal_symfpu.h"

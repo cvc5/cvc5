@@ -19,11 +19,6 @@
 #ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
 #define CVC4__THEORY__OUTPUT_CHANNEL_H
 
-#include <memory>
-
-#include "expr/proof_node.h"
-#include "smt/logic_exception.h"
-#include "theory/interrupted.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 

@@ -26,6 +26,7 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "smt/logic_exception.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"

@@ -23,6 +23,9 @@
 #include "theory/datatypes/inference.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
 namespace theory {
 namespace datatypes {
 
