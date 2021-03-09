@@ -30,7 +30,7 @@ class TheoryEngine;
 
 namespace theory {
 
-class EeSetupInfo;
+struct EeSetupInfo;
 
 /**
  * A base class for shared solver. The shared solver is the component of theory
