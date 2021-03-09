@@ -31,7 +31,7 @@ class TheoryEngine;
 
 namespace theory {
 
-class Assertion;
+struct Assertion;
 class TheoryModel;
 class SortInference;
 
