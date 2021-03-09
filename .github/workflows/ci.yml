@@ -28,6 +28,7 @@ jobs:
             python-bindings: true
             check-examples: true
             exclude_regress: 3-4
+            run_regression_args: --no-check-unsat-cores
 
           - name: production-clang
             config: production
@@ -36,12 +37,14 @@ jobs:
             env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 1-4
+            run_regression_args: --no-check-proofs
 
           - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
             os: ubuntu-latest
             exclude_regress: 1-4
+            run_regression_args: --no-check-unsat-cores --no-check-proofs
 
           - name: debug-cln-clang
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs --poly
@@ -49,6 +52,7 @@ jobs:
             env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 1-4
+            run_regression_args: --no-check-unsat-cores --no-check-proofs
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -168,6 +172,7 @@ jobs:
       env:
         ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
         CVC4_REGRESSION_ARGS: --no-early-exit
+        RUN_REGRESSION_ARGS: ${{ matrix.run_regression_args }}
       working-directory: build
 
     - name: Install Check

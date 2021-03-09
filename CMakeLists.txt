@@ -432,7 +432,6 @@ if(ENABLE_PROFILING)
 endif()
 
 if(ENABLE_PROOFS)
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --enable-proof)
   add_definitions(-DCVC4_PROOF)
 endif()
 
@@ -497,7 +496,6 @@ if(USE_KISSAT)
 endif()
 
 if(USE_LFSC)
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
   find_package(LFSC REQUIRED)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
