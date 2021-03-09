@@ -64,6 +64,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         // Note that we do not want to modify the top-most SCOPE
         return false;
       }
+      Assert (children.size()==1);
       // (SCOPE P :args (F1 ... Fn))
       // becomes
       // (scope _ _ (\ X1 ... (scope _ _ (\ Xn P)) ... ))
@@ -294,6 +295,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       break;
     default: return false; break;
   }
+  AlwaysAssert (cdp->getProofFor(res)->getRule()!=PfRule::ASSUME);
   return true;
 }
 
@@ -336,7 +338,7 @@ Node LfscProofPostprocessCallback::mkChain(Kind k,
 Node LfscProofPostprocessCallback::mkDummyPredicate()
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkSkolem("dummy", nm->booleanType());
+  return nm->mkBoundVar(nm->booleanType());
 }
 
 LfscProofPostprocess::LfscProofPostprocess(LfscTermProcessor& ltp,
