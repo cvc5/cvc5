@@ -58,9 +58,7 @@ class Env
 
  public:
   /**
-   * Construct an Env with the given node manager. If provided, optr is a
-   * pointer to a set of options that should initialize the values of the
-   * options object owned by this class.
+   * Construct an Env with the given node manager.
    */
   Env(NodeManager* nm);
   /** Destruct the env.  */
