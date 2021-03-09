@@ -29,8 +29,7 @@ using namespace CVC4::smt;
 namespace CVC4 {
 
 Env::Env(NodeManager* nm, Options* optr)
-    : 
-      d_context(new context::Context()),
+    : d_context(new context::Context()),
       d_userContext(new context::UserContext()),
       d_nodeManager(nm),
       d_pnm(nullptr),
@@ -52,16 +51,10 @@ Env::Env(NodeManager* nm, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
 }
 
-Env::~Env()
-{
-}
+Env::~Env() {}
 
-context::UserContext* Env::getUserContext()
-{
-  return d_userContext.get();
-}
+context::UserContext* Env::getUserContext() { return d_userContext.get(); }
 context::Context* Env::getContext() { return d_context.get(); }
-
 
 void Env::finishInit()
 {
@@ -69,15 +62,15 @@ void Env::finishInit()
   // dumping the command twice.
   if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
   {
-      LogicInfo everything;
-      everything.lock();
-      d_outMgr.getPrinter().toStreamCmdComment(
-          d_outMgr.getDumpOut(),
-          "CVC4 always dumps the most general, all-supported logic (below), as "
-          "some internals might require the use of a logic more general than "
-          "the input.");
-      d_outMgr.getPrinter().toStreamCmdSetBenchmarkLogic(
-          d_outMgr.getDumpOut(), everything.getLogicString());
+    LogicInfo everything;
+    everything.lock();
+    d_outMgr.getPrinter().toStreamCmdComment(
+        d_outMgr.getDumpOut(),
+        "CVC4 always dumps the most general, all-supported logic (below), as "
+        "some internals might require the use of a logic more general than "
+        "the input.");
+    d_outMgr.getPrinter().toStreamCmdSetBenchmarkLogic(
+        d_outMgr.getDumpOut(), everything.getLogicString());
   }
 
   // initialize the dump manager
@@ -95,7 +88,8 @@ LogicInfo Env::getUserLogicInfo() const
   return res;
 }
 
-void Env::setResourceLimit(unsigned long units, bool cumulative) {
+void Env::setResourceLimit(unsigned long units, bool cumulative)
+{
   d_resourceManager->setResourceLimit(units, cumulative);
 }
 void Env::setTimeLimit(unsigned long milis)
@@ -103,11 +97,13 @@ void Env::setTimeLimit(unsigned long milis)
   d_resourceManager->setTimeLimit(milis);
 }
 
-unsigned long Env::getResourceUsage() const {
+unsigned long Env::getResourceUsage() const
+{
   return d_resourceManager->getResourceUsage();
 }
 
-unsigned long Env::getTimeUsage() const {
+unsigned long Env::getTimeUsage() const
+{
   return d_resourceManager->getTimeUsage();
 }
 
@@ -142,10 +138,7 @@ void Env::safeFlushStatistics(int fd) const
 
 const Options& Env::getOptions() const { return d_options; }
 
-ResourceManager* Env::getResourceManager()
-{
-  return d_resourceManager.get();
-}
+ResourceManager* Env::getResourceManager() { return d_resourceManager.get(); }
 
 DumpManager* Env::getDumpManager() { return d_dumpm.get(); }
 
@@ -156,4 +149,4 @@ const Printer* Env::getPrinter() const
 
 OutputManager& Env::getOutputManager() { return d_outMgr; }
 
-}/* CVC4 namespace */
+}  // namespace CVC4

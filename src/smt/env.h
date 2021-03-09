@@ -42,9 +42,9 @@ class ResourceManager;
 /* -------------------------------------------------------------------------- */
 
 namespace context {
-  class Context;
-  class UserContext;
-}/* CVC4::context namespace */
+class Context;
+class UserContext;
+}  // namespace context
 
 /* -------------------------------------------------------------------------- */
 
@@ -54,14 +54,13 @@ class AbstractValues;
 class Assertions;
 class DumpManager;
 
-}/* CVC4::smt namespace */
+}  // namespace smt
 
 /* -------------------------------------------------------------------------- */
 
 namespace theory {
-  class Rewriter;
-}/* CVC4::theory namespace */
-
+class Rewriter;
+}  // namespace theory
 
 /* -------------------------------------------------------------------------- */
 
@@ -83,7 +82,7 @@ class Env
 
   /** Get the logic information currently set. */
   const LogicInfo& getLogicInfo() const;
-  
+
   /**
    * Set a resource limit for Env operations.  This is like a time
    * limit, but it's deterministic so that reproducible results can be
@@ -205,7 +204,6 @@ class Env
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
  private:
-
   /** Get a pointer to the StatisticsRegistry owned by this Env. */
   StatisticsRegistry* getStatisticsRegistry()
   {
@@ -221,7 +219,7 @@ class Env
   /** Our internal node manager */
   NodeManager* d_nodeManager;
   /** The proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpm;
   /**
@@ -250,6 +248,6 @@ class Env
 
 /* -------------------------------------------------------------------------- */
 
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__SMT__ENV_H */
