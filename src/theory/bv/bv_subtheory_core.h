@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Liana Hadarean, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/ext_theory.h"

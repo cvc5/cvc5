@@ -2,9 +2,9 @@
 /*! \file sygus_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,11 +22,14 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4;

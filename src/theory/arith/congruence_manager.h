@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,26 +19,41 @@
 
 #pragma once
 
+#include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "context/cdmaybe.h"
-#include "context/cdo.h"
 #include "context/cdtrail_queue.h"
-#include "context/context.h"
-#include "expr/proof_node_manager.h"
 #include "theory/arith/arithvar.h"
+#include "theory/arith/arith_utilities.h"
+#include "theory/arith/callbacks.h"
 #include "theory/arith/constraint_forward.h"
-#include "theory/arith/partial_model.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/ee_setup_info.h"
 #include "theory/trust_node.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/uf/proof_equality_engine.h"
+#include "theory/uf/equality_engine_notify.h"
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+class ProofNodeManager;
+
+namespace context {
+class Context;
+class UserContext;
+}
+
 namespace theory {
+
+class EagerProofGenerator;
+struct EeSetupInfo;
+
+namespace eq {
+class ProofEqEngine;
+class EqualityEngine;
+}
+
 namespace arith {
+
+class ArithVariables;
 
 class ArithCongruenceManager {
 private:

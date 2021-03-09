@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/quant_module.h"
+#include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"

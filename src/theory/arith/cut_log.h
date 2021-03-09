@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,6 @@
  ** \todo document this file
  **/
 
-
 #include "cvc4_private.h"
 
 #pragma once
@@ -23,13 +22,11 @@
 #include <unordered_map>
 #include <map>
 #include <set>
-#include <vector>
 
 #include "expr/kind.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -231,7 +228,6 @@ public:
 };
 std::ostream& operator<<(std::ostream& os, const NodeLog& nl);
 
-class ApproximateSimplex;
 class TreeLog {
 private:
   int next_exec_ord;

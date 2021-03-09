@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,6 @@
 #ifndef CVC4__THEORY__OUTPUT_CHANNEL_H
 #define CVC4__THEORY__OUTPUT_CHANNEL_H
 
-#include <memory>
-
-#include "expr/proof_node.h"
-#include "smt/logic_exception.h"
-#include "theory/interrupted.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
 

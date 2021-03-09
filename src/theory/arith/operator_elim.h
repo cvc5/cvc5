@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,12 +17,14 @@
 #include <map>
 
 #include "expr/node.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
 #include "theory/skolem_lemma.h"
 
 namespace CVC4 {
+
+class TConvProofGenerator;
+
 namespace theory {
 namespace arith {
 
