@@ -41,6 +41,7 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
    * initializes static information to be used by successive calls to update.
    */
   void initializeUpdate();
+  /** Update the proof node iff has the LEAN_RULE id. */
   bool shouldUpdate(std::shared_ptr<ProofNode> pn,
                     bool& continueUpdate) override;
   /** Update the proof rule application. */
@@ -54,7 +55,22 @@ class LeanProofPostprocessCallback : public ProofNodeUpdaterCallback
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** The proof checker is used to generate conclusions from local
+   * proof steps. This is currently only used in the resolution rule.
+   */
   ProofChecker* d_pc;
+
+  /**
+   * Recall the Lean rule:
+   *  Children: (P1 ... Pn)
+   *  Arguments: (id, Q, A1, ..., Am)
+   *  ---------------------
+   *  Conclusion: (Q)
+   *  The id argument is a LeanRule, as defined in proof/lean/lean_rules.h
+   *  This allows us to specify which rule in the Lean calculus the current rule
+   *  corresponds to.
+   * addLeanStep encapsulates translation boilerplate by adding id and Q to arguments, and children and args are passed along verbatim.
+   */
   bool addLeanStep(Node res,
                    LeanRule rule,
                    const std::vector<Node>& children,

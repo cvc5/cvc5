@@ -62,8 +62,13 @@ class LeanPrinter
    * Convert a CVC4 Node holding an id to the corresponding LeanRule
    */
   static LeanRule getLeanRule(Node n);
-  //static Node getId(std::shared_ptr<ProofNode> n);
-  //static Node getConclusion(std::shared_ptr<ProofNode> n);
+  /**
+   * The Lean calculus uses rules such as mkEq, which wraps (eq x y)
+   *  with a check that the x and y have the same sort.
+   * printKind cases of proof rule kinds such as equality,
+   *  logical and, or logical not, and translating to mkEq,
+   *  mkAnd, and mkNot
+   */
   static void printKind(std::ostream& s, Kind k);
   /**
    * Convert a node to a Lean term -- must start with mk_ and take children as args
@@ -84,8 +89,15 @@ class LeanPrinter
   static void printSorts(std::ostream& out,
                          const std::vector<Node>& assertions,
                          std::shared_ptr<ProofNode> pfn);
+
   /**
-   * Print rule specific lean syntax, traversing children before parents in ProofNode tree.
+   * For each proof node, the final lean output's formatting depends on
+   *  the particular proof rule. For example, a chain resolution must be
+   *  converted into a series of sequential resolutions.
+   * This method cases on the Lean proof rules (./lean_rules.h) and prints
+   *  to the ostream& out.
+   * Prints proof node children before parents, unless we encounter the
+   *  SCOPE rule, in which case we print "assume" and bind a new variable.
    */
   static void printProof(std::ostream& out,
                          std::shared_ptr<ProofNode> pfn,

@@ -58,16 +58,6 @@ LeanRule LeanPrinter::getLeanRule(Node n)
   return LeanRule::UNKNOWN;
 }
 
-  //Node LeanPrinter::getId(std::shared_ptr<ProofNode> n)
-  //{
-  //  return n->getArguments()[0];
-  //}
-  //
-  //Node LeanPrinter::getConclusion(std::shared_ptr<ProofNode> n)
-  //{
-  //  return n->getArguments()[1];
-  //}
-
 void LeanPrinter::printKind(std::ostream& s, Kind k)
 {
   switch (k)
