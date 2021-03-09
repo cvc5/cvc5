@@ -120,10 +120,11 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // On the other hand, this hack breaks use cases where multiple SmtEngine
   // objects are created by the user.
   d_scope.reset(new SmtScope(this));
+  // Set options in the environment, which makes a deep copy of optr if
+  // non-null. This may throw an options exception.
+  d_env->setOptions(optr);
   // now construct the statistics registry
   d_statisticsRegistry.reset(new StatisticsRegistry());
-  // set options in the environment, which makes a deep copy of optr if non-null
-  d_env->setOptions(optr);
   // initialize the environment, which keeps a pointer to statistics registry
   // and sets up resource manager
   d_env->setStatisticsRegistry(d_statisticsRegistry.get());
