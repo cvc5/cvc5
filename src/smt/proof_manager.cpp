@@ -140,8 +140,11 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
+    std::vector<Node> assertions;
+    getAssertions(as, df, assertions);
+    d_lpfpp.reset(new proof::LeanProofPostprocess(d_pnm.get()));
     d_lpfpp->process(fp);
-    proof::leanPrinter(out, fp);
+    proof::LeanPrinter::print(out, assertions, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {

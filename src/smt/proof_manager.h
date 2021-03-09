@@ -121,6 +121,7 @@ class PfManager
   std::unique_ptr<smt::ProofPostproccess> d_pfpp;
   std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
   std::unique_ptr<proof::VeritProofPostprocess> d_vpfpp;
+
   /**
    * The final proof produced by the SMT engine.
    * Combines the proofs of preprocessing, prop engine and theory engine, to be

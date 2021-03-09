@@ -1367,6 +1367,9 @@ enum class PfRule : uint32_t
   // Arguments: (id, Q, A1, ..., Am)
   // ---------------------
   // Conclusion: (Q)
+  // The id argument is a LeanRule, as defined in proof/lean/lean_rules.h
+  // This allows us to specify which rule in the Lean calculus the current rule
+  // corresponds to.
   LEAN_RULE,
   //================================================ Place holder for veriT
   // rules
