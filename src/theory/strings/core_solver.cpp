@@ -18,6 +18,7 @@
 
 #include "base/configuration.h"
 #include "options/strings_options.h"
+#include "theory/rewriter.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/strings_entail.h"
 #include "theory/strings/theory_strings_utils.h"

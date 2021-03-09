@@ -20,10 +20,12 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
+
+class TheoryModel;
+
 namespace uf {
 
 class UfModelTreeNode

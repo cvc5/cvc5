@@ -19,6 +19,7 @@
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/rewriter.h"
 #include "util/random.h"
 
 #include <math.h>

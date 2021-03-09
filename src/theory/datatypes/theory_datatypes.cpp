@@ -32,6 +32,7 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/logic_info.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"

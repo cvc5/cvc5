@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/strings/word.h"
 
 using namespace CVC4::kind;

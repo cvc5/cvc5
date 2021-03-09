@@ -19,6 +19,7 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "theory/rewriter.h"
 #include "theory/uf/theory_uf_model.h"
 
 using namespace std;

@@ -17,6 +17,7 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/shared_solver.h"
 #include "theory/theory_engine.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

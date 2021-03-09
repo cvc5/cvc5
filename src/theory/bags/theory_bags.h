@@ -23,6 +23,7 @@
 #include "theory/bags/inference_generator.h"
 #include "theory/bags/inference_manager.h"
 #include "theory/bags/solver_state.h"
+#include "theory/bags/term_registry.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
 

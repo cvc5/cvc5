@@ -14,6 +14,7 @@
 
 #include "theory/strings/solver_state.h"
 
+#include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 

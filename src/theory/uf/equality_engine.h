@@ -22,18 +22,14 @@
 
 #include <deque>
 #include <queue>
-#include <memory>
 #include <unordered_map>
 #include <vector>
 
-#include "base/output.h"
 #include "context/cdhashmap.h"
 #include "context/cdo.h"
 #include "expr/kind_map.h"
 #include "expr/node.h"
-#include "theory/rewriter.h"
 #include "theory/theory_id.h"
-#include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "theory/uf/equality_engine_types.h"
@@ -45,6 +41,7 @@ namespace eq {
 
 class EqClassesIterator;
 class EqClassIterator;
+class EqProof;
 
 /**
  * Class for keeping an incremental congruence closure over a set of terms. It provides

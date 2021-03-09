@@ -28,6 +28,7 @@
 #include "theory/bv/bv_quick_check.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::context;

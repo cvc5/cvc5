@@ -24,6 +24,7 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::kind;

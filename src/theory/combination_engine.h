@@ -20,10 +20,7 @@
 #include <vector>
 #include <memory>
 
-#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager.h"
-#include "theory/model_manager.h"
-#include "theory/shared_solver.h"
 #include "theory/valuation.h"
 
 namespace CVC4 {
@@ -31,6 +28,10 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
+
+class EagerProofGenerator;
+class ModelManager;
+class SharedSolver;
 
 /**
  * Manager for doing theory combination. This class is responsible for:

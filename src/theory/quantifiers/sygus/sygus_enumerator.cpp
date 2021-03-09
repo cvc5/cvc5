@@ -20,6 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 

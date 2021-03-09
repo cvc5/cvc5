@@ -18,14 +18,16 @@
 #ifndef CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H
 #define CVC4__THEORY__EE_MANAGER_DISTRIBUTED__H
 
-#include <map>
 #include <memory>
 
 #include "theory/ee_manager.h"
-#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+namespace eq {
+class EqualityEngine;
+}
 
 /**
  * The (distributed) equality engine manager. This encapsulates an architecture

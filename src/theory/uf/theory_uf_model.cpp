@@ -18,6 +18,8 @@
 
 #include "expr/attribute.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace CVC4::kind;
 

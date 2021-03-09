@@ -16,6 +16,7 @@
 
 #include "smt/smt_statistics_registry.h"
 #include "theory/output_channel.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"

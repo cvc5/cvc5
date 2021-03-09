@@ -21,6 +21,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
