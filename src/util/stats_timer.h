@@ -80,7 +80,7 @@ public:
   /** If the timer is currently running */
   bool running() const;
 
-  timer_stat_detail::duration getData() const;
+  timer_stat_detail::duration get() const;
 
   void flushInformation(std::ostream& out) const override;
   void safeFlushInformation(int fd) const override;

@@ -172,7 +172,7 @@ void TimerStat::stop()
 
 bool TimerStat::running() const { return d_running; } /* TimerStat::running() */
 
-timer_stat_detail::duration TimerStat::getData() const
+timer_stat_detail::duration TimerStat::get() const
 {
   auto data = d_data;
   if (CVC4_USE_STATISTICS && d_running)
@@ -194,14 +194,14 @@ SExpr TimerStat::getValue() const
   return SExpr(Rational::fromDecimal(ss.str()));
 } /* TimerStat::getValue() */
 
-void TimerStat::flushInformation(std::ostream& out) const { out << getData(); }
+void TimerStat::flushInformation(std::ostream& out) const { out << get(); }
 
 void TimerStat::safeFlushInformation(int fd) const
 {
   // Overwrite the implementation in the superclass because we cannot use
   // getDataRef(): it might return stale data if the timer is currently
   // running.
-  safe_print<timer_stat_detail::duration>(fd, getData());
+  safe_print<timer_stat_detail::duration>(fd, get());
 }
 
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)

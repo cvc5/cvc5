@@ -114,7 +114,7 @@ public:
     }
   }
 
-  const T& getData() const {
+  const T& get() const {
     return d_data;
   }
 
@@ -133,7 +133,7 @@ public:
 
 /**
  * A data statistic that references a data cell of type T,
- * implementing getData() by referencing that memory cell, and
+ * implementing get() by referencing that memory cell, and
  * setData() by reassigning the statistic to point to the new
  * data cell.  The referenced data cell is kept as a const
  * reference, meaning the referenced data is never actually
@@ -176,6 +176,10 @@ public:
     if(CVC4_USE_STATISTICS) {
       d_data = &t;
     }
+  }
+  const T& get() const
+  {
+    return *d_data;
   }
 
   /** Flush the value of the statistic to the given output stream. */
