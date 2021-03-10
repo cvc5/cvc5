@@ -84,7 +84,7 @@ TEST_F(TestUtilBlackStats, stats)
   ASSERT_EQ(backedStr.get(), "baz");
 
   ASSERT_EQ(sInt.get(), 10);
-  sInt.setData(100);
+  sInt.set(100);
   ASSERT_EQ(sInt.get(), 100);
 
   ASSERT_TRUE(sTimer.get() == std::chrono::nanoseconds());
