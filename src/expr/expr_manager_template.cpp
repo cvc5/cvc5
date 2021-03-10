@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -695,7 +695,8 @@ Expr ExprManager::mkVar(Type type)
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode));
 }
 
-Expr ExprManager::mkBoundVar(const std::string& name, Type type) {
+Expr ExprManager::mkBoundVar(const std::string& name, Type type)
+{
   NodeManagerScope nms(d_nodeManager);
   Node* n = d_nodeManager->mkBoundVarPtr(name, *type.d_typeNode);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
@@ -703,7 +704,8 @@ Expr ExprManager::mkBoundVar(const std::string& name, Type type) {
   return Expr(this, n);
 }
 
-Expr ExprManager::mkBoundVar(Type type) {
+Expr ExprManager::mkBoundVar(Type type)
+{
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, true);
   return Expr(this, d_nodeManager->mkBoundVarPtr(*type.d_typeNode));

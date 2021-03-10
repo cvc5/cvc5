@@ -2,7 +2,7 @@
 ; COMMAND-LINE: --bitblast=eager --bv-solver=simple --no-check-models  --no-check-unsat-cores
 ; EXPECT: sat
 (set-logic QF_UFBV)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (declare-fun v0 () (_ BitVec 4))
 (declare-fun f ((_ BitVec 4)) (_ BitVec 4))

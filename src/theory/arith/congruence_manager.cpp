@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Alex Ozdemir, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,9 +18,16 @@
 #include "theory/arith/congruence_manager.h"
 
 #include "base/output.h"
+#include "expr/proof_node.h"
+#include "expr/proof_node_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
+#include "theory/arith/partial_model.h"
+#include "theory/ee_setup_info.h"
+#include "theory/rewriter.h"
+#include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "options/arith_options.h"
 
 namespace CVC4 {

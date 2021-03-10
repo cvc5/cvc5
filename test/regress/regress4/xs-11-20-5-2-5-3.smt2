@@ -1,6 +1,6 @@
 (set-logic QF_UFLIA)
 (set-info :source | MathSat group |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "industrial")
 (set-info :status unsat)
 (declare-fun fmt1 () Int)

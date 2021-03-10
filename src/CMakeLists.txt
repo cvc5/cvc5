@@ -3,7 +3,7 @@
 ## Top contributors (to current version):
 ##   Mathias Preiner, Andrew Reynolds, Gereon Kremer
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -228,8 +228,6 @@ libcvc4_add_sources(
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
-  smt/logic_request.cpp
-  smt/logic_request.h
   smt/interpolation_solver.cpp
   smt/interpolation_solver.h
   smt/managed_ostreams.cpp
@@ -242,6 +240,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/node_command.cpp
   smt/node_command.h
+  smt/optimization_solver.cpp
+  smt/optimization_solver.h
   smt/options_manager.cpp
   smt/options_manager.h
   smt/output_manager.cpp
@@ -898,6 +898,7 @@ libcvc4_add_sources(
   theory/shared_solver_distributed.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
+  theory/skolem_lemma.h
   theory/smt_engine_subsolver.cpp
   theory/smt_engine_subsolver.h
   theory/sort_inference.cpp

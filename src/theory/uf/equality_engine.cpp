@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,9 +17,12 @@
 
 #include "theory/uf/equality_engine.h"
 
+#include "base/output.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/rewriter.h"
+#include "theory/uf/eq_proof.h"
 
 namespace CVC4 {
 namespace theory {

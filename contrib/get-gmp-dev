@@ -11,9 +11,25 @@
 
 source "$(dirname "$0")/get-script-header.sh"
 
-[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="--enable-shared --enable-static"
-[ -n "$HOST" ] && HOST="--host=$HOST"
-[ -z "$GMPVERSION" ] && GMPVERSION=6.2.0
+CONFIG=
+while :; do
+  case $1 in
+    --host=?*)
+      host=${1#*=}
+      CONFIG="--host=$host"
+      ;;
+    --host=)
+      echo "Error: empty --host="
+      exit 1
+      ;;
+    *)
+      break
+  esac
+  shift
+done
+
+[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="--disable-shared --enable-static"
+[ -z "$GMPVERSION" ] && GMPVERSION=6.2.1
 
 GMP_DIR="$DEPS_DIR/gmp-$GMPVERSION"
 rm -rf "$GMP_DIR"
@@ -35,7 +51,7 @@ echo "Setting up GMP $GMPVERSION..."
 echo
 setup_dep "https://gmplib.org/download/gmp/gmp-$GMPVERSION.tar.bz2" "$GMP_DIR"
 cd "$GMP_DIR"
-./configure ${HOST} --prefix="$INSTALL_DIR" --enable-cxx ${BUILD_TYPE}
+./configure ${CONFIG} --prefix="$INSTALL_DIR" --enable-cxx ${BUILD_TYPE}
 make \
   CFLAGS="${MAKE_CFLAGS}" \
   CXXFLAGS="${MAKE_CXXFLAGS}" \

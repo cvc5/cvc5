@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of bitblasting functions for various operators. 
+ ** \brief Implementation of bitblasting functions for various operators.
  **
- ** Implementation of bitblasting functions for various operators. 
+ ** Implementation of bitblasting functions for various operators.
  **/
 
 #include "cvc4_private.h"
@@ -517,7 +517,7 @@ void DefaultUdivBB(TNode node, std::vector<T>& q, TBitblaster<T>* bb)
 {
   Debug("bitvector-bb") << "theory::bv::DefaultUdivBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UDIV_TOTAL && q.size() == 0);
+  Assert(node.getKind() == kind::BITVECTOR_UDIV && q.size() == 0);
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -540,8 +540,8 @@ void DefaultUdivBB(TNode node, std::vector<T>& q, TBitblaster<T>* bb)
   }
 
   // cache the remainder in case we need it later
-  Node remainder = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_UREM_TOTAL, node[0], node[1]));
+  Node remainder = Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_UREM, node[0], node[1]));
   bb->storeBBTerm(remainder, r);
 }
 
@@ -550,7 +550,7 @@ void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
 {
   Debug("bitvector-bb") << "theory::bv::DefaultUremBB bitblasting " << node
                         << "\n";
-  Assert(node.getKind() == kind::BITVECTOR_UREM_TOTAL && rem.size() == 0);
+  Assert(node.getKind() == kind::BITVECTOR_UREM && rem.size() == 0);
 
   std::vector<T> a, b;
   bb->bbTerm(node[0], a);
@@ -573,8 +573,8 @@ void DefaultUremBB(TNode node, std::vector<T>& rem, TBitblaster<T>* bb)
   }
 
   // cache the quotient in case we need it later
-  Node quotient = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-      kind::BITVECTOR_UDIV_TOTAL, node[0], node[1]));
+  Node quotient = Rewriter::rewrite(
+      NodeManager::currentNM()->mkNode(kind::BITVECTOR_UDIV, node[0], node[1]));
   bb->storeBBTerm(quotient, q);
 }
 
