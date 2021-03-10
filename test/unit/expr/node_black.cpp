@@ -107,9 +107,12 @@ TEST_F(TestNodeBlackNode, copy_ctor) { Node e(Node::null()); }
 TEST_F(TestNodeBlackNode, dtor)
 {
   /* No access to internals? Only test that this is crash free. */
-  Node* n;
+  Node* n = nullptr;
   ASSERT_NO_FATAL_FAILURE(n = new Node());
-  delete n;
+  if (n)
+  {
+    delete n;
+  }
 }
 
 /* operator== */
