@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace timer_stat_detail {
   using clock = std::chrono::steady_clock;
   using time_point = clock::time_point;
-  using duration = std::chrono::nanoseconds;
+  struct duration: public std::chrono::nanoseconds {};
 }
 
 /**
@@ -38,7 +38,6 @@ namespace timer_stat_detail {
  */
 std::ostream& operator<<(std::ostream& os, const timespec& t) CVC4_PUBLIC;
 
-std::ostream& operator<<(std::ostream& os, const timer_stat_detail::duration& dur) CVC4_PUBLIC;
 
 template <>
 void CVC4_PUBLIC safe_print(int fd, const timer_stat_detail::duration& t);

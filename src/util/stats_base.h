@@ -25,6 +25,7 @@
 
 #include "util/safe_print.h"
 #include "util/sexpr.h"
+#include "util/stats_utils.h"
 
 #ifdef CVC4_STATISTICS_ON
 #  define CVC4_USE_STATISTICS true
@@ -48,9 +49,6 @@ protected:
   std::string d_name;
 
 public:
-
-  /** Nullary constructor, does nothing */
-  Stat() = default;
 
   /**
    * Construct a statistic with the given name.  Debug builds of CVC4

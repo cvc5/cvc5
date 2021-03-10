@@ -23,14 +23,6 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& os, const std::chrono::nanoseconds& dur)
-{
-  StreamFormatScope format_scope(os);
-  return os << (dur / std::chrono::seconds(1)) << "." << std::setfill('0')
-            << std::setw(9) << std::right
-            << (dur % std::chrono::seconds(1)).count();
-}
-
 template <>
 void safe_print(int fd, const timer_stat_detail::duration& t)
 {
