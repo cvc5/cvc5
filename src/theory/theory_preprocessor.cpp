@@ -204,8 +204,8 @@ TrustNode TheoryPreprocessor::preprocessLemmaInternal(
   {
     Assert(d_lp != nullptr);
     // add the original proof to the lazy proof
-    d_lp->addLazyStep(node.getProven(), node.getGenerator(),
-                        PfRule::THEORY_PREPROCESS_LEMMA);
+    d_lp->addLazyStep(
+        node.getProven(), node.getGenerator(), PfRule::THEORY_PREPROCESS_LEMMA);
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
