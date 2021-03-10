@@ -1773,6 +1773,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5484b-qe.smt2
   regress1/quantifiers/issue5506-qe.smt2
   regress1/quantifiers/issue5507-qe.smt2
+  regress1/quantifiers/issue5658-qe.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
