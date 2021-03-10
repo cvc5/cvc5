@@ -103,6 +103,11 @@ Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
         ss << prefix << id;
         visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
       }
+      else if (cur.isClosure())
+      {
+        // do not convert beneath quantifiers
+        visited[cur] = cur;
+      }
       else
       {
         visited[cur] = Node::null();
