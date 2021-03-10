@@ -1029,7 +1029,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   if ((d_isInternal[id1] || d_isInternal[id2])
       && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
           || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
-          || !ExprManager::isNAryKind(k1)))
+          || !NodeManager::isNAryKind(k1)))
   {
     return;
   }
