@@ -127,7 +127,7 @@ void SygusExtension::assertFact(Node n, bool polarity)
       d_im.lemma(blem, InferenceId::DATATYPES_SYGUS_FAIR_SIZE);
     }
     if( polarity ){
-      unsigned s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
+      uint64_t s = n[1].getConst<Rational>().getNumerator().toUnsignedInt();
       notifySearchSize(m, s, n);
     }
   }else if( n.getKind() == kind::DT_HEIGHT_BOUND || n.getKind()==DT_SIZE_BOUND ){
@@ -290,8 +290,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
   NodeManager* nm = NodeManager::currentNM();
   if( min_depth<=max_depth ){
     TNode x = getFreeVar( ntn );
-    std::vector<Node> sbLemmas;
-    std::vector<InferenceId> sblIds;
+    std::vector<std::pair<Node, InferenceId>> sbLemmas;
     // symmetry breaking lemmas requiring predicate elimination
     std::map<Node, bool> sb_elim_pred;
     bool usingSymCons = d_tds->usingSymbolicConsForEnumerator(m);
@@ -304,8 +303,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
           m, ntn, tindex, ds, usingSymCons, isVarAgnostic);
       if (!ipred.isNull())
       {
-        sbLemmas.push_back(ipred);
-        sblIds.push_back(InferenceId::DATATYPES_SYGUS_SIMPLE_SYM_BREAK);
+        sbLemmas.emplace_back(ipred, InferenceId::DATATYPES_SYGUS_SIMPLE_SYM_BREAK);
         if (ds == 0 && isVarAgnostic)
         {
           sb_elim_pred[ipred] = true;
@@ -325,8 +323,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
               conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
           if (!dpred.isNull())
           {
-            sbLemmas.push_back(dpred);
-            sblIds.push_back(InferenceId::DATATYPES_SYGUS_CDEP_SYM_BREAK);
+            sbLemmas.emplace_back(dpred,InferenceId::DATATYPES_SYGUS_CDEP_SYM_BREAK);
           }
         }
       }
@@ -335,9 +332,9 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
     // add the above symmetry breaking predicates to lemmas
     std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
     Node rlv = getRelevancyCondition(n);
-    for (size_t i = 0, nlems = sbLemmas.size(); i < nlems; i++)
+    for (std::pair<Node, InferenceId>& sbl : sbLemmas)
     {
-      Node slem = sbLemmas[i];
+      Node slem = sbl.first;
       Node sslem = slem.substitute(x, n, cache);
       // if we require predicate elimination
       if (sb_elim_pred.find(slem) != sb_elim_pred.end())
@@ -352,7 +349,7 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
       {
         sslem = nm->mkNode(OR, rlv, sslem);
       }
-      d_im.lemma(sslem, sblIds[i]);
+      d_im.lemma(sslem, sbl.second);
     }
   }
   d_simple_proc[exp] = max_depth + 1;
@@ -1232,7 +1229,7 @@ void SygusExtension::registerSymBreakLemma(TypeNode tn,
   }
 }
 
-void SygusExtension::addSymBreakLemmasFor(TypeNode tn, Node t, unsigned d)
+void SygusExtension::addSymBreakLemmasFor(TypeNode tn, TNode t, unsigned d)
 {
   Assert(d_term_to_anchor.find(t) != d_term_to_anchor.end());
   Node a = d_term_to_anchor[t];
@@ -1240,7 +1237,7 @@ void SygusExtension::addSymBreakLemmasFor(TypeNode tn, Node t, unsigned d)
 }
 
 void SygusExtension::addSymBreakLemmasFor(TypeNode tn,
-                                          Node t,
+                                          TNode t,
                                           unsigned d,
                                           Node a)
 {
@@ -1249,7 +1246,7 @@ void SygusExtension::addSymBreakLemmasFor(TypeNode tn,
   Trace("sygus-sb-debug2") << "add sym break lemmas for " << t << " " << d
                            << " " << a << std::endl;
   SearchCache& sca = d_cache[a];
-  std::map<TypeNode, std::map<unsigned, std::vector<Node>>>::iterator its =
+  std::map<TypeNode, std::map<uint64_t, std::vector<Node>>>::iterator its =
       sca.d_sbLemmas.find(tn);
   Node rlv = getRelevancyCondition(t);
   NodeManager* nm = NodeManager::currentNM();
@@ -1258,14 +1255,14 @@ void SygusExtension::addSymBreakLemmasFor(TypeNode tn,
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
     unsigned csz = getSearchSizeForAnchor( a );
-    int max_sz = ((int)csz) - ((int)d);
+    uint64_t max_sz = d>csz ? 0 : (csz - d);
     Trace("sygus-sb-debug2")
         << "add lemmas up to size " << max_sz << ", which is (search_size) "
         << csz << " - (depth) " << d << std::endl;
     std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-    for( std::map< unsigned, std::vector< Node > >::iterator it = its->second.begin(); it != its->second.end(); ++it ){
-      if( (int)it->first<=max_sz ){
-        for (const Node& lem : it->second)
+    for( std::pair< const uint64_t, std::vector< Node > >& sbls : its->second ){
+      if( sbls.first<=max_sz ){
+        for (const Node& lem : sbls.second)
         {
           Node slem = lem.substitute(x, t, cache);
           // add the relevancy condition for t
@@ -1416,7 +1413,7 @@ void SygusExtension::registerMeasureTerm( Node m ) {
   }
 }
 
-void SygusExtension::notifySearchSize(Node m, unsigned s, Node exp)
+void SygusExtension::notifySearchSize(TNode m, uint64_t s, Node exp)
 {
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
       d_szinfo.find(m);
@@ -1460,7 +1457,7 @@ unsigned SygusExtension::getSearchSizeForMeasureTerm(Node m)
   return its->second->d_curr_search_size;
 }
 
-void SygusExtension::incrementCurrentSearchSize(Node m)
+void SygusExtension::incrementCurrentSearchSize(TNode m)
 {
   std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz =
       d_szinfo.find(m);
@@ -1474,12 +1471,12 @@ void SygusExtension::incrementCurrentSearchSize(Node m)
     // check whether a is bounded by m
     Assert(d_anchor_to_measure_term.find(a) != d_anchor_to_measure_term.end());
     if( d_anchor_to_measure_term[a]==m ){
-      for (std::pair<const TypeNode, std::map<unsigned, std::vector<Node>>>&
+      for (std::pair<const TypeNode, std::map<uint64_t, std::vector<Node>>>&
                sbl : itc->second.d_sbLemmas)
       {
         TypeNode tn = sbl.first;
         TNode x = getFreeVar( tn );
-        for (std::pair<const unsigned, std::vector<Node>>& s : sbl.second)
+        for (std::pair<const uint64_t, std::vector<Node>>& s : sbl.second)
         {
           unsigned sz = s.first;
           int new_depth = ((int)itsz->second->d_curr_search_size) - ((int)sz);
@@ -1664,7 +1661,7 @@ void SygusExtension::check()
   }
 }
 
-bool SygusExtension::checkValue(Node n, Node vn, int ind)
+bool SygusExtension::checkValue(Node n, TNode vn, int ind)
 {
   if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
   {

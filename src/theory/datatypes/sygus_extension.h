@@ -192,7 +192,7 @@ private:
      */
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
     /** A cache of all symmetry breaking lemma templates for (types, sizes). */
-    std::map<TypeNode, std::map<unsigned, std::vector<Node>>> d_sbLemmas;
+    std::map<TypeNode, std::map<uint64_t, std::vector<Node>>> d_sbLemmas;
     /** search value
      *
      * For each sygus type, a map from a builtin term to a sygus term for that
@@ -449,9 +449,9 @@ private:
    * a : the anchor of term t,
    * d : the depth of term t.
    */
-  void addSymBreakLemmasFor(TypeNode tn, Node t, unsigned d, Node a);
+  void addSymBreakLemmasFor(TypeNode tn, TNode t, unsigned d, Node a);
   /** calls the above function where a is the anchor t */
-  void addSymBreakLemmasFor(TypeNode tn, Node t, unsigned d);
+  void addSymBreakLemmasFor(TypeNode tn, TNode t, unsigned d);
   //------------------------end dynamic symmetry breaking
 
   /** Get relevancy condition
@@ -645,7 +645,7 @@ private:
    * of how search size affects which lemmas are relevant above
    * addSymBreakLemmasFor.
    */
-  void incrementCurrentSearchSize(Node m);
+  void incrementCurrentSearchSize(TNode m);
   /**
    * Notify this class that we are currently searching for terms of size at
    * most s as model values for measure term m. Literal exp corresponds to the
@@ -653,7 +653,7 @@ private:
    * incrementSearchSize above, until the total number of times we have called
    * incrementSearchSize so far is at least s.
    */
-  void notifySearchSize(Node m, unsigned s, Node exp);
+  void notifySearchSize(TNode m, uint64_t s, Node exp);
   /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**
@@ -701,7 +701,7 @@ private:
    * method should not ever add anything to lemmas. However, due to its
    * importance, we check this regardless.
    */
-  bool checkValue(Node n, Node vn, int ind);
+  bool checkValue(Node n, TNode vn, int ind);
   /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted
