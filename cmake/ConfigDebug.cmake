@@ -9,10 +9,8 @@
 ## directory for licensing information.
 ##
 add_definitions(-DCVC4_DEBUG)
-set(CVC4_DEBUG 1)
 add_check_c_cxx_flag("-fno-inline")
-set(OPTIMIZATION_LEVEL 0)
-add_c_cxx_flag("-Og")
+set(OPTIMIZATION_LEVEL "g")
 # enable_debug_symbols=yes
 cvc4_set_option(ENABLE_DEBUG_SYMBOLS ON)
 # enable_statistics=yes
