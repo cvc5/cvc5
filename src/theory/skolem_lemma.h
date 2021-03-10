@@ -36,14 +36,25 @@ namespace theory {
 class SkolemLemma
 {
  public:
-  SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
-  {
-    Assert(lem.getKind() == TrustNodeKind::LEMMA);
-  }
+  /**
+   * Make skolem from trust node lem of kind LEMMA and skolem k.
+   */
+  SkolemLemma(TrustNode lem, Node k);
+  /**
+   * Make skolem lemma from witness form of skolem k.
+   */
+  SkolemLemma(Node k, ProofGenerator* pg);
+
   /** The lemma, a trust node of kind LEMMA */
   TrustNode d_lemma;
   /** The skolem associated with that lemma */
   Node d_skolem;
+
+  /**
+   * Get the lemma for skolem k based on its witness form. If k has witness
+   * form (witness ((x T)) (P x)), this is the formula (P k).
+   */
+  static Node getSkolemLemmaFor(Node k);
 };
 
 }  // namespace theory
