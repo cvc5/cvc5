@@ -69,14 +69,8 @@ class PreprocessingPassContext
   /** Get the current logic info of the SmtEngine */
   const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
 
-  /* Widen the logic to include the given theory. */
-  void widenLogic(theory::TheoryId id);
-
   /** Gets a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
-
-  /* Enable Integers. */
-  void enableIntegers();
 
   /** Record symbols in assertions
    *
