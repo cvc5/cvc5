@@ -17,7 +17,6 @@
 #include "main/interactive_shell.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cstdlib>
 #include <iostream>
 #include <set>
@@ -37,6 +36,7 @@
 #endif   /* HAVE_LIBEDITLINE */
 
 #include "api/cvc4cpp.h"
+#include "base/check.h"
 #include "base/output.h"
 #include "expr/symbol_manager.h"
 #include "options/language.h"
@@ -222,12 +222,12 @@ restart:
     Debug("interactive") << "Input now '" << input << line << "'" << endl
                          << flush;
 
-    assert( !(d_in.fail() && !d_in.eof()) || line.empty() );
+    Assert(!(d_in.fail() && !d_in.eof()) || line.empty());
 
     /* Check for failure. */
     if(d_in.fail() && !d_in.eof()) {
       /* This should only happen if the input line was empty. */
-      assert( line.empty() );
+      Assert(line.empty());
       d_in.clear();
     }
 
@@ -262,7 +262,7 @@ restart:
     {
       /* Extract the newline delimiter from the stream too */
       int c CVC4_UNUSED = d_in.get();
-      assert(c == '\n');
+      Assert(c == '\n');
       Debug("interactive") << "Next char is '" << (char)c << "'" << endl
                            << flush;
     }
