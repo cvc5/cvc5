@@ -44,8 +44,7 @@ Node SkolemManager::mkSkolem(Node v,
                              const std::string& prefix,
                              const std::string& comment,
                              int flags,
-                             ProofGenerator* pg,
-                             bool retWitness)
+                             ProofGenerator* pg)
 {
   // We do not currently insist that pred does not contain witness terms
   Assert(v.getKind() == BOUND_VARIABLE);
@@ -72,11 +71,6 @@ Node SkolemManager::mkSkolem(Node v,
   k.setAttribute(wfa, w);
   Trace("sk-manager-skolem")
       << "skolem: " << k << " witness " << w << std::endl;
-  // if we want to return the witness term, make it
-  if (retWitness)
-  {
-    return nm->mkNode(WITNESS, bvl, pred);
-  }
   return k;
 }
 
