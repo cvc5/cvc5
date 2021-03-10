@@ -33,10 +33,6 @@
 #include "util/sexpr.h"
 #include "util/statistics.h"
 
-// In terms of abstraction, this is below (and provides services to)
-// ValidityChecker and above (and requires the services of)
-// PropEngine.
-
 namespace CVC4 {
 
 template <bool ref_count> class NodeTemplate;
@@ -45,6 +41,7 @@ typedef NodeTemplate<false> TNode;
 class TypeNode;
 struct NodeHashFunction;
 
+class Env;
 class NodeManager;
 class TheoryEngine;
 class ProofManager;
@@ -866,19 +863,19 @@ class CVC4_PUBLIC SmtEngine
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
   /** Get the resource manager of this SMT engine */
-  ResourceManager* getResourceManager();
+  ResourceManager* getResourceManager() const;
 
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
   /** Get the printer used by this SMT engine */
-  const Printer* getPrinter() const;
+  const Printer& getPrinter() const;
 
   /** Get the output manager for this SMT engine */
   OutputManager& getOutputManager();
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+  theory::Rewriter* getRewriter();
 
   /** The type of our internal map of defined functions */
   using DefinedFunctionMap =
@@ -907,10 +904,7 @@ class CVC4_PUBLIC SmtEngine
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
-  StatisticsRegistry* getStatisticsRegistry()
-  {
-    return d_statisticsRegistry.get();
-  };
+  StatisticsRegistry* getStatisticsRegistry();
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
@@ -1059,19 +1053,26 @@ class CVC4_PUBLIC SmtEngine
   api::Solver* d_solver = nullptr;
 
   /**
+   * The statistics registry. Notice that this definition must be before the
+   * other members since it must be destroyed last if exceptions occur in the
+   * constructor of SmtEngine.
+   */
+  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
+  /**
+   * The environment object, which contains all utilities that are globally
+   * available to internal code.
+   */
+  std::unique_ptr<Env> d_env;
+  /**
    * The state of this SmtEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
   std::unique_ptr<smt::SmtEngineState> d_state;
 
-  /** Our internal node manager */
-  NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Assertions manager */
   std::unique_ptr<smt::Assertions> d_asserts;
-  /** The dump manager */
-  std::unique_ptr<smt::DumpManager> d_dumpm;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
   /** Node manager listener */
@@ -1105,14 +1106,6 @@ class CVC4_PUBLIC SmtEngine
    * from refutations. */
   std::unique_ptr<smt::UnsatCoreManager> d_ucManager;
 
-  /**
-   * The rewriter associated with this SmtEngine. We have a different instance
-   * of the rewriter for each SmtEngine instance. This is because rewriters may
-   * hold references to objects that belong to theory solvers, which are
-   * specific to an SmtEngine/TheoryEngine instance.
-   */
-  std::unique_ptr<theory::Rewriter> d_rewriter;
-
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
 
@@ -1125,17 +1118,16 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::InterpolationSolver> d_interpolSolver;
   /** The solver for quantifier elimination queries */
   std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
-  /**
-   * The logic we're in. This logic may be an extension of the logic set by the
-   * user.
-   */
-  LogicInfo d_logic;
 
-  /** The logic set by the user. */
+  /**
+   * The logic set by the user. The actual logic, which may extend the user's
+   * logic, lives in the Env class.
+   */
   LogicInfo d_userLogic;
 
   /**
-   * Keep a copy of the original option settings (for reset()).
+   * Keep a copy of the original option settings (for reset()). The current
+   * options live in the Env object.
    */
   Options d_originalOptions;
 
@@ -1147,22 +1139,11 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
-  /** The statistics registry */
-  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
-
   /** The statistics class */
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
-  /** The options object */
-  Options d_options;
-
   /** the output manager for commands */
   mutable OutputManager d_outMgr;
-
-  /**
-   * Manager for limiting time and abstract resource usage.
-   */
-  std::unique_ptr<ResourceManager> d_resourceManager;
   /**
    * The options manager, which is responsible for implementing core options
    * such as those related to time outs and printing. It is also responsible

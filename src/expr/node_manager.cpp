@@ -27,6 +27,7 @@
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
+#include "expr/metakind.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
@@ -106,6 +107,11 @@ NodeManager::NodeManager(ExprManager* exprManager)
       d_skolemCounter(0)
 {
   init();
+}
+
+bool NodeManager::isNAryKind(Kind k)
+{
+  return kind::metakind::getMaxArityForKind(k) == expr::NodeValue::MAX_CHILDREN;
 }
 
 TypeNode NodeManager::booleanType()
@@ -965,7 +971,7 @@ Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
 {
   AlwaysAssert(kind::isAssociative(kind)) << "Illegal kind in mkAssociative";
 
-  const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
+  const unsigned int max = kind::metakind::getMaxArityForKind(kind);
   size_t numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
@@ -973,7 +979,7 @@ Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
   {
     return mkNode(kind, children);
   }
-  const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
+  const unsigned int min = kind::metakind::getMinArityForKind(kind);
 
   std::vector<Node>::const_iterator it = children.begin();
   std::vector<Node>::const_iterator end = children.end();

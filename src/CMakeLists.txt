@@ -248,6 +248,8 @@ libcvc4_add_sources(
   smt/dump.h
   smt/dump_manager.cpp
   smt/dump_manager.h
+  smt/env.cpp
+  smt/env.h
   smt/expand_definitions.cpp
   smt/expand_definitions.h
   smt/listeners.cpp
