@@ -898,6 +898,7 @@ libcvc4_add_sources(
   theory/shared_solver_distributed.h
   theory/shared_terms_database.cpp
   theory/shared_terms_database.h
+  theory/skolem_lemma.cpp
   theory/skolem_lemma.h
   theory/smt_engine_subsolver.cpp
   theory/smt_engine_subsolver.h
