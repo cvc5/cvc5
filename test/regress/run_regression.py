@@ -356,7 +356,7 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
                 extra_command_line_args += ['--check-proofs']
         if '--no-check-abducts' not in all_args and \
             '--check-abducts' not in all_args and \
-            '(get-abduct)' in benchmark_content:
+            'get-abduct' in benchmark_content:
             extra_command_line_args += ['--check-abducts']
 
         # Create a test case for each extra argument
