@@ -445,16 +445,16 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 #ifdef CVC4_ASSERTIONS
   ASSERT_DEATH(testNaryExpForSize(AND, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(AND, 1),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 2),
                "getNumChildren\\(\\) <= "
-               "kind::metakind::getUpperBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMaxArityForKind\\(getKind\\(\\)\\)");
 #endif /* CVC4_ASSERTIONS */
 }
 
