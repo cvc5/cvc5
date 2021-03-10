@@ -140,7 +140,7 @@ private:
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  TrustNode ppRewrite(TNode node) override;
+  TrustNode ppRewrite(TNode node, std::vector<SkolemLemma>& lems) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
