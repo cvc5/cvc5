@@ -22,10 +22,7 @@ namespace CVC4 {
 
 OutputManager::OutputManager(SmtEngine* smt) : d_smt(smt) {}
 
-const Printer& OutputManager::getPrinter() const
-{
-  return *d_smt->getPrinter();
-}
+const Printer& OutputManager::getPrinter() const { return d_smt->getPrinter(); }
 
 std::ostream& OutputManager::getDumpOut() const
 {
