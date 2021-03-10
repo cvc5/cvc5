@@ -22,7 +22,7 @@
 #include <map>
 #include <vector>
 
-#include "statistics_registry.h"
+#include "util/stats_base.h"
 
 namespace CVC4 {
 

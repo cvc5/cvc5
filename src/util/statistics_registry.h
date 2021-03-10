@@ -198,7 +198,4 @@ private:
 
 }/* CVC4 namespace */
 
-#include "util/stats_histogram.h"
-#include "util/stats_timer.h"
-
 #endif /* CVC4__STATISTICS_REGISTRY_H */
