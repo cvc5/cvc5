@@ -17,7 +17,6 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
-#include "smt/logic_request.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -35,22 +34,10 @@ PreprocessingPassContext::PreprocessingPassContext(
 {
 }
 
-void PreprocessingPassContext::widenLogic(theory::TheoryId id)
-{
-  LogicRequest req(*d_smt);
-  req.widenLogic(id);
-}
-
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
   return d_topLevelSubstitutions;
-}
-
-void PreprocessingPassContext::enableIntegers()
-{
-  LogicRequest req(*d_smt);
-  req.enableIntegers();
 }
 
 void PreprocessingPassContext::recordSymbolsInAssertions(
