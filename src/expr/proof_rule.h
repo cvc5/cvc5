@@ -302,8 +302,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: C2
   // where
-  //  Set representations of C1 and C2 is the same but the number of literals in
-  //  C2 is the same of that of C1
+  //  Set representations of C1 and C2 are the same and the number of literals
+  //  in C2 is the same of that of C1
   REORDERING,
   // ======== N-ary Resolution + Factoring + Reordering
   // Children: (P1:C_1, ..., Pm:C_n)
