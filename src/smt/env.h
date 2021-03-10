@@ -135,12 +135,12 @@ class Env
   std::unique_ptr<context::Context> d_context;
   /** User level context owned by this Env */
   std::unique_ptr<context::UserContext> d_userContext;
-  /** 
+  /**
    * A pointer to the node manager of this environment. A node manager is
    * not necessarily unique to an SmtEngine instance.
    */
   NodeManager* d_nodeManager;
-  /** 
+  /**
    * A pointer to the proof node manager, which is non-null if proofs are
    * enabled. This is owned by the proof manager of the SmtEngine that owns
    * this environment.
@@ -159,12 +159,12 @@ class Env
    * The logic we're in. This logic may be an extension of the logic set by the
    * user, which may be different from the user-provided logic due to the
    * options we have set.
-   * 
+   *
    * This is the authorative copy of the logic that internal subsolvers should
    * consider during solving and initialization.
    */
   LogicInfo d_logic;
-  /** 
+  /**
    * The statistics registry, which is owned by the SmtEngine that owns this.
    */
   StatisticsRegistry* d_statisticsRegistry;
