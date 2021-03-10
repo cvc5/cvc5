@@ -26,8 +26,8 @@
 #include "theory/datatypes/inference_manager.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -303,7 +303,8 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
           m, ntn, tindex, ds, usingSymCons, isVarAgnostic);
       if (!ipred.isNull())
       {
-        sbLemmas.emplace_back(ipred, InferenceId::DATATYPES_SYGUS_SIMPLE_SYM_BREAK);
+        sbLemmas.emplace_back(ipred,
+                              InferenceId::DATATYPES_SYGUS_SIMPLE_SYM_BREAK);
         if (ds == 0 && isVarAgnostic)
         {
           sb_elim_pred[ipred] = true;
@@ -323,7 +324,8 @@ void SygusExtension::assertTesterInternal(int tindex, TNode n, Node exp)
               conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
           if (!dpred.isNull())
           {
-            sbLemmas.emplace_back(dpred,InferenceId::DATATYPES_SYGUS_CDEP_SYM_BREAK);
+            sbLemmas.emplace_back(dpred,
+                                  InferenceId::DATATYPES_SYGUS_CDEP_SYM_BREAK);
           }
         }
       }
@@ -1255,13 +1257,15 @@ void SygusExtension::addSymBreakLemmasFor(TypeNode tn,
     TNode x = getFreeVar( tn );
     //get symmetry breaking lemmas for this term 
     unsigned csz = getSearchSizeForAnchor( a );
-    uint64_t max_sz = d>csz ? 0 : (csz - d);
+    uint64_t max_sz = d > csz ? 0 : (csz - d);
     Trace("sygus-sb-debug2")
         << "add lemmas up to size " << max_sz << ", which is (search_size) "
         << csz << " - (depth) " << d << std::endl;
     std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
-    for( std::pair< const uint64_t, std::vector< Node > >& sbls : its->second ){
-      if( sbls.first<=max_sz ){
+    for (std::pair<const uint64_t, std::vector<Node>>& sbls : its->second)
+    {
+      if (sbls.first <= max_sz)
+      {
         for (const Node& lem : sbls.second)
         {
           Node slem = lem.substitute(x, t, cache);
