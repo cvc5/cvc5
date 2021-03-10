@@ -24,6 +24,7 @@
 #include "lib/clock_gettime.h"
 #include "test.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
