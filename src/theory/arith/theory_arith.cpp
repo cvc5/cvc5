@@ -112,7 +112,7 @@ TrustNode TheoryArith::expandDefinition(Node node)
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
-TrustNode TheoryArith::ppRewrite(TNode atom)
+TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
@@ -121,8 +121,6 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
   {
     return ppRewriteEq(atom);
   }
-  // TODO (project #37): this will be passed to ppRewrite
-  std::vector<SkolemLemma> lems;
   Assert(Theory::theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For

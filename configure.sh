@@ -33,7 +33,6 @@ The following flags enable optional features (disable with --no-<option name>).
   --static-binary          statically link against system libraries
                            (must be disabled for static macOS builds) [default=yes]
   --proofs                 support for proof generation
-  --optimized              optimize the build
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
   --debug-context-mm       use the debug context memory manager
@@ -117,7 +116,6 @@ buildtype=default
 abc=default
 asan=default
 assertions=default
-best=default
 cadical=default
 cln=default
 comp_inc=default
@@ -134,7 +132,6 @@ lfsc=default
 poly=default
 muzzle=default
 ninja=default
-optimized=default
 profiling=default
 proofs=default
 python2=default
@@ -193,8 +190,15 @@ do
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
 
-    --best) best=ON;;
-    --no-best) best=OFF;;
+    # Best configuration
+    --best)
+      abc=ON
+      cadical=ON
+      cln=ON
+      cryptominisat=ON
+      glpk=ON
+      editline=ON
+      ;;
 
     --prefix) die "missing argument to $1 (try -h)" ;;
     --prefix=*)
@@ -260,9 +264,6 @@ do
 
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
-
-    --optimized) optimized=ON;;
-    --no-optimized) optimized=OFF;;
 
     --proofs) proofs=ON;;
     --no-proofs) proofs=OFF;;
@@ -389,8 +390,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
-[ $best != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_BEST=$best"
 [ $comp_inc != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
 [ $coverage != default ] \
@@ -410,8 +409,6 @@ cmake_opts=""
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $optimized != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
 [ $shared != default ] \
