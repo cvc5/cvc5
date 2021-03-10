@@ -273,7 +273,7 @@ class SizeStat : public Stat
 
   void safeFlushInformation(int fd) const override
   {
-    safe_print<std::size_t>(fd, d_sized.size());
+    safe_print(fd, d_sized.size());
   }
 }; /* class SizeStat */
 

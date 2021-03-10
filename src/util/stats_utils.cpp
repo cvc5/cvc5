@@ -25,7 +25,8 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& os, const timer_stat_detail::duration& dur)
+std::ostream& operator<<(std::ostream& os,
+                         const timer_stat_detail::duration& dur)
 {
   StreamFormatScope format_scope(os);
 

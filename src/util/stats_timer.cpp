@@ -39,7 +39,7 @@ void TimerStat::start()
     d_start = timer_stat_detail::clock::now();
     d_running = true;
   }
-} /* TimerStat::start() */
+}
 
 void TimerStat::stop()
 {
@@ -49,9 +49,9 @@ void TimerStat::stop()
     d_data += timer_stat_detail::clock::now() - d_start;
     d_running = false;
   }
-} /* TimerStat::stop() */
+}
 
-bool TimerStat::running() const { return d_running; } /* TimerStat::running() */
+bool TimerStat::running() const { return d_running; }
 
 timer_stat_detail::duration TimerStat::get() const
 {
@@ -73,7 +73,7 @@ SExpr TimerStat::getValue() const
   std::stringstream ss;
   ss << std::fixed << std::setprecision(8) << data;
   return SExpr(Rational::fromDecimal(ss.str()));
-} /* TimerStat::getValue() */
+}
 
 void TimerStat::flushInformation(std::ostream& out) const { out << get(); }
 

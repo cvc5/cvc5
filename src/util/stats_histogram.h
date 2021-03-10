@@ -27,69 +27,72 @@
 namespace CVC4 {
 
 template <class T>
-class HistogramStat : public Stat {
-private:
+class HistogramStat : public Stat
+{
+ private:
   using Histogram = std::map<T, std::uint64_t>;
   Histogram d_hist;
-public:
 
+ public:
   /** Construct a histogram of a stream of entries. */
   HistogramStat(const std::string& name) : Stat(name) {}
-  ~HistogramStat() {}
 
   void flushInformation(std::ostream& out) const override
   {
-    if(CVC4_USE_STATISTICS) {
-      auto i = d_hist.begin();
-      auto end =  d_hist.end();
-      out << "[";
-      while(i != end){
-        const T& key = (*i).first;
-        std::uint64_t count = (*i).second;
-        out << "("<<key<<" : "<<count<< ")";
-        ++i;
-        if(i != end){
-          out << ", ";
-        }
+    auto i = d_hist.begin();
+    auto end = d_hist.end();
+    out << "[";
+    while (i != end)
+    {
+      const T& key = (*i).first;
+      std::uint64_t count = (*i).second;
+      out << "(" << key << " : " << count << ")";
+      ++i;
+      if (i != end)
+      {
+        out << ", ";
       }
-      out << "]";
     }
+    out << "]";
   }
 
   void safeFlushInformation(int fd) const override
   {
-    if (CVC4_USE_STATISTICS) {
-      auto i = d_hist.begin();
-      auto end = d_hist.end();
-      safe_print(fd, "[");
-      while (i != end) {
-        const T& key = (*i).first;
-        std::uint64_t count = (*i).second;
-        safe_print(fd, "(");
-        safe_print<T>(fd, key);
-        safe_print(fd, " : ");
-        safe_print<uint64_t>(fd, count);
-        safe_print(fd, ")");
-        ++i;
-        if (i != end) {
-          safe_print(fd, ", ");
-        }
+    auto i = d_hist.begin();
+    auto end = d_hist.end();
+    safe_print(fd, "[");
+    while (i != end)
+    {
+      const T& key = (*i).first;
+      std::uint64_t count = (*i).second;
+      safe_print(fd, "(");
+      safe_print<T>(fd, key);
+      safe_print(fd, " : ");
+      safe_print<uint64_t>(fd, count);
+      safe_print(fd, ")");
+      ++i;
+      if (i != end)
+      {
+        safe_print(fd, ", ");
       }
-      safe_print(fd, "]");
     }
+    safe_print(fd, "]");
   }
 
-  HistogramStat& operator<<(const T& val){
-    if(CVC4_USE_STATISTICS) {
-      if(d_hist.find(val) == d_hist.end()){
-        d_hist.insert(std::make_pair(val,0));
+  HistogramStat& operator<<(const T& val)
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      if (d_hist.find(val) == d_hist.end())
+      {
+        d_hist.insert(std::make_pair(val, 0));
       }
       d_hist[val]++;
     }
     return (*this);
   }
 
-};/* class HistogramStat */
+}; /* class HistogramStat */
 
 /**
  * A histogram statistic class for integral types.
@@ -114,61 +117,54 @@ class IntegralHistogramStat : public Stat
  public:
   /** Construct a histogram of a stream of entries. */
   IntegralHistogramStat(const std::string& name) : Stat(name) {}
-  ~IntegralHistogramStat() {}
 
   void flushInformation(std::ostream& out) const override
   {
-    if (CVC4_USE_STATISTICS)
+    out << "[";
+    bool first = true;
+    for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
     {
-      out << "[";
-      bool first = true;
-      for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
+      if (d_hist[i] > 0)
       {
-        if (d_hist[i] > 0)
+        if (first)
         {
-          if (first)
-          {
-            first = false;
-          }
-          else
-          {
-            out << ", ";
-          }
-          out << "(" << static_cast<Integral>(i + d_offset) << " : "
-              << d_hist[i] << ")";
+          first = false;
         }
+        else
+        {
+          out << ", ";
+        }
+        out << "(" << static_cast<Integral>(i + d_offset) << " : "
+            << d_hist[i] << ")";
       }
-      out << "]";
     }
+    out << "]";
   }
 
   void safeFlushInformation(int fd) const override
   {
-    if (CVC4_USE_STATISTICS)
+    safe_print(fd, "[");
+    bool first = true;
+    for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
     {
-      safe_print(fd, "[");
-      bool first = true;
-      for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
+      if (d_hist[i] > 0)
       {
-        if (d_hist[i] > 0)
+        if (first)
         {
-          if (first)
-          {
-            first = false;
-          }
-          else
-          {
-            safe_print(fd, ", ");
-          }
-          safe_print(fd, "(");
-          safe_print<Integral>(fd, static_cast<Integral>(i + d_offset));
-          safe_print(fd, " : ");
-          safe_print<std::uint64_t>(fd, d_hist[i]);
-          safe_print(fd, ")");
+          first = false;
         }
+        else
+        {
+          safe_print(fd, ", ");
+        }
+        safe_print(fd, "(");
+        safe_print<Integral>(fd, static_cast<Integral>(i + d_offset));
+        safe_print(fd, " : ");
+        safe_print<std::uint64_t>(fd, d_hist[i]);
+        safe_print(fd, ")");
       }
-      safe_print(fd, "]");
     }
+    safe_print(fd, "]");
   }
 
   IntegralHistogramStat& operator<<(Integral val)
@@ -195,6 +191,6 @@ class IntegralHistogramStat : public Stat
   }
 }; /* class IntegralHistogramStat */
 
-}
+}  // namespace CVC4
 
 #endif
