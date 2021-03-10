@@ -80,8 +80,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
-  if (options::checkUnsatCoresNew())
+  if (options::checkProofs() || options::checkUnsatCoresNew())
   {
+    Notice() << "SmtEngine: setting proof" << std::endl;
     options::proof.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
@@ -629,6 +630,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     logic = log;
     logic.lock();
   }
+  if (options::bvAbstraction())
+  {
+    // bv abstraction may require UF
+    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
+    needsUf = true;
+  }
   if (needsUf
       // Arrays, datatypes and sets permit Boolean terms and thus require UF
       || logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -650,9 +657,25 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!logic.isTheoryEnabled(THEORY_UF))
     {
       LogicInfo log(logic.getUnlockedCopy());
-      Notice() << "Enabling UF because " << logic << " requires it."
-               << std::endl;
+      if (!needsUf)
+      {
+        Notice() << "Enabling UF because " << logic << " requires it."
+                 << std::endl;
+      }
       log.enableTheory(THEORY_UF);
+      logic = log;
+      logic.lock();
+    }
+  }
+  if (options::arithMLTrick())
+  {
+    if (!logic.areIntegersUsed())
+    {
+      // enable integers
+      LogicInfo log(logic.getUnlockedCopy());
+      Notice() << "Enabling integers because arithMLTrick requires it."
+               << std::endl;
+      log.enableIntegers();
       logic = log;
       logic.lock();
     }

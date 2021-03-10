@@ -51,7 +51,7 @@ class ProofGenerator;
  * unintended consequences e.g. variable shadowing. In contrast, converting to
  * original form does not have these complications. Furthermore, having original
  * form greatly simplifies reasoning in the proof, in particular, it avoids the
- * need to reason about variable identifiers for the introduced binders x.
+ * need to reason about identifiers for introduced variables x.
  *
  * Furthermore, note that original form and witness form may share skolems
  * in the rare case that a witness term is purified. This is currently only the
@@ -127,7 +127,11 @@ class SkolemManager
    *   (witness ((x Int)) (exists ((y Int)) (P x y)))
    *   (witness ((y Int)) (P w1 y))
    * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * Notice that y is *not* renamed in the witness form of w1.
+   * Notice that y is *not* renamed in the witness form of w1. This is not
+   * necessary since w1 is skolem. Although its witness form contains
+   * quantification on y, we never construct a term where the witness form
+   * of w1 is expanded in the witness form of w2. This avoids variable
+   * shadowing.
    *
    * In contrast to mkSkolem, the proof generator is for the *entire*
    * existentially quantified formula q, which may have multiple variables in

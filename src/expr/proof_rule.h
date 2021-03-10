@@ -148,7 +148,7 @@ enum class PfRule : uint32_t
   // e.g. where the original form of k is t.
   //
   // Furthermore, notice that the rewriting and substitution is applied only
-  // within the side condition, meaning the rewritten form of the witness form
+  // within the side condition, meaning the rewritten form of the original form
   // of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
@@ -184,7 +184,7 @@ enum class PfRule : uint32_t
   // More generally, this rule also holds when:
   //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
   // where F' and G' are the result of each side of the equation above. Here,
-  // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
+  // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
   // ======== DSL Rewrite
   // Children: (P1:F1 ... Pn:Fn)
@@ -801,7 +801,9 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method. Alternatively, can use negated forall as a premise.
+  // method. Alternatively, can use negated forall as a premise. The witness
+  // terms for the returned skolems can be obtained by
+  // SkolemManager::getWitnessForm.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
