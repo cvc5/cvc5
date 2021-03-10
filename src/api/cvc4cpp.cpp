@@ -726,7 +726,7 @@ uint32_t minArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  uint32_t min = CVC4::kind::metakind::getLowerBoundForKind(extToIntKind(k));
+  uint32_t min = CVC4::kind::metakind::getMinArityForKind(extToIntKind(k));
 
   // At the API level, we treat functions/constructors/selectors/testers as
   // normal terms instead of making them part of the operator
@@ -742,7 +742,7 @@ uint32_t maxArity(Kind k)
 {
   Assert(isDefinedKind(k));
   Assert(isDefinedIntKind(extToIntKind(k)));
-  uint32_t max = CVC4::kind::metakind::getUpperBoundForKind(extToIntKind(k));
+  uint32_t max = CVC4::kind::metakind::getMaxArityForKind(extToIntKind(k));
 
   // At the API level, we treat functions/constructors/selectors/testers as
   // normal terms instead of making them part of the operator

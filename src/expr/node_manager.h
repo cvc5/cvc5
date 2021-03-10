@@ -98,6 +98,15 @@ class NodeManager
   friend class NodeBuilder;
   friend class NodeManagerScope;
 
+ public:
+  /**
+   * Return true if given kind is n-ary. The test is based on n-ary kinds
+   * having their maximal arity as the maximal possible number of children
+   * of a node.
+   */
+  static bool isNAryKind(Kind k);
+
+ private:
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }

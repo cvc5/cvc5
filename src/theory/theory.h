@@ -32,6 +32,7 @@
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/logic_info.h"
+#include "theory/skolem_lemma.h"
 #include "theory/theory_id.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
@@ -730,8 +731,22 @@ class Theory {
    * preprocessing pass, where n is an equality from the input formula,
    * and in theory preprocessing, where n is a (non-equality) term occurring
    * in the input or generated in a lemma.
+   *
+   * @param n the node to preprocess-rewrite.
+   * @param lems a set of lemmas that should be added as a consequence of
+   * preprocessing n. These are in the form of "skolem lemmas". For example,
+   * calling this method on (div x n), we return a trust node proving:
+   *   (= (div x n) k_div)
+   * for fresh skolem k, and add the skolem lemma for k that indicates that
+   * it is the division of x and n.
+   *
+   * Note that ppRewrite should not return WITNESS terms, since the internal
+   * calculus works in "original forms" and not "witness forms".
    */
-  virtual TrustNode ppRewrite(TNode n) { return TrustNode::null(); }
+  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+  {
+    return TrustNode::null();
+  }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

@@ -51,7 +51,7 @@ ResourceManager* currentResourceManager()
 }
 
 SmtScope::SmtScope(const SmtEngine* smt)
-    : NodeManagerScope(smt->d_nodeManager),
+    : NodeManagerScope(smt->getNodeManager()),
       d_oldSmtEngine(s_smtEngine_current),
       d_optionsScope(smt ? &const_cast<SmtEngine*>(smt)->getOptions() : nullptr)
 {

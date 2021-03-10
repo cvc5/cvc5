@@ -196,7 +196,7 @@ class TheoryArrays : public Theory {
  public:
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
-  TrustNode ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
