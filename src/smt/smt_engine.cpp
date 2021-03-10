@@ -1786,7 +1786,7 @@ void SmtEngine::reset()
 {
   // save pointer to the current node manager
   NodeManager* nm = getNodeManager();
-  SmtScope smts(this);
+  //SmtScope smts(this);
   Trace("smt") << "SMT reset()" << endl;
   if(Dump.isOn("benchmark")) {
     getPrinter().toStreamCmdReset(getOutputManager().getDumpOut());
