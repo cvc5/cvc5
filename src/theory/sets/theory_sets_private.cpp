@@ -1276,7 +1276,8 @@ TrustNode TheorySetsPrivate::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheorySetsPrivate::ppRewrite(Node node)
+TrustNode TheorySetsPrivate::ppRewrite(Node node,
+                                       std::vector<SkolemLemma>& lems)
 {
   Debug("sets-proc") << "ppRewrite : " << node << std::endl;
 
