@@ -271,7 +271,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::DATATYPE_TYPE:
     {
-      const DType& dt = (NodeManager::currentNM()->getDTypeForIndex(
+      const DType& dt = (NodeManager::currentNM()->getDType(
           n.getConst<DatatypeIndexConstant>().getIndex()));
       if (dt.isTuple())
       {

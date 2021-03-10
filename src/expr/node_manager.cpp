@@ -225,9 +225,8 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  d_registeredDTypes.clear();
   // clear the datatypes
-  d_ownedDTypes.clear();
+  d_dtypes.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -274,19 +273,12 @@ NodeManager::~NodeManager() {
   d_attrManager = NULL;
 }
 
-size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
-{
-  size_t sz = d_registeredDTypes.size();
-  d_registeredDTypes.push_back(dt);
-  return sz;
-}
-
-const DType& NodeManager::getDTypeForIndex(size_t index) const
+const DType& NodeManager::getDType(size_t index) const
 {
   // if this assertion fails, it is likely due to not managing datatypes
   // properly w.r.t. multiple NodeManagers.
-  Assert(index < d_registeredDTypes.size());
-  return *d_registeredDTypes[index];
+  Assert(index < d_dtypes.size());
+  return *d_dtypes[index];
 }
 
 void NodeManager::reclaimZombies() {
@@ -581,25 +573,18 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   std::map<std::string, TypeNode> nameResolutions;
   std::vector<TypeNode> dtts;
 
-  // have to build deep copy so that datatypes will live in this class
-  std::vector<std::shared_ptr<DType> > dt_copies;
-  for (const DType& dt : datatypes)
-  {
-    d_ownedDTypes.push_back(std::unique_ptr<DType>(new DType(dt)));
-    dt_copies.push_back(std::move(d_ownedDTypes.back()));
-  }
-
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
   // simple self- and mutual-recursion, for example in the definition
   // "nat = succ(pred:nat) | zero", a named resolution can handle the
   // pred selector.
-  for (const std::shared_ptr<DType>& dtc : dt_copies)
+  for (const DType& dt : datatypes)
   {
+    uint32_t index = d_dtypes.size();
+    d_dtypes.push_back(std::unique_ptr<DType>(new DType(dt)));
+    DType* dtp = d_dtypes.back().get();
     TypeNode typeNode;
-    // register datatype with the node manager
-    size_t index = registerDatatype(dtc);
-    if (dtc->getNumParameters() == 0)
+    if (dtp->getNumParameters() == 0)
     {
       typeNode = mkTypeConst(DatatypeIndexConstant(index));
     }
@@ -608,17 +593,17 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
       TypeNode cons = mkTypeConst(DatatypeIndexConstant(index));
       std::vector<TypeNode> params;
       params.push_back(cons);
-      for (unsigned int ip = 0; ip < dtc->getNumParameters(); ++ip)
+      for (uint32_t ip = 0; ip < dtp->getNumParameters(); ++ip)
       {
-        params.push_back(dtc->getParameter(ip));
+        params.push_back(dtp->getParameter(ip));
       }
 
       typeNode = mkTypeNode(kind::PARAMETRIC_DATATYPE, params);
     }
-    AlwaysAssert(nameResolutions.find(dtc->getName()) == nameResolutions.end())
+    AlwaysAssert(nameResolutions.find(dtp->getName()) == nameResolutions.end())
         << "cannot construct two datatypes at the same time "
            "with the same name";
-    nameResolutions.insert(std::make_pair(dtc->getName(), typeNode));
+    nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
     dtts.push_back(typeNode);
   }
 
