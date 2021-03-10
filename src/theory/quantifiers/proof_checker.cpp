@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,7 +27,7 @@ namespace quantifiers {
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
-  pc->registerChecker(PfRule::WITNESS_INTRO, this);
+  pc->registerChecker(PfRule::SKOLEM_INTRO, this);
   pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
@@ -64,20 +64,12 @@ Node QuantifiersProofRuleChecker::checkInternal(
     }
     return exists;
   }
-  else if (id == PfRule::WITNESS_INTRO)
+  else if (id == PfRule::SKOLEM_INTRO)
   {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    if (children[0].getKind() != EXISTS || children[0][0].getNumChildren() != 1)
-    {
-      return Node::null();
-    }
-    std::vector<Node> skolems;
-    sm->mkSkolemize(children[0], skolems, "k");
-    Assert(skolems.size() == 1);
-    Node witness = SkolemManager::getWitnessForm(skolems[0]);
-    Assert(witness.getKind() == WITNESS && witness[0] == children[0][0]);
-    return skolems[0].eqNode(witness);
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node t = SkolemManager::getOriginalForm(args[0]);
+    return args[0].eqNode(t);
   }
   else if (id == PfRule::SKOLEMIZE)
   {

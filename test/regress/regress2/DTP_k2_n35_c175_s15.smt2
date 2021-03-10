@@ -5,7 +5,7 @@ http://www.ai.dist.unige.it/Tsat for more information.
 
 Translated into SMT-LIB format by Albert Oliveras.
 |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "random")
 (set-info :status sat)
 (declare-fun x10 () Int)

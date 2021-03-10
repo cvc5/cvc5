@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,14 +69,8 @@ class PreprocessingPassContext
   /** Get the current logic info of the SmtEngine */
   const LogicInfo& getLogicInfo() { return d_smt->getLogicInfo(); }
 
-  /* Widen the logic to include the given theory. */
-  void widenLogic(theory::TheoryId id);
-
   /** Gets a reference to the top-level substitution map */
   theory::TrustSubstitutionMap& getTopLevelSubstitutions();
-
-  /* Enable Integers. */
-  void enableIntegers();
 
   /** Record symbols in assertions
    *

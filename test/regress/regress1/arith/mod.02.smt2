@@ -1,6 +1,6 @@
 ; EXPECT: unsat
 (set-logic QF_NIA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :status unsat)
 (declare-fun n () Int)
 

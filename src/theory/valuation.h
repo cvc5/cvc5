@@ -2,9 +2,9 @@
 /*! \file valuation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,6 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
-#include "theory/assertion.h"
 
 namespace CVC4 {
 
@@ -32,6 +31,7 @@ class TheoryEngine;
 
 namespace theory {
 
+struct Assertion;
 class TheoryModel;
 class SortInference;
 

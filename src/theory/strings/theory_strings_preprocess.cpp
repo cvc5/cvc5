@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,7 +69,6 @@ Node StringsPreprocess::reduce(Node t,
     Node m = t[2];
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
     Node t12 = nm->mkNode(PLUS, n, m);
-    t12 = Rewriter::rewrite(t12);
     Node lt0 = nm->mkNode(STRING_LENGTH, s);
     //start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);
@@ -101,7 +100,7 @@ Node StringsPreprocess::reduce(Node t,
     Node lemma = nm->mkNode(ITE, cond, b1, b2);
 
     // assert:
-    // IF    n >=0 AND n < len( s ) AND m > 0
+    // IF    n >=0 AND len( s ) > n AND m > 0
     // THEN: s = sk1 ++ skt ++ sk2 AND
     //       len( sk1 ) = n AND
     //       ( len( sk2 ) = len( s )-(n+m) OR len( sk2 ) = 0 ) AND

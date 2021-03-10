@@ -2,9 +2,9 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -133,16 +133,16 @@ enum class PfRule : uint32_t
   // where ids and idr are method identifiers.
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toWitness(F')) == true
+  //   Rewriter::rewrite(toOriginal(F')) == true
   // where F' is the result of the left hand side of the equality above. Here,
-  // notice that we apply rewriting on the witness form of F', meaning that this
-  // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. For example, this rule may justify the
-  // conclusion (= k t) where k is the purification Skolem for t, whose
-  // witness form is (witness ((x T)) (= x t)).
+  // notice that we apply rewriting on the original form of F', meaning that
+  // this rule may conclude an F whose Skolem form is justified by the
+  // definition of its (fresh) Skolem variables. For example, this rule may
+  // justify the conclusion (= k t) where k is the purification Skolem for t,
+  // e.g. where the original form of k is t.
   //
   // Furthermore, notice that the rewriting and substitution is applied only
-  // within the side condition, meaning the rewritten form of the witness form
+  // within the side condition, meaning the rewritten form of the original form
   // of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
@@ -176,9 +176,9 @@ enum class PfRule : uint32_t
   //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toWitness(F')) == Rewriter::rewrite(toWitness(G'))
+  //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
   // where F' and G' are the result of each side of the equation above. Here,
-  // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
+  // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
 
   //================================================= Processing rules
@@ -759,13 +759,13 @@ enum class PfRule : uint32_t
   DT_TRUST,
 
   //================================================= Quantifiers rules
-  // ======== Witness intro
-  // Children: (P:(exists ((x T)) F[x]))
-  // Arguments: none
+  // ======== Skolem intro
+  // Children: none
+  // Arguments: (k)
   // ----------------------------------------
-  // Conclusion: (= k (witness ((x T)) F[x]))
-  // where k is the Skolem form of (witness ((x T)) F[x]).
-  WITNESS_INTRO,
+  // Conclusion: (= k t)
+  // where t is the original form of skolem k.
+  SKOLEM_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
   // Arguments: ((exists ((x T)) F[x]))
@@ -781,7 +781,9 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method. Alternatively, can use negated forall as a premise.
+  // method. Alternatively, can use negated forall as a premise. The witness
+  // terms for the returned skolems can be obtained by
+  // SkolemManager::getWitnessForm.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))

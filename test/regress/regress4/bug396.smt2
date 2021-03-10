@@ -11,7 +11,7 @@
 ; EXPECT: unsat
 ;(set-option :produce-unsat-cores true)
 (set-option :print-success false)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 ;(set-option :produce-models true)
 (set-logic ALL_SUPPORTED)
 ; done setting options

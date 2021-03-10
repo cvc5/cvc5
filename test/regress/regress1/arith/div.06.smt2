@@ -1,7 +1,7 @@
 ; COMMAND-LINE: -q
 ; EXPECT: sat
 (set-logic QF_NRA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :status sat)
 (declare-fun x () Real)
 (declare-fun y () Real)

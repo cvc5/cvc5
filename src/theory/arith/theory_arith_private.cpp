@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Alex Ozdemir, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,7 +40,6 @@
 #include "options/smt_options.h"  // for incrementalSolving()
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/logic_exception.h"
-#include "smt/logic_request.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"
@@ -1419,7 +1418,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
 }
 
 void TheoryArithPrivate::setupAtom(TNode atom) {
-  Assert(isRelationOperator(atom.getKind()));
+  Assert(isRelationOperator(atom.getKind())) << atom;
   Assert(Comparison::isNormalAtom(atom));
   Assert(!isSetup(atom));
   Assert(!d_constraintDatabase.hasLiteral(atom));
@@ -3758,7 +3757,7 @@ TrustNode TheoryArithPrivate::branchIntegerVariable(ArithVar x) const
     TrustNode teq;
     if (Theory::theoryOf(eq) == THEORY_ARITH)
     {
-      teq = d_containing.ppRewrite(eq);
+      teq = d_containing.ppRewriteEq(eq);
       eq = teq.isNull() ? eq : teq.getNode();
     }
     Node literal = d_containing.getValuation().ensureLiteral(eq);

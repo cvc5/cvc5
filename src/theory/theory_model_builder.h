@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -72,6 +72,9 @@ class TheoryEngineModelBuilder
    * Lemmas may be sent on an output channel by this
    * builder in steps (2) or (5), for instance, if the model we
    * are building fails to satisfy a quantified formula.
+   *
+   * @param m The model to build
+   * @return true if the model was successfully built.
    */
   bool buildModel(TheoryModel* m);
 
@@ -264,37 +267,6 @@ class TheoryEngineModelBuilder
    * these values whenever possible.
    */
   bool isAssignerActive(TheoryModel* tm, Assigner& a);
-  /** compute assignable information
-   *
-   * This computes necessary information pertaining to how values should be
-   * assigned to equivalence classes in the equality engine of tm.
-   *
-   * The argument tep stores global information about how values should be
-   * assigned, such as information on how many uninterpreted constant
-   * values are available, which is restricted if finite model finding is
-   * enabled.
-   *
-   * In particular this method constructs the following, passed as arguments:
-   * (1) assignableEqc: the set of equivalence classes that are "assignable",
-   * i.e. those that have an assignable expression in them (see isAssignable),
-   * and have not already been assigned a constant,
-   * (2) evaluableEqc: the set of equivalence classes that are "evaluable", i.e.
-   * those that have an expression in them that is not assignable, and have not
-   * already been assigned a constant,
-   * (3) eqcToAssigner: assigner objects for relevant equivalence classes that
-   * require special ways of assigning values, e.g. those that take into
-   * account assignment exclusion sets,
-   * (4) eqcToAssignerMaster: a map from equivalence classes to the equivalence
-   * class that it shares an assigner object with (all elements in the range of
-   * this map are in the domain of eqcToAssigner).
-   */
-  void computeAssignableInfo(
-      TheoryModel* tm,
-      TypeEnumeratorProperties& tep,
-      std::unordered_set<Node, NodeHashFunction>& assignableEqc,
-      std::unordered_set<Node, NodeHashFunction>& evaluableEqc,
-      std::map<Node, Assigner>& eqcToAssigner,
-      std::map<Node, Node>& eqcToAssignerMaster);
   //------------------------------------for codatatypes
   /** is v an excluded codatatype value?
    *
