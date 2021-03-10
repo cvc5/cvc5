@@ -185,7 +185,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_options(options)
 
 {
-  d_statistics->d_resourceUnitsUsed.setData(d_cumulativeResourceUsed);
+  d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
 }
 
 ResourceManager::~ResourceManager() {}

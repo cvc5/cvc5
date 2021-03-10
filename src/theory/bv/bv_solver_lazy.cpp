@@ -198,7 +198,7 @@ void BVSolverLazy::sendConflict()
     Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
                        << d_conflictNode << std::endl;
     d_im.conflict(d_conflictNode, InferenceId::BV_LAZY_CONFLICT);
-    d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
+    d_statistics.d_avgConflictSize << d_conflictNode.getNumChildren();
     d_conflictNode = Node::null();
   }
 }

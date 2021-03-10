@@ -299,9 +299,6 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           Node infer_rhs = nm->mkNode(Kind::MULT, mult, rhs);
           Node infer = nm->mkNode(infer_type, infer_lhs, infer_rhs);
           Trace("nl-ext-bound-debug") << "     " << infer << std::endl;
-          infer = Rewriter::rewrite(infer);
-          Trace("nl-ext-bound-debug2")
-              << "     ...rewritten : " << infer << std::endl;
           // check whether it is false in model for abstraction
           Node infer_mv = d_data->d_model.computeAbstractModelValue(infer);
           Trace("nl-ext-bound-debug")
