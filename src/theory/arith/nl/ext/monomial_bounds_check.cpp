@@ -299,11 +299,7 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
           Node infer_rhs = nm->mkNode(Kind::MULT, mult, rhs);
           Node infer = nm->mkNode(infer_type, infer_lhs, infer_rhs);
           Trace("nl-ext-bound-debug") << "     " << infer << std::endl;
-          infer = Rewriter::rewrite(infer);
-          Trace("nl-ext-bound-debug2")
-              << "     ...rewritten : " << infer << std::endl;
-          // check whether it is false in model for abstraction
-          Node infer_mv = d_data->d_model.computeAbstractModelValue(infer);
+          Node infer_mv = d_data->d_model.computeAbstractModelValue(Rewriter::rewrite(infer));
           Trace("nl-ext-bound-debug")
               << "       ...infer model value is " << infer_mv << std::endl;
           if (infer_mv == d_data->d_false)
@@ -324,16 +320,25 @@ void MonomialBoundsCheck::checkBounds(const std::vector<Node>& asserts,
             if (d_data->isProofEnabled())
             {
               proof = d_data->getProof();
-              proof->addStep(nm->mkNode(type, t, rhs),
-                             PfRule::MACRO_SR_PRED_TRANSFORM,
-                             {orig},
-                             {nm->mkNode(type, t, rhs)});
+              // this is iblem, but uses (type t rhs) instead of the original
+              // variant (which is identical under rewriting)
+              // we first infer the "clean" version of the lemma and then
+              // use MACRO_SR_PRED_TRANSFORM to rewrite
+              Node tmplem = nm->mkNode(
+                  Kind::IMPLIES,
+                  nm->mkNode(Kind::AND,
+                             nm->mkNode(mmv_sign == 1 ? Kind::GT : Kind::LT,
+                                        mult,
+                                        d_data->d_zero),
+                             nm->mkNode(type, t, rhs)),
+                  infer);
+              proof->addStep(tmplem,
+                             mmv_sign == 1 ? PfRule::ARITH_MULT_POS
+                                           : PfRule::ARITH_MULT_NEG,
+                             {},
+                             {mult, nm->mkNode(type, t, rhs)});
               proof->addStep(
-                  iblem,
-                  mmv_sign == 1 ? PfRule::ARITH_MULT_POS
-                                : PfRule::ARITH_MULT_NEG,
-                  {},
-                  {mult, nm->mkNode(type, t, rhs)});
+                  iblem, PfRule::MACRO_SR_PRED_TRANSFORM, {tmplem}, {iblem});
             }
             d_data->d_im.addPendingLemma(iblem,
                                          InferenceId::ARITH_NL_INFER_BOUNDS_NT,
