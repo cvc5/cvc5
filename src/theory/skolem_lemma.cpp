@@ -33,7 +33,7 @@ SkolemLemma::SkolemLemma(Node k, ProofGenerator* pg) : d_lemma(), d_skolem(k)
 Node SkolemLemma::getSkolemLemmaFor(Node k)
 {
   Node w = SkolemManager::getWitnessForm(k);
-  Assert(w.getKind() == WITNESS);
+  Assert(w.getKind() == kind::WITNESS);
   TNode tx = w[0][0];
   TNode tk = k;
   return w[1].substitute(tx, tk);
@@ -42,4 +42,3 @@ Node SkolemLemma::getSkolemLemmaFor(Node k)
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__SKOLEM_LEMMA_H */
