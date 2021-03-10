@@ -23,14 +23,20 @@ using namespace std;
 namespace CVC4 {
 namespace util {
 
-Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children){
-  if(children.size() == 0){
+Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children)
+{
+  if (children.size() == 0)
+  {
     return zeroArity(kind);
-  }else if(children.size() == 1){
+  }
+  else if (children.size() == 1)
+  {
     return children[0];
-  }else{
-    const unsigned int max = kind::metakind::getMaxArityForKind(kind);
-    const unsigned int min = kind::metakind::getMinArityForKind(kind);
+  }
+  else
+  {
+    const uint32_t max = kind::metakind::getMaxArityForKind(kind);
+    const uint32_t min = kind::metakind::getMinArityForKind(kind);
 
     Assert(min <= children.size());
 
