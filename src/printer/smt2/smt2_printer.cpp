@@ -936,7 +936,7 @@ void Smt2Printer::toStream(std::ostream& out,
     out << " ";
     // Use a fresh let binder, since using existing let symbols may violate
     // scoping issues for let-bound variables, see explanation in let_binding.h.
-    LetBinding lbindNew(lbind==nullptr ? 0 : lbind->getThreshold());
+    LetBinding lbindNew(lbind == nullptr ? 0 : lbind->getThreshold());
     if (n.getNumChildren() == 3)
     {
       out << "(! ";
