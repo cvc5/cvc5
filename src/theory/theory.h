@@ -32,6 +32,7 @@
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/logic_info.h"
+#include "theory/skolem_lemma.h"
 #include "theory/theory_id.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
@@ -731,7 +732,10 @@ class Theory {
    * and in theory preprocessing, where n is a (non-equality) term occurring
    * in the input or generated in a lemma.
    */
-  virtual TrustNode ppRewrite(TNode n) { return TrustNode::null(); }
+  virtual TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems)
+  {
+    return TrustNode::null();
+  }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

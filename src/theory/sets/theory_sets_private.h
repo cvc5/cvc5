@@ -170,7 +170,7 @@ class TheorySetsPrivate {
   /** ppRewrite, which expands choose.  */
   TrustNode expandDefinition(Node n);
   /** ppRewrite, which expands choose and is_singleton.  */
-  TrustNode ppRewrite(Node n);
+  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
 
   void presolve();
 
