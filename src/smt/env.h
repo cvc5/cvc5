@@ -101,14 +101,14 @@ class Env
 
   /* Option helpers---------------------------------------------------------- */
 
-  /** Get the current printer based on the current options
-   *
+  /** 
+   * Get the current printer based on the current options
    * @return the current printer
    */
   const Printer& getPrinter();
 
-  /** Get the output stream that --dump=X should print to
-   *
+  /** 
+   * Get the output stream that --dump=X should print to
    * @return the output stream
    */
   std::ostream& getDumpOut();
@@ -131,14 +131,14 @@ class Env
   void shutdown();
   /* Members ---------------------------------------------------------------- */
 
-  /** Expr manager context */
+  /** The SAT context */
   std::unique_ptr<context::Context> d_context;
   /** User level context */
   std::unique_ptr<context::UserContext> d_userContext;
-  /** Our internal node manager */
+  /** The node manager of this environment. */
   NodeManager* d_nodeManager;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
+  /** The proof node manager, which is non-null if proofs are enabled */
+  ProofNodeManager* d_proofNodeManager;
   /**
    * The rewriter associated with this Env. We have a different instance
    * of the rewriter for each Env instance. This is because rewriters may
@@ -147,7 +147,7 @@ class Env
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
   /** The dump manager */
-  std::unique_ptr<smt::DumpManager> d_dumpm;
+  std::unique_ptr<smt::DumpManager> d_dumpManager;
   /**
    * The logic we're in. This logic may be an extension of the logic set by the
    * user.
@@ -155,11 +155,17 @@ class Env
   LogicInfo d_logic;
   /** The statistics registry */
   StatisticsRegistry* d_statisticsRegistry;
-  /** The options object */
-  Options d_options;
-  /**
-   * Manager for limiting time and abstract resource usage.
+  /** 
+   * The options object, which contains the modified version of the options
+   * provided as input to the SmtEngine that owns this environment. This means
+   * that d_options may have been modified by the options manager, e.g. based
+   * on the input logic.
+   *
+   * This is the authorative copy of the options that internal subsolvers should
+   * consider during initialization.
    */
+  Options d_options;
+  /** Manager for limiting time and abstract resource usage. */
   std::unique_ptr<ResourceManager> d_resourceManager;
 }; /* class Env */
 

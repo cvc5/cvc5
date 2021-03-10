@@ -990,7 +990,9 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     }
 
     return r;
-  } catch (UnsafeInterruptException& e) {
+  } 
+  catch (UnsafeInterruptException& e) 
+  {
     AlwaysAssert(getResourceManager()->out());
     // Notice that we do not notify the state of this result. If we wanted to
     // make the solver resume a working state after an interupt, then we would
@@ -1046,7 +1048,8 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
-  if (Dump.isOn("raw-benchmark")) {
+  if (Dump.isOn("raw-benchmark"))
+  {
     getPrinter().toStreamCmdAssert(getOutputManager().getDumpOut(), formula);
   }
 
@@ -1170,7 +1173,8 @@ Node SmtEngine::getValue(const Node& ex) const
   SmtScope smts(this);
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
-  if(Dump.isOn("benchmark")) {
+  if(Dump.isOn("benchmark"))
+  {
     getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
   }
   TypeNode expectedType = ex.getType();
@@ -1235,7 +1239,8 @@ Model* SmtEngine::getModel() {
 
   finishInit();
 
-  if(Dump.isOn("benchmark")) {
+  if(Dump.isOn("benchmark")) 
+  {
     getPrinter().toStreamCmdGetModel(getOutputManager().getDumpOut());
   }
 
@@ -1729,7 +1734,8 @@ std::vector<Node> SmtEngine::getAssertions()
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  if(Dump.isOn("benchmark")) {
+  if(Dump.isOn("benchmark")) 
+  {
     getPrinter().toStreamCmdGetAssertions(getOutputManager().getDumpOut());
   }
   Trace("smt") << "SMT getAssertions()" << endl;
@@ -1766,7 +1772,8 @@ void SmtEngine::pop() {
   SmtScope smts(this);
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
-  if(Dump.isOn("benchmark")) {
+  if(Dump.isOn("benchmark")) 
+  {
     getPrinter().toStreamCmdPop(getOutputManager().getDumpOut());
   }
   d_state->userPop();
@@ -1786,9 +1793,9 @@ void SmtEngine::reset()
 {
   // save pointer to the current node manager
   NodeManager* nm = getNodeManager();
-  //SmtScope smts(this);
   Trace("smt") << "SMT reset()" << endl;
-  if(Dump.isOn("benchmark")) {
+  if(Dump.isOn("benchmark")) 
+  {
     getPrinter().toStreamCmdReset(getOutputManager().getDumpOut());
   }
   std::string filename = d_state->getFilename();
@@ -1840,7 +1847,8 @@ void SmtEngine::interrupt()
   d_smtSolver->interrupt();
 }
 
-void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
+void SmtEngine::setResourceLimit(unsigned long units, bool cumulative)
+{
   getResourceManager()->setResourceLimit(units, cumulative);
 }
 void SmtEngine::setTimeLimit(unsigned long milis)
@@ -1848,11 +1856,13 @@ void SmtEngine::setTimeLimit(unsigned long milis)
   getResourceManager()->setTimeLimit(milis);
 }
 
-unsigned long SmtEngine::getResourceUsage() const {
+unsigned long SmtEngine::getResourceUsage() const 
+{
   return getResourceManager()->getResourceUsage();
 }
 
-unsigned long SmtEngine::getTimeUsage() const {
+unsigned long SmtEngine::getTimeUsage() const
+{
   return getResourceManager()->getTimeUsage();
 }
 
