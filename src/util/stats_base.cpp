@@ -30,4 +30,86 @@ Stat::Stat(const std::string& name) : d_name(name)
   }
 }
 
+IntStat::IntStat(const std::string& name, std::int64_t init)
+    : BackedStat<int64_t>(name, init)
+{
+}
+
+/** Increment the underlying integer statistic. */
+IntStat& IntStat::operator++()
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    ++d_data;
+  }
+  return *this;
+}
+/** Increment the underlying integer statistic. */
+IntStat& IntStat::operator++(int)
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    ++d_data;
+  }
+  return *this;
+}
+
+/** Increment the underlying integer statistic by the given amount. */
+IntStat& IntStat::operator+=(std::int64_t val)
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    d_data += val;
+  }
+  return *this;
+}
+
+/** Keep the maximum of the current statistic value and the given one. */
+void IntStat::maxAssign(int64_t val)
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    if (d_data < val)
+    {
+      d_data = val;
+    }
+  }
+}
+
+/** Keep the minimum of the current statistic value and the given one. */
+void IntStat::minAssign(int64_t val)
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    if (d_data > val)
+    {
+      d_data = val;
+    }
+  }
+}
+
+AverageStat::AverageStat(const std::string& name)
+    : BackedStat<double>(name, 0.0)
+{
+}
+
+/** Add an entry to the running-average calculation. */
+AverageStat& AverageStat::operator<<(double e)
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    ++d_count;
+    d_sum += e;
+    set(d_sum / d_count);
+  }
+  return *this;
+}
+
+SExpr AverageStat::getValue() const
+{
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(8) << d_data;
+  return SExpr(Rational::fromDecimal(ss.str()));
+}
+
 }  // namespace CVC4

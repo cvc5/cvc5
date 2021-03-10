@@ -30,15 +30,6 @@ namespace timer_stat_detail {
   struct duration: public std::chrono::nanoseconds {};
 }
 
-/**
- * Prints a timespec.
- *
- * This is used in the implementation of TimerStat. This needs to be available
- * before Stat due to ordering constraints in clang for TimerStat.
- */
-std::ostream& operator<<(std::ostream& os, const timespec& t) CVC4_PUBLIC;
-
-
 template <>
 void CVC4_PUBLIC safe_print(int fd, const timer_stat_detail::duration& t);
 

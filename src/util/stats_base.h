@@ -28,9 +28,9 @@
 #include "util/stats_utils.h"
 
 #ifdef CVC4_STATISTICS_ON
-#  define CVC4_USE_STATISTICS true
+#define CVC4_USE_STATISTICS true
 #else
-#  define CVC4_USE_STATISTICS false
+#define CVC4_USE_STATISTICS false
 #endif
 
 namespace CVC4 {
@@ -43,13 +43,13 @@ namespace CVC4 {
  * Derived classes must implement these function and pass their name to
  * the base class constructor.
  */
-class Stat {
-protected:
+class Stat
+{
+ protected:
   /** The name of this statistic */
   std::string d_name;
 
-public:
-
+ public:
   /**
    * Construct a statistic with the given name.  Debug builds of CVC4
    * will throw an assertion exception if the given name contains the
@@ -74,18 +74,17 @@ public:
   virtual void safeFlushInformation(int fd) const = 0;
 
   /** Get the name of this statistic. */
-  const std::string& getName() const {
-    return d_name;
-  }
+  const std::string& getName() const { return d_name; }
 
   /** Get the value of this statistic as a string. */
-  virtual SExpr getValue() const {
+  virtual SExpr getValue() const
+  {
     std::stringstream ss;
     flushInformation(ss);
     return SExpr(ss.str());
   }
 
-};/* class Stat */
+}; /* class Stat */
 
 /**
  * A data statistic that keeps a T and sets it with setData().
@@ -93,30 +92,28 @@ public:
  * Template class T must have an operator=() and a copy constructor.
  */
 template <class T>
-class BackedStat : public Stat {
-protected:
+class BackedStat : public Stat
+{
+ protected:
   /** The internally-kept statistic value */
   T d_data;
 
-public:
-
+ public:
   /** Construct a backed statistic with the given name and initial value. */
-  BackedStat(const std::string& name, const T& init) :
-    Stat(name),
-    d_data(init) {
+  BackedStat(const std::string& name, const T& init) : Stat(name), d_data(init)
+  {
   }
 
   /** Set the underlying data value to the given value. */
   void set(const T& t)
   {
-    if(CVC4_USE_STATISTICS) {
+    if (CVC4_USE_STATISTICS)
+    {
       d_data = t;
     }
   }
 
-  const T& get() const {
-    return d_data;
-  }
+  const T& get() const { return d_data; }
 
   /** Flush the value of the statistic to the given output stream. */
   virtual void flushInformation(std::ostream& out) const override
@@ -129,7 +126,7 @@ public:
     safe_print<T>(fd, d_data);
   }
 
-};/* class BackedStat<T> */
+}; /* class BackedStat<T> */
 
 /**
  * A data statistic that references a data cell of type T,
@@ -147,40 +144,37 @@ public:
  * Template class T must have an assignment operator=().
  */
 template <class T>
-class ReferenceStat : public Stat {
-private:
+class ReferenceStat : public Stat
+{
+ private:
   /** The referenced data cell */
   const T* d_data = nullptr;
 
-public:
+ public:
   /**
    * Construct a reference stat with the given name and a reference
    * to nullptr.
    */
-  ReferenceStat(const std::string& name) :
-    Stat(name) {
-  }
+  ReferenceStat(const std::string& name) : Stat(name) {}
 
   /**
    * Construct a reference stat with the given name and a reference to
    * the given data.
    */
-  ReferenceStat(const std::string& name, const T& data) :
-    Stat(name) {
+  ReferenceStat(const std::string& name, const T& data) : Stat(name)
+  {
     set(data);
   }
 
   /** Set this reference statistic to refer to the given data cell. */
   void set(const T& t)
   {
-    if(CVC4_USE_STATISTICS) {
+    if (CVC4_USE_STATISTICS)
+    {
       d_data = &t;
     }
   }
-  const T& get() const
-  {
-    return *d_data;
-  }
+  const T& get() const { return *d_data; }
 
   /** Flush the value of the statistic to the given output stream. */
   virtual void flushInformation(std::ostream& out) const override
@@ -193,67 +187,39 @@ public:
     safe_print<T>(fd, *d_data);
   }
 
-};/* class ReferenceStat<T> */
+}; /* class ReferenceStat<T> */
 
 /**
  * A backed integer-valued (64-bit signed) statistic.
  * This doesn't functionally differ from its base class BackedStat<int64_t>,
  * except for adding convenience functions for dealing with integers.
  */
-class IntStat : public BackedStat<int64_t> {
-public:
+class IntStat : public BackedStat<int64_t>
+{
+ public:
   /**
    * Construct an integer-valued statistic with the given name and
    * initial value.
    */
-  IntStat(const std::string& name, int64_t init) :
-    BackedStat<int64_t>(name, init) {
-  }
+  IntStat(const std::string& name, std::int64_t init);
 
   /** Increment the underlying integer statistic. */
-  IntStat& operator++() {
-    if(CVC4_USE_STATISTICS) {
-      ++d_data;
-    }
-    return *this;
-  }
+  IntStat& operator++();
   /** Increment the underlying integer statistic. */
-  IntStat& operator++(int) {
-    if(CVC4_USE_STATISTICS) {
-      ++d_data;
-    }
-    return *this;
-  }
+  IntStat& operator++(int);
 
   /** Increment the underlying integer statistic by the given amount. */
-  IntStat& operator+=(std::int64_t val) {
-    if(CVC4_USE_STATISTICS) {
-      d_data += val;
-    }
-    return *this;
-  }
+  IntStat& operator+=(std::int64_t val);
 
   /** Keep the maximum of the current statistic value and the given one. */
-  void maxAssign(int64_t val) {
-    if(CVC4_USE_STATISTICS) {
-      if(d_data < val) {
-        d_data = val;
-      }
-    }
-  }
+  void maxAssign(int64_t val);
 
   /** Keep the minimum of the current statistic value and the given one. */
-  void minAssign(int64_t val) {
-    if(CVC4_USE_STATISTICS) {
-      if(d_data > val) {
-        d_data = val;
-      }
-    }
-  }
+  void minAssign(int64_t val);
 
   SExpr getValue() const override { return SExpr(Integer(d_data)); }
 
-};/* class IntStat */
+}; /* class IntStat */
 
 /**
  * The value for an AverageStat is the running average of (e1, e_2, ..., e_n),
@@ -266,8 +232,9 @@ public:
  * running count, so should generally be avoided.  Call addEntry() to add
  * an entry to the average calculation.
  */
-class AverageStat : public BackedStat<double> {
-private:
+class AverageStat : public BackedStat<double>
+{
+ private:
   /**
    * The number of accumulations of the running average that we
    * have seen so far.
@@ -275,38 +242,27 @@ private:
   std::uint32_t d_count = 0;
   double d_sum = 0;
 
-public:
+ public:
   /** Construct an average statistic with the given name. */
-  AverageStat(const std::string& name) :
-    BackedStat<double>(name, 0.0) {
-  }
+  AverageStat(const std::string& name);
 
   /** Add an entry to the running-average calculation. */
-  AverageStat& operator<<(double e) {
-    if(CVC4_USE_STATISTICS) {
-      ++d_count;
-      d_sum += e;
-      set(d_sum / d_count);
-    }
-    return *this;
-  }
+  AverageStat& operator<<(double e);
 
-  SExpr getValue() const override
-  {
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(8) << d_data;
-    return SExpr(Rational::fromDecimal(ss.str()));
-  }
+  SExpr getValue() const override;
 
-};/* class AverageStat */
+}; /* class AverageStat */
 
 template <class T>
-class SizeStat : public Stat {
-private:
+class SizeStat : public Stat
+{
+ private:
   const T& d_sized;
-public:
-  SizeStat(const std::string& name, const T& sized) :
-    Stat(name), d_sized(sized) {}
+
+ public:
+  SizeStat(const std::string& name, const T& sized) : Stat(name), d_sized(sized)
+  {
+  }
   ~SizeStat() {}
 
   /** Flush the value of the statistic to the given output stream. */
@@ -319,8 +275,8 @@ public:
   {
     safe_print<std::size_t>(fd, d_sized.size());
   }
-};/* class SizeStat */
+}; /* class SizeStat */
 
-}
+}  // namespace CVC4
 
 #endif
