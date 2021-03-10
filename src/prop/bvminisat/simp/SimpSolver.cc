@@ -165,7 +165,7 @@ lbool SimpSolver::solve_(bool do_simp, bool turn_off_simp)
 
 bool SimpSolver::addClause_(vec<Lit>& ps, ClauseId& id)
 {
-#ifndef NDEBUG
+#ifdef CVC4_ASSERTIONS
     for (int i = 0; i < ps.size(); i++)
         assert(!isEliminated(var(ps[i])));
 #endif
