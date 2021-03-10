@@ -187,8 +187,10 @@ struct NodeValueConstPrinter {
  */
 void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv);
 
-unsigned getLowerBoundForKind(::CVC4::Kind k);
-unsigned getUpperBoundForKind(::CVC4::Kind k);
+/** Return the minimum arity of the given kind. */
+uint32_t getMinArityForKind(::CVC4::Kind k);
+/** Return the maximum arity of the given kind. */
+uint32_t getMaxArityForKind(::CVC4::Kind k);
 
 }/* CVC4::kind::metakind namespace */
 

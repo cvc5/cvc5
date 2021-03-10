@@ -29,8 +29,8 @@ Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children){
   }else if(children.size() == 1){
     return children[0];
   }else{
-    const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
-    const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
+    const unsigned int max = kind::metakind::getMaxArityForKind(kind);
+    const unsigned int min = kind::metakind::getMinArityForKind(kind);
 
     Assert(min <= children.size());
 
