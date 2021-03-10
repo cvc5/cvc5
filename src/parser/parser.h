@@ -24,7 +24,6 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
-#include "base/check.h"
 #include "expr/kind.h"
 #include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
@@ -271,12 +270,8 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  virtual void forceLogic(const std::string& logic)
-  {
-    Assert(!d_logicIsForced);
-    d_logicIsForced = true;
-    d_forcedLogic = logic;
-  }
+  virtual void forceLogic(const std::string& logic);
+
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 

@@ -81,6 +81,13 @@ api::Term Parser::getSymbol(const std::string& name, SymbolType type)
   return d_symtab->lookup(name);
 }
 
+void Parser::forceLogic(const std::string& logic)
+{
+  Assert(!d_logicIsForced);
+  d_logicIsForced = true;
+  d_forcedLogic = logic;
+}
+
 api::Term Parser::getVariable(const std::string& name)
 {
   return getSymbol(name, SYM_VARIABLE);
