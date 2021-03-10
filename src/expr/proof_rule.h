@@ -1043,15 +1043,23 @@ enum class PfRule : uint32_t
   //
   // Arguments: (k1, ..., kn), non-zero reals
   // ---------------------
-  // Conclusion: (>< (* k t1) (* k t2))
+  // Conclusion: (>< t1 t2)
   //    where >< is the fusion of the combination of the ><i, (flipping each it
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the polynomials.
-  //    t2 is the sum of the constants.
+  //    t1 is the sum of the scaled polynomials (sum_i k_i poly_i)
+  //    t2 is the sum of the scaled constants. (sum_i k_i const_i)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
+  // Children: (P1, ... , Pn)
+  //           where each Pi has form (><i, Li, Ri)
+  //           for ><i in {<, <=, ==}
+  // Conclusion: (>< L R)
+  //           where >< is < if any ><i is <, and <= otherwise.
+  //                 L is (+ L1 ... Ln)
+  //                 R is (+ R1 ... Rn)
+  ARITH_SUM_UB,
   // ======== Tightening Strict Integer Upper Bounds
   // Children: (P:(< i c))
   //         where i has integer type.
