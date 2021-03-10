@@ -1255,37 +1255,23 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
  * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
+NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
+{
   Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
 
-  switch(kind::MetaKind mk = getMetaKind()) {
-  case kind::metakind::INVALID:
-    IllegalArgument(*this, "getOperator() called on Node with INVALID-kinded kind");
-
-  case kind::metakind::VARIABLE:
-    IllegalArgument(*this, "getOperator() called on Node with VARIABLE-kinded kind");
-
-  case kind::metakind::OPERATOR: {
+  kind::MetaKind mk = getMetaKind();
+  if (mk == kind::metakind::OPERATOR)
+  {
     /* Returns a BUILTIN node. */
     return NodeManager::currentNM()->operatorOf(getKind());
   }
-
-  case kind::metakind::PARAMETERIZED:
-    /* The operator is the first child. */
-    return Node(d_nv->d_children[0]);
-
-  case kind::metakind::CONSTANT:
-    IllegalArgument(*this, "getOperator() called on Node with CONSTANT-kinded kind");
-
-  case kind::metakind::NULLARY_OPERATOR:
-    IllegalArgument(*this, "getOperator() called on Node with NULLARY_OPERATOR-kinded kind");
-
-  default: Unhandled() << mk;
-  }
+  Assert(mk == kind::metakind::PARAMETERIZED);
+  /* The operator is the first child. */
+  return Node(d_nv->d_children[0]);
 }
 
 /**
