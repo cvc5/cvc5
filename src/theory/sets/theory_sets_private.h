@@ -202,7 +202,8 @@ class TheorySetsPrivate {
    */
   Node getChooseFunction(const TypeNode& setType);
   /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node, std::vector<SkolemLemma>& lems);
+  TrustNode expandChooseOperator(const Node& node,
+                                 std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */

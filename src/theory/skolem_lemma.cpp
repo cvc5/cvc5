@@ -41,4 +41,3 @@ Node SkolemLemma::getSkolemLemmaFor(Node k)
 
 }  // namespace theory
 }  // namespace CVC4
-

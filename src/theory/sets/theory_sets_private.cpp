@@ -20,13 +20,13 @@
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
 #include "util/result.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -1279,7 +1279,8 @@ TrustNode TheorySetsPrivate::ppRewrite(Node node,
   }
 }
 
-TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node, std::vector<SkolemLemma>& lems)
+TrustNode TheorySetsPrivate::expandChooseOperator(
+    const Node& node, std::vector<SkolemLemma>& lems)
 {
   Assert(node.getKind() == CHOOSE);
 
@@ -1304,7 +1305,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node, std::vector<
   Node member = nm->mkNode(MEMBER, witnessVariable, set);
   Node memberAndEqual = member.andNode(equal);
   Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
-  SkolemManager * sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   Node ret = sm->mkSkolem(witnessVariable, ite, "kSetChoose");
   lems.push_back(SkolemLemma(ret, nullptr));
   return TrustNode::mkTrustRewrite(node, ret, nullptr);
