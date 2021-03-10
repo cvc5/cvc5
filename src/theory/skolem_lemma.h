@@ -41,7 +41,8 @@ class SkolemLemma
    */
   SkolemLemma(TrustNode lem, Node k);
   /**
-   * Make skolem lemma from witness form of skolem k.
+   * Make skolem lemma from witness form of skolem k. If non-null, pg is
+   * proof generator that can generator a proof for getSkolemLemmaFor(k).
    */
   SkolemLemma(Node k, ProofGenerator* pg);
 
