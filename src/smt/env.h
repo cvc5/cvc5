@@ -71,32 +71,32 @@ class Env
   /** Get a pointer to the UserContext owned by this Env. */
   context::UserContext* getUserContext();
 
-  /** Permit access to the underlying NodeManager. */
+  /** Get a pointer to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
 
   /**
    * Get the underlying proof node manager. Note since proofs depend on option
    * initialization, this is only available after the SmtEngine that owns this
-   * environment is initialized, and only if proofs are enabled.
+   * environment is initialized, and only non-null if proofs are enabled.
    */
   ProofNodeManager* getProofNodeManager();
 
   /** Get a pointer to the Rewriter owned by this Env. */
   theory::Rewriter* getRewriter();
 
-  /** Permit access to the underlying dump manager. */
+  /** Get a pointer to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
 
-  /** Get the options object (const version only) */
+  /** Get the options object (const version only) owned by this Env. */
   const Options& getOptions() const;
 
-  /** Get the resource manager of this SMT engine */
+  /** Get the resource manager owned by this Env. */
   ResourceManager* getResourceManager() const;
 
   /** Get the logic information currently set. */
   const LogicInfo& getLogicInfo() const;
 
-  /** Get a pointer to the StatisticsRegistry owned by this Env. */
+  /** Get a pointer to the StatisticsRegistry. */
   StatisticsRegistry* getStatisticsRegistry();
 
   /* Option helpers---------------------------------------------------------- */
@@ -131,38 +131,51 @@ class Env
   void shutdown();
   /* Members ---------------------------------------------------------------- */
 
-  /** The SAT context */
+  /** The SAT context owned by this Env */
   std::unique_ptr<context::Context> d_context;
-  /** User level context */
+  /** User level context owned by this Env */
   std::unique_ptr<context::UserContext> d_userContext;
-  /** The node manager of this environment. */
+  /** 
+   * A pointer to the node manager of this environment. A node manager is
+   * not necessarily unique to an SmtEngine instance.
+   */
   NodeManager* d_nodeManager;
-  /** The proof node manager, which is non-null if proofs are enabled */
+  /** 
+   * A pointer to the proof node manager, which is non-null if proofs are
+   * enabled. This is owned by the proof manager of the SmtEngine that owns
+   * this environment.
+   */
   ProofNodeManager* d_proofNodeManager;
   /**
-   * The rewriter associated with this Env. We have a different instance
+   * The rewriter owned by this Env. We have a different instance
    * of the rewriter for each Env instance. This is because rewriters may
    * hold references to objects that belong to theory solvers, which are
-   * specific to an Env/TheoryEngine instance.
+   * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpManager;
   /**
    * The logic we're in. This logic may be an extension of the logic set by the
-   * user.
+   * user, which may be different from the user-provided logic due to the
+   * options we have set.
+   * 
+   * This is the authorative copy of the logic that internal subsolvers should
+   * consider during solving and initialization.
    */
   LogicInfo d_logic;
-  /** The statistics registry */
+  /** 
+   * The statistics registry, which is owned by the SmtEngine that owns this.
+   */
   StatisticsRegistry* d_statisticsRegistry;
   /**
    * The options object, which contains the modified version of the options
-   * provided as input to the SmtEngine that owns this environment. This means
-   * that d_options may have been modified by the options manager, e.g. based
+   * provided as input to the SmtEngine that owns this environment. Note
+   * that d_options may be modified by the options manager, e.g. based
    * on the input logic.
    *
    * This is the authorative copy of the options that internal subsolvers should
-   * consider during initialization.
+   * consider during solving and initialization.
    */
   Options d_options;
   /** Manager for limiting time and abstract resource usage. */
