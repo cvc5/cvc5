@@ -990,8 +990,8 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     }
 
     return r;
-  } 
-  catch (UnsafeInterruptException& e) 
+  }
+  catch (UnsafeInterruptException& e)
   {
     AlwaysAssert(getResourceManager()->out());
     // Notice that we do not notify the state of this result. If we wanted to
@@ -1173,7 +1173,7 @@ Node SmtEngine::getValue(const Node& ex) const
   SmtScope smts(this);
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
-  if(Dump.isOn("benchmark"))
+  if (Dump.isOn("benchmark"))
   {
     getPrinter().toStreamCmdGetValue(d_outMgr.getDumpOut(), {ex});
   }
@@ -1239,7 +1239,7 @@ Model* SmtEngine::getModel() {
 
   finishInit();
 
-  if(Dump.isOn("benchmark")) 
+  if (Dump.isOn("benchmark"))
   {
     getPrinter().toStreamCmdGetModel(getOutputManager().getDumpOut());
   }
@@ -1734,7 +1734,7 @@ std::vector<Node> SmtEngine::getAssertions()
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  if(Dump.isOn("benchmark")) 
+  if (Dump.isOn("benchmark"))
   {
     getPrinter().toStreamCmdGetAssertions(getOutputManager().getDumpOut());
   }
@@ -1772,7 +1772,7 @@ void SmtEngine::pop() {
   SmtScope smts(this);
   finishInit();
   Trace("smt") << "SMT pop()" << endl;
-  if(Dump.isOn("benchmark")) 
+  if (Dump.isOn("benchmark"))
   {
     getPrinter().toStreamCmdPop(getOutputManager().getDumpOut());
   }
@@ -1794,7 +1794,7 @@ void SmtEngine::reset()
   // save pointer to the current node manager
   NodeManager* nm = getNodeManager();
   Trace("smt") << "SMT reset()" << endl;
-  if(Dump.isOn("benchmark")) 
+  if (Dump.isOn("benchmark"))
   {
     getPrinter().toStreamCmdReset(getOutputManager().getDumpOut());
   }
@@ -1856,7 +1856,7 @@ void SmtEngine::setTimeLimit(unsigned long milis)
   getResourceManager()->setTimeLimit(milis);
 }
 
-unsigned long SmtEngine::getResourceUsage() const 
+unsigned long SmtEngine::getResourceUsage() const
 {
   return getResourceManager()->getResourceUsage();
 }

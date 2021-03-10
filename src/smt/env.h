@@ -101,13 +101,13 @@ class Env
 
   /* Option helpers---------------------------------------------------------- */
 
-  /** 
+  /**
    * Get the current printer based on the current options
    * @return the current printer
    */
   const Printer& getPrinter();
 
-  /** 
+  /**
    * Get the output stream that --dump=X should print to
    * @return the output stream
    */
@@ -155,7 +155,7 @@ class Env
   LogicInfo d_logic;
   /** The statistics registry */
   StatisticsRegistry* d_statisticsRegistry;
-  /** 
+  /**
    * The options object, which contains the modified version of the options
    * provided as input to the SmtEngine that owns this environment. This means
    * that d_options may have been modified by the options manager, e.g. based
