@@ -332,18 +332,21 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
 
         command_line_args_configs.append(all_args)
 
+        expected_output_lines = expected_output.split()
         extra_command_line_args = []
         if benchmark_ext == '.sy' and \
             '--no-check-synth-sol' not in all_args and \
             '--sygus-rr' not in all_args and \
             '--check-synth-sol' not in all_args:
-            extra_command_line_args = ['--check-synth-sol']
-        if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
+            extra_command_line_args += ['--check-synth-sol']
+        if ('sat' in expected_output_lines or \
+            'invalid' in expected_output_lines or \
+            'unknown' in expected_output_lines) and \
            '--no-debug-check-models' not in all_args and \
            '--no-check-models' not in all_args and \
            '--debug-check-models' not in all_args:
-            extra_command_line_args = ['--debug-check-models']
-        if re.search(r'^(unsat|valid)$', expected_output):
+            extra_command_line_args += ['--debug-check-models']
+        if 'unsat' in expected_output_lines or 'valid' in expected_output_lines:
             if check_unsat_cores and \
                '--no-check-unsat-cores' not in all_args and \
                '--check-unsat-cores' not in all_args and \
@@ -439,10 +442,11 @@ def main():
     parser.add_argument('--dump', action='store_true')
     parser.add_argument('--use-skip-return-code', action='store_true')
     parser.add_argument('--skip-timeout', action='store_true')
-    parser.add_argument('--check-unsat-cores', action='store_true')
+    parser.add_argument('--check-unsat-cores', action='store_true',
+                        default=True)
     parser.add_argument('--no-check-unsat-cores', dest='check_unsat_cores',
                         action='store_false')
-    parser.add_argument('--check-proofs', action='store_true')
+    parser.add_argument('--check-proofs', action='store_true', default=True)
     parser.add_argument('--no-check-proofs', dest='check_proofs',
                         action='store_false')
     parser.add_argument('wrapper', nargs='*')
