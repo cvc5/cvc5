@@ -1000,10 +1000,9 @@ TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
     Node v = nm->mkBoundVar(nm->stringType());
     Node emp = Word::mkEmptyWord(atom.getType());
-    Node pred =
-        nm->mkNode(
-            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, v)),v.eqNode(emp));
-    SkolemManager * sm = nm->getSkolemManager();
+    Node pred = nm->mkNode(
+        ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, v)), v.eqNode(emp));
+    SkolemManager* sm = nm->getSkolemManager();
     Node ret = sm->mkSkolem(v, pred, "kFromCode");
     lems.push_back(SkolemLemma(ret, nullptr));
     return TrustNode::mkTrustRewrite(atom, ret, nullptr);

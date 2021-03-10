@@ -24,7 +24,7 @@ SkolemLemma::SkolemLemma(TrustNode lem, Node k) : d_lemma(lem), d_skolem(k)
   Assert(lem.getKind() == TrustNodeKind::LEMMA);
 }
 
-SkolemLemma::SkolemLemma(Node k, ProofGenerator * pg) : d_lemma(), d_skolem(k)
+SkolemLemma::SkolemLemma(Node k, ProofGenerator* pg) : d_lemma(), d_skolem(k)
 {
   Node lem = getSkolemLemmaFor(k);
   d_lemma = TrustNode::mkTrustLemma(lem, pg);
@@ -33,7 +33,7 @@ SkolemLemma::SkolemLemma(Node k, ProofGenerator * pg) : d_lemma(), d_skolem(k)
 Node SkolemLemma::getSkolemLemmaFor(Node k)
 {
   Node w = SkolemManager::getWitnessForm(k);
-  Assert (w.getKind()==WITNESS);
+  Assert(w.getKind() == WITNESS);
   TNode tx = w[0][0];
   TNode tk = k;
   return w[1].substitute(tx, tk);
