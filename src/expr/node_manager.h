@@ -186,12 +186,8 @@ class NodeManager
    */
   std::vector<NodeManagerListener*> d_listeners;
 
-  /** A list of datatypes registered by its corresponding expr manager.
-   * !!! this member should be deleted when the Expr-layer is deleted.
-   */
-  std::vector<std::shared_ptr<DType> > d_registeredDTypes;
   /** A list of datatypes owned by this node manager */
-  std::vector<std::unique_ptr<DType> > d_ownedDTypes;
+  std::vector<std::unique_ptr<DType> > d_dtypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.
@@ -428,10 +424,6 @@ class NodeManager
     d_listeners.erase(elt);
   }
 
-  /** register that datatype dt was constructed by the expression manager
-   * !!! this interface should be deleted when the Expr-layer is deleted.
-   */
-  size_t registerDatatype(std::shared_ptr<DType> dt);
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
    * associated with datatypes through the DatatypeIndexConstant class. The

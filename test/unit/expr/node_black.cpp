@@ -422,8 +422,8 @@ TEST_F(TestNodeBlackNode, getOperator)
 
   ASSERT_EQ(f, fa.getOperator());
 #ifdef CVC4_ASSERTIONS
-  ASSERT_THROW(f.getOperator(), IllegalArgumentException);
-  ASSERT_THROW(a.getOperator(), IllegalArgumentException);
+  ASSERT_DEATH(f.getOperator(), "mk == kind::metakind::PARAMETERIZED");
+  ASSERT_DEATH(a.getOperator(), "mk == kind::metakind::PARAMETERIZED");
 #endif
 }
 
