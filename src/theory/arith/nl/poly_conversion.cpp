@@ -451,7 +451,7 @@ Node lower_bound_as_node(const Node& var,
       poly::get_upper(poly::get_isolating_interval(alg)));
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
-#ifndef NDEBUG
+#ifdef CVC4_ASSERTIONS
   int su = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_upper(poly::get_isolating_interval(alg)));
   Assert(sl != 0 && su != 0 && sl != su);
@@ -507,7 +507,7 @@ Node upper_bound_as_node(const Node& var,
       poly::get_lower(poly::get_isolating_interval(alg)));
   Rational u = poly_utils::toRational(
       poly::get_upper(poly::get_isolating_interval(alg)));
-#ifndef NDEBUG
+#ifdef CVC4_ASSERTIONS
   int sl = poly::sign_at(get_defining_polynomial(alg),
                          poly::get_lower(poly::get_isolating_interval(alg)));
 #endif

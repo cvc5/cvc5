@@ -23,6 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include <vector>
 
+#include "base/check.h"
 #include "context/context.h"
 #include "proof/clause_id.h"
 #include "prop/bvminisat/core/SolverTypes.h"
@@ -391,8 +392,16 @@ public:
 //=================================================================================================
 // Implementation of inline methods:
 
-inline CRef Solver::reason(Var x) const { assert(x < vardata.size()); return vardata[x].reason; }
-inline int  Solver::level (Var x) const { assert(x < vardata.size()); return vardata[x].level; }
+inline CRef Solver::reason(Var x) const
+{
+  Assert(x < vardata.size());
+  return vardata[x].reason;
+}
+inline int Solver::level(Var x) const
+{
+  Assert(x < vardata.size());
+  return vardata[x].level;
+}
 
 inline void Solver::insertVarOrder(Var x) {
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
