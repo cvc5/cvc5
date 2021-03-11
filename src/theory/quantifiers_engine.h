@@ -248,8 +248,6 @@ public:
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;
     IntStat d_red_alpha_equiv;
-    IntStat d_instantiations_user_patterns;
-    IntStat d_instantiations_auto_gen;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
