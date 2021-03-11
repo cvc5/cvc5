@@ -158,7 +158,7 @@ class OstreamVoider
 #else
 #define Assert(cond) \
   CVC4_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#endif /* CVC4_DEBUG */
+#endif
 
 class AssertArgumentException : public Exception
 {

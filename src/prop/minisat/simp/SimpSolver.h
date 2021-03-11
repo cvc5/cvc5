@@ -21,12 +21,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_SimpSolver_h
 #define Minisat_SimpSolver_h
 
+#include "base/check.h"
 #include "cvc4_private.h"
-
 #include "proof/clause_id.h"
-#include "prop/minisat/mtl/Queue.h"
 #include "prop/minisat/core/Solver.h"
-
+#include "prop/minisat/mtl/Queue.h"
 
 namespace CVC4 {
 namespace prop {
@@ -204,11 +203,12 @@ class SimpSolver : public Solver {
 
 inline bool SimpSolver::isEliminated (Var v) const { return eliminated[v]; }
 inline void SimpSolver::updateElimHeap(Var v) {
-    assert(use_simplification);
-    // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
-    if (elim_heap.inHeap(v) || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
-        elim_heap.update(v); }
-
+  Assert(use_simplification);
+  // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
+  if (elim_heap.inHeap(v)
+      || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
+    elim_heap.update(v);
+}
 
 inline bool SimpSolver::addClause(const vec<Lit>& ps, bool removable, ClauseId& id)
 { ps.copyTo(add_tmp); return addClause_(add_tmp, removable, id); }
