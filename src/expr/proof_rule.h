@@ -1052,6 +1052,7 @@ enum class PfRule : uint32_t
   //    t2 is the sum of the scaled constants. (sum_i k_i const_i)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
+  // ======== Sum Upper Bounds
   // Children: (P1, ... , Pn)
   //           where each Pi has form (><i, Li, Ri)
   //           for ><i in {<, <=, ==}
