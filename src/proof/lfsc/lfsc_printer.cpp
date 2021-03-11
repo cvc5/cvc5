@@ -19,32 +19,11 @@
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
 #include "proof/lfsc/lfsc_print_channel.h"
-#include "proof/proof_letify.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace proof {
-
-class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
-{
- public:
-  bool shouldTraverse(const ProofNode* pn) override
-  {
-    if (pn->getRule() == PfRule::SCOPE)
-    {
-      // this may not be necessary?
-      return false;
-    }
-    if (pn->getRule() != PfRule::LFSC_RULE)
-    {
-      return true;
-    }
-    // do not traverse under LFSC scope
-    LfscRule lr = getLfscRule(pn->getArguments()[0]);
-    return lr != LfscRule::LAMBDA;
-  }
-};
 
 LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
 {
@@ -100,8 +79,7 @@ void LfscPrinter::print(std::ostream& out,
   // [2] compute the proof letification
   std::vector<const ProofNode*> pletList;
   std::map<const ProofNode*, size_t> pletMap;
-  LfscProofLetifyTraverseCallback lpltc;
-  ProofLetify::computeProofLet(pnBody, pletList, pletMap, 2, &lpltc);
+  computeProofLetification(pnBody, pletList, pletMap);
 
   // [3] print the check command and term lets
   out << "(check" << std::endl;
@@ -165,7 +143,7 @@ void LfscPrinter::print(std::ostream& out,
 }
 
 void LfscPrinter::printProofLetify(
-    LfscPrintChannel* lout,
+    LfscPrintChannel* out,
     const ProofNode* pn,
     const LetBinding& lbind,
     const std::vector<const ProofNode*>& pletList,
@@ -185,38 +163,38 @@ void LfscPrinter::printProofLetify(
       Assert(itp != pletMap.end());
       size_t pid = itp->second;
       // print (plet _ _
-      lout->printOpenLfscRule(LfscRule::PLET);
+      out->printOpenLfscRule(LfscRule::PLET);
       cparen++;
-      lout->printHole();
-      lout->printHole();
-      lout->printEndLine();
+      out->printHole();
+      out->printHole();
+      out->printEndLine();
       // print the letified proof
       pletMap.erase(p);
-      printProofInternal(lout, p, lbind, pletMap, passumeMap);
+      printProofInternal(out, p, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
       // print the lambda (\ __pX
-      lout->printOpenLfscRule(LfscRule::LAMBDA);
+      out->printOpenLfscRule(LfscRule::LAMBDA);
       cparen++;
-      lout->printProofId(pid);
+      out->printProofId(pid);
       // debugging
       if (Trace.isOn("lfsc-print-debug"))
       {
         // out << "; proves " << p->getResult();
       }
-      lout->printEndLine();
+      out->printEndLine();
     }
-    lout->printEndLine();
+    out->printEndLine();
   }
 
   // [2] print the proof body
-  printProofInternal(lout, pn, lbind, pletMap, passumeMap);
+  printProofInternal(out, pn, lbind, pletMap, passumeMap);
   Trace("lfsc-print-debug2")
-      << "node count print " << lout->d_nodeCount << std::endl;
+      << "node count print " << out->d_nodeCount << std::endl;
   Trace("lfsc-print-debug2")
-      << "trust count print " << lout->d_trustCount << std::endl;
+      << "trust count print " << out->d_trustCount << std::endl;
 
   // print the closing parenthesis
-  lout->printCloseRule(cparen);
+  out->printCloseRule(cparen);
 }
 
 void LfscPrinter::printProofInternal(
@@ -309,8 +287,13 @@ void LfscPrinter::printProofInternal(
           out->printOpenRule(cur);
           // print the identifier
           out->printNode(pidNode);
-          // print the body of the proof
-          // TODO
+          // Print the body of the proof with a fresh proof letification. We can
+          // keep the assumption map and the let binding (for terms).
+          std::vector<const ProofNode*> pletListNested;
+          std::map<const ProofNode*, size_t> pletMapNested;
+          const ProofNode * curBody = cur->getChildren()[0].get();
+          computeProofLetification(curBody, pletListNested, pletMapNested);
+          printProofLetify(out, curBody, lbind, pletListNested, pletMapNested, passumeMap);
           // unbind the assumption if necessary
           if (didBind)
           {
@@ -565,6 +548,16 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     }
   }
   return true;
+}
+
+
+void LfscPrinter::computeProofLetification(
+                      const ProofNode* pn,
+                        std::vector<const ProofNode*>& pletList,
+                        std::map<const ProofNode*, size_t>& pletMap)
+{
+  // use callback to specify to stop at LAMBDA
+  ProofLetify::computeProofLet(pn, pletList, pletMap, 2, &d_lpltc);
 }
 
 void LfscPrinter::print(std::ostream& out, Node n)

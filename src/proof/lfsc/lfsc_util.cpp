@@ -68,5 +68,22 @@ Node mkLfscRuleNode(LfscRule r)
   return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(r)));
 }
 
+
+bool LfscProofLetifyTraverseCallback::shouldTraverse(const ProofNode* pn)
+{
+  if (pn->getRule() == PfRule::SCOPE)
+  {
+    // this may not be necessary?
+    return false;
+  }
+  if (pn->getRule() != PfRule::LFSC_RULE)
+  {
+    return true;
+  }
+  // do not traverse under LFSC scope
+  LfscRule lr = getLfscRule(pn->getArguments()[0]);
+  return lr != LfscRule::LAMBDA;
+}
+
 }  // namespace proof
 }  // namespace CVC4

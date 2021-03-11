@@ -81,7 +81,7 @@ class LfscPrinter
    * Print proof internal, after term lets and proofs for assumptions have
    * been computed.
    */
-  void printProofLetify(LfscPrintChannel* lout,
+  void printProofLetify(LfscPrintChannel* out,
                         const ProofNode* pn,
                         const LetBinding& lbind,
                         const std::vector<const ProofNode*>& pletList,
@@ -102,10 +102,20 @@ class LfscPrinter
                         std::vector<PExpr>& pargs,
                         std::map<Node, size_t>& passumeMap,
                         std::unordered_set<const ProofNode*>& noBind);
+  /**
+   * Compute proof letification for proof node pn.
+   */
+  void computeProofLetification(
+                        const ProofNode* pn,
+                        
+                        std::vector<const ProofNode*>& pletList,
+                        std::map<const ProofNode*, size_t>& pletMap);
   //------------------------------ end printing proofs
 
   /** The term processor */
   LfscTermProcessor& d_tproc;
+  /** The proof traversal callback */
+  LfscProofLetifyTraverseCallback d_lpltc;
   /** true and false nodes */
   Node d_tt;
   Node d_ff;

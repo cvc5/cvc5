@@ -21,6 +21,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "proof/proof_letify.h"
 
 namespace CVC4 {
 namespace proof {
@@ -93,6 +94,14 @@ std::ostream& operator<<(std::ostream& out, LfscRule id);
 LfscRule getLfscRule(Node n);
 bool getLfscRule(Node n, LfscRule& lr);
 Node mkLfscRuleNode(LfscRule r);
+
+
+/** Helper class used for letifying LFSC proofs. */
+class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
+{
+ public:
+  bool shouldTraverse(const ProofNode* pn) override;
+};
 
 }  // namespace proof
 }  // namespace CVC4
