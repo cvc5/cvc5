@@ -112,7 +112,7 @@ protected:
  Trigger* d_tparent;
  /** The state of the quantifiers engine */
  quantifiers::QuantifiersState& d_qstate;
- // !!!!!!!!! temporarily available
+ // !!!!!!!!! temporarily available (project #15)
  QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */
 
