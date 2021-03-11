@@ -39,13 +39,13 @@ jobs:
 
           - name: production-dbg
             config: production --assertions --tracing --unit-testing --symfpu --lfsc --editline
-            cache-key: production
+            cache-key: production-dbg
             os: ubuntu-latest
             exclude_regress: 1-4
 
           - name: production-dbg-cln-clang
             config: production --assertions --tracing --unit-testing --symfpu --cln --gpl --no-proofs --poly
-            cache-key: production-clang
+            cache-key: production-dbg-clang
             env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 1-4
