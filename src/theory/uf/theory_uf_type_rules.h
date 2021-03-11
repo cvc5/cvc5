@@ -19,6 +19,8 @@
 #ifndef CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
 #define CVC4__THEORY__UF__THEORY_UF_TYPE_RULES_H
 
+#include <climits>
+
 namespace CVC4 {
 namespace theory {
 namespace uf {

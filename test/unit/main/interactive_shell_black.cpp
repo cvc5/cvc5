@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr_manager.h"
 #include "expr/symbol_manager.h"
 #include "main/interactive_shell.h"
 #include "options/base_options.h"

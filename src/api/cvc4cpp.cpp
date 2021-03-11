@@ -46,7 +46,6 @@
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
-#include "expr/type.h"
 #include "expr/type_node.h"
 #include "options/main_options.h"
 #include "options/options.h"
@@ -60,6 +59,7 @@
 #include "util/random.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 #include "util/utility.h"
 
 namespace CVC4 {
@@ -1024,10 +1024,6 @@ std::ostream& operator<<(std::ostream& out, enum Result::UnknownExplanation e)
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
-Sort::Sort(const Solver* slv, const CVC4::Type& t)
-    : d_solver(slv), d_type(new CVC4::TypeNode(TypeNode::fromType(t)))
-{
-}
 Sort::Sort(const Solver* slv, const CVC4::TypeNode& t)
     : d_solver(slv), d_type(new CVC4::TypeNode(t))
 {
@@ -3272,7 +3268,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  d_nodeMgr.reset(new NodeManager(nullptr));
+  d_nodeMgr.reset(new NodeManager());
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), opts));
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();

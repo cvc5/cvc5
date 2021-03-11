@@ -143,7 +143,7 @@ TrustNode ExpandDefs::expandDefinitions(
         else
         {
           // We always check if this operator corresponds to a defined function.
-          doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
+          doExpand = d_smt.isDefinedFunction(n.getOperator());
         }
       }
       // the premise of the proof of expansion (if we are expanding a definition
@@ -171,8 +171,8 @@ TrustNode ExpandDefs::expandDefinitions(
           SmtEngine::DefinedFunctionMap::const_iterator i = dfuns->find(func);
           if (i == dfuns->end())
           {
-            throw TypeCheckingException(
-                n.toExpr(),
+            throw TypeCheckingExceptionPrivate(
+                n,
                 std::string("Undefined function: `") + func.toString() + "'");
           }
           DefinedFunction def = (*i).second;

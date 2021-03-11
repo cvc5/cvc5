@@ -67,7 +67,8 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
     }
     else
     {
-      ret_val = continueNextMatch(q, m, qe, tparent);
+      ret_val = continueNextMatch(
+          q, m, qe, tparent, InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN);
       if (ret_val > 0)
       {
         return ret_val;
