@@ -52,7 +52,7 @@ CommandExecutor::CommandExecutor(Options& options)
       d_symman(new SymbolManager(d_solver.get())),
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
-      d_stats("driver"),
+      d_stats(),
       d_result()
 {
 }

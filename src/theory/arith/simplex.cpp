@@ -70,7 +70,7 @@ bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat&
 
         Debug("recentlyViolated")
           << "It worked? "
-          << conflicts.getData()
+          << conflicts.get()
           << " " << curr
           << " "  << checkBasicForConflict(curr) << endl;
         reportConflict(curr);
