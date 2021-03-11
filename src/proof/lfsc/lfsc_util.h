@@ -95,7 +95,6 @@ LfscRule getLfscRule(Node n);
 bool getLfscRule(Node n, LfscRule& lr);
 Node mkLfscRuleNode(LfscRule r);
 
-
 /** Helper class used for letifying LFSC proofs. */
 class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
 {

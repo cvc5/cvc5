@@ -105,11 +105,10 @@ class LfscPrinter
   /**
    * Compute proof letification for proof node pn.
    */
-  void computeProofLetification(
-                        const ProofNode* pn,
-                        
-                        std::vector<const ProofNode*>& pletList,
-                        std::map<const ProofNode*, size_t>& pletMap);
+  void computeProofLetification(const ProofNode* pn,
+
+                                std::vector<const ProofNode*>& pletList,
+                                std::map<const ProofNode*, size_t>& pletMap);
   //------------------------------ end printing proofs
 
   /** The term processor */

@@ -291,9 +291,10 @@ void LfscPrinter::printProofInternal(
           // keep the assumption map and the let binding (for terms).
           std::vector<const ProofNode*> pletListNested;
           std::map<const ProofNode*, size_t> pletMapNested;
-          const ProofNode * curBody = cur->getChildren()[0].get();
+          const ProofNode* curBody = cur->getChildren()[0].get();
           computeProofLetification(curBody, pletListNested, pletMapNested);
-          printProofLetify(out, curBody, lbind, pletListNested, pletMapNested, passumeMap);
+          printProofLetify(
+              out, curBody, lbind, pletListNested, pletMapNested, passumeMap);
           // unbind the assumption if necessary
           if (didBind)
           {
@@ -550,11 +551,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   return true;
 }
 
-
 void LfscPrinter::computeProofLetification(
-                      const ProofNode* pn,
-                        std::vector<const ProofNode*>& pletList,
-                        std::map<const ProofNode*, size_t>& pletMap)
+    const ProofNode* pn,
+    std::vector<const ProofNode*>& pletList,
+    std::map<const ProofNode*, size_t>& pletMap)
 {
   // use callback to specify to stop at LAMBDA
   ProofLetify::computeProofLet(pn, pletList, pletMap, 2, &d_lpltc);
