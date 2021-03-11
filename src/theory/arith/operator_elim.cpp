@@ -481,18 +481,16 @@ Node OperatorElim::mkWitnessTerm(Node v,
   // we mark that we should send a lemma
   Node k =
       sm->mkSkolem(v, pred, prefix, comment, NodeManager::SKOLEM_DEFAULT, this);
-  TNode tv = v;
-  TNode tk = k;
-  Node lem = pred.substitute(tv, tk);
   if (d_pnm != nullptr)
   {
+    Node lem = SkolemLemma::getSkolemLemmaFor(k);
     TrustNode tlem =
         mkTrustNode(lem, PfRule::THEORY_PREPROCESS_LEMMA, {}, {lem});
     lems.push_back(SkolemLemma(tlem, k));
   }
   else
   {
-    lems.push_back(SkolemLemma(TrustNode::mkTrustLemma(lem), k));
+    lems.push_back(SkolemLemma(k, nullptr));
   }
   return k;
 }
