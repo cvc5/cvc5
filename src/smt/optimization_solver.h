@@ -137,6 +137,7 @@ struct OMTSearchState
   virtual Node constructLEQExpr(NodeManager *nm, const Node &a, const Node &b) = 0;
   virtual Node computePivot(NodeManager* nm) = 0;
   virtual bool shouldPerformBinarySearchStep() = 0;
+  virtual bool shouldTerminate() = 0;
 };
 
 /**
@@ -165,6 +166,7 @@ public:
     this->lowerBound = lowerBound;
     this->upperBound = upperBound;
   }
+  virtual ~OMTSearchStateImpl() {}
   virtual bool setLowerBound(const Node &lowerBoundNode) {
     checkNode(lowerBoundNode);
     this->lowerBound = lowerBoundNode;
@@ -194,7 +196,14 @@ public:
     return nm->mkConst(pivot);
   }
   virtual bool shouldPerformBinarySearchStep() {
-    return true;
+    Rational upper = this->upperBound.getConst<Rational>();
+    Rational lower = this->lowerBound.getConst<Rational>();
+    return (upper - lower) > Rational(5);
+  }
+  virtual bool shouldTerminate() {
+    Rational upper = this->upperBound.getConst<Rational>();
+    Rational lower = this->lowerBound.getConst<Rational>();
+    return (lower >= upper);
   }
 };
 
