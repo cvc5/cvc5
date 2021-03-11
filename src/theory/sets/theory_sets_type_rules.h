@@ -19,6 +19,8 @@
 #ifndef CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 #define CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 
+#include <climits>
+
 #include "theory/sets/normal_form.h"
 
 namespace CVC4 {
