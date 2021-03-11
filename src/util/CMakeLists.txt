@@ -60,6 +60,13 @@ libcvc4_add_sources(
   statistics.h
   statistics_registry.cpp
   statistics_registry.h
+  stats_base.cpp
+  stats_base.h
+  stats_histogram.h
+  stats_timer.cpp
+  stats_timer.h
+  stats_utils.cpp
+  stats_utils.h
   string.cpp
   string.h
   floatingpoint_literal_symfpu.cpp

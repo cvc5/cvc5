@@ -183,7 +183,7 @@ void Assertions::addFormula(
       if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
           || options::checkUnsatCores())
       {
-        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+        ProofManager::currentPM()->addCoreAssertion(n);
       }
     }
     else
@@ -228,7 +228,7 @@ void Assertions::ensureBoolean(const Node& n)
     ss << "Expected Boolean type\n"
        << "The assertion : " << n << "\n"
        << "Its type      : " << type;
-    throw TypeCheckingException(n.toExpr(), ss.str());
+    throw TypeCheckingExceptionPrivate(n, ss.str());
   }
 }
 

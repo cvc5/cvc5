@@ -576,8 +576,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   if (!query.isConst() || query.getConst<bool>())
   {
     Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r =
-        checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
+    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs);
     Trace("sygus-engine") << "  ...got " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
