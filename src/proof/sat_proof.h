@@ -31,6 +31,7 @@
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 // Forward declarations.
 namespace CVC4 {

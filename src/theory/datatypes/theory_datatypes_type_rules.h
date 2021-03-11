@@ -277,7 +277,7 @@ struct RecordUpdateTypeRule {
     TypeNode recordType = n[0].getType(check);
     TypeNode newValue = n[1].getType(check);
     if (check) {
-      if (!recordType.toType().isRecord())
+      if (!recordType.isRecord())
       {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");

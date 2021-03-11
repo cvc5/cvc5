@@ -24,6 +24,7 @@
 #include "smt/theory_rewrite_rcons.h"
 #include "smt/witness_form.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 

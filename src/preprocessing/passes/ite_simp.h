@@ -19,6 +19,7 @@
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/util/ite_utilities.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 namespace preprocessing {

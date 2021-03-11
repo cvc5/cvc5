@@ -1244,12 +1244,8 @@ install(FILES
           expr/sequence.h
           expr/symbol_manager.h
           expr/symbol_table.h
-          expr/type.h
           expr/uninterpreted_constant.h
-          expr/variable_type_map.h
-          ${CMAKE_CURRENT_BINARY_DIR}/expr/expr.h
           ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
-          ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/expr)
 install(FILES

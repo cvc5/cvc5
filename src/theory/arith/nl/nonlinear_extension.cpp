@@ -244,6 +244,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 
 void NonlinearExtension::check(Theory::Effort e)
 {
+  d_im.reset();
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
                   << ", built model = " << d_builtModel.get() << std::endl;
@@ -277,7 +278,6 @@ void NonlinearExtension::check(Theory::Effort e)
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
       d_im.doPendingPhaseRequirements();
-      d_im.reset();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are

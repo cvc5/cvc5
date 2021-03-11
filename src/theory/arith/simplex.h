@@ -62,6 +62,7 @@
 #include "util/dense_map.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace theory {

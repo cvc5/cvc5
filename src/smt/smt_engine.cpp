@@ -607,7 +607,7 @@ void SmtEngine::debugCheckFormals(const std::vector<Node>& formals, Node func)
          << "definition of function " << func << ", formal\n"
          << "  " << *i << "\n"
          << "has kind " << (*i).getKind();
-      throw TypeCheckingException(func.toExpr(), ss.str());
+      throw TypeCheckingExceptionPrivate(func, ss.str());
     }
   }
 }
@@ -632,7 +632,7 @@ void SmtEngine::debugCheckFunctionBody(Node formula,
          << "Declared type : " << rangeType << "\n"
          << "The body      : " << formula << "\n"
          << "Body type     : " << formulaType;
-      throw TypeCheckingException(func.toExpr(), ss.str());
+      throw TypeCheckingExceptionPrivate(func, ss.str());
     }
   } else {
     if(! formulaType.isComparableTo(funcType)) {
@@ -642,7 +642,7 @@ void SmtEngine::debugCheckFunctionBody(Node formula,
          << "Declared type  : " << funcType << "\n"
          << "The definition : " << formula << "\n"
          << "Definition type: " << formulaType;
-      throw TypeCheckingException(func.toExpr(), ss.str());
+      throw TypeCheckingExceptionPrivate(func, ss.str());
     }
   }
 }

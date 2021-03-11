@@ -42,9 +42,11 @@ IMGenerator::IMGenerator(quantifiers::QuantifiersState& qs,
 {
 }
 
-bool IMGenerator::sendInstantiation(Trigger* tparent, InstMatch& m)
+bool IMGenerator::sendInstantiation(Trigger* tparent,
+                                    InstMatch& m,
+                                    InferenceId id)
 {
-  return tparent->sendInstantiation(m);
+  return tparent->sendInstantiation(m, id);
 }
 
 InstMatchGenerator::InstMatchGenerator(
@@ -426,7 +428,8 @@ int InstMatchGenerator::getMatch(
     if (success)
     {
       Trace("matching-debug2") << "Continue next " << d_next << std::endl;
-      ret_val = continueNextMatch(f, m, qe, tparent);
+      ret_val = continueNextMatch(
+          f, m, qe, tparent, InferenceId::QUANTIFIERS_INST_E_MATCHING);
     }
   }
   if (ret_val < 0)
@@ -442,14 +445,15 @@ int InstMatchGenerator::getMatch(
 int InstMatchGenerator::continueNextMatch(Node q,
                                           InstMatch& m,
                                           QuantifiersEngine* qe,
-                                          Trigger* tparent)
+                                          Trigger* tparent,
+                                          InferenceId id)
 {
   if( d_next!=NULL ){
     return d_next->getNextMatch(q, m, qe, tparent);
   }
   if (d_active_add)
   {
-    return sendInstantiation(tparent, m) ? 1 : -1;
+    return sendInstantiation(tparent, m, id) ? 1 : -1;
   }
   return 1;
 }
@@ -559,7 +563,7 @@ uint64_t InstMatchGenerator::addInstantiations(Node f,
   while (getNextMatch(f, m, qe, tparent) > 0)
   {
     if( !d_active_add ){
-      if (sendInstantiation(tparent, m))
+      if (sendInstantiation(tparent, m, InferenceId::UNKNOWN))
       {
         addedLemmas++;
         if (d_qstate.isInConflict())
