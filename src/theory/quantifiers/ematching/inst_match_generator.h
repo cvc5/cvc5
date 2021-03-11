@@ -20,6 +20,7 @@
 #include <map>
 #include "expr/node_trie.h"
 #include "theory/quantifiers/inst_match.h"
+#include "theory/inference_id.h"
 
 namespace CVC4 {
 namespace theory {
@@ -118,7 +119,7 @@ public:
    * indicating that an instantiation was enqueued in the quantifier engine's
    * lemma cache.
    */
-  bool sendInstantiation(Trigger* tparent, InstMatch& m);
+  bool sendInstantiation(Trigger* tparent, InstMatch& m, InferenceId id);
   /** The state of the quantifiers engine */
   quantifiers::QuantifiersState& d_qstate;
   /** The quantifiers inference manager */
@@ -426,7 +427,8 @@ class InstMatchGenerator : public IMGenerator {
   int continueNextMatch(Node q,
                         InstMatch& m,
                         QuantifiersEngine* qe,
-                        Trigger* tparent);
+                        Trigger* tparent,
+                        InferenceId id);
   /** Get inst match generator
    *
    * Gets the InstMatchGenerator that implements the

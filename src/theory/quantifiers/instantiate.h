@@ -25,6 +25,7 @@
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
+#include "theory/inference_id.h"
 
 namespace CVC4 {
 

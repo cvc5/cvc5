@@ -286,7 +286,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
 
     if (mode == options::SygusInstMode::PRIORITY_INST)
     {
-      if (!inst->addInstantiation(q, terms))
+      if (!inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI))
       {
         sendEvalUnfoldLemmas(eval_unfold_lemmas);
       }
@@ -295,7 +295,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     {
       if (!sendEvalUnfoldLemmas(eval_unfold_lemmas))
       {
-        inst->addInstantiation(q, terms);
+        inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI);
       }
     }
     else
@@ -313,7 +313,7 @@ bool SygusInst::sendEvalUnfoldLemmas(const std::vector<Node>& lemmas)
   for (const Node& lem : lemmas)
   {
     Trace("sygus-inst") << "Evaluation unfolding: " << lem << std::endl;
-    added_lemma |= d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+    added_lemma |= d_qim.addPendingLemma(lem, InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD);
   }
   return added_lemma;
 }

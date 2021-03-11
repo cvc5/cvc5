@@ -232,7 +232,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
   if (childIndex == endChildIndex)
   {
     // m is an instantiation
-    if (sendInstantiation(tparent, m))
+    if (sendInstantiation(tparent, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
     {
       addedLemmas++;
       Trace("multi-trigger-cache-debug")

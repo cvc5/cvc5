@@ -119,7 +119,11 @@ protected:
   std::map<TypeNode, bool> d_preinitialized_types;
   //--------------------end for preinitialization
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
-  bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
+  /** 
+   * Exhaustively instantiate quantified formula q based on condition c and
+   * c_index, which indicate the domain to instantiate.
+   */
+  bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node q, Node c, int c_index, InferenceId id);
 private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 

@@ -201,10 +201,32 @@ enum class InferenceId
   // ---------------------------------- end datatypes theory
 
   //-------------------------------------- quantifiers theory
-  // skolemization
-  QUANTIFIERS_SKOLEMIZE,
-  // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
-  QUANTIFIERS_REDUCE_ALPHA_EQ,
+  //-------------------- types of instantiations. 
+  // Notice the identifiers in this section cover all the techniques used for
+  // quantifier instantiation. The subcategories below are for specific lemmas
+  // that are not instantiation lemmas added, per technique.
+  // instantiation from E-matching
+  QUANTIFIERS_INST_E_MATCHING,
+  // E-matching using simple trigger implementation
+  QUANTIFIERS_INST_E_MATCHING_SIMPLE,
+  // E-matching using multi-triggers
+  QUANTIFIERS_INST_E_MATCHING_MT,
+  // E-matching using linear implementation of multi-triggers
+  QUANTIFIERS_INST_E_MATCHING_MTL,
+  // instantiation due to higher-order matching
+  QUANTIFIERS_INST_HO_MATCHING,
+  // instantiation from conflict-based instantiation
+  QUANTIFIERS_INST_CONFLICT,
+  // instantiation from finite model finding based on its model-based algorithm
+  QUANTIFIERS_INST_FMF,
+  // instantiation from running exhaustive instantiation on a subdomain of
+  // the quantified formula in finite model finding based on its model-based
+  // algorithm
+  QUANTIFIERS_INST_FMF_EXH,
+  // instantiations from counterexample-guided instantiation
+  QUANTIFIERS_INST_CEGQI,
+  // instantiations from syntax-guided instantiation
+  QUANTIFIERS_INST_SYQI,
   //-------------------- counterexample-guided instantiation
   // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
   // counterexample literal is G1.
@@ -215,6 +237,9 @@ enum class InferenceId
   QUANTIFIERS_CEGQI_VTS_UB_DELTA,
   // infinity > c
   QUANTIFIERS_CEGQI_VTS_LB_INF,
+  //-------------------- syntax-guided instantiation
+  // evaluation unfolding for syntax-guided instantiation
+  QUANTIFIERS_SYQI_EVAL_UNFOLD,
   //-------------------- sygus solver
   // preprocessing a sygus conjecture based on quantifier elimination, of the
   // form Q <=> Q_preprocessed
@@ -227,6 +252,11 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  //-------------------- reductions
+  // skolemization
+  QUANTIFIERS_SKOLEMIZE,
+  // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
+  QUANTIFIERS_REDUCE_ALPHA_EQ,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory
