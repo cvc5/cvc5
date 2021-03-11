@@ -38,6 +38,7 @@
 #include "theory/arith/tableau.h"
 #include "util/maybe.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace theory {

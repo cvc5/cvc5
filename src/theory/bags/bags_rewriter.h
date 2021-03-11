@@ -20,6 +20,7 @@
 #include "theory/bags/rewrites.h"
 #include "theory/theory_rewriter.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 namespace theory {

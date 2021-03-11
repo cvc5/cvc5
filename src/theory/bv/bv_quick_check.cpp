@@ -347,7 +347,7 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
   // if (1.5* d_statistics.d_numUnknown.getData() > d_statistics.d_numSolved.getData()) {
   //   d_period = d_period * 2;
   // }
-  d_statistics.d_avgMinimizationRatio.addEntry(minimization_ratio);
+  d_statistics.d_avgMinimizationRatio << minimization_ratio;
   return utils::mkAnd(minimized); 
 }
 
