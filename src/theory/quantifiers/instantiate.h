@@ -181,8 +181,8 @@ class Instantiate : public QuantifiersUtil
    */
   bool addInstantiationExpFail(Node q,
                                std::vector<Node>& terms,
-                               InferenceId id,
                                std::vector<bool>& failMask,
+                               InferenceId id,
                                bool mkRep = false,
                                bool modEq = false,
                                bool doVts = false,

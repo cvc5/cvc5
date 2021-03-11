@@ -301,7 +301,7 @@ void SygusInst::check(Theory::Effort e, QEffort quant_e)
     else
     {
       Assert(mode == options::SygusInstMode::INTERLEAVE);
-      inst->addInstantiation(q, terms);
+      inst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_SYQI);
       sendEvalUnfoldLemmas(eval_unfold_lemmas);
     }
   }

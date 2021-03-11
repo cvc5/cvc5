@@ -2164,7 +2164,8 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       }
       // Process the lemma: either add an instantiation or specific lemmas
       // constructed during the isTConstraintSpurious call, or both.
-      if (!qinst->addInstantiation(q, terms))
+      InferenceId id = (d_effort == EFFORT_CONFLICT ? InferenceId::QUANTIFIERS_INST_CBQI_CONFLICT : QUANTIFIERS_INST_CBQI_PROP);
+      if (!qinst->addInstantiation(q, terms, InferenceId::QUANTIFIERS_INST_CONFLICT))
       {
         Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
         // This should only happen if the algorithm generates the same
@@ -2188,7 +2189,6 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         // ensure that quantified formulas that are more likely to have
         // conflicting instances are checked earlier.
         d_quantEngine->markRelevant(q);
-        ++(d_quantEngine->d_statistics.d_instantiations_qcf);
         if (options::qcfAllConflict())
         {
           isConflict = true;
@@ -2202,7 +2202,6 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       else if (d_effort == EFFORT_PROP_EQ)
       {
         d_quantEngine->markRelevant(q);
-        ++(d_quantEngine->d_statistics.d_instantiations_qcf);
       }
     }
     // clean up assigned

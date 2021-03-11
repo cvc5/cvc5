@@ -120,11 +120,11 @@ protected:
   //--------------------end for preinitialization
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
   /**
-   * Exhaustively instantiate quantified formula q based on condition c and
-   * c_index, which indicate the domain to instantiate.
+   * Exhaustively instantiate quantified formula q based on condition c, which
+   * indicate the domain to instantiate.
    */
   bool exhaustiveInstantiate(
-      FirstOrderModelFmc* fm, Node q, Node c, int c_index, InferenceId id);
+      FirstOrderModelFmc* fm, Node q, Node c);
 
  private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );

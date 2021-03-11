@@ -387,7 +387,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m,
   {
     // we now have an instantiation to try
     return d_quantEngine->getInstantiate()->addInstantiation(
-        d_quant, m, Inference::QUANTIFIERS_INST_HO_MATCHING);
+        d_quant, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_HO);
   }
   else
   {

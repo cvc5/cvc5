@@ -213,20 +213,28 @@ enum class InferenceId
   QUANTIFIERS_INST_E_MATCHING_MT,
   // E-matching using linear implementation of multi-triggers
   QUANTIFIERS_INST_E_MATCHING_MTL,
-  // instantiation due to higher-order matching
-  QUANTIFIERS_INST_HO_MATCHING,
-  // instantiation from conflict-based instantiation
-  QUANTIFIERS_INST_CONFLICT,
+  // instantiation due to higher-order matching on top of e-matching
+  QUANTIFIERS_INST_E_MATCHING_HO,
+  // E-matching based on variable triggers
+  QUANTIFIERS_INST_E_MATCHING_VAR_GEN,
+  // conflicting instantiation from conflict-based instantiation
+  QUANTIFIERS_INST_CBQI_CONFLICT,
+  // propagating instantiation from conflict-based instantiation
+  QUANTIFIERS_INST_CBQI_PROP,
+  // instantiation from naive exhaustive instantiation in finite model finding
+  QUANTIFIERS_INST_FMF_EXH,
   // instantiation from finite model finding based on its model-based algorithm
-  QUANTIFIERS_INST_FMF,
+  QUANTIFIERS_INST_FMF_FMC,
   // instantiation from running exhaustive instantiation on a subdomain of
   // the quantified formula in finite model finding based on its model-based
   // algorithm
-  QUANTIFIERS_INST_FMF_EXH,
+  QUANTIFIERS_INST_FMF_FMC_EXH,
   // instantiations from counterexample-guided instantiation
   QUANTIFIERS_INST_CEGQI,
   // instantiations from syntax-guided instantiation
   QUANTIFIERS_INST_SYQI,
+  // instantiations from enumerative instantiation
+  QUANTIFIERS_INST_ENUM,
   //-------------------- counterexample-guided instantiation
   // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
   // counterexample literal is G1.

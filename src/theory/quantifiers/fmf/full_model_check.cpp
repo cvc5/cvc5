@@ -611,7 +611,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       Node c = mkCondDefault(fmfmc, f);
       d_quant_models[f].addEntry(fmfmc, c, d_false);
       if (!exhaustiveInstantiate(
-              fmfmc, f, c, InferenceId::QUANTIFIERS_INST_EXH_FMF))
+              fmfmc, f, c))
       {
         return 0;
       }
@@ -708,7 +708,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       // just add the instance
       d_triedLemmas++;
       if (instq->addInstantiation(
-              f, inst, InferenceId::QUANTIFIERS_INST_FMF, true))
+              f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, true))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
@@ -816,7 +816,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
                                              Node f,
                                              Node c)
 {
-  Trace("fmc-exh") << "----Exhaustive instantiate based on " < < < < c << " ";
+  Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
   RepBoundFmcEntry rbfe(d_qe, c, fm);
@@ -854,7 +854,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
         if (d_qe->getInstantiate()->addInstantiation(
-                f, inst, InferenceId::QUANTIFIERS_INST_FMF_EXH, true))
+                f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH, true))
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
