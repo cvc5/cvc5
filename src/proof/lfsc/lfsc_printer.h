@@ -99,9 +99,7 @@ class LfscPrinter
    * Get the arguments for the proof node application
    */
   bool computeProofArgs(const ProofNode* pn,
-                        std::vector<PExpr>& pargs,
-                        std::map<Node, size_t>& passumeMap,
-                        std::unordered_set<const ProofNode*>& noBind);
+                        std::vector<PExpr>& pargs);
   /**
    * Compute proof letification for proof node pn.
    */

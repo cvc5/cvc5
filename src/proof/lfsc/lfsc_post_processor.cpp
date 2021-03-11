@@ -95,8 +95,6 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
       else
       {
-        // FIXME
-        return false;
         // we have that C != false
         // convert to (=> (and F1 (and F2 ... (and Fn true) ... )) C)
         addLfscRule(cdp, res, {curr}, LfscRule::PROCESS_SCOPE, {children[0]});

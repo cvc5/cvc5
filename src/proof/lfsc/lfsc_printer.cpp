@@ -204,8 +204,6 @@ void LfscPrinter::printProofInternal(
     const std::map<const ProofNode*, size_t>& pletMap,
     std::map<Node, size_t>& passumeMap)
 {
-  std::unordered_set<const ProofNode*> noBind;
-  std::unordered_set<const ProofNode*>::iterator itnb;
   // the stack
   std::vector<PExpr> visit;
   // whether we have process children
@@ -309,7 +307,7 @@ void LfscPrinter::printProofInternal(
           // a normal rule application, compute the proof arguments, which
           // notice in the case of PI also may modify our passumeMap.
           std::vector<PExpr> args;
-          if (computeProofArgs(cur, args, passumeMap, noBind))
+          if (computeProofArgs(cur, args))
           {
             processingChildren.insert(cur);
             // will revisit this proof node to close parentheses
@@ -338,29 +336,6 @@ void LfscPrinter::printProofInternal(
       {
         processingChildren.erase(cur);
         out->printCloseRule();
-        if (r == PfRule::LFSC_RULE)
-        {
-          const std::vector<Node>& cargs = cur->getArguments();
-          Assert(!cargs.empty());
-          LfscRule lr = getLfscRule(cargs[0]);
-          if (lr == LfscRule::LAMBDA)
-          {
-            itnb = noBind.find(cur);
-            if (itnb == noBind.end())
-            {
-              Assert(cargs.size() == 3);
-              // Remove argument from assumption binding, only if it was bound
-              // by this call. This is not the case if the assumption is
-              // shadowing.
-              Assert(passumeMap.find(cargs[2]) != passumeMap.end());
-              passumeMap.erase(cargs[2]);
-            }
-            else
-            {
-              noBind.erase(cur);
-            }
-          }
-        }
       }
     }
     // case 2: printing a node
@@ -384,9 +359,7 @@ void LfscPrinter::printProofInternal(
 }
 
 bool LfscPrinter::computeProofArgs(const ProofNode* pn,
-                                   std::vector<PExpr>& pargs,
-                                   std::map<Node, size_t>& passumeMap,
-                                   std::unordered_set<const ProofNode*>& noBind)
+                                   std::vector<PExpr>& pargs)
 {
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
   std::vector<const ProofNode*> cs;
@@ -394,7 +367,6 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
   {
     cs.push_back(c.get());
   }
-  NodeManager* nm = NodeManager::currentNM();
   PfRule r = pn->getRule();
   const std::vector<Node>& args = pn->getArguments();
   std::vector<Node> as;
@@ -498,36 +470,12 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::LFSC_RULE:
     {
       LfscRule lr = getLfscRule(args[0]);
+      // lambda should be processed elsewhere
+      Assert (lr != LfscRule::LAMBDA );
       // Note that `args` has 2 builtin arguments, thus the first real argument
       // begins at index 2
       switch (lr)
       {
-        case LfscRule::LAMBDA:
-        {
-          // allocate an assumption, if necessary
-          size_t pid;
-          std::map<Node, size_t>::iterator itp = passumeMap.find(args[2]);
-          if (itp == passumeMap.end())
-          {
-            pid = passumeMap.size();
-            passumeMap[args[2]] = pid;
-          }
-          else
-          {
-            // mark that it did *not* bind its assumption
-            noBind.insert(pn);
-            pid = itp->second;
-          }
-          // make the node whose name is the assumption id, where notice that
-          // the type of this node does not matter
-          std::stringstream pidNodeName;
-          LfscPrintChannelOut::printAssumeId(pidNodeName, pid);
-          // must be an internal symbol so that it is not turned into (bvar ...)
-          Node pidNode =
-              d_tproc.mkInternalSymbol(pidNodeName.str(), nm->booleanType());
-          pf << pidNode << cs[0];
-        }
-        break;
         case LfscRule::SCOPE: pf << h << as[2] << cs[0]; break;
         case LfscRule::NEG_SYMM: pf << h << h << cs[0]; break;
         case LfscRule::CONG: pf << h << h << h << h << cs[0] << cs[1]; break;
