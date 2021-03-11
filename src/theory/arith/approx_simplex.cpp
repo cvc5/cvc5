@@ -424,7 +424,7 @@ public:
   ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistics& s);
   ~ApproxGLPK();
 
-  LinResult solveRelaxation();
+  LinResult solveRelaxation() override;
   Solution extractRelaxation() const override { return extractSolution(false); }
 
   ArithRatPairVec heuristicOptCoeffs() const override;
@@ -433,7 +433,7 @@ public:
   Solution extractMIP() const override { return extractSolution(true); }
   void setOptCoeffs(const ArithRatPairVec& ref) override;
   std::vector<const CutInfo*> getValidCuts(const NodeLog& nodes) override;
-  ArithVar getBranchVar(const NodeLog& con) const;
+  ArithVar getBranchVar(const NodeLog& con) const override;
 
   static void printGLPKStatus(int status, std::ostream& out);
 
@@ -526,8 +526,8 @@ private:
   bool replaceSlacksOnCuts();
   bool loadVB(int nid, int M, int j, int ri, bool wantUb, VirtualBound& tmp);
 
-
-  double sumInfeasibilities(bool mip) const{
+  double sumInfeasibilities(bool mip) const override
+  {
     return sumInfeasibilities(mip? d_mipProb : d_realProb);
   }
   double sumInfeasibilities(glp_prob* prob, bool mip) const;
@@ -571,6 +571,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
+#ifdef CVC4_ASSERTIONS
 static CutInfoKlass fromGlpkClass(int klass){
   switch(klass){
   case GLP_RF_GMI: return GmiCutKlass;
@@ -580,14 +581,17 @@ static CutInfoKlass fromGlpkClass(int klass){
   default:         return UnknownKlass;
   }
 }
+#endif
 
-ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistics& s)
-  : ApproximateSimplex(v, l, s)
-  , d_inputProb(NULL)
-  , d_realProb(NULL)
-  , d_mipProb(NULL)
-  , d_solvedRelaxation(false)
-  , d_solvedMIP(false)
+ApproxGLPK::ApproxGLPK(const ArithVariables& var,
+                       TreeLog& l,
+                       ApproximateStatistics& s)
+    : ApproximateSimplex(var, l, s),
+      d_inputProb(NULL),
+      d_realProb(NULL),
+      d_mipProb(NULL),
+      d_solvedRelaxation(false),
+      d_solvedMIP(false)
 {
   static int instance = 0;
   ++instance;
@@ -679,7 +683,8 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistic
   for(DenseMap<int>::const_iterator i = d_rowIndices.begin(), i_end = d_rowIndices.end(); i != i_end; ++i){
     ArithVar v = *i;
     Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(v));
-    for(Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i){
+    for (Polynomial::iterator j = p.begin(), end = p.end(); j != end; ++j)
+    {
       ++numEntries;
     }
   }
@@ -695,9 +700,9 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& v, TreeLog& l, ApproximateStatistic
 
     Polynomial p = Polynomial::parsePolynomial(d_vars.asNode(v));
 
-    for(Polynomial::iterator i = p.begin(), end = p.end(); i != end; ++i){
-
-      const Monomial& mono = *i;
+    for (Polynomial::iterator j = p.begin(), end = p.end(); j != end; ++j)
+    {
+      const Monomial& mono = *j;
       const Constant& constant = mono.getConstant();
       const VarList& variable = mono.getVarList();
 
@@ -865,9 +870,10 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
 
   double rowLengthReq = (maxRowLength * .9);
 
-  if(guessARowCandidate){
-    for(DenseMap<uint32_t>::const_iterator i = d_rowCandidates.begin(), iend =d_rowCandidates.end(); i != iend; ++i ){
-      ArithVar r = *i;
+  if (guessARowCandidate)
+  {
+    for (ArithVar r : d_rowCandidates)
+    {
       uint32_t len = d_rowCandidates[r];
 
       int dir = guessDir(r);
@@ -885,9 +891,10 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
 
   // Attempt columns
   bool guessAColCandidate = maxCount >= 4;
-  if(guessAColCandidate){
-    for(DenseMap<BoundCounts>::const_iterator i = d_colCandidates.begin(), iend = d_colCandidates.end(); i != iend; ++i ){
-      ArithVar c = *i;
+  if (guessAColCandidate)
+  {
+    for (ArithVar c : d_colCandidates)
+    {
       BoundCounts bc = d_colCandidates[c];
 
       int dir = guessDir(c);
@@ -904,7 +911,6 @@ ArithRatPairVec ApproxGLPK::heuristicOptCoeffs() const{
       }
     }
   }
-
 
   return ret;
 }
@@ -2829,10 +2835,9 @@ bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVe
   Matrix<Rational> A;
   A.increaseSizeTo(d_vars.getNumberOfVariables());
   std::vector< std::pair<RowIndex, ArithVar> > rows;
-  set<ArithVar>::const_iterator i, iend;
   // load the rows for auxiliary variables into A
-  for(i=onrow.begin(), iend=onrow.end(); i!=iend; ++i){
-    ArithVar v = *i;
+  for (ArithVar v : onrow)
+  {
     if(d_vars.isAuxiliary(v)){
       Assert(d_vars.hasNode(v));
 
