@@ -72,11 +72,6 @@ class InferenceManager : public InferenceManagerBuffered
    * Send conflict immediately on the output channel
    */
   void sendDtConflict(const std::vector<Node>& conf, InferenceId id);
-  /**
-   * Send lemmas with property NONE on the output channel immediately.
-   * Returns true if any lemma was sent.
-   */
-  bool sendLemmas(const std::vector<Node>& lemmas, InferenceId id);
 
  private:
   /** Are proofs enabled? */
