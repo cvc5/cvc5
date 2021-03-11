@@ -31,7 +31,7 @@ jobs:
 
           - name: production-clang
             config: production
-            cache-key: production-clang
+            cache-key: productionclang
             check-examples: true
             env: CC=clang CXX=clang++
             os: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
 
           - name: production-dbg-clang
             config: production --assertions --tracing --unit-testing --symfpu --cln --gpl --no-proofs --poly
-            cache-key: dbg-clang
+            cache-key: dbgclang
             env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 1-4
