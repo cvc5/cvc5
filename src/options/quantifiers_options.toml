@@ -556,6 +556,15 @@ header = "options/quantifiers_options.h"
   help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
 
 [[option]]
+  name       = "fullSaturateSum"
+  category   = "regular"
+  long       = "fs-sum"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "enumerating tuples of quantifiers by increasing the sum of indices, rather than the maximum"
+
+[[option]]
   name       = "literalMatchMode"
   category   = "regular"
   long       = "literal-matching=MODE"
