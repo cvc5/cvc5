@@ -105,7 +105,7 @@ class InstMatchGeneratorSimple : public IMGenerator
                          uint64_t& addedLemmas,
                          size_t argIndex,
                          TNodeTrie* tat,
-                                                     Trigger* tparent);
+                         Trigger* tparent);
 };
 
 }  // namespace inst

@@ -610,8 +610,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);
       d_quant_models[f].addEntry(fmfmc, c, d_false);
-      if (!exhaustiveInstantiate(
-              fmfmc, f, c))
+      if (!exhaustiveInstantiate(fmfmc, f, c))
       {
         return 0;
       }

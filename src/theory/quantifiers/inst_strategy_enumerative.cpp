@@ -207,7 +207,8 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
     // try instantiation
     failMask.clear();
     /* if (ie->addInstantiation(quantifier, terms)) */
-    if (ie->addInstantiationExpFail(quantifier, terms, failMask, InferenceId::QUANTIFIERS_INST_ENUM))
+    if (ie->addInstantiationExpFail(
+            quantifier, terms, failMask, InferenceId::QUANTIFIERS_INST_ENUM))
     {
       Trace("inst-alg-rd") << "Success!" << std::endl;
       ++(d_quantEngine->d_statistics.d_instantiations_guess);

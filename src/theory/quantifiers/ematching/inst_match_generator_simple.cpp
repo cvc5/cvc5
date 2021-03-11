@@ -128,7 +128,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
                                                  uint64_t& addedLemmas,
                                                  size_t argIndex,
                                                  TNodeTrie* tat,
-                                                     Trigger* tparent)
+                                                 Trigger* tparent)
 {
   Debug("simple-trigger-debug")
       << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
@@ -150,7 +150,8 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (sendInstantiation(tparent, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
+    if (sendInstantiation(
+            tparent, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
     {
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;
@@ -172,7 +173,8 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
         if (prev.isNull() || prev == t)
         {
           m.setValue(v, t);
-          addInstantiations(m, qe, addedLemmas, argIndex + 1, &(tt.second), tparent);
+          addInstantiations(
+              m, qe, addedLemmas, argIndex + 1, &(tt.second), tparent);
           m.setValue(v, prev);
           if (qs.isInConflict())
           {

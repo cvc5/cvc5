@@ -123,8 +123,7 @@ protected:
    * Exhaustively instantiate quantified formula q based on condition c, which
    * indicate the domain to instantiate.
    */
-  bool exhaustiveInstantiate(
-      FirstOrderModelFmc* fm, Node q, Node c);
+  bool exhaustiveInstantiate(FirstOrderModelFmc* fm, Node q, Node c);
 
  private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );

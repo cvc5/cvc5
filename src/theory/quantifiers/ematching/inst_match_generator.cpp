@@ -42,7 +42,9 @@ IMGenerator::IMGenerator(quantifiers::QuantifiersState& qs,
 {
 }
 
-bool IMGenerator::sendInstantiation(Trigger* tparent, InstMatch& m, InferenceId id)
+bool IMGenerator::sendInstantiation(Trigger* tparent,
+                                    InstMatch& m,
+                                    InferenceId id)
 {
   return tparent->sendInstantiation(m, id);
 }
@@ -426,7 +428,8 @@ int InstMatchGenerator::getMatch(
     if (success)
     {
       Trace("matching-debug2") << "Continue next " << d_next << std::endl;
-      ret_val = continueNextMatch(f, m, qe, tparent, InferenceId::QUANTIFIERS_INST_E_MATCHING);
+      ret_val = continueNextMatch(
+          f, m, qe, tparent, InferenceId::QUANTIFIERS_INST_E_MATCHING);
     }
   }
   if (ret_val < 0)
