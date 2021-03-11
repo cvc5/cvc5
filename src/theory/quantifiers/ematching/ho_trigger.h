@@ -235,7 +235,7 @@ class HigherOrderTrigger : public Trigger
   *   when var_index = 0,1, we are processing possibilities for
   *    instantiation of f1,f2 respectively.
   */
-  bool sendInstantiation(std::vector<Node>& m, unsigned var_index);
+  bool sendInstantiation(std::vector<Node>& m, size_t var_index);
   /** higher-order pattern unification algorithm
    * Sends an instantiation that is equivalent to m via
    * d_quantEngine->addInstantiation(...).
