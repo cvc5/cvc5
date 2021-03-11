@@ -43,7 +43,7 @@ jobs:
             os: ubuntu-latest
             exclude_regress: 1-4
 
-          - name: production-dbg-cln-clang
+          - name: production-dbg-clang
             config: production --assertions --tracing --unit-testing --symfpu --cln --gpl --no-proofs --poly
             cache-key: production-dbg-clang
             env: CC=clang CXX=clang++
