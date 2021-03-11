@@ -158,59 +158,65 @@ void LfscPrinter::print(std::ostream& out,
   Assert(pn->getRule() == PfRule::SCOPE);
   // the outermost scope can be ignored (it is the scope of the assertions,
   // which are already printed above).
-  printProofLetify(out, pnBody, lbind, pletList, pletMap, passumeMap);
+  LfscPrintChannelOut lout(out);
+  printProofLetify(&lout, pnBody, lbind, pletList, pletMap, passumeMap);
 
   out << cparen.str() << std::endl;
 }
 
 void LfscPrinter::printProofLetify(
-    std::ostream& out,
+    LfscPrintChannel* lout,
     const ProofNode* pn,
     const LetBinding& lbind,
     const std::vector<const ProofNode*>& pletList,
     std::map<const ProofNode*, size_t>& pletMap,
     std::map<Node, size_t>& passumeMap)
 {
-  LfscPrintChannelOut lout(out);
-
   // closing parentheses
-  std::stringstream cparen;
+  size_t cparen = 0;
 
   // define the let proofs
   if (!pletList.empty())
   {
-    out << "; Let proofs:" << std::endl;
     std::map<const ProofNode*, size_t>::iterator itp;
     for (const ProofNode* p : pletList)
     {
       itp = pletMap.find(p);
       Assert(itp != pletMap.end());
       size_t pid = itp->second;
-      out << "(plet _ _ ";
+      // print (plet _ _
+      lout->printOpenLfscRule(LfscRule::PLET);
+      cparen++;
+      lout->printHole();
+      lout->printHole();
+      lout->printEndLine();
+      // print the letified proof
       pletMap.erase(p);
-      printProofInternal(&lout, p, lbind, pletMap, passumeMap);
+      printProofInternal(lout, p, lbind, pletMap, passumeMap);
       pletMap[p] = pid;
-      out << " (\\ ";
-      LfscPrintChannelOut::printProofId(out, pid);
+      // print the lambda (\ __pX
+      lout->printOpenLfscRule(LfscRule::LAMBDA);
+      cparen++;
+      lout->printProofId(pid);
       // debugging
       if (Trace.isOn("lfsc-print-debug"))
       {
-        out << "; proves " << p->getResult();
+        //out << "; proves " << p->getResult();
       }
-      out << std::endl;
-      cparen << "))";
+      lout->printEndLine();
     }
-    out << std::endl;
+    lout->printEndLine();
   }
 
   // [2] print the proof body
-  printProofInternal(&lout, pn, lbind, pletMap, passumeMap);
+  printProofInternal(lout, pn, lbind, pletMap, passumeMap);
   Trace("lfsc-print-debug2")
-      << "node count print " << lout.d_nodeCount << std::endl;
+      << "node count print " << lout->d_nodeCount << std::endl;
   Trace("lfsc-print-debug2")
-      << "trust count print " << lout.d_trustCount << std::endl;
+      << "trust count print " << lout->d_trustCount << std::endl;
 
-  out << cparen.str() << std::endl;
+  // print the closing parenthesis
+  lout->printCloseRule(cparen);
 }
 
 void LfscPrinter::printProofInternal(

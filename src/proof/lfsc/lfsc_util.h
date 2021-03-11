@@ -62,10 +62,11 @@ enum class LfscRule : uint32_t
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,
   SKOLEMIZE,
-  EXISTS_INTRO,
 
   // a lambda with argument
   LAMBDA,
+  // a proof-let "plet"
+  PLET,
   //----------- unknown
   UNKNOWN,
 };

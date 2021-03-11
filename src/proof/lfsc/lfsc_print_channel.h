@@ -23,6 +23,7 @@
 #include "expr/node.h"
 #include "expr/proof_node.h"
 #include "printer/let_binding.h"
+#include "proof/lfsc/lfsc_util.h"
 
 namespace CVC4 {
 namespace proof {
@@ -37,9 +38,11 @@ class LfscPrintChannel
   virtual void printHole() {}
   virtual void printTrust(TNode res, PfRule src) {}
   virtual void printOpenRule(const ProofNode* pn) {}
-  virtual void printCloseRule() {}
+  virtual void printOpenLfscRule(LfscRule lr) {}
+  virtual void printCloseRule(size_t nparen = 1) {}
   virtual void printProofId(size_t id) {}
   virtual void printAssumeId(size_t id) {}
+  virtual void printEndLine() {}
   /** temproary debug */
   size_t d_nodeCount;
   size_t d_trustCount;
@@ -55,9 +58,11 @@ class LfscPrintChannelOut : public LfscPrintChannel
   void printHole() override;
   void printTrust(TNode res, PfRule src) override;
   void printOpenRule(const ProofNode* pn) override;
-  void printCloseRule() override;
+  void printOpenLfscRule(LfscRule lr) override;
+  void printCloseRule(size_t nparen = 1) override;
   void printProofId(size_t id) override;
   void printAssumeId(size_t id) override;
+  void printEndLine() override;
   //------------------- helper methods
   static void printRule(std::ostream& out, const ProofNode* pn);
   static void printId(std::ostream& out, size_t id);

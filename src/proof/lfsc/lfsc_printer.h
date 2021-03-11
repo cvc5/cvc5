@@ -81,7 +81,7 @@ class LfscPrinter
    * Print proof internal, after term lets and proofs for assumptions have
    * been computed.
    */
-  void printProofLetify(std::ostream& out,
+  void printProofLetify(LfscPrintChannel* lout,
                         const ProofNode* pn,
                         const LetBinding& lbind,
                         const std::vector<const ProofNode*>& pletList,

@@ -34,8 +34,8 @@ const char* toString(LfscRule id)
     case LfscRule::PROCESS_SCOPE: return "process_scope";
     case LfscRule::INSTANTIATE: return "instantiate";
     case LfscRule::SKOLEMIZE: return "skolemize";
-    case LfscRule::EXISTS_INTRO: return "exists_intro";
     case LfscRule::LAMBDA: return "\\";
+    case LfscRule::PLET: return "plet";
     default: return "?";
   }
 }
