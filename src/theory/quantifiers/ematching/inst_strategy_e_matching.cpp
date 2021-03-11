@@ -204,6 +204,7 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
       hasInst = numInst > 0 || hasInst;
       Trace("process-trigger")
           << "  Done, numInst = " << numInst << "." << std::endl;
+      d_quantEngine->d_statistics.d_instantiations_auto_gen += numInst;
       if (d_qstate.isInConflict())
       {
         break;
