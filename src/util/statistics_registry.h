@@ -37,7 +37,7 @@
  * 
  * Stat is the abstract base class for all statistic values.
  * It stores the name and provides (fully virtual) methods
- * flushInformation() and safeFlushInformation()
+ * flushInformation() and safeFlushInformation().
  * 
  * BackedStat is an abstract templated base class for statistic values
  * that store the data themselves. It takes care of printing them already
@@ -47,7 +47,7 @@
  * ReferenceStat holds a reference (conceptually, it is implemented as a 
  * const pointer) to some data that is stored outside of the statistic.
  * 
- * IntStat is a BackedStat<std::int64_t>
+ * IntStat is a BackedStat<std::int64_t>.
  * 
  * SizeStat holds a const reference to some container and provides the
  * size of this container.
@@ -153,7 +153,6 @@ public:
   /** Construct an nameless statistics registry */
   StatisticsRegistry() {}
 
-  /** Overridden to avoid the name being printed */
   void flushStat(std::ostream& out) const;
 
   void flushInformation(std::ostream& out) const;

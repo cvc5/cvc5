@@ -45,10 +45,6 @@ namespace CVC4 {
  */
 class Stat
 {
- protected:
-  /** The name of this statistic */
-  std::string d_name;
-
  public:
   /**
    * Construct a statistic with the given name.  Debug builds of CVC4
@@ -84,6 +80,9 @@ class Stat
     return SExpr(ss.str());
   }
 
+ protected:
+  /** The name of this statistic */
+  std::string d_name;
 }; /* class Stat */
 
 /**
@@ -94,10 +93,6 @@ class Stat
 template <class T>
 class BackedStat : public Stat
 {
- protected:
-  /** The internally-kept statistic value */
-  T d_data;
-
  public:
   /** Construct a backed statistic with the given name and initial value. */
   BackedStat(const std::string& name, const T& init) : Stat(name), d_data(init)
@@ -126,6 +121,9 @@ class BackedStat : public Stat
     safe_print<T>(fd, d_data);
   }
 
+ protected:
+  /** The internally-kept statistic value */
+  T d_data;
 }; /* class BackedStat<T> */
 
 /**
@@ -146,10 +144,6 @@ class BackedStat : public Stat
 template <class T>
 class ReferenceStat : public Stat
 {
- private:
-  /** The referenced data cell */
-  const T* d_data = nullptr;
-
  public:
   /**
    * Construct a reference stat with the given name and a reference
@@ -187,6 +181,9 @@ class ReferenceStat : public Stat
     safe_print<T>(fd, *d_data);
   }
 
+ private:
+  /** The referenced data cell */
+  const T* d_data = nullptr;
 }; /* class ReferenceStat<T> */
 
 /**
@@ -201,7 +198,7 @@ class IntStat : public BackedStat<int64_t>
    * Construct an integer-valued statistic with the given name and
    * initial value.
    */
-  IntStat(const std::string& name, std::int64_t init);
+  IntStat(const std::string& name, int64_t init);
 
   /** Increment the underlying integer statistic. */
   IntStat& operator++();
@@ -209,7 +206,7 @@ class IntStat : public BackedStat<int64_t>
   IntStat& operator++(int);
 
   /** Increment the underlying integer statistic by the given amount. */
-  IntStat& operator+=(std::int64_t val);
+  IntStat& operator+=(int64_t val);
 
   /** Keep the maximum of the current statistic value and the given one. */
   void maxAssign(int64_t val);
@@ -234,14 +231,6 @@ class IntStat : public BackedStat<int64_t>
  */
 class AverageStat : public BackedStat<double>
 {
- private:
-  /**
-   * The number of accumulations of the running average that we
-   * have seen so far.
-   */
-  std::uint32_t d_count = 0;
-  double d_sum = 0;
-
  public:
   /** Construct an average statistic with the given name. */
   AverageStat(const std::string& name);
@@ -251,14 +240,18 @@ class AverageStat : public BackedStat<double>
 
   SExpr getValue() const override;
 
+ private:
+  /**
+   * The number of accumulations of the running average that we
+   * have seen so far.
+   */
+  uint32_t d_count = 0;
+  double d_sum = 0;
 }; /* class AverageStat */
 
 template <class T>
 class SizeStat : public Stat
 {
- private:
-  const T& d_sized;
-
  public:
   SizeStat(const std::string& name, const T& sized) : Stat(name), d_sized(sized)
   {
@@ -275,6 +268,9 @@ class SizeStat : public Stat
   {
     safe_print(fd, d_sized.size());
   }
+
+ private:
+  const T& d_sized;
 }; /* class SizeStat */
 
 }  // namespace CVC4

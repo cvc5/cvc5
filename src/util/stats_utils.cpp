@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Base statistic classes
+ ** \brief Statistic utilities
  **
- ** Base statistic classes
+ ** Statistic utilities
  **/
 
 #include "util/stats_utils.h"

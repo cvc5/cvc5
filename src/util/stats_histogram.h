@@ -29,10 +29,7 @@ namespace CVC4 {
 template <class T>
 class HistogramStat : public Stat
 {
- private:
-  using Histogram = std::map<T, std::uint64_t>;
-  Histogram d_hist;
-
+  using Histogram = std::map<T, uint64_t>;
  public:
   /** Construct a histogram of a stream of entries. */
   HistogramStat(const std::string& name) : Stat(name) {}
@@ -45,7 +42,7 @@ class HistogramStat : public Stat
     while (i != end)
     {
       const T& key = (*i).first;
-      std::uint64_t count = (*i).second;
+      uint64_t count = (*i).second;
       out << "(" << key << " : " << count << ")";
       ++i;
       if (i != end)
@@ -64,7 +61,7 @@ class HistogramStat : public Stat
     while (i != end)
     {
       const T& key = (*i).first;
-      std::uint64_t count = (*i).second;
+      uint64_t count = (*i).second;
       safe_print(fd, "(");
       safe_print<T>(fd, key);
       safe_print(fd, " : ");
@@ -92,6 +89,8 @@ class HistogramStat : public Stat
     return (*this);
   }
 
+ private:
+  Histogram d_hist;
 }; /* class HistogramStat */
 
 /**
@@ -99,7 +98,7 @@ class HistogramStat : public Stat
  * Avoids using an std::map (like the generic HistogramStat) in favor of a
  * faster std::vector by casting the integral values to indices into the
  * vector. Requires the type to be an integral type that is convertible to
- * std::int64_t, also supporting appropriate enum types.
+ * int64_t, also supporting appropriate enum types.
  * The vector is resized on demand to grow as necessary and supports negative
  * values as well.
  */
@@ -110,10 +109,6 @@ class IntegralHistogramStat : public Stat
                     || std::is_enum<Integral>::value,
                 "Type should be a fundamental integral type.");
 
- private:
-  std::vector<std::uint64_t> d_hist;
-  std::int64_t d_offset;
-
  public:
   /** Construct a histogram of a stream of entries. */
   IntegralHistogramStat(const std::string& name) : Stat(name) {}
@@ -122,7 +117,7 @@ class IntegralHistogramStat : public Stat
   {
     out << "[";
     bool first = true;
-    for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
+    for (size_t i = 0, n = d_hist.size(); i < n; ++i)
     {
       if (d_hist[i] > 0)
       {
@@ -145,7 +140,7 @@ class IntegralHistogramStat : public Stat
   {
     safe_print(fd, "[");
     bool first = true;
-    for (std::size_t i = 0, n = d_hist.size(); i < n; ++i)
+    for (size_t i = 0, n = d_hist.size(); i < n; ++i)
     {
       if (d_hist[i] > 0)
       {
@@ -160,7 +155,7 @@ class IntegralHistogramStat : public Stat
         safe_print(fd, "(");
         safe_print<Integral>(fd, static_cast<Integral>(i + d_offset));
         safe_print(fd, " : ");
-        safe_print<std::uint64_t>(fd, d_hist[i]);
+        safe_print<uint64_t>(fd, d_hist[i]);
         safe_print(fd, ")");
       }
     }
@@ -171,7 +166,7 @@ class IntegralHistogramStat : public Stat
   {
     if (CVC4_USE_STATISTICS)
     {
-      std::int64_t v = static_cast<std::int64_t>(val);
+      int64_t v = static_cast<int64_t>(val);
       if (d_hist.empty())
       {
         d_offset = v;
@@ -181,7 +176,7 @@ class IntegralHistogramStat : public Stat
         d_hist.insert(d_hist.begin(), d_offset - v, 0);
         d_offset = v;
       }
-      if (static_cast<std::size_t>(v - d_offset) >= d_hist.size())
+      if (static_cast<size_t>(v - d_offset) >= d_hist.size())
       {
         d_hist.resize(v - d_offset + 1);
       }
@@ -189,6 +184,10 @@ class IntegralHistogramStat : public Stat
     }
     return (*this);
   }
+
+ private:
+  std::vector<uint64_t> d_hist;
+  int64_t d_offset;
 }; /* class IntegralHistogramStat */
 
 }  // namespace CVC4

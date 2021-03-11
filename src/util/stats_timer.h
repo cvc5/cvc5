@@ -25,10 +25,12 @@
 
 namespace CVC4 {
 namespace timer_stat_detail {
-  using clock = std::chrono::steady_clock;
-  using time_point = clock::time_point;
-  struct duration: public std::chrono::nanoseconds {};
-}
+using clock = std::chrono::steady_clock;
+using time_point = clock::time_point;
+struct duration : public std::chrono::nanoseconds
+{
+};
+}  // namespace timer_stat_detail
 
 template <>
 void CVC4_PUBLIC safe_print(int fd, const timer_stat_detail::duration& t);
@@ -40,16 +42,9 @@ class CodeTimer;
  * arbitrarily, like a stopwatch; the value of the statistic at the
  * end is the accumulated time over all (start,stop) pairs.
  */
-class CVC4_PUBLIC TimerStat : public BackedStat<timer_stat_detail::duration> {
-
-  /** The last start time of this timer */
-  timer_stat_detail::time_point d_start;
-
-  /** Whether this timer is currently running */
-  bool d_running;
-
-public:
-
+class CVC4_PUBLIC TimerStat : public BackedStat<timer_stat_detail::duration>
+{
+ public:
   typedef CVC4::CodeTimer CodeTimer;
 
   /**
@@ -57,7 +52,12 @@ public:
    * timers have a 0.0 value and are not running.
    */
   TimerStat(const std::string& name)
-      : BackedStat<timer_stat_detail::duration>(name, timer_stat_detail::duration()), d_start(), d_running(false) {}
+      : BackedStat<timer_stat_detail::duration>(name,
+                                                timer_stat_detail::duration()),
+        d_start(),
+        d_running(false)
+  {
+  }
 
   /** Start the timer. */
   void start();
@@ -78,14 +78,26 @@ public:
 
   SExpr getValue() const override;
 
-};/* class TimerStat */
+ private:
+  /** The last start time of this timer */
+  timer_stat_detail::time_point d_start;
+
+  /** Whether this timer is currently running */
+  bool d_running;
+}; /* class TimerStat */
 
 /**
  * Utility class to make it easier to call stop() at the end of a
  * code block.  When constructed, it starts the timer.  When
  * destructed, it stops the timer.
  */
-class CodeTimer {
+class CodeTimer
+{
+ public:
+  CodeTimer(TimerStat& timer, bool allow_reentrant = false);
+  ~CodeTimer();
+
+private:
   TimerStat& d_timer;
   bool d_reentrant;
 
@@ -93,12 +105,8 @@ class CodeTimer {
   CodeTimer(const CodeTimer& timer) = delete;
   /** Private assignment operator undefined (no copy permitted). */
   CodeTimer& operator=(const CodeTimer& timer) = delete;
+}; /* class CodeTimer */
 
-public:
-  CodeTimer(TimerStat& timer, bool allow_reentrant = false);
-  ~CodeTimer();
-};/* class CodeTimer */
-
-}
+}  // namespace CVC4
 
 #endif

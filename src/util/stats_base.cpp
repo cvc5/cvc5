@@ -30,7 +30,7 @@ Stat::Stat(const std::string& name) : d_name(name)
   }
 }
 
-IntStat::IntStat(const std::string& name, std::int64_t init)
+IntStat::IntStat(const std::string& name, int64_t init)
     : BackedStat<int64_t>(name, init)
 {
 }
@@ -55,7 +55,7 @@ IntStat& IntStat::operator++(int)
 }
 
 /** Increment the underlying integer statistic by the given amount. */
-IntStat& IntStat::operator+=(std::int64_t val)
+IntStat& IntStat::operator+=(int64_t val)
 {
   if (CVC4_USE_STATISTICS)
   {
