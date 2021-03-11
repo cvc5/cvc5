@@ -271,16 +271,6 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------#
-# Set options for best configuration
-
-if(ENABLE_BEST)
-  cvc4_set_option(USE_ABC ON)
-  cvc4_set_option(USE_CADICAL ON)
-  cvc4_set_option(USE_CLN ON)
-  cvc4_set_option(USE_CRYPTOMINISAT ON)
-  cvc4_set_option(USE_GLPK ON)
-  cvc4_set_option(USE_EDITLINE ON)
-endif()
 
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
 # that expect AssertionException to be thrown will fail.
@@ -669,7 +659,6 @@ endif()
 message("")
 print_config("GPL                       :" ENABLE_GPL)
 print_config("Best configuration        :" ENABLE_BEST)
-print_config("Optimization level        :" OPTIMIZATION_LEVEL)
 message("")
 print_config("Assertions                :" ENABLE_ASSERTIONS)
 print_config("Debug symbols             :" ENABLE_DEBUG_SYMBOLS)
@@ -704,7 +693,7 @@ print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
 print_config("LibPoly                   :" USE_POLY)
 message("")
-print_config("BUILD_LIB_ONLY            :" BUILD_LIB_ONLY)
+print_config("Build libcvc4 only        :" BUILD_LIB_ONLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")

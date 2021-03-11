@@ -24,22 +24,11 @@
 #include "lib/clock_gettime.h"
 #include "test.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace test {
-
-/**
- * This is a duplicate of operator== in statistics_registry.h.
- * This is duplicated here to try to avoid polluting top namepsace.
- *
- * If operator== is in the CVC4 namespace, there are some circumstances
- * where clang does not find this operator.
- */
-bool operator==(const timespec& a, const timespec& b)
-{
-  // assumes a.tv_nsec and b.tv_nsec are in range
-  return a.tv_sec == b.tv_sec && a.tv_nsec == b.tv_nsec;
-}
 
 class TestUtilBlackStats : public TestInternal
 {
@@ -84,22 +73,22 @@ TEST_F(TestUtilBlackStats, stats)
   ASSERT_EQ(histIntStat.getName(), "hist-int");
   ASSERT_EQ(histPfRuleStat.getName(), "hist-pfrule");
 
-  ASSERT_EQ(refStr.getData(), empty);
-  ASSERT_EQ(refStr2.getData(), bar);
+  ASSERT_EQ(refStr.get(), empty);
+  ASSERT_EQ(refStr2.get(), bar);
   empty = "a different string";
   bar += " and with an addition";
-  ASSERT_EQ(refStr.getData(), empty);
-  ASSERT_EQ(refStr2.getData(), bar);
+  ASSERT_EQ(refStr.get(), empty);
+  ASSERT_EQ(refStr2.get(), bar);
 
-  ASSERT_EQ(backedStr.getData(), "baz");
+  ASSERT_EQ(backedStr.get(), "baz");
   baz = "something else";
-  ASSERT_EQ(backedStr.getData(), "baz");
+  ASSERT_EQ(backedStr.get(), "baz");
 
-  ASSERT_EQ(sInt.getData(), 10);
-  sInt.setData(100);
-  ASSERT_EQ(sInt.getData(), 100);
+  ASSERT_EQ(sInt.get(), 10);
+  sInt.set(100);
+  ASSERT_EQ(sInt.get(), 100);
 
-  ASSERT_TRUE(sTimer.getData() == timespec());
+  ASSERT_TRUE(sTimer.get() == std::chrono::nanoseconds());
 
   std::stringstream sstr;
 

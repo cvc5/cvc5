@@ -147,7 +147,8 @@ ${metakind_constDeleters}
 // re-enable the strict-aliasing warning
 # pragma GCC diagnostic warning "-Wstrict-aliasing"
 
-unsigned getLowerBoundForKind(::CVC4::Kind k) {
+uint32_t getMinArityForKind(::CVC4::Kind k)
+{
   static const unsigned lbs[] = {
     0, /* NULL_EXPR */
 ${metakind_lbchildren}
@@ -158,7 +159,8 @@ ${metakind_lbchildren}
   return lbs[k];
 }
 
-unsigned getUpperBoundForKind(::CVC4::Kind k) {
+uint32_t getMaxArityForKind(::CVC4::Kind k)
+{
   static const unsigned ubs[] = {
     0, /* NULL_EXPR */
 ${metakind_ubchildren}
@@ -168,8 +170,7 @@ ${metakind_ubchildren}
 
   return ubs[k];
 }
-
-}/* CVC4::metakind namespace */
+}  // namespace metakind
 
 /**
  * Map a kind of the operator to the kind of the enclosing expression. For

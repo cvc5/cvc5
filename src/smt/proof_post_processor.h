@@ -23,6 +23,7 @@
 #include "expr/proof_node_updater.h"
 #include "smt/witness_form.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 

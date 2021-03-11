@@ -314,7 +314,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 {
 #ifdef CVC4_ASSERTIONS
   std::vector<Node> vars;
-  const unsigned int max = metakind::getUpperBoundForKind(AND);
+  const uint32_t max = metakind::getMaxArityForKind(AND);
   TypeNode boolType = d_nodeManager->booleanType();
   Node skolem_i = d_nodeManager->mkSkolem("i", boolType);
   Node skolem_j = d_nodeManager->mkSkolem("j", boolType);

@@ -118,7 +118,7 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   Debug.on("foo");
 #ifndef CVC4_DEBUG
   ASSERT_FALSE(Debug.isOn("foo"));
-  Debug("foo") << failure() << endl;
+  Debug("foo") << failure() << std::endl;
 #else
   ASSERT_TRUE(Debug.isOn("foo"));
 #endif
@@ -127,7 +127,7 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   Trace.on("foo");
 #ifndef CVC4_TRACING
   ASSERT_FALSE(Trace.isOn("foo"));
-  Trace("foo") << failure() << endl;
+  Trace("foo") << failure() << std::endl;
 #else
   ASSERT_TRUE(Trace.isOn("foo"));
 #endif
@@ -142,17 +142,17 @@ TEST_F(TestUtilBlackOutput, evaluation_off_when_it_is_supposed_to_be)
   ASSERT_FALSE(Chat.isOn());
 
   cout << "debug" << std::endl;
-  Debug("foo") << failure() << endl;
+  Debug("foo") << failure() << std::endl;
   cout << "trace" << std::endl;
-  Trace("foo") << failure() << endl;
+  Trace("foo") << failure() << std::endl;
   cout << "warning" << std::endl;
-  Warning() << failure() << endl;
+  Warning() << failure() << std::endl;
   cout << "message" << std::endl;
-  CVC4Message() << failure() << endl;
+  CVC4Message() << failure() << std::endl;
   cout << "notice" << std::endl;
-  Notice() << failure() << endl;
+  Notice() << failure() << std::endl;
   cout << "chat" << std::endl;
-  Chat() << failure() << endl;
+  Chat() << failure() << std::endl;
 #endif
 }
 

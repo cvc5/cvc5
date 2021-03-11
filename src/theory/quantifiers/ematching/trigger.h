@@ -18,6 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 
 #include "expr/node.h"
+#include "theory/inference_id.h"
 
 namespace CVC4 {
 namespace theory {
@@ -208,7 +209,9 @@ class Trigger {
    * but in some cases (e.g. higher-order) we may modify m before calling
    * Instantiate::addInstantiation(...).
    */
-  virtual bool sendInstantiation(InstMatch& m);
+  virtual bool sendInstantiation(std::vector<Node>& m, InferenceId id);
+  /** inst match version, calls the above method */
+  bool sendInstantiation(InstMatch& m, InferenceId id);
   /**
    * Ensure that all ground subterms of n have been preprocessed. This makes
    * calls to the provided valuation to obtain the preprocessed form of these

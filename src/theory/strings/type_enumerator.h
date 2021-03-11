@@ -159,7 +159,7 @@ class SeqEnumLen : public SEnumLen
   /** an enumerator for the elements' type */
   std::unique_ptr<TypeEnumerator> d_elementEnumerator;
   /** The domain */
-  std::vector<Expr> d_elementDomain;
+  std::vector<Node> d_elementDomain;
   /** Make the current term from d_data */
   void mkCurr();
 };

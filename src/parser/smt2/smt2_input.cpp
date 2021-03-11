@@ -18,12 +18,13 @@
 
 #include <antlr3.h>
 
+#include "base/check.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/smt2/smt2.h"
 #include "parser/smt2/Smt2Lexer.h"
 #include "parser/smt2/Smt2Parser.h"
+#include "parser/smt2/smt2.h"
 
 namespace CVC4 {
 namespace parser {
@@ -32,7 +33,7 @@ namespace parser {
 Smt2Input::Smt2Input(AntlrInputStream& inputStream) : AntlrInput(inputStream, 2)
 {
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
-  assert( input != NULL );
+  Assert(input != NULL);
 
   d_pSmt2Lexer = Smt2LexerNew(input);
   if( d_pSmt2Lexer == NULL ) {
@@ -42,7 +43,7 @@ Smt2Input::Smt2Input(AntlrInputStream& inputStream) : AntlrInput(inputStream, 2)
   setAntlr3Lexer( d_pSmt2Lexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
-  assert( tokenStream != NULL );
+  Assert(tokenStream != NULL);
 
   d_pSmt2Parser = Smt2ParserNew(tokenStream);
   if( d_pSmt2Parser == NULL ) {

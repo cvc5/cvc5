@@ -150,9 +150,14 @@ uint64_t Trigger::addInstantiations()
   return gtAddedLemmas + addedLemmas;
 }
 
-bool Trigger::sendInstantiation(InstMatch& m)
+bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m, id);
+}
+
+bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
+{
+  return sendInstantiation(m.d_vals, id);
 }
 
 bool Trigger::mkTriggerTerms(Node q,

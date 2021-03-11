@@ -163,9 +163,9 @@ Node intToBV(TNode n, NodeMap& cache)
           case kind::ITE: break;
           default:
             if (childrenTypesChanged(current, cache)) {
-              throw TypeCheckingException(
-                current.toExpr(),
-                string("Cannot translate to BV: ") + current.toString());
+              throw TypeCheckingExceptionPrivate(
+                  current,
+                  string("Cannot translate to BV: ") + current.toString());
             }
             break;
         }
@@ -225,8 +225,8 @@ Node intToBV(TNode n, NodeMap& cache)
               BitVector bv(size, constant.getNumerator());
               if (bv.toSignedInteger() != constant.getNumerator())
               {
-                throw TypeCheckingException(
-                    current.toExpr(),
+                throw TypeCheckingExceptionPrivate(
+                    current,
                     string("Not enough bits for constant in intToBV: ")
                         + current.toString());
               }
@@ -239,9 +239,8 @@ Node intToBV(TNode n, NodeMap& cache)
       }
       else
       {
-        throw TypeCheckingException(
-            current.toExpr(),
-            string("Cannot translate to BV: ") + current.toString());
+        throw TypeCheckingExceptionPrivate(
+            current, string("Cannot translate to BV: ") + current.toString());
       }
       cache[current] = result;
     }

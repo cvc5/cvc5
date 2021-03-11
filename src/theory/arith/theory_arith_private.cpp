@@ -40,7 +40,6 @@
 #include "options/smt_options.h"  // for incrementalSolving()
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/logic_exception.h"
-#include "smt/logic_request.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/approx_simplex.h"
@@ -1419,7 +1418,7 @@ void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
 }
 
 void TheoryArithPrivate::setupAtom(TNode atom) {
-  Assert(isRelationOperator(atom.getKind()));
+  Assert(isRelationOperator(atom.getKind())) << atom;
   Assert(Comparison::isNormalAtom(atom));
   Assert(!isSetup(atom));
   Assert(!d_constraintDatabase.hasLiteral(atom));
@@ -2458,7 +2457,7 @@ void TheoryArithPrivate::subsumption(
 std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex* approx, int nid, ConstraintP bc, int depth){
   ++(d_statistics.d_replayLogRecCount);
   Debug("approx::replayLogRec") << "replayLogRec()"
-                                << d_statistics.d_replayLogRecCount.getData() << std::endl;
+                                << d_statistics.d_replayLogRecCount.get() << std::endl;
 
   size_t rpvars_size = d_replayVariables.size();
   size_t rpcons_size = d_replayConstraints.size();
@@ -2893,7 +2892,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   TimerStat::CodeTimer codeTimer0(d_statistics.d_solveIntTimer);
 
   ++(d_statistics.d_solveIntCalls);
-  d_statistics.d_inSolveInteger.setData(1);
+  d_statistics.d_inSolveInteger.set(1);
 
   if(!Theory::fullEffort(effortLevel)){
     d_solveIntAttempts++;
@@ -3019,7 +3018,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
     }
   }
 
-  d_statistics.d_inSolveInteger.setData(0);
+  d_statistics.d_inSolveInteger.set(0);
 }
 
 SimplexDecisionProcedure& TheoryArithPrivate::selectSimplex(bool pass1){
@@ -3533,7 +3532,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   default:
     Unimplemented();
   }
-  d_statistics.d_avgUnknownsInARow.addEntry(d_unknownsInARow);
+  d_statistics.d_avgUnknownsInARow << d_unknownsInARow;
 
   size_t nPivots =
       options::useFC() ? d_fcSimplex.getPivots() : d_dualSimplex.getPivots();
@@ -4367,7 +4366,7 @@ bool TheoryArithPrivate::unenqueuedVariablesAreConsistent(){
 void TheoryArithPrivate::presolve(){
   TimerStat::CodeTimer codeTimer(d_statistics.d_presolveTime);
 
-  d_statistics.d_initialTableauSize.setData(d_tableau.size());
+  d_statistics.d_initialTableauSize.set(d_tableau.size());
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 

@@ -309,7 +309,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         }
 
         // (= "" (str.replace x "A" "")) ---> (str.prefix x "A")
-        if (StringsEntail::checkLengthOne(ne[1]) && ne[2] == empty)
+        if (StringsEntail::checkLengthOne(ne[1], true) && ne[2] == empty)
         {
           Node ret = nm->mkNode(STRING_PREFIX, ne[0], ne[1]);
           return returnRewrite(node, ret, Rewrite::STR_EMP_REPL_EMP);
