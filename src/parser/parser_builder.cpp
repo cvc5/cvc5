@@ -15,15 +15,15 @@
  **/
 
 // This must be included first.
-#include "parser/antlr_input.h"
-
 #include "parser/parser_builder.h"
 
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "base/check.h"
 #include "cvc/cvc.h"
 #include "options/options.h"
+#include "parser/antlr_input.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "smt2/smt2.h"
@@ -77,11 +77,11 @@ Parser* ParserBuilder::build()
     input = Input::newFileInput(d_lang, d_filename, d_mmap);
     break;
   case LINE_BUFFERED_STREAM_INPUT:
-    assert( d_streamInput != NULL );
+    Assert(d_streamInput != NULL);
     input = Input::newStreamInput(d_lang, *d_streamInput, d_filename, true);
     break;
   case STREAM_INPUT:
-    assert( d_streamInput != NULL );
+    Assert(d_streamInput != NULL);
     input = Input::newStreamInput(d_lang, *d_streamInput, d_filename);
     break;
   case STRING_INPUT:
@@ -89,7 +89,7 @@ Parser* ParserBuilder::build()
     break;
   }
 
-  assert(input != NULL);
+  Assert(input != NULL);
 
   Parser* parser = NULL;
   switch (d_lang)

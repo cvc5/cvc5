@@ -21,9 +21,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Vec_h
 #define Minisat_Vec_h
 
-#include <assert.h>
 #include <new>
 
+#include "base/check.h"
 #include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/XAlloc.h"
 
@@ -42,9 +42,13 @@ class vec {
     int cap;
 
     // Don't allow copying (error prone):
-    vec<T>&  operator = (vec<T>& other) { assert(0); return *this; }
-             vec        (vec<T>& other) { assert(0); }
-             
+    vec<T>& operator=(vec<T>& other)
+    {
+      Assert(0);
+      return *this;
+    }
+    vec(vec<T>& other) { Assert(0); }
+
     // Helpers for calculating next capacity:
     static inline int  imax   (int x, int y) { int mask = (y-x) >> (sizeof(int)*8-1); return (x&mask) + (y&(~mask)); }
     //static inline void nextCap(int& cap){ cap += ((cap >> 1) + 2) & ~1; }
@@ -62,8 +66,16 @@ public:
 
     // Size operations:
     int      size     (void) const     { return sz; }
-    void     shrink   (int nelems)     { assert(nelems <= sz); for (int i = 0; i < nelems; i++) sz--, data[sz].~T(); }
-    void     shrink_  (int nelems)     { assert(nelems <= sz); sz -= nelems; }
+    void shrink(int nelems)
+    {
+      Assert(nelems <= sz);
+      for (int i = 0; i < nelems; i++) sz--, data[sz].~T();
+    }
+    void shrink_(int nelems)
+    {
+      Assert(nelems <= sz);
+      sz -= nelems;
+    }
     int      capacity (void) const     { return cap; }
     void     capacity (int min_cap);
     void     growTo   (int size);
@@ -73,8 +85,16 @@ public:
     // Stack interface:
     void     push  (void)              { if (sz == cap) capacity(sz+1); new (&data[sz]) T(); sz++; }
     void     push  (const T& elem)     { if (sz == cap) capacity(sz+1); data[sz++] = elem; }
-    void     push_ (const T& elem)     { assert(sz < cap); data[sz++] = elem; }
-    void     pop   (void)              { assert(sz > 0); sz--, data[sz].~T(); }
+    void push_(const T& elem)
+    {
+      Assert(sz < cap);
+      data[sz++] = elem;
+    }
+    void pop(void)
+    {
+      Assert(sz > 0);
+      sz--, data[sz].~T();
+    }
     // NOTE: it seems possible that overflow can happen in the 'sz+1' expression of 'push()', but
     // in fact it can not since it requires that 'cap' is equal to INT_MAX. This in turn can not
     // happen given the way capacities are calculated (below). Essentially, all capacities are
