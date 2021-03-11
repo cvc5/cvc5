@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --strings-exp -q
 ; EXPECT: sat
 ; EXPECT: (((seq.nth y 7) 404))
 ; EXPECT: (((str.from_code x) "?"))
