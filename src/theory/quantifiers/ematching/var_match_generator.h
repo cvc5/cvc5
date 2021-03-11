@@ -31,15 +31,12 @@ namespace inst {
 class VarMatchGeneratorTermSubs : public InstMatchGenerator
 {
  public:
-  VarMatchGeneratorTermSubs(Trigger* tparent,
-                            Node var,
-                            Node subs);
+  VarMatchGeneratorTermSubs(Trigger* tparent, Node var, Node subs);
 
   /** Reset */
   bool reset(Node eqc) override;
   /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m) override;
+  int getNextMatch(Node q, InstMatch& m) override;
 
  private:
   /** variable we are matching (x in the example x+1). */

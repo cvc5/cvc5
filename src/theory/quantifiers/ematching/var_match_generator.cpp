@@ -23,10 +23,9 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(
-  Trigger* tparent,
-    Node var,
-    Node subs)
+VarMatchGeneratorTermSubs::VarMatchGeneratorTermSubs(Trigger* tparent,
+                                                     Node var,
+                                                     Node subs)
     : InstMatchGenerator(tparent, Node::null()),
       d_var(var),
       d_subs(subs),
@@ -42,8 +41,7 @@ bool VarMatchGeneratorTermSubs::reset(Node eqc)
   return true;
 }
 
-int VarMatchGeneratorTermSubs::getNextMatch(Node q,
-                                            InstMatch& m)
+int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
 {
   int ret_val = -1;
   if (!d_eq_class.isNull())

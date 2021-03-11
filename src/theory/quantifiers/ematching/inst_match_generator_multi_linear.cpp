@@ -24,9 +24,8 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(Trigger * tparent, 
-    Node q,
-    std::vector<Node>& pats)
+InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
+    Trigger* tparent, Node q, std::vector<Node>& pats)
     : InstMatchGenerator(tparent, Node::null())
 {
   // order patterns to maximize eager matching failures
@@ -136,8 +135,7 @@ bool InstMatchGeneratorMultiLinear::reset(Node eqc)
   return resetChildren() > 0;
 }
 
-int InstMatchGeneratorMultiLinear::getNextMatch(Node q,
-                                                InstMatch& m)
+int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
 {
   Trace("multi-trigger-linear-debug")
       << "InstMatchGeneratorMultiLinear::getNextMatch : reset " << std::endl;
@@ -154,8 +152,8 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q,
       << "InstMatchGeneratorMultiLinear::getNextMatch : continue match "
       << std::endl;
   Assert(d_next != nullptr);
-  int ret_val = continueNextMatch(
-      q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
+  int ret_val =
+      continueNextMatch(q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
   if (ret_val > 0)
   {
     Trace("multi-trigger-linear")

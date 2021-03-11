@@ -70,14 +70,14 @@ class InstMatchGeneratorMultiLinear : public InstMatchGenerator
   /** Reset. */
   bool reset(Node eqc) override;
   /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m) override;
+  int getNextMatch(Node q, InstMatch& m) override;
 
  protected:
   /** reset the children of this generator */
   int resetChildren();
   /** constructor */
-  InstMatchGeneratorMultiLinear(Trigger * tparent, Node q,
+  InstMatchGeneratorMultiLinear(Trigger* tparent,
+                                Node q,
                                 std::vector<Node>& pats);
 };
 

@@ -72,16 +72,14 @@ Trigger::Trigger(QuantifiersEngine* qe,
       d_mg = new InstMatchGeneratorSimple(this, q, d_nodes[0]);
       ++(qe->d_statistics.d_triggers);
     }else{
-      d_mg =
-          InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
+      d_mg = InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
       d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, 
-          q, d_nodes);
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))
     {
@@ -101,13 +99,9 @@ Trigger::~Trigger() {
   delete d_mg;
 }
 
-void Trigger::resetInstantiationRound(){
-  d_mg->resetInstantiationRound( );
-}
+void Trigger::resetInstantiationRound() { d_mg->resetInstantiationRound(); }
 
-void Trigger::reset( Node eqc ){
-  d_mg->reset( eqc );
-}
+void Trigger::reset(Node eqc) { d_mg->reset(eqc); }
 
 bool Trigger::isMultiTrigger() const { return d_nodes.size() > 1; }
 
@@ -316,9 +310,7 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
   return mkTrigger(qe, qs, qim, qr, f, nodes, keepAll, trOption, useNVars);
 }
 
-int Trigger::getActiveScore() {
-  return d_mg->getActiveScore();
-}
+int Trigger::getActiveScore() { return d_mg->getActiveScore(); }
 
 Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
                                            Node n,
