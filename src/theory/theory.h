@@ -458,13 +458,6 @@ class Theory {
   }
 
   /**
-   * Set the output channel associated to this theory.
-   */
-  void setOutputChannel(OutputChannel& out) {
-    d_out = &out;
-  }
-
-  /**
    * Get the output channel associated to this theory.
    */
   OutputChannel& getOutputChannel() {
