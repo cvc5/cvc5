@@ -147,7 +147,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
     else
     {
       NodeManager* nm = NodeManager::currentNM();
-      unsigned cindex = DType::indexOf(a.getOperator().toExpr());
+      unsigned cindex = DType::indexOf(a.getOperator());
       TypeNode tn = a.getType();
       const DType& dt = tn.getDType();
       for (unsigned i = 0, nchild = a.getNumChildren(); i < nchild; i++)

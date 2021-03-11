@@ -668,7 +668,7 @@ bool AlgebraicSolver::useHeuristic() {
     return true;
 
   double success_rate = double(d_numSolved)/double(d_numCalls);
-  d_statistics.d_useHeuristic.setData(success_rate);
+  d_statistics.d_useHeuristic.set(success_rate);
   return success_rate > 0.8;
 }
 

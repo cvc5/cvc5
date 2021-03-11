@@ -3001,7 +3001,7 @@ bool ApproxGLPK::guessCoefficientsConstructTableRow(int nid, int M, const Primit
   for(size_t i=0; i < d_denomGuesses.size(); ++i){
     const Integer& D = d_denomGuesses[i];
     if(!guessCoefficientsConstructTableRow(nid, M, vec, D)){
-      d_stats.d_averageGuesses.addEntry(i+1);
+      d_stats.d_averageGuesses << i+1;
       Debug("approx::gmi") << "guesseditat " << i << " D=" << D << endl;
       return false;
     }

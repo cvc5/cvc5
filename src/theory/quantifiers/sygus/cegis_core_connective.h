@@ -26,6 +26,9 @@
 #include "util/result.h"
 
 namespace CVC4 {
+
+class SmtEngine;
+
 namespace theory {
 namespace quantifiers {
 

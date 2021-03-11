@@ -94,14 +94,13 @@ namespace attr {
 // attribute that stores the canonical bound variable list for function types
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
-NodeManager::NodeManager(ExprManager* exprManager)
+NodeManager::NodeManager()
     : d_statisticsRegistry(new StatisticsRegistry()),
       d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
-      d_exprManager(exprManager),
-      d_nodeUnderDeletion(NULL),
+      d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false),
       d_abstractValueCount(0),
       d_skolemCounter(0)

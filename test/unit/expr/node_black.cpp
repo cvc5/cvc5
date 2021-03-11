@@ -22,7 +22,6 @@
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"

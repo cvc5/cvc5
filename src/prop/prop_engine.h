@@ -41,6 +41,7 @@ class CnfStream;
 class CDCLTSatSolverInterface;
 class ProofCnfStream;
 class PropPfManager;
+class TheoryProxy;
 
 /**
  * PropEngine is the abstraction of a Sat Solver, providing methods for

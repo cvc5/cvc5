@@ -22,6 +22,7 @@
 #include "options/options.h"
 #include "util/statistics.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 #ifndef CVC4__MAIN__MAIN_H
 #define CVC4__MAIN__MAIN_H
