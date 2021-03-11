@@ -126,12 +126,16 @@ class Instantiate : public QuantifiersUtil
    * This function returns true if the instantiation lemma for quantified
    * formula q for the substitution specified by terms is successfully enqueued
    * via a call to QuantifiersInferenceManager::addPendingLemma.
-   *   mkRep : whether to take the representatives of the terms in the range of
-   *           the substitution m,
-   *   modEq : whether to check for duplication modulo equality in instantiation
-   *           tries (for performance),
-   *   doVts : whether we must apply virtual term substitution to the
-   *           instantiation lemma.
+   * @param q the quantified formula to instantiate
+   * @param terms the terms to instantiate with
+   * @param id the identifier of the instantiation lemma sent via the inference
+   * manager
+   * @param mkRep whether to take the representatives of the terms in the
+   * range of the substitution m,
+   * @param modEq whether to check for duplication modulo equality in
+   * instantiation tries (for performance),
+   * @param doVts whether we must apply virtual term substitution to the
+   * instantiation lemma.
    *
    * This call may fail if it can be determined that the instantiation is not
    * relevant or legal in the current context. This happens if:
@@ -147,6 +151,7 @@ class Instantiate : public QuantifiersUtil
    */
   bool addInstantiation(Node q,
                         std::vector<Node>& terms,
+                        InferenceId id,
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
@@ -175,6 +180,7 @@ class Instantiate : public QuantifiersUtil
    */
   bool addInstantiationExpFail(Node q,
                                std::vector<Node>& terms,
+                               InferenceId id,
                                std::vector<bool>& failMask,
                                bool mkRep = false,
                                bool modEq = false,

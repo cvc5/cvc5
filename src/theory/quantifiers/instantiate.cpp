@@ -101,7 +101,8 @@ void Instantiate::addRewriter(InstantiationRewriter* ir)
 }
 
 bool Instantiate::addInstantiation(
-    Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
+    Node q, std::vector<Node>& terms, 
+                        InferenceId id, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
   d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
@@ -319,11 +320,11 @@ bool Instantiate::addInstantiation(
   if (hasProof)
   {
     // use proof generator
-    addedLem = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN, LemmaProperty::NONE, d_pfInst.get());
+    addedLem = d_qim.addPendingLemma(lem, id, LemmaProperty::NONE, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+    addedLem = d_qim.addPendingLemma(lem, id);
   }
 
   if (!addedLem)
@@ -386,12 +387,13 @@ bool Instantiate::addInstantiation(
 bool Instantiate::addInstantiationExpFail(Node q,
                                           std::vector<Node>& terms,
                                           std::vector<bool>& failMask,
+                                          InferenceId id,
                                           bool mkRep,
                                           bool modEq,
                                           bool doVts,
                                           bool expFull)
 {
-  if (addInstantiation(q, terms, mkRep, modEq, doVts))
+  if (addInstantiation(q, terms, id, mkRep, modEq, doVts))
   {
     return true;
   }
