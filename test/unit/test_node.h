@@ -28,7 +28,7 @@ class TestNode : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager(nullptr));
+    d_nodeManager.reset(new NodeManager());
     d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
     d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));

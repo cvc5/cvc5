@@ -646,8 +646,8 @@ Node BVToInt::translateWithChildren(Node original,
        */
       if (childrenTypesChanged(original) && options::ufHo())
       {
-        throw TypeCheckingException(
-            original.toExpr(),
+        throw TypeCheckingExceptionPrivate(
+            original,
             string("Cannot translate to Int: ") + original.toString());
       }
       // Insert the translated application term to the cache

@@ -19,8 +19,6 @@
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "expr/symbol_manager.h"
 #include "options/base_options.h"
 #include "options/language.h"
