@@ -483,10 +483,13 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
     //check if we need virtual term substitution (if used delta or infinity)
     bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
     if (d_quantEngine->getInstantiate()->addInstantiation(
-            d_curr_quant, subs, false, false, used_vts))
+            d_curr_quant,
+            subs,
+            InferenceId::QUANTIFIERS_INST_CEGQI,
+            false,
+            false,
+            used_vts))
     {
-      ++(d_quantEngine->d_statistics.d_instantiations_cbqi);
-      //d_added_inst.insert( d_curr_quant );
       return true;
     }else{
       //this should never happen for monotonic selection strategies
