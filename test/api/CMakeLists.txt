@@ -44,8 +44,6 @@ cvc4_add_api_test(ouroborous)
 cvc4_add_api_test(reset_assertions)
 cvc4_add_api_test(sep_log_api)
 cvc4_add_api_test(smt2_compliance)
-# TODO(cvc4-projects#209): Add methods for retrieving statistics to new API
-# cvc4_add_api_test(statistics)
 cvc4_add_api_test(two_solvers)
 cvc4_add_api_test(issue5074)
 cvc4_add_api_test(issue4889)

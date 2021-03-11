@@ -20,6 +20,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Map_h
 #define Minisat_Map_h
 
+#include "base/check.h"
 #include "prop/minisat/mtl/IntTypes.h"
 #include "prop/minisat/mtl/Vec.h"
 
@@ -68,8 +69,8 @@ class Map {
     int        size;
 
     // Don't allow copying (error prone):
-    Map<K,D,H,E>&  operator = (Map<K,D,H,E>& other) { assert(0); }
-                   Map        (Map<K,D,H,E>& other) { assert(0); }
+    Map<K, D, H, E>& operator=(Map<K, D, H, E>& other) { Assert(0); }
+    Map(Map<K, D, H, E>& other) { Assert(0); }
 
     bool    checkCap(int new_size) const { return new_size > cap; }
 
@@ -108,27 +109,25 @@ class Map {
     // PRECONDITION: the key must already exist in the map.
     const D& operator [] (const K& k) const
     {
-        assert(size != 0);
-        const D*         res = NULL;
-        const vec<Pair>& ps  = table[index(k)];
-        for (int i = 0; i < ps.size(); i++)
-            if (equals(ps[i].key, k))
-                res = &ps[i].data;
-        assert(res != NULL);
-        return *res;
+      Assert(size != 0);
+      const D* res = NULL;
+      const vec<Pair>& ps = table[index(k)];
+      for (int i = 0; i < ps.size(); i++)
+        if (equals(ps[i].key, k)) res = &ps[i].data;
+      Assert(res != NULL);
+      return *res;
     }
 
     // PRECONDITION: the key must already exist in the map.
     D& operator [] (const K& k)
     {
-        assert(size != 0);
-        D*         res = NULL;
-        vec<Pair>& ps  = table[index(k)];
-        for (int i = 0; i < ps.size(); i++)
-            if (equals(ps[i].key, k))
-                res = &ps[i].data;
-        assert(res != NULL);
-        return *res;
+      Assert(size != 0);
+      D* res = NULL;
+      vec<Pair>& ps = table[index(k)];
+      for (int i = 0; i < ps.size(); i++)
+        if (equals(ps[i].key, k)) res = &ps[i].data;
+      Assert(res != NULL);
+      return *res;
     }
 
     // PRECONDITION: the key must *NOT* exist in the map.
@@ -154,14 +153,15 @@ class Map {
 
     // PRECONDITION: the key must exist in the map.
     void remove(const K& k) {
-        assert(table != NULL);
-        vec<Pair>& ps = table[index(k)];
-        int j = 0;
-        for (; j < ps.size() && !equals(ps[j].key, k); j++);
-        assert(j < ps.size());
-        ps[j] = ps.last();
-        ps.pop();
-        size--;
+      Assert(table != NULL);
+      vec<Pair>& ps = table[index(k)];
+      int j = 0;
+      for (; j < ps.size() && !equals(ps[j].key, k); j++)
+        ;
+      Assert(j < ps.size());
+      ps[j] = ps.last();
+      ps.pop();
+      size--;
     }
 
     void clear  () {
