@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -184,7 +184,7 @@ void SubstitutionMap::addSubstitutions(SubstitutionMap& subMap, bool invalidateC
   }
 }
 
-Node SubstitutionMap::apply(TNode t) {
+Node SubstitutionMap::apply(TNode t, bool doRewrite) {
 
   Debug("substitution") << "SubstitutionMap::apply(" << t << ")" << endl;
 
@@ -198,6 +198,11 @@ Node SubstitutionMap::apply(TNode t) {
   // Perform the substitution
   Node result = internalSubstitute(t, d_substitutionCache);
   Debug("substitution") << "SubstitutionMap::apply(" << t << ") => " << result << endl;
+
+  if (doRewrite)
+  {
+    result = Rewriter::rewrite(result);
+  }
 
   return result;
 }

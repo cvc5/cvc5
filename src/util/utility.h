@@ -2,9 +2,9 @@
 /*! \file utility.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Aina Niemetz
+ **   Andres Noetzli, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,36 +21,10 @@
 
 #include <algorithm>
 #include <fstream>
-#include <functional>
 #include <memory>
 #include <string>
-#include <utility>
 
 namespace CVC4 {
-
-
-/**
- * Like std::equal_to<>, but tests equality between the first element
- * of a pair and an element.
- */
-template <class T, class U>
-struct first_equal_to : std::binary_function<std::pair<T, U>, T, bool> {
-  bool operator()(const std::pair<T, U>& pr, const T& x) const {
-    return pr.first == x;
-  }
-};/* struct first_equal_to<T> */
-
-
-/**
- * Like std::equal_to<>, but tests equality between the second element
- * of a pair and an element.
- */
-template <class T, class U>
-struct second_equal_to : std::binary_function<std::pair<T, U>, U, bool> {
-  bool operator()(const std::pair<T, U>& pr, const U& x) const {
-    return pr.second == x;
-  }
-};/* struct first_equal_to<T> */
 
 
 /**

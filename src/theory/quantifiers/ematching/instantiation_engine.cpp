@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,13 +16,13 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
+#include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -33,8 +33,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
-    : QuantifiersModule(qe),
+InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
+                                         QuantifiersState& qs,
+                                         QuantifiersInferenceManager& qim,
+                                         QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
@@ -50,13 +53,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine));
+      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
-    d_i_ag.reset(
-        new InstStrategyAutoGenTriggers(d_quantEngine, d_quant_rel.get()));
+    d_i_ag.reset(new InstStrategyAutoGenTriggers(
+        d_quantEngine, qs, qim, qr, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -70,7 +73,7 @@ void InstantiationEngine::presolve() {
 }
 
 void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
-  unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+  size_t lastWaiting = d_qim.numPendingLemmas();
   //iterate over an internal effort level e
   int e = 0;
   int eLimit = effort==Theory::EFFORT_LAST_CALL ? 10 : 2;
@@ -91,18 +94,25 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
         for( unsigned j=0; j<d_instStrategies.size(); j++ ){
           InstStrategy* is = d_instStrategies[j];
           Trace("inst-engine-debug") << "Do " << is->identify() << " " << e_use << std::endl;
-          int quantStatus = is->process( q, effort, e_use );
-          Trace("inst-engine-debug") << " -> status is " << quantStatus << ", conflict=" << d_quantEngine->inConflict() << std::endl;
-          if( d_quantEngine->inConflict() ){
+          InstStrategyStatus quantStatus = is->process(q, effort, e_use);
+          Trace("inst-engine-debug")
+              << " -> unfinished= "
+              << (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
+              << ", conflict=" << d_qstate.isInConflict() << std::endl;
+          if (d_qstate.isInConflict())
+          {
             return;
-          }else if( quantStatus==InstStrategy::STATUS_UNFINISHED ){
+          }
+          else if (quantStatus == InstStrategyStatus::STATUS_UNFINISHED)
+          {
             finished = false;
           }
         }
       }
     }
     //do not consider another level if already added lemma at this level
-    if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
+    if (d_qim.numPendingLemmas() > lastWaiting)
+    {
       finished = true;
     }
     e++;
@@ -110,7 +120,7 @@ void InstantiationEngine::doInstantiationRound( Theory::Effort effort ){
 }
 
 bool InstantiationEngine::needsCheck( Theory::Effort e ){
-  return d_quantEngine->getInstWhenNeedsCheck( e );
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 void InstantiationEngine::reset_round( Theory::Effort e ){
@@ -155,21 +165,19 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   Trace("inst-engine-debug") << nquant << " " << quantActive << std::endl;
   if (quantActive)
   {
-    unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
+    size_t lastWaiting = d_qim.numPendingLemmas();
     doInstantiationRound(e);
-    if (d_quantEngine->inConflict())
+    if (d_qstate.isInConflict())
     {
-      Assert(d_quantEngine->getNumLemmasWaiting() > lastWaiting);
+      Assert(d_qim.numPendingLemmas() > lastWaiting);
       Trace("inst-engine") << "Conflict, added lemmas = "
-                           << (d_quantEngine->getNumLemmasWaiting()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
-    else if (d_quantEngine->hasAddedLemma())
+    else if (d_qim.hasPendingLemma())
     {
       Trace("inst-engine") << "Added lemmas = "
-                           << (d_quantEngine->getNumLemmasWaiting()
-                               - lastWaiting)
+                           << (d_qim.numPendingLemmas() - lastWaiting)
                            << std::endl;
     }
   }
@@ -202,7 +210,7 @@ void InstantiationEngine::checkOwnership(Node q)
       }
     }
     if( hasPat ){
-      d_quantEngine->setOwner( q, this, 1 );
+      d_qreg.setOwner(q, this, 1);
     }
   }
 }
@@ -220,9 +228,7 @@ void InstantiationEngine::registerQuantifier(Node q)
   // take into account user patterns
   if (q.getNumChildren() == 3)
   {
-    Node subsPat =
-        d_quantEngine->getTermUtil()->substituteBoundVariablesToInstConstants(
-            q[2], q);
+    Node subsPat = d_qreg.substituteBoundVariablesToInstConstants(q[2], q);
     // add patterns
     for (const Node& p : subsPat)
     {
@@ -252,13 +258,13 @@ void InstantiationEngine::addUserNoPattern(Node q, Node pat) {
 
 bool InstantiationEngine::shouldProcess(Node q)
 {
-  if (!d_quantEngine->hasOwnership(q, this))
+  if (!d_qreg.hasOwnership(q, this))
   {
     return false;
   }
   // also ignore internal quantifiers
-  QuantAttributes* qattr = d_quantEngine->getQuantAttributes();
-  if (qattr->isInternal(q))
+  QuantAttributes& qattr = d_qreg.getQuantAttributes();
+  if (qattr.isInternal(q))
   {
     return false;
   }

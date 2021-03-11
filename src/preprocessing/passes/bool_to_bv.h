@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Makai Mann, Yoni Zohar, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,10 +18,9 @@
 #ifndef CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_H
 #define CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_H
 
+#include "expr/node.h"
 #include "options/bv_options.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

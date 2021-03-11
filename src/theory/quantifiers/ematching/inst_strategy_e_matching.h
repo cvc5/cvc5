@@ -2,9 +2,9 @@
 /*! \file inst_strategy_e_matching.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,7 @@
 #ifndef CVC4__INST_STRATEGY_E_MATCHING_H
 #define CVC4__INST_STRATEGY_E_MATCHING_H
 
-#include "theory/quantifiers/ematching/instantiation_engine.h"
+#include "theory/quantifiers/ematching/inst_strategy.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quant_relevance.h"
 
@@ -25,35 +25,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-//instantiation strategies
-
-class InstStrategyUserPatterns : public InstStrategy{
-private:
-  /** explicitly provided patterns */
-  std::map< Node, std::vector< inst::Trigger* > > d_user_gen;
-  /** waiting to be generated patterns */
-  std::map< Node, std::vector< std::vector< Node > > > d_user_gen_wait;
-  /** counter for quantifiers */
-  std::map< Node, int > d_counter;
-  /** process functions */
-  void processResetInstantiationRound(Theory::Effort effort) override;
-  int process(Node f, Theory::Effort effort, int e) override;
-
- public:
-  InstStrategyUserPatterns( QuantifiersEngine* ie ) :
-      InstStrategy( ie ){}
-  ~InstStrategyUserPatterns(){}
-public:
-  /** add pattern */
-  void addUserPattern( Node q, Node pat );
-  /** get num patterns */
-  int getNumUserGenerators( Node q ) { return (int)d_user_gen[q].size(); }
-  /** get user pattern */
-  inst::Trigger* getUserGenerator( Node q, int i ) { return d_user_gen[q][ i ]; }
-  /** identify */
-  std::string identify() const override { return std::string("UserPatterns"); }
-};/* class InstStrategyUserPatterns */
-
+/**
+ * This class is responsible for instantiating quantifiers based on
+ * automatically generated triggers. It selects pattern terms, generates
+ * and manages triggers, and uses a strategy for processing them.
+ */
 class InstStrategyAutoGenTriggers : public InstStrategy
 {
  public:
@@ -91,9 +67,16 @@ class InstStrategyAutoGenTriggers : public InstStrategy
  private:
   /** process functions */
   void processResetInstantiationRound(Theory::Effort effort) override;
-  int process(Node q, Theory::Effort effort, int e) override;
-  /** generate triggers */
+  /** Process */
+  InstStrategyStatus process(Node q, Theory::Effort effort, int e) override;
+  /**
+   * Generate triggers for quantified formula q.
+   */
   void generateTriggers(Node q);
+  /**
+   * Generate pattern terms for quantified formula q.
+   */
+  bool generatePatternTerms(Node q);
   void addPatternToPool(Node q, Node pat, unsigned num_fv, Node mpat);
   void addTrigger(inst::Trigger* tr, Node f);
   /** has user patterns */
@@ -102,10 +85,13 @@ class InstStrategyAutoGenTriggers : public InstStrategy
   std::map<Node, bool> d_hasUserPatterns;
 
  public:
-  InstStrategyAutoGenTriggers(QuantifiersEngine* qe, QuantRelevance* qr);
+  InstStrategyAutoGenTriggers(QuantifiersEngine* qe,
+                              QuantifiersState& qs,
+                              QuantifiersInferenceManager& qim,
+                              QuantifiersRegistry& qr,
+                              QuantRelevance* qrlv);
   ~InstStrategyAutoGenTriggers() {}
 
- public:
   /** get auto-generated trigger */
   inst::Trigger* getAutoGenTrigger(Node q);
   /** identify */

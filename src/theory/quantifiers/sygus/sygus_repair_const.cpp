@@ -2,9 +2,9 @@
 /*! \file sygus_repair_const.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ **   Andrew Reynolds, Haniel Barbosa, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 
 #include "api/cvc4cpp.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -23,6 +24,7 @@
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/logic_info.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -236,9 +238,9 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
                       options::sygusRepairConstTimeout.wasSetByUser(),
                       options::sygusRepairConstTimeout());
   // renable options disabled by sygus
-  repcChecker->setOption("miniscope-quant", true);
-  repcChecker->setOption("miniscope-quant-fv", true);
-  repcChecker->setOption("quant-split", true);
+  repcChecker->setOption("miniscope-quant", "true");
+  repcChecker->setOption("miniscope-quant-fv", "true");
+  repcChecker->setOption("quant-split", "true");
   repcChecker->assertFormula(fo_body);
   // check satisfiability
   Result r = repcChecker->checkSat();

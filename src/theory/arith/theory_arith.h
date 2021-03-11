@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,13 +22,14 @@
 #include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_state.h"
 #include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nonlinear_extension.h"
-#include "theory/arith/operator_elim.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
+class NonlinearExtension;
+}
 
 class TheoryArithPrivate;
 
@@ -44,6 +45,9 @@ class TheoryArith : public Theory {
   TheoryArithPrivate* d_internal;
 
   TimerStat d_ppRewriteTimer;
+
+  /** Used to prove pp-rewrites */
+  EagerProofGenerator d_ppPfGen;
 
  public:
   TheoryArith(context::Context* c,
@@ -107,7 +111,15 @@ class TheoryArith : public Theory {
   void notifyRestart() override;
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
-  TrustNode ppRewrite(TNode atom) override;
+  /**
+   * Preprocess rewrite terms, return the trust node encapsulating the
+   * preprocessed form of n, and the proof generator that can provide the
+   * proof for the equivalence of n and this term.
+   *
+   * This calls the operator elimination utility to eliminate extended
+   * symbols.
+   */
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }
@@ -128,14 +140,10 @@ class TheoryArith : public Theory {
 
  private:
   /**
-   * Preprocess rewrite terms, return the trust node encapsulating the
-   * preprocessed form of n, and the proof generator that can provide the
-   * proof for the equivalence of n and this term.
-   *
-   * This calls the operator elimination utility to eliminate extended
-   * symbols.
+   * Preprocess equality, applies ppRewrite for equalities. This method is
+   * distinct from ppRewrite since it is not allowed to construct lemmas.
    */
-  TrustNode ppRewriteTerms(TNode n);
+  TrustNode ppRewriteEq(TNode eq);
   /** Get the proof equality engine */
   eq::ProofEqEngine* getProofEqEngine();
   /** The state object wrapping TheoryArithPrivate  */
@@ -152,6 +160,7 @@ class TheoryArith : public Theory {
   ArithPreprocess d_arithPreproc;
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
+
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,21 +15,17 @@
 #include "theory/uf/theory_uf_model.h"
 
 #include <stack>
-#include <vector>
 
 #include "expr/attribute.h"
-#include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
-using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
-using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::uf;
+
+namespace CVC4 {
+namespace theory {
+namespace uf {
 
 //clear
 void UfModelTreeNode::clear(){
@@ -63,14 +59,17 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
       defaultValue = d_data[Node::null()].getFunctionValue(args, index + 1, argDefaultValue, simplify);
     }
 
-    vector<Node> caseArgs;
-    map<Node, Node> caseValues;
+    std::vector<Node> caseArgs;
+    std::map<Node, Node> caseValues;
 
-    for(map< Node, UfModelTreeNode>::iterator it = d_data.begin(); it != d_data.end(); ++it) {
-      if(!it->first.isNull()) {
-        Node val = it->second.getFunctionValue(args, index + 1, defaultValue, simplify);
-        caseArgs.push_back(it->first);
-        caseValues[it->first] = val;
+    for (std::pair<const Node, UfModelTreeNode>& p : d_data)
+    {
+      if (!p.first.isNull())
+      {
+        Node val =
+            p.second.getFunctionValue(args, index + 1, defaultValue, simplify);
+        caseArgs.push_back(p.first);
+        caseValues[p.first] = val;
       }
     }
 
@@ -86,7 +85,7 @@ Node UfModelTreeNode::getFunctionValue(std::vector<Node>& args, int index, Node 
         Node val = caseValues[ caseArgs[ i ] ];
         if(val.getKind() == ITE) {
           // use a stack to reverse the order, since we're traversing outside-in
-          stack<TNode> stk;
+          std::stack<TNode> stk;
           do {
             stk.push(val);
             val = val[2];
@@ -237,3 +236,7 @@ Node UfModelTree::getFunctionValue( const char* argPrefix, bool simplify ){
   }
   return getFunctionValue( vars, simplify );
 }
+
+}  // namespace uf
+}  // namespace theory
+}  // namespace CVC4

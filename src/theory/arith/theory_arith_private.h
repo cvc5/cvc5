@@ -2,9 +2,9 @@
 /*! \file theory_arith_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
+ **   Tim King, Andrew Reynolds, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,22 +18,15 @@
 #pragma once
 
 #include <map>
-#include <queue>
 #include <vector>
 
 #include "context/cdhashset.h"
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
-#include "context/context.h"
 #include "expr/kind.h"
-#include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
-#include "expr/proof_generator.h"
-#include "options/arith_options.h"
-#include "smt/logic_exception.h"
-#include "smt_util/boolean_simplification.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
@@ -43,6 +36,7 @@
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
+#include "theory/arith/error_set.h"
 #include "theory/arith/fc_simplex.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
@@ -50,12 +44,8 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/proof_checker.h"
-#include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
@@ -66,6 +56,10 @@
 
 namespace CVC4 {
 namespace theory {
+
+class EagerProofGenerator;
+class TheoryModel;
+
 namespace arith {
 
 class BranchCutInfo;
@@ -237,7 +231,15 @@ private:
   context::CDQueue<ArithVar> d_constantIntegerVariables;
 
   Node callDioSolver();
-  Node dioCutting();
+  /**
+   * Produces lemmas of the form (or (>= f 0) (<= f 0)),
+   * where f is a plane that the diophantine solver is interested in.
+   *
+   * More precisely, produces lemmas of the form (or (>= lc -c) (<= lc -c))
+   * where lc is a linear combination of variables, c is a constant, and lc + c
+   * is the plane.
+   */
+  TrustNode dioCutting();
 
   Comparison mkIntegerEqualityFromAssignment(ArithVar v);
 
@@ -552,9 +554,11 @@ private:
    * Returns a cut for a lemma.
    * If there is an integer model, this returns Node::null().
    */
-  Node roundRobinBranch();
+  TrustNode roundRobinBranch();
 
-public:
+  bool proofsEnabled() const { return d_pnm; }
+
+ public:
   /**
    * This requests a new unique ArithVar value for x.
    * This also does initial (not context dependent) set up for a variable,
@@ -703,13 +707,15 @@ private:
     return (d_containing.d_valuation).getSatValue(n);
   }
 
-  context::CDQueue<Node> d_approxCuts;
-  std::vector<Node> d_acTmp;
+  /** Used for replaying approximate simplex */
+  context::CDQueue<TrustNode> d_approxCuts;
+  /** Also used for replaying approximate simplex. "approximate cuts temporary storage" */
+  std::vector<TrustNode> d_acTmp;
 
   /** Counts the number of fullCheck calls to arithmetic. */
   uint32_t d_fullCheckCounter;
   std::vector<ArithVar> cutAllBounded() const;
-  Node branchIntegerVariable(ArithVar x) const;
+  TrustNode branchIntegerVariable(ArithVar x) const;
   void branchVector(const std::vector<ArithVar>& lemmas);
 
   context::CDO<unsigned> d_cutCount;

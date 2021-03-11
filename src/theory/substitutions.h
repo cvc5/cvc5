@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -133,13 +133,13 @@ public:
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t);
+  Node apply(TNode t, bool doRewrite = false);
 
   /**
    * Apply the substitutions to the node.
    */
-  Node apply(TNode t) const {
-    return const_cast<SubstitutionMap*>(this)->apply(t);
+  Node apply(TNode t, bool doRewrite = false) const {
+    return const_cast<SubstitutionMap*>(this)->apply(t, doRewrite);
   }
 
   iterator begin() {

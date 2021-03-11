@@ -2,9 +2,9 @@
 /*! \file eager_proof_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 #include "theory/eager_proof_generator.h"
 
 #include "expr/proof.h"
+#include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 
 namespace CVC4 {
@@ -118,6 +119,18 @@ TrustNode EagerProofGenerator::mkTrustNode(Node conc,
   // construction above.
   std::shared_ptr<ProofNode> pfs = d_pnm->mkNode(PfRule::SCOPE, {pf}, exp);
   return mkTrustNode(pfs->getResult(), pfs, isConflict);
+}
+
+TrustNode EagerProofGenerator::mkTrustedRewrite(
+    Node a, Node b, std::shared_ptr<ProofNode> pf)
+{
+  if (pf == nullptr)
+  {
+    return TrustNode::null();
+  }
+  Node eq = a.eqNode(b);
+  setProofFor(eq, pf);
+  return TrustNode::mkTrustRewrite(a, b, this);
 }
 
 TrustNode EagerProofGenerator::mkTrustedPropagation(

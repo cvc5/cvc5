@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Ying Sheng, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,7 +47,7 @@ namespace smt {
 class SmtEngineState
 {
  public:
-  SmtEngineState(SmtEngine& smt);
+  SmtEngineState(context::Context* c, context::UserContext* u, SmtEngine& smt);
   ~SmtEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the
@@ -203,9 +203,9 @@ class SmtEngineState
   /** Reference to the SmtEngine */
   SmtEngine& d_smt;
   /** Expr manager context */
-  std::unique_ptr<context::Context> d_context;
+  context::Context* d_context;
   /** User level context */
-  std::unique_ptr<context::UserContext> d_userContext;
+  context::UserContext* d_userContext;
   /** The context levels of user pushes */
   std::vector<int> d_userLevels;
 

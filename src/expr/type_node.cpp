@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -151,12 +151,12 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
       TypeNode tnc = getArrayConstituentType();
       if (!tnc.isFiniteInternal(usortFinite))
       {
-        // arrays with consistuent type that is infinite are infinite
+        // arrays with constituent type that is infinite are infinite
         ret = false;
       }
       else if (getArrayIndexType().isFiniteInternal(usortFinite))
       {
-        // arrays with both finite consistuent and index types are finite
+        // arrays with both finite constituent and index types are finite
         ret = true;
       }
       else
@@ -169,6 +169,11 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     else if (isSet())
     {
       ret = getSetElementType().isFiniteInternal(usortFinite);
+    }
+    else if (isBag())
+    {
+      // there are infinite bags for all element types
+      ret = false;
     }
     else if (isFunction())
     {

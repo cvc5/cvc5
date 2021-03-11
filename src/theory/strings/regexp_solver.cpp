@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "options/strings_options.h"
+#include "smt/logic_exception.h"
 #include "theory/ext_theory.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
@@ -227,7 +228,7 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               noExplain.push_back(assertion);
               Node conc = Node::null();
               d_im.sendInference(
-                  iexp, noExplain, conc, Inference::RE_NF_CONFLICT);
+                  iexp, noExplain, conc, InferenceId::STRINGS_RE_NF_CONFLICT);
               addedLemma = true;
               break;
             }
@@ -282,8 +283,8 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
             {
               d_statistics.d_regexpUnfoldingsNeg << atom[1].getKind();
             }
-            Inference inf =
-                polarity ? Inference::RE_UNFOLD_POS : Inference::RE_UNFOLD_NEG;
+            InferenceId inf =
+                polarity ? InferenceId::STRINGS_RE_UNFOLD_POS : InferenceId::STRINGS_RE_UNFOLD_NEG;
             d_im.sendInference(iexp, noExplain, conc, inf);
             addedLemma = true;
             if (changed)
@@ -404,7 +405,7 @@ bool RegExpSolver::checkEqcInclusion(std::vector<Node>& mems)
 
           Node conc;
           d_im.sendInference(
-              vec_nodes, conc, Inference::RE_INTER_INCLUDE, false, true);
+              vec_nodes, conc, InferenceId::STRINGS_RE_INTER_INCLUDE, false, true);
           return false;
         }
       }
@@ -486,7 +487,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       }
       Node conc;
       d_im.sendInference(
-          vec_nodes, conc, Inference::RE_INTER_CONF, false, true);
+          vec_nodes, conc, InferenceId::STRINGS_RE_INTER_CONF, false, true);
       // conflict, return
       return false;
     }
@@ -516,7 +517,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
         vec_nodes.push_back(mi[0].eqNode(m[0]));
       }
       d_im.sendInference(
-          vec_nodes, mres, Inference::RE_INTER_INFER, false, true);
+          vec_nodes, mres, InferenceId::STRINGS_RE_INTER_INFER, false, true);
       // both are reduced
       d_im.markReduced(m);
       d_im.markReduced(mi);
@@ -542,7 +543,7 @@ bool RegExpSolver::checkPDerivative(
         noExplain.push_back(x.eqNode(d_emptyString));
         std::vector<Node> iexp = nf_exp;
         iexp.insert(iexp.end(), noExplain.begin(), noExplain.end());
-        d_im.sendInference(iexp, noExplain, exp, Inference::RE_DELTA);
+        d_im.sendInference(iexp, noExplain, exp, InferenceId::STRINGS_RE_DELTA);
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -559,7 +560,7 @@ bool RegExpSolver::checkPDerivative(
         noExplain.push_back(x.eqNode(d_emptyString));
         std::vector<Node> iexp = nf_exp;
         iexp.insert(iexp.end(), noExplain.begin(), noExplain.end());
-        d_im.sendInference(iexp, noExplain, d_false, Inference::RE_DELTA_CONF);
+        d_im.sendInference(iexp, noExplain, d_false, InferenceId::STRINGS_RE_DELTA_CONF);
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -652,7 +653,7 @@ bool RegExpSolver::deriveRegExp(Node x,
     std::vector<Node> noExplain;
     noExplain.push_back(atom);
     iexp.push_back(atom);
-    d_im.sendInference(iexp, noExplain, conc, Inference::RE_DERIVE);
+    d_im.sendInference(iexp, noExplain, conc, InferenceId::STRINGS_RE_DERIVE);
     return true;
   }
   return false;
@@ -664,7 +665,8 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
   switch (r.getKind())
   {
     case REGEXP_EMPTY:
-    case REGEXP_SIGMA: break;
+    case REGEXP_SIGMA:
+    case REGEXP_RANGE: break;
     case STRING_TO_REGEXP:
     {
       if (!r[0].isConst())

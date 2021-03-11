@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_MODULE_H
 
-#include <map>
 #include <vector>
 
 #include "expr/node.h"
@@ -31,6 +30,7 @@ namespace quantifiers {
 
 class SynthConjecture;
 class TermDbSygus;
+class QuantifiersInferenceManager;
 
 /** SygusModule
  *
@@ -53,7 +53,9 @@ class TermDbSygus;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe, SynthConjecture* p);
+  SygusModule(QuantifiersEngine* qe,
+              QuantifiersInferenceManager& qim,
+              SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
    *
@@ -150,8 +152,10 @@ class SygusModule
  protected:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
-  quantifiers::TermDbSygus* d_tds;
+  TermDbSygus* d_tds;
   /** reference to the parent conjecture */
   SynthConjecture* d_parent;
 };

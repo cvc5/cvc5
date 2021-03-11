@@ -21,13 +21,17 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_SimpSolver_h
 #define BVMinisat_SimpSolver_h
 
-#include "context/context.h"
+#include "base/check.h"
 #include "proof/clause_id.h"
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/bvminisat/mtl/Queue.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+namespace context {
+class Context;
+}
+
 namespace BVMinisat {
 
 //=================================================================================================
@@ -185,11 +189,12 @@ class SimpSolver : public Solver {
 
 inline bool SimpSolver::isEliminated (Var v) const { return eliminated[v]; }
 inline void SimpSolver::updateElimHeap(Var v) {
-    assert(use_simplification);
-    // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
-    if (elim_heap.inHeap(v) || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
-        elim_heap.update(v); }
-
+  Assert(use_simplification);
+  // if (!frozen[v] && !isEliminated(v) && value(v) == l_Undef)
+  if (elim_heap.inHeap(v)
+      || (!frozen[v] && !isEliminated(v) && value(v) == l_Undef))
+    elim_heap.update(v);
+}
 
 inline bool SimpSolver::addClause    (const vec<Lit>& ps, ClauseId& id)    { ps.copyTo(add_tmp); return addClause_(add_tmp, id); }
 inline bool SimpSolver::addEmptyClause()                     { add_tmp.clear(); ClauseId id; return addClause_(add_tmp, id); }

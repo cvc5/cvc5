@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,7 +41,9 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersEngine* qe, SynthConjecture* p);
+  Cegis(QuantifiersEngine* qe,
+        QuantifiersInferenceManager& qim,
+        SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node conj,

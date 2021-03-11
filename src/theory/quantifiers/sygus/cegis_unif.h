@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 
+#include "theory/decision_strategy.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 
@@ -47,7 +48,10 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, SynthConjecture* parent);
+  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe,
+                                QuantifiersState& qs,
+                                QuantifiersInferenceManager& qim,
+                                SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
    * This call may add new lemmas of the form described above
@@ -99,6 +103,8 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers inference manager */
+  QuantifiersInferenceManager& d_qim;
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
@@ -202,7 +208,10 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 class CegisUnif : public Cegis
 {
  public:
-  CegisUnif(QuantifiersEngine* qe, SynthConjecture* p);
+  CegisUnif(QuantifiersEngine* qe,
+            QuantifiersState& qs,
+            QuantifiersInferenceManager& qim,
+            SynthConjecture* p);
   ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions
    *

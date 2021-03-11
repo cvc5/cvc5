@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,8 @@
 #include "expr/attribute.h"
 #include "expr/bound_var_manager.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
+#include "expr/metakind.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
@@ -92,19 +94,23 @@ namespace attr {
 // attribute that stores the canonical bound variable list for function types
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
-NodeManager::NodeManager(ExprManager* exprManager)
+NodeManager::NodeManager()
     : d_statisticsRegistry(new StatisticsRegistry()),
       d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
-      d_exprManager(exprManager),
-      d_nodeUnderDeletion(NULL),
+      d_nodeUnderDeletion(nullptr),
       d_inReclaimZombies(false),
       d_abstractValueCount(0),
       d_skolemCounter(0)
 {
   init();
+}
+
+bool NodeManager::isNAryKind(Kind k)
+{
+  return kind::metakind::getMaxArityForKind(k) == expr::NodeValue::MAX_CHILDREN;
 }
 
 TypeNode NodeManager::booleanType()
@@ -218,9 +224,8 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_children.clear();
   d_rt_cache.d_data = dummy;
 
-  d_registeredDTypes.clear();
   // clear the datatypes
-  d_ownedDTypes.clear();
+  d_dtypes.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -267,19 +272,12 @@ NodeManager::~NodeManager() {
   d_attrManager = NULL;
 }
 
-size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
-{
-  size_t sz = d_registeredDTypes.size();
-  d_registeredDTypes.push_back(dt);
-  return sz;
-}
-
 const DType& NodeManager::getDTypeForIndex(size_t index) const
 {
   // if this assertion fails, it is likely due to not managing datatypes
   // properly w.r.t. multiple NodeManagers.
-  Assert(index < d_registeredDTypes.size());
-  return *d_registeredDTypes[index];
+  Assert(index < d_dtypes.size());
+  return *d_dtypes[index];
 }
 
 void NodeManager::reclaimZombies() {
@@ -574,25 +572,18 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   std::map<std::string, TypeNode> nameResolutions;
   std::vector<TypeNode> dtts;
 
-  // have to build deep copy so that datatypes will live in this class
-  std::vector<std::shared_ptr<DType> > dt_copies;
-  for (const DType& dt : datatypes)
-  {
-    d_ownedDTypes.push_back(std::unique_ptr<DType>(new DType(dt)));
-    dt_copies.push_back(std::move(d_ownedDTypes.back()));
-  }
-
   // First do some sanity checks, set up the final Type to be used for
   // each datatype, and set up the "named resolutions" used to handle
   // simple self- and mutual-recursion, for example in the definition
   // "nat = succ(pred:nat) | zero", a named resolution can handle the
   // pred selector.
-  for (const std::shared_ptr<DType>& dtc : dt_copies)
+  for (const DType& dt : datatypes)
   {
+    uint32_t index = d_dtypes.size();
+    d_dtypes.push_back(std::unique_ptr<DType>(new DType(dt)));
+    DType* dtp = d_dtypes.back().get();
     TypeNode typeNode;
-    // register datatype with the node manager
-    size_t index = registerDatatype(dtc);
-    if (dtc->getNumParameters() == 0)
+    if (dtp->getNumParameters() == 0)
     {
       typeNode = mkTypeConst(DatatypeIndexConstant(index));
     }
@@ -601,17 +592,17 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
       TypeNode cons = mkTypeConst(DatatypeIndexConstant(index));
       std::vector<TypeNode> params;
       params.push_back(cons);
-      for (unsigned int ip = 0; ip < dtc->getNumParameters(); ++ip)
+      for (uint32_t ip = 0; ip < dtp->getNumParameters(); ++ip)
       {
-        params.push_back(dtc->getParameter(ip));
+        params.push_back(dtp->getParameter(ip));
       }
 
       typeNode = mkTypeNode(kind::PARAMETRIC_DATATYPE, params);
     }
-    AlwaysAssert(nameResolutions.find(dtc->getName()) == nameResolutions.end())
+    AlwaysAssert(nameResolutions.find(dtp->getName()) == nameResolutions.end())
         << "cannot construct two datatypes at the same time "
            "with the same name";
-    nameResolutions.insert(std::make_pair(dtc->getName(), typeNode));
+    nameResolutions.insert(std::make_pair(dtp->getName(), typeNode));
     dtts.push_back(typeNode);
   }
 
@@ -769,40 +760,44 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       nm, rec, index + 1);
 }
 
-TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts)
+TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& sorts,
+                                     bool reqFlat)
 {
   Assert(sorts.size() >= 2);
-  CheckArgument(!sorts[sorts.size() - 1].isFunction(),
+  CheckArgument(!reqFlat || !sorts[sorts.size() - 1].isFunction(),
                 sorts[sorts.size() - 1],
                 "must flatten function types");
   return mkTypeNode(kind::FUNCTION_TYPE, sorts);
 }
 
-TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts)
+TypeNode NodeManager::mkPredicateType(const std::vector<TypeNode>& sorts,
+                                      bool reqFlat)
 {
   Assert(sorts.size() >= 1);
   std::vector<TypeNode> sortNodes;
   sortNodes.insert(sortNodes.end(), sorts.begin(), sorts.end());
   sortNodes.push_back(booleanType());
-  return mkFunctionType(sortNodes);
+  return mkFunctionType(sortNodes, reqFlat);
 }
 
 TypeNode NodeManager::mkFunctionType(const TypeNode& domain,
-                                     const TypeNode& range)
+                                     const TypeNode& range,
+                                     bool reqFlat)
 {
   std::vector<TypeNode> sorts;
   sorts.push_back(domain);
   sorts.push_back(range);
-  return mkFunctionType(sorts);
+  return mkFunctionType(sorts, reqFlat);
 }
 
 TypeNode NodeManager::mkFunctionType(const std::vector<TypeNode>& argTypes,
-                                     const TypeNode& range)
+                                     const TypeNode& range,
+                                     bool reqFlat)
 {
   Assert(argTypes.size() >= 1);
   std::vector<TypeNode> sorts(argTypes);
   sorts.push_back(range);
-  return mkFunctionType(sorts);
+  return mkFunctionType(sorts, reqFlat);
 }
 
 TypeNode NodeManager::mkTupleType(const std::vector<TypeNode>& types) {
@@ -904,27 +899,26 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   return type;
 }
 
-Node NodeManager::mkVar(const std::string& name, const TypeNode& type, uint32_t flags) {
+Node NodeManager::mkVar(const std::string& name, const TypeNode& type)
+{
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
   setAttribute(n, expr::VarNameAttr(), name);
-  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, flags);
+    (*i)->nmNotifyNewVar(n);
   }
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const std::string& name,
-                            const TypeNode& type, uint32_t flags) {
+Node* NodeManager::mkVarPtr(const std::string& name, const TypeNode& type)
+{
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
   setAttribute(*n, expr::VarNameAttr(), name);
-  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, flags);
+    (*i)->nmNotifyNewVar(*n);
   }
   return n;
 }
@@ -961,7 +955,7 @@ Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
 {
   AlwaysAssert(kind::isAssociative(kind)) << "Illegal kind in mkAssociative";
 
-  const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
+  const unsigned int max = kind::metakind::getMaxArityForKind(kind);
   size_t numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
@@ -969,7 +963,7 @@ Node NodeManager::mkAssociative(Kind kind, const std::vector<Node>& children)
   {
     return mkNode(kind, children);
   }
-  const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
+  const unsigned int min = kind::metakind::getMinArityForKind(kind);
 
   std::vector<Node>::const_iterator it = children.begin();
   std::vector<Node>::const_iterator end = children.end();
@@ -1048,24 +1042,24 @@ Node NodeManager::mkChain(Kind kind, const std::vector<Node>& children)
   return mkNode(kind::AND, cchildren);
 }
 
-Node NodeManager::mkVar(const TypeNode& type, uint32_t flags) {
+Node NodeManager::mkVar(const TypeNode& type)
+{
   Node n = NodeBuilder<0>(this, kind::VARIABLE);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
-  setAttribute(n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(n, flags);
+    (*i)->nmNotifyNewVar(n);
   }
   return n;
 }
 
-Node* NodeManager::mkVarPtr(const TypeNode& type, uint32_t flags) {
+Node* NodeManager::mkVarPtr(const TypeNode& type)
+{
   Node* n = NodeBuilder<0>(this, kind::VARIABLE).constructNodePtr();
   setAttribute(*n, TypeAttr(), type);
   setAttribute(*n, TypeCheckedAttr(), true);
-  setAttribute(*n, expr::GlobalVarAttr(), flags & ExprManager::VAR_FLAG_GLOBAL);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewVar(*n, flags);
+    (*i)->nmNotifyNewVar(*n);
   }
   return n;
 }

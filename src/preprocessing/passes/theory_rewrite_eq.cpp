@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,8 @@
 
 #include "preprocessing/passes/theory_rewrite_eq.h"
 
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::theory;
@@ -59,12 +61,9 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
 
     if (it == visited.end())
     {
-      if (cur.getKind() == kind::EQUAL)
+      if (cur.getNumChildren()==0)
       {
-        // For example, (= x y) ---> (and (>= x y) (<= x y))
-        theory::TrustNode trn = te->ppRewriteEquality(cur);
-        // can make proof producing by using proof generator from trn
-        visited[cur] = trn.isNull() ? Node(cur) : trn.getNode();
+        visited[cur] = cur;
       }
       else
       {
@@ -93,6 +92,13 @@ theory::TrustNode TheoryRewriteEq::rewriteAssertion(TNode n)
       if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
+      }
+      if (ret.getKind() == kind::EQUAL && !ret[0].getType().isBoolean())
+      {
+        // For example, (= x y) ---> (and (>= x y) (<= x y))
+        theory::TrustNode trn = te->ppRewriteEquality(ret);
+        // can make proof producing by using proof generator from trn
+        ret = trn.isNull() ? Node(ret) : trn.getNode();
       }
       visited[cur] = ret;
     }

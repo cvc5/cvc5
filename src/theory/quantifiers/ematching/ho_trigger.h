@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -93,6 +93,9 @@ class HigherOrderTrigger : public Trigger
 
  private:
   HigherOrderTrigger(QuantifiersEngine* qe,
+                     quantifiers::QuantifiersState& qs,
+                     quantifiers::QuantifiersInferenceManager& qim,
+                     quantifiers::QuantifiersRegistry& qr,
                      Node q,
                      std::vector<Node>& nodes,
                      std::map<Node, std::vector<Node> >& ho_apps);
@@ -122,7 +125,7 @@ class HigherOrderTrigger : public Trigger
    * Extends Trigger::addInstantiations to also send
    * lemmas based on addHoTypeMatchPredicateLemmas.
    */
-  int addInstantiations() override;
+  uint64_t addInstantiations() override;
 
  protected:
   /**
@@ -158,7 +161,7 @@ class HigherOrderTrigger : public Trigger
    *
    * TODO: we may eliminate this based on how github issue #1115 is resolved.
    */
-  int addHoTypeMatchPredicateLemmas();
+  uint64_t addHoTypeMatchPredicateLemmas();
   /** send instantiation
    *
   * Sends an instantiation that is equivalent to m via

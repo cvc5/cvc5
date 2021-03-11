@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -125,7 +125,7 @@ class CvcPrinter : public CVC4::Printer
   /** Print set-info command */
   void toStreamCmdSetInfo(std::ostream& out,
                           const std::string& flag,
-                          SExpr sexpr) const override;
+                          const std::string& value) const override;
 
   /** Print get-info command */
   void toStreamCmdGetInfo(std::ostream& out,
@@ -134,7 +134,7 @@ class CvcPrinter : public CVC4::Printer
   /** Print set-option command */
   void toStreamCmdSetOption(std::ostream& out,
                             const std::string& flag,
-                            SExpr sexpr) const override;
+                            const std::string& value) const override;
 
   /** Print get-option command */
   void toStreamCmdGetOption(std::ostream& out,

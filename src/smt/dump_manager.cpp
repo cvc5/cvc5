@@ -2,9 +2,9 @@
 /*! \file dump_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Abdalrhman Mohamed
+ **   Andrew Reynolds, Gereon Kremer, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -49,12 +49,9 @@ void DumpManager::resetAssertions()
   // currently, do nothing
 }
 
-void DumpManager::addToModelCommandAndDump(const NodeCommand& c,
-                                           uint32_t flags,
-                                           bool userVisible,
-                                           const char* dumpTag)
+void DumpManager::addToDump(const NodeCommand& c, const char* dumpTag)
 {
-  Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << std::endl;
+  Trace("smt") << "SMT addToDump(" << c << ")" << std::endl;
   if (Dump.isOn(dumpTag))
   {
     if (d_fullyInited)

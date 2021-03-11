@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,12 +23,14 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
-#include "prop/cnf_stream.h"
-#include "prop/registrar.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
 namespace CVC4 {
+namespace prop {
+class CnfStream;
+class NullRegistrat;
+}
 namespace theory {
 namespace bv {
 

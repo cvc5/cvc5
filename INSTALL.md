@@ -22,14 +22,15 @@ using Mingw-w64.  We recommend a 64-bit operating system.
 On macOS, we recommend using Homebrew (https://brew.sh/) to install the
 dependencies.  We also have a Homebrew Tap available at
 https://github.com/CVC4/homebrew-cvc4 .
+To build a static binary for macOS, use:
+`./configure.sh --static --no-static-binary`.
 
 ### Cross-compiling for Windows
 
 Cross-compiling CVC4 with Mingw-w64 can be done as follows:
 
 ```
-  HOST=x86_64-w64-mingw32 ./contrib/get-win-dependencies
-  ./configure --win64 --static <configure options...>
+  ./configure.sh --win64 --static <configure options...>
 
   cd <build_dir>   # default is ./build
   make             # use -jN for parallel build with N threads
@@ -48,7 +49,7 @@ compatible.
   or [Clang](https://clang.llvm.org) (reasonably recent versions)
 - [CMake >= 3.9](https://cmake.org)
 - [GNU Bash](https://www.gnu.org/software/bash/)
-- [Python >= 2.7](https://www.python.org)
+- [Python 3.x](https://www.python.org)
   + module [toml](https://pypi.org/project/toml/)
 - [GMP v4.2 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
 - [libantlr3c v3.2 or v3.4 (ANTLR parser generator C support library)](http://www.antlr3.org/)
@@ -78,8 +79,8 @@ We recommend using a GCC version > 4.5.1.
 Do **not** install GMP via the provided script `contrib/get-gmp-dev` unless
 your distribution
 * does not ship with the GMP configuration you need, e.g.,
-  script `contrib/get-win-dependencies` uses `contrib/get-gmp-dev` when
-  cross-compiling GMP for Windows.
+  `contrib/get-gmp-dev` is used in `configure.sh` when cross-compiling GMP for
+  Windows.
 * does not ship with static GMP libraries (e.g., Arch Linux)
   and you want to build CVC4 statically.
 
@@ -187,13 +188,6 @@ for a package named "libedit-dev" or "libedit-devel" or similar.
 
 The [Boost](http://www.boost.org) C++ base library is needed for some examples
 provided with CVC4.
-
-### CxxTest Unit Testing Framework (Unit Tests)
-
-[CxxTest](http://cxxtest.com) is required to optionally run CVC4's unit tests
-(included with the distribution). 
-See [Testing CVC4](#Testing-CVC4) below for more details.
-
 
 ### Google Test Unit Testing Framework (Unit Tests)
 

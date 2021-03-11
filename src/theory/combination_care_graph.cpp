@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,9 @@
 #include "theory/combination_care_graph.h"
 
 #include "expr/node_visitor.h"
+#include "prop/prop_engine.h"
 #include "theory/care_graph.h"
+#include "theory/model_manager.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -85,7 +87,7 @@ void CombinationCareGraph::combineTheories()
     // This is supposed to force preference to follow what the theory models
     // already have but it doesn't seem to make a big difference - need to
     // explore more -Clark
-    Node e = d_te.ensureLiteral(equality);
+    Node e = d_valuation.ensureLiteral(equality);
     propEngine->requirePhase(e, true);
   }
 }

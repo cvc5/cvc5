@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,9 @@
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
 #include "expr/dtype.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -27,6 +30,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 UnconstrainedSimplifier::UnconstrainedSimplifier(
@@ -360,8 +364,6 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_ASHR:
         case kind::BITVECTOR_UDIV:
         case kind::BITVECTOR_UREM:
-        case kind::BITVECTOR_UDIV_TOTAL:
-        case kind::BITVECTOR_UREM_TOTAL:
         case kind::BITVECTOR_SDIV:
         case kind::BITVECTOR_SREM:
         case kind::BITVECTOR_SMOD:

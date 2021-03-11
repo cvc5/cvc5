@@ -2,9 +2,9 @@
 /*! \file proof_rule.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -50,6 +50,7 @@ const char* toString(PfRule id)
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
+    case PfRule::MACRO_RESOLUTION: return "MACRO_RESOLUTION";
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::MODUS_PONENS: return "MODUS_PONENS";
@@ -126,7 +127,7 @@ const char* toString(PfRule id)
     case PfRule::DT_CLASH: return "DT_CLASH";
     case PfRule::DT_TRUST: return "DT_TRUST";
     //================================================= Quantifiers rules
-    case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
+    case PfRule::SKOLEM_INTRO: return "SKOLEM_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
@@ -158,10 +159,40 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_MULT_SIGN: return "ARITH_MULT_SIGN";
+    case PfRule::ARITH_MULT_POS: return "ARITH_MULT_POS";
+    case PfRule::ARITH_MULT_NEG: return "ARITH_MULT_NEG";
     case PfRule::ARITH_MULT_TANGENT: return "ARITH_MULT_TANGENT";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     case PfRule::ARITH_TRANS_PI: return "ARITH_TRANS_PI";
+    case PfRule::ARITH_TRANS_EXP_NEG: return "ARITH_TRANS_EXP_NEG";
+    case PfRule::ARITH_TRANS_EXP_POSITIVITY:
+      return "ARITH_TRANS_EXP_POSITIVITY";
+    case PfRule::ARITH_TRANS_EXP_SUPER_LIN: return "ARITH_TRANS_EXP_SUPER_LIN";
+    case PfRule::ARITH_TRANS_EXP_ZERO: return "ARITH_TRANS_EXP_ZERO";
+    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG:
+      return "ARITH_TRANS_EXP_APPROX_ABOVE_NEG";
+    case PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_EXP_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_EXP_APPROX_BELOW:
+      return "ARITH_TRANS_EXP_APPROX_BELOW";
+    case PfRule::ARITH_TRANS_SINE_BOUNDS: return "ARITH_TRANS_SINE_BOUNDS";
     case PfRule::ARITH_TRANS_SINE_SHIFT: return "ARITH_TRANS_SINE_SHIFT";
+    case PfRule::ARITH_TRANS_SINE_SYMMETRY: return "ARITH_TRANS_SINE_SYMMETRY";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_ZERO:
+      return "ARITH_TRANS_SINE_TANGENT_ZERO";
+    case PfRule::ARITH_TRANS_SINE_TANGENT_PI:
+      return "ARITH_TRANS_SINE_TANGENT_PI";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_POS:
+      return "ARITH_TRANS_SINE_APPROX_ABOVE_POS";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_NEG:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_NEG";
+    case PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS:
+      return "ARITH_TRANS_SINE_APPROX_BELOW_POS";
+    case PfRule::ARITH_NL_CAD_DIRECT: return "ARITH_NL_CAD_DIRECT";
+    case PfRule::ARITH_NL_CAD_RECURSIVE: return "ARITH_NL_CAD_RECURSIVE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

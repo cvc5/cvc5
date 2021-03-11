@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,26 +19,18 @@
 #ifndef CVC4__THEORY_ENGINE_H
 #define CVC4__THEORY_ENGINE_H
 
-#include <deque>
 #include <memory>
-#include <set>
-#include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "base/check.h"
-#include "context/cdhashset.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "options/options.h"
-#include "options/smt_options.h"
 #include "options/theory_options.h"
-#include "prop/prop_engine.h"
 #include "theory/atom_requests.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "theory/term_registration_visitor.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
@@ -46,13 +38,13 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 
 class ResourceManager;
+class OutputManager;
 class TheoryEngineProofGenerator;
 
 /**
@@ -92,10 +84,11 @@ class SharedSolver;
 class DecisionManager;
 class RelevanceManager;
 
-namespace eq {
-class EqualityEngine;
-}  // namespace eq
 }/* CVC4::theory namespace */
+
+namespace prop {
+class PropEngine;
+}
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -156,9 +149,7 @@ class TheoryEngine {
   std::unique_ptr<theory::CombinationEngine> d_tc;
   /** The shared solver of the above combination engine. */
   theory::SharedSolver* d_sharedSolver;
-  /**
-   * The quantifiers engine
-   */
+  /** The quantifiers engine, which is owned by the quantifiers theory */
   theory::QuantifiersEngine* d_quantEngine;
   /**
    * The decision manager
@@ -166,9 +157,6 @@ class TheoryEngine {
   std::unique_ptr<theory::DecisionManager> d_decManager;
   /** The relevance manager */
   std::unique_ptr<theory::RelevanceManager> d_relManager;
-
-  /** Default visitor for pre-registration */
-  PreRegisterVisitor d_preRegistrationVisitor;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
@@ -276,19 +264,17 @@ class TheoryEngine {
    * @param p the properties of the lemma.
    * @param atomsTo the theory that atoms of the lemma should be sent to
    * @param from the theory that sent the lemma
-   * @return a lemma status, containing the lemma and context information
-   * about when it was sent.
    */
-  theory::LemmaStatus lemma(theory::TrustNode node,
-                            theory::LemmaProperty p,
-                            theory::TheoryId atomsTo = theory::THEORY_LAST,
-                            theory::TheoryId from = theory::THEORY_LAST);
+  void lemma(theory::TrustNode node,
+             theory::LemmaProperty p,
+             theory::TheoryId atomsTo = theory::THEORY_LAST,
+             theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
 
   /** sort inference module */
-  SortInference d_sortInfer;
+  std::unique_ptr<theory::SortInference> d_sortInfer;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
@@ -588,22 +574,6 @@ class TheoryEngine {
    */
   void setEagerModelBuilding() { d_eager_model_building = true; }
 
-  /** get synth solutions
-   *
-   * This method returns true if there is a synthesis solution available. This
-   * is the case if the last call to check satisfiability originated in a
-   * check-synth call, and the synthesis solver successfully found a solution
-   * for all active synthesis conjectures.
-   *
-   * This method adds entries to sol_map that map functions-to-synthesize with
-   * their solutions, for all active conjectures. This should be called
-   * immediately after the solver answers unsat for sygus input.
-   *
-   * For details on what is added to sol_map, see
-   * SynthConjecture::getSynthSolutions.
-   */
-  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-
   /**
    * Get the theory associated to a given Node.
    *
@@ -652,37 +622,6 @@ class TheoryEngine {
   Node getModelValue(TNode var);
 
   /**
-   * Takes a literal and returns an equivalent literal that is guaranteed to be
-   * a SAT literal. This rewrites and preprocesses n, which notice may involve
-   * sending lemmas if preprocessing n involves introducing new skolems.
-   */
-  Node ensureLiteral(TNode n);
-
-  /**
-   * Print all instantiations made by the quantifiers module.
-   */
-  void printInstantiations( std::ostream& out );
-
-  /**
-   * Print solution for synthesis conjectures found by ce_guided_instantiation module
-   */
-  void printSynthSolution( std::ostream& out );
-
-  /**
-   * Get list of quantified formulas that were instantiated
-   */
-  void getInstantiatedQuantifiedFormulas( std::vector< Node >& qs );
-
-  /**
-   * Get instantiation methods
-   *   the first given forall x.q[x] returns ( a, ..., z )
-   *   the second returns mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
-   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
-   */
-  void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
-  void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
-
-  /**
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
@@ -695,11 +634,10 @@ class TheoryEngine {
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
+ theory::SortInference* getSortInference() { return d_sortInfer.get(); }
 
-  SortInference* getSortInference() { return &d_sortInfer; }
-
-  /** Prints the assertions to the debug stream */
-  void printAssertions(const char* tag);
+ /** Prints the assertions to the debug stream */
+ void printAssertions(const char* tag);
 
 private:
 
@@ -728,8 +666,6 @@ private:
    * This function is called from the smt engine's checkModel routine.
    */
   void checkTheoryAssertionsWithModel(bool hardFailure);
- private:
-  IntStat d_arithSubstitutionsAdded;
 };/* class TheoryEngine */
 
 }/* CVC4 namespace */

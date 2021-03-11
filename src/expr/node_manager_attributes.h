@@ -2,9 +2,9 @@
 /*! \file node_manager_attributes.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Kshitij Bansal
+ **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,14 +26,12 @@ namespace expr {
 // TODO: hide this attribute behind a NodeManager interface.
 namespace attr {
   struct VarNameTag { };
-  struct GlobalVarTag { };
   struct SortArityTag { };
   struct TypeTag { };
   struct TypeCheckedTag { };
 }/* CVC4::expr::attr namespace */
 
 typedef Attribute<attr::VarNameTag, std::string> VarNameAttr;
-typedef Attribute<attr::GlobalVarTag(), bool> GlobalVarAttr;
 typedef Attribute<attr::SortArityTag, uint64_t> SortArityAttr;
 typedef expr::Attribute<expr::attr::TypeTag, TypeNode> TypeAttr;
 typedef expr::Attribute<expr::attr::TypeCheckedTag, bool> TypeCheckedAttr;

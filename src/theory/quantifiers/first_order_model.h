@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,6 +42,8 @@ typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
 namespace quantifiers {
 
 class TermDb;
+class QuantifiersState;
+class QuantifiersRegistry;
 
 namespace fmcheck {
   class FirstOrderModelFmc;
@@ -54,7 +56,10 @@ typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 class FirstOrderModel : public TheoryModel
 {
  public:
-  FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
+  FirstOrderModel(QuantifiersEngine* qe,
+                  QuantifiersState& qs,
+                  QuantifiersRegistry& qr,
+                  std::string name);
 
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
   /** assert quantifier */
@@ -131,6 +136,8 @@ class FirstOrderModel : public TheoryModel
  protected:
   /** quant engine */
   QuantifiersEngine* d_qe;
+  /** The quantifiers registry */
+  QuantifiersRegistry& d_qreg;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 
@@ -181,35 +188,6 @@ class FirstOrderModel : public TheoryModel
   /** compute model basis arg */
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
-
-namespace fmcheck {
-
-class Def;
-
-class FirstOrderModelFmc : public FirstOrderModel
-{
-  friend class FullModelChecker;
-
- private:
-  /** models for UF */
-  std::map<Node, Def * > d_models;
-  std::map<TypeNode, Node > d_type_star;
-  /** get current model value */
-  void processInitializeModelForTerm(Node n) override;
-
- public:
-  FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelFmc() override;
-  FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
-  // initialize the model
-  void processInitialize(bool ispre) override;
-  Node getFunctionValue(Node op, const char* argPrefix );
-
-  bool isStar(Node n);
-  Node getStar(TypeNode tn);
-};/* class FirstOrderModelFmc */
-
-}/* CVC4::theory::quantifiers::fmcheck namespace */
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */

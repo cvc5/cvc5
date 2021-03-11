@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
 #ifndef CVC4__PRINTER__PRINTER_H
 #define CVC4__PRINTER__PRINTER_H
 
-#include <map>
 #include <string>
 
 #include "expr/node.h"
@@ -32,8 +31,9 @@ namespace CVC4 {
 
 class Command;
 class CommandStatus;
-class NodeCommand;
 class UnsatCore;
+struct InstantiationList;
+struct SkolemList;
 
 class Printer
 {
@@ -61,6 +61,12 @@ class Printer
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
+
+  /** Write an instantiation list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const InstantiationList& is) const;
+
+  /** Write a skolem list out to a stream with this Printer. */
+  virtual void toStream(std::ostream& out, const SkolemList& sks) const;
 
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,
@@ -210,7 +216,7 @@ class Printer
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const;
+                                  const std::string& value) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,
@@ -219,7 +225,7 @@ class Printer
   /** Print set-option command */
   virtual void toStreamCmdSetOption(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const;
+                                    const std::string& value) const;
 
   /** Print get-option command */
   virtual void toStreamCmdGetOption(std::ostream& out,

@@ -2,9 +2,9 @@
 /*! \file ho_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Gereon Kremer, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -107,7 +107,7 @@ unsigned HoExtension::applyExtensionality(TNode deq)
     Node lem = NodeManager::currentNM()->mkNode(OR, deq[0], conc);
     Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem
                          << std::endl;
-    d_im.lemma(lem);
+    d_im.lemma(lem, InferenceId::UF_HO_EXTENSIONALITY);
     return 1;
   }
   return 0;
@@ -167,7 +167,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
       Trace("uf-ho-lemma")
           << "uf-ho-lemma : Skolem definition for apply-conversion : " << lem
           << std::endl;
-      d_im.lemma(lem);
+      d_im.lemma(lem, InferenceId::UF_HO_APP_CONV_SKOLEM);
       d_uf_std_skolem[f] = new_f;
     }
     else
@@ -256,7 +256,7 @@ unsigned HoExtension::checkExtensionality(TheoryModel* m)
               Node lem = nm->mkNode(OR, deq.negate(), eq);
               Trace("uf-ho") << "HoExtension: cmi extensionality lemma " << lem
                              << std::endl;
-              d_im.lemma(lem);
+              d_im.lemma(lem, InferenceId::UF_HO_MODEL_EXTENSIONALITY);
               return 1;
             }
           }
@@ -284,7 +284,12 @@ unsigned HoExtension::applyAppCompletion(TNode n)
     Node eq = n.eqNode(ret);
     Trace("uf-ho-lemma") << "uf-ho-lemma : infer, by apply-expand : " << eq
                          << std::endl;
-    d_im.assertInternalFact(eq, true, PfRule::HO_APP_ENCODE, {}, {n});
+    d_im.assertInternalFact(eq,
+                            true,
+                            InferenceId::UF_HO_APP_ENCODE,
+                            PfRule::HO_APP_ENCODE,
+                            {},
+                            {n});
     return 1;
   }
   Trace("uf-ho-debug") << "    ...already have " << ret << " == " << n << "."
@@ -441,7 +446,7 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
       Node eq = n.eqNode(hn);
       Trace("uf-ho") << "HoExtension: cmi app completion lemma " << eq
                      << std::endl;
-      d_im.lemma(eq);
+      d_im.lemma(eq, InferenceId::UF_HO_MODEL_APP_ENCODE);
       return false;
     }
   }

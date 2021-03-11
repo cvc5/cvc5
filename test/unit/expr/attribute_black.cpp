@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_value.h"
-#include "test_expr.h"
+#include "test_node.h"
 
 namespace CVC4 {
 
@@ -30,7 +30,7 @@ using namespace smt;
 
 namespace test {
 
-class TestExprBlackAttribute : public TestExprBlack
+class TestExprBlackAttribute : public TestNode
 {
  protected:
   struct PrimitiveIntAttributeId
@@ -64,7 +64,7 @@ TEST_F(TestExprBlackAttribute, ints)
   ASSERT_FALSE(node->getAttribute(attr, data0));
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }
@@ -82,7 +82,7 @@ TEST_F(TestExprBlackAttribute, tnodes)
   ASSERT_FALSE(node->getAttribute(attr, data0));
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }
@@ -100,7 +100,7 @@ TEST_F(TestExprBlackAttribute, strings)
   ASSERT_FALSE(node->getAttribute(attr, data0));
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }
@@ -116,10 +116,10 @@ TEST_F(TestExprBlackAttribute, bools)
 
   BoolAttribute attr;
   ASSERT_TRUE(node->getAttribute(attr, data0));
-  EXPECT_EQ(false, data0);
+  ASSERT_EQ(false, data0);
   node->setAttribute(attr, val);
   ASSERT_TRUE(node->getAttribute(attr, data1));
-  EXPECT_EQ(data1, val);
+  ASSERT_EQ(data1, val);
 
   delete node;
 }

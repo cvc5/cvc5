@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
@@ -25,7 +26,6 @@
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 #include <numeric>  // for std::iota
 
@@ -58,7 +58,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
       ss << "_" << std::to_string(op_pos[i]);
     }
     d_unres_tn = NodeManager::currentNM()->mkSort(
-        ss.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+        ss.str(), NodeManager::SORT_FLAG_PLACEHOLDER);
     Trace("sygus-grammar-normalize-trie")
         << "\tCreating type " << d_unres_tn << "\n";
     unres_tn = d_unres_tn;
@@ -68,10 +68,7 @@ bool OpPosTrie::getOrMakeType(TypeNode tn,
   return d_children[op_pos[ind]].getOrMakeType(tn, unres_tn, op_pos, ind + 1);
 }
 
-SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
-    : d_qe(qe), d_tds(d_qe->getTermDatabaseSygus())
-{
-}
+SygusGrammarNorm::SygusGrammarNorm(TermDbSygus* tds) : d_tds(tds) {}
 
 SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
     : d_tn(src_tn),
@@ -114,7 +111,7 @@ void SygusGrammarNorm::TypeObject::initializeDatatype(
    * Int, etc) */
   TypeNode sygusType = dt.getSygusType();
   d_sdt.initializeDatatype(sygusType,
-                           sygus_norm->d_sygus_vars.toExpr(),
+                           sygus_norm->d_sygus_vars,
                            dt.getSygusAllowConst(),
                            dt.getSygusAllowAll());
   Trace("sygus-grammar-normalize")
@@ -287,7 +284,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   if (options::sygusMinGrammar() && dt.getNumConstructors() == op_pos.size())
   {
     SygusRedundantCons src;
-    src.initialize(d_qe, tn);
+    src.initialize(d_tds, tn);
     std::vector<unsigned> rindices;
     src.getRedundant(rindices);
     if (!rindices.empty())

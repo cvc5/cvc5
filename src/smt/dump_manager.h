@@ -2,9 +2,9 @@
 /*! \file dump_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Aina Niemetz
+ **   Andrew Reynolds, Morgan Deters, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,12 +20,15 @@
 #include <memory>
 #include <vector>
 
-#include "context/cdlist.h"
 #include "expr/node.h"
 
 namespace CVC4 {
 
 class NodeCommand;
+
+namespace context {
+class UserContext;
+}
 
 namespace smt {
 
@@ -49,13 +52,10 @@ class DumpManager
    */
   void resetAssertions();
   /**
-   * Add to Model command.  This is used for recording a command
-   * that should be reported during a get-model call.
+   * Add to dump command.  This is used for recording a command
+   * that should be reported via the dumpTag trace.
    */
-  void addToModelCommandAndDump(const NodeCommand& c,
-                                uint32_t flags = 0,
-                                bool userVisible = true,
-                                const char* dumpTag = "declarations");
+  void addToDump(const NodeCommand& c, const char* dumpTag = "declarations");
 
   /**
    * Set that function f should print in the model if and only if p is true.

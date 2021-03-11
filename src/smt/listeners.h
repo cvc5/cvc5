@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Abdalrhman Mohamed, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -59,7 +59,7 @@ class SmtNodeManagerListener : public NodeManagerListener
   void nmNotifyNewDatatypes(const std::vector<TypeNode>& dtts,
                             uint32_t flags) override;
   /** Notify when new variable is created */
-  void nmNotifyNewVar(TNode n, uint32_t flags) override;
+  void nmNotifyNewVar(TNode n) override;
   /** Notify when new skolem is created */
   void nmNotifyNewSkolem(TNode n,
                          const std::string& comment,

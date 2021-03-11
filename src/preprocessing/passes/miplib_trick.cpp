@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,13 +15,18 @@
 
 #include "preprocessing/passes/miplib_trick.h"
 
+#include <sstream>
 #include <vector>
 
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
+#include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
+#include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/trust_substitutions.h"
 
@@ -29,6 +34,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 namespace {
@@ -156,7 +162,7 @@ MipLibTrick::~MipLibTrick()
   }
 }
 
-void MipLibTrick::nmNotifyNewVar(TNode n, uint32_t flags)
+void MipLibTrick::nmNotifyNewVar(TNode n)
 {
   if (n.getType().isBoolean())
   {
@@ -549,7 +555,6 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             {
               newVars.push_back(varRef);
             }
-            d_preprocContext->enableIntegers();
           }
           Node sum;
           if (pos.getKind() == kind::AND)

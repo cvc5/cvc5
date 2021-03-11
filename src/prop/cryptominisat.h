@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -61,6 +61,7 @@ class CryptoMinisatSolver : public SatSolver
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+  void getUnsatAssumptions(std::vector<SatLiteral>& assumptions) override;
 
   bool ok() const override;
   SatValue value(SatLiteral l) override;

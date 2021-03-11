@@ -2,9 +2,9 @@
 /*! \file transcendental_state.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer
+ **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,12 @@
 
 #include "theory/arith/nl/transcendental/transcendental_state.h"
 
+#include "expr/proof.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/transcendental/taylor_generator.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -179,7 +183,7 @@ void TranscendentalState::ensureCongruence(TNode a,
       }
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(Kind::AND, exp);
       Node cong_lemma = expn.impNode(a.eqNode(aa));
-      d_im.addPendingArithLemma(cong_lemma, InferenceId::NL_CONGRUENCE);
+      d_im.addPendingLemma(cong_lemma, InferenceId::ARITH_NL_CONGRUENCE);
     }
   }
   else
@@ -222,7 +226,7 @@ void TranscendentalState::getCurrentPiBounds()
     proof->addStep(
         pi_lem, PfRule::ARITH_TRANS_PI, {}, {d_pi_bound[0], d_pi_bound[1]});
   }
-  d_im.addPendingArithLemma(pi_lem, InferenceId::NL_T_PI_BOUND, proof);
+  d_im.addPendingLemma(pi_lem, InferenceId::ARITH_NL_T_PI_BOUND, proof);
 }
 
 std::pair<Node, Node> TranscendentalState::getClosestSecantPoints(TNode e,
@@ -319,7 +323,61 @@ NlLemma TranscendentalState::mkSecantLemma(TNode lower,
   lem = Rewriter::rewrite(lem);
   Trace("nl-trans-lemma") << "*** Secant plane lemma : " << lem << std::endl;
   Assert(d_model.computeAbstractModelValue(lem) == d_false);
-  return NlLemma(lem, LemmaProperty::NONE, nullptr, InferenceId::NL_T_SECANT);
+  CDProof* proof = nullptr;
+  if (isProofEnabled())
+  {
+    proof = getProof();
+    if (tf.getKind() == Kind::EXPONENTIAL)
+    {
+      if (csign == 1)
+      {
+        proof->addStep(
+            lem,
+            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_POS,
+            {},
+            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+      }
+      else
+      {
+        proof->addStep(
+            lem,
+            PfRule::ARITH_TRANS_EXP_APPROX_ABOVE_NEG,
+            {},
+            {nm->mkConst<Rational>(2 * actual_d), tf[0], lower, upper});
+      }
+    }
+    else if (tf.getKind() == Kind::SINE)
+    {
+      if (convexity == Convexity::CONCAVE)
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_BELOW_POS,
+                       {},
+                       {nm->mkConst<Rational>(2 * actual_d),
+                        tf[0],
+                        lower,
+                        upper,
+                        lapprox,
+                        uapprox
+
+                       });
+      }
+      else
+      {
+        proof->addStep(lem,
+                       PfRule::ARITH_TRANS_SINE_APPROX_ABOVE_NEG,
+                       {},
+                       {nm->mkConst<Rational>(2 * actual_d),
+                        tf[0],
+                        lower,
+                        upper,
+                        lapprox,
+                        uapprox});
+      }
+    }
+  }
+  return NlLemma(
+      InferenceId::ARITH_NL_T_SECANT, lem, LemmaProperty::NONE, proof);
 }
 
 void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
@@ -352,7 +410,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
     nlem.d_secantPoint.push_back(std::make_tuple(tf, d, center));
-    d_im.addPendingArithLemma(nlem, true);
+    d_im.addPendingLemma(nlem, true);
   }
 
   // take the model value of upper (since may contain PI)
@@ -371,7 +429,7 @@ void TranscendentalState::doSecantLemmas(const std::pair<Node, Node>& bounds,
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
     nlem.d_secantPoint.push_back(std::make_tuple(tf, d, center));
-    d_im.addPendingArithLemma(nlem, true);
+    d_im.addPendingLemma(nlem, true);
   }
 }
 

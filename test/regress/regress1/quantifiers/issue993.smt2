@@ -1,5 +1,5 @@
 (set-logic AUFBVDTNIRA)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :status unsat)
 (declare-sort us_private 0)
 
@@ -7,18 +7,13 @@
 
 (declare-fun to_rep1 (integer) Int)
 
-(declare-datatypes ()
-((us_split_fields
- (mk___split_fields (rec__unit1__t1__c1 integer)(rec__ext__ us_private)))))
+(declare-datatypes ((us_split_fields 0)) (((mk___split_fields (rec__unit1__t1__c1 integer) (rec__ext__ us_private)))))
+(declare-datatypes ((us_split_fields__ref 0)) (((mk___split_fields__ref (us_split_fields__content us_split_fields)))))
 
-(declare-datatypes ()
-((us_split_fields__ref
- (mk___split_fields__ref (us_split_fields__content us_split_fields)))))
 (define-fun us_split_fields__ref___projection ((a us_split_fields__ref)) us_split_fields 
   (us_split_fields__content a))
 
-(declare-datatypes ()
-((us_rep (mk___rep (us_split_fields1 us_split_fields)(attr__tag Int)))))
+(declare-datatypes ((us_rep 0)) (((mk___rep (us_split_fields1 us_split_fields) (attr__tag Int)))))
 (define-fun us_rep___projection ((a us_rep)) us_split_fields (us_split_fields1
                                                              a))
 
@@ -34,19 +29,13 @@
      (= (to_rep1 (rec__unit1__t1__c1 (us_split_fields1 x))) 0))) :pattern (
   (is_zero x)) )))
 
-(declare-datatypes ()
-((us_split_fields2
- (mk___split_fields1
- (rec__unit2__t2__c2 integer)(rec__unit1__t1__c11 integer)(rec__ext__1 us_private)))))
+(declare-datatypes ((us_split_fields2 0)) (((mk___split_fields1 (rec__unit2__t2__c2 integer) (rec__unit1__t1__c11 integer) (rec__ext__1 us_private)))))
+(declare-datatypes ((us_split_fields__ref1 0)) (((mk___split_fields__ref1 (us_split_fields__content1 us_split_fields2)))))
 
-(declare-datatypes ()
-((us_split_fields__ref1
- (mk___split_fields__ref1 (us_split_fields__content1 us_split_fields2)))))
 (define-fun us_split_fields__ref_2__projection ((a us_split_fields__ref1)) us_split_fields2 
   (us_split_fields__content1 a))
 
-(declare-datatypes ()
-((us_rep1 (mk___rep1 (us_split_fields3 us_split_fields2)(attr__tag1 Int)))))
+(declare-datatypes ((us_rep1 0)) (((mk___rep1 (us_split_fields3 us_split_fields2) (attr__tag1 Int)))))
 (define-fun us_rep_3__projection ((a us_rep1)) us_split_fields2 (us_split_fields3
                                                                 a))
 

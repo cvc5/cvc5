@@ -3,7 +3,7 @@
 (set-info :source | Example extracted from Peter Baumgartner's talk at CADE-21: Logical Engineering with Instance-Based Methods.
 
 It was translated to SMT-LIB by Leonardo de Moura |)
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-info :category "crafted")
 (set-info :status unsat)
 (declare-fun symmetric ((Array Int (Array Int Real)) Int) Bool)

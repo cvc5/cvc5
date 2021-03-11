@@ -2,9 +2,9 @@
 /*! \file inst_match_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,12 +19,17 @@
 
 #include <map>
 #include "expr/node_trie.h"
-#include "theory/quantifiers/inst_match_trie.h"
+#include "theory/quantifiers/inst_match.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+
+namespace quantifiers {
+class QuantifiersState;
+class QuantifiersInferenceManager;
+}  // namespace quantifiers
 
 namespace inst {
 
@@ -49,21 +54,23 @@ class Trigger;
 */
 class IMGenerator {
 public:
-  virtual ~IMGenerator() {}
-  /** Reset instantiation round.
+ IMGenerator(quantifiers::QuantifiersState& qs,
+             quantifiers::QuantifiersInferenceManager& qim);
+ virtual ~IMGenerator() {}
+ /** Reset instantiation round.
   *
   * Called once at beginning of an instantiation round.
   */
-  virtual void resetInstantiationRound(QuantifiersEngine* qe) {}
-  /** Reset.
+ virtual void resetInstantiationRound(QuantifiersEngine* qe) {}
+ /** Reset.
   *
   * eqc is the equivalence class to search in (any if eqc=null).
   * Returns true if this generator can produce instantiations, and false
   * otherwise. An example of when it returns false is if it can be determined
   * that no appropriate matchable terms occur based on eqc.
   */
-  virtual bool reset(Node eqc, QuantifiersEngine* qe) { return true; }
-  /** Get the next match.
+ virtual bool reset(Node eqc, QuantifiersEngine* qe) { return true; }
+ /** Get the next match.
   *
   * Must call reset( eqc ) before this function. This constructs an
   * instantiation, which it populates in data structure m,
@@ -74,12 +81,12 @@ public:
   *
   * Returns a value >0 if an instantiation was successfully generated
   */
-  virtual int getNextMatch(Node q,
-                           InstMatch& m,
-                           QuantifiersEngine* qe,
-                           Trigger* tparent)
-  {
-    return 0;
+ virtual int getNextMatch(Node q,
+                          InstMatch& m,
+                          QuantifiersEngine* qe,
+                          Trigger* tparent)
+ {
+   return 0;
   }
   /** add instantiations
   *
@@ -90,9 +97,9 @@ public:
   * It returns the number of instantiations added using calls to calls to
   * Instantiate::addInstantiation(...).
   */
-  virtual int addInstantiations(Node q,
-                                QuantifiersEngine* qe,
-                                Trigger* tparent)
+  virtual uint64_t addInstantiations(Node q,
+                                     QuantifiersEngine* qe,
+                                     Trigger* tparent)
   {
     return 0;
   }
@@ -112,6 +119,10 @@ public:
    * lemma cache.
    */
   bool sendInstantiation(Trigger* tparent, InstMatch& m);
+  /** The state of the quantifiers engine */
+  quantifiers::QuantifiersState& d_qstate;
+  /** The quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
 };/* class IMGenerator */
 
 class CandidateGenerator;
@@ -203,9 +214,9 @@ class InstMatchGenerator : public IMGenerator {
                    QuantifiersEngine* qe,
                    Trigger* tparent) override;
   /** Add instantiations. */
-  int addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
+  uint64_t addInstantiations(Node q,
+                             QuantifiersEngine* qe,
+                             Trigger* tparent) override;
 
   /** set active add flag (true by default)
    *
@@ -239,9 +250,12 @@ class InstMatchGenerator : public IMGenerator {
   void setIndependent() { d_independent_gen = true; }
   //-------------------------------construction of inst match generators
   /** mkInstMatchGenerator for single triggers, calls the method below */
-  static InstMatchGenerator* mkInstMatchGenerator(Node q,
-                                                  Node pat,
-                                                  QuantifiersEngine* qe);
+  static InstMatchGenerator* mkInstMatchGenerator(
+      Node q,
+      Node pat,
+      quantifiers::QuantifiersState& qs,
+      quantifiers::QuantifiersInferenceManager& qim,
+      QuantifiersEngine* qe);
   /** mkInstMatchGenerator for the multi trigger case
   *
   * This linked list of InstMatchGenerator classes with one
@@ -249,9 +263,12 @@ class InstMatchGenerator : public IMGenerator {
   * InstMatchGenerators corresponding to each unique subterm of pats with
   * free variables.
   */
-  static InstMatchGenerator* mkInstMatchGeneratorMulti(Node q,
-                                                       std::vector<Node>& pats,
-                                                       QuantifiersEngine* qe);
+  static InstMatchGenerator* mkInstMatchGeneratorMulti(
+      Node q,
+      std::vector<Node>& pats,
+      quantifiers::QuantifiersState& qs,
+      quantifiers::QuantifiersInferenceManager& qim,
+      QuantifiersEngine* qe);
   /** mkInstMatchGenerator
   *
   * This generates a linked list of InstMatchGenerators for each unique
@@ -268,6 +285,8 @@ class InstMatchGenerator : public IMGenerator {
   static InstMatchGenerator* mkInstMatchGenerator(
       Node q,
       std::vector<Node>& pats,
+      quantifiers::QuantifiersState& qs,
+      quantifiers::QuantifiersInferenceManager& qim,
       QuantifiersEngine* qe,
       std::map<Node, InstMatchGenerator*>& pat_map_init);
   //-------------------------------end construction of inst match generators
@@ -278,8 +297,9 @@ class InstMatchGenerator : public IMGenerator {
   * These are intentionally private, and are called during linked list
   * construction in mkInstMatchGenerator.
   */
-  InstMatchGenerator(Node pat);
-  InstMatchGenerator();
+  InstMatchGenerator(Node pat,
+                     quantifiers::QuantifiersState& qs,
+                     quantifiers::QuantifiersInferenceManager& qim);
   /** The pattern we are producing matches for.
    *
   * This term and d_match_pattern can be different since this
@@ -327,7 +347,7 @@ class InstMatchGenerator : public IMGenerator {
    * in the example (EX1) above, indicating it is the 2nd child
    * of the term.
    */
-  std::vector<int> d_children_index;
+  std::vector<size_t> d_children_index;
   /** children types
    *
    * If d_match_pattern is an instantiation constant, then this is a singleton
@@ -338,7 +358,7 @@ class InstMatchGenerator : public IMGenerator {
    *   -1 : ground term,
    *   -2 : child term.
    */
-  std::vector<int> d_children_types;
+  std::vector<int64_t> d_children_types;
   /** The next generator in the linked list
    * that this generator is a part of.
    */
@@ -413,255 +433,13 @@ class InstMatchGenerator : public IMGenerator {
    * appropriate matching algorithm for n within q
    * within a linked list of InstMatchGenerators.
    */
-  static InstMatchGenerator* getInstMatchGenerator(Node q, Node n);
+  static InstMatchGenerator* getInstMatchGenerator(
+      Node q,
+      Node n,
+      quantifiers::QuantifiersState& qs,
+      quantifiers::QuantifiersInferenceManager& qim);
 };/* class InstMatchGenerator */
 
-/** match generator for purified terms
-* This handles the special case of invertible terms like x+1 (see
-* Trigger::getTermInversionVariable).
-*/
-class VarMatchGeneratorTermSubs : public InstMatchGenerator {
-public:
-  VarMatchGeneratorTermSubs( Node var, Node subs );
-
-  /** Reset */
-  bool reset(Node eqc, QuantifiersEngine* qe) override
-  {
-    d_eq_class = eqc;
-    return true;
-  }
-  /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m,
-                   QuantifiersEngine* qe,
-                   Trigger* tparent) override;
-
- private:
-  /** variable we are matching (x in the example x+1). */
-  Node d_var;
-  /** cache of d_var.getType() */
-  TypeNode d_var_type;
-  /** The substitution for what we match (x-1 in the example x+1). */
-  Node d_subs;
-  /** stores whether we have written a value for d_var in the current match. */
-  bool d_rm_prev;
-};
-
-/** InstMatchGeneratorMultiLinear class
-*
-* This is the default implementation of multi-triggers.
-*
-* Handling multi-triggers using this class is done by constructing a linked
-* list of InstMatchGenerator classes (see mkInstMatchGeneratorMulti), with one
-* InstMatchGeneratorMultiLinear at the head and a list of trailing
-* InstMatchGenerators.
-*
-* CVC4 employs techniques that ensure that the number of instantiations
-* is worst-case polynomial wrt the number of ground terms, where this class
-* lifts this policy to multi-triggers. In particular consider
-*
-*  multi-trigger : { f( x1 ), f( x2 ), f( x3 ), f( x4 ) }
-*
-* For this multi-trigger, we insist that for each i=1...4, and each ground term
-* t, there is at most 1 instantiation added as a result of matching
-*    ( f( x1 ), f( x2 ), f( x3 ), f( x4 ) )
-* against ground terms of the form
-*    ( s_1, s_2, s_3, s_4 ) where t = s_i for i=1,...,4.
-* Meaning we add instantiations for the multi-trigger
-* ( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ) based on matching pairwise against:
-*   ( f( c_i11 ), f( c_i21 ), f( c_i31 ), f( c_i41 ) )
-*   ( f( c_i12 ), f( c_i22 ), f( c_i32 ), f( c_i42 ) )
-*   ( f( c_i13 ), f( c_i23 ), f( c_i33 ), f( c_i43 ) )
-* Where we require c_i{jk} != c_i{jl} for each i=1...4, k != l.
-*
-* For example, we disallow adding instantiations based on matching against both
-* ( f( c_1 ), f( c_2 ), f( c_4 ), f( c_6 ) ) and
-* ( f( c_1 ), f( c_3 ), f( c_5 ), f( c_7 ) )
-* against ( f( x1 ), f( x2 ), f( x3 ), f( x4 ) ), since f( c_1 ) is matched
-* against f( x1 ) twice.
-*
-* This policy can be disabled by --no-multi-trigger-linear.
-*
-*/
-class InstMatchGeneratorMultiLinear : public InstMatchGenerator {
-  friend class InstMatchGenerator;
-
- public:
-  /** Reset. */
-  bool reset(Node eqc, QuantifiersEngine* qe) override;
-  /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m,
-                   QuantifiersEngine* qe,
-                   Trigger* tparent) override;
-
- protected:
-  /** reset the children of this generator */
-  int resetChildren(QuantifiersEngine* qe);
-  /** constructor */
-  InstMatchGeneratorMultiLinear(Node q,
-                                std::vector<Node>& pats,
-                                QuantifiersEngine* qe);
-};/* class InstMatchGeneratorMulti */
-
-/** InstMatchGeneratorMulti
-*
-* This is an earlier implementation of multi-triggers
-* that is enabled by --multi-trigger-cache.
-* This generator takes the product of instantiations
-* found by single trigger matching, and does
-* not have the guarantee that the number of
-* instantiations is polynomial wrt the number of
-* ground terms.
-*/
-class InstMatchGeneratorMulti : public IMGenerator {
- public:
-  /** constructors */
-  InstMatchGeneratorMulti(Node q,
-                          std::vector<Node>& pats,
-                          QuantifiersEngine* qe);
-  /** destructor */
-  ~InstMatchGeneratorMulti() override;
-
-  /** Reset instantiation round. */
-  void resetInstantiationRound(QuantifiersEngine* qe) override;
-  /** Reset. */
-  bool reset(Node eqc, QuantifiersEngine* qe) override;
-  /** Add instantiations. */
-  int addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
-
- private:
-  /** indexed trie */
-  typedef std::pair< std::pair< int, int >, InstMatchTrie* > IndexedTrie;
-  /** process new match
-   *
-   * Called during addInstantiations(...).
-   * Indicates we produced a match m for child fromChildIndex
-   * addedLemmas is how many instantiations we succesfully send
-   * via IMGenerator::sendInstantiation(...) calls.
-   */
-  void processNewMatch(QuantifiersEngine* qe,
-                       Trigger* tparent,
-                       InstMatch& m,
-                       int fromChildIndex,
-                       int& addedLemmas);
-  /** helper for process new match
-   * tr is the inst match trie (term index) we are currently traversing.
-   * trieIndex is depth we are in trie tr.
-   * childIndex is the index of the term in the multi trigger we are currently
-   *               processing.
-   * endChildIndex is the index of the term in the multi trigger that generated
-   *                  a new term, and hence we will end when the product
-   *                  computed by this function returns to.
-   * modEq is whether we are matching modulo equality.
-   */
-  void processNewInstantiations(QuantifiersEngine* qe,
-                                Trigger* tparent,
-                                InstMatch& m,
-                                int& addedLemmas,
-                                InstMatchTrie* tr,
-                                int trieIndex,
-                                int childIndex,
-                                int endChildIndex,
-                                bool modEq);
-  /** Map from pattern nodes to indices of variables they contain. */
-  std::map< Node, std::vector< int > > d_var_contains;
-  /** Map from variable indices to pattern nodes that contain them. */
-  std::map< int, std::vector< Node > > d_var_to_node;
-  /** quantified formula we are producing matches for */
-  Node d_quant;
-  /** children generators
-   * These are inst match generators for each term in the multi trigger.
-   */
-  std::vector< InstMatchGenerator* > d_children;
-  /** variable orderings
-   * Stores a heuristically determined variable ordering (unique
-   * variables first) for each term in the multi trigger.
-   */
-  std::map< unsigned, InstMatchTrie::ImtIndexOrder* > d_imtio;
-  /** inst match tries for each child node
-   * This data structure stores all InstMatch objects generated
-   * by matching for each term in the multi trigger.
-   */
-  std::vector< InstMatchTrieOrdered > d_children_trie;
-};/* class InstMatchGeneratorMulti */
-
-/** InstMatchGeneratorSimple class
-*
-* This is the default generator class for simple single triggers.
-* For example, { f( x, a ) }, { f( x, x ) } and { f( x, y ) } are simple single
-* triggers. In practice, around 70-90% of triggers are simple single triggers.
-*
-* Notice that simple triggers also can have an attached polarity.
-* For example, { P( x ) = false }, { f( x, y ) = a } and { ~f( a, x ) = b } are
-* simple single triggers.
-*
-* The implementation traverses the term indices in TermDatabase for adding
-* instantiations, which is more efficient than the techniques required for
-* handling non-simple single triggers.
-*
-* In contrast to other instantiation generators, it does not call
-* IMGenerator::sendInstantiation and for performance reasons instead calls
-* qe->getInstantiate()->addInstantiation(...) directly.
-*/
-class InstMatchGeneratorSimple : public IMGenerator {
- public:
-  /** constructors */
-  InstMatchGeneratorSimple(Node q, Node pat, QuantifiersEngine* qe);
-
-  /** Reset instantiation round. */
-  void resetInstantiationRound(QuantifiersEngine* qe) override;
-  /** Add instantiations. */
-  int addInstantiations(Node q,
-                        QuantifiersEngine* qe,
-                        Trigger* tparent) override;
-  /** Get active score. */
-  int getActiveScore(QuantifiersEngine* qe) override;
-
- private:
-  /** quantified formula for the trigger term */
-  Node d_quant;
-  /** the trigger term */
-  Node d_match_pattern;
-  /** equivalence class polarity information
-   *
-  * This stores the required polarity/equivalence class with this trigger.
-  * If d_eqc is non-null, we only produce matches { x->t } such that
-  * our context does not entail
-  *   ( d_match_pattern*{ x->t } = d_eqc) if d_pol = true, or
-  *   ( d_match_pattern*{ x->t } != d_eqc) if d_pol = false.
-  * where * denotes application of substitution.
-  */
-  bool d_pol;
-  Node d_eqc;
-  /** Match pattern arg types.
-   * Cached values of d_match_pattern[i].getType().
-   */
-  std::vector< TypeNode > d_match_pattern_arg_types;
-  /** The match operator d_match_pattern (see TermDb::getMatchOperator). */
-  Node d_op;
-  /**
-   * Map from child number of d_match_pattern to variable index, or -1 if the
-   * child is not a variable.
-   */
-  std::map<unsigned, int> d_var_num;
-  /** add instantiations, helper function.
-   *
-   * m is the current match we are building,
-   * addedLemmas is the number of lemmas we have added via calls to
-   *                qe->getInstantiate()->aaddInstantiation(...),
-   * argIndex is the argument index in d_match_pattern we are currently
-   *              matching,
-   * tat is the term index we are currently traversing.
-   */
-  void addInstantiations(InstMatch& m,
-                         QuantifiersEngine* qe,
-                         int& addedLemmas,
-                         unsigned argIndex,
-                         TNodeTrie* tat);
-};/* class InstMatchGeneratorSimple */
 }
 }
 }

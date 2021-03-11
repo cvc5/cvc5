@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,8 +41,7 @@ namespace strings {
 class StringsPreprocess {
  public:
   StringsPreprocess(SkolemCache* sc,
-                    context::UserContext* u,
-                    SequencesStatistics& stats);
+                    HistogramStat<Kind>* statReductions = nullptr);
   ~StringsPreprocess();
   /** The reduce routine
    *
@@ -79,27 +78,20 @@ class StringsPreprocess {
    * asserts.
    */
   Node processAssertion(Node t, std::vector<Node>& asserts);
-  /**
-   * Replaces all formulas t in vec_node with an equivalent formula t' that
-   * contains no free instances of extended functions (that is, extended
-   * functions may only appear beneath quantifiers). This applies simplifyRec
-   * on each assertion in vec_node until a fixed point is reached.
-   */
-  void processAssertions(std::vector<Node>& vec_node);
 
  private:
   /** pointer to the skolem cache used by this class */
   SkolemCache* d_sc;
   /** Reference to the statistics for the theory of strings/sequences. */
-  SequencesStatistics& d_statistics;
+  HistogramStat<Kind>* d_statReductions;
+  /** visited cache */
+  std::map<Node, Node> d_visited;
   /**
    * Applies simplify to all top-level extended function subterms of t. New
    * assertions created in this reduction are added to asserts. The argument
    * visited stores a cache of previous results.
    */
-  Node simplifyRec(Node t,
-                   std::vector<Node>& asserts,
-                   std::map<Node, Node>& visited);
+  Node simplifyRec(Node t, std::vector<Node>& asserts);
   /**
    * Make internal quantified formula with bound variable list bvl and body.
    * Internally, we get a node corresponding to marking a quantified formula as

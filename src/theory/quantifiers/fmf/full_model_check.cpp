@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4;
@@ -280,9 +281,9 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-
-FullModelChecker::FullModelChecker(context::Context* c, QuantifiersEngine* qe) :
-QModelBuilder( c, qe ){
+FullModelChecker::FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs)
+    : QModelBuilder(qe, qs)
+{
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
 }
@@ -358,7 +359,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
         Node r = fm->getRepresentative( it->second[a] );
         if( Trace.isOn("fmc-model-debug") ){
           std::vector< Node > eqc;
-          d_qe->getEqualityQuery()->getEquivalenceClass( r, eqc );
+          d_qstate.getEquivalenceClass(r, eqc);
           Trace("fmc-model-debug") << "   " << (it->second[a]==r);
           Trace("fmc-model-debug") << " : " << it->second[a] << " : " << r << " : ";
           //Trace("fmc-model-debug") << r2 << " : " << ir << " : ";
@@ -594,7 +595,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   Trace("fmc") << "Full model check " << f << ", effort = " << effort << "..." << std::endl;
   // register the quantifier
   registerQuantifiedFormula(f);
-  Assert(!d_qe->inConflict());
+  Assert(!d_qstate.isInConflict());
   // we do not do model-based quantifier instantiation if the option
   // disables it, or if the quantified formula has an unhandled type.
   if (!optUseModel() || !isHandled(f))
@@ -709,7 +710,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
-        if (d_qe->inConflict() || options::fmfOneInstPerRound())
+        if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
         {
           break;
         }
@@ -851,7 +852,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
-          if( d_qe->inConflict() || options::fmfOneInstPerRound() ){
+          if (d_qstate.isInConflict() || options::fmfOneInstPerRound())
+          {
             break;
           }
         }else{
@@ -981,8 +983,15 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
 
 void FullModelChecker::doNegate( Def & dc ) {
   for (unsigned i=0; i<dc.d_cond.size(); i++) {
-    if (!dc.d_value[i].isNull()) {
-      dc.d_value[i] = dc.d_value[i]==d_true ? d_false : ( dc.d_value[i]==d_false ? d_true : dc.d_value[i] );
+    Node v = dc.d_value[i];
+    if (!v.isNull())
+    {
+      // In the case that the value is not-constant, we cannot reason about
+      // its value (since the range of this must be a constant or variable).
+      // In particular, returning null here is important if we have (not x)
+      // where x is a bound variable.
+      dc.d_value[i] =
+          v == d_true ? d_false : (v == d_false ? d_true : Node::null());
     }
   }
 }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,6 @@
 #  include <sys/resource.h>
 #endif /* ! __WIN32__ */
 
-#include <cassert>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -163,7 +162,7 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     if (d_options.getDumpModels()
         && (res.isSat()
             || (res.isSatUnknown()
-                && res.getResult().whyUnknown() == Result::INCOMPLETE)))
+                && res.getUnknownExplanation() == api::Result::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
@@ -176,7 +175,8 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
         && ((d_options.getInstFormatMode() != options::InstFormatMode::SZS
              && (res.isSat()
                  || (res.isSatUnknown()
-                     && res.getResult().whyUnknown() == Result::INCOMPLETE)))
+                     && res.getUnknownExplanation()
+                            == api::Result::INCOMPLETE)))
             || isResultUnsat))
     {
       getterCommands.emplace_back(new GetInstantiationsCommand());

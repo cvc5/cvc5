@@ -1,7 +1,7 @@
 ; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: (((f 0) 1))
-(set-info :smt-lib-version 2.0)
+(set-info :smt-lib-version 2.6)
 (set-option :produce-models true)
 (set-logic QF_UFLIA)
 

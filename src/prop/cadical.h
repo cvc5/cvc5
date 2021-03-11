@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Aina Niemetz, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -50,6 +50,8 @@ class CadicalSolver : public SatSolver
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
+  bool setPropagateOnly() override;
+  void getUnsatAssumptions(std::vector<SatLiteral>& assumptions) override;
 
   void interrupt() override;
 
@@ -74,9 +76,14 @@ class CadicalSolver : public SatSolver
   void init();
 
   std::unique_ptr<CaDiCaL::Solver> d_solver;
+  /**
+   * Stores the current set of assumptions provided via solve() and is used to
+   * query the solver if a given assumption is false.
+   */
+  std::vector<SatLiteral> d_assumptions;
 
   unsigned d_nextVarIdx;
-  bool d_okay;
+  bool d_inSatMode;
   SatVariable d_true;
   SatVariable d_false;
 

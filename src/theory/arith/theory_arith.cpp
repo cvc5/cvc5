@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 
 #include "theory/arith/theory_arith.h"
 
+#include "expr/proof_rule.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_rewriter.h"
@@ -24,6 +25,8 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -42,6 +45,7 @@ TheoryArith::TheoryArith(context::Context* c,
       d_internal(
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
       d_inferenceManager(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
@@ -100,53 +104,55 @@ void TheoryArith::preRegisterTerm(TNode n)
 TrustNode TheoryArith::expandDefinition(Node node)
 {
   // call eliminate operators, to eliminate partial operators only
-  return d_arithPreproc.eliminate(node, true);
+  std::vector<SkolemLemma> lems;
+  TrustNode ret = d_arithPreproc.eliminate(node, lems, true);
+  Assert(lems.empty());
+  return ret;
 }
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
-TrustNode TheoryArith::ppRewrite(TNode atom)
+TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  if (options::arithRewriteEq())
+  if (atom.getKind() == kind::EQUAL)
   {
-    if (atom.getKind() == kind::EQUAL)
-    {
-      Assert(atom[0].getType().isReal());
-      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      TrustNode tleq = ppRewriteTerms(leq);
-      TrustNode tgeq = ppRewriteTerms(geq);
-      if (!tleq.isNull())
-      {
-        leq = tleq.getNode();
-      }
-      if (!tgeq.isNull())
-      {
-        geq = tgeq.getNode();
-      }
-      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-      Debug("arith::preprocess")
-          << "arith::preprocess() : returning " << rewritten << endl;
-      // don't need to rewrite terms since rewritten is not a non-standard op
-      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
-    }
+    return ppRewriteEq(atom);
   }
-  return ppRewriteTerms(atom);
-}
-
-TrustNode TheoryArith::ppRewriteTerms(TNode n)
-{
-  Assert(Theory::theoryOf(n) == THEORY_ARITH);
-  // Eliminate operators recursively. Notice we must do this here since other
+  Assert(Theory::theoryOf(atom) == THEORY_ARITH);
+  // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators. In contrast to expandDefinitions, we eliminate
   // *all* extended arithmetic operators here, including total ones.
-  return d_arithPreproc.eliminate(n, false);
+  return d_arithPreproc.eliminate(atom, lems, false);
+}
+
+TrustNode TheoryArith::ppRewriteEq(TNode atom)
+{
+  Assert(atom.getKind() == kind::EQUAL);
+  if (!options::arithRewriteEq())
+  {
+    return TrustNode::null();
+  }
+  Assert(atom[0].getType().isReal());
+  Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+  Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+  Debug("arith::preprocess")
+      << "arith::preprocess() : returning " << rewritten << endl;
+  // don't need to rewrite terms since rewritten is not a non-standard op
+  if (proofsEnabled())
+  {
+    return d_ppPfGen.mkTrustedRewrite(
+        atom,
+        rewritten,
+        d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
+  }
+  return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(

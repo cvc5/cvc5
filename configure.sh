@@ -22,6 +22,7 @@ General options;
   --name=STR               use custom build directory name (optionally: +path)
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
+  --arm64                  cross-compile for Linux ARM 64 bit
   --win64                  cross-compile for Windows 64 bit
   --ninja                  use Ninja build system
 
@@ -29,9 +30,9 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
-  --static-binary          enable/disable static binaries
+  --static-binary          statically link against system libraries
+                           (must be disabled for static macOS builds) [default=yes]
   --proofs                 support for proof generation
-  --optimized              optimize the build
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
   --debug-context-mm       use the debug context memory manager
@@ -43,14 +44,14 @@ The following flags enable optional features (disable with --no-<option name>).
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
-  --python2                prefer using Python 2 (also for Python bindings)
-  --python3                prefer using Python 3 (also for Python bindings)
+  --python2                force Python 2 (deprecated)
   --python-bindings        build Python bindings based on new C++ API
   --java-bindings          build Java bindings based on new C++ API
   --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
+  --werror                 build with -Werror
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
@@ -72,7 +73,6 @@ Optional Path to Optional Packages:
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
   --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
   --drat2er-dir=PATH       path to the top level of the drat2er installation
-  --cxxtest-dir=PATH       path to CxxTest installation
   --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
   --kissat-dir=PATH        path to top level of Kissat source tree
@@ -116,7 +116,6 @@ buildtype=default
 abc=default
 asan=default
 assertions=default
-best=default
 cadical=default
 cln=default
 comp_inc=default
@@ -133,11 +132,9 @@ lfsc=default
 poly=default
 muzzle=default
 ninja=default
-optimized=default
 profiling=default
 proofs=default
 python2=default
-python3=default
 python_bindings=default
 java_bindings=default
 editline=default
@@ -151,13 +148,14 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
+arm64=default
+werror=default
 
 abc_dir=default
 antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
 drat2er_dir=default
-cxxtest_dir=default
 glpk_dir=default
 gmp_dir=default
 kissat_dir=default
@@ -187,11 +185,20 @@ do
     --tsan) tsan=ON;;
     --no-tsan) tsan=OFF;;
 
+    --werror) werror=ON;;
+
     --assertions) assertions=ON;;
     --no-assertions) assertions=OFF;;
 
-    --best) best=ON;;
-    --no-best) best=OFF;;
+    # Best configuration
+    --best)
+      abc=ON
+      cadical=ON
+      cln=ON
+      cryptominisat=ON
+      glpk=ON
+      editline=ON
+      ;;
 
     --prefix) die "missing argument to $1 (try -h)" ;;
     --prefix=*)
@@ -241,7 +248,8 @@ do
     --no-kissat) kissat=OFF;;
 
     --win64) win64=ON;;
-    --no-win64) win64=OFF;;
+
+    --arm64) arm64=ON;;
 
     --ninja) ninja=ON;;
 
@@ -256,9 +264,6 @@ do
 
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
-
-    --optimized) optimized=ON;;
-    --no-optimized) optimized=OFF;;
 
     --proofs) proofs=ON;;
     --no-proofs) proofs=OFF;;
@@ -283,9 +288,6 @@ do
 
     --python2) python2=ON;;
     --no-python2) python2=OFF;;
-
-    --python3) python3=ON;;
-    --no-python3) python3=OFF;;
 
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
@@ -315,9 +317,6 @@ do
 
     --cryptominisat-dir) die "missing argument to $1 (try -h)" ;;
     --cryptominisat-dir=*) cryptominisat_dir=${1##*=} ;;
-
-    --cxxtest-dir) die "missing argument to $1 (try -h)" ;;
-    --cxxtest-dir=*) cxxtest_dir=${1##*=} ;;
 
     --drat2er-dir) die "missing argument to $1 (try -h)" ;;
     --drat2er-dir=*) drat2er_dir=${1##*=} ;;
@@ -358,6 +357,25 @@ do
 done
 
 #--------------------------------------------------------------------------#
+# Automatically set up dependencies based on configure options
+#--------------------------------------------------------------------------#
+
+if [ "$arm64" == "ON" ]; then
+  echo "Setting up dependencies for ARM 64-bit build"
+  contrib/get-antlr-3.4 --host=aarch64-linux-gnu || exit 1
+  contrib/get-gmp-dev --host=aarch64-linux-gnu || exit 1
+elif [ "$win64" == "ON" ]; then
+  echo "Setting up dependencies for Windows 64-bit build"
+  contrib/get-antlr-3.4 --host=x86_64-w64-mingw32 || exit 1
+  contrib/get-gmp-dev --host=x86_64-w64-mingw32 || exit 1
+fi
+
+#--------------------------------------------------------------------------#
+
+if [ $werror != default ]; then
+  export CFLAGS=-Werror
+  export CXXFLAGS=-Werror
+fi
 
 cmake_opts=""
 
@@ -372,8 +390,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_TSAN=$tsan"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
-[ $best != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_BEST=$best"
 [ $comp_inc != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COMP_INC_TRACK=$comp_inc"
 [ $coverage != default ] \
@@ -388,11 +404,11 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
 [ $win64 != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake"
+[ $arm64 != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-aarch64.cmake"
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $optimized != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
 [ $shared != default ] \
@@ -407,8 +423,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
 [ $python2 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
-[ $python3 != default ] \
-  && cmake_opts="$cmake_opts -DUSE_PYTHON3=$python3"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
 [ $java_bindings != default ] \
@@ -447,8 +461,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
 [ "$cryptominisat_dir" != default ] \
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
-[ "$cxxtest_dir" != default ] \
-  && cmake_opts="$cmake_opts -DCXXTEST_DIR=$cxxtest_dir"
 [ "$drat2er_dir" != default ] \
   && cmake_opts="$cmake_opts -DDRAT2ER_DIR=$drat2er_dir"
 [ "$glpk_dir" != default ] \
@@ -475,6 +487,7 @@ root_dir=$(pwd)
 # The cmake toolchain can't be changed once it is configured in $build_dir.
 # Thus, remove $build_dir and create an empty directory.
 [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
+[ $arm64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
 mkdir -p "$build_dir"
 
 cd "$build_dir"

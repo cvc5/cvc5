@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -34,13 +35,15 @@ namespace quantifiers {
 
 CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
                                                    bool rewAccel,
-                                                   bool silent)
+                                                   bool silent,
+                                                   bool filterPairs)
     : d_qe(nullptr),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),
       d_doCheck(doCheck),
       d_rewAccel(rewAccel),
       d_silent(silent),
+      d_filterPairs(filterPairs),
       d_using_sygus(false)
 {
 }
@@ -53,7 +56,10 @@ void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
   d_qe = nullptr;
   d_tds = nullptr;
   d_ext_rewrite = nullptr;
-  d_crewrite_filter.initialize(ss, nullptr, false);
+  if (d_filterPairs)
+  {
+    d_crewrite_filter.initialize(ss, nullptr, false);
+  }
   ExprMiner::initialize(vars, ss);
 }
 
@@ -68,7 +74,10 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = nullptr;
-  d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
+  if (d_filterPairs)
+  {
+    d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
+  }
   ExprMiner::initialize(vars, ss);
 }
 
@@ -103,7 +112,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
   {
     is_unique_term = false;
     // should we filter the pair?
-    if (!d_crewrite_filter.filterPair(sol, eq_sol))
+    if (!d_filterPairs || !d_crewrite_filter.filterPair(sol, eq_sol))
     {
       // get the actual term
       Node solb = sol;
@@ -200,7 +209,10 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
       if (!is_unique_term)
       {
         // register this as a relevant pair (helps filtering)
-        d_crewrite_filter.registerRelevantPair(sol, eq_sol);
+        if (d_filterPairs)
+        {
+          d_crewrite_filter.registerRelevantPair(sol, eq_sol);
+        }
         // The analog of terms sol and eq_sol are equivalent under
         // sample points but do not rewrite to the same term. Hence,
         // this indicates a candidate rewrite.

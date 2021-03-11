@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,12 +17,14 @@
 #include "printer/smt2/smt2_printer.h"
 
 #include <iostream>
+#include <list>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -47,13 +49,6 @@ using namespace std;
 namespace CVC4 {
 namespace printer {
 namespace smt2 {
-
-static OutputLanguage variantToLanguage(Variant v);
-
-static string smtKindString(Kind k, Variant v);
-
-/** returns whether the variant is smt-lib 2.6 or greater */
-bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
@@ -237,11 +232,7 @@ void Smt2Printer::toStream(std::ostream& out,
       for(size_t i = 0; i < s.size(); ++i) {
         char c = s[i];
         if(c == '"') {
-          if(d_variant == smt2_0_variant) {
-            out << "\\\"";
-          } else {
-            out << "\"\"";
-          }
+          out << "\"\"";
         } else {
           out << c;
         }
@@ -665,6 +656,12 @@ void Smt2Printer::toStream(std::ostream& out,
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
     stillNeedToPrintParams = false;
     break;
+  case kind::INDEXED_ROOT_PREDICATE_OP:
+  {
+    const IndexedRootPredicate& irp = n.getConst<IndexedRootPredicate>();
+    out << "(_ root_predicate " << irp.d_index << ")";
+    break;
+  }
 
     // arrays theory
   case kind::SELECT:
@@ -745,13 +742,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::BITVECTOR_SUB: out << "bvsub "; break;
   case kind::BITVECTOR_NEG: out << "bvneg "; break;
   case kind::BITVECTOR_UDIV: out << "bvudiv "; break;
-  case kind::BITVECTOR_UDIV_TOTAL:
-    out << (isVariant_2_6(d_variant) ? "bvudiv " : "bvudiv_total ");
-    break;
   case kind::BITVECTOR_UREM: out << "bvurem "; break;
-  case kind::BITVECTOR_UREM_TOTAL:
-    out << (isVariant_2_6(d_variant) ? "bvurem " : "bvurem_total ");
-    break;
   case kind::BITVECTOR_SDIV: out << "bvsdiv "; break;
   case kind::BITVECTOR_SREM: out << "bvsrem "; break;
   case kind::BITVECTOR_SMOD: out << "bvsmod "; break;
@@ -813,7 +804,30 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::UNIVERSE_SET:out << "(as univset " << n.getType() << ")";break;
 
   // bags
-  case kind::BAG_TYPE:  out << smtKindString(k, d_variant) << " "; break;
+  case kind::BAG_TYPE:
+  case kind::UNION_MAX:
+  case kind::UNION_DISJOINT:
+  case kind::INTERSECTION_MIN:
+  case kind::DIFFERENCE_SUBTRACT:
+  case kind::DIFFERENCE_REMOVE:
+  case kind::SUBBAG:
+  case kind::BAG_COUNT:
+  case kind::DUPLICATE_REMOVAL:
+  case kind::BAG_CARD:
+  case kind::BAG_CHOOSE:
+  case kind::BAG_IS_SINGLETON:
+  case kind::BAG_FROM_SET:
+  case kind::BAG_TO_SET: out << smtKindString(k, d_variant) << " "; break;
+  case kind::MK_BAG:
+  {
+    // print (bag (mkBag_op Real) 1 3) as (bag 1.0 3)
+    out << smtKindString(k, d_variant) << " ";
+    TypeNode elemType = n.getType().getBagElementType();
+    toStreamCastToType(
+        out, n[0], toDepth < 0 ? toDepth : toDepth - 1, elemType);
+    out << " " << n[1] << ")";
+    return;
+  }
 
     // fp theory
   case kind::FLOATINGPOINT_FP:
@@ -873,6 +887,21 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "mkTuple" << ( dt[0].getNumArgs()==0 ? "" : " ");
     }
     break;
+  }
+  case kind::TUPLE_PROJECT:
+  {
+    TupleProjectOp op = n.getOperator().getConst<TupleProjectOp>();
+    if (op.getIndices().empty())
+    {
+      // e.g. (tuple_project tuple)
+      out << "project " << n[0] << ")";
+    }
+    else
+    {
+      // e.g. ((_ tuple_project 2 4 4) tuple)
+      out << "(_ tuple_project" << op << ") " << n[0] << ")";
+    }
+    return;
   }
   case kind::CONSTRUCTOR_TYPE:
   {
@@ -966,21 +995,13 @@ void Smt2Printer::toStream(std::ostream& out,
     if(toDepth != 0) {
       if (n.getKind() == kind::APPLY_TESTER)
       {
-        unsigned cindex = DType::indexOf(n.getOperator().toExpr());
-        const DType& dt = DType::datatypeOf(n.getOperator().toExpr());
-        if (isVariant_2_6(d_variant))
-        {
-          out << "(_ is ";
-          toStream(out,
-                   dt[cindex].getConstructor(),
-                   toDepth < 0 ? toDepth : toDepth - 1);
-          out << ")";
-        }else{
-          out << "is-";
-          toStream(out,
-                   dt[cindex].getConstructor(),
-                   toDepth < 0 ? toDepth : toDepth - 1);
-        }
+        unsigned cindex = DType::indexOf(n.getOperator());
+        const DType& dt = DType::datatypeOf(n.getOperator());
+        out << "(_ is ";
+        toStream(out,
+                 dt[cindex].getConstructor(),
+                 toDepth < 0 ? toDepth : toDepth - 1);
+        out << ")";
       }else{
         toStream(
             out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, lbind);
@@ -1037,7 +1058,7 @@ void Smt2Printer::toStreamCastToType(std::ostream& out,
   toStream(out, nasc, toDepth);
 }
 
-static string smtKindString(Kind k, Variant v)
+std::string Smt2Printer::smtKindString(Kind k, Variant v)
 {
   switch(k) {
     // builtin theory
@@ -1121,9 +1142,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_PLUS: return "bvadd";
   case kind::BITVECTOR_SUB: return "bvsub";
   case kind::BITVECTOR_NEG: return "bvneg";
-  case kind::BITVECTOR_UDIV_TOTAL:
   case kind::BITVECTOR_UDIV: return "bvudiv";
-  case kind::BITVECTOR_UREM_TOTAL:
   case kind::BITVECTOR_UREM: return "bvurem";
   case kind::BITVECTOR_SDIV: return "bvsdiv";
   case kind::BITVECTOR_SREM: return "bvsrem";
@@ -1170,6 +1189,20 @@ static string smtKindString(Kind k, Variant v)
 
   // bag theory
   case kind::BAG_TYPE: return "Bag";
+  case kind::UNION_MAX: return "union_max";
+  case kind::UNION_DISJOINT: return "union_disjoint";
+  case kind::INTERSECTION_MIN: return "intersection_min";
+  case kind::DIFFERENCE_SUBTRACT: return "difference_subtract";
+  case kind::DIFFERENCE_REMOVE: return "difference_remove";
+  case kind::SUBBAG: return "subbag";
+  case kind::BAG_COUNT: return "bag.count";
+  case kind::DUPLICATE_REMOVAL: return "duplicate_removal";
+  case kind::MK_BAG: return "bag";
+  case kind::BAG_CARD: return "bag.card";
+  case kind::BAG_CHOOSE: return "bag.choose";
+  case kind::BAG_IS_SINGLETON: return "bag.is_singleton";
+  case kind::BAG_FROM_SET: return "bag.from_set";
+  case kind::BAG_TO_SET: return "bag.to_set";
 
     // fp theory
   case kind::FLOATINGPOINT_FP: return "fp";
@@ -1249,7 +1282,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STOI: return "str.to_int";
   case kind::STRING_IN_REGEXP: return "str.in_re";
   case kind::STRING_TO_REGEXP: return "str.to_re";
-  case kind::REGEXP_EMPTY: return "re.nostr";
+  case kind::REGEXP_EMPTY: return "re.none";
   case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
   case kind::REGEXP_UNION: return "re.union";
@@ -1378,14 +1411,7 @@ void Smt2Printer::toStreamModelSort(std::ostream& out,
   std::vector<Node> elements = tm->getDomainElements(tn);
   if (options::modelUninterpPrint() == options::ModelUninterpPrintMode::DtEnum)
   {
-    if (isVariant_2_6(d_variant))
-    {
-      out << "(declare-datatypes ((" << tn << " 0)) (";
-    }
-    else
-    {
-      out << "(declare-datatypes () ((" << tn << " ";
-    }
+    out << "(declare-datatypes ((" << tn << " 0)) (";
     for (const Node& type_ref : elements)
     {
       out << "(" << type_ref << ")";
@@ -1505,14 +1531,7 @@ void Smt2Printer::toStreamCmdQuery(std::ostream& out, Node n) const
 {
   if (!n.isNull())
   {
-    if (d_variant == smt2_0_variant)
-    {
-      toStreamCmdCheckSat(out, BooleanSimplification::negate(n));
-    }
-    else
-    {
-      toStreamCmdCheckSatAssuming(out, {n});
-    }
+    toStreamCmdCheckSatAssuming(out, {n});
   }
   else
   {
@@ -1750,11 +1769,9 @@ void Smt2Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void Smt2Printer::toStreamCmdSetInfo(std::ostream& out,
                                      const std::string& flag,
-                                     SExpr sexpr) const
+                                     const std::string& value) const
 {
-  out << "(set-info :" << flag << ' ';
-  SExpr::toStream(out, sexpr, variantToLanguage(d_variant));
-  out << ')' << std::endl;
+  out << "(set-info :" << flag << ' ' << value << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
@@ -1765,11 +1782,9 @@ void Smt2Printer::toStreamCmdGetInfo(std::ostream& out,
 
 void Smt2Printer::toStreamCmdSetOption(std::ostream& out,
                                        const std::string& flag,
-                                       SExpr sexpr) const
+                                       const std::string& value) const
 {
-  out << "(set-option :" << flag << ' ';
-  SExpr::toStream(out, sexpr, language::output::LANG_SMTLIB_V2_5);
-  out << ')' << std::endl;
+  out << "(set-option :" << flag << ' ' << value << ')' << std::endl;
 }
 
 void Smt2Printer::toStreamCmdGetOption(std::ostream& out,
@@ -1815,99 +1830,37 @@ void Smt2Printer::toStreamCmdDatatypeDeclaration(
     out << "co";
   }
   out << "datatypes";
-  if (isVariant_2_6(d_variant))
+  out << " (";
+  for (const TypeNode& t : datatypes)
   {
-    out << " (";
-    for (const TypeNode& t : datatypes)
-    {
-      Assert(t.isDatatype());
-      const DType& d = t.getDType();
-      out << "(" << CVC4::quoteSymbol(d.getName());
-      out << " " << d.getNumParameters() << ")";
-    }
-    out << ") (";
-    for (const TypeNode& t : datatypes)
-    {
-      Assert(t.isDatatype());
-      const DType& d = t.getDType();
-      if (d.isParametric())
-      {
-        out << "(par (";
-        for (unsigned p = 0, nparam = d.getNumParameters(); p < nparam; p++)
-        {
-          out << (p > 0 ? " " : "") << d.getParameter(p);
-        }
-        out << ")";
-      }
-      out << "(";
-      toStream(out, d);
-      out << ")";
-      if (d.isParametric())
-      {
-        out << ")";
-      }
-    }
-    out << ")";
+    Assert(t.isDatatype());
+    const DType& d = t.getDType();
+    out << "(" << CVC4::quoteSymbol(d.getName());
+    out << " " << d.getNumParameters() << ")";
   }
-  else
+  out << ") (";
+  for (const TypeNode& t : datatypes)
   {
-    out << " (";
-    // Can only print if all datatypes in this block have the same parameters.
-    // In theory, given input language 2.6 and output language 2.5, it could
-    // be impossible to print a datatype block where datatypes were given
-    // different parameter lists.
-    bool success = true;
-    unsigned nparam = d0.getNumParameters();
-    for (unsigned j = 1, ndt = datatypes.size(); j < ndt; j++)
+    Assert(t.isDatatype());
+    const DType& d = t.getDType();
+    if (d.isParametric())
     {
-      Assert(datatypes[j].isDatatype());
-      const DType& dj = datatypes[j].getDType();
-      if (dj.getNumParameters() != nparam)
+      out << "(par (";
+      for (unsigned p = 0, nparam = d.getNumParameters(); p < nparam; p++)
       {
-        success = false;
+        out << (p > 0 ? " " : "") << d.getParameter(p);
       }
-      else
-      {
-        // must also have identical parameter lists
-        for (unsigned k = 0; k < nparam; k++)
-        {
-          if (dj.getParameter(k) != d0.getParameter(k))
-          {
-            success = false;
-            break;
-          }
-        }
-      }
-      if (!success)
-      {
-        break;
-      }
-    }
-    if (success)
-    {
-      for (unsigned j = 0; j < nparam; j++)
-      {
-        out << (j > 0 ? " " : "") << d0.getParameter(j);
-      }
-    }
-    else
-    {
-      out << std::endl;
-      out << "ERROR: datatypes in each block must have identical parameter "
-             "lists.";
-      out << std::endl;
-    }
-    out << ") (";
-    for (const TypeNode& t : datatypes)
-    {
-      Assert(t.isDatatype());
-      const DType& dt = t.getDType();
-      out << "(" << CVC4::quoteSymbol(dt.getName()) << " ";
-      toStream(out, dt);
       out << ")";
     }
+    out << "(";
+    toStream(out, d);
     out << ")";
+    if (d.isParametric())
+    {
+      out << ")";
+    }
   }
+  out << ")";
   out << ")" << std::endl;
 }
 
@@ -1918,7 +1871,7 @@ void Smt2Printer::toStreamCmdComment(std::ostream& out,
   size_t pos = 0;
   while ((pos = s.find_first_of('"', pos)) != string::npos)
   {
-    s.replace(pos, 1, d_variant == smt2_0_variant ? "\\\"" : "\"\"");
+    s.replace(pos, 1, "\"\"");
     pos += 2;
   }
   out << "(set-info :notes \"" << s << "\")" << std::endl;
@@ -1945,7 +1898,7 @@ void Smt2Printer::toStreamCmdEcho(std::ostream& out,
   size_t pos = 0;
   while ((pos = s.find('"', pos)) != string::npos)
   {
-    s.replace(pos, 1, d_variant == smt2_0_variant ? "\\\"" : "\"\"");
+    s.replace(pos, 1, "\"\"");
     pos += 2;
   }
   out << "(echo \"" << s << "\")" << std::endl;
@@ -2150,7 +2103,7 @@ static void errorToStream(std::ostream& out, std::string message, Variant v) {
   // escape all double-quotes
   size_t pos = 0;
   while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
+    message.replace(pos, 1, "\"\"");
     pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
@@ -2173,16 +2126,6 @@ static bool tryToStream(std::ostream& out, const CommandStatus* s, Variant v)
     return true;
   }
   return false;
-}
-
-static OutputLanguage variantToLanguage(Variant variant)
-{
-  switch(variant) {
-  case smt2_0_variant:
-    return language::output::LANG_SMTLIB_V2_0;
-  case no_variant:
-  default: return language::output::LANG_SMTLIB_V2_6;
-  }
 }
 
 }/* CVC4::printer::smt2 namespace */

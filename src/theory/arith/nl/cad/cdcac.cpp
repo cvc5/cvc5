@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include "options/arith_options.h"
 #include "theory/arith/nl/cad/projections.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
+#include "theory/arith/nl/nl_model.h"
 
 namespace std {
 /** Generic streaming operator for std::vector. */
@@ -39,21 +40,15 @@ namespace arith {
 namespace nl {
 namespace cad {
 
-namespace {
-/** Removed duplicates from a vector. */
-template <typename T>
-void removeDuplicates(std::vector<T>& v)
-{
-  std::sort(v.begin(), v.end());
-  v.erase(std::unique(v.begin(), v.end()), v.end());
-}
-}  // namespace
-
-CDCAC::CDCAC() {}
-
-CDCAC::CDCAC(const std::vector<poly::Variable>& ordering)
+CDCAC::CDCAC(context::Context* ctx,
+             ProofNodeManager* pnm,
+             const std::vector<poly::Variable>& ordering)
     : d_variableOrdering(ordering)
 {
+  if (pnm != nullptr)
+  {
+    d_proof.reset(new CADProofGenerator(ctx, pnm));
+  }
 }
 
 void CDCAC::reset()
@@ -103,8 +98,7 @@ const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
   return d_variableOrdering;
 }
 
-std::vector<CACInterval> CDCAC::getUnsatIntervals(
-    std::size_t cur_variable) const
+std::vector<CACInterval> CDCAC::getUnsatIntervals(std::size_t cur_variable)
 {
   std::vector<CACInterval> res;
   for (const auto& c : d_constraints.getConstraints())
@@ -125,14 +119,26 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i << std::endl;
-      std::vector<poly::Polynomial> l, u, m, d;
-      if (!is_minus_infinity(get_lower(i))) l.emplace_back(p);
-      if (!is_plus_infinity(get_upper(i))) u.emplace_back(p);
-      m.emplace_back(p);
+      PolyVector l, u, m, d;
+      m.add(p);
+      m.pushDownPolys(d, d_variableOrdering[cur_variable]);
+      if (!is_minus_infinity(get_lower(i))) l = m;
+      if (!is_plus_infinity(get_upper(i))) u = m;
       res.emplace_back(CACInterval{i, l, u, m, d, {n}});
+      if (isProofEnabled())
+      {
+        d_proof->addDirect(
+            d_constraints.varMapper()(d_variableOrdering[cur_variable]),
+            d_constraints.varMapper(),
+            p,
+            d_assignment,
+            sc,
+            i,
+            n);
+      }
     }
   }
-  cleanIntervals(res);
+  pruneRedundantIntervals(res);
   return res;
 }
 
@@ -158,20 +164,19 @@ bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
   return sampleOutside(infeasible, sample);
 }
 
-std::vector<poly::Polynomial> CDCAC::requiredCoefficients(
-    const poly::Polynomial& p) const
+PolyVector CDCAC::requiredCoefficients(const poly::Polynomial& p) const
 {
   switch (d_projection) {
     case Projection::MCCALLUM:
       return poly::coefficients(p);
     case Projection::MCCALLUM_PARTIAL:
     {
-      std::vector<poly::Polynomial> res;
+      PolyVector res;
       for (long deg = degree(p); deg >= 0; --deg)
       {
         auto coeff = coefficient(p, deg);
         if (lp_polynomial_is_constant(coeff.get_internal())) break;
-        res.emplace_back(coeff);
+        res.add(coeff);
         if (evaluate_constraint(coeff, d_assignment, poly::SignCondition::NE))
         {
           break;
@@ -187,13 +192,11 @@ std::vector<poly::Polynomial> CDCAC::requiredCoefficients(
   }
 }
 
-std::vector<poly::Polynomial> CDCAC::constructCharacterization(
-    std::vector<CACInterval>& intervals)
+PolyVector CDCAC::constructCharacterization(std::vector<CACInterval>& intervals)
 {
   Assert(!intervals.empty()) << "A covering can not be empty";
   Trace("cdcac") << "Constructing characterization now" << std::endl;
-  std::vector<poly::Polynomial> res;
-
+  PolyVector res;
 
   for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
   {
@@ -210,20 +213,20 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
     for (const auto& p : i.d_downPolys)
     {
       // Add all polynomial from lower levels.
-      addPolynomial(res, p);
+      res.add(p);
     }
     for (const auto& p : i.d_mainPolys)
     {
       Trace("cdcac") << "Discriminant of " << p << " -> " << discriminant(p)
                      << std::endl;
       // Add all discriminants
-      addPolynomial(res, discriminant(p));
+      res.add(discriminant(p));
 
       for (const auto& q : requiredCoefficients(p))
       {
         // Add all required coefficients
         Trace("cdcac") << "Coeff of " << p << " -> " << q << std::endl;
-        addPolynomial(res, q);
+        res.add(q);
       }
       for (const auto& q : i.d_lowerPolys)
       {
@@ -232,7 +235,7 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
         if (!hasRootBelow(q, get_lower(i.d_interval))) continue;
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
-        addPolynomial(res, resultant(p, q));
+        res.add(resultant(p, q));
       }
       for (const auto& q : i.d_upperPolys)
       {
@@ -241,7 +244,7 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
         if (!hasRootAbove(q, get_upper(i.d_interval))) continue;
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
-        addPolynomial(res, resultant(p, q));
+        res.add(resultant(p, q));
       }
     }
   }
@@ -255,39 +258,34 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
       {
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
-        addPolynomial(res, resultant(p, q));
+        res.add(resultant(p, q));
       }
     }
   }
 
-  removeDuplicates(res);
-  makeFinestSquareFreeBasis(res);
+  res.reduce();
+  res.makeFinestSquareFreeBasis();
 
   return res;
 }
 
 CACInterval CDCAC::intervalFromCharacterization(
-    const std::vector<poly::Polynomial>& characterization,
+    const PolyVector& characterization,
     std::size_t cur_variable,
     const poly::Value& sample)
 {
-  std::vector<poly::Polynomial> l;
-  std::vector<poly::Polynomial> u;
-  std::vector<poly::Polynomial> m;
-  std::vector<poly::Polynomial> d;
+  PolyVector l;
+  PolyVector u;
+  PolyVector m;
+  PolyVector d;
 
   for (const auto& p : characterization)
   {
-    // Add polynomials to either main or down
-    if (main_variable(p) == d_variableOrdering[cur_variable])
-    {
-      m.emplace_back(p);
-    }
-    else
-    {
-      d.emplace_back(p);
-    }
+    // Add polynomials to main
+    m.add(p);
   }
+  // Push lower-dimensional polys to down
+  m.pushDownPolys(d, d_variableOrdering[cur_variable]);
 
   // Collect -oo, all roots, oo
   std::vector<poly::Value> roots;
@@ -328,7 +326,7 @@ CACInterval CDCAC::intervalFromCharacterization(
     {
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
-        l.emplace_back(p);
+        l.add(p, true);
       }
     }
     d_assignment.unset(d_variableOrdering[cur_variable]);
@@ -341,7 +339,7 @@ CACInterval CDCAC::intervalFromCharacterization(
     {
       if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
-        u.emplace_back(p);
+        u.add(p, true);
       }
     }
     d_assignment.unset(d_variableOrdering[cur_variable]);
@@ -365,6 +363,10 @@ CACInterval CDCAC::intervalFromCharacterization(
 std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
                                               bool returnFirstInterval)
 {
+  if (isProofEnabled())
+  {
+    d_proof->startRecursive();
+  }
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[curVariable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
@@ -392,7 +394,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "Adding integrality interval " << newInterval.d_interval
                      << std::endl;
       intervals.emplace_back(newInterval);
-      cleanIntervals(intervals);
+      pruneRedundantIntervals(intervals);
       continue;
     }
     d_assignment.set(d_variableOrdering[curVariable], sample);
@@ -402,6 +404,10 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       // We have a full assignment. SAT!
       Trace("cdcac") << "Found full assignment: " << d_assignment << std::endl;
       return {};
+    }
+    if (isProofEnabled())
+    {
+      d_proof->startScope();
     }
     // Recurse to next variable
     auto cov = getUnsatCover(curVariable + 1);
@@ -421,6 +427,16 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
         intervalFromCharacterization(characterization, curVariable, sample);
     newInterval.d_origins = collectConstraints(cov);
     intervals.emplace_back(newInterval);
+    if (isProofEnabled())
+    {
+      auto cell = d_proof->constructCell(
+          d_constraints.varMapper()(d_variableOrdering[curVariable]),
+          newInterval,
+          d_assignment,
+          sample,
+          d_constraints.varMapper());
+      d_proof->endScope(cell);
+    }
 
     if (returnFirstInterval)
     {
@@ -439,7 +455,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
     Trace("cdcac") << "\torigins: " << intervals.back().d_origins << std::endl;
 
     // Remove redundant intervals
-    cleanIntervals(intervals);
+    pruneRedundantIntervals(intervals);
   }
 
   if (Trace.isOn("cdcac"))
@@ -451,7 +467,29 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
     }
   }
+  if (isProofEnabled())
+  {
+    d_proof->endRecursive();
+  }
   return intervals;
+}
+
+void CDCAC::startNewProof()
+{
+  if (isProofEnabled())
+  {
+    d_proof->startNewProof();
+  }
+}
+
+ProofGenerator* CDCAC::closeProof(const std::vector<Node>& assertions)
+{
+  if (isProofEnabled())
+  {
+    d_proof->endScope(assertions);
+    return d_proof->getProofGenerator();
+  }
+  return nullptr;
 }
 
 bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
@@ -496,6 +534,23 @@ bool CDCAC::hasRootBelow(const poly::Polynomial& p,
   return std::any_of(roots.begin(), roots.end(), [&val](const poly::Value& r) {
     return r <= val;
   });
+}
+
+void CDCAC::pruneRedundantIntervals(std::vector<CACInterval>& intervals)
+{
+  if (isProofEnabled())
+  {
+    std::vector<CACInterval> allIntervals = intervals;
+    cleanIntervals(intervals);
+    d_proof->pruneChildren([&allIntervals, &intervals](std::size_t i) {
+      return std::find(intervals.begin(), intervals.end(), allIntervals[i])
+             != intervals.end();
+    });
+  }
+  else
+  {
+    cleanIntervals(intervals);
+  }
 }
 
 }  // namespace cad

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 
 #include "theory/rewriter.h"
 
+#include "expr/term_conversion_proof_generator.h"
 #include "options/theory_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -382,11 +383,14 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                 << "with proofs: " << rewriteStackTop.d_node << std::endl;
             Trace("rewriter-proof") << " w/o proofs: " << cached << std::endl;
             Node eq = rewriteStackTop.d_node.eqNode(cached);
+            // we make this a post-rewrite, since we are processing a node that
+            // has finished post-rewriting above
             tcpg->addRewriteStep(rewriteStackTop.d_node,
                                  cached,
                                  PfRule::TRUST_REWRITE,
                                  {},
-                                 {eq});
+                                 {eq},
+                                 false);
             // don't overwrite the cache, should be the same
             rewriteStackTop.d_node = cached;
           }
@@ -485,12 +489,13 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
                            proven[1],
                            PfRule::THEORY_REWRITE,
                            {},
-                           {proven, tidn, rid});
+                           {proven, tidn, rid},
+                           isPre);
     }
     else
     {
       // store proven rewrite step
-      tcpg->addRewriteStep(proven[0], proven[1], pg);
+      tcpg->addRewriteStep(proven[0], proven[1], pg, isPre);
     }
   }
   return RewriteResponse(tresponse.d_status, trn.getNode());

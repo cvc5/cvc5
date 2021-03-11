@@ -2,9 +2,9 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -50,24 +50,25 @@ class InferenceManager : public InferenceManagerBuffered
    * fact is processed as a lemma, where inferType=1 forces fact to be
    * set as a lemma, and inferType=-1 forces fact to be processed as a fact
    * (if possible).
-   *
-   * The argument c is the name of the inference, which is used for debugging.
    */
-  void assertInference(Node fact, Node exp, const char* c, int inferType = 0);
+  void assertInference(Node fact,
+                       InferenceId id,
+                       Node exp,
+                       int inferType = 0);
   /** same as above, where exp is interpreted as a conjunction */
   void assertInference(Node fact,
+                       InferenceId id,
                        std::vector<Node>& exp,
-                       const char* c,
                        int inferType = 0);
   /** same as above, where conc is interpreted as a conjunction */
   void assertInference(std::vector<Node>& conc,
+                       InferenceId id,
                        Node exp,
-                       const char* c,
                        int inferType = 0);
   /** same as above, where both exp and conc are interpreted as conjunctions */
   void assertInference(std::vector<Node>& conc,
+                       InferenceId id,
                        std::vector<Node>& exp,
-                       const char* c,
                        int inferType = 0);
 
   /** flush the splitting lemma ( n OR (NOT n) )
@@ -75,7 +76,7 @@ class InferenceManager : public InferenceManagerBuffered
    * If reqPol is not 0, then a phase requirement for n is requested with
    * polarity ( reqPol>0 ).
    */
-  void split(Node n, int reqPol = 0);
+  void split(Node n, InferenceId id, int reqPol = 0);
 
  private:
   /** constants */
@@ -94,7 +95,7 @@ class InferenceManager : public InferenceManagerBuffered
    * The argument inferType determines the policy on whether fact is processed
    * as a fact or as a lemma (see assertInference above).
    */
-  bool assertFactRec(Node fact, Node exp, int inferType = 0);
+  bool assertFactRec(Node fact, InferenceId id, Node exp, int inferType = 0);
 };
 
 }  // namespace sets

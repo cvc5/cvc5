@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,10 +19,9 @@
 #ifndef CVC4__RESULT_H
 #define CVC4__RESULT_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
-#include "base/exception.h"
 #include "options/language.h"
 
 namespace CVC4 {
@@ -52,7 +51,8 @@ class CVC4_PUBLIC Result {
     TYPE_NONE
   };
 
-  enum UnknownExplanation {
+  enum UnknownExplanation
+  {
     REQUIRES_FULL_CHECK,
     INCOMPLETE,
     TIMEOUT,

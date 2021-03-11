@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,10 +17,8 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 #define CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_DATABASE_H
 
-#include <map>
-#include <memory>
-#include <unordered_set>
 #include <vector>
+
 #include "theory/quantifiers/candidate_rewrite_filter.h"
 #include "theory/quantifiers/expr_miner.h"
 #include "theory/quantifiers/sygus_sampler.h"
@@ -32,8 +30,8 @@ namespace quantifiers {
 /** CandidateRewriteDatabase
  *
  * This maintains the necessary data structures for generating a database
- * of candidate rewrite rules (see Reynolds et al "Rewrites for SMT Solvers
- * Using Syntax-Guided Enumeration" SMT 2018). The primary responsibilities
+ * of candidate rewrite rules (see Noetzli et al "Syntax-Guided Rewrite Rule
+ * Enumeration for SMT Solvers" SAT 2019). The primary responsibilities
  * of this class are to perform the "equivalence checking" and "congruence
  * and matching filtering" in Figure 1. The equivalence checking is done
  * through a combination of the sygus sampler object owned by this class
@@ -51,10 +49,13 @@ class CandidateRewriteDatabase : public ExprMiner
    * discovered rewrites (see option sygusRewSynthAccel()).
    * @param silent Whether to silence the output of rewrites discovered by this
    * class.
+   * @param filterPairs Whether to filter rewrite pairs using filtering
+   * techniques from the SAT 2019 paper above.
    */
   CandidateRewriteDatabase(bool doCheck,
                            bool rewAccel = false,
-                           bool silent = false);
+                           bool silent = false,
+                           bool filterPairs = true);
   ~CandidateRewriteDatabase() {}
   /**  Initialize this class */
   void initialize(const std::vector<Node>& var,
@@ -119,6 +120,8 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_rewAccel;
   /** if true, we silence the output of candidate rewrites */
   bool d_silent;
+  /** if true, we filter pairs of terms to check equivalence */
+  bool d_filterPairs;
   /** whether we are using sygus */
   bool d_using_sygus;
   /** candidate rewrite filter */

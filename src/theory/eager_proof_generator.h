@@ -2,9 +2,9 @@
 /*! \file eager_proof_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,10 +20,14 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node.h"
+#include "expr/proof_rule.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
+
+class ProofNode;
+class ProofNodeManager;
+
 namespace theory {
 
 /**
@@ -146,6 +150,17 @@ class EagerProofGenerator : public ProofGenerator
   TrustNode mkTrustedPropagation(Node n,
                                  Node exp,
                                  std::shared_ptr<ProofNode> pf);
+  /**
+   * Make trust node: `a = b` as a Rewrite trust node
+   *
+   * @param a the original
+   * @param b what is rewrites to
+   * @param pf The proof of a = b,
+   * @return The trust node corresponding to the fact that this generator has
+   * a proof of a = b
+   */
+  TrustNode mkTrustedRewrite(
+      Node a, Node b, std::shared_ptr<ProofNode> pf);
   //--------------------------------------- common proofs
   /**
    * This returns the trust node corresponding to the splitting lemma

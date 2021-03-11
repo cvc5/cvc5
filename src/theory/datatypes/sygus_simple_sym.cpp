@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,8 @@
 
 #include "theory/datatypes/sygus_simple_sym.h"
 
-#include "theory/quantifiers_engine.h"
+#include "expr/dtype_cons.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -23,8 +24,8 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-SygusSimpleSymBreak::SygusSimpleSymBreak(QuantifiersEngine* qe)
-    : d_tds(qe->getTermDatabaseSygus()), d_tutil(qe->getTermUtil())
+SygusSimpleSymBreak::SygusSimpleSymBreak(quantifiers::TermDbSygus* tds)
+    : d_tds(tds)
 {
 }
 
@@ -430,7 +431,7 @@ bool SygusSimpleSymBreak::considerConst(
   {
     Kind ok;
     int offset;
-    if (d_tutil->hasOffsetArg(pk, arg, offset, ok))
+    if (quantifiers::TermUtil::hasOffsetArg(pk, arg, offset, ok))
     {
       Trace("sygus-sb-simple-debug")
           << pk << " has offset arg " << ok << " " << offset << std::endl;
@@ -443,7 +444,8 @@ bool SygusSimpleSymBreak::considerConst(
         if (d_tds->isTypeMatch(pdt[ok_arg], pdt[arg]))
         {
           int status;
-          Node co = d_tutil->getTypeValueOffset(c.getType(), c, offset, status);
+          Node co = quantifiers::TermUtil::mkTypeValueOffset(
+              c.getType(), c, offset, status);
           Trace("sygus-sb-simple-debug")
               << c << " with offset " << offset << " is " << co
               << ", status=" << status << std::endl;
@@ -476,7 +478,7 @@ bool SygusSimpleSymBreak::considerConst(
   bool ret = true;
   Trace("sygus-sb-debug") << "Consider sygus const " << c << ", parent = " << pk
                           << ", arg = " << arg << "?" << std::endl;
-  if (d_tutil->isIdempotentArg(c, pk, arg))
+  if (quantifiers::TermUtil::isIdempotentArg(c, pk, arg))
   {
     if (pdt[pc].getNumArgs() == 2)
     {
@@ -493,7 +495,7 @@ bool SygusSimpleSymBreak::considerConst(
   }
   else
   {
-    Node sc = d_tutil->isSingularArg(c, pk, arg);
+    Node sc = quantifiers::TermUtil::isSingularArg(c, pk, arg);
     if (!sc.isNull())
     {
       if (pti.hasConst(sc))
@@ -509,9 +511,9 @@ bool SygusSimpleSymBreak::considerConst(
   {
     ReqTrie rt;
     Assert(rt.empty());
-    Node max_c = d_tutil->getTypeMaxValue(c.getType());
-    Node zero_c = d_tutil->getTypeValue(c.getType(), 0);
-    Node one_c = d_tutil->getTypeValue(c.getType(), 1);
+    Node max_c = quantifiers::TermUtil::mkTypeMaxValue(c.getType());
+    Node zero_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 0);
+    Node one_c = quantifiers::TermUtil::mkTypeValue(c.getType(), 1);
     if (pk == XOR || pk == BITVECTOR_XOR)
     {
       if (c == max_c)

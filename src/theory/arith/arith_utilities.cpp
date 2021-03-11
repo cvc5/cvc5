@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Alex Ozdemir, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,8 @@
  **/
 
 #include "arith_utilities.h"
+
+#include <cmath>
 
 using namespace CVC4::kind;
 
@@ -114,7 +116,7 @@ Node getApproximateConstant(Node c, bool isLower, unsigned prec)
   Rational cr = c.getConst<Rational>();
 
   unsigned lower = 0;
-  unsigned upper = pow(10, prec);
+  unsigned upper = std::pow(10, prec);
 
   Rational den = Rational(upper);
   if (cr.getDenominator() < den.getNumerator())

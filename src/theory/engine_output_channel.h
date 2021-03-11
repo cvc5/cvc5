@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,7 @@
 
 #include "expr/node.h"
 #include "theory/output_channel.h"
-#include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -27,6 +27,8 @@ namespace CVC4 {
 class TheoryEngine;
 
 namespace theory {
+
+class Theory;
 
 /**
  * An output channel for Theory that passes messages back to a TheoryEngine
@@ -48,10 +50,9 @@ class EngineOutputChannel : public theory::OutputChannel
   void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
-  theory::LemmaStatus lemma(TNode lemma,
-                            LemmaProperty p = LemmaProperty::NONE) override;
+  void lemma(TNode lemma, LemmaProperty p = LemmaProperty::NONE) override;
 
-  theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
+  void splitLemma(TNode lemma, bool removable = false) override;
 
   void demandRestart() override;
 
@@ -76,8 +77,8 @@ class EngineOutputChannel : public theory::OutputChannel
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as calling OutputChannel::lemma on lem.
    */
-  LemmaStatus trustedLemma(TrustNode plem,
-                           LemmaProperty p = LemmaProperty::NONE) override;
+  void trustedLemma(TrustNode plem,
+                    LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**

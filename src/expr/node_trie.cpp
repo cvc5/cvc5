@@ -2,9 +2,9 @@
 /*! \file node_trie.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,7 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(
   const NodeTemplateTrie<ref_count>* tnt = this;
   typename std::map<NodeTemplate<ref_count>,
                     NodeTemplateTrie<ref_count>>::const_iterator it;
-  for (const NodeTemplate<ref_count> r : reps)
+  for (const NodeTemplate<ref_count>& r : reps)
   {
     it = tnt->d_data.find(r);
     if (it == tnt->d_data.end())
@@ -51,7 +51,7 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(
     NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
 {
   NodeTemplateTrie<ref_count>* tnt = this;
-  for (const NodeTemplate<ref_count> r : reps)
+  for (const NodeTemplate<ref_count>& r : reps)
   {
     tnt = &(tnt->d_data[r]);
   }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -158,7 +158,7 @@ Node NormalForm::evaluateBinaryOperation(const TNode& n,
   remainderOfA(elements, elementsB, itB);
 
   Trace("bags-evaluate") << "elements: " << elements << std::endl;
-  Node bag = constructBagFromElements(n.getType(), elements);
+  Node bag = constructConstantBagFromElements(n.getType(), elements);
   Trace("bags-evaluate") << "bag: " << bag << std::endl;
   return bag;
 }
@@ -187,7 +187,7 @@ std::map<Node, Rational> NormalForm::getBagElements(TNode n)
   return elements;
 }
 
-Node NormalForm::constructBagFromElements(
+Node NormalForm::constructConstantBagFromElements(
     TypeNode t, const std::map<Node, Rational>& elements)
 {
   Assert(t.isBag());
@@ -204,6 +204,26 @@ Node NormalForm::constructBagFromElements(
   {
     Node n =
         nm->mkBag(elementType, it->first, nm->mkConst<Rational>(it->second));
+    bag = nm->mkNode(UNION_DISJOINT, n, bag);
+  }
+  return bag;
+}
+
+Node NormalForm::constructBagFromElements(TypeNode t,
+                                          const std::map<Node, Node>& elements)
+{
+  Assert(t.isBag());
+  NodeManager* nm = NodeManager::currentNM();
+  if (elements.empty())
+  {
+    return nm->mkConst(EmptyBag(t));
+  }
+  TypeNode elementType = t.getBagElementType();
+  std::map<Node, Node>::const_reverse_iterator it = elements.rbegin();
+  Node bag = nm->mkBag(elementType, it->first, it->second);
+  while (++it != elements.rend())
+  {
+    Node n = nm->mkBag(elementType, it->first, it->second);
     bag = nm->mkNode(UNION_DISJOINT, n, bag);
   }
   return bag;
@@ -262,7 +282,7 @@ Node NormalForm::evaluateDuplicateRemoval(TNode n)
   {
     it->second = one;
   }
-  Node bag = constructBagFromElements(n[0].getType(), newElements);
+  Node bag = constructConstantBagFromElements(n[0].getType(), newElements);
   return bag;
 }
 
@@ -624,7 +644,7 @@ Node NormalForm::evaluateFromSet(TNode n)
     bagElements[element] = one;
   }
   TypeNode bagType = nm->mkBagType(n[0].getType().getSetElementType());
-  Node bag = constructBagFromElements(bagType, bagElements);
+  Node bag = constructConstantBagFromElements(bagType, bagElements);
   return bag;
 }
 

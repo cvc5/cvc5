@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -375,7 +375,8 @@ bool getFreeVariablesScope(TNode n,
         for (const TNode& cn : cur[0])
         {
           // should not shadow
-          Assert(scope.find(cn) == scope.end());
+          Assert(scope.find(cn) == scope.end())
+              << "Shadowed variable " << cn << " in " << cur << "\n";
           scope.insert(cn);
         }
         // must make recursive call to use separate cache

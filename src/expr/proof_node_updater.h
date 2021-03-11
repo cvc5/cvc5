@@ -2,9 +2,9 @@
 /*! \file proof_node_updater.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,13 +18,16 @@
 #define CVC4__EXPR__PROOF_NODE_UPDATER_H
 
 #include <map>
-#include <unordered_set>
+#include <memory>
 
-#include "expr/proof.h"
+#include "expr/node.h"
 #include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
+
+class CDProof;
+class ProofNode;
+class ProofNodeManager;
 
 /**
  * A virtual callback class for updating ProofNode. An example use case of this
@@ -80,10 +83,13 @@ class ProofNodeUpdater
    * @param cb The callback to apply to each node
    * @param mergeSubproofs Whether to automatically merge subproofs within
    * the same SCOPE that prove the same fact.
+   * @param autoSym Whether intermediate CDProof objects passed to updater
+   * callbacks automatically introduce SYMM steps.
    */
   ProofNodeUpdater(ProofNodeManager* pnm,
                    ProofNodeUpdaterCallback& cb,
-                   bool mergeSubproofs = false);
+                   bool mergeSubproofs = false,
+                   bool autoSym = true);
   /**
    * Post-process, which performs the main post-processing technique described
    * above.
@@ -142,6 +148,11 @@ class ProofNodeUpdater
   std::vector<Node> d_freeAssumps;
   /** Whether we are merging subproofs */
   bool d_mergeSubproofs;
+  /**
+   * Whether intermediate CDProof objects passed to updater callbacks
+   * automatically introduce SYMM steps.
+   */
+  bool d_autoSym;
 };
 
 }  // namespace CVC4

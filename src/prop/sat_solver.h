@@ -2,9 +2,9 @@
 /*! \file sat_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Liana Hadarean, Morgan Deters
+ **   Dejan Jovanovic, Liana Hadarean, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -81,6 +81,13 @@ public:
     return SAT_VALUE_UNKNOWN;
   };
 
+  /**
+   * Tell SAT solver to only do propagation on next solve().
+   *
+   * @return true if feature is supported, otherwise false.
+   */
+  virtual bool setPropagateOnly() { return false; }
+
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
@@ -95,6 +102,19 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
+
+  /**
+   * Get list of unsatisfiable assumptions.
+   *
+   * The returned assumptions are a subset of the assumptions provided to
+   * the solve method.
+   * Can only be called if satisfiability check under assumptions was used and
+   * if it returned SAT_VALUE_FALSE.
+   */
+  virtual void getUnsatAssumptions(std::vector<SatLiteral>& unsat_assumptions)
+  {
+    Unimplemented() << "getUnsatAssumptions not implemented";
+  }
 
 };/* class SatSolver */
 

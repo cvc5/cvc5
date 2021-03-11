@@ -2,9 +2,9 @@
 /*! \file apply_substs.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Mathias Preiner
+ **   Aina Niemetz, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,8 @@
 #include "preprocessing/passes/apply_substs.h"
 
 #include "context/cdo.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 

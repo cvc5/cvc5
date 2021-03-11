@@ -2,9 +2,9 @@
 /*! \file base_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -225,7 +225,7 @@ class BaseSolver
    *
    * This set contains a set of nodes that are not representatives of their
    * congruence class. This set is used to skip reasoning about terms in
-   * various inference schemas implemnted by this class.
+   * various inference schemas implemented by this class.
    */
   NodeSet d_congruent;
   /**

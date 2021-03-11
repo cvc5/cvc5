@@ -2,9 +2,9 @@
 /*! \file skolemize.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,11 +14,14 @@
 
 #include "theory/quantifiers/skolemize.h"
 
+#include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "expr/skolem_manager.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/sort_inference.h"
 #include "theory/theory_engine.h"
 
@@ -28,14 +31,13 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersEngine* qe,
-                     context::UserContext* u,
-                     ProofNodeManager* pnm)
-    : d_quantEngine(qe),
-      d_skolemized(u),
+Skolemize::Skolemize(QuantifiersState& qs, ProofNodeManager* pnm)
+    : d_qstate(qs),
+      d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
-                           : new EagerProofGenerator(pnm, u, "Skolemize::epg"))
+                           : new EagerProofGenerator(
+                                 pnm, qs.getUserContext(), "Skolemize::epg"))
 {
 }
 
@@ -348,13 +350,13 @@ Node Skolemize::getSkolemizedBody(Node f)
       }
     }
     Assert(d_skolem_constants[f].size() == f[0].getNumChildren());
-    if (options::sortInference())
+    SortInference* si = d_qstate.getSortInference();
+    if (si != nullptr)
     {
       for (unsigned i = 0; i < d_skolem_constants[f].size(); i++)
       {
         // carry information for sort inference
-        d_quantEngine->getTheoryEngine()->getSortInference()->setSkolemVar(
-            f, f[0][i], d_skolem_constants[f][i]);
+        si->setSkolemVar(f, f[0][i], d_skolem_constants[f][i]);
       }
     }
     return ret;
@@ -377,29 +379,18 @@ bool Skolemize::isInductionTerm(Node n)
   return false;
 }
 
-bool Skolemize::printSkolemization(std::ostream& out)
+void Skolemize::getSkolemTermVectors(
+    std::map<Node, std::vector<Node> >& sks) const
 {
-  bool printed = false;
-  for (NodeNodeMap::iterator it = d_skolemized.begin();
-       it != d_skolemized.end();
-       ++it)
+  std::unordered_map<Node, std::vector<Node>, NodeHashFunction>::const_iterator
+      itk;
+  for (const auto& p : d_skolemized)
   {
-    Node q = (*it).first;
-    printed = true;
-    out << "(skolem " << q << std::endl;
-    out << "  ( ";
-    for (unsigned i = 0; i < d_skolem_constants[q].size(); i++)
-    {
-      if (i > 0)
-      {
-        out << " ";
-      }
-      out << d_skolem_constants[q][i];
-    }
-    out << " )" << std::endl;
-    out << ")" << std::endl;
+    Node q = p.first;
+    itk = d_skolem_constants.find(q);
+    Assert(itk != d_skolem_constants.end());
+    sks[q].insert(sks[q].end(), itk->second.begin(), itk->second.end());
   }
-  return printed;
 }
 
 bool Skolemize::isProofEnabled() const { return d_epg != nullptr; }

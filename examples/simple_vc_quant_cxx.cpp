@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Andrew Reynolds, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** \brief A simple demonstration of the C++ interface for quantifiers
  **
- ** A simple demonstration of the C++ interface for quantifiers. 
+ ** A simple demonstration of the C++ interface for quantifiers.
  **/
 
 #include <cvc4/api/cvc4cpp.h>

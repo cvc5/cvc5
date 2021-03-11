@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/arith_lemma.h"
-#include "theory/output_channel.h"
+#include "theory/theory_inference.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,23 +40,19 @@ class NonlinearExtension;
  * - A set of secant points to record (for transcendental secant plane
  * inferences).
  */
-class NlLemma : public ArithLemma
+class NlLemma : public SimpleTheoryLemma
 {
  public:
-  NlLemma(Node n,
-          LemmaProperty p,
-          ProofGenerator* pg,
-          InferenceId inf = InferenceId::UNKNOWN)
-      : ArithLemma(n, p, pg, inf)
-  {
-  }
-  NlLemma(Node n, InferenceId inf = InferenceId::UNKNOWN)
-      : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
+  NlLemma(InferenceId inf,
+          Node n,
+          LemmaProperty p = LemmaProperty::NONE,
+          ProofGenerator* pg = nullptr)
+      : SimpleTheoryLemma(inf, n, p, pg)
   {
   }
   ~NlLemma() {}
 
-  bool process(TheoryInferenceManager* im, bool asLemma) override;
+  TrustNode processLemma(LemmaProperty& p) override;
 
   /** secant points to add
    *

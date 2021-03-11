@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,10 +14,14 @@
 
 #include "theory/quantifiers/instantiate.h"
 
+#include "expr/lazy_proof.h"
 #include "expr/node_algorithm.h"
+#include "expr/proof_node_manager.h"
+#include "options/printer_options.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -27,6 +31,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -36,14 +41,18 @@ namespace theory {
 namespace quantifiers {
 
 Instantiate::Instantiate(QuantifiersEngine* qe,
-                         context::UserContext* u,
+                         QuantifiersState& qs,
+                         QuantifiersInferenceManager& qim,
+                         QuantifiersRegistry& qr,
                          ProofNodeManager* pnm)
     : d_qe(qe),
+      d_qstate(qs),
+      d_qim(qim),
+      d_qreg(qr),
       d_pnm(pnm),
       d_term_db(nullptr),
-      d_term_util(nullptr),
-      d_total_inst_debug(u),
-      d_c_inst_match_trie_dom(u),
+      d_total_inst_debug(qs.getUserContext()),
+      d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
 }
@@ -71,7 +80,6 @@ bool Instantiate::reset(Theory::Effort e)
     d_recorded_inst.clear();
   }
   d_term_db = d_qe->getTermDatabase();
-  d_term_util = d_qe->getTermUtil();
   return true;
 }
 
@@ -93,21 +101,13 @@ void Instantiate::addRewriter(InstantiationRewriter* ir)
 }
 
 bool Instantiate::addInstantiation(
-    Node q, InstMatch& m, bool mkRep, bool modEq, bool doVts)
-{
-  Assert(q[0].getNumChildren() == m.d_vals.size());
-  return addInstantiation(q, m.d_vals, mkRep, modEq, doVts);
-}
-
-bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
-  Assert(!d_qe->inConflict());
+  d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
+  Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
-  Assert(d_term_util != nullptr);
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
   for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -139,7 +139,7 @@ bool Instantiate::addInstantiation(
     }
 #ifdef CVC4_ASSERTIONS
     bool bad_inst = false;
-    if (quantifiers::TermUtil::containsUninterpretedConstant(terms[i]))
+    if (TermUtil::containsUninterpretedConstant(terms[i]))
     {
       Trace("inst") << "***& inst contains uninterpreted constant : "
                     << terms[i] << std::endl;
@@ -154,7 +154,7 @@ bool Instantiate::addInstantiation(
     }
     else if (options::cegqi())
     {
-      Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
+      Node icf = TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
       {
         if (icf == q)
@@ -163,7 +163,7 @@ bool Instantiate::addInstantiation(
                         << terms[i] << std::endl;
           bad_inst = true;
         }
-        else if (expr::hasSubterm(terms[i], d_term_util->d_inst_constants[q]))
+        else if (expr::hasSubterm(terms[i], d_qreg.d_inst_constants[q]))
         {
           Trace("inst") << "***& inst contains inst constants : " << terms[i]
                         << std::endl;
@@ -215,7 +215,7 @@ bool Instantiate::addInstantiation(
   }
 
   // check based on instantiation level
-  if (options::instMaxLevel() != -1 || options::lteRestrictInstClosure())
+  if (options::instMaxLevel() != -1)
   {
     for (Node& t : terms)
     {
@@ -246,13 +246,12 @@ bool Instantiate::addInstantiation(
 
   // construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
-  Assert(d_term_util->d_vars[q].size() == terms.size());
+  Assert(d_qreg.d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body =
-      getInstantiation(q, d_term_util->d_vars[q], terms, doVts, pfTmp.get());
+  Node body = getInstantiation(q, d_qreg.d_vars[q], terms, doVts, pfTmp.get());
   Node orig_body = body;
   // now preprocess, storing the trust node for the rewrite
-  TrustNode tpBody = quantifiers::QuantifiersRewriter::preprocess(body, true);
+  TrustNode tpBody = QuantifiersRewriter::preprocess(body, true);
   if (!tpBody.isNull())
   {
     Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
@@ -319,13 +318,12 @@ bool Instantiate::addInstantiation(
   bool addedLem = false;
   if (hasProof)
   {
-    // use trust interface
-    TrustNode tlem = TrustNode::mkTrustLemma(lem, d_pfInst.get());
-    addedLem = d_qe->addTrustedLemma(tlem, true, false);
+    // use proof generator
+    addedLem = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN, LemmaProperty::NONE, d_pfInst.get());
   }
   else
   {
-    addedLem = d_qe->addLemma(lem, true, false);
+    addedLem = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
   }
 
   if (!addedLem)
@@ -380,32 +378,98 @@ bool Instantiate::addInstantiation(
           orig_body, q[1], maxInstLevel + 1);
     }
   }
-  if (options::trackInstLemmas())
-  {
-    if (options::incrementalSolving())
-    {
-      recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);
-    }
-    else
-    {
-      recorded = d_inst_match_trie[q].recordInstLemma(q, terms, lem);
-    }
-    Trace("inst-add-debug") << "...was recorded : " << recorded << std::endl;
-    Assert(recorded);
-  }
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
   return true;
 }
 
-bool Instantiate::removeInstantiation(Node q,
-                                      Node lem,
-                                      std::vector<Node>& terms)
+bool Instantiate::addInstantiationExpFail(Node q,
+                                          std::vector<Node>& terms,
+                                          std::vector<bool>& failMask,
+                                          bool mkRep,
+                                          bool modEq,
+                                          bool doVts,
+                                          bool expFull)
 {
-  // lem must occur in d_waiting_lemmas
-  if (d_qe->removeLemma(lem))
+  if (addInstantiation(q, terms, mkRep, modEq, doVts))
   {
-    return removeInstantiationInternal(q, terms);
+    return true;
+  }
+  size_t tsize = terms.size();
+  failMask.resize(tsize, true);
+  if (tsize == 1)
+  {
+    // will never succeed with 1 variable
+    return false;
+  }
+  Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
+  // set up information for below
+  std::vector<Node>& vars = d_qreg.d_vars[q];
+  Assert(tsize == vars.size());
+  std::map<TNode, TNode> subs;
+  for (size_t i = 0; i < tsize; i++)
+  {
+    subs[vars[i]] = terms[i];
+  }
+  // get the instantiation body
+  Node ibody = getInstantiation(q, vars, terms, doVts);
+  ibody = Rewriter::rewrite(ibody);
+  for (size_t i = 0; i < tsize; i++)
+  {
+    // process consecutively in reverse order, which is important since we use
+    // the fail mask for incrementing in a lexicographic order
+    size_t ii = (tsize - 1) - i;
+    // replace with the identity substitution
+    Node prev = terms[ii];
+    terms[ii] = vars[ii];
+    subs.erase(vars[ii]);
+    if (subs.empty())
+    {
+      // will never succeed with empty substitution
+      break;
+    }
+    Trace("inst-exp-fail") << "- revert " << ii << std::endl;
+    // check whether we are still redundant
+    bool success = false;
+    // check entailment, only if option is set
+    if (options::instNoEntail())
+    {
+      Trace("inst-exp-fail") << "  check entailment" << std::endl;
+      success = d_term_db->isEntailed(q[1], subs, false, true);
+      Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
+    }
+    // check whether the instantiation rewrites to the same thing
+    if (!success)
+    {
+      Node ibodyc = getInstantiation(q, vars, terms, doVts);
+      ibodyc = Rewriter::rewrite(ibodyc);
+      success = (ibodyc == ibody);
+      Trace("inst-exp-fail") << "  rewrite invariant: " << success << std::endl;
+    }
+    if (success)
+    {
+      // if we still fail, we are not critical
+      failMask[ii] = false;
+    }
+    else
+    {
+      subs[vars[ii]] = prev;
+      terms[ii] = prev;
+      // not necessary to proceed if expFull is false
+      if (!expFull)
+      {
+        break;
+      }
+    }
+  }
+  if (Trace.isOn("inst-exp-fail"))
+  {
+    Trace("inst-exp-fail") << "Fail mask: ";
+    for (bool b : failMask)
+    {
+      Trace("inst-exp-fail") << (b ? 1 : 0);
+    }
+    Trace("inst-exp-fail") << std::endl;
   }
   return false;
 }
@@ -428,8 +492,7 @@ bool Instantiate::existsInstantiation(Node q,
         d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
-      return it->second->existsInstMatch(
-          d_qe, q, terms, d_qe->getUserContext(), modEq);
+      return it->second->existsInstMatch(d_qstate, q, terms, modEq);
     }
   }
   else
@@ -438,7 +501,7 @@ bool Instantiate::existsInstantiation(Node q,
         d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
-      return it->second.existsInstMatch(d_qe, q, terms, modEq);
+      return it->second.existsInstMatch(d_qstate, q, terms, modEq);
     }
   }
   return false;
@@ -450,12 +513,12 @@ Node Instantiate::getInstantiation(Node q,
                                    bool doVts,
                                    LazyCDProof* pf)
 {
-  Node body;
   Assert(vars.size() == terms.size());
   Assert(q[0].getNumChildren() == vars.size());
   // Notice that this could be optimized, but no significant performance
   // improvements were observed with alternative implementations (see #1386).
-  body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
+  Node body =
+      q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
 
   // store the proof of the instantiated body, with (open) assumption q
   if (pf != nullptr)
@@ -487,17 +550,10 @@ Node Instantiate::getInstantiation(Node q,
   return body;
 }
 
-Node Instantiate::getInstantiation(Node q, InstMatch& m, bool doVts)
-{
-  Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
-  Assert(m.d_vals.size() == q[0].getNumChildren());
-  return getInstantiation(q, d_term_util->d_vars[q], m.d_vals, doVts);
-}
-
 Node Instantiate::getInstantiation(Node q, std::vector<Node>& terms, bool doVts)
 {
-  Assert(d_term_util->d_vars.find(q) != d_term_util->d_vars.end());
-  return getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
+  Assert(d_qreg.d_vars.find(q) != d_qreg.d_vars.end());
+  return getInstantiation(q, d_qreg.d_vars[q], terms, doVts);
 }
 
 bool Instantiate::recordInstantiationInternal(Node q,
@@ -524,14 +580,14 @@ bool Instantiate::recordInstantiationInternal(Node q,
     }
     else
     {
-      imt = new inst::CDInstMatchTrie(d_qe->getUserContext());
+      imt = new inst::CDInstMatchTrie(d_qstate.getUserContext());
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
-    return imt->addInstMatch(d_qe, q, terms, d_qe->getUserContext(), modEq);
+    return imt->addInstMatch(d_qstate, q, terms, modEq);
   }
   Trace("inst-add-debug") << "Adding into inst trie" << std::endl;
-  return d_inst_match_trie[q].addInstMatch(d_qe, q, terms, modEq);
+  return d_inst_match_trie[q].addInstMatch(d_qstate, q, terms, modEq);
 }
 
 bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
@@ -558,107 +614,6 @@ Node Instantiate::getTermForType(TypeNode tn)
   return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
-bool Instantiate::printInstantiations(std::ostream& out)
-{
-  if (options::printInstMode() == options::PrintInstMode::NUM)
-  {
-    return printInstantiationsNum(out);
-  }
-  Assert(options::printInstMode() == options::PrintInstMode::LIST);
-  return printInstantiationsList(out);
-}
-
-bool Instantiate::printInstantiationsList(std::ostream& out)
-{
-  bool useUnsatCore = false;
-  std::vector<Node> active_lemmas;
-  if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
-  {
-    useUnsatCore = true;
-  }
-  bool printed = false;
-  bool isFull = options::printInstFull();
-  if (options::incrementalSolving())
-  {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
-    {
-      std::stringstream qout;
-      if (!printQuant(t.first, qout, isFull))
-      {
-        continue;
-      }
-      std::stringstream sout;
-      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
-      if (!sout.str().empty())
-      {
-        out << "(instantiations " << qout.str() << std::endl;
-        out << sout.str();
-        out << ")" << std::endl;
-        printed = true;
-      }
-    }
-  }
-  else
-  {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-    {
-      std::stringstream qout;
-      if (!printQuant(t.first, qout, isFull))
-      {
-        continue;
-      }
-      std::stringstream sout;
-      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
-      if (!sout.str().empty())
-      {
-        out << "(instantiations " << qout.str() << std::endl;
-        out << sout.str();
-        out << ")" << std::endl;
-        printed = true;
-      }
-    }
-  }
-  return printed;
-}
-
-bool Instantiate::printInstantiationsNum(std::ostream& out)
-{
-  if (d_total_inst_debug.empty())
-  {
-    return false;
-  }
-  bool isFull = options::printInstFull();
-  for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
-       it != d_total_inst_debug.end();
-       ++it)
-  {
-    std::stringstream ss;
-    if (printQuant((*it).first, ss, isFull))
-    {
-      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")"
-          << std::endl;
-    }
-  }
-  return true;
-}
-
-bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
-{
-  if (isFull)
-  {
-    out << q;
-    return true;
-  }
-  quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
-  Node name = qa->getQuantName(q);
-  if (name.isNull())
-  {
-    return false;
-  }
-  out << name;
-  return true;
-}
-
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
   if (options::incrementalSolving())
@@ -680,55 +635,9 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   }
 }
 
-bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
-{
-  // only if unsat core available
-  if (options::unsatCores() && !isProofEnabled())
-  {
-    if (!ProofManager::currentPM()->unsatCoreAvailable())
-    {
-      return false;
-    }
-  }
-  else
-  {
-    return false;
-  }
-
-  Trace("inst-unsat-core") << "Get instantiations in unsat core..."
-                           << std::endl;
-  ProofManager::currentPM()->getLemmasInUnsatCore(active_lemmas);
-  if (Trace.isOn("inst-unsat-core"))
-  {
-    Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
-                             << std::endl;
-    for (const Node& lem : active_lemmas)
-    {
-      Trace("inst-unsat-core") << "  " << lem << std::endl;
-    }
-    Trace("inst-unsat-core") << std::endl;
-  }
-  return true;
-}
-
 void Instantiate::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node> >& tvecs)
 {
-  // if track instantiations is true, we use the instantiation + explanation
-  // methods for doing minimization based on unsat cores.
-  if (options::trackInstLemmas())
-  {
-    std::vector<Node> lemmas;
-    getInstantiations(q, lemmas);
-    std::map<Node, Node> quant;
-    std::map<Node, std::vector<Node> > tvec;
-    getExplanationForInstLemmas(lemmas, quant, tvec);
-    for (std::pair<const Node, std::vector<Node> >& t : tvec)
-    {
-      tvecs.push_back(t.second);
-    }
-    return;
-  }
 
   if (options::incrementalSolving())
   {
@@ -769,123 +678,7 @@ void Instantiate::getInstantiationTermVectors(
   }
 }
 
-void Instantiate::getExplanationForInstLemmas(
-    const std::vector<Node>& lems,
-    std::map<Node, Node>& quant,
-    std::map<Node, std::vector<Node> >& tvec)
-{
-  if (!options::trackInstLemmas())
-  {
-    std::stringstream msg;
-    msg << "Cannot get explanation for instantiations when --track-inst-lemmas "
-           "is false.";
-    throw OptionException(msg.str());
-  }
-  if (options::incrementalSolving())
-  {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
-    {
-      t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
-    }
-  }
-  else
-  {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-    {
-      t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
-    }
-  }
-#ifdef CVC4_ASSERTIONS
-  for (unsigned j = 0; j < lems.size(); j++)
-  {
-    Assert(quant.find(lems[j]) != quant.end());
-    Assert(tvec.find(lems[j]) != tvec.end());
-  }
-#endif
-}
-
 bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
-
-void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
-{
-  if (!options::trackInstLemmas())
-  {
-    std::stringstream msg;
-    msg << "Cannot get instantiations when --track-inst-lemmas is false.";
-    throw OptionException(msg.str());
-  }
-  std::vector<Node> active_lemmas;
-  bool useUnsatCore = getUnsatCoreLemmas(active_lemmas);
-
-  if (options::incrementalSolving())
-  {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
-    {
-      t.second->getInstantiations(
-          insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
-    }
-  }
-  else
-  {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-    {
-      t.second.getInstantiations(
-          insts[t.first], t.first, d_qe, useUnsatCore, active_lemmas);
-    }
-  }
-}
-
-void Instantiate::getInstantiations(Node q, std::vector<Node>& insts)
-{
-  if (options::incrementalSolving())
-  {
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
-    if (it != d_c_inst_match_trie.end())
-    {
-      std::vector<Node> active_lemmas;
-      it->second->getInstantiations(
-          insts, it->first, d_qe, false, active_lemmas);
-    }
-  }
-  else
-  {
-    std::map<Node, inst::InstMatchTrie>::iterator it =
-        d_inst_match_trie.find(q);
-    if (it != d_inst_match_trie.end())
-    {
-      std::vector<Node> active_lemmas;
-      it->second.getInstantiations(
-          insts, it->first, d_qe, false, active_lemmas);
-    }
-  }
-}
-
-Node Instantiate::getInstantiatedConjunction(Node q)
-{
-  Assert(q.getKind() == FORALL);
-  std::vector<Node> insts;
-  getInstantiations(q, insts);
-  if (insts.empty())
-  {
-    return NodeManager::currentNM()->mkConst(true);
-  }
-  Node ret;
-  if (insts.size() == 1)
-  {
-    ret = insts[0];
-  }
-  else
-  {
-    ret = NodeManager::currentNM()->mkNode(kind::AND, insts);
-  }
-  // have to remove q
-  // may want to do this in a better way
-  TNode tq = q;
-  TNode tt = NodeManager::currentNM()->mkConst(true);
-  ret = ret.substitute(tq, tt);
-  return ret;
-}
 
 void Instantiate::debugPrint(std::ostream& out)
 {
@@ -901,15 +694,15 @@ void Instantiate::debugPrint(std::ostream& out)
   }
   if (options::debugInst())
   {
-    bool isFull = options::printInstFull();
+    bool req = !options::printInstFull();
     for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
-      std::stringstream ss;
-      if (!printQuant(i.first, ss, isFull))
+      Node name;
+      if (!d_qe->getNameForQuant(i.first, name, req))
       {
         continue;
       }
-      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+      out << "(num-instantiations " << name << " " << i.second << ")"
           << std::endl;
     }
   }

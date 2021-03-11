@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "proof/unsat_core.h"
 #include "smt/command.h"
 #include "smt/node_command.h"
+#include "theory/quantifiers/instantiation_list.h"
 
 using namespace std;
 
@@ -38,13 +39,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   using namespace CVC4::language::output;
 
   switch(lang) {
-  case LANG_SMTLIB_V2_0:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::smt2_0_variant));
-
-  case LANG_SMTLIB_V2_5:
-    return unique_ptr<Printer>(new printer::smt2::Smt2Printer());
-
   case LANG_SMTLIB_V2_6:
     return unique_ptr<Printer>(
         new printer::smt2::Smt2Printer(printer::smt2::smt2_6_variant));
@@ -109,6 +103,33 @@ void Printer::toStream(std::ostream& out, const UnsatCore& core) const
     out << std::endl;
   }
 }/* Printer::toStream(UnsatCore) */
+
+void Printer::toStream(std::ostream& out, const InstantiationList& is) const
+{
+  out << "(instantiations " << is.d_quant << std::endl;
+  for (const std::vector<Node>& i : is.d_inst)
+  {
+    out << "  ( ";
+    for (const Node& n : i)
+    {
+      out << n << " ";
+    }
+    out << ")" << std::endl;
+  }
+  out << ")" << std::endl;
+}
+
+void Printer::toStream(std::ostream& out, const SkolemList& sks) const
+{
+  out << "(skolem " << sks.d_quant << std::endl;
+  out << "  ( ";
+  for (const Node& n : sks.d_sks)
+  {
+    out << n << " ";
+  }
+  out << ")" << std::endl;
+  out << ")" << std::endl;
+}
 
 Printer* Printer::getPrinter(OutputLanguage lang)
 {
@@ -360,7 +381,7 @@ void Printer::toStreamCmdSetBenchmarkLogic(std::ostream& out,
 
 void Printer::toStreamCmdSetInfo(std::ostream& out,
                                  const std::string& flag,
-                                 SExpr sexpr) const
+                                 const std::string& value) const
 {
   printUnknownCommand(out, "set-info");
 }
@@ -373,7 +394,7 @@ void Printer::toStreamCmdGetInfo(std::ostream& out,
 
 void Printer::toStreamCmdSetOption(std::ostream& out,
                                    const std::string& flag,
-                                   SExpr sexpr) const
+                                   const std::string& value) const
 {
   printUnknownCommand(out, "set-option");
 }

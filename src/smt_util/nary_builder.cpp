@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,14 +23,20 @@ using namespace std;
 namespace CVC4 {
 namespace util {
 
-Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children){
-  if(children.size() == 0){
+Node NaryBuilder::mkAssoc(Kind kind, const std::vector<Node>& children)
+{
+  if (children.size() == 0)
+  {
     return zeroArity(kind);
-  }else if(children.size() == 1){
+  }
+  else if (children.size() == 1)
+  {
     return children[0];
-  }else{
-    const unsigned int max = kind::metakind::getUpperBoundForKind(kind);
-    const unsigned int min = kind::metakind::getLowerBoundForKind(kind);
+  }
+  else
+  {
+    const uint32_t max = kind::metakind::getMaxArityForKind(kind);
+    const uint32_t min = kind::metakind::getMinArityForKind(kind);
 
     Assert(min <= children.size());
 

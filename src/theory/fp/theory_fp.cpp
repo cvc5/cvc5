@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,9 +22,12 @@
 #include <unordered_set>
 #include <vector>
 
+#include "base/configuration.h"
 #include "options/fp_options.h"
+#include "smt/logic_exception.h"
 #include "theory/fp/fp_converter.h"
 #include "theory/fp/theory_fp_rewriter.h"
+#include "theory/output_channel.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
@@ -451,7 +454,7 @@ TrustNode TheoryFp::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
   // first, see if we need to expand definitions
@@ -916,11 +919,9 @@ void TheoryFp::preRegisterTerm(TNode node)
 
 void TheoryFp::handleLemma(Node node) {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-  // Preprocess has to be true because it contains embedded ITEs
-  d_out->lemma(node, LemmaProperty::PREPROCESS);
-  // Ignore the LemmaStatus structure for now...
-
-  return;
+  // will be preprocessed when sent, which is important because it contains
+  // embedded ITEs
+  d_out->lemma(node);
 }
 
 bool TheoryFp::propagateLit(TNode node)

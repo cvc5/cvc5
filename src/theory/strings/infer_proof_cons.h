@@ -2,9 +2,9 @@
 /*! \file infer_proof_cons.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -100,7 +100,7 @@ class InferProofCons : public ProofGenerator
    * In particular, psb will contain a set of steps that form a proof
    * whose conclusion is ii.d_conc and whose free assumptions are ii.d_ant.
    */
-  void convert(Inference infer,
+  void convert(InferenceId infer,
                bool isRev,
                Node conc,
                const std::vector<Node>& exp,

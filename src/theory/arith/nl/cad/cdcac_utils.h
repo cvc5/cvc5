@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,6 @@
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
 #define CVC4__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
 
-#include "util/real_algebraic_number.h"
-
 #ifdef CVC4_POLY_IMP
 
 #include <poly/polyxx.h>
@@ -28,6 +26,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "theory/arith/nl/cad/projections.h"
 
 namespace CVC4 {
 namespace theory {
@@ -62,13 +61,13 @@ struct CACInterval
   /** The actual interval. */
   poly::Interval d_interval;
   /** The polynomials characterizing the lower bound. */
-  std::vector<poly::Polynomial> d_lowerPolys;
+  PolyVector d_lowerPolys;
   /** The polynomials characterizing the upper bound. */
-  std::vector<poly::Polynomial> d_upperPolys;
+  PolyVector d_upperPolys;
   /** The characterizing polynomials in the main variable. */
-  std::vector<poly::Polynomial> d_mainPolys;
+  PolyVector d_mainPolys;
   /** The characterizing polynomials in lower variables. */
-  std::vector<poly::Polynomial> d_downPolys;
+  PolyVector d_downPolys;
   /** The constraints used to derive this interval. */
   std::vector<Node> d_origins;
 };
