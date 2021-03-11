@@ -60,7 +60,7 @@ RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
                                          long lower,
                                          long upper)
 {
-#ifndef NDEBUG
+#ifdef CVC4_ASSERTIONS
   for (long c : coefficients)
   {
     Assert(std::numeric_limits<std::int32_t>::min() <= c

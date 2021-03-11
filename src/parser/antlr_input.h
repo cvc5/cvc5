@@ -17,17 +17,17 @@
 #ifndef CVC4__PARSER__ANTLR_INPUT_H
 #define CVC4__PARSER__ANTLR_INPUT_H
 
-#include "cvc4parser_private.h"
-
 #include <antlr3.h>
+
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include <cassert>
 
+#include "base/check.h"
 #include "base/output.h"
+#include "cvc4parser_private.h"
 #include "parser/bounded_token_buffer.h"
 #include "parser/input.h"
 #include "parser/line_buffer.h"
@@ -249,7 +249,7 @@ inline std::string AntlrInput::tokenTextSubstr(pANTLR3_COMMON_TOKEN token,
   ANTLR3_MARKER start = token->getStartIndex(token);
   // Its the last character of the token (not the one just after)
   ANTLR3_MARKER end = token->getStopIndex(token);
-  assert( start < end );
+  Assert(start < end);
   if( index > (size_t) end - start ) {
     std::stringstream ss;
     ss << "Out-of-bounds substring index: " << index;

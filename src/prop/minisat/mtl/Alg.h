@@ -21,6 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Alg_h
 #define Minisat_Alg_h
 
+#include "base/check.h"
 #include "prop/minisat/mtl/Vec.h"
 
 namespace CVC4 {
@@ -38,7 +39,7 @@ static inline void remove(V& ts, const T& t)
 {
     int j = 0;
     for (; j < ts.size() && ts[j] != t; j++);
-    assert(j < ts.size());
+    Assert(j < ts.size());
     for (; j < ts.size()-1; j++) ts[j] = ts[j+1];
     ts.pop();
 }
