@@ -211,7 +211,6 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
             quantifier, terms, failMask, InferenceId::QUANTIFIERS_INST_ENUM))
     {
       Trace("inst-alg-rd") << "Success!" << std::endl;
-      ++(d_quantEngine->d_statistics.d_instantiations_guess);
       return true;
     }
     else

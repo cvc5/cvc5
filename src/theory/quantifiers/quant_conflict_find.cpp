@@ -2166,9 +2166,9 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       // constructed during the isTConstraintSpurious call, or both.
       InferenceId id = (d_effort == EFFORT_CONFLICT
                             ? InferenceId::QUANTIFIERS_INST_CBQI_CONFLICT
-                            : QUANTIFIERS_INST_CBQI_PROP);
+                            : InferenceId::QUANTIFIERS_INST_CBQI_PROP);
       if (!qinst->addInstantiation(
-              q, terms, InferenceId::QUANTIFIERS_INST_CONFLICT))
+              q, terms, id))
       {
         Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
         // This should only happen if the algorithm generates the same

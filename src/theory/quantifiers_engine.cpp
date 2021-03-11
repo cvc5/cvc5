@@ -772,8 +772,6 @@ QuantifiersEngine::Statistics::Statistics()
       d_triggers("QuantifiersEngine::Triggers", 0),
       d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
       d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-      d_multi_trigger_instantiations(
-          "QuantifiersEngine::Multi_Trigger_Instantiations", 0),
       d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_time);

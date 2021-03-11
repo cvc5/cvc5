@@ -490,8 +490,6 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
             false,
             used_vts))
     {
-      ++(d_quantEngine->d_statistics.d_instantiations_cbqi);
-      //d_added_inst.insert( d_curr_quant );
       return true;
     }else{
       //this should never happen for monotonic selection strategies
