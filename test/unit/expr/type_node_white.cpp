@@ -18,8 +18,6 @@
 #include <sstream>
 #include <string>
 
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "expr/node_manager.h"
 #include "expr/type_node.h"
 #include "smt/smt_engine.h"

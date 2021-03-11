@@ -23,6 +23,9 @@
 #include "util/result.h"
 
 namespace CVC4 {
+
+class SmtEngine;
+
 namespace smt {
 
 /**
