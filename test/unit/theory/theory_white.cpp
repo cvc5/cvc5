@@ -62,7 +62,6 @@ class TestTheoryWhite : public TestSmtNoFinishInit
   Context* d_context;
   UserContext* d_user_context;
   std::unique_ptr<LogicInfo> d_logicInfo;
-  DummyOutputChannel d_outputChannel;
   std::unique_ptr<DummyTheory<THEORY_BUILTIN>> d_dummy_theory;
   Node d_atom0;
   Node d_atom1;
