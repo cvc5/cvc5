@@ -812,11 +812,11 @@ Expr ExprManager::mkChain(Kind kind, const std::vector<Expr>& children)
 }
 
 unsigned ExprManager::minArity(Kind kind) {
-  return metakind::getLowerBoundForKind(kind);
+  return metakind::getMinArityForKind(kind);
 }
 
 unsigned ExprManager::maxArity(Kind kind) {
-  return metakind::getUpperBoundForKind(kind);
+  return metakind::getMaxArityForKind(kind);
 }
 
 bool ExprManager::isNAryKind(Kind fun)

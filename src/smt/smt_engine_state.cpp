@@ -20,10 +20,12 @@
 namespace CVC4 {
 namespace smt {
 
-SmtEngineState::SmtEngineState(SmtEngine& smt)
+SmtEngineState::SmtEngineState(context::Context* c,
+                               context::UserContext* u,
+                               SmtEngine& smt)
     : d_smt(smt),
-      d_context(new context::Context()),
-      d_userContext(new context::UserContext()),
+      d_context(c),
+      d_userContext(u),
       d_pendingPops(0),
       d_fullyInited(false),
       d_queryMade(false),
@@ -233,12 +235,9 @@ void SmtEngineState::popto(int toLevel)
   d_userContext->popto(toLevel);
 }
 
-context::UserContext* SmtEngineState::getUserContext()
-{
-  return d_userContext.get();
-}
+context::UserContext* SmtEngineState::getUserContext() { return d_userContext; }
 
-context::Context* SmtEngineState::getContext() { return d_context.get(); }
+context::Context* SmtEngineState::getContext() { return d_context; }
 
 Result SmtEngineState::getStatus() const { return d_status; }
 
