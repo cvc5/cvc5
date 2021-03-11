@@ -192,7 +192,7 @@ void CvcPrinter::toStreamNode(std::ostream& out,
       break;
 
     case kind::DATATYPE_TYPE: {
-      const DType& dt = NodeManager::currentNM()->getDType(
+      const DType& dt = NodeManager::currentNM()->getDTypeForIndex(
           n.getConst<DatatypeIndexConstant>().getIndex());
       if( dt.isTuple() ){
         out << '[';
@@ -371,7 +371,7 @@ void CvcPrinter::toStreamNode(std::ostream& out,
 
     // DATATYPES
     case kind::PARAMETRIC_DATATYPE: {
-      const DType& dt = NodeManager::currentNM()->getDType(
+      const DType& dt = NodeManager::currentNM()->getDTypeForIndex(
           n[0].getConst<DatatypeIndexConstant>().getIndex());
       out << dt.getName() << '[';
       for (unsigned i = 1; i < n.getNumChildren(); ++i)

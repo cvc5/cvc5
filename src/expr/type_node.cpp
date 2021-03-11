@@ -687,7 +687,7 @@ const DType& TypeNode::getDType() const
   if (getKind() == kind::DATATYPE_TYPE)
   {
     DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
-    return NodeManager::currentNM()->getDType(dic.getIndex());
+    return NodeManager::currentNM()->getDTypeForIndex(dic.getIndex());
   }
   Assert(getKind() == kind::PARAMETRIC_DATATYPE);
   return (*this)[0].getDType();

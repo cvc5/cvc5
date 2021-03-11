@@ -273,7 +273,7 @@ NodeManager::~NodeManager() {
   d_attrManager = NULL;
 }
 
-const DType& NodeManager::getDType(size_t index) const
+const DType& NodeManager::getDTypeForIndex(size_t index) const
 {
   // if this assertion fails, it is likely due to not managing datatypes
   // properly w.r.t. multiple NodeManagers.
