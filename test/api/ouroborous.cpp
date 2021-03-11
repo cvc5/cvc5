@@ -24,6 +24,7 @@
  ** below, in SMT-LIBv2 form (but they're good for all languages).
  **/
 
+#include <cassert>
 #include <iostream>
 #include <string>
 

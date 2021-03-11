@@ -1182,7 +1182,7 @@ Node EqProof::addToProof(
   // use (= t1 t2) as a premise and rely on a symmetry step to justify it.
   unsigned arity = d_node[0].getNumChildren();
   Kind k = d_node[0].getKind();
-  bool isNary = ExprManager::isNAryKind(k);
+  bool isNary = NodeManager::isNAryKind(k);
 
   // N-ary operators are fun. The following proof is a valid EqProof
   //

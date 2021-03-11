@@ -107,9 +107,12 @@ TEST_F(TestNodeBlackNode, copy_ctor) { Node e(Node::null()); }
 TEST_F(TestNodeBlackNode, dtor)
 {
   /* No access to internals? Only test that this is crash free. */
-  Node* n;
+  Node* n = nullptr;
   ASSERT_NO_FATAL_FAILURE(n = new Node());
-  delete n;
+  if (n)
+  {
+    delete n;
+  }
 }
 
 /* operator== */
@@ -442,16 +445,16 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 #ifdef CVC4_ASSERTIONS
   ASSERT_DEATH(testNaryExpForSize(AND, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(AND, 1),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 2),
                "getNumChildren\\(\\) <= "
-               "kind::metakind::getUpperBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMaxArityForKind\\(getKind\\(\\)\\)");
 #endif /* CVC4_ASSERTIONS */
 }
 

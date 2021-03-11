@@ -85,3 +85,29 @@ function install_bin
   [ ! -d "$INSTALL_BIN_DIR" ] && mkdir -p "$INSTALL_BIN_DIR"
   cp "$1" "$INSTALL_BIN_DIR"
 }
+
+function guess_lib_dir
+{
+   #
+   # On some systems the library may be installed to lib64/
+   # instead of lib/
+   #
+   # This function guesses the install lib directory
+   #
+   lib_name="$1"
+   lib_dir="$(dirname "$(find "$INSTALL_DIR" -name "${lib_name}")")"
+   echo ${lib_dir}
+}
+
+function rename_installed_lib
+{
+   #
+   # This function uses the calculated library directory and
+   # then relocates the first argument to the second.
+   #
+   src="$1"
+   dest="$2"
+   lib_dir="$(guess_lib_dir "$src")"
+   mv "$lib_dir/$src" "$lib_dir/$dest"
+}
+
