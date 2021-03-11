@@ -258,7 +258,7 @@ void LfscPrinter::printProofInternal(
         bool isLambda = false;
         if (r == PfRule::LFSC_RULE)
         {
-          Assert (!cur->getArguments().empty());
+          Assert(!cur->getArguments().empty());
           LfscRule lr = getLfscRule(cur->getArguments()[0]);
           isLambda = (lr == LfscRule::LAMBDA);
         }
@@ -273,7 +273,7 @@ void LfscPrinter::printProofInternal(
         }
         else if (isLambda)
         {
-          Assert (cur->getArguments().size()==3);
+          Assert(cur->getArguments().size() == 3);
           // lambdas are handled specially. We print in a self contained way
           // here.
           bool didBind = false;
