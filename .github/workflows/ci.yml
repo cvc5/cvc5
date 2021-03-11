@@ -23,7 +23,7 @@ jobs:
 
         include:
           - name: production
-            config: production --all-bindings --lfsc --editline --poly
+            config: production --all-bindings --lfsc --editline --poly --symfpu
             cache-key: production
             python-bindings: true
             check-examples: true
