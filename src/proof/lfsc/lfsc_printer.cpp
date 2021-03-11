@@ -201,7 +201,7 @@ void LfscPrinter::printProofLetify(
       // debugging
       if (Trace.isOn("lfsc-print-debug"))
       {
-        //out << "; proves " << p->getResult();
+        // out << "; proves " << p->getResult();
       }
       lout->printEndLine();
     }
