@@ -51,6 +51,23 @@ Rational Rational::fromDecimal(const std::string& dec) {
   }
 }
 
+int Rational::sgn() const
+{
+  if (cln::zerop(d_value))
+  {
+    return 0;
+  }
+  else if (cln::minusp(d_value))
+  {
+    return -1;
+  }
+  else
+  {
+    Assert(cln::plusp(d_value));
+    return 1;
+  }
+}
+
 std::ostream& operator<<(std::ostream& os, const Rational& q){
   return os << q.toString();
 }

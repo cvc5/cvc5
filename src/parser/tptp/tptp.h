@@ -21,7 +21,6 @@
 #ifndef CVC4__PARSER__TPTP_H
 #define CVC4__PARSER__TPTP_H
 
-#include <cassert>
 #include <unordered_map>
 #include <unordered_set>
 
