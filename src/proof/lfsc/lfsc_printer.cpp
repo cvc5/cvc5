@@ -33,6 +33,7 @@ class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
   {
     if (pn->getRule() == PfRule::SCOPE)
     {
+      // this may not be necessary?
       return false;
     }
     if (pn->getRule() != PfRule::LFSC_RULE)
@@ -41,16 +42,17 @@ class LfscProofLetifyTraverseCallback : public ProofLetifyTraverseCallback
     }
     // do not traverse under LFSC scope
     LfscRule lr = getLfscRule(pn->getArguments()[0]);
-    return lr != LfscRule::SCOPE;
+    return lr != LfscRule::LAMBDA;
   }
 };
 
 LfscPrinter::LfscPrinter(LfscTermProcessor& ltp) : d_tproc(ltp)
 {
   NodeManager* nm = NodeManager::currentNM();
+  d_boolType = nm->booleanType();
   // used for the `flag` type in LFSC
-  d_tt = d_tproc.mkInternalSymbol("tt", nm->booleanType());
-  d_ff = d_tproc.mkInternalSymbol("ff", nm->booleanType());
+  d_tt = d_tproc.mkInternalSymbol("tt", d_boolType);
+  d_ff = d_tproc.mkInternalSymbol("ff", d_boolType);
 }
 
 void LfscPrinter::print(std::ostream& out,
@@ -253,12 +255,64 @@ void LfscPrinter::printProofInternal(
       pit = processingChildren.find(cur);
       if (pit == processingChildren.end())
       {
+        bool isLambda = false;
+        if (r == PfRule::LFSC_RULE)
+        {
+          Assert (!cur->getArguments().empty());
+          LfscRule lr = getLfscRule(cur->getArguments()[0]);
+          isLambda = (lr == LfscRule::LAMBDA);
+        }
+        // FIXME
+        isLambda = false;
         if (r == PfRule::ASSUME)
         {
           // an assumption, must have a name
           passumeIt = passumeMap.find(cur->getResult());
           Assert(passumeIt != passumeMap.end());
           out->printAssumeId(passumeIt->second);
+        }
+        else if (isLambda)
+        {
+          Assert (cur->getArguments().size()==3);
+          // lambdas are handled specially. We print in a self contained way
+          // here.
+          bool didBind = false;
+          // allocate an assumption, if necessary
+          size_t pid;
+          Node assumption = cur->getArguments()[2];
+          passumeIt = passumeMap.find(assumption);
+          if (passumeIt == passumeMap.end())
+          {
+            // mark that we bound the assumption
+            didBind = true;
+            pid = passumeMap.size();
+            passumeMap[assumption] = pid;
+          }
+          else
+          {
+            pid = passumeIt->second;
+          }
+          // make the node whose name is the assumption id, where notice that
+          // the type of this node does not matter
+          std::stringstream pidNodeName;
+          LfscPrintChannelOut::printAssumeId(pidNodeName, pid);
+          // must be an internal symbol so that it is not turned into (bvar ...)
+          Node pidNode =
+              d_tproc.mkInternalSymbol(pidNodeName.str(), d_boolType);
+          // print "(\ "
+          out->printOpenRule(cur);
+          // print the identifier
+          out->printNode(pidNode);
+          // print the body of the proof
+          // TODO
+          // unbind the assumption if necessary
+          if (didBind)
+          {
+            Assert(passumeMap.find(assumption) != passumeMap.end());
+            passumeMap.erase(assumption);
+          }
+          // print ")"
+          out->printCloseRule();
         }
         else
         {
@@ -322,7 +376,7 @@ void LfscPrinter::printProofInternal(
     // case 2: printing a node
     else if (!curn.isNull())
     {
-      // it has already been converted to internal form
+      // it has already been converted to internal form, we letify it here
       Node curni = lbind.convert(curn, "__t", true);
       out->printNode(curni);
     }
