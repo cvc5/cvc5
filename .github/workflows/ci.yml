@@ -9,16 +9,16 @@ jobs:
         name: [
           production,
           production-clang,
-          debug,
-          debug-cln-clang
+          production-dbg,
+          production-dbg-clang
         ]
 
         exclude:
           - name: production-clang
             os: macos-latest
-          - name: debug
+          - name: production-dbg
             os: macos-latest
-          - name: debug-cln-clang
+          - name: production-dbg-clang
             os: macos-latest
 
         include:
