@@ -200,7 +200,7 @@ Node LfscTermProcessor::runConvert(Node n)
     Node n2 = nm->mkConst(Rational(op.d_loopMaxOcc));
     return nm->mkNode(APPLY_UF, nm->mkNode(APPLY_UF, rop, n1, n2), n[0]);
   }
-  else if (ExprManager::isNAryKind(k) && n.getNumChildren() >= 2)
+  else if (NodeManager::isNAryKind(k) && n.getNumChildren() >= 2)
   {
     size_t nchild = n.getNumChildren();
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
@@ -412,7 +412,7 @@ Node LfscTermProcessor::getOperatorOfTerm(Node n, bool macroApply)
   }
   Kind k = n.getKind();
   // we only use binary operators
-  if (ExprManager::isNAryKind(k))
+  if (NodeManager::isNAryKind(k))
   {
     argTypes.resize(2);
   }

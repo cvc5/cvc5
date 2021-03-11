@@ -154,7 +154,7 @@ Node RewriteDbTermProcess::computeInternal(Node n)
       return nm->mkConst(-n[0].getConst<Rational>());
     }
   }
-  else if (ExprManager::isNAryKind(ck) && n.getNumChildren() >= 2)
+  else if (NodeManager::isNAryKind(ck) && n.getNumChildren() >= 2)
   {
     NodeManager* nm = NodeManager::currentNM();
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
@@ -174,7 +174,7 @@ Node RewriteDbTermProcess::computeInternal(Node n)
 Node RewriteDbTermProcess::computeExternal(Node n)
 {
   Kind ck = n.getKind();
-  if (ExprManager::isNAryKind(ck))
+  if (NodeManager::isNAryKind(ck))
   {
     Assert(n.getNumChildren() == 2);
     if (n[1].getKind() == ck)

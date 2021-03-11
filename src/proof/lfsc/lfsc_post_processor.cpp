@@ -166,7 +166,7 @@ bool LfscProofPostprocessCallback::update(Node res,
       // is a binary operator and we must apply congruence in a special way.
       // Note we use the first block of code if we have more than 2 children,
       // or if we have a null terminator.
-      if (ExprManager::isNAryKind(k) && (nchildren > 2 || !nullTerm.isNull()))
+      if (NodeManager::isNAryKind(k) && (nchildren > 2 || !nullTerm.isNull()))
       {
         // get the null terminator for the kind, which may mean we are doing
         // a special kind of congruence for n-ary kinds whose base is a REFL

@@ -246,8 +246,6 @@ void LfscPrinter::printProofInternal(
           LfscRule lr = getLfscRule(cur->getArguments()[0]);
           isLambda = (lr == LfscRule::LAMBDA);
         }
-        // FIXME
-        isLambda = false;
         if (r == PfRule::ASSUME)
         {
           // an assumption, must have a name
@@ -306,6 +304,8 @@ void LfscPrinter::printProofInternal(
         }
         else
         {
+          // assert that we should traverse cur when letifying
+          Assert (d_lpltc.shouldTraverse(cur));
           // a normal rule application, compute the proof arguments, which
           // notice in the case of PI also may modify our passumeMap.
           std::vector<PExpr> args;
