@@ -43,7 +43,6 @@
 
 namespace CVC4 {
 
-class Type;
 class TypeNode;
 class NodeManager;
 
