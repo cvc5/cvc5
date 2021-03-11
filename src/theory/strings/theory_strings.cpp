@@ -986,7 +986,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-TrustNode TheoryStrings::ppRewrite(TNode atom)
+TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   if (atom.getKind() == STRING_FROM_CODE)
@@ -1001,6 +1001,7 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     Node emp = Word::mkEmptyWord(atom.getType());
+    // TODO: use skolem manager
     Node ret = nm->mkNode(
         WITNESS,
         bvl,

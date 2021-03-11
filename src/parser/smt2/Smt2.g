@@ -77,6 +77,7 @@ using namespace CVC4::parser;
 
 #include <memory>
 
+#include "base/check.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
@@ -1718,13 +1719,13 @@ termAtomic[CVC4::api::Term& atomTerm]
   // Bit-vector constants
   | HEX_LITERAL
     {
-      assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
+      Assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
       std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
       atomTerm = SOLVER->mkBitVector(hexStr, 16);
     }
   | BINARY_LITERAL
     {
-      assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
+      Assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
       std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       atomTerm = SOLVER->mkBitVector(binStr, 2);
     }
@@ -1850,7 +1851,7 @@ str[std::string& s, bool fsmtlib]
           {
             // Handle SMT-LIB >=2.5 standard escape '""'.
             ++q;
-            assert(*q == '"');
+            Assert(*q == '"');
           }
           else if (!PARSER_STATE->escapeDupDblQuote() && *q == '\\')
           {
@@ -1858,7 +1859,7 @@ str[std::string& s, bool fsmtlib]
             // Handle SMT-LIB 2.0 standard escapes '\\' and '\"'.
             if (*q != '\\' && *q != '"')
             {
-              assert(*q != '\0');
+              Assert(*q != '\0');
               *p++ = '\\';
             }
           }

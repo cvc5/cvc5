@@ -107,12 +107,6 @@ class SkolemManager
    * @param pg The proof generator for this skolem. If non-null, this proof
    * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
-   * @param retWitness Whether we wish to return the witness term for the
-   * given Skolem, which notice is of the form (witness v. pred), where pred
-   * is in Skolem form. A typical use case of setting this flag to true
-   * is preprocessing passes that eliminate terms. Using a witness term
-   * instead of its corresponding Skolem indicates that the body of the witness
-   * term needs to be added as an assertion, e.g. by the term formula remover.
    * @return The skolem whose witness form is registered by this class.
    */
   Node mkSkolem(Node v,
@@ -120,8 +114,7 @@ class SkolemManager
                 const std::string& prefix,
                 const std::string& comment = "",
                 int flags = NodeManager::SKOLEM_DEFAULT,
-                ProofGenerator* pg = nullptr,
-                bool retWitness = false);
+                ProofGenerator* pg = nullptr);
   /**
    * Make skolemized form of existentially quantified formula q, and store its
    * Skolems into the argument skolems.
