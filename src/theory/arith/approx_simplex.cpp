@@ -587,9 +587,9 @@ ApproxGLPK::ApproxGLPK(const ArithVariables& var,
                        TreeLog& l,
                        ApproximateStatistics& s)
     : ApproximateSimplex(var, l, s),
-      d_inputProb(NULL),
-      d_realProb(NULL),
-      d_mipProb(NULL),
+      d_inputProb(nullptr),
+      d_realProb(nullptr),
+      d_mipProb(nullptr),
       d_solvedRelaxation(false),
       d_solvedMIP(false)
 {
