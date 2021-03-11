@@ -99,9 +99,77 @@ inline std::ostream& operator<<(std::ostream& out, OutputChannelCallType type)
   }
 }
 
+class DummyOutputChannel : public CVC4::theory::OutputChannel
+{
+ public:
+  DummyOutputChannel() {}
+  ~DummyOutputChannel() override {}
+
+  void safePoint(ResourceManager::Resource r) override {}
+  void conflict(TNode n) override { push(CONFLICT, n); }
+
+  void trustedConflict(theory::TrustNode n) override
+  {
+    push(CONFLICT, n.getNode());
+  }
+
+  bool propagate(TNode n) override
+  {
+    push(PROPAGATE, n);
+    return true;
+  }
+
+  void lemma(TNode n,
+             theory::LemmaProperty p = theory::LemmaProperty::NONE) override
+  {
+    push(LEMMA, n);
+  }
+
+  void trustedLemma(theory::TrustNode n, theory::LemmaProperty p) override
+  {
+    push(LEMMA, n.getNode());
+  }
+
+  void requirePhase(TNode, bool) override {}
+  void setIncomplete() override {}
+  void handleUserAttribute(const char* attr, theory::Theory* t) override {}
+
+  void splitLemma(TNode n, bool removable = false) override { push(LEMMA, n); }
+
+  void clear() { d_callHistory.clear(); }
+
+  Node getIthNode(int i) const
+  {
+    Node tmp = (d_callHistory[i]).second;
+    return tmp;
+  }
+
+  OutputChannelCallType getIthCallType(int i) const
+  {
+    return (d_callHistory[i]).first;
+  }
+
+  unsigned getNumCalls() const { return d_callHistory.size(); }
+
+  void printIth(std::ostream& os, int i) const
+  {
+    os << "[DummyOutputChannel " << i;
+    os << " " << getIthCallType(i);
+    os << " " << getIthNode(i) << "]";
+  }
+
+ private:
+  void push(OutputChannelCallType call, TNode n)
+  {
+    d_callHistory.push_back(std::make_pair(call, n));
+  }
+
+  std::vector<std::pair<enum OutputChannelCallType, Node> > d_callHistory;
+};
+
 /* -------------------------------------------------------------------------- */
 
-class DummyTheoryRewriter : public theory::TheoryRewriter
+class DymmyTheoryRewriter : public theory::TheoryRewriter
 {
  public:
   theory::RewriteResponse preRewrite(TNode n) override
@@ -176,7 +244,7 @@ class DummyTheory : public theory::Theory
    */
   std::string d_id;
   /** The theory rewriter for this theory. */
-  DummyTheoryRewriter d_rewriter;
+  DymmyTheoryRewriter d_rewriter;
 };
 
 /* -------------------------------------------------------------------------- */
