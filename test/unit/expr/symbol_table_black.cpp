@@ -20,10 +20,8 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "context/context.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
+#include "expr/kind.h"
 #include "expr/symbol_table.h"
-#include "expr/type.h"
 #include "test_api.h"
 
 namespace CVC4 {

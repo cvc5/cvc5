@@ -36,11 +36,10 @@ void SynthConjectureProcessFun::init(Node f)
   // initialize the arguments
   std::unordered_map<TypeNode, unsigned, TypeNodeHashFunction>
       type_to_init_deq_id;
-  std::vector<Type> argTypes =
-      static_cast<FunctionType>(f.getType().toType()).getArgTypes();
+  std::vector<TypeNode> argTypes = f.getType().getArgTypes();
   for (unsigned j = 0; j < argTypes.size(); j++)
   {
-    TypeNode atn = TypeNode::fromType(argTypes[j]);
+    TypeNode atn = argTypes[j];
     std::stringstream ss;
     ss << "a" << j;
     Node k = NodeManager::currentNM()->mkBoundVar(ss.str(), atn);

@@ -57,7 +57,7 @@ bool InterpolationSolver::getInterpol(const Node& conj,
   {
     if (options::checkInterpols())
     {
-      checkInterpol(interpol.toExpr(), axioms, conj);
+      checkInterpol(interpol, axioms, conj);
     }
     return true;
   }
@@ -83,8 +83,8 @@ void InterpolationSolver::checkInterpol(Node interpol,
   {
     if (j == 1)
     {
-      Trace("check-interpol") << "SmtEngine::checkInterpol: conjecture is "
-                              << conj.toExpr() << std::endl;
+      Trace("check-interpol")
+          << "SmtEngine::checkInterpol: conjecture is " << conj << std::endl;
     }
     Trace("check-interpol") << "SmtEngine::checkInterpol: phase " << j
                             << ": make new SMT engine" << std::endl;

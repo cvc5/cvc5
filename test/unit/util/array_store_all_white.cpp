@@ -15,8 +15,6 @@
  **/
 
 #include "expr/array_store_all.h"
-#include "expr/expr.h"
-#include "expr/type.h"
 #include "test_smt.h"
 
 namespace CVC4 {

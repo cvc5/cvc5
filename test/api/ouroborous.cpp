@@ -24,12 +24,11 @@
  ** below, in SMT-LIBv2 form (but they're good for all languages).
  **/
 
+#include <cassert>
 #include <iostream>
 #include <string>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr.h"
-#include "expr/expr_iomanip.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"

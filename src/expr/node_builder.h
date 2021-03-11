@@ -957,15 +957,15 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() {
   // check that there are the right # of children for this kind
   Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
-  Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
+  Assert(getNumChildren() >= kind::metakind::getMinArityForKind(getKind()))
       << "Nodes with kind " << getKind() << " must have at least "
-      << kind::metakind::getLowerBoundForKind(getKind())
+      << kind::metakind::getMinArityForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
-  Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
+  Assert(getNumChildren() <= kind::metakind::getMaxArityForKind(getKind()))
       << "Nodes with kind " << getKind() << " must have at most "
-      << kind::metakind::getUpperBoundForKind(getKind())
+      << kind::metakind::getMaxArityForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
@@ -1132,15 +1132,15 @@ expr::NodeValue* NodeBuilder<nchild_thresh>::constructNV() const {
   // check that there are the right # of children for this kind
   Assert(getMetaKind() != kind::metakind::CONSTANT)
       << "Cannot make Nodes with NodeBuilder that have CONSTANT-kinded kinds";
-  Assert(getNumChildren() >= kind::metakind::getLowerBoundForKind(getKind()))
+  Assert(getNumChildren() >= kind::metakind::getMinArityForKind(getKind()))
       << "Nodes with kind " << getKind() << " must have at least "
-      << kind::metakind::getLowerBoundForKind(getKind())
+      << kind::metakind::getMinArityForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";
-  Assert(getNumChildren() <= kind::metakind::getUpperBoundForKind(getKind()))
+  Assert(getNumChildren() <= kind::metakind::getMaxArityForKind(getKind()))
       << "Nodes with kind " << getKind() << " must have at most "
-      << kind::metakind::getUpperBoundForKind(getKind())
+      << kind::metakind::getMaxArityForKind(getKind())
       << " children (the one under "
          "construction has "
       << getNumChildren() << ")";

@@ -19,7 +19,6 @@
 #include <sstream>
 
 #include "api/cvc4cpp.h"
-#include "expr/expr_manager.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"

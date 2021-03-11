@@ -18,12 +18,13 @@
 
 #include <antlr3.h>
 
+#include "base/check.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/tptp/tptp.h"
 #include "parser/tptp/TptpLexer.h"
 #include "parser/tptp/TptpParser.h"
+#include "parser/tptp/tptp.h"
 
 namespace CVC4 {
 namespace parser {
@@ -32,7 +33,7 @@ namespace parser {
 TptpInput::TptpInput(AntlrInputStream& inputStream) :
   AntlrInput(inputStream, 2) {
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
-  assert( input != NULL );
+  Assert(input != NULL);
 
   d_pTptpLexer = TptpLexerNew(input);
   if( d_pTptpLexer == NULL ) {
@@ -42,7 +43,7 @@ TptpInput::TptpInput(AntlrInputStream& inputStream) :
   setAntlr3Lexer( d_pTptpLexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
-  assert( tokenStream != NULL );
+  Assert(tokenStream != NULL);
 
   d_pTptpParser = TptpParserNew(tokenStream);
   if( d_pTptpParser == NULL ) {

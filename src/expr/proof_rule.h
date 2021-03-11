@@ -302,8 +302,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: C2
   // where
-  //  Set representations of C1 and C2 is the same but the number of literals in
-  //  C2 is the same of that of C1
+  //  Set representations of C1 and C2 are the same and the number of literals
+  //  in C2 is the same of that of C1
   REORDERING,
   // ======== N-ary Resolution + Factoring + Reordering
   // Children: (P1:C_1, ..., Pm:C_n)
@@ -1108,19 +1108,17 @@ enum class PfRule : uint32_t
   ARITH_MULT_SIGN,
   //======== Multiplication with positive factor
   // Children: none
-  // Arguments: (m, orig, lhs, rel, rhs)
+  // Arguments: (m, (rel lhs rhs))
   // ---------------------
   // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
-  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
-  // symbol.
+  // Where rel is a relation symbol.
   ARITH_MULT_POS,
   //======== Multiplication with negative factor
   // Children: none
-  // Arguments: (m, orig, (rel lhs rhs))
+  // Arguments: (m, (rel lhs rhs))
   // ---------------------
   // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
-  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
-  // symbol and rel_inv the inverted relation symbol.
+  // Where rel is a relation symbol and rel_inv the inverted relation symbol.
   ARITH_MULT_NEG,
   //======== Multiplication tangent plane
   // Children: none

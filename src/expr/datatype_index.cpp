@@ -22,7 +22,7 @@ using namespace std;
 
 namespace CVC4 {
 
-DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) : d_index(index) {}
+DatatypeIndexConstant::DatatypeIndexConstant(uint32_t index) : d_index(index) {}
 std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic)
 {
   return out << "index_" << dic.getIndex();
