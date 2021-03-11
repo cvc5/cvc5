@@ -158,7 +158,8 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q,
       << "InstMatchGeneratorMultiLinear::getNextMatch : continue match "
       << std::endl;
   Assert(d_next != nullptr);
-  int ret_val = continueNextMatch(q, m, qe, tparent, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
+  int ret_val = continueNextMatch(
+      q, m, qe, tparent, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
   if (ret_val > 0)
   {
     Trace("multi-trigger-linear")

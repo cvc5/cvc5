@@ -201,7 +201,7 @@ enum class InferenceId
   // ---------------------------------- end datatypes theory
 
   //-------------------------------------- quantifiers theory
-  //-------------------- types of instantiations. 
+  //-------------------- types of instantiations.
   // Notice the identifiers in this section cover all the techniques used for
   // quantifier instantiation. The subcategories below are for specific lemmas
   // that are not instantiation lemmas added, per technique.

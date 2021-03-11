@@ -42,7 +42,9 @@ IMGenerator::IMGenerator(quantifiers::QuantifiersState& qs,
 {
 }
 
-bool IMGenerator::sendInstantiation(Trigger* tparent, InstMatch& m, InferenceId id)
+bool IMGenerator::sendInstantiation(Trigger* tparent,
+                                    InstMatch& m,
+                                    InferenceId id)
 {
   return tparent->sendInstantiation(m, id);
 }

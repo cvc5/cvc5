@@ -19,8 +19,8 @@
 
 #include <map>
 #include "expr/node_trie.h"
-#include "theory/quantifiers/inst_match.h"
 #include "theory/inference_id.h"
+#include "theory/quantifiers/inst_match.h"
 
 namespace CVC4 {
 namespace theory {

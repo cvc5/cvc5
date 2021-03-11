@@ -378,14 +378,16 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 
 // recursion depth limited by number of arguments of higher order variables
 // occurring as pattern operators (very small)
-bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, unsigned var_index)
+bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m,
+                                           unsigned var_index)
 {
   Trace("ho-unif-debug2") << "send inst " << var_index << " / "
                           << d_ho_var_list.size() << std::endl;
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m, Inference::QUANTIFIERS_INST_HO_MATCHING);
+    return d_quantEngine->getInstantiate()->addInstantiation(
+        d_quant, m, Inference::QUANTIFIERS_INST_HO_MATCHING);
   }
   else
   {
