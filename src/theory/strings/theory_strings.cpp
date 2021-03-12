@@ -47,7 +47,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_statistics(),
       d_state(c, u, d_valuation),
       d_eagerSolver(d_state),
-      d_termReg(d_state, out, d_statistics, pnm),
+      d_termReg(d_state, d_statistics, pnm),
       d_extTheoryCb(),
       d_extTheory(d_extTheoryCb, c, u, out),
       d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, pnm),
@@ -71,6 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_regexp_elim(options::regExpElimAgg(), pnm, u),
       d_stringsFmf(c, u, valuation, d_termReg)
 {
+  d_termReg.finishInit(&d_im);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
