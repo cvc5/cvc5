@@ -49,20 +49,14 @@ class InstMatchGeneratorSimple : public IMGenerator
 {
  public:
   /** constructors */
-  InstMatchGeneratorSimple(Node q,
-                           Node pat,
-                           quantifiers::QuantifiersState& qs,
-                           quantifiers::QuantifiersInferenceManager& qim,
-                           QuantifiersEngine* qe);
+  InstMatchGeneratorSimple(Trigger* tparent, Node q, Node pat);
 
   /** Reset instantiation round. */
-  void resetInstantiationRound(QuantifiersEngine* qe) override;
+  void resetInstantiationRound() override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q,
-                             QuantifiersEngine* qe,
-                             Trigger* tparent) override;
+  uint64_t addInstantiations(Node q) override;
   /** Get active score. */
-  int getActiveScore(QuantifiersEngine* qe) override;
+  int getActiveScore() override;
 
  private:
   /** quantified formula for the trigger term */
@@ -101,11 +95,9 @@ class InstMatchGeneratorSimple : public IMGenerator
    * tat is the term index we are currently traversing.
    */
   void addInstantiations(InstMatch& m,
-                         QuantifiersEngine* qe,
                          uint64_t& addedLemmas,
                          size_t argIndex,
-                         TNodeTrie* tat,
-                         Trigger* tparent);
+                         TNodeTrie* tat);
 };
 
 }  // namespace inst
