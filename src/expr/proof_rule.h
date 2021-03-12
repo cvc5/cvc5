@@ -854,8 +854,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or (= t1 (str.++ s1 r_t)) (= s1 (str.++ t1 r_s)))
   // where
-  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1)))),
-  //   r_s = (witness ((z String)) (= z (suf s1 (str.len t1)))).
+  //   r_t = (skolem (suf t1 (str.len s1)))),
+  //   r_s = (skolem (suf s1 (str.len t1)))).
   //
   // or the reverse form of the above:
   //
@@ -865,9 +865,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or (= t2 (str.++ r_t s2)) (= s2 (str.++ r_s t2)))
   // where
-  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
-  //   s2))))), r_s = (witness ((z String)) (= z (pre s2 (- (str.len s2)
-  //   (str.len t2))))).
+  //   r_t = (skolem (pre t2 (- (str.len t2) (str.len s2))))), 
+  //   r_s = (skolem (pre s2 (- (str.len s2) (str.len t2))))).
   //
   // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and
   // (pre x n) is shorthand for (str.substr x 0 n).
@@ -879,7 +878,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t1 (str.++ c r))
   // where
-  //   r = (witness ((z String)) (= z (suf t1 1))).
+  //   r = (skolem (suf t1 1)).
   //
   // or the reverse form of the above:
   //
@@ -889,7 +888,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t2 (str.++ r c))
   // where
-  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) 1)))).
+  //   r = (skolem (pre t2 (- (str.len t2) 1))).
   CONCAT_CSPLIT,
   // ======== Concat length propagate
   // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
@@ -898,7 +897,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t1 (str.++ s1 r_t))
   // where
-  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1))))
+  //   r_t = (skolem (suf t1 (str.len s1)))
   //
   // or the reverse form of the above:
   //
@@ -908,8 +907,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (= t2 (str.++ r_t s2))
   // where
-  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
-  //   s2))))).
+  //   r_t = (skolem (pre t2 (- (str.len t2) (str.len s2)))).
   CONCAT_LPROP,
   // ======== Concat constant propagate
   // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
@@ -922,7 +920,7 @@ enum class PfRule : uint32_t
   //   w3 is (pre w2 p),
   //   w4 is (suf w2 p),
   //   p = Word::overlap((suf w2 1), w1),
-  //   r = (witness ((z String)) (= z (suf t1 (str.len w3)))).
+  //   r = (skolem (suf t1 (str.len w3))).
   // In other words, w4 is the largest suffix of (suf w2 1) that can contain a
   // prefix of w1; since t1 is non-empty, w3 must therefore be contained in t1.
   //
@@ -938,7 +936,7 @@ enum class PfRule : uint32_t
   //   w3 is (suf w2 (- (str.len w2) p)),
   //   w4 is (pre w2 (- (str.len w2) p)),
   //   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
-  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len w3))))).
+  //   r = (skolem (pre t2 (- (str.len t2) (str.len w3)))).
   // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1))
   // that can contain a suffix of w1; since t2 is non-empty, w3 must therefore
   // be contained in t2.
@@ -954,8 +952,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w2) n))
   // where
-  //   w1 is (witness ((z String)) (= z (pre t n)))
-  //   w2 is (witness ((z String)) (= z (suf t n)))
+  //   w1 is (skolem (pre t n))
+  //   w2 is (skolem (suf t n))
   STRING_DECOMPOSE,
   // ======== Length positive
   // Children: none
@@ -977,7 +975,7 @@ enum class PfRule : uint32_t
   // Conclusion: (and R (= t w))
   // where w = strings::StringsPreprocess::reduce(t, R, ...).
   // In other words, R is the reduction predicate for extended term t, and w is
-  //   (witness ((z T)) (= z t))
+  //   (skolem t)
   // Notice that the free variables of R are w and the free variables of t.
   STRING_REDUCTION,
   // ======== Eager Reduction
