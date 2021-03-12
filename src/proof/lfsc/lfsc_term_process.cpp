@@ -263,6 +263,21 @@ Node LfscTermProcessor::runConvert(Node n)
     // now, iterate over children and make binary conversion
     for (; i < nchild; i++)
     {
+      // special case: string constant children of concat are flattened into
+      // the concatenation.  This means that x ++ "AB" ++ y becomes
+      // (str.++ x (str.++ "A" (str.++ "B" (str.++ y ""))))
+      // instead of:
+      // (str.++ x (str.++ (str.++ "A" (str.++ "B" "")) (str.++ y "")))
+      if (children[i].getKind()==CONST_STRING)
+      {
+        if (k==STRING_CONCAT)
+        {
+          
+          
+          //continue;
+        }
+      }
+      // TODO
       if (!opc.isNull())
       {
         ret = nm->mkNode(ck, opc, children[i], ret);
@@ -373,6 +388,26 @@ Node LfscTermProcessor::getSymbolInternal(Kind k,
   Node sym = mkInternalSymbol(name, tn);
   d_symbolsMap[key] = sym;
   return sym;
+}
+
+void LfscTermProcessor::getCharVectorInternal(Node c, std::vector<Node>& chars)
+{
+  Assert (c.getKind()==CONST_STRING);
+  NodeManager * nm = NodeManager::currentNM();
+  const std::vector<unsigned>& vec = c.getConst<String>().getVec();
+  if (vec.size() == 0)
+  {
+    Node ec = getSymbolInternalFor(c, "emptystr");
+    chars.push_back(ec);
+    return;
+  }
+  TypeNode tnc = nm->mkFunctionType(nm->integerType(), c.getType());
+  Node aconstf = getSymbolInternal(CONST_STRING, tnc, "char");
+  for (unsigned i = 0, size = vec.size(); i < size; i++)
+  {
+    Node cc = nm->mkNode(APPLY_UF, aconstf, nm->mkConst(Rational(vec[i])));
+    chars.push_back(cc);
+  }
 }
 
 Node LfscTermProcessor::getNullTerminator(Kind k)
