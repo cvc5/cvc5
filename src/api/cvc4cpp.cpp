@@ -6133,8 +6133,13 @@ Term Solver::defineFun(const std::string& symbol,
   {
     domain_sorts.push_back(bv.getSort());
   }
-  Sort s = domain_sorts.empty() ? sort : mkFunctionSort(domain_sorts, sort);
-  Term fun = mkConst(s, symbol);
+  Sort fun_sort =
+      domain_sorts.empty()
+          ? sort
+          : Sort(this,
+                 getNodeManager()->mkFunctionType(
+                     Sort::sortVectorToTypeNodes(domain_sorts), *sort.d_type));
+  Term fun = mkConst(fun_sort, symbol);
 
   CVC4_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
 
@@ -6213,8 +6218,13 @@ Term Solver::defineFunRec(const std::string& symbol,
   {
     domain_sorts.push_back(bv.getSort());
   }
-  Sort s = domain_sorts.empty() ? sort : mkFunctionSort(domain_sorts, sort);
-  Term fun = mkConst(s, symbol);
+  Sort fun_sort =
+      domain_sorts.empty()
+          ? sort
+          : Sort(this,
+                 getNodeManager()->mkFunctionType(
+                     Sort::sortVectorToTypeNodes(domain_sorts), *sort.d_type));
+  Term fun = mkConst(fun_sort, symbol);
 
   CVC4_API_SOLVER_CHECK_BOUND_VARS_DEF_FUN(fun, bound_vars, domain_sorts);
   //////// all checks before this line
