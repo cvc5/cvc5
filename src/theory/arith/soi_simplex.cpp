@@ -846,7 +846,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
       d_conflictBuilder->addConstraint(c, coeff);
     }
     ConstraintCP conflicted = d_conflictBuilder->commitConflict();
-    d_conflictChannel.raiseConflict(conflicted);
+    d_conflictChannel.raiseConflict(conflicted, InferenceId::UNKNOWN);
   }
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);

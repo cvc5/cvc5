@@ -38,6 +38,28 @@ namespace theory {
 enum class InferenceId
 {
   // ---------------------------------- arith theory
+  //-------------------- linear core
+  // black box conflicts. It's magic.
+  ARITH_BLACK_BOX,
+  // conflicting equality
+  ARITH_CONF_EQ,
+  // conflicting lower bound
+  ARITH_CONF_LOWER,
+  // conflict due to trichotomy
+  ARITH_CONF_TRICHOTOMY,
+  // conflicting upper bound
+  ARITH_CONF_UPPER,
+  // introduces split on a disequality
+  ARITH_SPLIT_DEQ,
+  // tighten integer inequalities to ceiling
+  ARITH_TIGHTEN_CEIL,
+  // tighten integer inequalities to floor
+  ARITH_TIGHTEN_FLOOR,
+  ARITH_APPROX_CUT,
+  ARITH_BB_LEMMA,
+  ARITH_DIO_CUT,
+  ARITH_DIO_DECOMPOSITION,
+  ARITH_SPLIT_FOR_NL_MODEL,
   //-------------------- preprocessing
   // equivalence of term and its preprocessed form
   ARITH_PP_ELIM_OPERATORS,

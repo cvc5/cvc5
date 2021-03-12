@@ -25,13 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorMulti::InstMatchGeneratorMulti(
-    Node q,
-    std::vector<Node>& pats,
-    quantifiers::QuantifiersState& qs,
-    quantifiers::QuantifiersInferenceManager& qim,
-    QuantifiersEngine* qe)
-    : IMGenerator(qs, qim), d_quant(q)
+InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
+                                                 Node q,
+                                                 std::vector<Node>& pats)
+    : IMGenerator(tparent), d_quant(q)
 {
   Trace("multi-trigger-cache")
       << "Making smart multi-trigger for " << q << std::endl;
@@ -60,7 +57,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(
     Node n = pats[i];
     // make the match generator
     InstMatchGenerator* img =
-        InstMatchGenerator::mkInstMatchGenerator(q, n, qs, qim, qe);
+        InstMatchGenerator::mkInstMatchGenerator(tparent, q, n);
     img->setActiveAdd(false);
     d_children.push_back(img);
     // compute unique/shared variables
@@ -134,20 +131,20 @@ InstMatchGeneratorMulti::~InstMatchGeneratorMulti()
 
 /** reset instantiation round (call this whenever equivalence classes have
  * changed) */
-void InstMatchGeneratorMulti::resetInstantiationRound(QuantifiersEngine* qe)
+void InstMatchGeneratorMulti::resetInstantiationRound()
 {
   for (InstMatchGenerator* c : d_children)
   {
-    c->resetInstantiationRound(qe);
+    c->resetInstantiationRound();
   }
 }
 
 /** reset, eqc is the equivalence class to search in (any if eqc=null) */
-bool InstMatchGeneratorMulti::reset(Node eqc, QuantifiersEngine* qe)
+bool InstMatchGeneratorMulti::reset(Node eqc)
 {
   for (InstMatchGenerator* c : d_children)
   {
-    if (!c->reset(eqc, qe))
+    if (!c->reset(eqc))
     {
       // do not return false here
     }
@@ -155,9 +152,7 @@ bool InstMatchGeneratorMulti::reset(Node eqc, QuantifiersEngine* qe)
   return true;
 }
 
-uint64_t InstMatchGeneratorMulti::addInstantiations(Node q,
-                                                    QuantifiersEngine* qe,
-                                                    Trigger* tparent)
+uint64_t InstMatchGeneratorMulti::addInstantiations(Node q)
 {
   uint64_t addedLemmas = 0;
   Trace("multi-trigger-cache") << "Process smart multi trigger" << std::endl;
@@ -166,7 +161,7 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q,
     Trace("multi-trigger-cache") << "Calculate matches " << i << std::endl;
     std::vector<InstMatch> newMatches;
     InstMatch m(q);
-    while (d_children[i]->getNextMatch(q, m, qe, tparent) > 0)
+    while (d_children[i]->getNextMatch(q, m) > 0)
     {
       // m.makeRepresentative( qe );
       newMatches.push_back(InstMatch(&m));
@@ -179,8 +174,8 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q,
       Trace("multi-trigger-cache2")
           << "...processing " << j << " / " << newMatches.size()
           << ", #lemmas = " << addedLemmas << std::endl;
-      processNewMatch(qe, tparent, newMatches[j], i, addedLemmas);
-      if (qe->getState().isInConflict())
+      processNewMatch(newMatches[j], i, addedLemmas);
+      if (d_qstate.isInConflict())
       {
         return addedLemmas;
       }
@@ -189,15 +184,12 @@ uint64_t InstMatchGeneratorMulti::addInstantiations(Node q,
   return addedLemmas;
 }
 
-void InstMatchGeneratorMulti::processNewMatch(QuantifiersEngine* qe,
-                                              Trigger* tparent,
-                                              InstMatch& m,
+void InstMatchGeneratorMulti::processNewMatch(InstMatch& m,
                                               size_t fromChildIndex,
                                               uint64_t& addedLemmas)
 {
   // see if these produce new matches
-  d_children_trie[fromChildIndex].addInstMatch(
-      qe->getState(), d_quant, m.d_vals);
+  d_children_trie[fromChildIndex].addInstMatch(d_qstate, d_quant, m.d_vals);
   // possibly only do the following if we know that new matches will be
   // produced? the issue is that instantiations are filtered in quantifiers
   // engine, and so there is no guarentee that
@@ -207,9 +199,7 @@ void InstMatchGeneratorMulti::processNewMatch(QuantifiersEngine* qe,
       << "Child " << fromChildIndex << " produced match " << m << std::endl;
   // process new instantiations
   size_t childIndex = (fromChildIndex + 1) % d_children.size();
-  processNewInstantiations(qe,
-                           tparent,
-                           m,
+  processNewInstantiations(m,
                            addedLemmas,
                            d_children_trie[childIndex].getTrie(),
                            0,
@@ -218,9 +208,7 @@ void InstMatchGeneratorMulti::processNewMatch(QuantifiersEngine* qe,
                            true);
 }
 
-void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
-                                                       Trigger* tparent,
-                                                       InstMatch& m,
+void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
                                                        uint64_t& addedLemmas,
                                                        InstMatchTrie* tr,
                                                        size_t trieIndex,
@@ -228,12 +216,11 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
                                                        size_t endChildIndex,
                                                        bool modEq)
 {
-  Assert(!qe->getState().isInConflict());
+  Assert(!d_qstate.isInConflict());
   if (childIndex == endChildIndex)
   {
     // m is an instantiation
-    if (sendInstantiation(
-            tparent, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
+    if (sendInstantiation(m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MT))
     {
       addedLemmas++;
       Trace("multi-trigger-cache-debug")
@@ -253,16 +240,14 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
       {
         InstMatch mn(&m);
         mn.setValue(curr_index, d.first);
-        processNewInstantiations(qe,
-                                 tparent,
-                                 mn,
+        processNewInstantiations(mn,
                                  addedLemmas,
                                  &(d.second),
                                  trieIndex + 1,
                                  childIndex,
                                  endChildIndex,
                                  modEq);
-        if (qe->getState().isInConflict())
+        if (d_qstate.isInConflict())
         {
           break;
         }
@@ -272,9 +257,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
     std::map<Node, InstMatchTrie>::iterator it = tr->d_data.find(n);
     if (it != tr->d_data.end())
     {
-      processNewInstantiations(qe,
-                               tparent,
-                               m,
+      processNewInstantiations(m,
                                addedLemmas,
                                &(it->second),
                                trieIndex + 1,
@@ -286,7 +269,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
     {
       return;
     }
-    quantifiers::QuantifiersState& qs = qe->getState();
+    quantifiers::QuantifiersState& qs = d_qstate;
     // check modulo equality for other possible instantiations
     if (!qs.hasTerm(n))
     {
@@ -301,16 +284,14 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
         std::map<Node, InstMatchTrie>::iterator itc = tr->d_data.find(en);
         if (itc != tr->d_data.end())
         {
-          processNewInstantiations(qe,
-                                   tparent,
-                                   m,
+          processNewInstantiations(m,
                                    addedLemmas,
                                    &(itc->second),
                                    trieIndex + 1,
                                    childIndex,
                                    endChildIndex,
                                    modEq);
-          if (qe->getState().isInConflict())
+          if (d_qstate.isInConflict())
           {
             break;
           }
@@ -322,9 +303,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(QuantifiersEngine* qe,
   else
   {
     size_t newChildIndex = (childIndex + 1) % d_children.size();
-    processNewInstantiations(qe,
-                             tparent,
-                             m,
+    processNewInstantiations(m,
                              addedLemmas,
                              d_children_trie[newChildIndex].getTrie(),
                              0,

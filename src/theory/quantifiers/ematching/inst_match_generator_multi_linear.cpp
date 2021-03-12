@@ -25,11 +25,8 @@ namespace theory {
 namespace inst {
 
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
-    Node q,
-    std::vector<Node>& pats,
-    quantifiers::QuantifiersState& qs,
-    quantifiers::QuantifiersInferenceManager& qim)
-    : InstMatchGenerator(Node::null(), qs, qim)
+    Trigger* tparent, Node q, std::vector<Node>& pats)
+    : InstMatchGenerator(tparent, Node::null())
 {
   // order patterns to maximize eager matching failures
   std::map<Node, std::vector<Node> > var_contains;
@@ -105,7 +102,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
   {
     Node po = pats_ordered[i];
     Trace("multi-trigger-linear") << "...make for " << po << std::endl;
-    InstMatchGenerator* cimg = getInstMatchGenerator(q, po, qs, qim);
+    InstMatchGenerator* cimg = getInstMatchGenerator(tparent, q, po);
     Assert(cimg != nullptr);
     d_children.push_back(cimg);
     // this could be improved
@@ -116,11 +113,11 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
   }
 }
 
-int InstMatchGeneratorMultiLinear::resetChildren(QuantifiersEngine* qe)
+int InstMatchGeneratorMultiLinear::resetChildren()
 {
   for (InstMatchGenerator* c : d_children)
   {
-    if (!c->reset(Node::null(), qe))
+    if (!c->reset(Node::null()))
     {
       return -2;
     }
@@ -128,27 +125,24 @@ int InstMatchGeneratorMultiLinear::resetChildren(QuantifiersEngine* qe)
   return 1;
 }
 
-bool InstMatchGeneratorMultiLinear::reset(Node eqc, QuantifiersEngine* qe)
+bool InstMatchGeneratorMultiLinear::reset(Node eqc)
 {
   Assert(eqc.isNull());
   if (options::multiTriggerLinear())
   {
     return true;
   }
-  return resetChildren(qe) > 0;
+  return resetChildren() > 0;
 }
 
-int InstMatchGeneratorMultiLinear::getNextMatch(Node q,
-                                                InstMatch& m,
-                                                QuantifiersEngine* qe,
-                                                Trigger* tparent)
+int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
 {
   Trace("multi-trigger-linear-debug")
       << "InstMatchGeneratorMultiLinear::getNextMatch : reset " << std::endl;
   if (options::multiTriggerLinear())
   {
     // reset everyone
-    int rc_ret = resetChildren(qe);
+    int rc_ret = resetChildren();
     if (rc_ret < 0)
     {
       return rc_ret;
@@ -158,8 +152,8 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q,
       << "InstMatchGeneratorMultiLinear::getNextMatch : continue match "
       << std::endl;
   Assert(d_next != nullptr);
-  int ret_val = continueNextMatch(
-      q, m, qe, tparent, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
+  int ret_val =
+      continueNextMatch(q, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL);
   if (ret_val > 0)
   {
     Trace("multi-trigger-linear")
