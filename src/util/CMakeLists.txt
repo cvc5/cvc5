@@ -60,6 +60,7 @@ libcvc4_add_sources(
   statistics.h
   statistics_api.cpp
   statistics_api.h
+  statistics_reg.cpp
   statistics_reg.h
   statistics_registry.cpp
   statistics_registry.h

@@ -9,9 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Basic statistics representation
+ ** \brief Statistic proxy objects
  **
- ** The basic statistics classes.
+ ** Conceptually, every statistic consists of a data object and a proxy object.
+ ** The proxy object are issued by the `StatisticRegistry` and maintained by the
+ ** user. They only hold a pointer to a matching data object.
+ ** The purpose of proxy objects is to implement methods to easily change the
+ ** statistic data, but shield the regular user from the internals.
  */
 
 #include "cvc4_private_library.h"
@@ -177,6 +181,8 @@ class CodeTimers;
  * Collects cumulative runtimes. The timer can be started and stopped
  * arbitrarily like a stopwatch. The value of the statistic is the
  * accumulated time over all (start,stop) pairs.
+ * While the runtimes are stored in nanosecond precision internally,
+ * the API exports the number of milliseconds.
  *
  * Note that it is recommended to use it in an RAII fashion using the
  * `CodeTimers` class.

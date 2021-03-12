@@ -19,8 +19,9 @@
 #include <thread>
 #include <vector>
 
-#include "test.h"
 #include "expr/kind.h"
+#include "test.h"
+#include "theory/inference_id.h"
 #include "util/statistics_api.h"
 #include "util/statistics_reg.h"
 
@@ -74,6 +75,14 @@ TEST_F(TestUtilBlackNewstats, stats)
       foo.emplace_back(5);
       std::cout << reg << std::endl;
     }
+    {
+      // re-register statistic
+      HistogramStats<Kind> hist = reg.registerHistogram<Kind>("hist");
+      hist << Kind::AND << Kind::OR << Kind::OR << Kind::OR;
+    }
+    // This crashes, because the type does not match
+    // HistogramStats<theory::InferenceId> hist =
+    // reg.registerHistogram<theory::InferenceId>("hist");
   }
   std::cout << reg << std::endl;
 

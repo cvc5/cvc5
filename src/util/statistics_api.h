@@ -28,13 +28,20 @@ namespace CVC4 {
 
 class StatisticRegistry;
 
+/**
+ * Represents the internally collected statistics, converted to `StatViewer`
+ * objects. Supports querying for a statistic name and iteration.
+ */
 class Statistics
 {
  public:
   // TODO: make this private and friend with SmtEngine
   Statistics(const StatisticRegistry& reg);
-  const StatViewer& get(std::string name);
+  /** Retrieve the statistic with the given name. */
+  const StatViewer& get(const std::string& name);
+  /** begin iteration */
   auto begin() const { return d_stats.begin(); }
+  /** end iteration */
   auto end() const { return d_stats.end(); }
 
  private:

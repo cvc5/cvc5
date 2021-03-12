@@ -30,7 +30,7 @@ Statistics::Statistics(const StatisticRegistry& reg)
   }
 }
 
-const StatViewer& Statistics::get(std::string name)
+const StatViewer& Statistics::get(const std::string& name)
 {
   auto it = d_stats.find(name);
   assert(it != d_stats.end());

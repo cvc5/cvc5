@@ -9,9 +9,17 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Basic statistics representation
+ ** \brief Statistic data classes
  **
- ** The basic statistics classes.
+ ** The statistic data classes that actually hold the data for the statistics.
+ **
+ ** Conceptually, every statistic consists of a data object and a proxy object.
+ ** The data objects (statistic values) are derived from `StatisticBaseValue`
+ ** and live in the `StatisticRegistry`.
+ ** They are solely exported to the proxy objects, which should be the sole
+ ** way to manipulate the data of a data object.
+ ** The data objects themselves need to implement printing (normal and safe) and
+ ** conversion to the API type `StatViewer`.
  **/
 
 #include "cvc4_private_library.h"
@@ -34,6 +42,13 @@ namespace CVC4 {
 
 class StatisticRegistry;
 
+/**
+ * Base class for all statistic values.
+ * Requires three methods:
+ * - `getViewer` converts to the API representation `StatViewer`
+ * - `print` writes the data to a regular `std::ostream`
+ * - `print_safe` safely writes the data to a file descriptor
+ */
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue() = default;
@@ -41,6 +56,7 @@ struct StatisticBaseValue
   virtual void print(std::ostream&) const = 0;
   virtual void print_safe(int fd) const = 0;
 };
+/** Writes the data to an output stream */
 inline std::ostream& operator<<(std::ostream& out,
                                 const StatisticBaseValue& sbv)
 {
@@ -48,6 +64,7 @@ inline std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
+/** Holds the data for an running average statistic */
 struct StatisticAverageValue : StatisticBaseValue
 {
   StatViewer getViewer() const override { return get(); }
@@ -55,10 +72,19 @@ struct StatisticAverageValue : StatisticBaseValue
   void print_safe(int fd) const override { safe_print<double>(fd, get()); }
   double get() const { return d_sum / d_count; }
 
+  /** Sum of added values */
   double d_sum;
+  /** Number of added values */
   uint64_t d_count;
 };
 
+/**
+ * Holds some value of type `T`.
+ *
+ * To convert to the API representation in `getViewer`, `T` can only be one
+ * of the types listed in `StatViewer::d_data` (or be implicitly converted to
+ * one of them).
+ */
 template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
@@ -70,13 +96,14 @@ struct StatisticBackedValue : StatisticBaseValue
 };
 
 /**
- * A histogram statistic class for integral types.
- * Avoids using an std::map (like the generic HistogramStat) in favor of a
- * faster std::vector by casting the integral values to indices into the
- * vector. Requires the type to be an integral type that is convertible to
- * int64_t, also supporting appropriate enum types.
+ * Holds the data for a histogram. We assume the type to be (convertible to)
+ * integral, and we can thus use a std::vector<uint64_t> for fast storage.
+ * The core idea is to track the minimum and maximum values `[a,b]` that have
+ * been added to the histogram and maintain a vector with `b-a+1` values.
  * The vector is resized on demand to grow as necessary and supports negative
  * values as well.
+ * Note that the template type needs to have a streaming operator to convert it
+ * to a string in `getViewer`.
  */
 template <typename Integral>
 struct StatisticHistogramValue : StatisticBaseValue
@@ -85,6 +112,9 @@ struct StatisticHistogramValue : StatisticBaseValue
                     || std::is_enum<Integral>::value,
                 "Type should be a fundamental integral type.");
 
+  /**
+   * Convert the internal representation to a `std::map<std::string, uint64_t>`
+   */
   StatViewer getViewer() const override
   {
     std::map<std::string, uint64_t> res;
@@ -147,6 +177,10 @@ struct StatisticHistogramValue : StatisticBaseValue
     safe_print(fd, "]");
   }
 
+  /**
+   * Add `val` to the histogram. Casts `val` to `int64_t`, then resizes and
+   * moves the vector entries as necessary.
+   */
   void add(Integral val)
   {
     int64_t v = static_cast<int64_t>(val);
@@ -166,10 +200,18 @@ struct StatisticHistogramValue : StatisticBaseValue
     d_hist[v - d_offset]++;
   }
 
+  /** Actual data */
   std::vector<uint64_t> d_hist;
+  /** Offset of the entries. d_hist[i] corresponds to Interval(d_offset + i) */
   int64_t d_offset;
 };
 
+/**
+ * Holds the data for a `ReferenceStat`.
+ * When the `ReferenceStat` is destroyed the current values is copied into
+ * `d_committed`. Once `d_committed` is set, this value is returned, even if
+ * the reference is still valid.
+ */
 template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
@@ -183,6 +225,12 @@ struct StatisticReferenceValue : StatisticBaseValue
   std::optional<T> d_committed;
 };
 
+/**
+ * Holds the data for a `SizeStat`.
+ * When the `SizeStat` is destroyed the current size is copied into
+ * `d_committed`. Once `d_committed` is set, this value is returned, even if
+ * the reference is still valid.
+ */
 template <typename T>
 struct StatisticSizeValue : StatisticBaseValue
 {
@@ -196,6 +244,11 @@ struct StatisticSizeValue : StatisticBaseValue
   std::optional<std::size_t> d_committed;
 };
 
+/**
+ * Holds the data for a `TimerStat`.
+ * Uses `std::chrono` to obtain the current time, store a time point and sum up
+ * the total durations.
+ */
 struct StatisticTimerValue : StatisticBaseValue
 {
   using clock = std::chrono::steady_clock;
@@ -203,7 +256,9 @@ struct StatisticTimerValue : StatisticBaseValue
   struct duration : public std::chrono::nanoseconds
   {
   };
+  /** Returns the number of milliseconds */
   StatViewer getViewer() const override { return static_cast<int64_t>(get() / std::chrono::milliseconds(1)); }
+  /** Prints seconds in fixed-point format */
   void print(std::ostream& out) const override
   {
     StreamFormatScope format_scope(out);
@@ -213,6 +268,7 @@ struct StatisticTimerValue : StatisticBaseValue
               << std::setw(9) << std::right
               << (dur % std::chrono::seconds(1)).count();
   }
+  /** Prints seconds in fixed-point format */
   void print_safe(int fd) const override
   {
     duration dur = get();
@@ -220,6 +276,7 @@ struct StatisticTimerValue : StatisticBaseValue
     safe_print(fd, ".");
     safe_print_right_aligned(fd, (dur % std::chrono::seconds(1)).count(), 9);
   }
+  /** Make sure that we include the time of a currently running timer */
   duration get() const
   {
     auto data = d_duration;
