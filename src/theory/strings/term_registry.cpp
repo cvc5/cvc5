@@ -302,8 +302,7 @@ void TermRegistry::registerTerm(Node n, int effort)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << regTermLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTerm);
-    d_out.trustedLemma(regTermLem);
+    d_out.trustedLemma(regTermLem, InferenceId::STRINGS_REGISTER_TERM);
   }
 }
 
@@ -416,8 +415,7 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << lenLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTermAtomic);
-    d_out.trustedLemma(lenLem);
+    d_out.trustedLemma(lenLem, InferenceId::STRINGS_REGISTER_TERM_ATOMIC);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {

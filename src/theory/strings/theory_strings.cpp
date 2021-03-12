@@ -167,21 +167,7 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 
 bool TheoryStrings::propagateLit(TNode literal)
 {
-  Debug("strings-propagate")
-      << "TheoryStrings::propagateLit(" << literal << ")" << std::endl;
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("strings-propagate") << "TheoryStrings::propagateLit(" << literal
-                               << "): already in conflict" << std::endl;
-    return false;
-  }
-  // Propagate out
-  bool ok = d_out->propagate(literal);
-  if (!ok) {
-    d_state.notifyInConflict();
-  }
-  return ok;
+  return d_im.propagateLit(literal);
 }
 
 TrustNode TheoryStrings::explain(TNode literal)
@@ -455,8 +441,7 @@ bool TheoryStrings::collectModelInfoType(
               for (const Node& sl : len_splits)
               {
                 Node spl = nm->mkNode(OR, sl, sl.negate());
-                ++(d_statistics.d_lemmasCmiSplit);
-                d_out->lemma(spl);
+                d_im.lemma(spl, InferenceId::STRINGS_CMI_SPLIT);
                 Trace("strings-lemma")
                     << "Strings::CollectModelInfoSplit: " << spl << std::endl;
               }
