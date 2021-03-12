@@ -66,10 +66,7 @@ TermDb::~TermDb(){
 
 }
 
-void TermDb::finishInit(QuantifiersInferenceManager* qim)
-{
-  d_qim = qim;
-}
+void TermDb::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
 
 void TermDb::registerQuantifier( Node q ) {
   Assert(q[0].getNumChildren() == d_qreg.getNumInstantiationConstants(q));

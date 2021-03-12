@@ -53,7 +53,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // manager. This is require due to a cyclic dependency between the term
   // database and the instantiate module.
   d_treg.finishInit(&d_qim);
-  
+
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute("qid", this);
   out.handleUserAttribute( "quant-inst-max-level", this );

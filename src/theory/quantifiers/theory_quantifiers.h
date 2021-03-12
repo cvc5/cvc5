@@ -22,11 +22,11 @@
 #include "expr/node.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"
 

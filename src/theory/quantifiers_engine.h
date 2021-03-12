@@ -65,8 +65,8 @@ class QuantifiersEngine {
 
  public:
   QuantifiersEngine(quantifiers::QuantifiersState& qstate,
-  quantifiers::QuantifiersRegistry& qr,
-  quantifiers::TermRegistry& tr,
+                    quantifiers::QuantifiersRegistry& qr,
+                    quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
