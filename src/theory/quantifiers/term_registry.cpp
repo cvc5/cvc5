@@ -31,6 +31,11 @@ TermRegistry::TermRegistry(QuantifiersState& qs,
       d_termDb(new TermDb(qs, qim, qr)),
       d_sygusTdb(nullptr)
 {
+}
+
+void TermRegistry::finishInit(QuantifiersInferenceManager* qim)
+{
+  d_termDb->finishInit(qim);
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit

@@ -48,6 +48,8 @@ namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
     quantifiers::QuantifiersState& qstate,
+    quantifiers::QuantifiersRegistry& qr,
+    quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
     ProofNodeManager* pnm)
     : d_qstate(qstate),
@@ -55,8 +57,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_te(nullptr),
       d_decManager(nullptr),
       d_pnm(pnm),
-      d_qreg(),
-      d_treg(qstate, qim, d_qreg),
+      d_qreg(qr),
+      d_treg(tr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),

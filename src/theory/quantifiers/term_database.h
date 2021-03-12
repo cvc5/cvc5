@@ -78,9 +78,10 @@ class TermDb : public QuantifiersUtil {
 
  public:
   TermDb(QuantifiersState& qs,
-         QuantifiersInferenceManager& qim,
          QuantifiersRegistry& qr);
   ~TermDb();
+  /** Finish init, which sets the inference manager */
+  void finishInit(QuantifiersInferenceManager* qim);
   /** presolve (called once per user check-sat) */
   void presolve();
   /** reset (calculate which terms are active) */
