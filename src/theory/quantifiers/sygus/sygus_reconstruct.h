@@ -22,6 +22,7 @@
 
 #include "theory/quantifiers/sygus/rcons_obligation_info.h"
 #include "theory/quantifiers/sygus/rcons_type_info.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
