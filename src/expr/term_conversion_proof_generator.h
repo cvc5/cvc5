@@ -80,12 +80,9 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
  * [***] This class traverses the left hand side of a given equality-to-prove
  * (the term g(f(a),h(a),e) in the above example) and "replays" the rewrite
  * steps to obtain its rewritten form. To do so, it applies any available
- * rewrite step both at pre-rewrite (pre-order traversal) and post-rewrite
- * (post-order traversal). It thus does not require the user of this class to
- * distinguish whether a rewrite is a pre-rewrite or a post-rewrite during
- * addRewriteStep. In particular, notice that in the above example, we realize
- * that f(a) --> c at pre-rewrite instead of post-rewriting a --> b and then
- * ending with f(a)=f(b).
+ * rewrite step at pre-rewrite (pre-order traversal) and post-rewrite
+ * (post-order traversal) based on whether the user specified pre-rewrite or a
+ * post-rewrite during addRewriteStep.
  *
  * This class may additionally be used for term-context-sensitive rewrite
  * systems. An example is the term formula removal pass which rewrites
