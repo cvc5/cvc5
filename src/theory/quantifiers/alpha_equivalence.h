@@ -22,6 +22,9 @@
 #include "expr/term_canonize.h"
 
 namespace CVC4 {
+
+class CDProof;
+
 namespace theory {
 namespace quantifiers {
 
@@ -81,22 +84,30 @@ class AlphaEquivalenceDb
 class AlphaEquivalence
 {
  public:
-  AlphaEquivalence(QuantifiersEngine* qe);
+  AlphaEquivalence(QuantifiersEngine* qe, ProofNodeManager* pnm = nullptr);
   ~AlphaEquivalence(){}
   /** reduce quantifier
    *
-   * If non-null, its return value is lemma justifying why q is reducible.
-   * This is of the form ( q = q' ) where q' is a quantified formula that
-   * was previously registered to this class via a call to reduceQuantifier,
-   * and q and q' are alpha-equivalent.
+   * If non-null, its return value is a trust node containing the lemma
+   * justifying why q is reducible.  This lemma is of the form ( q = q' ) where
+   * q' is a quantified formula that was previously registered to this class via
+   * a call to reduceQuantifier, and q and q' are alpha-equivalent.
    */
-  Node reduceQuantifier( Node q );
+  TrustNode reduceQuantifier(Node q);
 
  private:
   /** a term canonizer */
   expr::TermCanonize d_termCanon;
   /** the database of quantified formulas registered to this class */
   AlphaEquivalenceDb d_aedb;
+  /** Pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
+  /**
+   * A CDProof storing alpha equivalence steps.
+   */
+  std::unique_ptr<CDProof> d_pfAlpha;
+  /** Are proofs enabled for this object? */
+  bool isProofEnabled() const;
 };
 
 }

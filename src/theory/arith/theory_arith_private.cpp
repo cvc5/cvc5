@@ -1632,7 +1632,7 @@ TrustNode TheoryArithPrivate::dioCutting()
       Pf pfLt =
           d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pfNotGeq}, {lt});
       Pf pfSum =
-          d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+          d_pnm->mkNode(PfRule::MACRO_ARITH_SCALE_SUM_UB,
                         {pfGt, pfLt},
                         {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
       Pf pfBot = d_pnm->mkNode(
@@ -4822,9 +4822,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
             [nm](const Rational& r) { return nm->mkConst<Rational>(r); });
 
         // Prove bottom.
-        auto sumPf = d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
-                                   conflictPfs,
-                                   farkasCoefficients);
+        auto sumPf = d_pnm->mkNode(
+            PfRule::MACRO_ARITH_SCALE_SUM_UB, conflictPfs, farkasCoefficients);
         auto botPf = d_pnm->mkNode(
             PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
 

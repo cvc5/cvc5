@@ -31,6 +31,7 @@ void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
+  pc->registerChecker(PfRule::ALPHA_EQUIV, this);
 }
 
 Node QuantifiersProofRuleChecker::checkInternal(
@@ -115,6 +116,22 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node inst =
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
     return inst;
+  }
+  if (id == PfRule::ALPHA_EQUIV)
+  {
+    Assert(children.empty());
+    if (args[0].getKind() != kind::FORALL
+        || args.size() != args[0][0].getNumChildren() + 1)
+    {
+      return Node::null();
+    }
+    Node body = args[0][1];
+    std::vector<Node> vars{args[0][0].begin(), args[0][0].end()};
+    std::vector<Node> newVars{args.begin() + 1, args.end()};
+    Node renamedBody = body.substitute(
+        vars.begin(), vars.end(), newVars.begin(), newVars.end());
+    return args[0].eqNode(nm->mkNode(
+        kind::FORALL, nm->mkNode(kind::BOUND_VAR_LIST, newVars), renamedBody));
   }
 
   // no rule

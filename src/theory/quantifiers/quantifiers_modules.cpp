@@ -43,6 +43,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
                                     DecisionManager* dm,
+                                    ProofNodeManager* pnm,
                                     std::vector<QuantifiersModule*>& modules)
 {
   // add quantifiers modules
@@ -90,7 +91,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
   if (options::quantAlphaEquiv())
   {
-    d_alpha_equiv.reset(new AlphaEquivalence(qe));
+    d_alpha_equiv.reset(new AlphaEquivalence(qe, pnm));
   }
   // full saturation : instantiate from relevant domain, then arbitrary terms
   if (options::fullSaturateQuant() || options::fullSaturateInterleave())

@@ -30,7 +30,7 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 class QuantifiersEngine;
 class DecisionManager;
 
@@ -57,6 +57,7 @@ class QuantifiersModules
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
                   DecisionManager* dm,
+                  ProofNodeManager* pnm,
                   std::vector<QuantifiersModule*>& modules);
 
  private:
