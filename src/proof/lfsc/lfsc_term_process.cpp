@@ -120,33 +120,22 @@ Node LfscTermProcessor::runConvert(Node n)
   }
   else if (k == CONST_STRING)
   {
-    // "" is emptystr
-    // "A" is (char 65)
-    // "ABC" is (str.++ (char 65) (str.++ (char 66) (char 67)))
-    const std::vector<unsigned>& vec = n.getConst<String>().getVec();
-    if (vec.size() == 0)
+    //"" is emptystr
+    //"A" is (char 65)
+    //"ABC" is (str.++ (char 65) (str.++ (char 66) (str.++ (char 67) emptystr)))
+    std::vector<Node> charVec;
+    getCharVectorInternal(n, charVec);
+    Assert (!charVec.empty());
+    if (charVec.size()==1)
     {
-      return getSymbolInternalFor(n, "emptystr");
+      // handles empty string and singleton character
+      return charVec[0];
     }
-    if (vec.size() == 1)
+    std::reverse(charVec.begin(), charVec.end());
+    Node ret = charVec[0];
+    for (size_t i = 1, size = charVec.size(); i < size; i++)
     {
-      TypeNode tnc = nm->mkFunctionType(nm->integerType(), tn);
-      Node aconstf = getSymbolInternal(k, tnc, "char");
-      return nm->mkNode(APPLY_UF, aconstf, nm->mkConst(Rational(vec[0])));
-    }
-    std::vector<unsigned> v(vec.begin(), vec.end());
-    std::reverse(v.begin(), v.end());
-    std::vector<unsigned> tmp;
-    tmp.push_back(v[0]);
-    Node ret = runConvert(nm->mkConst(String(tmp)));
-    tmp.pop_back();
-    for (unsigned i = 1, size = v.size(); i < size; i++)
-    {
-      tmp.push_back(v[i]);
-      // also convert internal
-      ret =
-          nm->mkNode(STRING_CONCAT, runConvert(nm->mkConst(String(tmp))), ret);
-      tmp.pop_back();
+      ret = nm->mkNode(STRING_CONCAT, charVec[i], ret);
     }
     return ret;
   }

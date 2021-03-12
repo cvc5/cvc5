@@ -82,6 +82,7 @@ bool LfscProofPostprocessCallback::update(Node res,
         addLfscRule(cdp, next, {fconc}, LfscRule::SCOPE, {args[ii]});
         curr = next;
       }
+      // TODO: this can be unified to the latter case
       // In LFSC, we have now proved:
       //  (or (not F1) (or (not F2) ... (or (not Fn) C) ... ))
       // We now must convert this to one of two cases
