@@ -792,6 +792,14 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
+  // ======== Alpha equivalence
+  // Children: none
+  // Arguments: ((forall ((x1 T1) ... (xn Tn)) F), y1 ... yn)
+  // ----------------------------------------
+  // Conclusion: (= (forall ((x1 T1) ... (xn Tn)) F)
+  //                (forall ((y1 T1) ... (yn Tn)) F*sigma))
+  // sigma maps x1 ... xn to y1 ... yn.
+  ALPHA_EQUIV,
 
   //================================================= String rules
   //======================== Core solver

@@ -298,7 +298,7 @@ public:
   NodeSet d_quants_prereg;
   /** quantifiers reduced */
   BoolMap d_quants_red;
-  std::map<Node, Node> d_quants_red_lem;
+  std::map<Node, TrustNode> d_quantsRedTrustLem;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */

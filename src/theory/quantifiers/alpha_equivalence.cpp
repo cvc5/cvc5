@@ -15,6 +15,7 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
+#include "expr/proof.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -83,35 +84,50 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe)
-    : d_termCanon(), d_aedb(&d_termCanon)
+AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe, ProofNodeManager* pnm)
+    : d_termCanon(),
+      d_aedb(&d_termCanon),
+      d_pnm(pnm),
+      d_pfAlpha(pnm ? new CDProof(pnm) : nullptr)
 {
 }
 
-Node AlphaEquivalence::reduceQuantifier(Node q)
+TrustNode AlphaEquivalence::reduceQuantifier(Node q)
 {
   Assert(q.getKind() == FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   Node ret = d_aedb.addTerm(q);
-  Node lem;
-  if (ret != q)
+  if (ret == q)
   {
-    // lemma ( q <=> d_quant )
-    // Notice that we infer this equivalence regardless of whether q or ret
-    // have annotations (e.g. user patterns, names, etc.).
-    Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
-    Trace("alpha-eq") << "  " << q << std::endl;
-    Trace("alpha-eq") << "  " << ret << std::endl;
-    lem = q.eqNode(ret);
-    if (q.getNumChildren() == 3)
-    {
-      Notice() << "Ignoring annotated quantified formula based on alpha "
-                  "equivalence: "
-               << q << std::endl;
-    }
+    return TrustNode::null();
   }
-  return lem;
+  Node lem;
+  ProofGenerator* pg = nullptr;
+  // lemma ( q <=> d_quant )
+  // Notice that we infer this equivalence regardless of whether q or ret
+  // have annotations (e.g. user patterns, names, etc.).
+  Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
+  Trace("alpha-eq") << "  " << q << std::endl;
+  Trace("alpha-eq") << "  " << ret << std::endl;
+  lem = q.eqNode(ret);
+  if (q.getNumChildren() == 3)
+  {
+    Notice() << "Ignoring annotated quantified formula based on alpha "
+                "equivalence: "
+             << q << std::endl;
+  }
+  if (isProofEnabled())
+  {
+    // arguments are the original formula and the renaming
+    std::vector<Node> args{q};
+    args.insert(args.end(), ret[0].begin(), ret[0].end());
+    d_pfAlpha->addStep(lem, PfRule::ALPHA_EQUIV, {}, args);
+    pg = d_pfAlpha.get();
+  }
+  return TrustNode::mkTrustLemma(lem, pg);
 }
+
+bool AlphaEquivalence::isProofEnabled() const { return d_pfAlpha != nullptr; }
 
 }  // namespace quantifiers
 }  // namespace theory
