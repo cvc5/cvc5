@@ -65,7 +65,7 @@ class LfscTermProcessor : public TermProcessor
   Node getSymbolInternalFor(Node n, const std::string& name);
   /** Get symbol internal, (k,tn,name) are for caching, name is the name */
   Node getSymbolInternal(Kind k, TypeNode tn, const std::string& name);
-  /** 
+  /**
    * Get character vector, add internal vector of characters for c.
    */
   void getCharVectorInternal(Node c, std::vector<Node>& chars);

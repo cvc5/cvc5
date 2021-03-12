@@ -303,7 +303,7 @@ void LfscPrinter::printProofInternal(
         else
         {
           // assert that we should traverse cur when letifying
-          Assert (d_lpltc.shouldTraverse(cur));
+          Assert(d_lpltc.shouldTraverse(cur));
           // a normal rule application, compute the proof arguments, which
           // notice in the case of PI also may modify our passumeMap.
           std::vector<PExpr> args;
@@ -451,7 +451,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
-    //case PfRule::CONCAT_EQ: pf << h << h << h << args[0].getConst<bool>() << cs[0]; break;
+    // case PfRule::CONCAT_EQ: pf << h << h << h << args[0].getConst<bool>() <<
+    // cs[0]; break;
     /*
     case PfRule::RE_UNFOLD_POS:
       Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " <<
@@ -472,7 +473,7 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     {
       LfscRule lr = getLfscRule(args[0]);
       // lambda should be processed elsewhere
-      Assert (lr != LfscRule::LAMBDA );
+      Assert(lr != LfscRule::LAMBDA);
       // Note that `args` has 2 builtin arguments, thus the first real argument
       // begins at index 2
       switch (lr)

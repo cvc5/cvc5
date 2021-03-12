@@ -268,13 +268,11 @@ Node LfscTermProcessor::runConvert(Node n)
       // (str.++ x (str.++ "A" (str.++ "B" (str.++ y ""))))
       // instead of:
       // (str.++ x (str.++ (str.++ "A" (str.++ "B" "")) (str.++ y "")))
-      if (children[i].getKind()==CONST_STRING)
+      if (children[i].getKind() == CONST_STRING)
       {
-        if (k==STRING_CONCAT)
+        if (k == STRING_CONCAT)
         {
-          
-          
-          //continue;
+          // continue;
         }
       }
       // TODO
@@ -392,8 +390,8 @@ Node LfscTermProcessor::getSymbolInternal(Kind k,
 
 void LfscTermProcessor::getCharVectorInternal(Node c, std::vector<Node>& chars)
 {
-  Assert (c.getKind()==CONST_STRING);
-  NodeManager * nm = NodeManager::currentNM();
+  Assert(c.getKind() == CONST_STRING);
+  NodeManager* nm = NodeManager::currentNM();
   const std::vector<unsigned>& vec = c.getConst<String>().getVec();
   if (vec.size() == 0)
   {

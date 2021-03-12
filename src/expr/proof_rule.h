@@ -1068,8 +1068,9 @@ enum class PfRule : uint32_t
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n * poly_n)
-  //    t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n * const_n)
+  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n *
+  //    poly_n) t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n
+  //    * const_n)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
   // ======== Sum Upper Bounds
