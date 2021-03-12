@@ -135,7 +135,7 @@ class TheoryArith : public Theory {
   /** Return a reference to the arith::InferenceManager. */
   InferenceManager& getInferenceManager()
   {
-    return d_inferenceManager;
+    return d_im;
   }
 
  private:
@@ -149,7 +149,7 @@ class TheoryArith : public Theory {
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
   /** The arith::InferenceManager. */
-  InferenceManager d_inferenceManager;
+  InferenceManager d_im;
 
   /**
    * The non-linear extension, responsible for all approaches for non-linear

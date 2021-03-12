@@ -28,8 +28,6 @@ namespace nl {
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_MULT_SIGN, this);
-  pc->registerChecker(PfRule::ARITH_MULT_POS, this);
-  pc->registerChecker(PfRule::ARITH_MULT_NEG, this);
   pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
 }
 
@@ -118,41 +116,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
             Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero));
       default: Assert(false); return Node();
     }
-  }
-  else if (id == PfRule::ARITH_MULT_POS)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Node mult = args[0];
-    Kind rel = args[1].getKind();
-    Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-           || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
-    Node lhs = args[1][0];
-    Node rhs = args[1][1];
-    return nm->mkNode(
-        Kind::IMPLIES,
-        nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GT, mult, zero), args[1]}),
-        nm->mkNode(rel,
-                   nm->mkNode(Kind::MULT, mult, lhs),
-                   nm->mkNode(Kind::MULT, mult, rhs)));
-  }
-  else if (id == PfRule::ARITH_MULT_NEG)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Node mult = args[0];
-    Kind rel = args[1].getKind();
-    Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-           || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
-    Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
-    Node lhs = args[1][0];
-    Node rhs = args[1][1];
-    return nm->mkNode(
-        Kind::IMPLIES,
-        nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::LT, mult, zero), args[1]}),
-        nm->mkNode(rel_inv,
-                   nm->mkNode(Kind::MULT, mult, lhs),
-                   nm->mkNode(Kind::MULT, mult, rhs)));
   }
   else if (id == PfRule::ARITH_MULT_TANGENT)
   {

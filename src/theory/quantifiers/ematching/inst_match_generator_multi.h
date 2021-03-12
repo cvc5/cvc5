@@ -38,22 +38,16 @@ class InstMatchGeneratorMulti : public IMGenerator
 {
  public:
   /** constructors */
-  InstMatchGeneratorMulti(Node q,
-                          std::vector<Node>& pats,
-                          quantifiers::QuantifiersState& qs,
-                          quantifiers::QuantifiersInferenceManager& qim,
-                          QuantifiersEngine* qe);
+  InstMatchGeneratorMulti(Trigger* tparent, Node q, std::vector<Node>& pats);
   /** destructor */
   ~InstMatchGeneratorMulti() override;
 
   /** Reset instantiation round. */
-  void resetInstantiationRound(QuantifiersEngine* qe) override;
+  void resetInstantiationRound() override;
   /** Reset. */
-  bool reset(Node eqc, QuantifiersEngine* qe) override;
+  bool reset(Node eqc) override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q,
-                             QuantifiersEngine* qe,
-                             Trigger* tparent) override;
+  uint64_t addInstantiations(Node q) override;
 
  private:
   /** process new match
@@ -63,9 +57,7 @@ class InstMatchGeneratorMulti : public IMGenerator
    * addedLemmas is how many instantiations we succesfully send
    * via IMGenerator::sendInstantiation(...) calls.
    */
-  void processNewMatch(QuantifiersEngine* qe,
-                       Trigger* tparent,
-                       InstMatch& m,
+  void processNewMatch(InstMatch& m,
                        size_t fromChildIndex,
                        uint64_t& addedLemmas);
   /** helper for process new match
@@ -78,9 +70,7 @@ class InstMatchGeneratorMulti : public IMGenerator
    *                  computed by this function returns to.
    * modEq is whether we are matching modulo equality.
    */
-  void processNewInstantiations(QuantifiersEngine* qe,
-                                Trigger* tparent,
-                                InstMatch& m,
+  void processNewInstantiations(InstMatch& m,
                                 uint64_t& addedLemmas,
                                 InstMatchTrie* tr,
                                 size_t trieIndex,

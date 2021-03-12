@@ -247,17 +247,7 @@ public:
     IntStat d_triggers;
     IntStat d_simple_triggers;
     IntStat d_multi_triggers;
-    IntStat d_multi_trigger_instantiations;
     IntStat d_red_alpha_equiv;
-    IntStat d_instantiations_user_patterns;
-    IntStat d_instantiations_auto_gen;
-    IntStat d_instantiations_guess;
-    IntStat d_instantiations_qcf;
-    IntStat d_instantiations_qcf_prop;
-    IntStat d_instantiations_fmf_exh;
-    IntStat d_instantiations_fmf_mbqi;
-    IntStat d_instantiations_cbqi;
-    IntStat d_instantiations_rr;
     Statistics();
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */

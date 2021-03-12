@@ -135,11 +135,6 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     unsigned numInst = t->addInstantiations();
     Trace("process-trigger")
         << "  Done, numInst = " << numInst << "." << std::endl;
-    d_quantEngine->d_statistics.d_instantiations_user_patterns += numInst;
-    if (t->isMultiTrigger())
-    {
-      d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-    }
     if (d_qstate.isInConflict())
     {
       // we are already in conflict

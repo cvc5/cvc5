@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace theory {

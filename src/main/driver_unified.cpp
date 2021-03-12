@@ -84,7 +84,7 @@ void printUsage(Options& opts, bool full) {
 int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Timer statistic
-  pTotalTime = new TimerStat("totalTime");
+  pTotalTime = new TimerStat("driver::totalTime");
   pTotalTime->start();
 
   // For the signal handlers' benefit
@@ -192,7 +192,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                     pTotalTime);
 
     // Filename statistics
-    ReferenceStat<std::string> s_statFilename("filename", filenameStr);
+    ReferenceStat<std::string> s_statFilename("driver::filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
     // notify SmtEngine that we are starting to parse
@@ -473,7 +473,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat<api::Result> s_statSatResult("sat/unsat", result);
+    ReferenceStat<api::Result> s_statSatResult("driver::sat/unsat", result);
     RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
                                        &s_statSatResult);
 

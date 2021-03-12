@@ -55,6 +55,7 @@
 #include "expr/node_builder.h"
 #include "smt/smt_statistics_registry.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace theory {

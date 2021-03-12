@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 
