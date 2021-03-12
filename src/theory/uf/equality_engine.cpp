@@ -1076,7 +1076,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
         << id2 << "} " << d_nodes[id2] << "\n";
     // if has at least as many children as the minimal
     // number of children of the n-ary kind, build the node
-    if (numChildren >= kind::metakind::getMaxArityForKind(k1))
+    if (numChildren >= kind::metakind::getMinArityForKind(k1))
     {
       std::vector<Node> children;
       for (unsigned j = 0; j < numChildren; ++j)
