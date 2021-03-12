@@ -47,9 +47,6 @@ namespace strings {
  *
  * "Conflicts" (2) arise from various kinds of reasoning, listed below,
  * where inferences are one of the possible methods for deriving conflicts.
- *
- * "Lemmas" (3) also arise from various kinds of reasoning, listed below,
- * where inferences are one of the possible methods for deriving lemmas.
  */
 class SequencesStatistics
 {
