@@ -125,8 +125,8 @@ Node LfscTermProcessor::runConvert(Node n)
     //"ABC" is (str.++ (char 65) (str.++ (char 66) (str.++ (char 67) emptystr)))
     std::vector<Node> charVec;
     getCharVectorInternal(n, charVec);
-    Assert (!charVec.empty());
-    if (charVec.size()==1)
+    Assert(!charVec.empty());
+    if (charVec.size() == 1)
     {
       // handles empty string and singleton character
       return charVec[0];
