@@ -982,10 +982,10 @@ enum class PfRule : uint32_t
   STRING_REDUCTION,
   // ======== Eager Reduction
   // Children: none
-  // Arguments: (t, id?)
+  // Arguments: (t)
   // ---------------------
   // Conclusion: R
-  // where R = strings::TermRegistry::eagerReduce(t, id).
+  // where R = strings::TermRegistry::eagerReduce(t).
   STRING_EAGER_REDUCTION,
   //======================== Regular expressions
   // ======== Regular expression intersection

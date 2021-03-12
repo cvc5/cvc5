@@ -451,16 +451,15 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::RE_INTER: pf << h << h << h << cs[0] << cs[1]; break;
-    // case PfRule::CONCAT_EQ: pf << h << h << h << args[0].getConst<bool>() <<
-    // cs[0]; break;
+    case PfRule::CONCAT_EQ: pf << h << h << h << args[0].getConst<bool>() << cs[0]; break;
     /*
     case PfRule::RE_UNFOLD_POS:
       Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " <<
     d_tproc.convert(pn->getResult()) << std::endl; pf << h << h << h << cs[0];
       break;
       */
-    case PfRule::STRING_REDUCTION: { pf << h << as[0];
-    }
+    case PfRule::STRING_EAGER_REDUCTION:
+    case PfRule::STRING_REDUCTION: pf << h << as[0];
     break;
     // quantifiers
     case PfRule::SKOLEM_INTRO:
