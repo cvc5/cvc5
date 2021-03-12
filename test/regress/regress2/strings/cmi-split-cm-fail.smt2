@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp
+; COMMAND-LINE: --strings-exp --strings-process-loop-mode=simple
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)
