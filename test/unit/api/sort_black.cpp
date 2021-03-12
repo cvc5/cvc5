@@ -25,18 +25,252 @@ namespace test {
 
 class TestApiBlackSort : public TestApi
 {
+ protected:
+  Sort create_datatype_sort()
+  {
+    DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
+    DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+    cons.addSelector("head", d_solver.getIntegerSort());
+    cons.addSelectorSelf("tail");
+    dtypeSpec.addConstructor(cons);
+    DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
+    dtypeSpec.addConstructor(nil);
+    return d_solver.mkDatatypeSort(dtypeSpec);
+  }
+
+  Sort create_param_datatype_sort()
+  {
+    Sort sort = d_solver.mkParamSort("T");
+    DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
+    DatatypeConstructorDecl paramCons =
+        d_solver.mkDatatypeConstructorDecl("cons");
+    DatatypeConstructorDecl paramNil =
+        d_solver.mkDatatypeConstructorDecl("nil");
+    paramCons.addSelector("head", sort);
+    paramDtypeSpec.addConstructor(paramCons);
+    paramDtypeSpec.addConstructor(paramNil);
+    return d_solver.mkDatatypeSort(paramDtypeSpec);
+  }
 };
+
+TEST_F(TestApiBlackSort, operators_comparison)
+{
+  ASSERT_NO_THROW(d_solver.getIntegerSort() == Sort());
+  ASSERT_NO_THROW(d_solver.getIntegerSort() != Sort());
+  ASSERT_NO_THROW(d_solver.getIntegerSort() < Sort());
+  ASSERT_NO_THROW(d_solver.getIntegerSort() <= Sort());
+  ASSERT_NO_THROW(d_solver.getIntegerSort() > Sort());
+  ASSERT_NO_THROW(d_solver.getIntegerSort() >= Sort());
+}
+
+TEST_F(TestApiBlackSort, isBoolean)
+{
+  ASSERT_TRUE(d_solver.getBooleanSort().isBoolean());
+  ASSERT_NO_THROW(Sort().isBoolean());
+}
+
+TEST_F(TestApiBlackSort, isInteger)
+{
+  ASSERT_TRUE(d_solver.getIntegerSort().isInteger());
+  ASSERT_NO_THROW(Sort().isInteger());
+}
+
+TEST_F(TestApiBlackSort, isReal)
+{
+  ASSERT_TRUE(d_solver.getRealSort().isReal());
+  ASSERT_NO_THROW(Sort().isReal());
+}
+
+TEST_F(TestApiBlackSort, isString)
+{
+  ASSERT_TRUE(d_solver.getStringSort().isString());
+  ASSERT_NO_THROW(Sort().isString());
+}
+
+TEST_F(TestApiBlackSort, isRegExp)
+{
+  ASSERT_TRUE(d_solver.getRegExpSort().isRegExp());
+  ASSERT_NO_THROW(Sort().isRegExp());
+}
+
+TEST_F(TestApiBlackSort, isRoundingMode)
+{
+  ASSERT_TRUE(d_solver.getRoundingModeSort().isRoundingMode());
+  ASSERT_NO_THROW(Sort().isRoundingMode());
+}
+
+TEST_F(TestApiBlackSort, isBitVector)
+{
+  ASSERT_TRUE(d_solver.mkBitVectorSort(8).isBitVector());
+  ASSERT_NO_THROW(Sort().isBitVector());
+}
+
+TEST_F(TestApiBlackSort, isFloatingPoint)
+{
+  ASSERT_TRUE(d_solver.mkFloatingPointSort(8, 24).isFloatingPoint());
+  ASSERT_NO_THROW(Sort().isFloatingPoint());
+}
+
+TEST_F(TestApiBlackSort, isDatatype)
+{
+  Sort dt_sort = create_datatype_sort();
+  ASSERT_TRUE(dt_sort.isDatatype());
+  ASSERT_NO_THROW(Sort().isDatatype());
+}
+
+TEST_F(TestApiBlackSort, isParametricDatatype)
+{
+  Sort param_dt_sort = create_param_datatype_sort();
+  ASSERT_TRUE(param_dt_sort.isParametricDatatype());
+  ASSERT_NO_THROW(Sort().isParametricDatatype());
+}
+
+TEST_F(TestApiBlackSort, isConstructor)
+{
+  Sort dt_sort = create_datatype_sort();
+  Datatype dt = dt_sort.getDatatype();
+  Sort cons_sort = dt[0].getConstructorTerm().getSort();
+  ASSERT_TRUE(cons_sort.isConstructor());
+  ASSERT_NO_THROW(Sort().isConstructor());
+}
+
+TEST_F(TestApiBlackSort, isSelector)
+{
+  Sort dt_sort = create_datatype_sort();
+  Datatype dt = dt_sort.getDatatype();
+  Sort cons_sort = dt[0][1].getSelectorTerm().getSort();
+  ASSERT_TRUE(cons_sort.isSelector());
+  ASSERT_NO_THROW(Sort().isSelector());
+}
+
+TEST_F(TestApiBlackSort, isTester)
+{
+  Sort dt_sort = create_datatype_sort();
+  Datatype dt = dt_sort.getDatatype();
+  Sort cons_sort = dt[0].getTesterTerm().getSort();
+  ASSERT_TRUE(cons_sort.isTester());
+  ASSERT_NO_THROW(Sort().isTester());
+}
+
+TEST_F(TestApiBlackSort, isFunction)
+{
+  Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(),
+                                          d_solver.getIntegerSort());
+  ASSERT_TRUE(fun_sort.isFunction());
+  ASSERT_NO_THROW(Sort().isFunction());
+}
+
+TEST_F(TestApiBlackSort, isPredicate)
+{
+  Sort pred_sort = d_solver.mkPredicateSort({d_solver.getRealSort()});
+  ASSERT_TRUE(pred_sort.isPredicate());
+  ASSERT_NO_THROW(Sort().isPredicate());
+}
+
+TEST_F(TestApiBlackSort, isTuple)
+{
+  Sort tup_sort = d_solver.mkTupleSort({d_solver.getRealSort()});
+  ASSERT_TRUE(tup_sort.isTuple());
+  ASSERT_NO_THROW(Sort().isTuple());
+}
+
+TEST_F(TestApiBlackSort, isRecord)
+{
+  Sort rec_sort =
+      d_solver.mkRecordSort({std::make_pair("asdf", d_solver.getRealSort())});
+  ASSERT_TRUE(rec_sort.isRecord());
+  ASSERT_NO_THROW(Sort().isRecord());
+}
+
+TEST_F(TestApiBlackSort, isArray)
+{
+  Sort arr_sort =
+      d_solver.mkArraySort(d_solver.getRealSort(), d_solver.getIntegerSort());
+  ASSERT_TRUE(arr_sort.isArray());
+  ASSERT_NO_THROW(Sort().isArray());
+}
+
+TEST_F(TestApiBlackSort, isSet)
+{
+  Sort set_sort = d_solver.mkSetSort(d_solver.getRealSort());
+  ASSERT_TRUE(set_sort.isSet());
+  ASSERT_NO_THROW(Sort().isSet());
+}
+
+TEST_F(TestApiBlackSort, isBag)
+{
+  Sort bag_sort = d_solver.mkBagSort(d_solver.getRealSort());
+  ASSERT_TRUE(bag_sort.isBag());
+  ASSERT_NO_THROW(Sort().isBag());
+}
+
+TEST_F(TestApiBlackSort, isSequence)
+{
+  Sort seq_sort = d_solver.mkSequenceSort(d_solver.getRealSort());
+  ASSERT_TRUE(seq_sort.isSequence());
+  ASSERT_NO_THROW(Sort().isSequence());
+}
+
+TEST_F(TestApiBlackSort, isUninterpreted)
+{
+  Sort un_sort = d_solver.mkUninterpretedSort("asdf");
+  ASSERT_TRUE(un_sort.isUninterpretedSort());
+  ASSERT_NO_THROW(Sort().isUninterpretedSort());
+}
+
+TEST_F(TestApiBlackSort, isSortConstructor)
+{
+  Sort sc_sort = d_solver.mkSortConstructorSort("asdf", 1);
+  ASSERT_TRUE(sc_sort.isSortConstructor());
+  ASSERT_NO_THROW(Sort().isSortConstructor());
+}
+
+TEST_F(TestApiBlackSort, isFirstClass)
+{
+  Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(),
+                                          d_solver.getIntegerSort());
+  ASSERT_TRUE(d_solver.getIntegerSort().isFirstClass());
+  ASSERT_FALSE(fun_sort.isFirstClass());
+  ASSERT_NO_THROW(Sort().isFirstClass());
+}
+
+TEST_F(TestApiBlackSort, isFunctionLike)
+{
+  Sort fun_sort = d_solver.mkFunctionSort(d_solver.getRealSort(),
+                                          d_solver.getIntegerSort());
+  ASSERT_FALSE(d_solver.getIntegerSort().isFunctionLike());
+  ASSERT_TRUE(fun_sort.isFunctionLike());
+
+  Sort dt_sort = create_datatype_sort();
+  Datatype dt = dt_sort.getDatatype();
+  Sort cons_sort = dt[0][1].getSelectorTerm().getSort();
+  ASSERT_TRUE(cons_sort.isFunctionLike());
+
+  ASSERT_NO_THROW(Sort().isFunctionLike());
+}
+
+TEST_F(TestApiBlackSort, isSubsortOf)
+{
+  ASSERT_TRUE(d_solver.getIntegerSort().isSubsortOf(d_solver.getIntegerSort()));
+  ASSERT_TRUE(d_solver.getIntegerSort().isSubsortOf(d_solver.getRealSort()));
+  ASSERT_FALSE(
+      d_solver.getIntegerSort().isSubsortOf(d_solver.getBooleanSort()));
+  ASSERT_NO_THROW(Sort().isSubsortOf(Sort()));
+}
+
+TEST_F(TestApiBlackSort, isComparableTo)
+{
+  ASSERT_TRUE(
+      d_solver.getIntegerSort().isComparableTo(d_solver.getIntegerSort()));
+  ASSERT_TRUE(d_solver.getIntegerSort().isComparableTo(d_solver.getRealSort()));
+  ASSERT_FALSE(
+      d_solver.getIntegerSort().isComparableTo(d_solver.getBooleanSort()));
+  ASSERT_NO_THROW(Sort().isComparableTo(Sort()));
+}
 
 TEST_F(TestApiBlackSort, getDatatype)
 {
-  // create datatype sort, check should not fail
-  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
-  cons.addSelector("head", d_solver.getIntegerSort());
-  dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
-  dtypeSpec.addConstructor(nil);
-  Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
+  Sort dtypeSort = create_datatype_sort();
   ASSERT_NO_THROW(dtypeSort.getDatatype());
   // create bv sort, check should fail
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -46,15 +280,7 @@ TEST_F(TestApiBlackSort, getDatatype)
 TEST_F(TestApiBlackSort, datatypeSorts)
 {
   Sort intSort = d_solver.getIntegerSort();
-  // create datatype sort to test
-  DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
-  cons.addSelector("head", intSort);
-  cons.addSelectorSelf("tail");
-  dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
-  dtypeSpec.addConstructor(nil);
-  Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
+  Sort dtypeSort = create_datatype_sort();
   Datatype dt = dtypeSort.getDatatype();
   ASSERT_FALSE(dtypeSort.isConstructor());
   ASSERT_THROW(dtypeSort.getConstructorCodomainSort(), CVC4ApiException);
@@ -96,15 +322,7 @@ TEST_F(TestApiBlackSort, datatypeSorts)
 TEST_F(TestApiBlackSort, instantiate)
 {
   // instantiate parametric datatype, check should not fail
-  Sort sort = d_solver.mkParamSort("T");
-  DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl paramCons =
-      d_solver.mkDatatypeConstructorDecl("cons");
-  DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
-  paramCons.addSelector("head", sort);
-  paramDtypeSpec.addConstructor(paramCons);
-  paramDtypeSpec.addConstructor(paramNil);
-  Sort paramDtypeSort = d_solver.mkDatatypeSort(paramDtypeSpec);
+  Sort paramDtypeSort = create_param_datatype_sort();
   ASSERT_NO_THROW(
       paramDtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}));
   // instantiate non-parametric datatype sort, check should fail

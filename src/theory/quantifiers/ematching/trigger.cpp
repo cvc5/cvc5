@@ -69,19 +69,17 @@ Trigger::Trigger(QuantifiersEngine* qe,
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
-      d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qs, qim, qe);
+      d_mg = new InstMatchGeneratorSimple(this, q, d_nodes[0]);
       ++(qe->d_statistics.d_triggers);
     }else{
-      d_mg =
-          InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qs, qim, qe);
+      d_mg = InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
-      d_mg = new InstMatchGeneratorMulti(q, d_nodes, qs, qim, qe);
+      d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(
-          q, d_nodes, qs, qim, qe);
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))
     {
@@ -101,13 +99,9 @@ Trigger::~Trigger() {
   delete d_mg;
 }
 
-void Trigger::resetInstantiationRound(){
-  d_mg->resetInstantiationRound( d_quantEngine );
-}
+void Trigger::resetInstantiationRound() { d_mg->resetInstantiationRound(); }
 
-void Trigger::reset( Node eqc ){
-  d_mg->reset( eqc, d_quantEngine );
-}
+void Trigger::reset(Node eqc) { d_mg->reset(eqc); }
 
 bool Trigger::isMultiTrigger() const { return d_nodes.size() > 1; }
 
@@ -138,7 +132,7 @@ uint64_t Trigger::addInstantiations()
       }
     }
   }
-  uint64_t addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
+  uint64_t addedLemmas = d_mg->addInstantiations(d_quant);
   if (Debug.isOn("inst-trigger"))
   {
     if (addedLemmas > 0)
@@ -316,9 +310,7 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
   return mkTrigger(qe, qs, qim, qr, f, nodes, keepAll, trOption, useNVars);
 }
 
-int Trigger::getActiveScore() {
-  return d_mg->getActiveScore( d_quantEngine );
-}
+int Trigger::getActiveScore() { return d_mg->getActiveScore(); }
 
 Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
                                            Node n,

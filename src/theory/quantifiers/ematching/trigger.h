@@ -247,7 +247,7 @@ class Trigger {
    * This example would fail to match when f(a) is not registered.
    */
   std::vector<Node> d_groundTerms;
-  /** The quantifiers engine associated with this trigger. */
+  // !!!!!!!!!!!!!!!!!! temporarily available (project #15)
   QuantifiersEngine* d_quantEngine;
   /** Reference to the quantifiers state */
   quantifiers::QuantifiersState& d_qstate;
