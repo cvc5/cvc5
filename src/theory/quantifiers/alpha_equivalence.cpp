@@ -116,7 +116,8 @@ TrustNode AlphaEquivalence::reduceQuantifier(Node q)
                 "equivalence: "
              << q << std::endl;
   }
-  if (isProofEnabled())
+  // disabling temporarily
+  if (false && isProofEnabled())
   {
     // arguments are the original formula and the renaming
     std::vector<Node> args{q};
