@@ -159,6 +159,8 @@ const char* toString(PfRule id)
     //================================================= Arith rules
     case PfRule::MACRO_ARITH_SCALE_SUM_UB:
       return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::ARITH_SUM_UB:
+      return "ARITH_SUM_UB";
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
