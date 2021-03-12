@@ -1152,7 +1152,6 @@ set(regress_0_tests
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
   regress0/sygus/array-grammar-select.sy
-  regress0/sygus/array-grammar-store.sy
   regress0/sygus/ccp16.lus.sy
   regress0/sygus/cegqi-si-string-triv-2fun.sy
   regress0/sygus/cegqi-si-string-triv.sy
