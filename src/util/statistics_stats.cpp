@@ -28,6 +28,11 @@ AverageStats& AverageStats::operator<<(double v)
   return *this;
 }
 
+IntStats& IntStats::operator=(int64_t val)
+{
+  d_data->d_value = val;
+  return *this;
+}
 IntStats& IntStats::operator++()
 {
   d_data->d_value++;
