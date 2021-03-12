@@ -262,7 +262,8 @@ Node LfscTermProcessor::runConvert(Node n)
       {
         std::vector<Node> chars;
         getCharVectorInternal(children[i], chars);
-        childrenToProcess.insert(childrenToProcess.end(), chars.begin(), chars.end());
+        childrenToProcess.insert(
+            childrenToProcess.end(), chars.begin(), chars.end());
       }
       else
       {
