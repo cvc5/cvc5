@@ -22,8 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermRegistry::TermRegistry(QuantifiersState& qs,
-                           QuantifiersRegistry& qr)
+TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),

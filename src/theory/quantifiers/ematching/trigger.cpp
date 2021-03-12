@@ -28,9 +28,9 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/valuation.h"
 
