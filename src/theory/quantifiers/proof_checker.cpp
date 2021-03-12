@@ -128,8 +128,8 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node body = args[0][1];
     std::vector<Node> vars{args[0][0].begin(), args[0][0].end()};
     std::vector<Node> newVars{args.begin() + 1, args.end()};
-    Node renamedBody =
-        body.substitute(vars.begin(), vars.end(), newVars.begin(), newVars.end());
+    Node renamedBody = body.substitute(
+        vars.begin(), vars.end(), newVars.begin(), newVars.end());
     return args[0].eqNode(nm->mkNode(
         kind::FORALL, nm->mkNode(kind::BOUND_VAR_LIST, newVars), renamedBody));
   }
