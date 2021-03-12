@@ -17,6 +17,7 @@
 #include "expr/node_algorithm.h"
 #include "smt/command.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
