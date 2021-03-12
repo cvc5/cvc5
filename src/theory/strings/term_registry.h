@@ -32,7 +32,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-  class InferenceManager;
+class InferenceManager;
 /**
  * This class manages all the (pre)registration tasks for terms. These tasks
  * include:
@@ -55,7 +55,7 @@ class TermRegistry
                ProofNodeManager* pnm);
   ~TermRegistry();
   /** Finish initialize, which sets the inference manager */
-  void finishInit(InferenceManager * im);
+  void finishInit(InferenceManager* im);
   /** The eager reduce routine
    *
    * Constructs a lemma for t that is incomplete, but communicates pertinent

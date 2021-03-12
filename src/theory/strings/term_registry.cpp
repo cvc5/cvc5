@@ -19,9 +19,9 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "theory/strings/inference_manager.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -65,10 +65,7 @@ TermRegistry::TermRegistry(SolverState& s,
 
 TermRegistry::~TermRegistry() {}
 
-void TermRegistry::finishInit(InferenceManager * im)
-{
-  d_im = im;
-}
+void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
 {

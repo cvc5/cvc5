@@ -292,7 +292,8 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CTN_POS: return "STRINGS_CTN_POS";
     case InferenceId::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
     case InferenceId::STRINGS_PREFIX_CONFLICT: return "STRINGS_PREFIX_CONFLICT";
-    case InferenceId::STRINGS_REGISTER_TERM_ATOMIC: return "STRINGS_REGISTER_TERM_ATOMIC";
+    case InferenceId::STRINGS_REGISTER_TERM_ATOMIC:
+      return "STRINGS_REGISTER_TERM_ATOMIC";
     case InferenceId::STRINGS_REGISTER_TERM: return "STRINGS_REGISTER_TERM";
     case InferenceId::STRINGS_CMI_SPLIT: return "STRINGS_CMI_SPLIT";
 
