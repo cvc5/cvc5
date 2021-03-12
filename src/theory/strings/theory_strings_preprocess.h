@@ -41,7 +41,7 @@ namespace strings {
 class StringsPreprocess {
  public:
   StringsPreprocess(SkolemCache* sc,
-                    HistogramStat<Kind>* statReductions = nullptr);
+                    IntegralHistogramStat<Kind>* statReductions = nullptr);
   ~StringsPreprocess();
   /** The reduce routine
    *
@@ -83,7 +83,7 @@ class StringsPreprocess {
   /** pointer to the skolem cache used by this class */
   SkolemCache* d_sc;
   /** Reference to the statistics for the theory of strings/sequences. */
-  HistogramStat<Kind>* d_statReductions;
+  IntegralHistogramStat<Kind>* d_statReductions;
   /** visited cache */
   std::map<Node, Node> d_visited;
   /**
