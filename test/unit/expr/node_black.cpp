@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,19 +21,18 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
-#include "expr/expr_manager.h"
+#include "expr/dtype_cons.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
 #include "smt/smt_engine.h"
 #include "test_node.h"
-#include "test_utils.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
 
-using namespace CVC4::kind;
+using namespace kind;
 
 namespace test {
 
@@ -53,12 +52,12 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager,
 }
 }  // namespace
 
-class TestNodeBlackNode : public TestNodeBlack
+class TestNodeBlackNode : public TestNode
 {
  protected:
   void SetUp() override
   {
-    TestNodeBlack::SetUp();
+    TestNode::SetUp();
     // setup an SMT engine so that options are in scope
     Options opts;
     char* argv[2];
@@ -107,9 +106,12 @@ TEST_F(TestNodeBlackNode, copy_ctor) { Node e(Node::null()); }
 TEST_F(TestNodeBlackNode, dtor)
 {
   /* No access to internals? Only test that this is crash free. */
-  Node* n;
+  Node* n = nullptr;
   ASSERT_NO_FATAL_FAILURE(n = new Node());
-  delete n;
+  if (n)
+  {
+    delete n;
+  }
 }
 
 /* operator== */
@@ -419,8 +421,8 @@ TEST_F(TestNodeBlackNode, getOperator)
 
   ASSERT_EQ(f, fa.getOperator());
 #ifdef CVC4_ASSERTIONS
-  ASSERT_THROW(f.getOperator(), IllegalArgumentException);
-  ASSERT_THROW(a.getOperator(), IllegalArgumentException);
+  ASSERT_DEATH(f.getOperator(), "mk == kind::metakind::PARAMETERIZED");
+  ASSERT_DEATH(a.getOperator(), "mk == kind::metakind::PARAMETERIZED");
 #endif
 }
 
@@ -442,16 +444,16 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 #ifdef CVC4_ASSERTIONS
   ASSERT_DEATH(testNaryExpForSize(AND, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(AND, 1),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 2),
                "getNumChildren\\(\\) <= "
-               "kind::metakind::getUpperBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMaxArityForKind\\(getKind\\(\\)\\)");
 #endif /* CVC4_ASSERTIONS */
 }
 

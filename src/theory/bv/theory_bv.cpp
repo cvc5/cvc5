@@ -2,9 +2,9 @@
 /*! \file theory_bv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andrew Reynolds, Martin Brain
+ **   Mathias Preiner, Andrew Reynolds, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,9 +17,11 @@
 
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/bv_solver_simple.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 namespace theory {
@@ -34,24 +36,27 @@ TheoryBV::TheoryBV(context::Context* c,
                    std::string name)
     : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
       d_internal(nullptr),
-      d_ufDivByZero(),
-      d_ufRemByZero(),
       d_rewriter(),
       d_state(c, u, valuation),
-      d_inferMgr(*this, d_state, nullptr)
+      d_im(*this, d_state, nullptr, "theory::bv"),
+      d_notify(d_im)
 {
   switch (options::bvSolver())
   {
+    case options::BVSolver::BITBLAST:
+      d_internal.reset(new BVSolverBitblast(&d_state, d_im, pnm));
+      break;
+
     case options::BVSolver::LAZY:
       d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
       break;
 
     default:
       AlwaysAssert(options::bvSolver() == options::BVSolver::SIMPLE);
-      d_internal.reset(new BVSolverSimple(&d_state, d_inferMgr, pnm));
+      d_internal.reset(new BVSolverSimple(&d_state, d_im, pnm));
   }
   d_theoryState = &d_state;
-  d_inferManager = &d_inferMgr;
+  d_inferManager = &d_im;
 }
 
 TheoryBV::~TheoryBV() {}
@@ -60,7 +65,16 @@ TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
 bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return d_internal->needsEqualityEngine(esi);
+  bool need_ee = d_internal->needsEqualityEngine(esi);
+
+  /* Set up default notify class for equality engine. */
+  if (need_ee && esi.d_notify == nullptr)
+  {
+    esi.d_notify = &d_notify;
+    esi.d_name = "theory::bv::ee";
+  }
+
+  return need_ee;
 }
 
 void TheoryBV::finishInit()
@@ -70,46 +84,44 @@ void TheoryBV::finishInit()
   getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
   getValuation().setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
   d_internal->finishInit();
-}
 
-Node TheoryBV::getUFDivByZero(Kind k, unsigned width)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  if (k == kind::BITVECTOR_UDIV)
+  eq::EqualityEngine* ee = getEqualityEngine();
+  if (ee)
   {
-    if (d_ufDivByZero.find(width) == d_ufDivByZero.end())
-    {
-      // lazily create the function symbols
-      std::ostringstream os;
-      os << "BVUDivByZero_" << width;
-      Node divByZero =
-          nm->mkSkolem(os.str(),
-                       nm->mkFunctionType(nm->mkBitVectorType(width),
-                                          nm->mkBitVectorType(width)),
-                       "partial bvudiv",
-                       NodeManager::SKOLEM_EXACT_NAME);
-      d_ufDivByZero[width] = divByZero;
-    }
-    return d_ufDivByZero[width];
+    // The kinds we are treating as function application in congruence
+    ee->addFunctionKind(kind::BITVECTOR_CONCAT, true);
+    //    ee->addFunctionKind(kind::BITVECTOR_AND);
+    //    ee->addFunctionKind(kind::BITVECTOR_OR);
+    //    ee->addFunctionKind(kind::BITVECTOR_XOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_NOT);
+    //    ee->addFunctionKind(kind::BITVECTOR_NAND);
+    //    ee->addFunctionKind(kind::BITVECTOR_NOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_XNOR);
+    //    ee->addFunctionKind(kind::BITVECTOR_COMP);
+    ee->addFunctionKind(kind::BITVECTOR_MULT, true);
+    ee->addFunctionKind(kind::BITVECTOR_PLUS, true);
+    ee->addFunctionKind(kind::BITVECTOR_EXTRACT, true);
+    //    ee->addFunctionKind(kind::BITVECTOR_SUB);
+    //    ee->addFunctionKind(kind::BITVECTOR_NEG);
+    //    ee->addFunctionKind(kind::BITVECTOR_UDIV);
+    //    ee->addFunctionKind(kind::BITVECTOR_UREM);
+    //    ee->addFunctionKind(kind::BITVECTOR_SDIV);
+    //    ee->addFunctionKind(kind::BITVECTOR_SREM);
+    //    ee->addFunctionKind(kind::BITVECTOR_SMOD);
+    //    ee->addFunctionKind(kind::BITVECTOR_SHL);
+    //    ee->addFunctionKind(kind::BITVECTOR_LSHR);
+    //    ee->addFunctionKind(kind::BITVECTOR_ASHR);
+    //    ee->addFunctionKind(kind::BITVECTOR_ULT);
+    //    ee->addFunctionKind(kind::BITVECTOR_ULE);
+    //    ee->addFunctionKind(kind::BITVECTOR_UGT);
+    //    ee->addFunctionKind(kind::BITVECTOR_UGE);
+    //    ee->addFunctionKind(kind::BITVECTOR_SLT);
+    //    ee->addFunctionKind(kind::BITVECTOR_SLE);
+    //    ee->addFunctionKind(kind::BITVECTOR_SGT);
+    //    ee->addFunctionKind(kind::BITVECTOR_SGE);
+    ee->addFunctionKind(kind::BITVECTOR_TO_NAT);
+    ee->addFunctionKind(kind::INT_TO_BITVECTOR);
   }
-  else if (k == kind::BITVECTOR_UREM)
-  {
-    if (d_ufRemByZero.find(width) == d_ufRemByZero.end())
-    {
-      std::ostringstream os;
-      os << "BVURemByZero_" << width;
-      Node divByZero =
-          nm->mkSkolem(os.str(),
-                       nm->mkFunctionType(nm->mkBitVectorType(width),
-                                          nm->mkBitVectorType(width)),
-                       "partial bvurem",
-                       NodeManager::SKOLEM_EXACT_NAME);
-      d_ufRemByZero[width] = divByZero;
-    }
-    return d_ufRemByZero[width];
-  }
-
-  Unreachable();
 }
 
 TrustNode TheoryBV::expandDefinition(Node node)
@@ -126,19 +138,6 @@ TrustNode TheoryBV::expandDefinition(Node node)
       ret = TheoryBVRewriter::eliminateBVSDiv(node);
       break;
 
-    case kind::BITVECTOR_UDIV:
-    case kind::BITVECTOR_UREM:
-    {
-      NodeManager* nm = NodeManager::currentNM();
-
-      Kind kind = node.getKind() == kind::BITVECTOR_UDIV
-                      ? kind::BITVECTOR_UDIV_TOTAL
-                      : kind::BITVECTOR_UREM_TOTAL;
-      ret = nm->mkNode(kind, node[0], node[1]);
-      break;
-    }
-    break;
-
     default: break;
   }
   if (!ret.isNull() && node != ret)
@@ -151,6 +150,19 @@ TrustNode TheoryBV::expandDefinition(Node node)
 void TheoryBV::preRegisterTerm(TNode node)
 {
   d_internal->preRegisterTerm(node);
+
+  eq::EqualityEngine* ee = getEqualityEngine();
+  if (ee)
+  {
+    if (node.getKind() == kind::EQUAL)
+    {
+      ee->addTriggerPredicate(node);
+    }
+    else
+    {
+      ee->addTerm(node);
+    }
+  }
 }
 
 bool TheoryBV::preCheck(Effort e) { return d_internal->preCheck(e); }
@@ -186,7 +198,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(
   return d_internal->ppAssert(tin, outSubstitutions);
 }
 
-TrustNode TheoryBV::ppRewrite(TNode t)
+TrustNode TheoryBV::ppRewrite(TNode t, std::vector<SkolemLemma>& lems)
 {
   // first, see if we need to expand definitions
   TrustNode texp = expandDefinition(t);
@@ -198,6 +210,11 @@ TrustNode TheoryBV::ppRewrite(TNode t)
 }
 
 void TheoryBV::presolve() { d_internal->presolve(); }
+
+EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
+{
+  return d_internal->getEqualityStatus(a, b);
+}
 
 TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
 

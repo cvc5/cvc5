@@ -4,14 +4,14 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief An ANTLR3 bounded token stream implementation. 
+ ** \brief An ANTLR3 bounded token stream implementation.
  **
- ** An ANTLR3 bounded token stream implementation. 
+ ** An ANTLR3 bounded token stream implementation.
  ** This code is largely based on the original token buffer implementation
  ** in libantlr3c, by Jim Idle.
  **/
@@ -49,12 +49,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 // THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "parser/bounded_token_buffer.h"
+
 #include <antlr3commontoken.h>
 #include <antlr3lexer.h>
 #include <antlr3tokenstream.h>
 
-#include "parser/bounded_token_buffer.h"
-#include <cassert>
+#include "base/check.h"
 
 namespace CVC4 {
 namespace parser {
@@ -138,7 +139,7 @@ pBOUNDED_TOKEN_BUFFER BoundedTokenBufferSourceNew(ANTLR3_UINT32 k,
   pBOUNDED_TOKEN_BUFFER buffer;
   pANTLR3_COMMON_TOKEN_STREAM stream;
 
-  assert(k > 0);
+  Assert(k > 0);
 
   /* Memory for the interface structure */
   buffer =
@@ -234,8 +235,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
   buffer = (pBOUNDED_TOKEN_BUFFER) cts->super;
 
   /* k must be in the range [-buffer->k..buffer->k] */
-  assert( k <= (ANTLR3_INT32)buffer->k 
-                && -k <= (ANTLR3_INT32)buffer->k );
+  Assert(k <= (ANTLR3_INT32)buffer->k && -k <= (ANTLR3_INT32)buffer->k);
 
   if(k == 0) {
     return NULL;
@@ -243,7 +243,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
 
   /* Initialize the buffer on our first call. */
   if( __builtin_expect( (buffer->empty == ANTLR3_TRUE), false ) ) {
-    assert( buffer->tokenBuffer != NULL );
+    Assert(buffer->tokenBuffer != NULL);
     buffer->tokenBuffer[ 0 ] = nextToken(buffer);
     buffer->maxIndex = 0;
     buffer->currentIndex = 0;
@@ -256,7 +256,7 @@ static pANTLR3_COMMON_TOKEN tokLT(pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k) {
     kIndex = buffer->currentIndex + k - 1;
   } else {
     /* Can't look behind more tokens than we've consumed. */
-    assert( -k <= (ANTLR3_INT32)buffer->currentIndex );
+    Assert(-k <= (ANTLR3_INT32)buffer->currentIndex);
     /* look-behind token k is at offset -k */
     kIndex = buffer->currentIndex + k;
   }
@@ -288,8 +288,8 @@ dbgTokLT  (pANTLR3_TOKEN_STREAM ts, ANTLR3_INT32 k)
 static pANTLR3_COMMON_TOKEN 
 get (pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 i)
 {
-    assert(false);// unimplemented
-    return NULL;
+  Assert(false);  // unimplemented
+  return NULL;
 }
 
 static pANTLR3_TOKEN_SOURCE 
@@ -308,21 +308,21 @@ setTokenSource	(   pANTLR3_TOKEN_STREAM ts,
 static pANTLR3_STRING	    
 toString    (pANTLR3_TOKEN_STREAM ts)
 {
-  assert(false);// unimplemented
+  Assert(false);  // unimplemented
   return NULL;
 }
 
 static pANTLR3_STRING
 toStringSS(pANTLR3_TOKEN_STREAM ts, ANTLR3_UINT32 start, ANTLR3_UINT32 stop)
 {
-  assert(false);// unimplemented
+  Assert(false);  // unimplemented
   return NULL;
 }
 
 static pANTLR3_STRING	    
 toStringTT  (pANTLR3_TOKEN_STREAM ts, pANTLR3_COMMON_TOKEN start, pANTLR3_COMMON_TOKEN stop)
 {
-  assert(false);// unimplemented
+  Assert(false);  // unimplemented
   return NULL;
 }
 
@@ -382,7 +382,7 @@ _LA  (pANTLR3_INT_STREAM is, ANTLR3_INT32 i)
 static ANTLR3_UINT32	    
 dbgLA  (pANTLR3_INT_STREAM is, ANTLR3_INT32 i)
 {
-  assert(false);
+  Assert(false);
   return 0;
 }
 
@@ -398,7 +398,7 @@ mark	(pANTLR3_INT_STREAM is)
 static ANTLR3_MARKER
 dbgMark	(pANTLR3_INT_STREAM is)
 {
-  assert(false);
+  Assert(false);
   return 0;
 }
 
@@ -411,7 +411,7 @@ release	(pANTLR3_INT_STREAM is, ANTLR3_MARKER mark)
 static ANTLR3_UINT32	    
 size	(pANTLR3_INT_STREAM is)
 {
-  assert(false);
+  Assert(false);
   return 0;
 }
 
@@ -429,16 +429,8 @@ tindex	(pANTLR3_INT_STREAM is)
   return  buffer->currentIndex;
 }
 
-static void		    
-dbgRewindLast	(pANTLR3_INT_STREAM is)
-{
-  assert(false);
-}
-static void		    
-rewindLast	(pANTLR3_INT_STREAM is)
-{
-  assert(false);
-}
+static void dbgRewindLast(pANTLR3_INT_STREAM is) { Assert(false); }
+static void rewindLast(pANTLR3_INT_STREAM is) { Assert(false); }
 static void		    
 rewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 {
@@ -447,7 +439,7 @@ rewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 static void		    
 dbgRewindStream	(pANTLR3_INT_STREAM is, ANTLR3_MARKER marker)
 {
-   assert(false);
+  Assert(false);
 }
 
 static void		    
@@ -464,7 +456,7 @@ seek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)
 static void		    
 dbgSeek	(pANTLR3_INT_STREAM is, ANTLR3_MARKER index)
 {
-  assert(false);
+  Assert(false);
 }
 
 static pANTLR3_COMMON_TOKEN nextToken(pBOUNDED_TOKEN_BUFFER buffer) {

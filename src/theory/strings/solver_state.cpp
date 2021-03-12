@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
 
 #include "theory/strings/solver_state.h"
 
+#include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -28,7 +29,7 @@ namespace strings {
 SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
                          Valuation& v)
-    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflictSet(c, false)
+    : TheoryState(c, u, v), d_eeDisequalities(c), d_pendingConflictSet(c, false), d_pendingConflict(InferenceId::UNKNOWN)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -137,8 +138,7 @@ void SolverState::setPendingPrefixConflictWhen(Node conf)
   {
     return;
   }
-  InferInfo iiPrefixConf;
-  iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
+  InferInfo iiPrefixConf(InferenceId::STRINGS_PREFIX_CONFLICT);
   iiPrefixConf.d_conc = d_false;
   utils::flattenOp(AND, conf, iiPrefixConf.d_premises);
   setPendingConflict(iiPrefixConf);

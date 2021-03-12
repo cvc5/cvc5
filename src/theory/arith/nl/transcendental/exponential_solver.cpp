@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,9 +19,13 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
+#include "expr/proof.h"
 #include "options/arith_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/inference_manager.h"
+#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/transcendental/transcendental_state.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -45,23 +49,21 @@ void ExponentialSolver::doPurification(TNode a, TNode new_a, TNode y)
   // note we must do preprocess on this lemma
   Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                         << std::endl;
-  NlLemma nlem(
-      lem, LemmaProperty::PREPROCESS, nullptr, InferenceId::NL_T_PURIFY_ARG);
-  d_data->d_im.addPendingArithLemma(nlem);
+  d_data->d_im.addPendingLemma(lem, InferenceId::ARITH_NL_T_PURIFY_ARG);
 }
 
 void ExponentialSolver::checkInitialRefine()
 {
   NodeManager* nm = NodeManager::currentNM();
-  Trace("nl-ext")
-      << "Get initial refinement lemmas for transcendental functions..."
-      << std::endl;
   for (std::pair<const Kind, std::vector<Node> >& tfl : d_data->d_funcMap)
   {
     if (tfl.first != Kind::EXPONENTIAL)
     {
       continue;
     }
+    Trace("nl-ext")
+        << "Get initial (exp) refinement lemmas for transcendental functions..."
+        << std::endl;
     Assert(tfl.first == Kind::EXPONENTIAL);
     for (const Node& t : tfl.second)
     {
@@ -72,24 +74,42 @@ void ExponentialSolver::checkInitialRefine()
         {
           // exp is always positive: exp(t) > 0
           Node lem = nm->mkNode(Kind::GT, t, d_data->d_zero);
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_POSITIVITY, {}, {t[0]});
+          }
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp at zero: (t = 0) <=> (exp(t) = 1)
           Node lem = nm->mkNode(Kind::EQUAL,
                                 t[0].eqNode(d_data->d_zero),
                                 t.eqNode(d_data->d_one));
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_ZERO, {}, {t[0]});
+          }
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp on negative values: (t < 0) <=> (exp(t) < 1)
           Node lem = nm->mkNode(Kind::EQUAL,
                                 nm->mkNode(Kind::LT, t[0], d_data->d_zero),
                                 nm->mkNode(Kind::LT, t, d_data->d_one));
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_NEG, {}, {t[0]});
+          }
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
         {
           // exp on positive values: (t <= 0) or (exp(t) > t+1)
@@ -98,8 +118,14 @@ void ExponentialSolver::checkInitialRefine()
               nm->mkNode(Kind::LEQ, t[0], d_data->d_zero),
               nm->mkNode(
                   Kind::GT, t, nm->mkNode(Kind::PLUS, t[0], d_data->d_one)));
-          d_data->d_im.addPendingArithLemma(
-              lem, InferenceId::NL_T_INIT_REFINE, nullptr);
+          CDProof* proof = nullptr;
+          if (d_data->isProofEnabled())
+          {
+            proof = d_data->getProof();
+            proof->addStep(lem, PfRule::ARITH_TRANS_EXP_SUPER_LIN, {}, {t[0]});
+          }
+          d_data->d_im.addPendingLemma(
+              lem, InferenceId::ARITH_NL_T_INIT_REFINE, proof);
         }
       }
     }
@@ -108,9 +134,6 @@ void ExponentialSolver::checkInitialRefine()
 
 void ExponentialSolver::checkMonotonic()
 {
-  Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
-                  << std::endl;
-
   auto it = d_data->d_funcMap.find(Kind::EXPONENTIAL);
   if (it == d_data->d_funcMap.end())
   {
@@ -118,6 +141,9 @@ void ExponentialSolver::checkMonotonic()
     return;
   }
 
+  Trace("nl-ext")
+      << "Get monotonicity lemmas for (exp) transcendental functions..."
+      << std::endl;
   // sort arguments of all transcendentals
   std::vector<Node> tf_args;
   std::map<Node, Node> tf_arg_to_term;
@@ -163,8 +189,8 @@ void ExponentialSolver::checkMonotonic()
                                  nm->mkNode(Kind::GEQ, t, s));
       Trace("nl-ext-exp") << "Monotonicity lemma : " << mono_lem << std::endl;
 
-      d_data->d_im.addPendingArithLemma(mono_lem,
-                                        InferenceId::NL_T_MONOTONICITY);
+      d_data->d_im.addPendingLemma(mono_lem,
+                                   InferenceId::ARITH_NL_T_MONOTONICITY);
     }
     // store the previous values
     targ = sarg;
@@ -174,7 +200,10 @@ void ExponentialSolver::checkMonotonic()
   }
 }
 
-void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
+void ExponentialSolver::doTangentLemma(TNode e,
+                                       TNode c,
+                                       TNode poly_approx,
+                                       std::uint64_t d)
 {
   NodeManager* nm = NodeManager::currentNM();
   // compute tangent plane
@@ -191,7 +220,17 @@ void ExponentialSolver::doTangentLemma(TNode e, TNode c, TNode poly_approx)
   Trace("nl-ext-exp") << "*** Tangent plane lemma : " << lem << std::endl;
   Assert(d_data->d_model.computeAbstractModelValue(lem) == d_data->d_false);
   // Figure 3 : line 9
-  d_data->d_im.addPendingArithLemma(lem, InferenceId::NL_T_TANGENT, nullptr, true);
+  CDProof* proof = nullptr;
+  if (d_data->isProofEnabled())
+  {
+    proof = d_data->getProof();
+    proof->addStep(lem,
+                   PfRule::ARITH_TRANS_EXP_APPROX_BELOW,
+                   {},
+                   {nm->mkConst<Rational>(d), e[0]});
+  }
+  d_data->d_im.addPendingLemma(
+      lem, InferenceId::ARITH_NL_T_TANGENT, proof, true);
 }
 
 void ExponentialSolver::doSecantLemmas(TNode e,

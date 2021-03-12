@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,6 +47,8 @@ class TheoryQuantifiers : public Theory {
   TheoryRewriter* getTheoryRewriter() override;
   /** finish initialization */
   void finishInit() override;
+  /** needs equality engine */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
   //--------------------------------- end initialization
 
   void preRegisterTerm(TNode n) override;

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,18 +19,13 @@
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
 #define CVC4__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
 
-#include "util/real_algebraic_number.h"
-
 #ifdef CVC4_POLY_IMP
 
 #include <poly/polyxx.h>
 
-#include <map>
 #include <tuple>
 #include <vector>
 
-#include "expr/kind.h"
-#include "expr/node_manager_attributes.h"
 #include "theory/arith/nl/poly_conversion.h"
 
 namespace CVC4 {

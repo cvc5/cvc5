@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,6 +37,15 @@ CMSat::Lit toInternalLit(SatLiteral lit)
     return CMSat::lit_Undef;
   }
   return CMSat::Lit(lit.getSatVariable(), lit.isNegated());
+}
+
+SatLiteral toSatLiteral(CMSat::Lit lit)
+{
+  if (lit == CMSat::lit_Undef)
+  {
+    return undefSatLiteral;
+  }
+  return SatLiteral(lit.var(), lit.sign());
 }
 
 SatValue toSatLiteralValue(CMSat::lbool res)
@@ -179,6 +188,15 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
   }
   ++d_statistics.d_statCallsToSolve;
   return toSatLiteralValue(d_solver->solve(&assumpts));
+}
+
+void CryptoMinisatSolver::getUnsatAssumptions(
+    std::vector<SatLiteral>& assumptions)
+{
+  for (const CMSat::Lit& lit : d_solver->get_conflict())
+  {
+    assumptions.push_back(toSatLiteral(~lit));
+  }
 }
 
 SatValue CryptoMinisatSolver::value(SatLiteral l){

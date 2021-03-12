@@ -2,9 +2,9 @@
 /*! \file bv_solver_simple.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Mathias Preiner, Gereon Kremer, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -70,7 +70,7 @@ BVSolverSimple::BVSolverSimple(TheoryState* s,
                                TheoryInferenceManager& inferMgr,
                                ProofNodeManager* pnm)
     : BVSolver(*s, inferMgr),
-      d_bitblaster(new BBSimple(s)),
+      d_bitblaster(new BBProof(s)),
       d_epg(pnm ? new EagerProofGenerator(pnm, s->getUserContext(), "")
                 : nullptr)
 {
@@ -93,12 +93,12 @@ void BVSolverSimple::addBBLemma(TNode fact)
 
   if (d_epg == nullptr)
   {
-    d_inferManager.lemma(lemma);
+    d_im.lemma(lemma, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
   else
   {
     TrustNode tlem = d_epg->mkTrustNode(lemma, PfRule::BV_BITBLAST, {}, {fact});
-    d_inferManager.trustedLemma(tlem);
+    d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_BITBLAST_LEMMA);
   }
 }
 
@@ -123,13 +123,13 @@ bool BVSolverSimple::preNotifyFact(
 
     if (d_epg == nullptr)
     {
-      d_inferManager.lemma(lemma);
+      d_im.lemma(lemma, InferenceId::BV_SIMPLE_LEMMA);
     }
     else
     {
       TrustNode tlem =
           d_epg->mkTrustNode(lemma, PfRule::BV_EAGER_ATOM, {}, {fact});
-      d_inferManager.trustedLemma(tlem);
+      d_im.trustedLemma(tlem, InferenceId::BV_SIMPLE_LEMMA);
     }
 
     std::unordered_set<Node, NodeHashFunction> bv_atoms;

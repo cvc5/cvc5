@@ -2,9 +2,9 @@
 /*! \file process_assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,6 @@
 
 #include "smt/process_assertions.h"
 
-#include <stack>
 #include <utility>
 
 #include "expr/node_manager_attributes.h"
@@ -27,14 +26,19 @@
 #include "options/strings_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
+#include "smt/assertions.h"
 #include "smt/defined_function.h"
 #include "smt/dump.h"
+#include "smt/expand_definitions.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_stats.h"
 #include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
+using namespace std;
 using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -337,10 +341,8 @@ bool ProcessAssertions::apply(Assertions& as)
   d_passes["theory-rewrite-eq"]->apply(&assertions);
   // apply theory preprocess, which includes ITE removal
   d_passes["theory-preprocess"]->apply(&assertions);
-  // This is needed because when solving incrementally, removeITEs may
-  // introduce skolems that were solved for earlier and thus appear in the
-  // substitution map.
-  d_passes["apply-substs"]->apply(&assertions);
+  // notice that we do not apply substitutions as a last step here, since
+  // the range of substitutions is not theory-preprocessed.
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {

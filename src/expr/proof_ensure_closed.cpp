@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,12 @@
 
 #include "expr/proof_ensure_closed.h"
 
+#include <sstream>
+
+#include "expr/proof_generator.h"
+#include "expr/proof_node.h"
 #include "expr/proof_node_algorithm.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 
 namespace CVC4 {
@@ -31,13 +36,13 @@ void ensureClosedWrtInternal(Node proven,
                              const char* ctx,
                              bool reqGen)
 {
-  if (!options::proofNew())
+  if (!options::proof())
   {
     // proofs not enabled, do not do check
     return;
   }
   bool isTraceDebug = Trace.isOn(c);
-  if (!options::proofNewEagerChecking() && !isTraceDebug)
+  if (!options::proofEagerChecking() && !isTraceDebug)
   {
     // trace is off and proof new eager checking is off, do not do check
     return;

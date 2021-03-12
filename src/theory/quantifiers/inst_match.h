@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,9 @@
 namespace CVC4 {
 namespace theory {
 
-class EqualityQuery;
+namespace quantifiers {
+class QuantifiersState;
+}
 
 namespace inst {
 
@@ -50,13 +52,6 @@ public:
    * not already initialized in this match.
    */
   void add(InstMatch& m);
-  /** merge with match m
-   *
-   * This method returns true if the merge was successful, that is, all jointly
-   * initialized fields of this class and m are equivalent modulo the equalities
-   * given by q.
-   */
-  bool merge( EqualityQuery* q, InstMatch& m );
   /** is this complete, i.e. are all fields non-null? */
   bool isComplete();
   /** is this empty, i.e. are all fields the null node? */
@@ -87,7 +82,7 @@ public:
    * This method returns true if the i^th field was previously uninitialized,
    * or is equivalent to n modulo the equalities given by q.
    */
-  bool set(EqualityQuery* q, size_t i, TNode n);
+  bool set(quantifiers::QuantifiersState& qs, size_t i, TNode n);
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {

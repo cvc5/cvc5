@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Aina Niemetz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,8 @@
 #include "options/arith_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
+#include "theory/arith/error_set.h"
+#include "theory/arith/tableau.h"
 #include "util/statistics_registry.h"
 
 using namespace std;
@@ -844,7 +846,7 @@ bool SumOfInfeasibilitiesSPD::generateSOIConflict(const ArithVarVec& subset){
       d_conflictBuilder->addConstraint(c, coeff);
     }
     ConstraintCP conflicted = d_conflictBuilder->commitConflict();
-    d_conflictChannel.raiseConflict(conflicted);
+    d_conflictChannel.raiseConflict(conflicted, InferenceId::UNKNOWN);
   }
 
   tearDownInfeasiblityFunction(d_statistics.d_soiConflictMinimization, d_soiVar);

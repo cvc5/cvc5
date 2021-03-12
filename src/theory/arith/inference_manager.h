@@ -2,9 +2,9 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Gereon Kremer, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,19 +17,16 @@
 #ifndef CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
 #define CVC4__THEORY__ARITH__INFERENCE_MANAGER_H
 
-#include <map>
 #include <vector>
 
-#include "theory/arith/arith_lemma.h"
-#include "theory/arith/arith_state.h"
-#include "theory/arith/inference_id.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/inference_id.h"
 #include "theory/inference_manager_buffered.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
+class ArithState;
 class TheoryArith;
 
 /**
@@ -55,24 +52,24 @@ class InferenceManager : public InferenceManagerBuffered
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
-                            bool isWaiting = false);
+  void addPendingLemma(std::unique_ptr<SimpleTheoryLemma> lemma,
+                       bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(const ArithLemma& lemma, bool isWaiting = false);
+  void addPendingLemma(const SimpleTheoryLemma& lemma, bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to this inference manager.
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(const Node& lemma,
-                            InferenceId inftype,
-                            ProofGenerator* pg = nullptr,
-                            bool isWaiting = false,
-                            LemmaProperty p = LemmaProperty::NONE);
+  void addPendingLemma(const Node& lemma,
+                       InferenceId inftype,
+                       ProofGenerator* pg = nullptr,
+                       bool isWaiting = false,
+                       LemmaProperty p = LemmaProperty::NONE);
 
   /**
    * Flush all waiting lemmas to this inference manager (as pending
@@ -112,14 +109,10 @@ class InferenceManager : public InferenceManagerBuffered
    * Checks whether the lemma is entailed to be false. In this case, it is a
    * conflict.
    */
-  bool isEntailedFalse(const ArithLemma& lem);
+  bool isEntailedFalse(const SimpleTheoryLemma& lem);
 
   /** The waiting lemmas. */
-  std::vector<std::unique_ptr<ArithLemma>> d_waitingLem;
-
-  /** cache of all preprocessed lemmas sent on the output channel
-   * (user-context-dependent) */
-  NodeSet d_lemmasPp;
+  std::vector<std::unique_ptr<SimpleTheoryLemma>> d_waitingLem;
 };
 
 }  // namespace arith

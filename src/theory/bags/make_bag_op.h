@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,7 @@ class TypeNode;
 class MakeBagOp
 {
  public:
-  MakeBagOp(const TypeNode& elementType);
+  explicit MakeBagOp(const TypeNode& elementType);
   MakeBagOp(const MakeBagOp& op);
 
   /** return the type of the current object */
@@ -43,7 +43,6 @@ class MakeBagOp
   bool operator==(const MakeBagOp& op) const;
 
  private:
-  MakeBagOp();
   /** a pointer to the type of the bag element */
   std::unique_ptr<TypeNode> d_type;
 }; /* class MakeBagOp */

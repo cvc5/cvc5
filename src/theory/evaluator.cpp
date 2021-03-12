@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -792,41 +792,17 @@ EvalResult Evaluator::evalInternal(
           break;
         }
         case kind::BITVECTOR_UDIV:
-        case kind::BITVECTOR_UDIV_TOTAL:
         {
-          if (currNodeVal.getKind() == kind::BITVECTOR_UDIV_TOTAL
-              || results[currNode[1]].d_bv.getValue() != 0)
-          {
-            BitVector res = results[currNode[0]].d_bv;
-            res = res.unsignedDivTotal(results[currNode[1]].d_bv);
-            results[currNode] = EvalResult(res);
-          }
-          else
-          {
-            results[currNode] = EvalResult();
-            evalAsNode[currNode] =
-                needsReconstruct ? reconstruct(currNode, results, evalAsNode)
-                                 : currNodeVal;
-          }
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.unsignedDivTotal(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
           break;
         }
         case kind::BITVECTOR_UREM:
-        case kind::BITVECTOR_UREM_TOTAL:
         {
-          if (currNodeVal.getKind() == kind::BITVECTOR_UREM_TOTAL
-              || results[currNode[1]].d_bv.getValue() != 0)
-          {
-            BitVector res = results[currNode[0]].d_bv;
-            res = res.unsignedRemTotal(results[currNode[1]].d_bv);
-            results[currNode] = EvalResult(res);
-          }
-          else
-          {
-            results[currNode] = EvalResult();
-            evalAsNode[currNode] =
-                needsReconstruct ? reconstruct(currNode, results, evalAsNode)
-                                 : currNodeVal;
-          }
+          BitVector res = results[currNode[0]].d_bv;
+          res = res.unsignedRemTotal(results[currNode[1]].d_bv);
+          results[currNode] = EvalResult(res);
           break;
         }
 

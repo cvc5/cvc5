@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -203,7 +203,7 @@ class BVSolverLazy : public BVSolver
 
   void lemma(TNode node)
   {
-    d_inferManager.lemma(node);
+    d_im.lemma(node, InferenceId::BV_LAZY_LEMMA);
     d_lemmasAdded = true;
   }
 

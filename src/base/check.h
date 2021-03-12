@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -158,7 +158,7 @@ class OstreamVoider
 #else
 #define Assert(cond) \
   CVC4_FATAL_IF(false, __PRETTY_FUNCTION__, __FILE__, __LINE__)
-#endif /* CVC4_DEBUG */
+#endif
 
 class AssertArgumentException : public Exception
 {

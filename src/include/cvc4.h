@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,8 +21,6 @@
 #include <cvc4/base/configuration.h>
 #include <cvc4/base/exception.h>
 #include <cvc4/expr/datatype_index.h>
-#include <cvc4/expr/expr.h>
-#include <cvc4/expr/expr_manager.h>
 #include <cvc4/options/options.h>
 #include <cvc4/parser/parser.h>
 #include <cvc4/parser/parser_builder.h>

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,8 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -45,15 +47,15 @@ TheoryArith::TheoryArith(context::Context* c,
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
-      d_inferenceManager(*this, d_astate, pnm),
+      d_im(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
-      d_arithPreproc(d_astate, d_inferenceManager, pnm, logicInfo)
+      d_arithPreproc(d_astate, d_im, pnm, logicInfo)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
-  d_inferManager = &d_inferenceManager;
+  d_inferManager = &d_im;
 }
 
 TheoryArith::~TheoryArith(){
@@ -102,63 +104,55 @@ void TheoryArith::preRegisterTerm(TNode n)
 TrustNode TheoryArith::expandDefinition(Node node)
 {
   // call eliminate operators, to eliminate partial operators only
-  return d_arithPreproc.eliminate(node, true);
+  std::vector<SkolemLemma> lems;
+  TrustNode ret = d_arithPreproc.eliminate(node, lems, true);
+  Assert(lems.empty());
+  return ret;
 }
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
-TrustNode TheoryArith::ppRewrite(TNode atom)
+TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
-  if (options::arithRewriteEq())
+  if (atom.getKind() == kind::EQUAL)
   {
-    if (atom.getKind() == kind::EQUAL)
-    {
-      Assert(atom[0].getType().isReal());
-      Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
-      Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      TrustNode tleq = ppRewriteTerms(leq);
-      TrustNode tgeq = ppRewriteTerms(geq);
-      if (!tleq.isNull())
-      {
-        leq = tleq.getNode();
-      }
-      if (!tgeq.isNull())
-      {
-        geq = tgeq.getNode();
-      }
-      Node rewritten = Rewriter::rewrite(leq.andNode(geq));
-      Debug("arith::preprocess")
-          << "arith::preprocess() : returning " << rewritten << endl;
-      // don't need to rewrite terms since rewritten is not a non-standard op
-      if (proofsEnabled())
-      {
-        return d_ppPfGen.mkTrustedRewrite(
-            atom,
-            rewritten,
-            d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
-      }
-      else
-      {
-        return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
-      }
-    }
+    return ppRewriteEq(atom);
   }
-  return ppRewriteTerms(atom);
-}
-
-TrustNode TheoryArith::ppRewriteTerms(TNode n)
-{
-  Assert(Theory::theoryOf(n) == THEORY_ARITH);
-  // Eliminate operators recursively. Notice we must do this here since other
+  Assert(Theory::theoryOf(atom) == THEORY_ARITH);
+  // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators. In contrast to expandDefinitions, we eliminate
   // *all* extended arithmetic operators here, including total ones.
-  return d_arithPreproc.eliminate(n, false);
+  return d_arithPreproc.eliminate(atom, lems, false);
+}
+
+TrustNode TheoryArith::ppRewriteEq(TNode atom)
+{
+  Assert(atom.getKind() == kind::EQUAL);
+  if (!options::arithRewriteEq())
+  {
+    return TrustNode::null();
+  }
+  Assert(atom[0].getType().isReal());
+  Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
+  Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
+  Node rewritten = Rewriter::rewrite(leq.andNode(geq));
+  Debug("arith::preprocess")
+      << "arith::preprocess() : returning " << rewritten << endl;
+  // don't need to rewrite terms since rewritten is not a non-standard op
+  if (proofsEnabled())
+  {
+    return d_ppPfGen.mkTrustedRewrite(
+        atom,
+        rewritten,
+        d_pnm->mkNode(PfRule::INT_TRUST, {}, {atom.eqNode(rewritten)}));
+  }
+  return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(
@@ -205,7 +199,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_inferenceManager.setIncomplete();
+      d_im.setIncomplete();
     }
   }
 }
@@ -276,7 +270,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-      d_out->lemma(lem);
+      d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
     }
     return false;
   }
@@ -313,7 +307,7 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 }
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
-  return d_inferenceManager.getProofEqEngine();
+  return d_im.getProofEqEngine();
 }
 
 }/* CVC4::theory::arith namespace */

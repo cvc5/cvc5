@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,20 +16,16 @@
 #define CVC4__THEORY__ARITH__NL__TRANSCENDENTAL__EXPONENTIAL_SOLVER_H
 
 #include <map>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 #include "expr/node.h"
-#include "theory/arith/inference_manager.h"
-#include "theory/arith/nl/nl_model.h"
-#include "theory/arith/nl/transcendental/transcendental_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
 namespace transcendental {
+
+struct TranscendentalState;
 
 /** Transcendental solver class
  *
@@ -85,10 +81,10 @@ class ExponentialSolver
    */
   void checkMonotonic();
 
-  /** Sent tangent lemma around c for e */
-  void doTangentLemma(TNode e, TNode c, TNode poly_approx);
+  /** Send tangent lemma around c for e */
+  void doTangentLemma(TNode e, TNode c, TNode poly_approx, std::uint64_t d);
 
-  /** Sent secant lemmas around c for e */
+  /** Send secant lemmas around c for e */
   void doSecantLemmas(TNode e,
                       TNode poly_approx,
                       TNode center,

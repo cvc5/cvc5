@@ -2,9 +2,9 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Gereon Kremer, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -45,16 +45,15 @@ class InferenceManager : public TheoryInferenceManager
    * @return true if the fact was successfully asserted, and false if the
    * fact was redundant.
    */
-  bool assertInference(TNode atom, bool polarity, TNode reason, PfRule id);
+  bool assertInference(TNode atom, bool polarity, InferenceId id, TNode reason, PfRule pfr);
   /**
-   * Send lemma (exp => conc) based on proof rule id with properties p. Cache
-   * the lemma if doCache is true.
+   * Send lemma (exp => conc) based on proof rule id with properties p.
    */
   bool arrayLemma(Node conc,
+                  InferenceId id,
                   Node exp,
-                  PfRule id,
-                  LemmaProperty p = LemmaProperty::NONE,
-                  bool doCache = false);
+                  PfRule pfr,
+                  LemmaProperty p = LemmaProperty::NONE);
 
  private:
   /**

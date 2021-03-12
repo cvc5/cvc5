@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -31,8 +31,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
-    : SygusModule(qe, p), d_eval_unfold(nullptr), d_usingSymCons(false)
+Cegis::Cegis(QuantifiersEngine* qe,
+             QuantifiersInferenceManager& qim,
+             SynthConjecture* p)
+    : SygusModule(qe, qim, p), d_eval_unfold(nullptr), d_usingSymCons(false)
 {
   d_eval_unfold = qe->getTermDatabaseSygus()->getEvalUnfold();
 }

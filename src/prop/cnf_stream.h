@@ -2,9 +2,9 @@
 /*! \file cnf_stream.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Haniel Barbosa
+ **   Dejan Jovanovic, Haniel Barbosa, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,7 +32,7 @@
 #include "proof/proof_manager.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/registrar.h"
-#include "prop/theory_proxy.h"
+#include "prop/sat_solver_types.h"
 
 namespace CVC4 {
 
@@ -41,6 +41,8 @@ class OutputManager;
 namespace prop {
 
 class ProofCnfStream;
+class PropEngine;
+class SatSolver;
 
 /** A policy for how literals for formulas are handled in cnf_stream */
 enum class FormulaLitPolicy : uint32_t
@@ -131,7 +133,7 @@ class CnfStream {
    * can be queried via getSatValue(). Essentially, this is like a "convert-but-
    * don't-assert" version of convertAndAssert().
    */
-  void ensureLiteral(TNode n, bool noPreregistration = false);
+  void ensureLiteral(TNode n);
 
   /**
    * Returns the literal that represents the given node in the SAT CNF
@@ -202,6 +204,13 @@ class CnfStream {
   SatLiteral handleIte(TNode node);
   SatLiteral handleAnd(TNode node);
   SatLiteral handleOr(TNode node);
+
+  /** Stores the literal of the given node in d_literalToNodeMap.
+   *
+   * Note that n must already have a literal associated to it in
+   * d_nodeToLiteralMap.
+   */
+  void ensureMappingForLiteral(TNode n);
 
   /** The SAT solver we will be using */
   SatSolver* d_satSolver;
@@ -302,7 +311,7 @@ class CnfStream {
    * structure in this expression.  Assumed to not be in the
    * translation cache.
    */
-  SatLiteral convertAtom(TNode node, bool noPreprocessing = false);
+  SatLiteral convertAtom(TNode node);
 
   /** Pointer to resource manager for associated SmtEngine */
   ResourceManager* d_resourceManager;

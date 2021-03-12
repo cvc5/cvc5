@@ -2,9 +2,9 @@
 /*! \file theory_proxy.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Kshitij Bansal
+ **   Andrew Reynolds, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,19 +23,16 @@
 // Optional blocks below will be unconditionally included
 #define CVC4_USE_MINISAT
 
-#include <iosfwd>
 #include <unordered_set>
 
-#include "context/cdhashmap.h"
 #include "context/cdqueue.h"
 #include "expr/node.h"
 #include "prop/registrar.h"
-#include "prop/sat_solver.h"
+#include "prop/sat_solver_types.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -104,16 +101,31 @@ class TheoryProxy : public Registrar
    */
   theory::TrustNode preprocessLemma(theory::TrustNode trn,
                                     std::vector<theory::TrustNode>& newLemmas,
-                                    std::vector<Node>& newSkolems,
-                                    bool doTheoryPreprocess);
+                                    std::vector<Node>& newSkolems);
   /**
    * Call the preprocessor on node, return trust node corresponding to the
    * rewrite.
    */
   theory::TrustNode preprocess(TNode node,
                                std::vector<theory::TrustNode>& newLemmas,
-                               std::vector<Node>& newSkolems,
-                               bool doTheoryPreprocess);
+                               std::vector<Node>& newSkolems);
+  /**
+   * Remove ITEs from the node.
+   */
+  theory::TrustNode removeItes(TNode node,
+                               std::vector<theory::TrustNode>& newLemmas,
+                               std::vector<Node>& newSkolems);
+  /**
+   * Get the skolems within node and their corresponding definitions, store
+   * them in sks and skAsserts respectively. Note that this method does not
+   * necessary include all of the skolems in skAsserts. In other words, it
+   * collects from node only. To compute all skolems that node depends on
+   * requires calling this method again on each lemma in skAsserts until a
+   * fixed point is reached.
+   */
+  void getSkolems(TNode node,
+                  std::vector<theory::TrustNode>& skAsserts,
+                  std::vector<Node>& sks);
   /** Preregister term */
   void preRegister(Node n) override;
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,7 @@
 #define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/sygus/sygus_qe_preproc.h"
 #include "theory/quantifiers/sygus/sygus_stats.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
@@ -35,7 +35,8 @@ class SynthEngine : public QuantifiersModule
  public:
   SynthEngine(QuantifiersEngine* qe,
               QuantifiersState& qs,
-              QuantifiersInferenceManager& qim);
+              QuantifiersInferenceManager& qim,
+              QuantifiersRegistry& qr);
   ~SynthEngine();
   /** presolve
    *
@@ -49,6 +50,8 @@ class SynthEngine : public QuantifiersModule
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
   void check(Theory::Effort e, QEffort quant_e) override;
+  /** check ownership */
+  void checkOwnership(Node q) override;
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -92,12 +92,6 @@ class ExtfSolver
              ExtTheory& et,
              SequencesStatistics& statistics);
   ~ExtfSolver();
-
-  /**
-   * Called when a shared term is added to theory of strings, this registers
-   * n with the extended theory utility for context-depdendent simplification.
-   */
-  void addSharedTerm(TNode n);
   /** check extended functions evaluation
    *
    * This applies "context-dependent simplification" for all active extended

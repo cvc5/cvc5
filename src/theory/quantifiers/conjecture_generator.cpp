@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "util/random.h"
 
 using namespace CVC4;
@@ -86,8 +87,9 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
 
 ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
-                                         QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                                         QuantifiersInferenceManager& qim,
+                                         QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_notify(*this),
       d_uequalityEngine(
           d_notify, qs.getSatContext(), "ConjectureGenerator::ee", false),
@@ -335,7 +337,7 @@ bool ConjectureGenerator::isGroundTerm( TNode n ) {
 
 bool ConjectureGenerator::needsCheck( Theory::Effort e ) {
   // synchonized with instantiation engine
-  return d_quantEngine->getInstWhenNeedsCheck( e );
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
@@ -346,10 +348,11 @@ bool ConjectureGenerator::hasEnumeratedUf( Node n ) {
       std::vector< Node > lem;
       getEnumeratePredUfTerm( n, options::conjectureGenGtEnum(), lem );
       if( !lem.empty() ){
-        for( unsigned j=0; j<lem.size(); j++ ){
-          d_quantEngine->addLemma( lem[j], false );
-          d_hasAddedLemma = true;
+        for (const Node& l : lem)
+        {
+          d_qim.addPendingLemma(l, InferenceId::UNKNOWN);
         }
+        d_hasAddedLemma = true;
         return false;
       }
     }
@@ -407,8 +410,12 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           Trace("sg-proc-debug") << "......term : " << n << std::endl;
           if( getTermDatabase()->hasTermCurrent( n ) ){
             if( isHandledTerm( n ) ){
-              getTermDatabase()->computeArgReps( n );
-              d_op_arg_index[r].addTerm( getTermDatabase()->d_arg_reps[n], n );
+              std::vector<TNode> areps;
+              for (const Node& nc : n)
+              {
+                areps.push_back(d_qstate.getRepresentative(nc));
+              }
+              d_op_arg_index[r].addTerm(areps, n);
             }
           }
           ++ieqc_i;
@@ -472,9 +479,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               }
               if( n.hasOperator() ){
                 Trace("sg-gen-eqc") << "   (" << n.getOperator();
-                getTermDatabase()->computeArgReps( n );
-                for (TNode ar : getTermDatabase()->d_arg_reps[n])
+                for (const Node& nc : n)
                 {
+                  TNode ar = d_qstate.getRepresentative(nc);
                   Trace("sg-gen-eqc") << " e" << d_em[ar];
                 }
                 Trace("sg-gen-eqc") << ") :: " << n << std::endl;
@@ -928,8 +935,8 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_eq_conjectures[rhs].push_back( lhs );
 
               Node lem = NodeManager::currentNM()->mkNode( OR, rsg.negate(), rsg );
-              d_quantEngine->addLemma( lem, false );
-              d_quantEngine->addRequirePhase( rsg, false );
+              d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+              d_qim.addPendingPhaseRequirement(rsg, false);
               addedLemmas++;
               if( (int)addedLemmas>=options::conjectureGenPerRound() ){
                 break;
@@ -1798,9 +1805,14 @@ void TermGenEnv::collectSignatureInformation() {
   d_func_kind.clear();
   d_func_args.clear();
   TypeNode tnull;
-  for( std::map< Node, std::vector< Node > >::iterator it = getTermDatabase()->d_op_map.begin(); it != getTermDatabase()->d_op_map.end(); ++it ){
-    if( !it->second.empty() ){
-      Node nn = it->second[0];
+  TermDb* tdb = getTermDatabase();
+  for (size_t i = 0, nops = tdb->getNumOperators(); i < nops; i++)
+  {
+    Node op = tdb->getOperator(i);
+    DbList* dbl = tdb->getOrMkDbListForOp(op);
+    if (!dbl->d_list.empty())
+    {
+      Node nn = dbl->d_list[0];
       Trace("sg-rel-sig-debug") << "Check in signature : " << nn << std::endl;
       if( d_cg->isHandledTerm( nn ) && nn.getKind()!=APPLY_SELECTOR_TOTAL && !nn.getType().isBoolean() ){
         bool do_enum = true;
@@ -1813,16 +1825,20 @@ void TermGenEnv::collectSignatureInformation() {
         }
         if( do_enum ){
           Trace("sg-rel-sig-debug") << "Set enumeration..." << std::endl;
-          d_funcs.push_back( it->first );
-          for( unsigned i=0; i<nn.getNumChildren(); i++ ){
-            d_func_args[it->first].push_back( nn[i].getType() );
+          d_funcs.push_back(op);
+          for (const Node& nnc : nn)
+          {
+            d_func_args[op].push_back(nnc.getType());
           }
-          d_func_kind[it->first] = nn.getKind();
-          d_typ_tg_funcs[tnull].push_back( it->first );
-          d_typ_tg_funcs[nn.getType()].push_back( it->first );
-          d_tg_func_param[it->first] = ( nn.getMetaKind() == kind::metakind::PARAMETERIZED );
-          Trace("sg-rel-sig") << "Will enumerate function applications of : " << it->first << ", #args = " << d_func_args[it->first].size() << ", kind = " << nn.getKind() << std::endl;
-          //getTermDatabase()->computeUfEqcTerms( it->first );
+          d_func_kind[op] = nn.getKind();
+          d_typ_tg_funcs[tnull].push_back(op);
+          d_typ_tg_funcs[nn.getType()].push_back(op);
+          d_tg_func_param[op] =
+              (nn.getMetaKind() == kind::metakind::PARAMETERIZED);
+          Trace("sg-rel-sig")
+              << "Will enumerate function applications of : " << op
+              << ", #args = " << d_func_args[op].size()
+              << ", kind = " << nn.getKind() << std::endl;
         }
       }
       Trace("sg-rel-sig-debug") << "Done check in signature : " << nn << std::endl;

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,6 +30,7 @@
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
+#include "theory/trust_substitutions.h"
 
 using namespace CVC4::theory::bv::utils;
 
@@ -42,7 +43,7 @@ BVSolverLazy::BVSolverLazy(TheoryBV& bv,
                            context::UserContext* u,
                            ProofNodeManager* pnm,
                            std::string name)
-    : BVSolver(bv.d_state, bv.d_inferMgr),
+    : BVSolver(bv.d_state, bv.d_im),
       d_bv(bv),
       d_context(c),
       d_alreadyPropagatedSet(c),
@@ -119,7 +120,7 @@ void BVSolverLazy::finishInit()
 
 void BVSolverLazy::spendResource(ResourceManager::Resource r)
 {
-  d_inferManager.spendResource(r);
+  d_im.spendResource(r);
 }
 
 BVSolverLazy::Statistics::Statistics()
@@ -196,8 +197,8 @@ void BVSolverLazy::sendConflict()
   {
     Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
                        << d_conflictNode << std::endl;
-    d_inferManager.conflict(d_conflictNode);
-    d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
+    d_im.conflict(d_conflictNode, InferenceId::BV_LAZY_CONFLICT);
+    d_statistics.d_avgConflictSize << d_conflictNode.getNumChildren();
     d_conflictNode = Node::null();
   }
 }
@@ -207,7 +208,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
   if (fact.getKind() == kind::EQUAL)
   {
     NodeManager* nm = NodeManager::currentNM();
-    if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[0].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[0];
       TNode result = fact[1];
@@ -219,7 +220,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
           kind::OR, divisor_eq_0, nm->mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
-    if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[1].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[1];
       TNode result = fact[0];
@@ -287,11 +288,11 @@ void BVSolverLazy::check(Theory::Effort e)
     {
       if (assertions.size() == 1)
       {
-        d_inferManager.conflict(assertions[0]);
+        d_im.conflict(assertions[0], InferenceId::BV_LAZY_CONFLICT);
         return;
       }
       Node conflict = utils::mkAnd(assertions);
-      d_inferManager.conflict(conflict);
+      d_im.conflict(conflict, InferenceId::BV_LAZY_CONFLICT);
       return;
     }
     return;
@@ -426,7 +427,7 @@ void BVSolverLazy::propagate(Theory::Effort e)
     {
       Debug("bitvector::propagate")
           << "BVSolverLazy:: propagating " << literal << "\n";
-      ok = d_inferManager.propagateLit(literal);
+      ok = d_im.propagateLit(literal);
     }
   }
 
@@ -670,7 +671,7 @@ bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
   constexpr bool ok = true;
   if (subtheory == SUB_CORE)
   {
-    d_inferManager.propagateLit(literal);
+    d_im.propagateLit(literal);
     if (!ok)
     {
       setConflict();

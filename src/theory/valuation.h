@@ -2,9 +2,9 @@
 /*! \file valuation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #ifndef CVC4__THEORY__VALUATION_H
 #define CVC4__THEORY__VALUATION_H
 
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "options/theory_options.h"
 
@@ -30,7 +31,9 @@ class TheoryEngine;
 
 namespace theory {
 
+struct Assertion;
 class TheoryModel;
+class SortInference;
 
 /**
  * The status of an equality in the current context.
@@ -111,6 +114,11 @@ public:
    * check.
    */
   TheoryModel* getModel();
+  /**
+   * Returns a pointer to the sort inference module, which lives in TheoryEngine
+   * and is non-null when options::sortInference is true.
+   */
+  SortInference* getSortInference();
 
   //-------------------------------------- static configuration of the model
   /**
@@ -159,6 +167,13 @@ public:
    * @return The preprocessed form of n
    */
   Node getPreprocessedTerm(TNode n);
+  /**
+   * Same as above, but also tracks the skolems and their corresponding
+   * definitions in sks and skAsserts respectively.
+   */
+  Node getPreprocessedTerm(TNode n,
+                           std::vector<Node>& skAsserts,
+                           std::vector<Node>& sks);
 
   /**
    * Returns whether the given lit (which must be a SAT literal) is a decision
@@ -188,6 +203,17 @@ public:
    * or during LAST_CALL effort.
    */
   bool isRelevant(Node lit) const;
+
+  //------------------------------------------- access methods for assertions
+  /**
+   * The following methods are intended only to be used in limited use cases,
+   * for cases where a theory (e.g. quantifiers) requires knowing about the
+   * assertions from other theories.
+   */
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsBegin(TheoryId tid);
+  /** The beginning iterator of facts for theory tid.*/
+  context::CDList<Assertion>::const_iterator factsEnd(TheoryId tid);
 };/* class Valuation */
 
 }/* CVC4::theory namespace */

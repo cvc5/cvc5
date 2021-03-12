@@ -21,12 +21,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Solver_h
 #define Minisat_Solver_h
 
-#include "cvc4_private.h"
-
 #include <iosfwd>
 
+#include "base/check.h"
 #include "base/output.h"
 #include "context/context.h"
+#include "cvc4_private.h"
 #include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
 #include "prop/minisat/core/SolverTypes.h"
@@ -36,6 +36,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/utils/Options.h"
 #include "prop/sat_proof_manager.h"
 #include "theory/theory.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 template <class Solver> class TSatProof;
@@ -533,31 +534,32 @@ inline bool Solver::isDecision(Var x) const
 
 inline int Solver::level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_level;
 }
 
 inline int Solver::user_level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_user_level;
 }
 
 inline int Solver::intro_level(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_intro_level;
 }
 
 inline int Solver::trail_index(Var x) const
 {
-  assert(x < vardata.size());
+  Assert(x < vardata.size());
   return vardata[x].d_trail_index;
 }
 
 inline void Solver::insertVarOrder(Var x) {
-    assert(x < vardata.size());
-    if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
+  Assert(x < vardata.size());
+  if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x);
+}
 
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
 inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
@@ -606,8 +608,16 @@ inline void Solver::newDecisionLevel()
 
 inline int      Solver::decisionLevel ()      const   { return trail_lim.size(); }
 inline uint32_t Solver::abstractLevel (Var x) const   { return 1 << (level(x) & 31); }
-inline lbool    Solver::value         (Var x) const   { assert(x < nVars()); return assigns[x]; }
-inline lbool    Solver::value         (Lit p) const   { assert(var(p) < nVars()); return assigns[var(p)] ^ sign(p); }
+inline lbool Solver::value(Var x) const
+{
+  Assert(x < nVars());
+  return assigns[x];
+}
+inline lbool Solver::value(Lit p) const
+{
+  Assert(var(p) < nVars());
+  return assigns[var(p)] ^ sign(p);
+}
 inline lbool    Solver::modelValue    (Var x) const   { return model[x]; }
 inline lbool    Solver::modelValue    (Lit p) const   { return model[var(p)] ^ sign(p); }
 inline int      Solver::nAssigns      ()      const   { return trail.size(); }

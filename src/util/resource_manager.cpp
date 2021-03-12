@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,13 @@
 **/
 #include "util/resource_manager.h"
 
+#include <algorithm>
+#include <ostream>
+
 #include "base/check.h"
+#include "base/listener.h"
 #include "base/output.h"
+#include "options/options.h"
 #include "options/smt_options.h"
 #include "util/statistics_registry.h"
 
@@ -180,7 +185,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_options(options)
 
 {
-  d_statistics->d_resourceUnitsUsed.setData(d_cumulativeResourceUsed);
+  d_statistics->d_resourceUnitsUsed.set(d_cumulativeResourceUsed);
 }
 
 ResourceManager::~ResourceManager() {}
@@ -238,7 +243,7 @@ void ResourceManager::spendResource(unsigned amount)
   {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
     Trace("limit") << "          on call "
-                   << d_statistics->d_spendResourceCalls.getData() << std::endl;
+                   << d_statistics->d_spendResourceCalls.get() << std::endl;
     if (outOfTime())
     {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -404,17 +404,6 @@ public:
   }
 
   /**
-   * Convert this TypeNode into a Type using the currently-in-scope
-   * manager.
-   */
-  inline Type toType() const;
-
-  /**
-   * Convert a Type into a TypeNode.
-   */
-  inline static TypeNode fromType(const Type& t);
-
-  /**
    * Returns the cardinality of this type.
    *
    * @return a finite or infinite cardinality
@@ -771,16 +760,6 @@ typedef TypeNode::HashFunction TypeNodeHashFunction;
 #include "expr/node_manager.h"
 
 namespace CVC4 {
-
-inline Type TypeNode::toType() const
-{
-  return NodeManager::currentNM()->toType(*this);
-}
-
-inline TypeNode TypeNode::fromType(const Type& t) {
-  NodeManagerScope scope(t.d_nodeManager);
-  return NodeManager::fromType(t);
-}
 
 inline TypeNode
 TypeNode::substitute(const TypeNode& type,

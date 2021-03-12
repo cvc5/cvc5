@@ -220,6 +220,14 @@ header = "options/quantifiers_options.h"
   help = "Quantifiers module considers only ground terms connected to current assertions."
 
 [[option]]
+  name       = "termDbCd"
+  category   = "regular"
+  long       = "term-db-cd"
+  type       = "bool"
+  default    = "true"
+  help       = "register terms in term database based on the SAT context"
+
+[[option]]
   name       = "registerQuantBodyTerms"
   category   = "regular"
   long       = "register-quant-body-terms"
@@ -546,6 +554,15 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = true
   help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
+
+[[option]]
+  name       = "fullSaturateSum"
+  category   = "regular"
+  long       = "fs-sum"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "enumerating tuples of quantifiers by increasing the sum of indices, rather than the maximum"
 
 [[option]]
   name       = "literalMatchMode"
@@ -1762,17 +1779,6 @@ header = "options/quantifiers_options.h"
   default    = "true"
   help       = "compute inverse for concat over equalities rather than producing an invertibility condition"
 
-### Local theory extensions options
-
-[[option]]
-  name       = "lteRestrictInstClosure"
-  category   = "regular"
-  long       = "lte-restrict-inst-closure"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "treat arguments of inst closure as restricted terms for instantiation"
-
 ### Reduction options
 
 [[option]]
@@ -1875,16 +1881,6 @@ header = "options/quantifiers_options.h"
   default    = "true"
   read_only  = false
   help       = "use store axiom during ho-elim"
-
-### Proof options
-
-[[option]]
-  name       = "trackInstLemmas"
-  category   = "regular"
-  long       = "track-inst-lemmas"
-  type       = "bool"
-  default    = "false"
-  help       = "track instantiation lemmas (for proofs, unsat cores, qe and synthesis minimization)"
 
 ### Output options
 

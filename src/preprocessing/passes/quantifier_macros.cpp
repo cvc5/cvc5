@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,14 +19,20 @@
 #include <vector>
 
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 
 using namespace std;
 using namespace CVC4::theory;
@@ -80,7 +86,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
     for( int i=0; i<(int)assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
-        if (options::unsatCores() && !options::proofNew()
+        if (options::unsatCores() && !options::proof()
             && std::find(macro_assertions.begin(),
                          macro_assertions.end(),
                          assertions[i])
@@ -106,7 +112,7 @@ bool QuantifierMacros::simplify(AssertionPipeline* ap, bool doRewrite)
           // is an over-approximation. a more fine-grained unsat core
           // computation would require caching dependencies for each subterm of
           // the formula, which is expensive.
-          if (options::unsatCores() && !options::proofNew())
+          if (options::unsatCores() && !options::proof())
           {
             ProofManager::currentPM()->addDependence(curr, assertions[i]);
             for (unsigned j = 0; j < macro_assertions.size(); j++)
@@ -195,8 +201,8 @@ bool QuantifierMacros::isGroundUfTerm(Node q, Node n)
 {
   Node icn = d_preprocContext->getTheoryEngine()
                  ->getQuantifiersEngine()
-                 ->getTermUtil()
-                 ->substituteBoundVariablesToInstConstants(n, q);
+                 ->getQuantifiersRegistry()
+                 .substituteBoundVariablesToInstConstants(n, q);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(q, icn, var);

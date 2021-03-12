@@ -2,9 +2,9 @@
 /*! \file trigger.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,23 +17,26 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 #define CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 
-#include <map>
-
 #include "expr/node.h"
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/valuation.h"
+#include "theory/inference_id.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+class Valuation;
+
+namespace quantifiers {
+class QuantifiersState;
+class QuantifiersInferenceManager;
+class QuantifiersRegistry;
+}
 
 namespace inst {
 
 class IMGenerator;
+class InstMatch;
 class InstMatchGenerator;
-
 /** A collection of nodes representing a trigger.
 *
 * This class encapsulates all implementations of E-matching in CVC4.
@@ -159,6 +162,9 @@ class Trigger {
     TR_RETURN_NULL  //return null if a duplicate is found
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -166,6 +172,9 @@ class Trigger {
                             size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
+                            quantifiers::QuantifiersState& qs,
+                            quantifiers::QuantifiersInferenceManager& qim,
+                            quantifiers::QuantifiersRegistry& qr,
                             Node q,
                             Node n,
                             bool keepAll = true,
@@ -187,7 +196,12 @@ class Trigger {
 
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
-  Trigger(QuantifiersEngine* ie, Node q, std::vector<Node>& nodes);
+  Trigger(QuantifiersEngine* ie,
+          quantifiers::QuantifiersState& qs,
+          quantifiers::QuantifiersInferenceManager& qim,
+          quantifiers::QuantifiersRegistry& qr,
+          Node q,
+          std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
    *
    * This calls Instantiate::addInstantiation(...) for instantiations
@@ -195,7 +209,9 @@ class Trigger {
    * but in some cases (e.g. higher-order) we may modify m before calling
    * Instantiate::addInstantiation(...).
    */
-  virtual bool sendInstantiation(InstMatch& m);
+  virtual bool sendInstantiation(std::vector<Node>& m, InferenceId id);
+  /** inst match version, calls the above method */
+  bool sendInstantiation(InstMatch& m, InferenceId id);
   /**
    * Ensure that all ground subterms of n have been preprocessed. This makes
    * calls to the provided valuation to obtain the preprocessed form of these
@@ -231,8 +247,14 @@ class Trigger {
    * This example would fail to match when f(a) is not registered.
    */
   std::vector<Node> d_groundTerms;
-  /** The quantifiers engine associated with this trigger. */
+  // !!!!!!!!!!!!!!!!!! temporarily available (project #15)
   QuantifiersEngine* d_quantEngine;
+  /** Reference to the quantifiers state */
+  quantifiers::QuantifiersState& d_qstate;
+  /** Reference to the quantifiers inference manager */
+  quantifiers::QuantifiersInferenceManager& d_qim;
+  /** The quantifiers registry */
+  quantifiers::QuantifiersRegistry& d_qreg;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** match generator

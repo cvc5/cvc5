@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,9 +15,11 @@
 
 #include "theory/quantifiers/quant_conflict_find.h"
 
+#include "base/configuration.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
+#include "options/uf_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -26,7 +28,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -589,7 +591,7 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
           p->d_quantEngine->getInstantiate()->getInstantiation(d_q, terms);
       inst = Rewriter::rewrite(inst);
       Node inst_eval = p->getTermDatabase()->evaluateTerm(
-          inst, nullptr, options::qcfTConstraint(), true);
+          inst, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -628,8 +630,8 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
     //check constraints
     for( std::map< Node, bool >::iterator it = d_tconstraints.begin(); it != d_tconstraints.end(); ++it ){
       //apply substitution to the tconstraint
-      Node cons =
-          p->getTermUtil()->substituteBoundVariables(it->first, d_q, terms);
+      Node cons = p->getQuantifiersRegistry().substituteBoundVariables(
+          it->first, d_q, terms);
       cons = it->second ? cons : cons.negate();
       if (!entailmentTest(p, cons, p->atConflictEffort())) {
         return true;
@@ -643,31 +645,33 @@ bool QuantInfo::isTConstraintSpurious(QuantConflictFind* p,
 bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
   Trace("qcf-tconstraint-debug") << "Check : " << lit << std::endl;
   Node rew = Rewriter::rewrite( lit );
-  if( rew==p->d_false ){
-    Trace("qcf-tconstraint-debug") << "...constraint " << lit << " is disentailed (rewrites to false)." << std::endl;
-    return false;
-  }else if( rew!=p->d_true ){
-    //if checking for conflicts, we must be sure that the (negation of) constraint is (not) entailed 
-    if( !chEnt ){
-      rew = Rewriter::rewrite( rew.negate() );
-    }
-    //check if it is entailed
-    Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
-    std::pair<bool, Node> et =
-        p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(
-            options::TheoryOfMode::THEORY_OF_TYPE_BASED, rew);
-    ++(p->d_statistics.d_entailment_checks);
-    Trace("qcf-tconstraint-debug") << "ET result : " << et.first << " " << et.second << std::endl;
-    if( !et.first ){
-      Trace("qcf-tconstraint-debug") << "...cannot show entailment of " << rew << "." << std::endl;
-      return !chEnt;
-    }else{
-      return chEnt;
-    }
-  }else{
-    Trace("qcf-tconstraint-debug") << "...rewrites to true." << std::endl;
-    return true;
+  if (rew.isConst())
+  {
+    Trace("qcf-tconstraint-debug") << "...constraint " << lit << " rewrites to "
+                                   << rew << "." << std::endl;
+    return rew.getConst<bool>();
   }
+  // if checking for conflicts, we must be sure that the (negation of)
+  // constraint is (not) entailed
+  if (!chEnt)
+  {
+    rew = Rewriter::rewrite(rew.negate());
+  }
+  // check if it is entailed
+  Trace("qcf-tconstraint-debug")
+      << "Check entailment of " << rew << "..." << std::endl;
+  std::pair<bool, Node> et = p->getState().getValuation().entailmentCheck(
+      options::TheoryOfMode::THEORY_OF_TYPE_BASED, rew);
+  ++(p->d_statistics.d_entailment_checks);
+  Trace("qcf-tconstraint-debug")
+      << "ET result : " << et.first << " " << et.second << std::endl;
+  if (!et.first)
+  {
+    Trace("qcf-tconstraint-debug")
+        << "...cannot show entailment of " << rew << "." << std::endl;
+    return !chEnt;
+  }
+  return chEnt;
 }
 
 bool QuantInfo::completeMatch( QuantConflictFind * p, std::vector< int >& assigned, bool doContinue ) {
@@ -979,7 +983,11 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
   d_qni_size = 0;
   if( isVar ){
     Assert(qi->d_var_num.find(n) != qi->d_var_num.end());
-    if( n.getKind()==ITE ){
+    // rare case where we have a free variable in an operator, we are invalid
+    if (n.getKind() == ITE
+        || (options::ufHo() && n.getKind() == APPLY_UF
+            && expr::hasFreeVar(n.getOperator())))
+    {
       d_type = typ_invalid;
     }else{
       d_type = isHandledUfTerm( n ) ? typ_var : typ_tsym;
@@ -1839,8 +1847,9 @@ bool MatchGen::isHandled( TNode n ) {
 
 QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
                                      QuantifiersState& qs,
-                                     QuantifiersInferenceManager& qim)
-    : QuantifiersModule(qs, qim, qe),
+                                     QuantifiersInferenceManager& qim,
+                                     QuantifiersRegistry& qr)
+    : QuantifiersModule(qs, qim, qr, qe),
       d_conflict(qs.getSatContext(), false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
@@ -1851,7 +1860,8 @@ QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe,
 //-------------------------------------------------- registration
 
 void QuantConflictFind::registerQuantifier( Node q ) {
-  if( d_quantEngine->hasOwnership( q, this ) ){
+  if (d_qreg.hasOwnership(q, this))
+  {
     d_quants.push_back( q );
     d_quant_id[q] = d_quants.size();
     if( Trace.isOn("qcf-qregister") ){
@@ -1991,7 +2001,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   int prevEt = 0;
   if (Trace.isOn("qcf-engine"))
   {
-    prevEt = d_statistics.d_entailment_checks.getData();
+    prevEt = d_statistics.d_entailment_checks.get();
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qcf-engine") << "---Conflict Find Engine Round, effort = " << level
                         << "---" << std::endl;
@@ -2021,7 +2031,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     for (unsigned i = 0; i < nquant; i++)
     {
       Node q = fm->getAssertedQuantifier(i, true);
-      if (d_quantEngine->hasOwnership(q, this)
+      if (d_qreg.hasOwnership(q, this)
           && d_irr_quant.find(q) == d_irr_quant.end()
           && fm->isQuantifierActive(q))
       {
@@ -2060,7 +2070,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
       Trace("qcf-engine") << ", addedLemmas = " << addedLemmas;
     }
     Trace("qcf-engine") << std::endl;
-    int currEt = d_statistics.d_entailment_checks.getData();
+    int currEt = d_statistics.d_entailment_checks.get();
     if (currEt != prevEt)
     {
       Trace("qcf-engine") << "  Entailment checks = " << (currEt - prevEt)
@@ -2154,7 +2164,10 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       }
       // Process the lemma: either add an instantiation or specific lemmas
       // constructed during the isTConstraintSpurious call, or both.
-      if (!qinst->addInstantiation(q, terms))
+      InferenceId id = (d_effort == EFFORT_CONFLICT
+                            ? InferenceId::QUANTIFIERS_INST_CBQI_CONFLICT
+                            : InferenceId::QUANTIFIERS_INST_CBQI_PROP);
+      if (!qinst->addInstantiation(q, terms, id))
       {
         Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
         // This should only happen if the algorithm generates the same
@@ -2178,7 +2191,6 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         // ensure that quantified formulas that are more likely to have
         // conflicting instances are checked earlier.
         d_quantEngine->markRelevant(q);
-        ++(d_quantEngine->d_statistics.d_instantiations_qcf);
         if (options::qcfAllConflict())
         {
           isConflict = true;
@@ -2192,7 +2204,6 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       else if (d_effort == EFFORT_PROP_EQ)
       {
         d_quantEngine->markRelevant(q);
-        ++(d_quantEngine->d_statistics.d_instantiations_qcf);
       }
     }
     // clean up assigned

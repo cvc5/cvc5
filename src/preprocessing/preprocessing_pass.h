@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Mathias Preiner
+ **   Justin Xu, Mathias Preiner, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,13 +33,14 @@
 
 #include <string>
 
-#include "preprocessing/assertion_pipeline.h"
-#include "preprocessing/preprocessing_pass_context.h"
-#include "smt/smt_engine_scope.h"
-#include "theory/logic_info.h"
+#include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace preprocessing {
+
+class AssertionPipeline;
+class PreprocessingPassContext;
 
 /**
  * Preprocessing passes return a result which indicates whether a conflict has

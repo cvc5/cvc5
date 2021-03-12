@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,9 +29,10 @@
 #include "theory/arrays/inference_manager.h"
 #include "theory/arrays/proof_checker.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/decision_strategy.h"
 #include "theory/theory.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -195,7 +196,7 @@ class TheoryArrays : public Theory {
  public:
   PPAssertStatus ppAssert(TrustNode tin,
                           TrustSubstitutionMap& outSubstitutions) override;
-  TrustNode ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION

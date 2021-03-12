@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -84,7 +84,7 @@ void printUsage(Options& opts, bool full) {
 int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Timer statistic
-  pTotalTime = new TimerStat("totalTime");
+  pTotalTime = new TimerStat("driver::totalTime");
   pTotalTime->start();
 
   // For the signal handlers' benefit
@@ -98,7 +98,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
 
-  install_time_limit(opts);
+  auto limit = install_time_limit(opts);
 
   string progNameStr = opts.getBinaryName();
   progName = &progNameStr;
@@ -192,7 +192,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
                                     pTotalTime);
 
     // Filename statistics
-    ReferenceStat<std::string> s_statFilename("filename", filenameStr);
+    ReferenceStat<std::string> s_statFilename("driver::filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
     // notify SmtEngine that we are starting to parse
@@ -473,7 +473,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat<api::Result> s_statSatResult("sat/unsat", result);
+    ReferenceStat<api::Result> s_statSatResult("driver::sat/unsat", result);
     RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
                                        &s_statSatResult);
 

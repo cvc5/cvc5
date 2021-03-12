@@ -2,9 +2,9 @@
 /*! \file term_formula_removal.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,23 +18,21 @@
 
 #pragma once
 
-#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/term_context_stack.h"
-#include "expr/term_conversion_proof_generator.h"
-#include "theory/eager_proof_generator.h"
+#include "expr/term_context.h"
 #include "theory/trust_node.h"
-#include "util/bool.h"
 #include "util/hash.h"
 
 namespace CVC4 {
 
-typedef std::unordered_map<Node, unsigned, NodeHashFunction> IteSkolemMap;
+class LazyCDProof;
+class ProofNodeManager;
+class TConvProofGenerator;
 
 class RemoveTermFormulas {
  public:
@@ -130,13 +128,15 @@ class RemoveTermFormulas {
    * Get the set of skolems introduced by this class that occur in node n,
    * add them to skolems.
    *
-   * This method uses an optimization that returns false immediately if n
-   * was unchanged by term formula removal, based on the initial context.
-   *
-   * Return true if any nodes were added to skolems.
+   * @param n The node to traverse
+   * @param skolems The set where the skolems are added
    */
-  bool getSkolems(TNode n,
+  void getSkolems(TNode n,
                   std::unordered_set<Node, NodeHashFunction>& skolems) const;
+  /**
+   * Does n have skolems introduced by this class?
+   */
+  bool hasSkolems(TNode n) const;
 
   /**
    * Get the lemma for the skolem, or the null node if k is not a skolem this

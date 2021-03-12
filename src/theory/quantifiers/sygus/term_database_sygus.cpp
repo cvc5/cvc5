@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,17 +15,18 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 #include "base/check.h"
+#include "expr/dtype_cons.h"
 #include "expr/sygus_datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/arith/arith_msum.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -46,11 +47,8 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
-                         QuantifiersInferenceManager& qim)
-    : d_quantEngine(qe),
-      d_qstate(qs),
+TermDbSygus::TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim)
+    : d_qstate(qs),
       d_qim(qim),
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),
@@ -564,11 +562,11 @@ void TermDbSygus::registerEnumerator(Node e,
     // make the guard
     Node ag = nm->mkSkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
-    ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_quantEngine->getOutputChannel().requirePhase(ag, true);
-    d_quantEngine->getOutputChannel().lemma(lem);
+    d_qim.requirePhase(ag, true);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
   }
 }
@@ -939,8 +937,7 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
     if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
-        if (n[1]
-            == d_quantEngine->getTermUtil()->getTypeValue(n[1].getType(), 0))
+        if (n[1] == TermUtil::mkTypeValue(n[1].getType(), 0))
         {
           return true;
         }

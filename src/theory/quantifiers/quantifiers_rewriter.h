@@ -2,9 +2,9 @@
 /*! \file quantifiers_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ **   Andrew Reynolds, Haniel Barbosa, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -248,8 +248,8 @@ class QuantifiersRewriter : public TheoryRewriter
    */
   static Node computePrenex(Node q,
                             Node body,
-                            std::vector<Node>& args,
-                            std::vector<Node>& nargs,
+                            std::unordered_set<Node, NodeHashFunction>& args,
+                            std::unordered_set<Node, NodeHashFunction>& nargs,
                             bool pol,
                             bool prenexAgg);
   /**
@@ -289,9 +289,16 @@ public:
    * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
    */
   static TrustNode preprocess(Node n, bool isInst = false);
-  static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
-  static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );
-  static Node mkForall( std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked = false );
+  static Node mkForAll(const std::vector<Node>& args,
+                       Node body,
+                       QAttributes& qa);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       bool marked = false);
+  static Node mkForall(const std::vector<Node>& args,
+                       Node body,
+                       std::vector<Node>& iplc,
+                       bool marked = false);
 }; /* class QuantifiersRewriter */
 
 }/* CVC4::theory::quantifiers namespace */
@@ -299,5 +306,3 @@ public:
 }/* CVC4 namespace */
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
-
-

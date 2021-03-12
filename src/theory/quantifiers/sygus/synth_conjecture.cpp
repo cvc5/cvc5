@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,11 +14,12 @@
  **/
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
+#include "base/configuration.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "prop/prop_engine.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -29,11 +30,13 @@
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
-#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -44,22 +47,26 @@ namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
+                                 QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
                                  SygusStatistics& s)
     : d_qe(qe),
       d_qstate(qs),
+      d_qim(qim),
+      d_qreg(qr),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
       d_ceg_si(new CegSingleInv(qe, s)),
       d_templInfer(new SygusTemplateInfer),
       d_ceg_proc(new SynthConjectureProcess(qe)),
-      d_ceg_gc(new CegGrammarConstructor(qe, this)),
+      d_ceg_gc(new CegGrammarConstructor(d_tds, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
       d_exampleInfer(new ExampleInfer(d_tds)),
-      d_ceg_pbe(new SygusPbe(qe, this)),
-      d_ceg_cegis(new Cegis(qe, this)),
-      d_ceg_cegisUnif(new CegisUnif(qe, qs, this)),
-      d_sygus_ccore(new CegisCoreConnective(qe, this)),
+      d_ceg_pbe(new SygusPbe(qe, qim, this)),
+      d_ceg_cegis(new Cegis(qe, qim, this)),
+      d_ceg_cegisUnif(new CegisUnif(qe, qs, qim, this)),
+      d_sygus_ccore(new CegisCoreConnective(qe, qim, this)),
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
@@ -100,7 +107,7 @@ void SynthConjecture::assign(Node q)
   // initialize the guard
   d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
-  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
+  d_feasible_guard = d_qstate.getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
 
   // pre-simplify the quantified formula based on the process utility
@@ -200,7 +207,7 @@ void SynthConjecture::assign(Node q)
   {
     // there is a contradictory example pair, the conjecture is infeasible.
     Node infLem = d_feasible_guard.negate();
-    d_qe->getOutputChannel().lemma(infLem);
+    d_qim.lemma(infLem, InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA);
     // we don't need to continue initialization in this case
     return;
   }
@@ -223,7 +230,7 @@ void SynthConjecture::assign(Node q)
     Assert(d_master != nullptr);
   }
 
-  Assert(d_qe->getQuantAttributes()->isSygus(q));
+  Assert(d_qreg.getQuantAttributes().isSygus(q));
   // if the base instantiation is an existential, store its variables
   if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
   {
@@ -238,13 +245,13 @@ void SynthConjecture::assign(Node q)
       new DecisionStrategySingleton("sygus_feasible",
                                     d_feasible_guard,
                                     d_qstate.getSatContext(),
-                                    d_qe->getValuation()));
+                                    d_qstate.getValuation()));
   d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
-  d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
+  d_qim.requirePhase(d_feasible_guard, true);
 
   Node gneg = d_feasible_guard.negate();
   for (unsigned i = 0; i < guarded_lemmas.size(); i++)
@@ -252,7 +259,7 @@ void SynthConjecture::assign(Node q)
     Node lem = nm->mkNode(OR, gneg, guarded_lemmas[i]);
     Trace("cegqi-lemma") << "Cegqi::Lemma : initial (guarded) lemma : " << lem
                          << std::endl;
-    d_qe->getOutputChannel().lemma(lem);
+    d_qim.lemma(lem, InferenceId::UNKNOWN);
   }
 
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation()
@@ -271,7 +278,7 @@ bool SynthConjecture::needsCheck()
   bool value;
   Assert(!d_feasible_guard.isNull());
   // non or fully single invocation : look at guard only
-  if (d_qe->getValuation().hasSatValue(d_feasible_guard, value))
+  if (d_qstate.getValuation().hasSatValue(d_feasible_guard, value))
   {
     if (!value)
     {
@@ -569,8 +576,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   if (!query.isConst() || query.getConst<bool>())
   {
     Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r =
-        checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
+    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs);
     Trace("sygus-engine") << "  ...got " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
@@ -608,7 +614,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // We should set incomplete, since a "sat" answer should not be
       // interpreted as "infeasible", which would make a difference in the rare
       // case where e.g. we had a finite grammar and exhausted the grammar.
-      d_qe->getOutputChannel().setIncomplete();
+      d_qim.setIncomplete();
       return false;
     }
     // otherwise we are unsat, and we will process the solution below
@@ -723,7 +729,7 @@ bool SynthConjecture::doRefine()
   {
     Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
                          << std::endl;
-    bool res = d_qe->addLemma(lem);
+    bool res = d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
     if (res)
     {
       ++(d_stats.d_cegqi_lemmas_refine);
@@ -778,7 +784,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
     {
-      Node gstatus = d_qe->getValuation().getSatValue(g);
+      Node gstatus = d_qstate.getValuation().getSatValue(g);
       if (gstatus.isNull() || !gstatus.getConst<bool>())
       {
         Trace("sygus-engine-debug")
@@ -934,7 +940,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
       TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
       Trace("sygus-active-gen-debug") << std::endl;
     }
-    d_qe->getOutputChannel().lemma(lem);
+    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT);
   }
   else
   {
@@ -1022,7 +1028,7 @@ void SynthConjecture::excludeCurrentSolution(const std::vector<Node>& enums,
     exc_lem = exc_lem.negate();
     Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : "
                          << exc_lem << std::endl;
-    d_qe->getOutputChannel().lemma(exc_lem);
+    d_qim.lemma(exc_lem, InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT);
   }
 }
 

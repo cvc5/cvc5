@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Abdalrhman Mohamed, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,13 +23,11 @@
 #define CVC4__COMMAND_H
 
 #include <iosfwd>
-#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "util/result.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
@@ -40,8 +38,6 @@ class Term;
 }  // namespace api
 
 class SymbolManager;
-class UnsatCore;
-class SmtEngine;
 class Command;
 class CommandStatus;
 
@@ -51,8 +47,7 @@ class Model;
 
 /**
  * Convert a symbolic expression to string. This method differs from
- * Term::toString in that it does not surround constant strings with double
- * quote symbols.
+ * Term::toString in that it does not depend on the output language.
  *
  * @param sexpr the symbolic expression to convert
  * @return the symbolic expression as string
@@ -1299,13 +1294,13 @@ class CVC4_PUBLIC SetInfoCommand : public Command
 {
  protected:
   std::string d_flag;
-  std::string d_sexpr;
+  std::string d_value;
 
  public:
-  SetInfoCommand(std::string flag, const std::string& sexpr);
+  SetInfoCommand(const std::string& flag, const std::string& value);
 
-  std::string getFlag() const;
-  const std::string& getSExpr() const;
+  const std::string& getFlag() const;
+  const std::string& getValue() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
@@ -1344,13 +1339,13 @@ class CVC4_PUBLIC SetOptionCommand : public Command
 {
  protected:
   std::string d_flag;
-  std::string d_sexpr;
+  std::string d_value;
 
  public:
-  SetOptionCommand(std::string flag, const std::string& sexpr);
+  SetOptionCommand(const std::string& flag, const std::string& value);
 
-  std::string getFlag() const;
-  const std::string& getSExpr() const;
+  const std::string& getFlag() const;
+  const std::string& getValue() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;

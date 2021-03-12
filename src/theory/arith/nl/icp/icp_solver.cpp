@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include "base/output.h"
 #include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
@@ -348,8 +349,8 @@ void ICPSolver::check()
         {
           mis.emplace_back(n.negate());
         }
-        d_im.addPendingArithLemma(NodeManager::currentNM()->mkOr(mis),
-                                  InferenceId::NL_ICP_CONFLICT);
+        d_im.addPendingLemma(NodeManager::currentNM()->mkOr(mis),
+                             InferenceId::ARITH_NL_ICP_CONFLICT);
         did_progress = true;
         progress = false;
         break;
@@ -360,7 +361,7 @@ void ICPSolver::check()
     std::vector<Node> lemmas = generateLemmas();
     for (const auto& l : lemmas)
     {
-      d_im.addPendingArithLemma(l, InferenceId::NL_ICP_PROPAGATION);
+      d_im.addPendingLemma(l, InferenceId::ARITH_NL_ICP_PROPAGATION);
     }
   }
 }

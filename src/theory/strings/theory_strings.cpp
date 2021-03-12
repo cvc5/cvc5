@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "smt/logic_exception.h"
+#include "theory/decision_manager.h"
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -162,17 +163,6 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
     }
   }
   return false;
-}
-
-void TheoryStrings::notifySharedTerm(TNode t)
-{
-  Debug("strings") << "TheoryStrings::notifySharedTerm(): " << t << " "
-                   << t.getType().isBoolean() << endl;
-  if (options::stringExp())
-  {
-    d_esolver.addSharedTerm(t);
-  }
-  Debug("strings") << "TheoryStrings::notifySharedTerm() finished" << std::endl;
 }
 
 bool TheoryStrings::propagateLit(TNode literal)
@@ -566,6 +556,10 @@ void TheoryStrings::preRegisterTerm(TNode n)
   Trace("strings-preregister")
       << "TheoryStrings::preRegisterTerm: " << n << std::endl;
   d_termReg.preRegisterTerm(n);
+  // Register the term with the extended theory. Notice we do not recurse on
+  // this term here since preRegisterTerm is already called recursively on all
+  // subterms in preregistered literals.
+  d_extTheory.registerTerm(n);
 }
 
 TrustNode TheoryStrings::expandDefinition(Node node)
@@ -622,7 +616,7 @@ void TheoryStrings::notifyFact(TNode atom,
   // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict() && d_state.hasPendingConflict())
   {
-    InferInfo iiPendingConf;
+    InferInfo iiPendingConf(InferenceId::UNKNOWN);
     d_state.getPendingConflict(iiPendingConf);
     Trace("strings-pending")
         << "Process pending conflict " << iiPendingConf.d_premises << std::endl;
@@ -634,10 +628,6 @@ void TheoryStrings::notifyFact(TNode atom,
     return;
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
-  // Collect extended function terms in the atom. Notice that we must register
-  // all extended functions occurring in assertions and shared terms. We
-  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
-  d_extTheory.registerTermRec(atom);
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
@@ -932,7 +922,7 @@ void TheoryStrings::checkCodes()
         if (!d_state.areEqual(cc, vc))
         {
           std::vector<Node> emptyVec;
-          d_im.sendInference(emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
+          d_im.sendInference(emptyVec, cc.eqNode(vc), InferenceId::STRINGS_CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
@@ -972,7 +962,7 @@ void TheoryStrings::checkCodes()
           deq = Rewriter::rewrite(deq);
           d_im.addPendingPhaseRequirement(deq, false);
           std::vector<Node> emptyVec;
-          d_im.sendInference(emptyVec, inj_lem, Inference::CODE_INJ);
+          d_im.sendInference(emptyVec, inj_lem, InferenceId::STRINGS_CODE_INJ);
         }
       }
     }
@@ -996,7 +986,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-TrustNode TheoryStrings::ppRewrite(TNode atom)
+TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   if (atom.getKind() == STRING_FROM_CODE)
@@ -1008,14 +998,13 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
-    Node k = nm->mkBoundVar(nm->stringType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    Node v = nm->mkBoundVar(nm->stringType());
     Node emp = Word::mkEmptyWord(atom.getType());
-    Node ret = nm->mkNode(
-        WITNESS,
-        bvl,
-        nm->mkNode(
-            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
+    Node pred = nm->mkNode(
+        ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, v)), v.eqNode(emp));
+    SkolemManager* sm = nm->getSkolemManager();
+    Node ret = sm->mkSkolem(v, pred, "kFromCode");
+    lems.push_back(SkolemLemma(ret, nullptr));
     return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
   TrustNode ret;

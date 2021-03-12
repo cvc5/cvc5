@@ -2,9 +2,9 @@
 /*! \file lazy_proof_chain.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Haniel Barbosa, Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,10 @@
 
 #include "expr/proof.h"
 #include "expr/proof_ensure_closed.h"
+#include "expr/proof_node.h"
 #include "expr/proof_node_algorithm.h"
-#include "options/smt_options.h"
+#include "expr/proof_node_manager.h"
+#include "options/proof_options.h"
 
 namespace CVC4 {
 
@@ -261,8 +263,8 @@ void LazyCDProofChain::addLazyStep(Node expected,
                              << " set to generator " << pg->identify() << "\n";
   // note this will rewrite the generator for expected, if any
   d_gens.insert(expected, pg);
-  // check if chain is closed if options::proofNewEagerChecking() is on
-  if (options::proofNewEagerChecking())
+  // check if chain is closed if options::proofEagerChecking() is on
+  if (options::proofEagerChecking())
   {
     Trace("lazy-cdproofchain")
         << "LazyCDProofChain::addLazyStep: Checking closed proof...\n";

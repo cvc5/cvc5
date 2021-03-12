@@ -2,15 +2,15 @@
 /*! \file foreign_theory_rewrite.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar
+ **   Yoni Zohar, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
  ** \brief The foreign_theory_rewrite preprocessing pass
- ** 
+ **
  ** Simplifies nodes of one theory using rewrites from another.
  **/
 
@@ -20,10 +20,8 @@
 #define CVC4__PREPROCESSING__PASSES__FOREIGN_THEORY_REWRITE_H
 
 #include "context/cdhashmap.h"
-#include "context/cdo.h"
-#include "context/context.h"
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -57,7 +55,7 @@ class ForeignTheoryRewrite : public PreprocessingPass
   /** construct a node with the same operator as originalNode whose children are
    * processedChildren
    */
-  static Node reconstructNode(Node originalNode, vector<Node> newChildren);
+  static Node reconstructNode(Node originalNode, std::vector<Node> newChildren);
   /** A cache to store the simplified nodes */
   CDNodeMap d_cache;
 };

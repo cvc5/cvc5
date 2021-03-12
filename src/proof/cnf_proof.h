@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Haniel Barbosa, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,14 +21,12 @@
 #ifndef CVC4__CNF_PROOF_H
 #define CVC4__CNF_PROOF_H
 
-#include <iosfwd>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "context/cdhashmap.h"
 #include "proof/clause_id.h"
-#include "proof/sat_proof.h"
-#include "util/maybe.h"
+#include "proof/proof_manager.h"
 
 namespace CVC4 {
 namespace prop {
@@ -37,7 +35,6 @@ namespace prop {
 
 class CnfProof;
 
-typedef std::unordered_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
 typedef std::unordered_set<ClauseId> ClauseIdSet;
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,9 +17,12 @@
 
 #include "theory/uf/equality_engine.h"
 
+#include "base/output.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/rewriter.h"
+#include "theory/uf/eq_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -1026,7 +1029,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   if ((d_isInternal[id1] || d_isInternal[id2])
       && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
           || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
-          || !ExprManager::isNAryKind(k1)))
+          || !NodeManager::isNAryKind(k1)))
   {
     return;
   }
@@ -1073,7 +1076,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
         << id2 << "} " << d_nodes[id2] << "\n";
     // if has at least as many children as the minimal
     // number of children of the n-ary kind, build the node
-    if (numChildren >= ExprManager::minArity(k1))
+    if (numChildren >= kind::metakind::getMaxArityForKind(k1))
     {
       std::vector<Node> children;
       for (unsigned j = 0; j < numChildren; ++j)

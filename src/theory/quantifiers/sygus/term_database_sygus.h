@@ -2,9 +2,9 @@
 /*! \file term_database_sygus.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Morgan Deters
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -54,9 +54,7 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
-  TermDbSygus(QuantifiersEngine* qe,
-              QuantifiersState& qs,
-              QuantifiersInferenceManager& qim);
+  TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim);
   ~TermDbSygus() {}
   /** Reset this utility */
   bool reset(Theory::Effort e);
@@ -316,8 +314,6 @@ class TermDbSygus {
   static void toStreamSygus(std::ostream& out, Node n);
   
  private:
-  /** reference to the quantifiers engine */
-  QuantifiersEngine* d_quantEngine;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** The quantifiers inference manager */

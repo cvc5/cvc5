@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,18 +17,18 @@
 #ifndef CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
 #define CVC4__SMT__PREPROCESS_PROOF_GENERATOR_H
 
-#include <map>
-
 #include "context/cdhashmap.h"
-#include "context/cdlist.h"
 #include "expr/lazy_proof.h"
+#include "expr/proof.h"
 #include "expr/proof_set.h"
 #include "expr/proof_generator.h"
-#include "expr/proof_node_manager.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
+
+class LazyCDProof;
+class ProofNodeManager;
+
 namespace smt {
 
 /**

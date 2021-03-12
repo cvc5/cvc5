@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,6 +32,10 @@ class ProofNodeManager;
 
 namespace prop {
 class PropEngine;
+}
+
+namespace theory {
+class QuantifiersEngine;
 }
 
 namespace smt {
@@ -119,6 +123,8 @@ class SmtSolver
   TheoryEngine* getTheoryEngine();
   /** Get a pointer to the PropEngine owned by this solver. */
   prop::PropEngine* getPropEngine();
+  /** Get a pointer to the QuantifiersEngine owned by this solver. */
+  theory::QuantifiersEngine* getQuantifiersEngine();
   /** Get a pointer to the preprocessor */
   Preprocessor* getPreprocessor();
   //------------------------------------------ end access methods

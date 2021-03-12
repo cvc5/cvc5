@@ -2,9 +2,9 @@
 /*! \file theory_proxy.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "options/decision_options.h"
+#include "options/smt_options.h"
 #include "proof/cnf_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
@@ -80,7 +81,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (CVC4::options::proofNew())
+  if (CVC4::options::proof())
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
@@ -155,16 +156,14 @@ void TheoryProxy::spendResource(ResourceManager::Resource r)
   d_theoryEngine->spendResource(r);
 }
 
-bool TheoryProxy::isDecisionRelevant(SatVariable var) {
-  return d_decisionEngine->isRelevant(var);
-}
+bool TheoryProxy::isDecisionRelevant(SatVariable var) { return true; }
 
 bool TheoryProxy::isDecisionEngineDone() {
   return d_decisionEngine->isDone();
 }
 
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
-  return d_decisionEngine->getPolarity(var);
+  return SAT_VALUE_UNKNOWN;
 }
 
 CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
@@ -172,22 +171,40 @@ CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 theory::TrustNode TheoryProxy::preprocessLemma(
     theory::TrustNode trn,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  return d_tpp.preprocessLemma(
-      trn, newLemmas, newSkolems, doTheoryPreprocess, true);
+  return d_tpp.preprocessLemma(trn, newLemmas, newSkolems);
 }
 
 theory::TrustNode TheoryProxy::preprocess(
     TNode node,
     std::vector<theory::TrustNode>& newLemmas,
-    std::vector<Node>& newSkolems,
-    bool doTheoryPreprocess)
+    std::vector<Node>& newSkolems)
 {
-  theory::TrustNode pnode =
-      d_tpp.preprocess(node, newLemmas, newSkolems, doTheoryPreprocess, true);
-  return pnode;
+  return d_tpp.preprocess(node, newLemmas, newSkolems);
+}
+
+theory::TrustNode TheoryProxy::removeItes(
+    TNode node,
+    std::vector<theory::TrustNode>& newLemmas,
+    std::vector<Node>& newSkolems)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  return rtf.run(node, newLemmas, newSkolems, true);
+}
+
+void TheoryProxy::getSkolems(TNode node,
+                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& sks)
+{
+  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
+  std::unordered_set<Node, NodeHashFunction> skolems;
+  rtf.getSkolems(node, skolems);
+  for (const Node& k : skolems)
+  {
+    sks.push_back(k);
+    skAsserts.push_back(rtf.getLemmaForSkolem(k));
+  }
 }
 
 void TheoryProxy::preRegister(Node n) { d_theoryEngine->preRegister(n); }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,10 +16,11 @@
 
 #include "parser/line_buffer.h"
 
-#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <string>
+
+#include "base/check.h"
 
 namespace CVC4 {
 namespace parser {
@@ -36,7 +37,7 @@ uint8_t* LineBuffer::getPtr(size_t line, size_t pos_in_line) {
   if (!readToLine(line)) {
     return NULL;
   }
-  assert(pos_in_line < d_sizes[line]);
+  Assert(pos_in_line < d_sizes[line]);
   return d_lines[line] + pos_in_line;
 }
 
@@ -49,7 +50,7 @@ uint8_t* LineBuffer::getPtrWithOffset(size_t line, size_t pos_in_line,
     return getPtrWithOffset(line + 1, 0,
                             offset - (d_sizes[line] - pos_in_line - 1));
   }
-  assert(pos_in_line + offset < d_sizes[line]);
+  Assert(pos_in_line + offset < d_sizes[line]);
   return d_lines[line] + pos_in_line + offset;
 }
 

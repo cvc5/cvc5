@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,7 +13,13 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/trigger_term_info.h"
+#include "theory/quantifiers/ematching/trigger_trie.h"
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -22,10 +28,10 @@ namespace CVC4 {
 namespace theory {
 namespace inst {
 
-InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
-                                                   Node pat,
-                                                   QuantifiersEngine* qe)
-    : d_quant(q), d_match_pattern(pat)
+InstMatchGeneratorSimple::InstMatchGeneratorSimple(Trigger* tparent,
+                                                   Node q,
+                                                   Node pat)
+    : IMGenerator(tparent), d_quant(q), d_match_pattern(pat)
 {
   if (d_match_pattern.getKind() == NOT)
   {
@@ -59,40 +65,40 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
     }
     d_match_pattern_arg_types.push_back(d_match_pattern[i].getType());
   }
-  d_op = qe->getTermDatabase()->getMatchOperator(d_match_pattern);
+  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  d_op = tdb->getMatchOperator(d_match_pattern);
 }
 
-void InstMatchGeneratorSimple::resetInstantiationRound(QuantifiersEngine* qe) {}
-uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
-                                                     QuantifiersEngine* qe,
-                                                     Trigger* tparent)
+void InstMatchGeneratorSimple::resetInstantiationRound() {}
+uint64_t InstMatchGeneratorSimple::addInstantiations(Node q)
 {
   uint64_t addedLemmas = 0;
   TNodeTrie* tat;
+  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
   if (d_eqc.isNull())
   {
-    tat = qe->getTermDatabase()->getTermArgTrie(d_op);
+    tat = tdb->getTermArgTrie(d_op);
   }
   else
   {
     if (d_pol)
     {
-      tat = qe->getTermDatabase()->getTermArgTrie(d_eqc, d_op);
+      tat = tdb->getTermArgTrie(d_eqc, d_op);
     }
     else
     {
       // iterate over all classes except r
-      tat = qe->getTermDatabase()->getTermArgTrie(Node::null(), d_op);
-      if (tat && !qe->inConflict())
+      tat = tdb->getTermArgTrie(Node::null(), d_op);
+      if (tat && !d_qstate.isInConflict())
       {
-        Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
+        Node r = d_qstate.getRepresentative(d_eqc);
         for (std::pair<const TNode, TNodeTrie>& t : tat->d_data)
         {
           if (t.first != r)
           {
             InstMatch m(q);
-            addInstantiations(m, qe, addedLemmas, 0, &(t.second));
-            if (qe->inConflict())
+            addInstantiations(m, addedLemmas, 0, &(t.second));
+            if (d_qstate.isInConflict())
             {
               break;
             }
@@ -105,16 +111,15 @@ uint64_t InstMatchGeneratorSimple::addInstantiations(Node q,
   Debug("simple-trigger-debug")
       << "Adding instantiations based on " << tat << " from " << d_op << " "
       << d_eqc << std::endl;
-  if (tat && !qe->inConflict())
+  if (tat && !d_qstate.isInConflict())
   {
     InstMatch m(q);
-    addInstantiations(m, qe, addedLemmas, 0, tat);
+    addInstantiations(m, addedLemmas, 0, tat);
   }
   return addedLemmas;
 }
 
 void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
-                                                 QuantifiersEngine* qe,
                                                  uint64_t& addedLemmas,
                                                  size_t argIndex,
                                                  TNodeTrie* tat)
@@ -127,7 +132,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     // convert to actual used terms
-    for (const std::pair<unsigned, int>& v : d_var_num)
+    for (const auto& v : d_var_num)
     {
       if (v.second >= 0)
       {
@@ -139,7 +144,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // we do not need the trigger parent for simple triggers (no post-processing
     // required)
-    if (qe->getInstantiate()->addInstantiation(d_quant, m))
+    if (sendInstantiation(m, InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE))
     {
       addedLemmas++;
       Debug("simple-trigger") << "-> Produced instantiation " << m << std::endl;
@@ -160,9 +165,9 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
         if (prev.isNull() || prev == t)
         {
           m.setValue(v, t);
-          addInstantiations(m, qe, addedLemmas, argIndex + 1, &(tt.second));
+          addInstantiations(m, addedLemmas, argIndex + 1, &(tt.second));
           m.setValue(v, prev);
-          if (qe->inConflict())
+          if (d_qstate.isInConflict())
           {
             break;
           }
@@ -172,18 +177,19 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     }
     // inst constant from another quantified formula, treat as ground term?
   }
-  Node r = qe->getEqualityQuery()->getRepresentative(d_match_pattern[argIndex]);
+  Node r = d_qstate.getRepresentative(d_match_pattern[argIndex]);
   std::map<TNode, TNodeTrie>::iterator it = tat->d_data.find(r);
   if (it != tat->d_data.end())
   {
-    addInstantiations(m, qe, addedLemmas, argIndex + 1, &(it->second));
+    addInstantiations(m, addedLemmas, argIndex + 1, &(it->second));
   }
 }
 
-int InstMatchGeneratorSimple::getActiveScore(QuantifiersEngine* qe)
+int InstMatchGeneratorSimple::getActiveScore()
 {
-  Node f = qe->getTermDatabase()->getMatchOperator(d_match_pattern);
-  size_t ngt = qe->getTermDatabase()->getNumGroundTerms(f);
+  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  Node f = tdb->getMatchOperator(d_match_pattern);
+  size_t ngt = tdb->getNumGroundTerms(f);
   Trace("trigger-active-sel-debug") << "Number of ground terms for (simple) "
                                     << f << " is " << ngt << std::endl;
   return static_cast<int>(ngt);

@@ -2,9 +2,9 @@
 /*! \file inst_match_generator_simple.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -49,16 +49,14 @@ class InstMatchGeneratorSimple : public IMGenerator
 {
  public:
   /** constructors */
-  InstMatchGeneratorSimple(Node q, Node pat, QuantifiersEngine* qe);
+  InstMatchGeneratorSimple(Trigger* tparent, Node q, Node pat);
 
   /** Reset instantiation round. */
-  void resetInstantiationRound(QuantifiersEngine* qe) override;
+  void resetInstantiationRound() override;
   /** Add instantiations. */
-  uint64_t addInstantiations(Node q,
-                             QuantifiersEngine* qe,
-                             Trigger* tparent) override;
+  uint64_t addInstantiations(Node q) override;
   /** Get active score. */
-  int getActiveScore(QuantifiersEngine* qe) override;
+  int getActiveScore() override;
 
  private:
   /** quantified formula for the trigger term */
@@ -97,7 +95,6 @@ class InstMatchGeneratorSimple : public IMGenerator
    * tat is the term index we are currently traversing.
    */
   void addInstantiations(InstMatch& m,
-                         QuantifiersEngine* qe,
                          uint64_t& addedLemmas,
                          size_t argIndex,
                          TNodeTrie* tat);

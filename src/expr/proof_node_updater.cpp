@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 #include "expr/lazy_proof.h"
 #include "expr/proof_ensure_closed.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 
@@ -35,11 +36,13 @@ bool ProofNodeUpdaterCallback::update(Node res,
 
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb,
-                                   bool mergeSubproofs)
+                                   bool mergeSubproofs,
+                                   bool autoSym)
     : d_pnm(pnm),
       d_cb(cb),
       d_debugFreeAssumps(false),
-      d_mergeSubproofs(mergeSubproofs)
+      d_mergeSubproofs(mergeSubproofs),
+      d_autoSym(autoSym)
 {
 }
 
@@ -154,7 +157,7 @@ void ProofNodeUpdater::processInternal(
         {
           Unhandled()
               << "ProofNodeUpdater::processInternal: cyclic proof! (use "
-                 "--proof-new-eager-checking)"
+                 "--proof-eager-checking)"
               << std::endl;
         }
         visit.push_back(cp);
@@ -183,7 +186,7 @@ bool ProofNodeUpdater::runUpdate(std::shared_ptr<ProofNode> cur,
   }
   PfRule id = cur->getRule();
   // use CDProof to open a scope for which the callback updates
-  CDProof cpf(d_pnm);
+  CDProof cpf(d_pnm, nullptr, "ProofNodeUpdater::CDProof", d_autoSym);
   const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
   std::vector<Node> ccn;
   for (const std::shared_ptr<ProofNode>& cp : cc)

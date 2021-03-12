@@ -2,9 +2,9 @@
 /*! \file sequences_stats.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 namespace theory {
@@ -60,13 +61,13 @@ class SequencesStatistics
   /** Number of calls to run the strategy */
   IntStat d_strategyRuns;
   //--------------- inferences
-  /** Counts the number of applications of each type of inference */
-  HistogramStat<Inference> d_inferences;
   /**
    * Counts the number of applications of each type of inference that were not
-   * processed as a proof step. This is a subset of d_inferences.
+   * processed as a proof step. This is a subset of the statistics in
+   * TheoryInferenceManager, i.e.
+   * (theory::strings::inferences{Facts,Lemmas,Conflicts}).
    */
-  HistogramStat<Inference> d_inferencesNoPf;
+  HistogramStat<InferenceId> d_inferencesNoPf;
   /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or

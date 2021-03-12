@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
 #ifndef CVC4__PARSER__PARSER_H
 #define CVC4__PARSER__PARSER_H
 
-#include <cassert>
 #include <list>
 #include <set>
 #include <string>
@@ -271,12 +270,8 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  virtual void forceLogic(const std::string& logic)
-  {
-    assert(!d_logicIsForced);
-    d_logicIsForced = true;
-    d_forcedLogic = logic;
-  }
+  virtual void forceLogic(const std::string& logic);
+
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 

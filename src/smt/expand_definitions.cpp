@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,10 @@
 #include <utility>
 
 #include "expr/node_manager_attributes.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "smt/defined_function.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_stats.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::preprocessing;
@@ -99,7 +101,7 @@ TrustNode ExpandDefs::expandDefinitions(
             // ------- ASSUME
             // n = f
             Node conc = n.eqNode(f);
-            tpg->addRewriteStep(n, f, PfRule::ASSUME, {}, {conc});
+            tpg->addRewriteStep(n, f, PfRule::ASSUME, {}, {conc}, true);
           }
           // must recursively expand its definition
           TrustNode tfe = expandDefinitions(f, cache, expandOnly, tpg);
@@ -141,7 +143,7 @@ TrustNode ExpandDefs::expandDefinitions(
         else
         {
           // We always check if this operator corresponds to a defined function.
-          doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
+          doExpand = d_smt.isDefinedFunction(n.getOperator());
         }
       }
       // the premise of the proof of expansion (if we are expanding a definition
@@ -169,8 +171,8 @@ TrustNode ExpandDefs::expandDefinitions(
           SmtEngine::DefinedFunctionMap::const_iterator i = dfuns->find(func);
           if (i == dfuns->end())
           {
-            throw TypeCheckingException(
-                n.toExpr(),
+            throw TypeCheckingExceptionPrivate(
+                n,
                 std::string("Undefined function: `") + func.toString() + "'");
           }
           DefinedFunction def = (*i).second;
@@ -236,7 +238,8 @@ TrustNode ExpandDefs::expandDefinitions(
                                 instance,
                                 PfRule::MACRO_SR_PRED_INTRO,
                                 pfExpChildren,
-                                {conc});
+                                {conc},
+                                true);
           }
         }
         // now, call expand definitions again on the result
@@ -260,7 +263,7 @@ TrustNode ExpandDefs::expandDefinitions(
           if (tpg != nullptr)
           {
             tpg->addRewriteStep(
-                n, node, trn.getGenerator(), PfRule::THEORY_EXPAND_DEF);
+                n, node, trn.getGenerator(), true, PfRule::THEORY_EXPAND_DEF);
           }
         }
         else

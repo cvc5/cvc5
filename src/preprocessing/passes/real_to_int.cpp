@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -26,6 +28,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+using namespace std;
 using namespace CVC4::theory;
 
 Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& var_eq)
@@ -113,8 +116,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
                 }
                 else
                 {
-                  throw TypeCheckingException(
-                      v.toExpr(),
+                  throw TypeCheckingExceptionPrivate(
+                      v,
                       std::string("Cannot translate to Int: ") + v.toString());
                 }
               }
@@ -168,8 +171,8 @@ Node RealToInt::realToIntInternal(TNode n, NodeMap& cache, std::vector<Node>& va
         {
           // cannot change the type of quantified variables, since this leads
           // to incompleteness.
-          throw TypeCheckingException(
-              n.toExpr(),
+          throw TypeCheckingExceptionPrivate(
+              n,
               std::string("Cannot translate bound variable to Int: ")
                   + n.toString());
         }

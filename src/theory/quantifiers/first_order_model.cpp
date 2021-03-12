@@ -2,9 +2,9 @@
 /*! \file first_order_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
@@ -35,9 +34,11 @@ namespace quantifiers {
 
 FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
                                  QuantifiersState& qs,
+                                 QuantifiersRegistry& qr,
                                  std::string name)
     : TheoryModel(qs.getSatContext(), name, true),
       d_qe(qe),
+      d_qreg(qr),
       d_forall_asserts(qs.getSatContext()),
       d_forallRlvComputed(false)
 {
@@ -118,7 +119,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
       // terms in rep_set are now constants which mapped to terms through
       // TheoryModel. Thus, should introduce a constant and a term.
       // For now, we just add an arbitrary term.
-      Node var = d_qe->getModel()->getSomeDomainElement(tn);
+      Node var = getSomeDomainElement(tn);
       Trace("mkVar") << "RepSetIterator:: Make variable " << var << " : " << tn
                      << std::endl;
       d_rep_set.add(tn, var);
@@ -301,8 +302,7 @@ Node FirstOrderModel::getModelBasis(Node q, Node n)
       d_model_basis_terms[q].push_back(getModelBasisTerm(q[0][j].getType()));
     }
   }
-  Node gn = d_qe->getTermUtil()->substituteInstConstants(
-      n, q, d_model_basis_terms[q]);
+  Node gn = d_qreg.substituteInstConstants(n, q, d_model_basis_terms[q]);
   return gn;
 }
 
@@ -333,122 +333,6 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
 {
   computeModelBasisArgAttribute(n);
   return n.getAttribute(ModelBasisArgAttribute());
-}
-
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
-                                       QuantifiersState& qs,
-                                       std::string name)
-    : FirstOrderModel(qe, qs, name)
-{
-}
-
-FirstOrderModelFmc::~FirstOrderModelFmc()
-{
-  for(std::map<Node, Def*>::iterator i = d_models.begin(); i != d_models.end(); ++i) {
-    delete (*i).second;
-  }
-}
-
-void FirstOrderModelFmc::processInitialize( bool ispre ) {
-  if( ispre ){
-    for( std::map<Node, Def * >::iterator it = d_models.begin(); it != d_models.end(); ++it ){
-      it->second->reset();
-    }
-  }
-}
-
-void FirstOrderModelFmc::processInitializeModelForTerm(Node n) {
-  if( n.getKind()==APPLY_UF ){
-    // cannot be a bound variable
-    Node op = n.getOperator();
-    if (op.getKind() != BOUND_VARIABLE)
-    {
-      if (d_models.find(op) == d_models.end())
-      {
-        d_models[op] = new Def;
-      }
-    }
-  }
-}
-
-
-bool FirstOrderModelFmc::isStar(Node n) {
-  //return n==getStar(n.getType());
-  return n.getAttribute(IsStarAttribute());
-}
-
-Node FirstOrderModelFmc::getStar(TypeNode tn) {
-  std::map<TypeNode, Node >::iterator it = d_type_star.find( tn );
-  if( it==d_type_star.end() ){
-    Node st = NodeManager::currentNM()->mkSkolem( "star", tn, "skolem created for full-model checking" );
-    d_type_star[tn] = st;
-    st.setAttribute(IsStarAttribute(), true );
-    return st;
-  }
-  return it->second;
-}
-
-Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
-  Trace("fmc-model") << "Get function value for " << op << std::endl;
-  TypeNode type = op.getType();
-  std::vector< Node > vars;
-  for( size_t i=0; i<type.getNumChildren()-1; i++ ){
-    std::stringstream ss;
-    ss << argPrefix << (i+1);
-    Node b = NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] );
-    vars.push_back( b );
-  }
-  Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars);
-  Node curr;
-  for( int i=(d_models[op]->d_cond.size()-1); i>=0; i--) {
-    Node v = d_models[op]->d_value[i];
-    Trace("fmc-model-func") << "Value is : " << v << std::endl;
-    Assert(v.isConst());
-    /*
-    if( !hasTerm( v ) ){
-      //can happen when the model basis term does not exist in ground assignment
-      TypeNode tn = v.getType();
-      //check if it is a constant introduced as a representative not existing in the model's equality engine
-      if( !d_rep_set.hasRep( tn, v ) ){
-        if( d_rep_set.d_type_reps.find( tn )!=d_rep_set.d_type_reps.end() && !d_rep_set.d_type_reps[ tn ].empty() ){
-          v = d_rep_set.d_type_reps[tn][ d_rep_set.d_type_reps[tn].size()-1 ];
-        }else{
-          //can happen for types not involved in quantified formulas
-          Trace("fmc-model-func") << "No type rep for " << tn << std::endl;
-          v = d_qe->getTermUtil()->getEnumerateTerm( tn, 0 );
-        }
-        Trace("fmc-model-func") << "No term, assign " << v << std::endl;
-      }
-    }
-    v = getRepresentative( v );
-    */
-    if( curr.isNull() ){
-      Trace("fmc-model-func") << "base : " << v << std::endl;
-      curr = v;
-    }else{
-      //make the condition
-      Node cond = d_models[op]->d_cond[i];
-      Trace("fmc-model-func") << "...cond : " << cond << std::endl;
-      std::vector< Node > children;
-      for( unsigned j=0; j<cond.getNumChildren(); j++) {
-        TypeNode tn = vars[j].getType();
-        if (!isStar(cond[j]))
-        {
-          Node c = getRepresentative( cond[j] );
-          c = getRepresentative( c );
-          children.push_back( NodeManager::currentNM()->mkNode( EQUAL, vars[j], c ) );
-        }
-      }
-      Assert(!children.empty());
-      Node cc = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children );
-
-      Trace("fmc-model-func") << "condition : " << cc << ", value : " << v << std::endl;
-      curr = NodeManager::currentNM()->mkNode( ITE, cc, v, curr );
-    }
-  }
-  Trace("fmc-model") << "Made " << curr << " for " << op << std::endl;
-  curr = Rewriter::rewrite( curr );
-  return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
 }
 
 } /* CVC4::theory::quantifiers namespace */

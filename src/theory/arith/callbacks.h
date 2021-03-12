@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,17 +15,19 @@
  ** \todo document this file
  **/
 
-
 #pragma once
 
 #include "expr/node.h"
-#include "expr/proof_node.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
 #include "theory/arith/constraint_forward.h"
+#include "theory/inference_id.h"
 #include "util/rational.h"
 
 namespace CVC4 {
+
+class ProofNode;
+
 namespace theory {
 namespace arith {
 
@@ -110,7 +112,7 @@ public:
   RaiseConflict(TheoryArithPrivate& ta);
 
   /** Calls d_ta.raiseConflict(c) */
-  void raiseConflict(ConstraintCP c) const;
+  void raiseConflict(ConstraintCP c, InferenceId id) const;
 };
 
 class FarkasConflictBuilder {

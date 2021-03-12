@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,18 +21,15 @@
 #ifndef CVC4__RESOURCE_MANAGER_H
 #define CVC4__RESOURCE_MANAGER_H
 
-#include <sys/time.h>
-
+#include <stdint.h>
 #include <chrono>
 #include <memory>
-
-#include "base/exception.h"
-#include "base/listener.h"
-#include "options/options.h"
-#include "util/unsafe_interrupt_exception.h"
+#include <vector>
 
 namespace CVC4 {
 
+class Listener;
+class Options;
 class StatisticsRegistry;
 
 /**

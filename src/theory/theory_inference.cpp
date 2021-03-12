@@ -2,9 +2,9 @@
 /*! \file theory_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,44 +21,35 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-SimpleTheoryLemma::SimpleTheoryLemma(Node n,
+SimpleTheoryLemma::SimpleTheoryLemma(InferenceId id, 
+                                     Node n,
                                      LemmaProperty p,
                                      ProofGenerator* pg)
-    : d_node(n), d_property(p), d_pg(pg)
+    : TheoryInference(id), d_node(n), d_property(p), d_pg(pg)
 {
 }
 
-bool SimpleTheoryLemma::process(TheoryInferenceManager* im, bool asLemma)
+TrustNode SimpleTheoryLemma::processLemma(LemmaProperty& p)
 {
   Assert(!d_node.isNull());
-  Assert(asLemma);
-  // send (trusted) lemma on the output channel with property p
-  return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), d_property);
+  p = d_property;
+  return TrustNode::mkTrustLemma(d_node, d_pg);
 }
 
-SimpleTheoryInternalFact::SimpleTheoryInternalFact(Node conc,
+SimpleTheoryInternalFact::SimpleTheoryInternalFact(InferenceId id,
+                                                   Node conc,
                                                    Node exp,
                                                    ProofGenerator* pg)
-    : d_conc(conc), d_exp(exp), d_pg(pg)
+    : TheoryInference(id), d_conc(conc), d_exp(exp), d_pg(pg)
 {
 }
 
-bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im, bool asLemma)
+Node SimpleTheoryInternalFact::processFact(std::vector<Node>& exp,
+                                           ProofGenerator*& pg)
 {
-  Assert(!asLemma);
-  bool polarity = d_conc.getKind() != NOT;
-  TNode atom = polarity ? d_conc : d_conc[0];
-  // no double negation or conjunctive conclusions
-  Assert(atom.getKind() != NOT && atom.getKind() != AND);
-  if (d_pg != nullptr)
-  {
-    im->assertInternalFact(atom, polarity, {d_exp}, d_pg);
-  }
-  else
-  {
-    im->assertInternalFact(atom, polarity, d_exp);
-  }
-  return true;
+  exp.push_back(d_exp);
+  pg = d_pg;
+  return d_conc;
 }
 
 }  // namespace theory

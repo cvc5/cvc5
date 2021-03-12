@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,8 +26,11 @@
 #include <vector>
 
 #include "options/bv_options.h"
+#include "preprocessing/assertion_pipeline.h"
+#include "preprocessing/preprocessing_pass_context.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -46,16 +49,10 @@ PreprocessingPassResult BvAbstraction::applyInternal(
                                assertionsToPreprocess->end());
   TheoryEngine* te = d_preprocContext->getTheoryEngine();
   bv::TheoryBV* bv_theory = static_cast<bv::TheoryBV*>(te->theoryOf(THEORY_BV));
-  bool changed = bv_theory->applyAbstraction(assertions, new_assertions);
+  bv_theory->applyAbstraction(assertions, new_assertions);
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(i, Rewriter::rewrite(new_assertions[i]));
-  }
-  // If we are using the lazy solver and the abstraction applies, then UF
-  // symbols were introduced.
-  if (options::bitblastMode() == options::BitblastMode::LAZY && changed)
-  {
-    d_preprocContext->widenLogic(theory::THEORY_UF);
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }

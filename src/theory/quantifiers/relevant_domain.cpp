@@ -2,9 +2,9 @@
 /*! \file relevant_domain.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -51,12 +52,13 @@ RelevantDomain::RDomain * RelevantDomain::RDomain::getParent() {
   }
 }
 
-void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
+void RelevantDomain::RDomain::removeRedundantTerms(QuantifiersState& qs)
+{
   std::map< Node, Node > rterms;
   for( unsigned i=0; i<d_terms.size(); i++ ){
     Node r = d_terms[i];
     if( !TermUtil::hasInstConstAttr( d_terms[i] ) ){
-      r = qe->getEqualityQuery()->getRepresentative( d_terms[i] );
+      r = qs.getRepresentative(d_terms[i]);
     }
     if( rterms.find( r )==rterms.end() ){
       rterms[r] = d_terms[i];
@@ -68,10 +70,10 @@ void RelevantDomain::RDomain::removeRedundantTerms( QuantifiersEngine * qe ) {
   }
 }
 
-
-
-RelevantDomain::RelevantDomain( QuantifiersEngine* qe ) : d_qe( qe ){
-   d_is_computed = false;
+RelevantDomain::RelevantDomain(QuantifiersEngine* qe, QuantifiersRegistry& qr)
+    : d_qe(qe), d_qreg(qr)
+{
+  d_is_computed = false;
 }
 
 RelevantDomain::~RelevantDomain() {
@@ -110,7 +112,7 @@ void RelevantDomain::compute(){
     FirstOrderModel* fm = d_qe->getModel();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node q = fm->getAssertedQuantifier( i );
-      Node icf = d_qe->getTermUtil()->getInstConstantBody( q );
+      Node icf = d_qreg.getInstConstantBody(q);
       Trace("rel-dom-debug") << "compute relevant domain for " << icf << std::endl;
       computeRelevantDomain( q, icf, true, true );
     }
@@ -141,7 +143,7 @@ void RelevantDomain::compute(){
         RDomain * r = it2->second;
         RDomain * rp = r->getParent();
         if( r==rp ){
-          r->removeRedundantTerms( d_qe );
+          r->removeRedundantTerms(d_qe->getState());
           for( unsigned i=0; i<r->d_terms.size(); i++ ){
             Trace("rel-dom") << r->d_terms[i] << " ";
           }
@@ -203,12 +205,13 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
 
 void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
   if( n.getKind()==INST_CONSTANT ){
-    Node q = d_qe->getTermUtil()->getInstConstAttr( n );
+    Node q = TermUtil::getInstConstAttr(n);
     //merge the RDomains
     unsigned id = n.getAttribute(InstVarNumAttribute());
     Assert(q[0][id].getType() == n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
-    Trace("rel-dom-debug") << " with body : " << d_qe->getTermUtil()->getInstConstantBody( q ) << std::endl;
+    Trace("rel-dom-debug") << " with body : " << d_qreg.getInstConstantBody(q)
+                           << std::endl;
     RDomain * rq = getRDomain( q, id );
     if( rf!=rq ){
       rq->merge( rf );
@@ -225,12 +228,11 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     d_rel_dom_lit[hasPol][pol][n].d_merge = false;
     int varCount = 0;
     int varCh = -1;
-    TermUtil* tu = d_qe->getTermUtil();
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( n[i].getKind()==INST_CONSTANT ){
         // must get the quantified formula this belongs to, which may be
         // different from q
-        Node qi = tu->getInstConstAttr(n[i]);
+        Node qi = TermUtil::getInstConstAttr(n[i]);
         unsigned id = n[i].getAttribute(InstVarNumAttribute());
         d_rel_dom_lit[hasPol][pol][n].d_rd[i] = getRDomain(qi, id, false);
         varCount++;
@@ -261,7 +263,7 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
             bool hasNonVar = false;
             for( std::map< Node, Node >::iterator it = msum.begin(); it != msum.end(); ++it ){
               if (!it->first.isNull() && it->first.getKind() == INST_CONSTANT
-                  && tu->getInstConstAttr(it->first) == q)
+                  && TermUtil::getInstConstAttr(it->first) == q)
               {
                 if( var.isNull() ){
                   var = it->first;

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,12 +39,12 @@ void TptpPrinter::toStream(std::ostream& out,
                            int toDepth,
                            size_t dag) const
 {
-  n.toStream(out, toDepth, dag, language::output::LANG_SMTLIB_V2_5);
+  n.toStream(out, toDepth, dag, language::output::LANG_SMTLIB_V2_6);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 {
-  s->toStream(out, language::output::LANG_SMTLIB_V2_5);
+  s->toStream(out, language::output::LANG_SMTLIB_V2_6);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
@@ -53,7 +53,7 @@ void TptpPrinter::toStream(std::ostream& out, const smt::Model& m) const
                                         : "CandidateFiniteModel");
   out << "% SZS output start " << statusName << " for " << m.getInputName()
       << endl;
-  this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_5, out, m);
+  this->Printer::toStreamUsing(language::output::LANG_SMTLIB_V2_6, out, m);
   out << "% SZS output end " << statusName << " for " << m.getInputName()
       << endl;
 }

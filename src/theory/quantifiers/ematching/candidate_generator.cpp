@@ -2,9 +2,9 @@
 /*! \file candidate_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Francois Bobot
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,16 +14,16 @@
 
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "expr/dtype.h"
+#include "expr/dtype_cons.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/theory_engine.h"
-#include "theory/uf/theory_uf.h"
 
 using namespace CVC4::kind;
 
@@ -59,7 +59,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
     if( isExcludedEqc( eqc ) ){
       d_mode = cand_term_none;
     }else{
-      eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
+      eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
       if( ee->hasTerm( eqc ) ){
         TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, op);
         if( tat ){
@@ -93,6 +93,7 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
+    quantifiers::QuantifiersState& qs = d_qe->getState();
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
@@ -103,7 +104,7 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
           if( d_exclude_eqc.empty() ){
             return n;
           }else{
-            Node r = d_qe->getEqualityQuery()->getRepresentative( n );
+            Node r = qs.getRepresentative(n);
             if( d_exclude_eqc.find( r )==d_exclude_eqc.end() ){
               Debug("cand-gen-qe") << "...returning " << n << std::endl;
               return n;
@@ -143,8 +144,9 @@ CandidateGenerator( qe ), d_match_pattern( mpat ){
 }
 
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
-  Node false_term = d_qe->getEqualityQuery()->getEngine()->getRepresentative( NodeManager::currentNM()->mkConst<bool>(false) );
-  d_eqc_false = eq::EqClassIterator( false_term, d_qe->getEqualityQuery()->getEngine() );
+  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  Node falset = NodeManager::currentNM()->mkConst(false);
+  d_eqc_false = eq::EqClassIterator(falset, ee);
 }
 
 Node CandidateGeneratorQELitDeq::getNextCandidate(){
@@ -177,7 +179,7 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll( QuantifiersEngine* qe, Node mp
 }
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
-  d_eq = eq::EqClassesIterator( d_qe->getEqualityQuery()->getEngine() );
+  d_eq = eq::EqClassesIterator(d_qe->getState().getEqualityEngine());
   d_firstTime = true;
 }
 
@@ -189,7 +191,8 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
     if( n.getType().isComparableTo( d_match_pattern_type ) ){
       TNode nh = tdb->getEligibleTermInEqc(n);
       if( !nh.isNull() ){
-        if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
+        if (options::instMaxLevel() != -1)
+        {
           nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
           //don't consider this if already the instantiation is ineligible
           if (!nh.isNull() && !tdb->isTermEligibleForInstantiation(nh, d_f))

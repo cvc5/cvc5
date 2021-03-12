@@ -2,9 +2,9 @@
 /*! \file inference_generator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mudathir Mohamed
+ **   Mudathir Mohamed, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,16 +17,15 @@
 #ifndef CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
 #define CVC4__THEORY__BAGS__INFERENCE_GENERATOR_H
 
-#include <map>
-#include <vector>
-
 #include "expr/node.h"
 #include "infer_info.h"
-#include "theory/bags/solver_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
+
+class InferenceManager;
+class SolverState;
 
 /**
  * An inference generator class. This class is used by the core solver to
@@ -35,7 +34,7 @@ namespace bags {
 class InferenceGenerator
 {
  public:
-  InferenceGenerator(SolverState* state);
+  InferenceGenerator(SolverState* state, InferenceManager* im);
 
   /**
    * @param A is a bag of type (Bag E)
@@ -62,22 +61,25 @@ class InferenceGenerator
    */
   InferInfo mkBag(Node n, Node e);
   /**
-   * @param n is (not (= A B)) where A, B are bags of type (Bag E)
+   * @param n is (= A B) where A, B are bags of type (Bag E), and
+   * (not (= A B)) is an assertion in the equality engine
    * @return an inference that represents the following implication
    * (=>
    *   (not (= A B))
    *   (not (= (count e A) (count e B))))
    *   where e is a fresh skolem of type E.
    */
-  InferInfo bagDisequality(Node n, Node reason);
+  InferInfo bagDisequality(Node n);
   /**
+   * @param n is (as emptybag (Bag E))
    * @param e is a node of Type E
    * @return an inference that represents the following implication
    * (=>
    *   true
-   *   (= 0 (count e (as emptybag (Bag E)))))
+   *   (= 0 (count e skolem)))
+   *   where skolem = (as emptybag (Bag String))
    */
-  InferInfo bagEmpty(Node e);
+  InferInfo empty(Node n, Node e);
   /**
    * @param n is (union_disjoint A B) where A, B are bags of type (Bag E)
    * @param e is a node of Type E
@@ -176,6 +178,9 @@ class InferenceGenerator
   NodeManager* d_nm;
   SkolemManager* d_sm;
   SolverState* d_state;
+  /** Pointer to the inference manager */
+  InferenceManager* d_im;
+  /** Commonly used constants */
   Node d_true;
   Node d_zero;
   Node d_one;

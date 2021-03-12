@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,16 +20,18 @@
 #include <vector>
 #include <memory>
 
-#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager.h"
-#include "theory/model_manager.h"
-#include "theory/shared_solver.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
 
 namespace theory {
+
+class EagerProofGenerator;
+class ModelManager;
+class SharedSolver;
 
 /**
  * Manager for doing theory combination. This class is responsible for:
@@ -49,15 +51,8 @@ class CombinationEngine
   /** Finish initialization */
   void finishInit();
 
-  //-------------------------- equality engine
   /** Get equality engine theory information for theory with identifier tid. */
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-  /**
-   * Get the "core" equality engine. This is the equality engine that
-   * quantifiers should use.
-   */
-  eq::EqualityEngine* getCoreEqualityEngine();
-  //-------------------------- end equality engine
   //-------------------------- model
   /**
    * Reset the model maintained by this class. This resets all local information
@@ -111,6 +106,8 @@ class CombinationEngine
   void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
+  /** Valuation for the engine */
+  Valuation d_valuation;
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Logic info of theory engine (cached) */

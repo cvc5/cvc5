@@ -4,16 +4,18 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Forward declarations of the ConstraintValue and ConstraintDatabase classes.
+ ** \brief Forward declarations of the ConstraintValue and ConstraintDatabase
+ ** classes.
  **
- ** This is the forward declarations of the ConstraintValue and ConstraintDatabase
- ** and the typedef for Constraint.  This is used to break circular dependencies and
- ** minimize interaction between header files.
+ ** This is the forward declarations of the ConstraintValue and
+ ** ConstraintDatabase and the typedef for Constraint.
+ ** This is used to break circular dependencies and minimize interaction
+ ** between header files.
  **/
 
 #ifndef CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H

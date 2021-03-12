@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,9 @@
 
 #include "smt/proof_post_processor.h"
 
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
+#include "options/proof_options.h"
 #include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
@@ -137,6 +139,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     const std::vector<Node>& args,
     CDProof* cdp)
 {
+  Trace("smt-proof-pp-debug2") << push;
   NodeManager* nm = NodeManager::currentNM();
   Node trueNode = nm->mkConst(true);
   // get crowding lits and the position of the last clause that includes
@@ -156,6 +159,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     {
       Node crowdLit = clauseLits[i];
       crowding.insert(crowdLit);
+      Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
       // found crowding lit, now get its last inclusion position, which is the
       // position of the last resolution link that introduces the crowding
       // literal. Note that this position has to be *before* the last link, as a
@@ -163,9 +167,17 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       size_t j;
       for (j = children.size() - 1; j > 0; --j)
       {
-        // notice that only non-unit clauses may be introducing the crowding
-        // literal, so we don't need to differentiate unit from non-unit
+        // notice that only non-singleton clauses may be introducing the
+        // crowding literal, so we only care about non-singleton OR nodes. We
+        // check then against the kind and whether the whole OR node occurs as a
+        // pivot of the respective resolution
         if (children[j - 1].getKind() != kind::OR)
+        {
+          continue;
+        }
+        uint64_t pivotIndex = 2 * (j - 1);
+        if (args[pivotIndex] == children[j - 1]
+            || args[pivotIndex].notNode() == children[j - 1])
         {
           continue;
         }
@@ -177,7 +189,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
       }
       Assert(j > 0);
       lastInclusion.emplace_back(crowdLit, j - 1);
-      Trace("smt-proof-pp-debug2") << "crowding lit " << crowdLit << "\n";
+
       Trace("smt-proof-pp-debug2") << "last inc " << j - 1 << "\n";
       // get elimination position, starting from the following link as the last
       // inclusion one. The result is the last (in the chain, but first from
@@ -210,7 +222,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
           break;
         }
       }
-      Assert(j < children.size());
+      AlwaysAssert(j < children.size());
     }
   }
   Assert(!lastInclusion.empty());
@@ -367,6 +379,7 @@ Node ProofPostprocessCallback::eliminateCrowdingLits(
     Trace("smt-proof-pp-debug2")
         << "nextGuardedElimPos: " << nextGuardedElimPos << "\n";
   } while (true);
+  Trace("smt-proof-pp-debug2") << pop;
   return lastClause;
 }
 
@@ -650,10 +663,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                           chainConclusion.end()};
     std::set<Node> chainConclusionLitsSet{chainConclusion.begin(),
                                           chainConclusion.end()};
-    // is args[0] a unit clause? If it's not an OR node, then yes. Otherwise,
-    // it's only a unit if it occurs in chainConclusionLitsSet
+    // is args[0] a singleton clause? If it's not an OR node, then yes.
+    // Otherwise, it's only a singleton if it occurs in chainConclusionLitsSet
     std::vector<Node> conclusionLits;
-    // whether conclusion is unit
+    // whether conclusion is singleton
     if (chainConclusionLitsSet.count(args[0]))
     {
       conclusionLits.push_back(args[0]);
@@ -675,16 +688,32 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           chainConclusionLits, conclusionLits, children, args, cdp);
       // update vector of lits. Note that the set is no longer used, so we don't
       // need to update it
+      //
+      // We need again to check whether chainConclusion is a singleton
+      // clause. As above, it's a singleton if it's in the original
+      // chainConclusionLitsSet.
       chainConclusionLits.clear();
-      chainConclusionLits.insert(chainConclusionLits.end(),
-                                 chainConclusion.begin(),
-                                 chainConclusion.end());
+      if (chainConclusionLitsSet.count(chainConclusion))
+      {
+        chainConclusionLits.push_back(chainConclusion);
+      }
+      else
+      {
+        Assert(chainConclusion.getKind() == kind::OR);
+        chainConclusionLits.insert(chainConclusionLits.end(),
+                                   chainConclusion.begin(),
+                                   chainConclusion.end());
+      }
     }
     else
     {
       cdp->addStep(
           chainConclusion, PfRule::CHAIN_RESOLUTION, children, chainResArgs);
     }
+    Trace("smt-proof-pp-debug")
+        << "Conclusion after chain_res/elimCrowd: " << chainConclusion << "\n";
+    Trace("smt-proof-pp-debug")
+        << "Conclusion lits: " << chainConclusionLits << "\n";
     // Placeholder for running conclusion
     Node n = chainConclusion;
     // factoring
@@ -806,7 +835,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           // add previous rewrite steps
           for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
-            tcg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+            // substitutions are pre-rewrites
+            tcg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
           }
           // get the proof for the update to the current substitution
           Node seqss = subs.eqNode(ss);
@@ -851,7 +881,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
                                true);
       for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
-        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+        // substitutions are pre-rewrites
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j], true);
       }
       // add the proof constructed by the term conversion utility
       std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
@@ -1081,7 +1112,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(std::shared_ptr<ProofNode> pn,
 {
   PfRule r = pn->getRule();
   // if not doing eager pedantic checking, fail if below threshold
-  if (!options::proofNewEagerChecking())
+  if (!options::proofEagerChecking())
   {
     if (!d_pedanticFailure)
     {
