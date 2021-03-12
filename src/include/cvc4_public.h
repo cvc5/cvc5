@@ -16,8 +16,8 @@
  ** the libraries and driver binary, and also exported to the user.
  **/
 
-#ifndef _H
-#define _H
+#ifndef CVC4_PUBLIC_H
+#define CVC4_PUBLIC_H
 
 #include <stddef.h>
 #include <stdint.h>
@@ -32,15 +32,13 @@
 #  define CVC4_NORETURN __attribute__ ((__noreturn__))
 #  define CVC4_CONST_FUNCTION __attribute__ ((__const__))
 #  define CVC4_PURE_FUNCTION __attribute__ ((__pure__))
-#  define CVC4_DEPRECATED __attribute__ ((__deprecated__))
 #  define CVC4_WARN_UNUSED_RESULT __attribute__ ((__warn_unused_result__))
 #else /* ! __GNUC__ */
 #  define CVC4_UNUSED
 #  define CVC4_NORETURN
 #  define CVC4_CONST_FUNCTION
 #  define CVC4_PURE_FUNCTION
-#  define CVC4_DEPRECATED
 #  define CVC4_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 
-#endif /* _H */
+#endif /* CVC4_PUBLIC_H */
