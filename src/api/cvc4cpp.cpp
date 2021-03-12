@@ -36,6 +36,7 @@
 #include <cstring>
 #include <sstream>
 
+#include "api/checks.h"
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/dtype.h"
@@ -823,68 +824,6 @@ class CVC4ApiRecoverableExceptionStream
   std::stringstream d_stream;
 };
 
-#define CVC4_API_CHECK(cond) \
-  CVC4_PREDICT_TRUE(cond)    \
-  ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
-
-#define CVC4_API_RECOVERABLE_CHECK(cond) \
-  CVC4_PREDICT_TRUE(cond)                \
-  ? (void)0 : OstreamVoider() & CVC4ApiRecoverableExceptionStream().ostream()
-
-#define CVC4_API_CHECK_NOT_NULL                     \
-  CVC4_API_CHECK(!isNullHelper())                   \
-      << "Invalid call to '" << __PRETTY_FUNCTION__ \
-      << "', expected non-null object";
-
-#define CVC4_API_ARG_CHECK_NOT_NULL(arg) \
-  CVC4_API_CHECK(!arg.isNull()) << "Invalid null argument for '" << #arg << "'";
-
-#define CVC4_API_ARG_CHECK_NOT_NULLPTR(arg) \
-  CVC4_API_CHECK(arg != nullptr)            \
-      << "Invalid null argument for '" << #arg << "'";
-
-#define CVC4_API_KIND_CHECK(kind)     \
-  CVC4_API_CHECK(isDefinedKind(kind)) \
-      << "Invalid kind '" << kindToString(kind) << "'";
-
-#define CVC4_API_KIND_CHECK_EXPECTED(cond, kind) \
-  CVC4_PREDICT_TRUE(cond)                        \
-  ? (void)0                                      \
-  : OstreamVoider()                              \
-          & CVC4ApiExceptionStream().ostream()   \
-                << "Invalid kind '" << kindToString(kind) << "', expected "
-
-#define CVC4_API_ARG_CHECK_EXPECTED(cond, arg)                      \
-  CVC4_PREDICT_TRUE(cond)                                           \
-  ? (void)0                                                         \
-  : OstreamVoider()                                                 \
-          & CVC4ApiExceptionStream().ostream()                      \
-                << "Invalid argument '" << arg << "' for '" << #arg \
-                << "', expected "
-
-#define CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(cond, arg)          \
-  CVC4_PREDICT_TRUE(cond)                                           \
-  ? (void)0                                                         \
-  : OstreamVoider()                                                 \
-          & CVC4ApiRecoverableExceptionStream().ostream()           \
-                << "Invalid argument '" << arg << "' for '" << #arg \
-                << "', expected "
-
-#define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
-  CVC4_PREDICT_TRUE(cond)                           \
-  ? (void)0                                         \
-  : OstreamVoider()                                 \
-          & CVC4ApiExceptionStream().ostream()      \
-                << "Invalid size of argument '" << #arg << "', expected "
-
-#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)           \
-  CVC4_PREDICT_TRUE(cond)                                                    \
-  ? (void)0                                                                  \
-  : OstreamVoider()                                                          \
-          & CVC4ApiExceptionStream().ostream()                               \
-                << "Invalid " << what << " '" << arg << "' at index " << idx \
-                << ", expected "
-
 #define CVC4_API_TRY_CATCH_BEGIN \
   try                            \
   {
@@ -900,18 +839,6 @@ class CVC4ApiRecoverableExceptionStream
   }                                                                            \
   catch (const CVC4::Exception& e) { throw CVC4ApiException(e.getMessage()); } \
   catch (const std::invalid_argument& e) { throw CVC4ApiException(e.what()); }
-
-#define CVC4_API_SOLVER_CHECK_SORT(sort) \
-  CVC4_API_CHECK(this == sort.d_solver)  \
-      << "Given sort is not associated with this solver";
-
-#define CVC4_API_SOLVER_CHECK_TERM(term) \
-  CVC4_API_CHECK(this == term.d_solver)  \
-      << "Given term is not associated with this solver";
-
-#define CVC4_API_SOLVER_CHECK_OP(op)  \
-  CVC4_API_CHECK(this == op.d_solver) \
-      << "Given operator is not associated with this solver";
 
 }  // namespace
 
