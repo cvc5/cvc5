@@ -1182,4 +1182,3 @@ install(FILES
 install(CODE "execute_process(COMMAND
                 ${CMAKE_CURRENT_LIST_DIR}/fix-install-headers.sh
                 ${CMAKE_INSTALL_PREFIX})")
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/)
