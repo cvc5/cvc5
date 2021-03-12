@@ -22,6 +22,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "util/hash.h"
 
 using namespace CVC4::kind;

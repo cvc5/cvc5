@@ -23,6 +23,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
@@ -37,7 +38,6 @@ namespace theory {
 namespace quantifiers {
 
 TermDb::TermDb(QuantifiersState& qs,
-               QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr)
     : d_qstate(qs),
       d_qim(nullptr),

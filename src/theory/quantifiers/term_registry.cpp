@@ -23,23 +23,26 @@ namespace theory {
 namespace quantifiers {
 
 TermRegistry::TermRegistry(QuantifiersState& qs,
-                           QuantifiersInferenceManager& qim,
                            QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
-      d_termDb(new TermDb(qs, qim, qr)),
+      d_termDb(new TermDb(qs, qr)),
       d_sygusTdb(nullptr)
 {
+  if (options::sygus() || options::sygusInst())
+  {
+    // must be constructed here since it is required for datatypes finistInit
+    d_sygusTdb.reset(new TermDbSygus(qs));
+  }
 }
 
 void TermRegistry::finishInit(QuantifiersInferenceManager* qim)
 {
   d_termDb->finishInit(qim);
-  if (options::sygus() || options::sygusInst())
+  if (d_sygusTdb.get())
   {
-    // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(qs, qim));
+    d_sygusTdb->finishInit(qim);
   }
 }
 
