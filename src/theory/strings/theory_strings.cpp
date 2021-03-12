@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -986,7 +986,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-TrustNode TheoryStrings::ppRewrite(TNode atom)
+TrustNode TheoryStrings::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   if (atom.getKind() == STRING_FROM_CODE)
@@ -998,14 +998,13 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
     Node card = nm->mkConst(Rational(utils::getAlphabetCardinality()));
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, t), nm->mkNode(LT, t, card));
-    Node k = nm->mkBoundVar(nm->stringType());
-    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    Node v = nm->mkBoundVar(nm->stringType());
     Node emp = Word::mkEmptyWord(atom.getType());
-    Node ret = nm->mkNode(
-        WITNESS,
-        bvl,
-        nm->mkNode(
-            ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
+    Node pred = nm->mkNode(
+        ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, v)), v.eqNode(emp));
+    SkolemManager* sm = nm->getSkolemManager();
+    Node ret = sm->mkSkolem(v, pred, "kFromCode");
+    lems.push_back(SkolemLemma(ret, nullptr));
     return TrustNode::mkTrustRewrite(atom, ret, nullptr);
   }
   TrustNode ret;

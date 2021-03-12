@@ -2,9 +2,9 @@
 /*! \file trigger.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 
 #include "expr/skolem_manager.h"
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
@@ -23,12 +24,14 @@
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/ematching/trigger_trie.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/valuation.h"
 
 using namespace CVC4::kind;
 
@@ -66,19 +69,17 @@ Trigger::Trigger(QuantifiersEngine* qe,
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
-      d_mg = new InstMatchGeneratorSimple(q, d_nodes[0], qs, qim, qe);
+      d_mg = new InstMatchGeneratorSimple(this, q, d_nodes[0]);
       ++(qe->d_statistics.d_triggers);
     }else{
-      d_mg =
-          InstMatchGenerator::mkInstMatchGenerator(q, d_nodes[0], qs, qim, qe);
+      d_mg = InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
       ++(qe->d_statistics.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
-      d_mg = new InstMatchGeneratorMulti(q, d_nodes, qs, qim, qe);
+      d_mg = new InstMatchGeneratorMulti(this, q, d_nodes);
     }else{
-      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(
-          q, d_nodes, qs, qim, qe);
+      d_mg = InstMatchGenerator::mkInstMatchGeneratorMulti(this, q, d_nodes);
     }
     if (Trace.isOn("multi-trigger"))
     {
@@ -98,13 +99,9 @@ Trigger::~Trigger() {
   delete d_mg;
 }
 
-void Trigger::resetInstantiationRound(){
-  d_mg->resetInstantiationRound( d_quantEngine );
-}
+void Trigger::resetInstantiationRound() { d_mg->resetInstantiationRound(); }
 
-void Trigger::reset( Node eqc ){
-  d_mg->reset( eqc, d_quantEngine );
-}
+void Trigger::reset(Node eqc) { d_mg->reset(eqc); }
 
 bool Trigger::isMultiTrigger() const { return d_nodes.size() > 1; }
 
@@ -135,7 +132,7 @@ uint64_t Trigger::addInstantiations()
       }
     }
   }
-  uint64_t addedLemmas = d_mg->addInstantiations(d_quant, d_quantEngine, this);
+  uint64_t addedLemmas = d_mg->addInstantiations(d_quant);
   if (Debug.isOn("inst-trigger"))
   {
     if (addedLemmas > 0)
@@ -147,9 +144,14 @@ uint64_t Trigger::addInstantiations()
   return gtAddedLemmas + addedLemmas;
 }
 
-bool Trigger::sendInstantiation(InstMatch& m)
+bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
+  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m, id);
+}
+
+bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)
+{
+  return sendInstantiation(m.d_vals, id);
 }
 
 bool Trigger::mkTriggerTerms(Node q,
@@ -308,9 +310,7 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
   return mkTrigger(qe, qs, qim, qr, f, nodes, keepAll, trOption, useNVars);
 }
 
-int Trigger::getActiveScore() {
-  return d_mg->getActiveScore( d_quantEngine );
-}
+int Trigger::getActiveScore() { return d_mg->getActiveScore(); }
 
 Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
                                            Node n,

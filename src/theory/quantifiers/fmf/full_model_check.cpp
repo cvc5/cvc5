@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4;
@@ -609,7 +610,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       // just exhaustive instantiate
       Node c = mkCondDefault(fmfmc, f);
       d_quant_models[f].addEntry(fmfmc, c, d_false);
-      if (!exhaustiveInstantiate(fmfmc, f, c, -1))
+      if (!exhaustiveInstantiate(fmfmc, f, c))
       {
         return 0;
       }
@@ -696,7 +697,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
         // (should only add one instance)
         Node c = mkCond(cond);
         unsigned prevInst = d_addedLemmas;
-        exhaustiveInstantiate(fmfmc, f, c, -1);
+        exhaustiveInstantiate(fmfmc, f, c);
         if (d_addedLemmas == prevInst)
         {
           d_star_insts[f].push_back(i);
@@ -705,7 +706,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       }
       // just add the instance
       d_triedLemmas++;
-      if (instq->addInstantiation(f, inst, true))
+      if (instq->addInstantiation(
+              f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC, true))
       {
         Trace("fmc-debug-inst") << "** Added instantiation." << std::endl;
         d_addedLemmas++;
@@ -745,7 +747,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
       int j = d_star_insts[f][i];
       if (temp.addEntry(fmfmc, mcond[j], d_quant_models[f].d_value[j]))
       {
-        if (!exhaustiveInstantiate(fmfmc, f, mcond[j], j))
+        if (!exhaustiveInstantiate(fmfmc, f, mcond[j]))
         {
           // something went wrong, resort to exhaustive instantiation
           return 0;
@@ -809,8 +811,11 @@ class RepBoundFmcEntry : public QRepBoundExt
   FirstOrderModelFmc* d_fm;
 };
 
-bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index) {
-  Trace("fmc-exh") << "----Exhaustive instantiate based on index " << c_index << " : " << c << " ";
+bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
+                                             Node f,
+                                             Node c)
+{
+  Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
   RepBoundFmcEntry rbfe(d_qe, c, fm);
@@ -847,7 +852,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, No
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if (d_qe->getInstantiate()->addInstantiation(f, inst, true))
+        if (d_qe->getInstantiate()->addInstantiation(
+                f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH, true))
         {
           Trace("fmc-exh-debug")  << " ...success.";
           addedLemmas++;
@@ -982,8 +988,15 @@ void FullModelChecker::doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n 
 
 void FullModelChecker::doNegate( Def & dc ) {
   for (unsigned i=0; i<dc.d_cond.size(); i++) {
-    if (!dc.d_value[i].isNull()) {
-      dc.d_value[i] = dc.d_value[i]==d_true ? d_false : ( dc.d_value[i]==d_false ? d_true : dc.d_value[i] );
+    Node v = dc.d_value[i];
+    if (!v.isNull())
+    {
+      // In the case that the value is not-constant, we cannot reason about
+      // its value (since the range of this must be a constant or variable).
+      // In particular, returning null here is important if we have (not x)
+      // where x is a bound variable.
+      dc.d_value[i] =
+          v == d_true ? d_false : (v == d_false ? d_true : Node::null());
     }
   }
 }

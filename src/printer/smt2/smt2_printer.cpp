@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -995,8 +995,8 @@ void Smt2Printer::toStream(std::ostream& out,
     if(toDepth != 0) {
       if (n.getKind() == kind::APPLY_TESTER)
       {
-        unsigned cindex = DType::indexOf(n.getOperator().toExpr());
-        const DType& dt = DType::datatypeOf(n.getOperator().toExpr());
+        unsigned cindex = DType::indexOf(n.getOperator());
+        const DType& dt = DType::datatypeOf(n.getOperator());
         out << "(_ is ";
         toStream(out,
                  dt[cindex].getConstructor(),

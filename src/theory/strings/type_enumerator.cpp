@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -177,7 +177,7 @@ SeqEnumLen::SeqEnumLen(TypeNode tn,
   d_elementEnumerator.reset(
       new TypeEnumerator(d_type.getSequenceElementType(), tep));
   // ensure non-empty element domain
-  d_elementDomain.push_back((**d_elementEnumerator).toExpr());
+  d_elementDomain.push_back((**d_elementEnumerator));
   ++(*d_elementEnumerator);
   mkCurr();
 }
@@ -195,7 +195,7 @@ bool SeqEnumLen::increment()
   {
     // yet to establish domain
     Assert(d_elementEnumerator != nullptr);
-    d_elementDomain.push_back((**d_elementEnumerator).toExpr());
+    d_elementDomain.push_back((**d_elementEnumerator));
     ++(*d_elementEnumerator);
   }
   // the current cardinality is the domain size of the element

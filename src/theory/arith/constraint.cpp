@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Alex Ozdemir, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,9 +21,14 @@
 #include <unordered_set>
 
 #include "base/output.h"
+#include "expr/proof_node_manager.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/arith/arith_utilities.h"
+#include "theory/arith/congruence_manager.h"
 #include "theory/arith/normal_form.h"
+#include "theory/arith/partial_model.h"
+#include "theory/rewriter.h"
 
 
 using namespace std;
@@ -2231,7 +2236,7 @@ bool ConstraintDatabase::handleUnateProp(ConstraintP ant, ConstraintP cons){
   if(cons->negationHasProof()){
     Debug("arith::unate") << "handleUnate: " << ant << " implies " << cons << endl;
     cons->impliedByUnate(ant, true);
-    d_raiseConflict.raiseConflict(cons);
+    d_raiseConflict.raiseConflict(cons, InferenceId::UNKNOWN);
     return true;
   }else if(!cons->isTrue()){
     ++d_statistics.d_unatePropagateImplications;

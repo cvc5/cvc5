@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -454,7 +454,7 @@ TrustNode TheoryFp::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
   // first, see if we need to expand definitions

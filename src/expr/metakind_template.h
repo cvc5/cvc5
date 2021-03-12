@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -187,8 +187,10 @@ struct NodeValueConstPrinter {
  */
 void deleteNodeValueConstant(::CVC4::expr::NodeValue* nv);
 
-unsigned getLowerBoundForKind(::CVC4::Kind k);
-unsigned getUpperBoundForKind(::CVC4::Kind k);
+/** Return the minimum arity of the given kind. */
+uint32_t getMinArityForKind(::CVC4::Kind k);
+/** Return the maximum arity of the given kind. */
+uint32_t getMaxArityForKind(::CVC4::Kind k);
 
 }/* CVC4::kind::metakind namespace */
 

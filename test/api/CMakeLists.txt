@@ -3,7 +3,7 @@
 ## Top contributors (to current version):
 ##   Aina Niemetz, Andrew V. Jones, Makai Mann
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -28,10 +28,13 @@ set(CVC4_API_TEST_FLAGS
   -D__BUILDING_CVC4_API_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 
 macro(cvc4_add_api_test name)
+  set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/api/)
   add_executable(${name} ${name}.cpp)
   target_link_libraries(${name} main-test)
   target_compile_definitions(${name} PRIVATE ${CVC4_API_TEST_FLAGS})
-  add_test(api/${name} ${CMAKE_CURRENT_BINARY_DIR}/${name})
+  set_target_properties(${name}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
+  add_test(api/${name} ${test_bin_dir}/${name})
   set_tests_properties(api/${name} PROPERTIES LABELS "api")
   add_dependencies(build-apitests ${name})
 endmacro()
@@ -41,8 +44,6 @@ cvc4_add_api_test(ouroborous)
 cvc4_add_api_test(reset_assertions)
 cvc4_add_api_test(sep_log_api)
 cvc4_add_api_test(smt2_compliance)
-# TODO(cvc4-projects#209): Add methods for retrieving statistics to new API
-# cvc4_add_api_test(statistics)
 cvc4_add_api_test(two_solvers)
 cvc4_add_api_test(issue5074)
 cvc4_add_api_test(issue4889)

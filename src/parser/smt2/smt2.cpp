@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -836,7 +836,7 @@ bool Smt2::isAbstractValue(const std::string& name)
 
 api::Term Smt2::mkAbstractValue(const std::string& name)
 {
-  assert(isAbstractValue(name));
+  Assert(isAbstractValue(name));
   // remove the '@'
   return d_solver->mkAbstractValue(name.substr(1));
 }
@@ -913,7 +913,7 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
   {
     expr = getExpressionForName(p.d_name);
   }
-  assert(!expr.isNull());
+  Assert(!expr.isNull());
   return expr;
 }
 

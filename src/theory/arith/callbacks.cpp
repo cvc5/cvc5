@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 
 #include "theory/arith/callbacks.h"
 
+#include "expr/proof_node.h"
 #include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
 
@@ -63,9 +64,9 @@ RaiseConflict::RaiseConflict(TheoryArithPrivate& ta)
   : d_ta(ta)
 {}
 
-void RaiseConflict::raiseConflict(ConstraintCP c) const{
+void RaiseConflict::raiseConflict(ConstraintCP c, InferenceId id) const{
   Assert(c->inConflict());
-  d_ta.raiseConflict(c);
+  d_ta.raiseConflict(c, id);
 }
 
 FarkasConflictBuilder::FarkasConflictBuilder()

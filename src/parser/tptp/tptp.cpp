@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Francois Bobot, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include <set>
 
 #include "api/cvc4cpp.h"
+#include "base/check.h"
 #include "options/options.h"
 #include "parser/parser.h"
 #include "smt/command.h"
@@ -237,7 +238,7 @@ api::Term Tptp::parseOpToExpr(ParseOp& p)
   }
   // if it has a kind, it's a builtin one and this function should not have been
   // called
-  assert(p.d_kind == api::NULL_EXPR);
+  Assert(p.d_kind == api::NULL_EXPR);
   if (isDeclared(p.d_name))
   {  // already appeared
     expr = getVariable(p.d_name);
@@ -263,7 +264,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       Debug("parser") << "++ " << *i << std::endl;
     }
   }
-  assert(!args.empty());
+  Assert(!args.empty());
   // If operator already defined, just build application
   if (!p.d_expr.isNull())
   {
@@ -303,7 +304,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
         args[i] = convertRatToUnsorted(args[i]);
       }
     }
-    assert(!v.isNull());
+    Assert(!v.isNull());
     checkFunctionLike(v);
     kind = getKindForFunction(v);
     args.insert(args.begin(), v);
@@ -313,7 +314,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     kind = p.d_kind;
     isBuiltinKind = true;
   }
-  assert(kind != api::NULL_EXPR);
+  Assert(kind != api::NULL_EXPR);
   const Options& opts = d_solver->getOptions();
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
@@ -376,13 +377,13 @@ void Tptp::forceLogic(const std::string& logic)
 
 void Tptp::addFreeVar(api::Term var)
 {
-  assert(cnf());
+  Assert(cnf());
   d_freeVar.push_back(var);
 }
 
 std::vector<api::Term> Tptp::getFreeVar()
 {
-  assert(cnf());
+  Assert(cnf());
   std::vector<api::Term> r;
   r.swap(d_freeVar);
   return r;
@@ -473,7 +474,7 @@ api::Term Tptp::getAssertionExpr(FormulaRole fr, api::Term expr)
       return d_nullExpr;
       break;
   }
-  assert(false);  // unreachable
+  Assert(false);  // unreachable
   return d_nullExpr;
 }
 
@@ -501,7 +502,7 @@ Command* Tptp::makeAssertCommand(FormulaRole fr,
   // "CounterSatisfiable".
   if (!cnf && (fr == FR_NEGATED_CONJECTURE || fr == FR_CONJECTURE)) {
     d_hasConjecture = true;
-    assert(!expr.isNull());
+    Assert(!expr.isNull());
   }
   if( expr.isNull() ){
     return new EmptyCommand("Untreated role for expression");

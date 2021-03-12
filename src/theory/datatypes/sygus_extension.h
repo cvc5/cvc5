@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,20 +22,18 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "context/cdlist.h"
-#include "context/cdo.h"
 #include "context/context.h"
-#include "expr/dtype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/decision_manager.h"
-#include "theory/quantifiers/sygus/sygus_explain.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
+class SynthConjecture;
+}
 namespace datatypes {
 
 class InferenceManager;
@@ -78,35 +76,36 @@ class SygusExtension
   ~SygusExtension();
   /**
    * Notify this class that tester for constructor tindex has been asserted for
-   * n. Exp is the literal corresponding to this tester. This method may add
-   * lemmas to the vector lemmas, for details see assertTesterInternal below.
+   * n. Exp is the literal corresponding to this tester. This method may send
+   * lemmas via inference manager, for details see assertTesterInternal below.
    * These lemmas are sent out on the output channel of datatypes by the caller.
    */
-  void assertTester(int tindex, TNode n, Node exp, std::vector<Node>& lemmas);
+  void assertTester(int tindex, TNode n, Node exp);
   /**
    * Notify this class that literal n has been asserted with the given
-   * polarity. This method may add lemmas to the vector lemmas, for instance
+   * polarity. This method may send lemmas via inference manager, for instance
    * based on inferring consequences of (not) n. One example is if n is
    * (DT_SIZE_BOUND x n), we add the lemma:
    *   (DT_SIZE_BOUND x n) <=> ((DT_SIZE x) <= n )
    */
-  void assertFact(Node n, bool polarity, std::vector<Node>& lemmas);
+  void assertFact(Node n, bool polarity);
   /** pre-register term n
    *
    * This is called when n is pre-registered with the theory of datatypes.
-   * If n is a sygus enumerator, then we may add lemmas to the vector lemmas
+   * If n is a sygus enumerator, then we may send lemmas via inference manager
    * that are used to enforce fairness regarding the size of n.
    */
-  void preRegisterTerm(TNode n, std::vector<Node>& lemmas);
+  void preRegisterTerm(TNode n);
   /** check
    *
    * This is called at last call effort, when the current model assignment is
    * satisfiable according to the quantifier-free decision procedures and a
-   * model is built. This method may add lemmas to the vector lemmas based
+   * model is built. This method may send lemmas via inference manager based
    * on dynamic symmetry breaking techniques, based on the model values of
    * all preregistered enumerators.
    */
-  void check(std::vector<Node>& lemmas);
+  void check();
+
  private:
   /** The theory state of the datatype theory */
   TheoryState& d_state;
@@ -193,7 +192,7 @@ private:
      */
     std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_search_terms;
     /** A cache of all symmetry breaking lemma templates for (types, sizes). */
-    std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_sb_lemmas;
+    std::map<TypeNode, std::map<uint64_t, std::vector<Node>>> d_sbLemmas;
     /** search value
      *
      * For each sygus type, a map from a builtin term to a sygus term for that
@@ -300,8 +299,7 @@ private:
    *   A -> A+A | x | 1 | 0
    * when is_+( d ) is asserted,
    * assertTesterInternal(0, s( d ), is_+( s( d ) ),...) is called. This
-   * function may add lemmas to lemmas, which are sent out on the output
-   * channel of datatypes by the caller.
+   * function may send lemmas via inference manager.
    *
    * These lemmas are of various forms, including:
    * (1) dynamic symmetry breaking clauses for subterms of n (those added to
@@ -314,13 +312,13 @@ private:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
    * where C1 and C2 are non-nullary constructors.
    */
-  void assertTesterInternal( int tindex, TNode n, Node exp, std::vector< Node >& lemmas );
+  void assertTesterInternal(int tindex, TNode n, Node exp);
   /**
    * This function is called when term n is registered to the theory of
    * datatypes. It makes the appropriate call to registerSearchTerm below,
    * if applicable.
    */
-  void registerTerm(Node n, std::vector<Node>& lemmas);
+  void registerTerm(Node n);
 
   //------------------------dynamic symmetry breaking
   /** Register search term
@@ -336,7 +334,7 @@ private:
    * are active for n (see description of addSymBreakLemmasFor) are added to
    * lemmas in this call.
    */
-  void registerSearchTerm( TypeNode tn, unsigned d, Node n, bool topLevel, std::vector< Node >& lemmas );
+  void registerSearchTerm(TypeNode tn, unsigned d, Node n, bool topLevel);
   /** Register search value
    *
    * This function is called when a selector chain n has been assigned a model
@@ -358,7 +356,7 @@ private:
    * Registering search value d -> x followed by d -> +( x, 0 ) results in the
    * construction of the symmetry breaking lemma template:
    *   ~is_+( z ) V ~is_x( z.1 ) V ~is_0( z.2 )
-   * which is stored in d_cache[a].d_sb_lemmas. This lemma is instantiated with
+   * which is stored in d_cache[a].d_sbLemmas. This lemma is instantiated with
    * z -> t for all terms t of appropriate depth, including d.
    * This function strengthens blocking clauses using generalization techniques
    * described in Reynolds et al SYNT 2017.
@@ -394,18 +392,16 @@ private:
                            Node n,
                            Node nv,
                            unsigned d,
-                           std::vector<Node>& lemmas,
                            bool isVarAgnostic,
                            bool doSym);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of
-   * type tn with anchor a. This is added to d_cache[a].d_sb_lemmas. Notice that
+   * type tn with anchor a. This is added to d_cache[a].d_sbLemmas. Notice that
    * we use lem as a template with free variable x, e.g. our template is:
    *   (lambda ((x tn)) lem)
    * where x = getFreeVar( tn ). For all search terms t of the appropriate
-   * depth,
-   * we add the lemma lem{ x -> t } to lemmas.
+   * depth, we send the lemma lem{ x -> t } via the inference manager.
    *
    * The argument sz indicates the size of terms that the lemma applies to, e.g.
    *   ~is_+( z ) has size 1
@@ -414,8 +410,7 @@ private:
    * This is equivalent to sum of weights of constructors corresponding to each
    * tester, e.g. above + has weight 1, and x and 0 have weight 0.
    */
-  void registerSymBreakLemma(
-      TypeNode tn, Node lem, unsigned sz, Node a, std::vector<Node>& lemmas);
+  void registerSymBreakLemma(TypeNode tn, Node lem, unsigned sz, Node a);
   /** Register symmetry breaking lemma for value
    *
    * This function adds a symmetry breaking lemma template for selector chains
@@ -430,18 +425,18 @@ private:
    * generalization.
    *
    * This function may add instances of the symmetry breaking template for
-   * existing search terms, which are added to lemmas.
+   * existing search terms, which are sent via the inference manager.
    */
   void registerSymBreakLemmaForValue(Node a,
                                      Node val,
                                      quantifiers::SygusInvarianceTest& et,
                                      Node valr,
-                                     std::map<TypeNode, int>& var_count,
-                                     std::vector<Node>& lemmas);
+                                     std::map<TypeNode, int>& var_count);
   /** Add symmetry breaking lemmas for term
    *
-   * Adds all active symmetry breaking lemmas for selector chain t to lemmas. A
-   * symmetry breaking lemma L is active for t based on three factors:
+   * Sends all active symmetry breaking lemmas for selector chain t via the
+   * inference manager. A symmetry breaking lemma L is active for t based on
+   * three factors:
    * (1) the current search size sz(a) for its anchor a,
    * (2) the depth d of term t (see d_term_to_depth),
    * (3) the size sz(L) of the symmetry breaking lemma L.
@@ -454,10 +449,9 @@ private:
    * a : the anchor of term t,
    * d : the depth of term t.
    */
-  void addSymBreakLemmasFor(
-      TypeNode tn, Node t, unsigned d, Node a, std::vector<Node>& lemmas);
+  void addSymBreakLemmasFor(TypeNode tn, TNode t, unsigned d, Node a);
   /** calls the above function where a is the anchor t */
-  void addSymBreakLemmasFor( TypeNode tn, Node t, unsigned d, std::vector< Node >& lemmas );
+  void addSymBreakLemmasFor(TypeNode tn, TNode t, unsigned d);
   //------------------------end dynamic symmetry breaking
 
   /** Get relevancy condition
@@ -555,17 +549,15 @@ private:
    * decision strategy decides on literals of the form (DT_SYGUS_BOUND m n).
    *
    * After determining the measure term m for e, if applicable, we initialize
-   * SygusSizeDecisionStrategy for m below. This may result in lemmas
+   * SygusSizeDecisionStrategy for m below. This may result in lemmas sent via
+   * the inference manager.
    */
-  void registerSizeTerm(Node e, std::vector<Node>& lemmas);
+  void registerSizeTerm(Node e);
   /** A decision strategy for each measure term allocated by this class */
   class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusSizeDecisionStrategy(Node t, context::Context* c, Valuation valuation)
-        : DecisionStrategyFmf(c, valuation), d_this(t), d_curr_search_size(0)
-    {
-    }
+    SygusSizeDecisionStrategy(InferenceManager& im, Node t, TheoryState& s);
     /** the measure term */
     Node d_this;
     /**
@@ -595,7 +587,7 @@ private:
      * literals. Then, if we are enforcing fairness based on the maximum size,
      * we assert: (DT_SIZE e) <= v for all enumerators e.
      */
-    Node getOrMkMeasureValue(std::vector<Node>& lemmas);
+    Node getOrMkMeasureValue();
     /** get or make the active measure value
      *
      * The active measure value av is an integer variable that corresponds to
@@ -613,8 +605,7 @@ private:
      * If the flag mkNew is set to true, then we return a fresh variable and
      * update the active measure value.
      */
-    Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
-                                   bool mkNew = false);
+    Node getOrMkActiveMeasureValue(bool mkNew = false);
     /** Returns the s^th fairness literal for this measure term. */
     Node mkLiteral(unsigned s) override;
     /** identify */
@@ -624,6 +615,8 @@ private:
     }
 
    private:
+    /** The inference manager we are using */
+    InferenceManager& d_im;
     /** the measure value */
     Node d_measure_value;
     /** the sygus measure value */
@@ -652,7 +645,7 @@ private:
    * of how search size affects which lemmas are relevant above
    * addSymBreakLemmasFor.
    */
-  void incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas );
+  void incrementCurrentSearchSize(TNode m);
   /**
    * Notify this class that we are currently searching for terms of size at
    * most s as model values for measure term m. Literal exp corresponds to the
@@ -660,7 +653,7 @@ private:
    * incrementSearchSize above, until the total number of times we have called
    * incrementSearchSize so far is at least s.
    */
-  void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
+  void notifySearchSize(TNode m, uint64_t s, Node exp);
   /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**
@@ -708,7 +701,7 @@ private:
    * method should not ever add anything to lemmas. However, due to its
    * importance, we check this regardless.
    */
-  bool checkValue(Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  bool checkValue(Node n, TNode vn, int ind);
   /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted

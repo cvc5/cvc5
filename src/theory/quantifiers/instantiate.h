@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,14 +20,17 @@
 #include <map>
 
 #include "context/cdhashset.h"
-#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof.h"
+#include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+class LazyCDProof;
+
 namespace theory {
 
 class QuantifiersEngine;
@@ -124,12 +127,16 @@ class Instantiate : public QuantifiersUtil
    * This function returns true if the instantiation lemma for quantified
    * formula q for the substitution specified by terms is successfully enqueued
    * via a call to QuantifiersInferenceManager::addPendingLemma.
-   *   mkRep : whether to take the representatives of the terms in the range of
-   *           the substitution m,
-   *   modEq : whether to check for duplication modulo equality in instantiation
-   *           tries (for performance),
-   *   doVts : whether we must apply virtual term substitution to the
-   *           instantiation lemma.
+   * @param q the quantified formula to instantiate
+   * @param terms the terms to instantiate with
+   * @param id the identifier of the instantiation lemma sent via the inference
+   * manager
+   * @param mkRep whether to take the representatives of the terms in the
+   * range of the substitution m,
+   * @param modEq whether to check for duplication modulo equality in
+   * instantiation tries (for performance),
+   * @param doVts whether we must apply virtual term substitution to the
+   * instantiation lemma.
    *
    * This call may fail if it can be determined that the instantiation is not
    * relevant or legal in the current context. This happens if:
@@ -145,6 +152,7 @@ class Instantiate : public QuantifiersUtil
    */
   bool addInstantiation(Node q,
                         std::vector<Node>& terms,
+                        InferenceId id,
                         bool mkRep = false,
                         bool modEq = false,
                         bool doVts = false);
@@ -174,6 +182,7 @@ class Instantiate : public QuantifiersUtil
   bool addInstantiationExpFail(Node q,
                                std::vector<Node>& terms,
                                std::vector<bool>& failMask,
+                               InferenceId id,
                                bool mkRep = false,
                                bool modEq = false,
                                bool doVts = false,

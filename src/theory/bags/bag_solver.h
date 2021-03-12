@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,18 +17,15 @@
 #ifndef CVC4__THEORY__BAG__SOLVER_H
 #define CVC4__THEORY__BAG__SOLVER_H
 
-#include "context/cdhashset.h"
-#include "context/cdlist.h"
-#include "theory/bags/infer_info.h"
 #include "theory/bags/inference_generator.h"
-#include "theory/bags/inference_manager.h"
-#include "theory/bags/normal_form.h"
-#include "theory/bags/solver_state.h"
-#include "theory/bags/term_registry.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bags {
+
+class InferenceManager;
+class SolverState;
+class TermRegistry;
 
 /** The solver for the theory of bags
  *

@@ -8,6 +8,8 @@
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
+ **
+ ** \brief a class for TupleProjectOp operator
  **/
 
 #include "tuple_project_op.h"

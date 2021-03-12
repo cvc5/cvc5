@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -434,10 +434,10 @@ CVC4::api::Term createPrecedenceTree(Parser* parser, api::Solver* solver,
                           const std::vector<CVC4::api::Term>& expressions,
                           const std::vector<unsigned>& operators,
                           unsigned startIndex, unsigned stopIndex) {
-  assert(expressions.size() == operators.size() + 1);
-  assert(startIndex < expressions.size());
-  assert(stopIndex < expressions.size());
-  assert(startIndex <= stopIndex);
+  Assert(expressions.size() == operators.size() + 1);
+  Assert(startIndex < expressions.size());
+  Assert(stopIndex < expressions.size());
+  Assert(startIndex <= stopIndex);
 
   if(stopIndex == startIndex) {
     return expressions[startIndex];
@@ -544,9 +544,9 @@ api::Term addNots(api::Solver* s, size_t n, api::Term e) {
 
 @parser::includes {
 
-#include <cassert>
 #include <memory>
 
+#include "base/check.h"
 #include "options/set_language.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parser.h"
@@ -1134,7 +1134,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           // like e.g. FORALL(x:INT = 4): [...]
           PARSER_STATE->parseError("cannot construct a definition here; maybe you want a LET");
         }
-        assert(!idList.empty());
+        Assert(!idList.empty());
         api::Term fterm = f;
         std::vector<api::Term> formals;
         if (f.getKind()==api::LAMBDA)
@@ -1210,7 +1210,7 @@ type[CVC4::api::Sort& t,
     /* a type, possibly a function */
   : restrictedTypePossiblyFunctionLHS[t,check,lhs]
     { if(lhs) {
-        assert(t.isTuple());
+        Assert(t.isTuple());
         args = t.getTupleSorts();
       } else {
         args.push_back(t);
@@ -2203,12 +2203,12 @@ simpleTerm[CVC4::api::Term& f]
     }
     /* bitvector literals */
   | HEX_LITERAL
-    { assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
+    { Assert( AntlrInput::tokenText($HEX_LITERAL).find("0hex") == 0 );
       std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 4);
       f = SOLVER->mkBitVector(hexString, 16);
     }
   | BINARY_LITERAL
-    { assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
+    { Assert( AntlrInput::tokenText($BINARY_LITERAL).find("0bin") == 0 );
       std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 4);
       f = SOLVER->mkBitVector(binString, 2);
     }
@@ -2216,7 +2216,7 @@ simpleTerm[CVC4::api::Term& f]
   | PARENHASH recordEntry[name,e] { names.push_back(name); args.push_back(e); }
     ( COMMA recordEntry[name,e] { names.push_back(name); args.push_back(e); } )* HASHPAREN
     { std::vector< std::pair<std::string, api::Sort> > typeIds;
-      assert(names.size() == args.size());
+      Assert(names.size() == args.size());
       for(unsigned i = 0; i < names.size(); ++i) {
         typeIds.push_back(std::make_pair(names[i], args[i].getSort()));
       }

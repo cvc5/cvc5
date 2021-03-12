@@ -4,12 +4,13 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief This module maintains the relationship between a Tableau and PartialModel.
+ ** \brief This module maintains the relationship between a Tableau and
+ ** PartialModel.
  **
  ** This shares with the theory a Tableau, and a PartialModel that:
  **  - satisfies the equalities in the Tableau, and
@@ -24,7 +25,6 @@
  ** using both the Tableau and PartialModel.
  **/
 
-
 #include "cvc4_private.h"
 
 #pragma once
@@ -38,6 +38,7 @@
 #include "theory/arith/tableau.h"
 #include "util/maybe.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace theory {

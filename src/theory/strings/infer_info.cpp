@@ -2,9 +2,9 @@
 /*! \file infer_info.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Mudathir Mohamed, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -56,7 +56,11 @@ bool InferInfo::isFact() const
 {
   Assert(!d_conc.isNull());
   TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
-  return !atom.isConst() && atom.getKind() != kind::OR && d_noExplain.empty();
+  // we could process inferences with conjunctive conclusions as facts, where
+  // the explanation is copied. However, for simplicity, we always send these
+  // as lemmas. This case happens very infrequently.
+  return !atom.isConst() && atom.getKind() != kind::OR
+         && atom.getKind() != kind::AND && d_noExplain.empty();
 }
 
 Node InferInfo::getPremises() const

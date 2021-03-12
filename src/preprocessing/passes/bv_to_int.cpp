@@ -2,9 +2,9 @@
 /*! \file bv_to_int.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar, Andrew Reynolds, Andres Noetzli
+ **   Yoni Zohar, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -646,8 +646,8 @@ Node BVToInt::translateWithChildren(Node original,
        */
       if (childrenTypesChanged(original) && options::ufHo())
       {
-        throw TypeCheckingException(
-            original.toExpr(),
+        throw TypeCheckingExceptionPrivate(
+            original,
             string("Cannot translate to Int: ") + original.toString());
       }
       // Insert the translated application term to the cache

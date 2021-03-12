@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/quant_module.h"
+#include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -766,21 +767,12 @@ QuantifiersEngine::Statistics::Statistics()
       d_ematching_time("theory::QuantifiersEngine::time_ematching"),
       d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
       d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
-      d_instantiation_rounds_lc("QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
+      d_instantiation_rounds_lc(
+          "QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
       d_triggers("QuantifiersEngine::Triggers", 0),
       d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
       d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-      d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
-      d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
-      d_instantiations_user_patterns("QuantifiersEngine::Instantiations_User_Patterns", 0),
-      d_instantiations_auto_gen("QuantifiersEngine::Instantiations_Auto_Gen", 0),
-      d_instantiations_guess("QuantifiersEngine::Instantiations_Guess", 0),
-      d_instantiations_qcf("QuantifiersEngine::Instantiations_Qcf_Conflict", 0),
-      d_instantiations_qcf_prop("QuantifiersEngine::Instantiations_Qcf_Prop", 0),
-      d_instantiations_fmf_exh("QuantifiersEngine::Instantiations_Fmf_Exh", 0),
-      d_instantiations_fmf_mbqi("QuantifiersEngine::Instantiations_Fmf_Mbqi", 0),
-      d_instantiations_cbqi("QuantifiersEngine::Instantiations_Cbqi", 0),
-      d_instantiations_rr("QuantifiersEngine::Instantiations_Rewrite_Rules", 0)
+      d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_time);
   smtStatisticsRegistry()->registerStat(&d_qcf_time);
@@ -791,17 +783,7 @@ QuantifiersEngine::Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_triggers);
   smtStatisticsRegistry()->registerStat(&d_simple_triggers);
   smtStatisticsRegistry()->registerStat(&d_multi_triggers);
-  smtStatisticsRegistry()->registerStat(&d_multi_trigger_instantiations);
   smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_user_patterns);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_auto_gen);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_guess);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_qcf);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_qcf_prop);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_fmf_exh);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_fmf_mbqi);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_cbqi);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_rr);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
@@ -814,17 +796,7 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_multi_trigger_instantiations);
   smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_user_patterns);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_auto_gen);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_guess);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_qcf);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_qcf_prop);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_fmf_exh);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_fmf_mbqi);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_cbqi);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_rr);
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){

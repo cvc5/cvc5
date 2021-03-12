@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -119,8 +119,13 @@ protected:
   std::map<TypeNode, bool> d_preinitialized_types;
   //--------------------end for preinitialization
   Node normalizeArgReps(FirstOrderModelFmc * fm, Node op, Node n);
-  bool exhaustiveInstantiate(FirstOrderModelFmc * fm, Node f, Node c, int c_index);
-private:
+  /**
+   * Exhaustively instantiate quantified formula q based on condition c, which
+   * indicate the domain to instantiate.
+   */
+  bool exhaustiveInstantiate(FirstOrderModelFmc* fm, Node q, Node c);
+
+ private:
   void doCheck(FirstOrderModelFmc * fm, Node f, Def & d, Node n );
 
   void doNegate( Def & dc );

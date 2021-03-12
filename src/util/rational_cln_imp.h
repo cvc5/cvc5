@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Gereon Kremer, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,7 +29,6 @@
 #include <cln/rational_io.h>
 #include <cln/real.h>
 
-#include <cassert>
 #include <sstream>
 #include <string>
 
@@ -210,22 +209,7 @@ class CVC4_PUBLIC Rational
     return cln::compare(d_value, x.d_value);
   }
 
-  int sgn() const
-  {
-    if (cln::zerop(d_value))
-    {
-      return 0;
-    }
-    else if (cln::minusp(d_value))
-    {
-      return -1;
-    }
-    else
-    {
-      assert(cln::plusp(d_value));
-      return 1;
-    }
-  }
+  int sgn() const;
 
   bool isZero() const { return cln::zerop(d_value); }
 

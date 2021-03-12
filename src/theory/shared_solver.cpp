@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,8 @@
 #include "theory/shared_solver.h"
 
 #include "expr/node_visitor.h"
+#include "theory/ee_setup_info.h"
+#include "theory/logic_info.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -31,7 +33,7 @@ SharedSolver::SharedSolver(TheoryEngine& te, ProofNodeManager* pnm)
       d_logicInfo(te.getLogicInfo()),
       d_sharedTerms(&d_te, d_te.getSatContext(), d_te.getUserContext(), pnm),
       d_preRegistrationVisitor(&te, d_te.getSatContext()),
-      d_sharedTermsVisitor(&te, d_sharedTerms)
+      d_sharedTermsVisitor(&te, d_sharedTerms, d_te.getSatContext())
 {
 }
 
@@ -42,6 +44,7 @@ bool SharedSolver::needsEqualityEngine(theory::EeSetupInfo& esi)
 
 void SharedSolver::preRegister(TNode atom)
 {
+  Trace("theory") << "SharedSolver::preRegister atom " << atom << std::endl;
   // This method uses two different implementations for preregistering terms,
   // which depends on whether sharing is enabled.
   // If sharing is disabled, we use PreRegisterVisitor, which keeps a global
@@ -66,6 +69,7 @@ void SharedSolver::preRegister(TNode atom)
     // Theory::preRegisterTerm possibly multiple times.
     NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, atom);
   }
+  Trace("theory") << "SharedSolver::preRegister atom finished" << std::endl;
 }
 
 void SharedSolver::preNotifySharedFact(TNode atom)

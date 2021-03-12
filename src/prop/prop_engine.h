@@ -2,9 +2,9 @@
 /*! \file prop_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,6 +32,7 @@ namespace CVC4 {
 class ResourceManager;
 class DecisionEngine;
 class OutputManager;
+class ProofNodeManager;
 class TheoryEngine;
 
 namespace prop {
@@ -40,6 +41,7 @@ class CnfStream;
 class CDCLTSatSolverInterface;
 class ProofCnfStream;
 class PropPfManager;
+class TheoryProxy;
 
 /**
  * PropEngine is the abstraction of a Sat Solver, providing methods for

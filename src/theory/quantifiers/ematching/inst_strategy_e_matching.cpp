@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -204,11 +204,6 @@ InstStrategyStatus InstStrategyAutoGenTriggers::process(Node f,
       hasInst = numInst > 0 || hasInst;
       Trace("process-trigger")
           << "  Done, numInst = " << numInst << "." << std::endl;
-      d_quantEngine->d_statistics.d_instantiations_auto_gen += numInst;
-      if (r == 1)
-      {
-        d_quantEngine->d_statistics.d_multi_trigger_instantiations += numInst;
-      }
       if (d_qstate.isInConflict())
       {
         break;

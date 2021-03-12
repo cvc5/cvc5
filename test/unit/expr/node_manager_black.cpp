@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -314,7 +314,7 @@ TEST_F(TestNodeBlackNodeManager, mkNode_too_many_children)
 {
 #ifdef CVC4_ASSERTIONS
   std::vector<Node> vars;
-  const unsigned int max = metakind::getUpperBoundForKind(AND);
+  const uint32_t max = metakind::getMaxArityForKind(AND);
   TypeNode boolType = d_nodeManager->booleanType();
   Node skolem_i = d_nodeManager->mkSkolem("i", boolType);
   Node skolem_j = d_nodeManager->mkSkolem("j", boolType);

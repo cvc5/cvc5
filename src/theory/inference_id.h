@@ -2,9 +2,9 @@
 /*! \file inference_id.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Gereon Kremer, Yoni Zohar
+ **   Gereon Kremer, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,13 +14,10 @@
 
 #include "cvc4_private.h"
 
+#include <iosfwd>
+
 #ifndef CVC4__THEORY__INFERENCE_ID_H
 #define CVC4__THEORY__INFERENCE_ID_H
-
-#include <map>
-#include <vector>
-
-#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,8 +38,33 @@ namespace theory {
 enum class InferenceId
 {
   // ---------------------------------- arith theory
+  //-------------------- linear core
+  // black box conflicts. It's magic.
+  ARITH_BLACK_BOX,
+  // conflicting equality
+  ARITH_CONF_EQ,
+  // conflicting lower bound
+  ARITH_CONF_LOWER,
+  // conflict due to trichotomy
+  ARITH_CONF_TRICHOTOMY,
+  // conflicting upper bound
+  ARITH_CONF_UPPER,
+  // introduces split on a disequality
+  ARITH_SPLIT_DEQ,
+  // tighten integer inequalities to ceiling
+  ARITH_TIGHTEN_CEIL,
+  // tighten integer inequalities to floor
+  ARITH_TIGHTEN_FLOOR,
+  ARITH_APPROX_CUT,
+  ARITH_BB_LEMMA,
+  ARITH_DIO_CUT,
+  ARITH_DIO_DECOMPOSITION,
+  ARITH_SPLIT_FOR_NL_MODEL,
   //-------------------- preprocessing
+  // equivalence of term and its preprocessed form
   ARITH_PP_ELIM_OPERATORS,
+  // a lemma from arithmetic preprocessing
+  ARITH_PP_ELIM_OPERATORS_LEMMA,
   //-------------------- nonlinear core
   // simple congruence x=y => f(x)=f(y)
   ARITH_NL_CONGRUENCE,
@@ -167,13 +189,74 @@ enum class InferenceId
   DATATYPES_SIZE_POS,
   // (=> (= (dt.height t) 0) => (and (= (dt.height (sel_1 t)) 0) .... ))
   DATATYPES_HEIGHT_ZERO,
+  //-------------------- sygus extension
+  // a sygus symmetry breaking lemma (or ~is-C1( t1 ) V ... V ~is-Cn( tn ) )
+  // where t1 ... tn are unique shared selector chains. For details see
+  // Reynolds et al CAV 2019
+  DATATYPES_SYGUS_SYM_BREAK,
+  // a conjecture-dependent symmetry breaking lemma, which may be used to
+  // exclude constructors for variables that irrelevant for a synthesis
+  // conjecture
+  DATATYPES_SYGUS_CDEP_SYM_BREAK,
+  // an enumerator-specific symmetry breaking lemma, which are used e.g. for
+  // excluding certain kinds of constructors
+  DATATYPES_SYGUS_ENUM_SYM_BREAK,
+  // a simple static symmetry breaking lemma (see Reynolds et al CAV 2019)
+  DATATYPES_SYGUS_SIMPLE_SYM_BREAK,
+  // (dt.size t) <= N, to implement fair enumeration when sygus-fair=dt-size
+  DATATYPES_SYGUS_FAIR_SIZE,
+  // (dt.size t) <= N => (or ~is-C1( t1 ) V ... V ~is-Cn( tn ) ) if using
+  // sygus-fair=direct
+  DATATYPES_SYGUS_FAIR_SIZE_CONFLICT,
+  // used for implementing variable agnostic enumeration
+  DATATYPES_SYGUS_VAR_AGNOSTIC,
+  // handles case the model value for a sygus term violates the size bound
+  DATATYPES_SYGUS_SIZE_CORRECTION,
+  // handles case the model value for a sygus term does not exist
+  DATATYPES_SYGUS_VALUE_CORRECTION,
+  // s <= (dt.size t), where s is a term that must be less than the current
+  // size bound based on our fairness strategy. For instance, s may be
+  // (dt.size e) for (each) enumerator e when multiple enumerators are present.
+  DATATYPES_SYGUS_MT_BOUND,
+  // (dt.size t) >= 0
+  DATATYPES_SYGUS_MT_POS,
   // ---------------------------------- end datatypes theory
 
   //-------------------------------------- quantifiers theory
-  // skolemization
-  QUANTIFIERS_SKOLEMIZE,
-  // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
-  QUANTIFIERS_REDUCE_ALPHA_EQ,
+  //-------------------- types of instantiations.
+  // Notice the identifiers in this section cover all the techniques used for
+  // quantifier instantiation. The subcategories below are for specific lemmas
+  // that are not instantiation lemmas added, per technique.
+  // instantiation from E-matching
+  QUANTIFIERS_INST_E_MATCHING,
+  // E-matching using simple trigger implementation
+  QUANTIFIERS_INST_E_MATCHING_SIMPLE,
+  // E-matching using multi-triggers
+  QUANTIFIERS_INST_E_MATCHING_MT,
+  // E-matching using linear implementation of multi-triggers
+  QUANTIFIERS_INST_E_MATCHING_MTL,
+  // instantiation due to higher-order matching on top of e-matching
+  QUANTIFIERS_INST_E_MATCHING_HO,
+  // E-matching based on variable triggers
+  QUANTIFIERS_INST_E_MATCHING_VAR_GEN,
+  // conflicting instantiation from conflict-based instantiation
+  QUANTIFIERS_INST_CBQI_CONFLICT,
+  // propagating instantiation from conflict-based instantiation
+  QUANTIFIERS_INST_CBQI_PROP,
+  // instantiation from naive exhaustive instantiation in finite model finding
+  QUANTIFIERS_INST_FMF_EXH,
+  // instantiation from finite model finding based on its model-based algorithm
+  QUANTIFIERS_INST_FMF_FMC,
+  // instantiation from running exhaustive instantiation on a subdomain of
+  // the quantified formula in finite model finding based on its model-based
+  // algorithm
+  QUANTIFIERS_INST_FMF_FMC_EXH,
+  // instantiations from counterexample-guided instantiation
+  QUANTIFIERS_INST_CEGQI,
+  // instantiations from syntax-guided instantiation
+  QUANTIFIERS_INST_SYQI,
+  // instantiations from enumerative instantiation
+  QUANTIFIERS_INST_ENUM,
   //-------------------- counterexample-guided instantiation
   // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
   // counterexample literal is G1.
@@ -184,6 +267,9 @@ enum class InferenceId
   QUANTIFIERS_CEGQI_VTS_UB_DELTA,
   // infinity > c
   QUANTIFIERS_CEGQI_VTS_LB_INF,
+  //-------------------- syntax-guided instantiation
+  // evaluation unfolding for syntax-guided instantiation
+  QUANTIFIERS_SYQI_EVAL_UNFOLD,
   //-------------------- sygus solver
   // preprocessing a sygus conjecture based on quantifier elimination, of the
   // form Q <=> Q_preprocessed
@@ -196,6 +282,11 @@ enum class InferenceId
   QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT,
   // ~Q where Q is a PBE conjecture with conflicting examples
   QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA,
+  //-------------------- reductions
+  // skolemization
+  QUANTIFIERS_SKOLEMIZE,
+  // Q1 <=> Q2, where Q1 and Q2 are alpha equivalent
+  QUANTIFIERS_REDUCE_ALPHA_EQ,
   //-------------------------------------- end quantifiers theory
 
   // ---------------------------------- sep theory

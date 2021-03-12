@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -167,10 +167,8 @@ class TheorySetsPrivate {
 
   void preRegisterTerm(TNode node);
 
-  /** ppRewrite, which expands choose.  */
-  TrustNode expandDefinition(Node n);
   /** ppRewrite, which expands choose and is_singleton.  */
-  TrustNode ppRewrite(Node n);
+  TrustNode ppRewrite(Node n, std::vector<SkolemLemma>& lems);
 
   void presolve();
 
@@ -204,7 +202,8 @@ class TheorySetsPrivate {
    */
   Node getChooseFunction(const TypeNode& setType);
   /** expand the definition of the choose operator */
-  TrustNode expandChooseOperator(const Node& node);
+  TrustNode expandChooseOperator(const Node& node,
+                                 std::vector<SkolemLemma>& lems);
   /** expand the definition of is_singleton operator */
   TrustNode expandIsSingletonOperator(const Node& node);
   /** subtheory solver for the theory of relations */

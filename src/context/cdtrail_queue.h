@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,18 +17,18 @@
  ** The implementation is currently not full featured.
  **/
 
-
 #include "cvc4_private.h"
 
 #ifndef CVC4__CONTEXT__CDTRAIL_QUEUE_H
 #define CVC4__CONTEXT__CDTRAIL_QUEUE_H
 
-#include "context/context.h"
 #include "context/cdlist.h"
+#include "context/cdo.h"
 
 namespace CVC4 {
 namespace context {
 
+class Context;
 
 template <class T>
 class CDTrailQueue {

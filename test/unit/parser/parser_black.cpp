@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Christopher L. Conway, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,6 @@
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 #include "expr/symbol_manager.h"
 #include "options/base_options.h"
 #include "options/language.h"

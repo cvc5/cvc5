@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,9 +32,30 @@ class ProofGenerator;
  * predicate that the introduced variable is intended to witness.
  *
  * It is implemented by mapping terms to an attribute corresponding to their
- * "witness form" as described below. Hence, this class does not impact the
- * reference counting of skolem variables which may be deleted if they are not
- * used.
+ * "original form" and "witness form" as described below. Hence, this class does
+ * not impact the reference counting of skolem variables which may be deleted if
+ * they are not used.
+ *
+ * We distinguish two kinds of mappings between terms and skolems:
+ *
+ * (1) "Original form", which associates skolems with the terms they purify.
+ * This is used in mkPurifySkolem below.
+ *
+ * (2) "Witness form", which associates skolems with their formal definition
+ * as a witness term. This is used in mkSkolem below.
+ *
+ * It is possible to unify these so that purification skolems for t are skolems
+ * whose witness form is (witness ((x T)) (= x t)). However, there are
+ * motivations not to do so. In particular, witness terms in most contexts
+ * should be seen as black boxes, converting something to witness form may have
+ * unintended consequences e.g. variable shadowing. In contrast, converting to
+ * original form does not have these complications. Furthermore, having original
+ * form greatly simplifies reasoning in the proof, in particular, it avoids the
+ * need to reason about identifiers for introduced variables x.
+ *
+ * Furthermore, note that original form and witness form may share skolems
+ * in the rare case that a witness term is purified. This is currently only the
+ * case for algorithms that introduce witness, e.g. BV/set instantiation.
  */
 class SkolemManager
 {
@@ -86,12 +107,6 @@ class SkolemManager
    * @param pg The proof generator for this skolem. If non-null, this proof
    * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
-   * @param retWitness Whether we wish to return the witness term for the
-   * given Skolem, which notice is of the form (witness v. pred), where pred
-   * is in Skolem form. A typical use case of setting this flag to true
-   * is preprocessing passes that eliminate terms. Using a witness term
-   * instead of its corresponding Skolem indicates that the body of the witness
-   * term needs to be added as an assertion, e.g. by the term formula remover.
    * @return The skolem whose witness form is registered by this class.
    */
   Node mkSkolem(Node v,
@@ -99,8 +114,7 @@ class SkolemManager
                 const std::string& prefix,
                 const std::string& comment = "",
                 int flags = NodeManager::SKOLEM_DEFAULT,
-                ProofGenerator* pg = nullptr,
-                bool retWitness = false);
+                ProofGenerator* pg = nullptr);
   /**
    * Make skolemized form of existentially quantified formula q, and store its
    * Skolems into the argument skolems.
@@ -110,10 +124,13 @@ class SkolemManager
    * returns:
    *   (P w1 w2)
    * where w1 and w2 are skolems with witness forms:
-   *   (witness ((x Int)) (exists ((y' Int)) (P x y')))
+   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
    *   (witness ((y Int)) (P w1 y))
    * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * Notice that y is renamed to y' in the witness form of w1 to avoid variable
+   * Notice that y is *not* renamed in the witness form of w1. This is not
+   * necessary since w1 is skolem. Although its witness form contains
+   * quantification on y, we never construct a term where the witness form
+   * of w1 is expanded in the witness form of w2. This avoids variable
    * shadowing.
    *
    * In contrast to mkSkolem, the proof generator is for the *entire*
@@ -161,39 +178,33 @@ class SkolemManager
    */
   ProofGenerator* getProofGenerator(Node q) const;
   /**
-   * Convert to witness form, where notice this recursively replaces *all*
-   * skolems in n by their corresponding witness term. This is intended to be
-   * used by the proof checker only.
+   * Convert to witness form, which gets the witness form of a skolem k.
+   * Notice this method is *not* recursive, instead, it is a simple attribute
+   * lookup.
    *
-   * @param n The term or formula to convert to witness form described above
-   * @return n in witness form.
+   * @param k The variable to convert to witness form described above
+   * @return k in witness form.
    */
-  static Node getWitnessForm(Node n);
+  static Node getWitnessForm(Node k);
   /**
-   * Convert to Skolem form, which recursively replaces all witness terms in n
-   * by their corresponding Skolems.
+   * Convert to original form, which recursively replaces all skolems terms in n
+   * by the term they purify.
    *
-   * @param n The term or formula to convert to Skolem form described above
-   * @return n in Skolem form.
+   * @param n The term or formula to convert to original form described above
+   * @return n in original form.
    */
-  static Node getSkolemForm(Node n);
-  /** convert to witness form vector */
-  static void convertToWitnessFormVec(std::vector<Node>& vec);
-  /** convert to Skolem form vector */
-  static void convertToSkolemFormVec(std::vector<Node>& vec);
+  static Node getOriginalForm(Node n);
 
  private:
   /**
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
-  /** Convert to witness or skolem form */
-  static Node convertInternal(Node n, bool toWitness);
-  /** Get or make skolem attribute for witness term w */
-  static Node getOrMakeSkolem(Node w,
-                              const std::string& prefix,
-                              const std::string& comment,
-                              int flags);
+  /** Get or make skolem attribute for term w, which may be a witness term */
+  static Node mkSkolemInternal(Node w,
+                               const std::string& prefix,
+                               const std::string& comment,
+                               int flags);
   /**
    * Skolemize the first variable of existentially quantified formula q.
    * For example, calling this method on:

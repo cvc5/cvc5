@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,15 +34,15 @@ class Trigger;
 /** HigherOrder trigger
  *
  * This extends the trigger class with techniques that post-process
- * instantiations, specified by InstMatch objects, according to a variant of
+ * instantiations, specified by vectors of terms, according to a variant of
  * Huet's algorithm. For details, see Chapter 16 of the Handbook of Automated
  * Reasoning (vol. 2), by Gilles Dowek.
  *
  * The main difference between HigherOrderTrigger and Trigger is the function
  * sendInstantiation(...). Recall that this function is called when its
- * underlying IMGenerator generates an InstMatch m using E-matching technique.
- * We enumerate additional instantiations based on m, when the domain of m
- * contains variables of function type.
+ * underlying IMGenerator generates a vectors of terms m using E-matching
+ * technique. We enumerate additional instantiations based on m, when the
+ * domain of m contains variables of function type.
  *
  * Examples below (f, x, y are universal variables):
  *
@@ -170,7 +170,7 @@ class HigherOrderTrigger : public Trigger
   * matching ground terms to function applications with variable heads.
   * See examples (EX1)-(EX3) above.
   */
-  bool sendInstantiation(InstMatch& m) override;
+  bool sendInstantiation(std::vector<Node>& m, InferenceId id) override;
 
  private:
   //-------------------- current information about the match
@@ -235,7 +235,7 @@ class HigherOrderTrigger : public Trigger
   *   when var_index = 0,1, we are processing possibilities for
   *    instantiation of f1,f2 respectively.
   */
-  bool sendInstantiation(InstMatch& m, unsigned var_index);
+  bool sendInstantiation(std::vector<Node>& m, size_t var_index);
   /** higher-order pattern unification algorithm
    * Sends an instantiation that is equivalent to m via
    * d_quantEngine->addInstantiation(...).
@@ -266,7 +266,7 @@ class HigherOrderTrigger : public Trigger
    *   arg_changed is true, since we modified at least one previous
    *     argument of f1 or f2.
    */
-  bool sendInstantiationArg(InstMatch& m,
+  bool sendInstantiationArg(std::vector<Node>& m,
                             unsigned var_index,
                             unsigned vnum,
                             unsigned arg_index,
