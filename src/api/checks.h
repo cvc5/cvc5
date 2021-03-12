@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cpp.h
+/*! \file checks.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC5__API__CHECKS_H
-#define CVC5__API__CHECKS_H
+#ifndef CVC4__API__CHECKS_H
+#define CVC4__API__CHECKS_H
 
 namespace cvc4 {
 namespace api {
