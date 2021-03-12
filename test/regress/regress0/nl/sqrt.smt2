@@ -1,4 +1,3 @@
-; COMMAND-LINE: -q
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: unsat
