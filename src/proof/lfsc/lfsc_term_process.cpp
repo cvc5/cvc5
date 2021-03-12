@@ -225,11 +225,11 @@ Node LfscTermProcessor::runConvert(Node n)
     Node nullTerm = getNullTerminator(k);
     // Most operators simply get binarized
     Node ret;
-    size_t i = 0;
+    size_t istart = 0;
     if (nullTerm.isNull())
     {
       ret = children[0];
-      i = 1;
+      istart = 1;
     }
     else
     {
@@ -249,29 +249,36 @@ Node LfscTermProcessor::runConvert(Node n)
       opc = getSymbolInternal(k, ftype, opName.str());
       ck = APPLY_UF;
     }
-    // now, iterate over children and make binary conversion
-    for (; i < nchild; i++)
+    // compute the children to process
+    std::vector<Node> childrenToProcess;
+    for (size_t i = istart; i < nchild; i++)
     {
       // special case: string constant children of concat are flattened into
       // the concatenation.  This means that x ++ "AB" ++ y becomes
       // (str.++ x (str.++ "A" (str.++ "B" (str.++ y ""))))
       // instead of:
       // (str.++ x (str.++ (str.++ "A" (str.++ "B" "")) (str.++ y "")))
-      if (children[i].getKind() == CONST_STRING)
+      if (false && k == STRING_CONCAT && children[i].getKind() == CONST_STRING)
       {
-        if (k == STRING_CONCAT)
-        {
-          // continue;
-        }
-      }
-      // TODO
-      if (!opc.isNull())
-      {
-        ret = nm->mkNode(ck, opc, children[i], ret);
+        std::vector<Node> chars;
+        getCharVectorInternal(children[i], chars);
+        childrenToProcess.insert(childrenToProcess.end(), chars.begin(), chars.end());
       }
       else
       {
-        ret = nm->mkNode(ck, children[i], ret);
+        childrenToProcess.push_back(children[i]);
+      }
+    }
+    // now, iterate over children and make binary conversion
+    for (size_t i = 0, npchild = childrenToProcess.size(); i < npchild; i++)
+    {
+      if (!opc.isNull())
+      {
+        ret = nm->mkNode(ck, opc, childrenToProcess[i], ret);
+      }
+      else
+      {
+        ret = nm->mkNode(ck, childrenToProcess[i], ret);
       }
     }
     return ret;
