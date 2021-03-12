@@ -28,7 +28,7 @@
 
 namespace CVC4 {
 
-class StatisticBaseValue;
+struct StatisticBaseValue;
 
 class StatisticRegistry
 {

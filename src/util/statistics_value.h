@@ -34,9 +34,8 @@ namespace CVC4 {
 
 class StatisticRegistry;
 
-class StatisticBaseValue
+struct StatisticBaseValue
 {
- public:
   virtual ~StatisticBaseValue() = default;
   virtual StatViewer getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;

@@ -23,19 +23,18 @@
 
 namespace CVC4 {
 
-class StatisticAverageValue;
+struct StatisticAverageValue;
 template <typename T>
-class StatisticBackedValue;
+struct StatisticBackedValue;
 template <typename T>
-class StatisticHistogramValue;
+struct StatisticHistogramValue;
 template <typename T>
-class StatisticReferenceValue;
+struct StatisticReferenceValue;
 template <typename T>
-class StatisticSizeValue;
-class StatisticTimerValue;
+struct StatisticSizeValue;
+struct StatisticTimerValue;
 
 class StatisticRegistry;
-
 
 class AverageStats
 {
@@ -49,13 +48,14 @@ class AverageStats
   stat_type* d_data;
 };
 
-template<typename Integral>
+template <typename Integral>
 class HistogramStats
 {
  public:
   friend class StatisticRegistry;
   using stat_type = StatisticHistogramValue<Integral>;
-  HistogramStats& operator<<(Integral val) {
+  HistogramStats& operator<<(Integral val)
+  {
     d_data->add(val);
     return *this;
   }
@@ -109,11 +109,11 @@ class SizeStat
   stat_type* d_data;
 };
 
-
 class CodeTimers;
 class TimerStats
 {
   using CodeTimers = CVC4::CodeTimers;
+
  public:
   friend class StatisticRegistry;
   using stat_type = StatisticTimerValue;
@@ -138,7 +138,7 @@ class CodeTimers
   CodeTimers(TimerStats& timer, bool allow_reentrant = false);
   ~CodeTimers();
 
-private:
+ private:
   TimerStats& d_timer;
   bool d_reentrant;
 
@@ -147,7 +147,6 @@ private:
   /** Private assignment operator undefined (no copy permitted). */
   CodeTimers& operator=(const CodeTimers& timer) = delete;
 }; /* class CodeTimer */
-
 
 template <typename T>
 class ValueStat
