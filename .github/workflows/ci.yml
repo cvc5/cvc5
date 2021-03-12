@@ -9,21 +9,21 @@ jobs:
         name: [
           production,
           production-clang,
-          debug,
-          debug-cln-clang
+          production-dbg,
+          production-dbg-clang
         ]
 
         exclude:
           - name: production-clang
             os: macos-latest
-          - name: debug
+          - name: production-dbg
             os: macos-latest
-          - name: debug-cln-clang
+          - name: production-dbg-clang
             os: macos-latest
 
         include:
           - name: production
-            config: production --all-bindings --lfsc --editline --poly
+            config: production --all-bindings --lfsc --editline --poly --symfpu
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -31,21 +31,21 @@ jobs:
 
           - name: production-clang
             config: production
-            cache-key: production-clang
+            cache-key: productionclang
             check-examples: true
             env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 1-4
 
-          - name: debug
-            config: debug --symfpu --lfsc --no-debug-symbols --editline
-            cache-key: debug
+          - name: production-dbg
+            config: production --assertions --tracing --unit-testing --symfpu --lfsc --editline
+            cache-key: dbg
             os: ubuntu-latest
             exclude_regress: 1-4
 
-          - name: debug-cln-clang
-            config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs --poly
-            cache-key: debug-cln-clang
+          - name: production-dbg-clang
+            config: production --assertions --tracing --unit-testing --symfpu --cln --gpl --no-proofs --poly
+            cache-key: dbgclang
             env: CC=clang CXX=clang++
             os: ubuntu-latest
             exclude_regress: 1-4
