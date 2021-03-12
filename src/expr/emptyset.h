@@ -27,7 +27,7 @@ namespace CVC4 {
 
 class TypeNode;
 
-class CVC4_PUBLIC EmptySet
+class EmptySet
 {
  public:
   /**
@@ -53,9 +53,9 @@ class CVC4_PUBLIC EmptySet
   std::unique_ptr<TypeNode> d_type;
 }; /* class EmptySet */
 
-std::ostream& operator<<(std::ostream& out, const EmptySet& es) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const EmptySet& es);
 
-struct CVC4_PUBLIC EmptySetHashFunction
+struct EmptySetHashFunction
 {
   size_t operator()(const EmptySet& es) const;
 }; /* struct EmptySetHashFunction */

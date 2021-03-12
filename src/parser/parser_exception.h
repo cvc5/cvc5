@@ -28,7 +28,8 @@
 namespace CVC4 {
 namespace parser {
 
-class CVC4_PUBLIC ParserException : public Exception {
+class ParserException : public Exception
+{
  public:
   // Constructors
   ParserException() : d_filename(), d_line(0), d_column(0) {}
@@ -74,9 +75,10 @@ class CVC4_PUBLIC ParserException : public Exception {
   std::string d_filename;
   unsigned long d_line;
   unsigned long d_column;
-};/* class ParserException */
+}; /* class ParserException */
 
-class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
+class ParserEndOfFileException : public ParserException
+{
  public:
   // Constructors same as ParserException's
 
@@ -94,7 +96,7 @@ class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
   {
   }
 
-};/* class ParserEndOfFileException */
+}; /* class ParserEndOfFileException */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

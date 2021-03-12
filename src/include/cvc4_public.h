@@ -16,21 +16,11 @@
  ** the libraries and driver binary, and also exported to the user.
  **/
 
-#ifndef CVC4_PUBLIC_H
-#define CVC4_PUBLIC_H
+#ifndef _H
+#define _H
 
 #include <stddef.h>
 #include <stdint.h>
-
-#if defined _WIN32 || defined __CYGWIN__
-#  define CVC4_PUBLIC
-#else /* !( defined _WIN32 || defined __CYGWIN__ ) */
-#  if __GNUC__ >= 4
-#    define CVC4_PUBLIC __attribute__ ((__visibility__("default")))
-#  else /* !( __GNUC__ >= 4 ) */
-#    define CVC4_PUBLIC
-#  endif /* __GNUC__ >= 4 */
-#endif /* defined _WIN32 || defined __CYGWIN__ */
 
 // CVC4_UNUSED is to mark something (e.g. local variable, function)
 // as being _possibly_ unused, so that the compiler generates no
@@ -53,4 +43,4 @@
 #  define CVC4_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 
-#endif /* CVC4_PUBLIC_H */
+#endif /* _H */

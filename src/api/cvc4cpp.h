@@ -14,7 +14,7 @@
  ** The CVC4 C++ API.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_export.h"
 
 #ifndef CVC4__API__CVC4CPP_H
 #define CVC4__API__CVC4CPP_H
@@ -79,7 +79,7 @@ struct Statistics;
 /* Exception                                                                  */
 /* -------------------------------------------------------------------------- */
 
-class CVC4_PUBLIC CVC4ApiException : public std::exception
+class CVC4_EXPORT CVC4ApiException : public std::exception
 {
  public:
   CVC4ApiException(const std::string& str) : d_msg(str) {}
@@ -91,7 +91,7 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
   std::string d_msg;
 };
 
-class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
+class CVC4_EXPORT CVC4ApiRecoverableException : public CVC4ApiException
 {
  public:
   CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
@@ -108,7 +108,7 @@ class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
 /**
  * Encapsulation of a three-valued solver result, with explanations.
  */
-class CVC4_PUBLIC Result
+class CVC4_EXPORT Result
 {
   friend class Solver;
 
@@ -217,7 +217,7 @@ class CVC4_PUBLIC Result
  * @param r the result to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_EXPORT;
 
 /**
  * Serialize an UnknownExplanation to given stream.
@@ -226,7 +226,7 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_PUBLIC;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         enum Result::UnknownExplanation e) CVC4_PUBLIC;
+                         enum Result::UnknownExplanation e) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -237,7 +237,7 @@ class Datatype;
 /**
  * The sort of a CVC4 term.
  */
-class CVC4_PUBLIC Sort
+class CVC4_EXPORT Sort
 {
   friend class CVC4::DatatypeDeclarationCommand;
   friend class CVC4::DeclareFunctionCommand;
@@ -745,12 +745,12 @@ class CVC4_PUBLIC Sort
  * @param s the sort to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Sort& s) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Sort& s) CVC4_EXPORT;
 
 /**
  * Hash function for Sorts.
  */
-struct CVC4_PUBLIC SortHashFunction
+struct CVC4_EXPORT SortHashFunction
 {
   size_t operator()(const Sort& s) const;
 };
@@ -764,7 +764,7 @@ struct CVC4_PUBLIC SortHashFunction
  * An operator is a term that represents certain operators, instantiated
  * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
  */
-class CVC4_PUBLIC Op
+class CVC4_EXPORT Op
 {
   friend class Solver;
   friend class Term;
@@ -887,7 +887,7 @@ class CVC4_PUBLIC Op
 /**
  * A CVC4 Term.
  */
-class CVC4_PUBLIC Term
+class CVC4_EXPORT Term
 {
   friend class CVC4::AssertCommand;
   friend class CVC4::BlockModelValuesCommand;
@@ -1294,7 +1294,7 @@ class CVC4_PUBLIC Term
 /**
  * Hash function for Terms.
  */
-struct CVC4_PUBLIC TermHashFunction
+struct CVC4_EXPORT TermHashFunction
 {
   size_t operator()(const Term& t) const;
 };
@@ -1305,7 +1305,7 @@ struct CVC4_PUBLIC TermHashFunction
  * @param t the term to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_EXPORT;
 
 /**
  * Serialize a vector of terms to given stream.
@@ -1314,7 +1314,7 @@ std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_PUBLIC;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::vector<Term>& vector) CVC4_PUBLIC;
+                         const std::vector<Term>& vector) CVC4_EXPORT;
 
 /**
  * Serialize a set of terms to the given stream.
@@ -1323,7 +1323,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::set<Term>& set) CVC4_PUBLIC;
+                         const std::set<Term>& set) CVC4_EXPORT;
 
 /**
  * Serialize an unordered_set of terms to the given stream.
@@ -1334,7 +1334,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::unordered_set<Term, TermHashFunction>&
-                             unordered_set) CVC4_PUBLIC;
+                             unordered_set) CVC4_EXPORT;
 
 /**
  * Serialize a map of terms to the given stream.
@@ -1345,7 +1345,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
-                         const std::map<Term, V>& map) CVC4_PUBLIC;
+                         const std::map<Term, V>& map) CVC4_EXPORT;
 
 /**
  * Serialize an unordered_map of terms to the given stream.
@@ -1357,7 +1357,7 @@ std::ostream& operator<<(std::ostream& out,
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V, TermHashFunction>&
-                             unordered_map) CVC4_PUBLIC;
+                             unordered_map) CVC4_EXPORT;
 
 /**
  * Serialize an operator to given stream.
@@ -1365,12 +1365,12 @@ std::ostream& operator<<(std::ostream& out,
  * @param t the operator to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_EXPORT;
 
 /**
  * Hash function for Ops.
  */
-struct CVC4_PUBLIC OpHashFunction
+struct CVC4_EXPORT OpHashFunction
 {
   size_t operator()(const Op& t) const;
 };
@@ -1385,7 +1385,7 @@ class DatatypeIterator;
 /**
  * A CVC4 datatype constructor declaration.
  */
-class CVC4_PUBLIC DatatypeConstructorDecl
+class CVC4_EXPORT DatatypeConstructorDecl
 {
   friend class DatatypeDecl;
   friend class Solver;
@@ -1444,7 +1444,7 @@ class Solver;
 /**
  * A CVC4 datatype declaration.
  */
-class CVC4_PUBLIC DatatypeDecl
+class CVC4_EXPORT DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
@@ -1548,7 +1548,7 @@ class CVC4_PUBLIC DatatypeDecl
 /**
  * A CVC4 datatype selector.
  */
-class CVC4_PUBLIC DatatypeSelector
+class CVC4_EXPORT DatatypeSelector
 {
   friend class DatatypeConstructor;
   friend class Solver;
@@ -1606,7 +1606,7 @@ class CVC4_PUBLIC DatatypeSelector
 /**
  * A CVC4 datatype constructor.
  */
-class CVC4_PUBLIC DatatypeConstructor
+class CVC4_EXPORT DatatypeConstructor
 {
   friend class Datatype;
   friend class Solver;
@@ -1821,7 +1821,7 @@ class CVC4_PUBLIC DatatypeConstructor
 /*
  * A CVC4 datatype.
  */
-class CVC4_PUBLIC Datatype
+class CVC4_EXPORT Datatype
 {
   friend class Solver;
   friend class Sort;
@@ -2035,7 +2035,7 @@ class CVC4_PUBLIC Datatype
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeDecl& dtdecl) CVC4_PUBLIC;
+                         const DatatypeDecl& dtdecl) CVC4_EXPORT;
 
 /**
  * Serialize a datatype constructor declaration to given stream.
@@ -2044,7 +2044,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructorDecl& ctordecl) CVC4_PUBLIC;
+                         const DatatypeConstructorDecl& ctordecl) CVC4_EXPORT;
 
 /**
  * Serialize a vector of datatype constructor declarations to given stream.
@@ -2062,7 +2062,7 @@ std::ostream& operator<<(std::ostream& out,
  * @param dtdecl the datatype to be serialized to given stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_EXPORT;
 
 /**
  * Serialize a datatype constructor to given stream.
@@ -2071,7 +2071,7 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_PUBLIC;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructor& ctor) CVC4_PUBLIC;
+                         const DatatypeConstructor& ctor) CVC4_EXPORT;
 
 /**
  * Serialize a datatype selector to given stream.
@@ -2080,7 +2080,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelector& stor) CVC4_PUBLIC;
+                         const DatatypeSelector& stor) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
@@ -2089,7 +2089,7 @@ std::ostream& operator<<(std::ostream& out,
 /**
  * A Sygus Grammar.
  */
-class CVC4_PUBLIC Grammar
+class CVC4_EXPORT Grammar
 {
   friend class CVC4::GetAbductCommand;
   friend class CVC4::GetInterpolCommand;
@@ -2228,7 +2228,7 @@ class CVC4_PUBLIC Grammar
  * @param g the grammar to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
@@ -2237,7 +2237,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
 /**
  * A CVC4 floating point rounding mode.
  */
-enum CVC4_PUBLIC RoundingMode
+enum CVC4_EXPORT RoundingMode
 {
   ROUND_NEAREST_TIES_TO_EVEN,
   ROUND_TOWARD_POSITIVE,
@@ -2249,7 +2249,7 @@ enum CVC4_PUBLIC RoundingMode
 /**
  * Hash function for RoundingModes.
  */
-struct CVC4_PUBLIC RoundingModeHashFunction
+struct CVC4_EXPORT RoundingModeHashFunction
 {
   inline size_t operator()(const RoundingMode& rm) const;
 };
@@ -2261,7 +2261,7 @@ struct CVC4_PUBLIC RoundingModeHashFunction
 /*
  * A CVC4 solver.
  */
-class CVC4_PUBLIC Solver
+class CVC4_EXPORT Solver
 {
   friend class Datatype;
   friend class DatatypeDecl;

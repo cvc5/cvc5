@@ -19,15 +19,15 @@
 namespace CVC4 {
 
 // Inline these!
-inline bool CVC4_PUBLIC validExponentSize(uint32_t e) { return e >= 2; }
-inline bool CVC4_PUBLIC validSignificandSize(uint32_t s) { return s >= 2; }
+inline bool validExponentSize(uint32_t e) { return e >= 2; }
+inline bool validSignificandSize(uint32_t s) { return s >= 2; }
 
 /**
  * Floating point sorts are parameterised by two constants > 1 giving the
  * width (in bits) of the exponent and significand (including the hidden bit).
  * So, IEEE-754 single precision, a.k.a. float, is described as 8 24.
  */
-class CVC4_PUBLIC FloatingPointSize
+class FloatingPointSize
 {
  public:
   /** Constructors. */
@@ -79,7 +79,7 @@ class CVC4_PUBLIC FloatingPointSize
 /**
  * Hash function for floating point formats.
  */
-struct CVC4_PUBLIC FloatingPointSizeHashFunction
+struct FloatingPointSizeHashFunction
 {
   static inline size_t ROLL(size_t X, size_t N)
   {

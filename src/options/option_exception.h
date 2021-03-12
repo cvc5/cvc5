@@ -29,7 +29,8 @@ namespace CVC4 {
  * name is itself unrecognized, a UnrecognizedOptionException (a derived
  * class, below) should be used instead.
  */
-class CVC4_PUBLIC OptionException : public CVC4::Exception {
+class OptionException : public CVC4::Exception
+{
  public:
   OptionException(const std::string& s) : CVC4::Exception(s_errPrefix + s) {}
 
@@ -45,13 +46,14 @@ class CVC4_PUBLIC OptionException : public CVC4::Exception {
  private:
   /** The string to be added in front of the actual error message */
   static const std::string s_errPrefix;
-};/* class OptionException */
+}; /* class OptionException */
 
 /**
  * Class representing an exception in option processing due to an
  * unrecognized or unsupported option key.
  */
-class CVC4_PUBLIC UnrecognizedOptionException : public CVC4::OptionException {
+class UnrecognizedOptionException : public CVC4::OptionException
+{
  public:
   UnrecognizedOptionException() :
     CVC4::OptionException("Unrecognized informational or option key or setting") {
@@ -60,7 +62,7 @@ class CVC4_PUBLIC UnrecognizedOptionException : public CVC4::OptionException {
   UnrecognizedOptionException(const std::string& msg) :
     CVC4::OptionException("Unrecognized informational or option key or setting: " + msg) {
   }
-};/* class UnrecognizedOptionException */
+}; /* class UnrecognizedOptionException */
 
 }/* CVC4 namespace */
 

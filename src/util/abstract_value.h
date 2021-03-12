@@ -24,7 +24,8 @@
 
 namespace CVC4 {
 
-class CVC4_PUBLIC AbstractValue {
+class AbstractValue
+{
   const Integer d_index;
 
  public:
@@ -46,17 +47,18 @@ class CVC4_PUBLIC AbstractValue {
   }
   bool operator>(const AbstractValue& val) const { return !(*this <= val); }
   bool operator>=(const AbstractValue& val) const { return !(*this < val); }
-};/* class AbstractValue */
+}; /* class AbstractValue */
 
-std::ostream& operator<<(std::ostream& out, const AbstractValue& val) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const AbstractValue& val);
 
 /**
  * Hash function for the BitVector constants.
  */
-struct CVC4_PUBLIC AbstractValueHashFunction {
+struct AbstractValueHashFunction
+{
   inline size_t operator()(const AbstractValue& val) const {
     return IntegerHashFunction()(val.getIndex());
   }
-};/* struct AbstractValueHashFunction */
+}; /* struct AbstractValueHashFunction */
 
 }/* CVC4 namespace */

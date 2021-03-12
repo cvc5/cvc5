@@ -33,7 +33,7 @@ namespace smt {
  *
  * Represents whether an objective should be minimized or maximized
  */
-enum CVC4_PUBLIC ObjectiveType
+enum ObjectiveType
 {
   OBJECTIVE_MINIMIZE,
   OBJECTIVE_MAXIMIZE,
@@ -46,7 +46,7 @@ enum CVC4_PUBLIC ObjectiveType
  * Represents the result of a checkopt query
  * (unimplemented) OPT_OPTIMAL: if value was found
  */
-enum CVC4_PUBLIC OptResult
+enum OptResult
 {
   // the original set of assertions has result UNKNOWN
   OPT_UNKNOWN,
