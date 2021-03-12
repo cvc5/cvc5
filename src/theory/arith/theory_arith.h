@@ -119,7 +119,7 @@ class TheoryArith : public Theory {
    * This calls the operator elimination utility to eliminate extended
    * symbols.
    */
-  TrustNode ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom, std::vector<SkolemLemma>& lems) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }
@@ -135,7 +135,7 @@ class TheoryArith : public Theory {
   /** Return a reference to the arith::InferenceManager. */
   InferenceManager& getInferenceManager()
   {
-    return d_inferenceManager;
+    return d_im;
   }
 
  private:
@@ -149,7 +149,7 @@ class TheoryArith : public Theory {
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
   /** The arith::InferenceManager. */
-  InferenceManager d_inferenceManager;
+  InferenceManager d_im;
 
   /**
    * The non-linear extension, responsible for all approaches for non-linear

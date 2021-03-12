@@ -26,6 +26,7 @@
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace prop {

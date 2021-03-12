@@ -18,6 +18,7 @@
 #define CVC4__SMT__SMT_ENGINE_STATS_H
 
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace smt {

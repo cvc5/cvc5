@@ -528,7 +528,7 @@ void AbstractionModule::finalizeSignatures()
     d_funcToSignature[abs_func] = signature;
   }
 
-  d_statistics.d_numFunctionsAbstracted.setData(d_signatureToFunc.size());
+  d_statistics.d_numFunctionsAbstracted.set(d_signatureToFunc.size());
 
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted "
                           << d_signatureToFunc.size() << " signatures. \n";

@@ -261,8 +261,6 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     d_triedLemmas += mb->getNumTriedLemmas()-prev_tlem;
     d_addedLemmas += mb->getNumAddedLemmas()-prev_alem;
-    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi +=
-        (mb->getNumAddedLemmas() - prev_alem);
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
@@ -291,7 +289,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
           Debug("fmf-model-eval") << "* Add instantiation " << m << std::endl;
           triedLemmas++;
           //add as instantiation
-          if (inst->addInstantiation(f, m.d_vals, true))
+          if (inst->addInstantiation(
+                  f, m.d_vals, InferenceId::QUANTIFIERS_INST_FMF_EXH, true))
           {
             addedLemmas++;
             if (d_qstate.isInConflict())
@@ -305,7 +304,6 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
         }
         d_addedLemmas += addedLemmas;
         d_triedLemmas += triedLemmas;
-        d_quantEngine->d_statistics.d_instantiations_fmf_exh += addedLemmas;
       }
     }else{
       Trace("fmf-exh-inst") << "...exhaustive instantiation did set, incomplete=" << riter.isIncomplete() << "..." << std::endl;

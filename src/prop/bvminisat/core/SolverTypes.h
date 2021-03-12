@@ -21,13 +21,12 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_SolverTypes_h
 #define BVMinisat_SolverTypes_h
 
-#include <assert.h>
-
-#include "prop/bvminisat/mtl/IntTypes.h"
+#include "base/check.h"
 #include "prop/bvminisat/mtl/Alg.h"
-#include "prop/bvminisat/mtl/Vec.h"
-#include "prop/bvminisat/mtl/Map.h"
 #include "prop/bvminisat/mtl/Alloc.h"
+#include "prop/bvminisat/mtl/IntTypes.h"
+#include "prop/bvminisat/mtl/Map.h"
+#include "prop/bvminisat/mtl/Vec.h"
 
 namespace CVC4 {
 namespace BVMinisat {
@@ -176,15 +175,20 @@ class Clause {
 
 public:
     void calcAbstraction() {
-        assert(header.has_extra);
-        uint32_t abstraction = 0;
-        for (int i = 0; i < size(); i++)
-            abstraction |= 1 << (var(data[i].lit) & 31);
-        data[header.size].abs = abstraction;  }
-
+      Assert(header.has_extra);
+      uint32_t abstraction = 0;
+      for (int i = 0; i < size(); i++)
+        abstraction |= 1 << (var(data[i].lit) & 31);
+      data[header.size].abs = abstraction;
+    }
 
     int          size        ()      const   { return header.size; }
-    void         shrink      (int i)         { assert(i <= size()); if (header.has_extra) data[header.size-i] = data[header.size]; header.size -= i; }
+    void shrink(int i)
+    {
+      Assert(i <= size());
+      if (header.has_extra) data[header.size - i] = data[header.size];
+      header.size -= i;
+    }
     void         pop         ()              { shrink(1); }
     bool         learnt      ()      const   { return header.learnt; }
     bool         has_extra   ()      const   { return header.has_extra; }
@@ -202,8 +206,16 @@ public:
     Lit          operator [] (int i) const   { return data[i].lit; }
     operator const Lit* (void) const         { return (Lit*)data; }
 
-    float&       activity    ()              { assert(header.has_extra); return data[header.size].act; }
-    uint32_t     abstraction () const        { assert(header.has_extra); return data[header.size].abs; }
+    float& activity()
+    {
+      Assert(header.has_extra);
+      return data[header.size].act;
+    }
+    uint32_t abstraction() const
+    {
+      Assert(header.has_extra);
+      return data[header.size].abs;
+    }
 
     Lit          subsumes    (const Clause& other) const;
     void         strengthen  (Lit p);
@@ -234,14 +246,15 @@ class ClauseAllocator : public RegionAllocator<uint32_t>
     template<class Lits>
     CRef alloc(const Lits& ps, bool learnt = false)
     {
-        assert(sizeof(Lit)      == sizeof(uint32_t));
-        assert(sizeof(float)    == sizeof(uint32_t));
-        bool use_extra = learnt | extra_clause_field;
+      Assert(sizeof(Lit) == sizeof(uint32_t));
+      Assert(sizeof(float) == sizeof(uint32_t));
+      bool use_extra = learnt | extra_clause_field;
 
-        CRef cid = RegionAllocator<uint32_t>::alloc(clauseWord32Size(ps.size(), use_extra));
-        new (lea(cid)) Clause(ps, use_extra, learnt);
+      CRef cid = RegionAllocator<uint32_t>::alloc(
+          clauseWord32Size(ps.size(), use_extra));
+      new (lea(cid)) Clause(ps, use_extra, learnt);
 
-        return cid;
+      return cid;
     }
 
     // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
@@ -378,8 +391,10 @@ inline Lit Clause::subsumes(const Clause& other) const
 {
     //if (other.size() < size() || (extra.abst & ~other.extra.abst) != 0)
     //if (other.size() < size() || (!learnt() && !other.learnt() && (extra.abst & ~other.extra.abst) != 0))
-    assert(!header.learnt);   assert(!other.header.learnt);
-    assert(header.has_extra); assert(other.header.has_extra);
+    Assert(!header.learnt);
+    Assert(!other.header.learnt);
+    Assert(header.has_extra);
+    Assert(other.header.has_extra);
     if (other.header.size < header.size || (data[header.size].abs & ~other.data[other.header.size].abs) != 0)
         return lit_Error;
 

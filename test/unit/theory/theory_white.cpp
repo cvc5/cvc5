@@ -97,24 +97,6 @@ TEST_F(TestTheoryWhite, done)
   ASSERT_TRUE(d_dummy_theory->done());
 }
 
-TEST_F(TestTheoryWhite, outputChannel_accessors)
-{
-  /* void setOutputChannel(OutputChannel& out)  */
-  /* OutputChannel& getOutputChannel() */
-
-  DummyOutputChannel theOtherChannel;
-
-  ASSERT_EQ(&(d_dummy_theory->getOutputChannel()), &d_outputChannel);
-
-  d_dummy_theory->setOutputChannel(theOtherChannel);
-
-  ASSERT_EQ(&(d_dummy_theory->getOutputChannel()), &theOtherChannel);
-
-  const OutputChannel& oc = d_dummy_theory->getOutputChannel();
-
-  ASSERT_EQ(&oc, &theOtherChannel);
-}
-
 TEST_F(TestTheoryWhite, outputChannel)
 {
   Node n = d_atom0.orNode(d_atom1);

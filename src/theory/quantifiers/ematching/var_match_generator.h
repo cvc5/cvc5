@@ -31,18 +31,12 @@ namespace inst {
 class VarMatchGeneratorTermSubs : public InstMatchGenerator
 {
  public:
-  VarMatchGeneratorTermSubs(Node var,
-                            Node subs,
-                            quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim);
+  VarMatchGeneratorTermSubs(Trigger* tparent, Node var, Node subs);
 
   /** Reset */
-  bool reset(Node eqc, QuantifiersEngine* qe) override;
+  bool reset(Node eqc) override;
   /** Get the next match. */
-  int getNextMatch(Node q,
-                   InstMatch& m,
-                   QuantifiersEngine* qe,
-                   Trigger* tparent) override;
+  int getNextMatch(Node q, InstMatch& m) override;
 
  private:
   /** variable we are matching (x in the example x+1). */

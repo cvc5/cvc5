@@ -19,7 +19,6 @@
 #ifndef CVC4__PARSER__PARSER_H
 #define CVC4__PARSER__PARSER_H
 
-#include <cassert>
 #include <list>
 #include <set>
 #include <string>
@@ -271,12 +270,8 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  virtual void forceLogic(const std::string& logic)
-  {
-    assert(!d_logicIsForced);
-    d_logicIsForced = true;
-    d_forcedLogic = logic;
-  }
+  virtual void forceLogic(const std::string& logic);
+
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 

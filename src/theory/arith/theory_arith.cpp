@@ -47,15 +47,15 @@ TheoryArith::TheoryArith(context::Context* c,
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_ppPfGen(pnm, c, "Arith::ppRewrite"),
       d_astate(*d_internal, c, u, valuation),
-      d_inferenceManager(*this, d_astate, pnm),
+      d_im(*this, d_astate, pnm),
       d_nonlinearExtension(nullptr),
-      d_arithPreproc(d_astate, d_inferenceManager, pnm, logicInfo)
+      d_arithPreproc(d_astate, d_im, pnm, logicInfo)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
 
   // indicate we are using the theory state object and inference manager
   d_theoryState = &d_astate;
-  d_inferManager = &d_inferenceManager;
+  d_inferManager = &d_im;
 }
 
 TheoryArith::~TheoryArith(){
@@ -112,7 +112,7 @@ TrustNode TheoryArith::expandDefinition(Node node)
 
 void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
-TrustNode TheoryArith::ppRewrite(TNode atom)
+TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
@@ -121,8 +121,6 @@ TrustNode TheoryArith::ppRewrite(TNode atom)
   {
     return ppRewriteEq(atom);
   }
-  // TODO (project #37): this will be passed to ppRewrite
-  std::vector<SkolemLemma> lems;
   Assert(Theory::theoryOf(atom) == THEORY_ARITH);
   // Eliminate operators. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
@@ -201,7 +199,7 @@ void TheoryArith::postCheck(Effort level)
     else if (d_internal->foundNonlinear())
     {
       // set incomplete
-      d_inferenceManager.setIncomplete();
+      d_im.setIncomplete();
     }
   }
 }
@@ -272,7 +270,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
     {
       Node eq = p.first.eqNode(p.second);
       Node lem = NodeManager::currentNM()->mkNode(kind::OR, eq, eq.negate());
-      d_out->lemma(lem);
+      d_im.lemma(lem, InferenceId::ARITH_SPLIT_FOR_NL_MODEL);
     }
     return false;
   }
@@ -309,7 +307,7 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 }
 eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
-  return d_inferenceManager.getProofEqEngine();
+  return d_im.getProofEqEngine();
 }
 
 }/* CVC4::theory::arith namespace */

@@ -64,7 +64,6 @@ class SmtEngine;
 class SygusConstraintCommand;
 class SygusInvConstraintCommand;
 class SynthFunCommand;
-class Type;
 class TypeNode;
 class Options;
 class QueryCommand;
@@ -718,7 +717,6 @@ class CVC4_PUBLIC Sort
    * @param t the internal type that is to be wrapped by this sort
    * @return the Sort
    */
-  Sort(const Solver* slv, const CVC4::Type& t);
   Sort(const Solver* slv, const CVC4::TypeNode& t);
 
   /**
@@ -2784,7 +2782,7 @@ class CVC4_PUBLIC Solver
    * @param s a list of unsigned values this constant represents as string
    * @return the String constant
    */
-  Term mkString(const std::vector<unsigned>& s) const;
+  Term mkString(const std::vector<uint32_t>& s) const;
 
   /**
    * Create a character constant from a given string.
@@ -3573,6 +3571,8 @@ class CVC4_PUBLIC Solver
                          uint32_t base) const;
   /** Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
+  /** Helper for functions that create tuple sorts. */
+  Sort mkTupleSortHelper(const std::vector<Sort>& sorts) const;
   /** Helper for mkTerm functions that create Term from a Kind */
   Term mkTermFromKind(Kind kind) const;
   /** Helper for mkChar functions that take a string as argument. */
