@@ -24,8 +24,12 @@ handle nested '#if 0' pairs.
 import os
 import sys
 
-# TODO: fix this sys hack
-#sys.path.insert(0, os.path.abspath('..'))
+# the following command in CVC4/build/src/api/python/CMakeFiles/gen-pycvc4-kinds.dir/build.make
+# cd CVC4/build/src/api/python && /usr/bin/python3 CVC4/src/api/python/genkinds.py ...
+# indicates we are in directory CVC4/build/src/api/python
+# so we use ../../../../src/api to access CVC4/src/api/parsekinds.py
+sys.path.insert(0, os.path.abspath('../../../../src/api'))
+
 from parsekinds import *
 import argparse
 
