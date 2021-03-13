@@ -1293,7 +1293,7 @@ bool Sort::isFunctionLike() const
 bool Sort::isSubsortOf(const Sort& s) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
-  CVC4_API_CHECK_SOLVER(s);
+  CVC4_API_ARG_CHECK_SOLVER("sort", s);
   //////// all checks before this line
   return d_type->isSubtypeOf(*s.d_type);
   ////////
@@ -1303,7 +1303,7 @@ bool Sort::isSubsortOf(const Sort& s) const
 bool Sort::isComparableTo(const Sort& s) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
-  CVC4_API_CHECK_SOLVER(s);
+  CVC4_API_ARG_CHECK_SOLVER("sort", s);
   //////// all checks before this line
   return d_type->isComparableTo(*s.d_type);
   ////////
