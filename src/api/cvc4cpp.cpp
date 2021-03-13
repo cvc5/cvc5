@@ -1327,6 +1327,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_SORT_CHECK_SORTS(params);
   CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   //////// all checks before this line
@@ -1596,7 +1597,7 @@ bool Sort::isUninterpretedSortParameterized() const
   //////// all checks before this line
 
   /* This method is not implemented in the NodeManager, since whether a
-   * uninterpreted sort is parametrized is irrelevant for solving. */
+   * uninterpreted sort is parameterized is irrelevant for solving. */
   return d_type->getNumChildren() > 0;
   ////////
   CVC4_API_TRY_CATCH_END;
@@ -1610,7 +1611,7 @@ std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
   //////// all checks before this line
 
   /* This method is not implemented in the NodeManager, since whether a
-   * uninterpreted sort is parametrized is irrelevant for solving. */
+   * uninterpreted sort is parameterized is irrelevant for solving. */
   std::vector<TypeNode> params;
   for (size_t i = 0, nchildren = d_type->getNumChildren(); i < nchildren; i++)
   {
