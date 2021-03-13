@@ -70,7 +70,7 @@ namespace CVC4 {
  * It is intended that d_letList contains only unique nodes. Each node
  * in d_letList is mapped to a unique identifier in d_letMap.
  *
- * Notice that this class will *not* use introduce let symbols when converting
+ * Notice that this class will *not* use introduced let symbols when converting
  * the bodies of quantified formulas. Consider the formula:
  * (let ((Q (forall ((x Int)) (= x (+ a a))))) (and (= (+ a a) (+ a a)) Q Q))
  * where "let" above is from the user. When this is letified by this class,
