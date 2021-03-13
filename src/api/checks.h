@@ -156,16 +156,23 @@ namespace api {
 
 /**
  * Guard for member functions of class Sort.
+ * Check if given sort is not null.
+ */
+#define CVC4_API_SORT_CHECK_SOLVER(sort)                              \
+  CVC4_API_CHECK(this->d_solver == sort.d_solver)                     \
+      << "Given sort is not associated with the solver this sort is " \
+         "associated with";
+
+/**
+ * Guard for member functions of class Sort.
  * Check if given sort is not null and associated with the solver object this
  * Sort object is associated with.
  */
-#define CVC4_API_SORT_CHECK_SORT(sort)                                  \
-  do                                                                    \
-  {                                                                     \
-    CVC4_API_ARG_CHECK_NOT_NULL(sort);                                  \
-    CVC4_API_CHECK(this->d_solver == sort.d_solver)                     \
-        << "Given sort is not associated with the solver this sort is " \
-           "associated with";                                           \
+#define CVC4_API_SORT_CHECK_SORT(sort) \
+  do                                   \
+  {                                    \
+    CVC4_API_ARG_CHECK_NOT_NULL(sort); \
+    CVC4_API_SORT_CHECK_SOLVER(sort);  \
   } while (0)
 
 /**

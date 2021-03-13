@@ -1003,207 +1003,311 @@ std::vector<Sort> Sort::typeNodeVectorToSorts(
 
 bool Sort::operator==(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return *d_type == *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::operator!=(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return *d_type != *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::operator<(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return *d_type < *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::operator>(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return *d_type > *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::operator<=(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return *d_type <= *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::operator>=(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return *d_type >= *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isNull() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isBoolean() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isBoolean();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isInteger() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isInteger();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isReal() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isReal();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isRegExp() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isRegExp();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isRoundingMode() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isRoundingMode();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isBitVector() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isBitVector();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isFloatingPoint() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isFloatingPoint();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isDatatype() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isDatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isParametricDatatype() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   if (!d_type->isDatatype()) return false;
   return d_type->isParametricDatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isConstructor() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isConstructor();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isSelector() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isSelector();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isTester() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isTester();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isFunction() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isFunction();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isPredicate() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isPredicate();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isTuple() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isTuple();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isRecord() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isRecord();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isArray() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isArray();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isSet() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isSet();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isBag() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isBag();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isSequence() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isSequence();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isUninterpretedSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isSort();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isSortConstructor() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isSortConstructor();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isFirstClass() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isFirstClass();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isFunctionLike() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return d_type->isFunctionLike();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isSubsortOf(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_SORT_CHECK_SOLVER(s);
   //////// all checks before this line
   return d_type->isSubtypeOf(*s.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isComparableTo(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_SORT_CHECK_SOLVER(s);
   //////// all checks before this line
   return d_type->isComparableTo(*s.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Datatype Sort::getDatatype() const
