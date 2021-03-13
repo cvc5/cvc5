@@ -53,8 +53,8 @@ set_target_properties(pycvc4
                       PROPERTIES
                       COMPILE_FLAGS
                         "-Wno-error -Wno-shadow -Wno-implicit-fallthrough"
-                      CMAKE_CXX_VISIBILITY_PRESET default
-                      CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+                      CXX_VISIBILITY_PRESET default
+                      VISIBILITY_INLINES_HIDDEN 0)
 
 python_extension_module(pycvc4)
 
