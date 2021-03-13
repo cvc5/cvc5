@@ -1951,59 +1951,104 @@ void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 
 bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
-CVC4::SExpr SmtEngine::getOption(const std::string& key) const
+Node SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(getNodeManager());
+  NodeManager* nm = d_env->getNodeManager();
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
 
-  if(key.length() >= 18 &&
-     key.compare(0, 18, "command-verbosity:") == 0) {
-    map<string, Integer>::const_iterator i = d_commandVerbosity.find(key.c_str() + 18);
-    if(i != d_commandVerbosity.end()) {
-      return SExpr((*i).second);
+  if (key.length() >= 18 && key.compare(0, 18, "command-verbosity:") == 0)
+  {
+    map<string, Integer>::const_iterator i =
+        d_commandVerbosity.find(key.c_str() + 18);
+    if (i != d_commandVerbosity.end())
+    {
+      return nm->mkConst(Rational(i->second));
     }
     i = d_commandVerbosity.find("*");
-    if(i != d_commandVerbosity.end()) {
-      return SExpr((*i).second);
+    if (i != d_commandVerbosity.end())
+    {
+      return nm->mkConst(Rational(i->second));
     }
-    return SExpr(Integer(2));
+    return nm->mkConst(Rational(2));
   }
 
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
   }
 
-  if(key == "command-verbosity") {
-    vector<SExpr> result;
-    SExpr defaultVerbosity;
-    for(map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
-        i != d_commandVerbosity.end();
-        ++i) {
-      vector<SExpr> v;
-      v.push_back(SExpr((*i).first));
-      v.push_back(SExpr((*i).second));
-      if((*i).first == "*") {
+  if (key == "command-verbosity")
+  {
+    vector<Node> result;
+    Node defaultVerbosity;
+    for (map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
+         i != d_commandVerbosity.end();
+         ++i)
+    {
+      vector<Node> v;
+      v.push_back(nm->mkConst(String(i->first)));
+      v.push_back(nm->mkConst(Rational(i->second)));
+      if ((*i).first == "*")
+      {
         // put the default at the end of the SExpr
-        defaultVerbosity = SExpr(v);
-      } else {
-        result.push_back(SExpr(v));
+        defaultVerbosity = nm->mkNode(Kind::SEXPR, v);
+      }
+      else
+      {
+        result.push_back(nm->mkNode(Kind::SEXPR, v));
       }
     }
     // put the default at the end of the SExpr
-    if(!defaultVerbosity.isAtom()) {
+    if (defaultVerbosity.getNumChildren() != 0)
+    {
       result.push_back(defaultVerbosity);
-    } else {
-      // ensure the default is always listed
-      vector<SExpr> v;
-      v.push_back(SExpr("*"));
-      v.push_back(SExpr(Integer(2)));
-      result.push_back(SExpr(v));
     }
-    return SExpr(result);
+    else
+    {
+      // ensure the default is always listed
+      vector<Node> v;
+      v.push_back(nm->mkConst(String("*")));
+      v.push_back(nm->mkConst(Rational(2)));
+      result.push_back(nm->mkNode(Kind::SEXPR, v));
+    }
+    return nm->mkNode(Kind::SEXPR, result);
   }
 
-  return SExpr::parseAtom(getOptions().getOption(key));
+  // parse atom string
+  std::string atom = getOptions().getOption(key);
+
+  if (atom == "true")
+  {
+    return nm->mkConst<bool>(true);
+  }
+  else if (atom == "false")
+  {
+    return nm->mkConst<bool>(false);
+  }
+  else
+  {
+    try
+    {
+      Integer z(atom);
+      return nm->mkConst(Rational(z));
+    }
+    catch (std::invalid_argument&)
+    {
+      // Fall through to the next case
+    }
+    try
+    {
+      Rational q(atom);
+      return nm->mkConst(q);
+    }
+    catch (std::invalid_argument&)
+    {
+      // Fall through to the next case
+    }
+    return nm->mkConst(String(atom));
+  }
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }

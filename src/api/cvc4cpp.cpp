@@ -5501,7 +5501,7 @@ std::string Solver::getInfo(const std::string& flag) const
 std::string Solver::getOption(const std::string& option) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  SExpr res = d_smtEngine->getOption(option);
+  Node res = d_smtEngine->getOption(option);
   return res.toString();
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

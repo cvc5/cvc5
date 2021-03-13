@@ -253,7 +253,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         //     "--tear-down-incremental incompatible with --incremental");
         // }
 
-        // cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
+        // cmd.reset(new SetOptionCommand("incremental", "false"));
         // cmd->setMuted(true);
         // pExecutor->doCommand(cmd);
       }

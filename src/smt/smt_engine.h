@@ -309,7 +309,7 @@ class CVC4_PUBLIC SmtEngine
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
-  CVC4::SExpr getOption(const std::string& key) const;
+  Node getOption(const std::string& key) const;
 
   /**
    * Define function func in the current context to be:
