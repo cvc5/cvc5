@@ -108,7 +108,7 @@ setattr(kinds, "{name}", {name})
 """
 
 
-def gen_pxd(parser : KindsParser, filename):
+def gen_pxd(parser: KindsParser, filename):
     f = open(filename, "w")
     f.write(KINDS_PXD_TOP)
     # include the format_name docstring in the generated file
