@@ -164,7 +164,7 @@ namespace api {
          "associated with";
 
 /**
- * Sort check for member functions of classes other than class class Solver.
+ * Sort check for member functions of classes other than class Solver.
  * Check if given sort is not null and associated with the solver object this
  * Sort object is associated with.
  */
@@ -176,7 +176,7 @@ namespace api {
   } while (0)
 
 /**
- * Sort check for member functions of classes other than class class Solver.
+ * Sort check for member functions of classes other than class Solver.
  * Check if each sort in the given container of sorts is not null and
  * associated with the solver object this Sort object is associated with.
  */
