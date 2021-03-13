@@ -1386,7 +1386,7 @@ Op::~Op()
 /* Public methods                                                             */
 bool Op::operator==(const Op& t) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   if (d_node->isNull() && t.d_node->isNull())
   {
@@ -1398,16 +1398,16 @@ bool Op::operator==(const Op& t) const
   }
   return (d_kind == t.d_kind) && (*d_node == *t.d_node);
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Op::operator!=(const Op& t) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return !(*this == t);
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 Kind Op::getKind() const
@@ -1419,26 +1419,26 @@ Kind Op::getKind() const
 
 bool Op::isNull() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return isNullHelper();
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Op::isIndexed() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   return isIndexedHelper();
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 template <>
 std::string Op::getIndices() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
@@ -1450,13 +1450,13 @@ std::string Op::getIndices() const
   return k == DIVISIBLE ? d_node->getConst<Divisible>().k.toString()
                         : d_node->getConst<RecordUpdate>().getField();
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 template <>
 uint32_t Op::getIndices() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
@@ -1499,13 +1499,13 @@ uint32_t Op::getIndices() const
   }
   return i;
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 template <>
 std::pair<uint32_t, uint32_t> Op::getIndices() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
@@ -1573,12 +1573,12 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
   }
   return indices;
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string Op::toString() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
   if (d_node->isNull())
   {
@@ -1596,7 +1596,7 @@ std::string Op::toString() const
     return d_node->toString();
   }
   ////////
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const Op& t)
