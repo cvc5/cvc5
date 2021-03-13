@@ -84,7 +84,7 @@ KINDS_JAVA_BOTTOM = \
 def gen_java(parser: KindsParser, filename):
     f = open(filename, "w")
     code = KINDS_JAVA_TOP
-    enum_value = -2
+    enum_value = -2  # initial enum value
     for kind, name in parser.kinds.items():
         code += "  {name}({enum_value}),\n".format(name=kind, enum_value=enum_value)
         enum_value = enum_value + 1
