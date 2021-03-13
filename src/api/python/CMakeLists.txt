@@ -52,7 +52,9 @@ target_link_libraries(pycvc4 cvc4 ${PYTHON_LIBRARIES})
 set_target_properties(pycvc4
                       PROPERTIES
                       COMPILE_FLAGS
-                      "-Wno-error -Wno-shadow -Wno-implicit-fallthrough")
+                        "-Wno-error -Wno-shadow -Wno-implicit-fallthrough"
+                      CMAKE_CXX_VISIBILITY_PRESET default
+                      CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 python_extension_module(pycvc4)
 
