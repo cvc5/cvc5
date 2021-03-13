@@ -1293,7 +1293,7 @@ bool Sort::isFunctionLike() const
 bool Sort::isSubsortOf(const Sort& s) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
-  CVC4_API_SORT_CHECK_SOLVER(s);
+  CVC4_API_CHECK_SOLVER(s);
   //////// all checks before this line
   return d_type->isSubtypeOf(*s.d_type);
   ////////
@@ -1303,7 +1303,7 @@ bool Sort::isSubsortOf(const Sort& s) const
 bool Sort::isComparableTo(const Sort& s) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
-  CVC4_API_SORT_CHECK_SOLVER(s);
+  CVC4_API_CHECK_SOLVER(s);
   //////// all checks before this line
   return d_type->isComparableTo(*s.d_type);
   ////////
@@ -1327,7 +1327,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_SORT_CHECK_SORTS(params);
+  CVC4_API_CHECK_SORTS(params);
   CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   //////// all checks before this line
@@ -1347,8 +1347,8 @@ Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
   NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_SORT_CHECK_SORT(sort);
-  CVC4_API_SORT_CHECK_SORT(replacement);
+  CVC4_API_CHECK_SORT(sort);
+  CVC4_API_CHECK_SORT(replacement);
   //////// all checks before this line
   return Sort(
       d_solver,
@@ -1363,8 +1363,8 @@ Sort Sort::substitute(const std::vector<Sort>& sorts,
   NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_SORT_CHECK_SORTS(sorts);
-  CVC4_API_SORT_CHECK_SORTS(replacements);
+  CVC4_API_CHECK_SORTS(sorts);
+  CVC4_API_CHECK_SORTS(replacements);
   //////// all checks before this line
 
   std::vector<CVC4::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
