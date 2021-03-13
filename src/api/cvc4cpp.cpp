@@ -1456,22 +1456,11 @@ Op::~Op()
   }
 }
 
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/* Split out to avoid nested API calls (problematic with API tracing).        */
-/* .......................................................................... */
-
-bool Op::isNullHelper() const
-{
-  return (d_node->isNull() && (d_kind == NULL_EXPR));
-}
-
-bool Op::isIndexedHelper() const { return !d_node->isNull(); }
-
 /* Public methods                                                             */
 bool Op::operator==(const Op& t) const
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_node->isNull() && t.d_node->isNull())
   {
     return (d_kind == t.d_kind);
@@ -1481,56 +1470,70 @@ bool Op::operator==(const Op& t) const
     return false;
   }
   return (d_kind == t.d_kind) && (*d_node == *t.d_node);
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-bool Op::operator!=(const Op& t) const { return !(*this == t); }
+bool Op::operator!=(const Op& t) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return !(*this == t);
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
 
 Kind Op::getKind() const
 {
   CVC4_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
+  //////// all checks before this line
   return d_kind;
 }
 
-bool Op::isNull() const { return isNullHelper(); }
+bool Op::isNull() const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
 
-bool Op::isIndexed() const { return isIndexedHelper(); }
+bool Op::isIndexed() const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isIndexedHelper();
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
 
 template <>
 std::string Op::getIndices() const
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
-
-  std::string i;
   Kind k = intToExtKind(d_node->getKind());
-
-  if (k == DIVISIBLE)
-  {
-    // DIVISIBLE returns a string index to support
-    // arbitrary precision integers
-    CVC4::Integer _int = d_node->getConst<Divisible>().k;
-    i = _int.toString();
-  }
-  else if (k == RECORD_UPDATE)
-  {
-    i = d_node->getConst<RecordUpdate>().getField();
-  }
-  else
-  {
-    CVC4_API_CHECK(false) << "Can't get string index from"
-                          << " kind " << kindToString(k);
-  }
-
-  return i;
+  CVC4_API_CHECK(k == DIVISIBLE || k == RECORD_UPDATE)
+      << "Can't get string index from"
+      << " kind " << kindToString(k);
+  //////// all checks before this line
+  return k == DIVISIBLE ? d_node->getConst<Divisible>().k.toString()
+                        : d_node->getConst<RecordUpdate>().getField();
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 template <>
 uint32_t Op::getIndices() const
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
+  //////// all checks before this line
 
   uint32_t i = 0;
   Kind k = intToExtKind(d_node->getKind());
@@ -1564,18 +1567,22 @@ uint32_t Op::getIndices() const
       i = d_node->getConst<RegExpRepeat>().d_repeatAmount;
       break;
     default:
-      CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
-                                         << " kind " << kindToString(k);
+      CVC4_API_CHECK(false) << "Can't get uint32_t index from"
+                            << " kind " << kindToString(k);
   }
   return i;
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 template <>
 std::pair<uint32_t, uint32_t> Op::getIndices() const
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
+  //////// all checks before this line
 
   std::pair<uint32_t, uint32_t> indices;
   Kind k = intToExtKind(d_node->getKind());
@@ -1638,11 +1645,14 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
                           << " kind " << kindToString(k);
   }
   return indices;
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 std::string Op::toString() const
 {
-  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_node->isNull())
   {
     return kindToString(d_kind);
@@ -1658,6 +1668,8 @@ std::string Op::toString() const
     }
     return d_node->toString();
   }
+  ////////
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const Op& t)
@@ -1677,6 +1689,19 @@ size_t OpHashFunction::operator()(const Op& t) const
     return KindHashFunction()(t.d_kind);
   }
 }
+
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Op::isNullHelper() const
+{
+  return (d_node->isNull() && (d_kind == NULL_EXPR));
+}
+
+bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
