@@ -132,8 +132,8 @@ Node LfscTermProcessor::runConvert(Node n)
       return charVec[0];
     }
     std::reverse(charVec.begin(), charVec.end());
-    Node ret = charVec[0];
-    for (size_t i = 1, size = charVec.size(); i < size; i++)
+    Node ret = runConvert(getNullTerminator(STRING_CONCAT));
+    for (size_t i = 0, size = charVec.size(); i < size; i++)
     {
       ret = nm->mkNode(STRING_CONCAT, charVec[i], ret);
     }
@@ -195,7 +195,6 @@ Node LfscTermProcessor::runConvert(Node n)
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
     // convert all n-ary applications to binary
     std::vector<Node> children(n.begin(), n.end());
-    std::reverse(children.begin(), children.end());
     // distinct is special case
     if (k == DISTINCT)
     {
@@ -215,6 +214,7 @@ Node LfscTermProcessor::runConvert(Node n)
                                        << "ret: " << ret << std::endl;
       return ret;
     }
+    std::reverse(children.begin(), children.end());
     // Add the null-terminator. This is done to disambiguate the number
     // of children for term with n-ary operators. In particular note that
     // (or A B C (or D E)) has representation:
@@ -249,37 +249,16 @@ Node LfscTermProcessor::runConvert(Node n)
       opc = getSymbolInternal(k, ftype, opName.str());
       ck = APPLY_UF;
     }
-    // compute the children to process
-    std::vector<Node> childrenToProcess;
-    for (size_t i = istart; i < nchild; i++)
-    {
-      // special case: string constant children of concat are flattened into
-      // the concatenation.  This means that x ++ "AB" ++ y becomes
-      // (str.++ x (str.++ "A" (str.++ "B" (str.++ y ""))))
-      // instead of:
-      // (str.++ x (str.++ (str.++ "A" (str.++ "B" "")) (str.++ y "")))
-      if (false && k == STRING_CONCAT && children[i].getKind() == CONST_STRING)
-      {
-        std::vector<Node> chars;
-        getCharVectorInternal(children[i], chars);
-        childrenToProcess.insert(
-            childrenToProcess.end(), chars.begin(), chars.end());
-      }
-      else
-      {
-        childrenToProcess.push_back(children[i]);
-      }
-    }
     // now, iterate over children and make binary conversion
-    for (size_t i = 0, npchild = childrenToProcess.size(); i < npchild; i++)
+    for (size_t i = istart, npchild = children.size(); i < npchild; i++)
     {
       if (!opc.isNull())
       {
-        ret = nm->mkNode(ck, opc, childrenToProcess[i], ret);
+        ret = nm->mkNode(ck, opc, children[i], ret);
       }
       else
       {
-        ret = nm->mkNode(ck, childrenToProcess[i], ret);
+        ret = nm->mkNode(ck, children[i], ret);
       }
     }
     return ret;
