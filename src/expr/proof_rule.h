@@ -873,7 +873,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or (= t2 (str.++ r_t s2)) (= s2 (str.++ r_s t2)))
   // where
-  //   r_t = (skolem (pre t2 (- (str.len t2) (str.len s2))))), 
+  //   r_t = (skolem (pre t2 (- (str.len t2) (str.len s2))))),
   //   r_s = (skolem (pre s2 (- (str.len s2) (str.len t2))))).
   //
   // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and

@@ -732,10 +732,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         factoredLits.push_back(n[i]);
         clauseSet.insert(n[i]);
       }
-      Node factored = factoredLits.empty() ? nm->mkConst(false)
-                      : factoredLits.size() == 1
-                          ? factoredLits[0]
-                          : nm->mkNode(kind::OR, factoredLits);
+      Node factored = factoredLits.empty()
+                          ? nm->mkConst(false)
+                          : factoredLits.size() == 1
+                                ? factoredLits[0]
+                                : nm->mkNode(kind::OR, factoredLits);
       cdp->addStep(factored, PfRule::FACTORING, {n}, {});
       n = factored;
     }
