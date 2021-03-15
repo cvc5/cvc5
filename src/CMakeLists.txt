@@ -168,6 +168,9 @@ libcvc4_add_sources(
   proof/unsat_core.h
   proof/verit/verit_post_processor.cpp
   proof/verit/verit_post_processor.h
+  proof/verit/verit_proof_rule.cpp
+  proof/verit/verit_proof_rule.h
+  proof/verit/verit_printer.cpp
   proof/verit/verit_printer.h
   prop/bv_sat_solver_notify.h
   prop/bvminisat/bvminisat.cpp
