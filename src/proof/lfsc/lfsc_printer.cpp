@@ -455,9 +455,10 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::CONCAT_EQ:
       pf << h << h << h << args[0].getConst<bool>() << cs[0];
       break;
-     case PfRule::CONCAT_CSPLIT:
+    case PfRule::CONCAT_CSPLIT:
       pf << h << h << h << h << args[0].getConst<bool>() << cs[0] << cs[1];
-      break; break;
+      break;
+      break;
     /*
     case PfRule::RE_UNFOLD_POS:
       Trace("ajr-temp") << "; String RE_UNFOLD_POS internal : " <<
