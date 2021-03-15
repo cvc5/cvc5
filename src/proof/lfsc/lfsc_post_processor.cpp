@@ -292,9 +292,9 @@ bool LfscProofPostprocessCallback::update(Node res,
       cdp->addStep(cur, PfRule::REFL, {}, {zero});
       for (size_t i = 0, size = children.size(); i < size; i++)
       {
-        size_t ii = (children.size()-1)-i;
+        size_t ii = (children.size() - 1) - i;
         std::vector<Node> newChildren{children[ii], cur};
-        if (ii==0)
+        if (ii == 0)
         {
           // final rule must be the real conclusion
           addLfscRule(cdp, res, newChildren, LfscRule::ARITH_SUM_UB, {});
