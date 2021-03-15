@@ -22,7 +22,6 @@
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
-#include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
@@ -422,8 +421,8 @@ TEST_F(TestNodeBlackNode, getOperator)
 
   ASSERT_EQ(f, fa.getOperator());
 #ifdef CVC4_ASSERTIONS
-  ASSERT_THROW(f.getOperator(), IllegalArgumentException);
-  ASSERT_THROW(a.getOperator(), IllegalArgumentException);
+  ASSERT_DEATH(f.getOperator(), "mk == kind::metakind::PARAMETERIZED");
+  ASSERT_DEATH(a.getOperator(), "mk == kind::metakind::PARAMETERIZED");
 #endif
 }
 
@@ -445,16 +444,16 @@ TEST_F(TestNodeBlackNode, getNumChildren)
 #ifdef CVC4_ASSERTIONS
   ASSERT_DEATH(testNaryExpForSize(AND, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(AND, 1),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 0),
                "getNumChildren\\(\\) >= "
-               "kind::metakind::getLowerBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMinArityForKind\\(getKind\\(\\)\\)");
   ASSERT_DEATH(testNaryExpForSize(NOT, 2),
                "getNumChildren\\(\\) <= "
-               "kind::metakind::getUpperBoundForKind\\(getKind\\(\\)\\)");
+               "kind::metakind::getMaxArityForKind\\(getKind\\(\\)\\)");
 #endif /* CVC4_ASSERTIONS */
 }
 

@@ -111,7 +111,7 @@ void SygusGrammarNorm::TypeObject::initializeDatatype(
    * Int, etc) */
   TypeNode sygusType = dt.getSygusType();
   d_sdt.initializeDatatype(sygusType,
-                           sygus_norm->d_sygus_vars.toExpr(),
+                           sygus_norm->d_sygus_vars,
                            dt.getSygusAllowConst(),
                            dt.getSygusAllowAll());
   Trace("sygus-grammar-normalize")

@@ -37,6 +37,7 @@
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 
@@ -454,13 +455,6 @@ class Theory {
    */
   context::UserContext* getUserContext() const {
     return d_userContext;
-  }
-
-  /**
-   * Set the output channel associated to this theory.
-   */
-  void setOutputChannel(OutputChannel& out) {
-    d_out = &out;
   }
 
   /**

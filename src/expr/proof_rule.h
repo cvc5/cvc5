@@ -302,8 +302,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: C2
   // where
-  //  Set representations of C1 and C2 is the same but the number of literals in
-  //  C2 is the same of that of C1
+  //  Set representations of C1 and C2 are the same and the number of literals
+  //  in C2 is the same of that of C1
   REORDERING,
   // ======== N-ary Resolution + Factoring + Reordering
   // Children: (P1:C_1, ..., Pm:C_n)
@@ -1043,15 +1043,24 @@ enum class PfRule : uint32_t
   //
   // Arguments: (k1, ..., kn), non-zero reals
   // ---------------------
-  // Conclusion: (>< (* k t1) (* k t2))
+  // Conclusion: (>< t1 t2)
   //    where >< is the fusion of the combination of the ><i, (flipping each it
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the polynomials.
-  //    t2 is the sum of the constants.
+  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n * poly_n)
+  //    t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n * const_n)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
+  // ======== Sum Upper Bounds
+  // Children: (P1, ... , Pn)
+  //           where each Pi has form (><i, Li, Ri)
+  //           for ><i in {<, <=, ==}
+  // Conclusion: (>< L R)
+  //           where >< is < if any ><i is <, and <= otherwise.
+  //                 L is (+ L1 ... Ln)
+  //                 R is (+ R1 ... Rn)
+  ARITH_SUM_UB,
   // ======== Tightening Strict Integer Upper Bounds
   // Children: (P:(< i c))
   //         where i has integer type.

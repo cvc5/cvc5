@@ -64,9 +64,9 @@ RaiseConflict::RaiseConflict(TheoryArithPrivate& ta)
   : d_ta(ta)
 {}
 
-void RaiseConflict::raiseConflict(ConstraintCP c) const{
+void RaiseConflict::raiseConflict(ConstraintCP c, InferenceId id) const{
   Assert(c->inConflict());
-  d_ta.raiseConflict(c);
+  d_ta.raiseConflict(c, id);
 }
 
 FarkasConflictBuilder::FarkasConflictBuilder()

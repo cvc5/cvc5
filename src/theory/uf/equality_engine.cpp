@@ -1029,7 +1029,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
   if ((d_isInternal[id1] || d_isInternal[id2])
       && (k1 != k2 || k1 == kind::APPLY_UF || k1 == kind::APPLY_CONSTRUCTOR
           || k1 == kind::APPLY_SELECTOR || k1 == kind::APPLY_TESTER
-          || !ExprManager::isNAryKind(k1)))
+          || !NodeManager::isNAryKind(k1)))
   {
     return;
   }
@@ -1076,7 +1076,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
         << id2 << "} " << d_nodes[id2] << "\n";
     // if has at least as many children as the minimal
     // number of children of the n-ary kind, build the node
-    if (numChildren >= ExprManager::minArity(k1))
+    if (numChildren >= kind::metakind::getMinArityForKind(k1))
     {
       std::vector<Node> children;
       for (unsigned j = 0; j < numChildren; ++j)

@@ -35,7 +35,6 @@ namespace prop {
 
 class CnfProof;
 
-typedef std::unordered_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
 typedef std::unordered_set<ClauseId> ClauseIdSet;
 

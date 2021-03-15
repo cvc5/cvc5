@@ -21,8 +21,6 @@
 #include <cvc4/base/configuration.h>
 #include <cvc4/base/exception.h>
 #include <cvc4/expr/datatype_index.h>
-#include <cvc4/expr/expr.h>
-#include <cvc4/expr/expr_manager.h>
 #include <cvc4/options/options.h>
 #include <cvc4/parser/parser.h>
 #include <cvc4/parser/parser_builder.h>

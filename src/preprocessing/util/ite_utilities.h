@@ -29,6 +29,7 @@
 #include "expr/node.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 namespace preprocessing {

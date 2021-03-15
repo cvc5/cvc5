@@ -997,7 +997,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
 Node ProofPostprocessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
 {
-  Node tw = SkolemManager::getWitnessForm(t);
+  Node tw = SkolemManager::getOriginalForm(t);
   Node eq = t.eqNode(tw);
   if (t == tw)
   {

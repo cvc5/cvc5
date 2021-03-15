@@ -18,7 +18,6 @@
 
 #include "expr/kind.h"
 #include "expr/node_manager.h"
-#include "expr/type.h"
 #include "test_node.h"
 #include "util/cardinality.h"
 
