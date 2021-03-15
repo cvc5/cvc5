@@ -15,13 +15,10 @@
 #ifndef CVC4__PROOF__VERIT_PROOF_PRINTER_H
 #define CVC4__PROOF__VERIT_PROOF_PRINTER_H
 
-#include <memory>
-#include <string>
-#include <vector>
 #include "cvc4_private.h"
 #include "expr/proof_node.h"
 #include "proof/verit/verit_proof_rule.h"
-#include "proof/verit/verit_proof_checker.h"
+//#include "proof/verit/verit_proof_checker.h"
 
 
 #include <iostream>

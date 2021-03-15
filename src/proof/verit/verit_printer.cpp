@@ -30,7 +30,7 @@ void VeritProofPrinter::veritPrinter(std::ostream& out, std::shared_ptr<ProofNod
   Trace("verit-printer") << "- Print proof in veriT format. " << std::endl;
 
   //Print assumptions and add them to the list
-  for(int i = 0; i < pfn->getArguments().size(); i++){
+  for(unsigned long int i = 0; i < pfn->getArguments().size(); i++){
     Trace("verit-printer") << "... print assumption " << pfn->getArguments()[i] << std::endl;
     out << "(assume a" << std::to_string(i) << " " <<  pfn->getArguments()[i] << ")\n";
     assumptions[0].push_back(pfn->getArguments()[i]);
@@ -40,12 +40,11 @@ void VeritProofPrinter::veritPrinter(std::ostream& out, std::shared_ptr<ProofNod
 }
 
 std::string VeritProofPrinter::veritPrinterInternal(std::ostream& out, std::shared_ptr<ProofNode> pfn){
-  int current_step_id;
+  int current_step_id = step_id;
 
   if (pfn->getArguments().size() < 3 || pfn->getRule() != PfRule::VERIT_RULE)
   {
-     Trace("verit-printer") << "... printing failed! Encountered untranslated Node. " << pfn->getResult() << " " << pfn->getRule()
-                          << " " << pfn->getChildren() << " / " << pfn->getArguments() << std::endl;
+     Trace("verit-printer") << "... printing failed! Encountered untranslated Node. " << pfn->getResult() << " " << toString(pfn->getRule()) << " " << " / " << pfn->getArguments() << std::endl;
      return "";
   }
 
@@ -60,8 +59,8 @@ std::string VeritProofPrinter::veritPrinterInternal(std::ostream& out, std::shar
     assumptions.resize(assumption_level+1);
 
     //Print anchor
-    Trace("verit-printer") << "... print anchor " << pfn->getResult() << " " << vrule
-                           << " " << pfn->getChildren() << " / " << pfn->getArguments() << std::endl;
+    Trace("verit-printer") << "... print anchor " << pfn->getResult() << " " << veritRuletoString(vrule)
+                           << " "  << " / " << pfn->getArguments() << std::endl; //pfn->getChildren()
     out << "(anchor :step " << prefix << "t" <<  step_id << " :args (";
     for (unsigned long int j = 3; j < pfn->getArguments().size(); j++)
     {
@@ -73,24 +72,24 @@ std::string VeritProofPrinter::veritPrinterInternal(std::ostream& out, std::shar
     step_id++;
 
     //Print assumptions
-    for(int i = 3; i < pfn->getArguments().size(); i++){
+    for(unsigned long int i = 3; i < pfn->getArguments().size(); i++){
       Trace("verit-printer") << "... print assumption " << pfn->getArguments()[i] << std::endl;
       out << "(assume " << prefix << "a" <<  std::to_string(i-3) << " " <<  pfn->getArguments()[i] << ")\n";
       assumptions[assumption_level].push_back(pfn->getArguments()[i]);
     }
 
     //Store step_id until children are printed to resume counter at current position
-    current_step_id = step_id;
+    current_step_id = step_id; //TODO: move up?
     step_id = 1;
   }
 
   //Assumptions are printed at the anchor and therefore have to be in the list of assumptions when an assume is reached
   //The id of an assume is its position in the list.
   if (vrule == VeritRule::ASSUME){
-    Trace("verit-printer") << "... reached assumption " << pfn->getResult() << " " << vrule
-                           << " " << pfn->getChildren() << " / " << pfn->getArguments() << std::endl;
-    Trace("verit-printer") << "... search assumption in list " << pfn->getResult() << "/" << assumptions[assumption_level] << std::endl;
-    return prefix + "a" + std::to_string(std::find(assumptions[assumption_level].begin(),assumptions[assumption_level].end(),pfn->getResult()) - assumptions[assumption_level].begin());
+    Trace("verit-printer") << "... reached assumption " << pfn->getResult() << " " << veritRuletoString(vrule)
+                           << " " << " / " << pfn->getArguments() << std::endl;
+    Trace("verit-printer") << "... search assumption in list " << pfn->getArguments()[2] << "/" << assumptions[assumption_level] << std::endl;
+    return prefix + "a" + std::to_string(std::find(assumptions[assumption_level].begin(),assumptions[assumption_level].end(),pfn->getArguments()[2]) - assumptions[assumption_level].begin());
   }
 
   std::vector<std::string> child_prefixes;
@@ -101,16 +100,16 @@ std::string VeritProofPrinter::veritPrinterInternal(std::ostream& out, std::shar
 
   //In this cases the rule should not be printed.
   if(!d_extended && (vrule == VeritRule::REORDER || vrule == VeritRule::SYMM)){
-    Trace("verit-printer") << "... non-extended mode skip child " << pfn->getResult() << " " << vrule
-                           << " " << pfn->getChildren() << " / " << pfn->getArguments() << std::endl;
+    Trace("verit-printer") << "... non-extended mode skip child " << pfn->getResult() << " " << veritRuletoString(vrule)
+                           << " / " << pfn->getArguments() << std::endl;
     return child_prefixes[0];
   }
 
 
   if (vrule == VeritRule::ANCHOR_SUBPROOF)
   {
-    Trace("verit-printer") << "... print node " << pfn->getResult() << " " << vrule
-                           << " " << pfn->getChildren() << " / " << pfn->getArguments() << std::endl;
+    Trace("verit-printer") << "... print node " << pfn->getResult() << " " << veritRuletoString(vrule)
+                           << " / " << pfn->getArguments() << std::endl;
     // Remove last .
     prefix.pop_back();
     out << "(step " << prefix << " "
@@ -143,7 +142,7 @@ std::string VeritProofPrinter::veritPrinterInternal(std::ostream& out, std::shar
   if (pfn->getArguments().size() > 3)
   {
     out << " :args ";
-    for (int i = 3; i < pfn->getArguments().size(); i++)
+    for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
     {
       out << " " << pfn->getArguments()[i].toString();
       if(i!= pfn->getArguments().size()-1){ out << " ";}
