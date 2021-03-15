@@ -260,7 +260,7 @@ TPL_DECL_MODE_FUNC = \
 std::ostream&
 operator<<(std::ostream& os, {type} mode);"""
 
-TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(" ;")] + \
+TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(";")] + \
 """
 {{
   os << "{type}::";
