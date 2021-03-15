@@ -387,7 +387,7 @@ bool VeritProofPostprocessCallback::update(
 	       vrule = VeritRule::UNARY_MINUS_SIMPLIFY; break;
 	     }
 	     case kind::PLUS:{
-	       vrule = VeritRule::NOT_SIMPLIFY; break;
+	       vrule = VeritRule::SUM_SIMPLIFY; break;
 	     }
 	     case kind::MULT:{
 	       vrule = VeritRule::PROD_SIMPLIFY;break;
@@ -753,7 +753,6 @@ bool VeritProofPostprocessCallback::update(
           }
         }
       }
-
       if (res.getKind() == kind::OR && current_resolvent.size() != 1)
       {
         return success &= addVeritStepFromOr(
@@ -892,6 +891,14 @@ bool VeritProofPostprocessCallback::update(
     // proof term: (cl F2)
     // premises: VP1 P2 P1
     // args: ()
+    // 
+    // Or if F2 = false:
+    //
+    // proof rule: resolution
+    // proof node: F2
+    // proof term: (cl)
+    // premises: VP1 P2 P1
+    // args: ()
     case PfRule::EQ_RESOLVE:
     {
       // TODO: Tidy up, look for all rules if assumptions have to be ruled out
@@ -948,9 +955,20 @@ bool VeritProofPostprocessCallback::update(
              && addVeritStepFromOr(res,VeritRule::OR,{vp5},{},*cdp);
 
       }*/
-      return success && addVeritStep(vp1, VeritRule::EQUIV_POS2, {}, {}, *cdp)
-             && addVeritStep(res,
-                             VeritRule::EQ_RESOLUTION,
+      success &= addVeritStep(vp1, VeritRule::EQUIV_POS2, {}, {}, *cdp);
+
+      if (res == d_nm->mkConst(false))
+      {
+        return success &= addVeritStep(res,
+                                       VeritRule::RESOLUTION,
+                                       d_nm->mkNode(kind::SEXPR, d_cl),
+                                       {vp1, children[1], child1},
+                                       {},
+                                       *cdp);
+      }
+
+      return success &= addVeritStep(res,
+                             VeritRule::RESOLUTION,
                              d_nm->mkNode(kind::SEXPR, d_cl, res),
                              {vp1, children[1], child1},
                              {},
@@ -2289,7 +2307,7 @@ bool VeritProofPostprocessCallback::update(
     // ARITH_MULT_TANGENT,
     default:  // TBD
     {
-      if (!d_extended || id == PfRule::SYMM || id == PfRule::REORDERING)
+      if (!d_extended && id != PfRule::SYMM && id != PfRule::REORDERING)
       {
         std::cout << "Not implemented yet " << id << std::endl;
         return addVeritStep(res,
@@ -2302,7 +2320,7 @@ bool VeritProofPostprocessCallback::update(
     }
   }
 
-  if (!d_extended || id == PfRule::SYMM || id == PfRule::REORDERING)
+  if (!d_extended && id != PfRule::SYMM && id != PfRule::REORDERING)
   {
     return false;
   }
@@ -2517,9 +2535,9 @@ VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,
                                              bool extended)
     : d_pnm(pnm),
       d_cb(d_pnm),
-      d_updater(d_pnm, d_cb,true,false),
+      d_updater(d_pnm, d_cb,false,false),
       d_fcb(d_pnm),
-      d_finalize(d_pnm, d_fcb,true,false),
+      d_finalize(d_pnm, d_fcb,false,false),
       d_extended(extended)
 {
   d_cb.initializeUpdate(extended);
@@ -2531,16 +2549,18 @@ VeritProofPostprocess::~VeritProofPostprocess() {}
 void VeritProofPostprocess::process(std::shared_ptr<ProofNode> pf)
 {
   // Translate proof node
-  d_updater.process(pf);
+  d_updater.process(pf->getChildren()[0]);
 
   // In the veriT proof format the final step has to be (cl). However, after the
   // translation it might be (cl false). In that case additional steps are
   // required.
-  d_finalize.process(pf);
+  // TODO: This might not be necessary anymore
+  d_finalize.process(pf->getChildren()[0]);
+
+  // TODO: Update pf from PfRule::SCOPE to Pf::ANCHOR in finalize?
 }
 
 
 }  // namespace proof
 
 }  // namespace CVC4
-
