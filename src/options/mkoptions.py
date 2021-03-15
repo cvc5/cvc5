@@ -175,7 +175,7 @@ TPL_OPTION_STRUCT_RW = \
   bool wasSetByUser() const;
   void set(const type& v);
   const char* getName() const;
-}} thread_local {name} ;"""
+}} thread_local {name};"""
 
 TPL_OPTION_STRUCT_RO = \
 """extern struct {name}__option_t
