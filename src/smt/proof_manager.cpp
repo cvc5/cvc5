@@ -146,14 +146,14 @@ void PfManager::printProof(std::ostream& out,
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
     d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get(), false));
-    d_vpfpp->process(fp->getChildren()[0]);
-    proof::veritPrinter(out, fp->getChildren()[0]);
+    d_vpfpp->process(fp);
+    proof::veritPrinter(out,fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT_EXTENDED)
   {
     d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get(), true));
-    d_vpfpp->process(fp->getChildren()[0]);
-    proof::veritPrinter(out, fp->getChildren()[0]);
+    d_vpfpp->process(fp);
+    proof::veritPrinter(out, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)
   {
