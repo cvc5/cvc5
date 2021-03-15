@@ -223,7 +223,7 @@ void SmtEngine::finishInit()
   d_optm->finishInit(d_env->d_logic, d_isInternalSubsolver);
 
   ProofNodeManager* pnm = nullptr;
-  if (options::proof())
+  if (options::proofs())
   {
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
@@ -332,7 +332,7 @@ SmtEngine::~SmtEngine()
 
     // d_proofManager is always created when proofs are enabled at configure
     // time.  Because of this, this code should not be wrapped in PROOF() which
-    // additionally checks flags such as options::proof().
+    // additionally checks flags such as options::proofs().
     //
     // Note: the proof manager must be destroyed before the theory engine.
     // Because the destruction of the proofs depends on contexts owned be the
@@ -971,7 +971,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
         if ((options::checkProofs() || options::proofEagerChecking())
-            && !options::proof())
+            && !options::proofs())
         {
           throw ModalException(
               "Cannot check-proofs because proofs were disabled.");
@@ -1388,7 +1388,7 @@ Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkProof()
 {
-  Assert(options::proof());
+  Assert(options::proofs());
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
@@ -1464,7 +1464,7 @@ void SmtEngine::checkUnsatCore() {
   coreChecker->getOptions().set(options::unsatCores, false);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
-  coreChecker->getOptions().set(options::proof, false);
+  coreChecker->getOptions().set(options::proofs, false);
   coreChecker->getOptions().set(options::proofReq, false);
   coreChecker->getOptions().set(options::checkProofs, false);
   coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
@@ -1556,7 +1556,7 @@ std::string SmtEngine::getProof()
     getPrinter().toStreamCmdGetProof(getOutputManager().getDumpOut());
   }
 #if IS_PROOFS_BUILD
-  if (!options::proof())
+  if (!options::proofs())
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
@@ -1657,7 +1657,7 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::proof() && getSmtMode() == SmtMode::UNSAT)
+  if (options::proofs() && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);

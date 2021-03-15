@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --no-re-elim --proof
+; COMMAND-LINE: --strings-exp --no-re-elim --produce-proofs
 ; EXPECT: unsat
 (set-info :smt-lib-version 2.6)
 (set-logic ALL)
