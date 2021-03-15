@@ -12,6 +12,7 @@
 # Collect libcvc4 source files
 
 libcvc4_add_sources(
+  api/checks.h
   api/cvc4cpp.cpp
   api/cvc4cpp.h
   api/cvc4cppkind.h
@@ -139,6 +140,8 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
+  proof/dot/dot_printer.cpp
+  proof/dot/dot_printer.h
   proof/proof_manager.cpp
   proof/proof_manager.h
   proof/sat_proof.h
@@ -666,6 +669,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/candidate_generator.h
   theory/quantifiers/ematching/ho_trigger.cpp
   theory/quantifiers/ematching/ho_trigger.h
+  theory/quantifiers/ematching/im_generator.cpp
+  theory/quantifiers/ematching/im_generator.h
   theory/quantifiers/ematching/inst_match_generator.cpp
   theory/quantifiers/ematching/inst_match_generator.h
   theory/quantifiers/ematching/inst_match_generator_multi.cpp
@@ -1165,116 +1170,17 @@ if (NOT BUILD_LIB_ONLY)
 endif()
 
 #-----------------------------------------------------------------------------#
-# Note:
-# We define all install commands for all public headers here in one
-# place so that we can easily remove them as soon as we enforce the new
-# C++ API.
-#
-# All (generated) headers that either include cvc4_public.h or
-# cvc4parser_public.h need to be listed explicitly here.
-#
+# Install public API headers
+
 install(FILES
           api/cvc4cpp.h
           api/cvc4cppkind.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
 install(FILES
-          base/configuration.h
-          base/exception.h
-          base/listener.h
-          base/modal_exception.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/base)
-install(FILES
-          context/cdhashmap_forward.h
-          context/cdhashset_forward.h
-          context/cdinsert_hashmap_forward.h
-          context/cdlist_forward.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/context)
-install(FILES
-          include/cvc4.h
           include/cvc4_public.h
-          include/cvc4parser_public.h
         DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
-install(FILES
-          expr/array_store_all.h
-          expr/ascription_type.h
-          expr/emptyset.h
-          expr/expr_iomanip.h
-          expr/record.h
-          expr/sequence.h
-          expr/symbol_manager.h
-          expr/symbol_table.h
-          expr/uninterpreted_constant.h
-          ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/expr)
-install(FILES
-          options/language.h
-          options/option_exception.h
-          options/options.h
-          options/printer_modes.h
-          options/set_language.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/options)
-install(FILES
-          parser/input.h
-          parser/parser.h
-          parser/parser_builder.h
-          parser/parser_exception.h
-          parser/parse_op.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
-install(FILES
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/printer)
-install(FILES
-          proof/unsat_core.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/proof)
-install(FILES
-          smt/command.h
-          smt/logic_exception.h
-          smt/smt_engine.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/smt)
-install(FILES
-          theory/logic_info.h
-          theory/theory_id.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
-install(FILES
-          util/abstract_value.h
-          util/bitvector.h
-          util/bool.h
-          util/cardinality.h
-          util/divisible.h
-          util/gmp_util.h
-          util/hash.h
-          util/iand.h
-          util/integer_cln_imp.h
-          util/integer_gmp_imp.h
-          util/maybe.h
-          util/poly_util.h
-          util/rational_cln_imp.h
-          util/rational_gmp_imp.h
-          util/real_algebraic_number_poly_imp.h
-          util/regexp.h
-          util/resource_manager.h
-          util/result.h
-          util/sexpr.h
-          util/statistics.h
-          util/string.h
-          util/tuple.h
-          util/unsafe_interrupt_exception.h
-          ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
-          ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
-          ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
-          ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint_literal_symfpu.h
-        DESTINATION
-          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/util)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.
