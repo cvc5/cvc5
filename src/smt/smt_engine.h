@@ -527,7 +527,12 @@ class CVC4_PUBLIC SmtEngine
    */
   std::vector<Node> getValues(const std::vector<Node>& exprs);
 
-  /** Print all instantiations made by the quantifiers module.  */
+  /** print instantiations
+   *
+   * Print all instantiations for all quantified formulas on out,
+   * returns true if at least one instantiation was printed. The type of output
+   * (list, num, etc.) is determined by printInstMode.
+   */
   void printInstantiations(std::ostream& out);
   /**
    * Print the current proof. This method should be called after an UNSAT
@@ -664,6 +669,12 @@ class CVC4_PUBLIC SmtEngine
    */
   void getInstantiationTermVectors(Node q,
                                    std::vector<std::vector<Node>>& tvecs);
+  /**
+   * As above but only the instantiations that were relevant for the
+   * refutation.
+   */
+  void getRelevantInstantiationTermVectors(
+      std::map<Node, std::vector<std::vector<Node>>>& insts);
   /**
    * Get instantiation term vectors, which maps each instantiated quantified
    * formula to the list of instantiations for that quantified formula. This

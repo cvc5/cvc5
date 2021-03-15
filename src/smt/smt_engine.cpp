@@ -1523,6 +1523,19 @@ UnsatCore SmtEngine::getUnsatCore() {
   return getUnsatCoreInternal();
 }
 
+void SmtEngine::getRelevantInstantiationTermVectors(
+    std::map<Node, std::vector<std::vector<Node>>>& insts)
+{
+  Assert(d_state->getMode() == SmtMode::UNSAT);
+  // generate with new proofs
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
+  std::shared_ptr<ProofNode> pfn = d_pfManager->getFinalProof(
+      pe->getProof(), *d_asserts, *d_definedFunctions);
+  d_ucManager->getRelevantInstantiations(pfn, insts);
+}
+
 std::string SmtEngine::getProof()
 {
   Trace("smt") << "SMT getProof()\n";
@@ -1636,7 +1649,8 @@ void SmtEngine::getInstantiationTermVectors(
   finishInit();
   if (options::proof() && getSmtMode() == SmtMode::UNSAT)
   {
-    // TODO (project #37): minimize instantiations based on proof manager
+    // minimize instantiations based on proof manager
+    getRelevantInstantiationTermVectors(insts);
   }
   else
   {
