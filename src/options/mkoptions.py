@@ -178,7 +178,7 @@ TPL_OPTION_STRUCT_RW = \
 }} thread_local {name} ;"""
 
 TPL_OPTION_STRUCT_RO = \
-"""extern struct  {name}__option_t
+"""extern struct {name}__option_t
 {{
   typedef {type} type;
   type operator()() const;
