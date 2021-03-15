@@ -37,7 +37,7 @@ BagsRewriteResponse::BagsRewriteResponse(const BagsRewriteResponse& r)
 {
 }
 
-BagsRewriter::BagsRewriter(HistogramStat<Rewrite>* statistics)
+BagsRewriter::BagsRewriter(IntegralHistogramStat<Rewrite>* statistics)
     : d_statistics(statistics)
 {
   d_nm = NodeManager::currentNM();

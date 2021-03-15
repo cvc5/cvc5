@@ -35,7 +35,7 @@ class BagsStatistics
   ~BagsStatistics();
 
   /** Counts the number of applications of each type of rewrite rule */
-  HistogramStat<Rewrite> d_rewrites;
+  IntegralHistogramStat<Rewrite> d_rewrites;
 };
 
 }  // namespace bags

@@ -67,29 +67,29 @@ class SequencesStatistics
    * TheoryInferenceManager, i.e.
    * (theory::strings::inferences{Facts,Lemmas,Conflicts}).
    */
-  HistogramStat<InferenceId> d_inferencesNoPf;
+  IntegralHistogramStat<InferenceId> d_inferencesNoPf;
   /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or
    * EXTF_N inferences.
    */
-  HistogramStat<Kind> d_cdSimplifications;
+  IntegralHistogramStat<Kind> d_cdSimplifications;
   /**
    * Counts the number of applications of each type of reduction. The sum of
    * this map is equal to the number of REDUCTION inferences (when
    * options::stringLazyPreproc is true).
    */
-  HistogramStat<Kind> d_reductions;
+  IntegralHistogramStat<Kind> d_reductions;
   /**
    * Counts the number of applications of each type of regular expression
    * positive (resp. negative) unfoldings. The sum of this map is equal to the
    * number of RE_UNFOLD_POS (resp. RE_UNFOLD_NEG) inferences.
    */
-  HistogramStat<Kind> d_regexpUnfoldingsPos;
-  HistogramStat<Kind> d_regexpUnfoldingsNeg;
+  IntegralHistogramStat<Kind> d_regexpUnfoldingsPos;
+  IntegralHistogramStat<Kind> d_regexpUnfoldingsNeg;
   //--------------- end of inferences
   /** Counts the number of applications of each type of rewrite rule */
-  HistogramStat<Rewrite> d_rewrites;
+  IntegralHistogramStat<Rewrite> d_rewrites;
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;
