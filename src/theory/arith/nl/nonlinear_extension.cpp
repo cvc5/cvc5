@@ -324,7 +324,7 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
   std::vector<Node> xts;
   for (const Node& x : xtsAll)
   {
-    if (termSet.find(x)!=termSet.end())
+    if (termSet.find(x) != termSet.end())
     {
       xts.push_back(x);
     }
@@ -507,7 +507,7 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 }
 
 void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
-                                     const std::set<Node>& termSet)
+                                        const std::set<Node>& termSet)
 {
   if (!needsCheckLastEffort())
   {

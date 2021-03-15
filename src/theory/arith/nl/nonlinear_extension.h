@@ -129,7 +129,7 @@ class NonlinearExtension
    * involve e.g. solving for variables in nonlinear equations.
    */
   void interceptModel(std::map<Node, Node>& arithModel,
-                                     const std::set<Node>& termSet);
+                      const std::set<Node>& termSet);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
