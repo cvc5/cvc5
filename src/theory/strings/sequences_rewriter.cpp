@@ -33,7 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(HistogramStat<Rewrite>* statistics)
+SequencesRewriter::SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics)
     : d_statistics(statistics), d_stringsEntail(*this)
 {
 }

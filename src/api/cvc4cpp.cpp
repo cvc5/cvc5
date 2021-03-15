@@ -3121,68 +3121,71 @@ Grammar::Grammar(const Solver* slv,
 
 void Grammar::addRule(const Term& ntSymbol, const Term& rule)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
-  CVC4_API_ARG_CHECK_NOT_NULL(rule);
+  CVC4_API_CHECK_TERM(ntSymbol);
+  CVC4_API_CHECK_TERM(rule);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   CVC4_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
       << "Expected ntSymbol and rule to have the same sort";
-
+  //////// all checks before this line
   d_ntsToTerms[ntSymbol].push_back(rule);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
+  CVC4_API_CHECK_TERMS_WITH_SORT(rules, ntSymbol.getSort());
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
-  for (size_t i = 0, n = rules.size(); i < n; ++i)
-  {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !rules[i].isNull(), "parameter rule", rules[i], i)
-        << "non-null term";
-    CVC4_API_CHECK(ntSymbol.d_node->getType() == rules[i].d_node->getType())
-        << "Expected ntSymbol and rule at index " << i
-        << " to have the same sort";
-  }
-
+  //////// all checks before this line
   d_ntsToTerms[ntSymbol].insert(
       d_ntsToTerms[ntSymbol].cend(), rules.cbegin(), rules.cend());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addAnyConstant(const Term& ntSymbol)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
+  //////// all checks before this line
   d_allowConst.insert(ntSymbol);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addAnyVariable(const Term& ntSymbol)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
+  //////// all checks before this line
   d_allowVars.insert(ntSymbol);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -3217,6 +3220,8 @@ std::string join(Iterator first, Iterator last, Function f, std::string sep)
 
 std::string Grammar::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << "  ("  // pre-declaration
      << join(
@@ -3255,10 +3260,15 @@ std::string Grammar::toString() const
      << ')';
 
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Grammar::resolve()
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+
   d_isResolved = true;
 
   Term bvl;
@@ -3323,6 +3333,8 @@ Sort Grammar::resolve()
 
   // return is the first datatype
   return Sort(d_solver, datatypeTypes[0]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addSygusConstructorTerm(
@@ -3330,6 +3342,12 @@ void Grammar::addSygusConstructorTerm(
     const Term& term,
     const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_DTDECL(dt);
+  CVC4_API_CHECK_TERM(term);
+  CVC4_API_CHECK_TERMS_MAP(ntsToUnres);
+  //////// all checks before this line
+
   // At this point, we should know that dt is well founded, and that its
   // builtin sygus operators are well-typed.
   // Now, purify each occurrence of a non-terminal symbol in term, replace by
@@ -3356,6 +3374,8 @@ void Grammar::addSygusConstructorTerm(
   }
   std::vector<TypeNode> cargst = Sort::sortVectorToTypeNodes(cargs);
   dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Grammar::purifySygusGTerm(
@@ -3364,6 +3384,13 @@ Term Grammar::purifySygusGTerm(
     std::vector<Sort>& cargs,
     const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_TERM(term);
+  CVC4_API_CHECK_TERMS(args);
+  CVC4_API_CHECK_SORTS(cargs);
+  CVC4_API_CHECK_TERMS_MAP(ntsToUnres);
+  //////// all checks before this line
+
   std::unordered_map<Term, Sort, TermHashFunction>::const_iterator itn =
       ntsToUnres.find(term);
   if (itn != ntsToUnres.cend())
@@ -3406,12 +3433,18 @@ Term Grammar::purifySygusGTerm(
   }
 
   return Term(d_solver, nret);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
                                            const Sort& sort) const
 {
-  Assert(!sort.isNull());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_DTDECL(dt);
+  CVC4_API_CHECK_SORT(sort);
+  //////// all checks before this line
+
   // each variable of appropriate type becomes a sygus constructor in dt.
   for (unsigned i = 0, size = d_sygusVars.size(); i < size; i++)
   {
@@ -3424,6 +3457,8 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
       dt.d_dtype->addSygusConstructor(*v.d_node, ss.str(), cargs);
     }
   }
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& g)
