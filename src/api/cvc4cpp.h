@@ -1412,6 +1412,11 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   void addSelectorSelf(const std::string& name);
 
   /**
+   * @return true if this DatatypeConstructorDecl is a null declaration.
+   */
+  bool isNull() const;
+
+  /**
    * @return a string representation of this datatype constructor declaration
    */
   std::string toString() const;
@@ -1424,6 +1429,12 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * @return the DatatypeConstructorDecl
    */
   DatatypeConstructorDecl(const Solver* slv, const std::string& name);
+
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
 
   /**
    * The associated solver object.
@@ -1577,6 +1588,11 @@ class CVC4_PUBLIC DatatypeSelector
   Sort getRangeSort() const;
 
   /**
+   * @return true if this DatatypeSelector is a null object
+   */
+  bool isNull() const;
+
+  /**
    * @return a string representation of this datatype selector
    */
   std::string toString() const;
@@ -1589,6 +1605,12 @@ class CVC4_PUBLIC DatatypeSelector
    * @return the DatatypeSelector
    */
   DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
+
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
 
   /**
    * The associated solver object.
@@ -1687,6 +1709,11 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return a term representing the datatype selector with the given name
    */
   Term getSelectorTerm(const std::string& name) const;
+
+  /**
+   * @return true if this DatatypeConstructor is a null object
+   */
+  bool isNull() const;
 
   /**
    * @return a string representation of this datatype constructor
@@ -1806,6 +1833,12 @@ class CVC4_PUBLIC DatatypeConstructor
   DatatypeSelector getSelectorForName(const std::string& name) const;
 
   /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
+
+  /**
    * The associated solver object.
    */
   const Solver* d_solver;
@@ -1900,6 +1933,11 @@ class CVC4_PUBLIC Datatype
    * @return true if this datatype has nested recursion
    */
   bool hasNestedRecursion() const;
+
+  /**
+   * @return true if this Datatype is a null object
+   */
+  bool isNull() const;
 
   /**
    * @return a string representation of this datatype
@@ -2014,6 +2052,12 @@ class CVC4_PUBLIC Datatype
    * @return the constructor object for the name
    */
   DatatypeConstructor getConstructorForName(const std::string& name) const;
+
+  /**
+   * Helper for isNull checks. This prevents calling an API function with
+   * CVC4_API_CHECK_NOT_NULL
+   */
+  bool isNullHelper() const;
 
   /**
    * The associated solver object.

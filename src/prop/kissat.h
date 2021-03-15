@@ -22,6 +22,7 @@
 #ifdef CVC4_USE_KISSAT
 
 #include "prop/sat_solver.h"
+#include "util/stats_timer.h"
 
 extern "C" {
 #include <kissat/kissat.h>

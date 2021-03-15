@@ -931,17 +931,22 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::WITNESS:
   {
     out << smtKindString(k, d_variant) << " ";
-    toStream(out, n[0], toDepth, lbind);
+    // do not letify the bound variable list
+    toStream(out, n[0], toDepth, nullptr);
     out << " ";
     if (n.getNumChildren() == 3)
     {
       out << "(! ";
     }
-    toStreamWithLetify(out, n[1], toDepth - 1, lbind);
+    // Use a fresh let binder, since using existing let symbols may violate
+    // scoping issues for let-bound variables, see explanation in let_binding.h.
+    size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
+    toStream(out, n[1], toDepth - 1, dag);
     if (n.getNumChildren() == 3)
     {
       out << " ";
-      toStream(out, n[2], toDepth, lbind);
+      // do not letify the annotation
+      toStream(out, n[2], toDepth, nullptr);
       out << ")";
     }
     out << ")";
