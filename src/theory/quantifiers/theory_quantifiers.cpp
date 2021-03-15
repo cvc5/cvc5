@@ -50,7 +50,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
       d_qengine(d_qstate, d_qreg, d_treg, d_qim, pnm)
 {
   // Finish initializing the term registry by hooking it up to the inference
-  // manager. This is require due to a cyclic dependency between the term
+  // manager. This is required due to a cyclic dependency between the term
   // database and the instantiate module. Term database needs inference manager
   // since it sends out lemmas when term indexing is inconsistent, instantiate
   // needs term database for entailment checks.
