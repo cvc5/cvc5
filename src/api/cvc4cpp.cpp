@@ -2189,6 +2189,209 @@ std::vector<Node> Term::termVectorToNodes(const std::vector<Term>& terms)
   return res;
 }
 
+bool Term::isTuple() const
+{
+  return d_node->getKind() == CVC4::Kind::APPLY_CONSTRUCTOR;
+}
+bool Term::isTrue() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_BOOLEAN
+         && d_node->getConst<bool>();
+}
+bool Term::isFalse() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_BOOLEAN
+         && !d_node->getConst<bool>();
+}
+bool Term::isBoolean() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_BOOLEAN;
+}
+bool Term::getBoolean() const
+{
+  CVC4_API_CHECK(isBoolean())
+      << "Term should be a Boolean when calling getBoolean()";
+  return d_node->getConst<bool>();
+}
+bool Term::isPi() const { return d_node->getKind() == CVC4::Kind::PI; }
+
+namespace {
+bool isInteger(const CVC4::Node& node)
+{
+  return node.getKind() == CVC4::Kind::CONST_RATIONAL
+         && node.getConst<Rational>().isIntegral();
+}
+Integer getInteger(const CVC4::Node& node)
+{
+  CVC4_API_CHECK(isInteger(node))
+      << "Term should be a integer when calling getInteger()";
+  return node.getConst<Rational>().getNumerator();
+}
+template <typename T>
+bool checkIntegerBounds(const CVC4::Node& node)
+{
+  const Integer& i = getInteger(node);
+  return i >= std::numeric_limits<T>::min()
+         && i <= std::numeric_limits<T>::max();
+}
+}  // namespace
+
+bool Term::isValueReal() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_RATIONAL;
+}
+
+bool Term::isRegexpEmpty() const
+{
+  return d_node->getKind() == CVC4::Kind::REGEXP_EMPTY;
+}
+bool Term::isRegexpSigma() const
+{
+  return d_node->getKind() == CVC4::Kind::REGEXP_SIGMA;
+}
+bool Term::isEmptySet() const
+{
+  return d_node->getKind() == CVC4::Kind::EMPTYSET;
+}
+bool Term::isEmptyBag() const
+{
+  return d_node->getKind() == CVC4::Kind::EMPTYBAG;
+}
+
+bool Term::isSepNil() const { return d_node->getKind() == CVC4::Kind::SEP_NIL; }
+
+bool Term::isChar() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_STRING
+         && d_node->getConst<String>().getVec().size() == 1;
+}
+std::string Term::getChar() const
+{
+  CVC4_API_CHECK(isChar()) << "Term should be a Char when calling getChar()";
+  unsigned codePoint = d_node->getConst<String>().getVec()[0];
+  const char* digits = "0123456789ABCDEF";
+  std::string res;
+  for (; codePoint > 0; codePoint /= 16)
+  {
+    res += digits[codePoint % 16];
+  }
+  std::reverse(res.begin(), res.end());
+  return res;
+}
+bool Term::isEmptySequence() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_SEQUENCE
+         && d_node->getConst<Sequence>().empty();
+}
+bool Term::isUniverseSet() const
+{
+  return d_node->getKind() == CVC4::Kind::UNIVERSE_SET;
+}
+bool Term::isBitVector() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_BITVECTOR;
+}
+std::string Term::getBitVector(std::uint32_t base) const
+{
+  CVC4_API_CHECK(isBitVector())
+      << "Term should be a BitVector when calling getBitVector()";
+  return d_node->getConst<BitVector>().toString(base);
+}
+
+bool Term::isConstArray() const
+{
+  return d_node->getKind() == CVC4::Kind::STORE_ALL;
+}
+Term Term::getConstArray() const
+{
+  CVC4_API_CHECK(isConstArray())
+      << "Term should be a ConstArray when calling getConstArray()";
+  const auto& ar = d_node->getConst<ArrayStoreAll>();
+  return Term(d_solver, ar.getValue());
+}
+bool Term::isPosInf() const
+{
+  if (d_node->getKind() == CVC4::Kind::CONST_FLOATINGPOINT)
+  {
+    const auto& fp = d_node->getConst<FloatingPoint>();
+    return fp.isInfinite() && fp.isPositive();
+  }
+  return false;
+}
+bool Term::isNegInf() const
+{
+  if (d_node->getKind() == CVC4::Kind::CONST_FLOATINGPOINT)
+  {
+    const auto& fp = d_node->getConst<FloatingPoint>();
+    return fp.isInfinite() && fp.isNegative();
+  }
+  return false;
+}
+bool Term::isNaN() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_FLOATINGPOINT
+         && d_node->getConst<FloatingPoint>().isNaN();
+}
+bool Term::isPosZero() const
+{
+  if (d_node->getKind() == CVC4::Kind::CONST_FLOATINGPOINT)
+  {
+    const auto& fp = d_node->getConst<FloatingPoint>();
+    return fp.isZero() && fp.isPositive();
+  }
+  return false;
+}
+bool Term::isNegZero() const
+{
+  if (d_node->getKind() == CVC4::Kind::CONST_FLOATINGPOINT)
+  {
+    const auto& fp = d_node->getConst<FloatingPoint>();
+    return fp.isZero() && fp.isNegative();
+  }
+  return false;
+}
+bool Term::isRoundingMode() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_ROUNDINGMODE;
+}
+bool Term::isUninterpretedConst() const
+{
+  return d_node->getKind() == CVC4::Kind::UNINTERPRETED_CONSTANT;
+}
+std::pair<Sort, std::int32_t> Term::getUninterpretedConst() const
+{
+  CVC4_API_CHECK(isUninterpretedConst())
+      << "Term should be a UninterpretedConst when calling "
+         "getUninterpretedConst()";
+  const auto& uc = d_node->getConst<UninterpretedConstant>();
+  return std::make_pair(Sort(d_solver, uc.getType()),
+                        uc.getIndex().toUnsignedInt());
+}
+bool Term::isAbstractValue() const
+{
+  return d_node->getKind() == CVC4::Kind::ABSTRACT_VALUE;
+}
+std::string Term::getAbstractValue() const
+{
+  CVC4_API_CHECK(isAbstractValue())
+      << "Term should be a AbstractValue when calling "
+         "getAbstractValue()";
+  return d_node->getConst<AbstractValue>().getIndex().toString();
+}
+bool Term::isFloatingPoint() const
+{
+  return d_node->getKind() == CVC4::Kind::CONST_FLOATINGPOINT;
+}
+std::tuple<std::uint32_t, std::uint32_t, Term> Term::getFloatingPoint() const
+{
+  CVC4_API_CHECK(isFloatingPoint())
+      << "Term should be a FloatingPoint when calling getFloatingPoint()";
+  const auto& fp = d_node->getConst<FloatingPoint>();
+  return std::make_tuple(fp.d_fp_size.exponentWidth(),
+                         fp.d_fp_size.significandWidth(),
+                         d_solver->mkValHelper<BitVector>(fp.pack()));
+}
+
 std::ostream& operator<<(std::ostream& out, const Term& t)
 {
   out << t.toString();

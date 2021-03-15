@@ -1243,6 +1243,64 @@ class CVC4_PUBLIC Term
    */
   std::wstring getString() const;
 
+  // mkTuple
+  bool isTuple() const;
+  // mkTrue
+  bool isTrue() const;
+  // mkFalse
+  bool isFalse() const;
+  // mkBoolean
+  bool isBoolean() const;
+  bool getBoolean() const;
+  // mkPi
+  bool isPi() const;
+  // mkReal
+  bool isValueReal() const;
+  // mkRegexpEmpty
+  bool isRegexpEmpty() const;
+  // mkRegexpSigma
+  bool isRegexpSigma() const;
+  // mkEmptySet
+  bool isEmptySet() const;
+  // mkEmptyBag
+  bool isEmptyBag() const;
+  // mkSepNil
+  bool isSepNil() const;
+  // mkChar
+  bool isChar() const;
+  std::string getChar() const;
+  // mkEmptySequence
+  bool isEmptySequence() const;
+  // mkUniverseSet
+  bool isUniverseSet() const;
+  // mkBitVector
+  bool isBitVector() const;
+  std::string getBitVector(std::uint32_t base = 2) const;
+  // mkConstArray
+  bool isConstArray() const;
+  Term getConstArray() const;
+  // mkPosInf
+  bool isPosInf() const;
+  // mkNegInf
+  bool isNegInf() const;
+  // mkNaN
+  bool isNaN() const;
+  // mkPosZero
+  bool isPosZero() const;
+  // mkNegZero
+  bool isNegZero() const;
+  // mkRoundingMode
+  bool isRoundingMode() const;
+  // mkUninterpretedConst
+  bool isUninterpretedConst() const;
+  std::pair<Sort, std::int32_t> getUninterpretedConst() const;
+  // mkAbstractValue
+  bool isAbstractValue() const;
+  std::string getAbstractValue() const;
+  // mkFloatingPoint
+  bool isFloatingPoint() const;
+  std::tuple<std::uint32_t, std::uint32_t, Term> getFloatingPoint() const;
+
  protected:
   /**
    * The associated solver object.
