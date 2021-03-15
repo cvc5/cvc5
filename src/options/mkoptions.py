@@ -168,7 +168,7 @@ TPL_HOLDER_MACRO_ATTR += "  bool {name}__setByUser__;"
 
 
 TPL_OPTION_STRUCT_RW = \
-"""extern struct  {name}__option_t
+"""extern struct {name}__option_t
 {{
   typedef {type} type;
   type operator()() const;
