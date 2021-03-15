@@ -173,7 +173,7 @@ namespace api {
 /**
  * Sort check for member functions of classes other than class Solver.
  * Check if given sort is not null and associated with the solver object this
- * Sort object is associated with.
+ * object is associated with.
  */
 #define CVC4_API_CHECK_SORT(sort)            \
   do                                         \
@@ -185,7 +185,7 @@ namespace api {
 /**
  * Sort check for member functions of classes other than class Solver.
  * Check if each sort in the given container of sorts is not null and
- * associated with the solver object this Sort object is associated with.
+ * associated with the solver object this object is associated with.
  */
 #define CVC4_API_CHECK_SORTS(sorts)                                            \
   do                                                                           \
@@ -199,6 +199,130 @@ namespace api {
           << "a sort associated with the solver this sort is associated with"; \
       i += 1;                                                                  \
     }                                                                          \
+  } while (0)
+
+/* -------------------------------------------------------------------------- */
+/* Term checks.                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Term check for member functions of classes other than class Solver.
+ * Check if given term is not null and associated with the solver object this
+ * object is associated with.
+ */
+#define CVC4_API_CHECK_TERM(term)            \
+  do                                         \
+  {                                          \
+    CVC4_API_ARG_CHECK_NOT_NULL(term);       \
+    CVC4_API_ARG_CHECK_SOLVER("term", term); \
+  } while (0)
+
+/**
+ * Term check for member functions of classes other than class Solver.
+ * Check if each term in the given container of terms is not null and
+ * associated with the solver object this object is associated with.
+ */
+#define CVC4_API_CHECK_TERMS(terms)                                            \
+  do                                                                           \
+  {                                                                            \
+    size_t i = 0;                                                              \
+    for (const auto& s : terms)                                                \
+    {                                                                          \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", s, terms, i);               \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
+          this->d_solver == s.d_solver, "term", terms, i)                      \
+          << "a term associated with the solver this term is associated with"; \
+      i += 1;                                                                  \
+    }                                                                          \
+  } while (0)
+
+/**
+ * Term check for member functions of classes other than class Solver.
+ * Check if each term and sort in the given map (which maps terms to sorts) is
+ * not null and associated with the solver object this object is associated
+ * with.
+ */
+#define CVC4_API_CHECK_TERMS_MAP(map)                                 \
+  do                                                                  \
+  {                                                                   \
+    size_t i = 0;                                                     \
+    for (const auto& p : map)                                         \
+    {                                                                 \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", p.first, map, i);  \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                           \
+          this->d_solver == p.first.d_solver, "term", map, i)         \
+          << "a term associated with this solver object";             \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", p.second, map, i); \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                           \
+          this->d_solver == p.second.d_solver, "sort", map, i)        \
+          << "a sort associated with this solver object";             \
+      i += 1;                                                         \
+    }                                                                 \
+  } while (0)
+
+/**
+ * Term check for member functions of classes other than class Solver.
+ * Check if each term in the given container is not null, associated with the
+ * solver object this object is associated with, and of the given sort.
+ */
+#define CVC4_API_CHECK_TERMS_WITH_SORT(terms, sort)                            \
+  do                                                                           \
+  {                                                                            \
+    size_t i = 0;                                                              \
+    for (const auto& t : terms)                                                \
+    {                                                                          \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t, terms, i);               \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
+          this->d_solver == t.d_solver, "term", terms, i)                      \
+          << "a term associated with this solver object";                      \
+      CVC4_API_CHECK(t.getSort() == sort)                                      \
+          << "Expected term with sort " << sort << " at index " << i << " in " \
+          << #terms;                                                           \
+      i += 1;                                                                  \
+    }                                                                          \
+  } while (0)
+
+/**
+ * Term check for member functions of classes other than class Solver.
+ * Check if each term in both the given container is not null, associated with
+ * the solver object this object is associated with, and their sorts are
+ * pairwise comparable to.
+ */
+#define CVC4_API_TERM_CHECK_TERMS_WITH_TERMS_COMPARABLE_TO(terms1, terms2)     \
+  do                                                                           \
+  {                                                                            \
+    size_t i = 0;                                                              \
+    for (const auto& t1 : terms1)                                              \
+    {                                                                          \
+      const auto& t2 = terms2[i];                                              \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t1, terms1, i);             \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
+          this->d_solver == t1.d_solver, "term", terms1, i)                    \
+          << "a term associated with the solver this term is associated with"; \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t2, terms2, i);             \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
+          this->d_solver == t2.d_solver, "term", terms2, i)                    \
+          << "a term associated with the solver this term is associated with"; \
+      CVC4_API_CHECK(t1.getSort().isComparableTo(t2.getSort()))                \
+          << "Expecting terms of comparable sort at index " << i;              \
+      i += 1;                                                                  \
+    }                                                                          \
+  } while (0)
+
+/* -------------------------------------------------------------------------- */
+/* DatatypeDecl checks.                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * DatatypeDecl check for member functions of classes other than class Solver.
+ * Check if given datatype declaration is not null and associated with the
+ * solver object this DatatypeDecl object is associated with.
+ */
+#define CVC4_API_CHECK_DTDECL(decl)                          \
+  do                                                         \
+  {                                                          \
+    CVC4_API_ARG_CHECK_NOT_NULL(decl);                       \
+    CVC4_API_ARG_CHECK_SOLVER("datatype declaration", decl); \
   } while (0)
 
 /* -------------------------------------------------------------------------- */

@@ -1654,72 +1654,66 @@ Term::~Term()
   }
 }
 
-bool Term::isNullHelper() const
+bool Term::operator==(const Term& t) const
 {
-  /* Split out to avoid nested API calls (problematic with API tracing). */
-  return d_node->isNull();
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_node == *t.d_node;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-Kind Term::getKindHelper() const
+bool Term::operator!=(const Term& t) const
 {
-  // Sequence kinds do not exist internally, so we must convert their internal
-  // (string) versions back to sequence. All operators where this is
-  // necessary are such that their first child is of sequence type, which
-  // we check here.
-  if (d_node->getNumChildren() > 0 && (*d_node)[0].getType().isSequence())
-  {
-    switch (d_node->getKind())
-    {
-      case CVC4::Kind::STRING_CONCAT: return SEQ_CONCAT;
-      case CVC4::Kind::STRING_LENGTH: return SEQ_LENGTH;
-      case CVC4::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
-      case CVC4::Kind::STRING_UPDATE: return SEQ_UPDATE;
-      case CVC4::Kind::STRING_CHARAT: return SEQ_AT;
-      case CVC4::Kind::STRING_STRCTN: return SEQ_CONTAINS;
-      case CVC4::Kind::STRING_STRIDOF: return SEQ_INDEXOF;
-      case CVC4::Kind::STRING_STRREPL: return SEQ_REPLACE;
-      case CVC4::Kind::STRING_STRREPLALL: return SEQ_REPLACE_ALL;
-      case CVC4::Kind::STRING_REV: return SEQ_REV;
-      case CVC4::Kind::STRING_PREFIX: return SEQ_PREFIX;
-      case CVC4::Kind::STRING_SUFFIX: return SEQ_SUFFIX;
-      default:
-        // fall through to conversion below
-        break;
-    }
-  }
-  // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
-  // INTERNAL_KIND.
-  if(isCastedReal())
-  {
-    return CONST_RATIONAL;
-  }
-  return intToExtKind(d_node->getKind());
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_node != *t.d_node;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Term::isCastedReal() const
+bool Term::operator<(const Term& t) const
 {
-  if(d_node->getKind() == kind::CAST_TO_REAL)
-  {
-    return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
-  }
-  return false;
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_node < *t.d_node;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Term::operator==(const Term& t) const { return *d_node == *t.d_node; }
+bool Term::operator>(const Term& t) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_node > *t.d_node;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Term::operator!=(const Term& t) const { return *d_node != *t.d_node; }
+bool Term::operator<=(const Term& t) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_node <= *t.d_node;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Term::operator<(const Term& t) const { return *d_node < *t.d_node; }
-
-bool Term::operator>(const Term& t) const { return *d_node > *t.d_node; }
-
-bool Term::operator<=(const Term& t) const { return *d_node <= *t.d_node; }
-
-bool Term::operator>=(const Term& t) const { return *d_node >= *t.d_node; }
+bool Term::operator>=(const Term& t) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_node >= *t.d_node;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 size_t Term::getNumChildren() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+
   // special case for apply kinds
   if (isApplyKind(d_node->getKind()))
   {
@@ -1730,99 +1724,121 @@ size_t Term::getNumChildren() const
     return 0;
   }
   return d_node->getNumChildren();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::operator[](size_t index) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-
-  // check the index within the number of children
   CVC4_API_CHECK(index < getNumChildren()) << "index out of bound";
+  CVC4_API_CHECK(!isApplyKind(d_node->getKind()) || d_node->hasOperator())
+      << "Expected apply kind to have operator when accessing child of Term";
+  //////// all checks before this line
 
   // special cases for apply kinds
   if (isApplyKind(d_node->getKind()))
   {
-    CVC4_API_CHECK(d_node->hasOperator())
-        << "Expected apply kind to have operator when accessing child of Term";
-    if (index == 0)
+    if(index == 0)
     {
-      // return the operator
-      return Term(d_solver, d_node->getOperator());
+    // return the operator
+    return Term(d_solver, d_node->getOperator());
     }
-    // otherwise we are looking up child at (index-1)
-    index--;
+    else
+    {
+      index -= 1;
+    }
   }
+  // otherwise we are looking up child at (index-1)
   return Term(d_solver, (*d_node)[index]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 uint64_t Term::getId() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_node->getId();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Kind Term::getKind() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getKindHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Term::getSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   NodeManagerScope scope(d_solver->getNodeManager());
+  //////// all checks before this line
   return Sort(d_solver, d_node->getType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-Term Term::substitute(const Term& e, const Term& replacement) const
+Term Term::substitute(const Term& term, const Term& replacement) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(!e.isNull())
-      << "Expected non-null term to replace in substitute";
-  CVC4_API_CHECK(!replacement.isNull())
-      << "Expected non-null term as replacement in substitute";
-  CVC4_API_CHECK(e.getSort().isComparableTo(replacement.getSort()))
+  CVC4_API_CHECK_TERM(term);
+  CVC4_API_CHECK_TERM(replacement);
+  CVC4_API_CHECK(term.getSort().isComparableTo(replacement.getSort()))
       << "Expecting terms of comparable sort in substitute";
+  //////// all checks before this line
   return Term(d_solver,
-              d_node->substitute(TNode(*e.d_node), TNode(*replacement.d_node)));
+              d_node->substitute(TNode(*term.d_node), TNode(*replacement.d_node)));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-Term Term::substitute(const std::vector<Term>& es,
+Term Term::substitute(const std::vector<Term>& terms,
                       const std::vector<Term>& replacements) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_CHECK(es.size() == replacements.size())
+  CVC4_API_CHECK(terms.size() == replacements.size())
       << "Expecting vectors of the same arity in substitute";
-  for (unsigned i = 0, nterms = es.size(); i < nterms; i++)
-  {
-    CVC4_API_CHECK(!es[i].isNull())
-        << "Expected non-null term to replace in substitute";
-    CVC4_API_CHECK(!replacements[i].isNull())
-        << "Expected non-null term as replacement in substitute";
-    CVC4_API_CHECK(es[i].getSort().isComparableTo(replacements[i].getSort()))
-        << "Expecting terms of comparable sort in substitute";
-  }
-
-  std::vector<Node> nodes = Term::termVectorToNodes(es);
+  CVC4_API_TERM_CHECK_TERMS_WITH_TERMS_COMPARABLE_TO(terms, replacements);
+  //////// all checks before this line
+  std::vector<Node> nodes = Term::termVectorToNodes(terms);
   std::vector<Node> nodeReplacements = Term::termVectorToNodes(replacements);
   return Term(d_solver,
               d_node->substitute(nodes.begin(),
                                  nodes.end(),
                                  nodeReplacements.begin(),
                                  nodeReplacements.end()));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Term::hasOp() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_node->hasOperator();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Op Term::getOp() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(d_node->hasOperator())
       << "Expecting Term to have an Op when calling getOp()";
+  //////// all checks before this line
 
   // special cases for parameterized operators that are not indexed operators
   // the API level differs from the internal structure
@@ -1843,26 +1859,41 @@ Op Term::getOp() const
   // Notice this is the only case where getKindHelper is used, since the
   // cases above do not have special cases for intToExtKind.
   return Op(d_solver, getKindHelper());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Term::isNull() const { return isNullHelper(); }
+bool Term::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Term Term::getConstArrayBase() const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   // CONST_ARRAY kind maps to STORE_ALL internal kind
   CVC4_API_CHECK(d_node->getKind() == CVC4::Kind::STORE_ALL)
       << "Expecting a CONST_ARRAY Term when calling getConstArrayBase()";
+  //////// all checks before this line
   return Term(d_solver, d_node->getConst<ArrayStoreAll>().getValue());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Term> Term::getConstSequenceElements() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(d_node->getKind() == CVC4::Kind::CONST_SEQUENCE)
       << "Expecting a CONST_SEQUENCE Term when calling "
          "getConstSequenceElements()";
+  //////// all checks before this line
   const std::vector<Node>& elems = d_node->getConst<Sequence>().getVec();
   std::vector<Term> terms;
   for (const Node& t : elems)
@@ -1870,128 +1901,113 @@ std::vector<Term> Term::getConstSequenceElements() const
     terms.push_back(Term(d_solver, t));
   }
   return terms;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::notTerm() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  try
-  {
-    Node res = d_node->notNode();
-    (void)res.getType(true); /* kick off type checking */
-    return Term(d_solver, res);
-  }
-  catch (const CVC4::TypeCheckingExceptionPrivate& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
+  //////// all checks before this line
+  Node res = d_node->notNode();
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_solver, res);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::andTerm(const Term& t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_ARG_CHECK_NOT_NULL(t);
-  try
-  {
-    Node res = d_node->andNode(*t.d_node);
-    (void)res.getType(true); /* kick off type checking */
-    return Term(d_solver, res);
-  }
-  catch (const CVC4::TypeCheckingExceptionPrivate& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
+  CVC4_API_CHECK_TERM(t);
+  //////// all checks before this line
+  Node res = d_node->andNode(*t.d_node);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_solver, res);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::orTerm(const Term& t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_ARG_CHECK_NOT_NULL(t);
-  try
-  {
-    Node res = d_node->orNode(*t.d_node);
-    (void)res.getType(true); /* kick off type checking */
-    return Term(d_solver, res);
-  }
-  catch (const CVC4::TypeCheckingExceptionPrivate& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
+  CVC4_API_CHECK_TERM(t);
+  //////// all checks before this line
+  Node res = d_node->orNode(*t.d_node);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_solver, res);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::xorTerm(const Term& t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_ARG_CHECK_NOT_NULL(t);
-  try
-  {
-    Node res = d_node->xorNode(*t.d_node);
-    (void)res.getType(true); /* kick off type checking */
-    return Term(d_solver, res);
-  }
-  catch (const CVC4::TypeCheckingExceptionPrivate& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
+  CVC4_API_CHECK_TERM(t);
+  //////// all checks before this line
+  Node res = d_node->xorNode(*t.d_node);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_solver, res);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::eqTerm(const Term& t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_ARG_CHECK_NOT_NULL(t);
-  try
-  {
-    Node res = d_node->eqNode(*t.d_node);
-    (void)res.getType(true); /* kick off type checking */
-    return Term(d_solver, res);
-  }
-  catch (const CVC4::TypeCheckingExceptionPrivate& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
+  CVC4_API_CHECK_TERM(t);
+  //////// all checks before this line
+  Node res = d_node->eqNode(*t.d_node);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_solver, res);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::impTerm(const Term& t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_ARG_CHECK_NOT_NULL(t);
-  try
-  {
-    Node res = d_node->impNode(*t.d_node);
-    (void)res.getType(true); /* kick off type checking */
-    return Term(d_solver, res);
-  }
-  catch (const CVC4::TypeCheckingExceptionPrivate& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
+  CVC4_API_CHECK_TERM(t);
+  //////// all checks before this line
+  Node res = d_node->impNode(*t.d_node);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_solver, res);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
-  CVC4_API_ARG_CHECK_NOT_NULL(then_t);
-  CVC4_API_ARG_CHECK_NOT_NULL(else_t);
-  try
-  {
-    Node res = d_node->iteNode(*then_t.d_node, *else_t.d_node);
-    (void)res.getType(true); /* kick off type checking */
-    return Term(d_solver, res);
-  }
-  catch (const CVC4::TypeCheckingExceptionPrivate& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
+  CVC4_API_CHECK_TERM(then_t);
+  CVC4_API_CHECK_TERM(else_t);
+  //////// all checks before this line
+  Node res = d_node->iteNode(*then_t.d_node, *else_t.d_node);
+  (void)res.getType(true); /* kick off type checking */
+  return Term(d_solver, res);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string Term::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_solver != nullptr)
   {
     NodeManagerScope scope(d_solver->getNodeManager());
     return d_node->toString();
   }
   return d_node->toString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term::const_iterator::const_iterator()
@@ -2156,52 +2172,109 @@ bool isUInt64(const Node& node)
 }
 }  // namespace detail
 
-bool Term::isInt32() const { return detail::isInt32(*d_node); }
+bool Term::isInt32() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isInt32(*d_node);
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
 std::int32_t Term::getInt32() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(detail::isInt32(*d_node))
       << "Term should be a Int32 when calling getInt32()";
+  //////// all checks before this line
   return detail::getInteger(*d_node).getSignedInt();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
+
 bool Term::isUInt32() const { return detail::isUInt32(*d_node); }
 std::uint32_t Term::getUInt32() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(detail::isUInt32(*d_node))
       << "Term should be a UInt32 when calling getUInt32()";
+  //////// all checks before this line
   return detail::getInteger(*d_node).getUnsignedInt();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
+
 bool Term::isInt64() const { return detail::isInt64(*d_node); }
 std::int64_t Term::getInt64() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(detail::isInt64(*d_node))
       << "Term should be a Int64 when calling getInt64()";
+  //////// all checks before this line
   return detail::getInteger(*d_node).getLong();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
-bool Term::isUInt64() const { return detail::isUInt64(*d_node); }
+
+bool Term::isUInt64() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return detail::isUInt64(*d_node);
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
 std::uint64_t Term::getUInt64() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(detail::isUInt64(*d_node))
       << "Term should be a UInt64 when calling getUInt64()";
+  //////// all checks before this line
   return detail::getInteger(*d_node).getUnsignedLong();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
+
 bool Term::isInteger() const { return detail::isInteger(*d_node); }
 std::string Term::getInteger() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(detail::isInteger(*d_node))
       << "Term should be an Int when calling getIntString()";
+  //////// all checks before this line
   return detail::getInteger(*d_node).toString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Term::isString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_node->getKind() == CVC4::Kind::CONST_STRING;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::wstring Term::getString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(d_node->getKind() == CVC4::Kind::CONST_STRING)
       << "Term should be a String when calling getString()";
+  //////// all checks before this line
   return d_node->getConst<CVC4::String>().toWString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Node> Term::termVectorToNodes(const std::vector<Term>& terms)
@@ -2259,6 +2332,63 @@ std::ostream& operator<<(
 size_t TermHashFunction::operator()(const Term& t) const
 {
   return NodeHashFunction()(*t.d_node);
+}
+
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Term::isNullHelper() const
+{
+  /* Split out to avoid nested API calls (problematic with API tracing). */
+  return d_node->isNull();
+}
+
+Kind Term::getKindHelper() const
+{
+  /* Sequence kinds do not exist internally, so we must convert their internal
+   * (string) versions back to sequence. All operators where this is
+   * necessary are such that their first child is of sequence type, which
+   * we check here. */
+  if (d_node->getNumChildren() > 0 && (*d_node)[0].getType().isSequence())
+  {
+    switch (d_node->getKind())
+    {
+      case CVC4::Kind::STRING_CONCAT: return SEQ_CONCAT;
+      case CVC4::Kind::STRING_LENGTH: return SEQ_LENGTH;
+      case CVC4::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
+      case CVC4::Kind::STRING_UPDATE: return SEQ_UPDATE;
+      case CVC4::Kind::STRING_CHARAT: return SEQ_AT;
+      case CVC4::Kind::STRING_STRCTN: return SEQ_CONTAINS;
+      case CVC4::Kind::STRING_STRIDOF: return SEQ_INDEXOF;
+      case CVC4::Kind::STRING_STRREPL: return SEQ_REPLACE;
+      case CVC4::Kind::STRING_STRREPLALL: return SEQ_REPLACE_ALL;
+      case CVC4::Kind::STRING_REV: return SEQ_REV;
+      case CVC4::Kind::STRING_PREFIX: return SEQ_PREFIX;
+      case CVC4::Kind::STRING_SUFFIX: return SEQ_SUFFIX;
+      default:
+        // fall through to conversion below
+        break;
+    }
+  }
+  // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
+  // INTERNAL_KIND.
+  if (isCastedReal())
+  {
+    return CONST_RATIONAL;
+  }
+  return intToExtKind(d_node->getKind());
+}
+
+bool Term::isCastedReal() const
+{
+  if (d_node->getKind() == kind::CAST_TO_REAL)
+  {
+    return (*d_node)[0].isConst() && (*d_node)[0].getType().isInteger();
+  }
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */
