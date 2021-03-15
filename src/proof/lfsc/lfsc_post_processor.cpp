@@ -284,6 +284,30 @@ bool LfscProofPostprocessCallback::update(Node res,
       }
     }
     break;
+    case PfRule::ARITH_SUM_UB:
+    {
+      // proof of null terminator base 0 = 0
+      Node zero = LfscTermProcessor::getNullTerminator(PLUS);
+      Node cur = zero.eqNode(zero);
+      cdp->addStep(cur, PfRule::REFL, {}, {zero});
+      for (size_t i = 0, size = children.size(); i < size; i++)
+      {
+        size_t ii = (children.size()-1)-i;
+        std::vector<Node> newChildren{children[ii], cur};
+        if (ii==0)
+        {
+          // final rule must be the real conclusion
+          addLfscRule(cdp, res, newChildren, LfscRule::ARITH_SUM_UB, {});
+        }
+        else
+        {
+          // rules build an n-ary chain of + on both sides
+          cur = d_pc->checkDebug(PfRule::ARITH_SUM_UB, newChildren, {});
+          addLfscRule(cdp, cur, newChildren, LfscRule::ARITH_SUM_UB, {});
+        }
+      }
+    }
+    break;
     case PfRule::SKOLEMIZE:
       // TODO: convert to curried
       return false;

@@ -32,6 +32,7 @@ const char* toString(LfscRule id)
     case LfscRule::AND_INTRO2: return "and_intro2";
     case LfscRule::NOT_AND_REV: return "not_and_rev";
     case LfscRule::PROCESS_SCOPE: return "process_scope";
+    case LfscRule::ARITH_SUM_UB: return "arith_sum_ub";
     case LfscRule::INSTANTIATE: return "instantiate";
     case LfscRule::SKOLEMIZE: return "skolemize";
     case LfscRule::LAMBDA: return "\\";

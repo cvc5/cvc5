@@ -59,6 +59,8 @@ enum class LfscRule : uint32_t
   // needed as a helper for SCOPE
   NOT_AND_REV,
   PROCESS_SCOPE,
+  // arithmetic
+  ARITH_SUM_UB,
 
   // form of quantifier rules varies from internal calculus
   INSTANTIATE,
