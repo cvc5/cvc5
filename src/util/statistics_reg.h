@@ -116,7 +116,8 @@ class StatisticRegistry
     {
       it = d_stats.emplace(name, std::make_unique<typename Stat::stat_type>()).first;
     }
-    Assert(typeid(*it->second.get()) == typeid(typename Stat::stat_type))
+    auto* ptr = it->second.get();
+    Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
         << "Statistic value " << name
         << " was registered again with a different type.";
     return Stat(static_cast<typename Stat::stat_type*>(it->second.get()));
