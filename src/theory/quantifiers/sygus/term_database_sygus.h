@@ -54,8 +54,10 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
-  TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim);
+  TermDbSygus(QuantifiersState& qs);
   ~TermDbSygus() {}
+  /** Finish init, which sets the inference manager */
+  void finishInit(QuantifiersInferenceManager* qim);
   /** Reset this utility */
   bool reset(Theory::Effort e);
   /** Identify this utility */
@@ -316,8 +318,8 @@ class TermDbSygus {
  private:
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
-  /** The quantifiers inference manager */
-  QuantifiersInferenceManager& d_qim;
+  /** Pointer to the quantifiers inference manager */
+  QuantifiersInferenceManager* d_qim;
 
   //------------------------------utilities
   /** sygus explanation */
