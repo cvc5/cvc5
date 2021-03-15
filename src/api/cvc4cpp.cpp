@@ -1779,22 +1779,11 @@ Op::~Op()
   }
 }
 
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/* Split out to avoid nested API calls (problematic with API tracing).        */
-/* .......................................................................... */
-
-bool Op::isNullHelper() const
-{
-  return (d_node->isNull() && (d_kind == NULL_EXPR));
-}
-
-bool Op::isIndexedHelper() const { return !d_node->isNull(); }
-
 /* Public methods                                                             */
 bool Op::operator==(const Op& t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_node->isNull() && t.d_node->isNull())
   {
     return (d_kind == t.d_kind);
@@ -1804,56 +1793,70 @@ bool Op::operator==(const Op& t) const
     return false;
   }
   return (d_kind == t.d_kind) && (*d_node == *t.d_node);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Op::operator!=(const Op& t) const { return !(*this == t); }
+bool Op::operator!=(const Op& t) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return !(*this == t);
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Kind Op::getKind() const
 {
   CVC4_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
+  //////// all checks before this line
   return d_kind;
 }
 
-bool Op::isNull() const { return isNullHelper(); }
+bool Op::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Op::isIndexed() const { return isIndexedHelper(); }
+bool Op::isIndexed() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isIndexedHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 template <>
 std::string Op::getIndices() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
-
-  std::string i;
   Kind k = intToExtKind(d_node->getKind());
-
-  if (k == DIVISIBLE)
-  {
-    // DIVISIBLE returns a string index to support
-    // arbitrary precision integers
-    CVC4::Integer _int = d_node->getConst<Divisible>().k;
-    i = _int.toString();
-  }
-  else if (k == RECORD_UPDATE)
-  {
-    i = d_node->getConst<RecordUpdate>().getField();
-  }
-  else
-  {
-    CVC4_API_CHECK(false) << "Can't get string index from"
-                          << " kind " << kindToString(k);
-  }
-
-  return i;
+  CVC4_API_CHECK(k == DIVISIBLE || k == RECORD_UPDATE)
+      << "Can't get string index from"
+      << " kind " << kindToString(k);
+  //////// all checks before this line
+  return k == DIVISIBLE ? d_node->getConst<Divisible>().k.toString()
+                        : d_node->getConst<RecordUpdate>().getField();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 template <>
 uint32_t Op::getIndices() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
+  //////// all checks before this line
 
   uint32_t i = 0;
   Kind k = intToExtKind(d_node->getKind());
@@ -1887,18 +1890,22 @@ uint32_t Op::getIndices() const
       i = d_node->getConst<RegExpRepeat>().d_repeatAmount;
       break;
     default:
-      CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
-                                         << " kind " << kindToString(k);
+      CVC4_API_CHECK(false) << "Can't get uint32_t index from"
+                            << " kind " << kindToString(k);
   }
   return i;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 template <>
 std::pair<uint32_t, uint32_t> Op::getIndices() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
+  //////// all checks before this line
 
   std::pair<uint32_t, uint32_t> indices;
   Kind k = intToExtKind(d_node->getKind());
@@ -1961,11 +1968,14 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
                           << " kind " << kindToString(k);
   }
   return indices;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string Op::toString() const
 {
-  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_node->isNull())
   {
     return kindToString(d_kind);
@@ -1981,6 +1991,8 @@ std::string Op::toString() const
     }
     return d_node->toString();
   }
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const Op& t)
@@ -2000,6 +2012,19 @@ size_t OpHashFunction::operator()(const Op& t) const
     return KindHashFunction()(t.d_kind);
   }
 }
+
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Op::isNullHelper() const
+{
+  return (d_node->isNull() && (d_kind == NULL_EXPR));
+}
+
+bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
@@ -2662,22 +2687,46 @@ void DatatypeConstructorDecl::addSelector(const std::string& name,
                                           const Sort& sort)
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORT(sort);
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
       << "non-null range sort for selector";
+  //////// all checks before this line
   d_ctor->addArg(name, *sort.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   d_ctor->addArgSelf(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool DatatypeConstructorDecl::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeConstructorDecl::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_ctor;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out,
@@ -2693,6 +2742,8 @@ std::ostream& operator<<(std::ostream& out,
   container_to_stream(out, vector);
   return out;
 }
+
+bool DatatypeConstructorDecl::isNullHelper() const { return d_ctor == nullptr; }
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
@@ -2741,37 +2792,66 @@ DatatypeDecl::~DatatypeDecl()
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(ctor);
+  CVC4_API_ARG_CHECK_SOLVER("datatype constructor declaration", ctor);
+  //////// all checks before this line
   d_dtype->addConstructor(ctor.d_ctor);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t DatatypeDecl::getNumConstructors() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->getNumConstructors();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool DatatypeDecl::isParametric() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->isParametric();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeDecl::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_dtype;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeDecl::getName() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool DatatypeDecl::isNull() const { return isNullHelper(); }
+bool DatatypeDecl::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 {
@@ -2802,24 +2882,54 @@ DatatypeSelector::~DatatypeSelector()
   }
 }
 
-std::string DatatypeSelector::getName() const { return d_stor->getName(); }
+std::string DatatypeSelector::getName() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_stor->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Term DatatypeSelector::getSelectorTerm() const
 {
-  Term sel = Term(d_solver, d_stor->getSelector());
-  return sel;
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_stor->getSelector());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort DatatypeSelector::getRangeSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return Sort(d_solver, d_stor->getRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool DatatypeSelector::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeSelector::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_stor;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
@@ -2827,6 +2937,8 @@ std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
   out << stor.toString();
   return out;
 }
+
+bool DatatypeSelector::isNullHelper() const { return d_stor == nullptr; }
 
 /* DatatypeConstructor ------------------------------------------------------ */
 
@@ -2852,24 +2964,38 @@ DatatypeConstructor::~DatatypeConstructor()
   }
 }
 
-std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
+std::string DatatypeConstructor::getName() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_ctor->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Term DatatypeConstructor::getConstructorTerm() const
 {
-  Term ctor = Term(d_solver, d_ctor->getConstructor());
-  return ctor;
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_ctor->getConstructor());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term DatatypeConstructor::getSpecializedConstructorTerm(
     const Sort& retSort) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(d_ctor->isResolved())
       << "Expected resolved datatype constructor";
   CVC4_API_CHECK(retSort.isDatatype())
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
-  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
 
   NodeManager* nm = d_solver->getNodeManager();
   Node ret =
@@ -2887,34 +3013,62 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(
 
 Term DatatypeConstructor::getTesterTerm() const
 {
-  Term tst = Term(d_solver, d_ctor->getTester());
-  return tst;
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_ctor->getTester());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t DatatypeConstructor::getNumSelectors() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_ctor->getNumArgs();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeSelector DatatypeConstructor::operator[](size_t index) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getSelectorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getSelectorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
 {
-  DatatypeSelector sel = getSelector(name);
-  return sel.getSelectorTerm();
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return getSelector(name).getSelectorTerm();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
@@ -2996,12 +3150,27 @@ bool DatatypeConstructor::const_iterator::operator!=(
   return d_int_stors != other.d_int_stors || d_idx != other.d_idx;
 }
 
+bool DatatypeConstructor::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
 std::string DatatypeConstructor::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_ctor;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
+
+bool DatatypeConstructor::isNullHelper() const { return d_ctor == nullptr; }
 
 DatatypeSelector DatatypeConstructor::getSelectorForName(
     const std::string& name) const
@@ -3060,48 +3229,153 @@ Datatype::~Datatype()
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(idx < getNumConstructors()) << "Index out of bounds.";
+  //////// all checks before this line
   return DatatypeConstructor(d_solver, (*d_dtype)[idx]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeConstructor Datatype::operator[](const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getConstructorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getConstructorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Datatype::getConstructorTerm(const std::string& name) const
 {
-  DatatypeConstructor ctor = getConstructor(name);
-  return ctor.getConstructorTerm();
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return getConstructor(name).getConstructorTerm();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-std::string Datatype::getName() const { return d_dtype->getName(); }
+std::string Datatype::getName() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 size_t Datatype::getNumConstructors() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->getNumConstructors();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Datatype::isParametric() const { return d_dtype->isParametric(); }
-bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
+bool Datatype::isParametric() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isParametric();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Datatype::isTuple() const { return d_dtype->isTuple(); }
+bool Datatype::isCodatatype() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isCodatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Datatype::isRecord() const { return d_dtype->isRecord(); }
+bool Datatype::isTuple() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isTuple();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Datatype::isFinite() const { return d_dtype->isFinite(); }
-bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
+bool Datatype::isRecord() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isRecord();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Datatype::isFinite() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isFinite();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Datatype::isWellFounded() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isWellFounded();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 bool Datatype::hasNestedRecursion() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->hasNestedRecursion();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-std::string Datatype::toString() const { return d_dtype->getName(); }
+bool Datatype::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+std::string Datatype::toString() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Datatype::const_iterator Datatype::begin() const
 {
@@ -3207,6 +3481,8 @@ bool Datatype::const_iterator::operator!=(
   return d_int_ctors != other.d_int_ctors || d_idx != other.d_idx;
 }
 
+bool Datatype::isNullHelper() const { return d_dtype == nullptr; }
+
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -3241,68 +3517,71 @@ Grammar::Grammar(const Solver* slv,
 
 void Grammar::addRule(const Term& ntSymbol, const Term& rule)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
-  CVC4_API_ARG_CHECK_NOT_NULL(rule);
+  CVC4_API_CHECK_TERM(ntSymbol);
+  CVC4_API_CHECK_TERM(rule);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   CVC4_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
       << "Expected ntSymbol and rule to have the same sort";
-
+  //////// all checks before this line
   d_ntsToTerms[ntSymbol].push_back(rule);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
+  CVC4_API_CHECK_TERMS_WITH_SORT(rules, ntSymbol.getSort());
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
-  for (size_t i = 0, n = rules.size(); i < n; ++i)
-  {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !rules[i].isNull(), "parameter rule", rules, i)
-        << "non-null term";
-    CVC4_API_CHECK(ntSymbol.d_node->getType() == rules[i].d_node->getType())
-        << "Expected ntSymbol and rule at index " << i
-        << " to have the same sort";
-  }
-
+  //////// all checks before this line
   d_ntsToTerms[ntSymbol].insert(
       d_ntsToTerms[ntSymbol].cend(), rules.cbegin(), rules.cend());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addAnyConstant(const Term& ntSymbol)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
+  //////// all checks before this line
   d_allowConst.insert(ntSymbol);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addAnyVariable(const Term& ntSymbol)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
+  //////// all checks before this line
   d_allowVars.insert(ntSymbol);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -3337,6 +3616,8 @@ std::string join(Iterator first, Iterator last, Function f, std::string sep)
 
 std::string Grammar::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << "  ("  // pre-declaration
      << join(
@@ -3375,10 +3656,15 @@ std::string Grammar::toString() const
      << ')';
 
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Grammar::resolve()
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+
   d_isResolved = true;
 
   Term bvl;
@@ -3443,6 +3729,8 @@ Sort Grammar::resolve()
 
   // return is the first datatype
   return Sort(d_solver, datatypeTypes[0]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addSygusConstructorTerm(
@@ -3450,6 +3738,12 @@ void Grammar::addSygusConstructorTerm(
     const Term& term,
     const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_DTDECL(dt);
+  CVC4_API_CHECK_TERM(term);
+  CVC4_API_CHECK_TERMS_MAP(ntsToUnres);
+  //////// all checks before this line
+
   // At this point, we should know that dt is well founded, and that its
   // builtin sygus operators are well-typed.
   // Now, purify each occurrence of a non-terminal symbol in term, replace by
@@ -3476,6 +3770,8 @@ void Grammar::addSygusConstructorTerm(
   }
   std::vector<TypeNode> cargst = Sort::sortVectorToTypeNodes(cargs);
   dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Grammar::purifySygusGTerm(
@@ -3484,6 +3780,13 @@ Term Grammar::purifySygusGTerm(
     std::vector<Sort>& cargs,
     const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_TERM(term);
+  CVC4_API_CHECK_TERMS(args);
+  CVC4_API_CHECK_SORTS(cargs);
+  CVC4_API_CHECK_TERMS_MAP(ntsToUnres);
+  //////// all checks before this line
+
   std::unordered_map<Term, Sort, TermHashFunction>::const_iterator itn =
       ntsToUnres.find(term);
   if (itn != ntsToUnres.cend())
@@ -3526,12 +3829,18 @@ Term Grammar::purifySygusGTerm(
   }
 
   return Term(d_solver, nret);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
                                            const Sort& sort) const
 {
-  Assert(!sort.isNull());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_DTDECL(dt);
+  CVC4_API_CHECK_SORT(sort);
+  //////// all checks before this line
+
   // each variable of appropriate type becomes a sygus constructor in dt.
   for (unsigned i = 0, size = d_sygusVars.size(); i < size; i++)
   {
@@ -3544,6 +3853,8 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
       dt.d_dtype->addSygusConstructor(*v.d_node, ss.str(), cargs);
     }
   }
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& g)
