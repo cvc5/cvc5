@@ -24,8 +24,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_registry.h"
-#include "theory/quantifiers/term_registry.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -49,10 +47,12 @@ class QModelBuilder;
 class QuantifiersInferenceManager;
 class QuantifiersModules;
 class QuantifiersState;
+class QuantifiersRegistry;
 class Skolemize;
 class TermDb;
 class TermDbSygus;
 class TermEnumeration;
+class TermRegistry;
 }
 
 // TODO: organize this more/review this, github issue #1163
@@ -65,6 +65,8 @@ class QuantifiersEngine {
 
  public:
   QuantifiersEngine(quantifiers::QuantifiersState& qstate,
+                    quantifiers::QuantifiersRegistry& qr,
+                    quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
@@ -270,9 +272,9 @@ public:
   std::vector<QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
   /** The quantifiers registry */
-  quantifiers::QuantifiersRegistry d_qreg;
+  quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
-  quantifiers::TermRegistry d_treg;
+  quantifiers::TermRegistry& d_treg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
