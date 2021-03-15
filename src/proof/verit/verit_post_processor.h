@@ -17,6 +17,7 @@
 
 #include "expr/proof_node_updater.h"
 #include "proof/verit/verit_proof_rule.h"
+#include "expr/proof.h"
 
 namespace CVC4 {
 
