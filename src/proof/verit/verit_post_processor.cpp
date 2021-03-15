@@ -2438,13 +2438,16 @@ bool VeritProofPostprocessFinalCallback::shouldUpdate(
 {
   // The proof node should not be traversed further
   continueUpdate = false;
-  // If the proof node has result (false) additional steps have to be added.
-  if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) > 1)
+  // This case can only occur if the last step is an assumption
+  if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) <= 1)
   {
-    if (pn->getArguments()[2][1].toString() == d_nm->mkConst(false).toString())
-    {
+    return true;
+  }
+  // If the proof node has result (false) additional steps have to be added.
+  else if (pn->getArguments()[2][1].toString()
+           == d_nm->mkConst(false).toString())
+  {
       return true;
-    }
   }
   return false;
 }
