@@ -319,6 +319,8 @@ bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
   // get the extended terms belonging to this theory
   std::vector<Node> xtsAll;
   d_extTheory.getTerms(xtsAll);
+  // only consider those that are currently relevant based on the current
+  // assertions, i.e. those contained in termSet
   std::vector<Node> xts;
   for (const Node& x : xtsAll)
   {
