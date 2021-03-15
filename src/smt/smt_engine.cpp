@@ -1935,7 +1935,7 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
       d_commandVerbosity[c] = v;
       return;
     }
-    throw OptionException("command-verbosity value must be a tuple (command-name, integer)");
+    throw OptionException("command-verbosity value must be a tuple (command-name integer)");
   }
 
   if (value.find(" ") != std::string::npos)
@@ -1988,7 +1988,7 @@ Node SmtEngine::getOption(const std::string& key) const
          ++i)
     {
       vector<Node> v;
-      v.push_back(nm->mkConst(String(i->first)));
+      v.push_back(nm->mkBoundVar(i->first, nm->integerType()));
       v.push_back(nm->mkConst(Rational(i->second)));
       if ((*i).first == "*")
       {
@@ -2000,19 +2000,14 @@ Node SmtEngine::getOption(const std::string& key) const
         result.push_back(nm->mkNode(Kind::SEXPR, v));
       }
     }
-    // put the default at the end of the SExpr
-    if (defaultVerbosity.getNumChildren() != 0)
+    // ensure the default is always listed
+    if (defaultVerbosity.isNull())
     {
-      result.push_back(defaultVerbosity);
+      defaultVerbosity = nm->mkNode(Kind::SEXPR,
+                                      nm->mkBoundVar("*", nm->integerType()),
+                                      nm->mkConst(Rational(2)));
     }
-    else
-    {
-      // ensure the default is always listed
-      vector<Node> v;
-      v.push_back(nm->mkConst(String("*")));
-      v.push_back(nm->mkConst(Rational(2)));
-      result.push_back(nm->mkNode(Kind::SEXPR, v));
-    }
+    result.push_back(defaultVerbosity);
     return nm->mkNode(Kind::SEXPR, result);
   }
 
@@ -2033,15 +2028,6 @@ Node SmtEngine::getOption(const std::string& key) const
     {
       Integer z(atom);
       return nm->mkConst(Rational(z));
-    }
-    catch (std::invalid_argument&)
-    {
-      // Fall through to the next case
-    }
-    try
-    {
-      Rational q(atom);
-      return nm->mkConst(q);
     }
     catch (std::invalid_argument&)
     {
