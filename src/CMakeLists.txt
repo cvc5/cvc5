@@ -140,6 +140,8 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
+  proof/dot/dot_printer.cpp
+  proof/dot/dot_printer.h
   proof/proof_manager.cpp
   proof/proof_manager.h
   proof/sat_proof.h
