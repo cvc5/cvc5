@@ -19,6 +19,7 @@
 #include "expr/proof_node_manager.h"
 #include "options/base_options.h"
 #include "options/proof_options.h"
+#include "proof/dot/dot_printer.h"
 #include "smt/assertions.h"
 #include "smt/defined_function.h"
 #include "smt/preprocess_proof_generator.h"
@@ -122,11 +123,18 @@ void PfManager::printProof(std::ostream& out,
   std::shared_ptr<ProofNode> fp = getFinalProof(pfn, as, df);
   // TODO (proj #37) according to the proof format, post process the proof node
   // TODO (proj #37) according to the proof format, print the proof node
-  out << "(proof\n";
-  out << *fp;
-  out << "\n)\n";
+  
+  if (options::proofFormatMode() == options::ProofFormatMode::DOT)
+  {
+    proof::DotPrinter::print(out, fp.get());
+  }
+  else
+  {
+    out << "(proof\n";
+    out << *fp;
+    out << "\n)\n";
+  }
 }
-
 void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
                            Assertions& as,
                            DefinedFunctionMap& df)
