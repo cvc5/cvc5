@@ -15,6 +15,7 @@ cd build
 cmake -DENABLE_PYTHON_INTERFACE=OFF \
       -DSTATICCOMPILE=ON \
       -DNOM4RI=ON \
+      -DNOSQLITE=ON \
       -DONLY_SIMPLE=ON \
       -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
       ..
