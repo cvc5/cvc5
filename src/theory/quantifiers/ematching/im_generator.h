@@ -83,11 +83,11 @@ public:
  virtual int getNextMatch(Node q, InstMatch& m) { return 0; }
  /** add instantiations
   *
-  * This add all available instantiations for q based on the current context
+  * This adds all available instantiations for q based on the current context
   * using the implemented matching algorithm. It typically is implemented as a
   * fixed point of getNextMatch above.
   *
-  * It returns the number of instantiations added using calls to calls to
+  * It returns the number of instantiations added using calls to
   * Instantiate::addInstantiation(...).
   */
  virtual uint64_t addInstantiations(Node q) { return 0; }
