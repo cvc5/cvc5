@@ -29,10 +29,10 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * This trie stores a trie of the above form for each multi-set of types. For
- * each term t registered to this node, we store t in the appropriate
- * AlphaEquivalenceNode trie. For example, if t contains 2 free variables
- * of type T1 and 3 free variables of type T2, then it is stored at
+ * This trie stores a trie for each multi-set of types. For each term t
+ * registered to this node, we store t in the appropriate
+ * AlphaEquivalenceTypeNode trie. For example, if t contains 2 free variables of
+ * type T1 and 3 free variables of type T2, then it is stored at
  * d_children[T1][2].d_children[T2][3].
  */
 class AlphaEquivalenceTypeNode {
@@ -61,7 +61,10 @@ public:
 class AlphaEquivalenceDb
 {
  public:
-  AlphaEquivalenceDb(expr::TermCanonize* tc) : d_tc(tc) {}
+  AlphaEquivalenceDb(expr::TermCanonize* tc, bool sortCommChildren)
+      : d_tc(tc), d_sortCommutativeOpChildren(sortCommChildren)
+  {
+  }
   /** adds quantified formula q to this database
    *
    * This function returns a quantified formula q' that is alpha-equivalent to
@@ -75,6 +78,8 @@ class AlphaEquivalenceDb
   AlphaEquivalenceTypeNode d_ae_typ_trie;
   /** pointer to the term canonize utility */
   expr::TermCanonize* d_tc;
+  /** whether to sort children of commutative operators during canonization. */
+  bool d_sortCommutativeOpChildren;
 };
 
 /**

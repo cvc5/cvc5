@@ -63,7 +63,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
   Assert(q.getKind() == FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
-  Node t = d_tc->getCanonicalTerm(q[1], true);
+  Node t = d_tc->getCanonicalTerm(q[1], d_sortCommutativeOpChildren);
   Trace("aeq") << "  canonical form: " << t << std::endl;
   //compute variable type counts
   std::map<TypeNode, size_t> typCount;
@@ -86,7 +86,7 @@ Node AlphaEquivalenceDb::addTerm(Node q)
 
 AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe, ProofNodeManager* pnm)
     : d_termCanon(),
-      d_aedb(&d_termCanon),
+      d_aedb(&d_termCanon, !pnm),
       d_pnm(pnm),
       d_pfAlpha(pnm ? new CDProof(pnm) : nullptr)
 {
@@ -95,7 +95,6 @@ AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe, ProofNodeManager* pnm)
 TrustNode AlphaEquivalence::reduceQuantifier(Node q)
 {
   Assert(q.getKind() == FORALL);
-  Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   Node ret = d_aedb.addTerm(q);
   if (ret == q)
   {
