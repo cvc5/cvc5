@@ -209,12 +209,12 @@ enum class VeritRule : uint32_t
   SKO_FORALL,
   /** Special Rules*/
   UNDEFINED,      // TBD
-  EQ_RESOLUTION,  // TODO: DELETE LATER
   /** Extended Rules */
   SYMM,
   REORDER
 };
 
+const char* veritRuletoString(VeritRule id);  // TODO: COMMENT
 }  // namespace proof
 
 }  // namespace CVC4

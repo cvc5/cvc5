@@ -13,7 +13,6 @@
  **/
 
 #include "proof/verit/verit_proof_rule.h"
-
 #include <iostream>
 
 namespace CVC4 {
@@ -68,8 +67,6 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
     case VeritRule::QNT_RM_UNUSED: return "qnt_rm_unused";
     case VeritRule::TH_RESOLUTION: return "th_resolution";
     case VeritRule::RESOLUTION: return "resolution";
-    case VeritRule::EQ_RESOLUTION:
-      return "eq_resolution";  // TODO: change to resolution
     case VeritRule::REFL: return "refl";
     case VeritRule::TRANS: return "trans";
     case VeritRule::CONG: return "cong";
@@ -94,7 +91,7 @@ const char* veritRuletoString(VeritRule id)  // TODO: RENAME veritRuleToString?
     case VeritRule::NOT_ITE1: return "not_ite1";
     case VeritRule::NOT_ITE2: return "not_ite2";
     case VeritRule::ITE_INTRO: return "ite_intro";
-    case VeritRule::DUPLICATED_LITERALS: return "duplicated_literals";
+    case VeritRule::DUPLICATED_LITERALS: return "duplicate_literals";
     case VeritRule::CONNECTIVE_DEF: return "connective_def";
     case VeritRule::ITE_SIMPLIFY: return "ite_simplify";
     case VeritRule::EQ_SIMPLIFY: return "eq_simplify";
