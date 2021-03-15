@@ -2860,7 +2860,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
   {
     if (node[2][1] == node[0])
     {
-      // str.contains( w, z ) ----> false implies
+      // str.contains( z, w ) ----> false implies
       // str.replace( x, w, str.replace( z, x, y ) ) ---> str.replace( x, w, z )
       Node cmp_con2 = d_stringsEntail.checkContains(node[2][0], node[1]);
       if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
