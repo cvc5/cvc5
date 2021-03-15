@@ -286,10 +286,10 @@ class TSatProof {
     IntStat d_numLearnedInProof;
     IntStat d_numLemmasInProof;
     AverageStat d_avgChainLength;
-    HistogramStat<uint64_t> d_resChainLengths;
-    HistogramStat<uint64_t> d_usedResChainLengths;
-    HistogramStat<uint64_t> d_clauseGlue;
-    HistogramStat<uint64_t> d_usedClauseGlue;
+    IntegralHistogramStat<uint64_t> d_resChainLengths;
+    IntegralHistogramStat<uint64_t> d_usedResChainLengths;
+    IntegralHistogramStat<uint64_t> d_clauseGlue;
+    IntegralHistogramStat<uint64_t> d_usedClauseGlue;
     Statistics(const std::string& name);
     ~Statistics();
   };

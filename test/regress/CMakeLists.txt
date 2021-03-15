@@ -1596,6 +1596,8 @@ set(regress_1_tests
   regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
+  regress1/nl/issue5662-nl-tc.smt2
+  regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2

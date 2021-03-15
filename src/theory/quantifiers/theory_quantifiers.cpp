@@ -44,9 +44,18 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      ProofNodeManager* pnm)
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
       d_qstate(c, u, valuation, logicInfo),
+      d_qreg(),
+      d_treg(d_qstate, d_qreg),
       d_qim(*this, d_qstate, pnm),
-      d_qengine(d_qstate, d_qim, pnm)
+      d_qengine(d_qstate, d_qreg, d_treg, d_qim, pnm)
 {
+  // Finish initializing the term registry by hooking it up to the inference
+  // manager. This is required due to a cyclic dependency between the term
+  // database and the instantiate module. Term database needs inference manager
+  // since it sends out lemmas when term indexing is inconsistent, instantiate
+  // needs term database for entailment checks.
+  d_treg.finishInit(&d_qim);
+
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute("qid", this);
   out.handleUserAttribute( "quant-inst-max-level", this );

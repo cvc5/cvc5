@@ -306,7 +306,7 @@ class ITESimplifier
     IntStat d_specialEqualityFolds;
     IntStat d_simpITEVisits;
 
-    HistogramStat<uint32_t> d_inSmaller;
+    IntegralHistogramStat<uint32_t> d_inSmaller;
 
     Statistics();
     ~Statistics();

@@ -57,7 +57,7 @@ void LetBinding::letify(std::vector<Node>& letList)
   // populate the d_letList and d_letMap
   convertCountToLet();
   // add the new entries to the letList
-letList.insert(letList.end(), d_letList.begin() + prevSize, d_letList.end());
+  letList.insert(letList.end(), d_letList.begin() + prevSize, d_letList.end());
 }
 
 void LetBinding::pushScope() { d_context.push(); }
@@ -102,6 +102,11 @@ Node LetBinding::convert(Node n, const std::string& prefix, bool letTop) const
         std::stringstream ss;
         ss << prefix << id;
         visited[cur] = nm->mkBoundVar(ss.str(), cur.getType());
+      }
+      else if (cur.isClosure())
+      {
+        // do not convert beneath quantifiers
+        visited[cur] = cur;
       }
       else
       {
