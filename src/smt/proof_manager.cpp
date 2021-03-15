@@ -147,7 +147,7 @@ void PfManager::printProof(std::ostream& out,
   {
     d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get(), false));
     d_vpfpp->process(fp);
-    proof::veritPrinter(out,fp);
+    proof::veritPrinter(out, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT_EXTENDED)
   {

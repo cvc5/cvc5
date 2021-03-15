@@ -387,8 +387,9 @@ bool VeritProofPostprocessCallback::update(
 	       vrule = VeritRule::UNARY_MINUS_SIMPLIFY; break;
 	     }
 	     case kind::PLUS:{
-	       vrule = VeritRule::SUM_SIMPLIFY; break;
-	     }
+               vrule = VeritRule::SUM_SIMPLIFY;
+               break;
+             }
 	     case kind::MULT:{
 	       vrule = VeritRule::PROD_SIMPLIFY;break;
 	     }
@@ -891,7 +892,7 @@ bool VeritProofPostprocessCallback::update(
     // proof term: (cl F2)
     // premises: VP1 P2 P1
     // args: ()
-    // 
+    //
     // Or if F2 = false:
     //
     // proof rule: resolution
@@ -968,11 +969,11 @@ bool VeritProofPostprocessCallback::update(
       }
 
       return success &= addVeritStep(res,
-                             VeritRule::RESOLUTION,
-                             d_nm->mkNode(kind::SEXPR, d_cl, res),
-                             {vp1, children[1], child1},
-                             {},
-                             *cdp);
+                                     VeritRule::RESOLUTION,
+                                     d_nm->mkNode(kind::SEXPR, d_cl, res),
+                                     {vp1, children[1], child1},
+                                     {},
+                                     *cdp);
     }
     // ======== Modus ponens
     // Children: (P1:F1, P2:(=> F1 F2))
@@ -2535,9 +2536,9 @@ VeritProofPostprocess::VeritProofPostprocess(ProofNodeManager* pnm,
                                              bool extended)
     : d_pnm(pnm),
       d_cb(d_pnm),
-      d_updater(d_pnm, d_cb,false,false),
+      d_updater(d_pnm, d_cb, false, false),
       d_fcb(d_pnm),
-      d_finalize(d_pnm, d_fcb,false,false),
+      d_finalize(d_pnm, d_fcb, false, false),
       d_extended(extended)
 {
   d_cb.initializeUpdate(extended);

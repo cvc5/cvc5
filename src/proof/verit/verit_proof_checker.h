@@ -513,7 +513,7 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 	  && success){return CheckResult::NoCheck;}
       return CheckResult::False;
     }
-    //case VeritRule::EQ_RESOLUTION:
+    // case VeritRule::EQ_RESOLUTION:
     //{
     //}  // same handling as resolution. TODO: delete
     case VeritRule::TH_RESOLUTION:
@@ -1038,46 +1038,47 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       return CheckResult::False;
     }
     case VeritRule::DUPLICATED_LITERALS:
-    {//Only works in extended mode
-     /* std::vector<Node> resVec;
-      resVec.insert(resVec.begin(),res.begin()+1,res.end()); //TODO: DO THIS EVERYWHERE INSTEAD OF FOR LOOP
-      std::vector<Node> childVec;
-      childVec.insert(childVec.begin(),new_children[0].begin()+1, new_children[0].end());
+    {  // Only works in extended mode
+      /* std::vector<Node> resVec;
+       resVec.insert(resVec.begin(),res.begin()+1,res.end()); //TODO: DO THIS
+       EVERYWHERE INSTEAD OF FOR LOOP std::vector<Node> childVec;
+       childVec.insert(childVec.begin(),new_children[0].begin()+1,
+       new_children[0].end());
 
-      Node lastElement = res[0];
-      Node nextElement = res[1];
-      bool alreadyEncountered;
-      std::vector<Node> childVec2;
-      int j = 0;
+       Node lastElement = res[0];
+       Node nextElement = res[1];
+       bool alreadyEncountered;
+       std::vector<Node> childVec2;
+       int j = 0;
 
-      for (int i = 0; i < childVec.size(); i++)
-      {
-        if (!equalNodes(childVec[i], lastElement))
-        {
-          if (!equalNodes(childVec[i], nextElement))
-          {
-            if (std::find(childVec2.begin(), childVec.end(), childVec[i])
-                == childVec2.end())
-            {
-              return CheckResult::False;
-            }
-          }
-          lastElement = resVec[j];
-          if (j != resVec.size() - 1)
-          {
-            nextElement = resVec[j + 1];
-          }
-          j++;
-          childVec2.push_back(childVec[i]);
-        }
-      }
+       for (int i = 0; i < childVec.size(); i++)
+       {
+         if (!equalNodes(childVec[i], lastElement))
+         {
+           if (!equalNodes(childVec[i], nextElement))
+           {
+             if (std::find(childVec2.begin(), childVec.end(), childVec[i])
+                 == childVec2.end())
+             {
+               return CheckResult::False;
+             }
+           }
+           lastElement = resVec[j];
+           if (j != resVec.size() - 1)
+           {
+             nextElement = resVec[j + 1];
+           }
+           j++;
+           childVec2.push_back(childVec[i]);
+         }
+       }
 
-      if (new_children[0][0].toString() == cl.toString()
-          && res[0].toString() == cl.toString())
-      {
-        return CheckResult::True;
-      }
-      return CheckResult::False;*/
+       if (new_children[0][0].toString() == cl.toString()
+           && res[0].toString() == cl.toString())
+       {
+         return CheckResult::True;
+       }
+       return CheckResult::False;*/
       return CheckResult::True;
     }
     case VeritRule::ITE_SIMPLIFY:{return CheckResult::NoCheck;}

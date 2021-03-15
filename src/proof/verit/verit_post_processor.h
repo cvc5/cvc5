@@ -15,9 +15,9 @@
 #ifndef CVC4__PROOF__VERIT_PROOF_PROCESSOR_H
 #define CVC4__PROOF__VERIT_PROOF_PROCESSOR_H
 
+#include "expr/proof.h"
 #include "expr/proof_node_updater.h"
 #include "proof/verit/verit_proof_rule.h"
-#include "expr/proof.h"
 
 namespace CVC4 {
 
