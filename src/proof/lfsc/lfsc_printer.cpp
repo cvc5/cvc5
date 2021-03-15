@@ -449,8 +449,8 @@ bool LfscPrinter::computeProofArgs(const ProofNode* pn,
     case PfRule::TRUE_ELIM:
     case PfRule::FALSE_ELIM: pf << h << cs[0]; break;
     // arithmetic
-    // case PfRule::ARITH_MULT_POS: pf << h << as[0] << as[1]; break;
-    // case PfRule::ARITH_MULT_NEG: pf << h << as[0] << as[1]; break;
+    case PfRule::ARITH_MULT_POS: pf << h << as[0] << as[1]; break;
+    case PfRule::ARITH_MULT_NEG: pf << h << as[0] << as[1]; break;
     // strings
     case PfRule::STRING_LENGTH_POS: pf << as[0]; break;
     case PfRule::STRING_LENGTH_NON_EMPTY: pf << h << cs[0]; break;
