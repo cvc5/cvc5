@@ -3116,7 +3116,6 @@ void Grammar::addRule(const Term& ntSymbol, const Term& rule)
 void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
 {
   CVC4_API_TRY_CATCH_BEGIN;
-  //////// all checks before this line
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
   CVC4_API_CHECK_TERM(ntSymbol);
