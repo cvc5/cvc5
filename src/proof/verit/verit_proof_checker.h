@@ -18,12 +18,12 @@
 #include <string>
 #include <optional>
 
-#include "cvc4_private.h"
-#include "expr/proof_node_updater.h"
-#include "proof/verit/verit_proof_rule.cpp"
-
 #ifndef CVC4__PROOF__VERIT_PROOF_CHECKER_H
 #define CVC4__PROOF__VERIT_PROOF_CHECKER_H
+//#include "cvc4_private.h"
+#include "expr/proof_node_updater.h"
+#include "proof/verit/verit_proof_rule.h"
+
 namespace CVC4 {
 
 namespace proof {
@@ -513,9 +513,9 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
 	  && success){return CheckResult::NoCheck;}
       return CheckResult::False;
     }
-    case VeritRule::EQ_RESOLUTION:
-    {
-    }  // same handling as resolution. TODO: delete
+    //case VeritRule::EQ_RESOLUTION:
+    //{
+    //}  // same handling as resolution. TODO: delete
     case VeritRule::TH_RESOLUTION:
     {
     }
@@ -1038,10 +1038,9 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       return CheckResult::False;
     }
     case VeritRule::DUPLICATED_LITERALS:
-    {
-      std::vector<Node> resVec;
+    {//Only works in extended mode
+     /* std::vector<Node> resVec;
       resVec.insert(resVec.begin(),res.begin()+1,res.end()); //TODO: DO THIS EVERYWHERE INSTEAD OF FOR LOOP
-
       std::vector<Node> childVec;
       childVec.insert(childVec.begin(),new_children[0].begin()+1, new_children[0].end());
 
@@ -1078,7 +1077,8 @@ static CheckResult checkStep(std::shared_ptr<ProofNode> pfn)
       {
         return CheckResult::True;
       }
-      return CheckResult::False;
+      return CheckResult::False;*/
+      return CheckResult::True;
     }
     case VeritRule::ITE_SIMPLIFY:{return CheckResult::NoCheck;}
     case VeritRule::EQ_SIMPLIFY:{return CheckResult::NoCheck;}
