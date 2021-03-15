@@ -184,7 +184,7 @@ TPL_OPTION_STRUCT_RO = \
   type operator()() const;
   bool wasSetByUser() const;
   const char* getName() const;
-}} thread_local {name} ;"""
+}} thread_local {name};"""
 
 
 TPL_DECL_SET = \
