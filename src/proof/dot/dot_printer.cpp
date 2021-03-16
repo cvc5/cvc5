@@ -78,11 +78,11 @@ void DotPrinter::ruleArguments(std::ostringstream& currentArguments,
                                const ProofNode* pn)
 {
   const std::vector<Node>& args = pn->getArguments();
-  if (args.size())
+  if (!args.size())
   {
-    currentArguments << args[0];
+    return;
   }
-
+  currentArguments << " :args (" << args[0];
   for (size_t i = 1, size = args.size(); i < size; i++)
   {
     currentArguments << ", " << args[i];
