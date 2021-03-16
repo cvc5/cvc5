@@ -20,6 +20,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "theory/type_enumerator.h"
 
 using namespace std;
