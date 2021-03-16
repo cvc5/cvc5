@@ -123,7 +123,7 @@ TheoryFp::TheoryFp(context::Context* c,
       d_floatToRealMap(u),
       d_abstractionMap(u),
       d_state(c, u, valuation),
-      d_im(*this, d_state, pnm, "theory::fp", false),
+      d_im(*this, d_state, pnm, "theory::fp", false)
 {
   // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
@@ -923,26 +923,18 @@ void TheoryFp::handleLemma(Node node, InferenceId id)
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   // will be preprocessed when sent, which is important because it contains
   // embedded ITEs
-  d_inferManager.lemma(node, id);
+  d_im.lemma(node, id);
 }
 
 bool TheoryFp::propagateLit(TNode node)
 {
   Trace("fp") << "TheoryFp::propagateLit(): propagate " << node << std::endl;
-
-  bool stat = d_out->propagate(node);
-
-  if (!stat)
-  {
-    d_state.notifyInConflict();
-  }
-  return stat;
+  return d_im.propagateLit(node);
 }
 
 void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
 {
-  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected "
-              << conflict << std::endl;
+  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected" << std::endl;
   d_im.conflictEqConstantMerge(t1, t2);
 }
 

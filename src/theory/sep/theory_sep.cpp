@@ -128,19 +128,7 @@ Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
 
 bool TheorySep::propagateLit(TNode literal)
 {
-  Debug("sep") << "TheorySep::propagateLit(" << literal << ")" << std::endl;
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("sep") << "TheorySep::propagateLit(" << literal
-                 << "): already in conflict" << std::endl;
-    return false;
-  }
-  bool ok = d_out->propagate(literal);
-  if (!ok) {
-    d_state.notifyInConflict();
-  }
-  return ok;
+  return d_im.propagateLit(literal);
 }
 
 TrustNode TheorySep::explain(TNode literal)
@@ -924,7 +912,7 @@ void TheorySep::postCheck(Effort level)
 
   if (needAddLemma)
   {
-    d_out->setIncomplete();
+    d_im.setIncomplete();
   }
   Trace("sep-check") << "Sep::check(): " << level
                      << " done, conflict=" << d_state.isInConflict()
