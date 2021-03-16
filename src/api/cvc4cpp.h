@@ -2786,17 +2786,17 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a constant representing an empty set of the given sort.
-   * @param s the sort of the set elements.
+   * @param sort the sort of the set elements.
    * @return the empty set constant
    */
-  Term mkEmptySet(const Sort& s) const;
+  Term mkEmptySet(const Sort& sort) const;
 
   /**
    * Create a constant representing an empty bag of the given sort.
-   * @param s the sort of the bag elements.
+   * @param sort the sort of the bag elements.
    * @return the empty bag constant
    */
-  Term mkEmptyBag(const Sort& s) const;
+  Term mkEmptyBag(const Sort& sort) const;
 
   /**
    * Create a separation logic nil term.
@@ -3363,12 +3363,12 @@ class CVC4_PUBLIC Solver
    * SMT-LIB: ( get-interpol <conj> <g> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
-   * @param g the grammar for the interpolant I
+   * @param grammar the grammar for the interpolant I
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
-  bool getInterpolant(const Term& conj, Grammar& g, Term& output) const;
+  bool getInterpolant(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
    * Get an abduct.
@@ -3387,13 +3387,13 @@ class CVC4_PUBLIC Solver
    * SMT-LIB: ( get-abduct <conj> <g> )
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
-   * @param g the grammar for the abduct C
+   * @param grammar the grammar for the abduct C
    * @param output a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
    *        given in the input by conj
    * @return true if it gets C successfully, false otherwise
    */
-  bool getAbduct(const Term& conj, Grammar& g, Term& output) const;
+  bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
@@ -3503,13 +3503,13 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
-   * @param g the syntactic constraints
+   * @param grammar the syntactic constraints
    * @return the function
    */
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar& g) const;
+                Grammar& grammar) const;
 
   /**
    * Synthesize invariant.
@@ -3528,12 +3528,12 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @param sort the sort of the return value of this invariant
-   * @param g the syntactic constraints
+   * @param grammar the syntactic constraints
    * @return the invariant
    */
   Term synthInv(const std::string& symbol,
                 const std::vector<Term>& boundVars,
-                Grammar& g) const;
+                Grammar& grammar) const;
 
   /**
    * Add a forumla to the set of Sygus constraints.
@@ -3674,7 +3674,7 @@ class CVC4_PUBLIC Solver
                       const std::vector<Term>& boundVars,
                       const Sort& sort,
                       bool isInv = false,
-                      Grammar* g = nullptr) const;
+                      Grammar* grammar = nullptr) const;
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;
