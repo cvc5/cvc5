@@ -1007,46 +1007,6 @@ inline TypeNode TypeNode::getRangeType() const {
   return (*this)[getNumChildren() - 1];
 }
 
-/** Is this a symbolic expression type? */
-inline bool TypeNode::isSExpr() const {
-  return getKind() == kind::SEXPR_TYPE;
-}
-
-/** Is this a floating-point type */
-inline bool TypeNode::isFloatingPoint() const {
-  return getKind() == kind::FLOATINGPOINT_TYPE;
-}
-
-/** Is this a bit-vector type */
-inline bool TypeNode::isBitVector() const {
-  return getKind() == kind::BITVECTOR_TYPE;
-}
-
-/** Is this a datatype type */
-inline bool TypeNode::isDatatype() const {
-  return getKind() == kind::DATATYPE_TYPE || getKind() == kind::PARAMETRIC_DATATYPE;
-}
-
-/** Is this a parametric datatype type */
-inline bool TypeNode::isParametricDatatype() const {
-  return getKind() == kind::PARAMETRIC_DATATYPE;
-}
-
-/** Is this a constructor type */
-inline bool TypeNode::isConstructor() const {
-  return getKind() == kind::CONSTRUCTOR_TYPE;
-}
-
-/** Is this a selector type */
-inline bool TypeNode::isSelector() const {
-  return getKind() == kind::SELECTOR_TYPE;
-}
-
-/** Is this a tester type */
-inline bool TypeNode::isTester() const {
-  return getKind() == kind::TESTER_TYPE;
-}
-
 /** Is this a floating-point type of with <code>exp</code> exponent bits
     and <code>sig</code> significand bits */
 inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
