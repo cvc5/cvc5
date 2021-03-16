@@ -142,7 +142,7 @@ class TheoryFp : public Theory
   void convertAndEquateTerm(TNode node);
 
   /** Interaction with the rest of the solver **/
-  void handleLemma(Node node);
+  void handleLemma(Node node, InferenceId id = InferenceId::UNKNOWN);
   /**
    * Called when literal node is inferred by the equality engine. This
    * propagates node on the output channel.
@@ -183,6 +183,8 @@ class TheoryFp : public Theory
   TheoryFpRewriter d_rewriter;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
 }; /* class TheoryFp */
 
 }  // namespace fp
