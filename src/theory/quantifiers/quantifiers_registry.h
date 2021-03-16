@@ -18,9 +18,9 @@
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REGISTRY_H
 
 #include "expr/node.h"
+#include "theory/quantifiers/quant_bound_inference.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quant_bound_inference.h"
 
 namespace CVC4 {
 namespace theory {
