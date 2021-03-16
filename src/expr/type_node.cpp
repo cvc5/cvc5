@@ -656,37 +656,34 @@ bool TypeNode::isSortConstructor() const {
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
 
-bool TypeNode::isSExpr() const {
-  return getKind() == kind::SEXPR_TYPE;
-}
+bool TypeNode::isSExpr() const { return getKind() == kind::SEXPR_TYPE; }
 
-bool TypeNode::isFloatingPoint() const {
+bool TypeNode::isFloatingPoint() const
+{
   return getKind() == kind::FLOATINGPOINT_TYPE;
 }
 
-bool TypeNode::isBitVector() const {
-  return getKind() == kind::BITVECTOR_TYPE;
+bool TypeNode::isBitVector() const { return getKind() == kind::BITVECTOR_TYPE; }
+
+bool TypeNode::isDatatype() const
+{
+  return getKind() == kind::DATATYPE_TYPE
+         || getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
-bool TypeNode::isDatatype() const {
-  return getKind() == kind::DATATYPE_TYPE || getKind() == kind::PARAMETRIC_DATATYPE;
-}
-
-bool TypeNode::isParametricDatatype() const {
+bool TypeNode::isParametricDatatype() const
+{
   return getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
-bool TypeNode::isConstructor() const {
+bool TypeNode::isConstructor() const
+{
   return getKind() == kind::CONSTRUCTOR_TYPE;
 }
 
-bool TypeNode::isSelector() const {
-  return getKind() == kind::SELECTOR_TYPE;
-}
+bool TypeNode::isSelector() const { return getKind() == kind::SELECTOR_TYPE; }
 
-bool TypeNode::isTester() const {
-  return getKind() == kind::TESTER_TYPE;
-}
+bool TypeNode::isTester() const { return getKind() == kind::TESTER_TYPE; }
 
 bool TypeNode::isCodatatype() const
 {
