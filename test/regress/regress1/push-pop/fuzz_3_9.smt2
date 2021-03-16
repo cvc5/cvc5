@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental
+; COMMAND-LINE: --incremental --no-proof
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat
