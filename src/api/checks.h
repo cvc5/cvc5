@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file cvc4cpp.h
+/*! \file checks.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC5__API__CHECKS_H
-#define CVC5__API__CHECKS_H
+#ifndef CVC4__API__CHECKS_H
+#define CVC4__API__CHECKS_H
 
 namespace cvc4 {
 namespace api {
@@ -134,24 +134,75 @@ namespace api {
                 << "Invalid size of argument '" << #arg << "', expected "
 
 /**
- * Check condition 'cond' for given argument 'arg' at given index.
+ * Check condition 'cond' for the argument at given index in container 'args'.
  * Argument 'what' identifies what is being checked (e.g., "term").
  * Creates a stream to provide a message that identifies what was expected to
  * hold if condition is false.
  * Usage:
- *   CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(<condition>, "what", <arg>, <idx>)
- *     << "message";
+ *   CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+ *     <condition>, "what", <container>, <idx>) << "message";
  */
-#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)           \
+#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, args, idx)          \
   CVC4_PREDICT_TRUE(cond)                                                    \
   ? (void)0                                                                  \
   : OstreamVoider()                                                          \
           & CVC4ApiExceptionStream().ostream()                               \
-                << "Invalid " << what << " '" << arg << "' at index " << idx \
-                << ", expected "
+                << "Invalid " << (what) << " in '" << #args << "' at index " \
+                << (idx) << ", expected "
 
 /* -------------------------------------------------------------------------- */
-/* Solver checks.                                                             */
+/* Solver checks. */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Solver check for member functions of classes other than class Solver.
+ * Check if given solver matches the solver object this object is associated
+ * with.
+ */
+#define CVC4_API_ARG_CHECK_SOLVER(what, arg)                              \
+  CVC4_API_CHECK(this->d_solver == arg.d_solver)                          \
+      << "Given " << (what) << " is not associated with the solver this " \
+      << (what)                                                           \
+      << " is "                                                           \
+         "associated with";
+
+/* -------------------------------------------------------------------------- */
+/* Sort checks.                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Sort check for member functions of classes other than class Solver.
+ * Check if given sort is not null and associated with the solver object this
+ * Sort object is associated with.
+ */
+#define CVC4_API_CHECK_SORT(sort)            \
+  do                                         \
+  {                                          \
+    CVC4_API_ARG_CHECK_NOT_NULL(sort);       \
+    CVC4_API_ARG_CHECK_SOLVER("sort", sort); \
+  } while (0)
+
+/**
+ * Sort check for member functions of classes other than class Solver.
+ * Check if each sort in the given container of sorts is not null and
+ * associated with the solver object this Sort object is associated with.
+ */
+#define CVC4_API_CHECK_SORTS(sorts)                                            \
+  do                                                                           \
+  {                                                                            \
+    size_t i = 0;                                                              \
+    for (const auto& s : sorts)                                                \
+    {                                                                          \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);               \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
+          this->d_solver == s.d_solver, "sort", sorts, i)                      \
+          << "a sort associated with the solver this sort is associated with"; \
+      i += 1;                                                                  \
+    }                                                                          \
+  } while (0)
+
+/* -------------------------------------------------------------------------- */
+/* Checks for class Solver.                                                   */
 /* -------------------------------------------------------------------------- */
 
 /** Sort checks for member functions of class Solver. */
