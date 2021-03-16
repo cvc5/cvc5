@@ -83,7 +83,8 @@ class SExprTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
     if (check)
     {
-      for (TNode c : n){
+      for (TNode c : n)
+      {
         c.getType(check);
       }
     }
