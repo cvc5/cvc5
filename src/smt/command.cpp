@@ -1643,7 +1643,8 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     std::vector<api::Term> sexprs;
     for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
     {
-      // Put the name of the expression inside of a variable name for printing
+      // Treat the expression name as a variable name as opposed to a string
+      // constant to avoid printing double quotes around the name.
       api::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
       sexprs.push_back(solver->mkTerm(api::SEXPR, name, values[i]));
     }

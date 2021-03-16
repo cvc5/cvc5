@@ -1929,12 +1929,14 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
   NodeManagerScope nms(getNodeManager());
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     getPrinter().toStreamCmdSetOption(
         getOutputManager().getDumpOut(), key, value);
   }
 
-  if(key == "command-verbosity") {
+  if (key == "command-verbosity")
+  {
     size_t fstIndex = value.find(" ");
     size_t sndIndex = value.find(" ", fstIndex + 1);
     if (sndIndex == std::string::npos)
@@ -1949,7 +1951,8 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
       d_commandVerbosity[c] = v;
       return;
     }
-    throw OptionException("command-verbosity value must be a tuple (command-name integer)");
+    throw OptionException(
+        "command-verbosity value must be a tuple (command-name integer)");
   }
 
   if (value.find(" ") != std::string::npos)
@@ -2001,25 +2004,26 @@ Node SmtEngine::getOption(const std::string& key) const
          i != d_commandVerbosity.end();
          ++i)
     {
-      vector<Node> v;
-      v.push_back(nm->mkBoundVar(i->first, nm->integerType()));
-      v.push_back(nm->mkConst(Rational(i->second)));
+      // treat the command name as a variable name as opposed to a string
+      // constant to avoid printing double quotes around the name
+      Node name = nm->mkBoundVar(i->first, nm->integerType());
+      Node value = nm->mkConst(Rational(i->second));
       if ((*i).first == "*")
       {
         // put the default at the end of the SExpr
-        defaultVerbosity = nm->mkNode(Kind::SEXPR, v);
+        defaultVerbosity = nm->mkNode(Kind::SEXPR, name, value);
       }
       else
       {
-        result.push_back(nm->mkNode(Kind::SEXPR, v));
+        result.push_back(nm->mkNode(Kind::SEXPR, name, value));
       }
     }
     // ensure the default is always listed
     if (defaultVerbosity.isNull())
     {
       defaultVerbosity = nm->mkNode(Kind::SEXPR,
-                                      nm->mkBoundVar("*", nm->integerType()),
-                                      nm->mkConst(Rational(2)));
+                                    nm->mkBoundVar("*", nm->integerType()),
+                                    nm->mkConst(Rational(2)));
     }
     result.push_back(defaultVerbosity);
     return nm->mkNode(Kind::SEXPR, result);
@@ -2036,19 +2040,16 @@ Node SmtEngine::getOption(const std::string& key) const
   {
     return nm->mkConst<bool>(false);
   }
-  else
+  try
   {
-    try
-    {
-      Integer z(atom);
-      return nm->mkConst(Rational(z));
-    }
-    catch (std::invalid_argument&)
-    {
-      // Fall through to the next case
-    }
-    return nm->mkConst(String(atom));
+    Integer z(atom);
+    return nm->mkConst(Rational(z));
   }
+  catch (std::invalid_argument&)
+  {
+    // Fall through to the next case
+  }
+  return nm->mkConst(String(atom));
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }
