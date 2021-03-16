@@ -301,7 +301,7 @@ void NonlinearExtension::check(Theory::Effort e)
   }
 }
 
-bool NonlinearExtension::modelBasedRefinement()
+bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;
@@ -317,8 +317,18 @@ bool NonlinearExtension::modelBasedRefinement()
   Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
+  std::vector<Node> xtsAll;
+  d_extTheory.getTerms(xtsAll);
+  // only consider those that are currently relevant based on the current
+  // assertions, i.e. those contained in termSet
   std::vector<Node> xts;
-  d_extTheory.getTerms(xts);
+  for (const Node& x : xtsAll)
+  {
+    if (termSet.find(x) != termSet.end())
+    {
+      xts.push_back(x);
+    }
+  }
 
   if (Trace.isOn("nl-ext-debug"))
   {
@@ -496,7 +506,8 @@ bool NonlinearExtension::modelBasedRefinement()
   return false;
 }
 
-void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
+void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
+                                        const std::set<Node>& termSet)
 {
   if (!needsCheckLastEffort())
   {
@@ -509,7 +520,7 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   if (!d_builtModel.get())
   {
     Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-    modelBasedRefinement();
+    modelBasedRefinement(termSet);
   }
   if (d_builtModel.get())
   {

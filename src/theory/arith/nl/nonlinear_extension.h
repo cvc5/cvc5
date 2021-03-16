@@ -128,7 +128,8 @@ class NonlinearExtension
    * arithModel so that it satisfies certain nonlinear constraints. This may
    * involve e.g. solving for variables in nonlinear equations.
    */
-  void interceptModel(std::map<Node, Node>& arithModel);
+  void interceptModel(std::map<Node, Node>& arithModel,
+                      const std::set<Node>& termSet);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
@@ -158,7 +159,7 @@ class NonlinearExtension
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
    */
-  bool modelBasedRefinement();
+  bool modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *

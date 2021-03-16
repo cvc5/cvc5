@@ -26,76 +26,9 @@
 
 namespace CVC4 {
 
-template <class T>
-class HistogramStat : public Stat
-{
-  using Histogram = std::map<T, uint64_t>;
- public:
-  /** Construct a histogram of a stream of entries. */
-  HistogramStat(const std::string& name) : Stat(name) {}
-
-  void flushInformation(std::ostream& out) const override
-  {
-    auto i = d_hist.begin();
-    auto end = d_hist.end();
-    out << "[";
-    while (i != end)
-    {
-      const T& key = (*i).first;
-      uint64_t count = (*i).second;
-      out << "(" << key << " : " << count << ")";
-      ++i;
-      if (i != end)
-      {
-        out << ", ";
-      }
-    }
-    out << "]";
-  }
-
-  void safeFlushInformation(int fd) const override
-  {
-    auto i = d_hist.begin();
-    auto end = d_hist.end();
-    safe_print(fd, "[");
-    while (i != end)
-    {
-      const T& key = (*i).first;
-      uint64_t count = (*i).second;
-      safe_print(fd, "(");
-      safe_print<T>(fd, key);
-      safe_print(fd, " : ");
-      safe_print<uint64_t>(fd, count);
-      safe_print(fd, ")");
-      ++i;
-      if (i != end)
-      {
-        safe_print(fd, ", ");
-      }
-    }
-    safe_print(fd, "]");
-  }
-
-  HistogramStat& operator<<(const T& val)
-  {
-    if (CVC4_USE_STATISTICS)
-    {
-      if (d_hist.find(val) == d_hist.end())
-      {
-        d_hist.insert(std::make_pair(val, 0));
-      }
-      d_hist[val]++;
-    }
-    return (*this);
-  }
-
- private:
-  Histogram d_hist;
-}; /* class HistogramStat */
-
 /**
  * A histogram statistic class for integral types.
- * Avoids using an std::map (like the generic HistogramStat) in favor of a
+ * Avoids using an std::map (like we would do for generic types) in favor of a
  * faster std::vector by casting the integral values to indices into the
  * vector. Requires the type to be an integral type that is convertible to
  * int64_t, also supporting appropriate enum types.

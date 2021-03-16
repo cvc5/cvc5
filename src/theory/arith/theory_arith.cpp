@@ -248,7 +248,7 @@ bool TheoryArith::collectModelValues(TheoryModel* m,
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
-    d_nonlinearExtension->interceptModel(arithModel);
+    d_nonlinearExtension->interceptModel(arithModel, termSet);
   }
   // We are now ready to assert the model.
   for (const std::pair<const Node, Node>& p : arithModel)
