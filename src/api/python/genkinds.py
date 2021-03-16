@@ -21,6 +21,7 @@ kinds declared between '#if 0' and '#endif'. It can also
 handle nested '#if 0' pairs.
 """
 
+import argparse
 import os
 import sys
 
@@ -31,7 +32,6 @@ import sys
 sys.path.insert(0, os.path.abspath('../../../../src/api'))
 
 from parsekinds import *
-import argparse
 
 #################### Default Filenames ################
 DEFAULT_PREFIX = 'kinds'

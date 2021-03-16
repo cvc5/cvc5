@@ -15,6 +15,7 @@ This script reads CVC4/src/api/cvc4cppkind.h and generates
 cvc/Kind.java file which declare all the CVC4 kinds.
 """
 
+import argparse
 import os
 import sys
 
@@ -25,7 +26,6 @@ import sys
 sys.path.insert(0, os.path.abspath('../../../../src/api'))
 
 from parsekinds import *
-import argparse
 
 # Default Filenames
 DEFAULT_PREFIX = 'Kind'
@@ -45,7 +45,7 @@ public enum Kind
 KINDS_JAVA_BOTTOM = \
     r""";
 
-  /* the int value of the kind*/
+  /* the int value of the kind */
   private int value;
   private static Map<Integer, Kind> kindMap = new HashMap<>();
   private Kind(int value)
