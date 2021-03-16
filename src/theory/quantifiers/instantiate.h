@@ -311,18 +311,16 @@ class Instantiate : public QuantifiersUtil
    */
   static Node ensureType(Node n, TypeNode tn);
 
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /** cache of term database for quantifiers engine */
-  TermDb* d_term_db;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 

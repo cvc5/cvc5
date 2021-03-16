@@ -40,17 +40,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Instantiate::Instantiate(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+Instantiate::Instantiate(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
+                         TermRegistry& tr,
                          ProofNodeManager* pnm)
-    : d_qe(qe),
-      d_qstate(qs),
+    : d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
+      d_treg(tr),
       d_pnm(pnm),
-      d_term_db(nullptr),
       d_total_inst_debug(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
@@ -79,7 +78,6 @@ bool Instantiate::reset(Theory::Effort e)
     }
     d_recorded_inst.clear();
   }
-  d_term_db = d_qe->getTermDatabase();
   return true;
 }
 
@@ -111,7 +109,6 @@ bool Instantiate::addInstantiation(Node q,
   d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
-  Assert(d_term_db != nullptr);
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
   for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -188,6 +185,7 @@ bool Instantiate::addInstantiation(Node q,
 #endif
   }
 
+  TermDb* tdb = d_treg.getTermDatabase();
   // Note we check for entailment before checking for term vector duplication.
   // Although checking for term vector duplication is a faster check, it is
   // included automatically with recordInstantiationInternal, hence we prefer
@@ -210,7 +208,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       subs[q[0][i]] = terms[i];
     }
-    if (d_term_db->isEntailed(q[1], subs, false, true))
+    if (tdb->isEntailed(q[1], subs, false, true))
     {
       Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
       ++(d_statistics.d_inst_duplicate_ent);
@@ -223,7 +221,7 @@ bool Instantiate::addInstantiation(Node q,
   {
     for (Node& t : terms)
     {
-      if (!d_term_db->isTermEligibleForInstantiation(t, q))
+      if (!tdb->isTermEligibleForInstantiation(t, q))
       {
         return false;
       }
@@ -441,7 +439,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     if (options::instNoEntail())
     {
       Trace("inst-exp-fail") << "  check entailment" << std::endl;
-      success = d_term_db->isEntailed(q[1], subs, false, true);
+      success = tdb->isEntailed(q[1], subs, false, true);
       Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
     }
     // check whether the instantiation rewrites to the same thing

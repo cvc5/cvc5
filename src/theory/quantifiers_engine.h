@@ -283,10 +283,6 @@ public:
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** instantiate utility */
-  std::unique_ptr<quantifiers::Instantiate> d_instantiate;
-  /** skolemize utility */
-  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.

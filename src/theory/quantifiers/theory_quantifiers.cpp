@@ -46,7 +46,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
       d_qstate(c, u, valuation, logicInfo),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
-      d_qim(*this, d_qstate, pnm),
+      d_qim(*this, d_qstate, d_qreg, d_treg, pnm),
       d_qengine(d_qstate, d_qreg, d_treg, d_qim, pnm)
 {
   // Finish initializing the term registry by hooking it up to the inference
