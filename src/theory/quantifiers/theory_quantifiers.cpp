@@ -88,7 +88,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
         || options::fmfBound())
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
-      d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
+      d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
           d_qstate, d_qreg, "FirstOrderModelFmc"));
       d_builder.reset(new quantifiers::fmcheck::FullModelChecker(d_qstate));
     }
@@ -96,20 +96,20 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     {
       Trace("quant-engine-debug")
           << "...make default model builder." << std::endl;
-      d_model.reset(new quantifiers::FirstOrderModel(
+      d_qmodel.reset(new quantifiers::FirstOrderModel(
           d_qstate, d_qreg, "FirstOrderModel"));
       d_builder.reset(new quantifiers::QModelBuilder(d_qstate));
     }
   }
   else
   {
-    d_model.reset(new quantifiers::FirstOrderModel(
+    d_qmodel.reset(new quantifiers::FirstOrderModel(
         d_qstate, d_qreg, "FirstOrderModel"));
   }
 
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(
-      d_qstate, d_qreg, d_treg, d_qim, d_model.get(), pnm));
+      d_qstate, d_qreg, d_treg, d_qim, d_qmodel.get(), pnm));
 
   // Set the pointer to the quantifiers engine, which this theory owns. This
   // pointer will be retreived by TheoryEngine and set to all theories
