@@ -151,58 +151,7 @@ namespace api {
                 << (idx) << ", expected "
 
 /* -------------------------------------------------------------------------- */
-/* Solver checks. */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Solver check for member functions of classes other than class Solver.
- * Check if given solver matches the solver object this object is associated
- * with.
- */
-#define CVC4_API_ARG_CHECK_SOLVER(what, arg)                              \
-  CVC4_API_CHECK(this->d_solver == arg.d_solver)                          \
-      << "Given " << (what) << " is not associated with the solver this " \
-      << (what)                                                           \
-      << " is "                                                           \
-         "associated with";
-
-/* -------------------------------------------------------------------------- */
-/* Sort checks.                                                               */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Sort check for member functions of classes other than class Solver.
- * Check if given sort is not null and associated with the solver object this
- * Sort object is associated with.
- */
-#define CVC4_API_CHECK_SORT(sort)            \
-  do                                         \
-  {                                          \
-    CVC4_API_ARG_CHECK_NOT_NULL(sort);       \
-    CVC4_API_ARG_CHECK_SOLVER("sort", sort); \
-  } while (0)
-
-/**
- * Sort check for member functions of classes other than class Solver.
- * Check if each sort in the given container of sorts is not null and
- * associated with the solver object this Sort object is associated with.
- */
-#define CVC4_API_CHECK_SORTS(sorts)                                            \
-  do                                                                           \
-  {                                                                            \
-    size_t i = 0;                                                              \
-    for (const auto& s : sorts)                                                \
-    {                                                                          \
-      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("sort", s, sorts, i);               \
-      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                    \
-          this->d_solver == s.d_solver, "sort", sorts, i)                      \
-          << "a sort associated with the solver this sort is associated with"; \
-      i += 1;                                                                  \
-    }                                                                          \
-  } while (0)
-
-/* -------------------------------------------------------------------------- */
-/* Checks for class Solver.                                                   */
+/* Solver checks.                                                             */
 /* -------------------------------------------------------------------------- */
 
 /**
