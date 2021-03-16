@@ -42,19 +42,6 @@ class TermEnumeration
   ~TermEnumeration() {}
   /** get i^th term for type tn */
   Node getEnumerateTerm(TypeNode tn, unsigned i);
-  /** may complete type
-   *
-   * Returns true if the type tn is closed enumerable, is interpreted as a
-   * finite type, and has cardinality less than some reasonable value
-   * (currently < 1000). This method caches the results of whether each type
-   * may be completed.
-   */
-  bool mayComplete(TypeNode tn);
-  /**
-   * Static version of the above method where maximum cardinality is
-   * configurable.
-   */
-  static bool mayComplete(TypeNode tn, unsigned cardMax);
 
   /** get domain
    *
@@ -74,8 +61,6 @@ class TermEnumeration
   std::vector<TypeEnumerator> d_typ_enum;
   /** closed enumerable type cache */
   std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_typ_closed_enum;
-  /** may complete */
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_may_complete;
 };
 
 } /* CVC4::theory::quantifiers namespace */
