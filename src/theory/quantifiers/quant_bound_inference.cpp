@@ -16,14 +16,18 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersBoundInference(unsigned cardMax) : d_cardMax(cardMax){}
+QuantifiersBoundInference(unsigned cardMax) : d_cardMax(cardMax), d_bint(nullptr){}
+
+void QuantifiersBoundInference::finishInit(BoundedIntegers * b)
+{
+  d_bint = b;
+}
 
 bool QuantifiersBoundInference::mayComplete(TypeNode tn)
 {

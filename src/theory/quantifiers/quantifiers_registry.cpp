@@ -21,7 +21,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersRegistry::QuantifiersRegistry() : d_quantAttr() {}
+QuantifiersRegistry::QuantifiersRegistry() : d_quantAttr(), d_quantBoundInf(options::fmfTypeCompletionThresh()) {}
 
 void QuantifiersRegistry::registerQuantifier(Node q)
 {

@@ -32,6 +32,8 @@ class BoundedIntegers;
 class QuantifiersBoundInference {
  public:
   QuantifiersBoundInference(unsigned cardMax);
+  /** finish initialize */
+  void finishInit(BoundedIntegers * b);
   /** may complete type
    *
    * Returns true if the type tn is closed enumerable, is interpreted as a

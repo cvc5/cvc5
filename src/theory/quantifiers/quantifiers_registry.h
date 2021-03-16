@@ -87,6 +87,8 @@ class QuantifiersRegistry : public QuantifiersUtil
   //----------------------------- end instantiation constants
   /** Get quantifiers attributes utility class */
   QuantAttributes& getQuantAttributes();
+  /** Get quantifiers bound inference utility */
+  QuantifiersBoundInference& getQuantifiersBoundInference();
   /**
    * Get quantifiers name, which returns a variable corresponding to the name of
    * quantified formula q if q has a name, or otherwise returns q itself.
@@ -120,6 +122,8 @@ class QuantifiersRegistry : public QuantifiersUtil
   std::map<Node, std::vector<Node> > d_inst_constants;
   /** The quantifiers attributes class */
   QuantAttributes d_quantAttr;
+  /** The quantifiers bound inference class */
+  QuantifiersBoundInference d_quantBoundInf;
 };
 
 }  // namespace quantifiers

@@ -28,6 +28,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersBoundInference;
+
 /** Term enumeration
  *
  * This class has utilities for enumerating terms. It stores
@@ -38,20 +40,22 @@ namespace quantifiers {
 class TermEnumeration
 {
  public:
-  TermEnumeration() {}
+  TermEnumeration(QuantifiersBoundInference& qbi);
   ~TermEnumeration() {}
   /** get i^th term for type tn */
   Node getEnumerateTerm(TypeNode tn, unsigned i);
 
   /** get domain
    *
-   * If tn is a type such that mayComplete(tn) returns true, this method
+   * If tn is a type such that d_qbi.mayComplete(tn) returns true, this method
    * adds all domain elements of tn to dom and returns true. Otherwise, this
    * method returns false.
    */
   bool getDomain(TypeNode tn, std::vector<Node>& dom);
 
  private:
+   /** Reference to quantifiers bound inference */
+   QuantifiersBoundInference& d_qbi;
   /** ground terms enumerated for types */
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
       d_enum_terms;

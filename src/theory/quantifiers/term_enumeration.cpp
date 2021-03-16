@@ -14,9 +14,7 @@
 
 #include "theory/quantifiers/term_enumeration.h"
 
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
+#include "theory/quantifiers/quant_bound_inference.h"
 
 using namespace CVC4::kind;
 
@@ -24,6 +22,11 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+TermEnumeration::TermEnumeration(QuantifiersBoundInference& qbi) : d_qbi(qbi)
+{
+  
+}
+  
 Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 {
   Trace("term-db-enum") << "Get enumerate term " << tn << " " << index
@@ -55,7 +58,7 @@ Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 
 bool TermEnumeration::getDomain(TypeNode tn, std::vector<Node>& dom)
 {
-  if (!mayComplete(tn))
+  if (d_qbi.mayComplete(tn))
   {
     return false;
   }
