@@ -30,12 +30,14 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs)
+QModelBuilder::QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs,
+               QuantifiersRegistry& qr)
     : TheoryEngineModelBuilder(),
       d_qe(qe),
       d_addedLemmas(0),
       d_triedLemmas(0),
-      d_qstate(qs)
+      d_qstate(qs),
+      d_qreg(qr)
 {
 }
 
@@ -94,14 +96,15 @@ void QModelBuilder::debugModel( TheoryModel* m ){
     Trace("quant-check-model") << "Testing quantifier instantiations..." << std::endl;
     int tests = 0;
     int bad = 0;
+    QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
       std::vector< Node > vars;
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      QRepBoundExt qrbe(d_qe);
-      RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
+      QRepBoundExt qrbe(qbi, m);
+      RepSetIterator riter(m->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;

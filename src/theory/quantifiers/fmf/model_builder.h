@@ -27,6 +27,7 @@ namespace quantifiers {
 
 class FirstOrderModel;
 class QuantifiersState;
+class QuantifiersRegistry;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
@@ -41,7 +42,8 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned d_triedLemmas;
 
  public:
-  QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs);
+  QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs,
+               QuantifiersRegistry& qr);
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
@@ -61,6 +63,8 @@ class QModelBuilder : public TheoryEngineModelBuilder
  protected:
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
+  /** Reference to the quantifiers registry */
+  QuantifiersRegistry& d_qreg;
 };
 
 }/* CVC4::theory::quantifiers namespace */

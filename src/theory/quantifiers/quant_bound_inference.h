@@ -48,10 +48,21 @@ enum BoundVarType
   BOUND_NONE
 };
 
+/**
+ * This class is the central utility for determining if the domain of a
+ * quantified formula is finite, or whether its domain can be restricted to
+ * a finite subdomain based on one of the above types.
+ */
 class QuantifiersBoundInference
 {
  public:
-  QuantifiersBoundInference(unsigned cardMax);
+   /** 
+    * @param cardMax The maximum cardinality we consider to be small enough
+    * to "complete" below.
+    * @param isFmf Whether finite model finding (for uninterpreted sorts) is
+    * enabled.
+    */
+  QuantifiersBoundInference(unsigned cardMax, bool isFmf = false);
   /** finish initialize */
   void finishInit(BoundedIntegers* b);
   /** may complete type
@@ -68,13 +79,13 @@ class QuantifiersBoundInference
    */
   static bool mayComplete(TypeNode tn, unsigned cardMax);
   /** does variable v of quantified formula q have a finite bound? */
-  bool isFiniteBound(Node q, Node v) const;
+  bool isFiniteBound(Node q, Node v);
   /** get bound var type
    *
    * This returns the type of bound that was inferred for variable v of
    * quantified formula q.
    */
-  BoundVarType getBoundVarType(Node q, Node v) const;
+  BoundVarType getBoundVarType(Node q, Node v);
   /**
    * Get the indices of bound variables, in the order they should be processed
    * in a RepSetIterator.
@@ -101,6 +112,8 @@ class QuantifiersBoundInference
  private:
   /** The maximum cardinality for which we complete */
   unsigned d_cardMax;
+  /** Whether finite model finding is enabled */
+  bool d_isFmf;
   /** may complete */
   std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_may_complete;
   /** The bounded integers module, which may help infer bounds */

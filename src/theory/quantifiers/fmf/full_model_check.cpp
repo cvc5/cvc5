@@ -20,6 +20,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -281,8 +282,9 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-FullModelChecker::FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs)
-    : QModelBuilder(qe, qs)
+FullModelChecker::FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs,
+               QuantifiersRegistry& qr)
+    : QModelBuilder(qe, qs, qr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -785,8 +787,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
 class RepBoundFmcEntry : public QRepBoundExt
 {
  public:
-  RepBoundFmcEntry(QuantifiersEngine* qe, Node e, FirstOrderModelFmc* f)
-      : QRepBoundExt(qe), d_entry(e), d_fm(f)
+  RepBoundFmcEntry(QuantifiersBoundInference& qbi, Node e, FirstOrderModelFmc* f)
+      : QRepBoundExt(qbi, f), d_entry(e), d_fm(f)
   {
   }
   ~RepBoundFmcEntry() {}
@@ -818,8 +820,9 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
   Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
-  RepBoundFmcEntry rbfe(d_qe, c, fm);
-  RepSetIterator riter(d_qe->getModel()->getRepSet(), &rbfe);
+  QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
+  RepBoundFmcEntry rbfe(qbi, c, fm);
+  RepSetIterator riter(fm->getRepSet(), &rbfe);
   Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize
   if (riter.setQuantifier(f))

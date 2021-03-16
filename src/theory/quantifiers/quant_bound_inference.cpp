@@ -15,6 +15,7 @@
 #include "theory/quantifiers/quant_bound_inference.h"
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -22,8 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersBoundInference(unsigned cardMax)
-    : d_cardMax(cardMax), d_bint(nullptr)
+QuantifiersBoundInference::QuantifiersBoundInference(unsigned cardMax, bool isFmf)
+    : d_cardMax(cardMax), d_isFmf(isFmf), d_bint(nullptr)
 {
 }
 
@@ -63,25 +64,25 @@ bool QuantifiersBoundInference::mayComplete(TypeNode tn, unsigned maxCard)
   return mc;
 }
 
-bool QuantifiersBoundInference::isFiniteBound(Node q, Node v) const
+bool QuantifiersBoundInference::isFiniteBound(Node q, Node v)
 {
   if (d_bint && d_bint->isBound(q, v))
   {
     return true;
   }
   TypeNode tn = v.getType();
-  if (tn.isSort() && options::finiteModelFind())
+  if (tn.isSort() && d_isFmf)
   {
     return true;
   }
-  else if (d_treg.getTermEnumeration()->mayComplete(tn))
+  else if (mayComplete(tn))
   {
     return true;
   }
   return false;
 }
 
-BoundVarType QuantifiersBoundInference::getBoundVarType(Node q, Node v) const
+BoundVarType QuantifiersBoundInference::getBoundVarType(Node q, Node v)
 {
   if (d_bint)
   {
@@ -100,7 +101,7 @@ void QuantifiersBoundInference::getBoundVarIndices(
     d_bint->getBoundVarIndices(q, indices);
   }
   // then get the remaining ones
-  for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
+  for (size_t i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
   {
     if (std::find(indices.begin(), indices.end(), i) == indices.end())
     {

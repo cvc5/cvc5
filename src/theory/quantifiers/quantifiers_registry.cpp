@@ -22,7 +22,7 @@ namespace theory {
 namespace quantifiers {
 
 QuantifiersRegistry::QuantifiersRegistry()
-    : d_quantAttr(), d_quantBoundInf(options::fmfTypeCompletionThresh())
+    : d_quantAttr(), d_quantBoundInf(options::fmfTypeCompletionThresh(), options::finiteModelFind())
 {
 }
 
