@@ -2,7 +2,7 @@
 ; EXPECT: success
 ; EXPECT: success
 ; EXPECT: success
-; EXPECT: unsupported
+; EXPECT: success
 ; EXPECT: success
 ; EXPECT: success
 ; EXPECT: success

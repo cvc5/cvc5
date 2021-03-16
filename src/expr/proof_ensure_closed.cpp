@@ -36,7 +36,7 @@ void ensureClosedWrtInternal(Node proven,
                              const char* ctx,
                              bool reqGen)
 {
-  if (!options::proof())
+  if (!options::produceProofs())
   {
     // proofs not enabled, do not do check
     return;
