@@ -27,7 +27,7 @@ namespace options {
 
 /** Enumeration of inst_format modes (how to print models from get-model
  * command). */
-enum class CVC4_PUBLIC InstFormatMode
+enum class InstFormatMode
 {
   /** default mode (print expressions in the output language format) */
   DEFAULT,
@@ -37,8 +37,7 @@ enum class CVC4_PUBLIC InstFormatMode
 
 }  // namespace options
 
-std::ostream& operator<<(std::ostream& out,
-                         options::InstFormatMode mode) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode);
 
 }  // namespace CVC4
 

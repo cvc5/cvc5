@@ -1124,6 +1124,9 @@ target_include_directories(cvc4
     $<INSTALL_INTERFACE:include>
 )
 
+include(GenerateExportHeader)
+generate_export_header(cvc4)
+
 install(TARGETS cvc4
   EXPORT cvc4-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -1213,7 +1216,7 @@ install(FILES
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
 install(FILES
-          include/cvc4_public.h
+          ${CMAKE_CURRENT_BINARY_DIR}/cvc4_export.h
         DESTINATION
           ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/)
 

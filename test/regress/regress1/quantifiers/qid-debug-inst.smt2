@@ -1,4 +1,4 @@
-; COMMAND-LINE: --debug-inst
+; COMMAND-LINE: --debug-inst --no-check-unsat-cores
 ; EXPECT: (num-instantiations myQuant1 1)
 ; EXPECT: (num-instantiations myQuant2 1)
 ; EXPECT: unsat

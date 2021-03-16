@@ -23,13 +23,16 @@
 
 #include <string>
 
+#include "cvc4_export.h"
+
 namespace CVC4 {
 
 /**
  * Represents the (static) configuration of CVC4.
  */
-class CVC4_PUBLIC Configuration {
-private:
+class CVC4_EXPORT Configuration
+{
+ private:
   /** Private default ctor: Disallow construction of this class */
   Configuration();
 
@@ -136,7 +139,7 @@ public:
   static std::string getCompiler();
   static std::string getCompiledDateTime();
 
-};/* class Configuration */
+}; /* class Configuration */
 
 }/* CVC4 namespace */
 
