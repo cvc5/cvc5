@@ -31,11 +31,11 @@ using namespace context;
 
 namespace test {
 
-class TestSymbolTableBlack : public TestApi
+class TestNodeBlackSymbolTable : public TestApi
 {
 };
 
-TEST_F(TestSymbolTableBlack, bind1)
+TEST_F(TestNodeBlackSymbolTable, bind1)
 {
   SymbolTable symtab;
   api::Sort booleanType = d_solver.getBooleanSort();
@@ -45,7 +45,7 @@ TEST_F(TestSymbolTableBlack, bind1)
   ASSERT_EQ(symtab.lookup("x"), x);
 }
 
-TEST_F(TestSymbolTableBlack, bind2)
+TEST_F(TestNodeBlackSymbolTable, bind2)
 {
   SymbolTable symtab;
   api::Sort booleanType = d_solver.getBooleanSort();
@@ -56,7 +56,7 @@ TEST_F(TestSymbolTableBlack, bind2)
   ASSERT_EQ(symtab.lookup("x"), y);
 }
 
-TEST_F(TestSymbolTableBlack, bind3)
+TEST_F(TestNodeBlackSymbolTable, bind3)
 {
   SymbolTable symtab;
   api::Sort booleanType = d_solver.getBooleanSort();
@@ -69,7 +69,7 @@ TEST_F(TestSymbolTableBlack, bind3)
   ASSERT_EQ(symtab.lookup("x"), y);
 }
 
-TEST_F(TestSymbolTableBlack, bind4)
+TEST_F(TestNodeBlackSymbolTable, bind4)
 {
   SymbolTable symtab;
   api::Sort booleanType = d_solver.getBooleanSort();
@@ -86,7 +86,7 @@ TEST_F(TestSymbolTableBlack, bind4)
   ASSERT_EQ(symtab.lookupType("x"), t);
 }
 
-TEST_F(TestSymbolTableBlack, bind_type1)
+TEST_F(TestNodeBlackSymbolTable, bind_type1)
 {
   SymbolTable symtab;
   api::Sort s = d_solver.mkUninterpretedSort("S");
@@ -95,7 +95,7 @@ TEST_F(TestSymbolTableBlack, bind_type1)
   ASSERT_EQ(symtab.lookupType("S"), s);
 }
 
-TEST_F(TestSymbolTableBlack, bind_type2)
+TEST_F(TestNodeBlackSymbolTable, bind_type2)
 {
   SymbolTable symtab;
   // type name attribute shouldn't matter
@@ -105,7 +105,7 @@ TEST_F(TestSymbolTableBlack, bind_type2)
   ASSERT_EQ(symtab.lookupType("T"), s);
 }
 
-TEST_F(TestSymbolTableBlack, bind_type3)
+TEST_F(TestNodeBlackSymbolTable, bind_type3)
 {
   SymbolTable symtab;
   api::Sort s = d_solver.mkUninterpretedSort("S");
@@ -117,7 +117,7 @@ TEST_F(TestSymbolTableBlack, bind_type3)
   ASSERT_EQ(symtab.lookupType("S"), t);
 }
 
-TEST_F(TestSymbolTableBlack, push_scope)
+TEST_F(TestNodeBlackSymbolTable, push_scope)
 {
   SymbolTable symtab;
   api::Sort booleanType = d_solver.getBooleanSort();
@@ -139,7 +139,7 @@ TEST_F(TestSymbolTableBlack, push_scope)
   ASSERT_EQ(symtab.lookup("x"), x);
 }
 
-TEST_F(TestSymbolTableBlack, bad_pop)
+TEST_F(TestNodeBlackSymbolTable, bad_pop)
 {
   SymbolTable symtab;
   ASSERT_THROW(symtab.popScope(), ScopeException);
