@@ -24,11 +24,12 @@
 #include <sstream>
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 
 namespace CVC4 {
 namespace parser {
 
-class ParserException : public Exception
+class CVC4_EXPORT ParserException : public Exception
 {
  public:
   // Constructors
