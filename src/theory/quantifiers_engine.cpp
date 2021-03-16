@@ -105,6 +105,9 @@ QuantifiersEngine::QuantifiersEngine(
     d_model.reset(new quantifiers::FirstOrderModel(
         qstate, d_qreg, tr, "FirstOrderModel"));
   }
+  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+  d_model->finishInit(this);
+  // initialize the equality query
   d_eq_query.reset(
       new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));
   d_util.insert(d_util.begin(), d_eq_query.get());

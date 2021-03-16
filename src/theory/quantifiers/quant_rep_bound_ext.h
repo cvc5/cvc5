@@ -40,7 +40,7 @@ namespace quantifiers {
 class QRepBoundExt : public RepBoundExt
 {
  public:
-  QRepBoundExt(QuantifiersEngine* qe);
+  QRepBoundExt();
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,
@@ -58,8 +58,6 @@ class QRepBoundExt : public RepBoundExt
   bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder) override;
 
  private:
-  /** Quantifiers engine associated with this bound */
-  QuantifiersEngine* d_qe;
   /** indices that are bound integer enumeration */
   std::map<unsigned, bool> d_bound_int;
 };

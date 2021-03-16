@@ -43,7 +43,6 @@ class FirstOrderModelFmc : public FirstOrderModel
                      TermRegistry& tr,
                      std::string name);
   ~FirstOrderModelFmc() override;
-  FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
   // initialize the model
   void processInitialize(bool ispre) override;
   Node getFunctionValue(Node op, const char* argPrefix);

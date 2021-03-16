@@ -49,7 +49,10 @@ class FirstOrderModel : public TheoryModel
                   TermRegistry& tr,
                   std::string name);
 
-  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
+  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+  /** finish initialize */
+  void finishInit(QuantifiersEngine * qe);
+  
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -122,6 +125,8 @@ class FirstOrderModel : public TheoryModel
   bool initializeRepresentativesForType(TypeNode tn);
 
  protected:
+  //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
+   QuantifiersEngine * d_qe;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */

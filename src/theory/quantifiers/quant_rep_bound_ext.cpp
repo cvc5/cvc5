@@ -23,7 +23,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QRepBoundExt::QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
+QRepBoundExt::QRepBoundExt() : {}
 
 RsiEnumType QRepBoundExt::setBound(Node owner,
                                    unsigned i,

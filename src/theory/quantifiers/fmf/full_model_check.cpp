@@ -281,8 +281,8 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-FullModelChecker::FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs)
-    : QModelBuilder(qe, qs)
+FullModelChecker::FullModelChecker(QuantifiersState& qs)
+    : QModelBuilder(qs)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -294,7 +294,7 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
     return false;
   }
   
-  FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
+  FirstOrderModelFmc * fm = (FirstOrderModelFmc*)m;
   Trace("fmc") << "---Full Model Check preprocess() " << std::endl;
   d_preinitialized_eqc.clear();
   d_preinitialized_types.clear();
@@ -341,7 +341,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     // nothing to do if no functions
     return true;
   }
-  FirstOrderModelFmc * fm = ((FirstOrderModelFmc*)m)->asFirstOrderModelFmc();
+  FirstOrderModelFmc * fm = (FirstOrderModelFmc*)m;
   Trace("fmc") << "---Full Model Check reset() " << std::endl;
   d_quant_models.clear();
   d_rep_ids.clear();
@@ -602,7 +602,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
   {
     return 0;
   }
-  FirstOrderModelFmc* fmfmc = fm->asFirstOrderModelFmc();
+  FirstOrderModelFmc* fmfmc = static_cast<FirstOrderModelFmc*>(fm);
   if (effort == 0)
   {
     if (options::mbqiMode() == options::MbqiMode::NONE)

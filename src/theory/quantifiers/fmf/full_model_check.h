@@ -156,12 +156,10 @@ protected:
  public:
   FullModelChecker(QuantifiersState& qs);
 
-  void debugPrintCond(FirstOrderModelFmc* fm,
-                      const char* tr,
+  void debugPrintCond(const char* tr,
                       Node n,
                       bool dispStar = false);
-  void debugPrint(FirstOrderModelFmc* fm,
-                  const char* tr,
+  void debugPrint(const char* tr,
                   Node n,
                   bool dispStar = false);
 

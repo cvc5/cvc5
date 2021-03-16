@@ -49,11 +49,18 @@ FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
                                  TermRegistry& tr,
                                  std::string name)
     : TheoryModel(qs.getSatContext(), name, true),
+      d_qe(nullptr),
       d_qreg(qr),
       d_treg(tr),
       d_forall_asserts(qs.getSatContext()),
       d_forallRlvComputed(false)
 {
+}
+
+//!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+void FirstOrderModel::finishInit(QuantifiersEngine * qe)
+{
+  d_qe = qe;
 }
 
 void FirstOrderModel::assertQuantifier( Node n ){
