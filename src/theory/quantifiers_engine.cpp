@@ -51,7 +51,7 @@ QuantifiersEngine::QuantifiersEngine(
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
-    quantifiers::FirstOrderModel * qm,
+    quantifiers::FirstOrderModel* qm,
     ProofNodeManager* pnm)
     : d_qstate(qstate),
       d_qim(qim),
