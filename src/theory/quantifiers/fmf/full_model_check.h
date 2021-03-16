@@ -154,10 +154,10 @@ protected:
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 
  public:
-  FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs);
+  FullModelChecker(QuantifiersState& qs);
 
-  void debugPrintCond(const char * tr, Node n, bool dispStar = false);
-  void debugPrint(const char * tr, Node n, bool dispStar = false);
+  void debugPrintCond(FirstOrderModelFmc * fm, const char * tr, Node n, bool dispStar = false);
+  void debugPrint(FirstOrderModelFmc * fm, const char * tr, Node n, bool dispStar = false);
 
   int doExhaustiveInstantiation(FirstOrderModel* fm,
                                 Node f,

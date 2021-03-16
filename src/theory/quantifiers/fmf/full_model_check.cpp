@@ -568,11 +568,10 @@ void FullModelChecker::debugPrintCond(const char * tr, Node n, bool dispStar) {
 }
 
 void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
-  FirstOrderModelFmc * fm = (FirstOrderModelFmc *)d_qe->getModel();
   if( n.isNull() ){
     Trace(tr) << "null";
   }
-  else if(fm->isStar(n) && dispStar) {
+  else if(FirstOrderModelFmc::isStar(n) && dispStar) {
     Trace(tr) << "*";
   }
   else
@@ -785,8 +784,8 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
 class RepBoundFmcEntry : public QRepBoundExt
 {
  public:
-  RepBoundFmcEntry(QuantifiersEngine* qe, Node e, FirstOrderModelFmc* f)
-      : QRepBoundExt(qe), d_entry(e), d_fm(f)
+  RepBoundFmcEntry(Node e, FirstOrderModelFmc* f)
+      : QRepBoundExt(), d_entry(e), d_fm(f)
   {
   }
   ~RepBoundFmcEntry() {}
@@ -818,8 +817,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
   Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
-  RepBoundFmcEntry rbfe(d_qe, c, fm);
-  RepSetIterator riter(d_qe->getModel()->getRepSet(), &rbfe);
+  RepBoundFmcEntry rbfe(c, fm);
+  RepSetIterator riter(fm->getRepSet(), &rbfe);
   Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize
   if (riter.setQuantifier(f))

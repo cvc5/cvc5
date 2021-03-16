@@ -38,9 +38,9 @@ class FirstOrderModelFmc : public FirstOrderModel
   void processInitializeModelForTerm(Node n) override;
 
  public:
-  FirstOrderModelFmc(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
+  FirstOrderModelFmc(QuantifiersState& qs,
                      QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                      std::string name);
   ~FirstOrderModelFmc() override;
   FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
@@ -48,7 +48,7 @@ class FirstOrderModelFmc : public FirstOrderModel
   void processInitialize(bool ispre) override;
   Node getFunctionValue(Node op, const char* argPrefix);
 
-  bool isStar(Node n);
+  static bool isStar(Node n);
   Node getStar(TypeNode tn);
 }; /* class FirstOrderModelFmc */
 

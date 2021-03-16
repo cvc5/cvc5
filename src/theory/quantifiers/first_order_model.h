@@ -125,7 +125,7 @@ class FirstOrderModel : public TheoryModel
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
-  TermRegistry& d_tr;
+  TermRegistry& d_treg;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 

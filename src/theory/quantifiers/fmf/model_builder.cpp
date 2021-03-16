@@ -30,9 +30,8 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(QuantifiersEngine* qe, QuantifiersState& qs)
+QModelBuilder::QModelBuilder(QuantifiersState& qs)
     : TheoryEngineModelBuilder(),
-      d_qe(qe),
       d_addedLemmas(0),
       d_triedLemmas(0),
       d_qstate(qs)
@@ -101,7 +100,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
         vars.push_back( f[0][j] );
       }
       QRepBoundExt qrbe(d_qe);
-      RepSetIterator riter(d_qe->getModel()->getRepSet(), &qrbe);
+      RepSetIterator riter(fm->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;

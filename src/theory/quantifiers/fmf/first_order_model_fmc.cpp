@@ -24,11 +24,11 @@ namespace theory {
 namespace quantifiers {
 namespace fmcheck {
 
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
-                                       QuantifiersState& qs,
+FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                                        std::string name)
-    : FirstOrderModel(qe, qs, qr, name)
+    : FirstOrderModel(qs, qr, tr, name)
 {
 }
 

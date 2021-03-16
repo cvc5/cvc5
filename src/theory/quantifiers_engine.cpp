@@ -72,7 +72,7 @@ QuantifiersEngine::QuantifiersEngine(
   //---- utilities
   // quantifiers registry must come before the other utilities
   d_util.push_back(&d_qreg);
-  d_util.push_back(d_treg.getTermDatabase());
+  d_util.push_back(tr.getTermDatabase());
 
   d_util.push_back(d_instantiate.get());
 
@@ -93,17 +93,17 @@ QuantifiersEngine::QuantifiersEngine(
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          qstate, d_qreg, "FirstOrderModelFmc"));
+          qstate, d_qreg, tr, "FirstOrderModelFmc"));
       d_builder.reset(new quantifiers::fmcheck::FullModelChecker(qstate));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(new quantifiers::FirstOrderModel(
-          qstate, d_qreg, "FirstOrderModel"));
+          qstate, d_qreg,  tr, "FirstOrderModel"));
       d_builder.reset(new quantifiers::QModelBuilder(qstate));
     }
   }else{
     d_model.reset(new quantifiers::FirstOrderModel(
-        qstate, d_qreg, "FirstOrderModel"));
+        qstate, d_qreg,  tr, "FirstOrderModel"));
   }
   d_eq_query.reset(
       new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));
