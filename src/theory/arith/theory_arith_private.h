@@ -855,9 +855,9 @@ private:
     IntStat d_cutsRejectedDuringReplay;
     IntStat d_cutsRejectedDuringLemmas;
 
-    HistogramStat<uint32_t> d_satPivots;
-    HistogramStat<uint32_t> d_unsatPivots;
-    HistogramStat<uint32_t> d_unknownPivots;
+    IntegralHistogramStat<uint32_t> d_satPivots;
+    IntegralHistogramStat<uint32_t> d_unsatPivots;
+    IntegralHistogramStat<uint32_t> d_unknownPivots;
 
 
     IntStat d_solveIntModelsAttempts;

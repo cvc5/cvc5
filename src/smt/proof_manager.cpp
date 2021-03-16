@@ -171,7 +171,6 @@ void PfManager::printProof(std::ostream& out,
     out << "\n)\n";
   }
 }
-
 void PfManager::checkProof(std::shared_ptr<ProofNode> pfn,
                            Assertions& as,
                            DefinedFunctionMap& df)

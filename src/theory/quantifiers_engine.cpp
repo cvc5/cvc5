@@ -26,17 +26,17 @@
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_modules.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 
@@ -48,6 +48,8 @@ namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
     quantifiers::QuantifiersState& qstate,
+    quantifiers::QuantifiersRegistry& qr,
+    quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
     ProofNodeManager* pnm)
     : d_qstate(qstate),
@@ -55,8 +57,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_te(nullptr),
       d_decManager(nullptr),
       d_pnm(pnm),
-      d_qreg(),
-      d_treg(qstate, qim, d_qreg),
+      d_qreg(qr),
+      d_treg(tr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
