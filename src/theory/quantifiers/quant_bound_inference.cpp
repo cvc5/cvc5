@@ -22,12 +22,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersBoundInference(unsigned cardMax) : d_cardMax(cardMax), d_bint(nullptr){}
-
-void QuantifiersBoundInference::finishInit(BoundedIntegers * b)
+QuantifiersBoundInference(unsigned cardMax)
+    : d_cardMax(cardMax), d_bint(nullptr)
 {
-  d_bint = b;
 }
+
+void QuantifiersBoundInference::finishInit(BoundedIntegers* b) { d_bint = b; }
 
 bool QuantifiersBoundInference::mayComplete(TypeNode tn)
 {
@@ -90,8 +90,8 @@ BoundVarType QuantifiersBoundInference::getBoundVarType(Node q, Node v) const
   return isFiniteBound(q, v) ? BOUND_FINITE : BOUND_NONE;
 }
 
-void QuantifiersBoundInference::getBoundVarIndices(Node q,
-                                           std::vector<unsigned>& indices) const
+void QuantifiersBoundInference::getBoundVarIndices(
+    Node q, std::vector<unsigned>& indices) const
 {
   Assert(indices.empty());
   // we take the bounded variables first
@@ -109,11 +109,12 @@ void QuantifiersBoundInference::getBoundVarIndices(Node q,
   }
 }
 
-bool QuantifiersBoundInference::getBoundElements(RepSetIterator* rsi,
-                                         bool initial,
-                                         Node q,
-                                         Node v,
-                                         std::vector<Node>& elements) const
+bool QuantifiersBoundInference::getBoundElements(
+    RepSetIterator* rsi,
+    bool initial,
+    Node q,
+    Node v,
+    std::vector<Node>& elements) const
 {
   if (d_bint)
   {

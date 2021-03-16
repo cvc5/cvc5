@@ -54,8 +54,8 @@ class TermEnumeration
   bool getDomain(TypeNode tn, std::vector<Node>& dom);
 
  private:
-   /** Reference to quantifiers bound inference */
-   QuantifiersBoundInference& d_qbi;
+  /** Reference to quantifiers bound inference */
+  QuantifiersBoundInference& d_qbi;
   /** ground terms enumerated for types */
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
       d_enum_terms;

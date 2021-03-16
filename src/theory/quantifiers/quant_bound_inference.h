@@ -22,18 +22,19 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 class RepSetIterator;
 
 namespace quantifiers {
-  
+
 class BoundedIntegers;
 
-class QuantifiersBoundInference {
+class QuantifiersBoundInference
+{
  public:
   QuantifiersBoundInference(unsigned cardMax);
   /** finish initialize */
-  void finishInit(BoundedIntegers * b);
+  void finishInit(BoundedIntegers* b);
   /** may complete type
    *
    * Returns true if the type tn is closed enumerable, is interpreted as a
@@ -77,16 +78,17 @@ class QuantifiersBoundInference {
                         Node q,
                         Node v,
                         std::vector<Node>& elements) const;
-private:
+
+ private:
   /** The maximum cardinality for which we complete */
   unsigned d_cardMax;
   /** may complete */
   std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_may_complete;
   /** The bounded integers module, which may help infer bounds */
-  BoundedIntegers * d_bint;
+  BoundedIntegers* d_bint;
 };
 
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H */

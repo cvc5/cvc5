@@ -22,11 +22,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermEnumeration::TermEnumeration(QuantifiersBoundInference& qbi) : d_qbi(qbi)
-{
-  
-}
-  
+TermEnumeration::TermEnumeration(QuantifiersBoundInference& qbi) : d_qbi(qbi) {}
+
 Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 {
   Trace("term-db-enum") << "Get enumerate term " << tn << " " << index
