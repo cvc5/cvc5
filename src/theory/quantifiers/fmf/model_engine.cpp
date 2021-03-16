@@ -251,8 +251,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
   unsigned prev_alem = mb->getNumAddedLemmas();
   unsigned prev_tlem = mb->getNumTriedLemmas();
-  FirstOrderModel * fm = d_quantEngine->getModel();
-  int retEi = mb->doExhaustiveInstantiation(fm, f, effort );
+  FirstOrderModel* fm = d_quantEngine->getModel();
+  int retEi = mb->doExhaustiveInstantiation(fm, f, effort);
   if( retEi!=0 ){
     if( retEi<0 ){
       Trace("fmf-exh-inst") << "-> Builder determined complete instantiation was impossible." << std::endl;
