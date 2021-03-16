@@ -1001,102 +1001,336 @@ std::vector<Sort> Sort::typeNodeVectorToSorts(
   return sorts;
 }
 
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
+bool Sort::operator==(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type == *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-/* Split out to avoid nested API calls (problematic with API tracing).        */
-/* .......................................................................... */
+bool Sort::operator!=(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type != *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isNullHelper() const { return d_type->isNull(); }
+bool Sort::operator<(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type < *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
+bool Sort::operator>(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type > *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
+bool Sort::operator<=(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type <= *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator<(const Sort& s) const { return *d_type < *s.d_type; }
+bool Sort::operator>=(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type >= *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator>(const Sort& s) const { return *d_type > *s.d_type; }
+bool Sort::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator<=(const Sort& s) const { return *d_type <= *s.d_type; }
+bool Sort::isBoolean() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isBoolean();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator>=(const Sort& s) const { return *d_type >= *s.d_type; }
+bool Sort::isInteger() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isInteger();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isNull() const { return isNullHelper(); }
+bool Sort::isReal() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isReal();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isBoolean() const { return d_type->isBoolean(); }
+bool Sort::isString() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isInteger() const { return d_type->isInteger(); }
+bool Sort::isRegExp() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isRegExp();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isReal() const { return d_type->isReal(); }
+bool Sort::isRoundingMode() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isRoundingMode();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isString() const { return d_type->isString(); }
+bool Sort::isBitVector() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isBitVector();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isRegExp() const { return d_type->isRegExp(); }
+bool Sort::isFloatingPoint() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFloatingPoint();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isRoundingMode() const { return d_type->isRoundingMode(); }
-
-bool Sort::isBitVector() const { return d_type->isBitVector(); }
-
-bool Sort::isFloatingPoint() const { return d_type->isFloatingPoint(); }
-
-bool Sort::isDatatype() const { return d_type->isDatatype(); }
+bool Sort::isDatatype() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isDatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 bool Sort::isParametricDatatype() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (!d_type->isDatatype()) return false;
   return d_type->isParametricDatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Sort::isConstructor() const { return d_type->isConstructor(); }
-bool Sort::isSelector() const { return d_type->isSelector(); }
-bool Sort::isTester() const { return d_type->isTester(); }
+bool Sort::isConstructor() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isConstructor();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isFunction() const { return d_type->isFunction(); }
+bool Sort::isSelector() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSelector();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isPredicate() const { return d_type->isPredicate(); }
+bool Sort::isTester() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isTester();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isTuple() const { return d_type->isTuple(); }
+bool Sort::isFunction() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFunction();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isRecord() const { return d_type->isRecord(); }
+bool Sort::isPredicate() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isPredicate();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isArray() const { return d_type->isArray(); }
+bool Sort::isTuple() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isTuple();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isSet() const { return d_type->isSet(); }
+bool Sort::isRecord() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isRecord();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isBag() const { return d_type->isBag(); }
+bool Sort::isArray() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isArray();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isSequence() const { return d_type->isSequence(); }
+bool Sort::isSet() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSet();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isUninterpretedSort() const { return d_type->isSort(); }
+bool Sort::isBag() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isBag();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isSortConstructor() const { return d_type->isSortConstructor(); }
+bool Sort::isSequence() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSequence();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isFirstClass() const { return d_type->isFirstClass(); }
+bool Sort::isUninterpretedSort() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSort();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isFunctionLike() const { return d_type->isFunctionLike(); }
+bool Sort::isSortConstructor() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSortConstructor();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Sort::isFirstClass() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFirstClass();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Sort::isFunctionLike() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFunctionLike();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 bool Sort::isSubsortOf(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_SOLVER("sort", s);
+  //////// all checks before this line
   return d_type->isSubtypeOf(*s.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isComparableTo(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_SOLVER("sort", s);
+  //////// all checks before this line
   return d_type->isComparableTo(*s.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Datatype Sort::getDatatype() const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
+  //////// all checks before this line
   return Datatype(d_solver, d_type->getDType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORTS(params);
   CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
+  //////// all checks before this line
   std::vector<CVC4::TypeNode> tparams = sortVectorToTypeNodes(params);
   if (d_type->isDatatype())
   {
@@ -1104,40 +1338,59 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   }
   Assert(d_type->isSortConstructor());
   return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORT(sort);
+  CVC4_API_CHECK_SORT(replacement);
+  //////// all checks before this line
   return Sort(
       d_solver,
       d_type->substitute(sort.getTypeNode(), replacement.getTypeNode()));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::substitute(const std::vector<Sort>& sorts,
                       const std::vector<Sort>& replacements) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORTS(sorts);
+  CVC4_API_CHECK_SORTS(replacements);
+  //////// all checks before this line
 
   std::vector<CVC4::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
                               tReplacements =
                                   sortVectorToTypeNodes(replacements);
-
   return Sort(d_solver,
               d_type->substitute(tSorts.begin(),
                                  tSorts.end(),
                                  tReplacements.begin(),
                                  tReplacements.end()));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string Sort::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_solver != nullptr)
   {
     NodeManagerScope scope(d_solver->getNodeManager());
     return d_type->toString();
   }
   return d_type->toString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
@@ -1146,201 +1399,336 @@ const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 size_t Sort::getConstructorArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  //////// all checks before this line
   return d_type->getNumChildren() - 1;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getConstructorDomainSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getArgTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getConstructorCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getConstructorRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Selector sort ------------------------------------------------------- */
 
 Sort Sort::getSelectorDomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSelectorDomainType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getSelectorCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSelectorRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Tester sort ------------------------------------------------------- */
 
 Sort Sort::getTesterDomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getTesterDomainType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getTesterCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  //////// all checks before this line
   return d_solver->getBooleanSort();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Function sort ------------------------------------------------------- */
 
 size_t Sort::getFunctionArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
+  //////// all checks before this line
   return d_type->getNumChildren() - 1;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getFunctionDomainSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
+  //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getArgTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getFunctionCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFunction()) << "Not a function sort" << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Array sort ---------------------------------------------------------- */
 
 Sort Sort::getArrayIndexSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isArray()) << "Not an array sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getArrayIndexType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getArrayElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isArray()) << "Not an array sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getArrayConstituentType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Set sort ------------------------------------------------------------ */
 
 Sort Sort::getSetElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSet()) << "Not a set sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSetElementType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Bag sort ------------------------------------------------------------ */
 
 Sort Sort::getBagElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isBag()) << "Not a bag sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getBagElementType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Sequence sort ------------------------------------------------------- */
 
 Sort Sort::getSequenceElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSequence()) << "Not a sequence sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSequenceElementType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Uninterpreted sort -------------------------------------------------- */
 
 std::string Sort::getUninterpretedSortName() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
+  //////// all checks before this line
   return d_type->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isUninterpretedSortParameterized() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  // This method is not implemented in the NodeManager, since whether a
-  // uninterpreted sort is parametrized is irrelevant for solving.
+  //////// all checks before this line
+
+  /* This method is not implemented in the NodeManager, since whether a
+   * uninterpreted sort is parameterized is irrelevant for solving. */
   return d_type->getNumChildren() > 0;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  // This method is not implemented in the NodeManager, since whether a
-  // uninterpreted sort is parametrized is irrelevant for solving.
+  //////// all checks before this line
+
+  /* This method is not implemented in the NodeManager, since whether a
+   * uninterpreted sort is parameterized is irrelevant for solving. */
   std::vector<TypeNode> params;
   for (size_t i = 0, nchildren = d_type->getNumChildren(); i < nchildren; i++)
   {
     params.push_back((*d_type)[i]);
   }
   return typeNodeVectorToSorts(d_solver, params);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Sort constructor sort ----------------------------------------------- */
 
 std::string Sort::getSortConstructorName() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
+  //////// all checks before this line
   return d_type->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t Sort::getSortConstructorArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
+  //////// all checks before this line
   return d_type->getSortConstructorArity();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Bit-vector sort ----------------------------------------------------- */
 
 uint32_t Sort::getBVSize() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isBitVector()) << "Not a bit-vector sort.";
+  //////// all checks before this line
   return d_type->getBitVectorSize();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Floating-point sort ------------------------------------------------- */
 
 uint32_t Sort::getFPExponentSize() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  //////// all checks before this line
   return d_type->getFloatingPointExponentSize();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 uint32_t Sort::getFPSignificandSize() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  //////// all checks before this line
   return d_type->getFloatingPointSignificandSize();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Datatype sort ------------------------------------------------------- */
 
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
-  std::vector<CVC4::TypeNode> typeNodes = d_type->getParamTypes();
-  return typeNodeVectorToSorts(d_solver, typeNodes);
+  //////// all checks before this line
+  return typeNodeVectorToSorts(d_solver, d_type->getParamTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t Sort::getDatatypeArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
+  //////// all checks before this line
   return d_type->getNumChildren() - 1;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Tuple sort ---------------------------------------------------------- */
 
 size_t Sort::getTupleLength() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
+  //////// all checks before this line
   return d_type->getTupleLength();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getTupleSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  std::vector<CVC4::TypeNode> typeNodes = d_type->getTupleTypes();
-  return typeNodeVectorToSorts(d_solver, typeNodes);
+  //////// all checks before this line
+  return typeNodeVectorToSorts(d_solver, d_type->getTupleTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* --------------------------------------------------------------------- */
@@ -1355,6 +1743,14 @@ size_t SortHashFunction::operator()(const Sort& s) const
 {
   return TypeNodeHashFunction()(*s.d_type);
 }
+
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Sort::isNullHelper() const { return d_type->isNull(); }
 
 /* -------------------------------------------------------------------------- */
 /* Op                                                                     */
@@ -3785,6 +4181,7 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
   {
     return mkTermHelper(op.d_kind, children);
   }
+
   const CVC4::Kind int_kind = extToIntKind(op.d_kind);
   std::vector<Node> echildren = Term::termVectorToNodes(children);
 
