@@ -19,6 +19,7 @@
 #include "options/strings_options.h"
 #include "smt/logic_exception.h"
 #include "theory/rewriter.h"
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
 
@@ -37,11 +38,10 @@ typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
 TermRegistry::TermRegistry(SolverState& s,
-                           OutputChannel& out,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
     : d_state(s),
-      d_out(out),
+      d_im(nullptr),
       d_statistics(statistics),
       d_hasStrCode(false),
       d_functionsTerms(s.getSatContext()),
@@ -64,6 +64,8 @@ TermRegistry::TermRegistry(SolverState& s,
 }
 
 TermRegistry::~TermRegistry() {}
+
+void TermRegistry::finishInit(InferenceManager* im) { d_im = im; }
 
 Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
 {
@@ -162,7 +164,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   else if (k == STRING_IN_REGEXP)
   {
-    d_out.requirePhase(n, true);
+    d_im->requirePhase(n, true);
     ee->addTriggerPredicate(n);
     ee->addTerm(n[0]);
     ee->addTerm(n[1]);
@@ -302,8 +304,7 @@ void TermRegistry::registerTerm(Node n, int effort)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << regTermLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTerm);
-    d_out.trustedLemma(regTermLem);
+    d_im->trustedLemma(regTermLem, InferenceId::STRINGS_REGISTER_TERM);
   }
 }
 
@@ -416,12 +417,11 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
                            << std::endl;
     Trace("strings-assert")
         << "(assert " << lenLem.getNode() << ")" << std::endl;
-    ++(d_statistics.d_lemmasRegisterTermAtomic);
-    d_out.trustedLemma(lenLem);
+    d_im->trustedLemma(lenLem, InferenceId::STRINGS_REGISTER_TERM_ATOMIC);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
-    d_out.requirePhase(rp.first, rp.second);
+    d_im->requirePhase(rp.first, rp.second);
   }
 }
 

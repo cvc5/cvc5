@@ -47,9 +47,6 @@ namespace strings {
  *
  * "Conflicts" (2) arise from various kinds of reasoning, listed below,
  * where inferences are one of the possible methods for deriving conflicts.
- *
- * "Lemmas" (3) also arise from various kinds of reasoning, listed below,
- * where inferences are one of the possible methods for deriving lemmas.
  */
 class SequencesStatistics
 {
@@ -98,18 +95,6 @@ class SequencesStatistics
   /** Number of inference conflicts */
   IntStat d_conflictsInfer;
   //--------------- end of conflicts
-  //--------------- lemmas, partition of calls to OutputChannel::lemma
-  /** Number of lemmas added due to eager preprocessing */
-  IntStat d_lemmasEagerPreproc;
-  /** Number of collect model info splits */
-  IntStat d_lemmasCmiSplit;
-  /** Number of lemmas added due to registering terms */
-  IntStat d_lemmasRegisterTerm;
-  /** Number of lemmas added due to registering atomic terms */
-  IntStat d_lemmasRegisterTermAtomic;
-  /** Number of lemmas added due to inferences */
-  IntStat d_lemmasInfer;
-  //--------------- end of lemmas
 };
 
 }
