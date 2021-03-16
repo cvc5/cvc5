@@ -25,6 +25,7 @@
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory.h"
@@ -87,13 +88,15 @@ class TheoryQuantifiers : public Theory {
   /** The quantifiers state */
   QuantifiersState d_qstate;
   /** The quantifiers registry */
-  quantifiers::QuantifiersRegistry d_qreg;
+  QuantifiersRegistry d_qreg;
+  /** extended model object */
+  std::unique_ptr<FirstOrderModel> d_qmodel;
   /** The term registry */
-  quantifiers::TermRegistry d_treg;
+  TermRegistry d_treg;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager d_qim;
   /** The quantifiers engine, which lives here */
-  QuantifiersEngine d_qengine;
+  std::unqiue_ptr<QuantifiersEngine> d_qengine;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -46,8 +46,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
       d_qstate(c, u, valuation, logicInfo),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
-      d_qim(*this, d_qstate, pnm),
-      d_qengine(d_qstate, d_qreg, d_treg, d_qim, pnm)
+      d_qim(*this, d_qstate, pnm)
 {
   // Finish initializing the term registry by hooking it up to the inference
   // manager. This is required due to a cyclic dependency between the term
@@ -73,10 +72,41 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // use the inference manager as the official inference manager
   d_inferManager = &d_qim;
 
+  
+  Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
+  Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model and model builder here, since it is
+  // required for initializing the CombinationEngine.
+  if (options::finiteModelFind() || options::fmfBound())
+  {
+    Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
+    if (options::mbqiMode() == options::MbqiMode::FMC
+        || options::mbqiMode() == options::MbqiMode::TRUST
+        || options::fmfBound())
+    {
+      Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
+      d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
+          this, qstate, d_qreg, "FirstOrderModelFmc"));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this, qstate));
+    }else{
+      Trace("quant-engine-debug") << "...make default model builder." << std::endl;
+      d_model.reset(new quantifiers::FirstOrderModel(
+          this, qstate, d_qreg, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(this, qstate));
+    }
+  }else{
+    d_model.reset(new quantifiers::FirstOrderModel(
+        this, qstate, d_qreg, "FirstOrderModel"));
+  }
+  
+  // construct the quantifiers engine
+  d_qengine.reset(new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, d_model.get(), pnm));
+  
   // Set the pointer to the quantifiers engine, which this theory owns. This
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
-  d_quantEngine = &d_qengine;
+  d_quantEngine = d_qengine.get();
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {

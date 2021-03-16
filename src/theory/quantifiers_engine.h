@@ -68,6 +68,7 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
+                    quantifiers::FirstOrderModel * qm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
@@ -278,7 +279,7 @@ public:
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
-  std::unique_ptr<quantifiers::FirstOrderModel> d_model;
+  quantifiers::FirstOrderModel* d_model;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** equality query class */
