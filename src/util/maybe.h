@@ -34,7 +34,7 @@
 namespace CVC4 {
 
 template <class T>
-class CVC4_PUBLIC Maybe
+class Maybe
 {
  public:
   Maybe() : d_just(false), d_value(){}

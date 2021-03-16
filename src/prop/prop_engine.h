@@ -63,7 +63,7 @@ class PropEngine
   /**
    * Destructor.
    */
-  CVC4_PUBLIC ~PropEngine();
+  ~PropEngine();
 
   /**
    * Finish initialize. Call this after construction just before we are

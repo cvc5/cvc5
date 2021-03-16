@@ -47,13 +47,6 @@ TEST_F(TestUtilBlackStats, stats)
   BackedStat<double> backedDoubleNoDec("backedDoubleNoDec", 2.0);
   BackedStat<bool> backedBool("backedBool", true);
   BackedStat<void*> backedAddr("backedDouble", (void*)0xDEADBEEF);
-  HistogramStat<int64_t> histStat("hist");
-  histStat << 5;
-  histStat << 6;
-  histStat << 5;
-  histStat << 10;
-  histStat << 10;
-  histStat << 0;
   IntegralHistogramStat<std::int64_t> histIntStat("hist-int");
   histIntStat << 15 << 16 << 15 << 14 << 16;
   IntegralHistogramStat<CVC4::PfRule> histPfRuleStat("hist-pfrule");
@@ -131,8 +124,6 @@ TEST_F(TestUtilBlackStats, stats)
   safe_print(fd, "\n");
   backedBool.safeFlushInformation(fd);
   safe_print(fd, "\n");
-  histStat.safeFlushInformation(fd);
-  safe_print(fd, "\n");
   histIntStat.safeFlushInformation(fd);
   safe_print(fd, "\n");
   histPfRuleStat.safeFlushInformation(fd);
@@ -159,7 +150,6 @@ TEST_F(TestUtilBlackStats, stats)
       "2.0\n"
       "0xdeadbeef\n"
       "true\n"
-      "[(0 : 1), (5 : 2), (6 : 1), (10 : 2)]\n"
       "[(14 : 1), (15 : 2), (16 : 2)]\n"
       "[(ASSUME : 2), (SCOPE : 1)]\n"
       "<unsupported>";

@@ -223,7 +223,7 @@ void SmtEngine::finishInit()
   d_optm->finishInit(d_env->d_logic, d_isInternalSubsolver);
 
   ProofNodeManager* pnm = nullptr;
-  if (options::proof())
+  if (options::produceProofs())
   {
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
@@ -332,7 +332,7 @@ SmtEngine::~SmtEngine()
 
     // d_proofManager is always created when proofs are enabled at configure
     // time.  Because of this, this code should not be wrapped in PROOF() which
-    // additionally checks flags such as options::proof().
+    // additionally checks flags such as options::produceProofs().
     //
     // Note: the proof manager must be destroyed before the theory engine.
     // Because the destruction of the proofs depends on contexts owned be the
@@ -971,7 +971,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
         if ((options::checkProofs() || options::proofEagerChecking())
-            && !options::proof())
+            && !options::produceProofs())
         {
           throw ModalException(
               "Cannot check-proofs because proofs were disabled.");
@@ -1388,7 +1388,7 @@ Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkProof()
 {
-  Assert(options::proof());
+  Assert(options::produceProofs());
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
@@ -1457,9 +1457,8 @@ void SmtEngine::checkUnsatCore() {
   initializeSubsolver(coreChecker);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
-  coreChecker->getOptions().set(options::proof, false);
+  coreChecker->getOptions().set(options::produceProofs, false);
   coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
-
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
   if (getSepHeapTypes(sepLocType, sepDataType))
@@ -1546,7 +1545,7 @@ std::string SmtEngine::getProof()
     getPrinter().toStreamCmdGetProof(getOutputManager().getDumpOut());
   }
 #if IS_PROOFS_BUILD
-  if (!options::proof())
+  if (!options::produceProofs())
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
@@ -1647,7 +1646,7 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::proof() && getSmtMode() == SmtMode::UNSAT)
+  if (options::produceProofs() && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);

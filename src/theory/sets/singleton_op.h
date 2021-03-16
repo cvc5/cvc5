@@ -53,7 +53,7 @@ std::ostream& operator<<(std::ostream& out, const SingletonOp& op);
 /**
  * Hash function for the SingletonHashFunction objects.
  */
-struct CVC4_PUBLIC SingletonOpHashFunction
+struct SingletonOpHashFunction
 {
   size_t operator()(const SingletonOp& op) const;
 }; /* struct SingletonOpHashFunction */

@@ -33,7 +33,8 @@ class TypeNode;
  * AscriptionType payload.  (Essentially, all of this is a way to
  * coerce a Type into the expression tree.)
  */
-class CVC4_PUBLIC AscriptionType {
+class AscriptionType
+{
  public:
   AscriptionType(TypeNode t);
   ~AscriptionType();
@@ -46,17 +47,18 @@ class CVC4_PUBLIC AscriptionType {
  private:
   /** The type */
   std::unique_ptr<TypeNode> d_type;
-};/* class AscriptionType */
+}; /* class AscriptionType */
 
 /**
  * A hash function for type ascription operators.
  */
-struct CVC4_PUBLIC AscriptionTypeHashFunction {
+struct AscriptionTypeHashFunction
+{
   size_t operator()(const AscriptionType& at) const;
-};/* struct AscriptionTypeHashFunction */
+}; /* struct AscriptionTypeHashFunction */
 
 /** An output routine for AscriptionTypes */
-std::ostream& operator<<(std::ostream& out, AscriptionType at) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, AscriptionType at);
 
 }/* CVC4 namespace */
 

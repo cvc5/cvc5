@@ -36,7 +36,6 @@
 #include "options/set_language.h"
 #include "parser/parser.h"
 #include "parser/parser_builder.h"
-#include "parser/parser_exception.h"
 #include "smt/command.h"
 #include "util/result.h"
 #include "util/statistics_registry.h"
@@ -203,7 +202,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     bool status = true;
     if(opts.getInteractive() && inputFromStdin) {
       if(opts.getTearDownIncremental() > 0) {
-        throw OptionException(
+        throw Exception(
             "--tear-down-incremental doesn't work in interactive mode");
       }
       if(!opts.wasSetByUserIncrementalSolving()) {

@@ -22,7 +22,6 @@
 #include "theory/quantifiers/ematching/inst_match_generator_multi_linear.h"
 #include "theory/quantifiers/ematching/inst_match_generator_simple.h"
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/ematching/var_match_generator.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
@@ -35,21 +34,6 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace inst {
-
-IMGenerator::IMGenerator(Trigger* tparent)
-    : d_tparent(tparent), d_qstate(tparent->d_qstate)
-{
-}
-
-bool IMGenerator::sendInstantiation(InstMatch& m, InferenceId id)
-{
-  return d_tparent->sendInstantiation(m, id);
-}
-
-QuantifiersEngine* IMGenerator::getQuantifiersEngine()
-{
-  return d_tparent->d_quantEngine;
-}
 
 InstMatchGenerator::InstMatchGenerator(Trigger* tparent, Node pat)
     : IMGenerator(tparent)
