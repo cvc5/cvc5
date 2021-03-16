@@ -20,6 +20,7 @@
 #define CVC4__OPTION_EXCEPTION_H
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 
 namespace CVC4 {
 
@@ -29,7 +30,7 @@ namespace CVC4 {
  * name is itself unrecognized, a UnrecognizedOptionException (a derived
  * class, below) should be used instead.
  */
-class OptionException : public CVC4::Exception
+class CVC4_EXPORT OptionException : public CVC4::Exception
 {
  public:
   OptionException(const std::string& s) : CVC4::Exception(s_errPrefix + s) {}
