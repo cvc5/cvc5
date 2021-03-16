@@ -104,8 +104,8 @@ void QModelBuilder::debugModel( TheoryModel* m ){
       for( unsigned j=0; j<f[0].getNumChildren(); j++ ){
         vars.push_back( f[0][j] );
       }
-      QRepBoundExt qrbe(qbi, m);
-      RepSetIterator riter(m->getRepSet(), &qrbe);
+      QRepBoundExt qrbe(qbi, fm);
+      RepSetIterator riter(fm->getRepSet(), &qrbe);
       if( riter.setQuantifier( f ) ){
         while( !riter.isFinished() ){
           tests++;

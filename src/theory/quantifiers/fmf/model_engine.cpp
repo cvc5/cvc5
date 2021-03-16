@@ -251,7 +251,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
   quantifiers::QModelBuilder * mb = d_quantEngine->getModelBuilder();
   unsigned prev_alem = mb->getNumAddedLemmas();
   unsigned prev_tlem = mb->getNumTriedLemmas();
-  int retEi = mb->doExhaustiveInstantiation( d_quantEngine->getModel(), f, effort );
+  FirstOrderModel * fm = d_quantEngine->getModel();
+  int retEi = mb->doExhaustiveInstantiation(fm, f, effort );
   if( retEi!=0 ){
     if( retEi<0 ){
       Trace("fmf-exh-inst") << "-> Builder determined complete instantiation was impossible." << std::endl;
@@ -270,9 +271,10 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       }
       Trace("fmf-exh-inst-debug") << std::endl;
     }
+    QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
     //create a rep set iterator and iterate over the (relevant) domain of the quantifier
-    QRepBoundExt qrbe(d_quantEngine);
-    RepSetIterator riter(d_quantEngine->getModel()->getRepSet(), &qrbe);
+    QRepBoundExt qrbe(qbi, fm);
+    RepSetIterator riter(fm->getRepSet(), &qrbe);
     if( riter.setQuantifier( f ) ){
       Trace("fmf-exh-inst") << "...exhaustive instantiation set, incomplete=" << riter.isIncomplete() << "..." << std::endl;
       if( !riter.isIncomplete() ){

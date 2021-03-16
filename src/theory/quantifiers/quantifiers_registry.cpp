@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/term_util.h"
+#include "options/quantifiers_options.h"
 
 namespace CVC4 {
 namespace theory {

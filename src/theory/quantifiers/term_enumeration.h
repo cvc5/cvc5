@@ -40,7 +40,7 @@ class QuantifiersBoundInference;
 class TermEnumeration
 {
  public:
-  TermEnumeration(QuantifiersBoundInference& qbi);
+  TermEnumeration(QuantifiersBoundInference* qbi = nullptr);
   ~TermEnumeration() {}
   /** get i^th term for type tn */
   Node getEnumerateTerm(TypeNode tn, unsigned i);
@@ -56,9 +56,10 @@ class TermEnumeration
  private:
   /**
    * Reference to quantifiers bound inference, which determines when it is
-   * possible to enumerate the entire domain of a type.
+   * possible to enumerate the entire domain of a type. If this is not provided,
+   * getDomain above always returns false.
    */
-  QuantifiersBoundInference& d_qbi;
+  QuantifiersBoundInference* d_qbi;
   /** ground terms enumerated for types */
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
       d_enum_terms;

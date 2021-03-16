@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermEnumeration::TermEnumeration(QuantifiersBoundInference& qbi) : d_qbi(qbi) {}
+TermEnumeration::TermEnumeration(QuantifiersBoundInference* qbi) : d_qbi(qbi) {}
 
 Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 {
@@ -55,7 +55,7 @@ Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 
 bool TermEnumeration::getDomain(TypeNode tn, std::vector<Node>& dom)
 {
-  if (d_qbi.mayComplete(tn))
+  if (!d_qbi || !d_qbi->mayComplete(tn))
   {
     return false;
   }
