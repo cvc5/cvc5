@@ -93,17 +93,17 @@ QuantifiersEngine::QuantifiersEngine(
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, qstate, d_qreg, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this, qstate));
+          qstate, d_qreg, "FirstOrderModelFmc"));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(qstate));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(new quantifiers::FirstOrderModel(
-          this, qstate, d_qreg, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(this, qstate));
+          qstate, d_qreg, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(qstate));
     }
   }else{
     d_model.reset(new quantifiers::FirstOrderModel(
-        this, qstate, d_qreg, "FirstOrderModel"));
+        qstate, d_qreg, "FirstOrderModel"));
   }
   d_eq_query.reset(
       new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));

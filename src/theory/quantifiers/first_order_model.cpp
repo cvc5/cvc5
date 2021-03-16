@@ -20,8 +20,8 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -32,13 +32,25 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
-                                 QuantifiersState& qs,
+struct ModelBasisAttributeId
+{
+};
+typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
+// for APPLY_UF terms, 1 : term has direct child with model basis attribute,
+//                     0 : term has no direct child with model basis attribute.
+struct ModelBasisArgAttributeId
+{
+};
+typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
+    ModelBasisArgAttribute;
+
+FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                                  std::string name)
     : TheoryModel(qs.getSatContext(), name, true),
-      d_qe(qe),
       d_qreg(qr),
+      d_treg(tr),
       d_forall_asserts(qs.getSatContext()),
       d_forallRlvComputed(false)
 {
@@ -129,7 +141,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
   else
   {
     // can we complete it?
-    if (d_qe->getTermEnumeration()->mayComplete(tn))
+    if (d_treg.getTermEnumeration()->mayComplete(tn))
     {
       Trace("fm-debug") << "  do complete, since cardinality is small ("
                         << tn.getCardinality() << ")..." << std::endl;
@@ -237,13 +249,13 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
     Node mbt;
     if (tn.isClosedEnumerable())
     {
-      mbt = d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
+      mbt = d_treg.getTermEnumeration()->getEnumerateTerm(tn, 0);
     }
     else
     {
       if (options::fmfFreshDistConst())
       {
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeFreshVariable(tn);
+        mbt = d_treg.getTermDatabase()->getOrMakeTypeFreshVariable(tn);
       }
       else
       {
@@ -251,7 +263,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
         // may produce an inconsistent model by choosing an arbitrary
         // equivalence class for it. Hence, we require that it be an existing or
         // fresh variable.
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
+        mbt = d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
       }
     }
     ModelBasisAttribute mba;
