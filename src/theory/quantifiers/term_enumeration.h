@@ -67,8 +67,6 @@ class TermEnumeration
   std::unordered_map<TypeNode, size_t, TypeNodeHashFunction> d_typ_enum_map;
   /** type enumerators */
   std::vector<TypeEnumerator> d_typ_enum;
-  /** closed enumerable type cache */
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_typ_closed_enum;
 };
 
 } /* CVC4::theory::quantifiers namespace */
