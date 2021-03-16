@@ -657,10 +657,10 @@ TEST_F(TestApiBlackTerm, termChildren)
   Term f = d_solver.mkConst(fsort, "f");
   Term t2 = d_solver.mkTerm(APPLY_UF, f, two);
   // due to our higher-order view of terms, we treat f as a child of APPLY_UF
-  //ASSERT_EQ(t2.getNumChildren(), 2);
-  //ASSERT_EQ(t2[0], f);
-  //ASSERT_EQ(t2[1], two);
-  //ASSERT_THROW(tnull[0], CVC4ApiException);
+  ASSERT_EQ(t2.getNumChildren(), 2);
+  ASSERT_EQ(t2[0], f);
+  ASSERT_EQ(t2[1], two);
+  ASSERT_THROW(tnull[0], CVC4ApiException);
 }
 
 TEST_F(TestApiBlackTerm, getInteger)
