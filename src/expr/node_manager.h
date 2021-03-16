@@ -944,14 +944,9 @@ class NodeManager
   TypeNode mkRecordType(const Record& rec);
 
   /**
-   * Make a symbolic expression type with types from
-   * <code>types</code>. <code>types</code> may have any number of
-   * elements.
-   *
-   * @param types a vector of types
-   * @returns the symbolic expression type (types[0], ..., types[n])
+   * @returns the symbolic expression type
    */
-  inline TypeNode mkSExprType(const std::vector<TypeNode>& types);
+  TypeNode sExprType();
 
   /** Make the type of floating-point with <code>exp</code> bit exponent and
       <code>sig</code> bit significand */
@@ -1148,14 +1143,6 @@ public:
                      << "returning to " << NodeManager::s_current << "\n";
   }
 };/* class NodeManagerScope */
-
-inline TypeNode NodeManager::mkSExprType(const std::vector<TypeNode>& types) {
-  std::vector<TypeNode> typeNodes;
-  for (unsigned i = 0; i < types.size(); ++ i) {
-    typeNodes.push_back(types[i]);
-  }
-  return mkTypeNode(kind::SEXPR_TYPE, typeNodes);
-}
 
 inline TypeNode NodeManager::mkArrayType(TypeNode indexType,
                                          TypeNode constituentType) {
