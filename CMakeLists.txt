@@ -40,6 +40,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
@@ -290,6 +292,12 @@ if(ENABLE_SHARED)
   if(ENABLE_STATIC_BINARY)
     set(ENABLE_STATIC_BINARY OFF)
     message(WARNING "Disabling static binary since shared build is enabled.")
+  endif()
+
+  # Set visibility to default if unit tests are enabled
+  if(ENABLE_UNIT_TESTING)
+    set(CMAKE_CXX_VISIBILITY_PRESET default)
+    set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
   endif()
 
   # Embed the installation prefix as an RPATH in the executable such that the

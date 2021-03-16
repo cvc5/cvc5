@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "cvc4_export.h"
 #include "theory/theory_id.h"
 
 namespace CVC4 {
@@ -43,7 +44,8 @@ namespace CVC4 {
  * (e.g., for communicating to the SmtEngine which theories should be used,
  * rather than having to provide an SMT-LIB string).
  */
-class CVC4_PUBLIC LogicInfo {
+class CVC4_EXPORT LogicInfo
+{
   mutable std::string d_logicString; /**< an SMT-LIB-like logic string */
   std::vector<bool> d_theories; /**< set of active theories */
   size_t d_sharingTheories; /**< count of theories that need sharing */
@@ -285,9 +287,9 @@ public:
     return *this <= other || *this >= other;
   }
 
-};/* class LogicInfo */
+}; /* class LogicInfo */
 
-std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const LogicInfo& logic);
 
 }/* CVC4 namespace */
 

@@ -55,7 +55,7 @@ std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc);
 /**
  * Hash function for the BitVector constants.
  */
-struct CVC4_PUBLIC UninterpretedConstantHashFunction
+struct UninterpretedConstantHashFunction
 {
   size_t operator()(const UninterpretedConstant& uc) const;
 }; /* struct UninterpretedConstantHashFunction */
