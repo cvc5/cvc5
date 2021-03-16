@@ -348,12 +348,14 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
             extra_command_line_args += ['--debug-check-models']
         if 'unsat' in expected_output_lines or 'valid' in expected_output_lines:
             if check_unsat_cores and \
+               '--no-produce-unsat-cores' not in all_args and \
                '--no-check-unsat-cores' not in all_args and \
                '--check-unsat-cores' not in all_args and \
                '--incremental' not in all_args and \
                '--unconstrained-simp' not in all_args:
                 extra_command_line_args += ['--check-unsat-cores']
             if check_proofs and \
+               '--no-produce-proofs' not in all_args and \
                '--no-check-proofs' not in all_args and \
                '--check-proofs' not in all_args:
                 extra_command_line_args += ['--check-proofs']
