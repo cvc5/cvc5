@@ -373,7 +373,6 @@ namespace api {
         << "Given sort is not associated with this solver";               \
     CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)                \
         << "first-class sort as domain sort";                             \
-    Assert(!sort.isFunction()); /* A function sort is not first-class. */ \
   } while (0)
 
 /**
@@ -394,7 +393,6 @@ namespace api {
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                              \
           s.isFirstClass(), "domain sort", sorts, i)                     \
           << "first-class sort as domain sort";                          \
-      Assert(!s.isFunction()); /* A function sort is not first-class. */ \
       i += 1;                                                            \
     }                                                                    \
   } while (0)
@@ -412,7 +410,6 @@ namespace api {
         << "Given sort is not associated with this solver";               \
     CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)                \
         << "first-class sort as codomain sort";                           \
-    Assert(!sort.isFunction()); /* A function sort is not first-class. */ \
   } while (0)
 
 /* Term checks. ------------------------------------------------------------- */

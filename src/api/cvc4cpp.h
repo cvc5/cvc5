@@ -2823,7 +2823,8 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a String constant.
-   * @param s a list of unsigned values this constant represents as string
+   * @param s a list of unsigned (unicode) values this constant represents as
+   * string
    * @return the String constant
    */
   Term mkString(const std::vector<uint32_t>& s) const;
