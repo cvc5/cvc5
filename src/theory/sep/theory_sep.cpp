@@ -1237,7 +1237,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
         //ensure that it is distinct from all other references so far
         for( unsigned j=0; j<d_type_references_all[tn].size(); j++ ){
           Node eq = NodeManager::currentNM()->mkNode( kind::EQUAL, e, d_type_references_all[tn][j] );
-          d_im.lemma( eq.negate(), InferenceId::SEP_DISTINCT_REF );
+          d_im.lemma(eq.negate(), InferenceId::SEP_DISTINCT_REF);
         }
         d_type_references_all[tn].push_back( e );
       }
@@ -1255,8 +1255,8 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
 
       Node slem = NodeManager::currentNM()->mkNode( kind::SUBSET, d_base_label[tn], d_reference_bound_max[tn] );
       Trace("sep-lemma") << "Sep::Lemma: reference bound for " << tn << " : " << slem << std::endl;
-      d_im.lemma( slem, InferenceId::SEP_REF_BOUND );
-      
+      d_im.lemma(slem, InferenceId::SEP_REF_BOUND);
+
       //symmetry breaking
       if( d_type_references_card[tn].size()>1 ){
         std::map< unsigned, Node > lit_mem_map;
@@ -1272,7 +1272,7 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
             Node sym_lem = children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( kind::AND, children );
             sym_lem = NodeManager::currentNM()->mkNode( kind::IMPLIES, lit_mem_map[i].negate(), sym_lem );
             Trace("sep-lemma") << "Sep::Lemma: symmetry breaking lemma : " << sym_lem << std::endl;
-            d_im.lemma( sym_lem, InferenceId::SEP_SYM_BREAK );
+            d_im.lemma(sym_lem, InferenceId::SEP_SYM_BREAK);
           }
         }
       }
@@ -1282,8 +1282,8 @@ Node TheorySep::getBaseLabel( TypeNode tn ) {
     Node nr = getNilRef( tn );
     Node nrlem = NodeManager::currentNM()->mkNode( kind::MEMBER, nr, n_lbl ).negate();
     Trace("sep-lemma") << "Sep::Lemma: sep.nil not in base label " << tn << " : " << nrlem << std::endl;
-    d_im.lemma( nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP );
-    
+    d_im.lemma(nrlem, InferenceId::SEP_NIL_NOT_IN_HEAP);
+
     return n_lbl;
   }else{
     return it->second;

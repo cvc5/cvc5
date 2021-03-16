@@ -919,7 +919,8 @@ void TheoryFp::preRegisterTerm(TNode node)
   return;
 }
 
-void TheoryFp::handleLemma(Node node, InferenceId id) {
+void TheoryFp::handleLemma(Node node, InferenceId id)
+{
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   // will be preprocessed when sent, which is important because it contains
   // embedded ITEs
