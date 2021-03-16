@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quant_bound_inference.h"
 
 namespace CVC4 {
 namespace theory {

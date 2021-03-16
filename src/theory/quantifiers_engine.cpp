@@ -123,6 +123,12 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
+
+  // handle any circular dependencies
+
+  // quantifiers bound inference needs to be informed of the bounded integers
+  // module, which has information about which quantifiers have finite bounds
+  d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules.d_bint.get());
 }
 
 DecisionManager* QuantifiersEngine::getDecisionManager()
