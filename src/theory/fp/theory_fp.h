@@ -27,8 +27,8 @@
 #include "context/cdo.h"
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
-#include "theory/theory_state.h"
 #include "theory/theory_inference_manager.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
