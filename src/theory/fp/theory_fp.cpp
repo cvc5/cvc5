@@ -114,7 +114,6 @@ TheoryFp::TheoryFp(context::Context* c,
       d_registeredTerms(u),
       d_conv(new FpConverter(u)),
       d_expansionRequested(false),
-      d_conflictNode(c, Node::null()),
       d_minMap(u),
       d_maxMap(u),
       d_toUBVMap(u),
@@ -942,17 +941,9 @@ bool TheoryFp::propagateLit(TNode node)
 
 void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
 {
-  std::vector<TNode> assumptions;
-  d_equalityEngine->explainEquality(t1, t2, true, assumptions);
-
-  Node conflict = helper::buildConjunct(assumptions);
   Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected "
               << conflict << std::endl;
-
-  d_conflictNode = conflict;
-  d_state.notifyInConflict();
-  d_out->conflict(conflict);
-  return;
+  d_im.conflictEqConstantMerge(t1, t2);
 }
 
 

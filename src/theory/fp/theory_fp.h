@@ -28,6 +28,7 @@
 #include "theory/fp/theory_fp_rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_state.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -168,7 +169,6 @@ class TheoryFp : public Theory
   Node abstractFloatToReal(Node);
 
  private:
-  context::CDO<Node> d_conflictNode;
 
   ComparisonUFMap d_minMap;
   ComparisonUFMap d_maxMap;
