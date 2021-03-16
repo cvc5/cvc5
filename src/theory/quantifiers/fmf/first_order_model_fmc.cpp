@@ -26,7 +26,7 @@ namespace fmcheck {
 
 FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
-                  TermRegistry& tr,
+                                       TermRegistry& tr,
                                        std::string name)
     : FirstOrderModel(qs, qr, tr, name)
 {

@@ -156,8 +156,14 @@ protected:
  public:
   FullModelChecker(QuantifiersState& qs);
 
-  void debugPrintCond(FirstOrderModelFmc * fm, const char * tr, Node n, bool dispStar = false);
-  void debugPrint(FirstOrderModelFmc * fm, const char * tr, Node n, bool dispStar = false);
+  void debugPrintCond(FirstOrderModelFmc* fm,
+                      const char* tr,
+                      Node n,
+                      bool dispStar = false);
+  void debugPrint(FirstOrderModelFmc* fm,
+                  const char* tr,
+                  Node n,
+                  bool dispStar = false);
 
   int doExhaustiveInstantiation(FirstOrderModel* fm,
                                 Node f,

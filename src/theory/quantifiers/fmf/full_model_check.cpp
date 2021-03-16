@@ -571,7 +571,8 @@ void FullModelChecker::debugPrint(const char * tr, Node n, bool dispStar) {
   if( n.isNull() ){
     Trace(tr) << "null";
   }
-  else if(FirstOrderModelFmc::isStar(n) && dispStar) {
+  else if (FirstOrderModelFmc::isStar(n) && dispStar)
+  {
     Trace(tr) << "*";
   }
   else

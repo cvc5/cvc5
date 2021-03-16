@@ -98,12 +98,12 @@ QuantifiersEngine::QuantifiersEngine(
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(new quantifiers::FirstOrderModel(
-          qstate, d_qreg,  tr, "FirstOrderModel"));
+          qstate, d_qreg, tr, "FirstOrderModel"));
       d_builder.reset(new quantifiers::QModelBuilder(qstate));
     }
   }else{
     d_model.reset(new quantifiers::FirstOrderModel(
-        qstate, d_qreg,  tr, "FirstOrderModel"));
+        qstate, d_qreg, tr, "FirstOrderModel"));
   }
   d_eq_query.reset(
       new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));

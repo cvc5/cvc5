@@ -46,7 +46,7 @@ typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
 
 FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
-                  TermRegistry& tr,
+                                 TermRegistry& tr,
                                  std::string name)
     : TheoryModel(qs.getSatContext(), name, true),
       d_qreg(qr),

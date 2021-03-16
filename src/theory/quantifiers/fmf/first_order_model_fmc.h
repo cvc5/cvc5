@@ -40,7 +40,7 @@ class FirstOrderModelFmc : public FirstOrderModel
  public:
   FirstOrderModelFmc(QuantifiersState& qs,
                      QuantifiersRegistry& qr,
-                  TermRegistry& tr,
+                     TermRegistry& tr,
                      std::string name);
   ~FirstOrderModelFmc() override;
   FirstOrderModelFmc* asFirstOrderModelFmc() override { return this; }
