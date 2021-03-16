@@ -20,10 +20,10 @@
 
 #include "options/smt_options.h"
 
-#define ARITH_PROOF(x)        \
+#define ARITH_PROOF(x)                \
   if (CVC4::options::produceProofs()) \
-  {                           \
-    x;                        \
+  {                                   \
+    x;                                \
   }
 #define ARITH_NULLPROOF(x) (CVC4::options::produceProofs()) ? x : NULL
 #define ARITH_PROOF_ON() CVC4::options::produceProofs()
