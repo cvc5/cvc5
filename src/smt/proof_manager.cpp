@@ -42,7 +42,6 @@ PfManager::PfManager(context::UserContext* u, SmtEngine* smte)
       d_pppg(new PreprocessProofGenerator(
           d_pnm.get(), u, "smt::PreprocessProofGenerator")),
       d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
-      d_lpfpp(new proof::LeanProofPostprocess(d_pnm.get())),
       d_vpfpp(nullptr),
       d_finalProof(nullptr)
 {
@@ -141,16 +140,18 @@ void PfManager::printProof(std::ostream& out,
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LEAN)
   {
+    proof::LeanProofPostprocess lpfpp(d_pnm.get());
     std::vector<Node> assertions;
     getAssertions(as, df, assertions);
-    d_lpfpp.reset(new proof::LeanProofPostprocess(d_pnm.get()));
-    d_lpfpp->process(fp);
+    lpfpp.reset(new proof::LeanProofPostprocess(d_pnm.get()));
+    lpfpp->process(fp);
     proof::LeanPrinter::print(out, assertions, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::VERIT)
   {
-    d_vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get()));
-    d_vpfpp->process(fp);
+    proof::VeritProofPostprocess vpfpp(d_pnm.get());
+    vpfpp.reset(new proof::VeritProofPostprocess(d_pnm.get()));
+    vpfpp.process(fp);
     proof::veritPrinter(out, fp);
   }
   else if (options::proofFormatMode() == options::ProofFormatMode::LFSC)

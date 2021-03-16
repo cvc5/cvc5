@@ -19,9 +19,6 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-// FIXME: remove
-#include "proof/lean/lean_post_processor.h"
-#include "proof/verit/verit_post_processor.h"
 
 namespace CVC4 {
 
@@ -119,8 +116,6 @@ class PfManager
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */
   std::unique_ptr<smt::ProofPostproccess> d_pfpp;
-  std::unique_ptr<proof::LeanProofPostprocess> d_lpfpp;
-  std::unique_ptr<proof::VeritProofPostprocess> d_vpfpp;
 
   /**
    * The final proof produced by the SMT engine.
