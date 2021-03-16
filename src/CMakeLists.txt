@@ -12,6 +12,7 @@
 # Collect libcvc4 source files
 
 libcvc4_add_sources(
+  api/checks.h
   api/cvc4cpp.cpp
   api/cvc4cpp.h
   api/cvc4cppkind.h
@@ -139,6 +140,8 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
+  proof/dot/dot_printer.cpp
+  proof/dot/dot_printer.h
   proof/proof_manager.cpp
   proof/proof_manager.h
   proof/sat_proof.h
@@ -666,6 +669,8 @@ libcvc4_add_sources(
   theory/quantifiers/ematching/candidate_generator.h
   theory/quantifiers/ematching/ho_trigger.cpp
   theory/quantifiers/ematching/ho_trigger.h
+  theory/quantifiers/ematching/im_generator.cpp
+  theory/quantifiers/ematching/im_generator.h
   theory/quantifiers/ematching/inst_match_generator.cpp
   theory/quantifiers/ematching/inst_match_generator.h
   theory/quantifiers/ematching/inst_match_generator_multi.cpp

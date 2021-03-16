@@ -36,6 +36,7 @@
 #include <cstring>
 #include <sstream>
 
+#include "api/checks.h"
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/dtype.h"
@@ -823,72 +824,10 @@ class CVC4ApiRecoverableExceptionStream
   std::stringstream d_stream;
 };
 
-#define CVC4_API_CHECK(cond) \
-  CVC4_PREDICT_TRUE(cond)    \
-  ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
-
-#define CVC4_API_RECOVERABLE_CHECK(cond) \
-  CVC4_PREDICT_TRUE(cond)                \
-  ? (void)0 : OstreamVoider() & CVC4ApiRecoverableExceptionStream().ostream()
-
-#define CVC4_API_CHECK_NOT_NULL                     \
-  CVC4_API_CHECK(!isNullHelper())                   \
-      << "Invalid call to '" << __PRETTY_FUNCTION__ \
-      << "', expected non-null object";
-
-#define CVC4_API_ARG_CHECK_NOT_NULL(arg) \
-  CVC4_API_CHECK(!arg.isNull()) << "Invalid null argument for '" << #arg << "'";
-
-#define CVC4_API_ARG_CHECK_NOT_NULLPTR(arg) \
-  CVC4_API_CHECK(arg != nullptr)            \
-      << "Invalid null argument for '" << #arg << "'";
-
-#define CVC4_API_KIND_CHECK(kind)     \
-  CVC4_API_CHECK(isDefinedKind(kind)) \
-      << "Invalid kind '" << kindToString(kind) << "'";
-
-#define CVC4_API_KIND_CHECK_EXPECTED(cond, kind) \
-  CVC4_PREDICT_TRUE(cond)                        \
-  ? (void)0                                      \
-  : OstreamVoider()                              \
-          & CVC4ApiExceptionStream().ostream()   \
-                << "Invalid kind '" << kindToString(kind) << "', expected "
-
-#define CVC4_API_ARG_CHECK_EXPECTED(cond, arg)                      \
-  CVC4_PREDICT_TRUE(cond)                                           \
-  ? (void)0                                                         \
-  : OstreamVoider()                                                 \
-          & CVC4ApiExceptionStream().ostream()                      \
-                << "Invalid argument '" << arg << "' for '" << #arg \
-                << "', expected "
-
-#define CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(cond, arg)          \
-  CVC4_PREDICT_TRUE(cond)                                           \
-  ? (void)0                                                         \
-  : OstreamVoider()                                                 \
-          & CVC4ApiRecoverableExceptionStream().ostream()           \
-                << "Invalid argument '" << arg << "' for '" << #arg \
-                << "', expected "
-
-#define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
-  CVC4_PREDICT_TRUE(cond)                           \
-  ? (void)0                                         \
-  : OstreamVoider()                                 \
-          & CVC4ApiExceptionStream().ostream()      \
-                << "Invalid size of argument '" << #arg << "', expected "
-
-#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)           \
-  CVC4_PREDICT_TRUE(cond)                                                    \
-  ? (void)0                                                                  \
-  : OstreamVoider()                                                          \
-          & CVC4ApiExceptionStream().ostream()                               \
-                << "Invalid " << what << " '" << arg << "' at index " << idx \
-                << ", expected "
-
-#define CVC4_API_SOLVER_TRY_CATCH_BEGIN \
-  try                                   \
+#define CVC4_API_TRY_CATCH_BEGIN \
+  try                            \
   {
-#define CVC4_API_SOLVER_TRY_CATCH_END                                          \
+#define CVC4_API_TRY_CATCH_END                                                 \
   }                                                                            \
   catch (const UnrecognizedOptionException& e)                                 \
   {                                                                            \
@@ -900,18 +839,6 @@ class CVC4ApiRecoverableExceptionStream
   }                                                                            \
   catch (const CVC4::Exception& e) { throw CVC4ApiException(e.getMessage()); } \
   catch (const std::invalid_argument& e) { throw CVC4ApiException(e.what()); }
-
-#define CVC4_API_SOLVER_CHECK_SORT(sort) \
-  CVC4_API_CHECK(this == sort.d_solver)  \
-      << "Given sort is not associated with this solver";
-
-#define CVC4_API_SOLVER_CHECK_TERM(term) \
-  CVC4_API_CHECK(this == term.d_solver)  \
-      << "Given term is not associated with this solver";
-
-#define CVC4_API_SOLVER_CHECK_OP(op)  \
-  CVC4_API_CHECK(this == op.d_solver) \
-      << "Given operator is not associated with this solver";
 
 }  // namespace
 
@@ -1074,102 +1001,336 @@ std::vector<Sort> Sort::typeNodeVectorToSorts(
   return sorts;
 }
 
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
+bool Sort::operator==(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type == *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-/* Split out to avoid nested API calls (problematic with API tracing).        */
-/* .......................................................................... */
+bool Sort::operator!=(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type != *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isNullHelper() const { return d_type->isNull(); }
+bool Sort::operator<(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type < *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
+bool Sort::operator>(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type > *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
+bool Sort::operator<=(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type <= *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator<(const Sort& s) const { return *d_type < *s.d_type; }
+bool Sort::operator>=(const Sort& s) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return *d_type >= *s.d_type;
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator>(const Sort& s) const { return *d_type > *s.d_type; }
+bool Sort::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator<=(const Sort& s) const { return *d_type <= *s.d_type; }
+bool Sort::isBoolean() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isBoolean();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::operator>=(const Sort& s) const { return *d_type >= *s.d_type; }
+bool Sort::isInteger() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isInteger();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isNull() const { return isNullHelper(); }
+bool Sort::isReal() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isReal();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isBoolean() const { return d_type->isBoolean(); }
+bool Sort::isString() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isInteger() const { return d_type->isInteger(); }
+bool Sort::isRegExp() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isRegExp();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isReal() const { return d_type->isReal(); }
+bool Sort::isRoundingMode() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isRoundingMode();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isString() const { return d_type->isString(); }
+bool Sort::isBitVector() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isBitVector();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isRegExp() const { return d_type->isRegExp(); }
+bool Sort::isFloatingPoint() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFloatingPoint();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isRoundingMode() const { return d_type->isRoundingMode(); }
-
-bool Sort::isBitVector() const { return d_type->isBitVector(); }
-
-bool Sort::isFloatingPoint() const { return d_type->isFloatingPoint(); }
-
-bool Sort::isDatatype() const { return d_type->isDatatype(); }
+bool Sort::isDatatype() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isDatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 bool Sort::isParametricDatatype() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (!d_type->isDatatype()) return false;
   return d_type->isParametricDatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Sort::isConstructor() const { return d_type->isConstructor(); }
-bool Sort::isSelector() const { return d_type->isSelector(); }
-bool Sort::isTester() const { return d_type->isTester(); }
+bool Sort::isConstructor() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isConstructor();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isFunction() const { return d_type->isFunction(); }
+bool Sort::isSelector() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSelector();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isPredicate() const { return d_type->isPredicate(); }
+bool Sort::isTester() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isTester();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isTuple() const { return d_type->isTuple(); }
+bool Sort::isFunction() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFunction();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isRecord() const { return d_type->isRecord(); }
+bool Sort::isPredicate() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isPredicate();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isArray() const { return d_type->isArray(); }
+bool Sort::isTuple() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isTuple();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isSet() const { return d_type->isSet(); }
+bool Sort::isRecord() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isRecord();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isBag() const { return d_type->isBag(); }
+bool Sort::isArray() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isArray();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isSequence() const { return d_type->isSequence(); }
+bool Sort::isSet() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSet();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isUninterpretedSort() const { return d_type->isSort(); }
+bool Sort::isBag() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isBag();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isSortConstructor() const { return d_type->isSortConstructor(); }
+bool Sort::isSequence() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSequence();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isFirstClass() const { return d_type->isFirstClass(); }
+bool Sort::isUninterpretedSort() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSort();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Sort::isFunctionLike() const { return d_type->isFunctionLike(); }
+bool Sort::isSortConstructor() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isSortConstructor();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Sort::isFirstClass() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFirstClass();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Sort::isFunctionLike() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return d_type->isFunctionLike();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 bool Sort::isSubsortOf(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_SOLVER("sort", s);
+  //////// all checks before this line
   return d_type->isSubtypeOf(*s.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isComparableTo(const Sort& s) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_SOLVER("sort", s);
+  //////// all checks before this line
   return d_type->isComparableTo(*s.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Datatype Sort::getDatatype() const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
+  //////// all checks before this line
   return Datatype(d_solver, d_type->getDType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORTS(params);
   CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
+  //////// all checks before this line
   std::vector<CVC4::TypeNode> tparams = sortVectorToTypeNodes(params);
   if (d_type->isDatatype())
   {
@@ -1177,40 +1338,59 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   }
   Assert(d_type->isSortConstructor());
   return Sort(d_solver, d_solver->getNodeManager()->mkSort(*d_type, tparams));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::substitute(const Sort& sort, const Sort& replacement) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORT(sort);
+  CVC4_API_CHECK_SORT(replacement);
+  //////// all checks before this line
   return Sort(
       d_solver,
       d_type->substitute(sort.getTypeNode(), replacement.getTypeNode()));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::substitute(const std::vector<Sort>& sorts,
                       const std::vector<Sort>& replacements) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORTS(sorts);
+  CVC4_API_CHECK_SORTS(replacements);
+  //////// all checks before this line
 
   std::vector<CVC4::TypeNode> tSorts = sortVectorToTypeNodes(sorts),
                               tReplacements =
                                   sortVectorToTypeNodes(replacements);
-
   return Sort(d_solver,
               d_type->substitute(tSorts.begin(),
                                  tSorts.end(),
                                  tReplacements.begin(),
                                  tReplacements.end()));
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string Sort::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_solver != nullptr)
   {
     NodeManagerScope scope(d_solver->getNodeManager());
     return d_type->toString();
   }
   return d_type->toString();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
@@ -1219,201 +1399,336 @@ const CVC4::TypeNode& Sort::getTypeNode(void) const { return *d_type; }
 
 size_t Sort::getConstructorArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  //////// all checks before this line
   return d_type->getNumChildren() - 1;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getConstructorDomainSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getArgTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getConstructorCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getConstructorRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Selector sort ------------------------------------------------------- */
 
 Sort Sort::getSelectorDomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSelectorDomainType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getSelectorCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSelector()) << "Not a selector sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSelectorRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Tester sort ------------------------------------------------------- */
 
 Sort Sort::getTesterDomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getTesterDomainType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getTesterCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTester()) << "Not a tester sort: " << (*this);
+  //////// all checks before this line
   return d_solver->getBooleanSort();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Function sort ------------------------------------------------------- */
 
 size_t Sort::getFunctionArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
+  //////// all checks before this line
   return d_type->getNumChildren() - 1;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getFunctionDomainSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
+  //////// all checks before this line
   return typeNodeVectorToSorts(d_solver, d_type->getArgTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getFunctionCodomainSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFunction()) << "Not a function sort" << (*this);
+  //////// all checks before this line
   return Sort(d_solver, d_type->getRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Array sort ---------------------------------------------------------- */
 
 Sort Sort::getArrayIndexSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isArray()) << "Not an array sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getArrayIndexType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Sort::getArrayElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isArray()) << "Not an array sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getArrayConstituentType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Set sort ------------------------------------------------------------ */
 
 Sort Sort::getSetElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSet()) << "Not a set sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSetElementType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Bag sort ------------------------------------------------------------ */
 
 Sort Sort::getBagElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isBag()) << "Not a bag sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getBagElementType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Sequence sort ------------------------------------------------------- */
 
 Sort Sort::getSequenceElementSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSequence()) << "Not a sequence sort.";
+  //////// all checks before this line
   return Sort(d_solver, d_type->getSequenceElementType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Uninterpreted sort -------------------------------------------------- */
 
 std::string Sort::getUninterpretedSortName() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
+  //////// all checks before this line
   return d_type->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Sort::isUninterpretedSortParameterized() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  // This method is not implemented in the NodeManager, since whether a
-  // uninterpreted sort is parametrized is irrelevant for solving.
+  //////// all checks before this line
+
+  /* This method is not implemented in the NodeManager, since whether a
+   * uninterpreted sort is parameterized is irrelevant for solving. */
   return d_type->getNumChildren() > 0;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
-  // This method is not implemented in the NodeManager, since whether a
-  // uninterpreted sort is parametrized is irrelevant for solving.
+  //////// all checks before this line
+
+  /* This method is not implemented in the NodeManager, since whether a
+   * uninterpreted sort is parameterized is irrelevant for solving. */
   std::vector<TypeNode> params;
   for (size_t i = 0, nchildren = d_type->getNumChildren(); i < nchildren; i++)
   {
     params.push_back((*d_type)[i]);
   }
   return typeNodeVectorToSorts(d_solver, params);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Sort constructor sort ----------------------------------------------- */
 
 std::string Sort::getSortConstructorName() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
+  //////// all checks before this line
   return d_type->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t Sort::getSortConstructorArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
+  //////// all checks before this line
   return d_type->getSortConstructorArity();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Bit-vector sort ----------------------------------------------------- */
 
 uint32_t Sort::getBVSize() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isBitVector()) << "Not a bit-vector sort.";
+  //////// all checks before this line
   return d_type->getBitVectorSize();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Floating-point sort ------------------------------------------------- */
 
 uint32_t Sort::getFPExponentSize() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  //////// all checks before this line
   return d_type->getFloatingPointExponentSize();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 uint32_t Sort::getFPSignificandSize() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  //////// all checks before this line
   return d_type->getFloatingPointSignificandSize();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Datatype sort ------------------------------------------------------- */
 
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
-  std::vector<CVC4::TypeNode> typeNodes = d_type->getParamTypes();
-  return typeNodeVectorToSorts(d_solver, typeNodes);
+  //////// all checks before this line
+  return typeNodeVectorToSorts(d_solver, d_type->getParamTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t Sort::getDatatypeArity() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
+  //////// all checks before this line
   return d_type->getNumChildren() - 1;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Tuple sort ---------------------------------------------------------- */
 
 size_t Sort::getTupleLength() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
+  //////// all checks before this line
   return d_type->getTupleLength();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Sort::getTupleSorts() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  std::vector<CVC4::TypeNode> typeNodes = d_type->getTupleTypes();
-  return typeNodeVectorToSorts(d_solver, typeNodes);
+  //////// all checks before this line
+  return typeNodeVectorToSorts(d_solver, d_type->getTupleTypes());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* --------------------------------------------------------------------- */
@@ -1428,6 +1743,14 @@ size_t SortHashFunction::operator()(const Sort& s) const
 {
   return TypeNodeHashFunction()(*s.d_type);
 }
+
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Sort::isNullHelper() const { return d_type->isNull(); }
 
 /* -------------------------------------------------------------------------- */
 /* Op                                                                     */
@@ -1456,22 +1779,11 @@ Op::~Op()
   }
 }
 
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
-
-/* Split out to avoid nested API calls (problematic with API tracing).        */
-/* .......................................................................... */
-
-bool Op::isNullHelper() const
-{
-  return (d_node->isNull() && (d_kind == NULL_EXPR));
-}
-
-bool Op::isIndexedHelper() const { return !d_node->isNull(); }
-
 /* Public methods                                                             */
 bool Op::operator==(const Op& t) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_node->isNull() && t.d_node->isNull())
   {
     return (d_kind == t.d_kind);
@@ -1481,56 +1793,70 @@ bool Op::operator==(const Op& t) const
     return false;
   }
   return (d_kind == t.d_kind) && (*d_node == *t.d_node);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Op::operator!=(const Op& t) const { return !(*this == t); }
+bool Op::operator!=(const Op& t) const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return !(*this == t);
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Kind Op::getKind() const
 {
   CVC4_API_CHECK(d_kind != NULL_EXPR) << "Expecting a non-null Kind";
+  //////// all checks before this line
   return d_kind;
 }
 
-bool Op::isNull() const { return isNullHelper(); }
+bool Op::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Op::isIndexed() const { return isIndexedHelper(); }
+bool Op::isIndexed() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isIndexedHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 template <>
 std::string Op::getIndices() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
-
-  std::string i;
   Kind k = intToExtKind(d_node->getKind());
-
-  if (k == DIVISIBLE)
-  {
-    // DIVISIBLE returns a string index to support
-    // arbitrary precision integers
-    CVC4::Integer _int = d_node->getConst<Divisible>().k;
-    i = _int.toString();
-  }
-  else if (k == RECORD_UPDATE)
-  {
-    i = d_node->getConst<RecordUpdate>().getField();
-  }
-  else
-  {
-    CVC4_API_CHECK(false) << "Can't get string index from"
-                          << " kind " << kindToString(k);
-  }
-
-  return i;
+  CVC4_API_CHECK(k == DIVISIBLE || k == RECORD_UPDATE)
+      << "Can't get string index from"
+      << " kind " << kindToString(k);
+  //////// all checks before this line
+  return k == DIVISIBLE ? d_node->getConst<Divisible>().k.toString()
+                        : d_node->getConst<RecordUpdate>().getField();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 template <>
 uint32_t Op::getIndices() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
+  //////// all checks before this line
 
   uint32_t i = 0;
   Kind k = intToExtKind(d_node->getKind());
@@ -1564,18 +1890,22 @@ uint32_t Op::getIndices() const
       i = d_node->getConst<RegExpRepeat>().d_repeatAmount;
       break;
     default:
-      CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
-                                         << " kind " << kindToString(k);
+      CVC4_API_CHECK(false) << "Can't get uint32_t index from"
+                            << " kind " << kindToString(k);
   }
   return i;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 template <>
 std::pair<uint32_t, uint32_t> Op::getIndices() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(!d_node->isNull())
       << "Expecting a non-null internal expression. This Op is not indexed.";
+  //////// all checks before this line
 
   std::pair<uint32_t, uint32_t> indices;
   Kind k = intToExtKind(d_node->getKind());
@@ -1638,11 +1968,14 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
                           << " kind " << kindToString(k);
   }
   return indices;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string Op::toString() const
 {
-  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   if (d_node->isNull())
   {
     return kindToString(d_kind);
@@ -1658,6 +1991,8 @@ std::string Op::toString() const
     }
     return d_node->toString();
   }
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const Op& t)
@@ -1677,6 +2012,19 @@ size_t OpHashFunction::operator()(const Op& t) const
     return KindHashFunction()(t.d_kind);
   }
 }
+
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
+
+/* Split out to avoid nested API calls (problematic with API tracing).        */
+/* .......................................................................... */
+
+bool Op::isNullHelper() const
+{
+  return (d_node->isNull() && (d_kind == NULL_EXPR));
+}
+
+bool Op::isIndexedHelper() const { return !d_node->isNull(); }
 
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
@@ -2339,22 +2687,46 @@ void DatatypeConstructorDecl::addSelector(const std::string& name,
                                           const Sort& sort)
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK_SORT(sort);
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
       << "non-null range sort for selector";
+  //////// all checks before this line
   d_ctor->addArg(name, *sort.d_type);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   d_ctor->addArgSelf(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool DatatypeConstructorDecl::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeConstructorDecl::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_ctor;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out,
@@ -2370,6 +2742,8 @@ std::ostream& operator<<(std::ostream& out,
   container_to_stream(out, vector);
   return out;
 }
+
+bool DatatypeConstructorDecl::isNullHelper() const { return d_ctor == nullptr; }
 
 /* DatatypeDecl ------------------------------------------------------------- */
 
@@ -2418,37 +2792,66 @@ DatatypeDecl::~DatatypeDecl()
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_ARG_CHECK_NOT_NULL(ctor);
+  CVC4_API_ARG_CHECK_SOLVER("datatype constructor declaration", ctor);
+  //////// all checks before this line
   d_dtype->addConstructor(ctor.d_ctor);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t DatatypeDecl::getNumConstructors() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->getNumConstructors();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool DatatypeDecl::isParametric() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->isParametric();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeDecl::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_dtype;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeDecl::getName() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool DatatypeDecl::isNull() const { return isNullHelper(); }
+bool DatatypeDecl::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 {
@@ -2479,24 +2882,54 @@ DatatypeSelector::~DatatypeSelector()
   }
 }
 
-std::string DatatypeSelector::getName() const { return d_stor->getName(); }
+std::string DatatypeSelector::getName() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_stor->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Term DatatypeSelector::getSelectorTerm() const
 {
-  Term sel = Term(d_solver, d_stor->getSelector());
-  return sel;
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_stor->getSelector());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort DatatypeSelector::getRangeSort() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return Sort(d_solver, d_stor->getRangeType());
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool DatatypeSelector::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::string DatatypeSelector::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_stor;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
@@ -2504,6 +2937,8 @@ std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor)
   out << stor.toString();
   return out;
 }
+
+bool DatatypeSelector::isNullHelper() const { return d_stor == nullptr; }
 
 /* DatatypeConstructor ------------------------------------------------------ */
 
@@ -2529,24 +2964,38 @@ DatatypeConstructor::~DatatypeConstructor()
   }
 }
 
-std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
+std::string DatatypeConstructor::getName() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_ctor->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Term DatatypeConstructor::getConstructorTerm() const
 {
-  Term ctor = Term(d_solver, d_ctor->getConstructor());
-  return ctor;
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_ctor->getConstructor());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term DatatypeConstructor::getSpecializedConstructorTerm(
     const Sort& retSort) const
 {
   NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(d_ctor->isResolved())
       << "Expected resolved datatype constructor";
   CVC4_API_CHECK(retSort.isDatatype())
       << "Cannot get specialized constructor type for non-datatype type "
       << retSort;
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  //////// all checks before this line
 
   NodeManager* nm = d_solver->getNodeManager();
   Node ret =
@@ -2558,40 +3007,68 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(
   // apply type ascription to the operator
   Term sctor = api::Term(d_solver, ret);
   return sctor;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term DatatypeConstructor::getTesterTerm() const
 {
-  Term tst = Term(d_solver, d_ctor->getTester());
-  return tst;
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return Term(d_solver, d_ctor->getTester());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 size_t DatatypeConstructor::getNumSelectors() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_ctor->getNumArgs();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeSelector DatatypeConstructor::operator[](size_t index) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getSelectorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getSelectorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
 {
-  DatatypeSelector sel = getSelector(name);
-  return sel.getSelectorTerm();
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return getSelector(name).getSelectorTerm();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
@@ -2673,12 +3150,27 @@ bool DatatypeConstructor::const_iterator::operator!=(
   return d_int_stors != other.d_int_stors || d_idx != other.d_idx;
 }
 
+bool DatatypeConstructor::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
 std::string DatatypeConstructor::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << *d_ctor;
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
+
+bool DatatypeConstructor::isNullHelper() const { return d_ctor == nullptr; }
 
 DatatypeSelector DatatypeConstructor::getSelectorForName(
     const std::string& name) const
@@ -2737,48 +3229,153 @@ Datatype::~Datatype()
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
   CVC4_API_CHECK(idx < getNumConstructors()) << "Index out of bounds.";
+  //////// all checks before this line
   return DatatypeConstructor(d_solver, (*d_dtype)[idx]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeConstructor Datatype::operator[](const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getConstructorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeConstructor Datatype::getConstructor(const std::string& name) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return getConstructorForName(name);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Datatype::getConstructorTerm(const std::string& name) const
 {
-  DatatypeConstructor ctor = getConstructor(name);
-  return ctor.getConstructorTerm();
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return getConstructor(name).getConstructorTerm();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-std::string Datatype::getName() const { return d_dtype->getName(); }
+std::string Datatype::getName() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 size_t Datatype::getNumConstructors() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->getNumConstructors();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-bool Datatype::isParametric() const { return d_dtype->isParametric(); }
-bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
+bool Datatype::isParametric() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isParametric();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Datatype::isTuple() const { return d_dtype->isTuple(); }
+bool Datatype::isCodatatype() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isCodatatype();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Datatype::isRecord() const { return d_dtype->isRecord(); }
+bool Datatype::isTuple() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isTuple();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
-bool Datatype::isFinite() const { return d_dtype->isFinite(); }
-bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
+bool Datatype::isRecord() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isRecord();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Datatype::isFinite() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isFinite();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+bool Datatype::isWellFounded() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->isWellFounded();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 bool Datatype::hasNestedRecursion() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
   return d_dtype->hasNestedRecursion();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
-std::string Datatype::toString() const { return d_dtype->getName(); }
+bool Datatype::isNull() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return isNullHelper();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
+std::string Datatype::toString() const
+{
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_NOT_NULL;
+  //////// all checks before this line
+  return d_dtype->getName();
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
 
 Datatype::const_iterator Datatype::begin() const
 {
@@ -2884,6 +3481,8 @@ bool Datatype::const_iterator::operator!=(
   return d_int_ctors != other.d_int_ctors || d_idx != other.d_idx;
 }
 
+bool Datatype::isNullHelper() const { return d_dtype == nullptr; }
+
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
@@ -2918,68 +3517,71 @@ Grammar::Grammar(const Solver* slv,
 
 void Grammar::addRule(const Term& ntSymbol, const Term& rule)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
-  CVC4_API_ARG_CHECK_NOT_NULL(rule);
+  CVC4_API_CHECK_TERM(ntSymbol);
+  CVC4_API_CHECK_TERM(rule);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
   CVC4_API_CHECK(ntSymbol.d_node->getType() == rule.d_node->getType())
       << "Expected ntSymbol and rule to have the same sort";
-
+  //////// all checks before this line
   d_ntsToTerms[ntSymbol].push_back(rule);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addRules(const Term& ntSymbol, const std::vector<Term>& rules)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
+  CVC4_API_CHECK_TERMS_WITH_SORT(rules, ntSymbol.getSort());
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
-  for (size_t i = 0, n = rules.size(); i < n; ++i)
-  {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !rules[i].isNull(), "parameter rule", rules[i], i)
-        << "non-null term";
-    CVC4_API_CHECK(ntSymbol.d_node->getType() == rules[i].d_node->getType())
-        << "Expected ntSymbol and rule at index " << i
-        << " to have the same sort";
-  }
-
+  //////// all checks before this line
   d_ntsToTerms[ntSymbol].insert(
       d_ntsToTerms[ntSymbol].cend(), rules.cbegin(), rules.cend());
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addAnyConstant(const Term& ntSymbol)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
+  //////// all checks before this line
   d_allowConst.insert(ntSymbol);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addAnyVariable(const Term& ntSymbol)
 {
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_isResolved) << "Grammar cannot be modified after passing "
                                    "it as an argument to synthFun/synthInv";
-  CVC4_API_ARG_CHECK_NOT_NULL(ntSymbol);
+  CVC4_API_CHECK_TERM(ntSymbol);
   CVC4_API_ARG_CHECK_EXPECTED(
       d_ntsToTerms.find(ntSymbol) != d_ntsToTerms.cend(), ntSymbol)
       << "ntSymbol to be one of the non-terminal symbols given in the "
          "predeclaration";
-
+  //////// all checks before this line
   d_allowVars.insert(ntSymbol);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -3014,6 +3616,8 @@ std::string join(Iterator first, Iterator last, Function f, std::string sep)
 
 std::string Grammar::toString() const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
   std::stringstream ss;
   ss << "  ("  // pre-declaration
      << join(
@@ -3052,10 +3656,15 @@ std::string Grammar::toString() const
      << ')';
 
   return ss.str();
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Grammar::resolve()
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  //////// all checks before this line
+
   d_isResolved = true;
 
   Term bvl;
@@ -3120,6 +3729,8 @@ Sort Grammar::resolve()
 
   // return is the first datatype
   return Sort(d_solver, datatypeTypes[0]);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addSygusConstructorTerm(
@@ -3127,6 +3738,12 @@ void Grammar::addSygusConstructorTerm(
     const Term& term,
     const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_DTDECL(dt);
+  CVC4_API_CHECK_TERM(term);
+  CVC4_API_CHECK_TERMS_MAP(ntsToUnres);
+  //////// all checks before this line
+
   // At this point, we should know that dt is well founded, and that its
   // builtin sygus operators are well-typed.
   // Now, purify each occurrence of a non-terminal symbol in term, replace by
@@ -3153,6 +3770,8 @@ void Grammar::addSygusConstructorTerm(
   }
   std::vector<TypeNode> cargst = Sort::sortVectorToTypeNodes(cargs);
   dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Grammar::purifySygusGTerm(
@@ -3161,6 +3780,13 @@ Term Grammar::purifySygusGTerm(
     std::vector<Sort>& cargs,
     const std::unordered_map<Term, Sort, TermHashFunction>& ntsToUnres) const
 {
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_TERM(term);
+  CVC4_API_CHECK_TERMS(args);
+  CVC4_API_CHECK_SORTS(cargs);
+  CVC4_API_CHECK_TERMS_MAP(ntsToUnres);
+  //////// all checks before this line
+
   std::unordered_map<Term, Sort, TermHashFunction>::const_iterator itn =
       ntsToUnres.find(term);
   if (itn != ntsToUnres.cend())
@@ -3203,12 +3829,18 @@ Term Grammar::purifySygusGTerm(
   }
 
   return Term(d_solver, nret);
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
                                            const Sort& sort) const
 {
-  Assert(!sort.isNull());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK_DTDECL(dt);
+  CVC4_API_CHECK_SORT(sort);
+  //////// all checks before this line
+
   // each variable of appropriate type becomes a sygus constructor in dt.
   for (unsigned i = 0, size = d_sygusVars.size(); i < size; i++)
   {
@@ -3221,6 +3853,8 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt,
       dt.d_dtype->addSygusConstructor(*v.d_node, ss.str(), cargs);
     }
   }
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::ostream& operator<<(std::ostream& out, const Grammar& g)
@@ -3345,12 +3979,12 @@ Term Solver::mkRealFromStrHelper(const std::string& s) const
 
 Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
 
   return mkValHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkBVFromStrHelper(const std::string& s, uint32_t base) const
@@ -3451,10 +4085,10 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
   for (size_t i = 0, size = children.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !children[i].isNull(), "child term", children[i], i)
+        !children[i].isNull(), "child term", children, i)
         << "non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == children[i].d_solver, "child term", children[i], i)
+        this == children[i].d_solver, "child term", children, i)
         << "a child term associated to this solver object";
   }
 
@@ -3553,10 +4187,10 @@ Term Solver::mkTermHelper(const Op& op, const std::vector<Term>& children) const
   for (size_t i = 0, size = children.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !children[i].isNull(), "child term", children[i], i)
+        !children[i].isNull(), "child term", children, i)
         << "non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == children[i].d_solver, "child term", children[i], i)
+        this == children[i].d_solver, "child term", children, i)
         << "child term associated to this solver object";
   }
   checkMkTerm(op.d_kind, children.size());
@@ -3580,14 +4214,12 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   std::vector<CVC4::DType> datatypes;
   for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
   {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(this == dtypedecls[i].d_solver,
-                                         "datatype declaration",
-                                         dtypedecls[i],
-                                         i)
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        this == dtypedecls[i].d_solver, "datatype declaration", dtypedecls, i)
         << "a datatype declaration associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(dtypedecls[i].getNumConstructors() > 0,
                                          "datatype declaration",
-                                         dtypedecls[i],
+                                         dtypedecls,
                                          i)
         << "a datatype declaration with at least one constructor";
     datatypes.push_back(dtypedecls[i].getDatatype());
@@ -3596,10 +4228,10 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   for (auto& sort : unresolvedSorts)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !sort.isNull(), "unresolved sort", sort, i)
+        !sort.isNull(), "unresolved sort", unresolvedSorts, i)
         << "non-null sort";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == sort.d_solver, "unresolved sort", sort, i)
+        this == sort.d_solver, "unresolved sort", unresolvedSorts, i)
         << "an unresolved sort associated to this solver object";
     i += 1;
   }
@@ -3623,15 +4255,15 @@ Term Solver::synthFunHelper(const std::string& symbol,
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
+        this == boundVars[i].d_solver, "bound variable", boundVars, i)
         << "bound variable associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
+        !boundVars[i].isNull(), "bound variable", boundVars, i)
         << "a non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
-        boundVars[i],
+        boundVars,
         i)
         << "a bound variable";
     varTypes.push_back(boundVars[i].d_node->getType());
@@ -3778,59 +4410,66 @@ bool Solver::supportsFloatingPoint() const
 
 Sort Solver::getNullSort(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(this, TypeNode());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::getBooleanSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->booleanType());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::getIntegerSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->integerType());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::getRealSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->realType());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::getRegExpSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->regExpType());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::getStringSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->stringType());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::getRoundingModeSort(void) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
   return Sort(this, getNodeManager()->roundingModeType());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Create sorts ------------------------------------------------------- */
@@ -3838,7 +4477,7 @@ Sort Solver::getRoundingModeSort(void) const
 Sort Solver::mkArraySort(const Sort& indexSort, const Sort& elemSort) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!indexSort.isNull(), indexSort)
       << "non-null index sort";
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
@@ -3848,57 +4487,58 @@ Sort Solver::mkArraySort(const Sort& indexSort, const Sort& elemSort) const
 
   return Sort(
       this, getNodeManager()->mkArrayType(*indexSort.d_type, *elemSort.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkBitVectorSort(uint32_t size) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "size > 0";
 
   return Sort(this, getNodeManager()->mkBitVectorType(size));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
   CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
 
   return Sort(this, getNodeManager()->mkFloatingPointType(exp, sig));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkDatatypeSort(const DatatypeDecl& dtypedecl) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(this == dtypedecl.d_solver)
       << "Given datatype declaration is not associated with this solver";
   CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
       << "a datatype declaration with at least one constructor";
 
   return Sort(this, getNodeManager()->mkDatatypeType(*dtypedecl.d_dtype));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Solver::mkDatatypeSorts(
     const std::vector<DatatypeDecl>& dtypedecls) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   std::set<Sort> unresolvedSorts;
   return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Sort> Solver::mkDatatypeSorts(
@@ -3906,15 +4546,16 @@ std::vector<Sort> Solver::mkDatatypeSorts(
     const std::set<Sort>& unresolvedSorts) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkFunctionSort(const Sort& domain, const Sort& codomain) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!codomain.isNull(), codomain)
       << "non-null codomain sort";
   CVC4_API_SOLVER_CHECK_SORT(domain);
@@ -3927,27 +4568,27 @@ Sort Solver::mkFunctionSort(const Sort& domain, const Sort& codomain) const
 
   return Sort(
       this, getNodeManager()->mkFunctionType(*domain.d_type, *codomain.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
                             const Sort& codomain) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for function sort";
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !sorts[i].isNull(), "parameter sort", sorts[i], i)
+        !sorts[i].isNull(), "parameter sort", sorts, i)
         << "non-null sort";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == sorts[i].d_solver, "parameter sort", sorts[i], i)
+        this == sorts[i].d_solver, "parameter sort", sorts, i)
         << "sort associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
+        sorts[i].isFirstClass(), "parameter sort", sorts, i)
         << "first-class sort as parameter sort for function sort";
   }
   CVC4_API_ARG_CHECK_EXPECTED(!codomain.isNull(), codomain)
@@ -3960,147 +4601,149 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts,
   std::vector<TypeNode> argTypes = Sort::sortVectorToTypeNodes(sorts);
   return Sort(this,
               getNodeManager()->mkFunctionType(argTypes, *codomain.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkParamSort(const std::string& symbol) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(
       this,
       getNodeManager()->mkSort(symbol, NodeManager::SORT_FLAG_PLACEHOLDER));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
       << "at least one parameter sort for predicate sort";
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !sorts[i].isNull(), "parameter sort", sorts[i], i)
+        !sorts[i].isNull(), "parameter sort", sorts, i)
         << "non-null sort";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == sorts[i].d_solver, "parameter sort", sorts[i], i)
+        this == sorts[i].d_solver, "parameter sort", sorts, i)
         << "sort associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
+        sorts[i].isFirstClass(), "parameter sort", sorts, i)
         << "first-class sort as parameter sort for predicate sort";
   }
   std::vector<TypeNode> types = Sort::sortVectorToTypeNodes(sorts);
 
   return Sort(this, getNodeManager()->mkPredicateType(types));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkRecordSort(
     const std::vector<std::pair<std::string, Sort>>& fields) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   std::vector<std::pair<std::string, TypeNode>> f;
   size_t i = 0;
   for (const auto& p : fields)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !p.second.isNull(), "parameter sort", p.second, i)
+        !p.second.isNull(), "parameter sort", fields, i)
         << "non-null sort";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == p.second.d_solver, "parameter sort", p.second, i)
+        this == p.second.d_solver, "parameter sort", fields, i)
         << "sort associated to this solver object";
     i += 1;
     f.emplace_back(p.first, *p.second.d_type);
   }
 
   return Sort(this, getNodeManager()->mkRecordType(f));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkSetSort(const Sort& elemSort) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
   CVC4_API_SOLVER_CHECK_SORT(elemSort);
 
   return Sort(this, getNodeManager()->mkSetType(*elemSort.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkBagSort(const Sort& elemSort) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
   CVC4_API_SOLVER_CHECK_SORT(elemSort);
 
   return Sort(this, getNodeManager()->mkBagType(*elemSort.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkSequenceSort(const Sort& elemSort) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
       << "non-null element sort";
   CVC4_API_SOLVER_CHECK_SORT(elemSort);
 
   return Sort(this, getNodeManager()->mkSequenceType(*elemSort.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Sort(this, getNodeManager()->mkSort(symbol));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
 
   return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !sorts[i].isNull(), "parameter sort", sorts[i], i)
+        !sorts[i].isNull(), "parameter sort", sorts, i)
         << "non-null sort";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == sorts[i].d_solver, "parameter sort", sorts[i], i)
+        this == sorts[i].d_solver, "parameter sort", sorts, i)
         << "sort associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !sorts[i].isFunctionLike(), "parameter sort", sorts[i], i)
+        !sorts[i].isFunctionLike(), "parameter sort", sorts, i)
         << "non-function-like sort as parameter sort for tuple sort";
   }
   return mkTupleSortHelper(sorts);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Create consts                                                              */
@@ -4108,60 +4751,65 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 
 Term Solver::mkTrue(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Term(this, d_nodeMgr->mkConst<bool>(true));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkFalse(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Term(this, d_nodeMgr->mkConst<bool>(false));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkBoolean(bool val) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return Term(this, d_nodeMgr->mkConst<bool>(val));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkPi() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
 
   Node res =
       d_nodeMgr->mkNullaryOperator(d_nodeMgr->realType(), CVC4::kind::PI);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkInteger(const std::string& s) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(isValidInteger(s), s) << " an integer ";
   Term integer = mkRealFromStrHelper(s);
   CVC4_API_ARG_CHECK_EXPECTED(integer.getSort() == getIntegerSort(), s)
       << " an integer";
   return integer;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkInteger(int64_t val) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   Term integer = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
   Assert(integer.getSort() == getIntegerSort());
   return integer;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkReal(const std::string& s) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
    * throws an std::invalid_argument exception. For consistency, we treat it
    * as invalid. */
@@ -4169,65 +4817,68 @@ Term Solver::mkReal(const std::string& s) const
       << "a string representing a real or rational value.";
   Term rational = mkRealFromStrHelper(s);
   return ensureRealSort(rational);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkReal(int64_t val) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   Term rational = mkValHelper<CVC4::Rational>(CVC4::Rational(val));
   return ensureRealSort(rational);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   Term rational = mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
   return ensureRealSort(rational);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkRegexpEmpty() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
 
   Node res =
       d_nodeMgr->mkNode(CVC4::kind::REGEXP_EMPTY, std::vector<CVC4::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkRegexpSigma() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
 
   Node res =
       d_nodeMgr->mkNode(CVC4::kind::REGEXP_SIGMA, std::vector<CVC4::Node>());
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkEmptySet(const Sort& s) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || s.isSet(), s)
       << "null sort or set sort";
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
       << "set sort associated to this solver object";
 
   return mkValHelper<CVC4::EmptySet>(CVC4::EmptySet(*s.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkEmptyBag(const Sort& s) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || s.isBag(), s)
       << "null sort or bag sort";
 
@@ -4235,13 +4886,13 @@ Term Solver::mkEmptyBag(const Sort& s) const
       << "bag sort associated to this solver object";
 
   return mkValHelper<CVC4::EmptyBag>(CVC4::EmptyBag(*s.d_type));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkSepNil(const Sort& sort) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
@@ -4249,54 +4900,58 @@ Term Solver::mkSepNil(const Sort& sort) const
       getNodeManager()->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkString(const std::string& s, bool useEscSequences) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkValHelper<CVC4::String>(CVC4::String(s, useEscSequences));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkString(const unsigned char c) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkValHelper<CVC4::String>(CVC4::String(std::string(1, c)));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkString(const std::vector<uint32_t>& s) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkValHelper<CVC4::String>(CVC4::String(s));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkChar(const std::string& s) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkCharFromStrHelper(s);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkEmptySequence(const Sort& sort) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
   std::vector<Node> seq;
   Node res = d_nodeMgr->mkConst(Sequence(*sort.d_type, seq));
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkUniverseSet(const Sort& sort) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
@@ -4305,36 +4960,39 @@ Term Solver::mkUniverseSet(const Sort& sort) const
   // TODO(#2771): Reenable?
   // (void)res->getType(true); /* kick off type checking */
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkBitVector(uint32_t size, uint64_t val) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkBVFromIntHelper(size, val);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkBitVector(const std::string& s, uint32_t base) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkBVFromStrHelper(s, base);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkBitVector(uint32_t size,
                          const std::string& s,
                          uint32_t base) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkBVFromStrHelper(size, s, base);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkConstArray(const Sort& sort, const Term& val) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
   CVC4_API_ARG_CHECK_NOT_NULL(val);
@@ -4353,93 +5011,95 @@ Term Solver::mkConstArray(const Sort& sort, const Term& val) const
   Term res = mkValHelper<CVC4::ArrayStoreAll>(
       CVC4::ArrayStoreAll(*sort.d_type, n));
   return res;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
 
   return mkValHelper<CVC4::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
 
   return mkValHelper<CVC4::FloatingPoint>(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
 
   return mkValHelper<CVC4::FloatingPoint>(
       FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
 
   return mkValHelper<CVC4::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
 
   return mkValHelper<CVC4::FloatingPoint>(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkRoundingMode(RoundingMode rm) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
   return mkValHelper<CVC4::RoundingMode>(s_rmodes.at(rm));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkUninterpretedConst(const Sort& sort, int32_t index) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
   return mkValHelper<CVC4::UninterpretedConstant>(
       CVC4::UninterpretedConstant(*sort.d_type, index));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkAbstractValue(const std::string& index) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!index.empty(), index) << "a non-empty string";
 
   CVC4::Integer idx(index, 10);
@@ -4448,24 +5108,26 @@ Term Solver::mkAbstractValue(const std::string& index) const
   return Term(this, getNodeManager()->mkConst(CVC4::AbstractValue(idx)));
   // do not call getType(), for abstract values, type can not be computed
   // until it is substituted away
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkAbstractValue(uint64_t index) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(index > 0, index) << "an integer > 0";
 
   return Term(this,
               getNodeManager()->mkConst(CVC4::AbstractValue(Integer(index))));
   // do not call getType(), for abstract values, type can not be computed
   // until it is substituted away
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
   CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
@@ -4481,8 +5143,8 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 
   return mkValHelper<CVC4::FloatingPoint>(
       CVC4::FloatingPoint(exp, sig, val.d_node->getConst<BitVector>()));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Create constants                                                           */
@@ -4491,7 +5153,7 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 Term Solver::mkConst(const Sort& sort, const std::string& symbol) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
@@ -4499,14 +5161,14 @@ Term Solver::mkConst(const Sort& sort, const std::string& symbol) const
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, false);
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkConst(const Sort& sort) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
@@ -4514,8 +5176,8 @@ Term Solver::mkConst(const Sort& sort) const
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, false);
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Create variables                                                           */
@@ -4524,7 +5186,7 @@ Term Solver::mkConst(const Sort& sort) const
 Term Solver::mkVar(const Sort& sort, const std::string& symbol) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
@@ -4533,8 +5195,8 @@ Term Solver::mkVar(const Sort& sort, const std::string& symbol) const
   (void)res.getType(true); /* kick off type checking */
   increment_vars_consts_stats(sort, true);
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Create datatype constructor declarations                                   */
@@ -4553,9 +5215,10 @@ DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return DatatypeDecl(this, name, isCoDatatype);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
@@ -4563,11 +5226,12 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     bool isCoDatatype)
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(param);
   CVC4_API_SOLVER_CHECK_SORT(param);
   return DatatypeDecl(this, name, param, isCoDatatype);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
@@ -4575,18 +5239,19 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     bool isCoDatatype)
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = params.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !params[i].isNull(), "parameter sort", params[i], i)
+        !params[i].isNull(), "parameter sort", params, i)
         << "non-null sort";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == params[i].d_solver, "parameter sort", params[i], i)
+        this == params[i].d_solver, "parameter sort", params, i)
         << "sort associated to this solver object";
   }
   return DatatypeDecl(this, name, params, isCoDatatype);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Create terms                                                               */
@@ -4595,25 +5260,28 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
 Term Solver::mkTerm(Kind kind) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermFromKind(kind);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(Kind kind, const Term& child) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermHelper(kind, std::vector<Term>{child});
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(Kind kind, const Term& child1, const Term& child2) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermHelper(kind, std::vector<Term>{child1, child2});
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(Kind kind,
@@ -4622,24 +5290,26 @@ Term Solver::mkTerm(Kind kind,
                     const Term& child3) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   // need to use internal term call to check e.g. associative construction
   return mkTermHelper(kind, std::vector<Term>{child1, child2, child3});
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermHelper(kind, children);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(const Op& op) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_OP(op);
   checkMkTerm(op.d_kind, 0);
 
@@ -4653,24 +5323,26 @@ Term Solver::mkTerm(const Op& op) const
 
   (void)res.d_node->getType(true); /* kick off type checking */
   return res;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(const Op& op, const Term& child) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermHelper(op, std::vector<Term>{child});
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(const Op& op, const Term& child1, const Term& child2) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermHelper(op, std::vector<Term>{child1, child2});
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(const Op& op,
@@ -4679,40 +5351,40 @@ Term Solver::mkTerm(const Op& op,
                     const Term& child3) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermHelper(op, std::vector<Term>{child1, child2, child3});
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTerm(const Op& op, const std::vector<Term>& children) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return mkTermHelper(op, children);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkTuple(const std::vector<Sort>& sorts,
                      const std::vector<Term>& terms) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(sorts.size() == terms.size())
       << "Expected the same number of sorts and elements";
   std::vector<CVC4::Node> args;
   for (size_t i = 0, size = sorts.size(); i < size; i++)
   {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !sorts[i].isNull(), "sort", sorts[i], i)
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(!sorts[i].isNull(), "sort", sorts, i)
         << "non-null sort";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !terms[i].isNull(), "term", terms[i], i)
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(!terms[i].isNull(), "term", terms, i)
         << "non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == terms[i].d_solver, "child term", terms[i], i)
+        this == terms[i].d_solver, "child term", terms, i)
         << "child term associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == sorts[i].d_solver, "child sort", sorts[i], i)
+        this == sorts[i].d_solver, "child sort", sorts, i)
         << "child sort associated to this solver object";
     args.push_back(*(ensureTermSort(terms[i], sorts[i])).d_node);
   }
@@ -4725,8 +5397,8 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
   Node res = nb.constructNode();
   (void)res.getType(true); /* kick off type checking */
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Create operators                                                           */
@@ -4734,16 +5406,16 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 
 Op Solver::mkOp(Kind kind) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(s_indexed_kinds.find(kind) == s_indexed_kinds.end())
       << "Expected a kind for a non-indexed operator.";
   return Op(this, kind);
-  CVC4_API_SOLVER_TRY_CATCH_END
+  CVC4_API_TRY_CATCH_END
 }
 
 Op Solver::mkOp(Kind kind, const std::string& arg) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_KIND_CHECK_EXPECTED((kind == RECORD_UPDATE) || (kind == DIVISIBLE),
                                kind)
       << "RECORD_UPDATE or DIVISIBLE";
@@ -4767,13 +5439,13 @@ Op Solver::mkOp(Kind kind, const std::string& arg) const
                   .d_node);
   }
   return res;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Op Solver::mkOp(Kind kind, uint32_t arg) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_KIND_CHECK(kind);
 
   Op res;
@@ -4859,13 +5531,13 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
   }
   Assert(!res.isNull());
   return res;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_KIND_CHECK(kind);
 
   Op res;
@@ -4932,13 +5604,13 @@ Op Solver::mkOp(Kind kind, uint32_t arg1, uint32_t arg2) const
   }
   Assert(!res.isNull());
   return res;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_KIND_CHECK(kind);
 
   Op res;
@@ -4961,8 +5633,8 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
   }
   Assert(!res.isNull());
   return res;
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* Non-SMT-LIB commands                                                       */
@@ -4970,19 +5642,19 @@ Op Solver::mkOp(Kind kind, const std::vector<uint32_t>& args) const
 
 Term Solver::simplify(const Term& term)
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_SOLVER_CHECK_TERM(term);
 
   return Term(this, d_smtEngine->simplify(*term.d_node));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Result Solver::checkEntailed(const Term& term) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
@@ -4993,13 +5665,13 @@ Result Solver::checkEntailed(const Term& term) const
 
   CVC4::Result r = d_smtEngine->checkEntailed(*term.d_node);
   return Result(r);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Result Solver::checkEntailed(const std::vector<Term>& terms) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
@@ -5014,8 +5686,8 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
   std::vector<Node> exprs = Term::termVectorToNodes(terms);
   CVC4::Result r = d_smtEngine->checkEntailed(exprs);
   return Result(r);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /* SMT-LIB commands                                                           */
@@ -5026,11 +5698,12 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
  */
 void Solver::assertFormula(const Term& term) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   d_smtEngine->assertFormula(*term.d_node);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5038,7 +5711,7 @@ void Solver::assertFormula(const Term& term) const
  */
 Result Solver::checkSat(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
@@ -5046,7 +5719,8 @@ Result Solver::checkSat(void) const
          "(try --incremental)";
   CVC4::Result r = d_smtEngine->checkSat();
   return Result(r);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5054,7 +5728,7 @@ Result Solver::checkSat(void) const
  */
 Result Solver::checkSatAssuming(const Term& assumption) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
                  || d_smtEngine->getOptions()[options::incrementalSolving])
@@ -5063,7 +5737,8 @@ Result Solver::checkSatAssuming(const Term& assumption) const
   CVC4_API_SOLVER_CHECK_TERM(assumption);
   CVC4::Result r = d_smtEngine->checkSat(*assumption.d_node);
   return Result(r);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5071,7 +5746,7 @@ Result Solver::checkSatAssuming(const Term& assumption) const
  */
 Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(!d_smtEngine->isQueryMade() || assumptions.size() == 0
                  || d_smtEngine->getOptions()[options::incrementalSolving])
@@ -5085,7 +5760,8 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   std::vector<Node> eassumptions = Term::termVectorToNodes(assumptions);
   CVC4::Result r = d_smtEngine->checkSat(eassumptions);
   return Result(r);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5095,21 +5771,20 @@ Sort Solver::declareDatatype(
     const std::string& symbol,
     const std::vector<DatatypeConstructorDecl>& ctors) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(ctors.size() > 0, ctors)
       << "a datatype declaration with at least one constructor";
   DatatypeDecl dtdecl(this, symbol);
   for (size_t i = 0, size = ctors.size(); i < size; i++)
   {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(this == ctors[i].d_solver,
-                                         "datatype constructor declaration",
-                                         ctors[i],
-                                         i)
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        this == ctors[i].d_solver, "datatype constructor declaration", ctors, i)
         << "datatype constructor declaration associated to this solver object";
     dtdecl.addConstructor(ctors[i]);
   }
   return Sort(this, getNodeManager()->mkDatatypeType(*dtdecl.d_dtype));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5119,14 +5794,14 @@ Term Solver::declareFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
                         const Sort& sort) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == sorts[i].d_solver, "parameter sort", sorts[i], i)
+        this == sorts[i].d_solver, "parameter sort", sorts, i)
         << "parameter sort associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
+        sorts[i].isFirstClass(), "parameter sort", sorts, i)
         << "first-class sort as parameter sort for function sort";
   }
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
@@ -5140,7 +5815,8 @@ Term Solver::declareFun(const std::string& symbol,
     type = getNodeManager()->mkFunctionType(types, type);
   }
   return Term(this, d_nodeMgr->mkVar(symbol, type));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5148,13 +5824,14 @@ Term Solver::declareFun(const std::string& symbol,
  */
 Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   if (arity == 0)
   {
     return Sort(this, getNodeManager()->mkSort(symbol));
   }
   return Sort(this, getNodeManager()->mkSortConstructor(symbol, arity));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5166,24 +5843,24 @@ Term Solver::defineFun(const std::string& symbol,
                        const Term& term,
                        bool global) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
       << "first-class sort as codomain sort for function sort";
   std::vector<TypeNode> domain_types;
   for (size_t i = 0, size = bound_vars.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
+        this == bound_vars[i].d_solver, "bound variable", bound_vars, i)
         << "bound variable associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         bound_vars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
-        bound_vars[i],
+        bound_vars,
         i)
         << "a bound variable";
     CVC4::TypeNode t = bound_vars[i].d_node->getType();
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        t.isFirstClass(), "sort of parameter", bound_vars[i], i)
+        t.isFirstClass(), "sort of parameter", bound_vars, i)
         << "first-class sort of parameter of defined function";
     domain_types.push_back(t);
   }
@@ -5202,7 +5879,8 @@ Term Solver::defineFun(const std::string& symbol,
   std::vector<Node> ebound_vars = Term::termVectorToNodes(bound_vars);
   d_smtEngine->defineFunction(fun, ebound_vars, *term.d_node, global);
   return Term(this, fun);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::defineFun(const Term& fun,
@@ -5210,7 +5888,7 @@ Term Solver::defineFun(const Term& fun,
                        const Term& term,
                        bool global) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
 
   if (fun.getSort().isFunction())
   {
@@ -5221,18 +5899,18 @@ Term Solver::defineFun(const Term& fun,
     for (size_t i = 0; i < size; ++i)
     {
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-          this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
+          this == bound_vars[i].d_solver, "bound variable", bound_vars, i)
           << "bound variable associated to this solver object";
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
           bound_vars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
           "bound variable",
-          bound_vars[i],
+          bound_vars,
           i)
           << "a bound variable";
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
           domain_sorts[i] == bound_vars[i].getSort(),
           "sort of parameter",
-          bound_vars[i],
+          bound_vars,
           i)
           << "'" << domain_sorts[i] << "'";
     }
@@ -5252,7 +5930,8 @@ Term Solver::defineFun(const Term& fun,
   std::vector<Node> ebound_vars = Term::termVectorToNodes(bound_vars);
   d_smtEngine->defineFunction(*fun.d_node, ebound_vars, *term.d_node, global);
   return fun;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5265,7 +5944,7 @@ Term Solver::defineFunRec(const std::string& symbol,
                           bool global) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
 
   CVC4_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
       << "recursive function definitions require a logic with quantifiers";
@@ -5281,17 +5960,17 @@ Term Solver::defineFunRec(const std::string& symbol,
   for (size_t i = 0, size = bound_vars.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
+        this == bound_vars[i].d_solver, "bound variable", bound_vars, i)
         << "bound variable associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         bound_vars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
-        bound_vars[i],
+        bound_vars,
         i)
         << "a bound variable";
     CVC4::TypeNode t = bound_vars[i].d_node->getType();
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        t.isFirstClass(), "sort of parameter", bound_vars[i], i)
+        t.isFirstClass(), "sort of parameter", bound_vars, i)
         << "first-class sort of parameter of defined function";
     domain_types.push_back(t);
   }
@@ -5310,7 +5989,8 @@ Term Solver::defineFunRec(const std::string& symbol,
   std::vector<Node> ebound_vars = Term::termVectorToNodes(bound_vars);
   d_smtEngine->defineFunctionRec(fun, ebound_vars, *term.d_node, global);
   return Term(this, fun);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::defineFunRec(const Term& fun,
@@ -5319,7 +5999,7 @@ Term Solver::defineFunRec(const Term& fun,
                           bool global) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
 
   CVC4_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
       << "recursive function definitions require a logic with quantifiers";
@@ -5338,18 +6018,18 @@ Term Solver::defineFunRec(const Term& fun,
     for (size_t i = 0; i < size; ++i)
     {
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-          this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
+          this == bound_vars[i].d_solver, "bound variable", bound_vars, i)
           << "bound variable associated to this solver object";
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
           bound_vars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
           "bound variable",
-          bound_vars[i],
+          bound_vars,
           i)
           << "a bound variable";
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
           domain_sorts[i] == bound_vars[i].getSort(),
           "sort of parameter",
-          bound_vars[i],
+          bound_vars,
           i)
           << "'" << domain_sorts[i] << "'";
     }
@@ -5369,7 +6049,8 @@ Term Solver::defineFunRec(const Term& fun,
   d_smtEngine->defineFunctionRec(
       *fun.d_node, ebound_vars, *term.d_node, global);
   return fun;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5381,7 +6062,7 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
                            bool global) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
 
   CVC4_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
       << "recursive function definitions require a logic with quantifiers";
@@ -5400,9 +6081,10 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
     const Term& term = terms[j];
 
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == fun.d_solver, "function", fun, j)
+        this == fun.d_solver, "function", funs, j)
         << "function associated to this solver object";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(this == term.d_solver, "term", term, j)
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        this == term.d_solver, "term", terms, j)
         << "term associated to this solver object";
 
     if (fun.getSort().isFunction())
@@ -5416,19 +6098,19 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
         for (size_t k = 0, nbvars = bvars.size(); k < nbvars; ++k)
         {
           CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-              this == bvars[k].d_solver, "bound variable", bvars[k], k)
+              this == bvars[k].d_solver, "bound variable", bvars, k)
               << "bound variable associated to this solver object";
           CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
               bvars[k].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
               "bound variable",
-              bvars[k],
+              bvars,
               k)
               << "a bound variable";
         }
         CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
             domain_sorts[i] == bvars[i].getSort(),
             "sort of parameter",
-            bvars[i],
+            bvars,
             i)
             << "'" << domain_sorts[i] << "' in parameter bound_vars[" << j
             << "]";
@@ -5452,7 +6134,8 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
   }
   std::vector<Node> nodes = Term::termVectorToNodes(terms);
   d_smtEngine->defineFunctionsRec(efuns, ebound_vars, nodes, global);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5468,7 +6151,7 @@ void Solver::echo(std::ostream& out, const std::string& str) const
  */
 std::vector<Term> Solver::getAssertions(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   std::vector<Node> assertions = d_smtEngine->getAssertions();
   /* Can not use
    *   return std::vector<Term>(assertions.begin(), assertions.end());
@@ -5479,7 +6162,8 @@ std::vector<Term> Solver::getAssertions(void) const
     res.push_back(Term(this, e));
   }
   return res;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5487,12 +6171,13 @@ std::vector<Term> Solver::getAssertions(void) const
  */
 std::string Solver::getInfo(const std::string& flag) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isValidGetInfoFlag(flag))
       << "Unrecognized flag for getInfo.";
 
   return d_smtEngine->getInfo(flag).toString();
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5500,10 +6185,11 @@ std::string Solver::getInfo(const std::string& flag) const
  */
 std::string Solver::getOption(const std::string& option) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   SExpr res = d_smtEngine->getOption(option);
   return res.toString();
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5511,7 +6197,7 @@ std::string Solver::getOption(const std::string& option) const
  */
 std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot get unsat assumptions unless incremental solving is enabled "
@@ -5532,7 +6218,8 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
     res.push_back(Term(this, n));
   }
   return res;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5540,7 +6227,7 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
  */
 std::vector<Term> Solver::getUnsatCore(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
@@ -5557,7 +6244,8 @@ std::vector<Term> Solver::getUnsatCore(void) const
     res.push_back(Term(this, e));
   }
   return res;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5565,10 +6253,11 @@ std::vector<Term> Solver::getUnsatCore(void) const
  */
 Term Solver::getValue(const Term& term) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
   return getValueHelper(term);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5576,7 +6265,7 @@ Term Solver::getValue(const Term& term) const
  */
 std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
@@ -5587,41 +6276,44 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == terms[i].d_solver, "term", terms[i], i)
+        this == terms[i].d_solver, "term", terms, i)
         << "term associated to this solver object";
     /* Can not use emplace_back here since constructor is private. */
     res.push_back(getValueHelper(terms[i]));
   }
   return res;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::getQuantifierElimination(const Term& q) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(q);
   CVC4_API_SOLVER_CHECK_TERM(q);
   NodeManagerScope scope(getNodeManager());
   return Term(this,
               d_smtEngine->getQuantifierElimination(q.getNode(), true, true));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::getQuantifierEliminationDisjunct(const Term& q) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(q);
   CVC4_API_SOLVER_CHECK_TERM(q);
   NodeManagerScope scope(getNodeManager());
   return Term(
       this, d_smtEngine->getQuantifierElimination(q.getNode(), false, true));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Solver::declareSeparationHeap(const Sort& locSort,
                                    const Sort& dataSort) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_SORT(locSort);
   CVC4_API_SOLVER_CHECK_SORT(dataSort);
   CVC4_API_CHECK(
@@ -5629,13 +6321,14 @@ void Solver::declareSeparationHeap(const Sort& locSort,
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   d_smtEngine->declareSepHeap(locSort.getTypeNode(), dataSort.getTypeNode());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::getSeparationHeap() const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
@@ -5646,13 +6339,14 @@ Term Solver::getSeparationHeap() const
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
       << "Can only get separtion heap term after sat or unknown response.";
   return Term(this, d_smtEngine->getSepHeapExpr());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::getSeparationNilTerm() const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(
       d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
       << "Cannot obtain separation logic expressions if not using the "
@@ -5663,7 +6357,8 @@ Term Solver::getSeparationNilTerm() const
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
       << "Can only get separtion nil term after sat or unknown response.";
   return Term(this, d_smtEngine->getSepNilExpr());
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5672,7 +6367,7 @@ Term Solver::getSeparationNilTerm() const
 void Solver::pop(uint32_t nscopes) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot pop when not solving incrementally (use --incremental)";
   CVC4_API_CHECK(nscopes <= d_smtEngine->getNumUserLevels())
@@ -5682,14 +6377,14 @@ void Solver::pop(uint32_t nscopes) const
   {
     d_smtEngine->pop();
   }
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Solver::getInterpolant(const Term& conj, Term& output) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(conj);
   Node result;
   bool success = d_smtEngine->getInterpol(*conj.d_node, result);
@@ -5698,13 +6393,14 @@ bool Solver::getInterpolant(const Term& conj, Term& output) const
     output = Term(this, result);
   }
   return success;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Solver::getInterpolant(const Term& conj, Grammar& g, Term& output) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(conj);
   Node result;
   bool success =
@@ -5714,13 +6410,14 @@ bool Solver::getInterpolant(const Term& conj, Grammar& g, Term& output) const
     output = Term(this, result);
   }
   return success;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Solver::getAbduct(const Term& conj, Term& output) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(conj);
   Node result;
   bool success = d_smtEngine->getAbduct(*conj.d_node, result);
@@ -5729,13 +6426,14 @@ bool Solver::getAbduct(const Term& conj, Term& output) const
     output = Term(this, result);
   }
   return success;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 bool Solver::getAbduct(const Term& conj, Grammar& g, Term& output) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(conj);
   Node result;
   bool success =
@@ -5745,12 +6443,13 @@ bool Solver::getAbduct(const Term& conj, Grammar& g, Term& output) const
     output = Term(this, result);
   }
   return success;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Solver::blockModel() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
@@ -5758,12 +6457,13 @@ void Solver::blockModel() const
   CVC4_API_RECOVERABLE_CHECK(d_smtEngine->isSmtModeSat())
       << "Can only block model after sat or unknown response.";
   d_smtEngine->blockModel();
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Solver::blockModelValues(const std::vector<Term>& terms) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
@@ -5773,24 +6473,25 @@ void Solver::blockModelValues(const std::vector<Term>& terms) const
       << "a non-empty set of terms";
   for (size_t i = 0, tsize = terms.size(); i < tsize; ++i)
   {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !terms[i].isNull(), "term", terms[i], i)
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(!terms[i].isNull(), "term", terms, i)
         << "a non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == terms[i].d_solver, "term", terms[i], i)
+        this == terms[i].d_solver, "term", terms, i)
         << "a term associated to this solver object";
   }
   NodeManagerScope scope(getNodeManager());
   d_smtEngine->blockModelValues(Term::termVectorToNodes(terms));
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Solver::printInstantiations(std::ostream& out) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   d_smtEngine->printInstantiations(out);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5798,7 +6499,7 @@ void Solver::printInstantiations(std::ostream& out) const
  */
 void Solver::push(uint32_t nscopes) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   NodeManagerScope scope(getNodeManager());
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot push when not solving incrementally (use --incremental)";
@@ -5807,8 +6508,8 @@ void Solver::push(uint32_t nscopes) const
   {
     d_smtEngine->push();
   }
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5816,9 +6517,10 @@ void Solver::push(uint32_t nscopes) const
  */
 void Solver::resetAssertions(void) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   d_smtEngine->resetAssertions();
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5826,7 +6528,7 @@ void Solver::resetAssertions(void) const
  */
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_RECOVERABLE_ARG_CHECK_EXPECTED(
       keyword == "source" || keyword == "category" || keyword == "difficulty"
           || keyword == "filename" || keyword == "license" || keyword == "name"
@@ -5846,7 +6548,8 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
       << "'sat', 'unsat' or 'unknown'";
 
   d_smtEngine->setInfo(keyword, value);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5854,12 +6557,13 @@ void Solver::setInfo(const std::string& keyword, const std::string& value) const
  */
 void Solver::setLogic(const std::string& logic) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_smtEngine->isFullyInited())
       << "Invalid call to 'setLogic', solver is already fully initialized";
   CVC4::LogicInfo logic_info(logic);
   d_smtEngine->setLogic(logic_info);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**
@@ -5868,16 +6572,17 @@ void Solver::setLogic(const std::string& logic) const
 void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(!d_smtEngine->isFullyInited())
       << "Invalid call to 'setOption', solver is already fully initialized";
   d_smtEngine->setOption(option, value);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::mkSygusVar(const Sort& sort, const std::string& symbol) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
@@ -5887,29 +6592,29 @@ Term Solver::mkSygusVar(const Sort& sort, const std::string& symbol) const
   d_smtEngine->declareSygusVar(res);
 
   return Term(this, res);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
                                const std::vector<Term>& ntSymbols) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
       << "a non-empty vector";
 
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
+        this == boundVars[i].d_solver, "bound variable", boundVars, i)
         << "bound variable associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
+        !boundVars[i].isNull(), "bound variable", boundVars, i)
         << "a non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
-        boundVars[i],
+        boundVars,
         i)
         << "a bound variable";
   }
@@ -5917,30 +6622,32 @@ Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
   for (size_t i = 0, n = ntSymbols.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == ntSymbols[i].d_solver, "non-terminal", ntSymbols[i], i)
+        this == ntSymbols[i].d_solver, "non-terminal", ntSymbols, i)
         << "term associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !ntSymbols[i].isNull(), "non-terminal", ntSymbols[i], i)
+        !ntSymbols[i].isNull(), "non-terminal", ntSymbols, i)
         << "a non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         ntSymbols[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "non-terminal",
-        ntSymbols[i],
+        ntSymbols,
         i)
         << "a bound variable";
   }
 
   return Grammar(this, boundVars, ntSymbols);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::synthFun(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       const Sort& sort) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return synthFunHelper(symbol, boundVars, sort);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::synthFun(const std::string& symbol,
@@ -5948,34 +6655,37 @@ Term Solver::synthFun(const std::string& symbol,
                       Sort sort,
                       Grammar& g) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return synthFunHelper(symbol, boundVars, sort, false, &g);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::synthInv(const std::string& symbol,
                       const std::vector<Term>& boundVars) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return synthFunHelper(
       symbol, boundVars, Sort(this, getNodeManager()->booleanType()), true);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::synthInv(const std::string& symbol,
                       const std::vector<Term>& boundVars,
                       Grammar& g) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return synthFunHelper(
       symbol, boundVars, Sort(this, getNodeManager()->booleanType()), true, &g);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Solver::addSygusConstraint(const Term& term) const
 {
   NodeManagerScope scope(getNodeManager());
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_SOLVER_CHECK_TERM(term);
   CVC4_API_ARG_CHECK_EXPECTED(
@@ -5983,7 +6693,8 @@ void Solver::addSygusConstraint(const Term& term) const
       << "boolean term";
 
   d_smtEngine->assertSygusConstraint(*term.d_node);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Solver::addSygusInvConstraint(Term inv,
@@ -5991,7 +6702,7 @@ void Solver::addSygusInvConstraint(Term inv,
                                    Term trans,
                                    Term post) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(inv);
   CVC4_API_SOLVER_CHECK_TERM(inv);
   CVC4_API_ARG_CHECK_NOT_NULL(pre);
@@ -6034,19 +6745,21 @@ void Solver::addSygusInvConstraint(Term inv,
 
   d_smtEngine->assertSygusInvConstraint(
       *inv.d_node, *pre.d_node, *trans.d_node, *post.d_node);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Result Solver::checkSynth() const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   return d_smtEngine->checkSynth();
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 Term Solver::getSynthSolution(Term term) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_SOLVER_CHECK_TERM(term);
 
@@ -6060,22 +6773,23 @@ Term Solver::getSynthSolution(Term term) const
   CVC4_API_CHECK(it != map.cend()) << "Synth solution not found for given term";
 
   return Term(this, it->second);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 std::vector<Term> Solver::getSynthSolutions(
     const std::vector<Term>& terms) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!terms.empty(), terms) << "non-empty vector";
 
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == terms[i].d_solver, "parameter term", terms[i], i)
+        this == terms[i].d_solver, "parameter term", terms, i)
         << "parameter term associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !terms[i].isNull(), "parameter term", terms[i], i)
+        !terms[i].isNull(), "parameter term", terms, i)
         << "non-null term";
   }
 
@@ -6099,14 +6813,16 @@ std::vector<Term> Solver::getSynthSolutions(
   }
 
   return synthSolution;
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 void Solver::printSynthSolution(std::ostream& out) const
 {
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_TRY_CATCH_BEGIN;
   d_smtEngine->printSynthSolution(out);
-  CVC4_API_SOLVER_TRY_CATCH_END;
+  ////////
+  CVC4_API_TRY_CATCH_END;
 }
 
 /**

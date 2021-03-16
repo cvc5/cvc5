@@ -176,12 +176,15 @@ void PropEngine::notifyPreprocessedAssertions(
 {
   // notify the theory engine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  for (const Node& assertion : assertions)
+  {
+    d_decisionEngine->addAssertion(assertion);
+  }
 }
 
 void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  d_decisionEngine->addAssertion(node);
   assertInternal(node, false, false, true);
 }
 
