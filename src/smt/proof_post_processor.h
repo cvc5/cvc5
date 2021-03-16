@@ -250,7 +250,7 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleCount;
+  IntegralHistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */
