@@ -89,22 +89,22 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, qstate, d_qreg, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this, qstate));
+          d_qstate, d_qreg, "FirstOrderModelFmc"));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(d_qstate));
     }
     else
     {
       Trace("quant-engine-debug")
           << "...make default model builder." << std::endl;
       d_model.reset(new quantifiers::FirstOrderModel(
-          this, qstate, d_qreg, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(this, qstate));
+          d_qstate, d_qreg, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(d_qstate));
     }
   }
   else
   {
     d_model.reset(new quantifiers::FirstOrderModel(
-        this, qstate, d_qreg, "FirstOrderModel"));
+        d_qstate, d_qreg, "FirstOrderModel"));
   }
 
   // construct the quantifiers engine
