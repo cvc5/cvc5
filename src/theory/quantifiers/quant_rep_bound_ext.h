@@ -26,7 +26,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 class QuantifiersBoundInference;
 class FirstOrderModel;
 
@@ -39,7 +39,7 @@ class FirstOrderModel;
 class QRepBoundExt : public RepBoundExt
 {
  public:
-  QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel * m);
+  QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,
@@ -60,7 +60,7 @@ class QRepBoundExt : public RepBoundExt
   /** Reference to the quantifiers bound inference */
   QuantifiersBoundInference& d_qbi;
   /** Pointer to the quantifiers model */
-  FirstOrderModel * d_model;
+  FirstOrderModel* d_model;
   /** indices that are bound integer enumeration */
   std::map<unsigned, bool> d_bound_int;
 };

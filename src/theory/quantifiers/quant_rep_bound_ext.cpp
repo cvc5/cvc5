@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_bound_inference.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 
@@ -24,7 +24,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QRepBoundExt::QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel * m) : d_qbi(qbi), d_model(m) {}
+QRepBoundExt::QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m)
+    : d_qbi(qbi), d_model(m)
+{
+}
 
 RsiEnumType QRepBoundExt::setBound(Node owner,
                                    unsigned i,

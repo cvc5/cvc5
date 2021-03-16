@@ -109,6 +109,6 @@ class QuantifiersBoundInference
 
 }  // namespace quantifiers
 }  // namespace theory
-}
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANT_BOUND_INFERENCE_H */
