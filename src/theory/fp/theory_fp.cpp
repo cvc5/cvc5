@@ -934,7 +934,8 @@ bool TheoryFp::propagateLit(TNode node)
 
 void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
 {
-  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected" << std::endl;
+  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected"
+              << std::endl;
   d_im.conflictEqConstantMerge(t1, t2);
 }
 
