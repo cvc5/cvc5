@@ -183,6 +183,12 @@ QuantAttributes& QuantifiersRegistry::getQuantAttributes()
 {
   return d_quantAttr;
 }
+
+QuantifiersBoundInference& QuantifiersRegistry::getQuantifiersBoundInference()
+{
+  return d_quantBoundInf;
+}
+
 Node QuantifiersRegistry::getNameForQuant(Node q) const
 {
   Node name = d_quantAttr.getQuantName(q);
