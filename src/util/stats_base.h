@@ -23,6 +23,7 @@
 #include <sstream>
 #include <string>
 
+#include "cvc4_export.h"
 #include "util/safe_print.h"
 #include "util/sexpr.h"
 #include "util/stats_utils.h"
@@ -43,7 +44,7 @@ namespace CVC4 {
  * Derived classes must implement these function and pass their name to
  * the base class constructor.
  */
-class Stat
+class CVC4_EXPORT Stat
 {
  public:
   /**

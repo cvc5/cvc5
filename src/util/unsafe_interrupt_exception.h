@@ -19,11 +19,13 @@
 #define CVC4__UNSAFE_INTERRUPT_EXCEPTION_H
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 
 namespace CVC4 {
 
-class CVC4_PUBLIC UnsafeInterruptException : public CVC4::Exception {
-public:
+class CVC4_EXPORT UnsafeInterruptException : public CVC4::Exception
+{
+ public:
   UnsafeInterruptException() :
     Exception("Interrupted in unsafe state due to "
               "time/resource limit.") {
@@ -36,7 +38,7 @@ public:
   UnsafeInterruptException(const char* msg) :
     Exception(msg) {
   }
-};/* class UnsafeInterruptException */
+}; /* class UnsafeInterruptException */
 
 }/* CVC4 namespace */
 

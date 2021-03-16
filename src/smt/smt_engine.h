@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "context/cdhashmap_forward.h"
+#include "cvc4_export.h"
 #include "options/options.h"
 #include "smt/output_manager.h"
 #include "smt/smt_mode.h"
@@ -122,7 +123,7 @@ namespace theory {
 
 /* -------------------------------------------------------------------------- */
 
-class CVC4_PUBLIC SmtEngine
+class CVC4_EXPORT SmtEngine
 {
   friend class ::CVC4::api::Solver;
   friend class ::CVC4::smt::SmtEngineState;
@@ -246,7 +247,7 @@ class CVC4_PUBLIC SmtEngine
    * to a state where its options were prior to parsing but after e.g.
    * reading command line options.
    */
-  void notifyStartParsing(std::string filename);
+  void notifyStartParsing(std::string filename) CVC4_EXPORT;
   /** return the input name (if any) */
   const std::string& getFilename() const;
 
