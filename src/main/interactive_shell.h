@@ -37,7 +37,7 @@ namespace parser {
 
 class SymbolManager;
 
-class CVC4_PUBLIC InteractiveShell
+class InteractiveShell
 {
   const Options& d_options;
   std::istream& d_in;

@@ -55,7 +55,7 @@ CVC4dumpstream& CVC4dumpstream::operator<<(const NodeCommand& nc)
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 
-DumpC DumpChannel CVC4_PUBLIC;
+DumpC DumpChannel;
 
 std::ostream& DumpC::setStream(std::ostream* os) {
   ::CVC4::DumpOutChannel.setStream(os);

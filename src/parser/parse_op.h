@@ -55,7 +55,7 @@ namespace CVC4 {
  * interpret this operator by converting the next parsed constant of type T2 to
  * an Array of type (Array T1 T2) over that constant.
  */
-struct CVC4_PUBLIC ParseOp
+struct ParseOp
 {
   ParseOp(api::Kind k = api::NULL_EXPR) : d_kind(k) {}
   /** The kind associated with the parsed operator, if it exists */

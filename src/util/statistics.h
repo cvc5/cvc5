@@ -26,15 +26,16 @@
 #include <string>
 #include <utility>
 
+#include "cvc4_export.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
 
 class Stat;
 
-class CVC4_PUBLIC StatisticsBase {
-protected:
-
+class CVC4_EXPORT StatisticsBase
+{
+ protected:
   /** A helper class for comparing two statistics */
   struct StatCmp {
     bool operator()(const Stat* s1, const Stat* s2) const;
@@ -54,7 +55,9 @@ public:
 
   virtual ~StatisticsBase() { }
 
-  class CVC4_PUBLIC iterator : public std::iterator< std::input_iterator_tag, std::pair<std::string, SExpr> > {
+  class iterator : public std::iterator<std::input_iterator_tag,
+                                        std::pair<std::string, SExpr> >
+  {
     StatSet::iterator d_it;
 
     iterator(StatSet::iterator it) : d_it(it) { }
@@ -69,7 +72,7 @@ public:
     iterator operator++(int) { iterator old = *this; ++d_it; return old; }
     bool operator==(const iterator& i) const { return d_it == i.d_it; }
     bool operator!=(const iterator& i) const { return d_it != i.d_it; }
-  };/* class StatisticsBase::iterator */
+  }; /* class StatisticsBase::iterator */
 
   /** An iterator type over a set of statistics. */
   typedef iterator const_iterator;
@@ -97,9 +100,10 @@ public:
    */
   const_iterator end() const;
 
-};/* class StatisticsBase */
+}; /* class StatisticsBase */
 
-class CVC4_PUBLIC Statistics : public StatisticsBase {
+class Statistics : public StatisticsBase
+{
   void clear();
   void copyFrom(const StatisticsBase&);
 
@@ -121,7 +125,7 @@ public:
   Statistics& operator=(const StatisticsBase& stats);
   Statistics& operator=(const Statistics& stats);
 
-};/* class Statistics */
+}; /* class Statistics */
 
 }/* CVC4 namespace */
 
