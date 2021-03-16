@@ -52,7 +52,7 @@ std::ostream& operator<<(std::ostream& out, const MakeBagOp& op);
 /**
  * Hash function for the MakeBagOpHashFunction objects.
  */
-struct CVC4_PUBLIC MakeBagOpHashFunction
+struct MakeBagOpHashFunction
 {
   size_t operator()(const MakeBagOp& op) const;
 }; /* struct MakeBagOpHashFunction */
