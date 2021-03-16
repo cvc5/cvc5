@@ -56,12 +56,12 @@ enum BoundVarType
 class QuantifiersBoundInference
 {
  public:
-   /** 
-    * @param cardMax The maximum cardinality we consider to be small enough
-    * to "complete" below.
-    * @param isFmf Whether finite model finding (for uninterpreted sorts) is
-    * enabled.
-    */
+  /**
+   * @param cardMax The maximum cardinality we consider to be small enough
+   * to "complete" below.
+   * @param isFmf Whether finite model finding (for uninterpreted sorts) is
+   * enabled.
+   */
   QuantifiersBoundInference(unsigned cardMax, bool isFmf = false);
   /** finish initialize */
   void finishInit(BoundedIntegers* b);

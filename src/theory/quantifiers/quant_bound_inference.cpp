@@ -23,7 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersBoundInference::QuantifiersBoundInference(unsigned cardMax, bool isFmf)
+QuantifiersBoundInference::QuantifiersBoundInference(unsigned cardMax,
+                                                     bool isFmf)
     : d_cardMax(cardMax), d_isFmf(isFmf), d_bint(nullptr)
 {
 }

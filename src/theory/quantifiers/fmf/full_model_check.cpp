@@ -282,8 +282,9 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-FullModelChecker::FullModelChecker(QuantifiersEngine* qe, QuantifiersState& qs,
-               QuantifiersRegistry& qr)
+FullModelChecker::FullModelChecker(QuantifiersEngine* qe,
+                                   QuantifiersState& qs,
+                                   QuantifiersRegistry& qr)
     : QModelBuilder(qe, qs, qr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -787,7 +788,9 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
 class RepBoundFmcEntry : public QRepBoundExt
 {
  public:
-  RepBoundFmcEntry(QuantifiersBoundInference& qbi, Node e, FirstOrderModelFmc* f)
+  RepBoundFmcEntry(QuantifiersBoundInference& qbi,
+                   Node e,
+                   FirstOrderModelFmc* f)
       : QRepBoundExt(qbi, f), d_entry(e), d_fm(f)
   {
   }

@@ -54,7 +54,7 @@ class TermEnumeration
   bool getDomain(TypeNode tn, std::vector<Node>& dom);
 
  private:
-  /** 
+  /**
    * Reference to quantifiers bound inference, which determines when it is
    * possible to enumerate the entire domain of a type.
    */
