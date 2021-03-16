@@ -24,7 +24,7 @@ namespace CVC4 {
 
 class TypeNode;
 
-class CVC4_PUBLIC EmptyBag
+class EmptyBag
 {
  public:
   /**
@@ -51,9 +51,9 @@ class CVC4_PUBLIC EmptyBag
   std::unique_ptr<TypeNode> d_type;
 }; /* class EmptyBag */
 
-std::ostream& operator<<(std::ostream& out, const EmptyBag& es) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const EmptyBag& es);
 
-struct CVC4_PUBLIC EmptyBagHashFunction
+struct EmptyBagHashFunction
 {
   size_t operator()(const EmptyBag& es) const;
 }; /* struct EmptyBagHashFunction */

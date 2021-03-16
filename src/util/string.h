@@ -30,7 +30,8 @@ namespace CVC4 {
  * This data structure is the domain of values for the string type. It can also
  * be used as a generic utility for representing strings.
  */
-class CVC4_PUBLIC String {
+class String
+{
  public:
   /**
    * This is the cardinality of the alphabet that is representable by this
@@ -262,7 +263,8 @@ class CVC4_PUBLIC String {
 
 namespace strings {
 
-struct CVC4_PUBLIC StringHashFunction {
+struct StringHashFunction
+{
   size_t operator()(const ::CVC4::String& s) const {
     return std::hash<std::string>()(s.toString());
   }
@@ -270,7 +272,7 @@ struct CVC4_PUBLIC StringHashFunction {
 
 }  // namespace strings
 
-std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const String& s);
 
 }  // namespace CVC4
 

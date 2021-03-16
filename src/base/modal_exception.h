@@ -26,8 +26,9 @@
 
 namespace CVC4 {
 
-class CVC4_PUBLIC ModalException : public CVC4::Exception {
-public:
+class ModalException : public CVC4::Exception
+{
+ public:
   ModalException() :
     Exception("Feature used while operating in "
               "incorrect state") {
@@ -40,7 +41,7 @@ public:
   ModalException(const char* msg) :
     Exception(msg) {
   }
-};/* class ModalException */
+}; /* class ModalException */
 
 /**
  * Special case of ModalException that allows the execution of the solver to
@@ -49,7 +50,8 @@ public:
  * TODO(#1108): This exception should not be needed anymore in future versions
  * of the public API.
  */
-class CVC4_PUBLIC RecoverableModalException : public CVC4::ModalException {
+class RecoverableModalException : public CVC4::ModalException
+{
  public:
   RecoverableModalException(const std::string& msg) : ModalException(msg) {}
 

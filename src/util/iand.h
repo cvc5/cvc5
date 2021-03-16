@@ -24,7 +24,7 @@
 
 namespace CVC4 {
 
-struct CVC4_PUBLIC IntAnd
+struct IntAnd
 {
   unsigned d_size;
   IntAnd(unsigned size) : d_size(size) {}
@@ -35,7 +35,7 @@ struct CVC4_PUBLIC IntAnd
  ** Output stream
  * ----------------------------------------------------------------------- */
 
-inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia);
 inline std::ostream& operator<<(std::ostream& os, const IntAnd& ia)
 {
   return os << "[" << ia.d_size << "]";
