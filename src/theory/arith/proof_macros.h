@@ -21,11 +21,11 @@
 #include "options/smt_options.h"
 
 #define ARITH_PROOF(x)        \
-  if (CVC4::options::proofs()) \
+  if (CVC4::options::produceProofs()) \
   {                           \
     x;                        \
   }
-#define ARITH_NULLPROOF(x) (CVC4::options::proofs()) ? x : NULL
-#define ARITH_PROOF_ON() CVC4::options::proofs()
+#define ARITH_NULLPROOF(x) (CVC4::options::produceProofs()) ? x : NULL
+#define ARITH_PROOF_ON() CVC4::options::produceProofs()
 
 #endif  // CVC4__THEORY__ARITH__PROOF_MACROS_H

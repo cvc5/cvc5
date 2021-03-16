@@ -47,10 +47,10 @@ namespace smt {
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
   // TEMPORARY for testing
-  if (options::proofReq() && !options::proofs())
+  if (options::proofReq() && !options::produceProofs())
   {
     AlwaysAssert(false) << "Fail due to --proof-req "
-                        << options::proofs.wasSetByUser();
+                        << options::produceProofs.wasSetByUser();
   }
 
   // implied options
@@ -83,7 +83,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::checkProofs() || options::checkUnsatCoresNew())
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
-    options::proofs.set(true);
+    options::produceProofs.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -338,9 +338,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
 
   //!!!!!!!!!!!! temporary on proof
-  if (disableProofNewOk && options::proofs())
+  if (disableProofNewOk && options::produceProofs())
   {
-    options::proofs.set(false);
+    options::produceProofs.set(false);
     options::proofReq.set(false);
     options::checkProofs.set(false);
     options::proofEagerChecking.set(false);
@@ -357,7 +357,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE
-       || options::proofs())
+       || options::produceProofs())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -752,7 +752,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                           && logic.isTheoryEnabled(THEORY_UF)
                           && logic.isTheoryEnabled(THEORY_BV))
                       && !options::unsatCores();
-    // TODO && !options::unsatCores() && !options::proofs();
+    // TODO && !options::unsatCores() && !options::produceProofs();
     Trace("smt") << "setting repeat simplification to " << repeatSimp
                  << std::endl;
     options::repeatSimp.set(repeatSimp);
