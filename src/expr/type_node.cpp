@@ -290,9 +290,8 @@ bool TypeNode::isFirstClass() const {
          getKind() != kind::CONSTRUCTOR_TYPE &&
          getKind() != kind::SELECTOR_TYPE &&
          getKind() != kind::TESTER_TYPE &&
-         getKind() != kind::SEXPR_TYPE &&
          ( getKind() != kind::TYPE_CONSTANT ||
-           getConst<TypeConstant>() != REGEXP_TYPE );
+           ( getConst<TypeConstant>() != REGEXP_TYPE );
 }
 
 bool TypeNode::isWellFounded() const {
@@ -425,15 +424,6 @@ vector<TypeNode> TypeNode::getTupleTypes() const {
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
     types.push_back(dt[0][i].getRangeType());
-  }
-  return types;
-}
-
-vector<TypeNode> TypeNode::getSExprTypes() const {
-  Assert(isSExpr());
-  vector<TypeNode> types;
-  for(unsigned i = 0, i_end = getNumChildren(); i < i_end; ++i) {
-    types.push_back((*this)[i]);
   }
   return types;
 }
@@ -655,8 +645,6 @@ bool TypeNode::isSort() const {
 bool TypeNode::isSortConstructor() const {
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
 }
-
-bool TypeNode::isSExpr() const { return getKind() == kind::SEXPR_TYPE; }
 
 bool TypeNode::isFloatingPoint() const
 {

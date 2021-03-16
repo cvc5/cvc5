@@ -604,12 +604,6 @@ public:
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
 
-  /** Is this a symbolic expression type? */
-  bool isSExpr() const;
-
-  /** Get the constituent types of a symbolic expression type */
-  std::vector<TypeNode> getSExprTypes() const;
-
   /** Is this a regexp type */
   bool isRegExp() const;
 
