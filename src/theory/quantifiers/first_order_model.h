@@ -51,8 +51,8 @@ class FirstOrderModel : public TheoryModel
 
   //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
   /** finish initialize */
-  void finishInit(QuantifiersEngine * qe);
-  
+  void finishInit(QuantifiersEngine* qe);
+
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -126,7 +126,7 @@ class FirstOrderModel : public TheoryModel
 
  protected:
   //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
-   QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */

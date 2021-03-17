@@ -58,10 +58,7 @@ FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
 }
 
 //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
-void FirstOrderModel::finishInit(QuantifiersEngine * qe)
-{
-  d_qe = qe;
-}
+void FirstOrderModel::finishInit(QuantifiersEngine* qe) { d_qe = qe; }
 
 void FirstOrderModel::assertQuantifier( Node n ){
   if( n.getKind()==FORALL ){

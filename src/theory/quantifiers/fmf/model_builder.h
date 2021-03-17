@@ -42,8 +42,7 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned d_triedLemmas;
 
  public:
-  QModelBuilder(QuantifiersState& qs,
-                QuantifiersRegistry& qr);
+  QModelBuilder(QuantifiersState& qs, QuantifiersRegistry& qr);
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work

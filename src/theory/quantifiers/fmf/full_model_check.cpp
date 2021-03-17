@@ -296,8 +296,8 @@ bool FullModelChecker::preProcessBuildModel(TheoryModel* m) {
   if( !preProcessBuildModelStd( m ) ){
     return false;
   }
-  
-  FirstOrderModelFmc * fm = (FirstOrderModelFmc*)m;
+
+  FirstOrderModelFmc* fm = (FirstOrderModelFmc*)m;
   Trace("fmc") << "---Full Model Check preprocess() " << std::endl;
   d_preinitialized_eqc.clear();
   d_preinitialized_types.clear();
@@ -344,7 +344,7 @@ bool FullModelChecker::processBuildModel(TheoryModel* m){
     // nothing to do if no functions
     return true;
   }
-  FirstOrderModelFmc * fm = (FirstOrderModelFmc*)m;
+  FirstOrderModelFmc* fm = (FirstOrderModelFmc*)m;
   Trace("fmc") << "---Full Model Check reset() " << std::endl;
   d_quant_models.clear();
   d_rep_ids.clear();
