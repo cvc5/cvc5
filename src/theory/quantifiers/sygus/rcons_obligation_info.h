@@ -24,9 +24,14 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * A utility class for Sygus Reconstruct obligations. An obligation is a
- * builtin term t and a SyGuS type T, and indicates that we are trying to build
- * a term of type T whose builtin analog is equivalent to t.
+ * A utility class for Sygus Reconstruct obligations. An obligation is a builtin
+ * term t and a SyGuS type T, and indicates that we are trying to build a term
+ * of type T whose builtin analog is equivalent to t. The main algorithm encodes
+ * each obligation (t, T) as a skolem k of type T to embed obligations in
+ * candidate solutions (see d_candSols below). It mainly operates over skolems
+ * and stores cooresponding builtin terms and other info in instances of this
+ * class. Notice that the SyGuS type T of an obligation is not stored in this
+ * class as it can be inferred from the type of the skolem k.
  */
 class RConsObligationInfo
 {
