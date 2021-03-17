@@ -4042,7 +4042,6 @@ Term Solver::getValueHelper(const Term& term) const
 {
   // Note: Term is checked in the caller to avoid double checks
   //////// all checks before this line
-  std::vector<unsigned> cpts;
   Node value = d_smtEngine->getValue(*term.d_node);
   Term res = Term(this, value);
   // May need to wrap in real cast so that user know this is a real.
@@ -4058,7 +4057,6 @@ Sort Solver::mkTupleSortHelper(const std::vector<Sort>& sorts) const
 {
   // Note: Sorts are checked in the caller to avoid double checks
   //////// all checks before this line
-  std::vector<unsigned> cpts;
   std::vector<TypeNode> typeNodes = Sort::sortVectorToTypeNodes(sorts);
   return Sort(this, getNodeManager()->mkTupleType(typeNodes));
 }
