@@ -111,37 +111,6 @@ class QuantifiersEngine {
    */
   void finishInit(TheoryEngine* te, DecisionManager* dm);
   //---------------------- end private initialization
- public:
-  /** does variable v of quantified formula q have a finite bound? */
-  bool isFiniteBound(Node q, Node v) const;
-  /** get bound var type
-   *
-   * This returns the type of bound that was inferred for variable v of
-   * quantified formula q.
-   */
-  BoundVarType getBoundVarType(Node q, Node v) const;
-  /**
-   * Get the indices of bound variables, in the order they should be processed
-   * in a RepSetIterator.
-   *
-   * For details, see BoundedIntegers::getBoundVarIndices.
-   */
-  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
-  /**
-   * Get bound elements
-   *
-   * This gets the (finite) enumeration of the range of variable v of quantified
-   * formula q and adds it into the vector elements in the context of the
-   * iteration being performed by rsi. It returns true if it could successfully
-   * determine this range.
-   *
-   * For details, see BoundedIntegers::getBoundElements.
-   */
-  bool getBoundElements(RepSetIterator* rsi,
-                        bool initial,
-                        Node q,
-                        Node v,
-                        std::vector<Node>& elements) const;
 
  public:
   /** presolve */

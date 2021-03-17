@@ -28,6 +28,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersBoundInference;
+
 /** Term enumeration
  *
  * This class has utilities for enumerating terms. It stores
@@ -38,33 +40,26 @@ namespace quantifiers {
 class TermEnumeration
 {
  public:
-  TermEnumeration() {}
+  TermEnumeration(QuantifiersBoundInference* qbi = nullptr);
   ~TermEnumeration() {}
   /** get i^th term for type tn */
   Node getEnumerateTerm(TypeNode tn, unsigned i);
-  /** may complete type
-   *
-   * Returns true if the type tn is closed enumerable, is interpreted as a
-   * finite type, and has cardinality less than some reasonable value
-   * (currently < 1000). This method caches the results of whether each type
-   * may be completed.
-   */
-  bool mayComplete(TypeNode tn);
-  /**
-   * Static version of the above method where maximum cardinality is
-   * configurable.
-   */
-  static bool mayComplete(TypeNode tn, unsigned cardMax);
 
   /** get domain
    *
-   * If tn is a type such that mayComplete(tn) returns true, this method
+   * If tn is a type such that d_qbi.mayComplete(tn) returns true, this method
    * adds all domain elements of tn to dom and returns true. Otherwise, this
    * method returns false.
    */
   bool getDomain(TypeNode tn, std::vector<Node>& dom);
 
  private:
+  /**
+   * Reference to quantifiers bound inference, which determines when it is
+   * possible to enumerate the entire domain of a type. If this is not provided,
+   * getDomain above always returns false.
+   */
+  QuantifiersBoundInference* d_qbi;
   /** ground terms enumerated for types */
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
       d_enum_terms;
@@ -72,10 +67,6 @@ class TermEnumeration
   std::unordered_map<TypeNode, size_t, TypeNodeHashFunction> d_typ_enum_map;
   /** type enumerators */
   std::vector<TypeEnumerator> d_typ_enum;
-  /** closed enumerable type cache */
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_typ_closed_enum;
-  /** may complete */
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction> d_may_complete;
 };
 
 } /* CVC4::theory::quantifiers namespace */
