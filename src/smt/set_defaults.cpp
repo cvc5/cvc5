@@ -273,6 +273,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // formulas is unsat. Thus, proofs do not apply.
     disableProofs = true;
   }
+  // !!! must disable proofs if using the old unsat core infrastructure
+  // TODO (#project 37) remove this
   if (options::unsatCores() && !options::checkUnsatCoresNew())
   {
     disableProofs = true;
