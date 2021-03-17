@@ -998,15 +998,15 @@ class CVC4_EXPORT Term
   Sort getSort() const;
 
   /**
-   * @return the result of replacing "e" by "replacement" in this term
+   * @return the result of replacing 'term' by 'replacement' in this term
    */
-  Term substitute(const Term& e, const Term& replacement) const;
+  Term substitute(const Term& term, const Term& replacement) const;
 
   /**
-   * @return the result of simulatenously replacing "es" by "replacements" in
-   * this term
+   * @return the result of simulatenously replacing 'terms' by 'replacements'
+   * in this term
    */
-  Term substitute(const std::vector<Term>& es,
+  Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
 
   /**

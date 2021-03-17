@@ -27,11 +27,11 @@ using namespace kind;
 
 namespace test {
 
-class TestTypeCardinalityBlack : public TestNode
+class TestNodeBlackTypeCardinality : public TestNode
 {
 };
 
-TEST_F(TestTypeCardinalityBlack, basics)
+TEST_F(TestNodeBlackTypeCardinality, basics)
 {
   ASSERT_EQ(d_nodeManager->booleanType().getCardinality().compare(2),
             Cardinality::EQUAL);
@@ -43,7 +43,7 @@ TEST_F(TestTypeCardinalityBlack, basics)
       Cardinality::EQUAL);
 }
 
-TEST_F(TestTypeCardinalityBlack, arrays)
+TEST_F(TestNodeBlackTypeCardinality, arrays)
 {
   TypeNode intToInt = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
                                                  d_nodeManager->integerType());
@@ -83,7 +83,7 @@ TEST_F(TestTypeCardinalityBlack, arrays)
   ASSERT_EQ(boolToBool.getCardinality().compare(4), Cardinality::EQUAL);
 }
 
-TEST_F(TestTypeCardinalityBlack, unary_functions)
+TEST_F(TestNodeBlackTypeCardinality, unary_functions)
 {
   TypeNode intToInt = d_nodeManager->mkFunctionType(
       d_nodeManager->integerType(), d_nodeManager->integerType());
@@ -123,7 +123,7 @@ TEST_F(TestTypeCardinalityBlack, unary_functions)
   ASSERT_EQ(boolToBool.getCardinality().compare(4), Cardinality::EQUAL);
 }
 
-TEST_F(TestTypeCardinalityBlack, binary_functions)
+TEST_F(TestNodeBlackTypeCardinality, binary_functions)
 {
   std::vector<TypeNode> boolbool;
   boolbool.push_back(d_nodeManager->booleanType());
@@ -279,7 +279,7 @@ TEST_F(TestTypeCardinalityBlack, binary_functions)
             Cardinality::GREATER);
 }
 
-TEST_F(TestTypeCardinalityBlack, ternary_functions)
+TEST_F(TestNodeBlackTypeCardinality, ternary_functions)
 {
   std::vector<TypeNode> boolbool;
   boolbool.push_back(d_nodeManager->booleanType());
@@ -306,7 +306,7 @@ TEST_F(TestTypeCardinalityBlack, ternary_functions)
             Cardinality::EQUAL);
 }
 
-TEST_F(TestTypeCardinalityBlack, undefined_sorts)
+TEST_F(TestNodeBlackTypeCardinality, undefined_sorts)
 {
   TypeNode foo = d_nodeManager->mkSort("foo", NodeManager::SORT_FLAG_NONE);
   // We've currently assigned them a specific Beth number, which
@@ -314,7 +314,7 @@ TEST_F(TestTypeCardinalityBlack, undefined_sorts)
   ASSERT_FALSE(foo.getCardinality().isFinite());
 }
 
-TEST_F(TestTypeCardinalityBlack, bitvectors)
+TEST_F(TestNodeBlackTypeCardinality, bitvectors)
 {
   ASSERT_EQ(d_nodeManager->mkBitVectorType(0).getCardinality().compare(0),
             Cardinality::EQUAL);

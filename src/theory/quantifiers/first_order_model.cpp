@@ -129,7 +129,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
   else
   {
     // can we complete it?
-    if (d_qe->getTermEnumeration()->mayComplete(tn))
+    if (d_qreg.getQuantifiersBoundInference().mayComplete(tn))
     {
       Trace("fm-debug") << "  do complete, since cardinality is small ("
                         << tn.getCardinality() << ")..." << std::endl;

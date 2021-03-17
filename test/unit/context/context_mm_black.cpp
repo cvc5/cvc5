@@ -27,14 +27,14 @@ using namespace context;
 
 namespace test {
 
-class TestContextMMBlack : public TestInternal
+class TestContextBlackMM : public TestInternal
 {
  protected:
   void SetUp() override { d_cmm.reset(new ContextMemoryManager()); }
   std::unique_ptr<ContextMemoryManager> d_cmm;
 };
 
-TEST_F(TestContextMMBlack, push_pop)
+TEST_F(TestContextBlackMM, push_pop)
 {
 #ifdef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 #warning "Using the debug context memory manager, omitting unit tests"
