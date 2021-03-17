@@ -120,7 +120,7 @@ class StatisticRegistry
     Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
         << "Statistic value " << name
         << " was registered again with a different type.";
-    return Stat(static_cast<typename Stat::stat_type*>(it->second.get()));
+    return Stat(static_cast<typename Stat::stat_type*>(ptr));
   }
 
   std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
