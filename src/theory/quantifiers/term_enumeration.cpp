@@ -14,15 +14,15 @@
 
 #include "theory/quantifiers/term_enumeration.h"
 
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
+#include "theory/quantifiers/quant_bound_inference.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+TermEnumeration::TermEnumeration(QuantifiersBoundInference* qbi) : d_qbi(qbi) {}
 
 Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
 {
@@ -53,43 +53,9 @@ Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
   return d_enum_terms[tn][index];
 }
 
-bool TermEnumeration::mayComplete(TypeNode tn)
-{
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction>::iterator it =
-      d_may_complete.find(tn);
-  if (it == d_may_complete.end())
-  {
-    // cache
-    bool mc = mayComplete(tn, options::fmfTypeCompletionThresh());
-    d_may_complete[tn] = mc;
-    return mc;
-  }
-  return it->second;
-}
-
-bool TermEnumeration::mayComplete(TypeNode tn, unsigned maxCard)
-{
-  bool mc = false;
-  if (tn.isClosedEnumerable() && tn.isInterpretedFinite())
-  {
-    Cardinality c = tn.getCardinality();
-    if (!c.isLargeFinite())
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
-      // check if less than fixed upper bound
-      Node oth = nm->mkConst(Rational(maxCard));
-      Node eq = nm->mkNode(LEQ, card, oth);
-      eq = Rewriter::rewrite(eq);
-      mc = eq.isConst() && eq.getConst<bool>();
-    }
-  }
-  return mc;
-}
-
 bool TermEnumeration::getDomain(TypeNode tn, std::vector<Node>& dom)
 {
-  if (!mayComplete(tn))
+  if (!d_qbi || !d_qbi->mayComplete(tn))
   {
     return false;
   }

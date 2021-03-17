@@ -272,21 +272,19 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
-  //!!!!!!!!!!!! temporary on proof, whether it is ok to disable proof
-  bool disableProofNewOk = false;
+  // whether we must disable proofs
+  bool disableProofs = false;
   if (options::globalNegate())
   {
     // When global negate answers "unsat", it is not due to showing a set of
     // formulas is unsat. Thus, proofs do not apply.
-    disableProofNewOk = true;
+    disableProofs = true;
   }
-  // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
-  // with new proof system
+  // !!! must disable proofs if using the old unsat core infrastructure
+  // TODO (#project 37) remove this
   if (options::unsatCores() && !options::checkUnsatCoresNew())
   {
-    // set proofReq/proofEagerChecking/checkProofs to false, since we
-    // don't want CI failures
-    disableProofNewOk = true;
+    disableProofs = true;
   }
 
   if (options::arraysExp())
@@ -334,13 +332,17 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       // When sygus answers "unsat", it is not due to showing a set of
       // formulas is unsat in the standard way. Thus, proofs do not apply.
-      disableProofNewOk = true;
+      disableProofs = true;
     }
   }
 
-  //!!!!!!!!!!!! temporary on proof
-  if (disableProofNewOk && options::produceProofs())
+  // if we requiring disabling proofs, disable them now
+  if (disableProofs && options::produceProofs())
   {
+    if (options::produceProofs())
+    {
+      Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+    }
     options::produceProofs.set(false);
     options::proofReq.set(false);
     options::checkProofs.set(false);

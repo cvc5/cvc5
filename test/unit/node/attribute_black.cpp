@@ -30,7 +30,7 @@ using namespace smt;
 
 namespace test {
 
-class TestExprBlackAttribute : public TestNode
+class TestNodeBlackAttribute : public TestNode
 {
  protected:
   struct PrimitiveIntAttributeId
@@ -52,7 +52,7 @@ class TestExprBlackAttribute : public TestNode
   using BoolAttribute = expr::Attribute<BoolAttributeId, bool>;
 };
 
-TEST_F(TestExprBlackAttribute, ints)
+TEST_F(TestNodeBlackAttribute, ints)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
   Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -69,7 +69,7 @@ TEST_F(TestExprBlackAttribute, ints)
   delete node;
 }
 
-TEST_F(TestExprBlackAttribute, tnodes)
+TEST_F(TestNodeBlackAttribute, tnodes)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
   Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -87,7 +87,7 @@ TEST_F(TestExprBlackAttribute, tnodes)
   delete node;
 }
 
-TEST_F(TestExprBlackAttribute, strings)
+TEST_F(TestNodeBlackAttribute, strings)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
   Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
@@ -105,7 +105,7 @@ TEST_F(TestExprBlackAttribute, strings)
   delete node;
 }
 
-TEST_F(TestExprBlackAttribute, bools)
+TEST_F(TestNodeBlackAttribute, bools)
 {
   TypeNode booleanType = d_nodeManager->booleanType();
   Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
