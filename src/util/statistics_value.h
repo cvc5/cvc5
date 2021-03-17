@@ -36,7 +36,7 @@
 
 #include "util/ostream_util.h"
 #include "util/safe_print.h"
-#include "util/statistics_viewer.h"
+#include "util/statistics_api.h"
 
 namespace CVC4 {
 

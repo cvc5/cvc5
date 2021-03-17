@@ -67,8 +67,6 @@ libcvc4_add_sources(
   statistics_stats.cpp
   statistics_stats.h
   statistics_value.h
-  statistics_viewer.cpp
-  statistics_viewer.h
   stats_base.cpp
   stats_base.h
   stats_histogram.h
