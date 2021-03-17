@@ -47,7 +47,7 @@ class SimpSolver : public Solver {
              CVC4::context::UserContext* userContext,
              ProofNodeManager* pnm,
              bool enableIncremental = false);
-  CVC4_PUBLIC ~SimpSolver();
+  ~SimpSolver();
 
   // Problem specification:
   //

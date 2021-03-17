@@ -131,9 +131,9 @@ header = "options/smt_options.h"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
-  name       = "proof"
+  name       = "produceProofs"
   category   = "regular"
-  long       = "proof"
+  long       = "produce-proofs"
   type       = "bool"
   default    = "false"
   help       = "produce proofs, support check-proofs and get-proof"

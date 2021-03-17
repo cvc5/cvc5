@@ -1941,7 +1941,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     SkolemCache* skc = d_termReg.getSkolemCache();
     Node sk_w = skc->mkSkolem("w_loop");
     Node sk_y = skc->mkSkolem("y_loop");
-    d_termReg.registerTermAtomic(sk_y, LENGTH_GEQ_ONE);
+    iinfo.d_skolems[LENGTH_GEQ_ONE].push_back(sk_y);
     Node sk_z = skc->mkSkolem("z_loop");
     // t1 * ... * tn = y * z
     Node conc1 = t_yz.eqNode(utils::mkNConcat(sk_y, sk_z));

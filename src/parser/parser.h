@@ -24,6 +24,7 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "cvc4_export.h"
 #include "expr/kind.h"
 #include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
@@ -56,7 +57,7 @@ enum DeclarationCheck {
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
 inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
   switch(check) {
   case CHECK_NONE:
@@ -84,7 +85,7 @@ enum SymbolType {
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, SymbolType type) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, SymbolType type);
 inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
@@ -101,7 +102,8 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  * name of the file, line number and column information, and in-scope
  * declarations.
  */
-class CVC4_PUBLIC Parser {
+class CVC4_EXPORT Parser
+{
   friend class ParserBuilder;
 private:
 
@@ -769,7 +771,7 @@ public:
    * c1, c2, c3 are digits from 0 to 7.
    */
   std::vector<unsigned> processAdHocStringEsc(const std::string& s);
-};/* class Parser */
+}; /* class Parser */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

@@ -18,11 +18,13 @@
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
+#include "theory/quantifiers/quantifiers_registry.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -281,8 +283,9 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
   }
 }
 
-FullModelChecker::FullModelChecker(QuantifiersState& qs)
-    : QModelBuilder(qs)
+FullModelChecker::FullModelChecker(QuantifiersState& qs,
+                                   QuantifiersRegistry& qr)
+    : QModelBuilder(qs, qr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -785,8 +788,10 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
 class RepBoundFmcEntry : public QRepBoundExt
 {
  public:
-  RepBoundFmcEntry(Node e, FirstOrderModelFmc* f)
-      : QRepBoundExt(), d_entry(e), d_fm(f)
+  RepBoundFmcEntry(QuantifiersBoundInference& qbi,
+                   Node e,
+                   FirstOrderModelFmc* f)
+      : QRepBoundExt(qbi, f), d_entry(e), d_fm(f)
   {
   }
   ~RepBoundFmcEntry() {}
@@ -818,7 +823,8 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
   Trace("fmc-exh") << "----Exhaustive instantiate based on " << c << " ";
   debugPrintCond("fmc-exh", c, true);
   Trace("fmc-exh")<< std::endl;
-  RepBoundFmcEntry rbfe(c, fm);
+  QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
+  RepBoundFmcEntry rbfe(qbi, c, fm);
   RepSetIterator riter(fm->getRepSet(), &rbfe);
   Trace("fmc-exh-debug") << "Set quantifier..." << std::endl;
   //initialize

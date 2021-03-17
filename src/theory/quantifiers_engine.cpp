@@ -93,13 +93,14 @@ QuantifiersEngine::QuantifiersEngine(
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          qstate, d_qreg, tr, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(qstate));
+          qstate, qr, "FirstOrderModelFmc"));
+      d_builder.reset(
+          new quantifiers::fmcheck::FullModelChecker(qstate, qr));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(new quantifiers::FirstOrderModel(
-          qstate, d_qreg, tr, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(qstate));
+          this, qstate, qr, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(qstate, qr));
     }
   }else{
     d_model.reset(new quantifiers::FirstOrderModel(
@@ -126,6 +127,12 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
+
+  // handle any circular dependencies
+
+  // quantifiers bound inference needs to be informed of the bounded integers
+  // module, which has information about which quantifiers have finite bounds
+  d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
 }
 
 DecisionManager* QuantifiersEngine::getDecisionManager()
@@ -179,69 +186,6 @@ quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
-}
-
-bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi && bi->isBound(q, v))
-  {
-    return true;
-  }
-  TypeNode tn = v.getType();
-  if (tn.isSort() && options::finiteModelFind())
-  {
-    return true;
-  }
-  else if (d_treg.getTermEnumeration()->mayComplete(tn))
-  {
-    return true;
-  }
-  return false;
-}
-
-BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    return bi->getBoundVarType(q, v);
-  }
-  return isFiniteBound(q, v) ? BOUND_FINITE : BOUND_NONE;
-}
-
-void QuantifiersEngine::getBoundVarIndices(Node q,
-                                           std::vector<unsigned>& indices) const
-{
-  Assert(indices.empty());
-  // we take the bounded variables first
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    bi->getBoundVarIndices(q, indices);
-  }
-  // then get the remaining ones
-  for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
-  {
-    if (std::find(indices.begin(), indices.end(), i) == indices.end())
-    {
-      indices.push_back(i);
-    }
-  }
-}
-
-bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
-                                         bool initial,
-                                         Node q,
-                                         Node v,
-                                         std::vector<Node>& elements) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    return bi->getBoundElements(rsi, initial, q, v, elements);
-  }
-  return false;
 }
 
 void QuantifiersEngine::presolve() {
