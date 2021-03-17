@@ -1,5 +1,5 @@
 ; REQUIRES: proof
-; COMMAND-LINE: --proof-pedantic=1
+; COMMAND-LINE:
 ; EXIT: 0
 ; SCRUBBER: grep -v -E '.*'
 (set-logic AUFLIA)
