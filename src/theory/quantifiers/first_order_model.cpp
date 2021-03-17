@@ -159,6 +159,11 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
   }
 }
 
+bool FirstOrderModel::isModelBasis(TNode n)
+{
+  return n.getAttribute(ModelBasisAttribute());
+}
+
 /** needs check */
 bool FirstOrderModel::checkNeeded() {
   return d_forall_asserts.size()>0;
