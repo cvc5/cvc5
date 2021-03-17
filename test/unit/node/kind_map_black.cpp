@@ -27,11 +27,11 @@ using namespace kind;
 
 namespace test {
 
-class TestExprBlackKindMap : public TestInternal
+class TestNodeBlackKindMap : public TestInternal
 {
 };
 
-TEST_F(TestExprBlackKindMap, simple)
+TEST_F(TestNodeBlackKindMap, simple)
 {
   KindMap map;
   ASSERT_FALSE(map.test(AND));
