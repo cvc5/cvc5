@@ -28,11 +28,11 @@ using namespace context;
 
 namespace test {
 
-class TestContextCDOBlack : public TestContext
+class TestContextBlackCDO : public TestContext
 {
 };
 
-TEST_F(TestContextCDOBlack, cdo)
+TEST_F(TestContextBlackCDO, cdo)
 {
   // Test that push/pop maintains the original value
   CDO<int> a1(d_context.get());

@@ -285,6 +285,35 @@ namespace api {
     }                                                                          \
   } while (0)
 
+/**
+ * Term check for member functions of classes other than class Solver.
+ * Check if each term in both the given container is not null, associated with
+ * the solver object this object is associated with, and their sorts are
+ * pairwise comparable to.
+ */
+#define CVC4_API_TERM_CHECK_TERMS_WITH_TERMS_COMPARABLE_TO(terms1, terms2)  \
+  do                                                                        \
+  {                                                                         \
+    size_t i = 0;                                                           \
+    for (const auto& t1 : terms1)                                           \
+    {                                                                       \
+      const auto& t2 = terms2[i];                                           \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t1, terms1, i);          \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
+          this->d_solver == t1.d_solver, "term", terms1, i)                 \
+          << "a term associated with the solver this object is associated " \
+             "with";                                                        \
+      CVC4_API_ARG_AT_INDEX_CHECK_NOT_NULL("term", t2, terms2, i);          \
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                                 \
+          this->d_solver == t2.d_solver, "term", terms2, i)                 \
+          << "a term associated with the solver this object is associated " \
+             "with";                                                        \
+      CVC4_API_CHECK(t1.getSort().isComparableTo(t2.getSort()))             \
+          << "Expecting terms of comparable sort at index " << i;           \
+      i += 1;                                                               \
+    }                                                                       \
+  } while (0)
+
 /* -------------------------------------------------------------------------- */
 /* DatatypeDecl checks.                                                       */
 /* -------------------------------------------------------------------------- */

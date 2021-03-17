@@ -48,7 +48,7 @@ std::ostream& operator<<(std::ostream& out, const TupleProjectOp& op);
 /**
  * Hash function for the TupleProjectOpHashFunction objects.
  */
-struct CVC4_PUBLIC TupleProjectOpHashFunction
+struct TupleProjectOpHashFunction
 {
   size_t operator()(const TupleProjectOp& op) const;
 }; /* struct TupleProjectOpHashFunction */

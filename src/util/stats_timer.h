@@ -21,6 +21,7 @@
 
 #include <chrono>
 
+#include "cvc4_export.h"
 #include "util/stats_base.h"
 
 namespace CVC4 {
@@ -33,7 +34,7 @@ struct duration : public std::chrono::nanoseconds
 }  // namespace timer_stat_detail
 
 template <>
-void CVC4_PUBLIC safe_print(int fd, const timer_stat_detail::duration& t);
+void CVC4_EXPORT safe_print(int fd, const timer_stat_detail::duration& t);
 
 class CodeTimer;
 
@@ -42,7 +43,7 @@ class CodeTimer;
  * arbitrarily, like a stopwatch; the value of the statistic at the
  * end is the accumulated time over all (start,stop) pairs.
  */
-class CVC4_PUBLIC TimerStat : public BackedStat<timer_stat_detail::duration>
+class CVC4_EXPORT TimerStat : public BackedStat<timer_stat_detail::duration>
 {
  public:
   typedef CVC4::CodeTimer CodeTimer;

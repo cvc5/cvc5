@@ -52,11 +52,11 @@ enum TheoryId
 const TheoryId THEORY_FIRST = static_cast<TheoryId>(0);
 const TheoryId THEORY_SAT_SOLVER = THEORY_LAST;
 
-TheoryId& operator++(TheoryId& id) CVC4_PUBLIC;
+TheoryId& operator++(TheoryId& id);
 
 std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
 
-std::string getStatsPrefix(TheoryId theoryId) CVC4_PUBLIC;
+std::string getStatsPrefix(TheoryId theoryId);
 
 /**
  * A set of theories. Utilities for TheoryIdSet can be found below.

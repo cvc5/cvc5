@@ -416,7 +416,7 @@ void BoundedIntegers::checkOwnership(Node f)
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
           if ((tn.isSort() && tn.isInterpretedFinite())
-              || d_quantEngine->getTermEnumeration()->mayComplete(tn))
+              || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
             setBoundedVar( f, f[0][i], BOUND_FINITE );

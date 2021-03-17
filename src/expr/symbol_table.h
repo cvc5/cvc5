@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 
 namespace CVC4 {
 
@@ -33,14 +34,17 @@ class Sort;
 class Term;
 }  // namespace api
 
-class CVC4_PUBLIC ScopeException : public Exception {};
+class CVC4_EXPORT ScopeException : public Exception
+{
+};
 
 /**
  * A convenience class for handling scoped declarations. Implements the usual
  * nested scoping rules for declarations, with separate bindings for expressions
  * and types.
  */
-class CVC4_PUBLIC SymbolTable {
+class CVC4_EXPORT SymbolTable
+{
  public:
   /** Create a symbol table. */
   SymbolTable();
