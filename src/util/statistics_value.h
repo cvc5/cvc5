@@ -50,7 +50,7 @@ class StatisticRegistry;
  */
 struct StatisticBaseValue
 {
-  virtual ~StatisticBaseValue() = default;
+  virtual ~StatisticBaseValue();
   virtual api::Stat getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;
   virtual void print_safe(int fd) const = 0;

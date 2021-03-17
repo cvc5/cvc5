@@ -28,6 +28,8 @@
 
 namespace CVC4 {
 
+StatisticBaseValue::~StatisticBaseValue() {}
+
 void StatisticTimerValue::print(std::ostream& out) const
   {
     StreamFormatScope format_scope(out);
