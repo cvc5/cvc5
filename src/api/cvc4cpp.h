@@ -2306,24 +2306,24 @@ struct CVC4_EXPORT RoundingModeHashFunction
 /* -------------------------------------------------------------------------- */
 
 /**
- * Represents a single statistic value for the API.
- * A value is a variant of int64_t, double, std::string or a histogram
- * (std::map<std::string, uint64_t>).
- * Implements methods to check for the type (e.g. `isInt`, `isString`) and
- * return the value in a given type (e.g. `getInt`, `getString`).
+ * Represents a snapshot of a single statistic value.
+ * A value can be of type int64_t, double, std::string or a histogram
+ * (`std::map<std::string, uint64_t>`).
+ * The value type can be queried (using `isInt`, `isString`, etc.) and
+ * the stored value can be accessed (using `getInt`, `getString`, etc.).
  */
-class StatViewer
+class Stat
 {
  public:
-  friend std::ostream& operator<<(std::ostream& os, const StatViewer& sv);
+  friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   /** Create from the given value. */
   template <typename T>
-  StatViewer(bool expert, const T& t) : d_expert(expert), d_data(t)
+  Stat(bool expert, const T& t) : d_expert(expert), d_data(t)
   {
   }
   using HistogramData = std::map<std::string, uint64_t>;
 
-  /** Is this value for experts only? */
+  /** Is this value intended for experts only? */
   bool isExpert() const;
 
   /** Is this value an integer? */
@@ -2349,17 +2349,27 @@ class StatViewer
   std::variant<int64_t, double, std::string, HistogramData> d_data;
 };
 
-std::ostream& operator<<(std::ostream& os, const StatViewer& sv);
+std::ostream& operator<<(std::ostream& os, const Stat& sv);
 
 /**
- * Represents the internally collected statistics, converted to `StatViewer`
- * objects. Supports querying for a statistic name and iteration.
+ * Represents a snapshot of the solver statistics.
+ * Once obtained, an instance of this class is independent of the `Solver`
+ * object: it will not change when the solvers internal statistics do, it
+ * will not be invalidated if the solver is destroyed.
+ * Statistics are generally categorized as public and expert statistics.
+ * Iterating on this class (via `begin()` and `end()`) shows only public
+ * statistics. Expert statistics can be accessed via iteration using
+ * `begin_all()` and `end_all()`, or by querying a single statistic by
+ * name using `get()`.
+ * A single statistic value is represented as `Stat`.
  */
 class Statistics
 {
  public:
-  using BaseType = std::map<std::string, StatViewer>;
+ friend Solver;
+  using BaseType = std::map<std::string, Stat>;
 
+  /** Custom iterator to hide expert statistics from regular iteration */
   class iterator
   {
    public:
@@ -2381,10 +2391,8 @@ class Statistics
     bool d_showExpert = false;
   };
 
-  // TODO: make this private and friend with SmtEngine
-  Statistics(const StatisticRegistry& reg);
   /** Retrieve the statistic with the given name. */
-  const StatViewer& get(const std::string& name);
+  const Stat& get(const std::string& name);
   /** begin iteration */
   auto begin() const { return iterator(d_stats.begin(), d_stats, false); }
   /** end iteration */
@@ -2394,7 +2402,10 @@ class Statistics
   /** end iteration */
   auto end_all() const { return iterator(d_stats.end(), d_stats, true); }
 
+  // TODO: make this private
+  Statistics(const StatisticRegistry& reg);
  private:
+  /** Internal data */
   BaseType d_stats;
 };
 std::ostream& operator<<(std::ostream& out, const Statistics& stats);
@@ -3694,6 +3705,8 @@ class CVC4_EXPORT Solver
   // !!! This is only temporarily available until options are refactored at
   // the driver level. !!!
   Options& getOptions(void);
+
+  Statistics getStatistics() const;
 
  private:
   /** @return the node manager of this solver */

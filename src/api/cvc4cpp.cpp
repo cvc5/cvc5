@@ -4042,56 +4042,56 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-bool StatViewer::isExpert() const
+bool Stat::isExpert() const
 {
   return d_expert;
 }
 
-bool StatViewer::isInt() const
+bool Stat::isInt() const
 {
   return std::holds_alternative<int64_t>(d_data);
 }
-int64_t StatViewer::getInt() const
+int64_t Stat::getInt() const
 {
   Assert(isInt());
   return std::get<int64_t>(d_data);
 }
-bool StatViewer::isDouble() const
+bool Stat::isDouble() const
 {
   return std::holds_alternative<double>(d_data);
 }
-double StatViewer::getDouble() const
+double Stat::getDouble() const
 {
   Assert(isDouble());
   return std::get<double>(d_data);
 }
-bool StatViewer::isString() const
+bool Stat::isString() const
 {
   return std::holds_alternative<std::string>(d_data);
 }
-std::string StatViewer::getString() const
+std::string Stat::getString() const
 {
   Assert(isString());
   return std::get<std::string>(d_data);
 }
-bool StatViewer::isHistogram() const
+bool Stat::isHistogram() const
 {
   return std::holds_alternative<HistogramData>(d_data);
 }
-const StatViewer::HistogramData& StatViewer::getHistogram() const
+const Stat::HistogramData& Stat::getHistogram() const
 {
   Assert(isHistogram());
   return std::get<HistogramData>(d_data);
 }
 
-std::ostream& operator<<(std::ostream& os, const StatViewer& sv)
+std::ostream& operator<<(std::ostream& os, const Stat& sv)
 {
   std::visit(overloaded{
                  [&os](int64_t v) { os << v; },
                  [&os](uint64_t v) { os << v; },
                  [&os](double v) { os << v; },
                  [&os](const std::string& v) { os << v; },
-                 [&os](const StatViewer::HistogramData& v) {
+                 [&os](const Stat::HistogramData& v) {
                    os << "{ ";
                    bool first = true;
                    for (const auto& e : v)
@@ -4174,19 +4174,19 @@ bool Statistics::iterator::isVisible() const
       return d_showExpert || d_it == d_base->end() || !d_it->second.isExpert();
     }
 
+const Stat& Statistics::get(const std::string& name)
+{
+  auto it = d_stats.find(name);
+  Assert(it != d_stats.end());
+  return it->second;
+}
+
 Statistics::Statistics(const StatisticRegistry& reg)
 {
   for (const auto& svp : reg)
   {
     d_stats.emplace(svp.first, svp.second->getViewer());
   }
-}
-
-const StatViewer& Statistics::get(const std::string& name)
-{
-  auto it = d_stats.find(name);
-  Assert(it != d_stats.end());
-  return it->second;
 }
 
 std::ostream& operator<<(std::ostream& out, const Statistics& stats)
@@ -7032,6 +7032,8 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
  * the new API. !!!
  */
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
+
+Statistics Solver::getStatistics() const { return Statistics(d_nodeMgr->getStatisticRegistry()); }
 
 }  // namespace api
 

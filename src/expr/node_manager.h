@@ -42,6 +42,7 @@ class Solver;
 }
 
 class StatisticsRegistry;
+class StatisticRegistry;
 class ResourceManager;
 class SkolemManager;
 class BoundVarManager;
@@ -117,6 +118,7 @@ class NodeManager
   static thread_local NodeManager* s_current;
 
   StatisticsRegistry* d_statisticsRegistry;
+  std::unique_ptr<StatisticRegistry> d_statisticRegistry;
 
   /** The skolem manager */
   std::unique_ptr<SkolemManager> d_skManager;
@@ -394,6 +396,10 @@ class NodeManager
   StatisticsRegistry* getStatisticsRegistry() const
   {
     return d_statisticsRegistry;
+  }
+  StatisticRegistry& getStatisticRegistry() const
+  {
+    return *d_statisticRegistry;
   }
 
   /** Subscribe to NodeManager events */

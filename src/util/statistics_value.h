@@ -19,7 +19,7 @@
  ** They are solely exported to the proxy objects, which should be the sole
  ** way to manipulate the data of a data object.
  ** The data objects themselves need to implement printing (normal and safe) and
- ** conversion to the API type `StatViewer`.
+ ** conversion to the API type `Stat`.
  **/
 
 #include "cvc4_private_library.h"
@@ -45,14 +45,14 @@ class StatisticRegistry;
 /**
  * Base class for all statistic values.
  * Requires three methods:
- * - `getViewer` converts to the API representation `StatViewer`
+ * - `getViewer` converts to the API representation `Stat`
  * - `print` writes the data to a regular `std::ostream`
  * - `print_safe` safely writes the data to a file descriptor
  */
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue() = default;
-  virtual api::StatViewer getViewer() const = 0;
+  virtual api::Stat getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;
   virtual void print_safe(int fd) const = 0;
 
@@ -69,7 +69,7 @@ inline std::ostream& operator<<(std::ostream& out,
 /** Holds the data for an running average statistic */
 struct StatisticAverageValue : StatisticBaseValue
 {
-  api::StatViewer getViewer() const override { return api::StatViewer(d_expert, get()); }
+  api::Stat getViewer() const override { return api::Stat(d_expert, get()); }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<double>(fd, get()); }
   double get() const { return d_sum / d_count; }
@@ -84,15 +84,15 @@ struct StatisticAverageValue : StatisticBaseValue
  * Holds some value of type `T`.
  *
  * To convert to the API representation in `getViewer`, `T` can only be one
- * of the types listed in `StatViewer::d_data` (or be implicitly converted to
+ * of the types listed in `Stat::d_data` (or be implicitly converted to
  * one of them).
  */
 template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
-  api::StatViewer getViewer() const override
+  api::Stat getViewer() const override
   {
-    return api::StatViewer(d_expert, d_value);
+    return api::Stat(d_expert, d_value);
   }
   void print(std::ostream& out) const override { out << d_value; }
   void print_safe(int fd) const override { safe_print<T>(fd, d_value); }
@@ -120,7 +120,7 @@ struct StatisticHistogramValue : StatisticBaseValue
   /**
    * Convert the internal representation to a `std::map<std::string, uint64_t>`
    */
-  api::StatViewer getViewer() const override
+  api::Stat getViewer() const override
   {
     std::map<std::string, uint64_t> res;
     for (size_t i = 0, n = d_hist.size(); i < n; ++i)
@@ -132,7 +132,7 @@ struct StatisticHistogramValue : StatisticBaseValue
         res.emplace(ss.str(), d_hist[i]);
       }
     }
-    return api::StatViewer(d_expert, res);
+    return api::Stat(d_expert, res);
   }
   void print(std::ostream& out) const override
   {
@@ -220,7 +220,7 @@ struct StatisticHistogramValue : StatisticBaseValue
 template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
-  api::StatViewer getViewer() const override { return api::StatViewer(d_expert, get()); }
+  api::Stat getViewer() const override { return api::Stat(d_expert, get()); }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<T>(fd, get()); }
   void commit() { d_committed = *d_value; }
@@ -239,9 +239,9 @@ struct StatisticReferenceValue : StatisticBaseValue
 template <typename T>
 struct StatisticSizeValue : StatisticBaseValue
 {
-  api::StatViewer getViewer() const override
+  api::Stat getViewer() const override
   {
-    return api::StatViewer(d_expert, static_cast<int64_t>(get()));
+    return api::Stat(d_expert, static_cast<int64_t>(get()));
   }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<size_t>(fd, get()); }
@@ -265,9 +265,9 @@ struct StatisticTimerValue : StatisticBaseValue
   {
   };
   /** Returns the number of milliseconds */
-  api::StatViewer getViewer() const override
+  api::Stat getViewer() const override
   {
-    return api::StatViewer(
+    return api::Stat(
         d_expert, static_cast<int64_t>(get() / std::chrono::milliseconds(1)));
   }
   /** Prints seconds in fixed-point format */

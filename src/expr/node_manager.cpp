@@ -35,6 +35,7 @@
 #include "options/smt_options.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_reg.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -96,6 +97,7 @@ typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAtt
 
 NodeManager::NodeManager()
     : d_statisticsRegistry(new StatisticsRegistry()),
+      d_statisticRegistry(new StatisticRegistry()),
       d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
       next_id(0),
