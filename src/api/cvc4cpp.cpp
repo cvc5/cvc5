@@ -2136,10 +2136,10 @@ Term Term::operator[](size_t index) const
   // special cases for apply kinds
   if (isApplyKind(d_node->getKind()))
   {
-    if(index == 0)
+    if (index == 0)
     {
-    // return the operator
-    return Term(d_solver, d_node->getOperator());
+      // return the operator
+      return Term(d_solver, d_node->getOperator());
     }
     else
     {
@@ -2192,8 +2192,9 @@ Term Term::substitute(const Term& term, const Term& replacement) const
   CVC4_API_CHECK(term.getSort().isComparableTo(replacement.getSort()))
       << "Expecting terms of comparable sort in substitute";
   //////// all checks before this line
-  return Term(d_solver,
-              d_node->substitute(TNode(*term.d_node), TNode(*replacement.d_node)));
+  return Term(
+      d_solver,
+      d_node->substitute(TNode(*term.d_node), TNode(*replacement.d_node)));
   ////////
   CVC4_API_TRY_CATCH_END;
 }
