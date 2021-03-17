@@ -25,6 +25,12 @@
 
 #include <optional>
 
+#ifdef CVC4_STATISTICS_ON
+#  define CVC4_USE_STATISTICS true
+#else
+#  define CVC4_USE_STATISTICS false
+#endif
+
 namespace CVC4 {
 
 // forward declare all values to avoid inclusion
@@ -80,43 +86,14 @@ class HistogramStats
   /** Add the value `val` to the histogram */
   HistogramStats& operator<<(Integral val)
   {
+    if (CVC4_USE_STATISTICS) {
     d_data->add(val);
+    }
     return *this;
   }
 
  private:
   HistogramStats(stat_type* data) : d_data(data) {}
-  stat_type* d_data;
-};
-
-/**
- * Stores an integer value as int64_t.
- * Supports the most useful standard operators (assignment, pre- and
- * post-increment, addition assignment) and some custom ones (maximum
- * assignment, minimum assignment).
- */
-class IntStats
-{
- public:
-  /** Allow access to private constructor */
-  friend class StatisticRegistry;
-  /** Value stored for this statistic */
-  using stat_type = StatisticBackedValue<int64_t>;
-  /** Set the integer to `val` */
-  IntStats& operator=(int64_t val);
-  /** Pre-increment for the integer */
-  IntStats& operator++();
-  /** Post-increment for the integer */
-  IntStats& operator++(int);
-  /** Add `val` to the integer */
-  IntStats& operator+=(int64_t val);
-  /** Assign the maximum of the current value and `val` */
-  void maxAssign(int64_t val);
-  /** Assign the minimum of the current value and `val` */
-  void minAssign(int64_t val);
-
- private:
-  IntStats(stat_type* data) : d_data(data) {}
   stat_type* d_data;
 };
 
@@ -129,8 +106,8 @@ class IntStats
  * `ReferenceStat` the current value of the referenced object is copied into
  * the `StatisticRegistry`.
  *
- * To convert to the API representation in `StatViewer`, `T` can only be one
- * of the types listed in `StatViewer::d_data` (or be implicitly converted to
+ * To convert to the API representation in `Stat`, `T` can only be one
+ * of the types listed in `Stat::d_data` (or be implicitly converted to
  * one of them).
  */
 template <typename T>
@@ -142,9 +119,9 @@ class ReferenceStats
   /** Value stored for this statistic */
   using stat_type = StatisticReferenceValue<T>;
   /** Reset the reference to point to `t`. */
-  void set(const T& t) { d_data->d_value = &t; }
+  void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = &t; } }
   /** Copy the current value of the referenced object. */
-  ~ReferenceStats() { d_data->commit(); }
+  ~ReferenceStats() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
 
  private:
   ReferenceStats(StatisticReferenceValue<T>* data) : d_data(data) {}
@@ -167,9 +144,9 @@ class SizeStats
   /** Value stored for this statistic */
   using stat_type = StatisticSizeValue<T>;
   /** Reset the reference to point to `t`. */
-  void set(const T& t) { d_data->d_value = &t; }
+  void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = &t; } }
   /** Copy the current size of the referenced container. */
-  ~SizeStats() { d_data->commit(); }
+  ~SizeStats() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
 
  private:
   SizeStats(stat_type* data) : d_data(data) {}
@@ -240,8 +217,8 @@ class CodeTimers
  * Stores a simple value that can be set manually using regular assignment
  * or the `set` method.
  *
- * To convert to the API representation in `StatViewer`, `T` can only be one
- * of the types listed in `StatViewer::d_data` (or be implicitly converted to
+ * To convert to the API representation in `Stat`, `T` can only be one
+ * of the types listed in `Stat::d_data` (or be implicitly converted to
  * one of them).
  */
 template <typename T>
@@ -250,18 +227,60 @@ class ValueStat
  public:
   /** Allow access to private constructor */
   friend class StatisticRegistry;
+  friend class IntStats;
+  /** Value stored for this statistic */
+  using stat_type = StatisticBackedValue<T>;
   /** Set to `t` */
-  void set(const T& t) { d_data->d_value = t; }
+  void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = t; } }
   /** Set to `t` */
   ValueStat<T>& operator=(const T& t)
   {
+    if (CVC4_USE_STATISTICS) {
     set(t);
+    }
     return *this;
+  }
+  T get() const {
+    if (CVC4_USE_STATISTICS) {
+    return d_data->d_value;
+    } else {
+      return T();
+    }
   }
 
  private:
   ValueStat(StatisticBackedValue<T>* data) : d_data(data) {}
   StatisticBackedValue<T>* d_data;
+};
+
+/**
+ * Stores an integer value as int64_t.
+ * Supports the most useful standard operators (assignment, pre- and
+ * post-increment, addition assignment) and some custom ones (maximum
+ * assignment, minimum assignment).
+ */
+class IntStats: public ValueStat<int64_t>
+{
+ public:
+  /** Allow access to private constructor */
+  friend class StatisticRegistry;
+  /** Value stored for this statistic */
+  using stat_type = StatisticBackedValue<int64_t>;
+  /** Set to given value */
+  IntStats& operator=(int64_t val);
+  /** Pre-increment for the integer */
+  IntStats& operator++();
+  /** Post-increment for the integer */
+  IntStats& operator++(int);
+  /** Add `val` to the integer */
+  IntStats& operator+=(int64_t val);
+  /** Assign the maximum of the current value and `val` */
+  void maxAssign(int64_t val);
+  /** Assign the minimum of the current value and `val` */
+  void minAssign(int64_t val);
+
+ private:
+  IntStats(stat_type* data) : ValueStat(data) {}
 };
 
 }  // namespace CVC4

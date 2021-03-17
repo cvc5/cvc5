@@ -24,12 +24,27 @@ StatisticRegistry::StatisticRegistry() {
   register_public_statistics(*this);
 }
 
+void StatisticRegistry::print(std::ostream& os) const {
+  for (const auto& s : d_stats)
+  {
+    os << s.first << " = ";
+    s.second->print(os);
+    os << std::endl;
+  }
+}
+void StatisticRegistry::print_safe(int fd) const {
+  for (const auto& s : d_stats)
+  {
+    safe_print(fd, s.first);
+    safe_print(fd, " = ");
+    s.second->print_safe(fd);
+    safe_print(fd, '\n');
+  }
+}
+
 std::ostream& operator<<(std::ostream& os, const StatisticRegistry& sr)
 {
-  for (const auto& s : sr.d_stats)
-  {
-    os << s.first << " = " << *s.second << std::endl;
-  }
+  sr.print(os);
   return os;
 }
 

@@ -76,6 +76,13 @@ class StatisticRegistry
   /** Register a new reference statistic for `name` */
   template <typename T>
   ReferenceStats<T> registerReference(const std::string& name,
+                                     bool expert = true)
+  {
+    return registerStat<ReferenceStats<T>>(name, expert);
+  }
+  /** Register a new reference statistic for `name` */
+  template <typename T>
+  ReferenceStats<T> registerReference(const std::string& name,
                                      const T& t,
                                      bool expert = true)
   {
@@ -98,11 +105,28 @@ class StatisticRegistry
   {
     return registerStat<TimerStats>(name, expert);
   }
+  /** Register a new value statistic for `name` */
+  template <typename T>
+  ValueStat<T> registerValue(const std::string& name, const T& init, bool expert = true)
+  {
+    ValueStat<T> res = registerStat<ValueStat<T>>(name, expert);
+    res.set(init);
+    return res;
+  }
 
   /** begin iteration */
   auto begin() const { return d_stats.begin(); }
   /** end iteration */
   auto end() const { return d_stats.end(); }
+
+  StatisticBaseValue* get(const std::string& name) {
+    auto it = d_stats.find(name);
+    if (it == d_stats.end()) return nullptr;
+    return it->second.get();
+  }
+
+  void print(std::ostream& os) const;
+  void print_safe(int fd) const;
 
  private:
   /**

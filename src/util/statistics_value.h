@@ -35,7 +35,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "util/ostream_util.h"
 #include "util/safe_print.h"
 
 namespace CVC4 {
@@ -220,7 +219,13 @@ struct StatisticHistogramValue : StatisticBaseValue
 template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override { return api::Stat(d_expert, get()); }
+  api::Stat getViewer() const override {
+    if constexpr (std::is_integral_v<T>) {
+      return api::Stat(d_expert, static_cast<int64_t>(get()));
+    } else {
+      return api::Stat(d_expert, get());
+    }
+  }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<T>(fd, get()); }
   void commit() { d_committed = *d_value; }
@@ -271,15 +276,7 @@ struct StatisticTimerValue : StatisticBaseValue
         d_expert, static_cast<int64_t>(get() / std::chrono::milliseconds(1)));
   }
   /** Prints seconds in fixed-point format */
-  void print(std::ostream& out) const override
-  {
-    StreamFormatScope format_scope(out);
-    duration dur = get();
-
-    out << (dur / std::chrono::seconds(1)) << "." << std::setfill('0')
-        << std::setw(9) << std::right
-        << (dur % std::chrono::seconds(1)).count();
-  }
+  void print(std::ostream& out) const override;
   /** Prints seconds in fixed-point format */
   void print_safe(int fd) const override
   {
