@@ -34,9 +34,9 @@
 #include <sstream>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "util/ostream_util.h"
 #include "util/safe_print.h"
-#include "util/statistics_api.h"
 
 namespace CVC4 {
 
@@ -52,7 +52,7 @@ class StatisticRegistry;
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue() = default;
-  virtual StatViewer getViewer() const = 0;
+  virtual api::StatViewer getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;
   virtual void print_safe(int fd) const = 0;
 
@@ -69,7 +69,7 @@ inline std::ostream& operator<<(std::ostream& out,
 /** Holds the data for an running average statistic */
 struct StatisticAverageValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override { return StatViewer(d_expert, get()); }
+  api::StatViewer getViewer() const override { return api::StatViewer(d_expert, get()); }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<double>(fd, get()); }
   double get() const { return d_sum / d_count; }
@@ -90,9 +90,9 @@ struct StatisticAverageValue : StatisticBaseValue
 template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override
+  api::StatViewer getViewer() const override
   {
-    return StatViewer(d_expert, d_value);
+    return api::StatViewer(d_expert, d_value);
   }
   void print(std::ostream& out) const override { out << d_value; }
   void print_safe(int fd) const override { safe_print<T>(fd, d_value); }
@@ -120,7 +120,7 @@ struct StatisticHistogramValue : StatisticBaseValue
   /**
    * Convert the internal representation to a `std::map<std::string, uint64_t>`
    */
-  StatViewer getViewer() const override
+  api::StatViewer getViewer() const override
   {
     std::map<std::string, uint64_t> res;
     for (size_t i = 0, n = d_hist.size(); i < n; ++i)
@@ -132,7 +132,7 @@ struct StatisticHistogramValue : StatisticBaseValue
         res.emplace(ss.str(), d_hist[i]);
       }
     }
-    return StatViewer(d_expert, res);
+    return api::StatViewer(d_expert, res);
   }
   void print(std::ostream& out) const override
   {
@@ -220,7 +220,7 @@ struct StatisticHistogramValue : StatisticBaseValue
 template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override { return StatViewer(d_expert, get()); }
+  api::StatViewer getViewer() const override { return api::StatViewer(d_expert, get()); }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<T>(fd, get()); }
   void commit() { d_committed = *d_value; }
@@ -239,9 +239,9 @@ struct StatisticReferenceValue : StatisticBaseValue
 template <typename T>
 struct StatisticSizeValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override
+  api::StatViewer getViewer() const override
   {
-    return StatViewer(d_expert, static_cast<int64_t>(get()));
+    return api::StatViewer(d_expert, static_cast<int64_t>(get()));
   }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<size_t>(fd, get()); }
@@ -265,9 +265,9 @@ struct StatisticTimerValue : StatisticBaseValue
   {
   };
   /** Returns the number of milliseconds */
-  StatViewer getViewer() const override
+  api::StatViewer getViewer() const override
   {
-    return StatViewer(
+    return api::StatViewer(
         d_expert, static_cast<int64_t>(get() / std::chrono::milliseconds(1)));
   }
   /** Prints seconds in fixed-point format */

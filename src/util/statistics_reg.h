@@ -75,21 +75,21 @@ class StatisticRegistry
   }
   /** Register a new reference statistic for `name` */
   template <typename T>
-  ReferenceStat<T> registerReference(const std::string& name,
+  ReferenceStats<T> registerReference(const std::string& name,
                                      const T& t,
                                      bool expert = true)
   {
-    ReferenceStat<T> res = registerStat<ReferenceStat<T>>(name, expert);
+    ReferenceStats<T> res = registerStat<ReferenceStats<T>>(name, expert);
     res.set(t);
     return res;
   }
   /** Register a new container size statistic for `name` */
   template <typename T>
-  SizeStat<T> registerSize(const std::string& name,
+  SizeStats<T> registerSize(const std::string& name,
                            const T& t,
                            bool expert = true)
   {
-    SizeStat<T> res = registerStat<SizeStat<T>>(name, expert);
+    SizeStats<T> res = registerStat<SizeStats<T>>(name, expert);
     res.set(t);
     return res;
   }

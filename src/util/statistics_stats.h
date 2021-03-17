@@ -134,7 +134,7 @@ class IntStats
  * one of them).
  */
 template <typename T>
-class ReferenceStat
+class ReferenceStats
 {
  public:
   /** Allow access to private constructor */
@@ -144,10 +144,10 @@ class ReferenceStat
   /** Reset the reference to point to `t`. */
   void set(const T& t) { d_data->d_value = &t; }
   /** Copy the current value of the referenced object. */
-  ~ReferenceStat() { d_data->commit(); }
+  ~ReferenceStats() { d_data->commit(); }
 
  private:
-  ReferenceStat(StatisticReferenceValue<T>* data) : d_data(data) {}
+  ReferenceStats(StatisticReferenceValue<T>* data) : d_data(data) {}
   StatisticReferenceValue<T>* d_data;
 };
 
@@ -159,7 +159,7 @@ class ReferenceStat
  * `StatisticRegistry`.
  */
 template <typename T>
-class SizeStat
+class SizeStats
 {
  public:
   /** Allow access to private constructor */
@@ -169,10 +169,10 @@ class SizeStat
   /** Reset the reference to point to `t`. */
   void set(const T& t) { d_data->d_value = &t; }
   /** Copy the current size of the referenced container. */
-  ~SizeStat() { d_data->commit(); }
+  ~SizeStats() { d_data->commit(); }
 
  private:
-  SizeStat(stat_type* data) : d_data(data) {}
+  SizeStats(stat_type* data) : d_data(data) {}
   stat_type* d_data;
 };
 
