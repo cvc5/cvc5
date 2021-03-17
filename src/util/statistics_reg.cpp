@@ -16,7 +16,13 @@
 
 #include "util/statistics_reg.h"
 
+#include "util/statistics_public.h"
+
 namespace CVC4 {
+
+StatisticRegistry::StatisticRegistry() {
+  register_public_statistics(*this);
+}
 
 std::ostream& operator<<(std::ostream& os, const StatisticRegistry& sr)
 {
