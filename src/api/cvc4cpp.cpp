@@ -61,7 +61,6 @@
 #include "util/result.h"
 #include "util/statistics_stats.h"
 #include "util/statistics_reg.h"
-#include "util/stats_histogram.h"
 #include "util/utility.h"
 
 namespace CVC4 {

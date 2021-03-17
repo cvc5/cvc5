@@ -16,6 +16,7 @@
  **/
 
 #include <set>
+#include <sstream>
 #include <stack>
 #include <vector>
 

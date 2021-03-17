@@ -26,7 +26,6 @@
 #include "theory/output_channel.h"
 #include "theory/trust_node.h"
 #include "util/statistics_stats.h"
-#include "util/stats_histogram.h"
 
 namespace CVC4 {
 

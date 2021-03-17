@@ -32,7 +32,6 @@
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
 #include "util/result.h"
-#include "util/statistics.h"
 
 using namespace std;
 using namespace CVC4;

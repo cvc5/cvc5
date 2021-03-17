@@ -21,7 +21,6 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
 #include "util/statistics_stats.h"
-#include "util/stats_histogram.h"
 
 namespace CVC4 {
 namespace theory {

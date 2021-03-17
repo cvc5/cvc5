@@ -40,7 +40,6 @@
 #include "options/options.h"
 #include "smt/smt_engine.h"
 #include "util/safe_print.h"
-#include "util/statistics.h"
 
 using CVC4::Exception;
 using namespace std;

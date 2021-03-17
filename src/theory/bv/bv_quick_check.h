@@ -27,7 +27,6 @@
 #include "prop/sat_solver_types.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_stats.h"
-#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace theory {

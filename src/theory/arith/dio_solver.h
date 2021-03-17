@@ -31,7 +31,6 @@
 #include "theory/arith/normal_form.h"
 #include "util/rational.h"
 #include "util/statistics_stats.h"
-#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace context {
