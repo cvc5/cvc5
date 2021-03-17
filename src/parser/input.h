@@ -19,12 +19,14 @@
 #ifndef CVC4__PARSER__INPUT_H
 #define CVC4__PARSER__INPUT_H
 
-#include <iostream>
 #include <stdio.h>
+
+#include <iostream>
 #include <string>
 #include <vector>
 
 #include "api/cvc4cpp.h"
+#include "cvc4_export.h"
 #include "options/language.h"
 #include "parser/parser_exception.h"
 
@@ -34,14 +36,15 @@ class Command;
 
 namespace parser {
 
-class CVC4_PUBLIC InputStreamException : public Exception {
+class InputStreamException : public Exception
+{
  public:
   InputStreamException(const std::string& msg);
 };
 
 /** Wrapper around an input stream. */
-class CVC4_PUBLIC InputStream {
-
+class InputStream
+{
   /** The name of this input stream. */
   std::string d_name;
 
@@ -66,7 +69,7 @@ class CVC4_PUBLIC InputStream {
 
   /** Get the name of this input stream. */
   const std::string getName() const;
-};/* class InputStream */
+}; /* class InputStream */
 
 class Parser;
 
@@ -76,7 +79,8 @@ class Parser;
  * for the given input language and attach it to an input source of the
  * appropriate type.
  */
-class CVC4_PUBLIC Input {
+class CVC4_EXPORT Input
+{
   friend class Parser; // for parseError, parseCommand, parseExpr
   friend class ParserBuilder;
 
@@ -170,7 +174,7 @@ class CVC4_PUBLIC Input {
   /** Set the Parser object for this input. */
   virtual void setParser(Parser& parser) = 0;
 
-};/* class Input */
+}; /* class Input */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

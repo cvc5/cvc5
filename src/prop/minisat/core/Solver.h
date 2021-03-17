@@ -140,7 +140,7 @@ public:
         CVC4::context::UserContext* userContext,
         ProofNodeManager* pnm,
         bool enableIncremental = false);
- CVC4_PUBLIC virtual ~Solver();
+ virtual ~Solver();
 
  // Problem specification:
  //

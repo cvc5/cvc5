@@ -54,7 +54,7 @@ using TestFlag3 = Attribute<Test3, bool>;
 using TestFlag4 = Attribute<Test4, bool>;
 using TestFlag5 = Attribute<Test5, bool>;
 
-class TestExprWhiteAttribute : public TestNode
+class TestNodeWhiteAttribute : public TestNode
 {
  protected:
   void SetUp() override
@@ -65,7 +65,7 @@ class TestExprWhiteAttribute : public TestNode
   std::unique_ptr<TypeNode> d_booleanType;
 };
 
-TEST_F(TestExprWhiteAttribute, attribute_ids)
+TEST_F(TestNodeWhiteAttribute, attribute_ids)
 {
   // Test that IDs for (a subset of) attributes in the system are
   // unique and that the LastAttributeId (which would be the next ID
@@ -109,7 +109,7 @@ TEST_F(TestExprWhiteAttribute, attribute_ids)
   ASSERT_LT(TypeAttr::s_id, lastId);
 }
 
-TEST_F(TestExprWhiteAttribute, attributes)
+TEST_F(TestNodeWhiteAttribute, attributes)
 {
   Node a = d_nodeManager->mkVar(*d_booleanType);
   Node b = d_nodeManager->mkVar(*d_booleanType);

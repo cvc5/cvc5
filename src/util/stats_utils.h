@@ -21,6 +21,8 @@
 
 #include <iosfwd>
 
+#include "cvc4_export.h"
+
 namespace CVC4 {
 
 namespace timer_stat_detail {
@@ -28,7 +30,7 @@ struct duration;
 }
 
 std::ostream& operator<<(std::ostream& os,
-                         const timer_stat_detail::duration& dur) CVC4_PUBLIC;
+                         const timer_stat_detail::duration& dur) CVC4_EXPORT;
 
 }  // namespace CVC4
 

@@ -22,6 +22,7 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "cvc4_export.h"
 #include "expr/symbol_table.h"
 
 namespace CVC4 {
@@ -34,7 +35,7 @@ namespace CVC4 {
  * Like SymbolTable, this class currently lives in src/expr/ since it uses
  * context-dependent data structures.
  */
-class CVC4_PUBLIC SymbolManager
+class CVC4_EXPORT SymbolManager
 {
  public:
   SymbolManager(api::Solver* s);

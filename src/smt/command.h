@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
+#include "cvc4_export.h"
 #include "util/sexpr.h"
 
 namespace CVC4 {
@@ -52,12 +53,12 @@ class Model;
  * @param sexpr the symbolic expression to convert
  * @return the symbolic expression as string
  */
-std::string sexprToString(api::Term sexpr);
+std::string sexprToString(api::Term sexpr) CVC4_EXPORT;
 
-std::ostream& operator<<(std::ostream&, const Command&) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream&, const Command*) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream&, const CommandStatus&) CVC4_PUBLIC;
-std::ostream& operator<<(std::ostream&, const CommandStatus*) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream&, const Command&) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream&, const Command*) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream&, const CommandStatus&) CVC4_EXPORT;
+std::ostream& operator<<(std::ostream&, const CommandStatus*) CVC4_EXPORT;
 
 /** The status an SMT benchmark can have */
 enum BenchmarkStatus
@@ -70,7 +71,7 @@ enum BenchmarkStatus
   SMT_UNKNOWN
 }; /* enum BenchmarkStatus */
 
-std::ostream& operator<<(std::ostream& out, BenchmarkStatus status) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, BenchmarkStatus status) CVC4_EXPORT;
 
 /**
  * IOStream manipulator to print success messages or not.
@@ -84,7 +85,7 @@ std::ostream& operator<<(std::ostream& out, BenchmarkStatus status) CVC4_PUBLIC;
  * prints a success message (in a manner appropriate for the current
  * output language).
  */
-class CVC4_PUBLIC CommandPrintSuccess
+class CVC4_EXPORT CommandPrintSuccess
 {
  public:
   /** Construct a CommandPrintSuccess with the given setting. */
@@ -118,9 +119,9 @@ class CVC4_PUBLIC CommandPrintSuccess
  * The depth stays permanently (until set again) with the stream.
  */
 std::ostream& operator<<(std::ostream& out,
-                         CommandPrintSuccess cps) CVC4_PUBLIC;
+                         CommandPrintSuccess cps) CVC4_EXPORT;
 
-class CVC4_PUBLIC CommandStatus
+class CVC4_EXPORT CommandStatus
 {
  protected:
   // shouldn't construct a CommandStatus (use a derived class)
@@ -133,7 +134,7 @@ class CVC4_PUBLIC CommandStatus
   virtual CommandStatus& clone() const = 0;
 }; /* class CommandStatus */
 
-class CVC4_PUBLIC CommandSuccess : public CommandStatus
+class CVC4_EXPORT CommandSuccess : public CommandStatus
 {
   static const CommandSuccess* s_instance;
 
@@ -145,7 +146,7 @@ class CVC4_PUBLIC CommandSuccess : public CommandStatus
   }
 }; /* class CommandSuccess */
 
-class CVC4_PUBLIC CommandInterrupted : public CommandStatus
+class CVC4_EXPORT CommandInterrupted : public CommandStatus
 {
   static const CommandInterrupted* s_instance;
 
@@ -157,7 +158,7 @@ class CVC4_PUBLIC CommandInterrupted : public CommandStatus
   }
 }; /* class CommandInterrupted */
 
-class CVC4_PUBLIC CommandUnsupported : public CommandStatus
+class CVC4_EXPORT CommandUnsupported : public CommandStatus
 {
  public:
   CommandStatus& clone() const override
@@ -166,7 +167,7 @@ class CVC4_PUBLIC CommandUnsupported : public CommandStatus
   }
 }; /* class CommandSuccess */
 
-class CVC4_PUBLIC CommandFailure : public CommandStatus
+class CVC4_EXPORT CommandFailure : public CommandStatus
 {
   std::string d_message;
 
@@ -182,7 +183,7 @@ class CVC4_PUBLIC CommandFailure : public CommandStatus
  * for an unsat core in a place that is not immediately preceded by an
  * unsat/valid response.
  */
-class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus
+class CVC4_EXPORT CommandRecoverableFailure : public CommandStatus
 {
   std::string d_message;
 
@@ -195,7 +196,7 @@ class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus
   std::string getMessage() const { return d_message; }
 }; /* class CommandRecoverableFailure */
 
-class CVC4_PUBLIC Command
+class CVC4_EXPORT Command
 {
  public:
   typedef CommandPrintSuccess printsuccess;
@@ -282,7 +283,7 @@ class CVC4_PUBLIC Command
  * EmptyCommands are the residue of a command after the parser handles
  * them (and there's nothing left to do).
  */
-class CVC4_PUBLIC EmptyCommand : public Command
+class CVC4_EXPORT EmptyCommand : public Command
 {
  public:
   EmptyCommand(std::string name = "");
@@ -300,7 +301,7 @@ class CVC4_PUBLIC EmptyCommand : public Command
   std::string d_name;
 }; /* class EmptyCommand */
 
-class CVC4_PUBLIC EchoCommand : public Command
+class CVC4_EXPORT EchoCommand : public Command
 {
  public:
   EchoCommand(std::string output = "");
@@ -324,7 +325,7 @@ class CVC4_PUBLIC EchoCommand : public Command
   std::string d_output;
 }; /* class EchoCommand */
 
-class CVC4_PUBLIC AssertCommand : public Command
+class CVC4_EXPORT AssertCommand : public Command
 {
  protected:
   api::Term d_term;
@@ -346,7 +347,7 @@ class CVC4_PUBLIC AssertCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class AssertCommand */
 
-class CVC4_PUBLIC PushCommand : public Command
+class CVC4_EXPORT PushCommand : public Command
 {
  public:
   void invoke(api::Solver* solver, SymbolManager* sm) override;
@@ -359,7 +360,7 @@ class CVC4_PUBLIC PushCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PushCommand */
 
-class CVC4_PUBLIC PopCommand : public Command
+class CVC4_EXPORT PopCommand : public Command
 {
  public:
   void invoke(api::Solver* solver, SymbolManager* sm) override;
@@ -372,7 +373,7 @@ class CVC4_PUBLIC PopCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class PopCommand */
 
-class CVC4_PUBLIC DeclarationDefinitionCommand : public Command
+class CVC4_EXPORT DeclarationDefinitionCommand : public Command
 {
  protected:
   std::string d_symbol;
@@ -384,7 +385,7 @@ class CVC4_PUBLIC DeclarationDefinitionCommand : public Command
   std::string getSymbol() const;
 }; /* class DeclarationDefinitionCommand */
 
-class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
+class CVC4_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
 {
  protected:
   api::Term d_func;
@@ -405,7 +406,7 @@ class CVC4_PUBLIC DeclareFunctionCommand : public DeclarationDefinitionCommand
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareFunctionCommand */
 
-class CVC4_PUBLIC DeclareSortCommand : public DeclarationDefinitionCommand
+class CVC4_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:
   size_t d_arity;
@@ -427,7 +428,7 @@ class CVC4_PUBLIC DeclareSortCommand : public DeclarationDefinitionCommand
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareSortCommand */
 
-class CVC4_PUBLIC DefineSortCommand : public DeclarationDefinitionCommand
+class CVC4_EXPORT DefineSortCommand : public DeclarationDefinitionCommand
 {
  protected:
   std::vector<api::Sort> d_params;
@@ -452,7 +453,7 @@ class CVC4_PUBLIC DefineSortCommand : public DeclarationDefinitionCommand
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DefineSortCommand */
 
-class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
+class CVC4_EXPORT DefineFunctionCommand : public DeclarationDefinitionCommand
 {
  public:
   DefineFunctionCommand(const std::string& id,
@@ -497,7 +498,7 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
  * This command will assert a set of quantified formulas that specify
  * the (mutually recursive) function definitions provided to it.
  */
-class CVC4_PUBLIC DefineFunctionRecCommand : public Command
+class CVC4_EXPORT DefineFunctionRecCommand : public Command
 {
  public:
   DefineFunctionRecCommand(api::Term func,
@@ -542,7 +543,7 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
  *   (declare-heap (T U))
  * where T is the location sort and U is the data sort.
  */
-class CVC4_PUBLIC DeclareHeapCommand : public Command
+class CVC4_EXPORT DeclareHeapCommand : public Command
 {
  public:
   DeclareHeapCommand(api::Sort locSort, api::Sort dataSort);
@@ -568,7 +569,7 @@ class CVC4_PUBLIC DeclareHeapCommand : public Command
  * The command when an attribute is set by a user.  In SMT-LIBv2 this is done
  *  via the syntax (! expr :attr)
  */
-class CVC4_PUBLIC SetUserAttributeCommand : public Command
+class CVC4_EXPORT SetUserAttributeCommand : public Command
 {
  public:
   SetUserAttributeCommand(const std::string& attr, api::Term term);
@@ -604,7 +605,7 @@ class CVC4_PUBLIC SetUserAttributeCommand : public Command
  * The command when parsing check-sat.
  * This command will check satisfiability of the input formula.
  */
-class CVC4_PUBLIC CheckSatCommand : public Command
+class CVC4_EXPORT CheckSatCommand : public Command
 {
  public:
   CheckSatCommand();
@@ -632,7 +633,7 @@ class CVC4_PUBLIC CheckSatCommand : public Command
  * This command will assume a set of formulas and check satisfiability of the
  * input formula under these assumptions.
  */
-class CVC4_PUBLIC CheckSatAssumingCommand : public Command
+class CVC4_EXPORT CheckSatAssumingCommand : public Command
 {
  public:
   CheckSatAssumingCommand(api::Term term);
@@ -655,7 +656,7 @@ class CVC4_PUBLIC CheckSatAssumingCommand : public Command
   api::Result d_result;
 }; /* class CheckSatAssumingCommand */
 
-class CVC4_PUBLIC QueryCommand : public Command
+class CVC4_EXPORT QueryCommand : public Command
 {
  protected:
   api::Term d_term;
@@ -681,7 +682,7 @@ class CVC4_PUBLIC QueryCommand : public Command
 /* ------------------- sygus commands  ------------------ */
 
 /** Declares a sygus universal variable */
-class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
+class CVC4_EXPORT DeclareSygusVarCommand : public DeclarationDefinitionCommand
 {
  public:
   DeclareSygusVarCommand(const std::string& id, api::Term var, api::Sort sort);
@@ -718,7 +719,7 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
  * This command is also used for the special case in which we are declaring an
  * invariant-to-synthesize
  */
-class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
+class CVC4_EXPORT SynthFunCommand : public DeclarationDefinitionCommand
 {
  public:
   SynthFunCommand(const std::string& id,
@@ -769,7 +770,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
 };
 
 /** Declares a sygus constraint */
-class CVC4_PUBLIC SygusConstraintCommand : public Command
+class CVC4_EXPORT SygusConstraintCommand : public Command
 {
  public:
   SygusConstraintCommand(const api::Term& t);
@@ -807,7 +808,7 @@ class CVC4_PUBLIC SygusConstraintCommand : public Command
  * than the precondition, not weaker than the postcondition and inductive
  * w.r.t. the transition relation.
  */
-class CVC4_PUBLIC SygusInvConstraintCommand : public Command
+class CVC4_EXPORT SygusInvConstraintCommand : public Command
 {
  public:
   SygusInvConstraintCommand(const std::vector<api::Term>& predicates);
@@ -843,7 +844,7 @@ class CVC4_PUBLIC SygusInvConstraintCommand : public Command
 };
 
 /** Declares a synthesis conjecture */
-class CVC4_PUBLIC CheckSynthCommand : public Command
+class CVC4_EXPORT CheckSynthCommand : public Command
 {
  public:
   CheckSynthCommand(){};
@@ -881,7 +882,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
 /* ------------------- sygus commands  ------------------ */
 
 // this is TRANSFORM in the CVC presentation language
-class CVC4_PUBLIC SimplifyCommand : public Command
+class CVC4_EXPORT SimplifyCommand : public Command
 {
  protected:
   api::Term d_term;
@@ -903,7 +904,7 @@ class CVC4_PUBLIC SimplifyCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SimplifyCommand */
 
-class CVC4_PUBLIC GetValueCommand : public Command
+class CVC4_EXPORT GetValueCommand : public Command
 {
  protected:
   std::vector<api::Term> d_terms;
@@ -926,7 +927,7 @@ class CVC4_PUBLIC GetValueCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetValueCommand */
 
-class CVC4_PUBLIC GetAssignmentCommand : public Command
+class CVC4_EXPORT GetAssignmentCommand : public Command
 {
  protected:
   SExpr d_result;
@@ -946,7 +947,7 @@ class CVC4_PUBLIC GetAssignmentCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetAssignmentCommand */
 
-class CVC4_PUBLIC GetModelCommand : public Command
+class CVC4_EXPORT GetModelCommand : public Command
 {
  public:
   GetModelCommand();
@@ -968,7 +969,7 @@ class CVC4_PUBLIC GetModelCommand : public Command
 }; /* class GetModelCommand */
 
 /** The command to block models. */
-class CVC4_PUBLIC BlockModelCommand : public Command
+class CVC4_EXPORT BlockModelCommand : public Command
 {
  public:
   BlockModelCommand();
@@ -984,7 +985,7 @@ class CVC4_PUBLIC BlockModelCommand : public Command
 }; /* class BlockModelCommand */
 
 /** The command to block model values. */
-class CVC4_PUBLIC BlockModelValuesCommand : public Command
+class CVC4_EXPORT BlockModelValuesCommand : public Command
 {
  public:
   BlockModelValuesCommand(const std::vector<api::Term>& terms);
@@ -1004,7 +1005,7 @@ class CVC4_PUBLIC BlockModelValuesCommand : public Command
   std::vector<api::Term> d_terms;
 }; /* class BlockModelValuesCommand */
 
-class CVC4_PUBLIC GetProofCommand : public Command
+class CVC4_EXPORT GetProofCommand : public Command
 {
  public:
   GetProofCommand();
@@ -1026,7 +1027,7 @@ class CVC4_PUBLIC GetProofCommand : public Command
   std::string d_result;
 }; /* class GetProofCommand */
 
-class CVC4_PUBLIC GetInstantiationsCommand : public Command
+class CVC4_EXPORT GetInstantiationsCommand : public Command
 {
  public:
   GetInstantiationsCommand();
@@ -1045,7 +1046,7 @@ class CVC4_PUBLIC GetInstantiationsCommand : public Command
   api::Solver* d_solver;
 }; /* class GetInstantiationsCommand */
 
-class CVC4_PUBLIC GetSynthSolutionCommand : public Command
+class CVC4_EXPORT GetSynthSolutionCommand : public Command
 {
  public:
   GetSynthSolutionCommand();
@@ -1073,7 +1074,7 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  * find a predicate P, then the output response of this command is: (define-fun
  * s () Bool P)
  */
-class CVC4_PUBLIC GetInterpolCommand : public Command
+class CVC4_EXPORT GetInterpolCommand : public Command
 {
  public:
   GetInterpolCommand(const std::string& name, api::Term conj);
@@ -1123,7 +1124,7 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
  * A grammar G can be optionally provided to indicate the syntactic restrictions
  * on the possible solutions returned.
  */
-class CVC4_PUBLIC GetAbductCommand : public Command
+class CVC4_EXPORT GetAbductCommand : public Command
 {
  public:
   GetAbductCommand(const std::string& name, api::Term conj);
@@ -1162,7 +1163,7 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   api::Term d_result;
 }; /* class GetAbductCommand */
 
-class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
+class CVC4_EXPORT GetQuantifierEliminationCommand : public Command
 {
  protected:
   api::Term d_term;
@@ -1188,7 +1189,7 @@ class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetQuantifierEliminationCommand */
 
-class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
+class CVC4_EXPORT GetUnsatAssumptionsCommand : public Command
 {
  public:
   GetUnsatAssumptionsCommand();
@@ -1207,7 +1208,7 @@ class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
   std::vector<api::Term> d_result;
 }; /* class GetUnsatAssumptionsCommand */
 
-class CVC4_PUBLIC GetUnsatCoreCommand : public Command
+class CVC4_EXPORT GetUnsatCoreCommand : public Command
 {
  public:
   GetUnsatCoreCommand();
@@ -1231,7 +1232,7 @@ class CVC4_PUBLIC GetUnsatCoreCommand : public Command
   std::vector<api::Term> d_result;
 }; /* class GetUnsatCoreCommand */
 
-class CVC4_PUBLIC GetAssertionsCommand : public Command
+class CVC4_EXPORT GetAssertionsCommand : public Command
 {
  protected:
   std::string d_result;
@@ -1251,7 +1252,7 @@ class CVC4_PUBLIC GetAssertionsCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetAssertionsCommand */
 
-class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
+class CVC4_EXPORT SetBenchmarkStatusCommand : public Command
 {
  protected:
   BenchmarkStatus d_status;
@@ -1271,7 +1272,7 @@ class CVC4_PUBLIC SetBenchmarkStatusCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetBenchmarkStatusCommand */
 
-class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
+class CVC4_EXPORT SetBenchmarkLogicCommand : public Command
 {
  protected:
   std::string d_logic;
@@ -1290,7 +1291,7 @@ class CVC4_PUBLIC SetBenchmarkLogicCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetBenchmarkLogicCommand */
 
-class CVC4_PUBLIC SetInfoCommand : public Command
+class CVC4_EXPORT SetInfoCommand : public Command
 {
  protected:
   std::string d_flag;
@@ -1312,7 +1313,7 @@ class CVC4_PUBLIC SetInfoCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetInfoCommand */
 
-class CVC4_PUBLIC GetInfoCommand : public Command
+class CVC4_EXPORT GetInfoCommand : public Command
 {
  protected:
   std::string d_flag;
@@ -1335,7 +1336,7 @@ class CVC4_PUBLIC GetInfoCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetInfoCommand */
 
-class CVC4_PUBLIC SetOptionCommand : public Command
+class CVC4_EXPORT SetOptionCommand : public Command
 {
  protected:
   std::string d_flag;
@@ -1357,7 +1358,7 @@ class CVC4_PUBLIC SetOptionCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class SetOptionCommand */
 
-class CVC4_PUBLIC GetOptionCommand : public Command
+class CVC4_EXPORT GetOptionCommand : public Command
 {
  protected:
   std::string d_flag;
@@ -1380,7 +1381,7 @@ class CVC4_PUBLIC GetOptionCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class GetOptionCommand */
 
-class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
+class CVC4_EXPORT DatatypeDeclarationCommand : public Command
 {
  private:
   std::vector<api::Sort> d_datatypes;
@@ -1400,7 +1401,7 @@ class CVC4_PUBLIC DatatypeDeclarationCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DatatypeDeclarationCommand */
 
-class CVC4_PUBLIC ResetCommand : public Command
+class CVC4_EXPORT ResetCommand : public Command
 {
  public:
   ResetCommand() {}
@@ -1414,7 +1415,7 @@ class CVC4_PUBLIC ResetCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class ResetCommand */
 
-class CVC4_PUBLIC ResetAssertionsCommand : public Command
+class CVC4_EXPORT ResetAssertionsCommand : public Command
 {
  public:
   ResetAssertionsCommand() {}
@@ -1428,7 +1429,7 @@ class CVC4_PUBLIC ResetAssertionsCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class ResetAssertionsCommand */
 
-class CVC4_PUBLIC QuitCommand : public Command
+class CVC4_EXPORT QuitCommand : public Command
 {
  public:
   QuitCommand() {}
@@ -1442,7 +1443,7 @@ class CVC4_PUBLIC QuitCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class QuitCommand */
 
-class CVC4_PUBLIC CommentCommand : public Command
+class CVC4_EXPORT CommentCommand : public Command
 {
   std::string d_comment;
 
@@ -1461,7 +1462,7 @@ class CVC4_PUBLIC CommentCommand : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class CommentCommand */
 
-class CVC4_PUBLIC CommandSequence : public Command
+class CVC4_EXPORT CommandSequence : public Command
 {
  protected:
   /** All the commands to be executed (in sequence) */
@@ -1499,7 +1500,7 @@ class CVC4_PUBLIC CommandSequence : public Command
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class CommandSequence */
 
-class CVC4_PUBLIC DeclarationSequence : public CommandSequence
+class CVC4_EXPORT DeclarationSequence : public CommandSequence
 {
   void toStream(
       std::ostream& out,

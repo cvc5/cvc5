@@ -47,7 +47,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_statistics(),
       d_state(c, u, d_valuation),
       d_eagerSolver(d_state),
-      d_termReg(d_state, out, d_statistics, pnm),
+      d_termReg(d_state, d_statistics, pnm),
       d_extTheoryCb(),
       d_extTheory(d_extTheoryCb, c, u, out),
       d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, pnm),
@@ -71,6 +71,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_regexp_elim(options::regExpElimAgg(), pnm, u),
       d_stringsFmf(c, u, valuation, d_termReg)
 {
+  d_termReg.finishInit(&d_im);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -167,21 +168,7 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
 
 bool TheoryStrings::propagateLit(TNode literal)
 {
-  Debug("strings-propagate")
-      << "TheoryStrings::propagateLit(" << literal << ")" << std::endl;
-  // If already in conflict, no more propagation
-  if (d_state.isInConflict())
-  {
-    Debug("strings-propagate") << "TheoryStrings::propagateLit(" << literal
-                               << "): already in conflict" << std::endl;
-    return false;
-  }
-  // Propagate out
-  bool ok = d_out->propagate(literal);
-  if (!ok) {
-    d_state.notifyInConflict();
-  }
-  return ok;
+  return d_im.propagateLit(literal);
 }
 
 TrustNode TheoryStrings::explain(TNode literal)
@@ -455,8 +442,7 @@ bool TheoryStrings::collectModelInfoType(
               for (const Node& sl : len_splits)
               {
                 Node spl = nm->mkNode(OR, sl, sl.negate());
-                ++(d_statistics.d_lemmasCmiSplit);
-                d_out->lemma(spl);
+                d_im.lemma(spl, InferenceId::STRINGS_CMI_SPLIT);
                 Trace("strings-lemma")
                     << "Strings::CollectModelInfoSplit: " << spl << std::endl;
               }
