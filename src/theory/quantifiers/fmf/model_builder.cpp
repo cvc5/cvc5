@@ -34,6 +34,7 @@ QModelBuilder::QModelBuilder(QuantifiersState& qs, QuantifiersRegistry& qr)
     : TheoryEngineModelBuilder(),
       d_addedLemmas(0),
       d_triedLemmas(0),
+      d_qe(nullptr),
       d_qstate(qs),
       d_qreg(qr)
 {

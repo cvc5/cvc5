@@ -101,13 +101,13 @@ QuantifiersEngine::QuantifiersEngine(
           new quantifiers::FirstOrderModel(qstate, qr, tr, "FirstOrderModel"));
       d_builder.reset(new quantifiers::QModelBuilder(qstate, qr));
     }
+    d_builder->finishInit(this);
   }else{
     d_model.reset(
         new quantifiers::FirstOrderModel(qstate, qr, tr, "FirstOrderModel"));
   }
   //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
   d_model->finishInit(this);
-  d_builder->finishInit(this);
   // initialize the equality query
   d_eq_query.reset(
       new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));
