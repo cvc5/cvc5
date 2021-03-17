@@ -24,11 +24,11 @@ using namespace context;
 
 namespace test {
 
-class TestContextCDMapWhite : public TestContext
+class TestContextWhiteCDHashMap : public TestContext
 {
 };
 
-TEST_F(TestContextCDMapWhite, unreachable_save_and_restore)
+TEST_F(TestContextWhiteCDHashMap, unreachable_save_and_restore)
 {
   CDHashMap<int, int> map(d_context.get());
 
