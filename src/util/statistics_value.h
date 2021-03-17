@@ -55,6 +55,8 @@ struct StatisticBaseValue
   virtual StatViewer getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;
   virtual void print_safe(int fd) const = 0;
+
+  bool d_expert = true;
 };
 /** Writes the data to an output stream */
 inline std::ostream& operator<<(std::ostream& out,
@@ -67,7 +69,7 @@ inline std::ostream& operator<<(std::ostream& out,
 /** Holds the data for an running average statistic */
 struct StatisticAverageValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override { return get(); }
+  StatViewer getViewer() const override { return StatViewer(d_expert, get()); }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<double>(fd, get()); }
   double get() const { return d_sum / d_count; }
@@ -88,7 +90,10 @@ struct StatisticAverageValue : StatisticBaseValue
 template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override { return d_value; }
+  StatViewer getViewer() const override
+  {
+    return StatViewer(d_expert, d_value);
+  }
   void print(std::ostream& out) const override { out << d_value; }
   void print_safe(int fd) const override { safe_print<T>(fd, d_value); }
 
@@ -127,7 +132,7 @@ struct StatisticHistogramValue : StatisticBaseValue
         res.emplace(ss.str(), d_hist[i]);
       }
     }
-    return res;
+    return StatViewer(d_expert, res);
   }
   void print(std::ostream& out) const override
   {
@@ -215,7 +220,7 @@ struct StatisticHistogramValue : StatisticBaseValue
 template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override { return get(); }
+  StatViewer getViewer() const override { return StatViewer(d_expert, get()); }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<T>(fd, get()); }
   void commit() { d_committed = *d_value; }
@@ -234,7 +239,10 @@ struct StatisticReferenceValue : StatisticBaseValue
 template <typename T>
 struct StatisticSizeValue : StatisticBaseValue
 {
-  StatViewer getViewer() const override { return static_cast<int64_t>(get()); }
+  StatViewer getViewer() const override
+  {
+    return StatViewer(d_expert, static_cast<int64_t>(get()));
+  }
   void print(std::ostream& out) const override { out << get(); }
   void print_safe(int fd) const override { safe_print<size_t>(fd, get()); }
   void commit() { d_committed = d_value->size(); }
@@ -257,7 +265,11 @@ struct StatisticTimerValue : StatisticBaseValue
   {
   };
   /** Returns the number of milliseconds */
-  StatViewer getViewer() const override { return static_cast<int64_t>(get() / std::chrono::milliseconds(1)); }
+  StatViewer getViewer() const override
+  {
+    return StatViewer(
+        d_expert, static_cast<int64_t>(get() / std::chrono::milliseconds(1)));
+  }
   /** Prints seconds in fixed-point format */
   void print(std::ostream& out) const override
   {
@@ -265,8 +277,8 @@ struct StatisticTimerValue : StatisticBaseValue
     duration dur = get();
 
     out << (dur / std::chrono::seconds(1)) << "." << std::setfill('0')
-              << std::setw(9) << std::right
-              << (dur % std::chrono::seconds(1)).count();
+        << std::setw(9) << std::right
+        << (dur % std::chrono::seconds(1)).count();
   }
   /** Prints seconds in fixed-point format */
   void print_safe(int fd) const override

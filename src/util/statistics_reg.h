@@ -53,53 +53,56 @@ class StatisticRegistry
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const StatisticRegistry& sr);
+  /** Preregister public statistics */
+  StatisticRegistry();
 
   /** Register a new running average statistic for `name` */
-  AverageStats registerAverage(const std::string& name)
+  AverageStats registerAverage(const std::string& name, bool expert = true)
   {
-    return registerStat<AverageStats>(name);
+    return registerStat<AverageStats>(name, expert);
   }
   /** Register a new histogram statistic for `name` */
-  template<typename T>
-  HistogramStats<T> registerHistogram(const std::string& name)
+  template <typename T>
+  HistogramStats<T> registerHistogram(const std::string& name,
+                                      bool expert = true)
   {
-    return registerStat<HistogramStats<T>>(name);
+    return registerStat<HistogramStats<T>>(name, expert);
   }
   /** Register a new integer statistic for `name` */
-  IntStats registerInt(const std::string& name)
+  IntStats registerInt(const std::string& name, bool expert = true)
   {
-    return registerStat<IntStats>(name);
+    return registerStat<IntStats>(name, expert);
   }
   /** Register a new reference statistic for `name` */
-  template<typename T>
-  ReferenceStat<T> registerReference(const std::string& name, const T& t)
+  template <typename T>
+  ReferenceStat<T> registerReference(const std::string& name,
+                                     const T& t,
+                                     bool expert = true)
   {
-    ReferenceStat<T> res = registerStat<ReferenceStat<T>>(name);
+    ReferenceStat<T> res = registerStat<ReferenceStat<T>>(name, expert);
     res.set(t);
     return res;
   }
   /** Register a new container size statistic for `name` */
-  template<typename T>
-  SizeStat<T> registerSize(const std::string& name, const T& t)
+  template <typename T>
+  SizeStat<T> registerSize(const std::string& name,
+                           const T& t,
+                           bool expert = true)
   {
-    SizeStat<T> res = registerStat<SizeStat<T>>(name);
+    SizeStat<T> res = registerStat<SizeStat<T>>(name, expert);
     res.set(t);
     return res;
   }
   /** Register a new timer statistic for `name` */
-  TimerStats registerTimer(const std::string& name)
+  TimerStats registerTimer(const std::string& name, bool expert = true)
   {
-    return registerStat<TimerStats>(name);
+    return registerStat<TimerStats>(name, expert);
   }
 
   /** begin iteration */
-  auto begin() const {
-    return d_stats.begin();
-  }
+  auto begin() const { return d_stats.begin(); }
   /** end iteration */
-  auto end() const {
-    return d_stats.end();
-  }
+  auto end() const { return d_stats.end(); }
 
  private:
   /**
@@ -109,17 +112,22 @@ class StatisticRegistry
    * statistic using `typeid`.
    */
   template <typename Stat>
-  Stat registerStat(const std::string& name)
+  Stat registerStat(const std::string& name, bool expert)
   {
     auto it = d_stats.find(name);
     if (it == d_stats.end())
     {
-      it = d_stats.emplace(name, std::make_unique<typename Stat::stat_type>()).first;
+      it = d_stats.emplace(name, std::make_unique<typename Stat::stat_type>())
+               .first;
+      it->second->d_expert = expert;
     }
     auto* ptr = it->second.get();
     Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
         << "Statistic value " << name
         << " was registered again with a different type.";
+    Assert(ptr->d_expert == expert)
+        << "Statistic value " << name << " was previously registered as "
+        << (ptr->d_expert ? "expert" : "public");
     return Stat(static_cast<typename Stat::stat_type*>(ptr));
   }
 

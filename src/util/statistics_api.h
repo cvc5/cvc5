@@ -81,17 +81,44 @@ std::ostream& operator<<(std::ostream& os, const StatViewer& sv);
 class Statistics
 {
  public:
+  using BaseType = std::map<std::string, StatViewer>;
+
+  class iterator
+  {
+   public:
+    friend Statistics;
+    BaseType::const_reference operator*() const;
+    BaseType::const_pointer operator->() const;
+    iterator& operator++();
+    iterator operator++(int);
+    iterator& operator--();
+    iterator operator--(int);
+    bool operator==(const iterator& rhs) const;
+    bool operator!=(const iterator& rhs) const;
+
+   private:
+    iterator(BaseType::const_iterator it, const BaseType& base, bool expert);
+    bool isVisible() const;
+    BaseType::const_iterator d_it;
+    const BaseType* d_base;
+    bool d_showExpert = false;
+  };
+
   // TODO: make this private and friend with SmtEngine
   Statistics(const StatisticRegistry& reg);
   /** Retrieve the statistic with the given name. */
   const StatViewer& get(const std::string& name);
   /** begin iteration */
-  auto begin() const { return d_stats.begin(); }
+  auto begin() const { return iterator(d_stats.begin(), d_stats, false); }
   /** end iteration */
-  auto end() const { return d_stats.end(); }
+  auto end() const { return iterator(d_stats.end(), d_stats, false); }
+  /** begin iteration */
+  auto begin_all() const { return iterator(d_stats.begin(), d_stats, true); }
+  /** end iteration */
+  auto end_all() const { return iterator(d_stats.end(), d_stats, true); }
 
  private:
-  std::map<std::string, StatViewer> d_stats;
+  BaseType d_stats;
 };
 std::ostream& operator<<(std::ostream& out, const Statistics& stats);
 
