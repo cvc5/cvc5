@@ -4082,6 +4082,7 @@ const Stat::HistogramData& Stat::getHistogram() const
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
 {
   std::visit(overloaded{
+                 [&os](std::monostate v) { os << "<undefined>"; },
                  [&os](int64_t v) { os << v; },
                  [&os](uint64_t v) { os << v; },
                  [&os](double v) { os << v; },

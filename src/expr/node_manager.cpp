@@ -96,8 +96,7 @@ namespace attr {
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_statisticsRegistry(nullptr),
-      d_statisticRegistry(new StatisticRegistry()),
+    : d_statisticRegistry(new StatisticRegistry()),
       d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
       next_id(0),

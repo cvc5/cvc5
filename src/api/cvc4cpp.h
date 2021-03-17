@@ -2321,6 +2321,9 @@ class Stat
   Stat(bool expert, const T& t) : d_expert(expert), d_data(t)
   {
   }
+  Stat(bool expert) : d_expert(expert)
+  {
+  }
   using HistogramData = std::map<std::string, uint64_t>;
 
   /** Is this value intended for experts only? */
@@ -2346,7 +2349,7 @@ class Stat
  private:
   /** Whether this statistic is only meant for experts */
   bool d_expert;
-  std::variant<int64_t, double, std::string, HistogramData> d_data;
+  std::variant<std::monostate, int64_t, double, std::string, HistogramData> d_data;
 };
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv);

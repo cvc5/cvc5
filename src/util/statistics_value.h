@@ -220,15 +220,45 @@ template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
   api::Stat getViewer() const override {
-    if constexpr (std::is_integral_v<T>) {
-      return api::Stat(d_expert, static_cast<int64_t>(get()));
+    if (d_committed) {
+      if constexpr (std::is_integral_v<T>) {
+        return api::Stat(d_expert, static_cast<int64_t>(*d_committed));
+      } else {
+        return api::Stat(d_expert, *d_committed);
+      }
+    } else if (d_value != nullptr) {
+      if constexpr (std::is_integral_v<T>) {
+        return api::Stat(d_expert, static_cast<int64_t>(*d_value));
+      } else {
+        return api::Stat(d_expert, *d_value);
+      }
     } else {
-      return api::Stat(d_expert, get());
+      return api::Stat(d_expert);
     }
   }
-  void print(std::ostream& out) const override { out << get(); }
-  void print_safe(int fd) const override { safe_print<T>(fd, get()); }
-  void commit() { d_committed = *d_value; }
+  void print(std::ostream& out) const override {
+    if (d_committed) {
+      out << *d_committed;
+    } else if (d_value != nullptr) {
+      out << *d_value;
+    } else {
+      out << "<undefined>";
+    }
+  }
+  void print_safe(int fd) const override {
+    if (d_committed) {
+      safe_print<T>(fd, *d_committed);
+    } else if (d_value != nullptr) {
+      safe_print<T>(fd, *d_value);
+    } else {
+      safe_print(fd, "<undefined>");
+    }
+  }
+  void commit() {
+    if (d_value != nullptr) {
+      d_committed = *d_value;
+    }
+  }
   const T& get() const { return d_committed ? *d_committed : *d_value; }
 
   const T* d_value = nullptr;
@@ -246,11 +276,37 @@ struct StatisticSizeValue : StatisticBaseValue
 {
   api::Stat getViewer() const override
   {
-    return api::Stat(d_expert, static_cast<int64_t>(get()));
+    if (d_committed) {
+      return api::Stat(d_expert, static_cast<int64_t>(*d_committed));
+    } else if (d_value != nullptr) {
+      return api::Stat(d_expert, static_cast<int64_t>(d_value->size()));
+    } else {
+      return api::Stat(d_expert);
+    }
   }
-  void print(std::ostream& out) const override { out << get(); }
-  void print_safe(int fd) const override { safe_print<size_t>(fd, get()); }
-  void commit() { d_committed = d_value->size(); }
+  void print(std::ostream& out) const override {
+    if (d_committed) {
+      out << *d_committed;
+    } else if (d_value != nullptr) {
+      out << d_value->size();
+    } else {
+      out << "<undefined>";
+    }
+  }
+  void print_safe(int fd) const override {
+    if (d_committed) {
+      safe_print(fd, *d_committed);
+    } else if (d_value != nullptr) {
+      safe_print(fd, d_value->size());
+    } else {
+      safe_print(fd, "<undefined>");
+    }
+  }
+  void commit() {
+    if (d_value != nullptr) {
+      d_committed = d_value->size();
+    }
+  }
   size_t get() const { return d_committed ? *d_committed : d_value->size(); }
 
   const T* d_value = nullptr;
