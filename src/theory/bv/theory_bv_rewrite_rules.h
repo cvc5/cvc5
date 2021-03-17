@@ -28,7 +28,7 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -389,7 +389,7 @@ class RewriteRule {
   // public:
 
   //   /** Number of applications of this rule */
-  //   IntStat d_ruleApplications;
+  //   IntStats d_ruleApplications;
 
   //   /** Constructor */
   //   RuleStatistics()

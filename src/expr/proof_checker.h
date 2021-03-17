@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 #include "expr/proof_rule.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_histogram.h"
 
 namespace CVC4 {
@@ -91,11 +91,10 @@ class ProofCheckerStatistics
 {
  public:
   ProofCheckerStatistics();
-  ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
-  IntegralHistogramStat<PfRule> d_ruleChecks;
+  HistogramStats<PfRule> d_ruleChecks;
   /** Total number of rule checks */
-  IntStat d_totalRuleChecks;
+  IntStats d_totalRuleChecks;
 };
 
 /** A class for checking proofs */

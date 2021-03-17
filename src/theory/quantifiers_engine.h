@@ -24,7 +24,9 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
+#include "theory/quantifiers/quantifiers_registry.h"
+#include "theory/quantifiers/term_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 
@@ -209,18 +211,17 @@ public:
  class Statistics
  {
   public:
-    TimerStat d_time;
-    TimerStat d_qcf_time;
-    TimerStat d_ematching_time;
-    IntStat d_num_quant;
-    IntStat d_instantiation_rounds;
-    IntStat d_instantiation_rounds_lc;
-    IntStat d_triggers;
-    IntStat d_simple_triggers;
-    IntStat d_multi_triggers;
-    IntStat d_red_alpha_equiv;
+    TimerStats d_time;
+    TimerStats d_qcf_time;
+    TimerStats d_ematching_time;
+    IntStats d_num_quant;
+    IntStats d_instantiation_rounds;
+    IntStats d_instantiation_rounds_lc;
+    IntStats d_triggers;
+    IntStats d_simple_triggers;
+    IntStats d_multi_triggers;
+    IntStats d_red_alpha_equiv;
     Statistics();
-    ~Statistics();
   };/* class QuantifiersEngine::Statistics */
   Statistics d_statistics;
 

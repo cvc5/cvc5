@@ -33,7 +33,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -112,25 +112,25 @@ class TheoryArrays : public Theory {
   // Statistics
 
   /** number of Row lemmas */
-  IntStat d_numRow;
+  IntStats d_numRow;
   /** number of Ext lemmas */
-  IntStat d_numExt;
+  IntStats d_numExt;
   /** number of propagations */
-  IntStat d_numProp;
+  IntStats d_numProp;
   /** number of explanations */
-  IntStat d_numExplain;
+  IntStats d_numExplain;
   /** calls to non-linear */
-  IntStat d_numNonLinear;
+  IntStats d_numNonLinear;
   /** splits on array variables */
-  IntStat d_numSharedArrayVarSplits;
+  IntStats d_numSharedArrayVarSplits;
   /** splits in getModelVal */
-  IntStat d_numGetModelValSplits;
+  IntStats d_numGetModelValSplits;
   /** conflicts in getModelVal */
-  IntStat d_numGetModelValConflicts;
+  IntStats d_numGetModelValConflicts;
   /** splits in setModelVal */
-  IntStat d_numSetModelValSplits;
+  IntStats d_numSetModelValSplits;
   /** conflicts in setModelVal */
-  IntStat d_numSetModelValConflicts;
+  IntStats d_numSetModelValConflicts;
 
  public:
   TheoryArrays(context::Context* c,

@@ -67,6 +67,7 @@
 #include "theory/theory_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "util/statistics_reg.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"
@@ -124,7 +125,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // non-null. This may throw an options exception.
   d_env->setOptions(optr);
   // now construct the statistics registry
-  d_statisticsRegistry.reset(new StatisticsRegistry());
+  d_statisticsRegistry.reset(new StatisticRegistry());
   // initialize the environment, which keeps a pointer to statistics registry
   // and sets up resource manager
   d_env->setStatisticsRegistry(d_statisticsRegistry.get());
@@ -513,23 +514,22 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    StatisticsRegistry* sr = getNodeManager()->getStatisticsRegistry();
-    for (StatisticsRegistry::const_iterator i = sr->begin(); i != sr->end();
-         ++i)
-    {
-      vector<SExpr> v;
-      v.push_back((*i).first);
-      v.push_back((*i).second);
-      stats.push_back(v);
+    const StatisticRegistry& sr = getNodeManager()->getStatisticRegistry();
+    for (const auto& s: sr) {
+        std::stringstream ss;
+        s.second->print(ss);
+        vector<SExpr> v;
+        v.push_back(s.first);
+        v.push_back(ss.str());
+        stats.push_back(v);
     }
-    for (StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
-         i != d_statisticsRegistry->end();
-         ++i)
-    {
-      vector<SExpr> v;
-      v.push_back((*i).first);
-      v.push_back((*i).second);
-      stats.push_back(v);
+    for (const auto& s: *d_statisticsRegistry) {
+        std::stringstream ss;
+        s.second->print(ss);
+        vector<SExpr> v;
+        v.push_back(s.first);
+        v.push_back(ss.str());
+        stats.push_back(v);
     }
     return SExpr(stats);
   }
@@ -854,14 +854,14 @@ void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
 
 void SmtEngine::notifyPushPost()
 {
-  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+  TimerStats::CodeTimers pushPopTimer(d_stats->d_pushPopTime);
   Assert(getPropEngine() != nullptr);
   getPropEngine()->push();
 }
 
 void SmtEngine::notifyPopPre()
 {
-  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+  TimerStats::CodeTimers pushPopTimer(d_stats->d_pushPopTime);
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   pe->pop();
@@ -984,7 +984,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
+        TimerStats::CodeTimers checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
         checkUnsatCore();
       }
     }
@@ -1404,9 +1404,9 @@ void SmtEngine::checkProof()
   }
 }
 
-StatisticsRegistry* SmtEngine::getStatisticsRegistry()
+StatisticRegistry& SmtEngine::getStatisticsRegistry()
 {
-  return d_statisticsRegistry.get();
+  return *d_statisticsRegistry;
 }
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
@@ -1500,7 +1500,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Assert(al != nullptr)
       << "don't have an assertion list to check in SmtEngine::checkModel()";
 
-  TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
+  TimerStats::CodeTimers checkModelTimer(d_stats->d_checkModelTime);
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   Model* m = getAvailableModel("check model");
@@ -1889,26 +1889,29 @@ NodeManager* SmtEngine::getNodeManager() const
   return d_env->getNodeManager();
 }
 
-Statistics SmtEngine::getStatistics() const
+api::Statistics SmtEngine::getStatistics() const
 {
-  return Statistics(*d_statisticsRegistry);
+  return api::Statistics(*d_statisticsRegistry);
 }
 
 SExpr SmtEngine::getStatistic(std::string name) const
 {
-  return d_statisticsRegistry->getStatistic(name);
+  const auto* val = d_statisticsRegistry->get(name);
+  std::stringstream ss;
+  val->print(ss);
+  return SExpr({SExpr(name), SExpr(ss.str())});
 }
 
 void SmtEngine::flushStatistics(std::ostream& out) const
 {
-  getNodeManager()->getStatisticsRegistry()->flushInformation(out);
-  d_statisticsRegistry->flushInformation(out);
+  getNodeManager()->getStatisticRegistry().print(out);
+  d_statisticsRegistry->print(out);
 }
 
 void SmtEngine::safeFlushStatistics(int fd) const
 {
-  getNodeManager()->getStatisticsRegistry()->safeFlushInformation(fd);
-  d_statisticsRegistry->safeFlushInformation(fd);
+  getNodeManager()->getStatisticRegistry().print_safe(fd);
+  d_statisticsRegistry->print_safe(fd);
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,

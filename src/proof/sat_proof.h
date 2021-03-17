@@ -30,8 +30,7 @@
 #include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 // Forward declarations.
 namespace CVC4 {
@@ -282,16 +281,15 @@ class TSatProof {
 
   std::unordered_map<ClauseId, int> d_glueMap;
   struct Statistics {
-    IntStat d_numLearnedClauses;
-    IntStat d_numLearnedInProof;
-    IntStat d_numLemmasInProof;
-    AverageStat d_avgChainLength;
-    IntegralHistogramStat<uint64_t> d_resChainLengths;
-    IntegralHistogramStat<uint64_t> d_usedResChainLengths;
-    IntegralHistogramStat<uint64_t> d_clauseGlue;
-    IntegralHistogramStat<uint64_t> d_usedClauseGlue;
+    IntStats d_numLearnedClauses;
+    IntStats d_numLearnedInProof;
+    IntStats d_numLemmasInProof;
+    AverageStats d_avgChainLength;
+    HistogramStats<uint64_t> d_resChainLengths;
+    HistogramStats<uint64_t> d_usedResChainLengths;
+    HistogramStats<uint64_t> d_clauseGlue;
+    HistogramStats<uint64_t> d_usedClauseGlue;
     Statistics(const std::string& name);
-    ~Statistics();
   };
 
   std::string d_name;

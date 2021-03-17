@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "theory/output_channel.h"
 #include "theory/trust_node.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_histogram.h"
 
 namespace CVC4 {
@@ -443,11 +443,11 @@ class TheoryInferenceManager
   /** The number of internal facts added since the last call to reset. */
   uint32_t d_numCurrentFacts;
   /** Statistics for conflicts sent via this inference manager. */
-  IntegralHistogramStat<InferenceId> d_conflictIdStats;
+  HistogramStats<InferenceId> d_conflictIdStats;
   /** Statistics for facts sent via this inference manager. */
-  IntegralHistogramStat<InferenceId> d_factIdStats;
+  HistogramStats<InferenceId> d_factIdStats;
   /** Statistics for lemmas sent via this inference manager. */
-  IntegralHistogramStat<InferenceId> d_lemmaIdStats;
+  HistogramStats<InferenceId> d_lemmaIdStats;
 };
 
 }  // namespace theory

@@ -36,7 +36,7 @@
 #include "theory/theory_id.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -143,9 +143,9 @@ class Theory {
 
   // === STATISTICS ===
   /** time spent in check calls */
-  TimerStat d_checkTime;
+  TimerStats d_checkTime;
   /** time spent in theory combination */
-  TimerStat d_computeCareGraphTime;
+  TimerStats d_computeCareGraphTime;
 
   /**
    * The only method to add suff to the care graph.

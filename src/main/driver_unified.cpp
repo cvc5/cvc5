@@ -38,7 +38,7 @@
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 using namespace std;
 using namespace CVC4;
@@ -59,9 +59,6 @@ namespace CVC4 {
     /** A pointer to the CommandExecutor (the signal handlers need it) */
     CVC4::main::CommandExecutor* pExecutor = nullptr;
 
-    /** A pointer to the totalTime driver stat (the signal handlers need it) */
-    CVC4::TimerStat* pTotalTime = nullptr;
-
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
@@ -81,10 +78,6 @@ void printUsage(Options& opts, bool full) {
 }
 
 int runCvc4(int argc, char* argv[], Options& opts) {
-
-  // Timer statistic
-  pTotalTime = new TimerStat("driver::totalTime");
-  pTotalTime->start();
 
   // For the signal handlers' benefit
   pOptions = &opts;
@@ -183,17 +176,17 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Create the command executor to execute the parsed commands
   pExecutor = new CommandExecutor(opts);
+  
+  // Timer statistic
+  TimerStats statTotalTime = pExecutor->getStatisticsRegistry().registerTimer("driver::totalTime");
+  statTotalTime.start();
 
   int returnValue = 0;
   {
     // Timer statistic
-    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(),
-                                    pTotalTime);
 
     // Filename statistics
-    ReferenceStat<std::string> s_statFilename("driver::filename", filenameStr);
-    RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
-                                      &s_statFilename);
+    ReferenceStats<std::string> statFilenameReg = pExecutor->getStatisticsRegistry().registerReference("driver::filename", filenameStr);
     // notify SmtEngine that we are starting to parse
     pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
@@ -472,11 +465,11 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat<api::Result> s_statSatResult("driver::sat/unsat", result);
-    RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
-                                       &s_statSatResult);
+    std::stringstream ss;
+    ss << result;
+    pExecutor->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat", ss.str());
 
-    pTotalTime->stop();
+    statTotalTime.stop();
 
     // Tim: I think that following comment is out of date?
     // Set the global executor pointer to nullptr first.  If we get a
@@ -496,10 +489,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // On exceptional exit, these are leaked, but that's okay... they
   // need to be around in that case for main() to print statistics.
-  delete pTotalTime;
   delete pExecutor;
 
-  pTotalTime = nullptr;
   pExecutor = nullptr;
 
   signal_handlers::cleanup();

@@ -75,10 +75,10 @@ class CryptoMinisatSolver : public SatSolver
   {
    public:
     StatisticsRegistry* d_registry;
-    IntStat d_statCallsToSolve;
-    IntStat d_xorClausesAdded;
-    IntStat d_clausesAdded;
-    TimerStat d_solveTime;
+    IntStats d_statCallsToSolve;
+    IntStats d_xorClausesAdded;
+    IntStats d_clausesAdded;
+    TimerStats d_solveTime;
     bool d_registerStats;
     Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();

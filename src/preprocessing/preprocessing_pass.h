@@ -33,8 +33,7 @@
 
 #include <string>
 
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -77,7 +76,7 @@ class PreprocessingPass {
   /* Name of pass */
   std::string d_name;
   /* Timer for registering the preprocessing time of this pass */
-  TimerStat d_timer;
+  TimerStats d_timer;
 };
 
 }  // namespace preprocessing

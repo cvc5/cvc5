@@ -29,7 +29,7 @@
 #include "theory/theory.h"
 #include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {

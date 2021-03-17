@@ -46,24 +46,16 @@ Info::~Info() {
 
 ArrayInfo::ArrayInfo(context::Context* c, Backtracker<TNode>* b, std::string statisticsPrefix)
     : ct(c), bck(b), info_map(),
-      d_mergeInfoTimer(statisticsPrefix + "theory::arrays::mergeInfoTimer"),
-      d_avgIndexListLength(statisticsPrefix + "theory::arrays::avgIndexListLength"),
-      d_avgStoresListLength(statisticsPrefix + "theory::arrays::avgStoresListLength"),
-      d_avgInStoresListLength(statisticsPrefix + "theory::arrays::avgInStoresListLength"),
-      d_listsCount(statisticsPrefix + "theory::arrays::listsCount",0),
-      d_callsMergeInfo(statisticsPrefix + "theory::arrays::callsMergeInfo",0),
-      d_maxList(statisticsPrefix + "theory::arrays::maxList",0),
-      d_tableSize(statisticsPrefix + "theory::arrays::infoTableSize", info_map) {
+      d_mergeInfoTimer(smtStatisticsRegistry().registerTimer(statisticsPrefix + "theory::arrays::mergeInfoTimer")),
+      d_avgIndexListLength(smtStatisticsRegistry().registerAverage(statisticsPrefix + "theory::arrays::avgIndexListLength")),
+      d_avgStoresListLength(smtStatisticsRegistry().registerAverage(statisticsPrefix + "theory::arrays::avgStoresListLength")),
+      d_avgInStoresListLength(smtStatisticsRegistry().registerAverage(statisticsPrefix + "theory::arrays::avgInStoresListLength")),
+      d_listsCount(smtStatisticsRegistry().registerInt(statisticsPrefix + "theory::arrays::listsCount")),
+      d_callsMergeInfo(smtStatisticsRegistry().registerInt(statisticsPrefix + "theory::arrays::callsMergeInfo")),
+      d_maxList(smtStatisticsRegistry().registerInt(statisticsPrefix + "theory::arrays::maxList")),
+      d_tableSize(smtStatisticsRegistry().registerSize<CNodeInfoMap>(statisticsPrefix + "theory::arrays::infoTableSize", info_map)) {
   emptyList = new(true) CTNodeList(ct);
   emptyInfo = new Info(ct, bck);
-  smtStatisticsRegistry()->registerStat(&d_mergeInfoTimer);
-  smtStatisticsRegistry()->registerStat(&d_avgIndexListLength);
-  smtStatisticsRegistry()->registerStat(&d_avgStoresListLength);
-  smtStatisticsRegistry()->registerStat(&d_avgInStoresListLength);
-  smtStatisticsRegistry()->registerStat(&d_listsCount);
-  smtStatisticsRegistry()->registerStat(&d_callsMergeInfo);
-  smtStatisticsRegistry()->registerStat(&d_maxList);
-  smtStatisticsRegistry()->registerStat(&d_tableSize);
 }
 
 ArrayInfo::~ArrayInfo() {
@@ -76,14 +68,6 @@ ArrayInfo::~ArrayInfo() {
   }
   emptyList->deleteSelf();
   delete emptyInfo;
-  smtStatisticsRegistry()->unregisterStat(&d_mergeInfoTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_avgIndexListLength);
-  smtStatisticsRegistry()->unregisterStat(&d_avgStoresListLength);
-  smtStatisticsRegistry()->unregisterStat(&d_avgInStoresListLength);
-  smtStatisticsRegistry()->unregisterStat(&d_listsCount);
-  smtStatisticsRegistry()->unregisterStat(&d_callsMergeInfo);
-  smtStatisticsRegistry()->unregisterStat(&d_maxList);
-  smtStatisticsRegistry()->unregisterStat(&d_tableSize);
 }
 
 bool inList(const CTNodeList* l, const TNode el) {
@@ -430,7 +414,7 @@ const CTNodeList* ArrayInfo::getInStores(const TNode a) const{
 
 void ArrayInfo::mergeInfo(const TNode a, const TNode b){
   // can't have assertion that find(b) = a !
-  TimerStat::CodeTimer codeTimer(d_mergeInfoTimer);
+  TimerStats::CodeTimers codeTimer(d_mergeInfoTimer);
   ++d_callsMergeInfo;
 
   Trace("arrays-mergei")<<"Arrays::mergeInfo merging "<<a<<"\n";

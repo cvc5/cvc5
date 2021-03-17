@@ -20,7 +20,7 @@
 #include "expr/kind.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_histogram.h"
 
 namespace CVC4 {
@@ -52,11 +52,10 @@ class SequencesStatistics
 {
  public:
   SequencesStatistics();
-  ~SequencesStatistics();
   /** Number of calls to run a check where strategy is present */
-  IntStat d_checkRuns;
+  IntStats d_checkRuns;
   /** Number of calls to run the strategy */
-  IntStat d_strategyRuns;
+  IntStats d_strategyRuns;
   //--------------- inferences
   /**
    * Counts the number of applications of each type of inference that were not
@@ -64,36 +63,36 @@ class SequencesStatistics
    * TheoryInferenceManager, i.e.
    * (theory::strings::inferences{Facts,Lemmas,Conflicts}).
    */
-  IntegralHistogramStat<InferenceId> d_inferencesNoPf;
+  HistogramStats<InferenceId> d_inferencesNoPf;
   /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or
    * EXTF_N inferences.
    */
-  IntegralHistogramStat<Kind> d_cdSimplifications;
+  HistogramStats<Kind> d_cdSimplifications;
   /**
    * Counts the number of applications of each type of reduction. The sum of
    * this map is equal to the number of REDUCTION inferences (when
    * options::stringLazyPreproc is true).
    */
-  IntegralHistogramStat<Kind> d_reductions;
+  HistogramStats<Kind> d_reductions;
   /**
    * Counts the number of applications of each type of regular expression
    * positive (resp. negative) unfoldings. The sum of this map is equal to the
    * number of RE_UNFOLD_POS (resp. RE_UNFOLD_NEG) inferences.
    */
-  IntegralHistogramStat<Kind> d_regexpUnfoldingsPos;
-  IntegralHistogramStat<Kind> d_regexpUnfoldingsNeg;
+  HistogramStats<Kind> d_regexpUnfoldingsPos;
+  HistogramStats<Kind> d_regexpUnfoldingsNeg;
   //--------------- end of inferences
   /** Counts the number of applications of each type of rewrite rule */
-  IntegralHistogramStat<Rewrite> d_rewrites;
+  HistogramStats<Rewrite> d_rewrites;
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
-  IntStat d_conflictsEqEngine;
+  IntStats d_conflictsEqEngine;
   /** Number of eager conflicts */
-  IntStat d_conflictsEager;
+  IntStats d_conflictsEager;
   /** Number of inference conflicts */
-  IntStat d_conflictsInfer;
+  IntStats d_conflictsInfer;
   //--------------- end of conflicts
 };
 

@@ -29,7 +29,7 @@
 #include "theory/arith/partial_model.h"
 #include "theory/arith/tableau_sizes.h"
 #include "util/bin_heap.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -397,16 +397,15 @@ public:
 private:
   class Statistics {
   public:
-    IntStat d_enqueues;
-    IntStat d_enqueuesCollection;
-    IntStat d_enqueuesDiffMode;
-    IntStat d_enqueuesVarOrderMode;
+    IntStats d_enqueues;
+    IntStats d_enqueuesCollection;
+    IntStats d_enqueuesDiffMode;
+    IntStats d_enqueuesVarOrderMode;
 
-    IntStat d_enqueuesCollectionDuplicates;
-    IntStat d_enqueuesVarOrderModeDuplicates;
+    IntStats d_enqueuesCollectionDuplicates;
+    IntStats d_enqueuesVarOrderModeDuplicates;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

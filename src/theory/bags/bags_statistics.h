@@ -18,7 +18,7 @@
 #define CVC4__THEORY__BAGS_STATISTICS_H
 
 #include "theory/bags/rewrites.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_histogram.h"
 
 namespace CVC4 {
@@ -32,10 +32,9 @@ class BagsStatistics
 {
  public:
   BagsStatistics();
-  ~BagsStatistics();
 
   /** Counts the number of applications of each type of rewrite rule */
-  IntegralHistogramStat<Rewrite> d_rewrites;
+  HistogramStats<Rewrite> d_rewrites;
 };
 
 }  // namespace bags

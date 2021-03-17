@@ -112,7 +112,7 @@ SatVariable KissatSolver::falseVar() { return d_false; }
 
 SatValue KissatSolver::solve()
 {
-  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  TimerStats::CodeTimers codeTimer(d_statistics.d_solveTime);
   SatValue res = toSatValue(kissat_solve(d_solver));
   d_okay = (res == SAT_VALUE_TRUE);
   ++d_statistics.d_numSatCalls;

@@ -54,7 +54,7 @@
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "smt/smt_statistics_registry.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -136,21 +136,20 @@ private:
   /** number of new clauses that come from the SymmetryBreaker */
   struct Statistics {
     /** number of new clauses that come from the SymmetryBreaker */
-    IntStat d_clauses;
-    IntStat d_units;
+    IntStats d_clauses;
+    IntStats d_units;
     /** number of potential permutation sets we found */
-    IntStat d_permutationSetsConsidered;
+    IntStats d_permutationSetsConsidered;
     /** number of invariant permutation sets we found */
-    IntStat d_permutationSetsInvariant;
+    IntStats d_permutationSetsInvariant;
     /** time spent in invariantByPermutations() */
-    TimerStat d_invariantByPermutationsTimer;
+    TimerStats d_invariantByPermutationsTimer;
     /** time spent in selectTerms() */
-    TimerStat d_selectTermsTimer;
+    TimerStats d_selectTermsTimer;
     /** time spent in initial round of normalization */
-    TimerStat d_initNormalizationTimer;
+    TimerStats d_initNormalizationTimer;
 
-    Statistics(std::string name);
-    ~Statistics();
+    Statistics(const std::string& name);
   };
 
   Statistics d_stats;

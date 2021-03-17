@@ -37,7 +37,7 @@
 #include "theory/arith/simplex_update.h"
 #include "theory/arith/tableau.h"
 #include "util/maybe.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -704,16 +704,15 @@ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    IntStat d_statPivots, d_statUpdates;
-    TimerStat d_pivotTime;
-    TimerStat d_adjTime;
+    IntStats d_statPivots, d_statUpdates;
+    TimerStats d_pivotTime;
+    TimerStats d_adjTime;
 
-    IntStat d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
-    TimerStat d_weakenTime;
-    TimerStat d_forceTime;
+    IntStats d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
+    TimerStats d_weakenTime;
+    TimerStats d_forceTime;
 
     Statistics();
-    ~Statistics();
   };
   mutable Statistics d_statistics;
 

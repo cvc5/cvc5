@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__ARITH__NL__STATS_H
 #define CVC4__THEORY__ARITH__NL__STATS_H
 
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,14 +31,13 @@ class NlStats
 {
  public:
   NlStats();
-  ~NlStats();
   /**
    * Number of calls to NonlinearExtension::modelBasedRefinement. Notice this
    * may make multiple calls to NonlinearExtension::checkLastCall.
    */
-  IntStat d_mbrRuns;
+  IntStats d_mbrRuns;
   /** Number of calls to NonlinearExtension::checkLastCall */
-  IntStat d_checkRuns;
+  IntStats d_checkRuns;
 };
 
 }  // namespace nl

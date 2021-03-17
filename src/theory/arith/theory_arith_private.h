@@ -52,7 +52,7 @@
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -779,37 +779,37 @@ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
+    IntStats d_statAssertUpperConflicts, d_statAssertLowerConflicts;
 
-    IntStat d_statUserVariables, d_statAuxiliaryVariables;
-    IntStat d_statDisequalitySplits;
-    IntStat d_statDisequalityConflicts;
-    TimerStat d_simplifyTimer;
-    TimerStat d_staticLearningTimer;
+    IntStats d_statUserVariables, d_statAuxiliaryVariables;
+    IntStats d_statDisequalitySplits;
+    IntStats d_statDisequalityConflicts;
+    TimerStats d_simplifyTimer;
+    TimerStats d_staticLearningTimer;
 
-    TimerStat d_presolveTime;
+    TimerStats d_presolveTime;
 
-    TimerStat d_newPropTime;
+    TimerStats d_newPropTime;
 
-    IntStat d_externalBranchAndBounds;
+    IntStats d_externalBranchAndBounds;
 
-    IntStat d_initialTableauSize;
-    IntStat d_currSetToSmaller;
-    IntStat d_smallerSetToCurr;
-    TimerStat d_restartTimer;
+    IntStats d_initialTableauSize;
+    IntStats d_currSetToSmaller;
+    IntStats d_smallerSetToCurr;
+    TimerStats d_restartTimer;
 
-    TimerStat d_boundComputationTime;
-    IntStat d_boundComputations, d_boundPropagations;
+    TimerStats d_boundComputationTime;
+    IntStats d_boundComputations, d_boundPropagations;
 
-    IntStat d_unknownChecks;
-    IntStat d_maxUnknownsInARow;
-    AverageStat d_avgUnknownsInARow;
+    IntStats d_unknownChecks;
+    IntStats d_maxUnknownsInARow;
+    AverageStats d_avgUnknownsInARow;
 
-    IntStat d_revertsOnConflicts;
-    IntStat d_commitsOnConflicts;
-    IntStat d_nontrivialSatChecks;
+    IntStats d_revertsOnConflicts;
+    IntStats d_commitsOnConflicts;
+    IntStats d_nontrivialSatChecks;
 
-    IntStat d_replayLogRecCount,
+    IntStats d_replayLogRecCount,
       d_replayLogRecConflictEscalation,
       d_replayLogRecEarlyExit,
       d_replayBranchCloseFailures,
@@ -826,7 +826,7 @@ private:
       d_mipExternalCuts,
       d_mipExternalBranch;
 
-    IntStat d_inSolveInteger,
+    IntStats d_inSolveInteger,
       d_branchesExhausted,
       d_execExhausted,
       d_pivotsExhausted,
@@ -839,41 +839,40 @@ private:
       d_relaxLinExhausted,
       d_relaxOthers;
 
-    IntStat d_applyRowsDeleted;
-    TimerStat d_replaySimplexTimer;
+    IntStats d_applyRowsDeleted;
+    TimerStats d_replaySimplexTimer;
 
-    TimerStat d_replayLogTimer,
+    TimerStats d_replayLogTimer,
       d_solveIntTimer,
       d_solveRealRelaxTimer;
 
-    IntStat d_solveIntCalls,
+    IntStats d_solveIntCalls,
       d_solveStandardEffort;
 
-    IntStat d_approxDisabled;
-    IntStat d_replayAttemptFailed;
+    IntStats d_approxDisabled;
+    IntStats d_replayAttemptFailed;
 
-    IntStat d_cutsRejectedDuringReplay;
-    IntStat d_cutsRejectedDuringLemmas;
+    IntStats d_cutsRejectedDuringReplay;
+    IntStats d_cutsRejectedDuringLemmas;
 
-    IntegralHistogramStat<uint32_t> d_satPivots;
-    IntegralHistogramStat<uint32_t> d_unsatPivots;
-    IntegralHistogramStat<uint32_t> d_unknownPivots;
+    HistogramStats<uint32_t> d_satPivots;
+    HistogramStats<uint32_t> d_unsatPivots;
+    HistogramStats<uint32_t> d_unknownPivots;
 
 
-    IntStat d_solveIntModelsAttempts;
-    IntStat d_solveIntModelsSuccessful;
-    TimerStat d_mipTimer;
-    TimerStat d_lpTimer;
+    IntStats d_solveIntModelsAttempts;
+    IntStats d_solveIntModelsSuccessful;
+    TimerStats d_mipTimer;
+    TimerStats d_lpTimer;
 
-    IntStat d_mipProofsAttempted;
-    IntStat d_mipProofsSuccessful;
+    IntStats d_mipProofsAttempted;
+    IntStats d_mipProofsSuccessful;
 
-    IntStat d_numBranchesFailed;
+    IntStats d_numBranchesFailed;
 
 
 
     Statistics();
-    ~Statistics();
   };
 
 

@@ -30,7 +30,7 @@ namespace CVC4 {
 
 class Listener;
 class Options;
-class StatisticsRegistry;
+class StatisticRegistry;
 
 /**
  * This class implements a easy to use wall clock timer based on std::chrono.
@@ -99,7 +99,7 @@ class ResourceManager
   };
 
   /** Construst a resource manager. */
-  ResourceManager(StatisticsRegistry& statistics_registry, Options& options);
+  ResourceManager(StatisticRegistry& statistics_registry, Options& options);
   /** Default destructor. */
   ~ResourceManager();
   /** Can not be copied. */

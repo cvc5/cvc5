@@ -36,7 +36,7 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
 {
   Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n";
 
-  TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
+  TimerStats::CodeTimers abstractionTimer(d_statistics.d_abstractionTime);
 
   TNodeSet seen;
   for (unsigned i = 0; i < assertions.size(); ++i)
@@ -527,8 +527,6 @@ void AbstractionModule::finalizeSignatures()
     d_signatureToFunc[signature] = abs_func;
     d_funcToSignature[abs_func] = signature;
   }
-
-  d_statistics.d_numFunctionsAbstracted.set(d_signatureToFunc.size());
 
   Debug("bv-abstraction") << "AbstractionModule::finalizeSignatures abstracted "
                           << d_signatureToFunc.size() << " signatures. \n";
@@ -1086,19 +1084,9 @@ AbstractionModule::ArgsTableEntry& AbstractionModule::ArgsTable::getEntry(TNode 
   return d_data.find(signature)->second;
 }
 
-AbstractionModule::Statistics::Statistics(const std::string& name)
-    : d_numFunctionsAbstracted(name + "::abstraction::NumFunctionsAbstracted",
-                               0),
-      d_numArgsSkolemized(name + "::abstraction::NumArgsSkolemized", 0),
-      d_abstractionTime(name + "::abstraction::AbstractionTime")
+AbstractionModule::Statistics::Statistics(const std::string& name, const NodeNodeMap& functionsAbstracted)
+    : d_numFunctionsAbstracted(smtStatisticsRegistry().registerSize<NodeNodeMap>(name + "::abstraction::NumFunctionsAbstracted", functionsAbstracted)),
+      d_numArgsSkolemized(smtStatisticsRegistry().registerInt(name + "::abstraction::NumArgsSkolemized")),
+      d_abstractionTime(smtStatisticsRegistry().registerTimer(name + "::abstraction::AbstractionTime"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numFunctionsAbstracted);
-  smtStatisticsRegistry()->registerStat(&d_numArgsSkolemized);
-  smtStatisticsRegistry()->registerStat(&d_abstractionTime);
-}
-
-AbstractionModule::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numFunctionsAbstracted);
-  smtStatisticsRegistry()->unregisterStat(&d_numArgsSkolemized);
-  smtStatisticsRegistry()->unregisterStat(&d_abstractionTime);
 }

@@ -25,7 +25,7 @@
 #include "theory/inference_id.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 
@@ -282,12 +282,11 @@ class Instantiate : public QuantifiersUtil
   class Statistics
   {
    public:
-    IntStat d_instantiations;
-    IntStat d_inst_duplicate;
-    IntStat d_inst_duplicate_eq;
-    IntStat d_inst_duplicate_ent;
+    IntStats d_instantiations;
+    IntStats d_inst_duplicate;
+    IntStats d_inst_duplicate_eq;
+    IntStats d_inst_duplicate_ent;
     Statistics();
-    ~Statistics();
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;
 

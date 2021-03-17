@@ -34,8 +34,7 @@
 #include "expr/node.h"
 #include "options/decision_weight.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace decision {
@@ -64,9 +63,9 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   context::CDO<unsigned>  d_prvsIndex;
   context::CDO<unsigned>  d_threshPrvsIndex;
 
-  IntStat d_helpfulness;
-  IntStat d_giveup;
-  TimerStat d_timestat;
+  IntStats d_helpfulness;
+  IntStats d_giveup;
+  TimerStats d_timestat;
 
   /**
    * A copy of the assertions that need to be justified
@@ -120,8 +119,6 @@ public:
   JustificationHeuristic(CVC4::DecisionEngine* de,
                          context::UserContext *uc,
                          context::Context *c);
-
-  ~JustificationHeuristic();
 
   prop::SatLiteral getNext(bool &stopSearch) override;
 

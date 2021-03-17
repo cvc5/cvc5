@@ -1979,7 +1979,7 @@ inline QuantConflictFind::Effort QcfEffortEnd() {
 /** check */
 void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
 {
-  CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
+  CodeTimers codeTimer(d_quantEngine->d_statistics.d_qcf_time);
   if (quant_e != QEFFORT_CONFLICT)
   {
     return;
@@ -2263,16 +2263,9 @@ void QuantConflictFind::debugPrintQuantBody( const char * c, Node q, Node n, boo
 }
 
 QuantConflictFind::Statistics::Statistics():
-  d_inst_rounds("QuantConflictFind::Inst_Rounds", 0),
-  d_entailment_checks("QuantConflictFind::Entailment_Checks",0)
+  d_inst_rounds(smtStatisticsRegistry().registerInt("QuantConflictFind::Inst_Rounds")),
+  d_entailment_checks(smtStatisticsRegistry().registerInt("QuantConflictFind::Entailment_Checks"))
 {
-  smtStatisticsRegistry()->registerStat(&d_inst_rounds);
-  smtStatisticsRegistry()->registerStat(&d_entailment_checks);
-}
-
-QuantConflictFind::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_inst_rounds);
-  smtStatisticsRegistry()->unregisterStat(&d_entailment_checks);
 }
 
 TNode QuantConflictFind::getZero( Kind k ) {

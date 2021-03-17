@@ -115,7 +115,7 @@ class SimpSolver : public Solver {
     int     merges;
     int     asymm_lits;
     int     eliminated_vars;
-  //    CVC4::TimerStat total_eliminate_time;
+  //    CVC4::TimerStats total_eliminate_time;
 
  protected:
 

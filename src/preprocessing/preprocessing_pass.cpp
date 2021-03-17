@@ -23,13 +23,14 @@
 #include "smt/output_manager.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
     AssertionPipeline* assertionsToPreprocess) {
-  TimerStat::CodeTimer codeTimer(d_timer);
+  TimerStats::CodeTimers codeTimer(d_timer);
   Trace("preprocessing") << "PRE " << d_name << std::endl;
   Chat() << d_name << "..." << std::endl;
   dumpAssertions(("pre-" + d_name).c_str(), *assertionsToPreprocess);
@@ -57,16 +58,12 @@ void PreprocessingPass::dumpAssertions(const char* key,
 
 PreprocessingPass::PreprocessingPass(PreprocessingPassContext* preprocContext,
                                      const std::string& name)
-    : d_name(name), d_timer("preprocessing::" + name) {
+    : d_name(name), d_timer(smtStatisticsRegistry().registerTimer("preprocessing::" + name)) {
   d_preprocContext = preprocContext;
-  smtStatisticsRegistry()->registerStat(&d_timer);
 }
 
 PreprocessingPass::~PreprocessingPass() {
   Assert(smt::smtEngineInScope());
-  if (smtStatisticsRegistry() != nullptr) {
-    smtStatisticsRegistry()->unregisterStat(&d_timer);
-  }
 }
 
 }  // namespace preprocessing

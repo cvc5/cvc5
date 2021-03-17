@@ -55,15 +55,9 @@ BitblastSolver::BitblastSolver(context::Context* c, BVSolverLazy* bv)
 BitblastSolver::~BitblastSolver() {}
 
 BitblastSolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::BitblastSolver::NumCallsToCheck", 0)
-  , d_numBBLemmas("theory::bv::BitblastSolver::NumTimesLemmasBB", 0)
+  : d_numCallstoCheck(smtStatisticsRegistry().registerInt("theory::bv::BitblastSolver::NumCallsToCheck"))
+  , d_numBBLemmas(smtStatisticsRegistry().registerInt("theory::bv::BitblastSolver::NumTimesLemmasBB"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->registerStat(&d_numBBLemmas);
-}
-BitblastSolver::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->unregisterStat(&d_numBBLemmas);
 }
 
 void BitblastSolver::setAbstraction(AbstractionModule* abs) {
@@ -78,7 +72,7 @@ void BitblastSolver::preRegister(TNode node) {
        node.getKind() == kind::BITVECTOR_SLT ||
        node.getKind() == kind::BITVECTOR_SLE) &&
       !d_bitblaster->hasBBAtom(node)) {
-    CodeTimer weightComputationTime(d_bv->d_statistics.d_weightComputationTimer);
+    CodeTimers weightComputationTime(d_bv->d_statistics.d_weightComputationTimer);
     d_bitblastQueue.push_back(node);
     if ((options::decisionUseWeight() || options::decisionThreshold() != 0) &&
         !node.hasAttribute(decision::DecisionWeightAttr())) {
@@ -111,7 +105,7 @@ void BitblastSolver::bitblastQueue() {
     }
     Debug("bitblast-queue") << "Bitblasting atom " << atom <<"\n";
     {
-      TimerStat::CodeTimer codeTimer(d_bitblaster->d_statistics.d_bitblastTimer);
+      TimerStats::CodeTimers codeTimer(d_bitblaster->d_statistics.d_bitblastTimer);
       d_bitblaster->bbAtom(atom);
     }
   }

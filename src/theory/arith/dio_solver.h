@@ -30,7 +30,7 @@
 #include "context/cdqueue.h"
 #include "theory/arith/normal_form.h"
 #include "util/rational.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -405,17 +405,16 @@ public:
   class Statistics {
   public:
 
-    IntStat d_conflictCalls;
-    IntStat d_cutCalls;
+    IntStats d_conflictCalls;
+    IntStats d_cutCalls;
 
-    IntStat d_cuts;
-    IntStat d_conflicts;
+    IntStats d_cuts;
+    IntStats d_conflicts;
 
-    TimerStat d_conflictTimer;
-    TimerStat d_cutTimer;
+    TimerStats d_conflictTimer;
+    TimerStats d_cutTimer;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

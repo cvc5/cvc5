@@ -25,6 +25,7 @@
 #include "theory/strings/strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
+#include "util/statistics_reg.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -33,7 +34,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics)
+SequencesRewriter::SequencesRewriter(HistogramStats<Rewrite>* statistics)
     : d_statistics(statistics), d_stringsEntail(*this)
 {
 }

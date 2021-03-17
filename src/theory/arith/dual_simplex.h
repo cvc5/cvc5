@@ -55,7 +55,7 @@
 #pragma once
 
 #include "theory/arith/simplex.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -91,23 +91,22 @@ private:
   
 
   bool processSignals(){
-    TimerStat &timer = d_statistics.d_processSignalsTime;
-    IntStat& conflictStat  = d_statistics.d_recentViolationCatches;
+    TimerStats &timer = d_statistics.d_processSignalsTime;
+    IntStats& conflictStat  = d_statistics.d_recentViolationCatches;
     return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    IntStat d_statUpdateConflicts;
-    TimerStat d_processSignalsTime;
-    IntStat d_simplexConflicts;
-    IntStat d_recentViolationCatches;
-    TimerStat d_searchTime;
+    IntStats d_statUpdateConflicts;
+    TimerStats d_processSignalsTime;
+    IntStats d_simplexConflicts;
+    IntStats d_recentViolationCatches;
+    TimerStats d_searchTime;
 
-    ReferenceStat<uint32_t> d_finalCheckPivotCounter;
+    ReferenceStats<uint32_t> d_finalCheckPivotCounter;
 
     Statistics(uint32_t& pivots);
-    ~Statistics();
   } d_statistics;
 };/* class DualSimplexDecisionProcedure */
 

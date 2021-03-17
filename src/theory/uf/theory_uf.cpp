@@ -306,7 +306,7 @@ bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 }
 
 void TheoryUF::presolve() {
-  // TimerStat::CodeTimer codeTimer(d_presolveTimer);
+  // TimerStats::CodeTimers codeTimer(d_presolveTimer);
 
   Debug("uf") << "uf: begin presolve()" << endl;
   if(options::ufSymmetryBreaker()) {
@@ -327,7 +327,7 @@ void TheoryUF::presolve() {
 }
 
 void TheoryUF::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
-  //TimerStat::CodeTimer codeTimer(d_staticLearningTimer);
+  //TimerStats::CodeTimers codeTimer(d_staticLearningTimer);
 
   vector<TNode> workList;
   workList.push_back(n);

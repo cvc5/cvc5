@@ -26,7 +26,7 @@
 #include "expr/node.h"
 #include "prop/sat_solver_types.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -114,15 +114,14 @@ class QuickXPlain
 {
   struct Statistics
   {
-    TimerStat d_xplainTime;
-    IntStat d_numSolved;
-    IntStat d_numUnknown;
-    IntStat d_numUnknownWasUnsat;
-    IntStat d_numConflictsMinimized;
-    IntStat d_finalPeriod;
-    AverageStat d_avgMinimizationRatio;
+    TimerStats d_xplainTime;
+    IntStats d_numSolved;
+    IntStats d_numUnknown;
+    IntStats d_numUnknownWasUnsat;
+    IntStats d_numConflictsMinimized;
+    IntStats d_finalPeriod;
+    AverageStats d_avgMinimizationRatio;
     Statistics(const std::string& name);
-    ~Statistics();
   };
   BVQuickCheck* d_solver;
   unsigned long d_budget;

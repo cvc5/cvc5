@@ -40,16 +40,11 @@ namespace passes {
 /* -------------------------------------------------------------------------- */
 
 NonClausalSimp::Statistics::Statistics()
-    : d_numConstantProps(
-          "preprocessing::passes::NonClausalSimp::NumConstantProps", 0)
+    : d_numConstantProps(smtStatisticsRegistry().registerInt(
+          "preprocessing::passes::NonClausalSimp::NumConstantProps"))
 {
-  smtStatisticsRegistry()->registerStat(&d_numConstantProps);
 }
 
-NonClausalSimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-}
 
 /* -------------------------------------------------------------------------- */
 

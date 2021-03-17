@@ -33,7 +33,7 @@ namespace strings {
 class SequencesRewriter : public TheoryRewriter
 {
  public:
-  SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics);
+  SequencesRewriter(HistogramStats<Rewrite>* statistics);
 
  protected:
   /** rewrite regular expression concatenation
@@ -288,7 +288,11 @@ class SequencesRewriter : public TheoryRewriter
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
   /** Reference to the rewriter statistics. */
+<<<<<<< HEAD
   IntegralHistogramStat<Rewrite>* d_statistics;
+=======
+  HistogramStats<Rewrite>* d_statistics;
+>>>>>>> 5ccc239a9... Use new statistics everywhere.
 
   /** Instance of the entailment checker for strings. */
   StringsEntail d_stringsEntail;

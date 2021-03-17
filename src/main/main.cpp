@@ -68,7 +68,6 @@ int main(int argc, char* argv[]) {
       *opts.getErr() << "(error \"" << e << "\")" << endl;
     }
     if(opts.getStatistics() && pExecutor != NULL) {
-      pTotalTime->stop();
       pExecutor->flushStatistics(*opts.getErr());
     }
   }

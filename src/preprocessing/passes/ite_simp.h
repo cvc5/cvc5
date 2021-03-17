@@ -19,7 +19,7 @@
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/util/ite_utilities.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -37,9 +37,8 @@ class ITESimp : public PreprocessingPass
  private:
   struct Statistics
   {
-    IntStat d_arithSubstitutionsAdded;
+    IntStats d_arithSubstitutionsAdded;
     Statistics();
-    ~Statistics();
   };
 
   bool doneSimpITE(AssertionPipeline *assertionsToPreprocesss);

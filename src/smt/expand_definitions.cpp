@@ -335,7 +335,7 @@ void ExpandDefs::expandAssertions(AssertionPipeline& assertions,
   Chat() << "expanding definitions in assertions..." << std::endl;
   Trace("exp-defs") << "ExpandDefs::simplify(): expanding definitions"
                     << std::endl;
-  TimerStat::CodeTimer codeTimer(d_smtStats.d_definitionExpansionTime);
+  TimerStats::CodeTimers codeTimer(d_smtStats.d_definitionExpansionTime);
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i)
   {

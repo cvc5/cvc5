@@ -21,7 +21,7 @@
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -42,11 +42,10 @@ class BVToBool : public PreprocessingPass
  private:
   struct Statistics
   {
-    IntStat d_numTermsLifted;
-    IntStat d_numAtomsLifted;
-    IntStat d_numTermsForcedLifted;
+    IntStats d_numTermsLifted;
+    IntStats d_numAtomsLifted;
+    IntStats d_numTermsForcedLifted;
     Statistics();
-    ~Statistics();
   };
   void addToBoolCache(TNode term, Node new_term);
   Node getBoolCache(TNode term) const;

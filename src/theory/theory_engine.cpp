@@ -237,7 +237,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
+      d_combineTheoriesTime(smtStatisticsRegistry().registerTimer("TheoryEngine::combineTheoriesTime")),
       d_true(),
       d_false(),
       d_interrupted(false),
@@ -258,7 +258,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_sortInfer.reset(new SortInference);
   }
 
-  smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
 }
@@ -272,8 +271,6 @@ TheoryEngine::~TheoryEngine() {
       delete d_theoryOut[theoryId];
     }
   }
-
-  smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
 }
 
 void TheoryEngine::interrupt() { d_interrupted = true; }
@@ -481,7 +478,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         // Do the combination
         Debug("theory") << "TheoryEngine::check(" << effort << "): running combination" << endl;
         {
-          TimerStat::CodeTimer combineTheoriesTimer(d_combineTheoriesTime);
+          TimerStats::CodeTimers combineTheoriesTimer(d_combineTheoriesTime);
           d_tc->combineTheories();
         }
         if(d_logicInfo.isQuantified()){

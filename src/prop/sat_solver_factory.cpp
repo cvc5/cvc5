@@ -27,19 +27,19 @@ namespace prop {
 
 BVSatSolverInterface* SatSolverFactory::createMinisat(
     context::Context* mainSatContext,
-    StatisticsRegistry* registry,
+    StatisticRegistry& registry,
     const std::string& name)
 {
   return new BVMinisatSatSolver(registry, mainSatContext, name);
 }
 
 MinisatSatSolver* SatSolverFactory::createCDCLTMinisat(
-    StatisticsRegistry* registry)
+    StatisticRegistry& registry)
 {
   return new MinisatSatSolver(registry);
 }
 
-SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
+SatSolver* SatSolverFactory::createCryptoMinisat(StatisticRegistry& registry,
                                                  const std::string& name)
 {
 #ifdef CVC4_USE_CRYPTOMINISAT
@@ -51,7 +51,7 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
 #endif
 }
 
-SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
+SatSolver* SatSolverFactory::createCadical(StatisticRegistry& registry,
                                            const std::string& name)
 {
 #ifdef CVC4_USE_CADICAL
@@ -63,7 +63,7 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
 #endif
 }
 
-SatSolver* SatSolverFactory::createKissat(StatisticsRegistry* registry,
+SatSolver* SatSolverFactory::createKissat(StatisticRegistry& registry,
                                           const std::string& name)
 {
 #ifdef CVC4_USE_KISSAT

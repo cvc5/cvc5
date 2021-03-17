@@ -25,7 +25,7 @@
 #include "util/dense_map.h"
 #include "util/maybe.h"
 #include "util/rational.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -52,14 +52,13 @@ std::ostream& operator<<(std::ostream& out, MipResult res);
 class ApproximateStatistics {
  public:
   ApproximateStatistics();
-  ~ApproximateStatistics();
 
-  IntStat d_branchMaxDepth;
-  IntStat d_branchesMaxOnAVar;
+  IntStats d_branchMaxDepth;
+  IntStats d_branchesMaxOnAVar;
 
-  TimerStat d_gaussianElimConstructTime;
-  IntStat d_gaussianElimConstruct;
-  AverageStat d_averageGuesses;
+  TimerStats d_gaussianElimConstructTime;
+  IntStats d_gaussianElimConstruct;
+  AverageStats d_averageGuesses;
 };
 
 

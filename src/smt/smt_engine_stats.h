@@ -17,8 +17,7 @@
 #ifndef CVC4__SMT__SMT_ENGINE_STATS_H
 #define CVC4__SMT__SMT_ENGINE_STATS_H
 
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace smt {
@@ -26,30 +25,29 @@ namespace smt {
 struct SmtEngineStatistics
 {
   SmtEngineStatistics();
-  ~SmtEngineStatistics();
   /** time spent in definition-expansion */
-  TimerStat d_definitionExpansionTime;
+  TimerStats d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */
-  IntStat d_numConstantProps;
+  IntStats d_numConstantProps;
   /** time spent converting to CNF */
-  TimerStat d_cnfConversionTime;
+  TimerStats d_cnfConversionTime;
   /** Number of assertions before ite removal */
-  IntStat d_numAssertionsPre;
+  IntStats d_numAssertionsPre;
   /** Number of assertions after ite removal */
-  IntStat d_numAssertionsPost;
+  IntStats d_numAssertionsPost;
   /** time spent in checkModel() */
-  TimerStat d_checkModelTime;
+  TimerStats d_checkModelTime;
   /** time spent in checkUnsatCore() */
-  TimerStat d_checkUnsatCoreTime;
+  TimerStats d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */
-  TimerStat d_solveTime;
+  TimerStats d_solveTime;
   /** time spent in pushing/popping */
-  TimerStat d_pushPopTime;
+  TimerStats d_pushPopTime;
   /** time spent in processAssertions() */
-  TimerStat d_processAssertionsTime;
+  TimerStats d_processAssertionsTime;
 
   /** Has something simplified to false? */
-  IntStat d_simplifiedToFalse;
+  IntStats d_simplifiedToFalse;
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt

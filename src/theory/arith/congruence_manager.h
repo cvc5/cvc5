@@ -30,7 +30,7 @@
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 
@@ -279,18 +279,17 @@ private:
  private:
   class Statistics {
   public:
-    IntStat d_watchedVariables;
-    IntStat d_watchedVariableIsZero;
-    IntStat d_watchedVariableIsNotZero;
+    IntStats d_watchedVariables;
+    IntStats d_watchedVariableIsZero;
+    IntStats d_watchedVariableIsNotZero;
 
-    IntStat d_equalsConstantCalls;
+    IntStats d_equalsConstantCalls;
 
-    IntStat d_propagations;
-    IntStat d_propagateConstraints;
-    IntStat d_conflicts;
+    IntStats d_propagations;
+    IntStats d_propagateConstraints;
+    IntStats d_conflicts;
 
     Statistics();
-    ~Statistics();
   } d_statistics;
 
 };/* class ArithCongruenceManager */

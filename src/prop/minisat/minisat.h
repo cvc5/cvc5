@@ -18,7 +18,7 @@
 
 #include "prop/sat_solver.h"
 #include "prop/minisat/simp/SimpSolver.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_reg.h"
 
 namespace CVC4 {
 namespace prop {
@@ -26,7 +26,7 @@ namespace prop {
 class MinisatSatSolver : public CDCLTSatSolverInterface
 {
  public:
-  MinisatSatSolver(StatisticsRegistry* registry);
+  MinisatSatSolver(StatisticRegistry& registry);
   ~MinisatSatSolver() override;
 
   static SatVariable     toSatVariable(Minisat::Var var);
@@ -103,15 +103,13 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
 
   class Statistics {
   private:
-    StatisticsRegistry* d_registry;
-    ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
-    ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
-    ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
-    ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
-    ReferenceStat<uint64_t> d_statTotLiterals;
+    ReferenceStats<int64_t> d_statStarts, d_statDecisions;
+    ReferenceStats<int64_t> d_statRndDecisions, d_statPropagations;
+    ReferenceStats<int64_t> d_statConflicts, d_statClausesLiterals;
+    ReferenceStats<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
+    ReferenceStats<int64_t> d_statTotLiterals;
   public:
-    Statistics(StatisticsRegistry* registry);
-    ~Statistics();
+    Statistics(StatisticRegistry& registry);
     void init(Minisat::SimpSolver* d_minisat);
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;

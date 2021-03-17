@@ -54,7 +54,7 @@ void Env::setOptions(Options* optr)
   }
 }
 
-void Env::setStatisticsRegistry(StatisticsRegistry* statReg)
+void Env::setStatisticsRegistry(StatisticRegistry* statReg)
 {
   d_statisticsRegistry = statReg;
   // now initialize resource manager
@@ -89,7 +89,7 @@ DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
-StatisticsRegistry* Env::getStatisticsRegistry()
+StatisticRegistry* Env::getStatisticsRegistry()
 {
   return d_statisticsRegistry;
 }

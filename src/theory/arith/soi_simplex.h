@@ -58,7 +58,7 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/simplex_update.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -147,7 +147,7 @@ private:
 
 
   // UpdateInfo selectUpdateForDualLike(ArithVar basic){
-  //   TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForDualLike);
+  //   TimerStats::CodeTimers codeTimer(d_statistics.d_selectUpdateForDualLike);
 
   //   LinearEqualityModule::UpdatePreferenceFunction upf =
   //     &LinearEqualityModule::preferWitness<true>;
@@ -157,7 +157,7 @@ private:
   // }
 
   // UpdateInfo selectUpdateForPrimal(ArithVar basic, bool useBlands){
-  //   TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForPrimal);
+  //   TimerStats::CodeTimers codeTimer(d_statistics.d_selectUpdateForPrimal);
 
   //   LinearEqualityModule::UpdatePreferenceFunction upf = useBlands ?
   //     &LinearEqualityModule::preferWitness<false>:
@@ -194,8 +194,8 @@ private:
   bool searchForFeasibleSolution(uint32_t maxIterations);
 
   bool initialProcessSignals(){
-    TimerStat &timer = d_statistics.d_initialSignalsTime;
-    IntStat& conflictStat  = d_statistics.d_initialConflicts;
+    TimerStats &timer = d_statistics.d_initialSignalsTime;
+    IntStats& conflictStat  = d_statistics.d_initialConflicts;
     return standardProcessSignals(timer, conflictStat);
   }
 
@@ -217,26 +217,25 @@ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    TimerStat d_initialSignalsTime;
-    IntStat d_initialConflicts;
+    TimerStats d_initialSignalsTime;
+    IntStats d_initialConflicts;
 
-    IntStat d_soiFoundUnsat;
-    IntStat d_soiFoundSat;
-    IntStat d_soiMissed;
+    IntStats d_soiFoundUnsat;
+    IntStats d_soiFoundSat;
+    IntStats d_soiMissed;
 
-    IntStat d_soiConflicts;
-    IntStat d_hasToBeMinimal;
-    IntStat d_maybeNotMinimal;
+    IntStats d_soiConflicts;
+    IntStats d_hasToBeMinimal;
+    IntStats d_maybeNotMinimal;
 
-    TimerStat d_soiTimer;
-    TimerStat d_soiFocusConstructionTimer;
-    TimerStat d_soiConflictMinimization;
-    TimerStat d_selectUpdateForSOI;
+    TimerStats d_soiTimer;
+    TimerStats d_soiFocusConstructionTimer;
+    TimerStats d_soiConflictMinimization;
+    TimerStats d_selectUpdateForSOI;
 
-    ReferenceStat<uint32_t> d_finalCheckPivotCounter;
+    ReferenceStats<uint32_t> d_finalCheckPivotCounter;
 
     Statistics(uint32_t& pivots);
-    ~Statistics();
   } d_statistics;
 };/* class FCSimplexDecisionProcedure */
 

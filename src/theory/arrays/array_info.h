@@ -24,7 +24,7 @@
 #include "context/backtrackable.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -109,14 +109,14 @@ private:
   /* == STATISTICS == */
 
   /** time spent in preregisterTerm() */
-  TimerStat d_mergeInfoTimer;
-  AverageStat d_avgIndexListLength;
-  AverageStat d_avgStoresListLength;
-  AverageStat d_avgInStoresListLength;
-  IntStat d_listsCount;
-  IntStat d_callsMergeInfo;
-  IntStat d_maxList;
-  SizeStat<CNodeInfoMap > d_tableSize;
+  TimerStats d_mergeInfoTimer;
+  AverageStats d_avgIndexListLength;
+  AverageStats d_avgStoresListLength;
+  AverageStats d_avgInStoresListLength;
+  IntStats d_listsCount;
+  IntStats d_callsMergeInfo;
+  IntStats d_maxList;
+  SizeStats<CNodeInfoMap> d_tableSize;
 
   /**
    * checks if a certain element is in the list l

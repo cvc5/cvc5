@@ -56,7 +56,7 @@
 
 #include "theory/arith/simplex.h"
 #include "theory/arith/approx_simplex.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -74,19 +74,18 @@ public:
   bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
 
   bool processSignals(){
-    TimerStat &timer = d_statistics.d_queueTime;
-    IntStat& conflictStat  = d_statistics.d_conflicts;
+    TimerStats &timer = d_statistics.d_queueTime;
+    IntStats& conflictStat  = d_statistics.d_conflicts;
     return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    TimerStat d_searchTime;
-    TimerStat d_queueTime;
-    IntStat d_conflicts;
+    TimerStats d_searchTime;
+    TimerStats d_queueTime;
+    IntStats d_conflicts;
 
     Statistics();
-    ~Statistics();
   } d_statistics;
 };/* class AttemptSolutionSDP */
 

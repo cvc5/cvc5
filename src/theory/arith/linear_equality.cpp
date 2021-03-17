@@ -67,41 +67,16 @@ LinearEqualityModule::LinearEqualityModule(ArithVariables& vars, Tableau& t, Bou
 {}
 
 LinearEqualityModule::Statistics::Statistics():
-  d_statPivots("theory::arith::pivots",0),
-  d_statUpdates("theory::arith::updates",0),
-  d_pivotTime("theory::arith::pivotTime"),
-  d_adjTime("theory::arith::adjTime"),
-  d_weakeningAttempts("theory::arith::weakening::attempts",0),
-  d_weakeningSuccesses("theory::arith::weakening::success",0),
-  d_weakenings("theory::arith::weakening::total",0),
-  d_weakenTime("theory::arith::weakening::time"),
-  d_forceTime("theory::arith::forcing::time")
+  d_statPivots(smtStatisticsRegistry().registerInt("theory::arith::pivots")),
+  d_statUpdates(smtStatisticsRegistry().registerInt("theory::arith::updates")),
+  d_pivotTime(smtStatisticsRegistry().registerTimer("theory::arith::pivotTime")),
+  d_adjTime(smtStatisticsRegistry().registerTimer("theory::arith::adjTime")),
+  d_weakeningAttempts(smtStatisticsRegistry().registerInt("theory::arith::weakening::attempts")),
+  d_weakeningSuccesses(smtStatisticsRegistry().registerInt("theory::arith::weakening::success")),
+  d_weakenings(smtStatisticsRegistry().registerInt("theory::arith::weakening::total")),
+  d_weakenTime(smtStatisticsRegistry().registerTimer("theory::arith::weakening::time")),
+  d_forceTime(smtStatisticsRegistry().registerTimer("theory::arith::forcing::time"))
 {
-  smtStatisticsRegistry()->registerStat(&d_statPivots);
-  smtStatisticsRegistry()->registerStat(&d_statUpdates);
-
-  smtStatisticsRegistry()->registerStat(&d_pivotTime);
-  smtStatisticsRegistry()->registerStat(&d_adjTime);
-
-  smtStatisticsRegistry()->registerStat(&d_weakeningAttempts);
-  smtStatisticsRegistry()->registerStat(&d_weakeningSuccesses);
-  smtStatisticsRegistry()->registerStat(&d_weakenings);
-  smtStatisticsRegistry()->registerStat(&d_weakenTime);
-  smtStatisticsRegistry()->registerStat(&d_forceTime);
-}
-
-LinearEqualityModule::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_statPivots);
-  smtStatisticsRegistry()->unregisterStat(&d_statUpdates);
-  smtStatisticsRegistry()->unregisterStat(&d_pivotTime);
-  smtStatisticsRegistry()->unregisterStat(&d_adjTime);
-
-
-  smtStatisticsRegistry()->unregisterStat(&d_weakeningAttempts);
-  smtStatisticsRegistry()->unregisterStat(&d_weakeningSuccesses);
-  smtStatisticsRegistry()->unregisterStat(&d_weakenings);
-  smtStatisticsRegistry()->unregisterStat(&d_weakenTime);
-  smtStatisticsRegistry()->unregisterStat(&d_forceTime);
 }
 
 void LinearEqualityModule::includeBoundUpdate(ArithVar v, const BoundsInfo& prev){
@@ -149,7 +124,7 @@ void LinearEqualityModule::applySolution(const DenseSet& newBasis, const DenseMa
 }
 
 void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
-  TimerStat::CodeTimer codeTimer(d_statistics.d_forceTime);
+  TimerStats::CodeTimers codeTimer(d_statistics.d_forceTime);
   cout << "force begin" << endl;
   DenseSet needsToBeAdded;
   for(DenseSet::const_iterator i = newBasis.begin(), i_end = newBasis.end(); i != i_end; ++i){
@@ -226,7 +201,7 @@ void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v)
 }
 
 void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
-  TimerStat::CodeTimer codeTimer(d_statistics.d_adjTime);
+  TimerStats::CodeTimers codeTimer(d_statistics.d_adjTime);
 
   Assert(!d_tableau.isBasic(x_i));
   Assert(d_areTracking);
@@ -278,7 +253,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
 void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& x_i_value){
   Assert(x_i != x_j);
 
-  TimerStat::CodeTimer codeTimer(d_statistics.d_pivotTime);
+  TimerStats::CodeTimers codeTimer(d_statistics.d_pivotTime);
 
   static int instance = 0;
 
@@ -707,7 +682,7 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
  */
 ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, FarkasConflictBuilder& fcs) const {
   Assert(!fcs.underConstruction());
-  TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
+  TimerStats::CodeTimers codeTimer(d_statistics.d_weakenTime);
 
   Debug("arith::weak") << "LinearEqualityModule::minimallyWeakConflict("
                        << aboveUpper <<", "<< basicVar << ", ...) start" << endl;

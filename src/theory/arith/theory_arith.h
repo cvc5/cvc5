@@ -44,7 +44,7 @@ class TheoryArith : public Theory {
 
   TheoryArithPrivate* d_internal;
 
-  TimerStat d_ppRewriteTimer;
+  TimerStats d_ppRewriteTimer;
 
   /** Used to prove pp-rewrites */
   EagerProofGenerator d_ppPfGen;

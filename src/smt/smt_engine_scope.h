@@ -28,7 +28,7 @@ namespace CVC4 {
 
 class ProofManager;
 class SmtEngine;
-class StatisticsRegistry;
+class StatisticRegistry;
 
 namespace smt {
 
@@ -50,7 +50,7 @@ class SmtScope : public NodeManagerScope
    * This returns the StatisticsRegistry attached to the currently in scope
    * SmtEngine.
    */
-  static StatisticsRegistry* currentStatisticsRegistry();
+  static StatisticRegistry& currentStatisticsRegistry();
 
  private:
   /** The old SmtEngine, to be restored on destruction. */

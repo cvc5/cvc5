@@ -25,8 +25,8 @@
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "prop/sat_solver.h"
 #include "util/resource_manager.h"
-#include "util/statistics_registry.h"
-#include "util/stats_timer.h"
+#include "util/statistics_stats.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace prop {
@@ -68,7 +68,7 @@ protected:
 
 public:
 
-  BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name = "");
+  BVMinisatSatSolver(StatisticRegistry& registry, context::Context* mainSatContext, const std::string& name = "");
   virtual ~BVMinisatSatSolver();
 
   void setNotify(BVSatSolverNotify* notify) override;
@@ -129,18 +129,16 @@ public:
 
   class Statistics {
   public:
-    StatisticsRegistry* d_registry;
-    ReferenceStat<uint64_t> d_statStarts, d_statDecisions;
-    ReferenceStat<uint64_t> d_statRndDecisions, d_statPropagations;
-    ReferenceStat<uint64_t> d_statConflicts, d_statClausesLiterals;
-    ReferenceStat<uint64_t> d_statLearntsLiterals,  d_statMaxLiterals;
-    ReferenceStat<uint64_t> d_statTotLiterals;
-    ReferenceStat<int> d_statEliminatedVars;
-    IntStat d_statCallsToSolve;
-    TimerStat d_statSolveTime;
+    ReferenceStats<int64_t> d_statStarts, d_statDecisions;
+    ReferenceStats<int64_t> d_statRndDecisions, d_statPropagations;
+    ReferenceStats<int64_t> d_statConflicts, d_statClausesLiterals;
+    ReferenceStats<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
+    ReferenceStats<int64_t> d_statTotLiterals;
+    ReferenceStats<int64_t> d_statEliminatedVars;
+    IntStats d_statCallsToSolve;
+    TimerStats d_statSolveTime;
     bool d_registerStats;
-    Statistics(StatisticsRegistry* registry, const std::string& prefix);
-    ~Statistics();
+    Statistics(StatisticRegistry& registry, const std::string& prefix);
     void init(BVMinisat::SimpSolver* minisat);
   };
 

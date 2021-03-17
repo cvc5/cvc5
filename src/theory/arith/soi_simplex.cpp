@@ -24,7 +24,7 @@
 #include "theory/arith/constraint.h"
 #include "theory/arith/error_set.h"
 #include "theory/arith/tableau.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 using namespace std;
 
@@ -44,60 +44,20 @@ SumOfInfeasibilitiesSPD::SumOfInfeasibilitiesSPD(LinearEqualityModule& linEq, Er
 { }
 
 SumOfInfeasibilitiesSPD::Statistics::Statistics(uint32_t& pivots):
-  d_initialSignalsTime("theory::arith::SOI::initialProcessTime"),
-  d_initialConflicts("theory::arith::SOI::UpdateConflicts", 0),
-  d_soiFoundUnsat("theory::arith::SOI::FoundUnsat", 0),
-  d_soiFoundSat("theory::arith::SOI::FoundSat", 0),
-  d_soiMissed("theory::arith::SOI::Missed", 0),
-  d_soiConflicts("theory::arith::SOI::ConfMin::num", 0),
-  d_hasToBeMinimal("theory::arith::SOI::HasToBeMin", 0),
-  d_maybeNotMinimal("theory::arith::SOI::MaybeNotMin", 0),
-  d_soiTimer("theory::arith::SOI::Time"),
-  d_soiFocusConstructionTimer("theory::arith::SOI::Construction"),
-  d_soiConflictMinimization("theory::arith::SOI::Conflict::Minimization"),
-  d_selectUpdateForSOI("theory::arith::SOI::selectSOI"),
-  d_finalCheckPivotCounter("theory::arith::SOI::lastPivots", pivots)
+  d_initialSignalsTime(smtStatisticsRegistry().registerTimer("theory::arith::SOI::initialProcessTime")),
+  d_initialConflicts(smtStatisticsRegistry().registerInt("theory::arith::SOI::UpdateConflicts")),
+  d_soiFoundUnsat(smtStatisticsRegistry().registerInt("theory::arith::SOI::FoundUnsat")),
+  d_soiFoundSat(smtStatisticsRegistry().registerInt("theory::arith::SOI::FoundSat")),
+  d_soiMissed(smtStatisticsRegistry().registerInt("theory::arith::SOI::Missed")),
+  d_soiConflicts(smtStatisticsRegistry().registerInt("theory::arith::SOI::ConfMin::num")),
+  d_hasToBeMinimal(smtStatisticsRegistry().registerInt("theory::arith::SOI::HasToBeMin")),
+  d_maybeNotMinimal(smtStatisticsRegistry().registerInt("theory::arith::SOI::MaybeNotMin")),
+  d_soiTimer(smtStatisticsRegistry().registerTimer("theory::arith::SOI::Time")),
+  d_soiFocusConstructionTimer(smtStatisticsRegistry().registerTimer("theory::arith::SOI::Construction")),
+  d_soiConflictMinimization(smtStatisticsRegistry().registerTimer("theory::arith::SOI::Conflict::Minimization")),
+  d_selectUpdateForSOI(smtStatisticsRegistry().registerTimer("theory::arith::SOI::selectSOI")),
+  d_finalCheckPivotCounter(smtStatisticsRegistry().registerReference<uint32_t>("theory::arith::SOI::lastPivots", pivots))
 {
-  smtStatisticsRegistry()->registerStat(&d_initialSignalsTime);
-  smtStatisticsRegistry()->registerStat(&d_initialConflicts);
-
-  smtStatisticsRegistry()->registerStat(&d_soiFoundUnsat);
-  smtStatisticsRegistry()->registerStat(&d_soiFoundSat);
-  smtStatisticsRegistry()->registerStat(&d_soiMissed);
-
-  smtStatisticsRegistry()->registerStat(&d_soiConflicts);
-  smtStatisticsRegistry()->registerStat(&d_hasToBeMinimal);
-  smtStatisticsRegistry()->registerStat(&d_maybeNotMinimal);
-
-  smtStatisticsRegistry()->registerStat(&d_soiTimer);
-  smtStatisticsRegistry()->registerStat(&d_soiFocusConstructionTimer);
-
-  smtStatisticsRegistry()->registerStat(&d_soiConflictMinimization);
-
-  smtStatisticsRegistry()->registerStat(&d_selectUpdateForSOI);
-
-  smtStatisticsRegistry()->registerStat(&d_finalCheckPivotCounter);
-}
-
-SumOfInfeasibilitiesSPD::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_initialSignalsTime);
-  smtStatisticsRegistry()->unregisterStat(&d_initialConflicts);
-
-  smtStatisticsRegistry()->unregisterStat(&d_soiFoundUnsat);
-  smtStatisticsRegistry()->unregisterStat(&d_soiFoundSat);
-  smtStatisticsRegistry()->unregisterStat(&d_soiMissed);
-
-  smtStatisticsRegistry()->unregisterStat(&d_soiConflicts);
-  smtStatisticsRegistry()->unregisterStat(&d_hasToBeMinimal);
-  smtStatisticsRegistry()->unregisterStat(&d_maybeNotMinimal);
-
-  smtStatisticsRegistry()->unregisterStat(&d_soiTimer);
-  smtStatisticsRegistry()->unregisterStat(&d_soiFocusConstructionTimer);
-
-  smtStatisticsRegistry()->unregisterStat(&d_soiConflictMinimization);
-
-  smtStatisticsRegistry()->unregisterStat(&d_selectUpdateForSOI);
-  smtStatisticsRegistry()->unregisterStat(&d_finalCheckPivotCounter);
 }
 
 Result::Sat SumOfInfeasibilitiesSPD::findModel(bool exactResult){
@@ -969,7 +929,7 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
   static int instance = 0;
   static bool verbose = false;
 
-  TimerStat::CodeTimer codeTimer(d_statistics.d_soiTimer);
+  TimerStats::CodeTimers codeTimer(d_statistics.d_soiTimer);
 
   Assert(d_sgnDisagreements.empty());
   Assert(d_pivotBudget != 0);

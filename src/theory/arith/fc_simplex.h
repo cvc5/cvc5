@@ -59,7 +59,7 @@
 #include "theory/arith/simplex.h"
 #include "theory/arith/simplex_update.h"
 #include "util/dense_map.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -177,7 +177,7 @@ private:
 
 
   UpdateInfo selectUpdateForDualLike(ArithVar basic){
-    TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForDualLike);
+    TimerStats::CodeTimers codeTimer(d_statistics.d_selectUpdateForDualLike);
 
     LinearEqualityModule::UpdatePreferenceFunction upf =
       &LinearEqualityModule::preferWitness<true>;
@@ -187,7 +187,7 @@ private:
   }
 
   UpdateInfo selectUpdateForPrimal(ArithVar basic, bool useBlands){
-    TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForPrimal);
+    TimerStats::CodeTimers codeTimer(d_statistics.d_selectUpdateForPrimal);
 
     LinearEqualityModule::UpdatePreferenceFunction upf;
     if(useBlands) {
@@ -222,8 +222,8 @@ private:
   bool searchForFeasibleSolution(uint32_t maxIterations);
 
   bool initialProcessSignals(){
-    TimerStat &timer = d_statistics.d_initialSignalsTime;
-    IntStat& conflictStat  = d_statistics.d_initialConflicts;
+    TimerStats &timer = d_statistics.d_initialSignalsTime;
+    IntStats& conflictStat  = d_statistics.d_initialConflicts;
     bool res = standardProcessSignals(timer, conflictStat);
     d_focusSize = d_errorSet.focusSize();
     return res;
@@ -234,23 +234,22 @@ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    TimerStat d_initialSignalsTime;
-    IntStat d_initialConflicts;
+    TimerStats d_initialSignalsTime;
+    IntStats d_initialConflicts;
 
-    IntStat d_fcFoundUnsat;
-    IntStat d_fcFoundSat;
-    IntStat d_fcMissed;
+    IntStats d_fcFoundUnsat;
+    IntStats d_fcFoundSat;
+    IntStats d_fcMissed;
 
-    TimerStat d_fcTimer;
-    TimerStat d_fcFocusConstructionTimer;
+    TimerStats d_fcTimer;
+    TimerStats d_fcFocusConstructionTimer;
 
-    TimerStat d_selectUpdateForDualLike;
-    TimerStat d_selectUpdateForPrimal;
+    TimerStats d_selectUpdateForDualLike;
+    TimerStats d_selectUpdateForPrimal;
 
-    ReferenceStat<uint32_t> d_finalCheckPivotCounter;
+    ReferenceStats<uint32_t> d_finalCheckPivotCounter;
 
     Statistics(uint32_t& pivots);
-    ~Statistics();
   } d_statistics;
 };/* class FCSimplexDecisionProcedure */
 

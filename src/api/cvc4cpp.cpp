@@ -59,7 +59,7 @@
 #include "theory/theory_model.h"
 #include "util/random.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/statistics_reg.h"
 #include "util/stats_histogram.h"
 #include "util/utility.h"
@@ -73,13 +73,9 @@ namespace api {
 
 struct APIStatistics
 {
-  APIStatistics()
-      : d_consts("api::CONSTANT"), d_vars("api::VARIABLE"), d_terms("api::TERM")
-  {
-  }
-  IntegralHistogramStat<TypeConstant> d_consts;
-  IntegralHistogramStat<TypeConstant> d_vars;
-  IntegralHistogramStat<Kind> d_terms;
+  HistogramStats<TypeConstant> d_consts;
+  HistogramStats<TypeConstant> d_vars;
+  HistogramStats<Kind> d_terms;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -4210,10 +4206,11 @@ Solver::Solver(Options* opts)
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
 #if CVC4_STATISTICS_ON
-  d_stats.reset(new APIStatistics());
-  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
-  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
-  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
+  d_stats.reset(new APIStatistics{
+    d_nodeMgr->getStatisticRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
+    d_nodeMgr->getStatisticRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
+    d_nodeMgr->getStatisticRegistry().registerHistogram<Kind>("api::TERM"),
+  });
 #endif
 }
 

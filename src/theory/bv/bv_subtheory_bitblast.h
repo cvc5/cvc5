@@ -39,10 +39,9 @@ class BitblastSolver : public SubtheorySolver
 {
   struct Statistics
   {
-    IntStat d_numCallstoCheck;
-    IntStat d_numBBLemmas;
+    IntStats d_numCallstoCheck;
+    IntStats d_numBBLemmas;
     Statistics();
-    ~Statistics();
   };
   /** Bitblaster */
   std::unique_ptr<TLazyBitblaster> d_bitblaster;

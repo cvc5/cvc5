@@ -24,7 +24,7 @@
 #include "base/output.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_reg.h"
 
 using namespace std;
 
@@ -69,109 +69,58 @@ bool WallClockTimer::expired() const
 
 struct ResourceManager::Statistics
 {
-  ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
-  IntStat d_spendResourceCalls;
-  IntStat d_numArithPivotStep;
-  IntStat d_numArithNlLemmaStep;
-  IntStat d_numBitblastStep;
-  IntStat d_numBvEagerAssertStep;
-  IntStat d_numBvPropagationStep;
-  IntStat d_numBvSatConflictsStep;
-  IntStat d_numBvSatPropagateStep;
-  IntStat d_numBvSatSimplifyStep;
-  IntStat d_numCnfStep;
-  IntStat d_numDecisionStep;
-  IntStat d_numLemmaStep;
-  IntStat d_numNewSkolemStep;
-  IntStat d_numParseStep;
-  IntStat d_numPreprocessStep;
-  IntStat d_numQuantifierStep;
-  IntStat d_numRestartStep;
-  IntStat d_numRewriteStep;
-  IntStat d_numSatConflictStep;
-  IntStat d_numTheoryCheckStep;
-  Statistics(StatisticsRegistry& stats);
-  ~Statistics();
-
- private:
-  StatisticsRegistry& d_statisticsRegistry;
+  ReferenceStats<uint64_t> d_resourceUnitsUsed;
+  IntStats d_spendResourceCalls;
+  IntStats d_numArithPivotStep;
+  IntStats d_numArithNlLemmaStep;
+  IntStats d_numBitblastStep;
+  IntStats d_numBvEagerAssertStep;
+  IntStats d_numBvPropagationStep;
+  IntStats d_numBvSatConflictsStep;
+  IntStats d_numBvSatPropagateStep;
+  IntStats d_numBvSatSimplifyStep;
+  IntStats d_numCnfStep;
+  IntStats d_numDecisionStep;
+  IntStats d_numLemmaStep;
+  IntStats d_numNewSkolemStep;
+  IntStats d_numParseStep;
+  IntStats d_numPreprocessStep;
+  IntStats d_numQuantifierStep;
+  IntStats d_numRestartStep;
+  IntStats d_numRewriteStep;
+  IntStats d_numSatConflictStep;
+  IntStats d_numTheoryCheckStep;
+  Statistics(StatisticRegistry& stats);
 };
 
-ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
-    : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
-      d_spendResourceCalls("resource::spendResourceCalls", 0),
-      d_numArithPivotStep("resource::ArithPivotStep", 0),
-      d_numArithNlLemmaStep("resource::ArithNlLemmaStep", 0),
-      d_numBitblastStep("resource::BitblastStep", 0),
-      d_numBvEagerAssertStep("resource::BvEagerAssertStep", 0),
-      d_numBvPropagationStep("resource::BvPropagationStep", 0),
-      d_numBvSatConflictsStep("resource::BvSatConflictsStep", 0),
-      d_numBvSatPropagateStep("resource::BvSatPropagateStep", 0),
-      d_numBvSatSimplifyStep("resource::BvSatSimplifyStep", 0),
-      d_numCnfStep("resource::CnfStep", 0),
-      d_numDecisionStep("resource::DecisionStep", 0),
-      d_numLemmaStep("resource::LemmaStep", 0),
-      d_numNewSkolemStep("resource::NewSkolemStep", 0),
-      d_numParseStep("resource::ParseStep", 0),
-      d_numPreprocessStep("resource::PreprocessStep", 0),
-      d_numQuantifierStep("resource::QuantifierStep", 0),
-      d_numRestartStep("resource::RestartStep", 0),
-      d_numRewriteStep("resource::RewriteStep", 0),
-      d_numSatConflictStep("resource::SatConflictStep", 0),
-      d_numTheoryCheckStep("resource::TheoryCheckStep", 0),
-      d_statisticsRegistry(stats)
+ResourceManager::Statistics::Statistics(StatisticRegistry& stats)
+    : d_resourceUnitsUsed(stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
+      d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
+      d_numArithPivotStep(stats.registerInt("resource::ArithPivotStep")),
+      d_numArithNlLemmaStep(stats.registerInt("resource::ArithNlLemmaStep")),
+      d_numBitblastStep(stats.registerInt("resource::BitblastStep")),
+      d_numBvEagerAssertStep(stats.registerInt("resource::BvEagerAssertStep")),
+      d_numBvPropagationStep(stats.registerInt("resource::BvPropagationStep")),
+      d_numBvSatConflictsStep(stats.registerInt("resource::BvSatConflictsStep")),
+      d_numBvSatPropagateStep(stats.registerInt("resource::BvSatPropagateStep")),
+      d_numBvSatSimplifyStep(stats.registerInt("resource::BvSatSimplifyStep")),
+      d_numCnfStep(stats.registerInt("resource::CnfStep")),
+      d_numDecisionStep(stats.registerInt("resource::DecisionStep")),
+      d_numLemmaStep(stats.registerInt("resource::LemmaStep")),
+      d_numNewSkolemStep(stats.registerInt("resource::NewSkolemStep")),
+      d_numParseStep(stats.registerInt("resource::ParseStep")),
+      d_numPreprocessStep(stats.registerInt("resource::PreprocessStep")),
+      d_numQuantifierStep(stats.registerInt("resource::QuantifierStep")),
+      d_numRestartStep(stats.registerInt("resource::RestartStep")),
+      d_numRewriteStep(stats.registerInt("resource::RewriteStep")),
+      d_numSatConflictStep(stats.registerInt("resource::SatConflictStep")),
+      d_numTheoryCheckStep(stats.registerInt("resource::TheoryCheckStep"))
 {
-  d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.registerStat(&d_spendResourceCalls);
-  d_statisticsRegistry.registerStat(&d_numArithPivotStep);
-  d_statisticsRegistry.registerStat(&d_numArithNlLemmaStep);
-  d_statisticsRegistry.registerStat(&d_numBitblastStep);
-  d_statisticsRegistry.registerStat(&d_numBvEagerAssertStep);
-  d_statisticsRegistry.registerStat(&d_numBvPropagationStep);
-  d_statisticsRegistry.registerStat(&d_numBvSatConflictsStep);
-  d_statisticsRegistry.registerStat(&d_numBvSatPropagateStep);
-  d_statisticsRegistry.registerStat(&d_numBvSatSimplifyStep);
-  d_statisticsRegistry.registerStat(&d_numCnfStep);
-  d_statisticsRegistry.registerStat(&d_numDecisionStep);
-  d_statisticsRegistry.registerStat(&d_numLemmaStep);
-  d_statisticsRegistry.registerStat(&d_numNewSkolemStep);
-  d_statisticsRegistry.registerStat(&d_numParseStep);
-  d_statisticsRegistry.registerStat(&d_numPreprocessStep);
-  d_statisticsRegistry.registerStat(&d_numQuantifierStep);
-  d_statisticsRegistry.registerStat(&d_numRestartStep);
-  d_statisticsRegistry.registerStat(&d_numRewriteStep);
-  d_statisticsRegistry.registerStat(&d_numSatConflictStep);
-  d_statisticsRegistry.registerStat(&d_numTheoryCheckStep);
-}
-
-ResourceManager::Statistics::~Statistics()
-{
-  d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
-  d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
-  d_statisticsRegistry.unregisterStat(&d_numArithPivotStep);
-  d_statisticsRegistry.unregisterStat(&d_numArithNlLemmaStep);
-  d_statisticsRegistry.unregisterStat(&d_numBitblastStep);
-  d_statisticsRegistry.unregisterStat(&d_numBvEagerAssertStep);
-  d_statisticsRegistry.unregisterStat(&d_numBvPropagationStep);
-  d_statisticsRegistry.unregisterStat(&d_numBvSatConflictsStep);
-  d_statisticsRegistry.unregisterStat(&d_numBvSatPropagateStep);
-  d_statisticsRegistry.unregisterStat(&d_numBvSatSimplifyStep);
-  d_statisticsRegistry.unregisterStat(&d_numCnfStep);
-  d_statisticsRegistry.unregisterStat(&d_numDecisionStep);
-  d_statisticsRegistry.unregisterStat(&d_numLemmaStep);
-  d_statisticsRegistry.unregisterStat(&d_numNewSkolemStep);
-  d_statisticsRegistry.unregisterStat(&d_numParseStep);
-  d_statisticsRegistry.unregisterStat(&d_numPreprocessStep);
-  d_statisticsRegistry.unregisterStat(&d_numQuantifierStep);
-  d_statisticsRegistry.unregisterStat(&d_numRestartStep);
-  d_statisticsRegistry.unregisterStat(&d_numRewriteStep);
-  d_statisticsRegistry.unregisterStat(&d_numSatConflictStep);
-  d_statisticsRegistry.unregisterStat(&d_numTheoryCheckStep);
 }
 
 /*---------------------------------------------------------------------------*/
 
-ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
+ResourceManager::ResourceManager(StatisticRegistry& stats, Options& options)
     : d_perCallTimer(),
       d_timeBudgetPerCall(0),
       d_resourceBudgetCumulative(0),

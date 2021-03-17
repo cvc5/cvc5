@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {

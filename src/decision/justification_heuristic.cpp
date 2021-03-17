@@ -39,9 +39,9 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
       d_exploredThreshold(c),
       d_prvsIndex(c, 0),
       d_threshPrvsIndex(c, 0),
-      d_helpfulness("decision::jh::helpfulness", 0),
-      d_giveup("decision::jh::giveup", 0),
-      d_timestat("decision::jh::time"),
+      d_helpfulness(smtStatisticsRegistry().registerInt("decision::jh::helpfulness")),
+      d_giveup(smtStatisticsRegistry().registerInt("decision::jh::giveup")),
+      d_timestat(smtStatisticsRegistry().registerTimer("decision::jh::time")),
       d_assertions(uc),
       d_skolemAssertions(uc),
       d_skolemCache(uc),
@@ -53,17 +53,7 @@ JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
       d_weightCache(uc),
       d_startIndexCache(c)
 {
-  smtStatisticsRegistry()->registerStat(&d_helpfulness);
-  smtStatisticsRegistry()->registerStat(&d_giveup);
-  smtStatisticsRegistry()->registerStat(&d_timestat);
   Trace("decision") << "Justification heuristic enabled" << std::endl;
-}
-
-JustificationHeuristic::~JustificationHeuristic()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_helpfulness);
-  smtStatisticsRegistry()->unregisterStat(&d_giveup);
-  smtStatisticsRegistry()->unregisterStat(&d_timestat);
 }
 
 CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
@@ -84,7 +74,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
 
 CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, DecisionWeight threshold) {
   Trace("decision") << "JustificationHeuristic::getNextThresh(stopSearch, "<<threshold<<")" << std::endl;
-  TimerStat::CodeTimer codeTimer(d_timestat);
+  TimerStats::CodeTimers codeTimer(d_timestat);
 
   d_visited.clear();
   d_curThreshold = threshold;

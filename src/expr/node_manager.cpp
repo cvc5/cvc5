@@ -34,7 +34,7 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "util/resource_manager.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/statistics_reg.h"
 
 using namespace std;
@@ -96,7 +96,7 @@ namespace attr {
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_statisticsRegistry(new StatisticsRegistry()),
+    : d_statisticsRegistry(nullptr),
       d_statisticRegistry(new StatisticRegistry()),
       d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
@@ -268,8 +268,6 @@ NodeManager::~NodeManager() {
   }
 
   // defensive coding, in case destruction-order issues pop up (they often do)
-  delete d_statisticsRegistry;
-  d_statisticsRegistry = NULL;
   delete d_attrManager;
   d_attrManager = NULL;
 }

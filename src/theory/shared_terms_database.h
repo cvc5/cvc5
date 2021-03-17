@@ -27,7 +27,7 @@
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 
@@ -43,7 +43,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
 
  private:
   /** Some statistics */
-  IntStat d_statSharedTerms;
+  IntStats d_statSharedTerms;
 
   // Needs to be a map from Nodes as after a backtrack they might not exist
   typedef std::unordered_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;
@@ -162,7 +162,6 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
                       context::Context* context,
                       context::UserContext* userContext,
                       ProofNodeManager* pnm);
-  ~SharedTermsDatabase();
 
   //-------------------------------------------- initialization
   /** Called to set the equality engine. */

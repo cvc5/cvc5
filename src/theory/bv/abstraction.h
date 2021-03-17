@@ -24,7 +24,7 @@
 
 #include "expr/node.h"
 #include "theory/substitutions.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_timer.h"
 
 namespace CVC4 {
@@ -35,12 +35,22 @@ typedef std::vector<TNode> ArgsVec;
 
 class AbstractionModule {
 
+  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
+  typedef std::unordered_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
+  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
+  typedef std::unordered_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
+  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+  typedef std::unordered_map<unsigned, Node> IntNodeMap;
+  typedef std::unordered_map<unsigned, unsigned> IndexMap;
+  typedef std::unordered_map<unsigned, std::vector<Node> > SkolemMap;
+  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
+
   struct Statistics {
-    IntStat d_numFunctionsAbstracted;
-    IntStat d_numArgsSkolemized;
-    TimerStat d_abstractionTime;
-    Statistics(const std::string& name);
-    ~Statistics();
+    SizeStats<NodeNodeMap> d_numFunctionsAbstracted;
+    IntStats d_numArgsSkolemized;
+    TimerStats d_abstractionTime;
+    Statistics(const std::string& name, const NodeNodeMap& functionsAbstracted);
   };
 
 
@@ -127,17 +137,6 @@ class AbstractionModule {
 
   };
 
-  typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeVecMap;
-  typedef std::unordered_map<Node, TNode, NodeHashFunction> NodeTNodeMap;
-  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeTNodeMap;
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeNodeMap;
-  typedef std::unordered_map<Node, TNode, NodeHashFunction> TNodeNodeMap;
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  typedef std::unordered_map<unsigned, Node> IntNodeMap;
-  typedef std::unordered_map<unsigned, unsigned> IndexMap;
-  typedef std::unordered_map<unsigned, std::vector<Node> > SkolemMap;
-  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
-
   ArgsTable d_argsTable;
 
   // mapping between signature and uninterpreted function symbol used to
@@ -211,7 +210,7 @@ public:
     , d_addedLemmas()
     , d_lemmaAtoms()
     , d_inputAtoms()
-    , d_statistics(name)
+    , d_statistics(name, d_signatureToFunc)
   {}
   /**
    * returns true if there are new uninterepreted functions symbols in the output

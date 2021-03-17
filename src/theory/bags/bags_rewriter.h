@@ -19,7 +19,7 @@
 
 #include "theory/bags/rewrites.h"
 #include "theory/theory_rewriter.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/stats_histogram.h"
 
 namespace CVC4 {
@@ -42,7 +42,7 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(IntegralHistogramStat<Rewrite>* statistics = nullptr);
+  BagsRewriter(HistogramStats<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: MK_BAG, BAG_COUNT, UNION_MAX, UNION_DISJOINT,
@@ -218,7 +218,7 @@ class BagsRewriter : public TheoryRewriter
   Node d_zero;
   Node d_one;
   /** Reference to the rewriter statistics. */
-  IntegralHistogramStat<Rewrite>* d_statistics;
+  HistogramStats<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags

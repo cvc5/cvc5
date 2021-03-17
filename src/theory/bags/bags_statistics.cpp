@@ -20,14 +20,8 @@ namespace CVC4 {
 namespace theory {
 namespace bags {
 
-BagsStatistics::BagsStatistics() : d_rewrites("theory::bags::rewrites")
+BagsStatistics::BagsStatistics() : d_rewrites(smtStatisticsRegistry().registerHistogram<Rewrite>("theory::bags::rewrites"))
 {
-  smtStatisticsRegistry()->registerStat(&d_rewrites);
-}
-
-BagsStatistics::~BagsStatistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_rewrites);
 }
 
 }  // namespace bags

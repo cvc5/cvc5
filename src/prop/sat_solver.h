@@ -28,7 +28,7 @@
 #include "proof/clause_id.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "prop/sat_solver_types.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 

@@ -61,10 +61,6 @@ void print_statistics()
 {
   if (pOptions != NULL && pOptions->getStatistics() && pExecutor != NULL)
   {
-    if (pTotalTime != NULL && pTotalTime->running())
-    {
-      pTotalTime->stop();
-    }
     pExecutor->safeFlushStatistics(STDERR_FILENO);
   }
 }

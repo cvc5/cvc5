@@ -20,7 +20,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 
@@ -88,10 +88,9 @@ class EngineOutputChannel : public theory::OutputChannel
   {
    public:
     Statistics(theory::TheoryId theory);
-    ~Statistics();
     /** Number of calls to conflict, propagate, lemma, requirePhase,
      * restartDemands */
-    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands,
+    IntStats conflicts, propagations, lemmas, requirePhase, restartDemands,
         trustedConflicts, trustedLemmas;
   };
   /** The theory engine we're communicating with. */

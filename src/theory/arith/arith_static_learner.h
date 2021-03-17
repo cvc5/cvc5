@@ -23,7 +23,7 @@
 #include "context/cdhashmap.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/delta_rational.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace context {
@@ -58,11 +58,10 @@ private:
   /** These fields are designed to be accessible to ArithStaticLearner methods. */
   class Statistics {
   public:
-    IntStat d_iteMinMaxApplications;
-    IntStat d_iteConstantApplications;
+    IntStats d_iteMinMaxApplications;
+    IntStats d_iteConstantApplications;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

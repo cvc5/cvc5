@@ -279,10 +279,9 @@ public:
   /** statistics class */
   class Statistics {
   public:
-    IntStat d_inst_rounds;
-    IntStat d_entailment_checks;
+    IntStats d_inst_rounds;
+    IntStats d_entailment_checks;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
   /** Identify this module */

@@ -21,7 +21,7 @@
 #include "context/context.h"
 #include "theory/decision_strategy.h"
 #include "theory/theory.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -391,12 +391,11 @@ class CardinalityExtension
 
   class Statistics {
    public:
-    IntStat d_clique_conflicts;
-    IntStat d_clique_lemmas;
-    IntStat d_split_lemmas;
-    IntStat d_max_model_size;
+    IntStats d_clique_conflicts;
+    IntStats d_clique_lemmas;
+    IntStats d_split_lemmas;
+    IntStats d_max_model_size;
     Statistics();
-    ~Statistics();
   };
   /** statistics class */
   Statistics d_statistics;

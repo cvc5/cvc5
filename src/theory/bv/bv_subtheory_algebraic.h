@@ -157,16 +157,15 @@ class AlgebraicSolver : public SubtheorySolver
 {
   struct Statistics
   {
-    IntStat d_numCallstoCheck;
-    IntStat d_numSimplifiesToTrue;
-    IntStat d_numSimplifiesToFalse;
-    IntStat d_numUnsat;
-    IntStat d_numSat;
-    IntStat d_numUnknown;
-    TimerStat d_solveTime;
-    BackedStat<double> d_useHeuristic;
+    IntStats d_numCallstoCheck;
+    IntStats d_numSimplifiesToTrue;
+    IntStats d_numSimplifiesToFalse;
+    IntStats d_numUnsat;
+    IntStats d_numSat;
+    IntStats d_numUnknown;
+    TimerStats d_solveTime;
+    ValueStat<double> d_useHeuristic;
     Statistics();
-    ~Statistics();
   };
 
   std::unique_ptr<SubstitutionMap> d_modelMap;

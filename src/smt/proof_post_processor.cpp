@@ -1079,25 +1079,14 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
 
 ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
-    : d_ruleCount("finalProof::ruleCount"),
-      d_totalRuleCount("finalProof::totalRuleCount", 0),
-      d_minPedanticLevel("finalProof::minPedanticLevel", 10),
-      d_numFinalProofs("finalProofs::numFinalProofs", 0),
+    : d_ruleCount(smtStatisticsRegistry().registerHistogram<PfRule>("finalProof::ruleCount")),
+      d_totalRuleCount(smtStatisticsRegistry().registerInt("finalProof::totalRuleCount")),
+      d_minPedanticLevel(smtStatisticsRegistry().registerInt("finalProof::minPedanticLevel")),
+      d_numFinalProofs(smtStatisticsRegistry().registerInt("finalProofs::numFinalProofs")),
       d_pnm(pnm),
       d_pedanticFailure(false)
 {
-  smtStatisticsRegistry()->registerStat(&d_ruleCount);
-  smtStatisticsRegistry()->registerStat(&d_totalRuleCount);
-  smtStatisticsRegistry()->registerStat(&d_minPedanticLevel);
-  smtStatisticsRegistry()->registerStat(&d_numFinalProofs);
-}
-
-ProofPostprocessFinalCallback::~ProofPostprocessFinalCallback()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_ruleCount);
-  smtStatisticsRegistry()->unregisterStat(&d_totalRuleCount);
-  smtStatisticsRegistry()->unregisterStat(&d_minPedanticLevel);
-  smtStatisticsRegistry()->unregisterStat(&d_numFinalProofs);
+  d_minPedanticLevel += 10;
 }
 
 void ProofPostprocessFinalCallback::initializeUpdate()

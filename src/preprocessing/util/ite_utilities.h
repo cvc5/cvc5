@@ -28,8 +28,7 @@
 
 #include "expr/node.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -195,10 +194,9 @@ class ITECompressor
   class Statistics
   {
    public:
-    IntStat d_compressCalls;
-    IntStat d_skolemsAdded;
+    IntStats d_compressCalls;
+    IntStats d_skolemsAdded;
     Statistics();
-    ~Statistics();
   };
   Statistics d_statistics;
 }; /* class ITECompressor */
@@ -298,18 +296,17 @@ class ITESimplifier
   class Statistics
   {
    public:
-    IntStat d_maxNonConstantsFolded;
-    IntStat d_unexpected;
-    IntStat d_unsimplified;
-    IntStat d_exactMatchFold;
-    IntStat d_binaryPredFold;
-    IntStat d_specialEqualityFolds;
-    IntStat d_simpITEVisits;
+    IntStats d_maxNonConstantsFolded;
+    IntStats d_unexpected;
+    IntStats d_unsimplified;
+    IntStats d_exactMatchFold;
+    IntStats d_binaryPredFold;
+    IntStats d_specialEqualityFolds;
+    IntStats d_simpITEVisits;
 
-    IntegralHistogramStat<uint32_t> d_inSmaller;
+    HistogramStats<uint32_t> d_inSmaller;
 
     Statistics();
-    ~Statistics();
   };
 
   Statistics d_statistics;

@@ -45,16 +45,9 @@ ArithStaticLearner::~ArithStaticLearner(){
 }
 
 ArithStaticLearner::Statistics::Statistics():
-  d_iteMinMaxApplications("theory::arith::iteMinMaxApplications", 0),
-  d_iteConstantApplications("theory::arith::iteConstantApplications", 0)
+  d_iteMinMaxApplications(smtStatisticsRegistry().registerInt("theory::arith::iteMinMaxApplications")),
+  d_iteConstantApplications(smtStatisticsRegistry().registerInt("theory::arith::iteConstantApplications"))
 {
-  smtStatisticsRegistry()->registerStat(&d_iteMinMaxApplications);
-  smtStatisticsRegistry()->registerStat(&d_iteConstantApplications);
-}
-
-ArithStaticLearner::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_iteMinMaxApplications);
-  smtStatisticsRegistry()->unregisterStat(&d_iteConstantApplications);
 }
 
 void ArithStaticLearner::staticLearning(TNode n, NodeBuilder<>& learned){

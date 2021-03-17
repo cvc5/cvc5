@@ -1009,35 +1009,15 @@ void TSatProof<Solver>::storeClauseGlue(ClauseId clause, int glue) {
 
 template <class Solver>
 TSatProof<Solver>::Statistics::Statistics(const std::string& prefix)
-    : d_numLearnedClauses("satproof::" + prefix + "::NumLearnedClauses", 0),
-      d_numLearnedInProof("satproof::" + prefix + "::NumLearnedInProof", 0),
-      d_numLemmasInProof("satproof::" + prefix + "::NumLemmasInProof", 0),
-      d_avgChainLength("satproof::" + prefix + "::AvgResChainLength"),
-      d_resChainLengths("satproof::" + prefix + "::ResChainLengthsHist"),
-      d_usedResChainLengths("satproof::" + prefix +
-                            "::UsedResChainLengthsHist"),
-      d_clauseGlue("satproof::" + prefix + "::ClauseGlueHist"),
-      d_usedClauseGlue("satproof::" + prefix + "::UsedClauseGlueHist") {
-  smtStatisticsRegistry()->registerStat(&d_numLearnedClauses);
-  smtStatisticsRegistry()->registerStat(&d_numLearnedInProof);
-  smtStatisticsRegistry()->registerStat(&d_numLemmasInProof);
-  smtStatisticsRegistry()->registerStat(&d_avgChainLength);
-  smtStatisticsRegistry()->registerStat(&d_resChainLengths);
-  smtStatisticsRegistry()->registerStat(&d_usedResChainLengths);
-  smtStatisticsRegistry()->registerStat(&d_clauseGlue);
-  smtStatisticsRegistry()->registerStat(&d_usedClauseGlue);
-}
-
-template <class Solver>
-TSatProof<Solver>::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_numLearnedClauses);
-  smtStatisticsRegistry()->unregisterStat(&d_numLearnedInProof);
-  smtStatisticsRegistry()->unregisterStat(&d_numLemmasInProof);
-  smtStatisticsRegistry()->unregisterStat(&d_avgChainLength);
-  smtStatisticsRegistry()->unregisterStat(&d_resChainLengths);
-  smtStatisticsRegistry()->unregisterStat(&d_usedResChainLengths);
-  smtStatisticsRegistry()->unregisterStat(&d_clauseGlue);
-  smtStatisticsRegistry()->unregisterStat(&d_usedClauseGlue);
+    : d_numLearnedClauses(smtStatisticsRegistry().registerInt("satproof::" + prefix + "::NumLearnedClauses")),
+      d_numLearnedInProof(smtStatisticsRegistry().registerInt("satproof::" + prefix + "::NumLearnedInProof")),
+      d_numLemmasInProof(smtStatisticsRegistry().registerInt("satproof::" + prefix + "::NumLemmasInProof")),
+      d_avgChainLength(smtStatisticsRegistry().registerAverage("satproof::" + prefix + "::AvgResChainLength")),
+      d_resChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix + "::ResChainLengthsHist")),
+      d_usedResChainLengths(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix +
+                            "::UsedResChainLengthsHist")),
+      d_clauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix + "::ClauseGlueHist")),
+      d_usedClauseGlue(smtStatisticsRegistry().registerHistogram<uint64_t>("satproof::" + prefix + "::UsedClauseGlueHist")) {
 }
 
 inline std::ostream& operator<<(std::ostream& out, CVC4::ClauseKind k) {

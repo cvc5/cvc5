@@ -17,11 +17,11 @@
 #include "smt/smt_statistics_registry.h"
 
 #include "smt/smt_engine_scope.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 
-StatisticsRegistry* smtStatisticsRegistry() {
+StatisticRegistry& smtStatisticsRegistry() {
   return smt::SmtScope::currentStatisticsRegistry();
 }
 

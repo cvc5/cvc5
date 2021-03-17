@@ -2403,6 +2403,7 @@ class Statistics
   auto end_all() const { return iterator(d_stats.end(), d_stats, true); }
 
   // TODO: make this private
+  Statistics() = default;
   Statistics(const StatisticRegistry& reg);
  private:
   /** Internal data */

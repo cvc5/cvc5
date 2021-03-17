@@ -25,6 +25,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
+#include "util/statistics_reg.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -41,7 +42,7 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     IntegralHistogramStat<Kind>* statReductions)
+                                     HistogramStats<Kind>* statReductions)
     : d_sc(sc), d_statReductions(statReductions)
 {
 }

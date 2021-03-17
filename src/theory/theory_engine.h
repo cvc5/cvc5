@@ -38,7 +38,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -277,7 +277,7 @@ class TheoryEngine {
   std::unique_ptr<theory::SortInference> d_sortInfer;
 
   /** Time spent in theory combination */
-  TimerStat d_combineTheoriesTime;
+  TimerStats d_combineTheoriesTime;
 
   Node d_true;
   Node d_false;

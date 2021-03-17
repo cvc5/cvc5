@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "context/cdhashmap_forward.h"
 #include "cvc4_export.h"
 #include "options/options.h"
@@ -49,6 +50,7 @@ class ProofManager;
 class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
+class StatisticRegistry;
 class Printer;
 class ResourceManager;
 
@@ -817,7 +819,7 @@ class CVC4_EXPORT SmtEngine
   NodeManager* getNodeManager() const;
 
   /** Export statistics from this SmtEngine. */
-  Statistics getStatistics() const;
+  api::Statistics getStatistics() const;
 
   /** Get the value of one named statistic from this SmtEngine. */
   SExpr getStatistic(std::string name) const;
@@ -905,7 +907,7 @@ class CVC4_EXPORT SmtEngine
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
-  StatisticsRegistry* getStatisticsRegistry();
+  StatisticRegistry& getStatisticsRegistry();
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
@@ -1058,7 +1060,7 @@ class CVC4_EXPORT SmtEngine
    * other members since it must be destroyed last if exceptions occur in the
    * constructor of SmtEngine.
    */
-  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
+  std::unique_ptr<StatisticRegistry> d_statisticsRegistry;
   /**
    * The environment object, which contains all utilities that are globally
    * available to internal code.

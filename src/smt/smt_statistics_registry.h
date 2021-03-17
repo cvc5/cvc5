@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
+#include "util/statistics_reg.h"
 
 namespace CVC4 {
 
@@ -26,6 +27,6 @@ namespace CVC4 {
  * This returns the StatisticsRegistry attached to the currently in scope
  * SmtEngine. This is a synonym for smt::SmtScope::currentStatisticsRegistry().
  */
-StatisticsRegistry* smtStatisticsRegistry();
+StatisticRegistry& smtStatisticsRegistry();
 
 }/* CVC4 namespace */

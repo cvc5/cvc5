@@ -22,7 +22,7 @@
 #include "expr/symbol_manager.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_reg.h"
 
 namespace CVC4 {
 
@@ -54,7 +54,7 @@ class CommandExecutor
   std::unique_ptr<SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
-  StatisticsRegistry d_stats;
+  StatisticRegistry d_stats;
   api::Result d_result;
 
  public:
@@ -82,7 +82,7 @@ class CommandExecutor
   api::Result getResult() const { return d_result; }
   void reset();
 
-  StatisticsRegistry& getStatisticsRegistry() {
+  StatisticRegistry& getStatisticsRegistry() {
     return d_stats;
   }
 

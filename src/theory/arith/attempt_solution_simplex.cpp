@@ -36,19 +36,10 @@ AttemptSolutionSDP::AttemptSolutionSDP(LinearEqualityModule& linEq, ErrorSet& er
 { }
 
 AttemptSolutionSDP::Statistics::Statistics():
-  d_searchTime("theory::arith::attempt::searchTime"),
-  d_queueTime("theory::arith::attempt::queueTime"),
-  d_conflicts("theory::arith::attempt::conflicts", 0)
+  d_searchTime(smtStatisticsRegistry().registerTimer("theory::arith::attempt::searchTime")),
+  d_queueTime(smtStatisticsRegistry().registerTimer("theory::arith::attempt::queueTime")),
+  d_conflicts(smtStatisticsRegistry().registerInt("theory::arith::attempt::conflicts"))
 {
-  smtStatisticsRegistry()->registerStat(&d_searchTime);
-  smtStatisticsRegistry()->registerStat(&d_queueTime);
-  smtStatisticsRegistry()->registerStat(&d_conflicts);
-}
-
-AttemptSolutionSDP::Statistics::~Statistics(){
-  smtStatisticsRegistry()->unregisterStat(&d_searchTime);
-  smtStatisticsRegistry()->unregisterStat(&d_queueTime);
-  smtStatisticsRegistry()->unregisterStat(&d_conflicts);
 }
 
 bool AttemptSolutionSDP::matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const{

@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "theory/substitutions.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace context {
@@ -40,14 +40,13 @@ class UnconstrainedSimplifier : public PreprocessingPass
 {
  public:
   UnconstrainedSimplifier(PreprocessingPassContext* preprocContext);
-  ~UnconstrainedSimplifier() override;
 
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 
  private:
   /** number of expressions eliminated due to unconstrained simplification */
-  IntStat d_numUnconstrainedElim;
+  IntStats d_numUnconstrainedElim;
 
   using TNodeCountMap = std::unordered_map<TNode, unsigned, TNodeHashFunction>;
   using TNodeMap = std::unordered_map<TNode, TNode, TNodeHashFunction>;

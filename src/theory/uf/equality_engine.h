@@ -33,7 +33,7 @@
 #include "theory/uf/equality_engine_iterator.h"
 #include "theory/uf/equality_engine_notify.h"
 #include "theory/uf/equality_engine_types.h"
-#include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -97,17 +97,15 @@ class EqualityEngine : public context::ContextNotifyObj {
   struct Statistics
   {
     /** Total number of merges */
-    IntStat d_mergesCount;
+    IntStats d_mergesCount;
     /** Number of terms managed by the system */
-    IntStat d_termsCount;
+    IntStats d_termsCount;
     /** Number of function terms managed by the system */
-    IntStat d_functionTermsCount;
+    IntStats d_functionTermsCount;
     /** Number of constant terms managed by the system */
-    IntStat d_constantTermsCount;
+    IntStats d_constantTermsCount;
 
-    Statistics(std::string name);
-
-    ~Statistics();
+    Statistics(const std::string& name);
   };/* struct EqualityEngine::statistics */
 
 private:
