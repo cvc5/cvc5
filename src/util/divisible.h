@@ -31,7 +31,8 @@ namespace CVC4 {
 /**
  * The structure representing the divisibility-by-k predicate.
  */
-struct CVC4_PUBLIC Divisible {
+struct Divisible
+{
   const Integer k;
 
   Divisible(const Integer& n);
@@ -43,18 +44,19 @@ struct CVC4_PUBLIC Divisible {
   bool operator!=(const Divisible& d) const {
     return !(*this == d);
   }
-};/* struct Divisible */
+}; /* struct Divisible */
 
 /**
  * Hash function for the Divisible objects.
  */
-struct CVC4_PUBLIC DivisibleHashFunction {
+struct DivisibleHashFunction
+{
   size_t operator()(const Divisible& d) const {
     return d.k.hash();
   }
-};/* struct DivisibleHashFunction */
+}; /* struct DivisibleHashFunction */
 
-inline std::ostream& operator <<(std::ostream& os, const Divisible& d) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const Divisible& d);
 inline std::ostream& operator <<(std::ostream& os, const Divisible& d) {
   return os << "divisible-by-" << d.k;
 }

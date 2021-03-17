@@ -26,7 +26,8 @@
 
 namespace CVC4 {
 
-class CVC4_PUBLIC LogicException : public CVC4::Exception {
+class LogicException : public CVC4::Exception
+{
  public:
   LogicException() :
     Exception("Feature used while operating in "
@@ -40,7 +41,7 @@ class CVC4_PUBLIC LogicException : public CVC4::Exception {
   LogicException(const char* msg) :
     Exception(msg) {
   }
-};/* class LogicException */
+}; /* class LogicException */
 
 }/* CVC4 namespace */
 

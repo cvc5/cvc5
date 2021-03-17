@@ -25,7 +25,7 @@ namespace CVC4 {
 /**
  * A concrete instance of the rounding mode sort
  */
-enum CVC4_PUBLIC RoundingMode
+enum RoundingMode
 {
   ROUND_NEAREST_TIES_TO_EVEN = FE_TONEAREST,
   ROUND_TOWARD_POSITIVE = FE_UPWARD,
@@ -40,7 +40,7 @@ enum CVC4_PUBLIC RoundingMode
 /**
  * Hash function for rounding mode values.
  */
-struct CVC4_PUBLIC RoundingModeHashFunction
+struct RoundingModeHashFunction
 {
   inline size_t operator()(const RoundingMode& rm) const { return size_t(rm); }
 }; /* struct RoundingModeHashFunction */

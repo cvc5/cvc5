@@ -31,12 +31,13 @@
 #include <string>
 
 #include "base/exception.h"
+#include "cvc4_export.h"  // remove when Cvc language support is removed
 
 namespace CVC4 {
 
 class Rational;
 
-class CVC4_PUBLIC Integer
+class CVC4_EXPORT Integer
 {
   friend class CVC4::Rational;
 

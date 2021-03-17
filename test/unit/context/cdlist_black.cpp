@@ -37,7 +37,7 @@ struct DtorSensitiveObject
   ~DtorSensitiveObject() { d_dtorCalled = true; }
 };
 
-class TestContextCDListBlack : public TestContext
+class TestContextBlackCDList : public TestContext
 {
  protected:
   void list_test(int n)
@@ -73,19 +73,19 @@ class TestContextCDListBlack : public TestContext
   }
 };
 
-TEST_F(TestContextCDListBlack, CDList10) { list_test(10); }
+TEST_F(TestContextBlackCDList, CDList10) { list_test(10); }
 
-TEST_F(TestContextCDListBlack, CDList15) { list_test(15); }
+TEST_F(TestContextBlackCDList, CDList15) { list_test(15); }
 
-TEST_F(TestContextCDListBlack, CDList20) { list_test(20); }
+TEST_F(TestContextBlackCDList, CDList20) { list_test(20); }
 
-TEST_F(TestContextCDListBlack, CDList35) { list_test(35); }
+TEST_F(TestContextBlackCDList, CDList35) { list_test(35); }
 
-TEST_F(TestContextCDListBlack, CDList50) { list_test(50); }
+TEST_F(TestContextBlackCDList, CDList50) { list_test(50); }
 
-TEST_F(TestContextCDListBlack, CDList99) { list_test(99); }
+TEST_F(TestContextBlackCDList, CDList99) { list_test(99); }
 
-TEST_F(TestContextCDListBlack, destructor_called)
+TEST_F(TestContextBlackCDList, destructor_called)
 {
   bool shouldRemainFalse = false;
   bool shouldFlipToTrue = false;
@@ -129,14 +129,14 @@ TEST_F(TestContextCDListBlack, destructor_called)
   ASSERT_EQ(aThirdFalse, false);
 }
 
-TEST_F(TestContextCDListBlack, empty_iterator)
+TEST_F(TestContextBlackCDList, empty_iterator)
 {
   CDList<int>* list = new (true) CDList<int>(d_context.get());
   ASSERT_EQ(list->begin(), list->end());
   list->deleteSelf();
 }
 
-TEST_F(TestContextCDListBlack, out_of_memory)
+TEST_F(TestContextBlackCDList, out_of_memory)
 {
 #ifndef CVC4_MEMORY_LIMITING_DISABLED
   CDList<uint32_t> list(d_context.get());
@@ -155,7 +155,7 @@ TEST_F(TestContextCDListBlack, out_of_memory)
 #endif
 }
 
-TEST_F(TestContextCDListBlack, pop_below_level_created)
+TEST_F(TestContextBlackCDList, pop_below_level_created)
 {
   d_context->push();
   CDList<int32_t> list(d_context.get());
