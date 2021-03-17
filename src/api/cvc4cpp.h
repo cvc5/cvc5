@@ -73,7 +73,8 @@ class Result;
 namespace api {
 
 class Solver;
-struct Statistics;
+class Statistics;
+struct APIStatistics;
 
 /* -------------------------------------------------------------------------- */
 /* Exception                                                                  */
@@ -3692,7 +3693,7 @@ class CVC4_EXPORT Solver
   /** The random number generator of this solver. */
   std::unique_ptr<Random> d_rng;
   /** The statistics collected on the Api level. */
-  std::unique_ptr<Statistics> d_stats;
+  std::unique_ptr<APIStatistics> d_stats;
 };
 
 }  // namespace api

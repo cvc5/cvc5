@@ -67,12 +67,12 @@ namespace CVC4 {
 namespace api {
 
 /* -------------------------------------------------------------------------- */
-/* Statistics                                                                 */
+/* APIStatistics                                                                 */
 /* -------------------------------------------------------------------------- */
 
-struct Statistics
+struct APIStatistics
 {
-  Statistics()
+  APIStatistics()
       : d_consts("api::CONSTANT"), d_vars("api::VARIABLE"), d_terms("api::TERM")
   {
   }
@@ -4039,7 +4039,7 @@ Solver::Solver(Options* opts)
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
 #if CVC4_STATISTICS_ON
-  d_stats.reset(new Statistics());
+  d_stats.reset(new APIStatistics());
   d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
   d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
   d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
