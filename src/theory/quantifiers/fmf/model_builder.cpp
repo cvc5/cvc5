@@ -20,8 +20,8 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/uf/equality_engine.h"
 
 using namespace std;
 using namespace CVC4;

@@ -45,7 +45,11 @@ void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int
   if( argIndex<(int)indexOrder.size() ){
     //take r = null when argument is the model basis
     Node r;
-    if( ground || ( !n.isNull() && !quantifiers::FirstOrderModel::isModelBasis(n[ indexOrder[argIndex] ]) )){
+    if (ground
+        || (!n.isNull()
+            && !quantifiers::FirstOrderModel::isModelBasis(
+                   n[indexOrder[argIndex]])))
+    {
       r = m->getRepresentative( n[ indexOrder[argIndex] ] );
     }
     d_data[ r ].setValue( m, n, v, indexOrder, ground, argIndex+1 );

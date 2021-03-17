@@ -97,13 +97,13 @@ QuantifiersEngine::QuantifiersEngine(
       d_builder.reset(new quantifiers::fmcheck::FullModelChecker(qstate, qr));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
-      d_model.reset(new quantifiers::FirstOrderModel(
-          qstate, qr, tr, "FirstOrderModel"));
+      d_model.reset(
+          new quantifiers::FirstOrderModel(qstate, qr, tr, "FirstOrderModel"));
       d_builder.reset(new quantifiers::QModelBuilder(qstate, qr));
     }
   }else{
-    d_model.reset(new quantifiers::FirstOrderModel(
-        qstate, qr, tr, "FirstOrderModel"));
+    d_model.reset(
+        new quantifiers::FirstOrderModel(qstate, qr, tr, "FirstOrderModel"));
   }
   //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
   d_model->finishInit(this);

@@ -123,10 +123,11 @@ class FirstOrderModel : public TheoryModel
    * has all representatives of type tn.
    */
   bool initializeRepresentativesForType(TypeNode tn);
-  /** 
+  /**
    * Has the term been marked as a model basis term?
    */
   static bool isModelBasis(TNode n);
+
  protected:
   //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
   QuantifiersEngine* d_qe;
