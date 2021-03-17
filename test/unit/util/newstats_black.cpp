@@ -58,7 +58,7 @@ TEST_F(TestUtilBlackNewstats, stats)
   }
   {
     int64_t foo;
-    ReferenceStat<int64_t> ref = reg.registerReference("ref", foo);
+    ReferenceStats<int64_t> ref = reg.registerReference("ref", foo);
     foo = 15;
     std::cout << reg << std::endl;
     foo = 3;
@@ -68,7 +68,7 @@ TEST_F(TestUtilBlackNewstats, stats)
     CodeTimers ct(timer);
     {
       std::vector<int> foo = {1,2,3,4};
-      SizeStat<std::vector<int>> sstat = reg.registerSize("size", foo);
+      SizeStats<std::vector<int>> sstat = reg.registerSize("size", foo, false);
       foo.emplace_back(5);
       std::cout << reg << std::endl;
       std::this_thread::sleep_for(std::chrono::milliseconds(250));
@@ -87,9 +87,18 @@ TEST_F(TestUtilBlackNewstats, stats)
   std::cout << reg << std::endl;
 
   // API
-  Statistics stats(reg);
+  api::Statistics stats(reg);
   std::cout << "API view: " << std::endl << stats.get("ref") << std::endl;
   std::cout << stats << std::endl;
+
+  std::cout << "public" << std::endl;
+  for (const auto& s: stats) {
+    std::cout << s.first << " -> " << s.second << std::endl;
+  }
+  std::cout << "all" << std::endl;
+  for (auto it = stats.begin_all(); it != stats.end_all(); ++it) {
+    std::cout << it->first << " -> " << it->second << std::endl;
+  }
   
 }
 }  // namespace test
