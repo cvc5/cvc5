@@ -467,7 +467,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         }
         else {
           if (first) {
-            rep = (n);
+            rep = n;
             first = false;
           }
           else {
