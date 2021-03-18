@@ -22,7 +22,6 @@
 
 #include "options/options.h"
 #include "theory/logic_info.h"
-#include "util/sexpr.h"
 #include "util/statistics.h"
 
 namespace CVC4 {

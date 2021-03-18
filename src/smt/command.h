@@ -29,7 +29,7 @@
 
 #include "api/cvc4cpp.h"
 #include "cvc4_export.h"
-#include "util/sexpr.h"
+#include "options/language.h"
 
 namespace CVC4 {
 
@@ -930,12 +930,12 @@ class CVC4_EXPORT GetValueCommand : public Command
 class CVC4_EXPORT GetAssignmentCommand : public Command
 {
  protected:
-  SExpr d_result;
+  api::Term d_result;
 
  public:
   GetAssignmentCommand();
 
-  SExpr getResult() const;
+  api::Term getResult() const;
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* clone() const override;
