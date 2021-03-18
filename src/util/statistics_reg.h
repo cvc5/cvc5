@@ -54,7 +54,7 @@ class StatisticRegistry
   friend std::ostream& operator<<(std::ostream& os,
                                   const StatisticRegistry& sr);
   /** Preregister public statistics */
-  StatisticRegistry();
+  StatisticRegistry(bool register_public = true);
 
   /** Register a new running average statistic for `name` */
   AverageStats registerAverage(const std::string& name, bool expert = true)
@@ -125,8 +125,8 @@ class StatisticRegistry
     return it->second.get();
   }
 
-  void print(std::ostream& os) const;
-  void print_safe(int fd) const;
+  void print(std::ostream& os, bool expert = false) const;
+  void print_safe(int fd, bool expert = false) const;
 
  private:
   /**
@@ -149,9 +149,7 @@ class StatisticRegistry
     Assert(typeid(*ptr) == typeid(typename Stat::stat_type))
         << "Statistic value " << name
         << " was registered again with a different type.";
-    Assert(ptr->d_expert == expert)
-        << "Statistic value " << name << " was previously registered as "
-        << (ptr->d_expert ? "expert" : "public");
+    it->second->d_expert = it->second->d_expert || expert;
     return Stat(static_cast<typename Stat::stat_type*>(ptr));
   }
 

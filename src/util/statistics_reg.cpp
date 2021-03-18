@@ -20,21 +20,25 @@
 
 namespace CVC4 {
 
-StatisticRegistry::StatisticRegistry() {
+StatisticRegistry::StatisticRegistry(bool register_public) {
+  if (register_public) {
   register_public_statistics(*this);
+  }
 }
 
-void StatisticRegistry::print(std::ostream& os) const {
+void StatisticRegistry::print(std::ostream& os, bool expert) const {
   for (const auto& s : d_stats)
   {
+    if (!expert && s.second->d_expert) continue;
     os << s.first << " = ";
     s.second->print(os);
     os << std::endl;
   }
 }
-void StatisticRegistry::print_safe(int fd) const {
+void StatisticRegistry::print_safe(int fd, bool expert) const {
   for (const auto& s : d_stats)
   {
+    if (!expert && s.second->d_expert) continue;
     safe_print(fd, s.first);
     safe_print(fd, " = ");
     s.second->print_safe(fd);

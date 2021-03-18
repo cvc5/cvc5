@@ -94,6 +94,15 @@ header = "options/base_options.h"
   help       = "give statistics on exit"
 
 [[option]]
+  name       = "allStatistics"
+  smt_name   = "allStatistics"
+  category   = "common"
+  long       = "all-stats"
+  type       = "bool"
+  read_only  = true
+  help       = "also print expert statistics on exit"
+
+[[option]]
   name       = "statsEveryQuery"
   category   = "regular"
   long       = "stats-every-query"
