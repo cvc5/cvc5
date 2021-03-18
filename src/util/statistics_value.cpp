@@ -30,14 +30,52 @@ namespace CVC4 {
 
 StatisticBaseValue::~StatisticBaseValue() {}
 
-void StatisticTimerValue::print(std::ostream& out) const
-  {
-    StreamFormatScope format_scope(out);
-    duration dur = get();
+std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv)
+{
+  sbv.print(out);
+  return out;
+}
 
-    out << (dur / std::chrono::seconds(1)) << "." << std::setfill('0')
-        << std::setw(9) << std::right
-        << (dur % std::chrono::seconds(1)).count();
+api::Stat StatisticAverageValue::getViewer() const
+{
+  return api::Stat(d_expert, get());
+}
+void StatisticAverageValue::print(std::ostream& out) const { out << get(); }
+void StatisticAverageValue::print_safe(int fd) const
+{
+  safe_print<double>(fd, get());
+}
+double StatisticAverageValue::get() const { return d_sum / d_count; }
+
+api::Stat StatisticTimerValue::getViewer() const
+{
+  return api::Stat(d_expert,
+                   static_cast<int64_t>(get() / std::chrono::milliseconds(1)));
+}
+void StatisticTimerValue::print(std::ostream& out) const
+{
+  StreamFormatScope format_scope(out);
+  duration dur = get();
+
+  out << (dur / std::chrono::seconds(1)) << "." << std::setfill('0')
+      << std::setw(9) << std::right << (dur % std::chrono::seconds(1)).count();
+}
+void StatisticTimerValue::print_safe(int fd) const
+{
+  duration dur = get();
+  safe_print<uint64_t>(fd, dur / std::chrono::seconds(1));
+  safe_print(fd, ".");
+  safe_print_right_aligned(fd, (dur % std::chrono::seconds(1)).count(), 9);
+}
+/** Make sure that we include the time of a currently running timer */
+StatisticTimerValue::duration StatisticTimerValue::get() const
+{
+  auto data = d_duration;
+  if (d_running)
+  {
+    data += clock::now() - d_start;
   }
+  return data;
+}
 
 }  // namespace CVC4

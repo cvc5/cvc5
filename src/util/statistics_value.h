@@ -58,20 +58,15 @@ struct StatisticBaseValue
   bool d_expert = true;
 };
 /** Writes the data to an output stream */
-inline std::ostream& operator<<(std::ostream& out,
-                                const StatisticBaseValue& sbv)
-{
-  sbv.print(out);
-  return out;
-}
+std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv);
 
 /** Holds the data for an running average statistic */
 struct StatisticAverageValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override { return api::Stat(d_expert, get()); }
-  void print(std::ostream& out) const override { out << get(); }
-  void print_safe(int fd) const override { safe_print<double>(fd, get()); }
-  double get() const { return d_sum / d_count; }
+  api::Stat getViewer() const override;
+  void print(std::ostream& out) const override;
+  void print_safe(int fd) const override;
+  double get() const;
 
   /** Sum of added values */
   double d_sum;
@@ -89,10 +84,7 @@ struct StatisticAverageValue : StatisticBaseValue
 template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override
-  {
-    return api::Stat(d_expert, d_value);
-  }
+  api::Stat getViewer() const override { return api::Stat(d_expert, d_value); }
   void print(std::ostream& out) const override { out << d_value; }
   void print_safe(int fd) const override { safe_print<T>(fd, d_value); }
 
@@ -219,43 +211,69 @@ struct StatisticHistogramValue : StatisticBaseValue
 template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override {
-    if (d_committed) {
-      if constexpr (std::is_integral_v<T>) {
+  api::Stat getViewer() const override
+  {
+    if (d_committed)
+    {
+      if constexpr (std::is_integral_v<T>)
+      {
         return api::Stat(d_expert, static_cast<int64_t>(*d_committed));
-      } else {
+      }
+      else
+      {
         return api::Stat(d_expert, *d_committed);
       }
-    } else if (d_value != nullptr) {
-      if constexpr (std::is_integral_v<T>) {
+    }
+    else if (d_value != nullptr)
+    {
+      if constexpr (std::is_integral_v<T>)
+      {
         return api::Stat(d_expert, static_cast<int64_t>(*d_value));
-      } else {
+      }
+      else
+      {
         return api::Stat(d_expert, *d_value);
       }
-    } else {
+    }
+    else
+    {
       return api::Stat(d_expert);
     }
   }
-  void print(std::ostream& out) const override {
-    if (d_committed) {
+  void print(std::ostream& out) const override
+  {
+    if (d_committed)
+    {
       out << *d_committed;
-    } else if (d_value != nullptr) {
+    }
+    else if (d_value != nullptr)
+    {
       out << *d_value;
-    } else {
+    }
+    else
+    {
       out << "<undefined>";
     }
   }
-  void print_safe(int fd) const override {
-    if (d_committed) {
+  void print_safe(int fd) const override
+  {
+    if (d_committed)
+    {
       safe_print<T>(fd, *d_committed);
-    } else if (d_value != nullptr) {
+    }
+    else if (d_value != nullptr)
+    {
       safe_print<T>(fd, *d_value);
-    } else {
+    }
+    else
+    {
       safe_print(fd, "<undefined>");
     }
   }
-  void commit() {
-    if (d_value != nullptr) {
+  void commit()
+  {
+    if (d_value != nullptr)
+    {
       d_committed = *d_value;
     }
   }
@@ -276,34 +294,53 @@ struct StatisticSizeValue : StatisticBaseValue
 {
   api::Stat getViewer() const override
   {
-    if (d_committed) {
+    if (d_committed)
+    {
       return api::Stat(d_expert, static_cast<int64_t>(*d_committed));
-    } else if (d_value != nullptr) {
+    }
+    else if (d_value != nullptr)
+    {
       return api::Stat(d_expert, static_cast<int64_t>(d_value->size()));
-    } else {
+    }
+    else
+    {
       return api::Stat(d_expert);
     }
   }
-  void print(std::ostream& out) const override {
-    if (d_committed) {
+  void print(std::ostream& out) const override
+  {
+    if (d_committed)
+    {
       out << *d_committed;
-    } else if (d_value != nullptr) {
+    }
+    else if (d_value != nullptr)
+    {
       out << d_value->size();
-    } else {
+    }
+    else
+    {
       out << "<undefined>";
     }
   }
-  void print_safe(int fd) const override {
-    if (d_committed) {
+  void print_safe(int fd) const override
+  {
+    if (d_committed)
+    {
       safe_print(fd, *d_committed);
-    } else if (d_value != nullptr) {
+    }
+    else if (d_value != nullptr)
+    {
       safe_print(fd, d_value->size());
-    } else {
+    }
+    else
+    {
       safe_print(fd, "<undefined>");
     }
   }
-  void commit() {
-    if (d_value != nullptr) {
+  void commit()
+  {
+    if (d_value != nullptr)
+    {
       d_committed = d_value->size();
     }
   }
@@ -326,31 +363,13 @@ struct StatisticTimerValue : StatisticBaseValue
   {
   };
   /** Returns the number of milliseconds */
-  api::Stat getViewer() const override
-  {
-    return api::Stat(
-        d_expert, static_cast<int64_t>(get() / std::chrono::milliseconds(1)));
-  }
+  api::Stat getViewer() const override;
   /** Prints seconds in fixed-point format */
   void print(std::ostream& out) const override;
   /** Prints seconds in fixed-point format */
-  void print_safe(int fd) const override
-  {
-    duration dur = get();
-    safe_print<uint64_t>(fd, dur / std::chrono::seconds(1));
-    safe_print(fd, ".");
-    safe_print_right_aligned(fd, (dur % std::chrono::seconds(1)).count(), 9);
-  }
+  void print_safe(int fd) const override;
   /** Make sure that we include the time of a currently running timer */
-  duration get() const
-  {
-    auto data = d_duration;
-    if (d_running)
-    {
-      data += clock::now() - d_start;
-    }
-    return data;
-  }
+  duration get() const;
 
   duration d_duration;
   time_point d_start;

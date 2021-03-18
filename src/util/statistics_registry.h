@@ -34,29 +34,48 @@ struct StatisticBaseValue;
 
 /**
  * The central registry for statistics.
- * Internal stores statistic data objects and issues corresponding proxy
- * objects to modules that want to export statistics.
+ * Internally stores statistic data objects and issues corresponding proxy
+ * objects to modules that want to expose statistics.
  * Provides registration methods (e.g. `registerAverage` or
  * `registerHistogram<T>`) that return the proxy object.
+ * The different statistics are explained in more detail in statistics_stats.h
  *
  * Every statistic is identified by a name. If a statistic with the given
- * name is already registered, the registry issues a second proxy object
- * for that name. While this makes perfect sense for most statistic types,
- * it may lead to unexpected (though not undefined) behaviour for others.
- * For a reference statistic, for example, the internal data will simply
- * point to the object registered last.
+ * name is already registered, the registry issues another proxy object
+ * for that name using the same data it already holds for this name.
+ * While this makes perfect sense for most statistic types, it may lead to
+ * unexpected (though not undefined) behaviour for others. For a reference
+ * statistic, for example, the internal data will simply point to the object
+ * registered last.
  * Note that the type of the re-registered statistic must always match
  * the type of the previously registered statistic with the same name.
+ *
+ * We generally distinguish between public (non-expert) and private (expert)
+ * statistics. By default, `--stats` only shows public statistics. Private
+ * ones are printed as well if `--all-statistics` is set.
+ * All registration method have a trailing argument `expert`, defaulting to
+ * true.
+ * 
+ * If statistics are disabled entirely (i.e. the cmake option
+ * `ENABLE_STATISTICS` is not set), the registry still issues proxy objects
+ * that can be used normally.
+ * However, no data is stored in the registry and the modification functions
+ * of the proxy objects do nothing.
  */
 class StatisticsRegistry
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
                                   const StatisticsRegistry& sr);
-  /** Preregister public statistics */
+  /**
+   * If `preregister_public` is true, all statistics that are public are
+   * pre-registered as such. This argument mostly exists so that unit tests
+   * can disable this pre-registration.
+   */
   StatisticsRegistry(bool register_public = true);
 
   /** Register a new running average statistic for `name` */
+
   AverageStat registerAverage(const std::string& name, bool expert = true);
   /** Register a new histogram statistic for `name` */
   template <typename T>
@@ -65,8 +84,10 @@ class StatisticsRegistry
   {
     return registerStat<HistogramStat<T>>(name, expert);
   }
+
   /** Register a new integer statistic for `name` */
   IntStats registerInt(const std::string& name, bool expert = true);
+
   /** Register a new reference statistic for `name` */
   template <typename T>
   ReferenceStat<T> registerReference(const std::string& name,
@@ -84,6 +105,7 @@ class StatisticsRegistry
     res.set(t);
     return res;
   }
+
   /** Register a new container size statistic for `name` */
   template <typename T>
   SizeStat<T> registerSize(const std::string& name,
@@ -94,8 +116,10 @@ class StatisticsRegistry
     res.set(t);
     return res;
   }
+
   /** Register a new timer statistic for `name` */
   TimerStat registerTimer(const std::string& name, bool expert = true);
+
   /** Register a new value statistic for `name` */
   template <typename T>
   ValueStat<T> registerValue(const std::string& name,
@@ -112,9 +136,21 @@ class StatisticsRegistry
   /** end iteration */
   auto end() const { return d_stats.end(); }
 
+  /**
+   * Obtain a single statistic by name. Returns nullptr if no statistic has
+   * been registered for this name.
+   */
   StatisticBaseValue* get(const std::string& name) const;
 
+  /**
+   * Print all statistics to the given output stream.
+   * @param expert whether to also print private statistics
+   */
   void print(std::ostream& os, bool expert = false) const;
+  /**
+   * Print all statistics in a safe manner to the given file descriptor.
+   * @param expert whether to also print private statistics
+   */
   void print_safe(int fd, bool expert = false) const;
 
  private:
@@ -127,7 +163,7 @@ class StatisticsRegistry
   template <typename Stat>
   Stat registerStat(const std::string& name, bool expert)
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       auto it = d_stats.find(name);
       if (it == d_stats.end())
@@ -146,9 +182,14 @@ class StatisticsRegistry
     return Stat(nullptr);
   }
 
+  /**
+   * Holds (and owns) all statistic values, indexed by the name they were
+   * registered for.
+   */
   std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
 };
 
+/** Calls `sr.print(os)`. */
 std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr);
 
 }  // namespace CVC4

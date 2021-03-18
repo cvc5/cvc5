@@ -45,7 +45,7 @@ TimerStat StatisticsRegistry::registerTimer(const std::string& name,
 
 StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
 {
-  if (CVC4_USE_STATISTICS)
+  if constexpr (CVC4_USE_STATISTICS)
   {
     auto it = d_stats.find(name);
     if (it == d_stats.end()) return nullptr;

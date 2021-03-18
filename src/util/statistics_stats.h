@@ -11,11 +11,11 @@
  **
  ** \brief Statistic proxy objects
  **
- ** Conceptually, every statistic consists of a data object and a proxy object.
- ** The proxy object are issued by the `StatisticsRegistry` and maintained by
- ** the user. They only hold a pointer to a matching data object.
- ** The purpose of proxy objects is to implement methods to easily change the
- ** statistic data, but shield the regular user from the internals.
+ ** Conceptually, every statistic consists of a data object and a proxy
+ ** object. The proxy object are issued by the `StatisticsRegistry` and
+ ** maintained by the user. They only hold a pointer to a matching data
+ ** object. The purpose of proxy objects is to implement methods to easily
+ ** change the statistic data, but shield the regular user from the internals.
  */
 
 #include "cvc4_private_library.h"
@@ -70,7 +70,8 @@ class AverageStat
 
 /**
  * Collects a histogram over some type.
- * The type needs to be (convertible to) integral.
+ * The type needs to be (convertible to) integral and support streaming to
+ * an `std::ostream`.
  * New values are added by
  *    HistogramStat<Kind> stat;
  *    stat << Kind::PLUS << Kind::AND;
@@ -86,7 +87,7 @@ class HistogramStat
   /** Add the value `val` to the histogram */
   HistogramStat& operator<<(Integral val)
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       d_data->add(val);
     }
@@ -107,9 +108,9 @@ class HistogramStat
  * `ReferenceStat` the current value of the referenced object is copied into
  * the `StatisticsRegistry`.
  *
- * To convert to the API representation in `Stat`, `T` can only be one
- * of the types listed in `Stat::d_data` (or be implicitly converted to
- * one of them).
+ * To convert to the API representation in `api::Stat`, `T` can only be one
+ * of the types accepted by the `api::Stat` constructors (or be implicitly
+ * converted to one of them).
  */
 template <typename T>
 class ReferenceStat
@@ -122,7 +123,7 @@ class ReferenceStat
   /** Reset the reference to point to `t`. */
   void set(const T& t)
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       d_data->d_value = &t;
     }
@@ -130,7 +131,7 @@ class ReferenceStat
   /** Copy the current value of the referenced object. */
   ~ReferenceStat()
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       d_data->commit();
     }
@@ -159,7 +160,7 @@ class SizeStat
   /** Reset the reference to point to `t`. */
   void set(const T& t)
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       d_data->d_value = &t;
     }
@@ -167,7 +168,7 @@ class SizeStat
   /** Copy the current size of the referenced container. */
   ~SizeStat()
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       d_data->commit();
     }
@@ -212,9 +213,9 @@ class TimerStat
 };
 
 /**
- * Utility class to make it easier to call `stop`  at the end of a
- * code block. When constructed, it starts the timer. When
- * destructed, it stops the timer.
+ * Utility class to make it easier to call `stop` at the end of a code
+ * block. When constructed, it starts the timer. When destructed, it stops
+ * the timer.
  *
  * Allows for reentrant usage. If `allow_reentrant` is true, we check
  * whether the timer is already running. If so, this particular instance
@@ -242,9 +243,9 @@ class CodeTimer
  * Stores a simple value that can be set manually using regular assignment
  * or the `set` method.
  *
- * To convert to the API representation in `Stat`, `T` can only be one
- * of the types listed in `Stat::d_data` (or be implicitly converted to
- * one of them).
+ * To convert to the API representation in `api::Stat`, `T` can only be one
+ * of the types accepted by the `api::Stat` constructors (or be implicitly
+ * converted to one of them).
  */
 template <typename T>
 class ValueStat
@@ -258,7 +259,7 @@ class ValueStat
   /** Set to `t` */
   void set(const T& t)
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       d_data->d_value = t;
     }
@@ -266,7 +267,7 @@ class ValueStat
   /** Set to `t` */
   ValueStat<T>& operator=(const T& t)
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       set(t);
     }
@@ -274,7 +275,7 @@ class ValueStat
   }
   T get() const
   {
-    if (CVC4_USE_STATISTICS)
+    if constexpr (CVC4_USE_STATISTICS)
     {
       return d_data->d_value;
     }
