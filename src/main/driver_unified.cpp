@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -38,7 +39,6 @@
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 #include "util/result.h"
-#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4;
@@ -58,9 +58,6 @@ namespace CVC4 {
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
     CVC4::main::CommandExecutor* pExecutor = nullptr;
-
-    /** A pointer to the totalTime driver stat (the signal handlers need it) */
-    CVC4::TimerStat* pTotalTime = nullptr;
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -82,10 +79,7 @@ void printUsage(Options& opts, bool full) {
 
 int runCvc4(int argc, char* argv[], Options& opts) {
 
-  // Timer statistic
-  pTotalTime = new TimerStat("driver::totalTime");
-  pTotalTime->start();
-
+  std::chrono::time_point totalTimeStart = std::chrono::steady_clock::now();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -186,14 +180,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   int returnValue = 0;
   {
-    // Timer statistic
-    RegisterStatistic statTotalTime(&pExecutor->getStatisticsRegistry(),
-                                    pTotalTime);
-
-    // Filename statistics
-    ReferenceStat<std::string> s_statFilename("driver::filename", filenameStr);
-    RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
-                                      &s_statFilename);
     // notify SmtEngine that we are starting to parse
     pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
@@ -472,11 +458,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    ReferenceStat<api::Result> s_statSatResult("driver::sat/unsat", result);
-    RegisterStatistic statSatResultReg(&pExecutor->getStatisticsRegistry(),
-                                       &s_statSatResult);
-
-    pTotalTime->stop();
+    pExecutor->getSmtEngine()->setResultStatistic(result);
+    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
+    pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
 
     // Tim: I think that following comment is out of date?
     // Set the global executor pointer to nullptr first.  If we get a
@@ -496,10 +480,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // On exceptional exit, these are leaked, but that's okay... they
   // need to be around in that case for main() to print statistics.
-  delete pTotalTime;
   delete pExecutor;
 
-  pTotalTime = nullptr;
   pExecutor = nullptr;
 
   signal_handlers::cleanup();
