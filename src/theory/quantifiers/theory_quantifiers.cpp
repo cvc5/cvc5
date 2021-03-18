@@ -18,10 +18,10 @@
 
 #include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/quantifiers_modules.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/valuation.h"
 
 using namespace CVC4::kind;
@@ -98,7 +98,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
 
   //!!!!!!!!!!!!!! temporary (project #15)
   d_qmodel->finishInit(d_qengine.get());
-  
+
   // Set the pointer to the quantifiers engine, which this theory owns. This
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.

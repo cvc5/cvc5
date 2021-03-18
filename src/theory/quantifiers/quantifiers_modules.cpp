@@ -129,8 +129,8 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
 bool QuantifiersModules::useFmcModel()
 {
   return options::mbqiMode() == options::MbqiMode::FMC
-          || options::mbqiMode() == options::MbqiMode::TRUST
-          || options::fmfBound();
+         || options::mbqiMode() == options::MbqiMode::TRUST
+         || options::fmfBound();
 }
 
 }  // namespace quantifiers

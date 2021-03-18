@@ -21,9 +21,9 @@
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
+#include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_split.h"
@@ -63,6 +63,7 @@ class QuantifiersModules
 
   /** Whether we use the full model check builder and corresponding model */
   static bool useFmcModel();
+
  private:
   //------------------------------ quantifier utilities
   /** relevant domain */
