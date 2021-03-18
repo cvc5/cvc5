@@ -239,13 +239,29 @@ void TheoryUF::preRegisterTerm(TNode node)
   //Assert( node.getKind()!=kind::APPLY_UF || !options::ufHo() );
   Assert(node.getKind() != kind::HO_APPLY || options::ufHo());
 
-  switch (node.getKind()) {
+  Kind k = node.getKind();
+  switch (k) {
   case kind::EQUAL:
     // Add the trigger for equality
     d_equalityEngine->addTriggerPredicate(node);
     break;
   case kind::APPLY_UF:
   case kind::HO_APPLY:
+  {
+    // check for higher-order
+    bool isHigherOrder = true;
+    if (k==kind::APPLY_UF)
+    {
+      isHigherOrder = isHigherOrderType(node.getOperator().getType());
+    }
+    // logic exception if higher-order is not enabled
+    if (isHigherOrder && !options::ufHo())
+    {
+      std::stringstream ss;
+      ss << "UF recieved a higher-order term " << node
+         << " not supported without higher-order enabled, try --uf-ho";
+      throw LogicException(ss.str());
+    }
     // Maybe it's a predicate
     if (node.getType().isBoolean()) {
       // Get triggered for both equal and dis-equal
@@ -256,6 +272,7 @@ void TheoryUF::preRegisterTerm(TNode node)
     }
     // Remember the function and predicate terms
     d_functionsTerms.push_back(node);
+  }
     break;
   case kind::CARDINALITY_CONSTRAINT:
   case kind::COMBINED_CARDINALITY_CONSTRAINT:
@@ -646,6 +663,28 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
   if (d_thss != NULL) {
     d_thss->assertDisequal(t1, t2, reason);
   }
+}
+
+bool TheoryUF::isHigherOrderType(TypeNode tn)
+{
+  Assert (tn.isFunction());
+  std::map<TypeNode, bool>::iterator it = d_isHoType.find(tn);
+  if (it!=d_isHoType.end())
+  {
+    return it->second;
+  }
+  bool ret = false;
+  const std::vector<TypeNode>& argTypes = tn.getArgTypes();
+  for (const TypeNode& tnc : argTypes)
+  {
+    if (tnc.isFunction())
+    {
+      ret = true;
+      break;
+    }
+  }
+  d_isHoType[tn] = ret;
+  return ret;
 }
 
 } /* namespace CVC4::theory::uf */

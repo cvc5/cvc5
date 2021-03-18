@@ -162,7 +162,8 @@ private:
                     const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
-
+  /** Is t a higher order type? */
+  bool isHigherOrderType(TypeNode tn);
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
   UfProofRuleChecker d_ufProofChecker;
@@ -172,6 +173,8 @@ private:
   TheoryInferenceManager d_im;
   /** The notify class */
   NotifyClass d_notify;
+  /** Cache for isHigherOrderType */
+  std::map<TypeNode, bool> d_isHoType;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */
