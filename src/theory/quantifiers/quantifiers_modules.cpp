@@ -83,22 +83,19 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   {
     d_model_engine.reset(new ModelEngine(qe, qs, qim, qr));
     modules.push_back(d_model_engine.get());
-    if (options::finiteModelFind() || options::fmfBound())
+    Trace("quant-init-debug")
+        << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
+        << options::fmfBound() << std::endl;
+    if (useFmcModel())
+    {
+      Trace("quant-init-debug") << "...make fmc builder." << std::endl;
+      d_builder.reset(new fmcheck::FullModelChecker(qs, qr));
+    }
+    else
     {
       Trace("quant-init-debug")
-          << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
-          << options::fmfBound() << std::endl;
-      if (useFmcModel())
-      {
-        Trace("quant-init-debug") << "...make fmc builder." << std::endl;
-        d_builder.reset(new fmcheck::FullModelChecker(qs, qr));
-      }
-      else
-      {
-        Trace("quant-init-debug")
-            << "...make default model builder." << std::endl;
-        d_builder.reset(new QModelBuilder(qs, qr));
-      }
+          << "...make default model builder." << std::endl;
+      d_builder.reset(new QModelBuilder(qs, qr));
     }
     // !!!!!!!!!!!!! temporary (project #15)
     d_builder->finishInit(qe);
