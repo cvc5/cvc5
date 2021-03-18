@@ -60,8 +60,9 @@
 #include "theory/theory_model.h"
 #include "util/random.h"
 #include "util/result.h"
-#include "util/statistics_stats.h"
 #include "util/statistics_registry.h"
+#include "util/statistics_stats.h"
+#include "util/statistics_value.h"
 #include "util/utility.h"
 
 namespace CVC4 {
@@ -4039,7 +4040,7 @@ template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
 struct Stat::StatData {
-  std::variant<std::monostate, int64_t, double, std::string, Stat::HistogramData> data;
+  CVC4::StatExportData data;
   template<typename T>
   StatData(T&& t): data(std::forward<T>(t)) {}
   StatData(): data() {}
@@ -4099,6 +4100,8 @@ const Stat::HistogramData& Stat::getHistogram() const
   Assert(isHistogram());
   return std::get<HistogramData>(d_data->data);
 }
+
+Stat::Stat(bool expert, StatData&& sd): d_expert(expert), d_data(std::make_unique<StatData>(std::move(sd))) {}
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
 {
@@ -4202,7 +4205,7 @@ Statistics::Statistics(const StatisticsRegistry& reg)
 {
   for (const auto& svp : reg)
   {
-    d_stats.emplace(svp.first, svp.second->getViewer());
+    d_stats.emplace(svp.first, Stat(svp.second->d_expert, svp.second->getViewer()));
   }
 }
 

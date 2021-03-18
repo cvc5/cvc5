@@ -32,6 +32,7 @@
 #include <map>
 #include <optional>
 #include <sstream>
+#include <variant>
 #include <vector>
 
 #include "api/cvc4cpp.h"
@@ -40,6 +41,8 @@
 namespace CVC4 {
 
 class StatisticsRegistry;
+
+using StatExportData = std::variant<std::monostate, int64_t, double, std::string, std::map<std::string, uint64_t>>;
 
 /**
  * Base class for all statistic values.
@@ -51,7 +54,7 @@ class StatisticsRegistry;
 struct StatisticBaseValue
 {
   virtual ~StatisticBaseValue();
-  virtual api::Stat getViewer() const = 0;
+  virtual StatExportData getViewer() const = 0;
   virtual void print(std::ostream&) const = 0;
   virtual void print_safe(int fd) const = 0;
 
@@ -63,7 +66,7 @@ std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv);
 /** Holds the data for an running average statistic */
 struct StatisticAverageValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override;
+  StatExportData getViewer() const override;
   void print(std::ostream& out) const override;
   void print_safe(int fd) const override;
   double get() const;
@@ -84,7 +87,7 @@ struct StatisticAverageValue : StatisticBaseValue
 template <typename T>
 struct StatisticBackedValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override { return api::Stat(d_expert, d_value); }
+  StatExportData getViewer() const override { return d_value; }
   void print(std::ostream& out) const override { out << d_value; }
   void print_safe(int fd) const override { safe_print<T>(fd, d_value); }
 
@@ -111,7 +114,7 @@ struct StatisticHistogramValue : StatisticBaseValue
   /**
    * Convert the internal representation to a `std::map<std::string, uint64_t>`
    */
-  api::Stat getViewer() const override
+  StatExportData getViewer() const override
   {
     std::map<std::string, uint64_t> res;
     for (size_t i = 0, n = d_hist.size(); i < n; ++i)
@@ -123,7 +126,7 @@ struct StatisticHistogramValue : StatisticBaseValue
         res.emplace(ss.str(), d_hist[i]);
       }
     }
-    return api::Stat(d_expert, res);
+    return res;
   }
   void print(std::ostream& out) const override
   {
@@ -211,33 +214,33 @@ struct StatisticHistogramValue : StatisticBaseValue
 template <typename T>
 struct StatisticReferenceValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override
+  StatExportData getViewer() const override
   {
     if (d_committed)
     {
       if constexpr (std::is_integral_v<T>)
       {
-        return api::Stat(d_expert, static_cast<int64_t>(*d_committed));
+        return static_cast<int64_t>(*d_committed);
       }
       else
       {
-        return api::Stat(d_expert, *d_committed);
+        return *d_committed;
       }
     }
     else if (d_value != nullptr)
     {
       if constexpr (std::is_integral_v<T>)
       {
-        return api::Stat(d_expert, static_cast<int64_t>(*d_value));
+        return static_cast<int64_t>(*d_value);
       }
       else
       {
-        return api::Stat(d_expert, *d_value);
+        return *d_value;
       }
     }
     else
     {
-      return api::Stat(d_expert);
+      return {};
     }
   }
   void print(std::ostream& out) const override
@@ -292,19 +295,19 @@ struct StatisticReferenceValue : StatisticBaseValue
 template <typename T>
 struct StatisticSizeValue : StatisticBaseValue
 {
-  api::Stat getViewer() const override
+  StatExportData getViewer() const override
   {
     if (d_committed)
     {
-      return api::Stat(d_expert, static_cast<int64_t>(*d_committed));
+      return static_cast<int64_t>(*d_committed);
     }
     else if (d_value != nullptr)
     {
-      return api::Stat(d_expert, static_cast<int64_t>(d_value->size()));
+      return static_cast<int64_t>(d_value->size());
     }
     else
     {
-      return api::Stat(d_expert);
+      return {};
     }
   }
   void print(std::ostream& out) const override
@@ -363,7 +366,7 @@ struct StatisticTimerValue : StatisticBaseValue
   {
   };
   /** Returns the number of milliseconds */
-  api::Stat getViewer() const override;
+  StatExportData getViewer() const override;
   /** Prints seconds in fixed-point format */
   void print(std::ostream& out) const override;
   /** Prints seconds in fixed-point format */

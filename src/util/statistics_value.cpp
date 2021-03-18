@@ -36,9 +36,9 @@ std::ostream& operator<<(std::ostream& out, const StatisticBaseValue& sbv)
   return out;
 }
 
-api::Stat StatisticAverageValue::getViewer() const
+StatExportData StatisticAverageValue::getViewer() const
 {
-  return api::Stat(d_expert, get());
+  return get();
 }
 void StatisticAverageValue::print(std::ostream& out) const { out << get(); }
 void StatisticAverageValue::print_safe(int fd) const
@@ -47,10 +47,9 @@ void StatisticAverageValue::print_safe(int fd) const
 }
 double StatisticAverageValue::get() const { return d_sum / d_count; }
 
-api::Stat StatisticTimerValue::getViewer() const
+StatExportData StatisticTimerValue::getViewer() const
 {
-  return api::Stat(d_expert,
-                   static_cast<int64_t>(get() / std::chrono::milliseconds(1)));
+  return static_cast<int64_t>(get() / std::chrono::milliseconds(1));
 }
 void StatisticTimerValue::print(std::ostream& out) const
 {

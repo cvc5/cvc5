@@ -2315,6 +2315,7 @@ class Stat
 {
  struct StatData;
  public:
+  friend class Statistics;
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
   using HistogramData = std::map<std::string, uint64_t>;
   /** Create from the given value. */
@@ -2348,6 +2349,7 @@ class Stat
   const HistogramData& getHistogram() const;
 
  private:
+  Stat(bool expert, StatData&& sd);
   /** Whether this statistic is only meant for experts */
   bool d_expert;
   std::unique_ptr<StatData> d_data;
