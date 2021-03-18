@@ -24,7 +24,7 @@
 #include "base/output.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 using namespace std;
 

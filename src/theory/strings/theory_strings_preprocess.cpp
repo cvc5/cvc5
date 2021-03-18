@@ -25,7 +25,7 @@
 #include "theory/strings/arith_entail.h"
 #include "theory/strings/sequences_rewriter.h"
 #include "theory/strings/word.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

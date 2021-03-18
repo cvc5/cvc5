@@ -15,7 +15,7 @@
 #include "theory/bags/bags_rewriter.h"
 
 #include "theory/bags/normal_form.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 using namespace CVC4::kind;
 

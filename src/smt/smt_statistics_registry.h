@@ -19,7 +19,7 @@
 #pragma once
 
 #include "util/statistics_stats.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

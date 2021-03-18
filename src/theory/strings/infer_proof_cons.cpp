@@ -22,7 +22,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_utils.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 using namespace CVC4::kind;
 

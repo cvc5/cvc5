@@ -61,7 +61,7 @@
 #include "util/random.h"
 #include "util/result.h"
 #include "util/statistics_stats.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 #include "util/utility.h"
 
 namespace CVC4 {

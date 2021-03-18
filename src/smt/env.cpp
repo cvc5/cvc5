@@ -24,7 +24,7 @@
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
 #include "util/resource_manager.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 using namespace CVC4::smt;
 

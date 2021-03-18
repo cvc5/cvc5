@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file statistics_reg.cpp
+/*! \file statistics_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Gereon Kremer
@@ -14,7 +14,7 @@
  ** The StatisticsRegistry that issues statistic proxy objects.
  **/
 
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 #include "util/statistics_public.h"
 

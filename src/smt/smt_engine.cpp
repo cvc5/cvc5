@@ -67,7 +67,7 @@
 #include "theory/theory_engine.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 // required for hacks related to old proofs for unsat cores
 #include "base/configuration.h"

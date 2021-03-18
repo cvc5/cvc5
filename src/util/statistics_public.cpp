@@ -16,7 +16,7 @@
 
 #include "util/statistics_public.h"
 
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

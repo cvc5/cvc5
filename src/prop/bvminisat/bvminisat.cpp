@@ -18,7 +18,7 @@
 
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "proof/clause_id.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {

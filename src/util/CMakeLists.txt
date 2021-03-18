@@ -58,8 +58,8 @@ libcvc4_add_sources(
   smt2_quote_string.h
   statistics_public.cpp
   statistics_public.h
-  statistics_reg.cpp
-  statistics_reg.h
+  statistics_registry.cpp
+  statistics_registry.h
   statistics_stats.cpp
   statistics_stats.h
   statistics_value.cpp

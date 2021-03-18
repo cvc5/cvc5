@@ -18,7 +18,7 @@
 
 #include "prop/sat_solver.h"
 #include "prop/minisat/simp/SimpSolver.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace prop {

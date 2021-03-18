@@ -22,7 +22,7 @@
 #include "expr/symbol_manager.h"
 #include "options/options.h"
 #include "smt/smt_engine.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 

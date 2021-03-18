@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file statistics_reg.h
+/*! \file statistics_registry.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Gereon Kremer
@@ -16,8 +16,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef CVC4__UTIL__STATISTICS_REG_H
-#define CVC4__UTIL__STATISTICS_REG_H
+#ifndef CVC4__UTIL__statistics_registry.h
+#define CVC4__UTIL__statistics_registry.h
 
 #include <iostream>
 #include <map>
