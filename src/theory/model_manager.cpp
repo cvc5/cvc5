@@ -100,10 +100,10 @@ bool ModelManager::buildModel()
   // now, finish building the model
   d_modelBuiltSuccess = finishBuildModel();
 
-  if (Trace.isOn("model-eqc"))
+  if (Trace.isOn("model-builder"))
   {
-    Trace("model-eqc") << "Model equivalence classes:" << std::endl;
-    Trace("model-eqc") << d_model->debugPrintModelEqc() << std::endl;
+    Trace("model-builder") << "Final model:" << std::endl;
+    Trace("model-builder") << d_model->debugPrintModelEqc() << std::endl;
   }
 
   Trace("model-builder") << "ModelManager: model built success is "
