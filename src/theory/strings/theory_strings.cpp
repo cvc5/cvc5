@@ -179,6 +179,11 @@ TrustNode TheoryStrings::explain(TNode literal)
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
+    if (Trace.isOn("strings-presolve"))
+    {
+      Trace("strings-presolve") << "Presolve eqc:" << std::endl;
+      Trace("strings-presolve") << debugPrintStringsEqc() << std::endl;
+    }
   d_strat.initializeStrategy();
 
   // if strings fmf is enabled, register the strategy
@@ -575,21 +580,6 @@ TrustNode TheoryStrings::expandDefinition(Node node)
 bool TheoryStrings::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  // this is only required for internal facts, others are already registered
-  if (isInternal && atom.getKind() == EQUAL)
-  {
-    // we must ensure these terms are registered
-    for (const Node& t : atom)
-    {
-      // terms in the equality engine are already registered, hence skip
-      // currently done for only string-like terms, but this could potentially
-      // be avoided.
-      if (!d_equalityEngine->hasTerm(t) && t.getType().isStringLike())
-      {
-        d_termReg.registerTerm(t, 0);
-      }
-    }
-  }
   return false;
 }
 
