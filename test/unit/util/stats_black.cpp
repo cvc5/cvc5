@@ -24,7 +24,7 @@
 #include "expr/proof_rule.h"
 #include "lib/clock_gettime.h"
 #include "test.h"
-#include "util/statistics_reg.h"
+#include "util/statistics_registry.h"
 #include "util/statistics_stats.h"
 
 namespace CVC4 {
