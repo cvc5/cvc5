@@ -49,13 +49,13 @@ void DotPrinter::printInternal(std::ostream& out,
   const std::vector<std::shared_ptr<ProofNode>>& children = pn->getChildren();
 
   out << "\t\"" << currentRuleID << "\" [ shape = \"box\", label = \""
-      << pn->getRule() << "(";
+      << pn->getRule();
 
   // guarantee that arguments do not have unescaped quotes
   std::string astring = currentArguments.str();
   cleanQuotes(astring);
 
-  out << astring << ")\"];\n\t\"" << currentRuleID
+  out << astring << "\"];\n\t\"" << currentRuleID
       << "c\" [ shape = \"ellipse\", label = \"";
 
   // guarantee that conclusion does not have unescaped quotes
