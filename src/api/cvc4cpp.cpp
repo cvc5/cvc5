@@ -4237,6 +4237,17 @@ Solver::Solver(Options* opts)
 
 Solver::~Solver() {}
 
+void Solver::reset() {
+  d_smtEngine->reset();
+#if CVC4_STATISTICS_ON
+  d_stats.reset(new APIStatistics{
+    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
+    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
+    d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+  });
+#endif
+}
+
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
 
