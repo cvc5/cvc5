@@ -205,7 +205,8 @@ bool TheoryStrings::collectModelValues(TheoryModel* m,
 {
   if (Trace.isOn("strings-model"))
   {
-    Trace("strings-model") << "TheoryStrings : Collect model values" << std::endl;
+    Trace("strings-model") << "TheoryStrings : Collect model values"
+                           << std::endl;
     Trace("strings-model") << "Equivalence classes are:" << std::endl;
     Trace("strings-model") << debugPrintStringsEqc() << std::endl;
   }
@@ -1049,24 +1050,28 @@ std::string TheoryStrings::debugPrintStringsEqc()
   for (unsigned t = 0; t < 2; t++)
   {
     eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
-    ss << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
-    while( !eqcs2_i.isFinished() ){
+    ss << (t == 0 ? "STRINGS:" : "OTHER:") << std::endl;
+    while (!eqcs2_i.isFinished())
+    {
       Node eqc = (*eqcs2_i);
       bool print = (t == 0 && eqc.getType().isStringLike())
-                    || (t == 1 && !eqc.getType().isStringLike());
-      if (print) {
-        eq::EqClassIterator eqc2_i =
-            eq::EqClassIterator(eqc, d_equalityEngine);
+                   || (t == 1 && !eqc.getType().isStringLike());
+      if (print)
+      {
+        eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, d_equalityEngine);
         ss << "Eqc( " << eqc << " ) : { ";
-        while( !eqc2_i.isFinished() ) {
-          if( (*eqc2_i)!=eqc && (*eqc2_i).getKind()!=kind::EQUAL ){
+        while (!eqc2_i.isFinished())
+        {
+          if ((*eqc2_i) != eqc && (*eqc2_i).getKind() != kind::EQUAL)
+          {
             ss << (*eqc2_i) << " ";
           }
           ++eqc2_i;
         }
         ss << " } " << std::endl;
         EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
-        if( ei ){
+        if (ei)
+        {
           Trace("strings-eqc-debug")
               << "* Length term : " << ei->d_lengthTerm.get() << std::endl;
           Trace("strings-eqc-debug")
