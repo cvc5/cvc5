@@ -416,9 +416,10 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::notifyStartParsing(std::string filename)
+void SmtEngine::notifyStartParsing(const std::string& filename)
 {
   d_state->setFilename(filename);
+  d_stats->d_driverFilename.set(filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
@@ -429,6 +430,17 @@ const std::string& SmtEngine::getFilename() const
 {
   return d_state->getFilename();
 }
+
+void SmtEngine::setResultStatistic(api::Result result) {
+    std::stringstream ss;
+    ss << result;
+    d_stats->d_driverResult.set(ss.str());
+}
+
+void SmtEngine::setTotalTimeStatistic(double seconds) {
+  d_stats->d_driverTotalTime.set(seconds);
+}
+
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
