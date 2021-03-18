@@ -572,12 +572,6 @@ TrustNode TheoryStrings::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-bool TheoryStrings::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
-{
-  return false;
-}
-
 void TheoryStrings::notifyFact(TNode atom,
                                bool polarity,
                                TNode fact,
