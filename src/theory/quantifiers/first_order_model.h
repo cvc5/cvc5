@@ -27,22 +27,10 @@ namespace theory {
 
 class QuantifiersEngine;
 
-struct ModelBasisAttributeId
-{
-};
-typedef expr::Attribute<ModelBasisAttributeId, bool> ModelBasisAttribute;
-// for APPLY_UF terms, 1 : term has direct child with model basis attribute,
-//                     0 : term has no direct child with model basis attribute.
-struct ModelBasisArgAttributeId
-{
-};
-typedef expr::Attribute<ModelBasisArgAttributeId, uint64_t>
-    ModelBasisArgAttribute;
-
 namespace quantifiers {
 
-class TermDb;
 class QuantifiersState;
+class TermRegistry;
 class QuantifiersRegistry;
 
 namespace fmcheck {
@@ -56,12 +44,15 @@ typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 class FirstOrderModel : public TheoryModel
 {
  public:
-  FirstOrderModel(QuantifiersEngine* qe,
-                  QuantifiersState& qs,
+  FirstOrderModel(QuantifiersState& qs,
                   QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                   std::string name);
 
-  virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
+  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+  /** finish initialize */
+  void finishInit(QuantifiersEngine* qe);
+
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -132,12 +123,18 @@ class FirstOrderModel : public TheoryModel
    * has all representatives of type tn.
    */
   bool initializeRepresentativesForType(TypeNode tn);
+  /**
+   * Has the term been marked as a model basis term?
+   */
+  static bool isModelBasis(TNode n);
 
  protected:
-  /** quant engine */
+  //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
   QuantifiersEngine* d_qe;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 
