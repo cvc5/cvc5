@@ -431,10 +431,8 @@ const std::string& SmtEngine::getFilename() const
   return d_state->getFilename();
 }
 
-void SmtEngine::setResultStatistic(api::Result result) {
-    std::stringstream ss;
-    ss << result;
-    d_stats->d_driverResult.set(ss.str());
+void SmtEngine::setResultStatistic(const std::string& result) {
+    d_stats->d_driverResult.set(result);
 }
 
 void SmtEngine::setTotalTimeStatistic(double seconds) {

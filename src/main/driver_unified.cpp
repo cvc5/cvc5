@@ -457,8 +457,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // or other on_exit/atexit stuff.
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
-
-    pExecutor->getSmtEngine()->setResultStatistic(result);
+    pExecutor->getSmtEngine()->setResultStatistic(result.toString());
     std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
     pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
 
