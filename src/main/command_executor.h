@@ -52,7 +52,6 @@ class CommandExecutor
    * symbol manager.
    */
   std::unique_ptr<SymbolManager> d_symman;
-  SmtEngine* d_smtEngine;
   Options& d_options;
   api::Result d_result;
 
@@ -81,7 +80,7 @@ class CommandExecutor
   api::Result getResult() const { return d_result; }
   void reset();
 
-  SmtEngine* getSmtEngine() { return d_smtEngine; }
+  SmtEngine* getSmtEngine() const { return d_solver->getSmtEngine(); }
 
   /**
    * Flushes statistics to a file descriptor.
