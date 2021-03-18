@@ -248,9 +248,14 @@ class CVC4_EXPORT SmtEngine
    * to a state where its options were prior to parsing but after e.g.
    * reading command line options.
    */
-  void notifyStartParsing(std::string filename) CVC4_EXPORT;
+  void notifyStartParsing(const std::string& filename) CVC4_EXPORT;
   /** return the input name (if any) */
   const std::string& getFilename() const;
+
+  void setResultStatistic(api::Result result) CVC4_EXPORT;
+
+  void startTotalTimer() CVC4_EXPORT;
+  void stopTotalTimer() CVC4_EXPORT;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED

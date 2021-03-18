@@ -48,6 +48,8 @@ struct SmtEngineStatistics
 
   /** Has something simplified to false? */
   IntStats d_simplifiedToFalse;
+
+  TimerStats d_totalTime;
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt

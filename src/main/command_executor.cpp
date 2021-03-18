@@ -52,7 +52,6 @@ CommandExecutor::CommandExecutor(Options& options)
       d_symman(new SymbolManager(d_solver.get())),
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
-      d_stats(),
       d_result()
 {
 }
@@ -67,14 +66,12 @@ void CommandExecutor::flushStatistics(std::ostream& out) const
 {
   // SmtEngine + node manager flush statistics is part of the call below
   d_smtEngine->flushStatistics(out);
-  d_stats.print(out);
 }
 
 void CommandExecutor::safeFlushStatistics(int fd) const
 {
   // SmtEngine + node manager flush statistics is part of the call below
   d_smtEngine->safeFlushStatistics(fd);
-  d_stats.print_safe(fd);
 }
 
 bool CommandExecutor::doCommand(Command* cmd)

@@ -38,7 +38,6 @@
 #include "parser/parser_builder.h"
 #include "smt/command.h"
 #include "util/result.h"
-#include "util/statistics_stats.h"
 
 using namespace std;
 using namespace CVC4;
@@ -178,15 +177,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   pExecutor = new CommandExecutor(opts);
   
   // Timer statistic
-  TimerStats statTotalTime = pExecutor->getStatisticsRegistry().registerTimer("driver::totalTime");
-  statTotalTime.start();
+  pExecutor->getSmtEngine()->startTotalTimer();
 
   int returnValue = 0;
   {
-    // Timer statistic
-
-    // Filename statistics
-    ReferenceStats<std::string> statFilenameReg = pExecutor->getStatisticsRegistry().registerReference("driver::filename", filenameStr);
     // notify SmtEngine that we are starting to parse
     pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
@@ -465,11 +459,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
 
-    std::stringstream ss;
-    ss << result;
-    pExecutor->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat", ss.str());
-
-    statTotalTime.stop();
+    pExecutor->getSmtEngine()->setResultStatistic(result);
+    pExecutor->getSmtEngine()->stopTotalTimer();
 
     // Tim: I think that following comment is out of date?
     // Set the global executor pointer to nullptr first.  If we get a

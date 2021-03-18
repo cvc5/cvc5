@@ -54,7 +54,6 @@ class CommandExecutor
   std::unique_ptr<SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
-  StatisticRegistry d_stats;
   api::Result d_result;
 
  public:
@@ -81,10 +80,6 @@ class CommandExecutor
 
   api::Result getResult() const { return d_result; }
   void reset();
-
-  StatisticRegistry& getStatisticsRegistry() {
-    return d_stats;
-  }
 
   SmtEngine* getSmtEngine() { return d_smtEngine; }
 
