@@ -35,6 +35,7 @@
 
 #include <cstring>
 #include <sstream>
+#include <variant>
 
 #include "api/checks.h"
 #include "base/check.h"
@@ -4037,6 +4038,26 @@ struct overloaded : Ts...
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
+struct Stat::StatData {
+  std::variant<std::monostate, int64_t, double, std::string, Stat::HistogramData> data;
+  template<typename T>
+  StatData(T&& t): data(std::forward<T>(t)) {}
+  StatData(): data() {}
+}; 
+
+Stat::Stat(bool expert) : d_expert(expert), d_data(std::make_unique<StatData>()) {}
+Stat::Stat(bool expert, int64_t val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
+Stat::Stat(bool expert, double val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
+Stat::Stat(bool expert, const std::string& val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
+Stat::Stat(bool expert, const HistogramData& val) : d_expert(expert), d_data(std::make_unique<StatData>(val)) {}
+Stat::~Stat() {}
+Stat::Stat(const Stat& s): d_expert(s.d_expert), d_data(std::make_unique<StatData>(s.d_data->data)) {}
+Stat& Stat::operator=(const Stat& s) {
+  d_expert = s.d_expert;
+  d_data = std::make_unique<StatData>(s.d_data->data);
+  return *this;
+}
+
 bool Stat::isExpert() const
 {
   return d_expert;
@@ -4044,39 +4065,39 @@ bool Stat::isExpert() const
 
 bool Stat::isInt() const
 {
-  return std::holds_alternative<int64_t>(d_data);
+  return std::holds_alternative<int64_t>(d_data->data);
 }
 int64_t Stat::getInt() const
 {
   Assert(isInt());
-  return std::get<int64_t>(d_data);
+  return std::get<int64_t>(d_data->data);
 }
 bool Stat::isDouble() const
 {
-  return std::holds_alternative<double>(d_data);
+  return std::holds_alternative<double>(d_data->data);
 }
 double Stat::getDouble() const
 {
   Assert(isDouble());
-  return std::get<double>(d_data);
+  return std::get<double>(d_data->data);
 }
 bool Stat::isString() const
 {
-  return std::holds_alternative<std::string>(d_data);
+  return std::holds_alternative<std::string>(d_data->data);
 }
 std::string Stat::getString() const
 {
   Assert(isString());
-  return std::get<std::string>(d_data);
+  return std::get<std::string>(d_data->data);
 }
 bool Stat::isHistogram() const
 {
-  return std::holds_alternative<HistogramData>(d_data);
+  return std::holds_alternative<HistogramData>(d_data->data);
 }
 const Stat::HistogramData& Stat::getHistogram() const
 {
   Assert(isHistogram());
-  return std::get<HistogramData>(d_data);
+  return std::get<HistogramData>(d_data->data);
 }
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv)
@@ -4101,7 +4122,7 @@ std::ostream& operator<<(std::ostream& os, const Stat& sv)
                    os << " }";
                  },
              },
-             sv.d_data);
+             sv.d_data->data);
   return os;
 }
 

@@ -28,7 +28,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <variant>
 #include <vector>
 
 namespace CVC4 {
@@ -2314,17 +2313,19 @@ struct CVC4_EXPORT RoundingModeHashFunction
  */
 class Stat
 {
+ struct StatData;
  public:
   friend std::ostream& operator<<(std::ostream& os, const Stat& sv);
-  /** Create from the given value. */
-  template <typename T>
-  Stat(bool expert, const T& t) : d_expert(expert), d_data(t)
-  {
-  }
-  Stat(bool expert) : d_expert(expert)
-  {
-  }
   using HistogramData = std::map<std::string, uint64_t>;
+  /** Create from the given value. */
+  Stat(bool expert);
+  Stat(bool expert, int64_t val);
+  Stat(bool expert, double val);
+  Stat(bool expert, const std::string& val);
+  Stat(bool expert, const HistogramData& val);
+  Stat(const Stat& s);
+  ~Stat();
+  Stat& operator=(const Stat& s);
 
   /** Is this value intended for experts only? */
   bool isExpert() const;
@@ -2349,7 +2350,8 @@ class Stat
  private:
   /** Whether this statistic is only meant for experts */
   bool d_expert;
-  std::variant<std::monostate, int64_t, double, std::string, HistogramData> d_data;
+  std::unique_ptr<StatData> d_data;
+  //std::variant<std::monostate, int64_t, double, std::string, HistogramData> d_data;
 };
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv);
