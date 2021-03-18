@@ -240,39 +240,41 @@ void TheoryUF::preRegisterTerm(TNode node)
   Assert(node.getKind() != kind::HO_APPLY || options::ufHo());
 
   Kind k = node.getKind();
-  switch (k) {
-  case kind::EQUAL:
-    // Add the trigger for equality
-    d_equalityEngine->addTriggerPredicate(node);
-    break;
-  case kind::APPLY_UF:
-  case kind::HO_APPLY:
+  switch (k)
   {
-    // check for higher-order
-    bool isHigherOrder = true;
-    if (k==kind::APPLY_UF)
-    {
-      isHigherOrder = isHigherOrderType(node.getOperator().getType());
-    }
-    // logic exception if higher-order is not enabled
-    if (isHigherOrder && !options::ufHo())
-    {
-      std::stringstream ss;
-      ss << "UF recieved a higher-order term " << node
-         << " not supported without higher-order enabled, try --uf-ho";
-      throw LogicException(ss.str());
-    }
-    // Maybe it's a predicate
-    if (node.getType().isBoolean()) {
-      // Get triggered for both equal and dis-equal
+    case kind::EQUAL:
+      // Add the trigger for equality
       d_equalityEngine->addTriggerPredicate(node);
-    } else {
+      break;
+    case kind::APPLY_UF:
+    case kind::HO_APPLY:
+    {
+      // check for higher-order
+      bool isHigherOrder = true;
+      if (k == kind::APPLY_UF)
+      {
+        isHigherOrder = isHigherOrderType(node.getOperator().getType());
+      }
+      // logic exception if higher-order is not enabled
+      if (isHigherOrder && !options::ufHo())
+      {
+        std::stringstream ss;
+        ss << "UF recieved a higher-order term " << node
+           << " not supported without higher-order enabled, try --uf-ho";
+        throw LogicException(ss.str());
+      }
+      // Maybe it's a predicate
+      if (node.getType().isBoolean())
+      {
+        // Get triggered for both equal and dis-equal
+        d_equalityEngine->addTriggerPredicate(node);
+      } else {
       // Function applications/predicates
       d_equalityEngine->addTerm(node);
     }
     // Remember the function and predicate terms
     d_functionsTerms.push_back(node);
-  }
+    }
     break;
   case kind::CARDINALITY_CONSTRAINT:
   case kind::COMBINED_CARDINALITY_CONSTRAINT:
@@ -667,9 +669,9 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 
 bool TheoryUF::isHigherOrderType(TypeNode tn)
 {
-  Assert (tn.isFunction());
+  Assert(tn.isFunction());
   std::map<TypeNode, bool>::iterator it = d_isHoType.find(tn);
-  if (it!=d_isHoType.end())
+  if (it != d_isHoType.end())
   {
     return it->second;
   }
