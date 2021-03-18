@@ -48,13 +48,13 @@ struct StatisticBaseValue;
  * Note that the type of the re-registered statistic must always match
  * the type of the previously registered statistic with the same name.
  */
-class StatisticRegistry
+class StatisticsRegistry
 {
  public:
   friend std::ostream& operator<<(std::ostream& os,
-                                  const StatisticRegistry& sr);
+                                  const StatisticsRegistry& sr);
   /** Preregister public statistics */
-  StatisticRegistry(bool register_public = true);
+  StatisticsRegistry(bool register_public = true);
 
   /** Register a new running average statistic for `name` */
   AverageStat registerAverage(const std::string& name, bool expert = true)
@@ -156,7 +156,7 @@ class StatisticRegistry
   std::map<std::string, std::unique_ptr<StatisticBaseValue>> d_stats;
 };
 
-std::ostream& operator<<(std::ostream& os, const StatisticRegistry& sr);
+std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr);
 
 }  // namespace CVC4
 

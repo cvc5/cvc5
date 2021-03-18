@@ -12,7 +12,7 @@
  ** \brief Statistic proxy objects
  **
  ** Conceptually, every statistic consists of a data object and a proxy object.
- ** The proxy object are issued by the `StatisticRegistry` and maintained by the
+ ** The proxy object are issued by the `StatisticsRegistry` and maintained by the
  ** user. They only hold a pointer to a matching data object.
  ** The purpose of proxy objects is to implement methods to easily change the
  ** statistic data, but shield the regular user from the internals.
@@ -45,7 +45,7 @@ template <typename T>
 struct StatisticSizeValue;
 struct StatisticTimerValue;
 
-class StatisticRegistry;
+class StatisticsRegistry;
 
 /**
  * Collects the average of a series of double values.
@@ -57,7 +57,7 @@ class AverageStat
 {
  public:
   /** Allow access to private constructor */
-  friend class StatisticRegistry;
+  friend class StatisticsRegistry;
   /** Value stored for this statistic */
   using stat_type = StatisticAverageValue;
   /** Add the value `v` to the running average */
@@ -80,7 +80,7 @@ class HistogramStat
 {
  public:
   /** Allow access to private constructor */
-  friend class StatisticRegistry;
+  friend class StatisticsRegistry;
   /** Value stored for this statistic */
   using stat_type = StatisticHistogramValue<Integral>;
   /** Add the value `val` to the histogram */
@@ -104,7 +104,7 @@ class HistogramStat
  * Note that the referenced object must have a lifetime that is longer than
  * the lifetime of the `ReferenceStat` object. Upon destruction of the
  * `ReferenceStat` the current value of the referenced object is copied into
- * the `StatisticRegistry`.
+ * the `StatisticsRegistry`.
  *
  * To convert to the API representation in `Stat`, `T` can only be one
  * of the types listed in `Stat::d_data` (or be implicitly converted to
@@ -115,7 +115,7 @@ class ReferenceStat
 {
  public:
   /** Allow access to private constructor */
-  friend class StatisticRegistry;
+  friend class StatisticsRegistry;
   /** Value stored for this statistic */
   using stat_type = StatisticReferenceValue<T>;
   /** Reset the reference to point to `t`. */
@@ -133,14 +133,14 @@ class ReferenceStat
  * Note that the referenced container must have a lifetime that is longer than
  * the lifetime of the `SizeStat` object. Upon destruction of the `SizeStat`
  * the current size of the referenced container is copied into the
- * `StatisticRegistry`.
+ * `StatisticsRegistry`.
  */
 template <typename T>
 class SizeStat
 {
  public:
   /** Allow access to private constructor */
-  friend class StatisticRegistry;
+  friend class StatisticsRegistry;
   /** Value stored for this statistic */
   using stat_type = StatisticSizeValue<T>;
   /** Reset the reference to point to `t`. */
@@ -170,7 +170,7 @@ class TimerStat
   /** Utility for RAII-style timing of code blocks */
   using CodeTimer = CVC4::CodeTimer;
   /** Allow access to private constructor */
-  friend class StatisticRegistry;
+  friend class StatisticsRegistry;
   /** Value stored for this statistic */
   using stat_type = StatisticTimerValue;
 
@@ -226,7 +226,7 @@ class ValueStat
 {
  public:
   /** Allow access to private constructor */
-  friend class StatisticRegistry;
+  friend class StatisticsRegistry;
   friend class IntStats;
   /** Value stored for this statistic */
   using stat_type = StatisticBackedValue<T>;
@@ -263,7 +263,7 @@ class IntStats: public ValueStat<int64_t>
 {
  public:
   /** Allow access to private constructor */
-  friend class StatisticRegistry;
+  friend class StatisticsRegistry;
   /** Value stored for this statistic */
   using stat_type = StatisticBackedValue<int64_t>;
   /** Set to given value */

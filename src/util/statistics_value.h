@@ -15,7 +15,7 @@
  **
  ** Conceptually, every statistic consists of a data object and a proxy object.
  ** The data objects (statistic values) are derived from `StatisticBaseValue`
- ** and live in the `StatisticRegistry`.
+ ** and live in the `StatisticsRegistry`.
  ** They are solely exported to the proxy objects, which should be the sole
  ** way to manipulate the data of a data object.
  ** The data objects themselves need to implement printing (normal and safe) and
@@ -39,7 +39,7 @@
 
 namespace CVC4 {
 
-class StatisticRegistry;
+class StatisticsRegistry;
 
 /**
  * Base class for all statistic values.

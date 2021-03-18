@@ -27,7 +27,7 @@
 namespace CVC4 {
 
 class NodeManager;
-class StatisticRegistry;
+class StatisticsRegistry;
 class ProofNodeManager;
 class Printer;
 class ResourceManager;
@@ -96,7 +96,7 @@ class Env
   const LogicInfo& getLogicInfo() const;
 
   /** Get a pointer to the StatisticsRegistry. */
-  StatisticRegistry& getStatisticsRegistry();
+  StatisticsRegistry& getStatisticsRegistry();
 
   /* Option helpers---------------------------------------------------------- */
 
@@ -118,7 +118,7 @@ class Env
   /** Set options, which makes a deep copy of optr if non-null */
   void setOptions(Options* optr = nullptr);
   /** Set the statistics registry */
-  void setStatisticsRegistry(StatisticRegistry* statReg);
+  void setStatisticsRegistry(StatisticsRegistry* statReg);
   /** Set proof node manager if it exists */
   void setProofNodeManager(ProofNodeManager* pnm);
 
@@ -166,7 +166,7 @@ class Env
   /**
    * The statistics registry owned by this Env.
    */
-  std::unique_ptr<StatisticRegistry> d_statisticsRegistry;
+  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
   /**
    * The options object, which contains the modified version of the options
    * provided as input to the SmtEngine that owns this environment. Note

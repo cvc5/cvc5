@@ -26,7 +26,7 @@ namespace prop {
 class MinisatSatSolver : public CDCLTSatSolverInterface
 {
  public:
-  MinisatSatSolver(StatisticRegistry& registry);
+  MinisatSatSolver(StatisticsRegistry& registry);
   ~MinisatSatSolver() override;
 
   static SatVariable     toSatVariable(Minisat::Var var);
@@ -109,7 +109,7 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
     ReferenceStat<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
     ReferenceStat<int64_t> d_statTotLiterals;
   public:
-    Statistics(StatisticRegistry& registry);
+    Statistics(StatisticsRegistry& registry);
     void init(Minisat::SimpSolver* d_minisat);
   };/* class MinisatSatSolver::Statistics */
   Statistics d_statistics;

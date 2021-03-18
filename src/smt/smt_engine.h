@@ -49,7 +49,7 @@ class ProofManager;
 class UnsatCore;
 class LogicRequest;
 class StatisticsRegistry;
-class StatisticRegistry;
+class StatisticsRegistry;
 class Printer;
 class ResourceManager;
 
@@ -909,7 +909,7 @@ class CVC4_EXPORT SmtEngine
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
-  StatisticRegistry& getStatisticsRegistry();
+  StatisticsRegistry& getStatisticsRegistry();
 
   /**
    * Internal method to get an unsatisfiable core (only if immediately preceded

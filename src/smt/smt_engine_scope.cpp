@@ -66,7 +66,7 @@ SmtScope::~SmtScope() {
                    << std::endl;
 }
 
-StatisticRegistry& SmtScope::currentStatisticsRegistry() {
+StatisticsRegistry& SmtScope::currentStatisticsRegistry() {
   Assert(smtEngineInScope());
   return s_smtEngine_current->getStatisticsRegistry();
 }

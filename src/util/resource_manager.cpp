@@ -90,10 +90,10 @@ struct ResourceManager::Statistics
   IntStats d_numRewriteStep;
   IntStats d_numSatConflictStep;
   IntStats d_numTheoryCheckStep;
-  Statistics(StatisticRegistry& stats);
+  Statistics(StatisticsRegistry& stats);
 };
 
-ResourceManager::Statistics::Statistics(StatisticRegistry& stats)
+ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_resourceUnitsUsed(stats.registerReference<uint64_t>("resource::resourceUnitsUsed")),
       d_spendResourceCalls(stats.registerInt("resource::spendResourceCalls")),
       d_numArithPivotStep(stats.registerInt("resource::ArithPivotStep")),
@@ -120,7 +120,7 @@ ResourceManager::Statistics::Statistics(StatisticRegistry& stats)
 
 /*---------------------------------------------------------------------------*/
 
-ResourceManager::ResourceManager(StatisticRegistry& stats, Options& options)
+ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
     : d_perCallTimer(),
       d_timeBudgetPerCall(0),
       d_resourceBudgetCumulative(0),

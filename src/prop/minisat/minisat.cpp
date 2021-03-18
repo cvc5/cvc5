@@ -30,7 +30,7 @@ namespace prop {
 
 //// DPllMinisatSatSolver
 
-MinisatSatSolver::MinisatSatSolver(StatisticRegistry& registry) :
+MinisatSatSolver::MinisatSatSolver(StatisticsRegistry& registry) :
   d_minisat(NULL),
   d_context(NULL),
   d_statistics(registry)
@@ -253,7 +253,7 @@ void MinisatSatSolver::resetTrail() { d_minisat->resetTrail(); }
 
 /// Statistics for MinisatSatSolver
 
-MinisatSatSolver::Statistics::Statistics(StatisticRegistry& registry) :
+MinisatSatSolver::Statistics::Statistics(StatisticsRegistry& registry) :
     d_statStarts(registry.registerReference<int64_t>("sat::starts")),
     d_statDecisions(registry.registerReference<int64_t>("sat::decisions")),
     d_statRndDecisions(registry.registerReference<int64_t>("sat::rnd_decisions")),

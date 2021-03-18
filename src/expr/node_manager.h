@@ -42,7 +42,7 @@ class Solver;
 }
 
 class StatisticsRegistry;
-class StatisticRegistry;
+class StatisticsRegistry;
 class ResourceManager;
 class SkolemManager;
 class BoundVarManager;

@@ -4198,7 +4198,7 @@ const Stat& Statistics::get(const std::string& name)
   return it->second;
 }
 
-Statistics::Statistics(const StatisticRegistry& reg)
+Statistics::Statistics(const StatisticsRegistry& reg)
 {
   for (const auto& svp : reg)
   {

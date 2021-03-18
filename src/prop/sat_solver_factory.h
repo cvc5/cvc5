@@ -34,18 +34,18 @@ class SatSolverFactory
 {
  public:
   static BVSatSolverInterface* createMinisat(context::Context* mainSatContext,
-                                             StatisticRegistry& registry,
+                                             StatisticsRegistry& registry,
                                              const std::string& name = "");
 
-  static MinisatSatSolver* createCDCLTMinisat(StatisticRegistry& registry);
+  static MinisatSatSolver* createCDCLTMinisat(StatisticsRegistry& registry);
 
-  static SatSolver* createCryptoMinisat(StatisticRegistry& registry,
+  static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         const std::string& name = "");
 
-  static SatSolver* createCadical(StatisticRegistry& registry,
+  static SatSolver* createCadical(StatisticsRegistry& registry,
                                   const std::string& name = "");
 
-  static SatSolver* createKissat(StatisticRegistry& registry,
+  static SatSolver* createKissat(StatisticsRegistry& registry,
                                  const std::string& name = "");
 }; /* class SatSolverFactory */
 

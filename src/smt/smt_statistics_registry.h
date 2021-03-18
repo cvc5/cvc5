@@ -27,6 +27,6 @@ namespace CVC4 {
  * This returns the StatisticsRegistry attached to the currently in scope
  * SmtEngine. This is a synonym for smt::SmtScope::currentStatisticsRegistry().
  */
-StatisticRegistry& smtStatisticsRegistry();
+StatisticsRegistry& smtStatisticsRegistry();
 
 }/* CVC4 namespace */

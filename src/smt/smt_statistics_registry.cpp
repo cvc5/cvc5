@@ -21,7 +21,7 @@
 
 namespace CVC4 {
 
-StatisticRegistry& smtStatisticsRegistry() {
+StatisticsRegistry& smtStatisticsRegistry() {
   return smt::SmtScope::currentStatisticsRegistry();
 }
 

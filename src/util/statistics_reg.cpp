@@ -20,13 +20,13 @@
 
 namespace CVC4 {
 
-StatisticRegistry::StatisticRegistry(bool register_public) {
+StatisticsRegistry::StatisticsRegistry(bool register_public) {
   if (register_public) {
   register_public_statistics(*this);
   }
 }
 
-void StatisticRegistry::print(std::ostream& os, bool expert) const {
+void StatisticsRegistry::print(std::ostream& os, bool expert) const {
   for (const auto& s : d_stats)
   {
     if (!expert && s.second->d_expert) continue;
@@ -35,7 +35,7 @@ void StatisticRegistry::print(std::ostream& os, bool expert) const {
     os << std::endl;
   }
 }
-void StatisticRegistry::print_safe(int fd, bool expert) const {
+void StatisticsRegistry::print_safe(int fd, bool expert) const {
   for (const auto& s : d_stats)
   {
     if (!expert && s.second->d_expert) continue;
@@ -46,7 +46,7 @@ void StatisticRegistry::print_safe(int fd, bool expert) const {
   }
 }
 
-std::ostream& operator<<(std::ostream& os, const StatisticRegistry& sr)
+std::ostream& operator<<(std::ostream& os, const StatisticsRegistry& sr)
 {
   sr.print(os);
   return os;

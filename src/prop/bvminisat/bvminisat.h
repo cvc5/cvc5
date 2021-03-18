@@ -68,7 +68,7 @@ protected:
 
 public:
 
-  BVMinisatSatSolver(StatisticRegistry& registry, context::Context* mainSatContext, const std::string& name = "");
+  BVMinisatSatSolver(StatisticsRegistry& registry, context::Context* mainSatContext, const std::string& name = "");
   virtual ~BVMinisatSatSolver();
 
   void setNotify(BVSatSolverNotify* notify) override;
@@ -138,7 +138,7 @@ public:
     IntStats d_statCallsToSolve;
     TimerStat d_statSolveTime;
     bool d_registerStats;
-    Statistics(StatisticRegistry& registry, const std::string& prefix);
+    Statistics(StatisticsRegistry& registry, const std::string& prefix);
     void init(BVMinisat::SimpSolver* minisat);
   };
 

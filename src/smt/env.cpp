@@ -38,7 +38,7 @@ Env::Env(NodeManager* nm)
       d_rewriter(new theory::Rewriter()),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
-      d_statisticsRegistry(std::make_unique<StatisticRegistry>()),
+      d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
       d_resourceManager(std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options))
 {
 }
@@ -83,7 +83,7 @@ DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
-StatisticRegistry& Env::getStatisticsRegistry()
+StatisticsRegistry& Env::getStatisticsRegistry()
 {
   return *d_statisticsRegistry;
 }

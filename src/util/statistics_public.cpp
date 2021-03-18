@@ -20,7 +20,7 @@
 
 namespace CVC4 {
 
-void register_public_statistics(StatisticRegistry& reg)
+void register_public_statistics(StatisticsRegistry& reg)
 {
 
 }

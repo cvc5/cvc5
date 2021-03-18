@@ -21,12 +21,12 @@
 
 namespace CVC4 {
 
-class StatisticRegistry;
+class StatisticsRegistry;
 
 /**
  * Preregisters all public (non-expert) statistics.
  */
-void register_public_statistics(StatisticRegistry& reg);
+void register_public_statistics(StatisticsRegistry& reg);
 
 }  // namespace CVC4
 

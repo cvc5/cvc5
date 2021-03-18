@@ -1400,7 +1400,7 @@ void SmtEngine::checkProof()
   }
 }
 
-StatisticRegistry& SmtEngine::getStatisticsRegistry()
+StatisticsRegistry& SmtEngine::getStatisticsRegistry()
 {
   return d_env->getStatisticsRegistry();
 }

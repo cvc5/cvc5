@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace prop {
 
-BVMinisatSatSolver::BVMinisatSatSolver(StatisticRegistry& registry, context::Context* mainSatContext, const std::string& name)
+BVMinisatSatSolver::BVMinisatSatSolver(StatisticsRegistry& registry, context::Context* mainSatContext, const std::string& name)
 : context::ContextNotifyObj(mainSatContext, false),
   d_minisat(new BVMinisat::SimpSolver(mainSatContext)),
   d_minisatNotify(nullptr),
@@ -226,7 +226,7 @@ void BVMinisatSatSolver::toSatClause(const BVMinisat::Clause& clause,
 
 // Satistics for BVMinisatSatSolver
 
-BVMinisatSatSolver::Statistics::Statistics(StatisticRegistry& registry,
+BVMinisatSatSolver::Statistics::Statistics(StatisticsRegistry& registry,
                                            const std::string& prefix)
     : d_statStarts(registry.registerReference<int64_t>(prefix + "::bvminisat::starts")),
       d_statDecisions(registry.registerReference<int64_t>(prefix + "::bvminisat::decisions")),

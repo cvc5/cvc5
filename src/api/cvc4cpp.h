@@ -69,7 +69,7 @@ class Options;
 class QueryCommand;
 class Random;
 class Result;
-class StatisticRegistry;
+class StatisticsRegistry;
 
 namespace api {
 
@@ -2409,7 +2409,7 @@ class Statistics
 
   // TODO: make this private
   Statistics() = default;
-  Statistics(const StatisticRegistry& reg);
+  Statistics(const StatisticsRegistry& reg);
  private:
   /** Internal data */
   BaseType d_stats;
