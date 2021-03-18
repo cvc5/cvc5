@@ -441,6 +441,8 @@ private:
    * Print the equality graph.
    */
   void debugPrintGraph() const;
+  /** Print the equivalence classes */
+  std::string debugPrintEqc() const;
 
   /** The true node */
   Node d_true;

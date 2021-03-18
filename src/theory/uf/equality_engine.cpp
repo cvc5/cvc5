@@ -2075,6 +2075,28 @@ void EqualityEngine::debugPrintGraph() const {
   Debug("equality::graph") << std::endl;
 }
 
+std::string EqualityEngine::debugPrintEqc() const
+{
+  std::stringstream ss;
+  eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(this);
+  while( !eqcs2_i.isFinished() ){
+    Node eqc = (*eqcs2_i);
+    eq::EqClassIterator eqc2_i =
+        eq::EqClassIterator(eqc, this);
+    ss << "Eqc( " << eqc << " ) : { ";
+    while( !eqc2_i.isFinished() ) {
+      if( (*eqc2_i)!=eqc && (*eqc2_i).getKind()!=kind::EQUAL ){
+        ss << (*eqc2_i) << " ";
+      }
+      ++eqc2_i;
+    }
+    ss << " } " << std::endl;
+    ++eqcs2_i;
+  }
+  return ss.str();
+}
+
+
 bool EqualityEngine::areEqual(TNode t1, TNode t2) const {
   Debug("equality") << d_name << "::eq::areEqual(" << t1 << "," << t2 << ")";
 

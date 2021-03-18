@@ -745,5 +745,10 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
 
 const std::string& TheoryModel::getName() const { return d_name; }
 
+std::string TheoryModel::debugPrintModelEqc() const
+{
+  return d_equalityEngine->debugPrintEqc();
+}
+
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
