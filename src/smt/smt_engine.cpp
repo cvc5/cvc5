@@ -123,11 +123,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // Set options in the environment, which makes a deep copy of optr if
   // non-null. This may throw an options exception.
   d_env->setOptions(optr);
-  // now construct the statistics registry
-  d_statisticsRegistry.reset(new StatisticsRegistry());
-  // initialize the environment, which keeps a pointer to statistics registry
-  // and sets up resource manager
-  d_env->setStatisticsRegistry(d_statisticsRegistry.get());
   // set the options manager
   d_optm.reset(new smt::OptionsManager(&getOptions(), getResourceManager()));
   // listen to node manager events
@@ -357,7 +352,6 @@ SmtEngine::~SmtEngine()
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     d_pp.reset(nullptr);
-    d_statisticsRegistry.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
     // destroy the environment
@@ -523,8 +517,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
       v.push_back((*i).second);
       stats.push_back(v);
     }
-    for (StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
-         i != d_statisticsRegistry->end();
+    for (StatisticsRegistry::const_iterator i = d_env->getStatisticsRegistry()->begin();
+         i != d_env->getStatisticsRegistry()->end();
          ++i)
     {
       vector<SExpr> v;
@@ -1407,7 +1401,7 @@ void SmtEngine::checkProof()
 
 StatisticsRegistry* SmtEngine::getStatisticsRegistry()
 {
-  return d_statisticsRegistry.get();
+  return d_env->getStatisticsRegistry();
 }
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
@@ -1892,24 +1886,24 @@ NodeManager* SmtEngine::getNodeManager() const
 
 Statistics SmtEngine::getStatistics() const
 {
-  return Statistics(*d_statisticsRegistry);
+  return Statistics(*d_env->getStatisticsRegistry());
 }
 
 SExpr SmtEngine::getStatistic(std::string name) const
 {
-  return d_statisticsRegistry->getStatistic(name);
+  return d_env->getStatisticsRegistry()->getStatistic(name);
 }
 
 void SmtEngine::flushStatistics(std::ostream& out) const
 {
   getNodeManager()->getStatisticsRegistry()->flushInformation(out);
-  d_statisticsRegistry->flushInformation(out);
+  d_env->getStatisticsRegistry()->flushInformation(out);
 }
 
 void SmtEngine::safeFlushStatistics(int fd) const
 {
   getNodeManager()->getStatisticsRegistry()->safeFlushInformation(fd);
-  d_statisticsRegistry->safeFlushInformation(fd);
+  d_env->getStatisticsRegistry()->safeFlushInformation(fd);
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
