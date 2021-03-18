@@ -49,7 +49,7 @@ class TestUtilBlackStats : public TestInternal
 TEST_F(TestUtilBlackStats, stats)
 {
 #ifdef CVC4_STATISTICS_ON
-  StatisticRegistry reg(false);
+  StatisticsRegistry reg(false);
   std::string empty, bar = "bar", baz = "baz";
 
   AverageStat avg = reg.registerAverage("avg");
