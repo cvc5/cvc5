@@ -35,7 +35,6 @@
 #include <variant>
 #include <vector>
 
-#include "api/cvc4cpp.h"
 #include "util/safe_print.h"
 
 namespace CVC4 {
