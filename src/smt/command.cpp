@@ -38,7 +38,6 @@
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
 #include "util/utility.h"
 
@@ -1641,15 +1640,15 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
     // of whether terms is empty.
     std::vector<api::Term> values = solver->getValue(terms);
     Assert(values.size() == names.size());
-    std::vector<SExpr> sexprs;
+    std::vector<api::Term> sexprs;
     for (size_t i = 0, nterms = terms.size(); i < nterms; i++)
     {
-      std::vector<SExpr> ss;
-      ss.emplace_back(SExpr::Keyword(names[i]));
-      ss.emplace_back(SExpr::Keyword(values[i].toString()));
-      sexprs.emplace_back(ss);
+      // Treat the expression name as a variable name as opposed to a string
+      // constant to avoid printing double quotes around the name.
+      api::Term name = solver->mkVar(solver->getBooleanSort(), names[i]);
+      sexprs.push_back(solver->mkTerm(api::SEXPR, name, values[i]));
     }
-    d_result = SExpr(sexprs);
+    d_result = solver->mkTerm(api::SEXPR, sexprs);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (api::CVC4ApiRecoverableException& e)
@@ -1666,7 +1665,7 @@ void GetAssignmentCommand::invoke(api::Solver* solver, SymbolManager* sm)
   }
 }
 
-SExpr GetAssignmentCommand::getResult() const { return d_result; }
+api::Term GetAssignmentCommand::getResult() const { return d_result; }
 void GetAssignmentCommand::printResult(std::ostream& out,
                                        uint32_t verbosity) const
 {

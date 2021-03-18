@@ -245,7 +245,6 @@ class Smt2Printer : public CVC4::Printer
                           TNode n,
                           int toDepth,
                           TypeNode tn) const;
-  void toStream(std::ostream& out, const SExpr& sexpr) const;
   void toStream(std::ostream& out, const DType& dt) const;
   /**
    * To stream model sort. This prints the appropriate output for type
