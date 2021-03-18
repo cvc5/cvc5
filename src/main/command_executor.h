@@ -54,7 +54,6 @@ class CommandExecutor
   std::unique_ptr<SymbolManager> d_symman;
   SmtEngine* d_smtEngine;
   Options& d_options;
-  StatisticsRegistry d_stats;
   api::Result d_result;
 
  public:
