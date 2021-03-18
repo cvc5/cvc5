@@ -209,9 +209,10 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
-                      << std::endl; 
+                      << std::endl;
   Kind k = node.getKind();
-  if( k==kind::HO_APPLY ){
+  if (k == kind::HO_APPLY)
+  {
     if( !options::ufHo() ){
       std::stringstream ss;
       ss << "Partial function applications are not supported in default mode, try --uf-ho.";
@@ -232,8 +233,8 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     if (isHigherOrderType(node.getOperator().getType()) && !options::ufHo())
     {
       std::stringstream ss;
-      ss << "UF recieved an application whose operator has higher-order type " << node
-          << ", which is not supported by default, try --uf-ho";
+      ss << "UF recieved an application whose operator has higher-order type "
+         << node << ", which is not supported by default, try --uf-ho";
       throw LogicException(ss.str());
     }
   }
@@ -267,12 +268,14 @@ void TheoryUF::preRegisterTerm(TNode node)
       {
         // Get triggered for both equal and dis-equal
         d_equalityEngine->addTriggerPredicate(node);
-      } else {
-      // Function applications/predicates
-      d_equalityEngine->addTerm(node);
-    }
-    // Remember the function and predicate terms
-    d_functionsTerms.push_back(node);
+      }
+      else
+      {
+        // Function applications/predicates
+        d_equalityEngine->addTerm(node);
+      }
+      // Remember the function and predicate terms
+      d_functionsTerms.push_back(node);
     }
     break;
   case kind::CARDINALITY_CONSTRAINT:
