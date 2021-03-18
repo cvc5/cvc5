@@ -209,8 +209,9 @@ void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("uf-exp-def") << "TheoryUF::ppRewrite: expanding definition : " << node
-                      << std::endl;
-  if( node.getKind()==kind::HO_APPLY ){
+                      << std::endl; 
+  Kind k = node.getKind();
+  if( k==kind::HO_APPLY ){
     if( !options::ufHo() ){
       std::stringstream ss;
       ss << "Partial function applications are not supported in default mode, try --uf-ho.";
@@ -222,6 +223,18 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
       Trace("uf-exp-def") << "TheoryUF::ppRewrite: higher-order: " << node
                           << " to " << ret << std::endl;
       return TrustNode::mkTrustRewrite(node, ret, nullptr);
+    }
+  }
+  else if (k == kind::APPLY_UF)
+  {
+    // check for higher-order
+    // logic exception if higher-order is not enabled
+    if (isHigherOrderType(node.getOperator().getType()) && !options::ufHo())
+    {
+      std::stringstream ss;
+      ss << "UF recieved an application whose operator has higher-order type " << node
+          << ", which is not supported by default, try --uf-ho";
+      throw LogicException(ss.str());
     }
   }
   return TrustNode::null();
@@ -249,20 +262,6 @@ void TheoryUF::preRegisterTerm(TNode node)
     case kind::APPLY_UF:
     case kind::HO_APPLY:
     {
-      // check for higher-order
-      bool isHigherOrder = true;
-      if (k == kind::APPLY_UF)
-      {
-        isHigherOrder = isHigherOrderType(node.getOperator().getType());
-      }
-      // logic exception if higher-order is not enabled
-      if (isHigherOrder && !options::ufHo())
-      {
-        std::stringstream ss;
-        ss << "UF recieved a higher-order term " << node
-           << " not supported without higher-order enabled, try --uf-ho";
-        throw LogicException(ss.str());
-      }
       // Maybe it's a predicate
       if (node.getType().isBoolean())
       {
