@@ -4040,13 +4040,17 @@ Solver::Solver(Options* opts)
   d_rng.reset(new Random(o[options::seed]));
 #if CVC4_STATISTICS_ON
   d_stats.reset(new Statistics());
-  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
-  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
-  d_nodeMgr->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
+  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_consts);
+  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_vars);
+  d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_terms);
 #endif
 }
 
 Solver::~Solver() {}
+
+void Solver::reset() {
+  d_smtEngine->reset();
+}
 
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */

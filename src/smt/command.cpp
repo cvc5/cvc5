@@ -865,7 +865,7 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     sm->reset();
-    solver->getSmtEngine()->reset();
+    solver->reset();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
