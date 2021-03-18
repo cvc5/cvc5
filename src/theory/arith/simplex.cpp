@@ -57,8 +57,8 @@ SimplexDecisionProcedure::~SimplexDecisionProcedure(){
 }
 
 
-bool SimplexDecisionProcedure::standardProcessSignals(TimerStats &timer, IntStats& conflicts) {
-  TimerStats::CodeTimers codeTimer(timer);
+bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStats& conflicts) {
+  TimerStat::CodeTimer codeTimer(timer);
   Assert(d_conflictVariables.empty());
 
   while(d_errorSet.moreSignals()){
@@ -139,8 +139,8 @@ bool SimplexDecisionProcedure::checkBasicForConflict(ArithVar basic) const {
   return false;
 }
 
-void SimplexDecisionProcedure::tearDownInfeasiblityFunction(TimerStats& timer, ArithVar tmp){
-  TimerStats::CodeTimers codeTimer(timer);
+void SimplexDecisionProcedure::tearDownInfeasiblityFunction(TimerStat& timer, ArithVar tmp){
+  TimerStat::CodeTimer codeTimer(timer);
   Assert(tmp != ARITHVAR_SENTINEL);
   Assert(d_tableau.isBasic(tmp));
 
@@ -150,8 +150,8 @@ void SimplexDecisionProcedure::tearDownInfeasiblityFunction(TimerStats& timer, A
   releaseVariable(tmp);
 }
 
-void SimplexDecisionProcedure::shrinkInfeasFunc(TimerStats& timer, ArithVar inf, const ArithVarVec& dropped){
-  TimerStats::CodeTimers codeTimer(timer);
+void SimplexDecisionProcedure::shrinkInfeasFunc(TimerStat& timer, ArithVar inf, const ArithVarVec& dropped){
+  TimerStat::CodeTimer codeTimer(timer);
   for(ArithVarVec::const_iterator i=dropped.begin(), i_end = dropped.end(); i != i_end; ++i){
     ArithVar back = *i;
 
@@ -162,8 +162,8 @@ void SimplexDecisionProcedure::shrinkInfeasFunc(TimerStats& timer, ArithVar inf,
   }
 }
 
-void SimplexDecisionProcedure::adjustInfeasFunc(TimerStats& timer, ArithVar inf, const AVIntPairVec& focusChanges){
-  TimerStats::CodeTimers codeTimer(timer);
+void SimplexDecisionProcedure::adjustInfeasFunc(TimerStat& timer, ArithVar inf, const AVIntPairVec& focusChanges){
+  TimerStat::CodeTimer codeTimer(timer);
   for(AVIntPairVec::const_iterator i=focusChanges.begin(), i_end = focusChanges.end(); i != i_end; ++i){
     ArithVar v = (*i).first;
     int focusChange = (*i).second;
@@ -177,24 +177,24 @@ void SimplexDecisionProcedure::adjustInfeasFunc(TimerStats& timer, ArithVar inf,
   }
 }
 
-void SimplexDecisionProcedure::addToInfeasFunc(TimerStats& timer, ArithVar inf, ArithVar e){
+void SimplexDecisionProcedure::addToInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e){
   AVIntPairVec justE;
   int sgn  = d_errorSet.getSgn(e);
   justE.push_back(make_pair(e, sgn));
   adjustInfeasFunc(timer, inf, justE);
 }
 
-void SimplexDecisionProcedure::removeFromInfeasFunc(TimerStats& timer, ArithVar inf, ArithVar e){
+void SimplexDecisionProcedure::removeFromInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e){
   AVIntPairVec justE;
   int opSgn  = -d_errorSet.getSgn(e);
   justE.push_back(make_pair(e, opSgn));
   adjustInfeasFunc(timer, inf, justE);
 }
 
-ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStats& timer, const ArithVarVec& set){
+ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& timer, const ArithVarVec& set){
   Debug("constructInfeasiblityFunction") << "constructInfeasiblityFunction start" << endl;
 
-  TimerStats::CodeTimers codeTimer(timer);
+  TimerStat::CodeTimer codeTimer(timer);
   Assert(!d_errorSet.focusEmpty());
   Assert(debugIsASet(set));
 
@@ -231,13 +231,13 @@ ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStats& tim
   return inf;
 }
 
-ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStats& timer){
+ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& timer){
   ArithVarVec inError;
   d_errorSet.pushFocusInto(inError);
   return constructInfeasiblityFunction(timer, inError);
 }
 
-ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStats& timer, ArithVar e){
+ArithVar SimplexDecisionProcedure::constructInfeasiblityFunction(TimerStat& timer, ArithVar e){
   ArithVarVec justE;
   justE.push_back(e);
   return constructInfeasiblityFunction(timer, justE);

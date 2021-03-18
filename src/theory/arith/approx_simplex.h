@@ -55,9 +55,9 @@ class ApproximateStatistics {
   IntStats d_branchMaxDepth;
   IntStats d_branchesMaxOnAVar;
 
-  TimerStats d_gaussianElimConstructTime;
+  TimerStat d_gaussianElimConstructTime;
   IntStats d_gaussianElimConstruct;
-  AverageStats d_averageGuesses;
+  AverageStat d_averageGuesses;
 };
 
 

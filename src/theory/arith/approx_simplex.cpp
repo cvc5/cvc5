@@ -2782,7 +2782,7 @@ bool ApproxGLPK::attemptConstructTableRow(int nid, int M, const PrimitiveVec& ve
 }
 
 bool ApproxGLPK::gaussianElimConstructTableRow(int nid, int M, const PrimitiveVec& vec){
-  TimerStats::CodeTimers codeTimer(d_stats.d_gaussianElimConstructTime);
+  TimerStat::CodeTimer codeTimer(d_stats.d_gaussianElimConstructTime);
   ++d_stats.d_gaussianElimConstruct;
 
   ArithVar basic = d_pad.d_basic;

@@ -53,7 +53,7 @@ class StatisticRegistry;
  *   AverageStat stat;
  *   stat << 1.0 << 2.0;
  */
-class AverageStats
+class AverageStat
 {
  public:
   /** Allow access to private constructor */
@@ -61,10 +61,10 @@ class AverageStats
   /** Value stored for this statistic */
   using stat_type = StatisticAverageValue;
   /** Add the value `v` to the running average */
-  AverageStats& operator<<(double v);
+  AverageStat& operator<<(double v);
 
  private:
-  AverageStats(stat_type* data) : d_data(data) {}
+  AverageStat(stat_type* data) : d_data(data) {}
   stat_type* d_data;
 };
 
@@ -76,7 +76,7 @@ class AverageStats
  *    stat << Kind::PLUS << Kind::AND;
  */
 template <typename Integral>
-class HistogramStats
+class HistogramStat
 {
  public:
   /** Allow access to private constructor */
@@ -84,7 +84,7 @@ class HistogramStats
   /** Value stored for this statistic */
   using stat_type = StatisticHistogramValue<Integral>;
   /** Add the value `val` to the histogram */
-  HistogramStats& operator<<(Integral val)
+  HistogramStat& operator<<(Integral val)
   {
     if (CVC4_USE_STATISTICS) {
     d_data->add(val);
@@ -93,7 +93,7 @@ class HistogramStats
   }
 
  private:
-  HistogramStats(stat_type* data) : d_data(data) {}
+  HistogramStat(stat_type* data) : d_data(data) {}
   stat_type* d_data;
 };
 
@@ -111,7 +111,7 @@ class HistogramStats
  * one of them).
  */
 template <typename T>
-class ReferenceStats
+class ReferenceStat
 {
  public:
   /** Allow access to private constructor */
@@ -121,10 +121,10 @@ class ReferenceStats
   /** Reset the reference to point to `t`. */
   void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = &t; } }
   /** Copy the current value of the referenced object. */
-  ~ReferenceStats() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
+  ~ReferenceStat() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
 
  private:
-  ReferenceStats(StatisticReferenceValue<T>* data) : d_data(data) {}
+  ReferenceStat(StatisticReferenceValue<T>* data) : d_data(data) {}
   StatisticReferenceValue<T>* d_data;
 };
 
@@ -136,7 +136,7 @@ class ReferenceStats
  * `StatisticRegistry`.
  */
 template <typename T>
-class SizeStats
+class SizeStat
 {
  public:
   /** Allow access to private constructor */
@@ -146,14 +146,14 @@ class SizeStats
   /** Reset the reference to point to `t`. */
   void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = &t; } }
   /** Copy the current size of the referenced container. */
-  ~SizeStats() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
+  ~SizeStat() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
 
  private:
-  SizeStats(stat_type* data) : d_data(data) {}
+  SizeStat(stat_type* data) : d_data(data) {}
   stat_type* d_data;
 };
 
-class CodeTimers;
+class CodeTimer;
 /**
  * Collects cumulative runtimes. The timer can be started and stopped
  * arbitrarily like a stopwatch. The value of the statistic is the
@@ -162,13 +162,13 @@ class CodeTimers;
  * the API exports the number of milliseconds.
  *
  * Note that it is recommended to use it in an RAII fashion using the
- * `CodeTimers` class.
+ * `CodeTimer` class.
  */
-class TimerStats
+class TimerStat
 {
  public:
   /** Utility for RAII-style timing of code blocks */
-  using CodeTimers = CVC4::CodeTimers;
+  using CodeTimer = CVC4::CodeTimer;
   /** Allow access to private constructor */
   friend class StatisticRegistry;
   /** Value stored for this statistic */
@@ -182,7 +182,7 @@ class TimerStats
   bool running() const;
 
  private:
-  TimerStats(stat_type* data) : d_data(data) {}
+  TimerStat(stat_type* data) : d_data(data) {}
   stat_type* d_data;
 };
 
@@ -196,20 +196,20 @@ class TimerStats
  * of `CodeTimer` neither starts nor stops the actual timer, but leaves
  * this to the first (or outermost) `CodeTimer`.
  */
-class CodeTimers
+class CodeTimer
 {
  public:
   /** Disallow copying */
-  CodeTimers(const CodeTimers& timer) = delete;
+  CodeTimer(const CodeTimer& timer) = delete;
   /** Disallow assignment */
-  CodeTimers& operator=(const CodeTimers& timer) = delete;
+  CodeTimer& operator=(const CodeTimer& timer) = delete;
   /** Start the timer */
-  CodeTimers(TimerStats& timer, bool allow_reentrant = false);
+  CodeTimer(TimerStat& timer, bool allow_reentrant = false);
   /** Stop the timer */
-  ~CodeTimers();
+  ~CodeTimer();
 
  private:
-  TimerStats& d_timer;
+  TimerStat& d_timer;
   bool d_reentrant;
 };
 

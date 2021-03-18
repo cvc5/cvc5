@@ -784,26 +784,26 @@ private:
     IntStats d_statUserVariables, d_statAuxiliaryVariables;
     IntStats d_statDisequalitySplits;
     IntStats d_statDisequalityConflicts;
-    TimerStats d_simplifyTimer;
-    TimerStats d_staticLearningTimer;
+    TimerStat d_simplifyTimer;
+    TimerStat d_staticLearningTimer;
 
-    TimerStats d_presolveTime;
+    TimerStat d_presolveTime;
 
-    TimerStats d_newPropTime;
+    TimerStat d_newPropTime;
 
     IntStats d_externalBranchAndBounds;
 
     IntStats d_initialTableauSize;
     IntStats d_currSetToSmaller;
     IntStats d_smallerSetToCurr;
-    TimerStats d_restartTimer;
+    TimerStat d_restartTimer;
 
-    TimerStats d_boundComputationTime;
+    TimerStat d_boundComputationTime;
     IntStats d_boundComputations, d_boundPropagations;
 
     IntStats d_unknownChecks;
     IntStats d_maxUnknownsInARow;
-    AverageStats d_avgUnknownsInARow;
+    AverageStat d_avgUnknownsInARow;
 
     IntStats d_revertsOnConflicts;
     IntStats d_commitsOnConflicts;
@@ -840,9 +840,9 @@ private:
       d_relaxOthers;
 
     IntStats d_applyRowsDeleted;
-    TimerStats d_replaySimplexTimer;
+    TimerStat d_replaySimplexTimer;
 
-    TimerStats d_replayLogTimer,
+    TimerStat d_replayLogTimer,
       d_solveIntTimer,
       d_solveRealRelaxTimer;
 
@@ -855,15 +855,15 @@ private:
     IntStats d_cutsRejectedDuringReplay;
     IntStats d_cutsRejectedDuringLemmas;
 
-    HistogramStats<uint32_t> d_satPivots;
-    HistogramStats<uint32_t> d_unsatPivots;
-    HistogramStats<uint32_t> d_unknownPivots;
+    HistogramStat<uint32_t> d_satPivots;
+    HistogramStat<uint32_t> d_unsatPivots;
+    HistogramStat<uint32_t> d_unknownPivots;
 
 
     IntStats d_solveIntModelsAttempts;
     IntStats d_solveIntModelsSuccessful;
-    TimerStats d_mipTimer;
-    TimerStats d_lpTimer;
+    TimerStat d_mipTimer;
+    TimerStat d_lpTimer;
 
     IntStats d_mipProofsAttempted;
     IntStats d_mipProofsSuccessful;

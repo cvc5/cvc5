@@ -129,14 +129,14 @@ public:
 
   class Statistics {
   public:
-    ReferenceStats<int64_t> d_statStarts, d_statDecisions;
-    ReferenceStats<int64_t> d_statRndDecisions, d_statPropagations;
-    ReferenceStats<int64_t> d_statConflicts, d_statClausesLiterals;
-    ReferenceStats<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
-    ReferenceStats<int64_t> d_statTotLiterals;
-    ReferenceStats<int64_t> d_statEliminatedVars;
+    ReferenceStat<int64_t> d_statStarts, d_statDecisions;
+    ReferenceStat<int64_t> d_statRndDecisions, d_statPropagations;
+    ReferenceStat<int64_t> d_statConflicts, d_statClausesLiterals;
+    ReferenceStat<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
+    ReferenceStat<int64_t> d_statTotLiterals;
+    ReferenceStat<int64_t> d_statEliminatedVars;
     IntStats d_statCallsToSolve;
-    TimerStats d_statSolveTime;
+    TimerStat d_statSolveTime;
     bool d_registerStats;
     Statistics(StatisticRegistry& registry, const std::string& prefix);
     void init(BVMinisat::SimpSolver* minisat);

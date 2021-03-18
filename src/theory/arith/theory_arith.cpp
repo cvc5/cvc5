@@ -111,7 +111,7 @@ void TheoryArith::notifySharedTerm(TNode n) { d_internal->notifySharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom, std::vector<SkolemLemma>& lems)
 {
-  CodeTimers timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
+  CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (atom.getKind() == kind::EQUAL)

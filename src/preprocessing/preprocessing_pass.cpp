@@ -30,7 +30,7 @@ namespace preprocessing {
 
 PreprocessingPassResult PreprocessingPass::apply(
     AssertionPipeline* assertionsToPreprocess) {
-  TimerStats::CodeTimers codeTimer(d_timer);
+  TimerStat::CodeTimer codeTimer(d_timer);
   Trace("preprocessing") << "PRE " << d_name << std::endl;
   Chat() << d_name << "..." << std::endl;
   dumpAssertions(("pre-" + d_name).c_str(), *assertionsToPreprocess);

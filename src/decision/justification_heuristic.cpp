@@ -74,7 +74,7 @@ CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
 
 CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, DecisionWeight threshold) {
   Trace("decision") << "JustificationHeuristic::getNextThresh(stopSearch, "<<threshold<<")" << std::endl;
-  TimerStats::CodeTimers codeTimer(d_timestat);
+  TimerStat::CodeTimer codeTimer(d_timestat);
 
   d_visited.clear();
   d_curThreshold = threshold;

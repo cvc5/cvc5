@@ -69,7 +69,7 @@ bool WallClockTimer::expired() const
 
 struct ResourceManager::Statistics
 {
-  ReferenceStats<uint64_t> d_resourceUnitsUsed;
+  ReferenceStat<uint64_t> d_resourceUnitsUsed;
   IntStats d_spendResourceCalls;
   IntStats d_numArithPivotStep;
   IntStats d_numArithNlLemmaStep;

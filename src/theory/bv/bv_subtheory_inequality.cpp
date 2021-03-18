@@ -32,7 +32,7 @@ using namespace CVC4::theory::bv::utils;
 
 bool InequalitySolver::check(Theory::Effort e) {
   Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
-  TimerStats::CodeTimers inequalityTimer(d_statistics.d_solveTime);
+  TimerStat::CodeTimer inequalityTimer(d_statistics.d_solveTime);
   ++(d_statistics.d_numCallstoCheck);
   d_bv->spendResource(ResourceManager::Resource::TheoryCheckStep);
 

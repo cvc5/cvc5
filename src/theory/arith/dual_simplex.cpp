@@ -161,7 +161,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 //corresponds to Check() in dM06
 //template <SimplexDecisionProcedure::PreferenceFunction pf>
 bool DualSimplexDecisionProcedure::searchForFeasibleSolution(uint32_t remainingIterations){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_searchTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_searchTime);
 
   Debug("arith") << "searchForFeasibleSolution" << endl;
   Assert(remainingIterations > 0);

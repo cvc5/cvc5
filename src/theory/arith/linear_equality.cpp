@@ -124,7 +124,7 @@ void LinearEqualityModule::applySolution(const DenseSet& newBasis, const DenseMa
 }
 
 void LinearEqualityModule::forceNewBasis(const DenseSet& newBasis){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_forceTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_forceTime);
   cout << "force begin" << endl;
   DenseSet needsToBeAdded;
   for(DenseSet::const_iterator i = newBasis.begin(), i_end = newBasis.end(); i != i_end; ++i){
@@ -201,7 +201,7 @@ void LinearEqualityModule::updateUntracked(ArithVar x_i, const DeltaRational& v)
 }
 
 void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_adjTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_adjTime);
 
   Assert(!d_tableau.isBasic(x_i));
   Assert(d_areTracking);
@@ -253,7 +253,7 @@ void LinearEqualityModule::updateTracked(ArithVar x_i, const DeltaRational& v){
 void LinearEqualityModule::pivotAndUpdate(ArithVar x_i, ArithVar x_j, const DeltaRational& x_i_value){
   Assert(x_i != x_j);
 
-  TimerStats::CodeTimers codeTimer(d_statistics.d_pivotTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_pivotTime);
 
   static int instance = 0;
 
@@ -682,7 +682,7 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
  */
 ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithVar basicVar, FarkasConflictBuilder& fcs) const {
   Assert(!fcs.underConstruction());
-  TimerStats::CodeTimers codeTimer(d_statistics.d_weakenTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_weakenTime);
 
   Debug("arith::weak") << "LinearEqualityModule::minimallyWeakConflict("
                        << aboveUpper <<", "<< basicVar << ", ...) start" << endl;

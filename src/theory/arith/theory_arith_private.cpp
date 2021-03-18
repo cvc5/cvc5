@@ -934,7 +934,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
 Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
     TrustNode tin, TrustSubstitutionMap& outSubstitutions)
 {
-  TimerStats::CodeTimers codeTimer(d_statistics.d_simplifyTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_simplifyTimer);
   TNode in = tin.getNode();
   Debug("simplify") << "TheoryArithPrivate::solve(" << in << ")" << endl;
 
@@ -1017,7 +1017,7 @@ Theory::PPAssertStatus TheoryArithPrivate::ppAssert(
 }
 
 void TheoryArithPrivate::ppStaticLearn(TNode n, NodeBuilder<>& learned) {
-  TimerStats::CodeTimers codeTimer(d_statistics.d_staticLearningTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_staticLearningTimer);
 
   d_learner.staticLearning(n, learned);
 }
@@ -1890,7 +1890,7 @@ bool TheoryArithPrivate::attemptSolveInteger(Theory::Effort effortLevel, bool em
 }
 
 bool TheoryArithPrivate::replayLog(ApproximateSimplex* approx){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_replayLogTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_replayLogTimer);
 
   ++d_statistics.d_mipProofsAttempted;
 
@@ -2138,7 +2138,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
     context::Context::ScopedPush speculativePush(getSatContext());
     replayAssert(bcneg);
     if(conflictQueueEmpty()){
-      TimerStats::CodeTimers codeTimer(d_statistics.d_replaySimplexTimer);
+      TimerStat::CodeTimer codeTimer(d_statistics.d_replaySimplexTimer);
 
       //test for linear feasibility
       d_partialModel.stopQueueingBoundCounts();
@@ -2373,7 +2373,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
     if(conflictQueueEmpty()){
       Assert(options::replayEarlyCloseDepths() >= 1);
       if(!nl.isBranch() || depth % options::replayEarlyCloseDepths() == 0 ){
-        TimerStats::CodeTimers codeTimer(d_statistics.d_replaySimplexTimer);
+        TimerStat::CodeTimer codeTimer(d_statistics.d_replaySimplexTimer);
         //test for linear feasibility
         d_partialModel.stopQueueingBoundCounts();
         UpdateTrackingCallback utcb(&d_linEq);
@@ -2705,7 +2705,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
   if(!safeToCallApprox()) { return; }
 
   Assert(safeToCallApprox());
-  TimerStats::CodeTimers codeTimer0(d_statistics.d_solveIntTimer);
+  TimerStat::CodeTimer codeTimer0(d_statistics.d_solveIntTimer);
 
   ++(d_statistics.d_solveIntCalls);
   d_statistics.d_inSolveInteger = 1;
@@ -2747,7 +2747,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
     if( relaxRes == LinFeasible ){
       MipResult mipRes = MipUnknown;
       {
-        TimerStats::CodeTimers codeTimer1(d_statistics.d_mipTimer);
+        TimerStat::CodeTimer codeTimer1(d_statistics.d_mipTimer);
         mipRes = approx->solveMIP(false);
       }
 
@@ -2785,7 +2785,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         /* All integer branches closed */
         approx->setPivotLimit(2*mipLimit);
         {
-          TimerStats::CodeTimers codeTimer2(d_statistics.d_mipTimer);
+          TimerStat::CodeTimer codeTimer2(d_statistics.d_mipTimer);
           mipRes = approx->solveMIP(true);
         }
 
@@ -2817,7 +2817,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
         approx->setPivotLimit(2*mipLimit);
         approx->setBranchingDepth(2);
         {
-          TimerStats::CodeTimers codeTimer3(d_statistics.d_mipTimer);
+          TimerStat::CodeTimer codeTimer3(d_statistics.d_mipTimer);
           mipRes = approx->solveMIP(true);
         }
         replayLemmas(approx);
@@ -2918,7 +2918,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
 }
 
 bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
-  TimerStats::CodeTimers codeTimer0(d_statistics.d_solveRealRelaxTimer);
+  TimerStat::CodeTimer codeTimer0(d_statistics.d_solveRealRelaxTimer);
   Assert(d_qflraStatus != Result::SAT);
 
   d_partialModel.stopQueueingBoundCounts();
@@ -2972,7 +2972,7 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     ApproximateSimplex::Solution relaxSolution;
     LinResult relaxRes = LinUnknown;
     {
-      TimerStats::CodeTimers codeTimer1(d_statistics.d_lpTimer);
+      TimerStat::CodeTimer codeTimer1(d_statistics.d_lpTimer);
       relaxRes = approxSolver->solveRelaxation();
     }
       Debug("solveRealRelaxation") << "solve relaxation? " << endl;
@@ -3385,7 +3385,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
           || options::arithPropagationMode()
                  == options::ArithPropagationMode::BOTH_PROP))
   {
-    TimerStats::CodeTimers codeTimer0(d_statistics.d_newPropTime);
+    TimerStat::CodeTimer codeTimer0(d_statistics.d_newPropTime);
     Assert(d_qflraStatus != Result::UNSAT);
 
     while(!d_currentPropagationList.empty()  && !anyConflict()){
@@ -3440,7 +3440,7 @@ bool TheoryArithPrivate::postCheck(Theory::Effort effortLevel)
   }
   else
   {
-    TimerStats::CodeTimers codeTimer1(d_statistics.d_newPropTime);
+    TimerStat::CodeTimer codeTimer1(d_statistics.d_newPropTime);
     d_currentPropagationList.clear();
   }
   Assert(d_currentPropagationList.empty());
@@ -4117,7 +4117,7 @@ bool TheoryArithPrivate::safeToReset() const {
 }
 
 void TheoryArithPrivate::notifyRestart(){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_restartTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_restartTimer);
 
   if(Debug.isOn("paranoid:check_tableau")){ d_linEq.debugCheckTableau(); }
 
@@ -4180,7 +4180,7 @@ bool TheoryArithPrivate::unenqueuedVariablesAreConsistent(){
 }
 
 void TheoryArithPrivate::presolve(){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_presolveTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_presolveTime);
 
   d_statistics.d_initialTableauSize = d_tableau.size();
 
@@ -4342,7 +4342,7 @@ void TheoryArithPrivate::propagateCandidate(ArithVar basic){
 }
 
 void TheoryArithPrivate::propagateCandidates(){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_boundComputationTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
 
   Debug("arith::prop") << "propagateCandidates begin" << endl;
 
@@ -4397,7 +4397,7 @@ void TheoryArithPrivate::propagateCandidatesNew(){
    *    (This is O(n) to compute.)
    */
 
-  TimerStats::CodeTimers codeTimer(d_statistics.d_boundComputationTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_boundComputationTime);
   Debug("arith::prop") << "propagateCandidatesNew begin" << endl;
 
   Assert(d_qflraStatus == Result::SAT);

@@ -346,7 +346,7 @@ bool AigBitblaster::solve(TNode node) {
   convertToCnfAndAssert();
   // no need to use abc anymore
   
-  TimerStats::CodeTimers solveTimer(d_statistics.d_solveTime);
+  TimerStat::CodeTimer solveTimer(d_statistics.d_solveTime);
   prop::SatValue result = d_satSolver->solve();
 
   Assert(result != prop::SAT_VALUE_UNKNOWN);
@@ -357,7 +357,7 @@ bool AigBitblaster::solve(TNode node) {
 void addAliases(Abc_Frame_t* pAbc);
 
 void AigBitblaster::simplifyAig() {
-  TimerStats::CodeTimers simpTimer(d_statistics.d_simplificationTime);
+  TimerStat::CodeTimer simpTimer(d_statistics.d_simplificationTime);
 
   Abc_AigCleanup(currentAigM());
   Assert(Abc_NtkCheck(currentAigNtk()));
@@ -376,7 +376,7 @@ void AigBitblaster::simplifyAig() {
 
 
 void AigBitblaster::convertToCnfAndAssert() {
-  TimerStats::CodeTimers cnfConversionTimer(d_statistics.d_cnfConversionTime);
+  TimerStat::CodeTimer cnfConversionTimer(d_statistics.d_cnfConversionTime);
   
   Aig_Man_t * pMan = NULL;
   Cnf_Dat_t * pCnf = NULL;

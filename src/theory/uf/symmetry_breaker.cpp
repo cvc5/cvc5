@@ -460,7 +460,7 @@ void SymmetryBreaker::apply(std::vector<Node>& newClauses) {
   Debug("ufsymm") << "UFSYMM =====================================================" << endl
                   << "UFSYMM have " << d_permutations.size() << " permutation sets" << endl;
   if(!d_permutations.empty()) {
-    { TimerStats::CodeTimers codeTimer(d_stats.d_initNormalizationTimer);
+    { TimerStat::CodeTimer codeTimer(d_stats.d_initNormalizationTimer);
       // normalize d_phi
 
       for(vector<Node>::iterator i = d_phi.begin(); i != d_phi.end(); ++i) {
@@ -567,7 +567,7 @@ void SymmetryBreaker::guessPermutations() {
 }
 
 bool SymmetryBreaker::invariantByPermutations(const Permutation& p) {
-  TimerStats::CodeTimers codeTimer(d_stats.d_invariantByPermutationsTimer);
+  TimerStat::CodeTimer codeTimer(d_stats.d_invariantByPermutationsTimer);
 
   // use d_phi
   Debug("ufsymm") << "UFSYMM invariantByPermutations()? " << p << endl;
@@ -699,7 +699,7 @@ static bool isSubset(const T1& s, const T2& t) {
 }
 
 void SymmetryBreaker::selectTerms(const Permutation& p) {
-  TimerStats::CodeTimers codeTimer(d_stats.d_selectTermsTimer);
+  TimerStat::CodeTimer codeTimer(d_stats.d_selectTermsTimer);
 
   // use d_phi, put into d_terms
   Debug("ufsymm") << "UFSYMM selectTerms(): " << p << endl;

@@ -36,7 +36,7 @@ bool AbstractionModule::applyAbstraction(const std::vector<Node>& assertions,
 {
   Debug("bv-abstraction") << "AbstractionModule::applyAbstraction\n";
 
-  TimerStats::CodeTimers abstractionTimer(d_statistics.d_abstractionTime);
+  TimerStat::CodeTimer abstractionTimer(d_statistics.d_abstractionTime);
 
   TNodeSet seen;
   for (unsigned i = 0; i < assertions.size(); ++i)

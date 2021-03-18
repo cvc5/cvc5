@@ -461,7 +461,7 @@ bool DioSolver::processEquations(bool allowDecomposition){
 }
 
 Node DioSolver::processEquationsForConflict(){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_conflictTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_conflictTimer);
   ++(d_statistics.d_conflictCalls);
 
   Assert(!inConflict());
@@ -474,7 +474,7 @@ Node DioSolver::processEquationsForConflict(){
 }
 
 SumPair DioSolver::processEquationsForCut(){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_cutTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_cutTimer);
   ++(d_statistics.d_cutCalls);
 
   Assert(!inConflict());

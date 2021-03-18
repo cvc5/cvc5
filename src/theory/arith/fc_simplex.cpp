@@ -706,7 +706,7 @@ Result::Sat FCSimplexDecisionProcedure::dualLike(){
   static int instance = 0;
   static bool verbose = false;
 
-  TimerStats::CodeTimers codeTimer(d_statistics.d_fcTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_fcTimer);
 
   Assert(d_sgnDisagreements.empty());
   Assert(d_pivotBudget != 0);

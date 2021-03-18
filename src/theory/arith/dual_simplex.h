@@ -91,7 +91,7 @@ private:
   
 
   bool processSignals(){
-    TimerStats &timer = d_statistics.d_processSignalsTime;
+    TimerStat &timer = d_statistics.d_processSignalsTime;
     IntStats& conflictStat  = d_statistics.d_recentViolationCatches;
     return standardProcessSignals(timer, conflictStat);
   }
@@ -99,12 +99,12 @@ private:
   class Statistics {
   public:
     IntStats d_statUpdateConflicts;
-    TimerStats d_processSignalsTime;
+    TimerStat d_processSignalsTime;
     IntStats d_simplexConflicts;
     IntStats d_recentViolationCatches;
-    TimerStats d_searchTime;
+    TimerStat d_searchTime;
 
-    ReferenceStats<uint32_t> d_finalCheckPivotCounter;
+    ReferenceStat<uint32_t> d_finalCheckPivotCounter;
 
     Statistics(uint32_t& pivots);
   } d_statistics;

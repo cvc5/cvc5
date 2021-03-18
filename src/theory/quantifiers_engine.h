@@ -211,9 +211,9 @@ public:
  class Statistics
  {
   public:
-    TimerStats d_time;
-    TimerStats d_qcf_time;
-    TimerStats d_ematching_time;
+    TimerStat d_time;
+    TimerStat d_qcf_time;
+    TimerStat d_ematching_time;
     IntStats d_num_quant;
     IntStats d_instantiation_rounds;
     IntStats d_instantiation_rounds_lc;

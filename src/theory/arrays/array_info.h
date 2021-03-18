@@ -108,14 +108,14 @@ private:
   /* == STATISTICS == */
 
   /** time spent in preregisterTerm() */
-  TimerStats d_mergeInfoTimer;
-  AverageStats d_avgIndexListLength;
-  AverageStats d_avgStoresListLength;
-  AverageStats d_avgInStoresListLength;
+  TimerStat d_mergeInfoTimer;
+  AverageStat d_avgIndexListLength;
+  AverageStat d_avgStoresListLength;
+  AverageStat d_avgInStoresListLength;
   IntStats d_listsCount;
   IntStats d_callsMergeInfo;
   IntStats d_maxList;
-  SizeStats<CNodeInfoMap> d_tableSize;
+  SizeStat<CNodeInfoMap> d_tableSize;
 
   /**
    * checks if a certain element is in the list l

@@ -414,7 +414,7 @@ const CTNodeList* ArrayInfo::getInStores(const TNode a) const{
 
 void ArrayInfo::mergeInfo(const TNode a, const TNode b){
   // can't have assertion that find(b) = a !
-  TimerStats::CodeTimers codeTimer(d_mergeInfoTimer);
+  TimerStat::CodeTimer codeTimer(d_mergeInfoTimer);
   ++d_callsMergeInfo;
 
   Trace("arrays-mergei")<<"Arrays::mergeInfo merging "<<a<<"\n";

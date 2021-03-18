@@ -242,7 +242,7 @@ void BVSolverLazy::check(Theory::Effort e)
   }
 
   Debug("bitvector") << "BVSolverLazy::check(" << e << ")" << std::endl;
-  TimerStats::CodeTimers codeTimer(d_statistics.d_solveTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer);
   // we may be getting new assertions so the model cache may not be sound
   d_invalidateModelCache.set(true);
   // if we are using the eager solver

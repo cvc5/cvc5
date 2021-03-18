@@ -177,7 +177,7 @@ private:
 
 
   UpdateInfo selectUpdateForDualLike(ArithVar basic){
-    TimerStats::CodeTimers codeTimer(d_statistics.d_selectUpdateForDualLike);
+    TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForDualLike);
 
     LinearEqualityModule::UpdatePreferenceFunction upf =
       &LinearEqualityModule::preferWitness<true>;
@@ -187,7 +187,7 @@ private:
   }
 
   UpdateInfo selectUpdateForPrimal(ArithVar basic, bool useBlands){
-    TimerStats::CodeTimers codeTimer(d_statistics.d_selectUpdateForPrimal);
+    TimerStat::CodeTimer codeTimer(d_statistics.d_selectUpdateForPrimal);
 
     LinearEqualityModule::UpdatePreferenceFunction upf;
     if(useBlands) {
@@ -222,7 +222,7 @@ private:
   bool searchForFeasibleSolution(uint32_t maxIterations);
 
   bool initialProcessSignals(){
-    TimerStats &timer = d_statistics.d_initialSignalsTime;
+    TimerStat &timer = d_statistics.d_initialSignalsTime;
     IntStats& conflictStat  = d_statistics.d_initialConflicts;
     bool res = standardProcessSignals(timer, conflictStat);
     d_focusSize = d_errorSet.focusSize();
@@ -234,20 +234,20 @@ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    TimerStats d_initialSignalsTime;
+    TimerStat d_initialSignalsTime;
     IntStats d_initialConflicts;
 
     IntStats d_fcFoundUnsat;
     IntStats d_fcFoundSat;
     IntStats d_fcMissed;
 
-    TimerStats d_fcTimer;
-    TimerStats d_fcFocusConstructionTimer;
+    TimerStat d_fcTimer;
+    TimerStat d_fcFocusConstructionTimer;
 
-    TimerStats d_selectUpdateForDualLike;
-    TimerStats d_selectUpdateForPrimal;
+    TimerStat d_selectUpdateForDualLike;
+    TimerStat d_selectUpdateForPrimal;
 
-    ReferenceStats<uint32_t> d_finalCheckPivotCounter;
+    ReferenceStat<uint32_t> d_finalCheckPivotCounter;
 
     Statistics(uint32_t& pivots);
   } d_statistics;

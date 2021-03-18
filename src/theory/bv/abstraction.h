@@ -46,9 +46,9 @@ class AbstractionModule {
   typedef std::unordered_map<TNode, unsigned, TNodeHashFunction > SignatureMap;
 
   struct Statistics {
-    SizeStats<NodeNodeMap> d_numFunctionsAbstracted;
+    SizeStat<NodeNodeMap> d_numFunctionsAbstracted;
     IntStats d_numArgsSkolemized;
-    TimerStats d_abstractionTime;
+    TimerStat d_abstractionTime;
     Statistics(const std::string& name, const NodeNodeMap& functionsAbstracted);
   };
 

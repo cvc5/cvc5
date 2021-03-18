@@ -32,7 +32,7 @@ namespace strings {
 class StringsRewriter : public SequencesRewriter
 {
  public:
-  StringsRewriter(HistogramStats<Rewrite>* statistics);
+  StringsRewriter(HistogramStat<Rewrite>* statistics);
 
   RewriteResponse postRewrite(TNode node) override;
 

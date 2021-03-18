@@ -77,7 +77,7 @@ class CryptoMinisatSolver : public SatSolver
     IntStats d_statCallsToSolve;
     IntStats d_xorClausesAdded;
     IntStats d_clausesAdded;
-    TimerStats d_solveTime;
+    TimerStat d_solveTime;
     bool d_registerStats;
     Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();

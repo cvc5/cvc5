@@ -26,25 +26,25 @@ struct SmtEngineStatistics
 {
   SmtEngineStatistics();
   /** time spent in definition-expansion */
-  TimerStats d_definitionExpansionTime;
+  TimerStat d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */
   IntStats d_numConstantProps;
   /** time spent converting to CNF */
-  TimerStats d_cnfConversionTime;
+  TimerStat d_cnfConversionTime;
   /** Number of assertions before ite removal */
   IntStats d_numAssertionsPre;
   /** Number of assertions after ite removal */
   IntStats d_numAssertionsPost;
   /** time spent in checkModel() */
-  TimerStats d_checkModelTime;
+  TimerStat d_checkModelTime;
   /** time spent in checkUnsatCore() */
-  TimerStats d_checkUnsatCoreTime;
+  TimerStat d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */
-  TimerStats d_solveTime;
+  TimerStat d_solveTime;
   /** time spent in pushing/popping */
-  TimerStats d_pushPopTime;
+  TimerStat d_pushPopTime;
   /** time spent in processAssertions() */
-  TimerStats d_processAssertionsTime;
+  TimerStat d_processAssertionsTime;
 
   /** Has something simplified to false? */
   IntStats d_simplifiedToFalse;

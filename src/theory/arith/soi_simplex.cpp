@@ -929,7 +929,7 @@ Result::Sat SumOfInfeasibilitiesSPD::sumOfInfeasibilities(){
   static int instance = 0;
   static bool verbose = false;
 
-  TimerStats::CodeTimers codeTimer(d_statistics.d_soiTimer);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_soiTimer);
 
   Assert(d_sgnDisagreements.empty());
   Assert(d_pivotBudget != 0);

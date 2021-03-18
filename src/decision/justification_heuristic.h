@@ -65,7 +65,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
 
   IntStats d_helpfulness;
   IntStats d_giveup;
-  TimerStats d_timestat;
+  TimerStat d_timestat;
 
   /**
    * A copy of the assertions that need to be justified

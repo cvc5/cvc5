@@ -645,7 +645,7 @@ void SimpSolver::extendModel()
 bool SimpSolver::eliminate(bool turn_off_elim)
 {
 
-  //  CVC4::TimerStats::CodeTimers codeTimer(total_eliminate_time);
+  //  CVC4::TimerStat::CodeTimer codeTimer(total_eliminate_time);
 
     if (!simplify())
         return false;

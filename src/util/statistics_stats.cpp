@@ -21,7 +21,7 @@
 
 namespace CVC4 {
 
-AverageStats& AverageStats::operator<<(double v)
+AverageStat& AverageStat::operator<<(double v)
 {
   d_data->d_sum += v;
   d_data->d_count++;
@@ -63,22 +63,22 @@ void IntStats::minAssign(int64_t val)
   }
 }
 
-void TimerStats::start()
+void TimerStat::start()
 {
   PrettyCheckArgument(!d_data->d_running, *this, "timer already running");
   d_data->d_start = StatisticTimerValue::clock::now();
   d_data->d_running = true;
 }
-void TimerStats::stop()
+void TimerStat::stop()
 {
   AlwaysAssert(d_data->d_running) << "timer not running";
   d_data->d_duration += StatisticTimerValue::clock::now() - d_data->d_start;
   d_data->d_running = false;
 }
-bool TimerStats::running() const { return d_data->d_running; }
+bool TimerStat::running() const { return d_data->d_running; }
 
 
-CodeTimers::CodeTimers(TimerStats& timer, bool allow_reentrant)
+CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
     : d_timer(timer), d_reentrant(false)
 {
   if (!allow_reentrant || !(d_reentrant = d_timer.running()))
@@ -86,7 +86,7 @@ CodeTimers::CodeTimers(TimerStats& timer, bool allow_reentrant)
     d_timer.start();
   }
 }
-CodeTimers::~CodeTimers()
+CodeTimer::~CodeTimer()
 {
   if (!d_reentrant)
   {

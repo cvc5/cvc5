@@ -110,12 +110,12 @@ class BVSolverLazy : public BVSolver
   class Statistics
   {
    public:
-    AverageStats d_avgConflictSize;
+    AverageStat d_avgConflictSize;
     IntStats d_solveSubstitutions;
-    TimerStats d_solveTimer;
+    TimerStat d_solveTimer;
     IntStats d_numCallsToCheckFullEffort;
     IntStats d_numCallsToCheckStandardEffort;
-    TimerStats d_weightComputationTimer;
+    TimerStat d_weightComputationTimer;
     IntStats d_numMultSlice;
     Statistics();
   };

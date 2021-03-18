@@ -850,14 +850,14 @@ void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
 
 void SmtEngine::notifyPushPost()
 {
-  TimerStats::CodeTimers pushPopTimer(d_stats->d_pushPopTime);
+  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
   Assert(getPropEngine() != nullptr);
   getPropEngine()->push();
 }
 
 void SmtEngine::notifyPopPre()
 {
-  TimerStats::CodeTimers pushPopTimer(d_stats->d_pushPopTime);
+  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   pe->pop();
@@ -980,7 +980,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
     {
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
-        TimerStats::CodeTimers checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
+        TimerStat::CodeTimer checkUnsatCoreTimer(d_stats->d_checkUnsatCoreTime);
         checkUnsatCore();
       }
     }
@@ -1496,7 +1496,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   Assert(al != nullptr)
       << "don't have an assertion list to check in SmtEngine::checkModel()";
 
-  TimerStats::CodeTimers checkModelTimer(d_stats->d_checkModelTime);
+  TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
   Model* m = getAvailableModel("check model");

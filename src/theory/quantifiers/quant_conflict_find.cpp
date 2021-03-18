@@ -1979,7 +1979,7 @@ inline QuantConflictFind::Effort QcfEffortEnd() {
 /** check */
 void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
 {
-  CodeTimers codeTimer(d_quantEngine->d_statistics.d_qcf_time);
+  CodeTimer codeTimer(d_quantEngine->d_statistics.d_qcf_time);
   if (quant_e != QEFFORT_CONFLICT)
   {
     return;

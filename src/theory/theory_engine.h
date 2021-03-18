@@ -277,7 +277,7 @@ class TheoryEngine {
   std::unique_ptr<theory::SortInference> d_sortInfer;
 
   /** Time spent in theory combination */
-  TimerStats d_combineTheoriesTime;
+  TimerStat d_combineTheoriesTime;
 
   Node d_true;
   Node d_false;

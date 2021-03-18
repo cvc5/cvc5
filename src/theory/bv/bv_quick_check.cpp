@@ -322,7 +322,7 @@ Node QuickXPlain::minimizeConflict(TNode confl) {
 
   ++d_numCalled;
   ++(d_statistics.d_numConflictsMinimized);
-  TimerStats::CodeTimers xplainTimer(d_statistics.d_xplainTime);
+  TimerStat::CodeTimer xplainTimer(d_statistics.d_xplainTime);
   Assert(confl.getNumChildren() > 2);
   std::vector<TNode> conflict;
   for (unsigned i = 0; i < confl.getNumChildren(); ++i) {

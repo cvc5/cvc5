@@ -227,7 +227,7 @@ void QuantifiersEngine::ppNotifyAssertions(
 }
 
 void QuantifiersEngine::check( Theory::Effort e ){
-  CodeTimers codeTimer(d_statistics.d_time);
+  CodeTimer codeTimer(d_statistics.d_time);
   Assert(d_qstate.getEqualityEngine() != nullptr);
   if (!d_qstate.getEqualityEngine()->consistent())
   {

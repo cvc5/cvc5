@@ -42,7 +42,7 @@ struct QInternalVarAttributeId
 typedef expr::Attribute<QInternalVarAttributeId, Node> QInternalVarAttribute;
 
 StringsPreprocess::StringsPreprocess(SkolemCache* sc,
-                                     HistogramStats<Kind>* statReductions)
+                                     HistogramStat<Kind>* statReductions)
     : d_sc(sc), d_statReductions(statReductions)
 {
 }

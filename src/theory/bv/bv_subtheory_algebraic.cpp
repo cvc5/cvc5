@@ -263,7 +263,7 @@ bool AlgebraicSolver::check(Theory::Effort e)
   if (!Theory::fullEffort(e)) { return true; }
   if (!useHeuristic()) { return true; }
 
-  TimerStats::CodeTimers algebraicTimer(d_statistics.d_solveTime);
+  TimerStat::CodeTimer algebraicTimer(d_statistics.d_solveTime);
   Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check (" << e << ")\n";
   ++(d_numCalls);
   ++(d_statistics.d_numCallstoCheck);

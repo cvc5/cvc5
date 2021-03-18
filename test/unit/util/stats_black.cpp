@@ -52,25 +52,25 @@ TEST_F(TestUtilBlackStats, stats)
   StatisticRegistry reg(false);
   std::string empty, bar = "bar", baz = "baz";
 
-  AverageStats avg = reg.registerAverage("avg");
+  AverageStat avg = reg.registerAverage("avg");
   avg << 1.0 << 2.0;
   
-  HistogramStats<int64_t> histInt = reg.registerHistogram<int64_t>("hist-int");
+  HistogramStat<int64_t> histInt = reg.registerHistogram<int64_t>("hist-int");
   histInt << 15 << 16 << 15 << 14 << 16;
   
-  HistogramStats<PfRule> histPfRule = reg.registerHistogram<PfRule>("hist-pfrule");
+  HistogramStat<PfRule> histPfRule = reg.registerHistogram<PfRule>("hist-pfrule");
   histPfRule << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
 
   IntStats intstat = reg.registerInt("int");
   intstat = 5;
   intstat++;
 
-  ReferenceStats<std::string> refStr = reg.registerReference<std::string>("strref1", empty);
-  ReferenceStats<std::string> refStr2 = reg.registerReference<std::string>("strref2", bar);
+  ReferenceStat<std::string> refStr = reg.registerReference<std::string>("strref1", empty);
+  ReferenceStat<std::string> refStr2 = reg.registerReference<std::string>("strref2", bar);
 
-  TimerStats timer = reg.registerTimer("timer");
+  TimerStat timer = reg.registerTimer("timer");
   {
-    CodeTimers ct(timer);
+    CodeTimer ct(timer);
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 

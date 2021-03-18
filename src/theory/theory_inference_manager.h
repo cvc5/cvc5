@@ -442,11 +442,11 @@ class TheoryInferenceManager
   /** The number of internal facts added since the last call to reset. */
   uint32_t d_numCurrentFacts;
   /** Statistics for conflicts sent via this inference manager. */
-  HistogramStats<InferenceId> d_conflictIdStats;
+  HistogramStat<InferenceId> d_conflictIdStats;
   /** Statistics for facts sent via this inference manager. */
-  HistogramStats<InferenceId> d_factIdStats;
+  HistogramStat<InferenceId> d_factIdStats;
   /** Statistics for lemmas sent via this inference manager. */
-  HistogramStats<InferenceId> d_lemmaIdStats;
+  HistogramStat<InferenceId> d_lemmaIdStats;
 };
 
 }  // namespace theory

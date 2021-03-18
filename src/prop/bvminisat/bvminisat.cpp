@@ -117,14 +117,14 @@ void BVMinisatSatSolver::interrupt(){
 
 SatValue BVMinisatSatSolver::solve()
 {
-  TimerStats::CodeTimers solveTimer(d_statistics.d_statSolveTime);
+  TimerStat::CodeTimer solveTimer(d_statistics.d_statSolveTime);
   ++d_statistics.d_statCallsToSolve;
   return toSatLiteralValue(d_minisat->solve());
 }
 
 SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   Trace("limit") << "MinisatSatSolver::solve(): have limit of " << resource << " conflicts" << std::endl;
-  TimerStats::CodeTimers solveTimer(d_statistics.d_statSolveTime);
+  TimerStat::CodeTimer solveTimer(d_statistics.d_statSolveTime);
   ++d_statistics.d_statCallsToSolve;
   if(resource == 0) {
     d_minisat->budgetOff();

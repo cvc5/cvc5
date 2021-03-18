@@ -163,7 +163,7 @@ class AlgebraicSolver : public SubtheorySolver
     IntStats d_numUnsat;
     IntStats d_numSat;
     IntStats d_numUnknown;
-    TimerStats d_solveTime;
+    TimerStat d_solveTime;
     ValueStat<double> d_useHeuristic;
     Statistics();
   };

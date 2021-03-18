@@ -166,7 +166,7 @@ void CryptoMinisatSolver::interrupt(){
 }
 
 SatValue CryptoMinisatSolver::solve(){
-  TimerStats::CodeTimers codeTimer(d_statistics.d_solveTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   ++d_statistics.d_statCallsToSolve;
   return toSatLiteralValue(d_solver->solve());
 }
@@ -180,7 +180,7 @@ SatValue CryptoMinisatSolver::solve(long unsigned int& resource) {
 
 SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
-  TimerStats::CodeTimers codeTimer(d_statistics.d_solveTime);
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
   std::vector<CMSat::Lit> assumpts;
   for (const SatLiteral& lit : assumptions)
   {

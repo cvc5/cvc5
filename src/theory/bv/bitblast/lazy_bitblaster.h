@@ -160,7 +160,7 @@ class TLazyBitblaster : public TBitblaster<Node>
     IntStats d_numTerms, d_numAtoms;
     IntStats d_numExplainedPropagations;
     IntStats d_numBitblastingPropagations;
-    TimerStats d_bitblastTimer;
+    TimerStat d_bitblastTimer;
     Statistics(const std::string& name);
   };
   std::string d_name;

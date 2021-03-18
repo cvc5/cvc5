@@ -142,11 +142,11 @@ private:
     /** number of invariant permutation sets we found */
     IntStats d_permutationSetsInvariant;
     /** time spent in invariantByPermutations() */
-    TimerStats d_invariantByPermutationsTimer;
+    TimerStat d_invariantByPermutationsTimer;
     /** time spent in selectTerms() */
-    TimerStats d_selectTermsTimer;
+    TimerStat d_selectTermsTimer;
     /** time spent in initial round of normalization */
-    TimerStats d_initNormalizationTimer;
+    TimerStat d_initNormalizationTimer;
 
     Statistics(const std::string& name);
   };

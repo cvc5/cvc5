@@ -69,7 +69,7 @@ class KissatSolver : public SatSolver
     IntStats d_numSatCalls;
     IntStats d_numVariables;
     IntStats d_numClauses;
-    TimerStats d_solveTime;
+    TimerStat d_solveTime;
     Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();
   };

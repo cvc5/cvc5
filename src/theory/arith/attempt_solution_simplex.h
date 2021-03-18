@@ -74,15 +74,15 @@ public:
   bool matchesNewValue(const DenseMap<DeltaRational>& nv, ArithVar v) const;
 
   bool processSignals(){
-    TimerStats &timer = d_statistics.d_queueTime;
+    TimerStat &timer = d_statistics.d_queueTime;
     IntStats& conflictStat  = d_statistics.d_conflicts;
     return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    TimerStats d_searchTime;
-    TimerStats d_queueTime;
+    TimerStat d_searchTime;
+    TimerStat d_queueTime;
     IntStats d_conflicts;
 
     Statistics();

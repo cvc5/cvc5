@@ -73,9 +73,9 @@ namespace api {
 
 struct APIStatistics
 {
-  HistogramStats<TypeConstant> d_consts;
-  HistogramStats<TypeConstant> d_vars;
-  HistogramStats<Kind> d_terms;
+  HistogramStat<TypeConstant> d_consts;
+  HistogramStat<TypeConstant> d_vars;
+  HistogramStat<Kind> d_terms;
 };
 
 /* -------------------------------------------------------------------------- */

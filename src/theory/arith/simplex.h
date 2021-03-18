@@ -127,15 +127,15 @@ protected:
   /** A local copy of -1. */
   const Rational d_negOne;
 
-  ArithVar constructInfeasiblityFunction(TimerStats& timer);
-  ArithVar constructInfeasiblityFunction(TimerStats& timer, ArithVar e);
-  ArithVar constructInfeasiblityFunction(TimerStats& timer, const ArithVarVec& set);
+  ArithVar constructInfeasiblityFunction(TimerStat& timer);
+  ArithVar constructInfeasiblityFunction(TimerStat& timer, ArithVar e);
+  ArithVar constructInfeasiblityFunction(TimerStat& timer, const ArithVarVec& set);
 
-  void tearDownInfeasiblityFunction(TimerStats& timer, ArithVar inf);
-  void adjustInfeasFunc(TimerStats& timer, ArithVar inf, const AVIntPairVec& focusChanges);
-  void addToInfeasFunc(TimerStats& timer, ArithVar inf, ArithVar e);
-  void removeFromInfeasFunc(TimerStats& timer, ArithVar inf, ArithVar e);
-  void shrinkInfeasFunc(TimerStats& timer, ArithVar inf, const ArithVarVec& dropped);
+  void tearDownInfeasiblityFunction(TimerStat& timer, ArithVar inf);
+  void adjustInfeasFunc(TimerStat& timer, ArithVar inf, const AVIntPairVec& focusChanges);
+  void addToInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e);
+  void removeFromInfeasFunc(TimerStat& timer, ArithVar inf, ArithVar e);
+  void shrinkInfeasFunc(TimerStat& timer, ArithVar inf, const ArithVarVec& dropped);
 
 public:
   SimplexDecisionProcedure(LinearEqualityModule& linEq, ErrorSet& errors, RaiseConflict conflictChannel, TempVarMalloc tvmalloc);
@@ -194,7 +194,7 @@ protected:
   }
 
   /** Post condition: !d_queue.moreSignals() */
-  bool standardProcessSignals(TimerStats &timer, IntStats& conflictStat);
+  bool standardProcessSignals(TimerStat &timer, IntStats& conflictStat);
 
   struct ArithVarIntPairHashFunc {
     size_t operator()(const std::pair<ArithVar, int>& p) const {

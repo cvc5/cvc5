@@ -410,8 +410,8 @@ public:
     IntStats d_cuts;
     IntStats d_conflicts;
 
-    TimerStats d_conflictTimer;
-    TimerStats d_cutTimer;
+    TimerStat d_conflictTimer;
+    TimerStat d_cutTimer;
 
     Statistics();
   };

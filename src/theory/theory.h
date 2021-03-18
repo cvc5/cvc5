@@ -142,9 +142,9 @@ class Theory {
 
   // === STATISTICS ===
   /** time spent in check calls */
-  TimerStats d_checkTime;
+  TimerStat d_checkTime;
   /** time spent in theory combination */
-  TimerStats d_computeCareGraphTime;
+  TimerStat d_computeCareGraphTime;
 
   /**
    * The only method to add suff to the care graph.

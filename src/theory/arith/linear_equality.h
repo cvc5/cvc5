@@ -704,12 +704,12 @@ private:
   class Statistics {
   public:
     IntStats d_statPivots, d_statUpdates;
-    TimerStats d_pivotTime;
-    TimerStats d_adjTime;
+    TimerStat d_pivotTime;
+    TimerStat d_adjTime;
 
     IntStats d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
-    TimerStats d_weakenTime;
-    TimerStats d_forceTime;
+    TimerStat d_weakenTime;
+    TimerStat d_forceTime;
 
     Statistics();
   };

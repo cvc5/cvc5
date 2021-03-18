@@ -91,7 +91,7 @@ class ProofCheckerStatistics
  public:
   ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
-  HistogramStats<PfRule> d_ruleChecks;
+  HistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
   IntStats d_totalRuleChecks;
 };

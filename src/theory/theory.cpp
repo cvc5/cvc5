@@ -419,7 +419,7 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   Assert(careGraph != NULL);
 
   Trace("sharing") << "Theory<" << getId() << ">::getCareGraph()" << std::endl;
-  TimerStats::CodeTimers computeCareGraphTime(d_computeCareGraphTime);
+  TimerStat::CodeTimer computeCareGraphTime(d_computeCareGraphTime);
   d_careGraph = careGraph;
   computeCareGraph();
   d_careGraph = NULL;
@@ -469,7 +469,7 @@ void Theory::check(Effort level)
   Assert(d_theoryState!=nullptr);
   // standard calls for resource, stats
   d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
-  TimerStats::CodeTimers checkTimer(d_checkTime);
+  TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("theory-check") << "Theory::preCheck " << level << " " << d_id
                         << std::endl;
   // pre-check at level

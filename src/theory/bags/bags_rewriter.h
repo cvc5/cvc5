@@ -41,7 +41,7 @@ struct BagsRewriteResponse
 class BagsRewriter : public TheoryRewriter
 {
  public:
-  BagsRewriter(HistogramStats<Rewrite>* statistics = nullptr);
+  BagsRewriter(HistogramStat<Rewrite>* statistics = nullptr);
 
   /**
    * postRewrite nodes with kinds: MK_BAG, BAG_COUNT, UNION_MAX, UNION_DISJOINT,
@@ -217,7 +217,7 @@ class BagsRewriter : public TheoryRewriter
   Node d_zero;
   Node d_one;
   /** Reference to the rewriter statistics. */
-  HistogramStats<Rewrite>* d_statistics;
+  HistogramStat<Rewrite>* d_statistics;
 }; /* class TheoryBagsRewriter */
 
 }  // namespace bags

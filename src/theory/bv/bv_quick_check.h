@@ -113,13 +113,13 @@ class QuickXPlain
 {
   struct Statistics
   {
-    TimerStats d_xplainTime;
+    TimerStat d_xplainTime;
     IntStats d_numSolved;
     IntStats d_numUnknown;
     IntStats d_numUnknownWasUnsat;
     IntStats d_numConflictsMinimized;
     IntStats d_finalPeriod;
-    AverageStats d_avgMinimizationRatio;
+    AverageStat d_avgMinimizationRatio;
     Statistics(const std::string& name);
   };
   BVQuickCheck* d_solver;

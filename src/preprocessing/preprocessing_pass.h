@@ -76,7 +76,7 @@ class PreprocessingPass {
   /* Name of pass */
   std::string d_name;
   /* Timer for registering the preprocessing time of this pass */
-  TimerStats d_timer;
+  TimerStat d_timer;
 };
 
 }  // namespace preprocessing

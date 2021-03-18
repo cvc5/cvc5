@@ -57,16 +57,16 @@ class StatisticRegistry
   StatisticRegistry(bool register_public = true);
 
   /** Register a new running average statistic for `name` */
-  AverageStats registerAverage(const std::string& name, bool expert = true)
+  AverageStat registerAverage(const std::string& name, bool expert = true)
   {
-    return registerStat<AverageStats>(name, expert);
+    return registerStat<AverageStat>(name, expert);
   }
   /** Register a new histogram statistic for `name` */
   template <typename T>
-  HistogramStats<T> registerHistogram(const std::string& name,
+  HistogramStat<T> registerHistogram(const std::string& name,
                                       bool expert = true)
   {
-    return registerStat<HistogramStats<T>>(name, expert);
+    return registerStat<HistogramStat<T>>(name, expert);
   }
   /** Register a new integer statistic for `name` */
   IntStats registerInt(const std::string& name, bool expert = true)
@@ -75,35 +75,35 @@ class StatisticRegistry
   }
   /** Register a new reference statistic for `name` */
   template <typename T>
-  ReferenceStats<T> registerReference(const std::string& name,
+  ReferenceStat<T> registerReference(const std::string& name,
                                      bool expert = true)
   {
-    return registerStat<ReferenceStats<T>>(name, expert);
+    return registerStat<ReferenceStat<T>>(name, expert);
   }
   /** Register a new reference statistic for `name` */
   template <typename T>
-  ReferenceStats<T> registerReference(const std::string& name,
+  ReferenceStat<T> registerReference(const std::string& name,
                                      const T& t,
                                      bool expert = true)
   {
-    ReferenceStats<T> res = registerStat<ReferenceStats<T>>(name, expert);
+    ReferenceStat<T> res = registerStat<ReferenceStat<T>>(name, expert);
     res.set(t);
     return res;
   }
   /** Register a new container size statistic for `name` */
   template <typename T>
-  SizeStats<T> registerSize(const std::string& name,
+  SizeStat<T> registerSize(const std::string& name,
                            const T& t,
                            bool expert = true)
   {
-    SizeStats<T> res = registerStat<SizeStats<T>>(name, expert);
+    SizeStat<T> res = registerStat<SizeStat<T>>(name, expert);
     res.set(t);
     return res;
   }
   /** Register a new timer statistic for `name` */
-  TimerStats registerTimer(const std::string& name, bool expert = true)
+  TimerStat registerTimer(const std::string& name, bool expert = true)
   {
-    return registerStat<TimerStats>(name, expert);
+    return registerStat<TimerStat>(name, expert);
   }
   /** Register a new value statistic for `name` */
   template <typename T>
