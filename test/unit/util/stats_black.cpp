@@ -19,15 +19,27 @@
 #include <ctime>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #include "expr/proof_rule.h"
 #include "lib/clock_gettime.h"
 #include "test.h"
-#include "util/statistics_registry.h"
-#include "util/stats_histogram.h"
-#include "util/stats_timer.h"
+#include "util/statistics_reg.h"
+#include "util/statistics_stats.h"
 
 namespace CVC4 {
+
+std::ostream& operator<<(std::ostream& os, const StatisticBaseValue* sbv)
+{
+  sbv->print(os);
+  return os;
+}
+bool operator==(const StatisticBaseValue* sbv, const std::string& s) {
+  std::stringstream ss;
+  ss << sbv;
+  return ss.str() == s;
+}
+
 namespace test {
 
 class TestUtilBlackStats : public TestInternal
@@ -37,27 +49,51 @@ class TestUtilBlackStats : public TestInternal
 TEST_F(TestUtilBlackStats, stats)
 {
 #ifdef CVC4_STATISTICS_ON
+  StatisticRegistry reg(false);
   std::string empty, bar = "bar", baz = "baz";
-  ReferenceStat<std::string> refStr("stat #1", empty);
-  ReferenceStat<std::string> refStr2("refStr2", bar);
-  BackedStat<std::string> backedStr("backed", baz);
 
-  BackedStat<double> backedDouble("backedDouble", 16.5);
-  BackedStat<double> backedNegDouble("backedNegDouble", -16.5);
-  BackedStat<double> backedDoubleNoDec("backedDoubleNoDec", 2.0);
-  BackedStat<bool> backedBool("backedBool", true);
-  BackedStat<void*> backedAddr("backedDouble", (void*)0xDEADBEEF);
-  IntegralHistogramStat<std::int64_t> histIntStat("hist-int");
-  histIntStat << 15 << 16 << 15 << 14 << 16;
-  IntegralHistogramStat<CVC4::PfRule> histPfRuleStat("hist-pfrule");
-  histPfRuleStat << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
+  AverageStats avg = reg.registerAverage("avg");
+  avg << 1.0 << 2.0;
+  
+  HistogramStats<int64_t> histInt = reg.registerHistogram<int64_t>("hist-int");
+  histInt << 15 << 16 << 15 << 14 << 16;
+  
+  HistogramStats<PfRule> histPfRule = reg.registerHistogram<PfRule>("hist-pfrule");
+  histPfRule << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
 
-  // A statistic with no safe_print support
-  BackedStat<std::string*> backedUnsupported("backedUnsupported", &bar);
+  IntStats intstat = reg.registerInt("int");
+  intstat = 5;
+  intstat++;
 
-  IntStat sInt("my int", 10);
-  TimerStat sTimer("a timer ! for measuring time");
+  ReferenceStats<std::string> refStr = reg.registerReference<std::string>("strref1", empty);
+  ReferenceStats<std::string> refStr2 = reg.registerReference<std::string>("strref2", bar);
 
+  TimerStats timer = reg.registerTimer("timer");
+  {
+    CodeTimers ct(timer);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+
+  ValueStat<std::string> valStr = reg.registerValue("backed", baz);
+  valStr.set("barz");
+  ValueStat<double> valD1 = reg.registerValue("backedDouble", 16.5);
+  valD1.set(3.5);
+  ValueStat<double> valD2 = reg.registerValue("backedNegDouble", -16.5);
+  valD2.set(-3.5);
+  ValueStat<double> valD3 = reg.registerValue("backedDoubleNoDec", 2.0);
+  valD3.set(17);
+
+  ASSERT_EQ(reg.get("avg"), std::string("1.5"));
+  ASSERT_EQ(reg.get("hist-int"), std::string("[(14 : 1), (15 : 2), (16 : 2)]"));
+  ASSERT_EQ(reg.get("hist-pfrule"), std::string("[(ASSUME : 2), (SCOPE : 1)]"));
+  ASSERT_EQ(reg.get("int"), std::string("6"));
+  ASSERT_EQ(reg.get("strref1"), std::string(""));
+  ASSERT_EQ(reg.get("strref2"), std::string("bar"));
+  ASSERT_EQ(reg.get("backed"), std::string("barz"));
+  ASSERT_EQ(reg.get("backedDouble"), std::string("3.5"));
+  ASSERT_EQ(reg.get("backedNegDouble"), std::string("-3.5"));
+  ASSERT_EQ(reg.get("backedDoubleNoDec"), std::string("17"));
+/*
   ASSERT_EQ(refStr.getName(), "stat #1");
   ASSERT_EQ(refStr2.getName(), "refStr2");
   ASSERT_EQ(backedStr.getName(), "backed");
@@ -158,6 +194,7 @@ TEST_F(TestUtilBlackStats, stats)
 
   int ret = remove(tmp_filename);
   ASSERT_EQ(ret, 0);
+*/
 #endif
 }
 }  // namespace test

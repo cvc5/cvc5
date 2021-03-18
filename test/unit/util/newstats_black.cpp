@@ -19,10 +19,10 @@
 #include <thread>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/kind.h"
 #include "test.h"
 #include "theory/inference_id.h"
-#include "util/statistics_api.h"
 #include "util/statistics_reg.h"
 
 namespace CVC4 {
