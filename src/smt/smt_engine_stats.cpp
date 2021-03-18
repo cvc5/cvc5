@@ -30,8 +30,7 @@ SmtEngineStatistics::SmtEngineStatistics()
       d_solveTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::solveTime")),
       d_pushPopTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::pushPopTime")),
       d_processAssertionsTime(smtStatisticsRegistry().registerTimer("smt::SmtEngine::processAssertionsTime")),
-      d_simplifiedToFalse(smtStatisticsRegistry().registerInt("smt::SmtEngine::simplifiedToFalse")),
-      d_totalTime(smtStatisticsRegistry().registerTimer("driver::totalTime"))
+      d_simplifiedToFalse(smtStatisticsRegistry().registerInt("smt::SmtEngine::simplifiedToFalse"))
 {
 }
 

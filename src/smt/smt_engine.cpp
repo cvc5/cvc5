@@ -437,12 +437,8 @@ void SmtEngine::setResultStatistic(api::Result result) {
     ss << result;
     d_statisticsRegistry->registerValue<std::string>("driver::sat/unsat", ss.str());
 }
-
-void SmtEngine::startTotalTimer() {
-  d_stats->d_totalTime.start();
-}
-void SmtEngine::stopTotalTimer() {
-  d_stats->d_totalTime.stop();
+void SmtEngine::setTotalTimeStatistic(double seconds) {
+  d_statisticsRegistry->registerValue<double>("driver::totalTime", seconds);
 }
 
 void SmtEngine::setLogicInternal()

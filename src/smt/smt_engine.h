@@ -253,9 +253,7 @@ class CVC4_EXPORT SmtEngine
   const std::string& getFilename() const;
 
   void setResultStatistic(api::Result result) CVC4_EXPORT;
-
-  void startTotalTimer() CVC4_EXPORT;
-  void stopTotalTimer() CVC4_EXPORT;
+  void setTotalTimeStatistic(double seconds) CVC4_EXPORT;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED

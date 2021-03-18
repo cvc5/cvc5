@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
@@ -78,6 +79,7 @@ void printUsage(Options& opts, bool full) {
 
 int runCvc4(int argc, char* argv[], Options& opts) {
 
+  std::chrono::time_point totalTimeStart = std::chrono::steady_clock::now();
   // For the signal handlers' benefit
   pOptions = &opts;
 
@@ -175,9 +177,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Create the command executor to execute the parsed commands
   pExecutor = new CommandExecutor(opts);
-  
-  // Timer statistic
-  pExecutor->getSmtEngine()->startTotalTimer();
 
   int returnValue = 0;
   {
@@ -460,7 +459,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_COMPETITION_MODE */
 
     pExecutor->getSmtEngine()->setResultStatistic(result);
-    pExecutor->getSmtEngine()->stopTotalTimer();
+    std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
+    pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
 
     // Tim: I think that following comment is out of date?
     // Set the global executor pointer to nullptr first.  If we get a
