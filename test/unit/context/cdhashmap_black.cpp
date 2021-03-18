@@ -27,7 +27,7 @@ namespace test {
 using CVC4::context::CDHashMap;
 using CVC4::context::Context;
 
-class TestContextCDMapBlack : public TestContext
+class TestContextBlackCDHashMap : public TestContext
 {
  protected:
   /** Returns the elements in a CDHashMap. */
@@ -49,7 +49,7 @@ class TestContextCDMapBlack : public TestContext
   }
 };
 
-TEST_F(TestContextCDMapBlack, simple_sequence)
+TEST_F(TestContextBlackCDHashMap, simple_sequence)
 {
   CDHashMap<int32_t, int32_t> map(d_context.get());
   ASSERT_TRUE(elements_are(map, {}));
@@ -100,7 +100,7 @@ TEST_F(TestContextCDMapBlack, simple_sequence)
   ASSERT_TRUE(elements_are(map, {{3, 4}, {23, 317}}));
 }
 
-TEST_F(TestContextCDMapBlack, simple_sequence_fewer_finds)
+TEST_F(TestContextBlackCDHashMap, simple_sequence_fewer_finds)
 {
   // no intervening find() in this one (under the theory that this could trigger
   // a bug)
@@ -131,7 +131,7 @@ TEST_F(TestContextCDMapBlack, simple_sequence_fewer_finds)
   }
 }
 
-TEST_F(TestContextCDMapBlack, insert_at_context_level_zero)
+TEST_F(TestContextBlackCDHashMap, insert_at_context_level_zero)
 {
   CDHashMap<int, int> map(d_context.get());
 

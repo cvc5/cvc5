@@ -27,7 +27,7 @@ using namespace kind;
 
 namespace test {
 
-class TestExprBlackKind : public TestInternal
+class TestNodeBlackKind : public TestInternal
 {
  protected:
   void SetUp() override
@@ -55,13 +55,13 @@ class TestExprBlackKind : public TestInternal
   int32_t d_beyond;
 };
 
-TEST_F(TestExprBlackKind, equality)
+TEST_F(TestNodeBlackKind, equality)
 {
   ASSERT_EQ(d_undefined, UNDEFINED_KIND);
   ASSERT_EQ(d_last, LAST_KIND);
 }
 
-TEST_F(TestExprBlackKind, order)
+TEST_F(TestNodeBlackKind, order)
 {
   ASSERT_LT((int32_t)d_undefined, (int32_t)d_null);
   ASSERT_LT((int32_t)d_null, (int32_t)d_last);
@@ -69,14 +69,14 @@ TEST_F(TestExprBlackKind, order)
   ASSERT_LT((int32_t)d_last, (int32_t)d_unknown);
 }
 
-TEST_F(TestExprBlackKind, output)
+TEST_F(TestNodeBlackKind, output)
 {
   ASSERT_TRUE(string_is_as_expected(d_undefined, "UNDEFINED_KIND"));
   ASSERT_TRUE(string_is_as_expected(d_null, "NULL"));
   ASSERT_TRUE(string_is_as_expected(d_last, "LAST_KIND"));
 }
 
-TEST_F(TestExprBlackKind, output_concat)
+TEST_F(TestNodeBlackKind, output_concat)
 {
   std::stringstream act, exp;
   act << d_undefined << d_null << d_last << d_unknown;
