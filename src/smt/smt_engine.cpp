@@ -223,7 +223,7 @@ void SmtEngine::finishInit()
   d_optm->finishInit(d_env->d_logic, d_isInternalSubsolver);
 
   ProofNodeManager* pnm = nullptr;
-  if (options::proof())
+  if (options::produceProofs())
   {
     // ensure bound variable uses canonical bound variables
     getNodeManager()->getBoundVarManager()->enableKeepCacheValues();
@@ -332,7 +332,7 @@ SmtEngine::~SmtEngine()
 
     // d_proofManager is always created when proofs are enabled at configure
     // time.  Because of this, this code should not be wrapped in PROOF() which
-    // additionally checks flags such as options::proof().
+    // additionally checks flags such as options::produceProofs().
     //
     // Note: the proof manager must be destroyed before the theory engine.
     // Because the destruction of the proofs depends on contexts owned be the
@@ -971,7 +971,7 @@ Result SmtEngine::checkSatInternal(const std::vector<Node>& assumptions,
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
         if ((options::checkProofs() || options::proofEagerChecking())
-            && !options::proof())
+            && !options::produceProofs())
         {
           throw ModalException(
               "Cannot check-proofs because proofs were disabled.");
@@ -1388,7 +1388,7 @@ Node SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkProof()
 {
-  Assert(options::proof());
+  Assert(options::produceProofs());
   // internal check the proof
   PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
@@ -1457,9 +1457,8 @@ void SmtEngine::checkUnsatCore() {
   initializeSubsolver(coreChecker);
   coreChecker->getOptions().set(options::checkUnsatCores, false);
   // disable all proof options
-  coreChecker->getOptions().set(options::proof, false);
+  coreChecker->getOptions().set(options::produceProofs, false);
   coreChecker->getOptions().set(options::checkUnsatCoresNew, false);
-
   // set up separation logic heap if necessary
   TypeNode sepLocType, sepDataType;
   if (getSepHeapTypes(sepLocType, sepDataType))
@@ -1546,7 +1545,7 @@ std::string SmtEngine::getProof()
     getPrinter().toStreamCmdGetProof(getOutputManager().getDumpOut());
   }
 #if IS_PROOFS_BUILD
-  if (!options::proof())
+  if (!options::produceProofs())
   {
     throw ModalException("Cannot get a proof when proof option is off.");
   }
@@ -1647,7 +1646,7 @@ void SmtEngine::getInstantiationTermVectors(
 {
   SmtScope smts(this);
   finishInit();
-  if (options::proof() && getSmtMode() == SmtMode::UNSAT)
+  if (options::produceProofs() && getSmtMode() == SmtMode::UNSAT)
   {
     // minimize instantiations based on proof manager
     getRelevantInstantiationTermVectors(insts);
@@ -1929,12 +1928,14 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
   NodeManagerScope nms(getNodeManager());
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     getPrinter().toStreamCmdSetOption(
         getOutputManager().getDumpOut(), key, value);
   }
 
-  if(key == "command-verbosity") {
+  if (key == "command-verbosity")
+  {
     size_t fstIndex = value.find(" ");
     size_t sndIndex = value.find(" ", fstIndex + 1);
     if (sndIndex == std::string::npos)
@@ -1949,7 +1950,8 @@ void SmtEngine::setOption(const std::string& key, const std::string& value)
       d_commandVerbosity[c] = v;
       return;
     }
-    throw OptionException("command-verbosity value must be a tuple (command-name, integer)");
+    throw OptionException(
+        "command-verbosity value must be a tuple (command-name integer)");
   }
 
   if (value.find(" ") != std::string::npos)
@@ -1965,59 +1967,88 @@ void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 
 bool SmtEngine::isInternalSubsolver() const { return d_isInternalSubsolver; }
 
-CVC4::SExpr SmtEngine::getOption(const std::string& key) const
+Node SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(getNodeManager());
+  NodeManager* nm = d_env->getNodeManager();
 
   Trace("smt") << "SMT getOption(" << key << ")" << endl;
 
-  if(key.length() >= 18 &&
-     key.compare(0, 18, "command-verbosity:") == 0) {
-    map<string, Integer>::const_iterator i = d_commandVerbosity.find(key.c_str() + 18);
-    if(i != d_commandVerbosity.end()) {
-      return SExpr((*i).second);
+  if (key.length() >= 18 && key.compare(0, 18, "command-verbosity:") == 0)
+  {
+    map<string, Integer>::const_iterator i =
+        d_commandVerbosity.find(key.c_str() + 18);
+    if (i != d_commandVerbosity.end())
+    {
+      return nm->mkConst(Rational(i->second));
     }
     i = d_commandVerbosity.find("*");
-    if(i != d_commandVerbosity.end()) {
-      return SExpr((*i).second);
+    if (i != d_commandVerbosity.end())
+    {
+      return nm->mkConst(Rational(i->second));
     }
-    return SExpr(Integer(2));
+    return nm->mkConst(Rational(2));
   }
 
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     getPrinter().toStreamCmdGetOption(d_outMgr.getDumpOut(), key);
   }
 
-  if(key == "command-verbosity") {
-    vector<SExpr> result;
-    SExpr defaultVerbosity;
-    for(map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
-        i != d_commandVerbosity.end();
-        ++i) {
-      vector<SExpr> v;
-      v.push_back(SExpr((*i).first));
-      v.push_back(SExpr((*i).second));
-      if((*i).first == "*") {
+  if (key == "command-verbosity")
+  {
+    vector<Node> result;
+    Node defaultVerbosity;
+    for (map<string, Integer>::const_iterator i = d_commandVerbosity.begin();
+         i != d_commandVerbosity.end();
+         ++i)
+    {
+      // treat the command name as a variable name as opposed to a string
+      // constant to avoid printing double quotes around the name
+      Node name = nm->mkBoundVar(i->first, nm->integerType());
+      Node value = nm->mkConst(Rational(i->second));
+      if ((*i).first == "*")
+      {
         // put the default at the end of the SExpr
-        defaultVerbosity = SExpr(v);
-      } else {
-        result.push_back(SExpr(v));
+        defaultVerbosity = nm->mkNode(Kind::SEXPR, name, value);
+      }
+      else
+      {
+        result.push_back(nm->mkNode(Kind::SEXPR, name, value));
       }
     }
-    // put the default at the end of the SExpr
-    if(!defaultVerbosity.isAtom()) {
-      result.push_back(defaultVerbosity);
-    } else {
-      // ensure the default is always listed
-      vector<SExpr> v;
-      v.push_back(SExpr("*"));
-      v.push_back(SExpr(Integer(2)));
-      result.push_back(SExpr(v));
+    // ensure the default is always listed
+    if (defaultVerbosity.isNull())
+    {
+      defaultVerbosity = nm->mkNode(Kind::SEXPR,
+                                    nm->mkBoundVar("*", nm->integerType()),
+                                    nm->mkConst(Rational(2)));
     }
-    return SExpr(result);
+    result.push_back(defaultVerbosity);
+    return nm->mkNode(Kind::SEXPR, result);
   }
 
-  return SExpr::parseAtom(getOptions().getOption(key));
+  // parse atom string
+  std::string atom = getOptions().getOption(key);
+
+  if (atom == "true")
+  {
+    return nm->mkConst<bool>(true);
+  }
+  else if (atom == "false")
+  {
+    return nm->mkConst<bool>(false);
+  }
+  try
+  {
+    Integer z(atom);
+    return nm->mkConst(Rational(z));
+  }
+  catch (std::invalid_argument&)
+  {
+    // Fall through to the next case
+  }
+  return nm->mkConst(String(atom));
 }
 
 Options& SmtEngine::getOptions() { return d_env->d_options; }

@@ -73,7 +73,7 @@ QuantifiersEngine::QuantifiersEngine(
   //---- utilities
   // quantifiers registry must come before the other utilities
   d_util.push_back(&d_qreg);
-  d_util.push_back(d_treg.getTermDatabase());
+  d_util.push_back(tr.getTermDatabase());
   d_util.push_back(d_instantiate.get());
   //---- end utilities
 
@@ -86,6 +86,12 @@ QuantifiersEngine::~QuantifiersEngine() {}
 
 void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
 {
+  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+  if (d_builder!=nullptr)
+  {
+    d_builder->finishInit(this);
+  }
+  d_model->finishInit(this);
   d_te = te;
   d_decManager = dm;
   // Initialize the modules and the utilities here.
@@ -95,6 +101,12 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
+
+  // handle any circular dependencies
+
+  // quantifiers bound inference needs to be informed of the bounded integers
+  // module, which has information about which quantifiers have finite bounds
+  d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
 }
 
 DecisionManager* QuantifiersEngine::getDecisionManager()
@@ -148,69 +160,6 @@ quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
-}
-
-bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi && bi->isBound(q, v))
-  {
-    return true;
-  }
-  TypeNode tn = v.getType();
-  if (tn.isSort() && options::finiteModelFind())
-  {
-    return true;
-  }
-  else if (d_treg.getTermEnumeration()->mayComplete(tn))
-  {
-    return true;
-  }
-  return false;
-}
-
-BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    return bi->getBoundVarType(q, v);
-  }
-  return isFiniteBound(q, v) ? BOUND_FINITE : BOUND_NONE;
-}
-
-void QuantifiersEngine::getBoundVarIndices(Node q,
-                                           std::vector<unsigned>& indices) const
-{
-  Assert(indices.empty());
-  // we take the bounded variables first
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    bi->getBoundVarIndices(q, indices);
-  }
-  // then get the remaining ones
-  for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
-  {
-    if (std::find(indices.begin(), indices.end(), i) == indices.end())
-    {
-      indices.push_back(i);
-    }
-  }
-}
-
-bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
-                                         bool initial,
-                                         Node q,
-                                         Node v,
-                                         std::vector<Node>& elements) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    return bi->getBoundElements(rsi, initial, q, v, elements);
-  }
-  return false;
 }
 
 void QuantifiersEngine::presolve() {
