@@ -12,8 +12,8 @@
  ** \brief Statistic proxy objects
  **
  ** Conceptually, every statistic consists of a data object and a proxy object.
- ** The proxy object are issued by the `StatisticsRegistry` and maintained by the
- ** user. They only hold a pointer to a matching data object.
+ ** The proxy object are issued by the `StatisticsRegistry` and maintained by
+ ** the user. They only hold a pointer to a matching data object.
  ** The purpose of proxy objects is to implement methods to easily change the
  ** statistic data, but shield the regular user from the internals.
  */
@@ -86,8 +86,9 @@ class HistogramStat
   /** Add the value `val` to the histogram */
   HistogramStat& operator<<(Integral val)
   {
-    if (CVC4_USE_STATISTICS) {
-    d_data->add(val);
+    if (CVC4_USE_STATISTICS)
+    {
+      d_data->add(val);
     }
     return *this;
   }
@@ -119,9 +120,21 @@ class ReferenceStat
   /** Value stored for this statistic */
   using stat_type = StatisticReferenceValue<T>;
   /** Reset the reference to point to `t`. */
-  void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = &t; } }
+  void set(const T& t)
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      d_data->d_value = &t;
+    }
+  }
   /** Copy the current value of the referenced object. */
-  ~ReferenceStat() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
+  ~ReferenceStat()
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      d_data->commit();
+    }
+  }
 
  private:
   ReferenceStat(StatisticReferenceValue<T>* data) : d_data(data) {}
@@ -144,9 +157,21 @@ class SizeStat
   /** Value stored for this statistic */
   using stat_type = StatisticSizeValue<T>;
   /** Reset the reference to point to `t`. */
-  void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = &t; } }
+  void set(const T& t)
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      d_data->d_value = &t;
+    }
+  }
   /** Copy the current size of the referenced container. */
-  ~SizeStat() { if (CVC4_USE_STATISTICS) { d_data->commit(); } }
+  ~SizeStat()
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      d_data->commit();
+    }
+  }
 
  private:
   SizeStat(stat_type* data) : d_data(data) {}
@@ -231,19 +256,30 @@ class ValueStat
   /** Value stored for this statistic */
   using stat_type = StatisticBackedValue<T>;
   /** Set to `t` */
-  void set(const T& t) { if (CVC4_USE_STATISTICS) { d_data->d_value = t; } }
+  void set(const T& t)
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      d_data->d_value = t;
+    }
+  }
   /** Set to `t` */
   ValueStat<T>& operator=(const T& t)
   {
-    if (CVC4_USE_STATISTICS) {
-    set(t);
+    if (CVC4_USE_STATISTICS)
+    {
+      set(t);
     }
     return *this;
   }
-  T get() const {
-    if (CVC4_USE_STATISTICS) {
-    return d_data->d_value;
-    } else {
+  T get() const
+  {
+    if (CVC4_USE_STATISTICS)
+    {
+      return d_data->d_value;
+    }
+    else
+    {
       return T();
     }
   }
@@ -259,7 +295,7 @@ class ValueStat
  * post-increment, addition assignment) and some custom ones (maximum
  * assignment, minimum assignment).
  */
-class IntStats: public ValueStat<int64_t>
+class IntStats : public ValueStat<int64_t>
 {
  public:
   /** Allow access to private constructor */

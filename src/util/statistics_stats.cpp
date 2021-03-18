@@ -23,29 +23,44 @@ namespace CVC4 {
 
 AverageStat& AverageStat::operator<<(double v)
 {
-  d_data->d_sum += v;
-  d_data->d_count++;
+  if (CVC4_USE_STATISTICS)
+  {
+    d_data->d_sum += v;
+    d_data->d_count++;
+  }
   return *this;
 }
 
 IntStats& IntStats::operator=(int64_t val)
 {
-  d_data->d_value = val;
+  if (CVC4_USE_STATISTICS)
+  {
+    d_data->d_value = val;
+  }
   return *this;
 }
 IntStats& IntStats::operator++()
 {
-  d_data->d_value++;
+  if (CVC4_USE_STATISTICS)
+  {
+    d_data->d_value++;
+  }
   return *this;
 }
 IntStats& IntStats::operator++(int)
 {
-  d_data->d_value++;
+  if (CVC4_USE_STATISTICS)
+  {
+    d_data->d_value++;
+  }
   return *this;
 }
 IntStats& IntStats::operator+=(int64_t val)
 {
-  d_data->d_value += val;
+  if (CVC4_USE_STATISTICS)
+  {
+    d_data->d_value += val;
+  }
   return *this;
 }
 void IntStats::maxAssign(int64_t val)
@@ -65,32 +80,53 @@ void IntStats::minAssign(int64_t val)
 
 void TimerStat::start()
 {
-  PrettyCheckArgument(!d_data->d_running, *this, "timer already running");
-  d_data->d_start = StatisticTimerValue::clock::now();
-  d_data->d_running = true;
+  if (CVC4_USE_STATISTICS)
+  {
+    PrettyCheckArgument(!d_data->d_running, *this, "timer already running");
+    d_data->d_start = StatisticTimerValue::clock::now();
+    d_data->d_running = true;
+  }
 }
 void TimerStat::stop()
 {
-  AlwaysAssert(d_data->d_running) << "timer not running";
-  d_data->d_duration += StatisticTimerValue::clock::now() - d_data->d_start;
-  d_data->d_running = false;
+  if (CVC4_USE_STATISTICS)
+  {
+    AlwaysAssert(d_data->d_running) << "timer not running";
+    d_data->d_duration += StatisticTimerValue::clock::now() - d_data->d_start;
+    d_data->d_running = false;
+  }
 }
-bool TimerStat::running() const { return d_data->d_running; }
-
+bool TimerStat::running() const
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    return d_data->d_running;
+  }
+  else
+  {
+    return false;
+  }
+}
 
 CodeTimer::CodeTimer(TimerStat& timer, bool allow_reentrant)
     : d_timer(timer), d_reentrant(false)
 {
-  if (!allow_reentrant || !(d_reentrant = d_timer.running()))
+  if (CVC4_USE_STATISTICS)
   {
-    d_timer.start();
+    if (!allow_reentrant || !(d_reentrant = d_timer.running()))
+    {
+      d_timer.start();
+    }
   }
 }
 CodeTimer::~CodeTimer()
 {
-  if (!d_reentrant)
+  if (CVC4_USE_STATISTICS)
   {
-    d_timer.stop();
+    if (!d_reentrant)
+    {
+      d_timer.stop();
+    }
   }
 }
 

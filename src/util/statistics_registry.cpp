@@ -20,13 +20,42 @@
 
 namespace CVC4 {
 
-StatisticsRegistry::StatisticsRegistry(bool register_public) {
-  if (register_public) {
-  register_public_statistics(*this);
+StatisticsRegistry::StatisticsRegistry(bool register_public)
+{
+  if (register_public)
+  {
+    register_public_statistics(*this);
   }
 }
 
-void StatisticsRegistry::print(std::ostream& os, bool expert) const {
+AverageStat StatisticsRegistry::registerAverage(const std::string& name,
+                                                bool expert)
+{
+  return registerStat<AverageStat>(name, expert);
+}
+IntStats StatisticsRegistry::registerInt(const std::string& name, bool expert)
+{
+  return registerStat<IntStats>(name, expert);
+}
+TimerStat StatisticsRegistry::registerTimer(const std::string& name,
+                                            bool expert)
+{
+  return registerStat<TimerStat>(name, expert);
+}
+
+StatisticBaseValue* StatisticsRegistry::get(const std::string& name) const
+{
+  if (CVC4_USE_STATISTICS)
+  {
+    auto it = d_stats.find(name);
+    if (it == d_stats.end()) return nullptr;
+    return it->second.get();
+  }
+  return nullptr;
+}
+
+void StatisticsRegistry::print(std::ostream& os, bool expert) const
+{
   for (const auto& s : d_stats)
   {
     if (!expert && s.second->d_expert) continue;
@@ -35,7 +64,8 @@ void StatisticsRegistry::print(std::ostream& os, bool expert) const {
     os << std::endl;
   }
 }
-void StatisticsRegistry::print_safe(int fd, bool expert) const {
+void StatisticsRegistry::print_safe(int fd, bool expert) const
+{
   for (const auto& s : d_stats)
   {
     if (!expert && s.second->d_expert) continue;
