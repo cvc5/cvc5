@@ -117,8 +117,6 @@ class NodeManager
 
   static thread_local NodeManager* s_current;
 
-  std::unique_ptr<StatisticRegistry> d_statisticRegistry;
-
   /** The skolem manager */
   std::unique_ptr<SkolemManager> d_skManager;
   /** The bound variable manager */
@@ -390,12 +388,6 @@ class NodeManager
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
   /** Get this node manager's bound variable manager */
   BoundVarManager* getBoundVarManager() { return d_bvManager.get(); }
-
-  /** Get this node manager's statistics registry */
-  StatisticRegistry& getStatisticRegistry() const
-  {
-    return *d_statisticRegistry;
-  }
 
   /** Subscribe to NodeManager events */
   void subscribeEvents(NodeManagerListener* listener) {

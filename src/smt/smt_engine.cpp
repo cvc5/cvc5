@@ -124,11 +124,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // Set options in the environment, which makes a deep copy of optr if
   // non-null. This may throw an options exception.
   d_env->setOptions(optr);
-  // now construct the statistics registry
-  d_statisticsRegistry.reset(new StatisticRegistry());
-  // initialize the environment, which keeps a pointer to statistics registry
-  // and sets up resource manager
-  d_env->setStatisticsRegistry(d_statisticsRegistry.get());
   // set the options manager
   d_optm.reset(new smt::OptionsManager(&getOptions(), getResourceManager()));
   // listen to node manager events
@@ -358,7 +353,6 @@ SmtEngine::~SmtEngine()
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     d_pp.reset(nullptr);
-    d_statisticsRegistry.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
     // destroy the environment
@@ -420,7 +414,7 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 void SmtEngine::notifyStartParsing(const std::string& filename)
 {
   d_state->setFilename(filename);
-  d_statisticsRegistry->registerValue("driver::filename", filename);
+  d_env->getStatisticsRegistry().registerValue<std::string>("driver::filename", filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
@@ -435,10 +429,10 @@ const std::string& SmtEngine::getFilename() const
 void SmtEngine::setResultStatistic(api::Result result) {
     std::stringstream ss;
     ss << result;
-    d_statisticsRegistry->registerValue<std::string>("driver::sat/unsat", ss.str());
+    d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat", ss.str());
 }
 void SmtEngine::setTotalTimeStatistic(double seconds) {
-  d_statisticsRegistry->registerValue<double>("driver::totalTime", seconds);
+  d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime", seconds);
 }
 
 void SmtEngine::setLogicInternal()
@@ -525,16 +519,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    const StatisticRegistry& sr = getNodeManager()->getStatisticRegistry();
-    for (const auto& s: sr) {
-        std::stringstream ss;
-        s.second->print(ss);
-        vector<SExpr> v;
-        v.push_back(s.first);
-        v.push_back(ss.str());
-        stats.push_back(v);
-    }
-    for (const auto& s: *d_statisticsRegistry) {
+    for (const auto& s: d_env->getStatisticsRegistry()) {
         std::stringstream ss;
         s.second->print(ss);
         vector<SExpr> v;
@@ -1417,7 +1402,7 @@ void SmtEngine::checkProof()
 
 StatisticRegistry& SmtEngine::getStatisticsRegistry()
 {
-  return *d_statisticsRegistry;
+  return d_env->getStatisticsRegistry();
 }
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
@@ -1902,12 +1887,12 @@ NodeManager* SmtEngine::getNodeManager() const
 
 api::Statistics SmtEngine::getStatistics() const
 {
-  return api::Statistics(*d_statisticsRegistry);
+  return api::Statistics(d_env->getStatisticsRegistry());
 }
 
 SExpr SmtEngine::getStatistic(std::string name) const
 {
-  const auto* val = d_statisticsRegistry->get(name);
+  const auto* val = d_env->getStatisticsRegistry().get(name);
   std::stringstream ss;
   val->print(ss);
   return SExpr({SExpr(name), SExpr(ss.str())});
@@ -1915,14 +1900,12 @@ SExpr SmtEngine::getStatistic(std::string name) const
 
 void SmtEngine::flushStatistics(std::ostream& out) const
 {
-  getNodeManager()->getStatisticRegistry().print(out);
-  d_statisticsRegistry->print(out);
+  d_env->getStatisticsRegistry().print(out, options::allStatistics());
 }
 
 void SmtEngine::safeFlushStatistics(int fd) const
 {
-  getNodeManager()->getStatisticRegistry().print_safe(fd);
-  d_statisticsRegistry->print_safe(fd);
+  d_env->getStatisticsRegistry().print_safe(fd, options::allStatistics());
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,

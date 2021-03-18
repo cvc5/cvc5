@@ -1058,12 +1058,6 @@ class CVC4_EXPORT SmtEngine
   api::Solver* d_solver = nullptr;
 
   /**
-   * The statistics registry. Notice that this definition must be before the
-   * other members since it must be destroyed last if exceptions occur in the
-   * constructor of SmtEngine.
-   */
-  std::unique_ptr<StatisticRegistry> d_statisticsRegistry;
-  /**
    * The environment object, which contains all utilities that are globally
    * available to internal code.
    */

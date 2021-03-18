@@ -24,6 +24,7 @@
 #include "smt/smt_engine_stats.h"
 #include "theory/rewriter.h"
 #include "util/resource_manager.h"
+#include "util/statistics_reg.h"
 
 using namespace CVC4::smt;
 
@@ -37,8 +38,8 @@ Env::Env(NodeManager* nm)
       d_rewriter(new theory::Rewriter()),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
-      d_statisticsRegistry(nullptr),
-      d_resourceManager(nullptr)
+      d_statisticsRegistry(std::make_unique<StatisticRegistry>()),
+      d_resourceManager(std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options))
 {
 }
 
@@ -52,13 +53,6 @@ void Env::setOptions(Options* optr)
     // owned by this Env.
     d_options.copyValues(*optr);
   }
-}
-
-void Env::setStatisticsRegistry(StatisticRegistry* statReg)
-{
-  d_statisticsRegistry = statReg;
-  // now initialize resource manager
-  d_resourceManager.reset(new ResourceManager(*statReg, d_options));
 }
 
 void Env::setProofNodeManager(ProofNodeManager* pnm)
@@ -89,9 +83,9 @@ DumpManager* Env::getDumpManager() { return d_dumpManager.get(); }
 
 const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
-StatisticRegistry* Env::getStatisticsRegistry()
+StatisticRegistry& Env::getStatisticsRegistry()
 {
-  return d_statisticsRegistry;
+  return *d_statisticsRegistry;
 }
 
 const Options& Env::getOptions() const { return d_options; }

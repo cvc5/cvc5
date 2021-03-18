@@ -4228,9 +4228,9 @@ Solver::Solver(Options* opts)
   d_rng.reset(new Random(o[options::seed]));
 #if CVC4_STATISTICS_ON
   d_stats.reset(new APIStatistics{
-    d_nodeMgr->getStatisticRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
-    d_nodeMgr->getStatisticRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
-    d_nodeMgr->getStatisticRegistry().registerHistogram<Kind>("api::TERM"),
+    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
+    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
+    d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
   });
 #endif
 }
@@ -7051,7 +7051,7 @@ SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
  */
 Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
-Statistics Solver::getStatistics() const { return Statistics(d_nodeMgr->getStatisticRegistry()); }
+Statistics Solver::getStatistics() const { return Statistics(d_smtEngine->getStatisticsRegistry()); }
 
 }  // namespace api
 

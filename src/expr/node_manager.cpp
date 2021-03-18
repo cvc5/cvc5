@@ -18,6 +18,7 @@
 #include "expr/node_manager.h"
 
 #include <algorithm>
+#include <sstream>
 #include <stack>
 #include <utility>
 
@@ -34,8 +35,6 @@
 #include "options/options.h"
 #include "options/smt_options.h"
 #include "util/resource_manager.h"
-#include "util/statistics_stats.h"
-#include "util/statistics_reg.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -96,8 +95,7 @@ namespace attr {
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_statisticRegistry(new StatisticRegistry()),
-      d_skManager(new SkolemManager),
+    : d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
