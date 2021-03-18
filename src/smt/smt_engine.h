@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
 #include "context/cdhashmap_forward.h"
 #include "cvc4_export.h"
 #include "options/options.h"
