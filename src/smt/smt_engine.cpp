@@ -513,15 +513,6 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    StatisticsRegistry* sr = getNodeManager()->getStatisticsRegistry();
-    for (StatisticsRegistry::const_iterator i = sr->begin(); i != sr->end();
-         ++i)
-    {
-      vector<SExpr> v;
-      v.push_back((*i).first);
-      v.push_back((*i).second);
-      stats.push_back(v);
-    }
     for (StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
          i != d_statisticsRegistry->end();
          ++i)
@@ -1901,13 +1892,11 @@ SExpr SmtEngine::getStatistic(std::string name) const
 
 void SmtEngine::flushStatistics(std::ostream& out) const
 {
-  getNodeManager()->getStatisticsRegistry()->flushInformation(out);
   d_statisticsRegistry->flushInformation(out);
 }
 
 void SmtEngine::safeFlushStatistics(int fd) const
 {
-  getNodeManager()->getStatisticsRegistry()->safeFlushInformation(fd);
   d_statisticsRegistry->safeFlushInformation(fd);
 }
 
