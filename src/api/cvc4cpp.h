@@ -2399,13 +2399,13 @@ class Statistics
   /** Retrieve the statistic with the given name. */
   const Stat& get(const std::string& name);
   /** begin iteration */
-  auto begin() const { return iterator(d_stats.begin(), d_stats, false); }
+  iterator begin() const { return iterator(d_stats.begin(), d_stats, false); }
   /** end iteration */
-  auto end() const { return iterator(d_stats.end(), d_stats, false); }
+  iterator end() const { return iterator(d_stats.end(), d_stats, false); }
   /** begin iteration */
-  auto begin_all() const { return iterator(d_stats.begin(), d_stats, true); }
+  iterator begin_all() const { return iterator(d_stats.begin(), d_stats, true); }
   /** end iteration */
-  auto end_all() const { return iterator(d_stats.end(), d_stats, true); }
+  iterator end_all() const { return iterator(d_stats.end(), d_stats, true); }
 
   // TODO: make this private
   Statistics() = default;
