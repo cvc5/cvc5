@@ -62,36 +62,25 @@ QuantifiersEngine::QuantifiersEngine(
       d_treg(tr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(qm),
-      d_builder(nullptr),
-      d_eq_query(nullptr),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, qm)),
       d_instantiate(
           new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
       d_skolemize(new quantifiers::Skolemize(d_qstate, d_pnm)),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
 {
-  //---- utilities
-  // quantifiers registry must come before the other utilities
+  // initialize the utilities
+  d_util.push_back(d_eq_query.get());
+  // quantifiers registry must come before the remaining utilities
   d_util.push_back(&d_qreg);
   d_util.push_back(tr.getTermDatabase());
   d_util.push_back(d_instantiate.get());
-  //---- end utilities
-
-  d_eq_query.reset(
-      new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));
-  d_util.insert(d_util.begin(), d_eq_query.get());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
 
 void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
 {
-  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
-  if (d_builder!=nullptr)
-  {
-    d_builder->finishInit(this);
-  }
-  d_model->finishInit(this);
   d_te = te;
   d_decManager = dm;
   // Initialize the modules and the utilities here.
@@ -131,7 +120,7 @@ quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
-  return d_builder.get();
+  return d_qmodules->d_builder.get();
 }
 quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 {

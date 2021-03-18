@@ -249,8 +249,6 @@ public:
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
-  /** model builder */
-  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** instantiate utility */
