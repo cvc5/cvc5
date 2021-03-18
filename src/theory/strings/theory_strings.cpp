@@ -179,11 +179,6 @@ TrustNode TheoryStrings::explain(TNode literal)
 
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
-    if (Trace.isOn("strings-presolve"))
-    {
-      Trace("strings-presolve") << "Presolve eqc:" << std::endl;
-      Trace("strings-presolve") << debugPrintStringsEqc() << std::endl;
-    }
   d_strat.initializeStrategy();
 
   // if strings fmf is enabled, register the strategy

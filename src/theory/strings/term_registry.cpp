@@ -268,7 +268,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   }
   if (!do_register)
   {
-  Trace("strings-register") << "...do not register" << std::endl;
+    Trace("strings-register") << "...do not register" << std::endl;
     return;
   }
   Trace("strings-register") << "...register" << std::endl;
