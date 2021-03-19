@@ -213,7 +213,7 @@ private:
   }
 
   inline bool isIntegerInput(ArithVar x) const {
-    return d_partialModel.isIntegerInput(x);
+    return d_partialModel.isIntegerInput(x) && d_preregisteredNodes.contains(d_partialModel.asNode(x));
   }
 
   /**
@@ -266,6 +266,11 @@ private:
   std::deque<ConstraintP> d_currentPropagationList;
 
   context::CDQueue<ConstraintP> d_learnedBounds;
+
+  /**
+   * Contains all nodes that have been preregistered
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_preregisteredNodes;
 
 
   /**
