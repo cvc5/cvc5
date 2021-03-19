@@ -113,6 +113,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_diseqQueue(c, false),
       d_currentPropagationList(),
       d_learnedBounds(c),
+      d_preregisteredNodes(u),
       d_partialModel(c, DeltaComputeCallback(*this)),
       d_errorSet(
           d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
@@ -1438,6 +1439,8 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
+
+  d_preregisteredNodes.insert(n);
 
   try {
     if(isRelationOperator(n.getKind())){
