@@ -254,7 +254,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 
       if (mid <= rabs)
       {
-        sig = sig | one;
+        sig = sig.setBit(0, true);
         workingSig = mid;
       }
 
@@ -268,7 +268,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 
     if (!remainder.isZero())
     {
-      sig = sig | one;
+      sig = sig.setBit(0, true);
     }
 
     // Build an exact float
