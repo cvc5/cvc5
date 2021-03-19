@@ -212,8 +212,10 @@ private:
     return d_partialModel.isAuxiliary(x);
   }
 
-  inline bool isIntegerInput(ArithVar x) const {
-    return d_partialModel.isIntegerInput(x) && d_preregisteredNodes.contains(d_partialModel.asNode(x));
+  inline bool isIntegerInput(ArithVar x) const
+  {
+    return d_partialModel.isIntegerInput(x)
+           && d_preregisteredNodes.contains(d_partialModel.asNode(x));
   }
 
   /**
