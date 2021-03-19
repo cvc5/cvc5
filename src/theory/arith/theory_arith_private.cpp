@@ -1855,7 +1855,7 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
  *
  * If there is no such variable, returns ARITHVAR_SENTINEL;
  */
-ArithVar TheoryArithPrivate::nextIntegerViolatation(bool assumeBounds) const {
+ArithVar TheoryArithPrivate::nextIntegerViolation(bool assumeBounds) const {
   ArithVar numVars = d_partialModel.getNumberOfVariables();
   ArithVar v = d_nextIntegerCheckVar;
   if(numVars > 0){
@@ -1879,7 +1879,7 @@ ArithVar TheoryArithPrivate::nextIntegerViolatation(bool assumeBounds) const {
  * in I has an integer assignment.
  */
 bool TheoryArithPrivate::hasIntegerModel(){
-  ArithVar next = nextIntegerViolatation(true);
+  ArithVar next = nextIntegerViolation(true);
   if(next != ARITHVAR_SENTINEL){
     d_nextIntegerCheckVar = next;
     if(Debug.isOn("arith::hasIntegerModel")){
@@ -2958,7 +2958,7 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
 
           if(d_qflraStatus == Result::SAT){
             if(!anyConflict()){
-              if(ARITHVAR_SENTINEL == nextIntegerViolatation(false)){
+              if(ARITHVAR_SENTINEL == nextIntegerViolation(false)){
                 ++(d_statistics.d_solveIntModelsSuccessful);
               }
             }
@@ -3089,7 +3089,7 @@ bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
   }
 
   if(Theory::fullEffort(effortLevel)  && d_qflraStatus == Result::SAT_UNKNOWN){
-    ArithVar canBranch = nextIntegerViolatation(false);
+    ArithVar canBranch = nextIntegerViolation(false);
     if(canBranch != ARITHVAR_SENTINEL){
       ++d_statistics.d_panicBranches;
       TrustNode branch = branchIntegerVariable(canBranch);
