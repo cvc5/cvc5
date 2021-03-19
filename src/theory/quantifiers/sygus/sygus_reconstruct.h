@@ -64,7 +64,9 @@ using TypeObligationSetMap =
  *     Obs' = {} // map from T to sets of triples pending addition to Obs
  *     // enumeration phase
  *     for each subfield type T of T_0
- *       s[z] = nextEnum(T) // enumerated terms may contain variables z
+ *       // enumerated terms may contain variables z ranging over all terms of
+ *       // their type (subfield types of T_0)
+ *       s[z] = nextEnum(T)
  *       builtin = rewrite(toBuiltIn(s[z]))
  *       if (s[z] is ground)
  *         // let X be the theory the solver is invoked with
