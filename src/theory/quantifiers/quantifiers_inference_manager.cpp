@@ -29,6 +29,16 @@ QuantifiersInferenceManager::QuantifiersInferenceManager(
 
 QuantifiersInferenceManager::~QuantifiersInferenceManager() {}
 
+Instantiate* QuantifiersInferenceManager::getInstantiate()
+{
+  return d_instantiate.get();
+}
+
+Skolemize* QuantifiersInferenceManager::getSkolemize()
+{
+  return d_skolemize.get();
+}
+
 void QuantifiersInferenceManager::doPending()
 {
   doPendingLemmas();

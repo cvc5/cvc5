@@ -37,7 +37,7 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
-class TermDb;
+class TermRegistry;
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;

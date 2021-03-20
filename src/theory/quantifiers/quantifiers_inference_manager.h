@@ -36,6 +36,10 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
                               QuantifiersState& state,
                               ProofNodeManager* pnm);
   ~QuantifiersInferenceManager();
+  /** get instantiate utility */
+  Instantiate* getInstantiate();
+  /** get skolemize utility */
+  Skolemize* getSkolemize();
   /**
    * Do all pending lemmas, then do all pending phase requirements.
    */

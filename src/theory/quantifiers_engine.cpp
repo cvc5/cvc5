@@ -126,6 +126,9 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 {
   return d_model;
 }
+
+/// !!!!!!!!!!!!!! temporary (project #15)
+
 quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 {
   return d_treg.getTermDatabase();
@@ -140,16 +143,17 @@ quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
 }
 quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
 {
-  return d_instantiate.get();
+  return d_qim.getInstantiate();
 }
 quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
 {
-  return d_skolemize.get();
+  return d_qim.getSkolemize();
 }
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
 }
+/// !!!!!!!!!!!!!!
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
