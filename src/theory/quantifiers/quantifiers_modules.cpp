@@ -27,6 +27,7 @@ QuantifiersModules::QuantifiersModules()
       d_alpha_equiv(nullptr),
       d_inst_engine(nullptr),
       d_model_engine(nullptr),
+      d_builder(nullptr),
       d_bint(nullptr),
       d_qcf(nullptr),
       d_sg_gen(nullptr),
@@ -82,6 +83,22 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   {
     d_model_engine.reset(new ModelEngine(qe, qs, qim, qr));
     modules.push_back(d_model_engine.get());
+    Trace("quant-init-debug")
+        << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
+        << options::fmfBound() << std::endl;
+    if (useFmcModel())
+    {
+      Trace("quant-init-debug") << "...make fmc builder." << std::endl;
+      d_builder.reset(new fmcheck::FullModelChecker(qs, qr));
+    }
+    else
+    {
+      Trace("quant-init-debug")
+          << "...make default model builder." << std::endl;
+      d_builder.reset(new QModelBuilder(qs, qr));
+    }
+    // !!!!!!!!!!!!! temporary (project #15)
+    d_builder->finishInit(qe);
   }
   if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
   {
@@ -104,6 +121,13 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     d_sygus_inst.reset(new SygusInst(qe, qs, qim, qr));
     modules.push_back(d_sygus_inst.get());
   }
+}
+
+bool QuantifiersModules::useFmcModel()
+{
+  return options::mbqiMode() == options::MbqiMode::FMC
+         || options::mbqiMode() == options::MbqiMode::TRUST
+         || options::fmfBound();
 }
 
 }  // namespace quantifiers
