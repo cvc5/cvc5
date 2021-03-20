@@ -444,7 +444,7 @@ bool VeritProofPostprocessCallback::update(
       }
       return addVeritStep(res,
                           vrule,
-                          d_nm->mkNode(kind::SEXPR, d_cl, res),
+                          d_nm->mkNode(kind::SEXPR, d_cl, d_nm->mkNode(kind::EQUAL,res[1],res[0])), //TODO: delete
                           children,
                           {},
                           *cdp);
@@ -785,7 +785,8 @@ bool VeritProofPostprocessCallback::update(
     //  in C2 is smaller than that of C1
     //
     //
-    // If C2 = (or F1 ... Fn) then VC2 = (cl F1 ... Fn) otherwise VC2 = (cl C2)
+    // If C2 = (or F1 ... Fn) but not C1 = (or C2 ... C2) then VC2 = (cl F1 ... Fn)
+    // Otherwise VC2 = (cl C2)
     //
     // proof rule: duplicated_literals
     // proof node: C2
@@ -794,10 +795,17 @@ bool VeritProofPostprocessCallback::update(
     // args: ()
     case PfRule::FACTORING:
     {
+
       if (res.getKind() == kind::OR)
       {
-        return addVeritStepFromOr(
-            res, VeritRule::DUPLICATED_LITERALS, children, {}, *cdp);
+	bool singleton = true;
+        for(auto child : children[0]){
+          if(child != res){singleton=false; break;}
+        }
+	if(!singleton){
+          return addVeritStepFromOr(
+              res, VeritRule::DUPLICATED_LITERALS, children, {}, *cdp);
+	}
       }
       return addVeritStep(res,
                           VeritRule::DUPLICATED_LITERALS,
@@ -906,9 +914,21 @@ bool VeritProofPostprocessCallback::update(
       bool success = true;
       Node vp1 = d_nm->mkNode(kind::SEXPR, d_cl, children[1].notNode(), children[0].notNode(), res);
       Node child1 = children[0];
-
+      Node child2 = children[1];
       //VeritRule child1_rule =
        // static_cast<VeritRule>(std::stoul(cdp->getProofFor(child1)->getArguments()[0].toString()));
+
+
+      /*std::shared_ptr<ProofNode> child2_pfn = cdp->getProofFor(children[1]);
+         Trace("verit-proof") << "... eq_solve sym  " << child2 << " / " << child2_pfn->getResult() << std::endl;
+      if(child2_pfn->getRule() == PfRule::SYMM || child2_pfn->getRule() == PfRule::THEORY_REWRITE){ //TODO: Delete, temp fix
+          child2 = d_nm->mkNode(kind::EQUAL,res,children[0]);
+         Trace("verit-proof") << "... eq_solve sym  " << child2 << " / " << child2_pfn->getResult()<<std::endl;
+	  bool temp = true;
+	  update(child2,PfRule::THEORY_REWRITE,{},child2_pfn->getChildren()[0]->getArguments(),cdp,temp);
+	  //cdp->addStep(child2,PfRule::THEORY_REWRITE,{},child2_pfn->getChildren()[0]->getArguments(),true,CDPOverwrite::ALWAYS);
+         Trace("verit-proof") << "... eq_solve sym  " << child2 << " / " <<std::endl;
+      }*/
 
       //if (child1_rule != VeritRule::ASSUME
       if (cdp->getProofFor(child1)->getRule()
@@ -958,12 +978,12 @@ bool VeritProofPostprocessCallback::update(
       }*/
       success &= addVeritStep(vp1, VeritRule::EQUIV_POS2, {}, {}, *cdp);
 
-      if (res == d_nm->mkConst(false))
+      if (res.toString() == "false")
       {
         return success &= addVeritStep(res,
                                        VeritRule::RESOLUTION,
                                        d_nm->mkNode(kind::SEXPR, d_cl),
-                                       {vp1, children[1], child1},
+                                       {vp1, child2, child1},
                                        {},
                                        *cdp);
       }
@@ -971,7 +991,7 @@ bool VeritProofPostprocessCallback::update(
       return success &= addVeritStep(res,
                                      VeritRule::RESOLUTION,
                                      d_nm->mkNode(kind::SEXPR, d_cl, res),
-                                     {vp1, children[1], child1},
+                                     {vp1, child2, child1},
                                      {},
                                      *cdp);
     }
@@ -2436,8 +2456,12 @@ VeritProofPostprocessFinalCallback::VeritProofPostprocessFinalCallback(
 bool VeritProofPostprocessFinalCallback::shouldUpdate(
     std::shared_ptr<ProofNode> pn, bool& continueUpdate)
 {
+
   // The proof node should not be traversed further
   continueUpdate = false;
+  if(pn->getArguments()[2].toString() == "(cl)"){
+    return false;
+  }
   // This case can only occur if the last step is an assumption
   if ((pn->getArguments()[2].end() - pn->getArguments()[2].begin()) <= 1)
   {

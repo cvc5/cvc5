@@ -57,6 +57,8 @@ class VeritProofPrinter
   // Note: This could easily be replaced by a map, e.g. to deal with named
   // assumptions
   std::vector<std::vector<Node>> assumptions;
+  //TODO: Temp solution
+  bool isSameModEqual(Node vp1, Node vp2);
 };
 
 /**
@@ -68,7 +70,7 @@ class VeritProofPrinter
  */
 static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
 {
-  VeritProofPrinter vpp(true);
+  VeritProofPrinter vpp(false);//TODO extended
   vpp.veritPrinter(out, pfn);
 
   /*out << "\n";

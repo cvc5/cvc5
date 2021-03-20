@@ -115,11 +115,26 @@ std::string VeritProofPrinter::veritPrinterInternal(
     Trace("verit-printer") << "... search assumption in list "
                            << pfn->getArguments()[2] << "/"
                            << assumptions[assumption_level] << std::endl;
-    return prefix + "a"
+    if(d_extended){
+	    return prefix + "a"
            + std::to_string(std::find(assumptions[assumption_level].begin(),
                                       assumptions[assumption_level].end(),
                                       pfn->getArguments()[2])
                             - assumptions[assumption_level].begin());
+    }
+    else{
+       for(unsigned long int i=0; i < assumptions[assumption_level].size(); i++){
+	  if(assumptions[assumption_level][i] == pfn->getArguments()[2]){
+             return prefix + "a" + std::to_string(i);
+	  }
+	  else if(pfn->getResult().getKind() == kind::EQUAL){
+	    if(assumptions[assumption_level][i][1] == pfn->getArguments()[2][0] && assumptions[assumption_level][i][0] == pfn->getArguments()[2][1]) {
+               return prefix + "a" + std::to_string(i);
+	    }
+	  }
+       }
+       return "";
+    }
   }
 
   std::vector<std::string> child_prefixes;
@@ -168,6 +183,9 @@ std::string VeritProofPrinter::veritPrinterInternal(
   }
 
   // Print current step
+  Trace("verit-printer") << "... print node " << pfn->getResult() << " "
+                           << veritRuletoString(vrule) << " / "
+                           << pfn->getArguments() << std::endl;
   std::string current_t;
   current_t = "t" + std::to_string(step_id);
   out << "(step " << prefix << current_t + " ";
@@ -175,15 +193,21 @@ std::string VeritProofPrinter::veritPrinterInternal(
              + veritRuletoString(vrule);
   if (pfn->getArguments().size() > 3)
   {
-    out << " :args ";
+    out << " :args (";
     for (unsigned long int i = 3; i < pfn->getArguments().size(); i++)
     {
-      out << " " << pfn->getArguments()[i].toString();
+      if(vrule == VeritRule::FORALL_INST){
+        out << "(:= " << pfn->getArguments()[i][1].toString() << " " << pfn->getArguments()[i][0].toString() << ")";
+      }
+      else{
+        out << pfn->getArguments()[i].toString();
+      }
       if (i != pfn->getArguments().size() - 1)
       {
-        out << " ";
+          out << " ";
       }
     }
+    out << ")";
   }
   if (pfn->getChildren().size() >= 1)
   {
@@ -205,6 +229,8 @@ std::string VeritProofPrinter::veritPrinterInternal(
   ++step_id;
   return prefix + current_t;
 }
+
+
 
 }  // namespace proof
 
