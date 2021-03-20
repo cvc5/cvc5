@@ -21,13 +21,13 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 class FirstOrderModel;
+class QuantifiersState;
 
 /** EqualityQueryQuantifiersEngine class
  *
@@ -42,9 +42,9 @@ class FirstOrderModel;
 class EqualityQueryQuantifiersEngine : public QuantifiersUtil
 {
  public:
-  EqualityQueryQuantifiersEngine(QuantifiersState& qs,
-                                 FirstOrderModel* m);
+  EqualityQueryQuantifiersEngine(QuantifiersState& qs, FirstOrderModel * m);
   virtual ~EqualityQueryQuantifiersEngine();
+  
   /** reset */
   bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
@@ -65,7 +65,7 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
    * Node::null() if all terms in the equivalence class of a
    * are ineligible.
    */
-  Node getInternalRepresentative(Node a, Node q, int index);
+  Node getInternalRepresentative(Node a, Node q, size_t index);
 
  private:
   /** the quantifiers state */
@@ -77,15 +77,15 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
   /** internal representatives */
   std::map< TypeNode, std::map< Node, Node > > d_int_rep;
   /** rep score */
-  std::map< Node, int > d_rep_score;
+  std::map< Node, int32_t > d_rep_score;
   /** the number of times reset( e ) has been called */
-  int d_reset_count;
+  size_t d_reset_count;
   /** processInferences : will merge equivalence classes in master equality engine, if possible */
   bool processInferences( Theory::Effort e );
   /** node contains */
   Node getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
-  int getRepScore( Node n, Node f, int index, TypeNode v_tn );
+  int32_t getRepScore( Node n, Node f, size_t index, TypeNode v_tn );
 }; /* EqualityQueryQuantifiersEngine */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -148,17 +148,6 @@ public:
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** get internal representative
-  *
-  * Choose a term that is equivalent to a in the current context that is the
-  * best term for instantiating the index^th variable of quantified formula q.
-  * If no legal term can be found, we return null. This can occur if:
-  * - a's type is not a subtype of the type of the index^th variable of q,
-  * - a is in an equivalent class with all terms that are restricted not to
-  * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
-  * guided instantiation.
-  */
- Node getInternalRepresentative(Node a, Node q, int index);
  /**
   * Get quantifiers name, which returns a variable corresponding to the name of
   * quantified formula q if q has a name, or otherwise returns q itself.
@@ -249,8 +238,6 @@ public:
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** instantiate utility */
   std::unique_ptr<quantifiers::Instantiate> d_instantiate;
   /** skolemize utility */
