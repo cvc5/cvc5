@@ -29,76 +29,91 @@ namespace CVC4 {
 DecisionEngine::DecisionEngine(context::Context* sc,
                                context::UserContext* uc,
                                ResourceManager* rm)
-    : d_cnfStream(nullptr),
+    : d_usingOld(true),
+      d_decEngineOld(new DecisionEngineOld(sc, uc, rm)),
+      d_cnfStream(nullptr),
       d_satSolver(nullptr),
       d_satContext(sc),
       d_userContext(uc),
-      d_result(sc, SAT_VALUE_UNKNOWN),
-      d_engineState(0),
-      d_resourceManager(rm),
-      d_enabledITEStrategy(nullptr)
+      d_resourceManager(rm)
 {
-  Trace("decision") << "Creating decision engine" << std::endl;
 }
 
-void DecisionEngine::init()
+void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
 {
-  Assert(d_engineState == 0);
-  d_engineState = 1;
-
-  Trace("decision-init") << "DecisionEngine::init()" << std::endl;
-  Trace("decision-init") << " * options->decisionMode: "
-                         << options::decisionMode() << std:: endl;
-  Trace("decision-init") << " * options->decisionStopOnly: "
-                         << options::decisionStopOnly() << std::endl;
-
-  if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
+  d_satSolver = ss;
+  d_cnfStream = cs;
+  if (d_usingOld)
   {
-    d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
-        this, d_userContext, d_satContext));
+    d_decEngineOld->setSatSolver(ss);
+    d_decEngineOld->setCnfStream(cs);
   }
 }
 
 void DecisionEngine::shutdown()
 {
-  Trace("decision") << "Shutting down decision engine" << std::endl;
-
-  Assert(d_engineState == 1);
-  d_engineState = 2;
-  d_enabledITEStrategy.reset(nullptr);
+  if (d_usingOld)
+  {
+    d_decEngineOld->shutdown();
+  }
 }
 
 SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
-  Assert(d_cnfStream != nullptr)
-      << "Forgot to set cnfStream for decision engine?";
-  Assert(d_satSolver != nullptr)
-      << "Forgot to set satSolver for decision engine?";
-
-  return d_enabledITEStrategy == nullptr
-             ? undefSatLiteral
-             : d_enabledITEStrategy->getNext(stopSearch);
+  if (d_usingOld)
+  {
+    return d_decEngineOld->getNext(stopSearch);
+  }
+  // FIXME
+  return d_decEngineOld->getNext(stopSearch);
 }
+
+bool DecisionEngine::isDone() {
+  if (d_usingOld)
+  {
+    return d_decEngineOld->isDone();
+  }
+  // FIXME
+  return false;
+}
+
+/*
+void DecisionEngine::setResult(SatValue val) {
+  d_result = val;
+}
+*/
 
 void DecisionEngine::addAssertion(TNode assertion)
 {
-  // new assertions, reset whatever result we knew
-  d_result = SAT_VALUE_UNKNOWN;
-  if (d_enabledITEStrategy != nullptr)
+  if (d_usingOld)
   {
-    d_enabledITEStrategy->addAssertion(assertion);
+    d_decEngineOld->addAssertion(assertion);
   }
 }
 
 void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
 {
-  // new assertions, reset whatever result we knew
-  d_result = SAT_VALUE_UNKNOWN;
-  if (d_enabledITEStrategy != nullptr)
+  if (d_usingOld)
   {
-    d_enabledITEStrategy->addSkolemDefinition(lem, skolem);
+    d_decEngineOld->addSkolemDefinition(lem, skolem);
   }
+}
+
+bool DecisionEngine::hasSatLiteral(TNode n) {
+  return d_cnfStream->hasLiteral(n);
+}
+SatLiteral DecisionEngine::getSatLiteral(TNode n) {
+  return d_cnfStream->getLiteral(n);
+}
+SatValue DecisionEngine::getSatValue(SatLiteral l) {
+  return d_satSolver->value(l);
+}
+SatValue DecisionEngine::getSatValue(TNode n) {
+  return getSatValue(getSatLiteral(n));
+}
+Node DecisionEngine::getNode(SatLiteral l) {
+  return d_cnfStream->getNode(l);
 }
 
 }/* CVC4 namespace */

@@ -14,7 +14,6 @@
 
 #include "prop/skolem_def_manager.h"
 
-#include "prop/sat_relevancy.h"
 #include "smt/term_formula_removal.h"
 
 namespace CVC4 {
