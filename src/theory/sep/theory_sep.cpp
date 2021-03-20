@@ -656,25 +656,7 @@ void TheorySep::postCheck(Effort level)
   }
   if (Trace.isOn("sep-eqc"))
   {
-    eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
-    Trace("sep-eqc") << "EQC:" << std::endl;
-    while (!eqcs2_i.isFinished())
-    {
-      Node eqc = (*eqcs2_i);
-      eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, d_equalityEngine);
-      Trace("sep-eqc") << "Eqc( " << eqc << " ) : { ";
-      while (!eqc2_i.isFinished())
-      {
-        if ((*eqc2_i) != eqc)
-        {
-          Trace("sep-eqc") << (*eqc2_i) << " ";
-        }
-        ++eqc2_i;
-      }
-      Trace("sep-eqc") << " } " << std::endl;
-      ++eqcs2_i;
-    }
-    Trace("sep-eqc") << std::endl;
+    Trace("sep-eqc") << d_equalityEngine->debugPrintEqc();
   }
 
   bool addedLemma = false;

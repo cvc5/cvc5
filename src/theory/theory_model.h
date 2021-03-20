@@ -347,6 +347,11 @@ public:
   //---------------------------- end function values
   /** Get the name of this model */
   const std::string& getName() const;
+  /**
+   * For debugging, print the equivalence classes of the underlying equality
+   * engine.
+   */
+  std::string debugPrintModelEqc() const;
 
  protected:
   /** Unique name of this model */
@@ -405,7 +410,6 @@ public:
    * a model builder constructs this model.
    */
   virtual void addTermInternal(TNode n);
-
  private:
   /** cache for getModelValue */
   mutable std::unordered_map<Node, Node, NodeHashFunction> d_modelCache;
