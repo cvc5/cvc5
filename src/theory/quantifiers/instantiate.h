@@ -95,8 +95,7 @@ class Instantiate : public QuantifiersUtil
   typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
 
  public:
-  Instantiate(QuantifiersEngine* qe,
-              QuantifiersState& qs,
+  Instantiate(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               ProofNodeManager* pnm = nullptr);

@@ -613,9 +613,9 @@ Node Instantiate::getTermForType(TypeNode tn)
 {
   if (tn.isClosedEnumerable())
   {
-    return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
+    return d_treg.getTermEnumeration()->getEnumerateTerm(tn, 0);
   }
-  return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
+  return d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
@@ -702,7 +702,7 @@ void Instantiate::debugPrint(std::ostream& out)
     for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
       Node name;
-      if (!d_qe->getNameForQuant(i.first, name, req))
+      if (!d_qreg.getNameForQuant(i.first, name, req))
       {
         continue;
       }
