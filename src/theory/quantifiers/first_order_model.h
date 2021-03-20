@@ -131,7 +131,8 @@ class FirstOrderModel : public TheoryModel
    * Has the term been marked as a model basis term?
    */
   static bool isModelBasis(TNode n);
-
+  /** Get the equality query */
+  EqualityQuery* getEqualityQuery();
  protected:
   //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
   QuantifiersEngine* d_qe;
@@ -140,7 +141,7 @@ class FirstOrderModel : public TheoryModel
   /** Reference to the term registry */
   TermRegistry& d_treg;
   /** equality query class */
-  EqualityQueryQuantifiersEngine d_eq_query;
+  EqualityQuery d_eq_query;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 

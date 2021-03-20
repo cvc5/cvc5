@@ -40,7 +40,6 @@ namespace inst {
 class TriggerTrie;
 }
 namespace quantifiers {
-class EqualityQueryQuantifiersEngine;
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;

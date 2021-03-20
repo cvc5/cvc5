@@ -23,10 +23,8 @@
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 
-using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory::quantifiers::fmcheck;
 
 namespace CVC4 {
 namespace theory {
@@ -51,7 +49,7 @@ FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
       d_qe(nullptr),
       d_qreg(qr),
       d_treg(tr),
-      d_eq_query(qs, *this),
+      d_eq_query(qs, this),
       d_forall_asserts(qs.getSatContext()),
       d_forallRlvComputed(false)
 {
@@ -63,7 +61,7 @@ void FirstOrderModel::finishInit(QuantifiersEngine* qe) { d_qe = qe; }
 
 Node FirstOrderModel::getInternalRepresentative(Node a, Node q, size_t index)
 {
-  return d_eq_query->getInternalRepresentative(a,q,index);
+  return d_eq_query.getInternalRepresentative(a,q,index);
 }
 
 void FirstOrderModel::assertQuantifier( Node n ){
@@ -168,6 +166,11 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
 bool FirstOrderModel::isModelBasis(TNode n)
 {
   return n.getAttribute(ModelBasisAttribute());
+}
+
+EqualityQuery* FirstOrderModel::getEqualityQuery()
+{
+  return &d_eq_query;
 }
 
 /** needs check */

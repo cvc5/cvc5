@@ -18,6 +18,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -27,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
+EqualityQuery::EqualityQuery(
     QuantifiersState& qs, FirstOrderModel* m)
     : d_qstate(qs),
       d_model(m),
@@ -36,16 +37,16 @@ EqualityQueryQuantifiersEngine::EqualityQueryQuantifiersEngine(
 {
 }
 
-EqualityQueryQuantifiersEngine::~EqualityQueryQuantifiersEngine(){
+EqualityQuery::~EqualityQuery(){
 }
 
-bool EqualityQueryQuantifiersEngine::reset( Theory::Effort e ){
+bool EqualityQuery::reset( Theory::Effort e ){
   d_int_rep.clear();
   d_reset_count++;
   return true;
 }
 
-Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
+Node EqualityQuery::getInternalRepresentative(Node a,
                                                                Node q,
                                                                size_t index)
 {
@@ -143,7 +144,7 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
 
 //helper functions
 
-Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache ){
+Node EqualityQuery::getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache ){
   if(cache.find(n) != cache.end()) {
     return cache[n];
   }
@@ -161,7 +162,7 @@ Node EqualityQueryQuantifiersEngine::getInstance( Node n, const std::vector< Nod
 }
 
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
-int32_t EqualityQueryQuantifiersEngine::getRepScore(Node n,
+int32_t EqualityQuery::getRepScore(Node n,
                                                 Node q,
                                                 size_t index,
                                                 TypeNode v_tn)

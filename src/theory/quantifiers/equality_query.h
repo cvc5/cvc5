@@ -29,7 +29,7 @@ namespace quantifiers {
 class FirstOrderModel;
 class QuantifiersState;
 
-/** EqualityQueryQuantifiersEngine class
+/** EqualityQuery class
  *
  * The main method of this class is the function
  * getInternalRepresentative, which is used by instantiation-based methods
@@ -39,18 +39,18 @@ class QuantifiersState;
  * representative based on the internal heuristic, which is currently based on
  * choosing the term that was previously chosen as a representative earliest.
  */
-class EqualityQueryQuantifiersEngine : public QuantifiersUtil
+class EqualityQuery : public QuantifiersUtil
 {
  public:
-  EqualityQueryQuantifiersEngine(QuantifiersState& qs, FirstOrderModel * m);
-  virtual ~EqualityQueryQuantifiersEngine();
+  EqualityQuery(QuantifiersState& qs, FirstOrderModel * m);
+  virtual ~EqualityQuery();
   
   /** reset */
   bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override {}
   /** identify */
-  std::string identify() const override { return "EqualityQueryQE"; }
+  std::string identify() const override { return "EqualityQuery"; }
   /** gets the current best representative in the equivalence
    * class of a, based on some heuristic. Currently, the default heuristic
    * chooses terms that were previously chosen as representatives
@@ -86,7 +86,7 @@ class EqualityQueryQuantifiersEngine : public QuantifiersUtil
   Node getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache );
   /** get score */
   int32_t getRepScore( Node n, Node f, size_t index, TypeNode v_tn );
-}; /* EqualityQueryQuantifiersEngine */
+}; /* EqualityQuery */
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
