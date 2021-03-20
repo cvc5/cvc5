@@ -44,7 +44,8 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
    * Do all pending lemmas, then do all pending phase requirements.
    */
   void doPending();
-private:
+
+ private:
   /** instantiate utility */
   std::unique_ptr<Instantiate> d_instantiate;
   /** skolemize utility */

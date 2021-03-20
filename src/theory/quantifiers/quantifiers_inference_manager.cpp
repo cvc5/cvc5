@@ -21,8 +21,7 @@ namespace quantifiers {
 QuantifiersInferenceManager::QuantifiersInferenceManager(
     Theory& t, QuantifiersState& state, ProofNodeManager* pnm)
     : InferenceManagerBuffered(t, state, pnm, "theory::quantifiers"),
-      d_instantiate(
-          new Instantiate(this, state, qim, qreg, pnm)),
+      d_instantiate(new Instantiate(this, state, qim, qreg, pnm)),
       d_skolemize(new Skolemize(state, pnm)),
 {
 }
