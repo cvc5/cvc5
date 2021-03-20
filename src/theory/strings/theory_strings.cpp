@@ -572,6 +572,24 @@ TrustNode TheoryStrings::expandDefinition(Node node)
   return TrustNode::null();
 }
 
+bool TheoryStrings::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  // this is only required for internal facts, others are already registered
+  if (isInternal && atom.getKind() == EQUAL)
+  {
+    // we must ensure these terms are registered
+    for (const Node& t : atom)
+    {
+      // terms in the equality engine are already registered, hence skip
+      // currently done for only string-like terms, but this could potentially
+      // be avoided.
+      d_termReg.registerTerm(t, 0);
+    }
+  }
+  return false;
+}
+
 void TheoryStrings::notifyFact(TNode atom,
                                bool polarity,
                                TNode fact,

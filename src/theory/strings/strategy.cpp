@@ -112,10 +112,10 @@ void Strategy::initializeStrategy()
       // do only the above inferences at standard effort, if applicable
       step_end[Theory::EFFORT_STANDARD] = d_infer_steps.size() - 1;
     }
-    // we always register terms here, since some terms may appear that do not
-    // come from assertions, for example, from eager context-dependent
-    // simplification
-    addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
+    if (!options::stringEagerLen())
+    {
+      addStrategyStep(CHECK_REGISTER_TERMS_PRE_NF);
+    }
     addStrategyStep(CHECK_NORMAL_FORMS_EQ);
     addStrategyStep(CHECK_EXTF_EVAL, 1);
     if (!options::stringEagerLen() && options::stringLenNorm())
