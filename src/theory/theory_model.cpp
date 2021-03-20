@@ -457,7 +457,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
           && !n.isConst())
       {
         Trace("model-builder-debug")
-            << "...skip node " << (n) << " in eqc " << eqc << std::endl;
+            << "...skip node " << n << " in eqc " << eqc << std::endl;
         continue;
       }
       if (predicate) {
