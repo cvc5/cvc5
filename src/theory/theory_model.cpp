@@ -451,10 +451,13 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
     bool first = true;
     Node rep;
     for (; !eqc_i.isFinished(); ++eqc_i) {
-      Node n =*eqc_i;
+      Node n = *eqc_i;
       // notice that constants are always relevant
-      if (termSet != nullptr && termSet->find(n) == termSet->end() && !n.isConst()) {
-        Trace("model-builder-debug") << "...skip node " << (n) << " in eqc " << eqc << std::endl;
+      if (termSet != nullptr && termSet->find(n) == termSet->end()
+          && !n.isConst())
+      {
+        Trace("model-builder-debug")
+            << "...skip node " << (n) << " in eqc " << eqc << std::endl;
         continue;
       }
       if (predicate) {
