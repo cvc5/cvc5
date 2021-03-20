@@ -25,11 +25,13 @@
 #include <iosfwd>
 #include <string>
 
+#include "cvc4_export.h"  // remove when Cvc language support is removed
+
 namespace CVC4 {
 
 class Rational;
 
-class CVC4_PUBLIC Integer
+class CVC4_EXPORT Integer
 {
   friend class CVC4::Rational;
 
@@ -112,11 +114,8 @@ class CVC4_PUBLIC Integer
   /** Return this*(2^pow). */
   Integer multiplyByPow2(uint32_t pow) const;
 
-  /**
-   * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1.
-   */
-  Integer setBit(uint32_t i, bool value) const;
+  /** Set the ith bit of the current Integer to 'value'.  */
+  void setBit(uint32_t i, bool value);
 
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;

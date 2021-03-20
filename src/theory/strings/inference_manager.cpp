@@ -372,8 +372,6 @@ TrustNode InferenceManager::processLemma(InferInfo& ii, LemmaProperty& p)
                           << ii.getId() << std::endl;
   Trace("strings-lemma") << "Strings::Lemma: " << tlem.getNode() << " by "
                          << ii.getId() << std::endl;
-  ++(d_statistics.d_lemmasInfer);
-
   return tlem;
 }
 

@@ -43,9 +43,9 @@ namespace expr {
  * allocated word in ios_base), and serves also as the manipulator
  * itself (as above).
  */
-class CVC4_PUBLIC ExprSetDepth {
-public:
-
+class ExprSetDepth
+{
+ public:
   /**
    * Construct a ExprSetDepth with the given depth.
    */
@@ -89,13 +89,14 @@ public:
    * When this manipulator is used, the depth is stored here.
    */
   long d_depth;
-};/* class ExprSetDepth */
+}; /* class ExprSetDepth */
 
 /**
  * IOStream manipulator to print expressions as a dag (or not).
  */
-class CVC4_PUBLIC ExprDag {
-public:
+class ExprDag
+{
+ public:
   /**
    * Construct a ExprDag with the given setting (dagification on or off).
    */
@@ -146,7 +147,7 @@ public:
    * When this manipulator is used, the setting is stored here.
    */
   size_t d_dag;
-};/* class ExprDag */
+}; /* class ExprDag */
 
 /**
  * Sets the default dag setting when pretty-printing a Expr to an ostream.
@@ -157,7 +158,7 @@ public:
  *
  * The setting stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, ExprDag d) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, ExprDag d);
 
 /**
  * Sets the default depth when pretty-printing a Expr to an ostream.
@@ -168,7 +169,7 @@ std::ostream& operator<<(std::ostream& out, ExprDag d) CVC4_PUBLIC;
  *
  * The depth stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, ExprSetDepth sd);
 
 }/* namespace CVC4::expr */
 

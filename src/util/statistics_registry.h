@@ -16,21 +16,20 @@
  ** classes.
  **
  ** This file is somewhat unique in that it is a "cvc4_private_library.h"
- ** header. Because of this, most classes need to be marked as CVC4_PUBLIC.
- ** This is because CVC4_PUBLIC is connected to the visibility of the linkage
+ ** header. Because of this, most classes need to be marked as CVC4_EXPORT.
+ ** This is because CVC4_EXPORT is connected to the visibility of the linkage
  ** in the object files for the class. It does not dictate what headers are
  ** installed.
  ** Because the StatisticsRegistry and associated classes are built into
  ** libutil, which is used by libcvc4, and then later used by the libmain
  ** without referring to libutil as well. Thus the without marking these as
- ** CVC4_PUBLIC the symbols would be external in libutil, internal in libcvc4,
+ ** CVC4_EXPORT the symbols would be external in libutil, internal in libcvc4,
  ** and not be visible to libmain and linking would fail.
  ** You can debug this using "nm" on the .so and .o files in the builds/
  ** directory. See
  ** http://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking
  ** for a longer discussion on symbol visibility.
  **/
-
 
 /**
  * On the design of the statistics:
@@ -98,9 +97,10 @@
 #endif
 
 #include "base/exception.h"
+#include "cvc4_export.h"
 #include "util/safe_print.h"
-#include "util/stats_base.h"
 #include "util/statistics.h"
+#include "util/stats_base.h"
 
 namespace CVC4 {
 
@@ -142,9 +142,9 @@ public:
  * The main statistics registry.  This registry maintains the list of
  * currently active statistics and is able to "flush" them all.
  */
-class CVC4_PUBLIC StatisticsRegistry : public StatisticsBase {
-private:
-
+class CVC4_EXPORT StatisticsRegistry : public StatisticsBase
+{
+ private:
   /** Private copy constructor undefined (no copy permitted). */
   StatisticsRegistry(const StatisticsRegistry&) = delete;
 
@@ -177,15 +177,16 @@ public:
   /** Unregister a new statistic */
   void unregisterStat(Stat* s);
 
-};/* class StatisticsRegistry */
+}; /* class StatisticsRegistry */
 
 /**
  * Resource-acquisition-is-initialization idiom for statistics
  * registry.  Useful for stack-based statistics (like in the driver).
  * This RAII class only does registration and unregistration.
  */
-class CVC4_PUBLIC RegisterStatistic {
-public:
+class CVC4_EXPORT RegisterStatistic
+{
+ public:
   RegisterStatistic(StatisticsRegistry* reg, Stat* stat);
   ~RegisterStatistic();
 
@@ -193,7 +194,7 @@ private:
   StatisticsRegistry* d_reg;
   Stat* d_stat;
 
-};/* class RegisterStatistic */
+}; /* class RegisterStatistic */
 
 }/* CVC4 namespace */
 
