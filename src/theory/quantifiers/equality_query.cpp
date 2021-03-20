@@ -17,8 +17,8 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -28,8 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-EqualityQuery::EqualityQuery(
-    QuantifiersState& qs, FirstOrderModel* m)
+EqualityQuery::EqualityQuery(QuantifiersState& qs, FirstOrderModel* m)
     : d_qstate(qs),
       d_model(m),
       d_eqi_counter(qs.getSatContext()),
@@ -37,18 +36,16 @@ EqualityQuery::EqualityQuery(
 {
 }
 
-EqualityQuery::~EqualityQuery(){
-}
+EqualityQuery::~EqualityQuery() {}
 
-bool EqualityQuery::reset( Theory::Effort e ){
+bool EqualityQuery::reset(Theory::Effort e)
+{
   d_int_rep.clear();
   d_reset_count++;
   return true;
 }
 
-Node EqualityQuery::getInternalRepresentative(Node a,
-                                                               Node q,
-                                                               size_t index)
+Node EqualityQuery::getInternalRepresentative(Node a, Node q, size_t index)
 {
   Assert(q.isNull() || q.getKind() == FORALL);
   Node r = d_qstate.getRepresentative(a);
@@ -144,7 +141,11 @@ Node EqualityQuery::getInternalRepresentative(Node a,
 
 //helper functions
 
-Node EqualityQuery::getInstance( Node n, const std::vector< Node >& eqc, std::unordered_map<TNode, Node, TNodeHashFunction>& cache ){
+Node EqualityQuery::getInstance(
+    Node n,
+    const std::vector<Node>& eqc,
+    std::unordered_map<TNode, Node, TNodeHashFunction>& cache)
+{
   if(cache.find(n) != cache.end()) {
     return cache[n];
   }
@@ -162,10 +163,7 @@ Node EqualityQuery::getInstance( Node n, const std::vector< Node >& eqc, std::un
 }
 
 //-2 : invalid, -1 : undesired, otherwise : smaller the score, the better
-int32_t EqualityQuery::getRepScore(Node n,
-                                                Node q,
-                                                size_t index,
-                                                TypeNode v_tn)
+int32_t EqualityQuery::getRepScore(Node n, Node q, size_t index, TypeNode v_tn)
 {
   if( options::cegqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
     return -2;
@@ -180,11 +178,11 @@ int32_t EqualityQuery::getRepScore(Node n,
   }
   else if (options::quantRepMode() == options::QuantRepMode::FIRST)
   {
-    //score prefers earliest use of this term as a representative
-    return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
+    // score prefers earliest use of this term as a representative
+    return d_rep_score.find(n) == d_rep_score.end() ? -1 : d_rep_score[n];
   }
   Assert(options::quantRepMode() == options::QuantRepMode::DEPTH);
-  return quantifiers::TermUtil::getTermDepth( n );
+  return quantifiers::TermUtil::getTermDepth(n);
 }
 
 } /* CVC4::theory::quantifiers namespace */

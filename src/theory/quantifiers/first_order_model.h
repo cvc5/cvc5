@@ -18,9 +18,9 @@
 #define CVC4__FIRST_ORDER_MODEL_H
 
 #include "context/cdlist.h"
+#include "theory/quantifiers/equality_query.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
-#include "theory/quantifiers/equality_query.h"
 
 namespace CVC4 {
 namespace theory {
@@ -46,15 +46,15 @@ class FirstOrderModel : public TheoryModel
   /** finish initialize */
   void finishInit(QuantifiersEngine* qe);
   /** get internal representative
-    *
-    * Choose a term that is equivalent to a in the current context that is the
-    * best term for instantiating the index^th variable of quantified formula q.
-    * If no legal term can be found, we return null. This can occur if:
-    * - a's type is not a subtype of the type of the index^th variable of q,
-    * - a is in an equivalent class with all terms that are restricted not to
-    * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
-    * guided instantiation.
-    */
+   *
+   * Choose a term that is equivalent to a in the current context that is the
+   * best term for instantiating the index^th variable of quantified formula q.
+   * If no legal term can be found, we return null. This can occur if:
+   * - a's type is not a subtype of the type of the index^th variable of q,
+   * - a is in an equivalent class with all terms that are restricted not to
+   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+   * guided instantiation.
+   */
   Node getInternalRepresentative(Node a, Node q, size_t index);
 
   /** assert quantifier */
@@ -133,6 +133,7 @@ class FirstOrderModel : public TheoryModel
   static bool isModelBasis(TNode n);
   /** Get the equality query */
   EqualityQuery* getEqualityQuery();
+
  protected:
   //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
   QuantifiersEngine* d_qe;

@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
+#include "expr/attribute.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
-#include "expr/attribute.h"
 
 using namespace CVC4::kind;
 
@@ -25,11 +25,13 @@ namespace theory {
 namespace quantifiers {
 namespace fmcheck {
 
-/** 
+/**
  * Marks that a term represents the entire domain of quantified formula for
  * the finite model finding fmc algorithm.
  */
-struct IsStarAttributeId {};
+struct IsStarAttributeId
+{
+};
 typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
 FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,

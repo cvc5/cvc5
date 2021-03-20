@@ -166,7 +166,7 @@ int ModelEngine::checkModel(){
       Trace("model-engine-debug") << std::endl;
       Trace("model-engine-debug") << "   Term reps : ";
       for( size_t i=0; i<it->second.size(); i++ ){
-        Node r = fm->getInternalRepresentative( it->second[i], Node::null(), 0 );
+        Node r = fm->getInternalRepresentative(it->second[i], Node::null(), 0);
         if (r.isNull())
         {
           // there was an invalid equivalence class
