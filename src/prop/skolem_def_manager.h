@@ -56,6 +56,7 @@ class SkolemDefManager
    * Notify asserted literal, adds additionally activated skolems into queue.
    */
   void notifyAsserted(TNode literal, std::vector<TNode>& activatedSkolems);
+
  private:
   /** Reference to term formula removal */
   RemoveTermFormulas& d_rtf;

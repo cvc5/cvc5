@@ -69,7 +69,8 @@ SatLiteral DecisionEngine::getNext(bool& stopSearch)
   return d_decEngineOld->getNext(stopSearch);
 }
 
-bool DecisionEngine::isDone() {
+bool DecisionEngine::isDone()
+{
   if (d_usingOld)
   {
     return d_decEngineOld->isDone();
@@ -100,20 +101,22 @@ void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
   }
 }
 
-bool DecisionEngine::hasSatLiteral(TNode n) {
+bool DecisionEngine::hasSatLiteral(TNode n)
+{
   return d_cnfStream->hasLiteral(n);
 }
-SatLiteral DecisionEngine::getSatLiteral(TNode n) {
+SatLiteral DecisionEngine::getSatLiteral(TNode n)
+{
   return d_cnfStream->getLiteral(n);
 }
-SatValue DecisionEngine::getSatValue(SatLiteral l) {
+SatValue DecisionEngine::getSatValue(SatLiteral l)
+{
   return d_satSolver->value(l);
 }
-SatValue DecisionEngine::getSatValue(TNode n) {
+SatValue DecisionEngine::getSatValue(TNode n)
+{
   return getSatValue(getSatLiteral(n));
 }
-Node DecisionEngine::getNode(SatLiteral l) {
-  return d_cnfStream->getNode(l);
-}
+Node DecisionEngine::getNode(SatLiteral l) { return d_cnfStream->getNode(l); }
 
 }/* CVC4 namespace */

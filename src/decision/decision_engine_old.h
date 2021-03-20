@@ -33,8 +33,8 @@ using namespace CVC4::decision;
 
 namespace CVC4 {
 
-class DecisionEngineOld {
-
+class DecisionEngineOld
+{
   // PropEngine* d_propEngine;
   CnfStream* d_cnfStream;
   CDCLTSatSolverInterface* d_satSolver;
@@ -49,18 +49,19 @@ class DecisionEngineOld {
   DecisionEngineOld();
 
   // init/shutdown state
-  unsigned d_engineState;    // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
+  unsigned d_engineState;  // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
 
  public:
   // Necessary functions
 
   /** Constructor */
   DecisionEngineOld(context::Context* sc,
-                 context::UserContext* uc,
-                 ResourceManager* rm);
+                    context::UserContext* uc,
+                    ResourceManager* rm);
 
   /** Destructor, currently does nothing */
-  ~DecisionEngineOld() {
+  ~DecisionEngineOld()
+  {
     Trace("decision") << "Destroying decision engine" << std::endl;
   }
 
@@ -72,7 +73,8 @@ class DecisionEngineOld {
     d_satSolver = ss;
   }
 
-  void setCnfStream(CnfStream* cs) {
+  void setCnfStream(CnfStream* cs)
+  {
     // setPropEngine should not be called more than once
     Assert(d_cnfStream == NULL);
     Assert(cs != NULL);
@@ -92,7 +94,8 @@ class DecisionEngineOld {
   SatLiteral getNext(bool& stopSearch);
 
   /** Is the DecisionEngineOld in a state where it has solved everything? */
-  bool isDone() {
+  bool isDone()
+  {
     Trace("decision") << "DecisionEngineOld::isDone() returning "
                       << (d_result != SAT_VALUE_UNKNOWN)
                       << (d_result != SAT_VALUE_UNKNOWN ? "true" : "false")
@@ -101,20 +104,21 @@ class DecisionEngineOld {
   }
 
   /** */
-  Result getResult() {
-    switch(d_result.get()) {
-    case SAT_VALUE_TRUE: return Result(Result::SAT);
-    case SAT_VALUE_FALSE: return Result(Result::UNSAT);
-    case SAT_VALUE_UNKNOWN: return Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-    default: Assert(false) << "d_result is garbage";
+  Result getResult()
+  {
+    switch (d_result.get())
+    {
+      case SAT_VALUE_TRUE: return Result(Result::SAT);
+      case SAT_VALUE_FALSE: return Result(Result::UNSAT);
+      case SAT_VALUE_UNKNOWN:
+        return Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+      default: Assert(false) << "d_result is garbage";
     }
     return Result();
   }
 
   /** */
-  void setResult(SatValue val) {
-    d_result = val;
-  }
+  void setResult(SatValue val) { d_result = val; }
 
   // External World helping us help the Strategies
 
@@ -134,27 +138,17 @@ class DecisionEngineOld {
 
   // Interface for Strategies to get information about External World
 
-  bool hasSatLiteral(TNode n) {
-    return d_cnfStream->hasLiteral(n);
-  }
-  SatLiteral getSatLiteral(TNode n) {
-    return d_cnfStream->getLiteral(n);
-  }
-  SatValue getSatValue(SatLiteral l) {
-    return d_satSolver->value(l);
-  }
-  SatValue getSatValue(TNode n) {
-    return getSatValue(getSatLiteral(n));
-  }
-  Node getNode(SatLiteral l) {
-    return d_cnfStream->getNode(l);
-  }
+  bool hasSatLiteral(TNode n) { return d_cnfStream->hasLiteral(n); }
+  SatLiteral getSatLiteral(TNode n) { return d_cnfStream->getLiteral(n); }
+  SatValue getSatValue(SatLiteral l) { return d_satSolver->value(l); }
+  SatValue getSatValue(TNode n) { return getSatValue(getSatLiteral(n)); }
+  Node getNode(SatLiteral l) { return d_cnfStream->getNode(l); }
 
  private:
   /** The ITE decision strategy we have allocated */
   std::unique_ptr<ITEDecisionStrategy> d_enabledITEStrategy;
-};/* DecisionEngineOld class */
+}; /* DecisionEngineOld class */
 
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__DECISION__DECISION_ENGINE_H */

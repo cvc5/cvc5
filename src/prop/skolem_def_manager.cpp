@@ -43,7 +43,8 @@ TNode SkolemDefManager::getSkolemDefinitionFor(TNode skolem) const
   return it->second;
 }
 
-void SkolemDefManager::notifyAsserted(TNode literal, std::vector<TNode>& activatedSkolems)
+void SkolemDefManager::notifyAsserted(TNode literal,
+                                      std::vector<TNode>& activatedSkolems)
 {
   NodeMap::iterator it;
   std::unordered_set<Node, NodeHashFunction> skolems;

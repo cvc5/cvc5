@@ -27,7 +27,7 @@ using namespace std;
 namespace CVC4 {
 
 DecisionEngineOld::DecisionEngineOld(context::Context* sc,
-                               context::UserContext* uc)
+                                     context::UserContext* uc)
     : d_cnfStream(nullptr),
       d_satSolver(nullptr),
       d_satContext(sc),
@@ -42,7 +42,7 @@ DecisionEngineOld::DecisionEngineOld(context::Context* sc,
 
   Trace("decision-init") << "DecisionEngineOld::init()" << std::endl;
   Trace("decision-init") << " * options->decisionMode: "
-                         << options::decisionMode() << std:: endl;
+                         << options::decisionMode() << std::endl;
   Trace("decision-init") << " * options->decisionStopOnly: "
                          << options::decisionStopOnly() << std::endl;
 
@@ -94,4 +94,4 @@ void DecisionEngineOld::addSkolemDefinition(TNode lem, TNode skolem)
   }
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC4

@@ -32,8 +32,8 @@ namespace CVC4 {
 
 class DecisionEngineOld;
 
-class DecisionEngine {
-
+class DecisionEngine
+{
  public:
   /** Constructor */
   DecisionEngine(context::Context* sc,
@@ -56,7 +56,7 @@ class DecisionEngine {
   bool isDone();
 
   /** */
-  //void setResult(SatValue val);
+  // void setResult(SatValue val);
 
   /**
    * Notify this class that assertion is an (input) assertion, not corresponding
