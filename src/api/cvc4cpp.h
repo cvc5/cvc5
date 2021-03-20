@@ -14,7 +14,7 @@
  ** The CVC4 C++ API.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_export.h"
 
 #ifndef CVC4__API__CVC4CPP_H
 #define CVC4__API__CVC4CPP_H
@@ -79,7 +79,7 @@ struct Statistics;
 /* Exception                                                                  */
 /* -------------------------------------------------------------------------- */
 
-class CVC4_PUBLIC CVC4ApiException : public std::exception
+class CVC4_EXPORT CVC4ApiException : public std::exception
 {
  public:
   CVC4ApiException(const std::string& str) : d_msg(str) {}
@@ -91,7 +91,7 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
   std::string d_msg;
 };
 
-class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
+class CVC4_EXPORT CVC4ApiRecoverableException : public CVC4ApiException
 {
  public:
   CVC4ApiRecoverableException(const std::string& str) : CVC4ApiException(str) {}
@@ -108,7 +108,7 @@ class CVC4_PUBLIC CVC4ApiRecoverableException : public CVC4ApiException
 /**
  * Encapsulation of a three-valued solver result, with explanations.
  */
-class CVC4_PUBLIC Result
+class CVC4_EXPORT Result
 {
   friend class Solver;
 
@@ -217,7 +217,7 @@ class CVC4_PUBLIC Result
  * @param r the result to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_EXPORT;
 
 /**
  * Serialize an UnknownExplanation to given stream.
@@ -226,7 +226,7 @@ std::ostream& operator<<(std::ostream& out, const Result& r) CVC4_PUBLIC;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         enum Result::UnknownExplanation e) CVC4_PUBLIC;
+                         enum Result::UnknownExplanation e) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -237,7 +237,7 @@ class Datatype;
 /**
  * The sort of a CVC4 term.
  */
-class CVC4_PUBLIC Sort
+class CVC4_EXPORT Sort
 {
   friend class CVC4::DatatypeDeclarationCommand;
   friend class CVC4::DeclareFunctionCommand;
@@ -745,12 +745,12 @@ class CVC4_PUBLIC Sort
  * @param s the sort to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Sort& s) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Sort& s) CVC4_EXPORT;
 
 /**
  * Hash function for Sorts.
  */
-struct CVC4_PUBLIC SortHashFunction
+struct CVC4_EXPORT SortHashFunction
 {
   size_t operator()(const Sort& s) const;
 };
@@ -764,7 +764,7 @@ struct CVC4_PUBLIC SortHashFunction
  * An operator is a term that represents certain operators, instantiated
  * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
  */
-class CVC4_PUBLIC Op
+class CVC4_EXPORT Op
 {
   friend class Solver;
   friend class Term;
@@ -887,7 +887,7 @@ class CVC4_PUBLIC Op
 /**
  * A CVC4 Term.
  */
-class CVC4_PUBLIC Term
+class CVC4_EXPORT Term
 {
   friend class CVC4::AssertCommand;
   friend class CVC4::BlockModelValuesCommand;
@@ -998,15 +998,15 @@ class CVC4_PUBLIC Term
   Sort getSort() const;
 
   /**
-   * @return the result of replacing "e" by "replacement" in this term
+   * @return the result of replacing 'term' by 'replacement' in this term
    */
-  Term substitute(const Term& e, const Term& replacement) const;
+  Term substitute(const Term& term, const Term& replacement) const;
 
   /**
-   * @return the result of simulatenously replacing "es" by "replacements" in
-   * this term
+   * @return the result of simulatenously replacing 'terms' by 'replacements'
+   * in this term
    */
-  Term substitute(const std::vector<Term>& es,
+  Term substitute(const std::vector<Term>& terms,
                   const std::vector<Term>& replacements) const;
 
   /**
@@ -1294,7 +1294,7 @@ class CVC4_PUBLIC Term
 /**
  * Hash function for Terms.
  */
-struct CVC4_PUBLIC TermHashFunction
+struct CVC4_EXPORT TermHashFunction
 {
   size_t operator()(const Term& t) const;
 };
@@ -1305,7 +1305,7 @@ struct CVC4_PUBLIC TermHashFunction
  * @param t the term to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_EXPORT;
 
 /**
  * Serialize a vector of terms to given stream.
@@ -1314,7 +1314,7 @@ std::ostream& operator<<(std::ostream& out, const Term& t) CVC4_PUBLIC;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::vector<Term>& vector) CVC4_PUBLIC;
+                         const std::vector<Term>& vector) CVC4_EXPORT;
 
 /**
  * Serialize a set of terms to the given stream.
@@ -1323,7 +1323,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const std::set<Term>& set) CVC4_PUBLIC;
+                         const std::set<Term>& set) CVC4_EXPORT;
 
 /**
  * Serialize an unordered_set of terms to the given stream.
@@ -1334,7 +1334,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 std::ostream& operator<<(std::ostream& out,
                          const std::unordered_set<Term, TermHashFunction>&
-                             unordered_set) CVC4_PUBLIC;
+                             unordered_set) CVC4_EXPORT;
 
 /**
  * Serialize a map of terms to the given stream.
@@ -1345,7 +1345,7 @@ std::ostream& operator<<(std::ostream& out,
  */
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
-                         const std::map<Term, V>& map) CVC4_PUBLIC;
+                         const std::map<Term, V>& map) CVC4_EXPORT;
 
 /**
  * Serialize an unordered_map of terms to the given stream.
@@ -1357,7 +1357,7 @@ std::ostream& operator<<(std::ostream& out,
 template <typename V>
 std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V, TermHashFunction>&
-                             unordered_map) CVC4_PUBLIC;
+                             unordered_map) CVC4_EXPORT;
 
 /**
  * Serialize an operator to given stream.
@@ -1365,12 +1365,12 @@ std::ostream& operator<<(std::ostream& out,
  * @param t the operator to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Op& t) CVC4_EXPORT;
 
 /**
  * Hash function for Ops.
  */
-struct CVC4_PUBLIC OpHashFunction
+struct CVC4_EXPORT OpHashFunction
 {
   size_t operator()(const Op& t) const;
 };
@@ -1385,7 +1385,7 @@ class DatatypeIterator;
 /**
  * A CVC4 datatype constructor declaration.
  */
-class CVC4_PUBLIC DatatypeConstructorDecl
+class CVC4_EXPORT DatatypeConstructorDecl
 {
   friend class DatatypeDecl;
   friend class Solver;
@@ -1455,7 +1455,7 @@ class Solver;
 /**
  * A CVC4 datatype declaration.
  */
-class CVC4_PUBLIC DatatypeDecl
+class CVC4_EXPORT DatatypeDecl
 {
   friend class DatatypeConstructorArg;
   friend class Solver;
@@ -1559,7 +1559,7 @@ class CVC4_PUBLIC DatatypeDecl
 /**
  * A CVC4 datatype selector.
  */
-class CVC4_PUBLIC DatatypeSelector
+class CVC4_EXPORT DatatypeSelector
 {
   friend class DatatypeConstructor;
   friend class Solver;
@@ -1628,7 +1628,7 @@ class CVC4_PUBLIC DatatypeSelector
 /**
  * A CVC4 datatype constructor.
  */
-class CVC4_PUBLIC DatatypeConstructor
+class CVC4_EXPORT DatatypeConstructor
 {
   friend class Datatype;
   friend class Solver;
@@ -1854,7 +1854,7 @@ class CVC4_PUBLIC DatatypeConstructor
 /*
  * A CVC4 datatype.
  */
-class CVC4_PUBLIC Datatype
+class CVC4_EXPORT Datatype
 {
   friend class Solver;
   friend class Sort;
@@ -2079,7 +2079,7 @@ class CVC4_PUBLIC Datatype
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeDecl& dtdecl) CVC4_PUBLIC;
+                         const DatatypeDecl& dtdecl) CVC4_EXPORT;
 
 /**
  * Serialize a datatype constructor declaration to given stream.
@@ -2088,7 +2088,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructorDecl& ctordecl) CVC4_PUBLIC;
+                         const DatatypeConstructorDecl& ctordecl) CVC4_EXPORT;
 
 /**
  * Serialize a vector of datatype constructor declarations to given stream.
@@ -2106,7 +2106,7 @@ std::ostream& operator<<(std::ostream& out,
  * @param dtdecl the datatype to be serialized to given stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_EXPORT;
 
 /**
  * Serialize a datatype constructor to given stream.
@@ -2115,7 +2115,7 @@ std::ostream& operator<<(std::ostream& out, const Datatype& dtype) CVC4_PUBLIC;
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeConstructor& ctor) CVC4_PUBLIC;
+                         const DatatypeConstructor& ctor) CVC4_EXPORT;
 
 /**
  * Serialize a datatype selector to given stream.
@@ -2124,7 +2124,7 @@ std::ostream& operator<<(std::ostream& out,
  * @return the output stream
  */
 std::ostream& operator<<(std::ostream& out,
-                         const DatatypeSelector& stor) CVC4_PUBLIC;
+                         const DatatypeSelector& stor) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
@@ -2133,7 +2133,7 @@ std::ostream& operator<<(std::ostream& out,
 /**
  * A Sygus Grammar.
  */
-class CVC4_PUBLIC Grammar
+class CVC4_EXPORT Grammar
 {
   friend class CVC4::GetAbductCommand;
   friend class CVC4::GetInterpolCommand;
@@ -2272,7 +2272,7 @@ class CVC4_PUBLIC Grammar
  * @param g the grammar to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_EXPORT;
 
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
@@ -2281,7 +2281,7 @@ std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
 /**
  * A CVC4 floating point rounding mode.
  */
-enum CVC4_PUBLIC RoundingMode
+enum CVC4_EXPORT RoundingMode
 {
   ROUND_NEAREST_TIES_TO_EVEN,
   ROUND_TOWARD_POSITIVE,
@@ -2293,7 +2293,7 @@ enum CVC4_PUBLIC RoundingMode
 /**
  * Hash function for RoundingModes.
  */
-struct CVC4_PUBLIC RoundingModeHashFunction
+struct CVC4_EXPORT RoundingModeHashFunction
 {
   inline size_t operator()(const RoundingMode& rm) const;
 };
@@ -2305,7 +2305,7 @@ struct CVC4_PUBLIC RoundingModeHashFunction
 /*
  * A CVC4 solver.
  */
-class CVC4_PUBLIC Solver
+class CVC4_EXPORT Solver
 {
   friend class Datatype;
   friend class DatatypeDecl;
@@ -2786,17 +2786,17 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a constant representing an empty set of the given sort.
-   * @param s the sort of the set elements.
+   * @param sort the sort of the set elements.
    * @return the empty set constant
    */
-  Term mkEmptySet(const Sort& s) const;
+  Term mkEmptySet(const Sort& sort) const;
 
   /**
    * Create a constant representing an empty bag of the given sort.
-   * @param s the sort of the bag elements.
+   * @param sort the sort of the bag elements.
    * @return the empty bag constant
    */
-  Term mkEmptyBag(const Sort& s) const;
+  Term mkEmptyBag(const Sort& sort) const;
 
   /**
    * Create a separation logic nil term.
@@ -2823,7 +2823,8 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a String constant.
-   * @param s a list of unsigned values this constant represents as string
+   * @param s a list of unsigned (unicode) values this constant represents as
+   * string
    * @return the String constant
    */
   Term mkString(const std::vector<uint32_t>& s) const;
@@ -3363,12 +3364,12 @@ class CVC4_PUBLIC Solver
    * SMT-LIB: ( get-interpol <conj> <g> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
-   * @param g the grammar for the interpolant I
+   * @param grammar the grammar for the interpolant I
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
-  bool getInterpolant(const Term& conj, Grammar& g, Term& output) const;
+  bool getInterpolant(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
    * Get an abduct.
@@ -3387,13 +3388,13 @@ class CVC4_PUBLIC Solver
    * SMT-LIB: ( get-abduct <conj> <g> )
    * Requires enabling option 'produce-abducts'
    * @param conj the conjecture term
-   * @param g the grammar for the abduct C
+   * @param grammar the grammar for the abduct C
    * @param output a term C such that A^C is satisfiable, and A^~B^C is
    *        unsatisfiable, where A is the current set of assertions and B is
    *        given in the input by conj
    * @return true if it gets C successfully, false otherwise
    */
-  bool getAbduct(const Term& conj, Grammar& g, Term& output) const;
+  bool getAbduct(const Term& conj, Grammar& grammar, Term& output) const;
 
   /**
    * Block the current model. Can be called only if immediately preceded by a
@@ -3503,13 +3504,13 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the function
    * @param boundVars the parameters to this function
    * @param sort the sort of the return value of this function
-   * @param g the syntactic constraints
+   * @param grammar the syntactic constraints
    * @return the function
    */
   Term synthFun(const std::string& symbol,
                 const std::vector<Term>& boundVars,
                 Sort sort,
-                Grammar& g) const;
+                Grammar& grammar) const;
 
   /**
    * Synthesize invariant.
@@ -3528,12 +3529,12 @@ class CVC4_PUBLIC Solver
    * @param symbol the name of the invariant
    * @param boundVars the parameters to this invariant
    * @param sort the sort of the return value of this invariant
-   * @param g the syntactic constraints
+   * @param grammar the syntactic constraints
    * @return the invariant
    */
   Term synthInv(const std::string& symbol,
                 const std::vector<Term>& boundVars,
-                Grammar& g) const;
+                Grammar& grammar) const;
 
   /**
    * Add a forumla to the set of Sygus constraints.
@@ -3674,7 +3675,7 @@ class CVC4_PUBLIC Solver
                       const std::vector<Term>& boundVars,
                       const Sort& sort,
                       bool isInv = false,
-                      Grammar* g = nullptr) const;
+                      Grammar* grammar = nullptr) const;
 
   /** Check whether string s is a valid decimal integer. */
   bool isValidInteger(const std::string& s) const;

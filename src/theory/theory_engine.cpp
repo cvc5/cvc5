@@ -167,17 +167,18 @@ void TheoryEngine::finishInit()
     d_quantEngine = d_theoryTable[THEORY_QUANTIFIERS]->getQuantifiersEngine();
     Assert(d_quantEngine != nullptr);
   }
+  // finish initializing the quantifiers engine, which must come before
+  // initializing theory combination, since quantifiers engine may have a
+  // special model builder object
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->finishInit(this, d_decManager.get());
+  }
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.
   d_tc->finishInit();
   // get pointer to the shared solver
   d_sharedSolver = d_tc->getSharedSolver();
-
-  // finish initializing the quantifiers engine
-  if (d_logicInfo.isQuantified())
-  {
-    d_quantEngine->finishInit(this, d_decManager.get());
-  }
 
   // finish initializing the theories by linking them with the appropriate
   // utilities and then calling their finishInit method.
