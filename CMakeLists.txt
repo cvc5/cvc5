@@ -565,8 +565,8 @@ if(BUILD_BINDINGS_PYTHON)
 endif()
 
 if(BUILD_BINDINGS_JAVA)
-  message(FATAL_ERROR
-    "Java bindings for the new API are not implemented yet.")
+  add_subdirectory(src/api/java)
+  message(WARNING "Java API is currently under development.")
 endif()
 
 #-----------------------------------------------------------------------------#

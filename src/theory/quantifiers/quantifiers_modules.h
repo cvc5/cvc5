@@ -21,6 +21,8 @@
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/quantifiers/fmf/full_model_check.h"
+#include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/quant_conflict_find.h"
@@ -59,6 +61,9 @@ class QuantifiersModules
                   DecisionManager* dm,
                   std::vector<QuantifiersModule*>& modules);
 
+  /** Whether we use the full model check builder and corresponding model */
+  static bool useFmcModel();
+
  private:
   //------------------------------ quantifier utilities
   /** relevant domain */
@@ -70,6 +75,8 @@ class QuantifiersModules
   std::unique_ptr<InstantiationEngine> d_inst_engine;
   /** model engine */
   std::unique_ptr<ModelEngine> d_model_engine;
+  /** model builder */
+  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** bounded integers utility */
   std::unique_ptr<BoundedIntegers> d_bint;
   /** Conflict find mechanism for quantifiers */
