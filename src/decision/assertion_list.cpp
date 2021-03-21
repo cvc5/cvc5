@@ -16,22 +16,22 @@
 
 namespace CVC4 {
 
-AssertionList::AssertionList(context::Context * ac, context::Context * ic) : d_assertions(ac), d_assertionIndex(ic) {}
-
-void AssertionList::addAssertion(TNode n)
+AssertionList::AssertionList(context::Context* ac, context::Context* ic)
+    : d_assertions(ac), d_assertionIndex(ic)
 {
-  d_assertions.push_back(n);
 }
-  
+
+void AssertionList::addAssertion(TNode n) { d_assertions.push_back(n); }
+
 TNode AssertionList::getNextAssertion()
 {
   size_t i = d_assertionIndex.get();
-  if (i>=d_assertions.size())
+  if (i >= d_assertions.size())
   {
     return Node::null();
   }
-  d_assertionIndex = d_assertionIndex +1;
+  d_assertionIndex = d_assertionIndex + 1;
   return d_assertions[i];
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC4

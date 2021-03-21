@@ -19,11 +19,11 @@
 #ifndef CVC4__DECISION__DECISION_ENGINE_H
 #define CVC4__DECISION__DECISION_ENGINE_H
 
+#include "decision/justification_strategy.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "decision/justification_strategy.h"
 
 namespace CVC4 {
 

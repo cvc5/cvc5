@@ -17,27 +17,26 @@
 namespace CVC4 {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
-                context::UserContext* u) : d_satContext(c), d_userContext(u), d_cnfStream(nullptr), d_satSolver(nullptr),
-                d_assertions(u, c), d_skolemAssertions(c, c)
+                                             context::UserContext* u)
+    : d_satContext(c),
+      d_userContext(u),
+      d_cnfStream(nullptr),
+      d_satSolver(nullptr),
+      d_assertions(u, c),
+      d_skolemAssertions(c, c)
 {
-  
 }
 
-void JustificationStrategy::finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs)
+void JustificationStrategy::finishInit(prop::CDCLTSatSolverInterface* ss,
+                                       prop::CnfStream* cs)
 {
   d_satSolver = ss;
   d_cnfStream = cs;
 }
 
-prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch)
-{
+prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch) {}
 
-}
-
-bool JustificationStrategy::isDone()
-{
-  return false;
-}
+bool JustificationStrategy::isDone() { return false; }
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
@@ -74,6 +73,4 @@ Node JustificationStrategy::getNode(prop::SatLiteral l)
   return d_cnfStream->getNode(l);
 }
 
-
-}/* CVC4 namespace */
-
+}  // namespace CVC4

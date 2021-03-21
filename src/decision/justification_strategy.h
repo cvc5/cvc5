@@ -17,11 +17,11 @@
 #ifndef CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 #define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
+#include "decision/assertion_list.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "decision/assertion_list.h"
 
 namespace CVC4 {
 
@@ -29,8 +29,7 @@ class JustificationStrategy
 {
  public:
   /** Constructor */
-  JustificationStrategy(context::Context* c,
-                 context::UserContext* u);
+  JustificationStrategy(context::Context* c, context::UserContext* u);
 
   /** Finish initialize */
   void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
@@ -73,6 +72,6 @@ class JustificationStrategy
   AssertionList d_skolemAssertions;
 };
 
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__DECISION__JUSTIFICATION_STRATEGY_H */

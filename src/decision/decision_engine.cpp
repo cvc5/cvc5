@@ -96,5 +96,4 @@ void DecisionEngine::notifyRelevantSkolemAssertion(TNode lem)
   }
 }
 
-
 }/* CVC4 namespace */
