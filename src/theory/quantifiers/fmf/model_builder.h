@@ -32,8 +32,6 @@ class QuantifiersRegistry;
 class QModelBuilder : public TheoryEngineModelBuilder
 {
  protected:
-  //quantifiers engine
-  QuantifiersEngine* d_qe;
   // must call preProcessBuildModelStd
   bool preProcessBuildModel(TheoryModel* m) override;
   bool preProcessBuildModelStd(TheoryModel* m);
@@ -42,9 +40,9 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned d_triedLemmas;
 
  public:
-  QModelBuilder(QuantifiersEngine* qe,
-                QuantifiersState& qs,
-                QuantifiersRegistry& qr);
+  QModelBuilder(QuantifiersState& qs, QuantifiersRegistry& qr);
+  //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+  void finishInit(QuantifiersEngine* qe) { d_qe = qe; }
 
   //do exhaustive instantiation  
   // 0 :  failed, but resorting to true exhaustive instantiation may work
@@ -62,6 +60,8 @@ class QModelBuilder : public TheoryEngineModelBuilder
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
 
  protected:
+  /** Pointer to quantifiers engine */
+  QuantifiersEngine* d_qe;
   /** The quantifiers state object */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers registry */

@@ -28,7 +28,7 @@ class TestUtilBlackBitVector : public TestInternal
   void SetUp() override
   {
     d_zero = BitVector(4);
-    d_one = d_zero.setBit(0, true);
+    d_one = BitVector::mkOne(4);
     d_two = BitVector("0010", 2);
     d_neg_one = BitVector(4, Integer(-1));
     d_ones = BitVector::mkOnes(4);
@@ -83,12 +83,19 @@ TEST_F(TestUtilBlackBitVector, conversions)
 
 TEST_F(TestUtilBlackBitVector, setBit_getBit)
 {
-  ASSERT_EQ(d_one.setBit(1, true).setBit(2, true).setBit(3, true), d_ones);
-  ASSERT_EQ(d_ones.setBit(0, false).setBit(1, false).setBit(2, false).setBit(
-                3, false),
-            d_zero);
-  ASSERT_EQ(d_ones.setBit(0, false).setBit(0, true), d_ones);
-  ASSERT_EQ(d_ones.setBit(0, false), ~BitVector::mkOne(d_one.getSize()));
+  BitVector ones(d_one);
+  ASSERT_EQ(ones.setBit(1, true).setBit(2, true).setBit(3, true), d_ones);
+
+  BitVector zero(d_ones);
+  ASSERT_EQ(
+      zero.setBit(0, false).setBit(1, false).setBit(2, false).setBit(3, false),
+      d_zero);
+
+  ones = d_ones;
+  ASSERT_EQ(ones.setBit(0, false).setBit(0, true), d_ones);
+
+  BitVector not_one(d_ones);
+  ASSERT_EQ(not_one.setBit(0, false), ~BitVector::mkOne(d_one.getSize()));
 
   ASSERT_TRUE(d_ones.isBitSet(3));
   ASSERT_FALSE(d_two.isBitSet(3));
