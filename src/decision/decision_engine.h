@@ -27,7 +27,6 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 #include "util/result.h"
-#include "expr/node.h"
 
 namespace CVC4 {
 
@@ -40,7 +39,7 @@ class DecisionEngine
   DecisionEngine(context::Context* sc,
                  context::UserContext* uc,
                  ResourceManager* rm);
-  
+
   /** Finish initialize */
   void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
 

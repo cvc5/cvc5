@@ -55,8 +55,7 @@ class DecisionEngineOld
   // Necessary functions
 
   /** Constructor */
-  DecisionEngineOld(context::Context* sc,
-                    context::UserContext* uc);
+  DecisionEngineOld(context::Context* sc, context::UserContext* uc);
 
   /** Destructor, currently does nothing */
   ~DecisionEngineOld()

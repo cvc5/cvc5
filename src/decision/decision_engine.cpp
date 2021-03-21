@@ -16,8 +16,8 @@
 #include "decision/decision_engine.h"
 
 #include "decision/decision_engine_old.h"
-#include "util/resource_manager.h"
 #include "prop/sat_solver.h"
+#include "util/resource_manager.h"
 
 using namespace std;
 
@@ -36,7 +36,8 @@ DecisionEngine::DecisionEngine(context::Context* sc,
 {
 }
 
-void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs)
+void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
+                                prop::CnfStream* cs)
 {
   d_satSolver = ss;
   d_cnfStream = cs;
@@ -114,6 +115,9 @@ prop::SatValue DecisionEngine::getSatValue(TNode n)
 {
   return getSatValue(getSatLiteral(n));
 }
-Node DecisionEngine::getNode(prop::SatLiteral l) { return d_cnfStream->getNode(l); }
+Node DecisionEngine::getNode(prop::SatLiteral l)
+{
+  return d_cnfStream->getNode(l);
+}
 
 }/* CVC4 namespace */

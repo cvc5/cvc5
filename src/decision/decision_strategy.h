@@ -37,10 +37,12 @@ namespace decision {
 
 class DecisionStrategy {
 protected:
-  DecisionEngineOld* d_decisionEngine;
+ DecisionEngineOld* d_decisionEngine;
+
 public:
-  DecisionStrategy(DecisionEngineOld* de, context::Context *c) :
-    d_decisionEngine(de) {
+ DecisionStrategy(DecisionEngineOld* de, context::Context* c)
+     : d_decisionEngine(de)
+ {
   }
 
   virtual ~DecisionStrategy() { }
@@ -50,8 +52,9 @@ public:
 
 class ITEDecisionStrategy : public DecisionStrategy {
 public:
-  ITEDecisionStrategy(DecisionEngineOld* de, context::Context *c) :
-    DecisionStrategy(de, c) {
+ ITEDecisionStrategy(DecisionEngineOld* de, context::Context* c)
+     : DecisionStrategy(de, c)
+ {
   }
   /**
    * Add that assertion is an (input) assertion, not corresponding to a
