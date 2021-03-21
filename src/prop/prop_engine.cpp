@@ -172,6 +172,7 @@ theory::TrustNode PropEngine::removeItes(
 void PropEngine::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions)
 {
+  // TODO: update this block
   // notify the theory engine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
   for (const Node& assertion : assertions)
@@ -190,7 +191,7 @@ void PropEngine::assertSkolemDefinition(TNode node, TNode skolem)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  d_decisionEngine->addSkolemDefinition(node, skolem);
+  d_theoryProxy->notifyLemma(node, skolem);
   assertInternal(node, false, false, true);
 }
 
