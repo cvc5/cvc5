@@ -54,7 +54,7 @@ class DecisionEngine
   /**
    * Notify this class that lem is an active assertion in this SAT context
    */
-  void notifyRelevantAssertion(TNode lem);
+  void notifyRelevantSkolemAssertion(TNode lem);
 
  private:
   /** Using old */

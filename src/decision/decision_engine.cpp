@@ -87,12 +87,12 @@ void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
   // justification strategy does not use this
 }
 
-void DecisionEngine::notifyRelevantAssertion(TNode lem)
+void DecisionEngine::notifyRelevantSkolemAssertion(TNode lem)
 {
   // old implementation does not use this
   if (!d_usingOld)
   {
-    d_jstrat->addSkolemDefinition(lem, skolem);
+    d_jstrat->notifyRelevantSkolemAssertion(lem, skolem);
   }
 }
 

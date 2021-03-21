@@ -2,7 +2,7 @@
 /*! \file justification_strategy.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -17,7 +17,8 @@
 namespace CVC4 {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
-                context::UserContext* u) : d_satContext(c), d_userContext(u), d_cnfStream(nullptr), d_satSolver(nullptr)
+                context::UserContext* u) : d_satContext(c), d_userContext(u), d_cnfStream(nullptr), d_satSolver(nullptr),
+                d_assertions(u, c), d_skolemAssertions(c, c)
 {
   
 }
@@ -38,37 +39,37 @@ bool JustificationStrategy::isDone()
   return false;
 }
 
-void addAssertion(TNode assertion)
+void JustificationStrategy::addAssertion(TNode assertion)
 {
-  
+  d_assertions.addAssertion(assertion);
 }
 
-void notifyRelevantAssertion(TNode lem)
+void JustificationStrategy::notifyRelevantSkolemAssertion(TNode lem)
 {
-  
+  d_skolemAssertions.addAssertion(lem);
 }
 
-bool DecisionEngine::hasSatLiteral(TNode n)
+bool JustificationStrategy::hasSatLiteral(TNode n)
 {
   return d_cnfStream->hasLiteral(n);
 }
 
-prop::SatLiteral DecisionEngine::getSatLiteral(TNode n)
+prop::SatLiteral JustificationStrategy::getSatLiteral(TNode n)
 {
   return d_cnfStream->getLiteral(n);
 }
 
-prop::SatValue DecisionEngine::getSatValue(prop::SatLiteral l)
+prop::SatValue JustificationStrategy::getSatValue(prop::SatLiteral l)
 {
   return d_satSolver->value(l);
 }
 
-prop::SatValue DecisionEngine::getSatValue(TNode n)
+prop::SatValue JustificationStrategy::getSatValue(TNode n)
 {
   return getSatValue(getSatLiteral(n));
 }
 
-Node DecisionEngine::getNode(prop::SatLiteral l)
+Node JustificationStrategy::getNode(prop::SatLiteral l)
 {
   return d_cnfStream->getNode(l);
 }

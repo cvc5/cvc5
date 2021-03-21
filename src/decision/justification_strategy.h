@@ -2,7 +2,7 @@
 /*! \file justification_strategy.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -17,16 +17,13 @@
 #ifndef CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 #define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
-#include "base/output.h"
-#include "context/cdo.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
+#include "decision/assertion_list.h"
 
 namespace CVC4 {
-
-class DecisionEngineOld;
 
 class JustificationStrategy
 {
@@ -52,7 +49,7 @@ class JustificationStrategy
   /**
    * Notify this class that lem is an active assertion in this SAT context
    */
-  void notifyRelevantAssertion(TNode lem);
+  void notifyRelevantSkolemAssertion(TNode lem);
 
   /** Interface to SAT solver */
   bool hasSatLiteral(TNode n);
@@ -71,8 +68,9 @@ class JustificationStrategy
   /** SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
   /** The assertions */
-  /** The active assertions */
-
+  AssertionList d_assertions;
+  /** The skolem assertions */
+  AssertionList d_skolemAssertions;
 };
 
 }/* CVC4 namespace */
