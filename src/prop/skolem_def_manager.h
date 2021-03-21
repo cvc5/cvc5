@@ -19,49 +19,61 @@
 
 #include <iosfwd>
 #include <unordered_set>
+#include <vector>
 
-#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
-#include "context/cdqueue.h"
+#include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/node.h"
 
 namespace CVC4 {
-
-class RemoveTermFormulas;
-
 namespace prop {
 
 /**
- * This class manages the mapping between literals, the skolem they contain,
- * and the definitions for the skolems.
+ * This class manages the mapping between introduced skolems and the lemmas
+ * that define their behavior. It can be used to manage which lemmas are
+ * relevant in the current context, e.g. a lemma corresponding to a skolem
+ * definition for k is relevant when k appears in an asserted literal.
  */
 class SkolemDefManager
 {
-  using NodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
+  using NodeNodeMap = context::CDInsertHashMap<Node, Node, NodeHashFunction>;
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
  public:
   SkolemDefManager(context::Context* context,
-                   context::UserContext* userContext,
-                   RemoveTermFormulas& rtf);
+                   context::UserContext* userContext);
 
   ~SkolemDefManager();
 
-  /** Notify skolem definitions */
-  void notifySkolemDefinition(TNode skolem, TNode def);
-  /** Get skolem definition for skolem */
-  TNode getSkolemDefinitionFor(TNode skolem) const;
+  /**
+   * Notify skolem definition
+   */
+  void notifySkolemDefinition(TNode k, Node def);
+  /** Get skolem definition for k */
+  TNode getDefinitionForSkolem(TNode k) const;
   /**
    * Notify asserted literal, adds additionally activated skolems into queue.
    */
   void notifyAsserted(TNode literal, std::vector<TNode>& activatedSkolems);
 
+  /**
+   * Get the set of skolems introduced by this class that occur in node n,
+   * add them to skolems.
+   *
+   * @param n The node to traverse
+   * @param skolems The set where the skolems are added
+   */
+  void getSkolems(TNode n,
+                  std::unordered_set<Node, NodeHashFunction>& skolems) const;
+  /**
+   * Does n have skolems introduced by this class?
+   */
+  bool hasSkolems(TNode n) const;
+
  private:
-  /** Reference to term formula removal */
-  RemoveTermFormulas& d_rtf;
   /** skolems to definitions (user-context dependent) */
-  NodeMap d_skDefs;
+  NodeNodeMap d_skDefs;
   /** set of active skolems (SAT-context dependent) */
   NodeSet d_skActive;
 };

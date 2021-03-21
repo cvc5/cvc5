@@ -42,7 +42,9 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_queue(context),
-      d_tpp(*theoryEngine, userContext, pnm)
+      d_tpp(*theoryEngine, userContext, pnm),
+      d_skdm(new SkolemDefManager(context, userContext)),
+      d_trackSkolemDefs(false)
 {
 }
 
@@ -51,6 +53,29 @@ TheoryProxy::~TheoryProxy() {
 }
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
+
+void TheoryProxy::notifyAssertion(Node a, TNode skolem)
+{
+  if (!skolem.isNull())
+  {
+    // a skolem definition from input
+    d_skdm->notifySkolemDefinition(skolem, a);
+  }
+}
+
+void TheoryProxy::notifyLemma(Node lem, TNode skolem)
+{
+  if (skolem.isNull())
+  {
+    d_decisionEngine->addAssertion(lem);
+  }
+  else
+  {
+    // a skolem definition from input
+    d_skdm->notifySkolemDefinition(skolem, lem);
+    d_decisionEngine->addSkolemDefinition(lem, skolem);
+  }
+}
 
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
@@ -61,6 +86,18 @@ void TheoryProxy::theoryCheck(theory::Theory::Effort effort) {
     TNode assertion = d_queue.front();
     d_queue.pop();
     d_theoryEngine->assertFact(assertion);
+    if (d_trackSkolemDefs)
+    {
+      // assertion processed makes all skolems in assertion active,
+      // which triggers their definitions to becoming relevant
+      std::vector<TNode> activatedSkolems;
+      d_skdm->notifyAsserted(assertion, activatedSkolems);
+      for (const Node& k : activatedSkolems)
+      {
+        TNode def = d_skdm->getDefinitionForSkolem(k);
+        d_decisionEngine->notifyRelevantSkolemAssertion(def);
+      }
+    }
   }
   d_theoryEngine->check(effort);
 }
@@ -194,16 +231,15 @@ theory::TrustNode TheoryProxy::removeItes(
 }
 
 void TheoryProxy::getSkolems(TNode node,
-                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& skAsserts,
                              std::vector<Node>& sks)
 {
-  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
   std::unordered_set<Node, NodeHashFunction> skolems;
-  rtf.getSkolems(node, skolems);
+  d_skdm->getSkolems(node, skolems);
   for (const Node& k : skolems)
   {
     sks.push_back(k);
-    skAsserts.push_back(rtf.getLemmaForSkolem(k));
+    skAsserts.push_back(d_skdm->getDefinitionForSkolem(k));
   }
 }
 

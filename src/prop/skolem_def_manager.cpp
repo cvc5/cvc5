@@ -14,31 +14,34 @@
 
 #include "prop/skolem_def_manager.h"
 
-#include "smt/term_formula_removal.h"
+#include "expr/attribute.h"
 
 namespace CVC4 {
 namespace prop {
 
 SkolemDefManager::SkolemDefManager(context::Context* context,
-                                   context::UserContext* userContext,
-                                   RemoveTermFormulas& rtf)
-    : d_rtf(rtf), d_skDefs(userContext), d_skActive(context)
+                                   context::UserContext* userContext)
+    : d_skDefs(userContext), d_skActive(context)
 {
 }
 
 SkolemDefManager::~SkolemDefManager() {}
 
-void SkolemDefManager::notifySkolemDefinition(TNode skolem, TNode def)
+void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
 {
-  Assert(d_skDefs.find(skolem) == d_skDefs.end());
   Trace("sk-defs") << "notifySkolemDefinition: " << def << " for " << skolem
                    << std::endl;
-  d_skDefs[skolem] = def;
+  // in very rare cases, a skolem may be generated twice for terms that are
+  // equivalent up to purification
+  if (d_skDefs.find(skolem) == d_skDefs.end())
+  {
+    d_skDefs.insert(skolem, def);
+  }
 }
 
-TNode SkolemDefManager::getSkolemDefinitionFor(TNode skolem) const
+TNode SkolemDefManager::getDefinitionForSkolem(TNode skolem) const
 {
-  NodeMap::const_iterator it = d_skDefs.find(skolem);
+  NodeNodeMap::const_iterator it = d_skDefs.find(skolem);
   AlwaysAssert(it != d_skDefs.end()) << "No skolem def for " << skolem;
   return it->second;
 }
@@ -46,9 +49,8 @@ TNode SkolemDefManager::getSkolemDefinitionFor(TNode skolem) const
 void SkolemDefManager::notifyAsserted(TNode literal,
                                       std::vector<TNode>& activatedSkolems)
 {
-  NodeMap::iterator it;
   std::unordered_set<Node, NodeHashFunction> skolems;
-  d_rtf.getSkolems(literal, skolems);
+  getSkolems(literal, skolems);
   for (const Node& k : skolems)
   {
     if (d_skActive.find(k) != d_skActive.end())
@@ -60,6 +62,110 @@ void SkolemDefManager::notifyAsserted(TNode literal,
     // add to the activated list
     activatedSkolems.push_back(k);
   }
+}
+
+struct HasSkolemTag
+{
+};
+struct HasSkolemComputedTag
+{
+};
+/** Attribute true for nodes with skolems in them */
+typedef expr::Attribute<HasSkolemTag, bool> HasSkolemAttr;
+/** Attribute true for nodes where we have computed the above attribute */
+typedef expr::Attribute<HasSkolemComputedTag, bool> HasSkolemComputedAttr;
+
+bool SkolemDefManager::hasSkolems(TNode n) const
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    if (cur.getAttribute(HasSkolemComputedAttr()))
+    {
+      visit.pop_back();
+      // already computed
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getNumChildren() == 0)
+      {
+        visit.pop_back();
+        bool hasSkolem = false;
+        if (cur.isVar())
+        {
+          hasSkolem = (d_skDefs.find(cur) != d_skDefs.end());
+        }
+        cur.setAttribute(HasSkolemAttr(), hasSkolem);
+        cur.setAttribute(HasSkolemComputedAttr(), true);
+      }
+      else
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+    else
+    {
+      visit.pop_back();
+      bool hasSkolem = false;
+      for (TNode i : cur)
+      {
+        Assert(i.getAttribute(HasSkolemComputedAttr()));
+        if (i.getAttribute(HasSkolemAttr()))
+        {
+          hasSkolem = true;
+          break;
+        }
+      }
+      cur.setAttribute(HasSkolemAttr(), hasSkolem);
+      cur.setAttribute(HasSkolemComputedAttr(), true);
+    }
+  } while (!visit.empty());
+  Assert(n.getAttribute(HasSkolemComputedAttr()));
+  return n.getAttribute(HasSkolemAttr());
+}
+
+void SkolemDefManager::getSkolems(
+    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (!hasSkolems(cur))
+    {
+      // does not have skolems, continue
+      continue;
+    }
+    it = visited.find(cur);
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.isVar())
+      {
+        if (d_skDefs.find(cur) != d_skDefs.end())
+        {
+          skolems.insert(cur);
+        }
+      }
+      else
+      {
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+  } while (!visit.empty());
 }
 
 }  // namespace prop
