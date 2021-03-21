@@ -284,13 +284,13 @@ void PropEngine::assertLemmasInternal(
     if (!trn.isNull())
     {
       // notify the theory proxy of the lemma
-      d_decisionEngine->addAssertion(trn.getProven());
+      d_theoryProxy->notifyLemma(trn.getProven());
     }
     Assert(ppSkolems.size() == ppLemmas.size());
     for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
     {
       Node lem = ppLemmas[i].getProven();
-      d_decisionEngine->addSkolemDefinition(lem, ppSkolems[i]);
+      d_theoryProxy->notifyLemma(ppLemmas[i].getProven(), ppSkolems[i]);
     }
   }
 }
