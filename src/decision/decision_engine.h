@@ -43,21 +43,11 @@ class DecisionEngine
   /** Finish initialize */
   void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
 
-  /**
-   * This is called by SmtEngine, at shutdown time, just before
-   * destruction.  It is important because there are destruction
-   * ordering issues between some parts of the system.
-   */
-  void shutdown();
-
   /** Gets the next decision based on strategies that are enabled */
   prop::SatLiteral getNext(bool& stopSearch);
 
   /** Is the DecisionEngine in a state where it has solved everything? */
   bool isDone();
-
-  /** */
-  // void setResult(SatValue val);
 
   /**
    * Notify this class that assertion is an (input) assertion, not corresponding

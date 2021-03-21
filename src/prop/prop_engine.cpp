@@ -147,7 +147,6 @@ void PropEngine::finishInit()
 
 PropEngine::~PropEngine() {
   Debug("prop") << "Destructing the PropEngine" << std::endl;
-  d_decisionEngine->shutdown();
   d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_satSolver;

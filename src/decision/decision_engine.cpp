@@ -48,14 +48,6 @@ void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
   }
 }
 
-void DecisionEngine::shutdown()
-{
-  if (d_usingOld)
-  {
-    d_decEngineOld->shutdown();
-  }
-}
-
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
@@ -77,12 +69,6 @@ bool DecisionEngine::isDone()
   return false;
 }
 
-/*
-void DecisionEngine::setResult(SatValue val) {
-  d_result = val;
-}
-*/
-
 void DecisionEngine::addAssertion(TNode assertion)
 {
   if (d_usingOld)
@@ -103,18 +89,22 @@ bool DecisionEngine::hasSatLiteral(TNode n)
 {
   return d_cnfStream->hasLiteral(n);
 }
+
 prop::SatLiteral DecisionEngine::getSatLiteral(TNode n)
 {
   return d_cnfStream->getLiteral(n);
 }
+
 prop::SatValue DecisionEngine::getSatValue(prop::SatLiteral l)
 {
   return d_satSolver->value(l);
 }
+
 prop::SatValue DecisionEngine::getSatValue(TNode n)
 {
   return getSatValue(getSatLiteral(n));
 }
+
 Node DecisionEngine::getNode(prop::SatLiteral l)
 {
   return d_cnfStream->getNode(l);
