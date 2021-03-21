@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file decision_engine.h
+/*! \file justification_strategy.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Kshitij Bansal, Andrew Reynolds, Morgan Deters
@@ -9,33 +9,31 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Decision engine
- **
- ** Decision engine
+ ** \brief Justification strategy
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__DECISION__DECISION_ENGINE_H
-#define CVC4__DECISION__DECISION_ENGINE_H
+#ifndef CVC4__DECISION__JUSTIFICATION_STRATEGY_H
+#define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
+#include "base/output.h"
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "decision/justification_strategy.h"
 
 namespace CVC4 {
 
 class DecisionEngineOld;
 
-class DecisionEngine
+class JustificationStrategy
 {
  public:
   /** Constructor */
-  DecisionEngine(context::Context* sc,
-                 context::UserContext* uc,
-                 ResourceManager* rm);
+  JustificationStrategy(context::Context* c,
+                 context::UserContext* u);
 
   /** Finish initialize */
   void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
@@ -56,18 +54,27 @@ class DecisionEngine
    */
   void notifyRelevantAssertion(TNode lem);
 
- private:
-  /** Using old */
-  bool d_usingOld;
-  /** The old implementation */
-  std::unique_ptr<DecisionEngineOld> d_decEngineOld;
-  /** The new implementation */
-  std::unique_ptr<JustificationStrategy> d_jstrat;
-  /** Pointer to resource manager for associated SmtEngine */
-  ResourceManager* d_resourceManager;
+  /** Interface to SAT solver */
+  bool hasSatLiteral(TNode n);
+  prop::SatLiteral getSatLiteral(TNode n);
+  prop::SatValue getSatValue(prop::SatLiteral l);
+  prop::SatValue getSatValue(TNode n);
+  Node getNode(prop::SatLiteral l);
 
-};/* DecisionEngine class */
+ private:
+  /** SAT context */
+  context::Context* d_satContext;
+  /** User context */
+  context::UserContext* d_userContext;
+  /** CNF stream */
+  prop::CnfStream* d_cnfStream;
+  /** SAT solver */
+  prop::CDCLTSatSolverInterface* d_satSolver;
+  /** The assertions */
+  /** The active assertions */
+
+};
 
 }/* CVC4 namespace */
 
-#endif /* CVC4__DECISION__DECISION_ENGINE_H */
+#endif /* CVC4__DECISION__JUSTIFICATION_STRATEGY_H */

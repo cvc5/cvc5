@@ -23,15 +23,12 @@ using namespace std;
 
 namespace CVC4 {
 
-DecisionEngine::DecisionEngine(context::Context* sc,
-                               context::UserContext* uc,
+DecisionEngine::DecisionEngine(context::Context* c,
+                               context::UserContext* u,
                                ResourceManager* rm)
     : d_usingOld(true),
-      d_decEngineOld(new DecisionEngineOld(sc, uc)),
-      d_cnfStream(nullptr),
-      d_satSolver(nullptr),
-      d_satContext(sc),
-      d_userContext(uc),
+      d_decEngineOld(new DecisionEngineOld(c, u)),
+      d_jstrat(new JustificationStrategy(c, u)),
       d_resourceManager(rm)
 {
 }
@@ -39,12 +36,14 @@ DecisionEngine::DecisionEngine(context::Context* sc,
 void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
                                 prop::CnfStream* cs)
 {
-  d_satSolver = ss;
-  d_cnfStream = cs;
   if (d_usingOld)
   {
     d_decEngineOld->setSatSolver(ss);
     d_decEngineOld->setCnfStream(cs);
+  }
+  else
+  {
+    d_jstrat->finishInit(ss, cs);
   }
 }
 
@@ -55,8 +54,7 @@ prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
   {
     return d_decEngineOld->getNext(stopSearch);
   }
-  // FIXME
-  return d_decEngineOld->getNext(stopSearch);
+  return d_jstrat->getNext(stopSearch);
 }
 
 bool DecisionEngine::isDone()
@@ -65,8 +63,7 @@ bool DecisionEngine::isDone()
   {
     return d_decEngineOld->isDone();
   }
-  // FIXME
-  return false;
+  return d_jstrat->isDone();
 }
 
 void DecisionEngine::addAssertion(TNode assertion)
@@ -74,6 +71,10 @@ void DecisionEngine::addAssertion(TNode assertion)
   if (d_usingOld)
   {
     d_decEngineOld->addAssertion(assertion);
+  }
+  else
+  {
+    d_jstrat->addAssertion(assertion);
   }
 }
 
@@ -83,31 +84,17 @@ void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
   {
     d_decEngineOld->addSkolemDefinition(lem, skolem);
   }
+  // justification strategy does not use this
 }
 
-bool DecisionEngine::hasSatLiteral(TNode n)
+void DecisionEngine::notifyRelevantAssertion(TNode lem)
 {
-  return d_cnfStream->hasLiteral(n);
+  // old implementation does not use this
+  if (!d_usingOld)
+  {
+    d_jstrat->addSkolemDefinition(lem, skolem);
+  }
 }
 
-prop::SatLiteral DecisionEngine::getSatLiteral(TNode n)
-{
-  return d_cnfStream->getLiteral(n);
-}
-
-prop::SatValue DecisionEngine::getSatValue(prop::SatLiteral l)
-{
-  return d_satSolver->value(l);
-}
-
-prop::SatValue DecisionEngine::getSatValue(TNode n)
-{
-  return getSatValue(getSatLiteral(n));
-}
-
-Node DecisionEngine::getNode(prop::SatLiteral l)
-{
-  return d_cnfStream->getNode(l);
-}
 
 }/* CVC4 namespace */

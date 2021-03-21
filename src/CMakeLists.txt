@@ -42,6 +42,8 @@ libcvc4_add_sources(
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  decision/justification_strategy.cpp
+  decision/justification_strategy.h
   lib/clock_gettime.c
   lib/clock_gettime.h
   lib/ffs.c
