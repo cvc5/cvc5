@@ -53,12 +53,12 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
-void TheoryProxy::notifyAssertion(Node a, TNode skolem)
+void TheoryProxy::notifyPreprocessedAssertions(const std::vector<Node>& assertions)
 {
-  if (!skolem.isNull())
+  d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  for (const Node& assertion : assertions)
   {
-    // a skolem definition from input
-    d_skdm->notifySkolemDefinition(skolem, a);
+    d_decisionEngine->addAssertion(assertion);
   }
 }
 
@@ -70,7 +70,6 @@ void TheoryProxy::notifyLemma(Node lem, TNode skolem)
   }
   else
   {
-    // a skolem definition from input
     d_skdm->notifySkolemDefinition(skolem, lem);
     d_decisionEngine->addSkolemDefinition(lem, skolem);
   }
