@@ -34,7 +34,6 @@ RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u,
                                        ProofNodeManager* pnm)
     : d_tfCache(u),
       d_skolem_cache(u),
-      d_lemmaCache(u),
       d_pnm(pnm),
       d_tpg(nullptr),
       d_lp(nullptr)
@@ -497,9 +496,6 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
 
       newLem = theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
-      // store in the lemma cache
-      d_lemmaCache.insert(skolem, newLem);
-
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
       newLem.debugCheckClosed("rtf-proof-debug",
                               "RemoveTermFormulas::run:new_assert");
@@ -524,110 +520,6 @@ Node RemoveTermFormulas::getSkolemForNode(Node k) const
   return Node::null();
 }
 
-struct HasSkolemTag
-{
-};
-struct HasSkolemComputedTag
-{
-};
-/** Attribute true for nodes with skolems in them */
-typedef expr::Attribute<HasSkolemTag, bool> HasSkolemAttr;
-/** Attribute true for nodes where we have computed the above attribute */
-typedef expr::Attribute<HasSkolemComputedTag, bool> HasSkolemComputedAttr;
-
-bool RemoveTermFormulas::hasSkolems(TNode n) const
-{
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    if (cur.getAttribute(HasSkolemComputedAttr()))
-    {
-      visit.pop_back();
-      // already computed
-      continue;
-    }
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.getNumChildren() == 0)
-      {
-        visit.pop_back();
-        bool hasSkolem = false;
-        if (cur.isVar())
-        {
-          hasSkolem = (d_lemmaCache.find(cur) != d_lemmaCache.end());
-        }
-        cur.setAttribute(HasSkolemAttr(), hasSkolem);
-        cur.setAttribute(HasSkolemComputedAttr(), true);
-      }
-      else
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-    else
-    {
-      visit.pop_back();
-      bool hasSkolem = false;
-      for (TNode i : cur)
-      {
-        Assert(i.getAttribute(HasSkolemComputedAttr()));
-        if (i.getAttribute(HasSkolemAttr()))
-        {
-          hasSkolem = true;
-          break;
-        }
-      }
-      cur.setAttribute(HasSkolemAttr(), hasSkolem);
-      cur.setAttribute(HasSkolemComputedAttr(), true);
-    }
-  } while (!visit.empty());
-  Assert(n.getAttribute(HasSkolemComputedAttr()));
-  return n.getAttribute(HasSkolemAttr());
-}
-
-void RemoveTermFormulas::getSkolems(
-    TNode n, std::unordered_set<Node, NodeHashFunction>& skolems) const
-{
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (!hasSkolems(cur))
-    {
-      // does not have skolems, continue
-      continue;
-    }
-    it = visited.find(cur);
-    if (it == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.isVar())
-      {
-        if (d_lemmaCache.find(cur) != d_lemmaCache.end())
-        {
-          skolems.insert(cur);
-        }
-      }
-      else
-      {
-        visit.insert(visit.end(), cur.begin(), cur.end());
-      }
-    }
-  } while (!visit.empty());
-}
-
 Node RemoveTermFormulas::getAxiomFor(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -637,17 +529,6 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
     return nm->mkNode(kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
   }
   return Node::null();
-}
-
-theory::TrustNode RemoveTermFormulas::getLemmaForSkolem(TNode n) const
-{
-  context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>::
-      const_iterator it = d_lemmaCache.find(n);
-  if (it == d_lemmaCache.end())
-  {
-    return theory::TrustNode::null();
-  }
-  return (*it).second;
 }
 
 ProofGenerator* RemoveTermFormulas::getTConvProofGenerator()
