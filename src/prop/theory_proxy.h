@@ -154,7 +154,7 @@ class TheoryProxy : public Registrar
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
-  
+
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
 }; /* class TheoryProxy */
