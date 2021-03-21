@@ -63,6 +63,12 @@ class TheoryProxy : public Registrar
   /** Finish initialize */
   void finishInit(CnfStream* cnfStream);
 
+  /** Notify assertions. */
+  void notifyAssertion(Node lem, TNode skolem = TNode::null());
+
+  /** Notify a lemma, possibly corresponding to a skolem definition */
+  void notifyLemma(Node lem, TNode skolem = TNode::null());
+  
   void theoryCheck(theory::Theory::Effort effort);
 
   void explainPropagation(SatLiteral l, SatClause& explanation);

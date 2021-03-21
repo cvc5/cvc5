@@ -53,6 +53,24 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
+void TheoryProxy::notifyAssertion(Node lem, TNode skolem)
+{
+  if (!skolem.isNull())
+  {
+    // a skolem definition from input
+    d_skdm->notifySkolemDefinition(skolem, a);
+  }
+}
+
+void TheoryProxy::notifyLemma(Node lem, TNode skolem)
+{
+  if (!skolem.isNull())
+  {
+    // a skolem definition from input
+    d_skdm->notifySkolemDefinition(skolem, lem);
+  }
+}
+
 void TheoryProxy::variableNotify(SatVariable var) {
   d_theoryEngine->preRegister(getNode(SatLiteral(var)));
 }
