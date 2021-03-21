@@ -237,7 +237,7 @@ class TermRegistry
    * which rewrites to 3 = 3.
    * In the above example, we store "ABC" -> v_{"ABC"} in this map.
    */
-  std::map<Node, Node> d_proxyVar;
+  NodeNodeMap d_proxyVar;
   /**
    * Map from proxy variables to their normalized length. In the above example,
    * we store "ABC" -> 3.
