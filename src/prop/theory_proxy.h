@@ -68,7 +68,7 @@ class TheoryProxy : public Registrar
 
   /** Notify a lemma, possibly corresponding to a skolem definition */
   void notifyLemma(Node lem, TNode skolem = TNode::null());
-  
+
   void theoryCheck(theory::Theory::Effort effort);
 
   void explainPropagation(SatLiteral l, SatClause& explanation);
