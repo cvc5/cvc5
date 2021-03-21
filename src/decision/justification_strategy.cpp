@@ -20,8 +20,8 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u)
     : d_cnfStream(nullptr),
       d_satSolver(nullptr),
-      d_assertions(u, c),       // assertions are user-context dependent
-      d_skolemAssertions(c, c), // skolem assertions are SAT-context dependent
+      d_assertions(u, c),        // assertions are user-context dependent
+      d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
       d_current(c)
 {
 }
@@ -33,16 +33,16 @@ void JustificationStrategy::finishInit(prop::CDCLTSatSolverInterface* ss,
   d_cnfStream = cs;
 }
 
-prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch) {
+prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch)
+{
   // ensure we have an assertion
   refreshCurrentAssertion();
-  
 }
 
-bool JustificationStrategy::isDone() 
+bool JustificationStrategy::isDone()
 {
   refreshCurrentAssertion();
-  return d_current.get().isNull(); 
+  return d_current.get().isNull();
 }
 
 void JustificationStrategy::addAssertion(TNode assertion)

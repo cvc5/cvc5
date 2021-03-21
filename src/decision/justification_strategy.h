@@ -17,12 +17,12 @@
 #ifndef CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 #define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
+#include "context/cdo.h"
 #include "decision/assertion_list.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
-#include "context/cdo.h"
 
 namespace CVC4 {
 
