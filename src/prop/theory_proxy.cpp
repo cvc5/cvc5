@@ -42,7 +42,8 @@ TheoryProxy::TheoryProxy(PropEngine* propEngine,
       d_decisionEngine(decisionEngine),
       d_theoryEngine(theoryEngine),
       d_queue(context),
-      d_tpp(*theoryEngine, userContext, pnm)
+      d_tpp(*theoryEngine, userContext, pnm),
+      d_skdm(new SkolemDefManager(context, userContext))
 {
 }
 
@@ -194,16 +195,15 @@ theory::TrustNode TheoryProxy::removeItes(
 }
 
 void TheoryProxy::getSkolems(TNode node,
-                             std::vector<theory::TrustNode>& skAsserts,
+                             std::vector<Node>& skAsserts,
                              std::vector<Node>& sks)
 {
-  RemoveTermFormulas& rtf = d_tpp.getRemoveTermFormulas();
   std::unordered_set<Node, NodeHashFunction> skolems;
-  rtf.getSkolems(node, skolems);
+  d_skdm->getSkolems(node, skolems);
   for (const Node& k : skolems)
   {
     sks.push_back(k);
-    skAsserts.push_back(rtf.getLemmaForSkolem(k));
+    skAsserts.push_back(d_skdm->getDefinitionForSkolem(k));
   }
 }
 

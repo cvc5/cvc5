@@ -29,6 +29,7 @@
 #include "expr/node.h"
 #include "prop/registrar.h"
 #include "prop/sat_solver_types.h"
+#include "prop/skolem_def_manager.h"
 #include "theory/theory.h"
 #include "theory/theory_preprocessor.h"
 #include "theory/trust_node.h"
@@ -124,7 +125,7 @@ class TheoryProxy : public Registrar
    * fixed point is reached.
    */
   void getSkolems(TNode node,
-                  std::vector<theory::TrustNode>& skAsserts,
+                  std::vector<Node>& skAsserts,
                   std::vector<Node>& sks);
   /** Preregister term */
   void preRegister(Node n) override;
@@ -153,6 +154,9 @@ class TheoryProxy : public Registrar
 
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
+  
+  /** The skolem definition manager */
+  std::unique_ptr<SkolemDefManager> d_skdm;
 }; /* class TheoryProxy */
 
 }/* CVC4::prop namespace */

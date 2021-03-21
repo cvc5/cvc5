@@ -39,7 +39,7 @@ void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
   }
 }
 
-TNode SkolemDefManager::getSkolemDefinitionFor(TNode skolem) const
+TNode SkolemDefManager::getDefinitionForSkolem(TNode skolem) const
 {
   NodeNodeMap::const_iterator it = d_skDefs.find(skolem);
   AlwaysAssert(it != d_skDefs.end()) << "No skolem def for " << skolem;
