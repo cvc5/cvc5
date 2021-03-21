@@ -116,7 +116,7 @@ class JustificationHeuristic : public ITEDecisionStrategy {
     }
   };
 
-public:
+ public:
   JustificationHeuristic(DecisionEngineOld* de,
                          context::UserContext *uc,
                          context::Context *c);
