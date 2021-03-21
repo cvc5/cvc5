@@ -21,13 +21,14 @@
 
 using namespace std;
 
+#define USING_OLD
+
 namespace CVC4 {
 
 DecisionEngine::DecisionEngine(context::Context* c,
                                context::UserContext* u,
                                ResourceManager* rm)
-    : d_usingOld(true),
-      d_decEngineOld(new DecisionEngineOld(c, u)),
+    : d_decEngineOld(new DecisionEngineOld(c, u)),
       d_jstrat(new JustificationStrategy(c, u)),
       d_resourceManager(rm)
 {
@@ -36,64 +37,55 @@ DecisionEngine::DecisionEngine(context::Context* c,
 void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss,
                                 prop::CnfStream* cs)
 {
-  if (d_usingOld)
-  {
-    d_decEngineOld->setSatSolver(ss);
-    d_decEngineOld->setCnfStream(cs);
-  }
-  else
-  {
-    d_jstrat->finishInit(ss, cs);
-  }
+#ifdef USING_OLD
+  d_decEngineOld->setSatSolver(ss);
+  d_decEngineOld->setCnfStream(cs);
+  return;
+#endif
+  d_jstrat->finishInit(ss, cs);
 }
 
 prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
-  if (d_usingOld)
-  {
-    return d_decEngineOld->getNext(stopSearch);
-  }
+#ifdef USING_OLD
+  return d_decEngineOld->getNext(stopSearch);
+#endif
   return d_jstrat->getNext(stopSearch);
 }
 
 bool DecisionEngine::isDone()
 {
-  if (d_usingOld)
-  {
-    return d_decEngineOld->isDone();
-  }
+#ifdef USING_OLD
+  return d_decEngineOld->isDone();
+#endif
   return d_jstrat->isDone();
 }
 
 void DecisionEngine::addAssertion(TNode assertion)
 {
-  if (d_usingOld)
-  {
-    d_decEngineOld->addAssertion(assertion);
-  }
-  else
-  {
-    d_jstrat->addAssertion(assertion);
-  }
+#ifdef USING_OLD
+  d_decEngineOld->addAssertion(assertion);
+  return;
+#endif
+  d_jstrat->addAssertion(assertion);
 }
 
 void DecisionEngine::addSkolemDefinition(TNode lem, TNode skolem)
 {
-  if (d_usingOld)
-  {
-    d_decEngineOld->addSkolemDefinition(lem, skolem);
-  }
+#ifdef USING_OLD
+  d_decEngineOld->addSkolemDefinition(lem, skolem);
+#endif
   // justification strategy does not use this
 }
 
 void DecisionEngine::notifyRelevantSkolemAssertion(TNode lem)
 {
+#ifdef USING_OLD
+  return;
+#endif
   // old implementation does not use this
-  if (!d_usingOld)
-  {
-    d_jstrat->notifyRelevantSkolemAssertion(lem, skolem);
-  }
+  d_jstrat->notifyRelevantSkolemAssertion(lem);
 }
 
 }/* CVC4 namespace */

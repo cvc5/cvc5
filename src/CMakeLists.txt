@@ -33,7 +33,7 @@ libcvc4_add_sources(
   context/context.cpp
   context/context.h
   context/context_mm.cpp
-  context/context_mm.
+  context/context_mm.h
   decision/assertion_list.cpp
   decision/assertion_list.h
   decision/decision_attributes.h

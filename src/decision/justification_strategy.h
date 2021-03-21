@@ -22,6 +22,7 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
+#include "context/cdo.h"
 
 namespace CVC4 {
 
@@ -58,10 +59,8 @@ class JustificationStrategy
   Node getNode(prop::SatLiteral l);
 
  private:
-  /** SAT context */
-  context::Context* d_satContext;
-  /** User context */
-  context::UserContext* d_userContext;
+  /** Refresh current */
+  void refreshCurrentAssertion();
   /** CNF stream */
   prop::CnfStream* d_cnfStream;
   /** SAT solver */
@@ -70,6 +69,8 @@ class JustificationStrategy
   AssertionList d_assertions;
   /** The skolem assertions */
   AssertionList d_skolemAssertions;
+  /** The current assertion we are trying to satisfy */
+  context::CDO<TNode> d_current;
 };
 
 }  // namespace CVC4

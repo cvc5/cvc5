@@ -52,13 +52,17 @@ class DecisionEngine
    */
   void addAssertion(TNode assertion);
   /**
+   * TODO: remove this interface
+   * Notify this class  that lem is the skolem definition for skolem, which is
+   * a part of the current assertions.
+   */
+  void addSkolemDefinition(TNode lem, TNode skolem);
+  /**
    * Notify this class that lem is an active assertion in this SAT context
    */
   void notifyRelevantSkolemAssertion(TNode lem);
 
  private:
-  /** Using old */
-  bool d_usingOld;
   /** The old implementation */
   std::unique_ptr<DecisionEngineOld> d_decEngineOld;
   /** The new implementation */

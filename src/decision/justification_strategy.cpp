@@ -18,12 +18,11 @@ namespace CVC4 {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u)
-    : d_satContext(c),
-      d_userContext(u),
-      d_cnfStream(nullptr),
+    : d_cnfStream(nullptr),
       d_satSolver(nullptr),
-      d_assertions(u, c),
-      d_skolemAssertions(c, c)
+      d_assertions(u, c),       // assertions are user-context dependent
+      d_skolemAssertions(c, c), // skolem assertions are SAT-context dependent
+      d_current(c)
 {
 }
 
@@ -34,9 +33,17 @@ void JustificationStrategy::finishInit(prop::CDCLTSatSolverInterface* ss,
   d_cnfStream = cs;
 }
 
-prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch) {}
+prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch) {
+  // ensure we have an assertion
+  refreshCurrentAssertion();
+  
+}
 
-bool JustificationStrategy::isDone() { return false; }
+bool JustificationStrategy::isDone() 
+{
+  refreshCurrentAssertion();
+  return d_current.get().isNull(); 
+}
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
@@ -71,6 +78,22 @@ prop::SatValue JustificationStrategy::getSatValue(TNode n)
 Node JustificationStrategy::getNode(prop::SatLiteral l)
 {
   return d_cnfStream->getNode(l);
+}
+
+void JustificationStrategy::refreshCurrentAssertion()
+{
+  // if we already have a current assertion, we are done
+  if (!d_current.get().isNull())
+  {
+    return;
+  }
+  // use main assertions, then skolem assertions
+  d_current = d_assertions.getNextAssertion();
+  if (!d_current.get().isNull())
+  {
+    return;
+  }
+  d_current = d_skolemAssertions.getNextAssertion();
 }
 
 }  // namespace CVC4
