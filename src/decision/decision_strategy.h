@@ -27,7 +27,7 @@
 
 namespace CVC4 {
 
-class DecisionEngine;
+class DecisionEngineOld;
 
 namespace context {
   class Context;
@@ -37,9 +37,9 @@ namespace decision {
 
 class DecisionStrategy {
 protected:
-  DecisionEngine* d_decisionEngine;
+  DecisionEngineOld* d_decisionEngine;
 public:
-  DecisionStrategy(DecisionEngine* de, context::Context *c) :
+  DecisionStrategy(DecisionEngineOld* de, context::Context *c) :
     d_decisionEngine(de) {
   }
 
@@ -50,7 +50,7 @@ public:
 
 class ITEDecisionStrategy : public DecisionStrategy {
 public:
-  ITEDecisionStrategy(DecisionEngine* de, context::Context *c) :
+  ITEDecisionStrategy(DecisionEngineOld* de, context::Context *c) :
     DecisionStrategy(de, c) {
   }
   /**

@@ -13,7 +13,7 @@
  **
  ** Decision engine
  **/
-#include "decision/decision_engine.h"
+#include "decision/decision_engine_old.h"
 
 #include "decision/decision_attributes.h"
 #include "decision/justification_heuristic.h"

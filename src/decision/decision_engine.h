@@ -27,6 +27,7 @@
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 #include "util/result.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 
@@ -39,8 +40,9 @@ class DecisionEngine
   DecisionEngine(context::Context* sc,
                  context::UserContext* uc,
                  ResourceManager* rm);
+  
   /** Finish initialize */
-  void finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs);
+  void finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs);
 
   /**
    * This is called by SmtEngine, at shutdown time, just before
@@ -50,7 +52,7 @@ class DecisionEngine
   void shutdown();
 
   /** Gets the next decision based on strategies that are enabled */
-  SatLiteral getNext(bool& stopSearch);
+  prop::SatLiteral getNext(bool& stopSearch);
 
   /** Is the DecisionEngine in a state where it has solved everything? */
   bool isDone();
@@ -70,10 +72,10 @@ class DecisionEngine
   void addSkolemDefinition(TNode lem, TNode skolem);
 
   bool hasSatLiteral(TNode n);
-  SatLiteral getSatLiteral(TNode n);
-  SatValue getSatValue(SatLiteral l);
-  SatValue getSatValue(TNode n);
-  Node getNode(SatLiteral l);
+  prop::SatLiteral getSatLiteral(TNode n);
+  prop::SatValue getSatValue(prop::SatLiteral l);
+  prop::SatValue getSatValue(TNode n);
+  Node getNode(prop::SatLiteral l);
 
  private:
   /** Using old */
@@ -81,9 +83,9 @@ class DecisionEngine
   /** The old implementation */
   std::unique_ptr<DecisionEngineOld> d_decEngineOld;
   /** CNF stream */
-  CnfStream* d_cnfStream;
+  prop::CnfStream* d_cnfStream;
   /** SAT solver */
-  CDCLTSatSolverInterface* d_satSolver;
+  prop::CDCLTSatSolverInterface* d_satSolver;
   /** SAT context */
   context::Context* d_satContext;
   /** User context */

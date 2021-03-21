@@ -19,7 +19,7 @@
 #include "justification_heuristic.h"
 
 #include "decision/decision_attributes.h"
-#include "decision/decision_engine.h"
+#include "decision/decision_engine_old.h"
 #include "expr/kind.h"
 #include "expr/node_manager.h"
 #include "options/decision_options.h"
@@ -28,10 +28,12 @@
 #include "theory/rewriter.h"
 #include "util/random.h"
 
+using namespace CVC4::prop;
+
 namespace CVC4 {
 namespace decision {
 
-JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
+JustificationHeuristic::JustificationHeuristic(DecisionEngineOld* de,
                                                context::UserContext* uc,
                                                context::Context* c)
     : ITEDecisionStrategy(de, c),

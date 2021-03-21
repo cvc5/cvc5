@@ -15,12 +15,9 @@
  **/
 #include "decision/decision_engine.h"
 
-#include "decision/decision_attributes.h"
-#include "decision/justification_heuristic.h"
-#include "expr/node.h"
-#include "options/decision_options.h"
-#include "options/smt_options.h"
+#include "decision/decision_engine_old.h"
 #include "util/resource_manager.h"
+#include "prop/sat_solver.h"
 
 using namespace std;
 
@@ -30,7 +27,7 @@ DecisionEngine::DecisionEngine(context::Context* sc,
                                context::UserContext* uc,
                                ResourceManager* rm)
     : d_usingOld(true),
-      d_decEngineOld(new DecisionEngineOld(sc, uc, rm)),
+      d_decEngineOld(new DecisionEngineOld(sc, uc)),
       d_cnfStream(nullptr),
       d_satSolver(nullptr),
       d_satContext(sc),
@@ -39,7 +36,7 @@ DecisionEngine::DecisionEngine(context::Context* sc,
 {
 }
 
-void DecisionEngine::finishInit(CDCLTSatSolverInterface* ss, CnfStream* cs)
+void DecisionEngine::finishInit(prop::CDCLTSatSolverInterface* ss, prop::CnfStream* cs)
 {
   d_satSolver = ss;
   d_cnfStream = cs;
@@ -58,7 +55,7 @@ void DecisionEngine::shutdown()
   }
 }
 
-SatLiteral DecisionEngine::getNext(bool& stopSearch)
+prop::SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
   d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
   if (d_usingOld)
@@ -105,18 +102,18 @@ bool DecisionEngine::hasSatLiteral(TNode n)
 {
   return d_cnfStream->hasLiteral(n);
 }
-SatLiteral DecisionEngine::getSatLiteral(TNode n)
+prop::SatLiteral DecisionEngine::getSatLiteral(TNode n)
 {
   return d_cnfStream->getLiteral(n);
 }
-SatValue DecisionEngine::getSatValue(SatLiteral l)
+prop::SatValue DecisionEngine::getSatValue(prop::SatLiteral l)
 {
   return d_satSolver->value(l);
 }
-SatValue DecisionEngine::getSatValue(TNode n)
+prop::SatValue DecisionEngine::getSatValue(TNode n)
 {
   return getSatValue(getSatLiteral(n));
 }
-Node DecisionEngine::getNode(SatLiteral l) { return d_cnfStream->getNode(l); }
+Node DecisionEngine::getNode(prop::SatLiteral l) { return d_cnfStream->getNode(l); }
 
 }/* CVC4 namespace */

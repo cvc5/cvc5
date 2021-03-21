@@ -56,8 +56,7 @@ class DecisionEngineOld
 
   /** Constructor */
   DecisionEngineOld(context::Context* sc,
-                    context::UserContext* uc,
-                    ResourceManager* rm);
+                    context::UserContext* uc);
 
   /** Destructor, currently does nothing */
   ~DecisionEngineOld()
