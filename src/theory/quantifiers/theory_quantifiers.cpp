@@ -87,19 +87,19 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
 
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(
-      d_qstate, d_qreg, d_treg, *qim.get(), d_qmodel.get(), pnm));
+      d_qstate, d_qreg, d_treg, *d_qim.get(), d_qmodel.get(), pnm));
 
   //!!!!!!!!!!!!!! temporary (project #15)
   d_qmodel->finishInit(d_qengine.get());
 
+  // indicate we are using the quantifiers theory state object
+  d_theoryState = &d_qstate;
+  // use the inference manager as the official inference manager
+  d_inferManager = d_qim.get();
   // Set the pointer to the quantifiers engine, which this theory owns. This
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
   d_quantEngine = d_qengine.get();
-  // indicate we are using the quantifiers theory state object
-  d_theoryState = &d_qstate;
-  // use the inference manager as the official inference manager
-  d_inferManager = &d_qim;
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
