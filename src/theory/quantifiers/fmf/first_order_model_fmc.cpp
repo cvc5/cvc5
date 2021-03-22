@@ -32,7 +32,7 @@ namespace fmcheck {
 struct IsStarAttributeId
 {
 };
-typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
+using IsStarAttribute = expr::Attribute<IsStarAttributeId, bool>;
 
 FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
