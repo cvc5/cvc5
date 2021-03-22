@@ -29,6 +29,7 @@ SkolemDefManager::~SkolemDefManager() {}
 
 void SkolemDefManager::notifySkolemDefinition(TNode skolem, Node def)
 {
+  // Notice that skolem may have kind SKOLEM or BOOLEAN_TERM_VARIABLE
   Trace("sk-defs") << "notifySkolemDefinition: " << def << " for " << skolem
                    << std::endl;
   // in very rare cases, a skolem may be generated twice for terms that are
