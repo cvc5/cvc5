@@ -6229,7 +6229,7 @@ std::string Solver::getOption(const std::string& option) const
 {
   CVC4_API_TRY_CATCH_BEGIN;
   //////// all checks before this line
-  SExpr res = d_smtEngine->getOption(option);
+  Node res = d_smtEngine->getOption(option);
   return res.toString();
   ////////
   CVC4_API_TRY_CATCH_END;

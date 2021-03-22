@@ -34,7 +34,6 @@
 namespace CVC4 {
 
 class Command;
-class SExpr;
 
 namespace api {
 class Solver;
