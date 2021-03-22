@@ -74,9 +74,9 @@ class NlLemma;
  * which is called by TheoryArithPrivate either:
  * (1) at full effort with no conflicts or lemmas emitted, or
  * (2) at last call effort.
- * In this method, this class calls d_out->lemma(...)
+ * In this method, this class calls d_im.lemma(...)
  * for valid arithmetic theory lemmas, based on the current set of assertions,
- * where d_out is the output channel of TheoryArith.
+ * where d_im is the inference manager of TheoryArith.
  */
 class NonlinearExtension
 {
@@ -94,8 +94,8 @@ class NonlinearExtension
   void preRegisterTerm(TNode n);
   /** Check at effort level e.
    *
-   * This call may result in (possibly multiple) calls to d_out->lemma(...)
-   * where d_out is the output channel of TheoryArith.
+   * This call may result in (possibly multiple) calls to d_im.lemma(...)
+   * where d_im is the inference manager of TheoryArith.
    *
    * If e is FULL, then we add lemmas based on context-depedent
    * simplification (see Reynolds et al FroCoS 2017).
