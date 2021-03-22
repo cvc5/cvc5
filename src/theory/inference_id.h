@@ -294,6 +294,29 @@ enum class InferenceId
   SEP_PTO_NEG_PROP,
   // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
   SEP_PTO_PROP,
+  // introduces a label for a heap, of the form U => L, where U is an
+  // unlabelled separation logic predicate and L is its labelled form
+  SEP_LABEL_INTRO,
+  // introduces the set constraints for a label
+  SEP_LABEL_DEF,
+  // lemma for sep.emp
+  SEP_EMP,
+  // positive reduction for sep constraint
+  SEP_POS_REDUCTION,
+  // negative reduction for sep constraint
+  SEP_NEG_REDUCTION,
+  // model-based refinement for negated star/wand
+  SEP_REFINEMENT,
+  // sep.nil is not in the heap
+  SEP_NIL_NOT_IN_HEAP,
+  // a symmetry breaking lemma
+  SEP_SYM_BREAK,
+  // finite witness data lemma
+  SEP_WITNESS_FINITE_DATA,
+  // element distinctness lemma
+  SEP_DISTINCT_REF,
+  // reference bound lemma
+  SEP_REF_BOUND,
   // ---------------------------------- end sep theory
 
   // ---------------------------------- sets theory

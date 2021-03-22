@@ -142,13 +142,19 @@ bool Integer::isBitSet(uint32_t i) const
   return !extractBitRange(1, i).isZero();
 }
 
-Integer Integer::setBit(uint32_t i, bool value) const
+void Integer::setBit(uint32_t i, bool value)
 {
   cln::cl_I mask(1);
   mask = mask << i;
-  if (value) return Integer(cln::logior(d_value, mask));
-  mask = cln::lognot(mask);
-  return Integer(cln::logand(d_value, mask));
+  if (value)
+  {
+    d_value = cln::logior(d_value, mask);
+  }
+  else
+  {
+    mask = cln::lognot(mask);
+    d_value = cln::logand(d_value, mask);
+  }
 }
 
 Integer Integer::oneExtend(uint32_t size, uint32_t amount) const

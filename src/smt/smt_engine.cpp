@@ -462,13 +462,14 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
   }
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
   {
-    language::input::Language ilang = language::input::LANG_AUTO;
+    language::input::Language ilang = language::input::LANG_SMTLIB_V2_6;
 
-    if (value == "2.6")
+    if (value != "2" && value != "2.6")
     {
-      ilang = language::input::LANG_SMTLIB_V2_6;
+      Warning() << "SMT-LIB version " << value
+                << " unsupported, defaulting to language (and semantics of) "
+                   "SMT-LIB 2.6\n";
     }
-
     options::inputLanguage.set(ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
