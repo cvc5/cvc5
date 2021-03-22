@@ -111,13 +111,6 @@ class PropEngine
   theory::TrustNode removeItes(TNode node,
                                std::vector<theory::TrustNode>& ppLemmas,
                                std::vector<Node>& ppSkolems);
-  /**
-   * Notify preprocessed assertions. This method is called just before the
-   * assertions are asserted to this prop engine. This method notifies the
-   * theory engine of the given assertions. Notice this vector includes
-   * both the input formulas and the skolem definitions.
-   */
-  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
@@ -126,19 +119,8 @@ class PropEngine
    * by term formula removal (which instead should use the interface below).
    * @param node the formula to assert
    */
-  void assertFormula(TNode node);
-  /**
-   * Same as above, but node corresponds to the skolem definition of the given
-   * skolem.
-   * @param node the formula to assert
-   * @param skolem the skolem that this lemma defines.
-   *
-   * For example, if k is introduced by ITE removal of (ite C x y), then node
-   * is the formula (ite C (= k x) (= k y)).  It is important to distinguish
-   * these kinds of lemmas from input assertions, as the justification decision
-   * heuristic treates them specially.
-   */
-  void assertSkolemDefinition(TNode node, TNode skolem);
+  void assertInputFormulas(const std::vector<Node>& assertions,
+    std::unordered_map<size_t, Node>& skolemMap);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.

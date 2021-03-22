@@ -171,13 +171,6 @@ theory::TrustNode PropEngine::removeItes(
   return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
 }
 
-void PropEngine::notifyPreprocessedAssertions(
-    const std::vector<Node>& assertions)
-{
-  // notify the theory proxy of preprocessed assertions
-  d_theoryProxy->notifyPreprocessedAssertions(assertions);
-}
-
 void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << std::endl;
@@ -186,12 +179,33 @@ void PropEngine::assertFormula(TNode node) {
   assertInternal(node, false, false, true);
 }
 
-void PropEngine::assertSkolemDefinition(TNode node, TNode skolem)
+
+void PropEngine::assertInputFormulas(const std::vector<Node>& assertions,
+    std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  d_theoryProxy->notifyAssertion(node, skolem);
-  assertInternal(node, false, false, true);
+  // notify the theory proxy of preprocessed assertions
+  d_theoryProxy->notifyPreprocessedAssertions(assertions);
+  std::unordered_map<size_t, Node>::iterator it;
+  for (size_t i = 0, asize = assertions.size(); i < asize; i++)
+  {
+    // is the assertion a skolem definition?
+    it = skolemMap.find(i);
+    if (it == skolemMap.end())
+    {
+      Debug("prop") << "assertFormula(" << node << ")" << std::endl;
+      // NOTE: we do not notify the theory proxy here, since we've already
+      // notified the theory proxy during notifyPreprocessedAssertions
+      assertInternal(node, false, false, true);
+    }
+    else
+    {
+      Debug("prop") << "assertFormula(" << node << "), (from "
+              << it->second << ")" << std::endl;
+      d_theoryProxy->notifyAssertion(node, skolem);
+      assertInternal(node, false, false, true);
+    }
+  }
 }
 
 void PropEngine::assertLemma(theory::TrustNode tlemma, theory::LemmaProperty p)
