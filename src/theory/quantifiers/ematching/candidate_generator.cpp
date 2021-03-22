@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
@@ -193,7 +194,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
       if( !nh.isNull() ){
         if (options::instMaxLevel() != -1)
         {
-          nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
+          nh = d_qe->getModel()->getInternalRepresentative(nh, d_f, d_index);
           //don't consider this if already the instantiation is ineligible
           if (!nh.isNull() && !tdb->isTermEligibleForInstantiation(nh, d_f))
           {

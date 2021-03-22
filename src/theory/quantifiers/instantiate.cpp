@@ -128,7 +128,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
-      terms[i] = d_qe->getInternalRepresentative(terms[i], q, i);
+      terms[i] = d_qe->getModel()->getInternalRepresentative(terms[i], q, i);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())

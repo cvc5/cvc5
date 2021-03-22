@@ -62,7 +62,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_treg(tr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(qm),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, qm)),
       d_instantiate(
           new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
       d_skolemize(new quantifiers::Skolemize(d_qstate, d_pnm)),
@@ -70,7 +69,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_quants_red(qstate.getUserContext())
 {
   // initialize the utilities
-  d_util.push_back(d_eq_query.get());
+  d_util.push_back(d_model->getEqualityQuery());
   // quantifiers registry must come before the remaining utilities
   d_util.push_back(&d_qreg);
   d_util.push_back(tr.getTermDatabase());
@@ -713,10 +712,6 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
-}
-
-Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
-  return d_eq_query->getInternalRepresentative(a, q, index);
 }
 
 Node QuantifiersEngine::getNameForQuant(Node q) const
