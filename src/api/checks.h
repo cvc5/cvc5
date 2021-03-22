@@ -429,16 +429,18 @@ namespace api {
 /**
  * Codomain sort check for member functions of class Solver.
  * Check if codomain sort is not null, associated with this solver, and a
- * first-class sort.
+ * first-class, non-function sort.
  */
-#define CVC4_API_SOLVER_CHECK_CODOMAIN_SORT(sort)                         \
-  do                                                                      \
-  {                                                                       \
-    CVC4_API_ARG_CHECK_NOT_NULL(sort);                                    \
-    CVC4_API_CHECK(this == sort.d_solver)                                 \
-        << "Given sort is not associated with this solver";               \
-    CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)                \
-        << "first-class sort as codomain sort";                           \
+#define CVC4_API_SOLVER_CHECK_CODOMAIN_SORT(sort)           \
+  do                                                        \
+  {                                                         \
+    CVC4_API_ARG_CHECK_NOT_NULL(sort);                      \
+    CVC4_API_CHECK(this == sort.d_solver)                   \
+        << "Given sort is not associated with this solver"; \
+    CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)  \
+        << "first-class sort as codomain sort";             \
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)   \
+        << "function sort as codomain sort";                \
   } while (0)
 
 /* Term checks. ------------------------------------------------------------- */
