@@ -439,6 +439,8 @@ namespace api {
         << "Given sort is not associated with this solver";               \
     CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)                \
         << "first-class sort as codomain sort";                           \
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isFunction(), sort)                 \
+        << "function sort as codomain sort";                              \
   } while (0)
 
 /* Term checks. ------------------------------------------------------------- */
