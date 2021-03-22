@@ -162,7 +162,11 @@ private:
                     const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
-  /** Is t a higher order type? */
+  /**
+   * Is t a higher order type? A higher-order type is a function type having
+   * an argument type that is also a function type. This is used for checking
+   * logic exceptions.
+   */
   bool isHigherOrderType(TypeNode tn);
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
