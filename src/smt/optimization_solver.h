@@ -305,8 +305,6 @@ public:
     Kind LTOperator = ((d_isSigned) ? (kind::BITVECTOR_SLT) : (kind::BITVECTOR_ULT));
     Kind GEOperator = ((d_isSigned) ? (kind::BITVECTOR_SGE) : (kind::BITVECTOR_UGE));
     BitVector pivot;
-    // int counter = 0;
-    // int counter2 = 0;
     while (true) {
       if (d_isSigned) {
         if (!lowerBound.signedLessThan(upperBound)) break;
@@ -328,9 +326,6 @@ public:
       if (intermediateSatResult.isSat() == Result::SAT) {
         value = optChecker->getValue(target);
         upperBound = value.getConst<BitVector>();
-        
-        // counter += 1;
-        // if (counter > 100) return std::make_pair(OptResult::OPT_UNBOUNDED, value);
       } else if (intermediateSatResult.isSat() == Result::UNSAT) {
         
         if (lowerBound == pivot) {
@@ -341,8 +336,6 @@ public:
         } else {
           lowerBound = pivot;
         }
-        // counter2 += 1;
-        // if (counter2 > 100) return std::make_pair(OptResult::OPT_UNBOUNDED, value);
       } else {
         return std::make_pair(OptResult::OPT_UNKNOWN, value);
       }
@@ -385,8 +378,6 @@ public:
     Kind LEOperator = ((d_isSigned) ? (kind::BITVECTOR_SLE) : (kind::BITVECTOR_ULE));
     Kind GTOperator = ((d_isSigned) ? (kind::BITVECTOR_SGT) : (kind::BITVECTOR_UGT));
     BitVector pivot;
-    int counter = 0;
-    // int counter2 = 0;
     while (true) {
       if (d_isSigned) {
         if (!lowerBound.signedLessThan(upperBound)) break;
@@ -409,11 +400,6 @@ public:
       if (intermediateSatResult.isSat() == Result::SAT) {
         value = optChecker->getValue(target);
         lowerBound = value.getConst<BitVector>();
-        counter += 1;
-        if (counter > 299) {
-          // Assert(value.getConst<BitVector>() == pivot);
-          return std::make_pair(OptResult::OPT_UNKNOWN, nm->mkConst(pivot));
-        }
       } else if (intermediateSatResult.isSat() == Result::UNSAT) {
         if (lowerBound == pivot) {
           // upperbound = lowerbound + 1 
