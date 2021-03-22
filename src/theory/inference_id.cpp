@@ -174,6 +174,17 @@ const char* toString(InferenceId i)
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
+    case InferenceId::SEP_LABEL_INTRO: return "SEP_LABEL_INTRO";
+    case InferenceId::SEP_LABEL_DEF: return "SEP_LABEL_DEF";
+    case InferenceId::SEP_EMP: return "SEP_EMP";
+    case InferenceId::SEP_POS_REDUCTION: return "SEP_POS_REDUCTION";
+    case InferenceId::SEP_NEG_REDUCTION: return "SEP_NEG_REDUCTION";
+    case InferenceId::SEP_REFINEMENT: return "SEP_REFINEMENT";
+    case InferenceId::SEP_NIL_NOT_IN_HEAP: return "SEP_NIL_NOT_IN_HEAP";
+    case InferenceId::SEP_SYM_BREAK: return "SEP_SYM_BREAK";
+    case InferenceId::SEP_WITNESS_FINITE_DATA: return "SEP_WITNESS_FINITE_DATA";
+    case InferenceId::SEP_DISTINCT_REF: return "SEP_DISTINCT_REF";
+    case InferenceId::SEP_REF_BOUND: return "SEP_REF_BOUND";
 
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";

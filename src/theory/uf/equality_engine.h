@@ -93,6 +93,9 @@ class EqualityEngine : public context::ContextNotifyObj {
    */
   void setMasterEqualityEngine(EqualityEngine* master);
 
+  /** Print the equivalence classes for debugging */
+  std::string debugPrintEqc() const;
+
   /** Statistics about the equality engine instance */
   struct Statistics
   {
