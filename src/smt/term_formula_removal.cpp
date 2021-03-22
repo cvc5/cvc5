@@ -291,6 +291,12 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
           "a variable introduced due to term-level ITE removal");
       d_skolem_cache.insert(node, skolem);
 
+      // Notice that in very rare cases, two different terms may have the
+      // same purification skolem (see SkolemManager::mkPurifySkolem) For such
+      // cases, for simplicity, we repeat the work of constructing the
+      // assertion and proofs below. This is so that the proof for the new form
+      // of the lemma is used.
+
       // The new assertion
       newAssertion = nodeManager->mkNode(
           kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
