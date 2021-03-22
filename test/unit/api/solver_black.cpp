@@ -213,10 +213,10 @@ TEST_F(TestApiBlackSolver, mkFunctionSort)
       d_solver.getIntegerSort()));
   Sort funSort2 = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                           d_solver.getIntegerSort());
-  ASSERT_THROW(
+  // function arguments are allowed
+  ASSERT_NO_THROW(
       d_solver.mkFunctionSort({funSort2, d_solver.mkUninterpretedSort("u")},
-                              d_solver.getIntegerSort()),
-      CVC4ApiException);
+                              d_solver.getIntegerSort()));
   ASSERT_THROW(d_solver.mkFunctionSort({d_solver.getIntegerSort(),
                                         d_solver.mkUninterpretedSort("u")},
                                        funSort2),
