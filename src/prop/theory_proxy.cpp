@@ -53,7 +53,8 @@ TheoryProxy::~TheoryProxy() {
 
 void TheoryProxy::finishInit(CnfStream* cnfStream) { d_cnfStream = cnfStream; }
 
-void TheoryProxy::notifyPreprocessedAssertions(const std::vector<Node>& assertions)
+void TheoryProxy::notifyPreprocessedAssertions(
+    const std::vector<Node>& assertions)
 {
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
   for (const Node& assertion : assertions)
