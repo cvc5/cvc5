@@ -409,6 +409,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // will never succeed with 1 variable
     return false;
   }
+  TermDb* tdb = d_treg.getTermDatabase();
   Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];

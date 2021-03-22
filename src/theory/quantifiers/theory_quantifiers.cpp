@@ -63,7 +63,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // Finite model finding requires specialized ways of building the model.
   // We require constructing the model here, since it is required for
   // initializing the CombinationEngine and the rest of quantifiers engine.
-  if ((options::finiteModelFind() || options::fmfBound()) && QuantifiersModules::useFmcModel())
+  if ((options::finiteModelFind() || options::fmfBound())
+      && QuantifiersModules::useFmcModel())
   {
     d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
         d_qstate, d_qreg, d_treg, "FirstOrderModelFmc"));
@@ -76,14 +77,14 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
 
   d_qim.reset(new QuantifiersInferenceManager(
       *this, d_qstate, d_qreg, d_treg, d_qmodel.get(), pnm));
-  
+
   // Finish initializing the term registry by hooking it up to the inference
   // manager. This is required due to a cyclic dependency between the term
   // database and the instantiate module. Term database needs inference manager
   // since it sends out lemmas when term indexing is inconsistent, instantiate
   // needs term database for entailment checks.
   d_treg.finishInit(d_qim.get());
-  
+
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(
       d_qstate, d_qreg, d_treg, *qim.get(), d_qmodel.get(), pnm));
