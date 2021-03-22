@@ -1012,8 +1012,8 @@ TEST_F(TestApiBlackSolver, defineFun)
   ASSERT_THROW(d_solver.defineFun("fff", {b1}, bvSort, v3), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFun("ffff", {b1}, funSort2, v3),
                CVC4ApiException);
-  ASSERT_THROW(d_solver.defineFun("fffff", {b1, b3}, bvSort, v1),
-               CVC4ApiException);
+  // b3 has function sort, which is allowed as an argument
+  ASSERT_NO_THROW(d_solver.defineFun("fffff", {b1, b3}, bvSort, v1));
   ASSERT_THROW(d_solver.defineFun(f1, {v1, b11}, v1), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFun(f1, {b1}, v1), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFun(f1, {b1, b11}, v2), CVC4ApiException);
@@ -1083,8 +1083,8 @@ TEST_F(TestApiBlackSolver, defineFunRec)
                CVC4ApiException);
   ASSERT_THROW(d_solver.defineFunRec("ffff", {b1}, funSort2, v3),
                CVC4ApiException);
-  ASSERT_THROW(d_solver.defineFunRec("fffff", {b1, b3}, bvSort, v1),
-               CVC4ApiException);
+  // b3 has function sort, which is allowed as an argument
+  ASSERT_NO_THROW(d_solver.defineFunRec("fffff", {b1, b3}, bvSort, v1));
   ASSERT_THROW(d_solver.defineFunRec(f1, {b1}, v1), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFunRec(f1, {b1, b11}, v2), CVC4ApiException);
   ASSERT_THROW(d_solver.defineFunRec(f1, {b1, b11}, v3), CVC4ApiException);
