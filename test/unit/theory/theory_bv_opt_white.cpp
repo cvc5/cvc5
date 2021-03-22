@@ -29,14 +29,94 @@ class TestTheoryWhiteBVOpt : public TestSmtNoFinishInit
   std::unique_ptr<TypeNode> d_BV16Type;
 };
 
+TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
+{
+  Node x = d_nodeManager->mkVar(*d_BV32Type);
+
+  Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0x3FFFFFA1));
+  Node b = d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFF1));
+
+  // (unsigned)0x3FFFFFA1 <= x <= (unsigned)0xFFFFFFF1
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
+
+  const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
+  d_optslv->activateObj(x, obj_type, false);
+
+  OptResult r = d_optslv->checkOpt();
+
+  ASSERT_EQ(d_optslv->objectiveGetValue(),
+            d_nodeManager->mkConst(BitVector(32u, (unsigned)0x3FFFFFA1)));
+
+  std::cout << "Passed!" << std::endl;
+  std::cout << "Result is :" << r << std::endl;
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+            << std::endl;
+}
+
+TEST_F(TestTheoryWhiteBVOpt, signed_min)
+{
+  Node x = d_nodeManager->mkVar(*d_BV32Type);
+
+  Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000));
+  Node b = d_nodeManager->mkConst(BitVector(32u, 2147483647u));
+  // -2147483648 <= x <= 2147483647
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
+
+  const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
+  d_optslv->activateObj(x, obj_type, true);
+
+  OptResult r = d_optslv->checkOpt();
+
+  BitVector val = d_optslv->objectiveGetValue().getConst<BitVector>();
+  std::cout << "opt value is: " << val << std::endl;
+
+  // expect the minimum x = -1
+  ASSERT_EQ(d_optslv->objectiveGetValue(),
+            d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000)));
+  std::cout << "Passed!" << std::endl;
+  std::cout << "Result is :" << r << std::endl;
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+            << std::endl;
+}
+
+TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
+{
+  Node x = d_nodeManager->mkVar(*d_BV32Type);
+
+  Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)1));
+  Node b = d_nodeManager->mkConst(BitVector(32u, (unsigned)2));
+
+  // If the gap is too large, it will have a performance issue!!!
+  // Need binary search!
+  // (unsigned)1 <= x <= (unsigned)2
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
+  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
+
+  const ObjectiveType obj_type = OBJECTIVE_MAXIMIZE;
+  d_optslv->activateObj(x, obj_type, false);
+
+  OptResult r = d_optslv->checkOpt();
+
+  BitVector val = d_optslv->objectiveGetValue().getConst<BitVector>();
+  std::cout << "opt value is: " << val << std::endl;
+
+  ASSERT_EQ(d_optslv->objectiveGetValue(),
+            d_nodeManager->mkConst(BitVector(32u, (unsigned)2)));
+  std::cout << "Result is :" << r << std::endl;
+  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
+            << std::endl;
+}
+
 TEST_F(TestTheoryWhiteBVOpt, signed_max)
 {
   Node x = d_nodeManager->mkVar(*d_BV32Type);
 
-  Node a = d_nodeManager->mkConst(BitVector(32u, 0u));
-  Node b = d_nodeManager->mkConst(BitVector(32u, 2147483647u));
+  Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0x80000000));
+  Node b = d_nodeManager->mkConst(BitVector(32u, 10u));
 
-  // 0 <= x <= 2147483647
+  // -2147483648 <= x <= 10
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
   d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
@@ -47,82 +127,16 @@ TEST_F(TestTheoryWhiteBVOpt, signed_max)
 
   // expect the maxmum x =
   ASSERT_EQ(d_optslv->objectiveGetValue(),
-            d_nodeManager->mkConst(BitVector(32u, 2147483647u)));
+            d_nodeManager->mkConst(BitVector(32u, 10u)));
   std::cout << "Result is :" << r << std::endl;
   std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
             << std::endl;
 }
 
-TEST_F(TestTheoryWhiteBVOpt, signed_min)
-{
-  Node x = d_nodeManager->mkVar(*d_BV32Type);
 
-  Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFFF));
-  Node b = d_nodeManager->mkConst(BitVector(32u, 2147483647u));
-  // -1 <= x <= 2147483647
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, a, x));
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_SLE, x, b));
 
-  const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
-  d_optslv->activateObj(x, obj_type, true);
 
-  OptResult r = d_optslv->checkOpt();
 
-  // expect the minimum x = -1
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
-            d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFFF)));
-  std::cout << "Result is :" << r << std::endl;
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
-}
-
-TEST_F(TestTheoryWhiteBVOpt, unsigned_max)
-{
-  Node x = d_nodeManager->mkVar(*d_BV32Type);
-
-  Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFA1));
-  Node b = d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFF1));
-
-  // If the gap is too large, it will have a performance issue!!!
-  // Need binary search!
-  // (unsigned)0xFFFFFFA1 <= x <= (unsigned)0xFFFFFFF1
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
-
-  const ObjectiveType obj_type = OBJECTIVE_MAXIMIZE;
-  d_optslv->activateObj(x, obj_type, false);
-
-  OptResult r = d_optslv->checkOpt();
-
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
-            d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFF1)));
-  std::cout << "Result is :" << r << std::endl;
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
-}
-
-TEST_F(TestTheoryWhiteBVOpt, unsigned_min)
-{
-  Node x = d_nodeManager->mkVar(*d_BV32Type);
-
-  Node a = d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFA1));
-  Node b = d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFF1));
-
-  // (unsigned)0xFFFFFFA1 <= x <= (unsigned)0xFFFFFFF1
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, a, x));
-  d_smtEngine->assertFormula(d_nodeManager->mkNode(kind::BITVECTOR_ULE, x, b));
-
-  const ObjectiveType obj_type = OBJECTIVE_MINIMIZE;
-  d_optslv->activateObj(x, obj_type, false);
-
-  OptResult r = d_optslv->checkOpt();
-
-  ASSERT_EQ(d_optslv->objectiveGetValue(),
-            d_nodeManager->mkConst(BitVector(32u, (unsigned)0xFFFFFFA1)));
-  std::cout << "Result is :" << r << std::endl;
-  std::cout << "Optimized value is: " << d_optslv->objectiveGetValue()
-            << std::endl;
-}
 
 }  // namespace test
 }  // namespace CVC4

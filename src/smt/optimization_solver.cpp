@@ -46,14 +46,12 @@ OptResult OptimizationSolver::checkOpt()
   Assert(d_activatedObjective.getType() != OBJECTIVE_UNDEFINED);
   Assert(!d_activatedObjective.getNode().isNull());
 
-  // std::cerr << "b" << std::endl;
   std::unique_ptr<OMTOptimizer> optimizer = 
     OMTOptimizer::getOptimizerForNode(d_activatedObjective.getNode(), d_activatedObjective.getSigned());
 
   Assert(optimizer != nullptr);
 
   std::pair<OptResult, CVC4::Node> optResult;
-  // std::cerr << "a" << std::endl;
   if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE) {
     optResult = optimizer->maximize(this->d_parent, this->d_activatedObjective.getNode());
   } else if (d_activatedObjective.getType() == OBJECTIVE_MINIMIZE) {
@@ -78,39 +76,39 @@ Node OptimizationSolver::objectiveGetValue()
   return d_savedValue;
 }
 
-Kind OptimizationSolver::getLessThanOperatorForObjective()
-{
-  // the datatype of the objective
-  // currently we support Integer/Real and BitVector
-  // gets the objective datatype with type checking
-  TypeNode objective_type = this->d_activatedObjective.getNode().getType(true);
+// Kind OptimizationSolver::getLessThanOperatorForObjective()
+// {
+//   // the datatype of the objective
+//   // currently we support Integer/Real and BitVector
+//   // gets the objective datatype with type checking
+//   TypeNode objective_type = this->d_activatedObjective.getNode().getType(true);
 
-  if (objective_type.isInteger() || objective_type.isReal())
-  {
-    // Integer and Real both share the same LT operator
-    return kind::LT;
-  }
-  else if (objective_type.isBitVector())
-  {
-    // is it signed comparison?
-    if (this->d_activatedObjective.getSigned())
-    {
-      // signed comparison for BitVectors
-      return kind::BITVECTOR_SLT;
-    }
-    else
-    {
-      // unsigned comparison for BitVectors
-      return kind::BITVECTOR_ULT;
-    }
-  }  // FloatingPoints?
-  else
-  {
-    // the current objective datatype is not-yet supported
-    // or doesn't support comparison (no total order)
-    return kind::NULL_EXPR;
-  }
-}
+//   if (objective_type.isInteger() || objective_type.isReal())
+//   {
+//     // Integer and Real both share the same LT operator
+//     return kind::LT;
+//   }
+//   else if (objective_type.isBitVector())
+//   {
+//     // is it signed comparison?
+//     if (this->d_activatedObjective.getSigned())
+//     {
+//       // signed comparison for BitVectors
+//       return kind::BITVECTOR_SLT;
+//     }
+//     else
+//     {
+//       // unsigned comparison for BitVectors
+//       return kind::BITVECTOR_ULT;
+//     }
+//   }  // FloatingPoints?
+//   else
+//   {
+//     // the current objective datatype is not-yet supported
+//     // or doesn't support comparison (no total order)
+//     return kind::NULL_EXPR;
+//   }
+// }
 
 Objective::Objective(Node obj, ObjectiveType type, bool bv_is_signed_compare)
     : d_type(type), d_node(obj), d_signed(bv_is_signed_compare)
