@@ -253,7 +253,8 @@ TEST_F(TestApiBlackSolver, mkPredicateSort)
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
   // functions as arguments are allowed
-  ASSERT_NO_THROW(d_solver.mkPredicateSort({d_solver.getIntegerSort(), funSort}));
+  ASSERT_NO_THROW(
+      d_solver.mkPredicateSort({d_solver.getIntegerSort(), funSort}));
 
   Solver slv;
   ASSERT_THROW(slv.mkPredicateSort({d_solver.getIntegerSort()}),
