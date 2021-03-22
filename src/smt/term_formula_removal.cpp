@@ -505,7 +505,7 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
       newLem = theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
       // store in the lemma cache, if it is not already there.
-      if (d_lemmaCache.find(skolem)==d_lemmaCache.end())
+      if (d_lemmaCache.find(skolem) == d_lemmaCache.end())
       {
         d_lemmaCache.insert(skolem, newLem);
       }
