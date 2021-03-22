@@ -161,6 +161,15 @@ class SkolemManager
    *
    * Notice that a purification skolem is trivial to justify, and hence it
    * does not require a proof generator.
+   *
+   * Notice that in very rare cases, two different terms may have the
+   * same purification skolem. For example, let k be the skolem introduced to
+   * eliminate (ite A B C). Then, the pair of terms:
+   *  (ite (ite A B C) D E) and (ite k D E)
+   * have the same purification skolem. In the implementation, this is a result
+   * of the fact that the above terms have the same original form. It is sound
+   * to use the same skolem to purify these two terms, since they are
+   * definitionally equivalent.
    */
   Node mkPurifySkolem(Node t,
                       const std::string& prefix,

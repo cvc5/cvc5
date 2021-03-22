@@ -310,7 +310,7 @@ class CVC4_EXPORT SmtEngine
    * Get an aspect of the current SMT execution environment.
    * @throw OptionException
    */
-  CVC4::SExpr getOption(const std::string& key) const;
+  Node getOption(const std::string& key) const;
 
   /**
    * Define function func in the current context to be:
@@ -1053,12 +1053,6 @@ class CVC4_EXPORT SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /**
-   * The statistics registry. Notice that this definition must be before the
-   * other members since it must be destroyed last if exceptions occur in the
-   * constructor of SmtEngine.
-   */
-  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
   /**
    * The environment object, which contains all utilities that are globally
    * available to internal code.
