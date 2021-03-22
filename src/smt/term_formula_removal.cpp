@@ -293,11 +293,10 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
       d_skolem_cache.insert(node, skolem);
 
       // Notice that in very rare cases, two different terms may have the
-      // same purification skolem. An example is the pair of terms
-      // (ite (ite A B C) D E) and (ite k D E), where k is the skolem
-      // introduced to eliminate (ite A B C). For such cases, for simplicity,
-      // we repeat the work of constructing the assertion and proofs below.
-      // This is so that the proof for the new form of the lemma is used.
+      // same purification skolem (see SkolemManager::mkPurifySkolem) For such
+      // cases, for simplicity, we repeat the work of constructing the
+      // assertion and proofs below. This is so that the proof for the new form
+      // of the lemma is used.
 
       // The new assertion
       newAssertion = nodeManager->mkNode(
