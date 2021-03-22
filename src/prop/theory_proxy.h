@@ -163,12 +163,9 @@ class TheoryProxy : public Registrar
 
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
-<<<<<<< HEAD
 
   /** Whether we are tracking relevant skolem definitions */
   bool d_trackSkolemDefs;
-=======
->>>>>>> 519cdc2d4b44a9785ee68d181e2682d74890e89a
 }; /* class TheoryProxy */
 
 }/* CVC4::prop namespace */
