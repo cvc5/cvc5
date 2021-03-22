@@ -32,15 +32,13 @@ namespace CVC4 {
 class LazyCDProof;
 
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
 class TermRegistry;
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
+class FirstOrderModel;
 
 /** Instantiation rewriter
  *
@@ -97,7 +95,9 @@ class Instantiate : public QuantifiersUtil
  public:
   Instantiate(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
-              QuantifiersRegistry& qr,
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr,
+              FirstOrderModel * m,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -318,6 +318,8 @@ class Instantiate : public QuantifiersUtil
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
+  /** Pointer to the model */
+  FirstOrderModel * d_model;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** instantiation rewriter classes */

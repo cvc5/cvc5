@@ -41,8 +41,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
       d_qstate(c, u, valuation, logicInfo),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
-      d_qim(*this, d_qstate, d_qreg, d_treg, pnm),
-      d_qengine(d_qstate, d_qreg, d_treg, d_qim, pnm)
+      d_qim(nullptr),
+      d_qengine(nullptr)
 {
   // Finish initializing the term registry by hooking it up to the inference
   // manager. This is required due to a cyclic dependency between the term
@@ -63,10 +63,6 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     // add the proof rules
     d_qChecker.registerTo(pc);
   }
-  // indicate we are using the quantifiers theory state object
-  d_theoryState = &d_qstate;
-  // use the inference manager as the official inference manager
-  d_inferManager = &d_qim;
 
   Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
   Trace("quant-engine-debug")
@@ -92,10 +88,12 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     d_qmodel.reset(new quantifiers::FirstOrderModel(
         d_qstate, d_qreg, d_treg, "FirstOrderModel"));
   }
+  
+  d_qim.reset(new QuantifiersInferenceManager(*this, d_qstate, d_qreg, d_treg, d_qmodel.get(), pnm));
 
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(
-      d_qstate, d_qreg, d_treg, d_qim, d_qmodel.get(), pnm));
+      d_qstate, d_qreg, d_treg, *qim.get(), d_qmodel.get(), pnm));
 
   //!!!!!!!!!!!!!! temporary (project #15)
   d_qmodel->finishInit(d_qengine.get());
@@ -104,6 +102,10 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
   d_quantEngine = d_qengine.get();
+  // indicate we are using the quantifiers theory state object
+  d_theoryState = &d_qstate;
+  // use the inference manager as the official inference manager
+  d_inferManager = &d_qim;
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {

@@ -26,6 +26,9 @@ namespace quantifiers {
 
 class Instantiate;
 class Skolemize;
+class QuantifiersRegistry;
+class TermRegistry;
+class FirstOrderModel;
 /**
  * The quantifiers inference manager.
  */
@@ -34,6 +37,9 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
  public:
   QuantifiersInferenceManager(Theory& t,
                               QuantifiersState& state,
+                         QuantifiersRegistry& qr,
+                         TermRegistry& tr,
+                              FirstOrderModel * m,
                               ProofNodeManager* pnm);
   ~QuantifiersInferenceManager();
   /** get instantiate utility */
