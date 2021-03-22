@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,7 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
 
 using namespace CVC4::kind;
@@ -243,6 +244,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions)
 
 void NonlinearExtension::check(Theory::Effort e)
 {
+  d_im.reset();
   Trace("nl-ext") << std::endl;
   Trace("nl-ext") << "NonlinearExtension::check, effort = " << e
                   << ", built model = " << d_builtModel.get() << std::endl;
@@ -276,7 +278,6 @@ void NonlinearExtension::check(Theory::Effort e)
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
       d_im.doPendingPhaseRequirements();
-      d_im.reset();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
@@ -300,7 +301,7 @@ void NonlinearExtension::check(Theory::Effort e)
   }
 }
 
-bool NonlinearExtension::modelBasedRefinement()
+bool NonlinearExtension::modelBasedRefinement(const std::set<Node>& termSet)
 {
   ++(d_stats.d_mbrRuns);
   d_checkCounter++;
@@ -316,8 +317,18 @@ bool NonlinearExtension::modelBasedRefinement()
   Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
+  std::vector<Node> xtsAll;
+  d_extTheory.getTerms(xtsAll);
+  // only consider those that are currently relevant based on the current
+  // assertions, i.e. those contained in termSet
   std::vector<Node> xts;
-  d_extTheory.getTerms(xts);
+  for (const Node& x : xtsAll)
+  {
+    if (termSet.find(x) != termSet.end())
+    {
+      xts.push_back(x);
+    }
+  }
 
   if (Trace.isOn("nl-ext-debug"))
   {
@@ -495,7 +506,8 @@ bool NonlinearExtension::modelBasedRefinement()
   return false;
 }
 
-void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
+void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel,
+                                        const std::set<Node>& termSet)
 {
   if (!needsCheckLastEffort())
   {
@@ -508,7 +520,7 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   if (!d_builtModel.get())
   {
     Trace("nl-ext") << "interceptModel: do model-based refinement" << std::endl;
-    modelBasedRefinement();
+    modelBasedRefinement(termSet);
   }
   if (d_builtModel.get())
   {

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
+#include "expr/skolem_manager.h"
 #include "options/sets_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/sets/normal_form.h"
@@ -1265,40 +1266,23 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-TrustNode TheorySetsPrivate::expandDefinition(Node node)
-{
-  Debug("sets-proc") << "expandDefinition : " << node << std::endl;
-
-  if (node.getKind()==kind::CHOOSE)
-  {
-    return expandChooseOperator(node);
-  }
-  return TrustNode::null();
-}
-
-TrustNode TheorySetsPrivate::ppRewrite(Node node)
+TrustNode TheorySetsPrivate::ppRewrite(Node node,
+                                       std::vector<SkolemLemma>& lems)
 {
   Debug("sets-proc") << "ppRewrite : " << node << std::endl;
 
   switch (node.getKind())
   {
-    case kind::CHOOSE: return expandChooseOperator(node);
+    case kind::CHOOSE: return expandChooseOperator(node, lems);
     case kind::IS_SINGLETON: return expandIsSingletonOperator(node);
     default: return TrustNode::null();
   }
 }
 
-TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
+TrustNode TheorySetsPrivate::expandChooseOperator(
+    const Node& node, std::vector<SkolemLemma>& lems)
 {
   Assert(node.getKind() == CHOOSE);
-
-  // we call the rewriter here to handle the pattern (choose (singleton x))
-  // because the rewriter is called after expansion
-  Node rewritten = Rewriter::rewrite(node);
-  if (rewritten.getKind() != CHOOSE)
-  {
-    return TrustNode::mkTrustRewrite(node, rewritten, nullptr);
-  }
 
   // (choose A) is expanded as
   // (witness ((x elementType))
@@ -1308,7 +1292,7 @@ TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
   //      (and (member x A) (= x chooseUf(A)))
 
   NodeManager* nm = NodeManager::currentNM();
-  Node set = rewritten[0];
+  Node set = node[0];
   TypeNode setType = set.getType();
   Node chooseSkolem = getChooseFunction(setType);
   Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
@@ -1321,9 +1305,10 @@ TrustNode TheorySetsPrivate::expandChooseOperator(const Node& node)
   Node member = nm->mkNode(MEMBER, witnessVariable, set);
   Node memberAndEqual = member.andNode(equal);
   Node ite = nm->mkNode(ITE, isEmpty, equal, memberAndEqual);
-  Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
-  Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
-  return TrustNode::mkTrustRewrite(node, witness, nullptr);
+  SkolemManager* sm = nm->getSkolemManager();
+  Node ret = sm->mkSkolem(witnessVariable, ite, "kSetChoose");
+  lems.push_back(SkolemLemma(ret, nullptr));
+  return TrustNode::mkTrustRewrite(node, ret, nullptr);
 }
 
 TrustNode TheorySetsPrivate::expandIsSingletonOperator(const Node& node)

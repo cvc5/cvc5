@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,8 +13,8 @@
  **
  ** This is an abstraction of a set of unsigned integers.
  ** This class is designed to provide constant time insertion, element_of,
- ** and fast iteration. This is done by storing backing vectors of size greater than
- ** the maximum key.
+ ** and fast iteration. This is done by storing backing vectors of size greater
+ ** than the maximum key.
  **/
 
 #include "cvc4_private.h"

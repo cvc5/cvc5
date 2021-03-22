@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,9 +47,8 @@ std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
   return os;
 }
 
-TermDbSygus::TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim)
+TermDbSygus::TermDbSygus(QuantifiersState& qs)
     : d_qstate(qs),
-      d_qim(qim),
       d_syexp(new SygusExplain(this)),
       d_ext_rw(new ExtendedRewriter(true)),
       d_eval(new Evaluator),
@@ -59,6 +58,8 @@ TermDbSygus::TermDbSygus(QuantifiersState& qs, QuantifiersInferenceManager& qim)
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 }
+
+void TermDbSygus::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
 
 bool TermDbSygus::reset( Theory::Effort e ) { 
   return true;  
@@ -565,8 +566,8 @@ void TermDbSygus::registerEnumerator(Node e,
     ag = d_qstate.getValuation().ensureLiteral(ag);
     // must ensure that it is asserted as a literal before we begin solving
     Node lem = nm->mkNode(OR, ag, ag.negate());
-    d_qim.requirePhase(ag, true);
-    d_qim.lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
+    d_qim->requirePhase(ag, true);
+    d_qim->lemma(lem, InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT);
     d_enum_to_active_guard[e] = ag;
   }
 }

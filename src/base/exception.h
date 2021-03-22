@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,9 +23,12 @@
 #include <iosfwd>
 #include <string>
 
+#include "cvc4_export.h"
+
 namespace CVC4 {
 
-class CVC4_PUBLIC Exception : public std::exception {
+class Exception : public std::exception
+{
  protected:
   std::string d_msg;
 
@@ -66,10 +69,11 @@ class CVC4_PUBLIC Exception : public std::exception {
    */
   virtual void toStream(std::ostream& os) const { os << d_msg; }
 
-};/* class Exception */
+}; /* class Exception */
 
-class CVC4_PUBLIC IllegalArgumentException : public Exception {
-protected:
+class CVC4_EXPORT IllegalArgumentException : public Exception
+{
+ protected:
   IllegalArgumentException() : Exception() {}
 
   void construct(const char* header, const char* extra,
@@ -104,34 +108,34 @@ public:
    */
   static std::string formatVariadic();
   static std::string formatVariadic(const char* format, ...);
-};/* class IllegalArgumentException */
+}; /* class IllegalArgumentException */
 
-inline std::ostream& operator<<(std::ostream& os,
-                                const Exception& e) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& os, const Exception& e);
 inline std::ostream& operator<<(std::ostream& os, const Exception& e)
 {
   e.toStream(os);
   return os;
 }
 
-template <class T> inline void CheckArgument(bool cond, const T& arg,
-                                             const char* tail) CVC4_PUBLIC;
+template <class T>
+inline void CheckArgument(bool cond, const T& arg, const char* tail);
 template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
                                              const char* tail CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", tail); \
   } \
 }
-template <class T> inline void CheckArgument(bool cond, const T& arg)
-  CVC4_PUBLIC;
+template <class T>
+inline void CheckArgument(bool cond, const T& arg);
 template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
 
-class CVC4_PUBLIC LastExceptionBuffer {
-public:
+class CVC4_EXPORT LastExceptionBuffer
+{
+ public:
   LastExceptionBuffer();
   ~LastExceptionBuffer();
 

@@ -2,9 +2,9 @@
 /*! \file term_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,19 +22,26 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermRegistry::TermRegistry(QuantifiersState& qs,
-                           QuantifiersInferenceManager& qim,
-                           QuantifiersRegistry& qr)
+TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
-      d_termDb(new TermDb(qs, qim, qr)),
+      d_termDb(new TermDb(qs, qr)),
       d_sygusTdb(nullptr)
 {
   if (options::sygus() || options::sygusInst())
   {
     // must be constructed here since it is required for datatypes finistInit
-    d_sygusTdb.reset(new TermDbSygus(qs, qim));
+    d_sygusTdb.reset(new TermDbSygus(qs));
+  }
+}
+
+void TermRegistry::finishInit(QuantifiersInferenceManager* qim)
+{
+  d_termDb->finishInit(qim);
+  if (d_sygusTdb.get())
+  {
+    d_sygusTdb->finishInit(qim);
   }
 }
 

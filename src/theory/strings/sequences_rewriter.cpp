@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,7 +33,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-SequencesRewriter::SequencesRewriter(HistogramStat<Rewrite>* statistics)
+SequencesRewriter::SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics)
     : d_statistics(statistics), d_stringsEntail(*this)
 {
 }
@@ -309,7 +309,7 @@ Node SequencesRewriter::rewriteStrEqualityExt(Node node)
         }
 
         // (= "" (str.replace x "A" "")) ---> (str.prefix x "A")
-        if (StringsEntail::checkLengthOne(ne[1]) && ne[2] == empty)
+        if (StringsEntail::checkLengthOne(ne[1], true) && ne[2] == empty)
         {
           Node ret = nm->mkNode(STRING_PREFIX, ne[0], ne[1]);
           return returnRewrite(node, ret, Rewrite::STR_EMP_REPL_EMP);
@@ -2862,7 +2862,7 @@ Node SequencesRewriter::rewriteReplace(Node node)
     {
       // str.contains( z, w ) ----> false implies
       // str.replace( x, w, str.replace( z, x, y ) ) ---> str.replace( x, w, z )
-      Node cmp_con2 = d_stringsEntail.checkContains(node[1], node[2][0]);
+      Node cmp_con2 = d_stringsEntail.checkContains(node[2][0], node[1]);
       if (!cmp_con2.isNull() && !cmp_con2.getConst<bool>())
       {
         Node res =

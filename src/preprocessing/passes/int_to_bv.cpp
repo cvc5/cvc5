@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Yoni Zohar, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -163,9 +163,9 @@ Node intToBV(TNode n, NodeMap& cache)
           case kind::ITE: break;
           default:
             if (childrenTypesChanged(current, cache)) {
-              throw TypeCheckingException(
-                current.toExpr(),
-                string("Cannot translate to BV: ") + current.toString());
+              throw TypeCheckingExceptionPrivate(
+                  current,
+                  string("Cannot translate to BV: ") + current.toString());
             }
             break;
         }
@@ -225,8 +225,8 @@ Node intToBV(TNode n, NodeMap& cache)
               BitVector bv(size, constant.getNumerator());
               if (bv.toSignedInteger() != constant.getNumerator())
               {
-                throw TypeCheckingException(
-                    current.toExpr(),
+                throw TypeCheckingExceptionPrivate(
+                    current,
                     string("Not enough bits for constant in intToBV: ")
                         + current.toString());
               }
@@ -239,9 +239,8 @@ Node intToBV(TNode n, NodeMap& cache)
       }
       else
       {
-        throw TypeCheckingException(
-            current.toExpr(),
-            string("Cannot translate to BV: ") + current.toString());
+        throw TypeCheckingExceptionPrivate(
+            current, string("Cannot translate to BV: ") + current.toString());
       }
       cache[current] = result;
     }

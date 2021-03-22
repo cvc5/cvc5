@@ -21,6 +21,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef Minisat_Heap_h
 #define Minisat_Heap_h
 
+#include "base/check.h"
 #include "prop/minisat/mtl/Vec.h"
 
 namespace CVC4 {
@@ -79,12 +80,22 @@ class Heap {
     int  size      ()          const { return heap.size(); }
     bool empty     ()          const { return heap.size() == 0; }
     bool inHeap    (int n)     const { return n < indices.size() && indices[n] >= 0; }
-    int  operator[](int index) const { assert(index < heap.size()); return heap[index]; }
+    int operator[](int index) const
+    {
+      Assert(index < heap.size());
+      return heap[index];
+    }
 
-
-    void decrease  (int n) { assert(inHeap(n)); percolateUp  (indices[n]); }
-    void increase  (int n) { assert(inHeap(n)); percolateDown(indices[n]); }
-
+    void decrease(int n)
+    {
+      Assert(inHeap(n));
+      percolateUp(indices[n]);
+    }
+    void increase(int n)
+    {
+      Assert(inHeap(n));
+      percolateDown(indices[n]);
+    }
 
     // Safe variant of insert/decrease/increase:
     void update(int n)
@@ -100,7 +111,7 @@ class Heap {
     void insert(int n)
     {
         indices.growTo(n+1, -1);
-        assert(!inHeap(n));
+        Assert(!inHeap(n));
 
         indices[n] = heap.size();
         heap.push(n);

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -931,17 +931,22 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::WITNESS:
   {
     out << smtKindString(k, d_variant) << " ";
-    toStream(out, n[0], toDepth, lbind);
+    // do not letify the bound variable list
+    toStream(out, n[0], toDepth, nullptr);
     out << " ";
     if (n.getNumChildren() == 3)
     {
       out << "(! ";
     }
-    toStreamWithLetify(out, n[1], toDepth - 1, lbind);
+    // Use a fresh let binder, since using existing let symbols may violate
+    // scoping issues for let-bound variables, see explanation in let_binding.h.
+    size_t dag = lbind == nullptr ? 0 : lbind->getThreshold()-1;
+    toStream(out, n[1], toDepth - 1, dag);
     if (n.getNumChildren() == 3)
     {
       out << " ";
-      toStream(out, n[2], toDepth, lbind);
+      // do not letify the annotation
+      toStream(out, n[2], toDepth, nullptr);
       out << ")";
     }
     out << ")";
@@ -995,8 +1000,8 @@ void Smt2Printer::toStream(std::ostream& out,
     if(toDepth != 0) {
       if (n.getKind() == kind::APPLY_TESTER)
       {
-        unsigned cindex = DType::indexOf(n.getOperator().toExpr());
-        const DType& dt = DType::datatypeOf(n.getOperator().toExpr());
+        unsigned cindex = DType::indexOf(n.getOperator());
+        const DType& dt = DType::datatypeOf(n.getOperator());
         out << "(_ is ";
         toStream(out,
                  dt[cindex].getConstructor(),

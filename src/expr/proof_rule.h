@@ -2,9 +2,9 @@
 /*! \file proof_rule.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Alex Ozdemir
+ **   Andrew Reynolds, Haniel Barbosa, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -133,16 +133,16 @@ enum class PfRule : uint32_t
   // where ids and idr are method identifiers.
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toWitness(F')) == true
+  //   Rewriter::rewrite(toOriginal(F')) == true
   // where F' is the result of the left hand side of the equality above. Here,
-  // notice that we apply rewriting on the witness form of F', meaning that this
-  // rule may conclude an F whose Skolem form is justified by the definition of
-  // its (fresh) Skolem variables. For example, this rule may justify the
-  // conclusion (= k t) where k is the purification Skolem for t, whose
-  // witness form is (witness ((x T)) (= x t)).
+  // notice that we apply rewriting on the original form of F', meaning that
+  // this rule may conclude an F whose Skolem form is justified by the
+  // definition of its (fresh) Skolem variables. For example, this rule may
+  // justify the conclusion (= k t) where k is the purification Skolem for t,
+  // e.g. where the original form of k is t.
   //
   // Furthermore, notice that the rewriting and substitution is applied only
-  // within the side condition, meaning the rewritten form of the witness form
+  // within the side condition, meaning the rewritten form of the original form
   // of F does not escape this rule.
   MACRO_SR_PRED_INTRO,
   // ======== Substitution + Rewriting predicate elimination
@@ -176,9 +176,9 @@ enum class PfRule : uint32_t
   //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
   // More generally, this rule also holds when:
-  //   Rewriter::rewrite(toWitness(F')) == Rewriter::rewrite(toWitness(G'))
+  //   Rewriter::rewrite(toOriginal(F')) == Rewriter::rewrite(toOriginal(G'))
   // where F' and G' are the result of each side of the equation above. Here,
-  // witness forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
+  // original forms are used in a similar manner to MACRO_SR_PRED_INTRO above.
   MACRO_SR_PRED_TRANSFORM,
 
   //================================================= Processing rules
@@ -302,8 +302,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: C2
   // where
-  //  Set representations of C1 and C2 is the same but the number of literals in
-  //  C2 is the same of that of C1
+  //  Set representations of C1 and C2 are the same and the number of literals
+  //  in C2 is the same of that of C1
   REORDERING,
   // ======== N-ary Resolution + Factoring + Reordering
   // Children: (P1:C_1, ..., Pm:C_n)
@@ -759,13 +759,13 @@ enum class PfRule : uint32_t
   DT_TRUST,
 
   //================================================= Quantifiers rules
-  // ======== Witness intro
-  // Children: (P:(exists ((x T)) F[x]))
-  // Arguments: none
+  // ======== Skolem intro
+  // Children: none
+  // Arguments: (k)
   // ----------------------------------------
-  // Conclusion: (= k (witness ((x T)) F[x]))
-  // where k is the Skolem form of (witness ((x T)) F[x]).
-  WITNESS_INTRO,
+  // Conclusion: (= k t)
+  // where t is the original form of skolem k.
+  SKOLEM_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])
   // Arguments: ((exists ((x T)) F[x]))
@@ -781,7 +781,9 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemize, returned in the skolems argument of that
-  // method. Alternatively, can use negated forall as a premise.
+  // method. Alternatively, can use negated forall as a premise. The witness
+  // terms for the returned skolems can be obtained by
+  // SkolemManager::getWitnessForm.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
@@ -1041,15 +1043,24 @@ enum class PfRule : uint32_t
   //
   // Arguments: (k1, ..., kn), non-zero reals
   // ---------------------
-  // Conclusion: (>< (* k t1) (* k t2))
+  // Conclusion: (>< t1 t2)
   //    where >< is the fusion of the combination of the ><i, (flipping each it
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
-  //    t1 is the sum of the polynomials.
-  //    t2 is the sum of the constants.
+  //    t1 is the sum of the scaled polynomials (k_1 * poly_1 + ... + k_n * poly_n)
+  //    t2 is the sum of the scaled constants (k_1 * const_1 + ... + k_n * const_n)
   ARITH_SCALE_SUM_UPPER_BOUNDS,
 
+  // ======== Sum Upper Bounds
+  // Children: (P1, ... , Pn)
+  //           where each Pi has form (><i, Li, Ri)
+  //           for ><i in {<, <=, ==}
+  // Conclusion: (>< L R)
+  //           where >< is < if any ><i is <, and <= otherwise.
+  //                 L is (+ L1 ... Ln)
+  //                 R is (+ R1 ... Rn)
+  ARITH_SUM_UB,
   // ======== Tightening Strict Integer Upper Bounds
   // Children: (P:(< i c))
   //         where i has integer type.
@@ -1106,19 +1117,17 @@ enum class PfRule : uint32_t
   ARITH_MULT_SIGN,
   //======== Multiplication with positive factor
   // Children: none
-  // Arguments: (m, orig, lhs, rel, rhs)
+  // Arguments: (m, (rel lhs rhs))
   // ---------------------
   // Conclusion: (=> (and (> m 0) (rel lhs rhs)) (rel (* m lhs) (* m rhs)))
-  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
-  // symbol.
+  // Where rel is a relation symbol.
   ARITH_MULT_POS,
   //======== Multiplication with negative factor
   // Children: none
-  // Arguments: (m, orig, (rel lhs rhs))
+  // Arguments: (m, (rel lhs rhs))
   // ---------------------
   // Conclusion: (=> (and (< m 0) (rel lhs rhs)) (rel_inv (* m lhs) (* m rhs)))
-  // Where orig is the origin that implies (rel lhs rhs) and rel is a relation
-  // symbol and rel_inv the inverted relation symbol.
+  // Where rel is a relation symbol and rel_inv the inverted relation symbol.
   ARITH_MULT_NEG,
   //======== Multiplication tangent plane
   // Children: none

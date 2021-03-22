@@ -5,29 +5,30 @@
  **   Martin Brain, Andres Noetzli, Aina Niemetz
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Rewrite rules for floating point theories. ]]
+ ** \brief Rewrite rules for floating point theories.
  **
- ** \todo [[ Single argument constant propagate / simplify
-             Push negations through arithmetic operators (include max and min? maybe not due to +0/-0)
- **          classifications to normal tests (maybe)
- **          (= x (fp.neg x)) --> (isNaN x)
- **          (fp.eq x (fp.neg x)) --> (isZero x)   (previous and reorganise should be sufficient)
- **          (fp.eq x const) --> various = depending on const
- **          (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
- **          (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
- **          (fp.isPositive (fp.abs x)) --> (not (isNaN x))
- **          (fp.isNegative (fp.abs x)) --> false
- **          A -> castA --> A
- **          A -> castB -> castC  -->  A -> castC if A <= B <= C
- **          A -> castB -> castA  -->  A if A <= B
- **          promotion converts can ignore rounding mode
- **          Samuel Figuer results
- **       ]]
+ ** \todo - Single argument constant propagate / simplify
+ **       - Push negations through arithmetic operators (include max and min?
+ **         maybe not due to +0/-0)
+ **       - classifications to normal tests (maybe)
+ **       - (= x (fp.neg x)) --> (isNaN x)
+ **       - (fp.eq x (fp.neg x)) --> (isZero x) (previous and reorganise
+ **             should be sufficient)
+ **       - (fp.eq x const) --> various = depending on const
+ **       - (fp.isPositive (fp.neg x)) --> (fp.isNegative x)
+ **       - (fp.isNegative (fp.neg x)) --> (fp.isPositive x)
+ **       - (fp.isPositive (fp.abs x)) --> (not (isNaN x))
+ **       - (fp.isNegative (fp.abs x)) --> false
+ **       - A -> castA --> A
+ **       - A -> castB -> castC  -->  A -> castC if A <= B <= C
+ **       - A -> castB -> castA  -->  A if A <= B
+ **       - promotion converts can ignore rounding mode
+ **       - Samuel Figuer results
  **/
 
 #include <algorithm>

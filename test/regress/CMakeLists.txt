@@ -1,9 +1,9 @@
 #####################
 ## CMakeLists.txt
 ## Top contributors (to current version):
-##   Aina Niemetz, Mathias Preiner, Andrew Reynolds
+##   Aina Niemetz, Andrew Reynolds, Mathias Preiner
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -555,6 +555,7 @@ set(regress_0_tests
   regress0/fmf/issue4850-force-card.smt2
   regress0/fmf/issue4872-qf_ufc.smt2
   regress0/fmf/issue5239-uf-ss-tot.smt2
+  regress0/fmf/issue5922-fmf-not-x.smt2
   regress0/fmf/krs-sat.smt2
   regress0/fmf/no-minimal-sat.smt2
   regress0/fmf/QEpres-uf.855035.smtv1.smt2
@@ -706,6 +707,7 @@ set(regress_0_tests
   regress0/nl/very-simple-unsat.smt2
   regress0/opt-abd-no-use.smt2
   regress0/options/invalid_dump.smt2
+  regress0/options/set-and-get-options.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
   regress0/parser/bv_arity_smt2.6.smt2
@@ -1595,6 +1597,8 @@ set(regress_1_tests
   regress1/nl/issue3803-nl-check-model.smt2
   regress1/nl/issue3955-ee-double-notify.smt2
   regress1/nl/issue5372-2-no-m-presolve.smt2
+  regress1/nl/issue5662-nl-tc.smt2
+  regress1/nl/issue5662-nl-tc-min.smt2
   regress1/nl/metitarski-1025.smt2
   regress1/nl/metitarski-3-4.smt2
   regress1/nl/metitarski_3_4_2e.smt2
@@ -1772,6 +1776,7 @@ set(regress_1_tests
   regress1/quantifiers/issue5484b-qe.smt2
   regress1/quantifiers/issue5506-qe.smt2
   regress1/quantifiers/issue5507-qe.smt2
+  regress1/quantifiers/issue5658-qe.smt2
   regress1/quantifiers/issue5766-wrong-sel-trigger.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
@@ -2031,6 +2036,9 @@ set(regress_1_tests
   regress1/strings/issue5692-infer-proxy.smt2
   regress1/strings/issue5940-skc-len-conc.smt2
   regress1/strings/issue5940-2-skc-len-conc.smt2
+  regress1/strings/issue6072-inc-no-const-reg.smt2
+  regress1/strings/issue6075-repl-len-one-rr.smt2
+  regress1/strings/issue6142-repl-inv-rew.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

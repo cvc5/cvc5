@@ -3,7 +3,7 @@
 ## Top contributors (to current version):
 ##   Mathias Preiner, Gereon Kremer, Aina Niemetz
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -60,6 +60,13 @@ libcvc4_add_sources(
   statistics.h
   statistics_registry.cpp
   statistics_registry.h
+  stats_base.cpp
+  stats_base.h
+  stats_histogram.h
+  stats_timer.cpp
+  stats_timer.h
+  stats_utils.cpp
+  stats_utils.h
   string.cpp
   string.h
   floatingpoint_literal_symfpu.cpp

@@ -2,9 +2,9 @@
 /*! \file theory_quantifiers_bv_inverter_white.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
+ **   Aina Niemetz, Mathias Preiner, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -88,7 +88,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     }
     Node body = d_nodeManager->mkNode(k, x, d_t);
     Node scr = d_nodeManager->mkNode(EXISTS, d_bvarlist, body);
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     ASSERT_EQ(res.d_sat, Result::UNSAT);
   }
@@ -117,14 +117,14 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
                              litk, d_nodeManager->mkNode(k, d_s, d_x), d_t);
     Node scr =
         d_nodeManager->mkNode(EXISTS, d_bvarlist, pol ? body : body.notNode());
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
-      std::cout << "s " << d_smtEngine->getValue(d_s.toExpr()) << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(d_t.toExpr()) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(d_x.toExpr()) << std::endl;
+      std::cout << "s " << d_smtEngine->getValue(d_s) << std::endl;
+      std::cout << "t " << d_smtEngine->getValue(d_t) << std::endl;
+      std::cout << "x " << d_smtEngine->getValue(d_x) << std::endl;
     }
     ASSERT_EQ(res.d_sat, Result::UNSAT);
   }
@@ -173,17 +173,17 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node bvarlist = d_nodeManager->mkNode(BOUND_VAR_LIST, {x});
     Node scr =
         d_nodeManager->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
       if (!s1.isNull())
-        std::cout << "s1 " << d_smtEngine->getValue(s1.toExpr()) << std::endl;
+        std::cout << "s1 " << d_smtEngine->getValue(s1) << std::endl;
       if (!s2.isNull())
-        std::cout << "s2 " << d_smtEngine->getValue(s2.toExpr()) << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(t.toExpr()) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(x.toExpr()) << std::endl;
+        std::cout << "s2 " << d_smtEngine->getValue(s2) << std::endl;
+      std::cout << "t " << d_smtEngine->getValue(t) << std::endl;
+      std::cout << "x " << d_smtEngine->getValue(x) << std::endl;
     }
     ASSERT_TRUE(res.d_sat == Result::UNSAT);
   }
@@ -213,13 +213,13 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node bvarlist = d_nodeManager->mkNode(BOUND_VAR_LIST, {x});
     Node scr =
         d_nodeManager->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(t.toExpr()) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(x.toExpr()) << std::endl;
+      std::cout << "t " << d_smtEngine->getValue(t) << std::endl;
+      std::cout << "x " << d_smtEngine->getValue(x) << std::endl;
     }
     ASSERT_TRUE(res.d_sat == Result::UNSAT);
   }

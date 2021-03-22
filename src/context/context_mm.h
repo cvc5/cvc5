@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,9 @@
 #ifndef CVC4__CONTEXT__CONTEXT_MM_H
 #define CVC4__CONTEXT__CONTEXT_MM_H
 
+#ifndef CVC4_DEBUG_CONTEXT_MEMORY_MANAGER
 #include <deque>
-#include <limits>
+#endif
 #include <vector>
 
 namespace CVC4 {
@@ -161,10 +162,7 @@ class ContextMemoryManager {
 class ContextMemoryManager
 {
  public:
-  static unsigned getMaxAllocationSize()
-  {
-    return std::numeric_limits<unsigned>::max();
-  }
+  static unsigned getMaxAllocationSize();
 
   ContextMemoryManager() { d_allocations.push_back(std::vector<char*>()); }
   ~ContextMemoryManager()

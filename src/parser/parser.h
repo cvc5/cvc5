@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,12 +19,12 @@
 #ifndef CVC4__PARSER__PARSER_H
 #define CVC4__PARSER__PARSER_H
 
-#include <cassert>
 #include <list>
 #include <set>
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "cvc4_export.h"
 #include "expr/kind.h"
 #include "expr/symbol_manager.h"
 #include "expr/symbol_table.h"
@@ -57,7 +57,7 @@ enum DeclarationCheck {
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check);
 inline std::ostream& operator<<(std::ostream& out, DeclarationCheck check) {
   switch(check) {
   case CHECK_NONE:
@@ -85,7 +85,7 @@ enum SymbolType {
  * Returns a string representation of the given object (for
  * debugging).
  */
-inline std::ostream& operator<<(std::ostream& out, SymbolType type) CVC4_PUBLIC;
+inline std::ostream& operator<<(std::ostream& out, SymbolType type);
 inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
   switch(type) {
   case SYM_VARIABLE:
@@ -102,7 +102,8 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
  * name of the file, line number and column information, and in-scope
  * declarations.
  */
-class CVC4_PUBLIC Parser {
+class CVC4_EXPORT Parser
+{
   friend class ParserBuilder;
 private:
 
@@ -271,12 +272,8 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  virtual void forceLogic(const std::string& logic)
-  {
-    assert(!d_logicIsForced);
-    d_logicIsForced = true;
-    d_forcedLogic = logic;
-  }
+  virtual void forceLogic(const std::string& logic);
+
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 
@@ -774,7 +771,7 @@ public:
    * c1, c2, c3 are digits from 0 to 7.
    */
   std::vector<unsigned> processAdHocStringEsc(const std::string& s);
-};/* class Parser */
+}; /* class Parser */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

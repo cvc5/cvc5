@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -184,9 +184,10 @@ Node ExtendedRewriter::extendedRewrite(Node n)
         // we may have subsumed children down to one
         ret = children[0];
       }
-      else if (isAssoc && children.size() > kind::metakind::getUpperBoundForKind(k))
+      else if (isAssoc
+               && children.size() > kind::metakind::getMaxArityForKind(k))
       {
-        Assert(kind::metakind::getUpperBoundForKind(k) >= 2);
+        Assert(kind::metakind::getMaxArityForKind(k) >= 2);
         // kind may require binary construction
         ret = children[0];
         for (unsigned i = 1, nchild = children.size(); i < nchild; i++)

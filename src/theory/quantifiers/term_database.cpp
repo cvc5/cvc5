@@ -2,9 +2,9 @@
 /*! \file term_database.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include "theory/quantifiers/ematching/trigger_term_info.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -36,11 +37,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TermDb::TermDb(QuantifiersState& qs,
-               QuantifiersInferenceManager& qim,
-               QuantifiersRegistry& qr)
+TermDb::TermDb(QuantifiersState& qs, QuantifiersRegistry& qr)
     : d_qstate(qs),
-      d_qim(qim),
+      d_qim(nullptr),
       d_qreg(qr),
       d_termsContext(),
       d_termsContextUse(options::termDbCd() ? qs.getSatContext()
@@ -65,6 +64,8 @@ TermDb::TermDb(QuantifiersState& qs,
 TermDb::~TermDb(){
 
 }
+
+void TermDb::finishInit(QuantifiersInferenceManager* qim) { d_qim = qim; }
 
 void TermDb::registerQuantifier( Node q ) {
   Assert(q[0].getNumChildren() == d_qreg.getNumInstantiationConstants(q));
@@ -437,7 +438,7 @@ void TermDb::computeUfTerms( TNode f ) {
             }
             Trace("term-db-lemma") << "  add lemma : " << lem << std::endl;
           }
-          d_qim.addPendingLemma(lem, InferenceId::UNKNOWN);
+          d_qim->addPendingLemma(lem, InferenceId::UNKNOWN);
           d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return;
@@ -1047,7 +1048,7 @@ bool TermDb::reset( Theory::Effort effort ){
           // equality is sent out as a lemma here.
           Trace("term-db-lemma")
               << "Purify equality lemma: " << eq << std::endl;
-          d_qim.addPendingLemma(eq, InferenceId::UNKNOWN);
+          d_qim->addPendingLemma(eq, InferenceId::UNKNOWN);
           d_qstate.notifyInConflict();
           d_consistent_ee = false;
           return false;

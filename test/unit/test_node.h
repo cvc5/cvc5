@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,7 +28,7 @@ class TestNode : public TestInternal
  protected:
   void SetUp() override
   {
-    d_nodeManager.reset(new NodeManager(nullptr));
+    d_nodeManager.reset(new NodeManager());
     d_scope.reset(new NodeManagerScope(d_nodeManager.get()));
     d_boolTypeNode.reset(new TypeNode(d_nodeManager->booleanType()));
     d_bvTypeNode.reset(new TypeNode(d_nodeManager->mkBitVectorType(2)));

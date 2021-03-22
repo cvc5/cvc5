@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,9 @@
 
 #include "theory/quantifiers/quant_rep_bound_ext.h"
 
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quant_bound_inference.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
 
@@ -23,7 +24,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QRepBoundExt::QRepBoundExt(QuantifiersEngine* qe) : d_qe(qe) {}
+QRepBoundExt::QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m)
+    : d_qbi(qbi), d_model(m)
+{
+}
 
 RsiEnumType QRepBoundExt::setBound(Node owner,
                                    unsigned i,
@@ -32,7 +36,7 @@ RsiEnumType QRepBoundExt::setBound(Node owner,
   // builtin: check if it is bound by bounded integer module
   if (owner.getKind() == FORALL)
   {
-    BoundVarType bvt = d_qe->getBoundVarType(owner, owner[0][i]);
+    BoundVarType bvt = d_qbi.getBoundVarType(owner, owner[0][i]);
     if (bvt != BOUND_FINITE)
     {
       d_bound_int[i] = true;
@@ -57,7 +61,7 @@ bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
     return true;
   }
   Assert(owner.getKind() == FORALL);
-  if (!d_qe->getBoundElements(rsi, initial, owner, owner[0][i], elements))
+  if (!d_qbi.getBoundElements(rsi, initial, owner, owner[0][i], elements))
   {
     return false;
   }
@@ -66,7 +70,7 @@ bool QRepBoundExt::resetIndex(RepSetIterator* rsi,
 
 bool QRepBoundExt::initializeRepresentativesForType(TypeNode tn)
 {
-  return d_qe->getModel()->initializeRepresentativesForType(tn);
+  return d_model->initializeRepresentativesForType(tn);
 }
 
 bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
@@ -77,7 +81,7 @@ bool QRepBoundExt::getVariableOrder(Node owner, std::vector<unsigned>& varOrder)
     return false;
   }
   Trace("bound-int-rsi") << "Calculating variable order..." << std::endl;
-  d_qe->getBoundVarIndices(owner, varOrder);
+  d_qbi.getBoundVarIndices(owner, varOrder);
   return true;
 }
 

@@ -2,9 +2,9 @@
 /*! \file trigger.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,17 +17,14 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 #define CVC4__THEORY__QUANTIFIERS__TRIGGER_H
 
-#include <map>
-
 #include "expr/node.h"
-#include "options/quantifiers_options.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/valuation.h"
+#include "theory/inference_id.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
+class Valuation;
 
 namespace quantifiers {
 class QuantifiersState;
@@ -38,6 +35,7 @@ class QuantifiersRegistry;
 namespace inst {
 
 class IMGenerator;
+class InstMatch;
 class InstMatchGenerator;
 /** A collection of nodes representing a trigger.
 *
@@ -211,7 +209,9 @@ class Trigger {
    * but in some cases (e.g. higher-order) we may modify m before calling
    * Instantiate::addInstantiation(...).
    */
-  virtual bool sendInstantiation(InstMatch& m);
+  virtual bool sendInstantiation(std::vector<Node>& m, InferenceId id);
+  /** inst match version, calls the above method */
+  bool sendInstantiation(InstMatch& m, InferenceId id);
   /**
    * Ensure that all ground subterms of n have been preprocessed. This makes
    * calls to the provided valuation to obtain the preprocessed form of these
@@ -247,7 +247,7 @@ class Trigger {
    * This example would fail to match when f(a) is not registered.
    */
   std::vector<Node> d_groundTerms;
-  /** The quantifiers engine associated with this trigger. */
+  // !!!!!!!!!!!!!!!!!! temporarily available (project #15)
   QuantifiersEngine* d_quantEngine;
   /** Reference to the quantifiers state */
   quantifiers::QuantifiersState& d_qstate;

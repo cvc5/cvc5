@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -285,16 +285,16 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
     return;
   }
 
-  d_statStarts.setData(minisat->starts);
-  d_statDecisions.setData(minisat->decisions);
-  d_statRndDecisions.setData(minisat->rnd_decisions);
-  d_statPropagations.setData(minisat->propagations);
-  d_statConflicts.setData(minisat->conflicts);
-  d_statClausesLiterals.setData(minisat->clauses_literals);
-  d_statLearntsLiterals.setData(minisat->learnts_literals);
-  d_statMaxLiterals.setData(minisat->max_literals);
-  d_statTotLiterals.setData(minisat->tot_literals);
-  d_statEliminatedVars.setData(minisat->eliminated_vars);
+  d_statStarts.set(minisat->starts);
+  d_statDecisions.set(minisat->decisions);
+  d_statRndDecisions.set(minisat->rnd_decisions);
+  d_statPropagations.set(minisat->propagations);
+  d_statConflicts.set(minisat->conflicts);
+  d_statClausesLiterals.set(minisat->clauses_literals);
+  d_statLearntsLiterals.set(minisat->learnts_literals);
+  d_statMaxLiterals.set(minisat->max_literals);
+  d_statTotLiterals.set(minisat->tot_literals);
+  d_statEliminatedVars.set(minisat->eliminated_vars);
 }
 
 } /* namespace CVC4::prop */

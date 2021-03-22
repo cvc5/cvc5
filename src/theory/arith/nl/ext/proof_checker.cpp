@@ -2,9 +2,9 @@
 /*! \file proof_checker.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer
+ **   Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,8 +28,6 @@ namespace nl {
 void ExtProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::ARITH_MULT_SIGN, this);
-  pc->registerChecker(PfRule::ARITH_MULT_POS, this);
-  pc->registerChecker(PfRule::ARITH_MULT_NEG, this);
   pc->registerChecker(PfRule::ARITH_MULT_TANGENT, this);
 }
 
@@ -118,43 +116,6 @@ Node ExtProofRuleChecker::checkInternal(PfRule id,
             Kind::IMPLIES, nm->mkAnd(premise), nm->mkNode(Kind::GT, mon, zero));
       default: Assert(false); return Node();
     }
-  }
-  else if (id == PfRule::ARITH_MULT_POS)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 3);
-    Node mult = args[0];
-    Node orig = args[1];
-    Kind rel = args[2].getKind();
-    Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-           || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
-    Node lhs = args[2][0];
-    Node rhs = args[2][1];
-    return Rewriter::rewrite(nm->mkNode(
-        Kind::IMPLIES,
-        nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::GT, mult, zero), orig}),
-        nm->mkNode(rel,
-                   nm->mkNode(Kind::MULT, mult, lhs),
-                   nm->mkNode(Kind::MULT, mult, rhs))));
-  }
-  else if (id == PfRule::ARITH_MULT_NEG)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 3);
-    Node mult = args[0];
-    Node orig = args[1];
-    Kind rel = args[2].getKind();
-    Assert(rel == Kind::EQUAL || rel == Kind::DISTINCT || rel == Kind::LT
-           || rel == Kind::LEQ || rel == Kind::GT || rel == Kind::GEQ);
-    Kind rel_inv = (rel == Kind::DISTINCT ? rel : reverseRelationKind(rel));
-    Node lhs = args[2][0];
-    Node rhs = args[2][1];
-    return Rewriter::rewrite(nm->mkNode(
-        Kind::IMPLIES,
-        nm->mkAnd(std::vector<Node>{nm->mkNode(Kind::LT, mult, zero), orig}),
-        nm->mkNode(rel_inv,
-                   nm->mkNode(Kind::MULT, mult, lhs),
-                   nm->mkNode(Kind::MULT, mult, rhs))));
   }
   else if (id == PfRule::ARITH_MULT_TANGENT)
   {

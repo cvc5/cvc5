@@ -2,9 +2,9 @@
 /*! \file proof_checker.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include "expr/node.h"
 #include "expr/proof_rule.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 
@@ -92,7 +93,7 @@ class ProofCheckerStatistics
   ProofCheckerStatistics();
   ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleChecks;
+  IntegralHistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
   IntStat d_totalRuleChecks;
 };
@@ -147,8 +148,8 @@ class ProofChecker
   Node checkDebug(PfRule id,
                   const std::vector<Node>& cchildren,
                   const std::vector<Node>& args,
-                  Node expected,
-                  const char* traceTag);
+                  Node expected = Node::null(),
+                  const char* traceTag = "");
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
   /**

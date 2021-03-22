@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,17 +22,6 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-/**
- * Attribute for associating terms to a unique bound variable.  This
- * is used to construct canonical bound variables e.g. for constructing
- * bound variables for witness terms in the skolemize method below.
- */
-struct WitnessBoundVarAttributeId
-{
-};
-typedef expr::Attribute<WitnessBoundVarAttributeId, Node>
-    WitnessBoundVarAttribute;
-
 // Attributes are global maps from Nodes to data. Thus, note that these could
 // be implemented as internal maps in SkolemManager.
 struct WitnessFormAttributeId
@@ -45,44 +34,43 @@ struct SkolemFormAttributeId
 };
 typedef expr::Attribute<SkolemFormAttributeId, Node> SkolemFormAttribute;
 
-// Maps terms to their purify skolem variables
-struct PurifySkolemAttributeId
+struct OriginalFormAttributeId
 {
 };
-typedef expr::Attribute<PurifySkolemAttributeId, Node> PurifySkolemAttribute;
+typedef expr::Attribute<OriginalFormAttributeId, Node> OriginalFormAttribute;
 
 Node SkolemManager::mkSkolem(Node v,
                              Node pred,
                              const std::string& prefix,
                              const std::string& comment,
                              int flags,
-                             ProofGenerator* pg,
-                             bool retWitness)
+                             ProofGenerator* pg)
 {
+  // We do not currently insist that pred does not contain witness terms
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
   NodeManager* nm = NodeManager::currentNM();
   Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-  // translate pred to witness form, since pred itself may contain skolem
-  Node predw = getWitnessForm(pred);
-  // make the witness term, which should not contain any skolem
-  Node w = nm->mkNode(WITNESS, bvl, predw);
+  // Make the witness term, where notice that pred may contain skolems. We do
+  // not recursively convert pred to witness form, since witness terms should
+  // be treated as opaque. Moreover, the use of witness forms leads to
+  // variable shadowing issues in e.g. skolemization.
+  Node w = nm->mkNode(WITNESS, bvl, pred);
   // store the mapping to proof generator if it exists
   if (pg != nullptr)
   {
-    // We cache based on the original (Skolem) form, since the user of this
-    // method operates on Skolem forms.
+    // We cache based on the existential of the original predicate
     Node q = nm->mkNode(EXISTS, bvl, pred);
     // Notice this may overwrite an existing proof generator. This does not
     // matter since either should be able to prove q.
     d_gens[q] = pg;
   }
-  Node k = getOrMakeSkolem(w, prefix, comment, flags);
-  // if we want to return the witness term, make it
-  if (retWitness)
-  {
-    return nm->mkNode(WITNESS, bvl, pred);
-  }
+  Node k = mkSkolemInternal(w, prefix, comment, flags);
+  // set witness form attribute for k
+  WitnessFormAttribute wfa;
+  k.setAttribute(wfa, w);
+  Trace("sk-manager-skolem")
+      << "skolem: " << k << " witness " << w << std::endl;
   return k;
 }
 
@@ -124,10 +112,8 @@ Node SkolemManager::skolemize(Node q,
   Assert(q.getKind() == EXISTS);
   Node v;
   std::vector<Node> ovars;
-  std::vector<Node> ovarsW;
   Trace("sk-manager-debug") << "mkSkolemize..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  BoundVarManager* bvm = nm->getBoundVarManager();
   for (const Node& av : q[0])
   {
     if (v.isNull())
@@ -135,26 +121,17 @@ Node SkolemManager::skolemize(Node q,
       v = av;
       continue;
     }
-    // must make fresh variable to avoid shadowing, which is unique per
-    // variable av to ensure that this method is deterministic. Having this
-    // method deterministic ensures that the proof checker (e.g. for
-    // quantifiers) is capable of proving the expected value for conclusions
-    // of proof rules, instead of an alpha-equivalent variant of a conclusion.
-    Node avp = bvm->mkBoundVar<WitnessBoundVarAttribute>(av, av.getType());
-    ovarsW.push_back(avp);
     ovars.push_back(av);
   }
   Assert(!v.isNull());
+  // make the predicate with one variable stripped off
   Node pred = q[1];
-  qskolem = q[1];
   Trace("sk-manager-debug") << "make exists predicate" << std::endl;
   if (!ovars.empty())
   {
-    // skolem form keeps the old variables
+    // keeps the same variables
     Node bvl = nm->mkNode(BOUND_VAR_LIST, ovars);
-    qskolem = nm->mkNode(EXISTS, bvl, pred);
     // update the predicate
-    bvl = nm->mkNode(BOUND_VAR_LIST, ovarsW);
     pred = nm->mkNode(EXISTS, bvl, pred);
   }
   Trace("sk-manager-debug") << "call sub mkSkolem" << std::endl;
@@ -166,7 +143,8 @@ Node SkolemManager::skolemize(Node q,
   TNode tk = k;
   Trace("sk-manager-debug")
       << "qskolem apply " << tv << " -> " << tk << " to " << pred << std::endl;
-  qskolem = qskolem.substitute(tv, tk);
+  // the quantified formula with one step of skolemization
+  qskolem = pred.substitute(tv, tk);
   Trace("sk-manager-debug") << "qskolem done substitution" << std::endl;
   return k;
 }
@@ -176,20 +154,16 @@ Node SkolemManager::mkPurifySkolem(Node t,
                                    const std::string& comment,
                                    int flags)
 {
-  PurifySkolemAttribute psa;
-  if (t.hasAttribute(psa))
-  {
-    return t.getAttribute(psa);
-  }
-  // The case where t is a witness term is special: we set its Skolem attribute
-  // directly.
-  if (t.getKind() == WITNESS)
-  {
-    return getOrMakeSkolem(getWitnessForm(t), prefix, comment, flags);
-  }
-  Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
-  Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
-  t.setAttribute(psa, k);
+  Node to = getOriginalForm(t);
+  // We do not currently insist that to does not contain witness terms
+
+  Node k = mkSkolemInternal(to, prefix, comment, flags);
+  // set original form attribute for k
+  OriginalFormAttribute ofa;
+  k.setAttribute(ofa, to);
+
+  Trace("sk-manager-skolem")
+      << "skolem: " << k << " purify " << to << std::endl;
   return k;
 }
 
@@ -208,20 +182,23 @@ ProofGenerator* SkolemManager::getProofGenerator(Node t) const
   return nullptr;
 }
 
-Node SkolemManager::getWitnessForm(Node n) { return convertInternal(n, true); }
+Node SkolemManager::getWitnessForm(Node k)
+{
+  Assert(k.getKind() == SKOLEM);
+  // simply look up the witness form for k via an attribute
+  WitnessFormAttribute wfa;
+  return k.getAttribute(wfa);
+}
 
-Node SkolemManager::getSkolemForm(Node n) { return convertInternal(n, false); }
-
-Node SkolemManager::convertInternal(Node n, bool toWitness)
+Node SkolemManager::getOriginalForm(Node n)
 {
   if (n.isNull())
   {
     return n;
   }
-  Trace("sk-manager-debug") << "SkolemManager::convertInternal: " << toWitness
-                            << " " << n << std::endl;
-  WitnessFormAttribute wfa;
-  SkolemFormAttribute sfa;
+  Trace("sk-manager-debug")
+      << "SkolemManager::getOriginalForm " << n << std::endl;
+  OriginalFormAttribute ofa;
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -236,13 +213,9 @@ Node SkolemManager::convertInternal(Node n, bool toWitness)
 
     if (it == visited.end())
     {
-      if (toWitness && cur.hasAttribute(wfa))
+      if (cur.hasAttribute(ofa))
       {
-        visited[cur] = cur.getAttribute(wfa);
-      }
-      else if (!toWitness && cur.hasAttribute(sfa))
-      {
-        visited[cur] = cur.getAttribute(sfa);
+        visited[cur] = cur.getAttribute(ofa);
       }
       else
       {
@@ -283,24 +256,7 @@ Node SkolemManager::convertInternal(Node n, bool toWitness)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
-      if (toWitness)
-      {
-        cur.setAttribute(wfa, ret);
-      }
-      else
-      {
-        // notice that WITNESS terms t may be assigned a skolem form that is
-        // of kind WITNESS here, if t contains a free variable. This is due to
-        // the fact that witness terms in the bodies of quantified formulas are
-        // not eliminated and thus may appear in places where getSkolemForm is
-        // called on them. Regardless, witness terms with free variables
-        // should never be themselves assigned skolems (otherwise we would have
-        // assertions with free variables), and thus they can be treated like
-        // ordinary terms here. We use an assertion to check that this is
-        // indeed the case.
-        Assert(cur.getKind() != WITNESS || expr::hasFreeVar(cur));
-        cur.setAttribute(sfa, ret);
-      }
+      cur.setAttribute(ofa, ret);
       visited[cur] = ret;
     }
   } while (!visit.empty());
@@ -310,36 +266,22 @@ Node SkolemManager::convertInternal(Node n, bool toWitness)
   return visited[n];
 }
 
-void SkolemManager::convertToWitnessFormVec(std::vector<Node>& vec)
+Node SkolemManager::mkSkolemInternal(Node w,
+                                     const std::string& prefix,
+                                     const std::string& comment,
+                                     int flags)
 {
-  for (unsigned i = 0, nvec = vec.size(); i < nvec; i++)
-  {
-    vec[i] = getWitnessForm(vec[i]);
-  }
-}
-void SkolemManager::convertToSkolemFormVec(std::vector<Node>& vec)
-{
-  for (unsigned i = 0, nvec = vec.size(); i < nvec; i++)
-  {
-    vec[i] = getSkolemForm(vec[i]);
-  }
-}
-
-Node SkolemManager::getOrMakeSkolem(Node w,
-                                    const std::string& prefix,
-                                    const std::string& comment,
-                                    int flags)
-{
-  Assert(w.getKind() == WITNESS);
+  // note that witness, original forms are independent, but share skolems
+  NodeManager* nm = NodeManager::currentNM();
+  // w is not necessarily a witness term
   SkolemFormAttribute sfa;
+  Node k;
   // could already have a skolem if we used w already
   if (w.hasAttribute(sfa))
   {
     return w.getAttribute(sfa);
   }
-  NodeManager* nm = NodeManager::currentNM();
   // make the new skolem
-  Node k;
   if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
   {
     Assert (w.getType().isBoolean());
@@ -349,9 +291,6 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   {
     k = nm->mkSkolem(prefix, w.getType(), comment, flags);
   }
-  // set witness form attribute for k
-  WitnessFormAttribute wfa;
-  k.setAttribute(wfa, w);
   // set skolem form attribute for w
   w.setAttribute(sfa, k);
   Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w

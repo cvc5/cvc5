@@ -2,9 +2,9 @@
 /*! \file inference_id.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Gereon Kremer, Yoni Zohar
+ **   Gereon Kremer, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,8 @@ const char* toString(InferenceId i)
   switch (i)
   {
     case InferenceId::ARITH_PP_ELIM_OPERATORS: return "ARITH_PP_ELIM_OPERATORS";
+    case InferenceId::ARITH_PP_ELIM_OPERATORS_LEMMA:
+      return "ARITH_PP_ELIM_OPERATORS_LEMMA";
     case InferenceId::ARITH_NL_CONGRUENCE: return "ARITH_NL_CONGRUENCE";
     case InferenceId::ARITH_NL_SHARED_TERM_VALUE_SPLIT:
       return "ARITH_NL_SHARED_TERM_VALUE_SPLIT";
@@ -99,9 +101,90 @@ const char* toString(InferenceId i)
     case InferenceId::DATATYPES_CYCLE: return "DATATYPES_CYCLE";
     case InferenceId::DATATYPES_SIZE_POS: return "DATATYPES_SIZE_POS";
     case InferenceId::DATATYPES_HEIGHT_ZERO: return "DATATYPES_HEIGHT_ZERO";
+    case InferenceId::DATATYPES_SYGUS_SYM_BREAK:
+      return "DATATYPES_SYGUS_SYM_BREAK";
+    case InferenceId::DATATYPES_SYGUS_CDEP_SYM_BREAK:
+      return "DATATYPES_SYGUS_CDEP_SYM_BREAK";
+    case InferenceId::DATATYPES_SYGUS_ENUM_SYM_BREAK:
+      return "DATATYPES_SYGUS_ENUM_SYM_BREAK";
+    case InferenceId::DATATYPES_SYGUS_SIMPLE_SYM_BREAK:
+      return "DATATYPES_SYGUS_SIMPLE_SYM_BREAK";
+    case InferenceId::DATATYPES_SYGUS_FAIR_SIZE:
+      return "DATATYPES_SYGUS_FAIR_SIZE";
+    case InferenceId::DATATYPES_SYGUS_FAIR_SIZE_CONFLICT:
+      return "DATATYPES_SYGUS_FAIR_SIZE_CONFLICT";
+    case InferenceId::DATATYPES_SYGUS_VAR_AGNOSTIC:
+      return "DATATYPES_SYGUS_VAR_AGNOSTIC";
+    case InferenceId::DATATYPES_SYGUS_SIZE_CORRECTION:
+      return "DATATYPES_SYGUS_SIZE_CORRECTION";
+    case InferenceId::DATATYPES_SYGUS_VALUE_CORRECTION:
+      return "DATATYPES_SYGUS_VALUE_CORRECTION";
+    case InferenceId::DATATYPES_SYGUS_MT_BOUND:
+      return "DATATYPES_SYGUS_MT_BOUND";
+    case InferenceId::DATATYPES_SYGUS_MT_POS: return "DATATYPES_SYGUS_MT_POS";
+
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING:
+      return "QUANTIFIERS_INST_E_MATCHING";
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_SIMPLE:
+      return "QUANTIFIERS_INST_E_MATCHING_SIMPLE";
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_MT:
+      return "QUANTIFIERS_INST_E_MATCHING_MT";
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_MTL:
+      return "QUANTIFIERS_INST_E_MATCHING_MTL";
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_HO:
+      return "QUANTIFIERS_INST_E_MATCHING_HO";
+    case InferenceId::QUANTIFIERS_INST_E_MATCHING_VAR_GEN:
+      return "QUANTIFIERS_INST_E_MATCHING_VAR_GEN";
+    case InferenceId::QUANTIFIERS_INST_CBQI_CONFLICT:
+      return "QUANTIFIERS_INST_CBQI_CONFLICT";
+    case InferenceId::QUANTIFIERS_INST_CBQI_PROP:
+      return "QUANTIFIERS_INST_CBQI_PROP";
+    case InferenceId::QUANTIFIERS_INST_FMF_EXH:
+      return "QUANTIFIERS_INST_FMF_EXH";
+    case InferenceId::QUANTIFIERS_INST_FMF_FMC:
+      return "QUANTIFIERS_INST_FMF_FMC";
+    case InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH:
+      return "QUANTIFIERS_INST_FMF_FMC_EXH";
+    case InferenceId::QUANTIFIERS_INST_CEGQI: return "QUANTIFIERS_INST_CEGQI";
+    case InferenceId::QUANTIFIERS_INST_SYQI: return "QUANTIFIERS_INST_SYQI";
+    case InferenceId::QUANTIFIERS_INST_ENUM: return "QUANTIFIERS_INST_ENUM";
+    case InferenceId::QUANTIFIERS_CEGQI_CEX_DEP:
+      return "QUANTIFIERS_CEGQI_CEX_DEP";
+    case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA:
+      return "QUANTIFIERS_CEGQI_VTS_LB_DELTA";
+    case InferenceId::QUANTIFIERS_CEGQI_VTS_UB_DELTA:
+      return "QUANTIFIERS_CEGQI_VTS_UB_DELTA";
+    case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_INF:
+      return "QUANTIFIERS_CEGQI_VTS_LB_INF";
+    case InferenceId::QUANTIFIERS_SYQI_EVAL_UNFOLD:
+      return "QUANTIFIERS_SYQI_EVAL_UNFOLD";
+    case InferenceId::QUANTIFIERS_SYGUS_QE_PREPROC:
+      return "QUANTIFIERS_SYGUS_QE_PREPROC";
+    case InferenceId::QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT:
+      return "QUANTIFIERS_SYGUS_ENUM_ACTIVE_GUARD_SPLIT";
+    case InferenceId::QUANTIFIERS_SYGUS_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT:
+      return "QUANTIFIERS_SYGUS_STREAM_EXCLUDE_CURRENT";
+    case InferenceId::QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA:
+      return "QUANTIFIERS_SYGUS_EXAMPLE_INFER_CONTRA";
+    case InferenceId::QUANTIFIERS_SKOLEMIZE: return "QUANTIFIERS_SKOLEMIZE";
+    case InferenceId::QUANTIFIERS_REDUCE_ALPHA_EQ:
+      return "QUANTIFIERS_REDUCE_ALPHA_EQ";
 
     case InferenceId::SEP_PTO_NEG_PROP: return "SEP_PTO_NEG_PROP";
     case InferenceId::SEP_PTO_PROP: return "SEP_PTO_PROP";
+    case InferenceId::SEP_LABEL_INTRO: return "SEP_LABEL_INTRO";
+    case InferenceId::SEP_LABEL_DEF: return "SEP_LABEL_DEF";
+    case InferenceId::SEP_EMP: return "SEP_EMP";
+    case InferenceId::SEP_POS_REDUCTION: return "SEP_POS_REDUCTION";
+    case InferenceId::SEP_NEG_REDUCTION: return "SEP_NEG_REDUCTION";
+    case InferenceId::SEP_REFINEMENT: return "SEP_REFINEMENT";
+    case InferenceId::SEP_NIL_NOT_IN_HEAP: return "SEP_NIL_NOT_IN_HEAP";
+    case InferenceId::SEP_SYM_BREAK: return "SEP_SYM_BREAK";
+    case InferenceId::SEP_WITNESS_FINITE_DATA: return "SEP_WITNESS_FINITE_DATA";
+    case InferenceId::SEP_DISTINCT_REF: return "SEP_DISTINCT_REF";
+    case InferenceId::SEP_REF_BOUND: return "SEP_REF_BOUND";
 
     case InferenceId::SETS_COMPREHENSION: return "SETS_COMPREHENSION";
     case InferenceId::SETS_DEQ: return "SETS_DEQ";
@@ -220,6 +303,10 @@ const char* toString(InferenceId i)
     case InferenceId::STRINGS_CTN_POS: return "STRINGS_CTN_POS";
     case InferenceId::STRINGS_REDUCTION: return "STRINGS_REDUCTION";
     case InferenceId::STRINGS_PREFIX_CONFLICT: return "STRINGS_PREFIX_CONFLICT";
+    case InferenceId::STRINGS_REGISTER_TERM_ATOMIC:
+      return "STRINGS_REGISTER_TERM_ATOMIC";
+    case InferenceId::STRINGS_REGISTER_TERM: return "STRINGS_REGISTER_TERM";
+    case InferenceId::STRINGS_CMI_SPLIT: return "STRINGS_CMI_SPLIT";
 
     case InferenceId::UF_HO_APP_ENCODE: return "UF_HO_APP_ENCODE";
     case InferenceId::UF_HO_APP_CONV_SKOLEM: return "UF_HO_APP_CONV_SKOLEM";

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,8 +22,6 @@
 //#include "expr/attribute.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "expr/expr.h"
-#include "expr/expr_manager.h"
 
 #ifndef CVC4__NODE_MANAGER_H
 #define CVC4__NODE_MANAGER_H
@@ -36,9 +34,12 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
-#include "options/options.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+}
 
 class StatisticsRegistry;
 class ResourceManager;
@@ -82,16 +83,25 @@ class NodeManagerListener {
   virtual void nmNotifyDeleteNode(TNode n) {}
 }; /* class NodeManagerListener */
 
-class NodeManager {
-  template <unsigned nchild_thresh> friend class CVC4::NodeBuilder;
-  friend class NodeManagerScope;
+class NodeManager
+{
+  friend class api::Solver;
   friend class expr::NodeValue;
   friend class expr::TypeChecker;
 
-  // friends so they can access mkVar() here, which is private
-  friend Expr ExprManager::mkVar(const std::string&, Type);
-  friend Expr ExprManager::mkVar(Type);
+  template <unsigned nchild_thresh>
+  friend class NodeBuilder;
+  friend class NodeManagerScope;
 
+ public:
+  /**
+   * Return true if given kind is n-ary. The test is based on n-ary kinds
+   * having their maximal arity as the maximal possible number of children
+   * of a node.
+   */
+  static bool isNAryKind(Kind k);
+
+ private:
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
@@ -118,9 +128,6 @@ class NodeManager {
   size_t next_id;
 
   expr::attr::AttributeManager* d_attrManager;
-
-  /** The associated ExprManager */
-  ExprManager* d_exprManager;
 
   /**
    * The node value we're currently freeing.  This unique node value
@@ -171,12 +178,8 @@ class NodeManager {
    */
   std::vector<NodeManagerListener*> d_listeners;
 
-  /** A list of datatypes registered by its corresponding expr manager.
-   * !!! this member should be deleted when the Expr-layer is deleted.
-   */
-  std::vector<std::shared_ptr<DType> > d_registeredDTypes;
   /** A list of datatypes owned by this node manager */
-  std::vector<std::unique_ptr<DType> > d_ownedDTypes;
+  std::vector<std::unique_ptr<DType> > d_dtypes;
 
   /**
    * A map of tuple and record types to their corresponding datatype.
@@ -281,14 +284,10 @@ class NodeManager {
     // `d_zombies` uses the node id to hash and compare nodes. If `d_zombies`
     // already contains a node value with the same id as `nv`, but the pointers
     // are different, then the wrong `NodeManager` was in scope for one of the
-    // two nodes when it reached refcount zero. This can happen for example if
-    // you create a node with a `NodeManager` n1 and then call `Node::toExpr()`
-    // on that node while a different `NodeManager` n2 is in scope. When that
-    // `Expr` is deleted and the node reaches refcount zero in the `Expr`'s
-    // destructor, then `markForDeletion()` will be called on n2.
+    // two nodes when it reached refcount zero.
     Assert(d_zombies.find(nv) == d_zombies.end() || *d_zombies.find(nv) == nv);
 
-    d_zombies.insert(nv);  // FIXME multithreading
+    d_zombies.insert(nv);
 
     if(safeToReclaimZombies()) {
       if(d_zombies.size() > 5000) {
@@ -381,8 +380,7 @@ class NodeManager {
   Node* mkVarPtr(const TypeNode& type);
 
  public:
-
-  explicit NodeManager(ExprManager* exprManager);
+  explicit NodeManager();
   ~NodeManager();
 
   /** The node manager in the current public-facing CVC4 library context */
@@ -413,10 +411,6 @@ class NodeManager {
     d_listeners.erase(elt);
   }
 
-  /** register that datatype dt was constructed by the expression manager
-   * !!! this interface should be deleted when the Expr-layer is deleted.
-   */
-  size_t registerDatatype(std::shared_ptr<DType> dt);
   /**
    * Return the datatype at the given index owned by this class. Type nodes are
    * associated with datatypes through the DatatypeIndexConstant class. The
@@ -1096,37 +1090,6 @@ class NodeManager {
    */
   TypeNode getType(TNode n, bool check = false);
 
-  /**
-   * Convert a node to an expression.  Uses the ExprManager
-   * associated to this NodeManager.
-   */
-  inline Expr toExpr(TNode n);
-
-  /**
-   * Convert an expression to a node.
-   */
-  static inline Node fromExpr(const Expr& e);
-
-  /**
-   * Convert a node manager to an expression manager.
-   */
-  inline ExprManager* toExprManager();
-
-  /**
-   * Convert an expression manager to a node manager.
-   */
-  static inline NodeManager* fromExprManager(ExprManager* exprManager);
-
-  /**
-   * Convert a type node to a type.
-   */
-  inline Type toType(const TypeNode& tn);
-
-  /**
-   * Convert a type to a type node.
-   */
-  static inline TypeNode fromType(Type t);
-
   /** Reclaim zombies while there are more than k nodes in the pool (if possible).*/
   void reclaimZombiesUntil(uint32_t k);
 
@@ -1147,7 +1110,7 @@ class NodeManager {
    * any published code!
    */
   void debugHook(int debugFlag);
-};/* class NodeManager */
+}; /* class NodeManager */
 
 /**
  * This class changes the "current" thread-global
@@ -1158,8 +1121,7 @@ class NodeManager {
  * public-interface calls into the CVC4 library, where CVC4's notion
  * of the "current" <code>NodeManager</code> should be set to match
  * the calling context.  See, for example, the implementations of
- * public calls in the <code>ExprManager</code> and
- * <code>SmtEngine</code> classes.
+ * public calls in the <code>SmtEngine</code> class.
  *
  * The client must be careful to create and destroy
  * <code>NodeManagerScope</code> objects in a well-nested manner (such
@@ -1176,10 +1138,6 @@ class NodeManagerScope {
 public:
  NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current)
  {
-   // There are corner cases where nm can be NULL and it's ok.
-   // For example, if you write { Expr e; }, then when the null
-   // Expr is destructed, there's no active node manager.
-   // Assert(nm != NULL);
    NodeManager::s_current = nm;
    Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
   }
@@ -1265,31 +1223,6 @@ inline void NodeManager::poolRemove(expr::NodeValue* nv) {
       << "NodeValue is not in the pool!";
 
   d_nodeValuePool.erase(nv);// FIXME multithreading
-}
-
-inline Expr NodeManager::toExpr(TNode n) {
-  return Expr(d_exprManager, new Node(n));
-}
-
-inline Node NodeManager::fromExpr(const Expr& e) {
-  return e.getNode();
-}
-
-inline ExprManager* NodeManager::toExprManager() {
-  return d_exprManager;
-}
-
-inline NodeManager* NodeManager::fromExprManager(ExprManager* exprManager) {
-  return exprManager->getNodeManager();
-}
-
-inline Type NodeManager::toType(const TypeNode& tn)
-{
-  return Type(this, new TypeNode(tn));
-}
-
-inline TypeNode NodeManager::fromType(Type t) {
-  return *Type::getTypeNode(t);
 }
 
 }/* CVC4 namespace */

@@ -2,9 +2,9 @@
 /*! \file ho_trigger.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds, Mathias Preiner, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 #include "theory/quantifiers/ematching/ho_trigger.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
@@ -198,7 +199,7 @@ uint64_t HigherOrderTrigger::addInstantiations()
   return addedHoLemmas + addedFoLemmas;
 }
 
-bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
+bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
   if (options::hoMatching())
   {
@@ -207,7 +208,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     std::vector<TNode> subs;
     for (unsigned i = 0, size = d_quant[0].getNumChildren(); i < size; i++)
     {
-      subs.push_back(m.d_vals[i]);
+      subs.push_back(m[i]);
       vars.push_back(d_qreg.getInstantiationConstant(d_quant, i));
     }
 
@@ -238,7 +239,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
     {
       TNode var = ha.first;
       unsigned vnum = var.getAttribute(InstVarNumAttribute());
-      TNode value = m.d_vals[vnum];
+      TNode value = m[vnum];
       Trace("ho-unif-debug") << "  val[" << var << "] = " << value << std::endl;
 
       Trace("ho-unif-debug2") << "initialize lambda information..."
@@ -372,27 +373,29 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
   else
   {
     // do not run higher-order matching
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
+    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m, id);
   }
 }
 
 // recursion depth limited by number of arguments of higher order variables
 // occurring as pattern operators (very small)
-bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
+bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m,
+                                           size_t var_index)
 {
   Trace("ho-unif-debug2") << "send inst " << var_index << " / "
                           << d_ho_var_list.size() << std::endl;
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m.d_vals);
+    return d_quantEngine->getInstantiate()->addInstantiation(
+        d_quant, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_HO);
   }
   else
   {
     Node var = d_ho_var_list[var_index];
     unsigned vnum = var.getAttribute(InstVarNumAttribute());
-    Assert(vnum < m.d_vals.size());
-    Node value = m.d_vals[vnum];
+    Assert(vnum < m.size());
+    Node value = m[vnum];
     Assert(d_lchildren[vnum][0] == value);
     Assert(d_ho_var_bvl.find(var) != d_ho_var_bvl.end());
 
@@ -402,13 +405,13 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m, unsigned var_index)
         sendInstantiationArg(m, var_index, vnum, 0, d_ho_var_bvl[var], false);
 
     // reset the value
-    m.d_vals[vnum] = value;
+    m[vnum] = value;
 
     return ret;
   }
 }
 
-bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
+bool HigherOrderTrigger::sendInstantiationArg(std::vector<Node>& m,
                                               unsigned var_index,
                                               unsigned vnum,
                                               unsigned arg_index,
@@ -428,7 +431,7 @@ bool HigherOrderTrigger::sendInstantiationArg(InstMatch& m,
           NodeManager::currentNM()->mkNode(kind::APPLY_UF, d_lchildren[vnum]);
       Trace("ho-unif-debug2") << "  got " << body << std::endl;
       Node lam = NodeManager::currentNM()->mkNode(kind::LAMBDA, lbvl, body);
-      m.d_vals[vnum] = lam;
+      m[vnum] = lam;
       Trace("ho-unif-debug2") << "  try " << vnum << " -> " << lam << std::endl;
     }
     return sendInstantiation(m, var_index + 1);

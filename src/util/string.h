@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,7 +30,8 @@ namespace CVC4 {
  * This data structure is the domain of values for the string type. It can also
  * be used as a generic utility for representing strings.
  */
-class CVC4_PUBLIC String {
+class String
+{
  public:
   /**
    * This is the cardinality of the alphabet that is representable by this
@@ -262,7 +263,8 @@ class CVC4_PUBLIC String {
 
 namespace strings {
 
-struct CVC4_PUBLIC StringHashFunction {
+struct StringHashFunction
+{
   size_t operator()(const ::CVC4::String& s) const {
     return std::hash<std::string>()(s.toString());
   }
@@ -270,7 +272,7 @@ struct CVC4_PUBLIC StringHashFunction {
 
 }  // namespace strings
 
-std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const String& s);
 
 }  // namespace CVC4
 

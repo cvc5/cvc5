@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,8 @@
 
 #include "expr/attribute.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace CVC4::kind;
 
@@ -43,7 +45,11 @@ void UfModelTreeNode::setValue( TheoryModel* m, Node n, Node v, std::vector< int
   if( argIndex<(int)indexOrder.size() ){
     //take r = null when argument is the model basis
     Node r;
-    if( ground || ( !n.isNull() && !n[ indexOrder[argIndex] ].getAttribute(ModelBasisAttribute()) ) ){
+    if (ground
+        || (!n.isNull()
+            && !quantifiers::FirstOrderModel::isModelBasis(
+                   n[indexOrder[argIndex]])))
+    {
       r = m->getRepresentative( n[ indexOrder[argIndex] ] );
     }
     d_data[ r ].setValue( m, n, v, indexOrder, ground, argIndex+1 );

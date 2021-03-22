@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,7 @@
  ** The term kinds of the CVC4 C++ API.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_export.h"
 
 #ifndef CVC4__API__CVC4CPPKIND_H
 #define CVC4__API__CVC4CPPKIND_H
@@ -35,7 +35,7 @@ namespace api {
  * checks for validity). The size of this type depends on the size of
  * CVC4::Kind (NodeValue::NBITS_KIND, currently 10 bits, see expr/node_value.h).
  */
-enum CVC4_PUBLIC Kind : int32_t
+enum CVC4_EXPORT Kind : int32_t
 {
   /**
    * Internal kind.
@@ -2849,7 +2849,7 @@ enum CVC4_PUBLIC Kind : int32_t
  * @param k the kind
  * @return the string representation of kind k
  */
-std::string kindToString(Kind k) CVC4_PUBLIC;
+std::string kindToString(Kind k) CVC4_EXPORT;
 
 /**
  * Serialize a kind to given stream.
@@ -2857,12 +2857,12 @@ std::string kindToString(Kind k) CVC4_PUBLIC;
  * @param k the kind to be serialized to the given output stream
  * @return the output stream
  */
-std::ostream& operator<<(std::ostream& out, Kind k) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, Kind k) CVC4_EXPORT;
 
 /**
  * Hash function for Kinds.
  */
-struct CVC4_PUBLIC KindHashFunction
+struct CVC4_EXPORT KindHashFunction
 {
   size_t operator()(Kind k) const;
 };

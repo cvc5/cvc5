@@ -2,9 +2,9 @@
 /*! \file set_defaults.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,6 +27,7 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
+#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
@@ -72,9 +73,11 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
-  if (options::checkUnsatCoresNew())
+  if (options::checkProofs() || options::checkUnsatCoresNew()
+      || options::dumpProofs())
   {
-    options::proof.set(true);
+    Notice() << "SmtEngine: setting proof" << std::endl;
+    options::produceProofs.set(true);
   }
   if (options::bitvectorAigSimplifications.wasSetByUser())
   {
@@ -87,7 +90,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::bitvectorAlgebraicSolver.set(true);
   }
 
-  bool is_sygus = language::isInputLangSygus(options::inputLanguage());
+  bool isSygus = language::isInputLangSygus(options::inputLanguage());
+  bool usesSygus = isSygus;
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -261,6 +265,20 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // Note we allow E-matching by default to support combinations of sequences
     // and quantifiers.
   }
+  // whether we must disable proofs
+  bool disableProofs = false;
+  if (options::globalNegate())
+  {
+    // When global negate answers "unsat", it is not due to showing a set of
+    // formulas is unsat. Thus, proofs do not apply.
+    disableProofs = true;
+  }
+  // !!! must disable proofs if using the old unsat core infrastructure
+  // TODO (#project 37) remove this
+  if (options::unsatCores() && !options::checkUnsatCoresNew())
+  {
+    disableProofs = true;
+  }
 
   if (options::arraysExp())
   {
@@ -283,21 +301,44 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   {
     if (options::produceAbducts()
         || options::produceInterpols() != options::ProduceInterpols::NONE
-        || options::sygusInference() || options::sygusRewSynthInput()
-        || options::sygusInst())
+        || options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
-      is_sygus = true;
+      isSygus = true;
+      usesSygus = true;
+    }
+    else if (options::sygusInst())
+    {
+      // sygus instantiation uses sygus, but it is not a sygus problem
+      usesSygus = true;
     }
   }
 
-  // We now know whether the input is sygus. Update the logic to incorporate
+  // We now know whether the input uses sygus. Update the logic to incorporate
   // the theories we need internally for handling sygus problems.
-  if (is_sygus)
+  if (usesSygus)
   {
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
+    if (isSygus)
+    {
+      // When sygus answers "unsat", it is not due to showing a set of
+      // formulas is unsat in the standard way. Thus, proofs do not apply.
+      disableProofs = true;
+    }
+  }
+
+  // if we requiring disabling proofs, disable them now
+  if (disableProofs && options::produceProofs())
+  {
+    if (options::produceProofs())
+    {
+      Notice() << "SmtEngine: turning off produce-proofs." << std::endl;
+    }
+    options::produceProofs.set(false);
+    options::checkProofs.set(false);
+    options::proofEagerChecking.set(false);
   }
 
   // sygus core connective requires unsat cores
@@ -310,7 +351,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
        || options::produceAbducts()
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
-       || options::blockModelsMode() != options::BlockModelsMode::NONE)
+       || options::blockModelsMode() != options::BlockModelsMode::NONE
+       || options::produceProofs())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -544,7 +586,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || is_sygus))
+          || usesSygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
     options::produceModels.set(true);
@@ -581,6 +623,12 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     logic = log;
     logic.lock();
   }
+  if (options::bvAbstraction())
+  {
+    // bv abstraction may require UF
+    Notice() << "Enabling UF because bvAbstraction requires it." << std::endl;
+    needsUf = true;
+  }
   if (needsUf
       // Arrays, datatypes and sets permit Boolean terms and thus require UF
       || logic.isTheoryEnabled(THEORY_ARRAYS)
@@ -602,9 +650,25 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!logic.isTheoryEnabled(THEORY_UF))
     {
       LogicInfo log(logic.getUnlockedCopy());
-      Notice() << "Enabling UF because " << logic << " requires it."
-               << std::endl;
+      if (!needsUf)
+      {
+        Notice() << "Enabling UF because " << logic << " requires it."
+                 << std::endl;
+      }
       log.enableTheory(THEORY_UF);
+      logic = log;
+      logic.lock();
+    }
+  }
+  if (options::arithMLTrick())
+  {
+    if (!logic.areIntegersUsed())
+    {
+      // enable integers
+      LogicInfo log(logic.getUnlockedCopy());
+      Notice() << "Enabling integers because arithMLTrick requires it."
+               << std::endl;
+      log.enableIntegers();
       logic = log;
       logic.lock();
     }
@@ -773,9 +837,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (!options::decisionMode.wasSetByUser())
   {
     options::DecisionMode decMode =
-        // sygus uses internal
-        is_sygus ? options::DecisionMode::INTERNAL :
-                 // ALL
+        // anything that uses sygus uses internal
+        usesSygus ? options::DecisionMode::INTERNAL :
+                  // ALL
             logic.hasEverything()
                 ? options::DecisionMode::JUSTIFICATION
                 : (  // QF_BV
@@ -936,7 +1000,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   // apply sygus options
   // if we are attempting to rewrite everything to SyGuS, use sygus()
-  if (is_sygus)
+  if (usesSygus)
   {
     if (!options::sygus())
     {
@@ -1374,11 +1438,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         "Note that in a QF_BV problem UF symbols can be introduced for "
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
-  }
-  // !!!!!!!!!!!!!!!! temporary, until proofs are functional
-  if (options::proof())
-  {
-    throw OptionException("--proof is not yet supported.");
   }
 
   if (logic == LogicInfo("QF_UFNRA"))

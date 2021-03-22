@@ -4,8 +4,8 @@
  ** Top contributors (to current version):
  **   Michael Chang, Yancheng Ou
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
+ ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
@@ -23,6 +23,9 @@
 #include "util/result.h"
 
 namespace CVC4 {
+
+class SmtEngine;
+
 namespace smt {
 
 /**
@@ -30,7 +33,7 @@ namespace smt {
  *
  * Represents whether an objective should be minimized or maximized
  */
-enum CVC4_PUBLIC ObjectiveType
+enum ObjectiveType
 {
   OBJECTIVE_MINIMIZE,
   OBJECTIVE_MAXIMIZE,
@@ -43,7 +46,7 @@ enum CVC4_PUBLIC ObjectiveType
  * Represents the result of a checkopt query
  * (unimplemented) OPT_OPTIMAL: if value was found
  */
-enum CVC4_PUBLIC OptResult
+enum OptResult
 {
   // the original set of assertions has result UNKNOWN
   OPT_UNKNOWN,

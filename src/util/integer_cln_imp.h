@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,12 +31,13 @@
 #include <string>
 
 #include "base/exception.h"
+#include "cvc4_export.h"  // remove when Cvc language support is removed
 
 namespace CVC4 {
 
 class Rational;
 
-class CVC4_PUBLIC Integer
+class CVC4_EXPORT Integer
 {
   friend class CVC4::Rational;
 
@@ -131,11 +132,8 @@ class CVC4_PUBLIC Integer
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;
 
-  /**
-   * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1.
-   */
-  Integer setBit(uint32_t i, bool value) const;
+  /** Set the ith bit of the current Integer to 'value'.  */
+  void setBit(uint32_t i, bool value);
 
   /**
    * Returns the integer with the binary representation of 'size' bits

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1891,7 +1891,8 @@ inline bool RewriteRule<SignExtendUltConst>::applies(TNode node)
     unsigned size_c = utils::getSize(c);
     unsigned msb_x_pos = utils::getSize(x) - 1;
     // (1 << (n - 1)))
-    BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos, true);
+    BitVector bv_msb_x(size_c);
+    bv_msb_x.setBit(msb_x_pos, true);
     // (~0 << (n - 1))
     BitVector bv_upper_bits =
         (~BitVector(size_c)).leftShift(BitVector(size_c, msb_x_pos));
@@ -1927,7 +1928,8 @@ inline Node RewriteRule<SignExtendUltConst>::apply(TNode node)
   unsigned msb_x_pos = utils::getSize(x) - 1;
   Node c_lo = utils::mkConst(bv_c.extract(msb_x_pos, 0));
   // (1 << (n - 1)))
-  BitVector bv_msb_x = BitVector(size_c).setBit(msb_x_pos, true);
+  BitVector bv_msb_x(size_c);
+  bv_msb_x.setBit(msb_x_pos, true);
   // (~0 << (n - 1))
   BitVector bv_upper_bits =
       (~BitVector(size_c)).leftShift(BitVector(size_c, msb_x_pos));

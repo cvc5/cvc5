@@ -2,9 +2,9 @@
 /*! \file infer_proof_cons.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
 
 #include "theory/strings/infer_proof_cons.h"
 
+#include "expr/proof_node_manager.h"
 #include "expr/skolem_manager.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"

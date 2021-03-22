@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "smt/logic_exception.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -29,9 +30,12 @@
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_enumerator_basic.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::kind;
@@ -572,8 +576,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   if (!query.isConst() || query.getConst<bool>())
   {
     Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
-    Result r =
-        checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
+    Result r = checkWithSubsolver(query, d_ce_sk_vars, d_ce_sk_var_mvs);
     Trace("sygus-engine") << "  ...got " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {

@@ -2,9 +2,9 @@
 /*! \file iand_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Yoni Zohar, Gereon Kremer
+ **   Andrew Reynolds, Makai Mann, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,6 @@
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/arith/nl/iand_utils.h"
-#include "theory/arith/nl/nl_lemma_utils.h"
 
 namespace CVC4 {
 namespace theory {

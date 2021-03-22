@@ -4,13 +4,13 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief implementation of class for constructing inductive datatypes that correspond to
- ** grammars that encode syntactic restrictions for SyGuS.
+ ** \brief implementation of class for constructing inductive datatypes that
+ ** correspond to grammars that encode syntactic restrictions for SyGuS.
  **/
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
@@ -26,6 +26,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 #include "theory/strings/word.h"
 
 using namespace CVC4::kind;
@@ -427,9 +428,8 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isFloatingPoint())
   {
-    FloatingPointType fp_type = static_cast<FloatingPointType>(type.toType());
-    FloatingPointSize fp_size(FloatingPointType(fp_type).getExponentSize(),
-                              FloatingPointType(fp_type).getSignificandSize());
+    FloatingPointSize fp_size(type.getFloatingPointExponentSize(),
+                              type.getFloatingPointSignificandSize());
     ops.push_back(nm->mkConst(FloatingPoint::makeNaN(fp_size)));
     ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, true)));
     ops.push_back(nm->mkConst(FloatingPoint::makeInf(fp_size, false)));
@@ -523,10 +523,8 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> opLArgs;
-  std::vector<Expr> opLArgsExpr;
   // get the builtin type
   opLArgs.push_back(nm->mkBoundVar(bArgType));
-  opLArgsExpr.push_back(opLArgs.back().toExpr());
   // build zarg
   Node zarg;
   Assert(bArgType.isReal() || bArgType.isBitVector());

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,16 +20,15 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/rep_set.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
+
+class QuantifiersBoundInference;
+class FirstOrderModel;
 
 /** Quantifiers representative bound
  *
@@ -40,7 +39,7 @@ namespace quantifiers {
 class QRepBoundExt : public RepBoundExt
 {
  public:
-  QRepBoundExt(QuantifiersEngine* qe);
+  QRepBoundExt(QuantifiersBoundInference& qbi, FirstOrderModel* m);
   virtual ~QRepBoundExt() {}
   /** set bound */
   RsiEnumType setBound(Node owner,
@@ -58,8 +57,10 @@ class QRepBoundExt : public RepBoundExt
   bool getVariableOrder(Node owner, std::vector<unsigned>& varOrder) override;
 
  private:
-  /** Quantifiers engine associated with this bound */
-  QuantifiersEngine* d_qe;
+  /** Reference to the quantifiers bound inference */
+  QuantifiersBoundInference& d_qbi;
+  /** Pointer to the quantifiers model */
+  FirstOrderModel* d_model;
   /** indices that are bound integer enumeration */
   std::map<unsigned, bool> d_bound_int;
 };

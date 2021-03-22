@@ -2,14 +2,15 @@
 /*! \file inst_strategy_cegqi.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of counterexample-guided quantifier instantiation strategies
+ ** \brief Implementation of counterexample-guided quantifier instantiation
+ **  strategies
  **/
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 
@@ -25,6 +26,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -481,10 +483,13 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
     //check if we need virtual term substitution (if used delta or infinity)
     bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
     if (d_quantEngine->getInstantiate()->addInstantiation(
-            d_curr_quant, subs, false, false, used_vts))
+            d_curr_quant,
+            subs,
+            InferenceId::QUANTIFIERS_INST_CEGQI,
+            false,
+            false,
+            used_vts))
     {
-      ++(d_quantEngine->d_statistics.d_instantiations_cbqi);
-      //d_added_inst.insert( d_curr_quant );
       return true;
     }else{
       //this should never happen for monotonic selection strategies

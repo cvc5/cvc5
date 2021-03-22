@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Francois Bobot, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,17 +14,17 @@
  ** [[ Add file-specific comments here ]]
  **/
 
-
 #include "parser/tptp/tptp_input.h"
 
 #include <antlr3.h>
 
+#include "base/check.h"
 #include "parser/input.h"
 #include "parser/parser.h"
 #include "parser/parser_exception.h"
-#include "parser/tptp/tptp.h"
 #include "parser/tptp/TptpLexer.h"
 #include "parser/tptp/TptpParser.h"
+#include "parser/tptp/tptp.h"
 
 namespace CVC4 {
 namespace parser {
@@ -33,7 +33,7 @@ namespace parser {
 TptpInput::TptpInput(AntlrInputStream& inputStream) :
   AntlrInput(inputStream, 2) {
   pANTLR3_INPUT_STREAM input = inputStream.getAntlr3InputStream();
-  assert( input != NULL );
+  Assert(input != NULL);
 
   d_pTptpLexer = TptpLexerNew(input);
   if( d_pTptpLexer == NULL ) {
@@ -43,7 +43,7 @@ TptpInput::TptpInput(AntlrInputStream& inputStream) :
   setAntlr3Lexer( d_pTptpLexer->pLexer );
 
   pANTLR3_COMMON_TOKEN_STREAM tokenStream = getTokenStream();
-  assert( tokenStream != NULL );
+  Assert(tokenStream != NULL);
 
   d_pTptpParser = TptpParserNew(tokenStream);
   if( d_pTptpParser == NULL ) {

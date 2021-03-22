@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "expr/proof_node_updater.h"
 #include "smt/witness_form.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 
@@ -249,7 +250,7 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleCount;
+  IntegralHistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */

@@ -5,7 +5,7 @@
  **   Aina Niemetz, Martin Brain, Mathias Preiner
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,7 @@ namespace CVC4 {
 
 class FloatingPointLiteral;
 
-class CVC4_PUBLIC FloatingPoint
+class FloatingPoint
 {
  public:
   /**
@@ -274,7 +274,7 @@ class CVC4_PUBLIC FloatingPoint
 /**
  * Hash function for floating-point values.
  */
-struct CVC4_PUBLIC FloatingPointHashFunction
+struct FloatingPointHashFunction
 {
   size_t operator()(const FloatingPoint& fp) const
   {
@@ -290,7 +290,7 @@ struct CVC4_PUBLIC FloatingPointHashFunction
 /**
  * The parameter type for the conversions to floating point.
  */
-class CVC4_PUBLIC FloatingPointConvertSort
+class FloatingPointConvertSort
 {
  public:
   /** Constructors. */
@@ -309,7 +309,7 @@ class CVC4_PUBLIC FloatingPointConvertSort
 
 /** Hash function for conversion sorts. */
 template <uint32_t key>
-struct CVC4_PUBLIC FloatingPointConvertSortHashFunction
+struct FloatingPointConvertSortHashFunction
 {
   inline size_t operator()(const FloatingPointConvertSort& fpcs) const
   {
@@ -328,8 +328,7 @@ struct CVC4_PUBLIC FloatingPointConvertSortHashFunction
  * sign, the following exponent width bits the exponent, and the remaining bits
  * the significand).
  */
-class CVC4_PUBLIC FloatingPointToFPIEEEBitVector
-    : public FloatingPointConvertSort
+class FloatingPointToFPIEEEBitVector : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
@@ -347,8 +346,7 @@ class CVC4_PUBLIC FloatingPointToFPIEEEBitVector
  * Conversion from floating-point to another floating-point (of possibly
  * different size).
  */
-class CVC4_PUBLIC FloatingPointToFPFloatingPoint
-    : public FloatingPointConvertSort
+class FloatingPointToFPFloatingPoint : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
@@ -365,7 +363,7 @@ class CVC4_PUBLIC FloatingPointToFPFloatingPoint
 /**
  * Conversion from floating-point to Real.
  */
-class CVC4_PUBLIC FloatingPointToFPReal : public FloatingPointConvertSort
+class FloatingPointToFPReal : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
@@ -382,8 +380,7 @@ class CVC4_PUBLIC FloatingPointToFPReal : public FloatingPointConvertSort
 /**
  * Conversion from floating-point to signed bit-vector value.
  */
-class CVC4_PUBLIC FloatingPointToFPSignedBitVector
-    : public FloatingPointConvertSort
+class FloatingPointToFPSignedBitVector : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
@@ -400,8 +397,7 @@ class CVC4_PUBLIC FloatingPointToFPSignedBitVector
 /**
  * Conversion from floating-point to unsigned bit-vector value.
  */
-class CVC4_PUBLIC FloatingPointToFPUnsignedBitVector
-    : public FloatingPointConvertSort
+class FloatingPointToFPUnsignedBitVector : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
@@ -415,7 +411,7 @@ class CVC4_PUBLIC FloatingPointToFPUnsignedBitVector
   }
 };
 
-class CVC4_PUBLIC FloatingPointToFPGeneric : public FloatingPointConvertSort
+class FloatingPointToFPGeneric : public FloatingPointConvertSort
 {
  public:
   /** Constructors. */
@@ -432,7 +428,7 @@ class CVC4_PUBLIC FloatingPointToFPGeneric : public FloatingPointConvertSort
 /**
  * Base type for floating-point to bit-vector conversion.
  */
-class CVC4_PUBLIC FloatingPointToBV
+class FloatingPointToBV
 {
  public:
   /** Constructors. */
@@ -450,7 +446,7 @@ class CVC4_PUBLIC FloatingPointToBV
 /**
  * Conversion from floating-point to unsigned bit-vector value.
  */
-class CVC4_PUBLIC FloatingPointToUBV : public FloatingPointToBV
+class FloatingPointToUBV : public FloatingPointToBV
 {
  public:
   FloatingPointToUBV(uint32_t _s) : FloatingPointToBV(_s) {}
@@ -460,7 +456,7 @@ class CVC4_PUBLIC FloatingPointToUBV : public FloatingPointToBV
 /**
  * Conversion from floating-point to signed bit-vector value.
  */
-class CVC4_PUBLIC FloatingPointToSBV : public FloatingPointToBV
+class FloatingPointToSBV : public FloatingPointToBV
 {
  public:
   FloatingPointToSBV(uint32_t _s) : FloatingPointToBV(_s) {}
@@ -470,7 +466,7 @@ class CVC4_PUBLIC FloatingPointToSBV : public FloatingPointToBV
 /**
  * Conversion from floating-point to unsigned bit-vector value (total version).
  */
-class CVC4_PUBLIC FloatingPointToUBVTotal : public FloatingPointToBV
+class FloatingPointToUBVTotal : public FloatingPointToBV
 {
  public:
   FloatingPointToUBVTotal(uint32_t _s) : FloatingPointToBV(_s) {}
@@ -482,7 +478,7 @@ class CVC4_PUBLIC FloatingPointToUBVTotal : public FloatingPointToBV
 /**
  * Conversion from floating-point to signed bit-vector value (total version).
  */
-class CVC4_PUBLIC FloatingPointToSBVTotal : public FloatingPointToBV
+class FloatingPointToSBVTotal : public FloatingPointToBV
 {
  public:
   FloatingPointToSBVTotal(uint32_t _s) : FloatingPointToBV(_s) {}
@@ -495,7 +491,7 @@ class CVC4_PUBLIC FloatingPointToSBVTotal : public FloatingPointToBV
  * Hash function for floating-point to bit-vector conversions.
  */
 template <uint32_t key>
-struct CVC4_PUBLIC FloatingPointToBVHashFunction
+struct FloatingPointToBVHashFunction
 {
   inline size_t operator()(const FloatingPointToBV& fptbv) const
   {
@@ -509,15 +505,14 @@ struct CVC4_PUBLIC FloatingPointToBVHashFunction
  * FloatingPointLiteral in a sensible way. Use FloatingPoint instead. */
 
 /** Output stream operator overloading for floating-point values. */
-std::ostream& operator<<(std::ostream& os, const FloatingPoint& fp) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const FloatingPoint& fp);
 
 /** Output stream operator overloading for floating-point formats. */
-std::ostream& operator<<(std::ostream& os,
-                         const FloatingPointSize& fps) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& os, const FloatingPointSize& fps);
 
 /** Output stream operator overloading for floating-point conversion sorts. */
 std::ostream& operator<<(std::ostream& os,
-                         const FloatingPointConvertSort& fpcs) CVC4_PUBLIC;
+                         const FloatingPointConvertSort& fpcs);
 
 }  // namespace CVC4
 

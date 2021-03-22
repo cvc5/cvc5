@@ -2,9 +2,9 @@
 /*! \file theory_proxy.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Dejan Jovanovic
+ **   Andrew Reynolds, Haniel Barbosa, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -81,7 +81,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-  if (CVC4::options::proof())
+  if (CVC4::options::produceProofs())
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }

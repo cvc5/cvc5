@@ -3,7 +3,7 @@
 ## Top contributors (to current version):
 ##   Mathias Preiner, Aina Niemetz, Gereon Kremer
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
 ## in the top-level source directory and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
@@ -40,6 +40,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
@@ -271,16 +273,6 @@ else()
 endif()
 
 #-----------------------------------------------------------------------------#
-# Set options for best configuration
-
-if(ENABLE_BEST)
-  cvc4_set_option(USE_ABC ON)
-  cvc4_set_option(USE_CADICAL ON)
-  cvc4_set_option(USE_CLN ON)
-  cvc4_set_option(USE_CRYPTOMINISAT ON)
-  cvc4_set_option(USE_GLPK ON)
-  cvc4_set_option(USE_EDITLINE ON)
-endif()
 
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
 # that expect AssertionException to be thrown will fail.
@@ -300,6 +292,12 @@ if(ENABLE_SHARED)
   if(ENABLE_STATIC_BINARY)
     set(ENABLE_STATIC_BINARY OFF)
     message(WARNING "Disabling static binary since shared build is enabled.")
+  endif()
+
+  # Set visibility to default if unit tests are enabled
+  if(ENABLE_UNIT_TESTING)
+    set(CMAKE_CXX_VISIBILITY_PRESET default)
+    set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
   endif()
 
   # Embed the installation prefix as an RPATH in the executable such that the
@@ -432,7 +430,6 @@ if(ENABLE_PROFILING)
 endif()
 
 if(ENABLE_PROOFS)
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --enable-proof)
   add_definitions(-DCVC4_PROOF)
 endif()
 
@@ -497,7 +494,6 @@ if(USE_KISSAT)
 endif()
 
 if(USE_LFSC)
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
   find_package(LFSC REQUIRED)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
@@ -569,8 +565,8 @@ if(BUILD_BINDINGS_PYTHON)
 endif()
 
 if(BUILD_BINDINGS_JAVA)
-  message(FATAL_ERROR
-    "Java bindings for the new API are not implemented yet.")
+  add_subdirectory(src/api/java)
+  message(WARNING "Java API is currently under development.")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -671,7 +667,6 @@ endif()
 message("")
 print_config("GPL                       :" ENABLE_GPL)
 print_config("Best configuration        :" ENABLE_BEST)
-print_config("Optimization level        :" OPTIMIZATION_LEVEL)
 message("")
 print_config("Assertions                :" ENABLE_ASSERTIONS)
 print_config("Debug symbols             :" ENABLE_DEBUG_SYMBOLS)
@@ -706,7 +701,7 @@ print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
 print_config("LibPoly                   :" USE_POLY)
 message("")
-print_config("BUILD_LIB_ONLY            :" BUILD_LIB_ONLY)
+print_config("Build libcvc4 only        :" BUILD_LIB_ONLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")

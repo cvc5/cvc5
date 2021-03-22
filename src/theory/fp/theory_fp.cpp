@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -114,7 +114,6 @@ TheoryFp::TheoryFp(context::Context* c,
       d_registeredTerms(u),
       d_conv(new FpConverter(u)),
       d_expansionRequested(false),
-      d_conflictNode(c, Node::null()),
       d_minMap(u),
       d_maxMap(u),
       d_toUBVMap(u),
@@ -123,10 +122,12 @@ TheoryFp::TheoryFp(context::Context* c,
       d_realToFloatMap(u),
       d_floatToRealMap(u),
       d_abstractionMap(u),
-      d_state(c, u, valuation)
+      d_state(c, u, valuation),
+      d_im(*this, d_state, pnm, "theory::fp", false)
 {
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state and inference manager
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 } /* TheoryFp::TheoryFp() */
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
@@ -454,7 +455,7 @@ TrustNode TheoryFp::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-TrustNode TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
   // first, see if we need to expand definitions
@@ -917,39 +918,25 @@ void TheoryFp::preRegisterTerm(TNode node)
   return;
 }
 
-void TheoryFp::handleLemma(Node node) {
+void TheoryFp::handleLemma(Node node, InferenceId id)
+{
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
   // will be preprocessed when sent, which is important because it contains
   // embedded ITEs
-  d_out->lemma(node);
+  d_im.lemma(node, id);
 }
 
 bool TheoryFp::propagateLit(TNode node)
 {
   Trace("fp") << "TheoryFp::propagateLit(): propagate " << node << std::endl;
-
-  bool stat = d_out->propagate(node);
-
-  if (!stat)
-  {
-    d_state.notifyInConflict();
-  }
-  return stat;
+  return d_im.propagateLit(node);
 }
 
 void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
 {
-  std::vector<TNode> assumptions;
-  d_equalityEngine->explainEquality(t1, t2, true, assumptions);
-
-  Node conflict = helper::buildConjunct(assumptions);
-  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected "
-              << conflict << std::endl;
-
-  d_conflictNode = conflict;
-  d_state.notifyInConflict();
-  d_out->conflict(conflict);
-  return;
+  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected"
+              << std::endl;
+  d_im.conflictEqConstantMerge(t1, t2);
 }
 
 

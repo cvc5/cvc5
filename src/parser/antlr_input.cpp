@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include <antlr3.h>
 #include <limits.h>
 
+#include "base/check.h"
 #include "base/output.h"
 #include "parser/antlr_line_buffered_input.h"
 #include "parser/bounded_token_buffer.h"
@@ -111,7 +112,7 @@ AntlrInputStream::AntlrInputStream(std::string name, pANTLR3_INPUT_STREAM input,
       d_input(input),
       d_inputString(inputString),
       d_line_buffer(line_buffer) {
-  assert( input != NULL );
+  Assert(input != NULL);
   input->fileName = input->strFactory->newStr8(input->strFactory, (pANTLR3_UINT8)name.c_str());
 }
 
@@ -197,8 +198,8 @@ AntlrInputStream::newStreamInputStream(std::istream& input,
       throw InputStreamException("Stream input failed: " + name);
     }
     ptrdiff_t offset = cp - basep;
-    assert(offset >= 0);
-    assert(offset <= std::numeric_limits<uint32_t>::max());
+    Assert(offset >= 0);
+    Assert(offset <= std::numeric_limits<uint32_t>::max());
     inputStringCopy = (pANTLR3_UINT8)basep;
     inputStream = newAntrl3InPlaceStream(inputStringCopy, (uint32_t) offset, name);
   }
@@ -217,7 +218,7 @@ AntlrInputStream::newStringInputStream(const std::string& input,
                                        const std::string& name)
 {
   size_t input_size = input.size();
-  assert(input_size <= std::numeric_limits<uint32_t>::max());
+  Assert(input_size <= std::numeric_limits<uint32_t>::max());
 
   // Ownership of input_duplicate  is transferred to the AntlrInputStream.
   pANTLR3_UINT8 input_duplicate = (pANTLR3_UINT8) strdup(input.c_str());
@@ -314,11 +315,11 @@ pANTLR3_COMMON_TOKEN_STREAM AntlrInput::getTokenStream() {
 
 void AntlrInput::lexerError(pANTLR3_BASE_RECOGNIZER recognizer) {
   pANTLR3_LEXER lexer = (pANTLR3_LEXER)(recognizer->super);
-  assert(lexer!=NULL);
+  Assert(lexer != NULL);
   Parser *parser = (Parser*)(lexer->super);
-  assert(parser!=NULL);
+  Assert(parser != NULL);
   AntlrInput *input = (AntlrInput*) parser->getInput();
-  assert(input!=NULL);
+  Assert(input != NULL);
 
   /* Call the error display routine *if* there's not already a 
    * parse error pending.  If a parser error is pending, this
