@@ -451,25 +451,30 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
     bool first = true;
     Node rep;
     for (; !eqc_i.isFinished(); ++eqc_i) {
-      if (termSet != NULL && termSet->find(*eqc_i) == termSet->end()) {
-        Trace("model-builder-debug") << "...skip node " << (*eqc_i) << " in eqc " << eqc << std::endl;
+      Node n = *eqc_i;
+      // notice that constants are always relevant
+      if (termSet != nullptr && termSet->find(n) == termSet->end()
+          && !n.isConst())
+      {
+        Trace("model-builder-debug")
+            << "...skip node " << n << " in eqc " << eqc << std::endl;
         continue;
       }
       if (predicate) {
         if (predTrue || predFalse)
         {
-          if (!assertPredicate(*eqc_i, predTrue))
+          if (!assertPredicate(n, predTrue))
           {
             return false;
           }
         }
         else {
           if (first) {
-            rep = (*eqc_i);
+            rep = n;
             first = false;
           }
           else {
-            Node eq = (*eqc_i).eqNode(rep);
+            Node eq = (n).eqNode(rep);
             Trace("model-builder-assertions")
                 << "(assert " << eq << ");" << std::endl;
             d_equalityEngine->assertEquality(eq, true, Node::null());
@@ -481,7 +486,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
         }
       } else {
         if (first) {
-          rep = (*eqc_i);
+          rep = n;
           //add the term (this is specifically for the case of singleton equivalence classes)
           if (rep.getType().isFirstClass())
           {
@@ -491,7 +496,7 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
           first = false;
         }
         else {
-          if (!assertEquality(*eqc_i, rep, true))
+          if (!assertEquality(n, rep, true))
           {
             return false;
           }
@@ -744,6 +749,20 @@ std::vector< Node > TheoryModel::getFunctionsToAssign() {
 }
 
 const std::string& TheoryModel::getName() const { return d_name; }
+
+std::string TheoryModel::debugPrintModelEqc() const
+{
+  std::stringstream ss;
+  ss << "--- Equivalence classes:" << std::endl;
+  ss << d_equalityEngine->debugPrintEqc() << std::endl;
+  ss << "--- Representative map: " << std::endl;
+  for (const std::pair<const Node, Node>& r : d_reps)
+  {
+    ss << r.first << " -> " << r.second << std::endl;
+  }
+  ss << "---" << std::endl;
+  return ss.str();
+}
 
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
