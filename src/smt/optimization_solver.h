@@ -201,13 +201,13 @@ public:
     }
     // asserts objective > old_value (used in optimization loop)
     CVC4::Node increment;
-    CVC4::Kind increamentalOperator; 
+    CVC4::Kind incrementalOperator = kind::NULL_EXPR; 
     if (objType == ObjectiveType::OBJECTIVE_MINIMIZE) {
       // if objective is MIN, then assert optimization_target < current_model_value 
-      increamentalOperator = kind::LT;
+      incrementalOperator = kind::LT;
     } else if (objType == ObjectiveType::OBJECTIVE_MAXIMIZE) {
       // if objective is MAX, then assert optimization_target > current_model_value 
-      increamentalOperator = kind::GT;
+      incrementalOperator = kind::GT;
     }
     // Workhorse of linear search:
     // This loop will keep incrmenting/decrementing the objective until unsat
@@ -216,7 +216,7 @@ public:
     while (intermediateSatResult.isSat()) {
       value = optChecker->getValue(target);
       Assert(!value.isNull());
-      increment = nm->mkNode(increamentalOperator, target, value);
+      increment = nm->mkNode(incrementalOperator, target, value);
       optChecker->assertFormula(increment);
       intermediateSatResult = optChecker->checkSat();
     }
