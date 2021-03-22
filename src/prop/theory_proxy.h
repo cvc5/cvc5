@@ -63,11 +63,11 @@ class TheoryProxy : public Registrar
   /** Finish initialize */
   void finishInit(CnfStream* cnfStream);
 
-  /** Notify assertions. */
-  void notifyAssertion(Node a, TNode skolem = TNode::null());
+  /** Notify (preprocessed) assertions. */
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /** Notify a lemma, possibly corresponding to a skolem definition */
-  void notifyLemma(Node lem, TNode skolem = TNode::null());
+  void notifyAssertion(Node lem, TNode skolem = TNode::null());
 
   void theoryCheck(theory::Theory::Effort effort);
 
@@ -163,9 +163,12 @@ class TheoryProxy : public Registrar
 
   /** The skolem definition manager */
   std::unique_ptr<SkolemDefManager> d_skdm;
+<<<<<<< HEAD
 
   /** Whether we are tracking relevant skolem definitions */
   bool d_trackSkolemDefs;
+=======
+>>>>>>> 519cdc2d4b44a9785ee68d181e2682d74890e89a
 }; /* class TheoryProxy */
 
 }/* CVC4::prop namespace */

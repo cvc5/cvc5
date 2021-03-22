@@ -34,6 +34,9 @@ namespace prop {
  * that define their behavior. It can be used to manage which lemmas are
  * relevant in the current context, e.g. a lemma corresponding to a skolem
  * definition for k is relevant when k appears in an asserted literal.
+ *
+ * It also has utilities for tracking (in a SAT-context-dependent manner) which
+ * skolems are "active", e.g. appear in any asserted literal.
  */
 class SkolemDefManager
 {
@@ -47,18 +50,24 @@ class SkolemDefManager
   ~SkolemDefManager();
 
   /**
-   * Notify skolem definition
+   * Notify skolem definition. This is called when a lemma def is added to the
+   * SAT solver that corresponds to the skolem definition for skolem k.
    */
   void notifySkolemDefinition(TNode k, Node def);
-  /** Get skolem definition for k */
+  /**
+   * Get skolem definition for k, where k must be a skolem having a definition
+   * managed by this class.
+   */
   TNode getDefinitionForSkolem(TNode k) const;
   /**
-   * Notify asserted literal, adds additionally activated skolems into queue.
+   * Notify that the given literal has been asserted. This method adds skolems
+   * that become "active" as a result of asserting this literal. A skolem
+   * is active in the SAT context if it appears in an asserted literal.
    */
   void notifyAsserted(TNode literal, std::vector<TNode>& activatedSkolems);
 
   /**
-   * Get the set of skolems introduced by this class that occur in node n,
+   * Get the set of skolems maintained by this class that occur in node n,
    * add them to skolems.
    *
    * @param n The node to traverse
@@ -66,9 +75,7 @@ class SkolemDefManager
    */
   void getSkolems(TNode n,
                   std::unordered_set<Node, NodeHashFunction>& skolems) const;
-  /**
-   * Does n have skolems introduced by this class?
-   */
+  /** Does n have skolems having definitions managed by this class? */
   bool hasSkolems(TNode n) const;
 
  private:
