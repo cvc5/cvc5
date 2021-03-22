@@ -200,7 +200,11 @@ TEST_F(TestApiBlackSolver, mkFunctionSort)
                                           d_solver.getIntegerSort()));
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
-  ASSERT_THROW(d_solver.mkFunctionSort(funSort, d_solver.getIntegerSort()),
+  // function arguments are allowed
+  ASSERT_NO_THROW(d_solver.mkFunctionSort(funSort, d_solver.getIntegerSort()));
+  // non-first-class arguments are not allowed
+  Sort reSort = d_solver.getRegExpSort();
+  ASSERT_THROW(d_solver.mkFunctionSort(reSort, d_solver.getIntegerSort()),
                CVC4ApiException);
   ASSERT_THROW(d_solver.mkFunctionSort(d_solver.getIntegerSort(), funSort),
                CVC4ApiException);
@@ -248,8 +252,8 @@ TEST_F(TestApiBlackSolver, mkPredicateSort)
   ASSERT_THROW(d_solver.mkPredicateSort({}), CVC4ApiException);
   Sort funSort = d_solver.mkFunctionSort(d_solver.mkUninterpretedSort("u"),
                                          d_solver.getIntegerSort());
-  ASSERT_THROW(d_solver.mkPredicateSort({d_solver.getIntegerSort(), funSort}),
-               CVC4ApiException);
+  // functions as arguments are allowed
+  ASSERT_NO_THROW(d_solver.mkPredicateSort({d_solver.getIntegerSort(), funSort}));
 
   Solver slv;
   ASSERT_THROW(slv.mkPredicateSort({d_solver.getIntegerSort()}),
@@ -954,8 +958,8 @@ TEST_F(TestApiBlackSolver, declareFun)
   ASSERT_NO_THROW(
       d_solver.declareFun("f3", {bvSort, d_solver.getIntegerSort()}, bvSort));
   ASSERT_THROW(d_solver.declareFun("f2", {}, funSort), CVC4ApiException);
-  ASSERT_THROW(d_solver.declareFun("f4", {bvSort, funSort}, bvSort),
-               CVC4ApiException);
+  // functions as arguments is allowed
+  ASSERT_NO_THROW(d_solver.declareFun("f4", {bvSort, funSort}, bvSort));
   ASSERT_THROW(d_solver.declareFun("f5", {bvSort, bvSort}, funSort),
                CVC4ApiException);
   Solver slv;
