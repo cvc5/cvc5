@@ -2,9 +2,9 @@
 /*! \file cdo_black.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Dejan Jovanovic
+ **   Aina Niemetz, Dejan Jovanovic, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,11 +28,11 @@ using namespace context;
 
 namespace test {
 
-class TestContextCDOBlack : public TestContext
+class TestContextBlackCDO : public TestContext
 {
 };
 
-TEST_F(TestContextCDOBlack, cdo)
+TEST_F(TestContextBlackCDO, cdo)
 {
   // Test that push/pop maintains the original value
   CDO<int> a1(d_context.get());

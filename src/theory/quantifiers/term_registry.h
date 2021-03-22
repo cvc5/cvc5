@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,8 +39,9 @@ class TermRegistry
 
  public:
   TermRegistry(QuantifiersState& qs,
-               QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr);
+  /** Finish init, which sets the inference manager on modules of this class */
+  void finishInit(QuantifiersInferenceManager* qim);
   /** Presolve */
   void presolve();
 

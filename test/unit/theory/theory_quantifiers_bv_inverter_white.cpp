@@ -2,9 +2,9 @@
 /*! \file theory_quantifiers_bv_inverter_white.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner
+ **   Aina Niemetz, Mathias Preiner, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -88,7 +88,7 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     }
     Node body = d_nodeManager->mkNode(k, x, d_t);
     Node scr = d_nodeManager->mkNode(EXISTS, d_bvarlist, body);
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     ASSERT_EQ(res.d_sat, Result::UNSAT);
   }
@@ -99,15 +99,15 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
                unsigned idx,
                Node (*getsc)(bool, Kind, Kind, unsigned, Node, Node, Node))
   {
-    ASSERT_TRUE(k == BITVECTOR_MULT || k == BITVECTOR_UREM_TOTAL
-                || k == BITVECTOR_UDIV_TOTAL || k == BITVECTOR_AND
+    ASSERT_TRUE(k == BITVECTOR_MULT || k == BITVECTOR_UREM
+                || k == BITVECTOR_UDIV || k == BITVECTOR_AND
                 || k == BITVECTOR_OR || k == BITVECTOR_LSHR
                 || k == BITVECTOR_ASHR || k == BITVECTOR_SHL);
 
     Node sc = getsc(pol, litk, k, idx, d_sk, d_s, d_t);
     ASSERT_FALSE(sc.isNull());
     Kind ksc = sc.getKind();
-    ASSERT_TRUE((k == BITVECTOR_UDIV_TOTAL && idx == 1 && pol == false)
+    ASSERT_TRUE((k == BITVECTOR_UDIV && idx == 1 && pol == false)
                 || (k == BITVECTOR_ASHR && idx == 0 && pol == false)
                 || ksc == IMPLIES);
     Node scl = ksc == IMPLIES ? sc[0] : bv::utils::mkTrue();
@@ -117,14 +117,14 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
                              litk, d_nodeManager->mkNode(k, d_s, d_x), d_t);
     Node scr =
         d_nodeManager->mkNode(EXISTS, d_bvarlist, pol ? body : body.notNode());
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
-      std::cout << "s " << d_smtEngine->getValue(d_s.toExpr()) << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(d_t.toExpr()) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(d_x.toExpr()) << std::endl;
+      std::cout << "s " << d_smtEngine->getValue(d_s) << std::endl;
+      std::cout << "t " << d_smtEngine->getValue(d_t) << std::endl;
+      std::cout << "x " << d_smtEngine->getValue(d_x) << std::endl;
     }
     ASSERT_EQ(res.d_sat, Result::UNSAT);
   }
@@ -173,17 +173,17 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node bvarlist = d_nodeManager->mkNode(BOUND_VAR_LIST, {x});
     Node scr =
         d_nodeManager->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
       if (!s1.isNull())
-        std::cout << "s1 " << d_smtEngine->getValue(s1.toExpr()) << std::endl;
+        std::cout << "s1 " << d_smtEngine->getValue(s1) << std::endl;
       if (!s2.isNull())
-        std::cout << "s2 " << d_smtEngine->getValue(s2.toExpr()) << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(t.toExpr()) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(x.toExpr()) << std::endl;
+        std::cout << "s2 " << d_smtEngine->getValue(s2) << std::endl;
+      std::cout << "t " << d_smtEngine->getValue(t) << std::endl;
+      std::cout << "x " << d_smtEngine->getValue(x) << std::endl;
     }
     ASSERT_TRUE(res.d_sat == Result::UNSAT);
   }
@@ -213,13 +213,13 @@ class TestTheoryWhiteQuantifiersBvInverter : public TestSmtNoFinishInit
     Node bvarlist = d_nodeManager->mkNode(BOUND_VAR_LIST, {x});
     Node scr =
         d_nodeManager->mkNode(EXISTS, bvarlist, pol ? body : body.notNode());
-    Expr a = d_nodeManager->mkNode(DISTINCT, scl, scr).toExpr();
+    Node a = d_nodeManager->mkNode(DISTINCT, scl, scr);
     Result res = d_smtEngine->checkSat(a);
     if (res.d_sat == Result::SAT)
     {
       std::cout << std::endl;
-      std::cout << "t " << d_smtEngine->getValue(t.toExpr()) << std::endl;
-      std::cout << "x " << d_smtEngine->getValue(x.toExpr()) << std::endl;
+      std::cout << "t " << d_smtEngine->getValue(t) << std::endl;
+      std::cout << "x " << d_smtEngine->getValue(x) << std::endl;
     }
     ASSERT_TRUE(res.d_sat == Result::UNSAT);
   }
@@ -301,44 +301,44 @@ TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_mult_eq_false1)
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_eq_true0)
 {
-  runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(true, EQUAL, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_eq_true1)
 {
-  runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(true, EQUAL, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_eq_false0)
 {
-  runTest(false, EQUAL, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(false, EQUAL, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_eq_false1)
 {
-  runTest(false, EQUAL, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(false, EQUAL, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 /* Udiv */
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_eq_true0)
 {
-  runTest(true, EQUAL, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(true, EQUAL, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_eq_true1)
 {
-  runTest(true, EQUAL, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(true, EQUAL, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_eq_false0)
 {
-  runTest(false, EQUAL, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(false, EQUAL, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_eq_false1)
 {
-  runTest(false, EQUAL, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(false, EQUAL, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 /* And */
@@ -877,164 +877,164 @@ TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_mult_sgt_false1)
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ult_true0)
 {
-  runTest(true, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(true, BITVECTOR_ULT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ult_true1)
 {
-  runTest(true, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(true, BITVECTOR_ULT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ult_false0)
 {
-  runTest(false, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(false, BITVECTOR_ULT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ult_false1)
 {
-  runTest(false, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(false, BITVECTOR_ULT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ugt_true0)
 {
-  runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(true, BITVECTOR_UGT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ugt_true1)
 {
-  runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(true, BITVECTOR_UGT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ugt_false0)
 {
-  runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(false, BITVECTOR_UGT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_ugt_false1)
 {
-  runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(false, BITVECTOR_UGT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_slt_true0)
 {
-  runTest(true, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(true, BITVECTOR_SLT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_slt_true1)
 {
-  runTest(true, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(true, BITVECTOR_SLT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_slt_false0)
 {
-  runTest(false, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(false, BITVECTOR_SLT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_slt_false1)
 {
-  runTest(false, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(false, BITVECTOR_SLT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_sgt_true0)
 {
-  runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(true, BITVECTOR_SGT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_sgt_true1)
 {
-  runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(true, BITVECTOR_SGT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_sgt_false0)
 {
-  runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
+  runTest(false, BITVECTOR_SGT, BITVECTOR_UREM, 0, getICBvUrem);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_urem_sgt_false1)
 {
-  runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
+  runTest(false, BITVECTOR_SGT, BITVECTOR_UREM, 1, getICBvUrem);
 }
 
 /* Udiv */
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ult_true0)
 {
-  runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ult_true1)
 {
-  runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ult_false0)
 {
-  runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ult_false1)
 {
-  runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ugt_true0)
 {
-  runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ugt_true1)
 {
-  runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ugt_false0)
 {
-  runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_ugt_false1)
 {
-  runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_slt_true0)
 {
-  runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_slt_true1)
 {
-  runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_slt_false0)
 {
-  runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_slt_false1)
 {
-  runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_sgt_true0)
 {
-  runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_sgt_true1)
 {
-  runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_sgt_false0)
 {
-  runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
+  runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV, 0, getICBvUdiv);
 }
 
 TEST_F(TestTheoryWhiteQuantifiersBvInverter, getIC_bv_udiv_sgt_false1)
 {
-  runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
+  runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV, 1, getICBvUdiv);
 }
 
 /* And */

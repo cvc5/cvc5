@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,11 +23,9 @@
 #ifndef CVC4__THEORY__FP__FP_CONVERTER_H
 #define CVC4__THEORY__FP__FP_CONVERTER_H
 
-#include "base/check.h"
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "expr/node_builder.h"
 #include "expr/type_node.h"
 #include "theory/valuation.h"
 #include "util/bitvector.h"

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -59,8 +59,8 @@ class PreRegisterVisitor {
   /** required to instantiate template for NodeVisitor */
   using return_type = void;
 
-  PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
-      : d_engine(engine), d_visited(context)
+  PreRegisterVisitor(TheoryEngine* engine, context::Context* c)
+      : d_engine(engine), d_visited(c)
   {
   }
 
@@ -98,11 +98,15 @@ class PreRegisterVisitor {
    * @param visitedTheories The theories that have already preregistered current
    * @param current The term to preregister
    * @param parent The parent term of current
+   * @param preregTheories The theories that have already preregistered current.
+   * If there is no theory sharing, this coincides with visitedTheories.
+   * Otherwise, visitedTheories may be a subset of preregTheories.
    */
   static void preRegister(TheoryEngine* te,
                           theory::TheoryIdSet& visitedTheories,
                           TNode current,
-                          TNode parent);
+                          TNode parent,
+                          theory::TheoryIdSet preregTheories);
 
  private:
   /**
@@ -113,7 +117,8 @@ class PreRegisterVisitor {
                                     theory::TheoryIdSet& visitedTheories,
                                     theory::TheoryId id,
                                     TNode current,
-                                    TNode parent);
+                                    TNode parent,
+                                    theory::TheoryIdSet preregTheories);
 };
 
 
@@ -123,14 +128,10 @@ class PreRegisterVisitor {
  * been visited already, we need to visit it again, since we need to associate it with both atoms.
  */
 class SharedTermsVisitor {
-
-  /**
-   * Cache from preprocessing of atoms.
-   */
-  typedef std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>
-      TNodeVisitedMap;
-  TNodeVisitedMap d_visited;
-
+  using TNodeVisitedMap =
+      std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>;
+  using TNodeToTheorySetMap =
+      context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>;
   /**
    * String representation of the visited map, for debugging purposes.
    */
@@ -145,8 +146,10 @@ class SharedTermsVisitor {
   /** required to instantiate template for NodeVisitor */
   using return_type = void;
 
-  SharedTermsVisitor(TheoryEngine* te, SharedTermsDatabase& sharedTerms)
-      : d_engine(te), d_sharedTerms(sharedTerms)
+  SharedTermsVisitor(TheoryEngine* te,
+                     SharedTermsDatabase& sharedTerms,
+                     context::Context* c)
+      : d_engine(te), d_sharedTerms(sharedTerms), d_preregistered(c)
   {
   }
 
@@ -180,6 +183,10 @@ class SharedTermsVisitor {
   TheoryEngine* d_engine;
   /** The shared terms database */
   SharedTermsDatabase& d_sharedTerms;
+  /** Cache of nodes we have visited in this traversal */
+  TNodeVisitedMap d_visited;
+  /** (Global) cache of nodes we have preregistered in this SAT context */
+  TNodeToTheorySetMap d_preregistered;
 };
 
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -77,6 +77,7 @@ using namespace CVC4::parser;
 
 #include <memory>
 
+#include "base/check.h"
 #include "parser/antlr_tracing.h"
 #include "parser/parse_op.h"
 #include "parser/parser.h"
@@ -480,12 +481,6 @@ command [std::unique_ptr<CVC4::Command>* cmd]
 
     /* New SMT-LIB 2.5 command set */
   | smt25Command[cmd]
-    { if(PARSER_STATE->v2_0() && PARSER_STATE->strictModeEnabled()) {
-        PARSER_STATE->parseError(
-            "SMT-LIB 2.5 commands are not permitted while operating in strict "
-            "compliance mode and in SMT-LIB 2.0 mode.");
-      }
-    }
 
     /* CVC4-extended SMT-LIB commands */
   | extendedCommand[cmd]
@@ -900,9 +895,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
-  : DECLARE_DATATYPES_2_5_TOK datatypes_2_5_DefCommand[false, cmd]
-  | DECLARE_CODATATYPES_2_5_TOK datatypes_2_5_DefCommand[true, cmd]
-  | DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
+  : DECLARE_CODATATYPE_TOK datatypeDefCommand[true, cmd]
   | DECLARE_CODATATYPES_TOK datatypesDefCommand[true, cmd]
 
     /* Support some of Z3's extended SMT-LIB commands */
@@ -1079,32 +1072,6 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
                                  "parentheses?");
       }
     )
-  ;
-
-
-datatypes_2_5_DefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
-@declarations {
-  std::vector<api::DatatypeDecl> dts;
-  std::string name;
-  std::vector<api::Sort> sorts;
-  std::vector<std::string> dnames;
-  std::vector<unsigned> arities;
-}
-  : { PARSER_STATE->checkThatLogicIsSet();
-    /* open a scope to keep the UnresolvedTypes contained */
-    PARSER_STATE->pushScope(); }
-  LPAREN_TOK /* parametric sorts */
-  ( symbol[name,CHECK_UNDECLARED,SYM_SORT]
-    {
-      sorts.push_back(PARSER_STATE->mkSort(name));
-    }
-  )*
-  RPAREN_TOK
-  LPAREN_TOK ( LPAREN_TOK datatypeDef[isCo, dts, sorts] RPAREN_TOK )+ RPAREN_TOK
-  { PARSER_STATE->popScope();
-    cmd->reset(new DatatypeDeclarationCommand(
-        PARSER_STATE->bindMutualDatatypeTypes(dts, true)));
-  }
   ;
 
 datatypeDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
@@ -1752,13 +1719,13 @@ termAtomic[CVC4::api::Term& atomTerm]
   // Bit-vector constants
   | HEX_LITERAL
     {
-      assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
+      Assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
       std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
       atomTerm = SOLVER->mkBitVector(hexStr, 16);
     }
   | BINARY_LITERAL
     {
-      assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
+      Assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
       std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
       atomTerm = SOLVER->mkBitVector(binStr, 2);
     }
@@ -1884,7 +1851,7 @@ str[std::string& s, bool fsmtlib]
           {
             // Handle SMT-LIB >=2.5 standard escape '""'.
             ++q;
-            assert(*q == '"');
+            Assert(*q == '"');
           }
           else if (!PARSER_STATE->escapeDupDblQuote() && *q == '\\')
           {
@@ -1892,7 +1859,7 @@ str[std::string& s, bool fsmtlib]
             // Handle SMT-LIB 2.0 standard escapes '\\' and '\"'.
             if (*q != '\\' && *q != '"')
             {
-              assert(*q != '\0');
+              Assert(*q != '\0');
               *p++ = '\\';
             }
           }
@@ -2226,7 +2193,7 @@ GET_PROOF_TOK : 'get-proof';
 GET_UNSAT_ASSUMPTIONS_TOK : 'get-unsat-assumptions';
 GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
-RESET_TOK : { PARSER_STATE->v2_5() }? 'reset';
+RESET_TOK : 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
 LET_TOK : 'let';
 ATTRIBUTE_TOK : '!';

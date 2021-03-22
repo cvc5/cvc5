@@ -21,8 +21,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #ifndef BVMinisat_Alloc_h
 #define BVMinisat_Alloc_h
 
-#include "prop/bvminisat/mtl/XAlloc.h"
+#include "base/check.h"
 #include "prop/bvminisat/mtl/Vec.h"
+#include "prop/bvminisat/mtl/XAlloc.h"
 
 namespace CVC4 {
 namespace BVMinisat {
@@ -61,13 +62,33 @@ class RegionAllocator
     void     free      (int size)    { wasted_ += size; }
 
     // Deref, Load Effective Address (LEA), Inverse of LEA (AEL):
-    T&       operator[](Ref r)       { assert(r >= 0 && r < sz); return memory[r]; }
-    const T& operator[](Ref r) const { assert(r >= 0 && r < sz); return memory[r]; }
+    T& operator[](Ref r)
+    {
+      Assert(r >= 0 && r < sz);
+      return memory[r];
+    }
+    const T& operator[](Ref r) const
+    {
+      Assert(r >= 0 && r < sz);
+      return memory[r];
+    }
 
-    T*       lea       (Ref r)       { assert(r >= 0 && r < sz); return &memory[r]; }
-    const T* lea       (Ref r) const { assert(r >= 0 && r < sz); return &memory[r]; }
-    Ref      ael       (const T* t)  { assert((void*)t >= (void*)&memory[0] && (void*)t < (void*)&memory[sz-1]);
-        return  (Ref)(t - &memory[0]); }
+    T* lea(Ref r)
+    {
+      Assert(r >= 0 && r < sz);
+      return &memory[r];
+    }
+    const T* lea(Ref r) const
+    {
+      Assert(r >= 0 && r < sz);
+      return &memory[r];
+    }
+    Ref ael(const T* t)
+    {
+      Assert((void*)t >= (void*)&memory[0]
+             && (void*)t < (void*)&memory[sz - 1]);
+      return (Ref)(t - &memory[0]);
+    }
 
     void     moveTo(RegionAllocator& to) {
         if (to.memory != NULL) ::free(to.memory);
@@ -102,7 +123,7 @@ void RegionAllocator<T>::capacity(uint32_t min_cap)
     }
     // printf(" .. (%p) cap = %u\n", this, cap);
 
-    assert(cap > 0);
+    Assert(cap > 0);
     memory = (T*)xrealloc(memory, sizeof(T)*cap);
 }
 
@@ -112,7 +133,7 @@ typename RegionAllocator<T>::Ref
 RegionAllocator<T>::alloc(int size)
 { 
     // printf("ALLOC called (this = %p, size = %d)\n", this, size); fflush(stdout);
-    assert(size > 0);
+    Assert(size > 0);
     capacity(sz + size);
 
     uint32_t prev_sz = sz;

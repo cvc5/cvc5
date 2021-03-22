@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -416,7 +416,7 @@ void BoundedIntegers::checkOwnership(Node f)
         if( d_bound_type[f].find( f[0][i] )==d_bound_type[f].end() ){
           TypeNode tn = f[0][i].getType();
           if ((tn.isSort() && tn.isInterpretedFinite())
-              || d_quantEngine->getTermEnumeration()->mayComplete(tn))
+              || d_qreg.getQuantifiersBoundInference().mayComplete(tn))
           {
             success = true;
             setBoundedVar( f, f[0][i], BOUND_FINITE );

@@ -2,7 +2,7 @@
 /*! \file quantifiers_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/quantifiers_registry.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -21,7 +22,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantifiersRegistry::QuantifiersRegistry() : d_quantAttr() {}
+QuantifiersRegistry::QuantifiersRegistry()
+    : d_quantAttr(),
+      d_quantBoundInf(options::fmfTypeCompletionThresh(),
+                      options::finiteModelFind())
+{
+}
 
 void QuantifiersRegistry::registerQuantifier(Node q)
 {
@@ -177,6 +183,12 @@ QuantAttributes& QuantifiersRegistry::getQuantAttributes()
 {
   return d_quantAttr;
 }
+
+QuantifiersBoundInference& QuantifiersRegistry::getQuantifiersBoundInference()
+{
+  return d_quantBoundInf;
+}
+
 Node QuantifiersRegistry::getNameForQuant(Node q) const
 {
   Node name = d_quantAttr.getQuantName(q);

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,6 @@
 #include "preprocessing/preprocessing_pass_context.h"
 
 #include "expr/node_algorithm.h"
-#include "smt/logic_request.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -35,22 +34,10 @@ PreprocessingPassContext::PreprocessingPassContext(
 {
 }
 
-void PreprocessingPassContext::widenLogic(theory::TheoryId id)
-{
-  LogicRequest req(*d_smt);
-  req.widenLogic(id);
-}
-
 theory::TrustSubstitutionMap&
 PreprocessingPassContext::getTopLevelSubstitutions()
 {
   return d_topLevelSubstitutions;
-}
-
-void PreprocessingPassContext::enableIntegers()
-{
-  LogicRequest req(*d_smt);
-  req.enableIntegers();
 }
 
 void PreprocessingPassContext::recordSymbolsInAssertions(

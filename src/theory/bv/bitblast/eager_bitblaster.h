@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,11 +19,11 @@
 #ifndef CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
 #define CVC4__THEORY__BV__BITBLAST__EAGER_BITBLASTER_H
 
+#include <memory>
 #include <unordered_set>
 
 #include "theory/bv/bitblast/bitblaster.h"
 
-#include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 
 namespace CVC4 {

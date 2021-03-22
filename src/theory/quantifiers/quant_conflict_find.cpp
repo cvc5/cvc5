@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,6 +28,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -2000,7 +2001,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
   int prevEt = 0;
   if (Trace.isOn("qcf-engine"))
   {
-    prevEt = d_statistics.d_entailment_checks.getData();
+    prevEt = d_statistics.d_entailment_checks.get();
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("qcf-engine") << "---Conflict Find Engine Round, effort = " << level
                         << "---" << std::endl;
@@ -2069,7 +2070,7 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
       Trace("qcf-engine") << ", addedLemmas = " << addedLemmas;
     }
     Trace("qcf-engine") << std::endl;
-    int currEt = d_statistics.d_entailment_checks.getData();
+    int currEt = d_statistics.d_entailment_checks.get();
     if (currEt != prevEt)
     {
       Trace("qcf-engine") << "  Entailment checks = " << (currEt - prevEt)
@@ -2163,7 +2164,10 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       }
       // Process the lemma: either add an instantiation or specific lemmas
       // constructed during the isTConstraintSpurious call, or both.
-      if (!qinst->addInstantiation(q, terms))
+      InferenceId id = (d_effort == EFFORT_CONFLICT
+                            ? InferenceId::QUANTIFIERS_INST_CBQI_CONFLICT
+                            : InferenceId::QUANTIFIERS_INST_CBQI_PROP);
+      if (!qinst->addInstantiation(q, terms, id))
       {
         Trace("qcf-inst") << "   ... Failed to add instantiation" << std::endl;
         // This should only happen if the algorithm generates the same
@@ -2187,7 +2191,6 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
         // ensure that quantified formulas that are more likely to have
         // conflicting instances are checked earlier.
         d_quantEngine->markRelevant(q);
-        ++(d_quantEngine->d_statistics.d_instantiations_qcf);
         if (options::qcfAllConflict())
         {
           isConflict = true;
@@ -2201,7 +2204,6 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
       else if (d_effort == EFFORT_PROP_EQ)
       {
         d_quantEngine->markRelevant(q);
-        ++(d_quantEngine->d_statistics.d_instantiations_qcf);
       }
     }
     // clean up assigned

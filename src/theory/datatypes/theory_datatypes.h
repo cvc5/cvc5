@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,7 @@
 #include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
 #include "theory/theory_eq_notify.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 #include "util/hash.h"
 
@@ -230,7 +231,7 @@ private:
   //--------------------------------- end standard check
   void preRegisterTerm(TNode n) override;
   TrustNode expandDefinition(Node n) override;
-  TrustNode ppRewrite(TNode n) override;
+  TrustNode ppRewrite(TNode n, std::vector<SkolemLemma>& lems) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   std::string identify() const override
   {

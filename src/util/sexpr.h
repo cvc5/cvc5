@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,13 +30,15 @@
 #include <string>
 #include <vector>
 
+#include "cvc4_export.h"
 #include "options/language.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
 namespace CVC4 {
 
-class CVC4_PUBLIC SExprKeyword {
+class SExprKeyword
+{
  public:
   SExprKeyword(const std::string& s) : d_str(s) {}
   const std::string& getString() const { return d_str; }
@@ -49,7 +51,8 @@ class CVC4_PUBLIC SExprKeyword {
  * A simple S-expression. An S-expression is either an atom with a
  * string value, or a list of other S-expressions.
  */
-class CVC4_PUBLIC SExpr {
+class CVC4_EXPORT SExpr
+{
  public:
   typedef SExprKeyword Keyword;
 
@@ -231,12 +234,13 @@ class CVC4_PUBLIC SExpr {
 }; /* class SExpr */
 
 /** Prints an SExpr. */
-std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const SExpr& sexpr) CVC4_EXPORT;
 
 /**
  * IOStream manipulator to pretty-print SExprs.
  */
-class CVC4_PUBLIC PrettySExprs {
+class CVC4_EXPORT PrettySExprs
+{
   /**
    * The allocated index in ios_base for our setting.
    */

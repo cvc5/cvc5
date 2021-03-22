@@ -2,9 +2,9 @@
 /*! \file first_order_model_fmc.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,11 +24,11 @@ namespace theory {
 namespace quantifiers {
 namespace fmcheck {
 
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
-                                       QuantifiersState& qs,
+FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
+                                       TermRegistry& tr,
                                        std::string name)
-    : FirstOrderModel(qe, qs, qr, name)
+    : FirstOrderModel(qs, qr, tr, name)
 {
 }
 

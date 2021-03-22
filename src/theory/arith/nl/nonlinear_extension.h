@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Gereon Kremer, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 
 #include "expr/node.h"
 #include "theory/arith/nl/cad_solver.h"
+#include "theory/arith/nl/ext/ext_state.h"
 #include "theory/arith/nl/ext/factoring_check.h"
 #include "theory/arith/nl/ext/monomial_bounds_check.h"
 #include "theory/arith/nl/ext/monomial_check.h"
@@ -37,6 +38,7 @@
 #include "theory/arith/nl/strategy.h"
 #include "theory/arith/nl/transcendental/transcendental_solver.h"
 #include "theory/ext_theory.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -46,6 +48,7 @@ namespace eq {
 namespace arith {
 
 class InferenceManager;
+class TheoryArith;
 
 namespace nl {
 
@@ -71,9 +74,9 @@ class NlLemma;
  * which is called by TheoryArithPrivate either:
  * (1) at full effort with no conflicts or lemmas emitted, or
  * (2) at last call effort.
- * In this method, this class calls d_out->lemma(...)
+ * In this method, this class calls d_im.lemma(...)
  * for valid arithmetic theory lemmas, based on the current set of assertions,
- * where d_out is the output channel of TheoryArith.
+ * where d_im is the inference manager of TheoryArith.
  */
 class NonlinearExtension
 {
@@ -91,8 +94,8 @@ class NonlinearExtension
   void preRegisterTerm(TNode n);
   /** Check at effort level e.
    *
-   * This call may result in (possibly multiple) calls to d_out->lemma(...)
-   * where d_out is the output channel of TheoryArith.
+   * This call may result in (possibly multiple) calls to d_im.lemma(...)
+   * where d_im is the inference manager of TheoryArith.
    *
    * If e is FULL, then we add lemmas based on context-depedent
    * simplification (see Reynolds et al FroCoS 2017).
@@ -125,7 +128,8 @@ class NonlinearExtension
    * arithModel so that it satisfies certain nonlinear constraints. This may
    * involve e.g. solving for variables in nonlinear equations.
    */
-  void interceptModel(std::map<Node, Node>& arithModel);
+  void interceptModel(std::map<Node, Node>& arithModel,
+                      const std::set<Node>& termSet);
   /** Does this class need a call to check(...) at last call effort? */
   bool needsCheckLastEffort() const { return d_needsLastCall; }
   /** presolve
@@ -155,7 +159,7 @@ class NonlinearExtension
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
    */
-  bool modelBasedRefinement();
+  bool modelBasedRefinement(const std::set<Node>& termSet);
 
   /** get assertions
    *

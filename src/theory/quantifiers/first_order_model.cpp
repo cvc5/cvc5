@@ -2,9 +2,9 @@
 /*! \file first_order_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,8 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -32,17 +32,32 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
-                                 QuantifiersState& qs,
+struct ModelBasisAttributeId
+{
+};
+using ModelBasisAttribute = expr::Attribute<ModelBasisAttributeId, bool>;
+// for APPLY_UF terms, 1 : term has direct child with model basis attribute,
+//                     0 : term has no direct child with model basis attribute.
+struct ModelBasisArgAttributeId
+{
+};
+using ModelBasisArgAttribute = expr::Attribute<ModelBasisArgAttributeId, uint64_t>;
+
+FirstOrderModel::FirstOrderModel(QuantifiersState& qs,
                                  QuantifiersRegistry& qr,
+                                 TermRegistry& tr,
                                  std::string name)
     : TheoryModel(qs.getSatContext(), name, true),
-      d_qe(qe),
+      d_qe(nullptr),
       d_qreg(qr),
+      d_treg(tr),
       d_forall_asserts(qs.getSatContext()),
       d_forallRlvComputed(false)
 {
 }
+
+//!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
+void FirstOrderModel::finishInit(QuantifiersEngine* qe) { d_qe = qe; }
 
 void FirstOrderModel::assertQuantifier( Node n ){
   if( n.getKind()==FORALL ){
@@ -129,7 +144,7 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
   else
   {
     // can we complete it?
-    if (d_qe->getTermEnumeration()->mayComplete(tn))
+    if (d_qreg.getQuantifiersBoundInference().mayComplete(tn))
     {
       Trace("fm-debug") << "  do complete, since cardinality is small ("
                         << tn.getCardinality() << ")..." << std::endl;
@@ -141,6 +156,11 @@ bool FirstOrderModel::initializeRepresentativesForType(TypeNode tn)
     Trace("fm-debug") << "  variable cannot be bounded." << std::endl;
     return false;
   }
+}
+
+bool FirstOrderModel::isModelBasis(TNode n)
+{
+  return n.getAttribute(ModelBasisAttribute());
 }
 
 /** needs check */
@@ -237,13 +257,13 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
     Node mbt;
     if (tn.isClosedEnumerable())
     {
-      mbt = d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
+      mbt = d_treg.getTermEnumeration()->getEnumerateTerm(tn, 0);
     }
     else
     {
       if (options::fmfFreshDistConst())
       {
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeFreshVariable(tn);
+        mbt = d_treg.getTermDatabase()->getOrMakeTypeFreshVariable(tn);
       }
       else
       {
@@ -251,7 +271,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
         // may produce an inconsistent model by choosing an arbitrary
         // equivalence class for it. Hence, we require that it be an existing or
         // fresh variable.
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
+        mbt = d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
       }
     }
     ModelBasisAttribute mba;

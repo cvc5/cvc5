@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,10 +20,13 @@
 #define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
 #include "expr/node.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"
@@ -84,10 +87,16 @@ class TheoryQuantifiers : public Theory {
   QuantifiersProofRuleChecker d_qChecker;
   /** The quantifiers state */
   QuantifiersState d_qstate;
+  /** The quantifiers registry */
+  QuantifiersRegistry d_qreg;
+  /** extended model object */
+  std::unique_ptr<FirstOrderModel> d_qmodel;
+  /** The term registry */
+  TermRegistry d_treg;
   /** The quantifiers inference manager */
   QuantifiersInferenceManager d_qim;
   /** The quantifiers engine, which lives here */
-  QuantifiersEngine d_qengine;
+  std::unique_ptr<QuantifiersEngine> d_qengine;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,12 +32,14 @@
 #include "prop/prop_engine.h"
 #include "smt/dump.h"
 #include "smt/logic_exception.h"
+#include "smt/output_manager.h"
 #include "theory/combination_care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
+#include "theory/shared_solver.h"
 #include "theory/theory.h"
 #include "theory/theory_engine_proof_generator.h"
 #include "theory/theory_id.h"
@@ -48,7 +50,6 @@
 
 using namespace std;
 
-using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
 
 namespace CVC4 {
@@ -166,17 +167,18 @@ void TheoryEngine::finishInit()
     d_quantEngine = d_theoryTable[THEORY_QUANTIFIERS]->getQuantifiersEngine();
     Assert(d_quantEngine != nullptr);
   }
+  // finish initializing the quantifiers engine, which must come before
+  // initializing theory combination, since quantifiers engine may have a
+  // special model builder object
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->finishInit(this, d_decManager.get());
+  }
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.
   d_tc->finishInit();
   // get pointer to the shared solver
   d_sharedSolver = d_tc->getSharedSolver();
-
-  // finish initializing the quantifiers engine
-  if (d_logicInfo.isQuantified())
-  {
-    d_quantEngine->finishInit(this, d_decManager.get());
-  }
 
   // finish initializing the theories by linking them with the appropriate
   // utilities and then calling their finishInit method.
@@ -796,7 +798,11 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(
 theory::TrustNode TheoryEngine::ppRewriteEquality(TNode eq)
 {
   Assert(eq.getKind() == kind::EQUAL);
-  return theoryOf(eq)->ppRewrite(eq);
+  std::vector<SkolemLemma> lems;
+  TrustNode trn = theoryOf(eq)->ppRewrite(eq, lems);
+  // should never introduce a skolem to eliminate an equality
+  Assert(lems.empty());
+  return trn;
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(

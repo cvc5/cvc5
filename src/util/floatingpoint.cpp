@@ -5,7 +5,7 @@
  **   Aina Niemetz, Martin Brain, Haniel Barbosa
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -254,7 +254,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 
       if (mid <= rabs)
       {
-        sig = sig | one;
+        sig = sig.setBit(0, true);
         workingSig = mid;
       }
 
@@ -268,7 +268,7 @@ FloatingPoint::FloatingPoint(const FloatingPointSize& size,
 
     if (!remainder.isZero())
     {
-      sig = sig | one;
+      sig = sig.setBit(0, true);
     }
 
     // Build an exact float
@@ -361,8 +361,8 @@ FloatingPoint FloatingPoint::makeMaxNormal(const FloatingPointSize& size,
                                            bool sign)
 {
   BitVector bvsign = sign ? BitVector::mkOne(1) : BitVector::mkZero(1);
-  BitVector bvexp =
-      BitVector::mkOnes(size.packedExponentWidth()).setBit(0, false);
+  BitVector bvexp = BitVector::mkOnes(size.packedExponentWidth());
+  bvexp.setBit(0, false);
   BitVector bvsig = BitVector::mkOnes(size.packedSignificandWidth());
   return FloatingPoint(size, bvsign.concat(bvexp).concat(bvsig));
 }

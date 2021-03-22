@@ -4,18 +4,21 @@
  ** Top contributors (to current version):
  **   Tim King, Dejan Jovanovic, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief This is an abstraction of a Map from unsigned integers to elements of type T.
+ ** \brief This is an abstraction of a Map from unsigned integers to elements
+ ** of type T.
  **
- ** This is an abstraction of a Map from an unsigned integer to elements of type T.
- ** This class is designed to provide constant time insertion, deletion, element_of,
- ** and fast iteration. This is done by storing backing vectors of size greater than
- ** the maximum key.  This datastructure is appropriate for heavy use datastructures
- ** where the Keys are a dense set of integers.
+ ** This is an abstraction of a Map from an unsigned integer to elements of
+ ** type T.
+ ** This class is designed to provide constant time insertion, deletion,
+ ** element_of, and fast iteration. This is done by storing backing vectors of
+ ** size greater than the maximum key.
+ ** This datastructure is appropriate for heavy use datastructures where the
+ ** Keys are a dense set of integers.
  **
  ** T must support T(), and operator=().
  **

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,8 @@ class TypeNode;
 namespace CVC4 {
 
 // operators for record update
-class CVC4_PUBLIC RecordUpdate {
+class RecordUpdate
+{
   std::string d_field;
 
  public:
@@ -42,15 +43,16 @@ class CVC4_PUBLIC RecordUpdate {
   std::string getField() const { return d_field; }
   bool operator==(const RecordUpdate& t) const { return d_field == t.d_field; }
   bool operator!=(const RecordUpdate& t) const { return d_field != t.d_field; }
-};/* class RecordUpdate */
+}; /* class RecordUpdate */
 
-struct CVC4_PUBLIC RecordUpdateHashFunction {
+struct RecordUpdateHashFunction
+{
   inline size_t operator()(const RecordUpdate& t) const {
     return std::hash<std::string>()(t.getField());
   }
-};/* struct RecordUpdateHashFunction */
+}; /* struct RecordUpdateHashFunction */
 
-std::ostream& operator<<(std::ostream& out, const RecordUpdate& t) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const RecordUpdate& t);
 
 using Record = std::vector<std::pair<std::string, TypeNode>>;
 

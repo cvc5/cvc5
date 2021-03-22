@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -198,7 +198,7 @@ void BVSolverLazy::sendConflict()
     Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
                        << d_conflictNode << std::endl;
     d_im.conflict(d_conflictNode, InferenceId::BV_LAZY_CONFLICT);
-    d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
+    d_statistics.d_avgConflictSize << d_conflictNode.getNumChildren();
     d_conflictNode = Node::null();
   }
 }
@@ -208,7 +208,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
   if (fact.getKind() == kind::EQUAL)
   {
     NodeManager* nm = NodeManager::currentNM();
-    if (fact[0].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[0].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[0];
       TNode result = fact[1];
@@ -220,7 +220,7 @@ void BVSolverLazy::checkForLemma(TNode fact)
           kind::OR, divisor_eq_0, nm->mkNode(kind::NOT, fact), result_ult_div);
       lemma(split);
     }
-    if (fact[1].getKind() == kind::BITVECTOR_UREM_TOTAL)
+    if (fact[1].getKind() == kind::BITVECTOR_UREM)
     {
       TNode urem = fact[1];
       TNode result = fact[0];

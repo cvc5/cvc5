@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -59,9 +59,7 @@ std::string WitnessFormGenerator::identify() const
 
 Node WitnessFormGenerator::convertToWitnessForm(Node t)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* skm = nm->getSkolemManager();
-  Node tw = SkolemManager::getWitnessForm(t);
+  Node tw = SkolemManager::getOriginalForm(t);
   if (t == tw)
   {
     // trivial case
@@ -80,44 +78,18 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
     if (it == d_visited.end())
     {
       d_visited.insert(cur);
-      curw = SkolemManager::getWitnessForm(cur);
+      curw = SkolemManager::getOriginalForm(cur);
       // if its witness form is different
       if (cur != curw)
       {
         if (cur.isVar())
         {
           Node eq = cur.eqNode(curw);
-          // equality between a variable and its witness form
+          // equality between a variable and its original form
           d_eqs.insert(eq);
-          Assert(curw.getKind() == kind::WITNESS);
-          Node skBody = SkolemManager::getSkolemForm(curw[1]);
-          Node exists = nm->mkNode(kind::EXISTS, curw[0], skBody);
-          ProofGenerator* pg = skm->getProofGenerator(exists);
-          if (pg == nullptr)
-          {
-            // it may be a purification skolem
-            pg = convertExistsInternal(exists);
-            if (pg == nullptr)
-            {
-              // if no proof generator is provided, we justify the existential
-              // using the WITNESS_AXIOM trusted rule by providing it to the
-              // call to addLazyStep below.
-              Trace("witness-form")
-                  << "WitnessFormGenerator: No proof generator for " << exists
-                  << std::endl;
-            }
-          }
-          // --------------------------- from pg
-          // (exists ((x T)) (P x))
-          // --------------------------- WITNESS_INTRO
-          // k = (witness ((x T)) (P x))
-          d_wintroPf.addLazyStep(
-              exists,
-              pg,
-              PfRule::WITNESS_AXIOM,
-              true,
-              "WitnessFormGenerator::convertToWitnessForm:witness_axiom");
-          d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
+          // ------- SKOLEM_INTRO
+          // k = t
+          d_wintroPf.addStep(eq, PfRule::SKOLEM_INTRO, {}, {cur});
           d_tcpg.addRewriteStep(
               cur, curw, &d_wintroPf, true, PfRule::ASSUME, true);
         }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #define CVC4__NODE_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -32,7 +33,6 @@
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/output.h"
-#include "expr/expr.h"
 #include "expr/expr_iomanip.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
@@ -170,8 +170,6 @@ class NodeTemplate {
    */
   friend class expr::NodeValue;
 
-  friend class expr::ExportPrivate;
-
   /** A convenient null-valued encapsulated pointer */
   static NodeTemplate s_null;
 
@@ -267,14 +265,6 @@ public:
    * @param node the node to make copy of
    */
   NodeTemplate(const NodeTemplate& node);
-
-  /**
-   * Allow Exprs to become Nodes.  This permits flexible translation of
-   * Exprs -> Nodes inside the CVC4 library without exposing a toNode()
-   * function in the public interface, or requiring lots of "friend"
-   * relationships.
-   */
-  NodeTemplate(const Expr& e);
 
   /**
    * Assignment operator for nodes, copies the relevant information from node
@@ -414,23 +404,6 @@ public:
    */
   // bool containsDecision(); // is "atomic"
   // bool properlyContainsDecision(); // maybe not atomic but all children are
-
-
-  /**
-   * Convert this Node into an Expr using the currently-in-scope
-   * manager.  Essentially this is like an "operator Expr()" but we
-   * don't want it to compete with implicit conversions between e.g.
-   * Node and TNode, and we want internal-to-external interface
-   * (Node -> Expr) points to be explicit.  We could write an
-   * explicit Expr(Node) constructor---but that dirties the public
-   * interface.
-   */
-  inline Expr toExpr() const;
-
-  /**
-   * Convert an Expr into a Node.
-   */
-  static inline Node fromExpr(const Expr& e);
 
   /**
    * Returns true if this node represents a constant
@@ -1104,18 +1077,6 @@ NodeTemplate<ref_count>::NodeTemplate(const NodeTemplate& e) {
 }
 
 template <bool ref_count>
-NodeTemplate<ref_count>::NodeTemplate(const Expr& e) {
-  Assert(e.d_node != NULL) << "Expecting a non-NULL expression value!";
-  Assert(e.d_node->d_nv != NULL) << "Expecting a non-NULL expression value!";
-  d_nv = e.d_node->d_nv;
-  // shouldn't ever fail
-  Assert(d_nv->d_rc > 0) << "Node constructed from Expr with rc == 0";
-  if(ref_count) {
-    d_nv->inc();
-  }
-}
-
-template <bool ref_count>
 NodeTemplate<ref_count>::~NodeTemplate() {
   Assert(d_nv != NULL) << "Expecting a non-NULL expression value!";
   if(ref_count) {
@@ -1255,37 +1216,23 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
  * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>
-NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const {
+NodeTemplate<true> NodeTemplate<ref_count>::getOperator() const
+{
   Assert(NodeManager::currentNM() != NULL)
       << "There is no current CVC4::NodeManager associated to this thread.\n"
          "Perhaps a public-facing function is missing a NodeManagerScope ?";
 
   assertTNodeNotExpired();
 
-  switch(kind::MetaKind mk = getMetaKind()) {
-  case kind::metakind::INVALID:
-    IllegalArgument(*this, "getOperator() called on Node with INVALID-kinded kind");
-
-  case kind::metakind::VARIABLE:
-    IllegalArgument(*this, "getOperator() called on Node with VARIABLE-kinded kind");
-
-  case kind::metakind::OPERATOR: {
+  kind::MetaKind mk = getMetaKind();
+  if (mk == kind::metakind::OPERATOR)
+  {
     /* Returns a BUILTIN node. */
     return NodeManager::currentNM()->operatorOf(getKind());
   }
-
-  case kind::metakind::PARAMETERIZED:
-    /* The operator is the first child. */
-    return Node(d_nv->d_children[0]);
-
-  case kind::metakind::CONSTANT:
-    IllegalArgument(*this, "getOperator() called on Node with CONSTANT-kinded kind");
-
-  case kind::metakind::NULLARY_OPERATOR:
-    IllegalArgument(*this, "getOperator() called on Node with NULLARY_OPERATOR-kinded kind");
-
-  default: Unhandled() << mk;
-  }
+  Assert(mk == kind::metakind::PARAMETERIZED);
+  /* The operator is the first child. */
+  return Node(d_nv->d_children[0]);
 }
 
 /**
@@ -1471,18 +1418,6 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
     cache[*this] = n;
     return n;
   }
-}
-
-template <bool ref_count>
-inline Expr NodeTemplate<ref_count>::toExpr() const {
-  assertTNodeNotExpired();
-  return NodeManager::currentNM()->toExpr(*this);
-}
-
-// intentionally not defined for TNode
-template <>
-inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
-  return NodeManager::fromExpr(e);
 }
 
 #ifdef CVC4_DEBUG

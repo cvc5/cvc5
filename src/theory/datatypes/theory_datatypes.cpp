@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,11 +27,15 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "smt/logic_exception.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/logic_info.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 #include "theory/type_enumerator.h"
 #include "theory/valuation.h"
 
@@ -180,9 +184,7 @@ void TheoryDatatypes::postCheck(Effort level)
   if (level == EFFORT_LAST_CALL)
   {
     Assert(d_sygusExtension != nullptr);
-    std::vector<Node> lemmas;
-    d_sygusExtension->check(lemmas);
-    d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
+    d_sygusExtension->check();
     return;
   }
   else if (level == EFFORT_FULL && !d_state.isInConflict()
@@ -325,7 +327,7 @@ void TheoryDatatypes::postCheck(Effort level)
                     nb << test << test.notNode();
                     Node lemma = nb;
                     d_im.lemma(lemma, InferenceId::DATATYPES_BINARY_SPLIT);
-                    d_out->requirePhase( test, true );
+                    d_im.requirePhase(test, true);
                   }else{
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);
@@ -393,9 +395,7 @@ void TheoryDatatypes::notifyFact(TNode atom,
   // could be sygus-specific
   if (d_sygusExtension)
   {
-    std::vector< Node > lemmas;
-    d_sygusExtension->assertFact(atom, polarity, lemmas);
-    d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
+    d_sygusExtension->assertFact(atom, polarity);
   }
   //add to tester if applicable
   Node t_arg;
@@ -415,10 +415,8 @@ void TheoryDatatypes::notifyFact(TNode atom,
       if (d_sygusExtension)
       {
         Trace("dt-tester") << "Assert tester to sygus : " << atom << std::endl;
-        std::vector< Node > lemmas;
-        d_sygusExtension->assertTester(tindex, t_arg, atom, lemmas);
+        d_sygusExtension->assertTester(tindex, t_arg, atom);
         Trace("dt-tester") << "Done assert tester to sygus." << std::endl;
-        d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
       }
     }
   }else{
@@ -476,9 +474,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n)
     d_equalityEngine->addTerm(n);
     if (d_sygusExtension)
     {
-      std::vector< Node > lemmas;
-      d_sygusExtension->preRegisterTerm(n, lemmas);
-      d_im.sendLemmas(lemmas, InferenceId::UNKNOWN);
+      d_sygusExtension->preRegisterTerm(n);
     }
     break;
   }
@@ -599,7 +595,7 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
   return TrustNode::null();
 }
 
-TrustNode TheoryDatatypes::ppRewrite(TNode in)
+TrustNode TheoryDatatypes::ppRewrite(TNode in, std::vector<SkolemLemma>& lems)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
   // first, see if we need to expand definitions

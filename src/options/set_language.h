@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,8 @@
 #define CVC4__OPTIONS__SET_LANGUAGE_H
 
 #include <iostream>
+
+#include "cvc4_export.h"
 #include "options/language.h"
 
 namespace CVC4 {
@@ -28,8 +30,9 @@ namespace language {
 /**
  * IOStream manipulator to set the output language for Exprs.
  */
-class CVC4_PUBLIC SetLanguage {
-public:
+class CVC4_EXPORT SetLanguage
+{
+ public:
   /**
    * Set a language on the output stream for the current stack scope.
    * This makes sure the old language is reset on the stream after
@@ -74,24 +77,18 @@ private:
    * When this manipulator is used, the setting is stored here.
    */
   OutputLanguage d_language;
-};/* class SetLanguage */
-
+}; /* class SetLanguage */
 
 /**
  * Sets the output language when pretty-printing a Expr to an ostream.
- * This is used liek this:
+ * This is used like this:
  *
  *   // let out be an ostream, e an Expr
- *   out << language::SetLanguage(LANG_SMTLIB_V2_5) << e << endl;
- *
- * This used to be used like this:
- *
- *   // let out be an ostream, e an Expr
- *   out << Expr::setlanguage(LANG_SMTLIB_V2_5) << e << endl;
+ *   out << Expr::setlanguage(LANG_SMTLIB_V2_6) << e << endl;
  *
  * The setting stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_EXPORT;
 
 }/* CVC4::language namespace */
 }/* CVC4 namespace */

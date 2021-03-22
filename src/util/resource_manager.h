@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Gereon Kremer, Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,7 @@ class StatisticsRegistry;
 /**
  * This class implements a easy to use wall clock timer based on std::chrono.
  */
-class CVC4_PUBLIC WallClockTimer
+class WallClockTimer
 {
   /**
    * The underlying clock that is used.
@@ -71,7 +71,7 @@ class CVC4_PUBLIC WallClockTimer
  * time limits. The available resources are listed in ResourceManager::Resource
  * and their individual costs are configured via command line options.
  */
-class CVC4_PUBLIC ResourceManager
+class ResourceManager
 {
  public:
   /** Types of resources. */

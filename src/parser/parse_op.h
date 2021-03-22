@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -55,7 +55,7 @@ namespace CVC4 {
  * interpret this operator by converting the next parsed constant of type T2 to
  * an Array of type (Array T1 T2) over that constant.
  */
-struct CVC4_PUBLIC ParseOp
+struct ParseOp
 {
   ParseOp(api::Kind k = api::NULL_EXPR) : d_kind(k) {}
   /** The kind associated with the parsed operator, if it exists */

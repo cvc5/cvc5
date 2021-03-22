@@ -2,9 +2,9 @@
 /*! \file sequences_stats.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/rewrites.h"
 #include "util/statistics_registry.h"
+#include "util/stats_histogram.h"
 
 namespace CVC4 {
 namespace theory {
@@ -46,9 +47,6 @@ namespace strings {
  *
  * "Conflicts" (2) arise from various kinds of reasoning, listed below,
  * where inferences are one of the possible methods for deriving conflicts.
- *
- * "Lemmas" (3) also arise from various kinds of reasoning, listed below,
- * where inferences are one of the possible methods for deriving lemmas.
  */
 class SequencesStatistics
 {
@@ -66,29 +64,29 @@ class SequencesStatistics
    * TheoryInferenceManager, i.e.
    * (theory::strings::inferences{Facts,Lemmas,Conflicts}).
    */
-  HistogramStat<InferenceId> d_inferencesNoPf;
+  IntegralHistogramStat<InferenceId> d_inferencesNoPf;
   /**
    * Counts the number of applications of each type of context-dependent
    * simplification. The sum of this map is equal to the number of EXTF or
    * EXTF_N inferences.
    */
-  HistogramStat<Kind> d_cdSimplifications;
+  IntegralHistogramStat<Kind> d_cdSimplifications;
   /**
    * Counts the number of applications of each type of reduction. The sum of
    * this map is equal to the number of REDUCTION inferences (when
    * options::stringLazyPreproc is true).
    */
-  HistogramStat<Kind> d_reductions;
+  IntegralHistogramStat<Kind> d_reductions;
   /**
    * Counts the number of applications of each type of regular expression
    * positive (resp. negative) unfoldings. The sum of this map is equal to the
    * number of RE_UNFOLD_POS (resp. RE_UNFOLD_NEG) inferences.
    */
-  HistogramStat<Kind> d_regexpUnfoldingsPos;
-  HistogramStat<Kind> d_regexpUnfoldingsNeg;
+  IntegralHistogramStat<Kind> d_regexpUnfoldingsPos;
+  IntegralHistogramStat<Kind> d_regexpUnfoldingsNeg;
   //--------------- end of inferences
   /** Counts the number of applications of each type of rewrite rule */
-  HistogramStat<Rewrite> d_rewrites;
+  IntegralHistogramStat<Rewrite> d_rewrites;
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
   IntStat d_conflictsEqEngine;
@@ -97,18 +95,6 @@ class SequencesStatistics
   /** Number of inference conflicts */
   IntStat d_conflictsInfer;
   //--------------- end of conflicts
-  //--------------- lemmas, partition of calls to OutputChannel::lemma
-  /** Number of lemmas added due to eager preprocessing */
-  IntStat d_lemmasEagerPreproc;
-  /** Number of collect model info splits */
-  IntStat d_lemmasCmiSplit;
-  /** Number of lemmas added due to registering terms */
-  IntStat d_lemmasRegisterTerm;
-  /** Number of lemmas added due to registering atomic terms */
-  IntStat d_lemmasRegisterTermAtomic;
-  /** Number of lemmas added due to inferences */
-  IntStat d_lemmasInfer;
-  //--------------- end of lemmas
 };
 
 }

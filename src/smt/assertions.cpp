@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,8 @@
  **/
 
 #include "smt/assertions.h"
+
+#include <sstream>
 
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
@@ -181,7 +183,7 @@ void Assertions::addFormula(
       if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
           || options::checkUnsatCores())
       {
-        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+        ProofManager::currentPM()->addCoreAssertion(n);
       }
     }
     else
@@ -226,7 +228,7 @@ void Assertions::ensureBoolean(const Node& n)
     ss << "Expected Boolean type\n"
        << "The assertion : " << n << "\n"
        << "Its type      : " << type;
-    throw TypeCheckingException(n.toExpr(), ss.str());
+    throw TypeCheckingExceptionPrivate(n, ss.str());
   }
 }
 

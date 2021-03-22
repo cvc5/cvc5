@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,16 +26,17 @@
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_builder.h"
+#include "theory/quantifiers/quant_module.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_modules.h"
+#include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/quant_module.h"
+#include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
 
@@ -47,64 +48,33 @@ namespace theory {
 
 QuantifiersEngine::QuantifiersEngine(
     quantifiers::QuantifiersState& qstate,
+    quantifiers::QuantifiersRegistry& qr,
+    quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
+    quantifiers::FirstOrderModel* qm,
     ProofNodeManager* pnm)
     : d_qstate(qstate),
       d_qim(qim),
       d_te(nullptr),
       d_decManager(nullptr),
       d_pnm(pnm),
-      d_qreg(),
-      d_treg(qstate, qim, d_qreg),
+      d_qreg(qr),
+      d_treg(tr),
       d_tr_trie(new inst::TriggerTrie),
-      d_model(nullptr),
-      d_builder(nullptr),
-      d_eq_query(nullptr),
+      d_model(qm),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, qm)),
       d_instantiate(
           new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
       d_skolemize(new quantifiers::Skolemize(d_qstate, d_pnm)),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
 {
-  //---- utilities
-  // quantifiers registry must come before the other utilities
+  // initialize the utilities
+  d_util.push_back(d_eq_query.get());
+  // quantifiers registry must come before the remaining utilities
   d_util.push_back(&d_qreg);
-  d_util.push_back(d_treg.getTermDatabase());
-
+  d_util.push_back(tr.getTermDatabase());
   d_util.push_back(d_instantiate.get());
-
-  Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
-  Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
-
-  //---- end utilities
-
-  // Finite model finding requires specialized ways of building the model.
-  // We require constructing the model and model builder here, since it is
-  // required for initializing the CombinationEngine.
-  if (options::finiteModelFind() || options::fmfBound())
-  {
-    Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if (options::mbqiMode() == options::MbqiMode::FMC
-        || options::mbqiMode() == options::MbqiMode::TRUST
-        || options::fmfBound())
-    {
-      Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
-      d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, qstate, d_qreg, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(this, qstate));
-    }else{
-      Trace("quant-engine-debug") << "...make default model builder." << std::endl;
-      d_model.reset(new quantifiers::FirstOrderModel(
-          this, qstate, d_qreg, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(this, qstate));
-    }
-  }else{
-    d_model.reset(new quantifiers::FirstOrderModel(
-        this, qstate, d_qreg, "FirstOrderModel"));
-  }
-  d_eq_query.reset(
-      new quantifiers::EqualityQueryQuantifiersEngine(qstate, d_model.get()));
-  d_util.insert(d_util.begin(), d_eq_query.get());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
@@ -120,6 +90,12 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
   }
+
+  // handle any circular dependencies
+
+  // quantifiers bound inference needs to be informed of the bounded integers
+  // module, which has information about which quantifiers have finite bounds
+  d_qreg.getQuantifiersBoundInference().finishInit(d_qmodules->d_bint.get());
 }
 
 DecisionManager* QuantifiersEngine::getDecisionManager()
@@ -144,11 +120,11 @@ quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
-  return d_builder.get();
+  return d_qmodules->d_builder.get();
 }
 quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 {
-  return d_model.get();
+  return d_model;
 }
 quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 {
@@ -173,69 +149,6 @@ quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
-}
-
-bool QuantifiersEngine::isFiniteBound(Node q, Node v) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi && bi->isBound(q, v))
-  {
-    return true;
-  }
-  TypeNode tn = v.getType();
-  if (tn.isSort() && options::finiteModelFind())
-  {
-    return true;
-  }
-  else if (d_treg.getTermEnumeration()->mayComplete(tn))
-  {
-    return true;
-  }
-  return false;
-}
-
-BoundVarType QuantifiersEngine::getBoundVarType(Node q, Node v) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    return bi->getBoundVarType(q, v);
-  }
-  return isFiniteBound(q, v) ? BOUND_FINITE : BOUND_NONE;
-}
-
-void QuantifiersEngine::getBoundVarIndices(Node q,
-                                           std::vector<unsigned>& indices) const
-{
-  Assert(indices.empty());
-  // we take the bounded variables first
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    bi->getBoundVarIndices(q, indices);
-  }
-  // then get the remaining ones
-  for (unsigned i = 0, nvars = q[0].getNumChildren(); i < nvars; i++)
-  {
-    if (std::find(indices.begin(), indices.end(), i) == indices.end())
-    {
-      indices.push_back(i);
-    }
-  }
-}
-
-bool QuantifiersEngine::getBoundElements(RepSetIterator* rsi,
-                                         bool initial,
-                                         Node q,
-                                         Node v,
-                                         std::vector<Node>& elements) const
-{
-  quantifiers::BoundedIntegers* bi = d_qmodules->d_bint.get();
-  if (bi)
-  {
-    return bi->getBoundElements(rsi, initial, q, v, elements);
-  }
-  return false;
 }
 
 void QuantifiersEngine::presolve() {
@@ -771,21 +684,12 @@ QuantifiersEngine::Statistics::Statistics()
       d_ematching_time("theory::QuantifiersEngine::time_ematching"),
       d_num_quant("QuantifiersEngine::Num_Quantifiers", 0),
       d_instantiation_rounds("QuantifiersEngine::Rounds_Instantiation_Full", 0),
-      d_instantiation_rounds_lc("QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
+      d_instantiation_rounds_lc(
+          "QuantifiersEngine::Rounds_Instantiation_Last_Call", 0),
       d_triggers("QuantifiersEngine::Triggers", 0),
       d_simple_triggers("QuantifiersEngine::Triggers_Simple", 0),
       d_multi_triggers("QuantifiersEngine::Triggers_Multi", 0),
-      d_multi_trigger_instantiations("QuantifiersEngine::Multi_Trigger_Instantiations", 0),
-      d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0),
-      d_instantiations_user_patterns("QuantifiersEngine::Instantiations_User_Patterns", 0),
-      d_instantiations_auto_gen("QuantifiersEngine::Instantiations_Auto_Gen", 0),
-      d_instantiations_guess("QuantifiersEngine::Instantiations_Guess", 0),
-      d_instantiations_qcf("QuantifiersEngine::Instantiations_Qcf_Conflict", 0),
-      d_instantiations_qcf_prop("QuantifiersEngine::Instantiations_Qcf_Prop", 0),
-      d_instantiations_fmf_exh("QuantifiersEngine::Instantiations_Fmf_Exh", 0),
-      d_instantiations_fmf_mbqi("QuantifiersEngine::Instantiations_Fmf_Mbqi", 0),
-      d_instantiations_cbqi("QuantifiersEngine::Instantiations_Cbqi", 0),
-      d_instantiations_rr("QuantifiersEngine::Instantiations_Rewrite_Rules", 0)
+      d_red_alpha_equiv("QuantifiersEngine::Reductions_Alpha_Equivalence", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_time);
   smtStatisticsRegistry()->registerStat(&d_qcf_time);
@@ -796,17 +700,7 @@ QuantifiersEngine::Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_triggers);
   smtStatisticsRegistry()->registerStat(&d_simple_triggers);
   smtStatisticsRegistry()->registerStat(&d_multi_triggers);
-  smtStatisticsRegistry()->registerStat(&d_multi_trigger_instantiations);
   smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_user_patterns);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_auto_gen);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_guess);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_qcf);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_qcf_prop);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_fmf_exh);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_fmf_mbqi);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_cbqi);
-  smtStatisticsRegistry()->registerStat(&d_instantiations_rr);
 }
 
 QuantifiersEngine::Statistics::~Statistics(){
@@ -819,17 +713,7 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
-  smtStatisticsRegistry()->unregisterStat(&d_multi_trigger_instantiations);
   smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_user_patterns);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_auto_gen);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_guess);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_qcf);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_qcf_prop);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_fmf_exh);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_fmf_mbqi);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_cbqi);
-  smtStatisticsRegistry()->unregisterStat(&d_instantiations_rr);
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){

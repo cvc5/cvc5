@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -164,7 +164,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
           break;
         }
 
-        case kind::BITVECTOR_UREM_TOTAL:
+        case kind::BITVECTOR_UREM:
         case kind::BITVECTOR_LSHR:
         case kind::BITVECTOR_ASHR:
         {
@@ -213,7 +213,7 @@ unsigned BVGauss::getMinBwExpr(Node expr)
 
         default:
         {
-          /* BITVECTOR_UDIV_TOTAL (since x / 0 = -1)
+          /* BITVECTOR_UDIV (since x / 0 = -1)
            * BITVECTOR_NOT
            * BITVECTOR_NEG
            * BITVECTOR_SHL */

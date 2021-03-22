@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,7 +33,7 @@ namespace strings {
 class SequencesRewriter : public TheoryRewriter
 {
  public:
-  SequencesRewriter(HistogramStat<Rewrite>* statistics);
+  SequencesRewriter(IntegralHistogramStat<Rewrite>* statistics);
 
  protected:
   /** rewrite regular expression concatenation
@@ -288,7 +288,7 @@ class SequencesRewriter : public TheoryRewriter
   static Node canonicalStrForSymbolicLength(Node n, TypeNode stype);
 
   /** Reference to the rewriter statistics. */
-  HistogramStat<Rewrite>* d_statistics;
+  IntegralHistogramStat<Rewrite>* d_statistics;
 
   /** Instance of the entailment checker for strings. */
   StringsEntail d_stringsEntail;

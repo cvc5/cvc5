@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Haniel Barbosa, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,6 @@ namespace prop {
 
 class CnfProof;
 
-typedef std::unordered_map<prop::SatVariable, Expr> SatVarToExpr;
 typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
 typedef std::unordered_set<ClauseId> ClauseIdSet;
 

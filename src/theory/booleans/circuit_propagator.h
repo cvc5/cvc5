@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Gereon Kremer
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,7 +19,6 @@
 #ifndef CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 #define CVC4__THEORY__BOOLEANS__CIRCUIT_PROPAGATOR_H
 
-#include <functional>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -30,15 +29,17 @@
 #include "context/context.h"
 #include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
-#include "expr/proof_generator.h"
-#include "expr/proof_node.h"
-#include "theory/eager_proof_generator.h"
-#include "theory/theory.h"
 #include "theory/trust_node.h"
-#include "util/hash.h"
 
 namespace CVC4 {
+
+class ProofGenerator;
+class ProofNode;
+
 namespace theory {
+
+class EagerProofGenerator;
+
 namespace booleans {
 
 /**

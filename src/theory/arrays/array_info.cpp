@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Clark Barrett, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -470,20 +470,20 @@ void ArrayInfo::mergeInfo(const TNode a, const TNode b){
 
 
       if(s!= 0) {
-        d_avgIndexListLength.addEntry(s);
+        d_avgIndexListLength << s;
         ++d_listsCount;
       }
       s = lista_st->size();
       d_maxList.maxAssign(s);
       if(s!= 0) {
-        d_avgStoresListLength.addEntry(s);
+        d_avgStoresListLength << s;
         ++d_listsCount;
       }
 
       s = lista_inst->size();
       d_maxList.maxAssign(s);
       if(s!=0) {
-        d_avgInStoresListLength.addEntry(s);
+        d_avgInStoresListLength << s;
         ++d_listsCount;
       }
 

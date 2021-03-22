@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
+#include "cvc4_export.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
@@ -42,7 +43,8 @@ namespace options {
 
 class OptionsListener;
 
-class CVC4_PUBLIC Options {
+class CVC4_EXPORT Options
+{
   friend api::Solver;
   /** The struct that holds all option values. */
   options::OptionsHolder* d_holder;
@@ -80,7 +82,8 @@ class CVC4_PUBLIC Options {
   static const unsigned s_preemptAdditional = 6;
 
 public:
-  class CVC4_PUBLIC OptionsScope {
+ class OptionsScope
+ {
   private:
     Options* d_oldOptions;
   public:
@@ -92,7 +95,7 @@ public:
     ~OptionsScope(){
       Options::s_current = d_oldOptions;
     }
-  };
+ };
 
   /** Return true if current Options are null */
   static inline bool isCurrentNull() {
@@ -301,7 +304,7 @@ public:
                                     int argc,
                                     char* argv[],
                                     std::vector<std::string>* nonoptions);
-};/* class Options */
+}; /* class Options */
 
 }/* CVC4 namespace */
 
