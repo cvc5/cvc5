@@ -190,7 +190,7 @@ void PropEngine::assertSkolemDefinition(TNode node, TNode skolem)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << std::endl;
-  d_theoryProxy->notifyLemma(node, skolem);
+  d_theoryProxy->notifyAssertion(node, skolem);
   assertInternal(node, false, false, true);
 }
 
@@ -282,13 +282,13 @@ void PropEngine::assertLemmasInternal(
     if (!trn.isNull())
     {
       // notify the theory proxy of the lemma
-      d_theoryProxy->notifyLemma(trn.getProven());
+      d_theoryProxy->notifyAssertion(trn.getProven());
     }
     Assert(ppSkolems.size() == ppLemmas.size());
     for (size_t i = 0, lsize = ppLemmas.size(); i < lsize; ++i)
     {
       Node lem = ppLemmas[i].getProven();
-      d_theoryProxy->notifyLemma(ppLemmas[i].getProven(), ppSkolems[i]);
+      d_theoryProxy->notifyAssertion(ppLemmas[i].getProven(), ppSkolems[i]);
     }
   }
 }

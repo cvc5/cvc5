@@ -67,7 +67,7 @@ class TheoryProxy : public Registrar
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
 
   /** Notify a lemma, possibly corresponding to a skolem definition */
-  void notifyLemma(Node lem, TNode skolem = TNode::null());
+  void notifyAssertion(Node lem, TNode skolem = TNode::null());
 
   void theoryCheck(theory::Theory::Effort effort);
 

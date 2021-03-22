@@ -63,7 +63,7 @@ void TheoryProxy::notifyPreprocessedAssertions(
   }
 }
 
-void TheoryProxy::notifyLemma(Node lem, TNode skolem)
+void TheoryProxy::notifyAssertion(Node lem, TNode skolem)
 {
   if (skolem.isNull())
   {
