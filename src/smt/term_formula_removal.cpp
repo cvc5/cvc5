@@ -292,6 +292,12 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
           "a variable introduced due to term-level ITE removal");
       d_skolem_cache.insert(node, skolem);
 
+      // Notice that in very rare cases, two different terms may have the
+      // same purification skolem (see SkolemManager::mkPurifySkolem) For such
+      // cases, for simplicity, we repeat the work of constructing the
+      // assertion and proofs below. This is so that the proof for the new form
+      // of the lemma is used.
+
       // The new assertion
       newAssertion = nodeManager->mkNode(
           kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
@@ -497,8 +503,11 @@ Node RemoveTermFormulas::runCurrent(std::pair<Node, uint32_t>& curr,
 
       newLem = theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
 
-      // store in the lemma cache
-      d_lemmaCache.insert(skolem, newLem);
+      // store in the lemma cache, if it is not already there.
+      if (d_lemmaCache.find(skolem) == d_lemmaCache.end())
+      {
+        d_lemmaCache.insert(skolem, newLem);
+      }
 
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
       newLem.debugCheckClosed("rtf-proof-debug",
