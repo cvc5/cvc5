@@ -233,7 +233,7 @@ TrustNode TheoryUF::ppRewrite(TNode node, std::vector<SkolemLemma>& lems)
     if (isHigherOrderType(node.getOperator().getType()) && !options::ufHo())
     {
       std::stringstream ss;
-      ss << "UF recieved an application whose operator has higher-order type "
+      ss << "UF received an application whose operator has higher-order type "
          << node << ", which is not supported by default, try --uf-ho";
       throw LogicException(ss.str());
     }
