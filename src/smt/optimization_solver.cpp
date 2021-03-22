@@ -46,6 +46,23 @@ OptResult OptimizationSolver::checkOpt()
   Assert(d_activatedObjective.getType() != OBJECTIVE_UNDEFINED);
   Assert(!d_activatedObjective.getNode().isNull());
 
+  // std::cerr << "b" << std::endl;
+  // std::unique_ptr<OMTOptimizer> optimizer = 
+  //   OMTOptimizer::getOptimizerForNode(d_activatedObjective.getNode());
+
+  // Assert(!optimizer);
+
+  // std::pair<OptResult, CVC4::Node> optResult;
+  // std::cerr << "a" << std::endl;
+  // if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE) {
+  //   optResult = optimizer->maximize(this->d_parent, this->d_activatedObjective.getNode());
+  // } else if (d_activatedObjective.getType() == OBJECTIVE_MINIMIZE) {
+  //   optResult = optimizer->minimize(this->d_parent, this->d_activatedObjective.getNode());
+  // }
+
+  // this->d_savedValue = optResult.second;
+  // return optResult.first;
+
   // the smt engine to which we send intermediate queries
   // for the linear search.
   std::unique_ptr<SmtEngine> optChecker;

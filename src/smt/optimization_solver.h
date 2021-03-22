@@ -22,6 +22,11 @@
 #include "smt/assertions.h"
 #include "util/result.h"
 
+#include "options/smt_options.h"
+#include "smt/smt_engine.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/smt_engine_subsolver.h"
+
 namespace CVC4 {
 
 class SmtEngine;
@@ -54,6 +59,9 @@ enum OptResult
   OPT_UNSAT,
   // the optimization loop finished and optimal
   OPT_OPTIMAL,
+
+  // the goal is unbounded, so it would be -inf or +inf 
+  OPT_UNBOUNDED, 
 
   // The last value is here as a preparation for future work
   // in which pproximate optimizations will be supported.
@@ -88,6 +96,7 @@ class Objective
    * **/
   bool d_signed;
 };
+
 
 /**
  * A solver for optimization queries.
@@ -129,86 +138,126 @@ class OptimizationSolver
   Node d_savedValue;
 };
 
-struct OMTSearchState 
-{
-  virtual ~OMTSearchState() {}
-  virtual bool setLowerBound(const Node &lowerBoundNode) = 0;
-  virtual bool setUpperBound(const Node &upperBoundNode) = 0;
-  virtual Node getLowerBound() = 0;
-  virtual Node getUpperBound() = 0;
-  virtual Node constructLTExpr(NodeManager *nm, const Node &a, const Node &b) = 0;
-  virtual Node constructLEQExpr(NodeManager *nm, const Node &a, const Node &b) = 0;
-  virtual Node computePivot(NodeManager* nm) = 0;
-  virtual bool shouldPerformBinarySearchStep() = 0;
-  virtual bool shouldTerminate() = 0;
-};
+// /**
+//  * Optimizer for individual datatype 
+//  */
+// struct OMTOptimizer 
+// {
+//   static std::unique_ptr<OMTOptimizer> getOptimizerForNode(CVC4::Node node);
+//   virtual ~OMTOptimizer() {}
+//   virtual std::pair<OptResult, CVC4::Node> minimize(SmtEngine *parentSMTSolver, CVC4::Node target) = 0;
+//   virtual std::pair<OptResult, CVC4::Node> maximize(SmtEngine *parentSMTSolver, CVC4::Node target) = 0;
+// };
 
-/**
- * The class storing the search states of the binary search. 
- * Including upper and lower bounds. 
- */
-template <typename T>
-struct OMTSearchStateImpl : OMTSearchState
-{ // empty implementation 
-};
+// /**
+//  * The class is the optimizer implementation for individual types. 
+//  */
+// template <typename T>
+// struct OMTOptimizerImpl : OMTOptimizer
+// { 
+//   virtual ~OMTOptimizerImpl() {}
+//   // for generic types, we couldn't optimize 
+//   virtual std::pair<OptResult, CVC4::Node> maximize(SmtEngine *parentSMTSolver, CVC4::Node target) override {
+//     return std::make_pair(OptResult::OPT_UNKNOWN, CVC4::Node());
+//   }
+//   virtual std::pair<OptResult, CVC4::Node> minimize(SmtEngine *parentSMTSolver, CVC4::Node target) override {
+//     return std::make_pair(OptResult::OPT_UNKNOWN, CVC4::Node());
+//   }
+// };
 
-template <>
-struct OMTSearchStateImpl<Rational> : OMTSearchState
-{
-private:
-  Node lowerBound; 
-  Node upperBound;
-public: 
-  void checkNode(const Node &node) {
-    Assert(node.isConst());
-    Assert(node.getType().isInteger());
-  }
-  OMTSearchStateImpl(const Node &lowerBound, const Node &upperBound) {
-    checkNode(lowerBound);
-    checkNode(upperBound);
-    this->lowerBound = lowerBound;
-    this->upperBound = upperBound;
-  }
-  virtual ~OMTSearchStateImpl() {}
-  virtual bool setLowerBound(const Node &lowerBoundNode) {
-    checkNode(lowerBoundNode);
-    this->lowerBound = lowerBoundNode;
-    return true;
-  }
-  virtual bool setUpperBound(const Node &upperBoundNode) {
-    checkNode(upperBoundNode);
-    this->upperBound = upperBoundNode;
-    return true;
-  }
-  virtual Node getLowerBound() {
-    return this->lowerBound;
-  }
-  virtual Node getUpperBound() {
-    return this->upperBound;
-  }
-  virtual Node constructLTExpr(NodeManager *nm, const Node &a, const Node &b) {
-    return nm->mkNode(kind::LT, a, b);
-  }
-  virtual Node constructLEQExpr(NodeManager *nm, const Node &a, const Node &b) {
-    return nm->mkNode(kind::LEQ, a, b);
-  }
-  virtual Node computePivot(NodeManager* nm) {
-    Rational upper = this->upperBound.getConst<Rational>();
-    Rational lower = this->lowerBound.getConst<Rational>();
-    Rational pivot = (upper + lower) / Rational(2);
-    return nm->mkConst(pivot);
-  }
-  virtual bool shouldPerformBinarySearchStep() {
-    Rational upper = this->upperBound.getConst<Rational>();
-    Rational lower = this->lowerBound.getConst<Rational>();
-    return (upper - lower) > Rational(5);
-  }
-  virtual bool shouldTerminate() {
-    Rational upper = this->upperBound.getConst<Rational>();
-    Rational lower = this->lowerBound.getConst<Rational>();
-    return (lower >= upper);
-  }
-};
+// /**
+//  * The goal is of type Integer 
+// */
+// template <>
+// struct OMTOptimizerImpl<Rational> : OMTOptimizer
+// {
+// public: 
+//   std::pair<OptResult, CVC4::Node> optimize(SmtEngine *parentSMTSolver, CVC4::Node target, ObjectiveType objType) {
+//     // linear search for integer goal 
+//     Assert(objType != OBJECTIVE_UNDEFINED);
+//     Assert(!(target.isNull()));
+//     // the smt engine to which we send intermediate queries
+//     // for the linear search.
+//     std::unique_ptr<CVC4::SmtEngine> optChecker; 
+//     CVC4::theory::initializeSubsolver(optChecker);
+//     CVC4::NodeManager* nm = optChecker->getNodeManager();
+//     // we need to be in incremental mode for multiple objectives since we need to
+//     // push pop we need to produce models to inrement on our objective
+//     optChecker->setOption("incremental", "true");
+//     optChecker->setOption("produce-models", "true");
+//     // Move assertions from the parent solver to the subsolver
+//     std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
+//     for (const Node &e : p_assertions) {
+//       optChecker->assertFormula(e);
+//     }
+//     CVC4::Result intermediateSatResult = optChecker->checkSat();
+//     // Model-value of objective (used in optimization loop)
+//     CVC4::Node value;
+//     if (intermediateSatResult.isUnknown()) {
+//       return std::make_pair(OptResult::OPT_UNKNOWN, value);
+//     }
+//     if (!intermediateSatResult.isSat()) {
+//       return std::make_pair(OptResult::OPT_UNSAT, value);
+//     }
+//     // asserts objective > old_value (used in optimization loop)
+//     CVC4::Node increment;
+//     CVC4::Kind increamentalOperator; 
+//     if (objType == ObjectiveType::OBJECTIVE_MINIMIZE) {
+//       // if objective is MIN, then assert optimization_target < current_model_value 
+//       increamentalOperator = kind::LT;
+//     } else if (objType == ObjectiveType::OBJECTIVE_MAXIMIZE) {
+//       // if objective is MAX, then assert optimization_target > current_model_value 
+//       increamentalOperator = kind::GT;
+//     }
+//     // Workhorse of linear search:
+//     // This loop will keep incrmenting/decrementing the objective until unsat
+//     // When unsat is hit, 
+//     // the optimized value is the model value just before the unsat call
+//     while (intermediateSatResult.isSat()) {
+//       value = optChecker->getValue(target);
+//       Assert(!value.isNull());
+//       increment = nm->mkNode(increamentalOperator, target, value);
+//       optChecker->assertFormula(increment);
+//       intermediateSatResult = optChecker->checkSat();
+//     }
+//     return std::make_pair(OptResult::OPT_OPTIMAL, value);
+//   }
+//   virtual ~OMTOptimizerImpl() {}
+//   virtual std::pair<OptResult, CVC4::Node> minimize(SmtEngine *parentSMTSolver, CVC4::Node target) override {
+//     return this->optimize(parentSMTSolver, target, ObjectiveType::OBJECTIVE_MINIMIZE);
+//   }
+//   virtual std::pair<OptResult, CVC4::Node> maximize(SmtEngine *parentSMTSolver, CVC4::Node target) override {
+//     return this->optimize(parentSMTSolver, target, ObjectiveType::OBJECTIVE_MAXIMIZE);
+//   }
+// };
+
+
+// template <>
+// struct OMTOptimizerImpl<BitVector> : OMTOptimizer {
+// public: 
+//   virtual ~OMTOptimizerImpl() {}
+//   virtual std::pair<OptResult, CVC4::Node> minimize(SmtEngine *parentSMTSolver, CVC4::Node target) override {
+//     return std::make_pair(OptResult::OPT_UNKNOWN, CVC4::Node());
+//   }
+//   virtual std::pair<OptResult, CVC4::Node> maximize(SmtEngine *parentSMTSolver, CVC4::Node target) override {
+//     return std::make_pair(OptResult::OPT_UNKNOWN, CVC4::Node());
+//   }
+  
+// };
+
+// std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(CVC4::Node node) {
+//   CVC4::TypeNode objectiveType = node.getType(true);
+//   if (objectiveType.isInteger()) {
+//     return std::unique_ptr<OMTOptimizer>(new OMTOptimizerImpl<CVC4::Rational>());
+//   } else {
+//     return nullptr;
+//   }
+// }
+
+
+
+
+
 
 }  // namespace smt
 }  // namespace CVC4
