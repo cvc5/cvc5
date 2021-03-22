@@ -429,7 +429,7 @@ namespace api {
 /**
  * Codomain sort check for member functions of class Solver.
  * Check if codomain sort is not null, associated with this solver, and a
- * first-class sort.
+ * first-class, non-function sort.
  */
 #define CVC4_API_SOLVER_CHECK_CODOMAIN_SORT(sort)           \
   do                                                        \
