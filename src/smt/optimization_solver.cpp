@@ -47,109 +47,109 @@ OptResult OptimizationSolver::checkOpt()
   Assert(!d_activatedObjective.getNode().isNull());
 
   // std::cerr << "b" << std::endl;
-  // std::unique_ptr<OMTOptimizer> optimizer = 
-  //   OMTOptimizer::getOptimizerForNode(d_activatedObjective.getNode());
+  std::unique_ptr<OMTOptimizer> optimizer = 
+    OMTOptimizer::getOptimizerForNode(d_activatedObjective.getNode());
 
-  // Assert(!optimizer);
+  Assert(optimizer != nullptr);
 
-  // std::pair<OptResult, CVC4::Node> optResult;
+  std::pair<OptResult, CVC4::Node> optResult;
   // std::cerr << "a" << std::endl;
-  // if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE) {
-  //   optResult = optimizer->maximize(this->d_parent, this->d_activatedObjective.getNode());
-  // } else if (d_activatedObjective.getType() == OBJECTIVE_MINIMIZE) {
-  //   optResult = optimizer->minimize(this->d_parent, this->d_activatedObjective.getNode());
+  if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE) {
+    optResult = optimizer->maximize(this->d_parent, this->d_activatedObjective.getNode());
+  } else if (d_activatedObjective.getType() == OBJECTIVE_MINIMIZE) {
+    optResult = optimizer->minimize(this->d_parent, this->d_activatedObjective.getNode());
+  }
+
+  this->d_savedValue = optResult.second;
+  return optResult.first;
+
+  // // the smt engine to which we send intermediate queries
+  // // for the linear search.
+  // std::unique_ptr<SmtEngine> optChecker;
+  // initializeSubsolver(optChecker);
+  // NodeManager* nm = optChecker->getNodeManager();
+
+  // // we need to be in incremental mode for multiple objectives since we need to
+  // // push pop we need to produce models to inrement on our objective
+  // optChecker->setOption("incremental", "true");
+  // optChecker->setOption("produce-models", "true");
+
+  // // Move assertions from the parent solver to the subsolver
+  // std::vector<Node> p_assertions = d_parent->getExpandedAssertions();
+  // for (const Node& e : p_assertions)
+  // {
+  //   optChecker->assertFormula(e);
   // }
 
-  // this->d_savedValue = optResult.second;
-  // return optResult.first;
+  // // We need to checksat once before the optimization loop so we have a
+  // // baseline value to increment
+  // Result loop_r = optChecker->checkSat();
 
-  // the smt engine to which we send intermediate queries
-  // for the linear search.
-  std::unique_ptr<SmtEngine> optChecker;
-  initializeSubsolver(optChecker);
-  NodeManager* nm = optChecker->getNodeManager();
+  // if (loop_r.isUnknown())
+  // {
+  //   return OPT_UNKNOWN;
+  // }
+  // if (!loop_r.isSat())
+  // {
+  //   return OPT_UNSAT;
+  // }
 
-  // we need to be in incremental mode for multiple objectives since we need to
-  // push pop we need to produce models to inrement on our objective
-  optChecker->setOption("incremental", "true");
-  optChecker->setOption("produce-models", "true");
+  // // Model-value of objective (used in optimization loop)
+  // Node value;
+  // // asserts objective > old_value (used in optimization loop)
+  // Node increment;
 
-  // Move assertions from the parent solver to the subsolver
-  std::vector<Node> p_assertions = d_parent->getExpandedAssertions();
-  for (const Node& e : p_assertions)
-  {
-    optChecker->assertFormula(e);
-  }
+  // // the less-than operator for comparison, this is used for optimization!
+  // Kind lessThanOperator = this->getLessThanOperatorForObjective();
+  // // doesn't support comparison or objective datatype not-yet supported
+  // if (lessThanOperator == kind::NULL_EXPR)
+  // {
+  //   return OPT_UNKNOWN;
+  // }
 
-  // We need to checksat once before the optimization loop so we have a
-  // baseline value to increment
-  Result loop_r = optChecker->checkSat();
-
-  if (loop_r.isUnknown())
-  {
-    return OPT_UNKNOWN;
-  }
-  if (!loop_r.isSat())
-  {
-    return OPT_UNSAT;
-  }
-
-  // Model-value of objective (used in optimization loop)
-  Node value;
-  // asserts objective > old_value (used in optimization loop)
-  Node increment;
-
-  // the less-than operator for comparison, this is used for optimization!
-  Kind lessThanOperator = this->getLessThanOperatorForObjective();
-  // doesn't support comparison or objective datatype not-yet supported
-  if (lessThanOperator == kind::NULL_EXPR)
-  {
-    return OPT_UNKNOWN;
-  }
-
-  // Workhorse of linear optimization:
-  // This loop will keep incrmenting the objective until unsat
-  // When unsat is hit, the optimized value is the model value just before the
-  // unsat call
-  while (loop_r.isSat())
-  {
-    // get the model-value of objective in last sat call
-    value = optChecker->getValue(d_activatedObjective.getNode());
-    if (value.isConst()) { 
-      std::cout << value.getConst<BitVector>().getSize() << std::endl;
-      // try {
-      //   std::cout << value.getConst<BitVector>().getSize() << std::endl;
-      // } catch(...) {
-      //   std::cerr << "exception" << std::endl;
-      // }
+  // // Workhorse of linear optimization:
+  // // This loop will keep incrmenting the objective until unsat
+  // // When unsat is hit, the optimized value is the model value just before the
+  // // unsat call
+  // while (loop_r.isSat())
+  // {
+  //   // get the model-value of objective in last sat call
+  //   value = optChecker->getValue(d_activatedObjective.getNode());
+  //   if (value.isConst()) { 
+  //     std::cout << value.getConst<BitVector>().getSize() << std::endl;
+  //     // try {
+  //     //   std::cout << value.getConst<BitVector>().getSize() << std::endl;
+  //     // } catch(...) {
+  //     //   std::cerr << "exception" << std::endl;
+  //     // }
       
-      // std::cerr << value.getConst<Rational>().getDenominator().getLong() << std::endl;
-    }
+  //     // std::cerr << value.getConst<Rational>().getDenominator().getLong() << std::endl;
+  //   }
 
-    // We need to save the value since we need the model value just before the
-    // unsat call
-    Assert(!value.isNull());
-    d_savedValue = value;
+  //   // We need to save the value since we need the model value just before the
+  //   // unsat call
+  //   Assert(!value.isNull());
+  //   d_savedValue = value;
 
-    // increment on the model-value of objective:
-    // if we're maximizing increment = objective > old_objective value
-    // if we're minimizing increment = objective < old_objective value
-    // we only use the less than operator
-    if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
-    {
-      increment =
-          nm->mkNode(lessThanOperator, value, d_activatedObjective.getNode());
-    }
-    else
-    {
-      increment =
-          nm->mkNode(lessThanOperator, d_activatedObjective.getNode(), value);
-    }
-    optChecker->assertFormula(increment);
-    loop_r = optChecker->checkSat();
-  }
+  //   // increment on the model-value of objective:
+  //   // if we're maximizing increment = objective > old_objective value
+  //   // if we're minimizing increment = objective < old_objective value
+  //   // we only use the less than operator
+  //   if (d_activatedObjective.getType() == OBJECTIVE_MAXIMIZE)
+  //   {
+  //     increment =
+  //         nm->mkNode(lessThanOperator, value, d_activatedObjective.getNode());
+  //   }
+  //   else
+  //   {
+  //     increment =
+  //         nm->mkNode(lessThanOperator, d_activatedObjective.getNode(), value);
+  //   }
+  //   optChecker->assertFormula(increment);
+  //   loop_r = optChecker->checkSat();
+  // }
 
-  return OPT_OPTIMAL;
+  // return OPT_OPTIMAL;
 }
 
 void OptimizationSolver::activateObj(const Node& obj,
