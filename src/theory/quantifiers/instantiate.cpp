@@ -44,7 +44,7 @@ Instantiate::Instantiate(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr,
-                         FirstOrderModel * m,
+                         FirstOrderModel* m,
                          ProofNodeManager* pnm)
     : d_qstate(qs),
       d_qim(qim),

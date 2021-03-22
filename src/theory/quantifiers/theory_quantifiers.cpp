@@ -88,8 +88,9 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     d_qmodel.reset(new quantifiers::FirstOrderModel(
         d_qstate, d_qreg, d_treg, "FirstOrderModel"));
   }
-  
-  d_qim.reset(new QuantifiersInferenceManager(*this, d_qstate, d_qreg, d_treg, d_qmodel.get(), pnm));
+
+  d_qim.reset(new QuantifiersInferenceManager(
+      *this, d_qstate, d_qreg, d_treg, d_qmodel.get(), pnm));
 
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(

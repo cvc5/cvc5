@@ -37,9 +37,9 @@ class QuantifiersInferenceManager : public InferenceManagerBuffered
  public:
   QuantifiersInferenceManager(Theory& t,
                               QuantifiersState& state,
-                         QuantifiersRegistry& qr,
-                         TermRegistry& tr,
-                              FirstOrderModel * m,
+                              QuantifiersRegistry& qr,
+                              TermRegistry& tr,
+                              FirstOrderModel* m,
                               ProofNodeManager* pnm);
   ~QuantifiersInferenceManager();
   /** get instantiate utility */
