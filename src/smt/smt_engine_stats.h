@@ -50,6 +50,13 @@ struct SmtEngineStatistics
 
   /** Has something simplified to false? */
   IntStat d_simplifiedToFalse;
+
+  /** Name of the input file */
+  BackedStat<std::string> d_driverFilename;
+  /** Result of the last check */
+  BackedStat<std::string> d_driverResult;
+  /** Total time of the current run */
+  BackedStat<double> d_driverTotalTime;
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt
