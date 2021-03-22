@@ -14,6 +14,9 @@
 
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/skolemize.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
