@@ -4033,16 +4033,12 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts, NodeManager* nm)
 {
-  if (nm == nullptr) {
-    nm = new NodeManager();
-  }
+  d_nodeMgr.reset(nm == nullptr ? new NodeManager() : nm);
   d_originalOptions.reset(new Options());
   d_originalOptions->copyValues(*opts);
-  d_nodeMgr.reset(nm);
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
-  Options& o = d_smtEngine->getOptions();
-  d_rng.reset(new Random(o[options::seed]));
+  d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
 #if CVC4_STATISTICS_ON
   d_stats.reset(new Statistics());
   d_smtEngine->getStatisticsRegistry()->registerStat(&d_stats->d_consts);

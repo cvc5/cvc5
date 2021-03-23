@@ -1796,24 +1796,6 @@ void SmtEngine::pop() {
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
-/*void SmtEngine::reset()
-{
-  // save pointer to the current node manager
-  NodeManager* nm = getNodeManager();
-  Trace("smt") << "SMT reset()" << endl;
-  if (Dump.isOn("benchmark"))
-  {
-    getPrinter().toStreamCmdReset(getOutputManager().getDumpOut());
-  }
-  std::string filename = d_state->getFilename();
-  Options opts;
-  opts.copyValues(d_originalOptions);
-  this->~SmtEngine();
-  new (this) SmtEngine(nm, &opts);
-  // Restore data set after creation
-  notifyStartParsing(filename);
-}*/
-
 void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
