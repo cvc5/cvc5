@@ -62,19 +62,15 @@ QuantifiersEngine::QuantifiersEngine(
       d_treg(tr),
       d_tr_trie(new inst::TriggerTrie),
       d_model(qm),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(qstate, qm)),
-      d_instantiate(
-          new quantifiers::Instantiate(this, qstate, qim, d_qreg, pnm)),
-      d_skolemize(new quantifiers::Skolemize(d_qstate, d_pnm)),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
 {
   // initialize the utilities
-  d_util.push_back(d_eq_query.get());
+  d_util.push_back(d_model->getEqualityQuery());
   // quantifiers registry must come before the remaining utilities
   d_util.push_back(&d_qreg);
   d_util.push_back(tr.getTermDatabase());
-  d_util.push_back(d_instantiate.get());
+  d_util.push_back(qim.getInstantiate());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
@@ -126,6 +122,9 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 {
   return d_model;
 }
+
+/// !!!!!!!!!!!!!! temporary (project #15)
+
 quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 {
   return d_treg.getTermDatabase();
@@ -140,16 +139,17 @@ quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
 }
 quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
 {
-  return d_instantiate.get();
+  return d_qim.getInstantiate();
 }
 quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
 {
-  return d_skolemize.get();
+  return d_qim.getSkolemize();
 }
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
 }
+/// !!!!!!!!!!!!!!
 
 void QuantifiersEngine::presolve() {
   Trace("quant-engine-proc") << "QuantifiersEngine : presolve " << std::endl;
@@ -469,7 +469,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       {
         Options& sopts = smt::currentSmtEngine()->getOptions();
         std::ostream& out = *sopts.getOut();
-        d_instantiate->debugPrint(out);
+        d_qim.getInstantiate()->debugPrint(out);
       }
     }
     if( Trace.isOn("quant-engine") ){
@@ -492,7 +492,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       d_qim.setIncomplete();
     }
     //output debug stats
-    d_instantiate->debugPrintModel();
+    d_qim.getInstantiate()->debugPrintModel();
   }
 }
 
@@ -612,7 +612,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   }
   if( !pol ){
     // do skolemization
-    TrustNode lem = d_skolemize->process(f);
+    TrustNode lem = d_qim.getSkolemize()->process(f);
     if (!lem.isNull())
     {
       if (Trace.isOn("quantifiers-sk-debug"))
@@ -646,11 +646,11 @@ void QuantifiersEngine::markRelevant( Node q ) {
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {
-  d_instantiate->getInstantiationTermVectors(q, tvecs);
+  d_qim.getInstantiate()->getInstantiationTermVectors(q, tvecs);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts ) {
-  d_instantiate->getInstantiationTermVectors(insts);
+  d_qim.getInstantiate()->getInstantiationTermVectors(insts);
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
@@ -664,13 +664,13 @@ void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
 
 void QuantifiersEngine::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 {
-  d_instantiate->getInstantiatedQuantifiedFormulas(qs);
+  d_qim.getInstantiate()->getInstantiatedQuantifiedFormulas(qs);
 }
 
 void QuantifiersEngine::getSkolemTermVectors(
     std::map<Node, std::vector<Node> >& sks) const
 {
-  d_skolemize->getSkolemTermVectors(sks);
+  d_qim.getSkolemize()->getSkolemTermVectors(sks);
 }
 
 QuantifiersEngine::Statistics::Statistics()
@@ -709,10 +709,6 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_simple_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_multi_triggers);
   smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
-}
-
-Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
-  return d_eq_query->getInternalRepresentative(a, q, index);
 }
 
 Node QuantifiersEngine::getNameForQuant(Node q) const

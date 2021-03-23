@@ -18,7 +18,7 @@
 #define CVC4__FIRST_ORDER_MODEL_H
 
 #include "context/cdlist.h"
-#include "expr/attribute.h"
+#include "theory/quantifiers/equality_query.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
 
@@ -33,13 +33,6 @@ class QuantifiersState;
 class TermRegistry;
 class QuantifiersRegistry;
 
-namespace fmcheck {
-  class FirstOrderModelFmc;
-}/* CVC4::theory::quantifiers::fmcheck namespace */
-
-struct IsStarAttributeId {};
-typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
-
 // TODO (#1301) : document and refactor this class
 class FirstOrderModel : public TheoryModel
 {
@@ -52,6 +45,17 @@ class FirstOrderModel : public TheoryModel
   //!!!!!!!!!!!!!!!!!!!!! temporary (project #15)
   /** finish initialize */
   void finishInit(QuantifiersEngine* qe);
+  /** get internal representative
+   *
+   * Choose a term that is equivalent to a in the current context that is the
+   * best term for instantiating the index^th variable of quantified formula q.
+   * If no legal term can be found, we return null. This can occur if:
+   * - a's type is not a subtype of the type of the index^th variable of q,
+   * - a is in an equivalent class with all terms that are restricted not to
+   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+   * guided instantiation.
+   */
+  Node getInternalRepresentative(Node a, Node q, size_t index);
 
   /** assert quantifier */
   void assertQuantifier( Node n );
@@ -127,6 +131,8 @@ class FirstOrderModel : public TheoryModel
    * Has the term been marked as a model basis term?
    */
   static bool isModelBasis(TNode n);
+  /** Get the equality query */
+  EqualityQuery* getEqualityQuery();
 
  protected:
   //!!!!!!!!!!!!!!!!!!!!!!! TODO (project #15): temporarily available
@@ -135,6 +141,8 @@ class FirstOrderModel : public TheoryModel
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
+  /** equality query class */
+  EqualityQuery d_eq_query;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
   /** 
