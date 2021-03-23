@@ -38,7 +38,7 @@ add_custom_target(
 
 find_package(Java)
 include(UseJava)
-find_package(JNI)
+find_package(JNI REQUIRED)
 
 message(STATUS "JNI_INCLUDE_DIRS=${JNI_INCLUDE_DIRS}")
 include_directories(${JNI_INCLUDE_DIRS})
