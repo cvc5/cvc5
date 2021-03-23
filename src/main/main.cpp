@@ -32,7 +32,6 @@
 #include "parser/parser_builder.h"
 #include "parser/parser_exception.h"
 #include "util/result.h"
-#include "util/statistics.h"
 
 using namespace std;
 using namespace CVC4;
@@ -68,7 +67,6 @@ int main(int argc, char* argv[]) {
       *opts.getErr() << "(error \"" << e << "\")" << endl;
     }
     if(opts.getStatistics() && pExecutor != NULL) {
-      pTotalTime->stop();
       pExecutor->flushStatistics(*opts.getErr());
     }
   }

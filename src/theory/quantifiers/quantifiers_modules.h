@@ -58,11 +58,9 @@ class QuantifiersModules
                   QuantifiersState& qs,
                   QuantifiersInferenceManager& qim,
                   QuantifiersRegistry& qr,
+                  TermRegistry& tr,
                   DecisionManager* dm,
                   std::vector<QuantifiersModule*>& modules);
-
-  /** Whether we use the full model check builder and corresponding model */
-  static bool useFmcModel();
 
  private:
   //------------------------------ quantifier utilities

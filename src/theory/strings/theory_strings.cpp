@@ -583,16 +583,12 @@ bool TheoryStrings::preNotifyFact(
   // this is only required for internal facts, others are already registered
   if (isInternal && atom.getKind() == EQUAL)
   {
-    // we must ensure these terms are registered
+    // We must ensure these terms are registered. We register eagerly here for
+    // performance reasons. Alternatively, terms could be registered at full
+    // effort in e.g. BaseSolver::init.
     for (const Node& t : atom)
     {
-      // terms in the equality engine are already registered, hence skip
-      // currently done for only string-like terms, but this could potentially
-      // be avoided.
-      if (!d_equalityEngine->hasTerm(t) && t.getType().isStringLike())
-      {
-        d_termReg.registerTerm(t, 0);
-      }
+      d_termReg.registerTerm(t, 0);
     }
   }
   return false;

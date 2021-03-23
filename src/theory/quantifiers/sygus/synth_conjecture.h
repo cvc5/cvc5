@@ -199,6 +199,9 @@ class SynthConjecture
    */
   bool checkSideCondition(const std::vector<Node>& cvals) const;
 
+  /** get a reference to the statistics of parent */
+  SygusStatistics& getSygusStatistics() { return d_stats; };
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -387,7 +390,7 @@ class SynthConjecture
    * the sygus datatype constructor corresponding to variable x.
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
-                                 std::vector<int>& status);
+                                 std::vector<int8_t>& status);
   //-------------------------------- sygus stream
   /**
    * Prints the current synthesis solution to the output stream indicated by
