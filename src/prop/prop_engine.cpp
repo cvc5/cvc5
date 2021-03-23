@@ -176,8 +176,13 @@ void PropEngine::assertInputFormulas(
     std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
-  // notify the theory proxy of preprocessed assertions
+  // notify the theory engine of preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(assertions);
+  // Now, notify the theory proxy of the assertions and skolem definitions.
+  // Notice we do this before asserting the formulas to the CNF stream below,
+  // since (preregistration) lemmas may occur during calls to assertInternal.
+  // These lemmas we want to be notified about after the theory proxy has
+  // been notified about all input assertions.
   std::unordered_map<size_t, Node>::iterator it;
   for (size_t i = 0, asize = assertions.size(); i < asize; i++)
   {

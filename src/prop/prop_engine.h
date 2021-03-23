@@ -113,11 +113,15 @@ class PropEngine
                                std::vector<Node>& ppSkolems);
 
   /**
-   * Converts the given formula to CNF and assert the CNF to the SAT solver.
-   * The formula is asserted permanently for the current context. Note the
-   * formula should correspond to an input formula and not a lemma introduced
-   * by term formula removal (which instead should use the interface below).
-   * @param node the formula to assert
+   * Converts the given formulas to CNF and assert the CNF to the SAT solver.
+   * These formulas are asserted permanently for the current context.
+   * Information about which assertions correspond to skolem definitions is
+   * contained in skolemMap.
+   *
+   * @param assertions the formulas to assert
+   * @param skolemMap a map which says which skolem (if any) each assertion
+   * corresponds to. For example, if (ite C (= k a) (= k b)) is the i^th
+   * assertion, then skolemMap may contain the entry { i -> k }.
    */
   void assertInputFormulas(const std::vector<Node>& assertions,
                            std::unordered_map<size_t, Node>& skolemMap);
