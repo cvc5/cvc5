@@ -129,6 +129,11 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
   return d_treg.getTermDatabaseSygus();
 }
 
+quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
+{
+  return d_treg.getTermDatabase();
+}
+
 inst::quantifiers::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
