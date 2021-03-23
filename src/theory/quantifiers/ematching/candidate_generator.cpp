@@ -21,8 +21,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
 
@@ -49,7 +49,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
       d_term_iter_limit(0),
       d_mode(cand_term_none)
 {
-  d_op = d_treg.getTermDatabase()->getMatchOperator( pat );
+  d_op = d_treg.getTermDatabase()->getMatchOperator(pat);
   Assert(!d_op.isNull());
 }
 

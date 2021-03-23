@@ -65,8 +65,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   d_treg.finishInit(d_qim.get());
 
   // construct the quantifiers engine
-  d_qengine.reset(
-      new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, pnm));
+  d_qengine.reset(new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, pnm));
 
   //!!!!!!!!!!!!!! temporary (project #15)
   d_qmodel->finishInit(d_qengine.get());

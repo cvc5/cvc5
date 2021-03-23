@@ -277,9 +277,9 @@ class HigherOrderTrigger : public Trigger
                             bool arg_changed);
 };
 
-} 
-} 
-} 
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H */

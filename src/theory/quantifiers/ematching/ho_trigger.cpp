@@ -525,7 +525,7 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
   return numLemmas;
 }
 
-} 
-} 
+}  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-} 
+}  // namespace CVC4

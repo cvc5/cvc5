@@ -494,8 +494,7 @@ bool Instantiate::existsInstantiation(Node q,
 {
   if (options::incrementalSolving())
   {
-    std::map<Node, CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       return it->second->existsInstMatch(d_qstate, q, terms, modEq);
@@ -503,8 +502,7 @@ bool Instantiate::existsInstantiation(Node q,
   }
   else
   {
-    std::map<Node, InstMatchTrie>::iterator it =
-        d_inst_match_trie.find(q);
+    std::map<Node, InstMatchTrie>::iterator it = d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
       return it->second.existsInstMatch(d_qstate, q, terms, modEq);
@@ -578,8 +576,7 @@ bool Instantiate::recordInstantiationInternal(Node q,
         << "Adding into context-dependent inst trie, modEq = " << modEq
         << std::endl;
     CDInstMatchTrie* imt;
-    std::map<Node, CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       imt = it->second;
@@ -600,8 +597,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
-    std::map<Node, CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       return it->second->removeInstMatch(q, terms);
