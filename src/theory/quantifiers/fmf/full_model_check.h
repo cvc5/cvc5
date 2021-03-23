@@ -154,8 +154,9 @@ protected:
   Node getSomeDomainElement( FirstOrderModelFmc * fm, TypeNode tn );
 
  public:
-  FullModelChecker(QuantifiersState& qs, QuantifiersRegistry& qr,
-                                    QuantifiersInferenceManager& qim);
+  FullModelChecker(QuantifiersState& qs,
+                   QuantifiersRegistry& qr,
+                   QuantifiersInferenceManager& qim);
 
   void debugPrintCond(const char * tr, Node n, bool dispStar = false);
   void debugPrint(const char * tr, Node n, bool dispStar = false);

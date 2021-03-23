@@ -30,8 +30,9 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-QModelBuilder::QModelBuilder(QuantifiersState& qs, QuantifiersRegistry& qr,
-                                    QuantifiersInferenceManager& qim)
+QModelBuilder::QModelBuilder(QuantifiersState& qs,
+                             QuantifiersRegistry& qr,
+                             QuantifiersInferenceManager& qim)
     : TheoryEngineModelBuilder(),
       d_addedLemmas(0),
       d_triedLemmas(0),
