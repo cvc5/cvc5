@@ -206,7 +206,8 @@ void InstMatchGenerator::initialize(Node q,
   {
     // candidates for apply selector are a union of correctly and incorrectly
     // applied selectors
-    d_cg = new inst::CandidateGeneratorSelector(d_qstate, d_treg, d_match_pattern);
+    d_cg =
+        new inst::CandidateGeneratorSelector(d_qstate, d_treg, d_match_pattern);
   }
   else if (TriggerTermInfo::isAtomicTriggerKind(mpk))
   {
@@ -217,7 +218,8 @@ void InstMatchGenerator::initialize(Node q,
       const DType& dt = d_match_pattern.getType().getDType();
       if (dt.getNumConstructors() == 1)
       {
-        d_cg = new inst::CandidateGeneratorConsExpand(d_qstate, d_treg, d_match_pattern);
+        d_cg = new inst::CandidateGeneratorConsExpand(
+            d_qstate, d_treg, d_match_pattern);
       }
     }
     if (d_cg == nullptr)
@@ -259,7 +261,8 @@ void InstMatchGenerator::initialize(Node q,
     if (d_pattern.getKind() == NOT)
     {
       // candidates will be all disequalities
-      d_cg = new inst::CandidateGeneratorQELitDeq(d_qstate, d_treg, d_match_pattern);
+      d_cg = new inst::CandidateGeneratorQELitDeq(
+          d_qstate, d_treg, d_match_pattern);
     }
   }
   else

@@ -39,7 +39,8 @@ CandidateGenerator::CandidateGenerator(QuantifiersState& qs, TermRegistry& tr)
 }
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
-  return d_treg.getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
+  return d_treg.getTermDatabase()->isTermActive(n)
+         && (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n));
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
@@ -89,7 +90,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
 bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
   if( n.hasOperator() ){
     if( isLegalCandidate( n ) ){
-      return d_treg.getTermDatabase()->getMatchOperator( n )==d_op;
+      return d_treg.getTermDatabase()->getMatchOperator(n) == d_op;
     }
   }
   return false;
@@ -106,10 +107,11 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
-      Node n = d_treg.getTermDatabase()->getGroundTerm( d_op, d_term_iter );
+      Node n = d_treg.getTermDatabase()->getGroundTerm(d_op, d_term_iter);
       d_term_iter++;
       if( isLegalCandidate( n ) ){
-        if( d_treg.getTermDatabase()->hasTermCurrent( n ) ){
+        if (d_treg.getTermDatabase()->hasTermCurrent(n))
+        {
           if( d_exclude_eqc.empty() ){
             return n;
           }else{

@@ -65,7 +65,7 @@ class TermRegistry
    * one exists, or otherwise a fresh variable.
    */
   Node getTermForType(TypeNode tn);
-  
+
   /** get term database */
   TermDb* getTermDatabase() const;
   /** get term database sygus */
