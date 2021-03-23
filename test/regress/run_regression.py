@@ -12,8 +12,7 @@
 """
 Usage:
 
-    run_regression.py [--enable-proof] [--with-lfsc] [--dump]
-        [--use-skip-return-code] [wrapper] cvc4-binary
+    run_regression.py [--dump] [--use-skip-return-code] [wrapper] cvc4-binary
         [benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p]
 
 Runs benchmark and checks for correct exit status and output.
@@ -192,11 +191,6 @@ def run_regression(check_unsat_cores, check_proofs, dump, use_skip_return_code,
         sys.exit('"{}" does not exist or is not a file'.format(benchmark_path))
 
     cvc4_features, cvc4_disabled_features = get_cvc4_features(cvc4_binary)
-
-    # Disable proof and unsat core checks if CVC4 was not compiled with proofs.
-    if 'proof' not in cvc4_features:
-        check_unsat_cores = False
-        check_proofs = False
 
     basic_command_line_args = []
 
