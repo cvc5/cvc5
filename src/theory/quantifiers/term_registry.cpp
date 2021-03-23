@@ -113,10 +113,7 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
   return d_termEnum.get();
 }
 
-FirstOrderModel * TermRegistry::getModel()
-{
-  return d_qmodel.get();
-}
+FirstOrderModel* TermRegistry::getModel() { return d_qmodel.get(); }
 
 }  // namespace quantifiers
 }  // namespace theory

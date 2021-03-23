@@ -61,7 +61,8 @@ class TermRegistry
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
   /** get the model utility */
-  FirstOrderModel * getModel();
+  FirstOrderModel* getModel();
+
  private:
   /** has presolve been called */
   context::CDO<bool> d_presolve;
