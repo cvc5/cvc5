@@ -91,16 +91,14 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     if (tr.useFmcModel())
     {
       Trace("quant-init-debug") << "...make fmc builder." << std::endl;
-      d_builder.reset(new fmcheck::FullModelChecker(qs, qr));
+      d_builder.reset(new fmcheck::FullModelChecker(qs, qr, qim));
     }
     else
     {
       Trace("quant-init-debug")
           << "...make default model builder." << std::endl;
-      d_builder.reset(new QModelBuilder(qs, qr));
+      d_builder.reset(new QModelBuilder(qs, qr, qim));
     }
-    // !!!!!!!!!!!!! temporary (project #15)
-    d_builder->finishInit(qe);
   }
   if (options::quantDynamicSplit() != options::QuantDSplitMode::NONE)
   {

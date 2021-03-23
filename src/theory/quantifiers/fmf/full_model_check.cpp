@@ -284,8 +284,9 @@ void Def::debugPrint(const char * tr, Node op, FullModelChecker * m) {
 }
 
 FullModelChecker::FullModelChecker(QuantifiersState& qs,
-                                   QuantifiersRegistry& qr)
-    : QModelBuilder(qs, qr)
+                                   QuantifiersRegistry& qr,
+                                    QuantifiersInferenceManager& qim)
+    : QModelBuilder(qs, qr, qim)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
