@@ -13,7 +13,8 @@
 file(GLOB CVC_LIBS "${CMAKE_INSTALL_PREFIX}/lib/*.so*")
 file(COPY ${CVC_LIBS} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/cvc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/java")
-file(COPY "/home/mudathir/Desktop/CVC4/mudathir/test/api/java/cvc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/test/java")
+file(COPY "${CMAKE_SOURCE_DIR}/test/api/java/cvc"
+  DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/test/java")
 
 # copy gradle files
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/gradle" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -25,14 +26,14 @@ add_custom_target(
   gen-java-kinds
   ALL
   COMMAND
-  "${PYTHON_EXECUTABLE}"
-  "${CMAKE_CURRENT_LIST_DIR}/genkinds.py"
-  --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
-  --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind"
+    "${PYTHON_EXECUTABLE}"
+    "${CMAKE_CURRENT_LIST_DIR}/genkinds.py"
+    --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
+    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind"
   DEPENDS
-  genkinds.py
+    genkinds.py
   COMMENT
-  "Generate Kind.java"
+    "Generate Kind.java"
 )
 
 
@@ -47,7 +48,7 @@ message(STATUS "JNI_LIBRARIES=${JNI_LIBRARIES}")
 link_directories(${JNI_LIBRARIES})
 
 include_directories("${CMAKE_INSTALL_PREFIX}/include")
-link_directories("${CMAKE_INSTALL_PREFIX}/lib")
+target_link_libraries("cvc4")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
 add_library(cvcJavaApi SHARED
