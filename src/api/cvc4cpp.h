@@ -35,6 +35,9 @@ namespace CVC4 {
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
+typedef NodeTemplate<false> TNode;
+
+struct TNodeHashFunction;
 
 class AssertCommand;
 class BlockModelValuesCommand;
@@ -2249,6 +2252,14 @@ class CVC4_EXPORT Grammar
    * @param sort the sort of the sygus variables to add
    */
   void addSygusConstructorVariables(DatatypeDecl& dt, const Sort& sort) const;
+
+  /**
+   * Check if <rule> contains variables that are neither parameters of
+   * the corresponding synthFun/synthInv nor non-terminals.
+   * @param rule the non-terminal allowed to be any constant
+   * @return <true> if <rule> contains free variables and <false> otherwise
+   */
+  bool containsFreeVariables(const Term& rule) const;
 
   /** The solver that created this grammar. */
   const Solver* d_solver;
