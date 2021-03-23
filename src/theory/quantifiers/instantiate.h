@@ -223,17 +223,6 @@ class Instantiate : public QuantifiersUtil
    * Same as above but with vars equal to the bound variables of q.
    */
   Node getInstantiation(Node q, std::vector<Node>& terms, bool doVts = false);
-  /** get term for type
-   *
-   * This returns an arbitrary term for type tn.
-   * This term is chosen heuristically to be the best
-   * term for instantiation. Currently, this
-   * heuristic enumerates the first term of the
-   * type if the type is closed enumerable, otherwise
-   * an existing ground term from the term database if
-   * one exists, or otherwise a fresh variable.
-   */
-  Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
   /**

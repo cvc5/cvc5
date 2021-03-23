@@ -119,7 +119,7 @@ bool Instantiate::addInstantiation(Node q,
     TypeNode tn = q[0][i].getType();
     if (terms[i].isNull())
     {
-      terms[i] = getTermForType(tn);
+      terms[i] = d_treg.getTermForType(tn);
     }
     // Ensure the type is correct, this for instance ensures that real terms
     // are cast to integers for { x -> t } where x has type Int and t has
@@ -609,15 +609,6 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
     return false;
   }
   return d_inst_match_trie[q].removeInstMatch(q, terms);
-}
-
-Node Instantiate::getTermForType(TypeNode tn)
-{
-  if (tn.isClosedEnumerable())
-  {
-    return d_treg.getTermEnumeration()->getEnumerateTerm(tn, 0);
-  }
-  return d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)

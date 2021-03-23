@@ -54,6 +54,18 @@ class TermRegistry
    */
   void addTerm(Node n, bool withinQuant = false);
 
+  /** get term for type
+   *
+   * This returns an arbitrary term for type tn.
+   * This term is chosen heuristically to be the best
+   * term for instantiation. Currently, this
+   * heuristic enumerates the first term of the
+   * type if the type is closed enumerable, otherwise
+   * an existing ground term from the term database if
+   * one exists, or otherwise a fresh variable.
+   */
+  Node getTermForType(TypeNode tn);
+  
   /** get term database */
   TermDb* getTermDatabase() const;
   /** get term database sygus */

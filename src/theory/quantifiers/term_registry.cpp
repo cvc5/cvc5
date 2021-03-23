@@ -101,6 +101,15 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
   }
 }
 
+Node TermRegistry::getTermForType(TypeNode tn)
+{
+  if (tn.isClosedEnumerable())
+  {
+    return d_termEnum->getEnumerateTerm(tn, 0);
+  }
+  return d_termDb->getOrMakeTypeGroundTerm(tn);
+}
+
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }
 
 TermDbSygus* TermRegistry::getTermDatabaseSygus() const

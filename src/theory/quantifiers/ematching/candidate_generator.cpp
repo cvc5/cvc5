@@ -39,7 +39,7 @@ CandidateGenerator::CandidateGenerator(QuantifiersState& qs, TermRegistry& tr)
 }
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
-  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
+  return d_treg.getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
@@ -61,16 +61,16 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
   d_term_iter = 0;
   d_eqc = eqc;
   d_op = op;
-  d_term_iter_limit = d_qe->getTermDatabase()->getNumGroundTerms(d_op);
+  d_term_iter_limit = d_treg.getTermDatabase()->getNumGroundTerms(d_op);
   if( eqc.isNull() ){
     d_mode = cand_term_db;
   }else{
     if( isExcludedEqc( eqc ) ){
       d_mode = cand_term_none;
     }else{
-      eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+      eq::EqualityEngine* ee = d_qs.getEqualityEngine();
       if( ee->hasTerm( eqc ) ){
-        TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, op);
+        TNodeTrie* tat = d_treg.getTermDatabase()->getTermArgTrie(eqc, op);
         if( tat ){
           //create an equivalence class iterator in eq class eqc
           Node rep = ee->getRepresentative( eqc );
@@ -89,7 +89,7 @@ void CandidateGeneratorQE::resetForOperator(Node eqc, Node op)
 bool CandidateGeneratorQE::isLegalOpCandidate( Node n ) {
   if( n.hasOperator() ){
     if( isLegalCandidate( n ) ){
-      return d_qe->getTermDatabase()->getMatchOperator( n )==d_op;
+      return d_treg.getTermDatabase()->getMatchOperator( n )==d_op;
     }
   }
   return false;
@@ -102,14 +102,14 @@ Node CandidateGeneratorQE::getNextCandidate(){
 Node CandidateGeneratorQE::getNextCandidateInternal()
 {
   if( d_mode==cand_term_db ){
-    quantifiers::QuantifiersState& qs = d_qe->getState();
+    quantifiers::QuantifiersState& qs = d_qs;
     Debug("cand-gen-qe") << "...get next candidate in tbd" << std::endl;
     //get next candidate term in the uf term database
     while( d_term_iter<d_term_iter_limit ){
-      Node n = d_qe->getTermDatabase()->getGroundTerm( d_op, d_term_iter );
+      Node n = d_treg.getTermDatabase()->getGroundTerm( d_op, d_term_iter );
       d_term_iter++;
       if( isLegalCandidate( n ) ){
-        if( d_qe->getTermDatabase()->hasTermCurrent( n ) ){
+        if( d_treg.getTermDatabase()->hasTermCurrent( n ) ){
           if( d_exclude_eqc.empty() ){
             return n;
           }else{
@@ -156,7 +156,7 @@ CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(QuantifiersState& qs,
 }
 
 void CandidateGeneratorQELitDeq::reset( Node eqc ){
-  eq::EqualityEngine* ee = d_qe->getState().getEqualityEngine();
+  eq::EqualityEngine* ee = d_qs.getEqualityEngine();
   Node falset = NodeManager::currentNM()->mkConst(false);
   d_eqc_false = eq::EqClassIterator(falset, ee);
 }
@@ -193,12 +193,12 @@ CandidateGeneratorQEAll::CandidateGeneratorQEAll(QuantifiersState& qs,
 }
 
 void CandidateGeneratorQEAll::reset( Node eqc ) {
-  d_eq = eq::EqClassesIterator(d_qe->getState().getEqualityEngine());
+  d_eq = eq::EqClassesIterator(d_qs.getEqualityEngine());
   d_firstTime = true;
 }
 
 Node CandidateGeneratorQEAll::getNextCandidate() {
-  quantifiers::TermDb* tdb = d_qe->getTermDatabase();
+  quantifiers::TermDb* tdb = d_treg.getTermDatabase();
   while( !d_eq.isFinished() ){
     TNode n = (*d_eq);
     ++d_eq;
@@ -207,7 +207,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
       if( !nh.isNull() ){
         if (options::instMaxLevel() != -1)
         {
-          nh = d_qe->getModel()->getInternalRepresentative(nh, d_f, d_index);
+          nh = d_treg.getModel()->getInternalRepresentative(nh, d_f, d_index);
           //don't consider this if already the instantiation is ineligible
           if (!nh.isNull() && !tdb->isTermEligibleForInstantiation(nh, d_f))
           {
@@ -225,7 +225,7 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   if( d_firstTime ){
     //must return something
     d_firstTime = false;
-    return d_qe->getInstantiate()->getTermForType(d_match_pattern_type);
+    return d_treg.getTermForType(d_match_pattern_type);
   }
   return Node::null();
 }
