@@ -23,7 +23,8 @@ VeritProofPrinter::VeritProofPrinter(bool extended) : d_extended(extended)
   assumption_level = 0;
   step_id = 1;
   prefix = "";
-  assumptions.push_back({});
+  assumptions.resize(1);
+  steps.resize(1);
 }
 
 void VeritProofPrinter::veritPrinter(std::ostream& out,
@@ -31,6 +32,7 @@ void VeritProofPrinter::veritPrinter(std::ostream& out,
 {
   Trace("verit-printer") << "- Print proof in veriT format. " << std::endl;
 
+  // Special handling for the first scope
   // Print assumptions and add them to the list
   for (unsigned long int i = 0; i < pfn->getArguments().size(); i++)
   {
@@ -38,9 +40,10 @@ void VeritProofPrinter::veritPrinter(std::ostream& out,
                            << std::endl;
     out << "(assume a" << std::to_string(i) << " " << pfn->getArguments()[i]
         << ")\n";
-    assumptions[0].push_back(pfn->getArguments()[i]);
+    assumptions[0][pfn->getArguments()[i].toString()] = i;
   }
 
+  //Then, print the rest of the proof node
   veritPrinterInternal(out, pfn->getChildren()[0]);
 }
 
@@ -49,6 +52,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
 {
   int current_step_id = step_id;
 
+  // If the proof node is untranslated a problem might have occured during postprocessing
   if (pfn->getArguments().size() < 3 || pfn->getRule() != PfRule::VERIT_RULE)
   {
     Trace("verit-printer")
@@ -64,17 +68,20 @@ std::string VeritProofPrinter::veritPrinterInternal(
 
   // In case the rule is an anchor it is printed before its children. The
   // arguments of the anchor are printed as assumptions
+  // TODO: We might want to give ANCHOR_SUBPROOF another argument which is the conclusion.
+  // Then, we can search if this step was already printed
   if (vrule == VeritRule::ANCHOR_SUBPROOF)
   {
     // Start a new list of assumptions in the new local scope
     assumption_level++;
     assumptions.resize(assumption_level + 1);
+    steps.resize(assumption_level + 1);
 
     // Print anchor
     Trace("verit-printer") << "... print anchor " << pfn->getResult() << " "
                            << veritRuletoString(vrule) << " "
                            << " / " << pfn->getArguments()
-                           << std::endl;  // pfn->getChildren()
+                           << std::endl;
     out << "(anchor :step " << prefix << "t" << step_id << " :args (";
     for (unsigned long int j = 3; j < pfn->getArguments().size(); j++)
     {
@@ -95,7 +102,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
           << "... print assumption " << pfn->getArguments()[i] << std::endl;
       out << "(assume " << prefix << "a" << std::to_string(i - 3) << " "
           << pfn->getArguments()[i] << ")\n";
-      assumptions[assumption_level].push_back(pfn->getArguments()[i]);
+      assumptions[assumption_level][pfn->getArguments()[i].toString()] = i-3;
     }
 
     // Store step_id until children are printed to resume counter at current
@@ -105,46 +112,41 @@ std::string VeritProofPrinter::veritPrinterInternal(
   }
 
   // Assumptions are printed at the anchor and therefore have to be in the list
-  // of assumptions when an assume is reached The id of an assume is its position
-  // in the list.
+  // of assumptions when an assume is reached
   if (vrule == VeritRule::ASSUME)
   {
     Trace("verit-printer") << "... reached assumption " << pfn->getResult()
                            << " " << veritRuletoString(vrule) << " "
                            << " / " << pfn->getArguments() << std::endl;
-    Trace("verit-printer") << "... search assumption in list "
+    /*Trace("verit-printer") << "... search assumption in list "
                            << pfn->getArguments()[2] << "/"
-                           << assumptions[assumption_level] << std::endl;
-    if(d_extended){
-	    return prefix + "a"
-           + std::to_string(std::find(assumptions[assumption_level].begin(),
-                                      assumptions[assumption_level].end(),
-                                      pfn->getArguments()[2])
-                            - assumptions[assumption_level].begin());
+                           << assumptions[assumption_level] << std::endl;*/
+
+    auto it = assumptions[assumption_level].find(pfn->getArguments()[2].toString());
+
+    if(it != assumptions[assumption_level].end()){
+      return prefix + "a" + std::to_string(it->second);
     }
-    else{
-       for(unsigned long int i=0; i < assumptions[assumption_level].size(); i++){
-	  if(assumptions[assumption_level][i] == pfn->getArguments()[2]){
-             return prefix + "a" + std::to_string(i);
-	  }
-	  else if(pfn->getResult().getKind() == kind::EQUAL){
-	    if(assumptions[assumption_level][i][1] == pfn->getArguments()[2][0] && assumptions[assumption_level][i][0] == pfn->getArguments()[2][1]) {
-               return prefix + "a" + std::to_string(i);
-	    }
-	  }
-       }
-       return "";
+
+    NodeManager* nm = NodeManager::currentNM();
+
+    if(pfn->getResult().getKind() == kind::EQUAL){
+      Node symmNode = nm->mkNode(kind::EQUAL,pfn->getArguments()[2][1],pfn->getArguments()[2][0]);
+      return prefix + "a" + std::to_string(assumptions[assumption_level].find(symmNode.toString())->second);
     }
+
+    //TODO: Error Trace
+    return "";
   }
 
-  std::vector<std::string> child_prefixes;
   // First print children
+  std::vector<std::string> child_prefixes;
   for (auto child : pfn->getChildren())
   {
     child_prefixes.push_back(veritPrinterInternal(out, child));
   }
 
-  // In this cases the rule should not be printed.
+  // If rule is SYMM or REORDER the rule should not be printed in non-extended mode
   if (!d_extended && (vrule == VeritRule::REORDER || vrule == VeritRule::SYMM))
   {
     Trace("verit-printer") << "... non-extended mode skip child "
@@ -154,6 +156,7 @@ std::string VeritProofPrinter::veritPrinterInternal(
     return child_prefixes[0];
   }
 
+  //If the rule is a subproof a subproof step needs to be printed
   if (vrule == VeritRule::ANCHOR_SUBPROOF)
   {
     Trace("verit-printer") << "... print node " << pfn->getResult() << " "
@@ -182,12 +185,24 @@ std::string VeritProofPrinter::veritPrinterInternal(
     return current_t;
   }
 
+  // If the current step is already printed return its id
+  Trace("verit-printer") << "here" << std::endl;
+  auto it = steps[assumption_level].find(pfn->getArguments()[2].toString());
+
+  if(it != steps[assumption_level].end()){
+    Trace("verit-printer") << "... step is already printed " << pfn->getResult() << " "
+                           << veritRuletoString(vrule) << " / "
+                           << pfn->getArguments() << std::endl;
+    return prefix + "t" + std::to_string(it->second);
+  }
+
   // Print current step
   Trace("verit-printer") << "... print node " << pfn->getResult() << " "
                            << veritRuletoString(vrule) << " / "
                            << pfn->getArguments() << std::endl;
   std::string current_t;
   current_t = "t" + std::to_string(step_id);
+  steps[assumption_level][pfn->getArguments()[2].toString()] = step_id;
   out << "(step " << prefix << current_t + " ";
   out << pfn->getArguments()[2].toString() + " :rule "
              + veritRuletoString(vrule);

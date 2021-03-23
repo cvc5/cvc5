@@ -18,9 +18,9 @@
 #include "cvc4_private.h"
 #include "expr/proof_node.h"
 #include "proof/verit/verit_proof_rule.h"
-//#include "proof/verit/verit_proof_checker.h"
 
 #include <iostream>
+#include <unordered_map>
 
 namespace CVC4 {
 
@@ -53,12 +53,10 @@ class VeritProofPrinter
   /** The current prefix which is updated whenever a subproof is encountered
    * E.g. prefix = "t19.t2." */
   std::string prefix;
-  /** A list of assumption lists for every level of the nested proof node */
-  // Note: This could easily be replaced by a map, e.g. to deal with named
-  // assumptions
-  std::vector<std::vector<Node>> assumptions;
-  //TODO: Temp solution
-  bool isSameModEqual(Node vp1, Node vp2);
+  /** A list of assumption lists, one for every level of the nested proof node */
+  std::vector<std::unordered_map<std::string,int>> assumptions;//TODO: Change to node
+  /** A list of step lists, one for every level of the nested proof node */
+  std::vector<std::unordered_map<std::string,int>> steps;
 };
 
 /**
@@ -68,19 +66,10 @@ class VeritProofPrinter
  * @param out The stream to write to
  * @param pfn The proof node to be printed
  */
-static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn)
+static void veritPrinter(std::ostream& out, std::shared_ptr<ProofNode> pfn, bool extended)
 {
-  VeritProofPrinter vpp(false);//TODO extended
+  VeritProofPrinter vpp(extended);
   vpp.veritPrinter(out, pfn);
-
-  /*out << "\n";
-  out << "Check proof? (0/1)" << "\n";
-  bool check;
-  std::cin >> check;
-  if (check)
-  {
-    veritProofChecker(pfn->getChildren()[0], out);
-  }*/
 }
 
 }  // namespace proof
