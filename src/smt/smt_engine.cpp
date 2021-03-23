@@ -16,7 +16,6 @@
 
 #include "smt/smt_engine.h"
 
-#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
