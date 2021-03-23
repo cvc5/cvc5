@@ -251,9 +251,6 @@ class CVC4_EXPORT SmtEngine
   /** return the input name (if any) */
   const std::string& getFilename() const;
 
-  void setResultStatistic(const std::string& result) CVC4_EXPORT;
-  void setTotalTimeStatistic(double seconds) CVC4_EXPORT;
-
   /**
    * Helper method for the API to put the last check result into the statistics.
    */
