@@ -417,9 +417,6 @@ private:
    */
   DeltaRational getDeltaValue(TNode term) const
       /* throw(DeltaRationalException, ModelException) */;
-
-  Node axiomIteForTotalDivision(Node div_tot);
-  Node axiomIteForTotalIntDivision(Node int_div_like);
  public:
   TheoryArithPrivate(TheoryArith& containing,
                      context::Context* c,
