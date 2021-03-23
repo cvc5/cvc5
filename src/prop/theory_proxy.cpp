@@ -61,7 +61,6 @@ void TheoryProxy::notifyAssertion(Node a, TNode skolem)
   }
   else
   {
-    d_decisionEngine->addAssertion(a);
     d_skdm->notifySkolemDefinition(skolem, a);
     d_decisionEngine->addSkolemDefinition(a, skolem);
   }
