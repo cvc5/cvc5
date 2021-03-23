@@ -61,6 +61,7 @@ class QuantifiersModules
                   TermRegistry& tr,
                   DecisionManager* dm,
                   std::vector<QuantifiersModule*>& modules);
+
  private:
   //------------------------------ quantifier utilities
   /** relevant domain */

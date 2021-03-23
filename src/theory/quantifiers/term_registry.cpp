@@ -16,8 +16,8 @@
 
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -25,7 +25,7 @@ namespace quantifiers {
 
 TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
-    d_useFmcModel(false),
+      d_useFmcModel(false),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
       d_termDb(new TermDb(qs, qr)),
@@ -44,8 +44,8 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
   // initializing the CombinationEngine and the rest of quantifiers engine.
   if ((options::finiteModelFind() || options::fmfBound())
       && (options::mbqiMode() == options::MbqiMode::FMC
-         || options::mbqiMode() == options::MbqiMode::TRUST
-         || options::fmfBound()))
+          || options::mbqiMode() == options::MbqiMode::TRUST
+          || options::fmfBound()))
   {
     d_useFmcModel = true;
     d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
@@ -129,10 +129,7 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel.get(); }
 
-bool TermRegistry::useFmcModel() const
-{
-  return d_useFmcModel;
-}
+bool TermRegistry::useFmcModel() const { return d_useFmcModel; }
 
 }  // namespace quantifiers
 }  // namespace theory
