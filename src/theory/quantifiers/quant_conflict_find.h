@@ -145,6 +145,7 @@ public:
 
   typedef std::map< int, MatchGen * > VarMgMap;
  private:
+  /** The parent who owns this class */
   QuantConflictFind* d_parent;
   MatchGen * d_mg;
   VarMgMap d_var_mg;

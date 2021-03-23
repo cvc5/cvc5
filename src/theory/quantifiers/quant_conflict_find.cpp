@@ -38,7 +38,7 @@ namespace theory {
 namespace quantifiers {
 
 QuantInfo::QuantInfo()
-    : d_parent(nullptr), d_unassigned_nvar(0), d_una_index(0), d_mg(nullptr)
+    : d_unassigned_nvar(0), d_una_index(0), d_parent(nullptr), d_mg(nullptr)
 {
 }
 

@@ -138,7 +138,7 @@ quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
   return d_treg.getTermDatabase();
 }
 
-inst::quantifiers::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
+quantifiers::inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
 }

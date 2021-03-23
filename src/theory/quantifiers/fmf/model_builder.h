@@ -28,6 +28,7 @@ namespace quantifiers {
 class FirstOrderModel;
 class QuantifiersState;
 class QuantifiersRegistry;
+class QuantifiersInferenceManager;
 
 class QModelBuilder : public TheoryEngineModelBuilder
 {
