@@ -171,7 +171,8 @@ theory::TrustNode PropEngine::removeItes(
   return d_theoryProxy->removeItes(node, newLemmas, newSkolems);
 }
 
-void PropEngine::assertInputFormulas(const std::vector<Node>& assertions,
+void PropEngine::assertInputFormulas(
+    const std::vector<Node>& assertions,
     std::unordered_map<size_t, Node>& skolemMap)
 {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";

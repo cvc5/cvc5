@@ -120,7 +120,7 @@ class PropEngine
    * @param node the formula to assert
    */
   void assertInputFormulas(const std::vector<Node>& assertions,
-    std::unordered_map<size_t, Node>& skolemMap);
+                           std::unordered_map<size_t, Node>& skolemMap);
 
   /**
    * Converts the given formula to CNF and assert the CNF to the SAT solver.
