@@ -550,11 +550,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
-# signatures needs to come before src since it adds source files to libcvc4.
-if(ENABLE_PROOFS)
-  add_subdirectory(proofs/signatures)
-endif()
-
 add_subdirectory(doc)
 add_subdirectory(src)
 add_subdirectory(test)
@@ -580,7 +575,7 @@ include(CMakePackageConfigHelpers)
 # libraries from deps/install/lib, we need to be cautious. Changing these
 # shared libraries from deps/install/lib most probably breaks the binary.
 # We only allow such an installation for custom installation prefixes
-# (in the assumption that only reasonably experienced users use this and 
+# (in the assumption that only reasonably experienced users use this and
 # also that custom installation prefixes are not used for longer periods of
 # time anyway). Also, we print a big warning with further instructions.
 if(NOT ENABLE_STATIC_BINARY)
