@@ -730,7 +730,7 @@ class CVC4_EXPORT SmtEngine
    * recreated.  The result is as if newly constructed (so it still
    * retains the same options structure and NodeManager).
    */
-  void reset();
+  //void reset();
 
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
@@ -853,8 +853,6 @@ class CVC4_EXPORT SmtEngine
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;
-  /** Get the original options */
-  const Options& getOriginalOptions() const;
 
   /** Get a pointer to the UserContext owned by this SmtEngine. */
   context::UserContext* getUserContext();
@@ -1130,12 +1128,6 @@ class CVC4_EXPORT SmtEngine
    * logic, lives in the Env class.
    */
   LogicInfo d_userLogic;
-
-  /**
-   * Keep a copy of the original option settings (for reset()). The current
-   * options live in the Env object.
-   */
-  Options d_originalOptions;
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;

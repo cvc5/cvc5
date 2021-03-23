@@ -4031,10 +4031,15 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(Options* opts)
+Solver::Solver(Options* opts, NodeManager* nm)
 {
-  d_nodeMgr.reset(new NodeManager());
-  d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), opts));
+  if (nm == nullptr) {
+    nm = new NodeManager();
+  }
+  d_originalOptions.reset(new Options());
+  d_originalOptions->copyValues(*opts);
+  d_nodeMgr.reset(nm);
+  d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));

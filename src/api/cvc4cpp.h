@@ -58,6 +58,8 @@ class GetQuantifierEliminationCommand;
 class GetUnsatCoreCommand;
 class GetValueCommand;
 class NodeManager;
+class Options;
+class ResetCommand;
 class SetUserAttributeCommand;
 class SimplifyCommand;
 class SmtEngine;
@@ -2314,6 +2316,7 @@ class CVC4_EXPORT Solver
   friend class DatatypeSelector;
   friend class Grammar;
   friend class Op;
+  friend class CVC4::ResetCommand;
   friend class Sort;
   friend class Term;
 
@@ -2327,7 +2330,7 @@ class CVC4_EXPORT Solver
    * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
-  Solver(Options* opts = nullptr);
+  Solver(Options* opts = nullptr, NodeManager* nm = nullptr);
 
   /**
    * Destructor.
@@ -3685,6 +3688,11 @@ class CVC4_EXPORT Solver
   /** Increment the vars stats (if 'is_var') or consts stats counter. */
   void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
 
+  /**
+   * Keep a copy of the original option settings (for reset()). The current
+   * options live in the Env object.
+   */
+  std::unique_ptr<Options> d_originalOptions;
   /** The node manager of this solver. */
   std::unique_ptr<NodeManager> d_nodeMgr;
   /** The statistics collected on the Api level. */

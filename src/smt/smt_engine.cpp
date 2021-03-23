@@ -99,7 +99,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
       d_abductSolver(nullptr),
       d_interpolSolver(nullptr),
       d_quantElimSolver(nullptr),
-      d_originalOptions(),
       d_isInternalSubsolver(false),
       d_stats(nullptr),
       d_outMgr(this),
@@ -417,7 +416,6 @@ void SmtEngine::notifyStartParsing(const std::string& filename)
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
-  d_originalOptions.copyValues(getOptions());
 }
 
 const std::string& SmtEngine::getFilename() const
@@ -1798,7 +1796,7 @@ void SmtEngine::pop() {
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
-void SmtEngine::reset()
+/*void SmtEngine::reset()
 {
   // save pointer to the current node manager
   NodeManager* nm = getNodeManager();
@@ -1814,7 +1812,7 @@ void SmtEngine::reset()
   new (this) SmtEngine(nm, &opts);
   // Restore data set after creation
   notifyStartParsing(filename);
-}
+}*/
 
 void SmtEngine::resetAssertions()
 {
@@ -2048,11 +2046,6 @@ Node SmtEngine::getOption(const std::string& key) const
 Options& SmtEngine::getOptions() { return d_env->d_options; }
 
 const Options& SmtEngine::getOptions() const { return d_env->getOptions(); }
-
-const Options& SmtEngine::getOriginalOptions() const
-{
-  return d_originalOptions;
-}
 
 ResourceManager* SmtEngine::getResourceManager() const
 {
