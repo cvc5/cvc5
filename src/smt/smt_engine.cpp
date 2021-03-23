@@ -2049,6 +2049,11 @@ Options& SmtEngine::getOptions() { return d_env->d_options; }
 
 const Options& SmtEngine::getOptions() const { return d_env->getOptions(); }
 
+const Options& SmtEngine::getOriginalOptions() const
+{
+  return d_originalOptions;
+}
+
 ResourceManager* SmtEngine::getResourceManager() const
 {
   return d_env->getResourceManager();

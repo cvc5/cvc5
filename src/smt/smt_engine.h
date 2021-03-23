@@ -853,6 +853,8 @@ class CVC4_EXPORT SmtEngine
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;
+  /** Get the original options */
+  const Options& getOriginalOptions() const;
 
   /** Get a pointer to the UserContext owned by this SmtEngine. */
   context::UserContext* getUserContext();
