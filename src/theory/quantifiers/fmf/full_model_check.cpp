@@ -833,7 +833,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
     Trace("fmc-exh-debug") << "Set element domains..." << std::endl;
     int addedLemmas = 0;
     //now do full iteration
-    Instantiate * inst = d_qim.getInstantiate();
+    Instantiate* inst = d_qim.getInstantiate();
     while( !riter.isFinished() ){
       d_triedLemmas++;
       Trace("fmc-exh-debug") << "Inst : ";

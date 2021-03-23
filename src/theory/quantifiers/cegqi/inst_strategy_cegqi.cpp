@@ -471,29 +471,27 @@ Node InstStrategyCegqi::getCounterexampleLiteral(Node q)
 
 bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
   Assert(!d_curr_quant.isNull());
-  Instantiate * inst = d_qim.getInstantiate();
+  Instantiate* inst = d_qim.getInstantiate();
   //if doing partial quantifier elimination, record the instantiation and set the incomplete flag instead of sending instantiation lemma
   if (d_qreg.getQuantAttributes().isQuantElimPartial(d_curr_quant))
   {
     d_cbqi_set_quant_inactive = true;
     d_incomplete_check = true;
-    inst->recordInstantiation(
-        d_curr_quant, subs, false, false);
+    inst->recordInstantiation(d_curr_quant, subs, false, false);
     return true;
   }
-  //check if we need virtual term substitution (if used delta or infinity)
+  // check if we need virtual term substitution (if used delta or infinity)
   bool used_vts = d_vtsCache->containsVtsTerm(subs, false);
-  if (inst->addInstantiation(
-          d_curr_quant,
-          subs,
-          InferenceId::QUANTIFIERS_INST_CEGQI,
-          false,
-          false,
-          used_vts))
+  if (inst->addInstantiation(d_curr_quant,
+                             subs,
+                             InferenceId::QUANTIFIERS_INST_CEGQI,
+                             false,
+                             false,
+                             used_vts))
   {
     return true;
   }
-  //this should never happen for monotonic selection strategies
+  // this should never happen for monotonic selection strategies
   Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
   return false;
 }

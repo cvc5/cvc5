@@ -37,7 +37,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QuantInfo::QuantInfo() : d_parent(nullptr), d_unassigned_nvar(0), d_una_index(0), d_mg(nullptr) {}
+QuantInfo::QuantInfo()
+    : d_parent(nullptr), d_unassigned_nvar(0), d_una_index(0), d_mg(nullptr)
+{
+}
 
 QuantInfo::~QuantInfo() {
   delete d_mg;
@@ -51,7 +54,7 @@ QuantInfo::~QuantInfo() {
 
 QuantifiersInferenceManager& QuantInfo::getInferenceManager()
 {
-  Assert (d_parent!=nullptr);
+  Assert(d_parent != nullptr);
   return d_parent->getInferenceManager();
 }
 
