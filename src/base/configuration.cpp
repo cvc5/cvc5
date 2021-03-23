@@ -140,8 +140,7 @@ std::string Configuration::copyright() {
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";
 
-  if (Configuration::isBuiltWithAbc()
-      || Configuration::isBuiltWithCadical()
+  if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
       || Configuration::isBuiltWithSymFPU()
