@@ -29,7 +29,7 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 //Model Engine constructor
 ModelEngine::ModelEngine(QuantifiersEngine* qe,
                          QuantifiersState& qs,
@@ -334,6 +334,6 @@ void ModelEngine::debugPrint( const char* c ){
   //d_quantEngine->getModel()->debugPrint( c );
 }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

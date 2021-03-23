@@ -1370,7 +1370,7 @@ bool FullModelChecker::isHandled(Node q) const
   return d_unhandledQuant.find(q) == d_unhandledQuant.end();
 }
 
-}
-}
-}
-}
+}  // namespace fmcheck
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
