@@ -17,6 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/term_registry.h"
 
 namespace CVC4 {
 namespace theory {

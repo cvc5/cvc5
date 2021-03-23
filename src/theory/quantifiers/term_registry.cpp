@@ -18,6 +18,7 @@
 #include "options/smt_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,12 +50,12 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
   {
     d_useFmcModel = true;
     d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-        d_qstate, d_qreg, *this, "FirstOrderModelFmc"));
+        qs, qr, *this, "FirstOrderModelFmc"));
   }
   else
   {
     d_qmodel.reset(new quantifiers::FirstOrderModel(
-        d_qstate, d_qreg, *this, "FirstOrderModel"));
+        qs, qr, *this, "FirstOrderModel"));
   }
 }
 

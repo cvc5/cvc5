@@ -18,8 +18,6 @@
 
 #include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/valuation.h"
@@ -62,13 +60,13 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   // database and the instantiate module. Term database needs inference manager
   // since it sends out lemmas when term indexing is inconsistent, instantiate
   // needs term database for entailment checks.
-  d_treg.finishInit(d_qim.get());
+  d_treg.finishInit(&d_qim);
 
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(d_qstate, d_qreg, d_treg, d_qim, pnm));
 
   //!!!!!!!!!!!!!! temporary (project #15)
-  d_qmodel->finishInit(d_qengine.get());
+  d_treg.getModel()->finishInit(d_qengine.get());
 
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;

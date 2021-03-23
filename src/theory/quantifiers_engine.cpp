@@ -59,7 +59,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
-      d_tr_trie(new inst::TriggerTrie),
+      d_tr_trie(new quantifiers::inst::TriggerTrie),
       d_model(d_treg.getModel()),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
@@ -80,7 +80,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   d_decManager = dm;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, qstate, qim, qr, tr, dm, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_treg, dm, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
