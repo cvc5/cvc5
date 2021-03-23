@@ -38,14 +38,15 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** trigger class constructor */
 Trigger::Trigger(QuantifiersEngine* qe,
-                 quantifiers::QuantifiersState& qs,
-                 quantifiers::QuantifiersInferenceManager& qim,
-                 quantifiers::QuantifiersRegistry& qr,
-                 quantifiers::TermRegistry& tr,
+                 QuantifiersState& qs,
+                 QuantifiersInferenceManager& qim,
+                 QuantifiersRegistry& qr,
+                 TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
     : d_quantEngine(qe),
@@ -65,7 +66,7 @@ Trigger::Trigger(QuantifiersEngine* qe,
   }
   if (Trace.isOn("trigger"))
   {
-    quantifiers::QuantAttributes& qa = d_qreg.getQuantAttributes();
+    QuantAttributes& qa = d_qreg.getQuantAttributes();
     Trace("trigger") << "Trigger for " << qa.quantToString(q) << ": "
                      << std::endl;
     for (const Node& n : d_nodes)
@@ -175,7 +176,7 @@ bool Trigger::mkTriggerTerms(Node q,
   std::map< Node, std::vector< Node > > varContains;
   for (const Node& pat : temp)
   {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(
+    TermUtil::computeInstConstContainsForQuant(
         q, pat, varContains[pat]);
   }
   for (const Node& t : temp)
@@ -184,7 +185,7 @@ bool Trigger::mkTriggerTerms(Node q,
     bool foundVar = false;
     for (const Node& v : vct)
     {
-      Assert(quantifiers::TermUtil::getInstConstAttr(v) == q);
+      Assert(TermUtil::getInstConstAttr(v) == q);
       if( vars.find( v )==vars.end() ){
         varCount++;
         vars[ v ] = true;
@@ -248,11 +249,11 @@ bool Trigger::mkTriggerTerms(Node q,
 }
 
 Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
-                            quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim,
-                            quantifiers::QuantifiersRegistry& qr,
+                            QuantifiersState& qs,
+                            QuantifiersInferenceManager& qim,
+                            QuantifiersRegistry& qr,
 
-                            quantifiers::TermRegistry& tr,
+                            TermRegistry& tr,
                             Node f,
                             std::vector<Node>& nodes,
                             bool keepAll,
@@ -305,10 +306,10 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
 }
 
 Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
-                            quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim,
-                            quantifiers::QuantifiersRegistry& qr,
-                            quantifiers::TermRegistry& tr,
+                            QuantifiersState& qs,
+                            QuantifiersInferenceManager& qim,
+                            QuantifiersRegistry& qr,
+                            TermRegistry& tr,
                             Node f,
                             Node n,
                             bool keepAll,
@@ -343,7 +344,7 @@ Node Trigger::ensureGroundTermPreprocessed(Valuation& val,
       {
         visited[cur] = cur;
       }
-      else if (!quantifiers::TermUtil::hasInstConstAttr(cur))
+      else if (!TermUtil::hasInstConstAttr(cur))
       {
         // cur has no INST_CONSTANT, thus is ground.
         Node vcur = val.getPreprocessedTerm(cur);
@@ -391,6 +392,7 @@ void Trigger::debugPrint(const char* c) const
   Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
 }
 
+}
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

@@ -27,6 +27,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 class Trigger;
@@ -279,5 +280,6 @@ class HigherOrderTrigger : public Trigger
 } /* CVC4::theory::inst namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
+}
 
 #endif /* CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H */

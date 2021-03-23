@@ -30,7 +30,6 @@ class QuantifiersEngine;
 namespace quantifiers {
 class QuantifiersState;
 class TermRegistry;
-}  // namespace quantifiers
 
 namespace inst {
 
@@ -112,13 +111,12 @@ protected:
  /** The parent trigger that owns this */
  Trigger* d_tparent;
  /** Reference to the state of the quantifiers engine */
- quantifiers::QuantifiersState& d_qstate;
- /** Reference to the term registry */
- quantifiers::TermRegistry& d_treg;
+ QuantifiersState& d_qstate;
  // !!!!!!!!! temporarily available (project #15)
  QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */
 
+}
 }
 }
 }

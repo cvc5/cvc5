@@ -23,6 +23,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** Information about a node used in a trigger.
@@ -120,6 +121,7 @@ class TriggerTermInfo
   static int32_t getTriggerWeight(Node n);
 };
 
+}
 }  // namespace inst
 }  // namespace theory
 }  // namespace CVC4

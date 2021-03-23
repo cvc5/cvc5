@@ -29,6 +29,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 HigherOrderTrigger::HigherOrderTrigger(
@@ -526,4 +527,5 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
 
 } /* CVC4::theory::inst namespace */
 } /* CVC4::theory namespace */
+}
 } /* CVC4 namespace */

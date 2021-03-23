@@ -20,6 +20,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 IMGenerator::IMGenerator(Trigger* tparent)
@@ -37,7 +38,7 @@ QuantifiersEngine* IMGenerator::getQuantifiersEngine()
   return d_tparent->d_quantEngine;
 }
 
-
+}
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
