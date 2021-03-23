@@ -4070,8 +4070,10 @@ bool Stat::isInt() const
 }
 int64_t Stat::getInt() const
 {
-  Assert(isInt());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(isInt()) << "Expected Stat of type int64_t.";
   return std::get<int64_t>(d_data->data);
+  CVC4_API_TRY_CATCH_END;
 }
 bool Stat::isDouble() const
 {
@@ -4079,8 +4081,10 @@ bool Stat::isDouble() const
 }
 double Stat::getDouble() const
 {
-  Assert(isDouble());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(isDouble()) << "Expected Stat of type double.";
   return std::get<double>(d_data->data);
+  CVC4_API_TRY_CATCH_END;
 }
 bool Stat::isString() const
 {
@@ -4088,8 +4092,10 @@ bool Stat::isString() const
 }
 std::string Stat::getString() const
 {
-  Assert(isString());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(isString()) << "Expected Stat of type std::string.";
   return std::get<std::string>(d_data->data);
+  CVC4_API_TRY_CATCH_END;
 }
 bool Stat::isHistogram() const
 {
@@ -4097,8 +4103,10 @@ bool Stat::isHistogram() const
 }
 const Stat::HistogramData& Stat::getHistogram() const
 {
-  Assert(isHistogram());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(isHistogram()) << "Expected Stat of type histogram.";
   return std::get<HistogramData>(d_data->data);
+  CVC4_API_TRY_CATCH_END;
 }
 
 Stat::Stat(bool expert, StatData&& sd): d_expert(expert), d_data(std::make_unique<StatData>(std::move(sd))) {}
