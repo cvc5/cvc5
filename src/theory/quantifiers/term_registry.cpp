@@ -34,6 +34,23 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
     // must be constructed here since it is required for datatypes finistInit
     d_sygusTdb.reset(new TermDbSygus(qs));
   }
+  Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
+  Trace("quant-engine-debug")
+      << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model here, since it is required for
+  // initializing the CombinationEngine and the rest of quantifiers engine.
+  if ((options::finiteModelFind() || options::fmfBound())
+      && QuantifiersModules::useFmcModel())
+  {
+    d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
+        d_qstate, d_qreg, *this, "FirstOrderModelFmc"));
+  }
+  else
+  {
+    d_qmodel.reset(new quantifiers::FirstOrderModel(
+        d_qstate, d_qreg, *this, "FirstOrderModel"));
+  }
 }
 
 void TermRegistry::finishInit(QuantifiersInferenceManager* qim)
@@ -95,6 +112,12 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 {
   return d_termEnum.get();
 }
+
+FirstOrderModel * TermRegistry::getModel()
+{
+  return d_qmodel.get();
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

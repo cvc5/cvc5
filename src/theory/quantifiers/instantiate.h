@@ -97,7 +97,6 @@ class Instantiate : public QuantifiersUtil
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               TermRegistry& tr,
-              FirstOrderModel* m,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -318,8 +317,6 @@ class Instantiate : public QuantifiersUtil
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** Pointer to the model */
-  FirstOrderModel* d_model;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** instantiation rewriter classes */

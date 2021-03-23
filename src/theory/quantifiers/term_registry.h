@@ -60,7 +60,8 @@ class TermRegistry
   TermDbSygus* getTermDatabaseSygus() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
-
+  /** get the model utility */
+  FirstOrderModel * getModel();
  private:
   /** has presolve been called */
   context::CDO<bool> d_presolve;
@@ -72,6 +73,8 @@ class TermRegistry
   std::unique_ptr<TermDb> d_termDb;
   /** sygus term database */
   std::unique_ptr<TermDbSygus> d_sygusTdb;
+  /** extended model object */
+  std::unique_ptr<FirstOrderModel> d_qmodel;
 };
 
 }  // namespace quantifiers

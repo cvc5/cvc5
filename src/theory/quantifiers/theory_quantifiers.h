@@ -89,8 +89,6 @@ class TheoryQuantifiers : public Theory {
   QuantifiersState d_qstate;
   /** The quantifiers registry */
   QuantifiersRegistry d_qreg;
-  /** extended model object */
-  std::unique_ptr<FirstOrderModel> d_qmodel;
   /** The term registry */
   TermRegistry d_treg;
   /** The quantifiers inference manager */

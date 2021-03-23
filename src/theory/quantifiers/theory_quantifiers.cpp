@@ -41,7 +41,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
       d_qstate(c, u, valuation, logicInfo),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
-      d_qim(nullptr),
+      d_qim(*this, d_qstate, d_qreg, d_treg, pnm),
       d_qengine(nullptr)
 {
   out.handleUserAttribute( "fun-def", this );
@@ -57,26 +57,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     d_qChecker.registerTo(pc);
   }
 
-  Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
-  Trace("quant-engine-debug")
-      << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
-  // Finite model finding requires specialized ways of building the model.
-  // We require constructing the model here, since it is required for
-  // initializing the CombinationEngine and the rest of quantifiers engine.
-  if ((options::finiteModelFind() || options::fmfBound())
-      && QuantifiersModules::useFmcModel())
-  {
-    d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-        d_qstate, d_qreg, d_treg, "FirstOrderModelFmc"));
-  }
-  else
-  {
-    d_qmodel.reset(new quantifiers::FirstOrderModel(
-        d_qstate, d_qreg, d_treg, "FirstOrderModel"));
-  }
-
   d_qim.reset(new QuantifiersInferenceManager(
-      *this, d_qstate, d_qreg, d_treg, d_qmodel.get(), pnm));
+      *this, d_qstate, d_qreg, d_treg, pnm));
 
   // Finish initializing the term registry by hooking it up to the inference
   // manager. This is required due to a cyclic dependency between the term
@@ -87,7 +69,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
 
   // construct the quantifiers engine
   d_qengine.reset(new QuantifiersEngine(
-      d_qstate, d_qreg, d_treg, *d_qim.get(), d_qmodel.get(), pnm));
+      d_qstate, d_qreg, d_treg, *d_qim.get(), pnm));
 
   //!!!!!!!!!!!!!! temporary (project #15)
   d_qmodel->finishInit(d_qengine.get());

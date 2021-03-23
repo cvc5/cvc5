@@ -45,13 +45,11 @@ Instantiate::Instantiate(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr,
-                         FirstOrderModel* m,
                          ProofNodeManager* pnm)
     : d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
-      d_model(m),
       d_pnm(pnm),
       d_total_inst_debug(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
@@ -131,7 +129,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
-      terms[i] = d_model->getInternalRepresentative(terms[i], q, i);
+      terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())

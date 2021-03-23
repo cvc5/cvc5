@@ -67,7 +67,6 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
-                    quantifiers::FirstOrderModel* qm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface

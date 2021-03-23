@@ -51,7 +51,6 @@ QuantifiersEngine::QuantifiersEngine(
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
-    quantifiers::FirstOrderModel* qm,
     ProofNodeManager* pnm)
     : d_qstate(qstate),
       d_qim(qim),
@@ -61,7 +60,7 @@ QuantifiersEngine::QuantifiersEngine(
       d_qreg(qr),
       d_treg(tr),
       d_tr_trie(new inst::TriggerTrie),
-      d_model(qm),
+      d_model(d_treg.getModel()),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
 {
