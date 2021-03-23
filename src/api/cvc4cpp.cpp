@@ -4048,10 +4048,6 @@ Solver::Solver(Options* opts)
 
 Solver::~Solver() {}
 
-void Solver::reset() {
-  d_smtEngine->reset();
-}
-
 /* Helpers and private functions                                              */
 /* -------------------------------------------------------------------------- */
 

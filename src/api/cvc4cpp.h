@@ -2340,11 +2340,6 @@ class CVC4_EXPORT Solver
   Solver(const Solver&) = delete;
   Solver& operator=(const Solver&) = delete;
 
-  /**
-   * Call reset on the internal SMT engine.
-   */
-  void reset();
-
   /* .................................................................... */
   /* Solver Configuration                                                 */
   /* .................................................................... */
