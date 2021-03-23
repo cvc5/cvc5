@@ -411,6 +411,8 @@ cmake_opts=""
 [ $ninja != default ] && cmake_opts="$cmake_opts -G Ninja"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
+[ $proofs != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
 [ $shared != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
 [ $static_binary != default ] \
