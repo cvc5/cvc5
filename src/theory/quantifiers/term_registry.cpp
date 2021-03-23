@@ -17,8 +17,8 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -54,8 +54,8 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
   }
   else
   {
-    d_qmodel.reset(new quantifiers::FirstOrderModel(
-        qs, qr, *this, "FirstOrderModel"));
+    d_qmodel.reset(
+        new quantifiers::FirstOrderModel(qs, qr, *this, "FirstOrderModel"));
   }
 }
 
