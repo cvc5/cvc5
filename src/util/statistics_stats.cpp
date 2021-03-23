@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file statistics_base.cpp
+/*! \file statistics_stats.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Gereon Kremer

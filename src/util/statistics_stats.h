@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file statistics_base.h
+/*! \file statistics_stats.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Gereon Kremer
@@ -12,7 +12,7 @@
  ** \brief Statistic proxy objects
  **
  ** Conceptually, every statistic consists of a data object and a proxy
- ** object. The proxy object are issued by the `StatisticsRegistry` and
+ ** object. The proxy objects are issued by the `StatisticsRegistry` and
  ** maintained by the user. They only hold a pointer to a matching data
  ** object. The purpose of proxy objects is to implement methods to easily
  ** change the statistic data, but shield the regular user from the internals.
@@ -185,7 +185,8 @@ class CodeTimer;
  * arbitrarily like a stopwatch. The value of the statistic is the
  * accumulated time over all (start,stop) pairs.
  * While the runtimes are stored in nanosecond precision internally,
- * the API exports the number of milliseconds.
+ * the API exports runtimes as integral numbers in millisecond
+ * precision.
  *
  * Note that it is recommended to use it in an RAII fashion using the
  * `CodeTimer` class.
