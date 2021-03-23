@@ -29,8 +29,6 @@ namespace quantifiers {
 
 class QuantifiersState;
 
-namespace inst {
-
 /** trie for InstMatch objects
  *
  * This class is used for storing instantiations of a quantified formula q.
@@ -224,7 +222,6 @@ class InstMatchTrieOrdered
   InstMatchTrie d_imt;
 };
 
-} /* CVC4::theory::inst namespace */
 }  // namespace quantifiers
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

@@ -321,8 +321,8 @@ class Instantiate : public QuantifiersUtil
    * We store context (dependent, independent) versions. If incremental solving
    * is disabled, we use d_inst_match_trie for performance reasons.
    */
-  std::map<Node, inst::InstMatchTrie> d_inst_match_trie;
-  std::map<Node, inst::CDInstMatchTrie*> d_c_inst_match_trie;
+  std::map<Node, InstMatchTrie> d_inst_match_trie;
+  std::map<Node, CDInstMatchTrie*> d_c_inst_match_trie;
   /**
    * The list of quantified formulas for which the domain of d_c_inst_match_trie
    * is valid.

@@ -19,12 +19,10 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_registry.h"
 
 using namespace CVC4::kind;
 
@@ -51,7 +49,7 @@ CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs,
       d_term_iter_limit(0),
       d_mode(cand_term_none)
 {
-  d_op = qe->getTermDatabase()->getMatchOperator( pat );
+  d_op = d_treg.getTermDatabase()->getMatchOperator( pat );
   Assert(!d_op.isNull());
 }
 
@@ -297,19 +295,19 @@ CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs,
   {
     Assert(mpatExp[1].getKind() == APPLY_SELECTOR_TOTAL);
     Assert(mpatExp[2].getKind() == APPLY_UF);
-    d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp[1]);
-    d_ufOp = qe->getTermDatabase()->getMatchOperator(mpatExp[2]);
+    d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[1]);
+    d_ufOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp[2]);
   }
   else if (mpatExp.getKind() == APPLY_SELECTOR_TOTAL)
   {
     // corner case of datatype with one constructor
-    d_selOp = qe->getTermDatabase()->getMatchOperator(mpatExp);
+    d_selOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);
   }
   else
   {
     // corner case of a wrongly applied selector as a trigger
     Assert(mpatExp.getKind() == APPLY_UF);
-    d_ufOp = qe->getTermDatabase()->getMatchOperator(mpatExp);
+    d_ufOp = d_treg.getTermDatabase()->getMatchOperator(mpatExp);
   }
   Assert(d_selOp != d_ufOp);
 }
@@ -349,6 +347,6 @@ Node CandidateGeneratorSelector::getNextCandidate()
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC4
 }  // namespace CVC4

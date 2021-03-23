@@ -670,8 +670,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
   return new InstMatchGenerator(tparent, n);
 }
 
-}/* CVC4::theory::inst namespace */
+}
 }  // namespace quantifiers
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}
 }  // namespace CVC4

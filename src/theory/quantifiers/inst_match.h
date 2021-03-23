@@ -27,8 +27,6 @@ namespace quantifiers {
 
 class QuantifiersState;
 
-namespace inst {
-
 /** Inst match
  *
  * This is the basic class specifying an instantiation. Its domain size (the
@@ -89,7 +87,6 @@ inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
   return out;
 }
 
-}/* CVC4::theory::inst namespace */
 }  // namespace quantifiers
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

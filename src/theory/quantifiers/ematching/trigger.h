@@ -31,11 +31,11 @@ class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
 class TermRegistry;
+class InstMatch;
 
 namespace inst {
 
 class IMGenerator;
-class InstMatch;
 class InstMatchGenerator;
 /** A collection of nodes representing a trigger.
 *

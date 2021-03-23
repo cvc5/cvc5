@@ -39,6 +39,6 @@ QuantifiersEngine* IMGenerator::getQuantifiersEngine()
 }
 
 }  // namespace inst
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}
+}
+}

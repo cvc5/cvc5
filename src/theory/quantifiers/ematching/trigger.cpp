@@ -392,6 +392,6 @@ void Trigger::debugPrint(const char* c) const
 }
 
 }  // namespace inst
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}
+}
+}

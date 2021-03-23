@@ -277,9 +277,9 @@ class HigherOrderTrigger : public Trigger
                             bool arg_changed);
 };
 
-} /* CVC4::theory::inst namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+} 
+} 
+} 
 }  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H */

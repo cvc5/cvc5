@@ -235,7 +235,7 @@ public:
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
   /** all triggers will be stored in this trie */
-  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
+  std::unique_ptr<quantifiers::inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities
