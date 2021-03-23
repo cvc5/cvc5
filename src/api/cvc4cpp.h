@@ -58,7 +58,6 @@ class GetQuantifierEliminationCommand;
 class GetUnsatCoreCommand;
 class GetValueCommand;
 class NodeManager;
-class Options;
 class ResetCommand;
 class SetUserAttributeCommand;
 class SimplifyCommand;

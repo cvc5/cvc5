@@ -4035,7 +4035,9 @@ Solver::Solver(Options* opts, NodeManager* nm)
 {
   d_nodeMgr.reset(nm == nullptr ? new NodeManager() : nm);
   d_originalOptions.reset(new Options());
-  d_originalOptions->copyValues(*opts);
+  if (opts != nullptr) {
+    d_originalOptions->copyValues(*opts);
+  }
   d_smtEngine.reset(new SmtEngine(d_nodeMgr.get(), d_originalOptions.get()));
   d_smtEngine->setSolver(this);
   d_rng.reset(new Random(d_smtEngine->getOptions()[options::seed]));
