@@ -96,6 +96,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
     int tests = 0;
     int bad = 0;
     QuantifiersBoundInference& qbi = d_qreg.getQuantifiersBoundInference();
+    Instantiate* inst = d_qim.getInstantiate();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){
       Node f = fm->getAssertedQuantifier( i );
       std::vector< Node > vars;
@@ -112,7 +113,7 @@ void QModelBuilder::debugModel( TheoryModel* m ){
           {
             terms.push_back( riter.getCurrentTerm( k ) );
           }
-          Node n = d_qe->getInstantiate()->getInstantiation(f, vars, terms);
+          Node n = inst->getInstantiation(f, vars, terms);
           Node val = fm->getValue( n );
           if (!val.isConst() || !val.getConst<bool>())
           {

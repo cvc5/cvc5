@@ -1102,7 +1102,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
   if( n.getNumChildren()>0 ){
     Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
                               << ")" << std::endl;
-    TermEnumeration* te = d_quantEngine->getTermEnumeration();
+    TermEnumeration* te = d_treg.getTermEnumeration();
     // below, we do a fair enumeration of vectors vec of indices whose sum is
     // 1,2,3, ...
     std::vector< int > vec;

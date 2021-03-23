@@ -629,7 +629,7 @@ int FullModelChecker::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, i
     Trace("fmc") << std::endl;
 
     // consider all entries going to non-true
-    Instantiate* instq = d_qe->getInstantiate();
+    Instantiate* instq = d_qim.getInstantiate();
     for (unsigned i = 0, msize = mcond.size(); i < msize; i++)
     {
       if (d_quant_models[f].d_value[i] == d_true)
@@ -834,6 +834,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
     Trace("fmc-exh-debug") << "Set element domains..." << std::endl;
     int addedLemmas = 0;
     //now do full iteration
+    Instantiate * inst = d_qim.getInstantiate();
     while( !riter.isFinished() ){
       d_triedLemmas++;
       Trace("fmc-exh-debug") << "Inst : ";
@@ -859,7 +860,7 @@ bool FullModelChecker::exhaustiveInstantiate(FirstOrderModelFmc* fm,
       if (ev!=d_true) {
         Trace("fmc-exh-debug") << ", add!";
         //add as instantiation
-        if (d_qe->getInstantiate()->addInstantiation(
+        if (inst->addInstantiation(
                 f, inst, InferenceId::QUANTIFIERS_INST_FMF_FMC_EXH, true))
         {
           Trace("fmc-exh-debug")  << " ...success.";

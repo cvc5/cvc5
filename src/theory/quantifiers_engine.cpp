@@ -125,6 +125,11 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 
 /// !!!!!!!!!!!!!! temporary (project #15)
 
+quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
+{
+  return d_treg.getTermDatabaseSygus();
+}
+
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();

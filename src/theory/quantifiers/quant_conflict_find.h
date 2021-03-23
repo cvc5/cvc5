@@ -131,6 +131,8 @@ public:
 public:
   QuantInfo();
   ~QuantInfo();
+  /** Get quantifiers inference manager */
+  QuantifiersInferenceManager& getInferenceManager();
   std::vector< TNode > d_vars;
   std::vector< TypeNode > d_var_types;
   std::map< TNode, int > d_var_num;
@@ -143,6 +145,7 @@ public:
 
   typedef std::map< int, MatchGen * > VarMgMap;
  private:
+  QuantConflictFind * d_parent;
   MatchGen * d_mg;
   VarMgMap d_var_mg;
  public:
