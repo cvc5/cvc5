@@ -18,6 +18,7 @@
 #include "expr/node_manager.h"
 
 #include <algorithm>
+#include <sstream>
 #include <stack>
 #include <utility>
 
@@ -31,10 +32,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
-#include "options/options.h"
-#include "options/smt_options.h"
 #include "util/resource_manager.h"
-#include "util/statistics_registry.h"
 
 using namespace std;
 using namespace CVC4::expr;
@@ -95,8 +93,7 @@ namespace attr {
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
 NodeManager::NodeManager()
-    : d_statisticsRegistry(new StatisticsRegistry()),
-      d_skManager(new SkolemManager),
+    : d_skManager(new SkolemManager),
       d_bvManager(new BoundVarManager),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -266,8 +263,6 @@ NodeManager::~NodeManager() {
   }
 
   // defensive coding, in case destruction-order issues pop up (they often do)
-  delete d_statisticsRegistry;
-  d_statisticsRegistry = NULL;
   delete d_attrManager;
   d_attrManager = NULL;
 }

@@ -40,6 +40,8 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # Generate compile_commands.json, which can be used for various code completion
 # plugins.
@@ -292,6 +294,12 @@ if(ENABLE_SHARED)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
 
+  # Set visibility to default if unit tests are enabled
+  if(ENABLE_UNIT_TESTING)
+    set(CMAKE_CXX_VISIBILITY_PRESET default)
+    set(CMAKE_VISIBILITY_INLINES_HIDDEN 0)
+  endif()
+
   # Embed the installation prefix as an RPATH in the executable such that the
   # linker can find our libraries (such as libcvc4parser) when executing the
   # cvc4 binary. This is for example useful when installing CVC4 with a custom
@@ -422,7 +430,6 @@ if(ENABLE_PROFILING)
 endif()
 
 if(ENABLE_PROOFS)
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --enable-proof)
   add_definitions(-DCVC4_PROOF)
 endif()
 
@@ -487,7 +494,6 @@ if(USE_KISSAT)
 endif()
 
 if(USE_LFSC)
-  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
   find_package(LFSC REQUIRED)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
@@ -559,8 +565,8 @@ if(BUILD_BINDINGS_PYTHON)
 endif()
 
 if(BUILD_BINDINGS_JAVA)
-  message(FATAL_ERROR
-    "Java bindings for the new API are not implemented yet.")
+  add_subdirectory(src/api/java)
+  message(WARNING "Java API is currently under development.")
 endif()
 
 #-----------------------------------------------------------------------------#

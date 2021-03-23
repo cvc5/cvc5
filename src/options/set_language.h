@@ -20,6 +20,8 @@
 #define CVC4__OPTIONS__SET_LANGUAGE_H
 
 #include <iostream>
+
+#include "cvc4_export.h"
 #include "options/language.h"
 
 namespace CVC4 {
@@ -28,8 +30,9 @@ namespace language {
 /**
  * IOStream manipulator to set the output language for Exprs.
  */
-class CVC4_PUBLIC SetLanguage {
-public:
+class CVC4_EXPORT SetLanguage
+{
+ public:
   /**
    * Set a language on the output stream for the current stack scope.
    * This makes sure the old language is reset on the stream after
@@ -74,7 +77,7 @@ private:
    * When this manipulator is used, the setting is stored here.
    */
   OutputLanguage d_language;
-};/* class SetLanguage */
+}; /* class SetLanguage */
 
 /**
  * Sets the output language when pretty-printing a Expr to an ostream.
@@ -85,7 +88,7 @@ private:
  *
  * The setting stays permanently (until set again) with the stream.
  */
-std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_EXPORT;
 
 }/* CVC4::language namespace */
 }/* CVC4 namespace */

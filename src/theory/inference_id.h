@@ -294,6 +294,29 @@ enum class InferenceId
   SEP_PTO_NEG_PROP,
   // enforces injectiveness of pto: (pto x y) ^ (pto y w) ^ x = y => y = w
   SEP_PTO_PROP,
+  // introduces a label for a heap, of the form U => L, where U is an
+  // unlabelled separation logic predicate and L is its labelled form
+  SEP_LABEL_INTRO,
+  // introduces the set constraints for a label
+  SEP_LABEL_DEF,
+  // lemma for sep.emp
+  SEP_EMP,
+  // positive reduction for sep constraint
+  SEP_POS_REDUCTION,
+  // negative reduction for sep constraint
+  SEP_NEG_REDUCTION,
+  // model-based refinement for negated star/wand
+  SEP_REFINEMENT,
+  // sep.nil is not in the heap
+  SEP_NIL_NOT_IN_HEAP,
+  // a symmetry breaking lemma
+  SEP_SYM_BREAK,
+  // finite witness data lemma
+  SEP_WITNESS_FINITE_DATA,
+  // element distinctness lemma
+  SEP_DISTINCT_REF,
+  // reference bound lemma
+  SEP_REF_BOUND,
   // ---------------------------------- end sep theory
 
   // ---------------------------------- sets theory
@@ -384,7 +407,6 @@ enum class InferenceId
   STRINGS_CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
   STRINGS_CARDINALITY,
-  //-------------------- end base solver
   //-------------------- core solver
   // A cycle in the empty string equivalence class, e.g.:
   //   x ++ y = "" => x = ""
@@ -522,14 +544,12 @@ enum class InferenceId
   // is unknown, we apply the inference:
   //   len(s) != len(t) V len(s) = len(t)
   STRINGS_DEQ_LENGTH_SP,
-  //-------------------- end core solver
   //-------------------- codes solver
   // str.to_code( v ) = rewrite( str.to_code(c) )
   // where v is the proxy variable for c.
   STRINGS_CODE_PROXY,
   // str.code(x) = -1 V str.code(x) != str.code(y) V x = y
   STRINGS_CODE_INJ,
-  //-------------------- end codes solver
   //-------------------- regexp solver
   // regular expression normal form conflict
   //   ( x in R ^ x = y ^ rewrite((str.in_re y R)) = false ) => false
@@ -565,7 +585,6 @@ enum class InferenceId
   STRINGS_RE_DELTA_CONF,
   // regular expression derive ???
   STRINGS_RE_DERIVE,
-  //-------------------- end regexp solver
   //-------------------- extended function solver
   // Standard extended function inferences from context-dependent rewriting
   // produced by constant substitutions. See Reynolds et al CAV 2017. These are
@@ -611,11 +630,16 @@ enum class InferenceId
   // f(x1, .., xn) and P is the reduction predicate for f
   // (see theory_strings_preprocess).
   STRINGS_REDUCTION,
-  //-------------------- end extended function solver
   //-------------------- prefix conflict
   // prefix conflict (coarse-grained)
   STRINGS_PREFIX_CONFLICT,
-  //-------------------- end prefix conflict
+  //-------------------- other
+  // a lemma added during term registration for an atomic term
+  STRINGS_REGISTER_TERM_ATOMIC,
+  // a lemma added during term registration
+  STRINGS_REGISTER_TERM,
+  // a split during collect model info
+  STRINGS_CMI_SPLIT,
   //-------------------------------------- end strings theory
 
   //-------------------------------------- uf theory

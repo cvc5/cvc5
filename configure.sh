@@ -295,7 +295,9 @@ do
     --java-bindings) java_bindings=ON;;
     --no-java-bindings) java_bindings=OFF;;
 
-    --all-bindings) python_bindings=ON;;
+    --all-bindings)
+      python_bindings=ON
+      java_bindings=ON;;
 
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;

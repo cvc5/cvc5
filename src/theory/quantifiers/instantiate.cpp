@@ -29,6 +29,7 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -40,17 +41,18 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Instantiate::Instantiate(QuantifiersEngine* qe,
-                         QuantifiersState& qs,
+Instantiate::Instantiate(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
+                         TermRegistry& tr,
+                         FirstOrderModel* m,
                          ProofNodeManager* pnm)
-    : d_qe(qe),
-      d_qstate(qs),
+    : d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
+      d_treg(tr),
+      d_model(m),
       d_pnm(pnm),
-      d_term_db(nullptr),
       d_total_inst_debug(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
       d_pfInst(pnm ? new CDProof(pnm) : nullptr)
@@ -79,7 +81,6 @@ bool Instantiate::reset(Theory::Effort e)
     }
     d_recorded_inst.clear();
   }
-  d_term_db = d_qe->getTermDatabase();
   return true;
 }
 
@@ -111,7 +112,6 @@ bool Instantiate::addInstantiation(Node q,
   d_qim.safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qstate.isInConflict());
   Assert(terms.size() == q[0].getNumChildren());
-  Assert(d_term_db != nullptr);
   Trace("inst-add-debug") << "For quantified formula " << q
                           << ", add instantiation: " << std::endl;
   for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -131,7 +131,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
-      terms[i] = d_qe->getInternalRepresentative(terms[i], q, i);
+      terms[i] = d_model->getInternalRepresentative(terms[i], q, i);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())
@@ -188,6 +188,7 @@ bool Instantiate::addInstantiation(Node q,
 #endif
   }
 
+  TermDb* tdb = d_treg.getTermDatabase();
   // Note we check for entailment before checking for term vector duplication.
   // Although checking for term vector duplication is a faster check, it is
   // included automatically with recordInstantiationInternal, hence we prefer
@@ -210,7 +211,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       subs[q[0][i]] = terms[i];
     }
-    if (d_term_db->isEntailed(q[1], subs, false, true))
+    if (tdb->isEntailed(q[1], subs, false, true))
     {
       Trace("inst-add-debug") << " --> Currently entailed." << std::endl;
       ++(d_statistics.d_inst_duplicate_ent);
@@ -223,7 +224,7 @@ bool Instantiate::addInstantiation(Node q,
   {
     for (Node& t : terms)
     {
-      if (!d_term_db->isTermEligibleForInstantiation(t, q))
+      if (!tdb->isTermEligibleForInstantiation(t, q))
       {
         return false;
       }
@@ -408,6 +409,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     // will never succeed with 1 variable
     return false;
   }
+  TermDb* tdb = d_treg.getTermDatabase();
   Trace("inst-exp-fail") << "Explain inst failure..." << terms << std::endl;
   // set up information for below
   std::vector<Node>& vars = d_qreg.d_vars[q];
@@ -441,7 +443,7 @@ bool Instantiate::addInstantiationExpFail(Node q,
     if (options::instNoEntail())
     {
       Trace("inst-exp-fail") << "  check entailment" << std::endl;
-      success = d_term_db->isEntailed(q[1], subs, false, true);
+      success = tdb->isEntailed(q[1], subs, false, true);
       Trace("inst-exp-fail") << "  entailed: " << success << std::endl;
     }
     // check whether the instantiation rewrites to the same thing
@@ -615,9 +617,9 @@ Node Instantiate::getTermForType(TypeNode tn)
 {
   if (tn.isClosedEnumerable())
   {
-    return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
+    return d_treg.getTermEnumeration()->getEnumerateTerm(tn, 0);
   }
-  return d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn);
+  return d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
@@ -704,7 +706,7 @@ void Instantiate::debugPrint(std::ostream& out)
     for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
       Node name;
-      if (!d_qe->getNameForQuant(i.first, name, req))
+      if (!d_qreg.getNameForQuant(i.first, name, req))
       {
         continue;
       }

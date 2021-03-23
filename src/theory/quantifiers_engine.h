@@ -24,8 +24,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers/quantifiers_registry.h"
-#include "theory/quantifiers/term_registry.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -42,17 +40,18 @@ namespace inst {
 class TriggerTrie;
 }
 namespace quantifiers {
-class EqualityQueryQuantifiersEngine;
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
 class QuantifiersInferenceManager;
 class QuantifiersModules;
 class QuantifiersState;
+class QuantifiersRegistry;
 class Skolemize;
 class TermDb;
 class TermDbSygus;
 class TermEnumeration;
+class TermRegistry;
 }
 
 // TODO: organize this more/review this, github issue #1163
@@ -65,7 +64,10 @@ class QuantifiersEngine {
 
  public:
   QuantifiersEngine(quantifiers::QuantifiersState& qstate,
+                    quantifiers::QuantifiersRegistry& qr,
+                    quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
+                    quantifiers::FirstOrderModel* qm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
@@ -109,37 +111,6 @@ class QuantifiersEngine {
    */
   void finishInit(TheoryEngine* te, DecisionManager* dm);
   //---------------------- end private initialization
- public:
-  /** does variable v of quantified formula q have a finite bound? */
-  bool isFiniteBound(Node q, Node v) const;
-  /** get bound var type
-   *
-   * This returns the type of bound that was inferred for variable v of
-   * quantified formula q.
-   */
-  BoundVarType getBoundVarType(Node q, Node v) const;
-  /**
-   * Get the indices of bound variables, in the order they should be processed
-   * in a RepSetIterator.
-   *
-   * For details, see BoundedIntegers::getBoundVarIndices.
-   */
-  void getBoundVarIndices(Node q, std::vector<unsigned>& indices) const;
-  /**
-   * Get bound elements
-   *
-   * This gets the (finite) enumeration of the range of variable v of quantified
-   * formula q and adds it into the vector elements in the context of the
-   * iteration being performed by rsi. It returns true if it could successfully
-   * determine this range.
-   *
-   * For details, see BoundedIntegers::getBoundElements.
-   */
-  bool getBoundElements(RepSetIterator* rsi,
-                        bool initial,
-                        Node q,
-                        Node v,
-                        std::vector<Node>& elements) const;
 
  public:
   /** presolve */
@@ -176,17 +147,6 @@ public:
  /** mark relevant quantified formula, this will indicate it should be checked
   * before the others */
  void markRelevant(Node q);
- /** get internal representative
-  *
-  * Choose a term that is equivalent to a in the current context that is the
-  * best term for instantiating the index^th variable of quantified formula q.
-  * If no legal term can be found, we return null. This can occur if:
-  * - a's type is not a subtype of the type of the index^th variable of q,
-  * - a is in an equivalent class with all terms that are restricted not to
-  * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
-  * guided instantiation.
-  */
- Node getInternalRepresentative(Node a, Node q, int index);
  /**
   * Get quantifiers name, which returns a variable corresponding to the name of
   * quantified formula q if q has a name, or otherwise returns q itself.
@@ -270,21 +230,13 @@ public:
   std::vector<QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
   /** The quantifiers registry */
-  quantifiers::QuantifiersRegistry d_qreg;
+  quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
-  quantifiers::TermRegistry d_treg;
+  quantifiers::TermRegistry& d_treg;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
-  std::unique_ptr<quantifiers::FirstOrderModel> d_model;
-  /** model builder */
-  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** instantiate utility */
-  std::unique_ptr<quantifiers::Instantiate> d_instantiate;
-  /** skolemize utility */
-  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
+  quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.

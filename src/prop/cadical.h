@@ -22,6 +22,7 @@
 #ifdef CVC4_USE_CADICAL
 
 #include "prop/sat_solver.h"
+#include "util/stats_timer.h"
 
 #include <cadical.hpp>
 
