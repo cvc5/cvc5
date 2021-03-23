@@ -2353,7 +2353,6 @@ class Stat
   /** Whether this statistic is only meant for experts */
   bool d_expert;
   std::unique_ptr<StatData> d_data;
-  //std::variant<std::monostate, int64_t, double, std::string, HistogramData> d_data;
 };
 
 std::ostream& operator<<(std::ostream& os, const Stat& sv);
@@ -3724,6 +3723,8 @@ class CVC4_EXPORT Solver
  private:
   /** @return the node manager of this solver */
   NodeManager* getNodeManager(void) const;
+  /** Reset the api statistics */
+  void resetStatistics();
 
   /** Helper to check for API misuse in mkOp functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;

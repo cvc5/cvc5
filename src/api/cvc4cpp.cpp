@@ -4237,26 +4237,14 @@ Solver::Solver(Options* opts)
   d_smtEngine->setSolver(this);
   Options& o = d_smtEngine->getOptions();
   d_rng.reset(new Random(o[options::seed]));
-#if CVC4_STATISTICS_ON
-  d_stats.reset(new APIStatistics{
-    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
-    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
-    d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
-  });
-#endif
+  resetStatistics();
 }
 
 Solver::~Solver() {}
 
 void Solver::reset() {
   d_smtEngine->reset();
-#if CVC4_STATISTICS_ON
-  d_stats.reset(new APIStatistics{
-    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
-    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
-    d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
-  });
-#endif
+  resetStatistics();
 }
 
 /* Helpers and private functions                                              */
@@ -4680,6 +4668,16 @@ bool Solver::isValidInteger(const std::string& s) const
   }
 
   return true;
+}
+
+void Solver::resetStatistics() {
+#if CVC4_STATISTICS_ON
+  d_stats.reset(new APIStatistics{
+    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::CONSTANT"),
+    d_smtEngine->getStatisticsRegistry().registerHistogram<TypeConstant>("api::VARIABLE"),
+    d_smtEngine->getStatisticsRegistry().registerHistogram<Kind>("api::TERM"),
+  });
+#endif
 }
 
 /* Helpers for mkTerm checks.                                                 */
