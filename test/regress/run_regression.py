@@ -10,11 +10,6 @@
 ## directory for licensing information.
 ##
 """
-Usage:
-
-    run_regression.py [--dump] [--use-skip-return-code] [wrapper] cvc4-binary
-        [benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p]
-
 Runs benchmark and checks for correct exit status and output.
 """
 
