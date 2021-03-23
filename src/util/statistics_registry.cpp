@@ -20,11 +20,11 @@
 
 namespace CVC4 {
 
-StatisticsRegistry::StatisticsRegistry(bool register_public)
+StatisticsRegistry::StatisticsRegistry(bool registerPublic)
 {
-  if (register_public)
+  if (registerPublic)
   {
-    register_public_statistics(*this);
+    registerPublicStatistics(*this);
   }
 }
 

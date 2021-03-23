@@ -68,11 +68,11 @@ class StatisticsRegistry
   friend std::ostream& operator<<(std::ostream& os,
                                   const StatisticsRegistry& sr);
   /**
-   * If `preregister_public` is true, all statistics that are public are
+   * If `registerPublic` is true, all statistics that are public are
    * pre-registered as such. This argument mostly exists so that unit tests
    * can disable this pre-registration.
    */
-  StatisticsRegistry(bool register_public = true);
+  StatisticsRegistry(bool registerPublic = true);
 
   /** Register a new running average statistic for `name` */
 
@@ -95,7 +95,10 @@ class StatisticsRegistry
   {
     return registerStat<ReferenceStat<T>>(name, expert);
   }
-  /** Register a new reference statistic for `name` */
+  /**
+   * Register a new reference statistic for `name` and initialize it to
+   * refer to `t`.
+   */
   template <typename T>
   ReferenceStat<T> registerReference(const std::string& name,
                                      const T& t,
@@ -106,7 +109,10 @@ class StatisticsRegistry
     return res;
   }
 
-  /** Register a new container size statistic for `name` */
+  /**
+   * Register a new container size statistic for `name` and initialize it
+   * to refer to `t`.
+   */
   template <typename T>
   SizeStat<T> registerSize(const std::string& name,
                            const T& t,
@@ -120,7 +126,7 @@ class StatisticsRegistry
   /** Register a new timer statistic for `name` */
   TimerStat registerTimer(const std::string& name, bool expert = true);
 
-  /** Register a new value statistic for `name` */
+  /** Register a new value statistic for `name` and set it to `init`. */
   template <typename T>
   ValueStat<T> registerValue(const std::string& name,
                              const T& init,

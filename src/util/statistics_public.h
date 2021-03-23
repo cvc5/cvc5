@@ -26,7 +26,7 @@ class StatisticsRegistry;
 /**
  * Preregisters all public (non-expert) statistics.
  */
-void register_public_statistics(StatisticsRegistry& reg);
+void registerPublicStatistics(StatisticsRegistry& reg);
 
 }  // namespace CVC4
 
