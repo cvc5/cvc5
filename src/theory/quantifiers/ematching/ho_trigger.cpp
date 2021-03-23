@@ -236,7 +236,6 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
     d_lchildren.clear();
     d_arg_to_arg_rep.clear();
     d_arg_vector.clear();
-    QuantifiersState& qs = d_quantEngine->getState();
     for (std::pair<const TNode, std::vector<Node> >& ha : ho_var_apps_subs)
     {
       TNode var = ha.first;
@@ -288,9 +287,9 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
           }
           else if (!itf->second.isNull())
           {
-            if (!qs.areEqual(itf->second, args[k]))
+            if (!d_qstate.areEqual(itf->second, args[k]))
             {
-              if (!d_quantEngine->getTermDatabase()->isEntailed(
+              if (!d_treg.getTermDatabase()->isEntailed(
                       itf->second.eqNode(args[k]), true))
               {
                 fixed_vals[k] = Node::null();
@@ -323,7 +322,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
         {
           if (!itf->second.isNull())
           {
-            Node r = qs.getRepresentative(itf->second);
+            Node r = d_qstate.getRepresentative(itf->second);
             std::map<Node, unsigned>::iterator itfr = arg_to_rep.find(r);
             if (itfr != arg_to_rep.end())
             {
@@ -375,7 +374,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
   else
   {
     // do not run higher-order matching
-    return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m, id);
+    return d_qim.getInstantiate()->addInstantiation(d_quant, m, id);
   }
 }
 
@@ -389,7 +388,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m,
   if (var_index == d_ho_var_list.size())
   {
     // we now have an instantiation to try
-    return d_quantEngine->getInstantiate()->addInstantiation(
+    return d_qim.getInstantiate()->addInstantiation(
         d_quant, m, InferenceId::QUANTIFIERS_INST_E_MATCHING_HO);
   }
   else
@@ -476,7 +475,7 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
   Trace("ho-quant-trigger") << "addHoTypeMatchPredicateLemmas..." << std::endl;
   uint64_t numLemmas = 0;
   // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
-  TermDb* tdb = d_quantEngine->getTermDatabase();
+  TermDb* tdb = d_treg.getTermDatabase();
   unsigned size = tdb->getNumOperators();
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < size; j++)

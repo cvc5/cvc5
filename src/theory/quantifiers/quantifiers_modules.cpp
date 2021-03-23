@@ -68,7 +68,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   {
     d_i_cbqi.reset(new InstStrategyCegqi(qe, qs, qim, qr));
     modules.push_back(d_i_cbqi.get());
-    qe->getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
+    qim.getInstantiate()->addRewriter(d_i_cbqi->getInstRewriter());
   }
   if (options::sygus())
   {

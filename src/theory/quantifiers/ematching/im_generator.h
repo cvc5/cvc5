@@ -48,7 +48,7 @@ class Trigger;
 * Some functions below take a pointer to a parent Trigger object, which is used
 * to post-process and finalize the instantiations through
 * sendInstantiation(...), where the parent trigger will make calls to
-* qe->getInstantiate()->addInstantiation(...). The latter function is the entry
+* Instantiate::addInstantiation(...). The latter function is the entry
 * point in which instantiate lemmas are enqueued to be sent on the output
 * channel.
 */
