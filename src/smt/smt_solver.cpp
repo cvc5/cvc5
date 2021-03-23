@@ -228,7 +228,7 @@ void SmtSolver::processAssertions(Assertions& as)
   }
 
   // process the assertions with the preprocessor
-  bool noConflict = d_pp.process(as);
+  d_pp.process(as);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
