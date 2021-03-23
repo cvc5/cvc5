@@ -1423,7 +1423,7 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
   {
     d_solver.assertFormula(t);
   }
-  Result res = d_solver.checkSat();
+  CVC4::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
 }
 
