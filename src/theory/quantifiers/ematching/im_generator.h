@@ -29,6 +29,7 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 class QuantifiersState;
+class TermRegistry;
 }  // namespace quantifiers
 
 namespace inst {
@@ -110,8 +111,10 @@ protected:
  bool sendInstantiation(InstMatch& m, InferenceId id);
  /** The parent trigger that owns this */
  Trigger* d_tparent;
- /** The state of the quantifiers engine */
+ /** Reference to the state of the quantifiers engine */
  quantifiers::QuantifiersState& d_qstate;
+ /** Reference to the term registry */
+ quantifiers::TermRegistry& d_treg;
  // !!!!!!!!! temporarily available (project #15)
  QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */

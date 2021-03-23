@@ -45,9 +45,10 @@ Trigger::Trigger(QuantifiersEngine* qe,
                  quantifiers::QuantifiersState& qs,
                  quantifiers::QuantifiersInferenceManager& qim,
                  quantifiers::QuantifiersRegistry& qr,
+                 quantifiers::TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
-    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr), d_quant(q)
+    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q)
 {
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.
@@ -245,6 +246,8 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
                             quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim,
                             quantifiers::QuantifiersRegistry& qr,
+                            
+          quantifiers::TermRegistry& tr,
                             Node f,
                             std::vector<Node>& nodes,
                             bool keepAll,
@@ -285,11 +288,11 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
   Trigger* t;
   if (!ho_apps.empty())
   {
-    t = new HigherOrderTrigger(qe, qs, qim, qr, f, trNodes, ho_apps);
+    t = new HigherOrderTrigger(qe, qs, qim, qr, tr, f, trNodes, ho_apps);
   }
   else
   {
-    t = new Trigger(qe, qs, qim, qr, f, trNodes);
+    t = new Trigger(qe, qs, qim, qr, tr, f, trNodes);
   }
 
   qe->getTriggerDatabase()->addTrigger( trNodes, t );
@@ -300,6 +303,7 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
                             quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim,
                             quantifiers::QuantifiersRegistry& qr,
+          quantifiers::TermRegistry& tr,
                             Node f,
                             Node n,
                             bool keepAll,

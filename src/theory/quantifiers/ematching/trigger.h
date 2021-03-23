@@ -165,6 +165,7 @@ class Trigger {
                             quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim,
                             quantifiers::QuantifiersRegistry& qr,
+                            quantifiers::TermRegistry& tr,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -175,6 +176,7 @@ class Trigger {
                             quantifiers::QuantifiersState& qs,
                             quantifiers::QuantifiersInferenceManager& qim,
                             quantifiers::QuantifiersRegistry& qr,
+                            quantifiers::TermRegistry& tr,
                             Node q,
                             Node n,
                             bool keepAll = true,
@@ -200,6 +202,7 @@ class Trigger {
           quantifiers::QuantifiersState& qs,
           quantifiers::QuantifiersInferenceManager& qim,
           quantifiers::QuantifiersRegistry& qr,
+          quantifiers::TermRegistry& tr,
           Node q,
           std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
@@ -255,6 +258,8 @@ class Trigger {
   quantifiers::QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  quantifiers::TermRegistry& d_treg;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** match generator

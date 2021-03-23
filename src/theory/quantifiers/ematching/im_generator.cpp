@@ -23,7 +23,7 @@ namespace theory {
 namespace inst {
 
 IMGenerator::IMGenerator(Trigger* tparent)
-    : d_tparent(tparent), d_qstate(tparent->d_qstate)
+    : d_tparent(tparent), d_qstate(tparent->d_qstate), d_treg(tparent->d_treg)
 {
 }
 
