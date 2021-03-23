@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
 #include "context/cdhashmap_forward.h"
 #include "cvc4_export.h"
 #include "options/options.h"
@@ -825,9 +824,6 @@ class CVC4_EXPORT SmtEngine
 
   /** Permit access to the underlying NodeManager. */
   NodeManager* getNodeManager() const;
-
-  /** Export statistics from this SmtEngine. */
-  api::Statistics getStatistics() const;
 
   /** Get the value of one named statistic from this SmtEngine. */
   SExpr getStatistic(std::string name) const;

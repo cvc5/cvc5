@@ -1884,11 +1884,6 @@ NodeManager* SmtEngine::getNodeManager() const
   return d_env->getNodeManager();
 }
 
-api::Statistics SmtEngine::getStatistics() const
-{
-  return api::Statistics(d_env->getStatisticsRegistry());
-}
-
 SExpr SmtEngine::getStatistic(std::string name) const
 {
   const auto* val = d_env->getStatisticsRegistry().get(name);
