@@ -19,7 +19,7 @@
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
-using namespace CVC4::theory::inst;
+using namespace CVC4::theory::quantifiers::inst;
 
 namespace CVC4 {
 namespace theory {
@@ -29,15 +29,16 @@ InstStrategyUserPatterns::InstStrategyUserPatterns(
     QuantifiersEngine* ie,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
-    QuantifiersRegistry& qr)
-    : InstStrategy(ie, qs, qim, qr)
+    QuantifiersRegistry& qr,
+    TermRegistry& tr)
+    : InstStrategy(ie, qs, qim, qr, tr)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
 
 size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
 {
-  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it =
+  std::map<Node, std::vector<Trigger*> >::const_iterator it =
       d_user_gen.find(q);
   if (it == d_user_gen.end())
   {
@@ -46,10 +47,10 @@ size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
   return it->second.size();
 }
 
-inst::Trigger* InstStrategyUserPatterns::getUserGenerator(Node q,
+Trigger* InstStrategyUserPatterns::getUserGenerator(Node q,
                                                           size_t i) const
 {
-  std::map<Node, std::vector<inst::Trigger*> >::const_iterator it =
+  std::map<Node, std::vector<Trigger*> >::const_iterator it =
       d_user_gen.find(q);
   if (it == d_user_gen.end())
   {
@@ -111,6 +112,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
                                       d_qstate,
                                       d_qim,
                                       d_qreg,
+                                      d_treg,
                                       q,
                                       ugw[i],
                                       true,
@@ -123,7 +125,7 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     ugw.clear();
   }
 
-  std::vector<inst::Trigger*>& ug = d_user_gen[q];
+  std::vector<Trigger*>& ug = d_user_gen[q];
   for (Trigger* t : ug)
   {
     if (Trace.isOn("process-trigger"))

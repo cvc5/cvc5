@@ -53,7 +53,6 @@ class InstStrategy
                QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr,
-
                TermRegistry& tr);
   virtual ~InstStrategy();
   /** presolve */

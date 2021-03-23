@@ -37,7 +37,8 @@ class InstStrategyUserPatterns : public InstStrategy
   InstStrategyUserPatterns(QuantifiersEngine* qe,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
-                           QuantifiersRegistry& qr);
+                           QuantifiersRegistry& qr,
+    TermRegistry& tr);
   ~InstStrategyUserPatterns();
   /** add pattern */
   void addUserPattern(Node q, Node pat);
