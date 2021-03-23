@@ -58,8 +58,7 @@ class CandidateRewriteDatabase : public ExprMiner
                            bool filterPairs = true);
   ~CandidateRewriteDatabase() {}
   /**  Initialize this class */
-  void initialize(const std::vector<Node>& var,
-                  SygusSampler* ss = nullptr) override;
+  void initialize(const std::vector<Node>& var, SygusSampler* ss) override;
   /**  Initialize this class
    *
    * Serves the same purpose as the above function, but we will be using
@@ -75,7 +74,7 @@ class CandidateRewriteDatabase : public ExprMiner
   void initializeSygus(const std::vector<Node>& vars,
                        QuantifiersEngine* qe,
                        Node f,
-                       SygusSampler* ss = nullptr);
+                       SygusSampler* ss);
   /** add term
    *
    * Notifies this class that the solution sol was enumerated. This may
