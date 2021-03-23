@@ -1,6 +1,5 @@
 ; COMMAND-LINE: --bitblast=eager --no-check-models  --no-check-unsat-cores
 ; REQUIRES: cryptominisat
-; REQUIRES: drat2er
 ; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --no-check-unsat-cores
 ; EXPECT: unsat
 (set-logic QF_UFBV)
