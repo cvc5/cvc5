@@ -15,7 +15,6 @@
 
 #include "theory/smt_engine_subsolver.h"
 
-#include "api/cvc4cpp.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
