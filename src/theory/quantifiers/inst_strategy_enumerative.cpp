@@ -28,10 +28,9 @@ using namespace kind;
 using namespace context;
 
 namespace theory {
+namespace quantifiers {
 
 using namespace inst;
-
-namespace quantifiers {
 
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
                                    QuantifiersState& qs,

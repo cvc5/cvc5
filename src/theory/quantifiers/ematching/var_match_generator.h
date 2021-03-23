@@ -22,6 +22,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** match generator for purified terms
@@ -50,6 +51,7 @@ class VarMatchGeneratorTermSubs : public InstMatchGenerator
 };
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
 

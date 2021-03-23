@@ -23,8 +23,9 @@ namespace quantifiers {
 InstStrategy::InstStrategy(QuantifiersEngine* qe,
                            QuantifiersState& qs,
                            QuantifiersInferenceManager& qim,
-                           QuantifiersRegistry& qr)
-    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr)
+                           QuantifiersRegistry& qr,
+                           TermRegistry& tr)
+    : d_quantEngine(qe), d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
 {
 }
 InstStrategy::~InstStrategy() {}

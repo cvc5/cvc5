@@ -45,13 +45,11 @@ Instantiate::Instantiate(QuantifiersState& qs,
                          QuantifiersInferenceManager& qim,
                          QuantifiersRegistry& qr,
                          TermRegistry& tr,
-                         FirstOrderModel* m,
                          ProofNodeManager* pnm)
     : d_qstate(qs),
       d_qim(qim),
       d_qreg(qr),
       d_treg(tr),
-      d_model(m),
       d_pnm(pnm),
       d_total_inst_debug(qs.getUserContext()),
       d_c_inst_match_trie_dom(qs.getUserContext()),
@@ -61,7 +59,7 @@ Instantiate::Instantiate(QuantifiersState& qs,
 
 Instantiate::~Instantiate()
 {
-  for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+  for (std::pair<const Node, CDInstMatchTrie*>& t : d_c_inst_match_trie)
   {
     delete t.second;
   }
@@ -121,7 +119,7 @@ bool Instantiate::addInstantiation(Node q,
     TypeNode tn = q[0][i].getType();
     if (terms[i].isNull())
     {
-      terms[i] = getTermForType(tn);
+      terms[i] = d_treg.getTermForType(tn);
     }
     // Ensure the type is correct, this for instance ensures that real terms
     // are cast to integers for { x -> t } where x has type Int and t has
@@ -131,7 +129,7 @@ bool Instantiate::addInstantiation(Node q,
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
-      terms[i] = d_model->getInternalRepresentative(terms[i], q, i);
+      terms[i] = d_treg.getModel()->getInternalRepresentative(terms[i], q, i);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())
@@ -496,8 +494,7 @@ bool Instantiate::existsInstantiation(Node q,
 {
   if (options::incrementalSolving())
   {
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       return it->second->existsInstMatch(d_qstate, q, terms, modEq);
@@ -505,8 +502,7 @@ bool Instantiate::existsInstantiation(Node q,
   }
   else
   {
-    std::map<Node, inst::InstMatchTrie>::iterator it =
-        d_inst_match_trie.find(q);
+    std::map<Node, InstMatchTrie>::iterator it = d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
       return it->second.existsInstMatch(d_qstate, q, terms, modEq);
@@ -579,16 +575,15 @@ bool Instantiate::recordInstantiationInternal(Node q,
     Trace("inst-add-debug")
         << "Adding into context-dependent inst trie, modEq = " << modEq
         << std::endl;
-    inst::CDInstMatchTrie* imt;
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    CDInstMatchTrie* imt;
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       imt = it->second;
     }
     else
     {
-      imt = new inst::CDInstMatchTrie(d_qstate.getUserContext());
+      imt = new CDInstMatchTrie(d_qstate.getUserContext());
       d_c_inst_match_trie[q] = imt;
     }
     d_c_inst_match_trie_dom.insert(q);
@@ -602,8 +597,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
 {
   if (options::incrementalSolving())
   {
-    std::map<Node, inst::CDInstMatchTrie*>::iterator it =
-        d_c_inst_match_trie.find(q);
+    std::map<Node, CDInstMatchTrie*>::iterator it = d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
       return it->second->removeInstMatch(q, terms);
@@ -611,15 +605,6 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
     return false;
   }
   return d_inst_match_trie[q].removeInstMatch(q, terms);
-}
-
-Node Instantiate::getTermForType(TypeNode tn)
-{
-  if (tn.isClosedEnumerable())
-  {
-    return d_treg.getTermEnumeration()->getEnumerateTerm(tn, 0);
-  }
-  return d_treg.getTermDatabase()->getOrMakeTypeGroundTerm(tn);
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
@@ -636,7 +621,7 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
   }
   else
   {
-    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    for (std::pair<const Node, InstMatchTrie>& t : d_inst_match_trie)
     {
       qs.push_back(t.first);
     }
@@ -649,7 +634,7 @@ void Instantiate::getInstantiationTermVectors(
 
   if (options::incrementalSolving())
   {
-    std::map<Node, inst::CDInstMatchTrie*>::const_iterator it =
+    std::map<Node, CDInstMatchTrie*>::const_iterator it =
         d_c_inst_match_trie.find(q);
     if (it != d_c_inst_match_trie.end())
     {
@@ -658,7 +643,7 @@ void Instantiate::getInstantiationTermVectors(
   }
   else
   {
-    std::map<Node, inst::InstMatchTrie>::const_iterator it =
+    std::map<Node, InstMatchTrie>::const_iterator it =
         d_inst_match_trie.find(q);
     if (it != d_inst_match_trie.end())
     {
