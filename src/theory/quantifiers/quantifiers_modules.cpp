@@ -60,7 +60,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
   if (!options::finiteModelFind() || options::fmfInstEngine())
   {
-    d_inst_engine.reset(new InstantiationEngine(qe, qs, qim, qr));
+    d_inst_engine.reset(new InstantiationEngine(qe, qs, qim, qr, tr));
     modules.push_back(d_inst_engine.get());
   }
   if (options::cegqi())

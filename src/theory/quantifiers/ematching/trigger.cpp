@@ -251,7 +251,6 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
                             QuantifiersState& qs,
                             QuantifiersInferenceManager& qim,
                             QuantifiersRegistry& qr,
-
                             TermRegistry& tr,
                             Node f,
                             std::vector<Node>& nodes,
@@ -317,7 +316,7 @@ Trigger* Trigger::mkTrigger(QuantifiersEngine* qe,
 {
   std::vector< Node > nodes;
   nodes.push_back( n );
-  return mkTrigger(qe, qs, qim, qr, f, nodes, keepAll, trOption, useNVars);
+  return mkTrigger(qe, qs, qim, qr, tr, f, nodes, keepAll, trOption, useNVars);
 }
 
 int Trigger::getActiveScore() { return d_mg->getActiveScore(); }

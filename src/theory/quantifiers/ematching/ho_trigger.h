@@ -97,7 +97,6 @@ class HigherOrderTrigger : public Trigger
                      quantifiers::QuantifiersState& qs,
                      quantifiers::QuantifiersInferenceManager& qim,
                      quantifiers::QuantifiersRegistry& qr,
-
                      quantifiers::TermRegistry& tr,
                      Node q,
                      std::vector<Node>& nodes,

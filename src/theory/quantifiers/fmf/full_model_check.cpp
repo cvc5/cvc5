@@ -28,14 +28,13 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace CVC4::theory::inst;
-using namespace CVC4::theory::quantifiers::fmcheck;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+namespace fmcheck {
 
 struct ModelBasisArgSort
 {
@@ -1369,4 +1368,9 @@ void FullModelChecker::registerQuantifiedFormula(Node q)
 bool FullModelChecker::isHandled(Node q) const
 {
   return d_unhandledQuant.find(q) == d_unhandledQuant.end();
+}
+
+}
+}
+}
 }
