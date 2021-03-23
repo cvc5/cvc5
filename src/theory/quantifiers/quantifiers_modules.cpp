@@ -87,7 +87,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     Trace("quant-init-debug")
         << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
         << options::fmfBound() << std::endl;
-    if (useFmcModel())
+    if (tr.useFmcModel())
     {
       Trace("quant-init-debug") << "...make fmc builder." << std::endl;
       d_builder.reset(new fmcheck::FullModelChecker(qs, qr));
@@ -122,13 +122,6 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     d_sygus_inst.reset(new SygusInst(qe, qs, qim, qr));
     modules.push_back(d_sygus_inst.get());
   }
-}
-
-bool QuantifiersModules::useFmcModel()
-{
-  return options::mbqiMode() == options::MbqiMode::FMC
-         || options::mbqiMode() == options::MbqiMode::TRUST
-         || options::fmfBound();
 }
 
 }  // namespace quantifiers

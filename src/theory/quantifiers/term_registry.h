@@ -29,6 +29,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class FirstOrderModel;
+
 /**
  * Term Registry, which manages notifying modules within quantifiers about
  * (ground) terms that exist in the current context.
@@ -66,6 +68,9 @@ class TermRegistry
    */
   Node getTermForType(TypeNode tn);
 
+  /** Whether we use the full model check builder and corresponding model */
+  bool useFmcModel() const;
+
   /** get term database */
   TermDb* getTermDatabase() const;
   /** get term database sygus */
@@ -78,6 +83,8 @@ class TermRegistry
  private:
   /** has presolve been called */
   context::CDO<bool> d_presolve;
+  /** Whether we are using the fmc model */
+  bool d_useFmcModel;
   /** the set of terms we have seen before presolve */
   NodeSet d_presolveCache;
   /** term enumeration utility */
