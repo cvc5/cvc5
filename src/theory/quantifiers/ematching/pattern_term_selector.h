@@ -25,6 +25,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /**
@@ -189,6 +190,7 @@ class PatternTermSelector
 };
 
 }  // namespace inst
+}
 }  // namespace theory
 }  // namespace CVC4
 

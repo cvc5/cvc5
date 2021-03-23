@@ -36,10 +36,12 @@ class DecisionManager;
 class QuantifiersModule;
 class RepSetIterator;
 
+namespace quantifiers {
+
 namespace inst {
 class TriggerTrie;
 }
-namespace quantifiers {
+
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -95,7 +97,7 @@ class QuantifiersEngine {
   /** get skolemize utility */
   quantifiers::Skolemize* getSkolemize() const;
   /** get trigger database */
-  inst::TriggerTrie* getTriggerDatabase() const;
+  quantifiers::inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization

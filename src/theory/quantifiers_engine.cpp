@@ -144,7 +144,7 @@ quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
 {
   return d_qim.getSkolemize();
 }
-inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
+quantifiers::inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
 }

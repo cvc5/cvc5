@@ -23,6 +23,10 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
+
+class QuantifiersState;
+class TermRegistry;
+
 namespace inst {
 
 /** Candidate generator

@@ -112,6 +112,8 @@ protected:
  Trigger* d_tparent;
  /** Reference to the state of the quantifiers engine */
  QuantifiersState& d_qstate;
+ /** Reference to the term registry */
+ TermRegistry& d_treg;
  // !!!!!!!!! temporarily available (project #15)
  QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */
