@@ -195,7 +195,7 @@ private:
 
   bool initialProcessSignals(){
     TimerStat &timer = d_statistics.d_initialSignalsTime;
-    IntStats& conflictStat  = d_statistics.d_initialConflicts;
+    IntStat& conflictStat  = d_statistics.d_initialConflicts;
     return standardProcessSignals(timer, conflictStat);
   }
 
@@ -218,15 +218,15 @@ private:
   class Statistics {
   public:
     TimerStat d_initialSignalsTime;
-    IntStats d_initialConflicts;
+    IntStat d_initialConflicts;
 
-    IntStats d_soiFoundUnsat;
-    IntStats d_soiFoundSat;
-    IntStats d_soiMissed;
+    IntStat d_soiFoundUnsat;
+    IntStat d_soiFoundSat;
+    IntStat d_soiMissed;
 
-    IntStats d_soiConflicts;
-    IntStats d_hasToBeMinimal;
-    IntStats d_maybeNotMinimal;
+    IntStat d_soiConflicts;
+    IntStat d_hasToBeMinimal;
+    IntStat d_maybeNotMinimal;
 
     TimerStat d_soiTimer;
     TimerStat d_soiFocusConstructionTimer;

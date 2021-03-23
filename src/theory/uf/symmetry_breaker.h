@@ -135,12 +135,12 @@ private:
   /** number of new clauses that come from the SymmetryBreaker */
   struct Statistics {
     /** number of new clauses that come from the SymmetryBreaker */
-    IntStats d_clauses;
-    IntStats d_units;
+    IntStat d_clauses;
+    IntStat d_units;
     /** number of potential permutation sets we found */
-    IntStats d_permutationSetsConsidered;
+    IntStat d_permutationSetsConsidered;
     /** number of invariant permutation sets we found */
-    IntStats d_permutationSetsInvariant;
+    IntStat d_permutationSetsInvariant;
     /** time spent in invariantByPermutations() */
     TimerStat d_invariantByPermutationsTimer;
     /** time spent in selectTerms() */

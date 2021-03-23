@@ -45,7 +45,7 @@ class MipLibTrick : public PreprocessingPass, public NodeManagerListener
   struct Statistics
   {
     /** number of assertions removed by miplib pass */
-    IntStats d_numMiplibAssertionsRemoved;
+    IntStat d_numMiplibAssertionsRemoved;
     Statistics();
   };
 

@@ -404,11 +404,11 @@ public:
   class Statistics {
   public:
 
-    IntStats d_conflictCalls;
-    IntStats d_cutCalls;
+    IntStat d_conflictCalls;
+    IntStat d_cutCalls;
 
-    IntStats d_cuts;
-    IntStats d_conflicts;
+    IntStat d_cuts;
+    IntStat d_conflicts;
 
     TimerStat d_conflictTimer;
     TimerStat d_cutTimer;

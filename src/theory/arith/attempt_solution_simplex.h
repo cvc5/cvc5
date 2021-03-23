@@ -75,7 +75,7 @@ public:
 
   bool processSignals(){
     TimerStat &timer = d_statistics.d_queueTime;
-    IntStats& conflictStat  = d_statistics.d_conflicts;
+    IntStat& conflictStat  = d_statistics.d_conflicts;
     return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
@@ -83,7 +83,7 @@ public:
   public:
     TimerStat d_searchTime;
     TimerStat d_queueTime;
-    IntStats d_conflicts;
+    IntStat d_conflicts;
 
     Statistics();
   } d_statistics;

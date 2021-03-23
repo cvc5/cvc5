@@ -70,26 +70,26 @@ bool WallClockTimer::expired() const
 struct ResourceManager::Statistics
 {
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
-  IntStats d_spendResourceCalls;
-  IntStats d_numArithPivotStep;
-  IntStats d_numArithNlLemmaStep;
-  IntStats d_numBitblastStep;
-  IntStats d_numBvEagerAssertStep;
-  IntStats d_numBvPropagationStep;
-  IntStats d_numBvSatConflictsStep;
-  IntStats d_numBvSatPropagateStep;
-  IntStats d_numBvSatSimplifyStep;
-  IntStats d_numCnfStep;
-  IntStats d_numDecisionStep;
-  IntStats d_numLemmaStep;
-  IntStats d_numNewSkolemStep;
-  IntStats d_numParseStep;
-  IntStats d_numPreprocessStep;
-  IntStats d_numQuantifierStep;
-  IntStats d_numRestartStep;
-  IntStats d_numRewriteStep;
-  IntStats d_numSatConflictStep;
-  IntStats d_numTheoryCheckStep;
+  IntStat d_spendResourceCalls;
+  IntStat d_numArithPivotStep;
+  IntStat d_numArithNlLemmaStep;
+  IntStat d_numBitblastStep;
+  IntStat d_numBvEagerAssertStep;
+  IntStat d_numBvPropagationStep;
+  IntStat d_numBvSatConflictsStep;
+  IntStat d_numBvSatPropagateStep;
+  IntStat d_numBvSatSimplifyStep;
+  IntStat d_numCnfStep;
+  IntStat d_numDecisionStep;
+  IntStat d_numLemmaStep;
+  IntStat d_numNewSkolemStep;
+  IntStat d_numParseStep;
+  IntStat d_numPreprocessStep;
+  IntStat d_numQuantifierStep;
+  IntStat d_numRestartStep;
+  IntStat d_numRewriteStep;
+  IntStat d_numSatConflictStep;
+  IntStat d_numTheoryCheckStep;
   Statistics(StatisticsRegistry& stats);
 };
 

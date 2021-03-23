@@ -47,7 +47,7 @@ class AbstractionModule {
 
   struct Statistics {
     SizeStat<NodeNodeMap> d_numFunctionsAbstracted;
-    IntStats d_numArgsSkolemized;
+    IntStat d_numArgsSkolemized;
     TimerStat d_abstractionTime;
     Statistics(const std::string& name, const NodeNodeMap& functionsAbstracted);
   };

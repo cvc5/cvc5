@@ -39,8 +39,8 @@ class BitblastSolver : public SubtheorySolver
 {
   struct Statistics
   {
-    IntStats d_numCallstoCheck;
-    IntStats d_numBBLemmas;
+    IntStat d_numCallstoCheck;
+    IntStat d_numBBLemmas;
     Statistics();
   };
   /** Bitblaster */

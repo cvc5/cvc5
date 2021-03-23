@@ -253,7 +253,7 @@ class ValueStat
  public:
   /** Allow access to private constructor */
   friend class StatisticsRegistry;
-  friend class IntStats;
+  friend class IntStat;
   /** Value stored for this statistic */
   using stat_type = StatisticBackedValue<T>;
   /** Set to `t` */
@@ -296,7 +296,7 @@ class ValueStat
  * post-increment, addition assignment) and some custom ones (maximum
  * assignment, minimum assignment).
  */
-class IntStats : public ValueStat<int64_t>
+class IntStat : public ValueStat<int64_t>
 {
  public:
   /** Allow access to private constructor */
@@ -304,20 +304,20 @@ class IntStats : public ValueStat<int64_t>
   /** Value stored for this statistic */
   using stat_type = StatisticBackedValue<int64_t>;
   /** Set to given value */
-  IntStats& operator=(int64_t val);
+  IntStat& operator=(int64_t val);
   /** Pre-increment for the integer */
-  IntStats& operator++();
+  IntStat& operator++();
   /** Post-increment for the integer */
-  IntStats& operator++(int);
+  IntStat& operator++(int);
   /** Add `val` to the integer */
-  IntStats& operator+=(int64_t val);
+  IntStat& operator+=(int64_t val);
   /** Assign the maximum of the current value and `val` */
   void maxAssign(int64_t val);
   /** Assign the minimum of the current value and `val` */
   void minAssign(int64_t val);
 
  private:
-  IntStats(stat_type* data) : ValueStat(data) {}
+  IntStat(stat_type* data) : ValueStat(data) {}
 };
 
 }  // namespace CVC4

@@ -35,9 +35,9 @@ class NlStats
    * Number of calls to NonlinearExtension::modelBasedRefinement. Notice this
    * may make multiple calls to NonlinearExtension::checkLastCall.
    */
-  IntStats d_mbrRuns;
+  IntStat d_mbrRuns;
   /** Number of calls to NonlinearExtension::checkLastCall */
-  IntStats d_checkRuns;
+  IntStat d_checkRuns;
 };
 
 }  // namespace nl

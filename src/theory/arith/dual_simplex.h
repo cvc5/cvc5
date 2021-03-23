@@ -92,16 +92,16 @@ private:
 
   bool processSignals(){
     TimerStat &timer = d_statistics.d_processSignalsTime;
-    IntStats& conflictStat  = d_statistics.d_recentViolationCatches;
+    IntStat& conflictStat  = d_statistics.d_recentViolationCatches;
     return standardProcessSignals(timer, conflictStat);
   }
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    IntStats d_statUpdateConflicts;
+    IntStat d_statUpdateConflicts;
     TimerStat d_processSignalsTime;
-    IntStats d_simplexConflicts;
-    IntStats d_recentViolationCatches;
+    IntStat d_simplexConflicts;
+    IntStat d_recentViolationCatches;
     TimerStat d_searchTime;
 
     ReferenceStat<uint32_t> d_finalCheckPivotCounter;

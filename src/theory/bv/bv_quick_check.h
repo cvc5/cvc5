@@ -114,11 +114,11 @@ class QuickXPlain
   struct Statistics
   {
     TimerStat d_xplainTime;
-    IntStats d_numSolved;
-    IntStats d_numUnknown;
-    IntStats d_numUnknownWasUnsat;
-    IntStats d_numConflictsMinimized;
-    IntStats d_finalPeriod;
+    IntStat d_numSolved;
+    IntStat d_numUnknown;
+    IntStat d_numUnknownWasUnsat;
+    IntStat d_numConflictsMinimized;
+    IntStat d_finalPeriod;
     AverageStat d_avgMinimizationRatio;
     Statistics(const std::string& name);
   };

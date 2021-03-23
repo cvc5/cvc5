@@ -43,7 +43,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
 
  private:
   /** Some statistics */
-  IntStats d_statSharedTerms;
+  IntStat d_statSharedTerms;
 
   // Needs to be a map from Nodes as after a backtrack they might not exist
   typedef std::unordered_map<Node, shared_terms_list, TNodeHashFunction> SharedTermsMap;

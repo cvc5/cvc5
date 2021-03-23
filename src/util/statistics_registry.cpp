@@ -33,9 +33,9 @@ AverageStat StatisticsRegistry::registerAverage(const std::string& name,
 {
   return registerStat<AverageStat>(name, expert);
 }
-IntStats StatisticsRegistry::registerInt(const std::string& name, bool expert)
+IntStat StatisticsRegistry::registerInt(const std::string& name, bool expert)
 {
-  return registerStat<IntStats>(name, expert);
+  return registerStat<IntStat>(name, expert);
 }
 TimerStat StatisticsRegistry::registerTimer(const std::string& name,
                                             bool expert)

@@ -279,15 +279,15 @@ private:
  private:
   class Statistics {
   public:
-    IntStats d_watchedVariables;
-    IntStats d_watchedVariableIsZero;
-    IntStats d_watchedVariableIsNotZero;
+    IntStat d_watchedVariables;
+    IntStat d_watchedVariableIsZero;
+    IntStat d_watchedVariableIsNotZero;
 
-    IntStats d_equalsConstantCalls;
+    IntStat d_equalsConstantCalls;
 
-    IntStats d_propagations;
-    IntStats d_propagateConstraints;
-    IntStats d_conflicts;
+    IntStat d_propagations;
+    IntStat d_propagateConstraints;
+    IntStat d_conflicts;
 
     Statistics();
   } d_statistics;

@@ -47,7 +47,7 @@ class InequalitySolver : public SubtheorySolver
 {
   struct Statistics
   {
-    IntStats d_numCallstoCheck;
+    IntStat d_numCallstoCheck;
     TimerStat d_solveTime;
     Statistics();
   };

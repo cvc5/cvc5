@@ -94,8 +94,8 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   class Statistics
   {
    public:
-    IntStats d_numClauses;
-    IntStats d_numVariables;
+    IntStat d_numClauses;
+    IntStat d_numVariables;
     TimerStat d_simplificationTime;
     TimerStat d_cnfConversionTime;
     TimerStat d_solveTime;

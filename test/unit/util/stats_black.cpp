@@ -61,7 +61,7 @@ TEST_F(TestUtilBlackStats, stats)
   HistogramStat<PfRule> histPfRule = reg.registerHistogram<PfRule>("hist-pfrule");
   histPfRule << PfRule::ASSUME << PfRule::SCOPE << PfRule::ASSUME;
 
-  IntStats intstat = reg.registerInt("int");
+  IntStat intstat = reg.registerInt("int");
   intstat = 5;
   intstat++;
 

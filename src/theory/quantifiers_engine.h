@@ -203,13 +203,13 @@ public:
     TimerStat d_time;
     TimerStat d_qcf_time;
     TimerStat d_ematching_time;
-    IntStats d_num_quant;
-    IntStats d_instantiation_rounds;
-    IntStats d_instantiation_rounds_lc;
-    IntStats d_triggers;
-    IntStats d_simple_triggers;
-    IntStats d_multi_triggers;
-    IntStats d_red_alpha_equiv;
+    IntStat d_num_quant;
+    IntStat d_instantiation_rounds;
+    IntStat d_instantiation_rounds_lc;
+    IntStat d_triggers;
+    IntStat d_simple_triggers;
+    IntStat d_multi_triggers;
+    IntStat d_red_alpha_equiv;
     Statistics();
   };/* class QuantifiersEngine::Statistics */
   Statistics d_statistics;

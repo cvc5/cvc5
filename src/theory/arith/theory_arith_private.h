@@ -779,11 +779,11 @@ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    IntStats d_statAssertUpperConflicts, d_statAssertLowerConflicts;
+    IntStat d_statAssertUpperConflicts, d_statAssertLowerConflicts;
 
-    IntStats d_statUserVariables, d_statAuxiliaryVariables;
-    IntStats d_statDisequalitySplits;
-    IntStats d_statDisequalityConflicts;
+    IntStat d_statUserVariables, d_statAuxiliaryVariables;
+    IntStat d_statDisequalitySplits;
+    IntStat d_statDisequalityConflicts;
     TimerStat d_simplifyTimer;
     TimerStat d_staticLearningTimer;
 
@@ -791,25 +791,25 @@ private:
 
     TimerStat d_newPropTime;
 
-    IntStats d_externalBranchAndBounds;
+    IntStat d_externalBranchAndBounds;
 
-    IntStats d_initialTableauSize;
-    IntStats d_currSetToSmaller;
-    IntStats d_smallerSetToCurr;
+    IntStat d_initialTableauSize;
+    IntStat d_currSetToSmaller;
+    IntStat d_smallerSetToCurr;
     TimerStat d_restartTimer;
 
     TimerStat d_boundComputationTime;
-    IntStats d_boundComputations, d_boundPropagations;
+    IntStat d_boundComputations, d_boundPropagations;
 
-    IntStats d_unknownChecks;
-    IntStats d_maxUnknownsInARow;
+    IntStat d_unknownChecks;
+    IntStat d_maxUnknownsInARow;
     AverageStat d_avgUnknownsInARow;
 
-    IntStats d_revertsOnConflicts;
-    IntStats d_commitsOnConflicts;
-    IntStats d_nontrivialSatChecks;
+    IntStat d_revertsOnConflicts;
+    IntStat d_commitsOnConflicts;
+    IntStat d_nontrivialSatChecks;
 
-    IntStats d_replayLogRecCount,
+    IntStat d_replayLogRecCount,
       d_replayLogRecConflictEscalation,
       d_replayLogRecEarlyExit,
       d_replayBranchCloseFailures,
@@ -826,7 +826,7 @@ private:
       d_mipExternalCuts,
       d_mipExternalBranch;
 
-    IntStats d_inSolveInteger,
+    IntStat d_inSolveInteger,
       d_branchesExhausted,
       d_execExhausted,
       d_pivotsExhausted,
@@ -839,36 +839,36 @@ private:
       d_relaxLinExhausted,
       d_relaxOthers;
 
-    IntStats d_applyRowsDeleted;
+    IntStat d_applyRowsDeleted;
     TimerStat d_replaySimplexTimer;
 
     TimerStat d_replayLogTimer,
       d_solveIntTimer,
       d_solveRealRelaxTimer;
 
-    IntStats d_solveIntCalls,
+    IntStat d_solveIntCalls,
       d_solveStandardEffort;
 
-    IntStats d_approxDisabled;
-    IntStats d_replayAttemptFailed;
+    IntStat d_approxDisabled;
+    IntStat d_replayAttemptFailed;
 
-    IntStats d_cutsRejectedDuringReplay;
-    IntStats d_cutsRejectedDuringLemmas;
+    IntStat d_cutsRejectedDuringReplay;
+    IntStat d_cutsRejectedDuringLemmas;
 
     HistogramStat<uint32_t> d_satPivots;
     HistogramStat<uint32_t> d_unsatPivots;
     HistogramStat<uint32_t> d_unknownPivots;
 
 
-    IntStats d_solveIntModelsAttempts;
-    IntStats d_solveIntModelsSuccessful;
+    IntStat d_solveIntModelsAttempts;
+    IntStat d_solveIntModelsSuccessful;
     TimerStat d_mipTimer;
     TimerStat d_lpTimer;
 
-    IntStats d_mipProofsAttempted;
-    IntStats d_mipProofsSuccessful;
+    IntStat d_mipProofsAttempted;
+    IntStat d_mipProofsSuccessful;
 
-    IntStats d_numBranchesFailed;
+    IntStat d_numBranchesFailed;
 
 
 

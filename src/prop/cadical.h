@@ -90,9 +90,9 @@ class CadicalSolver : public SatSolver
   struct Statistics
   {
     StatisticsRegistry* d_registry;
-    IntStats d_numSatCalls;
-    IntStats d_numVariables;
-    IntStats d_numClauses;
+    IntStat d_numSatCalls;
+    IntStat d_numVariables;
+    IntStat d_numClauses;
     TimerStat d_solveTime;
     Statistics(StatisticsRegistry* registry, const std::string& prefix);
     ~Statistics();

@@ -57,7 +57,7 @@ class CoreSolver : public SubtheorySolver {
 
 
   struct Statistics {
-    IntStats d_numCallstoCheck;
+    IntStat d_numCallstoCheck;
     Statistics();
   };
 

@@ -52,11 +52,11 @@ class ApproximateStatistics {
  public:
   ApproximateStatistics();
 
-  IntStats d_branchMaxDepth;
-  IntStats d_branchesMaxOnAVar;
+  IntStat d_branchMaxDepth;
+  IntStat d_branchesMaxOnAVar;
 
   TimerStat d_gaussianElimConstructTime;
-  IntStats d_gaussianElimConstruct;
+  IntStat d_gaussianElimConstruct;
   AverageStat d_averageGuesses;
 };
 

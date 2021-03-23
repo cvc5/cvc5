@@ -58,8 +58,8 @@ private:
   /** These fields are designed to be accessible to ArithStaticLearner methods. */
   class Statistics {
   public:
-    IntStats d_iteMinMaxApplications;
-    IntStats d_iteConstantApplications;
+    IntStat d_iteMinMaxApplications;
+    IntStat d_iteConstantApplications;
 
     Statistics();
   };

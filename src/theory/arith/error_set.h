@@ -397,13 +397,13 @@ public:
 private:
   class Statistics {
   public:
-    IntStats d_enqueues;
-    IntStats d_enqueuesCollection;
-    IntStats d_enqueuesDiffMode;
-    IntStats d_enqueuesVarOrderMode;
+    IntStat d_enqueues;
+    IntStat d_enqueuesCollection;
+    IntStat d_enqueuesDiffMode;
+    IntStat d_enqueuesVarOrderMode;
 
-    IntStats d_enqueuesCollectionDuplicates;
-    IntStats d_enqueuesVarOrderModeDuplicates;
+    IntStat d_enqueuesCollectionDuplicates;
+    IntStat d_enqueuesVarOrderModeDuplicates;
 
     Statistics();
   };

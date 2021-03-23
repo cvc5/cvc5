@@ -57,7 +57,7 @@ SimplexDecisionProcedure::~SimplexDecisionProcedure(){
 }
 
 
-bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStats& conflicts) {
+bool SimplexDecisionProcedure::standardProcessSignals(TimerStat &timer, IntStat& conflicts) {
   TimerStat::CodeTimer codeTimer(timer);
   Assert(d_conflictVariables.empty());
 

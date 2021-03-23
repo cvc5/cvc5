@@ -86,7 +86,7 @@ class StatisticsRegistry
   }
 
   /** Register a new integer statistic for `name` */
-  IntStats registerInt(const std::string& name, bool expert = true);
+  IntStat registerInt(const std::string& name, bool expert = true);
 
   /** Register a new reference statistic for `name` */
   template <typename T>

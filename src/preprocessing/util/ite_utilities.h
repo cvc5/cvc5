@@ -194,8 +194,8 @@ class ITECompressor
   class Statistics
   {
    public:
-    IntStats d_compressCalls;
-    IntStats d_skolemsAdded;
+    IntStat d_compressCalls;
+    IntStat d_skolemsAdded;
     Statistics();
   };
   Statistics d_statistics;
@@ -296,13 +296,13 @@ class ITESimplifier
   class Statistics
   {
    public:
-    IntStats d_maxNonConstantsFolded;
-    IntStats d_unexpected;
-    IntStats d_unsimplified;
-    IntStats d_exactMatchFold;
-    IntStats d_binaryPredFold;
-    IntStats d_specialEqualityFolds;
-    IntStats d_simpITEVisits;
+    IntStat d_maxNonConstantsFolded;
+    IntStat d_unexpected;
+    IntStat d_unsimplified;
+    IntStat d_exactMatchFold;
+    IntStat d_binaryPredFold;
+    IntStat d_specialEqualityFolds;
+    IntStat d_simpITEVisits;
 
     HistogramStat<uint32_t> d_inSmaller;
 

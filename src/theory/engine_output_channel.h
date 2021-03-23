@@ -90,7 +90,7 @@ class EngineOutputChannel : public theory::OutputChannel
     Statistics(theory::TheoryId theory);
     /** Number of calls to conflict, propagate, lemma, requirePhase,
      * restartDemands */
-    IntStats conflicts, propagations, lemmas, requirePhase, restartDemands,
+    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands,
         trustedConflicts, trustedLemmas;
   };
   /** The theory engine we're communicating with. */

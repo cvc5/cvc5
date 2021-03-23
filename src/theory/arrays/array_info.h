@@ -112,9 +112,9 @@ private:
   AverageStat d_avgIndexListLength;
   AverageStat d_avgStoresListLength;
   AverageStat d_avgInStoresListLength;
-  IntStats d_listsCount;
-  IntStats d_callsMergeInfo;
-  IntStats d_maxList;
+  IntStat d_listsCount;
+  IntStat d_callsMergeInfo;
+  IntStat d_maxList;
   SizeStat<CNodeInfoMap> d_tableSize;
 
   /**

@@ -389,7 +389,7 @@ class RewriteRule {
   // public:
 
   //   /** Number of applications of this rule */
-  //   IntStats d_ruleApplications;
+  //   IntStat d_ruleApplications;
 
   //   /** Constructor */
   //   RuleStatistics()

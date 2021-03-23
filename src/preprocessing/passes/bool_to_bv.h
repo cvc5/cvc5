@@ -39,9 +39,9 @@ class BoolToBV : public PreprocessingPass
  private:
   struct Statistics
   {
-    IntStats d_numIteToBvite;
-    IntStats d_numTermsLowered;
-    IntStats d_numIntroducedItes;
+    IntStat d_numIteToBvite;
+    IntStat d_numTermsLowered;
+    IntStat d_numIntroducedItes;
     Statistics();
   };
 

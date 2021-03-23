@@ -112,25 +112,25 @@ class TheoryArrays : public Theory {
   // Statistics
 
   /** number of Row lemmas */
-  IntStats d_numRow;
+  IntStat d_numRow;
   /** number of Ext lemmas */
-  IntStats d_numExt;
+  IntStat d_numExt;
   /** number of propagations */
-  IntStats d_numProp;
+  IntStat d_numProp;
   /** number of explanations */
-  IntStats d_numExplain;
+  IntStat d_numExplain;
   /** calls to non-linear */
-  IntStats d_numNonLinear;
+  IntStat d_numNonLinear;
   /** splits on array variables */
-  IntStats d_numSharedArrayVarSplits;
+  IntStat d_numSharedArrayVarSplits;
   /** splits in getModelVal */
-  IntStats d_numGetModelValSplits;
+  IntStat d_numGetModelValSplits;
   /** conflicts in getModelVal */
-  IntStats d_numGetModelValConflicts;
+  IntStat d_numGetModelValConflicts;
   /** splits in setModelVal */
-  IntStats d_numSetModelValSplits;
+  IntStat d_numSetModelValSplits;
   /** conflicts in setModelVal */
-  IntStats d_numSetModelValConflicts;
+  IntStat d_numSetModelValConflicts;
 
  public:
   TheoryArrays(context::Context* c,

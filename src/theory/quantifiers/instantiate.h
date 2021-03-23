@@ -281,10 +281,10 @@ class Instantiate : public QuantifiersUtil
   class Statistics
   {
    public:
-    IntStats d_instantiations;
-    IntStats d_inst_duplicate;
-    IntStats d_inst_duplicate_eq;
-    IntStats d_inst_duplicate_ent;
+    IntStat d_instantiations;
+    IntStat d_inst_duplicate;
+    IntStat d_inst_duplicate_eq;
+    IntStat d_inst_duplicate_ent;
     Statistics();
   }; /* class Instantiate::Statistics */
   Statistics d_statistics;

@@ -281,9 +281,9 @@ class TSatProof {
 
   std::unordered_map<ClauseId, int> d_glueMap;
   struct Statistics {
-    IntStats d_numLearnedClauses;
-    IntStats d_numLearnedInProof;
-    IntStats d_numLemmasInProof;
+    IntStat d_numLearnedClauses;
+    IntStat d_numLearnedInProof;
+    IntStat d_numLemmasInProof;
     AverageStat d_avgChainLength;
     HistogramStat<uint64_t> d_resChainLengths;
     HistogramStat<uint64_t> d_usedResChainLengths;

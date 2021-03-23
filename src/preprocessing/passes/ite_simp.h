@@ -37,7 +37,7 @@ class ITESimp : public PreprocessingPass
  private:
   struct Statistics
   {
-    IntStats d_arithSubstitutionsAdded;
+    IntStat d_arithSubstitutionsAdded;
     Statistics();
   };
 

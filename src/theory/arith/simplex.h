@@ -194,7 +194,7 @@ protected:
   }
 
   /** Post condition: !d_queue.moreSignals() */
-  bool standardProcessSignals(TimerStat &timer, IntStats& conflictStat);
+  bool standardProcessSignals(TimerStat &timer, IntStat& conflictStat);
 
   struct ArithVarIntPairHashFunc {
     size_t operator()(const std::pair<ArithVar, int>& p) const {

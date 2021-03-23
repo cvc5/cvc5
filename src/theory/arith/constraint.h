@@ -1266,8 +1266,8 @@ private:
 
   class Statistics {
   public:
-    IntStats d_unatePropagateCalls;
-    IntStats d_unatePropagateImplications;
+    IntStat d_unatePropagateCalls;
+    IntStat d_unatePropagateImplications;
 
     Statistics();
   } d_statistics;

@@ -223,7 +223,7 @@ private:
 
   bool initialProcessSignals(){
     TimerStat &timer = d_statistics.d_initialSignalsTime;
-    IntStats& conflictStat  = d_statistics.d_initialConflicts;
+    IntStat& conflictStat  = d_statistics.d_initialConflicts;
     bool res = standardProcessSignals(timer, conflictStat);
     d_focusSize = d_errorSet.focusSize();
     return res;
@@ -235,11 +235,11 @@ private:
   class Statistics {
   public:
     TimerStat d_initialSignalsTime;
-    IntStats d_initialConflicts;
+    IntStat d_initialConflicts;
 
-    IntStats d_fcFoundUnsat;
-    IntStats d_fcFoundSat;
-    IntStats d_fcMissed;
+    IntStat d_fcFoundUnsat;
+    IntStat d_fcFoundSat;
+    IntStat d_fcMissed;
 
     TimerStat d_fcTimer;
     TimerStat d_fcFocusConstructionTimer;

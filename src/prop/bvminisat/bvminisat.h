@@ -135,7 +135,7 @@ public:
     ReferenceStat<int64_t> d_statLearntsLiterals,  d_statMaxLiterals;
     ReferenceStat<int64_t> d_statTotLiterals;
     ReferenceStat<int64_t> d_statEliminatedVars;
-    IntStats d_statCallsToSolve;
+    IntStat d_statCallsToSolve;
     TimerStat d_statSolveTime;
     bool d_registerStats;
     Statistics(StatisticsRegistry& registry, const std::string& prefix);

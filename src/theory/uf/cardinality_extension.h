@@ -391,10 +391,10 @@ class CardinalityExtension
 
   class Statistics {
    public:
-    IntStats d_clique_conflicts;
-    IntStats d_clique_lemmas;
-    IntStats d_split_lemmas;
-    IntStats d_max_model_size;
+    IntStat d_clique_conflicts;
+    IntStat d_clique_lemmas;
+    IntStat d_split_lemmas;
+    IntStat d_max_model_size;
     Statistics();
   };
   /** statistics class */

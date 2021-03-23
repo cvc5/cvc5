@@ -42,9 +42,9 @@ class BVToBool : public PreprocessingPass
  private:
   struct Statistics
   {
-    IntStats d_numTermsLifted;
-    IntStats d_numAtomsLifted;
-    IntStats d_numTermsForcedLifted;
+    IntStat d_numTermsLifted;
+    IntStat d_numAtomsLifted;
+    IntStat d_numTermsForcedLifted;
     Statistics();
   };
   void addToBoolCache(TNode term, Node new_term);

@@ -100,13 +100,13 @@ class EqualityEngine : public context::ContextNotifyObj {
   struct Statistics
   {
     /** Total number of merges */
-    IntStats d_mergesCount;
+    IntStat d_mergesCount;
     /** Number of terms managed by the system */
-    IntStats d_termsCount;
+    IntStat d_termsCount;
     /** Number of function terms managed by the system */
-    IntStats d_functionTermsCount;
+    IntStat d_functionTermsCount;
     /** Number of constant terms managed by the system */
-    IntStats d_constantTermsCount;
+    IntStat d_constantTermsCount;
 
     Statistics(const std::string& name);
   };/* struct EqualityEngine::statistics */

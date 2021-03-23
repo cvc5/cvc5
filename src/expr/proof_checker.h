@@ -93,7 +93,7 @@ class ProofCheckerStatistics
   /** Counts the number of checks for each kind of proof rule */
   HistogramStat<PfRule> d_ruleChecks;
   /** Total number of rule checks */
-  IntStats d_totalRuleChecks;
+  IntStat d_totalRuleChecks;
 };
 
 /** A class for checking proofs */

@@ -63,8 +63,8 @@ class JustificationHeuristic : public ITEDecisionStrategy {
   context::CDO<unsigned>  d_prvsIndex;
   context::CDO<unsigned>  d_threshPrvsIndex;
 
-  IntStats d_helpfulness;
-  IntStats d_giveup;
+  IntStat d_helpfulness;
+  IntStat d_giveup;
   TimerStat d_timestat;
 
   /**

@@ -251,11 +251,11 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
-  IntStats d_totalRuleCount;
+  IntStat d_totalRuleCount;
   /** The minimum pedantic level of any rule encountered */
-  IntStats d_minPedanticLevel;
+  IntStat d_minPedanticLevel;
   /** The total number of final proofs */
-  IntStats d_numFinalProofs;
+  IntStat d_numFinalProofs;
   /** Proof node manager (used for pedantic checking) */
   ProofNodeManager* d_pnm;
   /** Was there a pedantic failure? */

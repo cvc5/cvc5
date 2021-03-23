@@ -703,11 +703,11 @@ private:
   /** These fields are designed to be accessible to TheoryArith methods. */
   class Statistics {
   public:
-    IntStats d_statPivots, d_statUpdates;
+    IntStat d_statPivots, d_statUpdates;
     TimerStat d_pivotTime;
     TimerStat d_adjTime;
 
-    IntStats d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
+    IntStat d_weakeningAttempts, d_weakeningSuccesses, d_weakenings;
     TimerStat d_weakenTime;
     TimerStat d_forceTime;
 

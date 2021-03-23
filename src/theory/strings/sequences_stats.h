@@ -52,9 +52,9 @@ class SequencesStatistics
  public:
   SequencesStatistics();
   /** Number of calls to run a check where strategy is present */
-  IntStats d_checkRuns;
+  IntStat d_checkRuns;
   /** Number of calls to run the strategy */
-  IntStats d_strategyRuns;
+  IntStat d_strategyRuns;
   //--------------- inferences
   /**
    * Counts the number of applications of each type of inference that were not
@@ -87,11 +87,11 @@ class SequencesStatistics
   HistogramStat<Rewrite> d_rewrites;
   //--------------- conflicts, partition of calls to OutputChannel::conflict
   /** Number of equality engine conflicts */
-  IntStats d_conflictsEqEngine;
+  IntStat d_conflictsEqEngine;
   /** Number of eager conflicts */
-  IntStats d_conflictsEager;
+  IntStat d_conflictsEager;
   /** Number of inference conflicts */
-  IntStats d_conflictsInfer;
+  IntStat d_conflictsInfer;
   //--------------- end of conflicts
 };
 

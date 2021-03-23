@@ -49,7 +49,7 @@ class NonClausalSimp : public PreprocessingPass
  private:
   struct Statistics
   {
-    IntStats d_numConstantProps;
+    IntStat d_numConstantProps;
     Statistics();
   };
 
