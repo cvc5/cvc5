@@ -112,6 +112,10 @@ quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 {
   return d_qreg;
 }
+quantifiers::TermRegistry& QuantifiersEngine::getTermRegistry()
+{
+  return d_treg;
+}
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {

@@ -80,6 +80,8 @@ class QuantifiersEngine {
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
+  /** The term registry */
+  quantifiers::TermRegistry& getTermRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
