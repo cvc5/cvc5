@@ -50,7 +50,7 @@ class VarMatchGeneratorTermSubs : public InstMatchGenerator
   bool d_rm_prev;
 };
 
-}
+}  // namespace inst
 }  // namespace inst
 }  // namespace theory
 }  // namespace CVC4

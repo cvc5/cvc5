@@ -79,7 +79,7 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q, InstMatch& m)
   return -1;
 }
 
-}
+}  // namespace inst
 }  // namespace inst
 }  // namespace theory
 }  // namespace CVC4

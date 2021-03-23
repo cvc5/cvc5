@@ -33,17 +33,16 @@ namespace theory {
 namespace quantifiers {
 namespace inst {
 
-
-CandidateGenerator::CandidateGenerator( QuantifiersState& qs, TermRegistry& tr ) : d_qs(qs), d_treg( tr )
+CandidateGenerator::CandidateGenerator(QuantifiersState& qs, TermRegistry& tr)
+    : d_qs(qs), d_treg(tr)
 {
-  
 }
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
-CandidateGeneratorQE::CandidateGeneratorQE(IMGenerator * p, Node pat)
+CandidateGeneratorQE::CandidateGeneratorQE(IMGenerator* p, Node pat)
     : CandidateGenerator(qe),
       d_term_iter(-1),
       d_term_iter_limit(0),
@@ -145,8 +144,10 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
   return Node::null();
 }
 
-CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq( IMGenerator * p, Node mpat ) :
-CandidateGenerator(p), d_match_pattern( mpat ){
+CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(IMGenerator* p,
+                                                       Node mpat)
+    : CandidateGenerator(p), d_match_pattern(mpat)
+{
   Assert(d_match_pattern.getKind() == EQUAL);
   d_match_pattern_type = d_match_pattern[0].getType();
 }
@@ -176,9 +177,9 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
   return Node::null();
 }
 
-
-CandidateGeneratorQEAll::CandidateGeneratorQEAll( IMGenerator * p, Node mpat ) :
-  CandidateGenerator(p), d_match_pattern( mpat ){
+CandidateGeneratorQEAll::CandidateGeneratorQEAll(IMGenerator* p, Node mpat)
+    : CandidateGenerator(p), d_match_pattern(mpat)
+{
   d_match_pattern_type = mpat.getType();
   Assert(mpat.getKind() == INST_CONSTANT);
   d_f = quantifiers::TermUtil::getInstConstAttr( mpat );
@@ -224,8 +225,8 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   return Node::null();
 }
 
-CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(
-    IMGenerator * p, Node mpat)
+CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(IMGenerator* p,
+                                                           Node mpat)
     : CandidateGeneratorQE(qe, mpat)
 {
   Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
@@ -275,7 +276,7 @@ bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
   return isLegalCandidate(n);
 }
 
-CandidateGeneratorSelector::CandidateGeneratorSelector(IMGenerator * p,
+CandidateGeneratorSelector::CandidateGeneratorSelector(IMGenerator* p,
                                                        Node mpat)
     : CandidateGeneratorQE(qe, mpat)
 {
@@ -341,4 +342,4 @@ Node CandidateGeneratorSelector::getNextCandidate()
 }  // namespace inst
 }  // namespace theory
 }  // namespace CVC4
-}
+}  // namespace CVC4

@@ -223,7 +223,8 @@ void InstMatchGenerator::initialize(Node q,
     }
     if (d_cg == nullptr)
     {
-      CandidateGeneratorQE* cg = new CandidateGeneratorQE(this, d_match_pattern);
+      CandidateGeneratorQE* cg =
+          new CandidateGeneratorQE(this, d_match_pattern);
       // we will be scanning lists trying to find ground terms whose operator
       // is the same as d_match_operator's.
       d_cg = cg;
@@ -670,4 +671,4 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
-}
+}  // namespace CVC4

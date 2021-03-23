@@ -121,7 +121,7 @@ class TriggerTermInfo
   static int32_t getTriggerWeight(Node n);
 };
 
-}
+}  // namespace inst
 }  // namespace inst
 }  // namespace theory
 }  // namespace CVC4

@@ -527,5 +527,5 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
 
 } /* CVC4::theory::inst namespace */
 } /* CVC4::theory namespace */
-}
+}  // namespace theory
 } /* CVC4 namespace */

@@ -116,7 +116,7 @@ protected:
  QuantifiersEngine* getQuantifiersEngine();
 };/* class IMGenerator */
 
-}
+}  // namespace inst
 }
 }
 }

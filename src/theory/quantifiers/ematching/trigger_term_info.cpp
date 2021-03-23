@@ -111,7 +111,7 @@ int32_t TriggerTermInfo::getTriggerWeight(Node n)
   return 2;
 }
 
-}
+}  // namespace inst
 }  // namespace inst
 }  // namespace theory
 }  // namespace CVC4

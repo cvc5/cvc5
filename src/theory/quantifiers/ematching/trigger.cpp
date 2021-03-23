@@ -176,8 +176,7 @@ bool Trigger::mkTriggerTerms(Node q,
   std::map< Node, std::vector< Node > > varContains;
   for (const Node& pat : temp)
   {
-    TermUtil::computeInstConstContainsForQuant(
-        q, pat, varContains[pat]);
+    TermUtil::computeInstConstContainsForQuant(q, pat, varContains[pat]);
   }
   for (const Node& t : temp)
   {
@@ -392,7 +391,7 @@ void Trigger::debugPrint(const char* c) const
   Trace(c) << "TRIGGER( " << d_nodes << " )" << std::endl;
 }
 
-}
+}  // namespace inst
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

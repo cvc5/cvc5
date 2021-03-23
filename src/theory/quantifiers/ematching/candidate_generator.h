@@ -50,7 +50,7 @@ namespace inst {
  */
 class CandidateGenerator {
  public:
-  CandidateGenerator( QuantifiersState& qs, TermRegistry& tr );
+  CandidateGenerator(QuantifiersState& qs, TermRegistry& tr);
   virtual ~CandidateGenerator(){}
   /** reset instantiation round
    *
@@ -68,6 +68,7 @@ class CandidateGenerator {
   virtual Node getNextCandidate() = 0;
   /** is n a legal candidate? */
   bool isLegalCandidate(Node n);
+
  protected:
   /** Reference to the quantifiers state */
   QuantifiersState& d_qs;
@@ -178,7 +179,7 @@ class CandidateGeneratorQEAll : public CandidateGenerator
   bool d_firstTime;
 
  public:
-  CandidateGeneratorQEAll( QuantifiersState& qs, TermRegistry& tr, Node mpat );
+  CandidateGeneratorQEAll(QuantifiersState& qs, TermRegistry& tr, Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -196,7 +197,9 @@ class CandidateGeneratorQEAll : public CandidateGenerator
 class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 {
  public:
-  CandidateGeneratorConsExpand(QuantifiersState& qs, TermRegistry& tr, Node mpat);
+  CandidateGeneratorConsExpand(QuantifiersState& qs,
+                               TermRegistry& tr,
+                               Node mpat);
   /** reset */
   void reset(Node eqc) override;
   /** get next candidate */
@@ -234,7 +237,7 @@ class CandidateGeneratorSelector : public CandidateGeneratorQE
 };
 
 }/* CVC4::theory::inst namespace */
-}
+}  // namespace quantifiers
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 

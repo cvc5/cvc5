@@ -322,7 +322,7 @@ class InstMatchGenerator : public IMGenerator {
                                                    Node n);
 };/* class InstMatchGenerator */
 
-}
+}  // namespace inst
 }
 }
 }

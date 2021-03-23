@@ -270,7 +270,7 @@ class Trigger {
   IMGenerator* d_mg;
 }; /* class Trigger */
 
-}
+}  // namespace inst
 }/* CVC4::theory::inst namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
