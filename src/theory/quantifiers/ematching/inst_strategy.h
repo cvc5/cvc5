@@ -53,9 +53,8 @@ class InstStrategy
                QuantifiersState& qs,
                QuantifiersInferenceManager& qim,
                QuantifiersRegistry& qr,
-               
-                              TermRegistry& tr
-              );
+
+               TermRegistry& tr);
   virtual ~InstStrategy();
   /** presolve */
   virtual void presolve();

@@ -36,8 +36,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
   std::map<Node, std::vector<Node> > var_contains;
   for (const Node& pat : pats)
   {
-    TermUtil::computeInstConstContainsForQuant(
-        q, pat, var_contains[pat]);
+    TermUtil::computeInstConstContainsForQuant(q, pat, var_contains[pat]);
   }
   // convert to indicies
   for (std::pair<const Node, std::vector<Node> >& vc : var_contains)
@@ -315,6 +314,6 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
 }
 
 }  // namespace inst
-}
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

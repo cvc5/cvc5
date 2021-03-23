@@ -83,7 +83,7 @@ class InstMatchGeneratorMultiLinear : public InstMatchGenerator
 };
 
 }  // namespace inst
-}
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
 
