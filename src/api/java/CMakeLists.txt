@@ -41,19 +41,14 @@ find_package(Java)
 include(UseJava)
 find_package(JNI REQUIRED)
 
-message(STATUS "JNI_INCLUDE_DIRS=${JNI_INCLUDE_DIRS}")
-include_directories(${JNI_INCLUDE_DIRS})
-
-message(STATUS "JNI_LIBRARIES=${JNI_LIBRARIES}")
-link_directories(${JNI_LIBRARIES})
-
-include_directories("${CMAKE_INSTALL_PREFIX}/include")
-target_link_libraries("cvc4")
-
+# specify the output destination of cvcJavaApi library
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
-add_library(cvcJavaApi SHARED
-  jni/cvc_Solver.cpp
-  )
+
+add_library(cvcJavaApi SHARED jni/cvc_Solver.cpp)
+
+target_include_directories(cvcJavaApi PUBLIC ${JNI_INCLUDE_DIRS})
+target_include_directories(cvcJavaApi PUBLIC "${CMAKE_INSTALL_PREFIX}/include")
+target_link_libraries(cvcJavaApi ${JNI_LIBRARIES})
 target_link_libraries(cvcJavaApi cvc4)
 
 # run gradle
