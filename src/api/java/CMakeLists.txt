@@ -41,7 +41,7 @@ foreach (_variableName ${_variableNames})
 endforeach()
 
 #message("I am here: ${CMAKE_BINARY_DIR}")
-#message("I am here: ${CMAKE_CURRENT_BINARY_DIR}")
+message("I am here: ${CMAKE_CURRENT_BINARY_DIR}")
 #message("I am here: ${Java_JAR_EXECUTABLE}")
 #message("I am here: ${Java_JAVAC_EXECUTABLE}")
 #message("I am here: ${JAVA_CVC_DIR}")
@@ -73,3 +73,13 @@ add_library(cvcJavaApi SHARED
         jni/cvc_Term.cpp)
 target_link_libraries(cvcJavaApi cvc4)
 
+# run gradle
+add_custom_target(
+        gradleBuild
+        POST_BUILD
+        COMMAND
+            "${CMAKE_CURRENT_BINARY_DIR}/gradlew build"
+        DEPENDS cvcJavaApi
+        COMMENT "Build cvc Java API"
+
+)
