@@ -34,10 +34,10 @@ namespace inst {
 
 HigherOrderTrigger::HigherOrderTrigger(
     QuantifiersEngine* qe,
-    quantifiers::QuantifiersState& qs,
-    quantifiers::QuantifiersInferenceManager& qim,
-    quantifiers::QuantifiersRegistry& qr,
-    quantifiers::TermRegistry& tr,
+    QuantifiersState& qs,
+    QuantifiersInferenceManager& qim,
+    QuantifiersRegistry& qr,
+    TermRegistry& tr,
     Node q,
     std::vector<Node>& nodes,
     std::map<Node, std::vector<Node> >& ho_apps)
@@ -168,7 +168,7 @@ void HigherOrderTrigger::collectHoVarApplyTerms(
           {
             if (op.getKind() == kind::INST_CONSTANT)
             {
-              Assert(quantifiers::TermUtil::getInstConstAttr(ret) == q);
+              Assert(TermUtil::getInstConstAttr(ret) == q);
               Trace("ho-quant-trigger-debug")
                   << "Ho variable apply term : " << ret << " with head " << op
                   << std::endl;
@@ -236,7 +236,7 @@ bool HigherOrderTrigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
     d_lchildren.clear();
     d_arg_to_arg_rep.clear();
     d_arg_vector.clear();
-    quantifiers::QuantifiersState& qs = d_quantEngine->getState();
+    QuantifiersState& qs = d_quantEngine->getState();
     for (std::pair<const TNode, std::vector<Node> >& ha : ho_var_apps_subs)
     {
       TNode var = ha.first;
@@ -476,7 +476,7 @@ uint64_t HigherOrderTrigger::addHoTypeMatchPredicateLemmas()
   Trace("ho-quant-trigger") << "addHoTypeMatchPredicateLemmas..." << std::endl;
   uint64_t numLemmas = 0;
   // this forces expansion of APPLY_UF terms to curried HO_APPLY chains
-  quantifiers::TermDb* tdb = d_quantEngine->getTermDatabase();
+  TermDb* tdb = d_quantEngine->getTermDatabase();
   unsigned size = tdb->getNumOperators();
   NodeManager* nm = NodeManager::currentNM();
   for (unsigned j = 0; j < size; j++)
