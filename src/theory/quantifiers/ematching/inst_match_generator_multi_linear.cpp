@@ -22,6 +22,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
@@ -32,7 +33,7 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear(
   std::map<Node, std::vector<Node> > var_contains;
   for (const Node& pat : pats)
   {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(
+    TermUtil::computeInstConstContainsForQuant(
         q, pat, var_contains[pat]);
   }
   std::map<Node, std::vector<Node> > var_to_node;
@@ -174,5 +175,6 @@ int InstMatchGeneratorMultiLinear::getNextMatch(Node q, InstMatch& m)
 }
 
 }  // namespace inst
+}
 }  // namespace theory
 }  // namespace CVC4

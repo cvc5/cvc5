@@ -23,6 +23,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
@@ -35,7 +36,7 @@ InstMatchGeneratorMulti::InstMatchGeneratorMulti(Trigger* tparent,
   std::map<Node, std::vector<Node> > var_contains;
   for (const Node& pat : pats)
   {
-    quantifiers::TermUtil::computeInstConstContainsForQuant(
+    TermUtil::computeInstConstContainsForQuant(
         q, pat, var_contains[pat]);
   }
   // convert to indicies
@@ -269,7 +270,7 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
     {
       return;
     }
-    quantifiers::QuantifiersState& qs = d_qstate;
+    QuantifiersState& qs = d_qstate;
     // check modulo equality for other possible instantiations
     if (!qs.hasTerm(n))
     {
@@ -314,5 +315,6 @@ void InstMatchGeneratorMulti::processNewInstantiations(InstMatch& m,
 }
 
 }  // namespace inst
+}
 }  // namespace theory
 }  // namespace CVC4

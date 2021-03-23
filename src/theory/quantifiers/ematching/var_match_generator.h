@@ -51,7 +51,7 @@ class VarMatchGeneratorTermSubs : public InstMatchGenerator
 };
 
 }  // namespace inst
-}  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
 

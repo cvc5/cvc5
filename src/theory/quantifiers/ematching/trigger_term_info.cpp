@@ -112,6 +112,6 @@ int32_t TriggerTermInfo::getTriggerWeight(Node n)
 }
 
 }  // namespace inst
-}  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

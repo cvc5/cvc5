@@ -669,6 +669,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
 }
 
 }/* CVC4::theory::inst namespace */
+}
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 }  // namespace CVC4

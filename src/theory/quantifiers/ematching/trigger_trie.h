@@ -56,6 +56,7 @@ class TriggerTrie
 }; /* class inst::Trigger::TriggerTrie */
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
 

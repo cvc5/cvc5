@@ -271,8 +271,8 @@ class Trigger {
 }; /* class Trigger */
 
 }  // namespace inst
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}
+}
+}
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TRIGGER_H */

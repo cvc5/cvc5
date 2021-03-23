@@ -42,8 +42,8 @@ bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
-CandidateGeneratorQE::CandidateGeneratorQE(IMGenerator* p, Node pat)
-    : CandidateGenerator(qe),
+CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersState& qs, TermRegistry& tr, Node pat)
+    : CandidateGenerator(qs, tr),
       d_term_iter(-1),
       d_term_iter_limit(0),
       d_mode(cand_term_none)
@@ -144,9 +144,9 @@ Node CandidateGeneratorQE::getNextCandidateInternal()
   return Node::null();
 }
 
-CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(IMGenerator* p,
+CandidateGeneratorQELitDeq::CandidateGeneratorQELitDeq(QuantifiersState& qs, TermRegistry& tr,
                                                        Node mpat)
-    : CandidateGenerator(p), d_match_pattern(mpat)
+    : CandidateGenerator(qs,tr), d_match_pattern(mpat)
 {
   Assert(d_match_pattern.getKind() == EQUAL);
   d_match_pattern_type = d_match_pattern[0].getType();
@@ -177,8 +177,8 @@ Node CandidateGeneratorQELitDeq::getNextCandidate(){
   return Node::null();
 }
 
-CandidateGeneratorQEAll::CandidateGeneratorQEAll(IMGenerator* p, Node mpat)
-    : CandidateGenerator(p), d_match_pattern(mpat)
+CandidateGeneratorQEAll::CandidateGeneratorQEAll(QuantifiersState& qs, TermRegistry& tr, Node mpat)
+    : CandidateGenerator(qs,tr), d_match_pattern(mpat)
 {
   d_match_pattern_type = mpat.getType();
   Assert(mpat.getKind() == INST_CONSTANT);
@@ -225,9 +225,9 @@ Node CandidateGeneratorQEAll::getNextCandidate() {
   return Node::null();
 }
 
-CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(IMGenerator* p,
+CandidateGeneratorConsExpand::CandidateGeneratorConsExpand(QuantifiersState& qs, TermRegistry& tr,
                                                            Node mpat)
-    : CandidateGeneratorQE(qe, mpat)
+    : CandidateGeneratorQE(qs, tr, mpat)
 {
   Assert(mpat.getKind() == APPLY_CONSTRUCTOR);
   d_mpat_type = mpat.getType();
@@ -276,9 +276,9 @@ bool CandidateGeneratorConsExpand::isLegalOpCandidate(Node n)
   return isLegalCandidate(n);
 }
 
-CandidateGeneratorSelector::CandidateGeneratorSelector(IMGenerator* p,
+CandidateGeneratorSelector::CandidateGeneratorSelector(QuantifiersState& qs, TermRegistry& tr,
                                                        Node mpat)
-    : CandidateGeneratorQE(qe, mpat)
+    : CandidateGeneratorQE(qs,tr, mpat)
 {
   Trace("sel-trigger") << "Selector trigger: " << mpat << std::endl;
   Assert(mpat.getKind() == APPLY_SELECTOR);

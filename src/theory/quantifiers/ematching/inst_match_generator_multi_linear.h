@@ -24,6 +24,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** InstMatchGeneratorMultiLinear class
@@ -82,6 +83,7 @@ class InstMatchGeneratorMultiLinear : public InstMatchGenerator
 };
 
 }  // namespace inst
+}
 }  // namespace theory
 }  // namespace CVC4
 
