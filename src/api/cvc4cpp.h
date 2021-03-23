@@ -2327,6 +2327,7 @@ class CVC4_EXPORT Solver
   /**
    * Constructor.
    * @param opts an optional pointer to a solver options object
+   * @param nm an optional pointer to a node manager object
    * @return the Solver
    */
   Solver(Options* opts = nullptr, NodeManager* nm = nullptr);
@@ -3687,10 +3688,7 @@ class CVC4_EXPORT Solver
   /** Increment the vars stats (if 'is_var') or consts stats counter. */
   void increment_vars_consts_stats(const Sort& sort, bool is_var) const;
 
-  /**
-   * Keep a copy of the original option settings (for reset()). The current
-   * options live in the Env object.
-   */
+  /** Keep a copy of the original option settings (for resets). */
   std::unique_ptr<Options> d_originalOptions;
   /** The node manager of this solver. */
   std::unique_ptr<NodeManager> d_nodeMgr;

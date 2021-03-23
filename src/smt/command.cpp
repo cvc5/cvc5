@@ -865,8 +865,8 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
   try
   {
     sm->reset();
-    Options opts;
     NodeManager* nm = solver->d_nodeMgr.release();
+    Options opts;
     opts.copyValues(*solver->d_originalOptions);
     solver->~Solver();
     ::new (solver) api::Solver(&opts, nm);
