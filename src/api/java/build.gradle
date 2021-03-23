@@ -2,39 +2,24 @@ plugins {
     id 'java-library'
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     testImplementation(platform('org.junit:junit-bom:5.7.1'))
     testImplementation('org.junit.jupiter:junit-jupiter')
 }
 
-sourceSets {
-    main {
-         java {
-            srcDirs = ['cvc']
-         }
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
     }
 }
 
-
-//
-// test {
-//     useJUnitPlatform()
-//     testLogging {
-//         events "passed", "skipped", "failed"
-//     }
-// }
-//
-// application {
-//     // Define the main class for the application.
-//     mainClass = 'Main'
-// }
-//
-// jar {
-//     manifest {
-//         attributes('Main-Class': 'Main')
-//     }
-//     from {
-//         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-//     }
-// }
+jar {
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}

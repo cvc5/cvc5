@@ -9,10 +9,11 @@
 ## directory for licensing information.
 ##
 
-# create a directory for the cvc package
-set(JAVA_CVC_DIR "${CMAKE_CURRENT_BINARY_DIR}/cvc")
-# copy java files into cvc directory
-file(COPY  "${CMAKE_CURRENT_LIST_DIR}/cvc" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# copy cvc libraries to the resource directory
+file(GLOB CVC_LIBS "${CMAKE_INSTALL_PREFIX}/lib/*.so*")
+file(COPY ${CVC_LIBS} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
+file(COPY  "${CMAKE_CURRENT_LIST_DIR}/cvc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/java")
+file(COPY  "/home/mudathir/Desktop/CVC4/mudathir/test/api/java/cvc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/test/java")
 # copy gradle files
 file(COPY  "${CMAKE_CURRENT_LIST_DIR}/gradle" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 file(COPY  "${CMAKE_CURRENT_LIST_DIR}/gradlew" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -25,7 +26,7 @@ add_custom_target(
     "${PYTHON_EXECUTABLE}"
     "${CMAKE_CURRENT_LIST_DIR}/genkinds.py"
     --kinds-header "${PROJECT_SOURCE_DIR}/src/api/cvc4cppkind.h"
-    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/cvc/Kind"
+    --kinds-file-prefix "${CMAKE_CURRENT_BINARY_DIR}/src/main/java/cvc/Kind"
   DEPENDS
     genkinds.py
   COMMENT
@@ -39,12 +40,13 @@ foreach (_variableName ${_variableNames})
     message(STATUS "${_variableName}=${${_variableName}}")
 endforeach()
 
-message("I am here: ${CMAKE_BINARY_DIR}")
-message("I am here: ${CMAKE_CURRENT_BINARY_DIR}")
-message("I am here: ${Java_JAR_EXECUTABLE}")
-message("I am here: ${Java_JAVAC_EXECUTABLE}")
-message("I am here: ${JAVA_CVC_DIR}")
-message("I am here: ${${CMAKE_INSTALL_PREFIX}}")
+#message("I am here: ${CMAKE_BINARY_DIR}")
+#message("I am here: ${CMAKE_CURRENT_BINARY_DIR}")
+#message("I am here: ${Java_JAR_EXECUTABLE}")
+#message("I am here: ${Java_JAVAC_EXECUTABLE}")
+#message("I am here: ${JAVA_CVC_DIR}")
+#message("I am here: ${CMAKE_INSTALL_PREFIX}")
+
 find_package(Java)
 include(UseJava)
 
@@ -56,6 +58,8 @@ link_directories(${JNI_LIBRARIES})
 
 include_directories("${CMAKE_INSTALL_PREFIX}/include")
 link_directories("${CMAKE_INSTALL_PREFIX}/lib")
+
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
 
 add_library(cvcJavaApi SHARED
         jni/cvc_Configuration.cpp
@@ -69,9 +73,3 @@ add_library(cvcJavaApi SHARED
         jni/cvc_Term.cpp)
 target_link_libraries(cvcJavaApi cvc4)
 
-#add_custom_command()
-
-#add_jar(cvcJavaApi
-#        SOURCES cvc/Op.java cvc/Solver.java
-#        INCLUDE "../../../../build/src/libcvc4.so.7"
-#        )
