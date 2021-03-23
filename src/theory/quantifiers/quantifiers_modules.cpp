@@ -43,7 +43,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
-    TermRegistry& tr,
+                                    TermRegistry& tr,
                                     DecisionManager* dm,
                                     std::vector<QuantifiersModule*>& modules)
 {

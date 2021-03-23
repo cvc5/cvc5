@@ -47,8 +47,7 @@ size_t InstStrategyUserPatterns::getNumUserGenerators(Node q) const
   return it->second.size();
 }
 
-Trigger* InstStrategyUserPatterns::getUserGenerator(Node q,
-                                                          size_t i) const
+Trigger* InstStrategyUserPatterns::getUserGenerator(Node q, size_t i) const
 {
   std::map<Node, std::vector<Trigger*> >::const_iterator it =
       d_user_gen.find(q);

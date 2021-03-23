@@ -37,8 +37,7 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
                                          QuantifiersRegistry& qr,
-    TermRegistry& tr
-                                        )
+                                         TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, qe),
       d_instStrategies(),
       d_isup(),
@@ -55,7 +54,8 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr, tr));
+      d_isup.reset(
+          new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr, tr));
       d_instStrategies.push_back(d_isup.get());
     }
 

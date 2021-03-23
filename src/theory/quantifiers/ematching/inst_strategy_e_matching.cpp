@@ -370,7 +370,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                                             d_qstate,
                                             d_qim,
                                             d_qreg,
-                              d_treg,
+                                            d_treg,
                                             f,
                                             patTerms[index],
                                             false,
