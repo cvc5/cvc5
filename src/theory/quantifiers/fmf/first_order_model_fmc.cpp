@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 
+#include "expr/attribute.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/rewriter.h"
 
@@ -24,11 +25,20 @@ namespace theory {
 namespace quantifiers {
 namespace fmcheck {
 
-FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine* qe,
-                                       QuantifiersState& qs,
+/**
+ * Marks that a term represents the entire domain of quantified formula for
+ * the finite model finding fmc algorithm.
+ */
+struct IsStarAttributeId
+{
+};
+using IsStarAttribute = expr::Attribute<IsStarAttributeId, bool>;
+
+FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersState& qs,
                                        QuantifiersRegistry& qr,
+                                       TermRegistry& tr,
                                        std::string name)
-    : FirstOrderModel(qe, qs, qr, name)
+    : FirstOrderModel(qs, qr, tr, name)
 {
 }
 

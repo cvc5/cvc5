@@ -114,11 +114,8 @@ class CVC4_EXPORT Integer
   /** Return this*(2^pow). */
   Integer multiplyByPow2(uint32_t pow) const;
 
-  /**
-   * Returns the Integer obtained by setting the ith bit of the
-   * current Integer to 1.
-   */
-  Integer setBit(uint32_t i, bool value) const;
+  /** Set the ith bit of the current Integer to 'value'.  */
+  void setBit(uint32_t i, bool value);
 
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;

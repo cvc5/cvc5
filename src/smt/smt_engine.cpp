@@ -123,11 +123,6 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // Set options in the environment, which makes a deep copy of optr if
   // non-null. This may throw an options exception.
   d_env->setOptions(optr);
-  // now construct the statistics registry
-  d_statisticsRegistry.reset(new StatisticsRegistry());
-  // initialize the environment, which keeps a pointer to statistics registry
-  // and sets up resource manager
-  d_env->setStatisticsRegistry(d_statisticsRegistry.get());
   // set the options manager
   d_optm.reset(new smt::OptionsManager(&getOptions(), getResourceManager()));
   // listen to node manager events
@@ -357,7 +352,6 @@ SmtEngine::~SmtEngine()
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     d_pp.reset(nullptr);
-    d_statisticsRegistry.reset(nullptr);
     // destroy the state
     d_state.reset(nullptr);
     // destroy the environment
@@ -416,9 +410,10 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::notifyStartParsing(std::string filename)
+void SmtEngine::notifyStartParsing(const std::string& filename)
 {
   d_state->setFilename(filename);
+  d_stats->d_driverFilename.set(filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
@@ -429,6 +424,15 @@ const std::string& SmtEngine::getFilename() const
 {
   return d_state->getFilename();
 }
+
+void SmtEngine::setResultStatistic(const std::string& result) {
+    d_stats->d_driverResult.set(result);
+}
+
+void SmtEngine::setTotalTimeStatistic(double seconds) {
+  d_stats->d_driverTotalTime.set(seconds);
+}
+
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
@@ -468,13 +472,14 @@ void SmtEngine::setInfo(const std::string& key, const std::string& value)
   }
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
   {
-    language::input::Language ilang = language::input::LANG_AUTO;
+    language::input::Language ilang = language::input::LANG_SMTLIB_V2_6;
 
-    if (value == "2.6")
+    if (value != "2" && value != "2.6")
     {
-      ilang = language::input::LANG_SMTLIB_V2_6;
+      Warning() << "SMT-LIB version " << value
+                << " unsupported, defaulting to language (and semantics of) "
+                   "SMT-LIB 2.6\n";
     }
-
     options::inputLanguage.set(ilang);
     // also update the output language
     if (!options::outputLanguage.wasSetByUser())
@@ -513,17 +518,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    StatisticsRegistry* sr = getNodeManager()->getStatisticsRegistry();
-    for (StatisticsRegistry::const_iterator i = sr->begin(); i != sr->end();
-         ++i)
-    {
-      vector<SExpr> v;
-      v.push_back((*i).first);
-      v.push_back((*i).second);
-      stats.push_back(v);
-    }
-    for (StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
-         i != d_statisticsRegistry->end();
+    for (StatisticsRegistry::const_iterator i = d_env->getStatisticsRegistry()->begin();
+         i != d_env->getStatisticsRegistry()->end();
          ++i)
     {
       vector<SExpr> v;
@@ -1406,7 +1402,7 @@ void SmtEngine::checkProof()
 
 StatisticsRegistry* SmtEngine::getStatisticsRegistry()
 {
-  return d_statisticsRegistry.get();
+  return d_env->getStatisticsRegistry();
 }
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
@@ -1891,24 +1887,22 @@ NodeManager* SmtEngine::getNodeManager() const
 
 Statistics SmtEngine::getStatistics() const
 {
-  return Statistics(*d_statisticsRegistry);
+  return Statistics(*d_env->getStatisticsRegistry());
 }
 
 SExpr SmtEngine::getStatistic(std::string name) const
 {
-  return d_statisticsRegistry->getStatistic(name);
+  return d_env->getStatisticsRegistry()->getStatistic(name);
 }
 
 void SmtEngine::flushStatistics(std::ostream& out) const
 {
-  getNodeManager()->getStatisticsRegistry()->flushInformation(out);
-  d_statisticsRegistry->flushInformation(out);
+  d_env->getStatisticsRegistry()->flushInformation(out);
 }
 
 void SmtEngine::safeFlushStatistics(int fd) const
 {
-  getNodeManager()->getStatisticsRegistry()->safeFlushInformation(fd);
-  d_statisticsRegistry->safeFlushInformation(fd);
+  d_env->getStatisticsRegistry()->safeFlushInformation(fd);
 }
 
 void SmtEngine::setUserAttribute(const std::string& attr,
