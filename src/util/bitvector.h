@@ -118,11 +118,13 @@ class BitVector
 
   /**
    * Set bit at index 'i' to given value.
+   * Returns a reference to this bit-vector to allow for chaining.
+   *
    * value: True to set bit to 1, and false to set it to 0.
    *
    * Note: Least significant bit is at index 0.
    */
-  BitVector setBit(uint32_t i, bool value) const;
+  BitVector& setBit(uint32_t i, bool value);
 
   /** Return true if bit at index 'i' is 1, and false otherwise. */
   bool isBitSet(uint32_t i) const;

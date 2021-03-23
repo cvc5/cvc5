@@ -37,8 +37,8 @@ Env::Env(NodeManager* nm)
       d_rewriter(new theory::Rewriter()),
       d_dumpManager(new DumpManager(d_userContext.get())),
       d_logic(),
-      d_statisticsRegistry(nullptr),
-      d_resourceManager(nullptr)
+      d_statisticsRegistry(std::make_unique<StatisticsRegistry>()),
+      d_resourceManager(std::make_unique<ResourceManager>(*d_statisticsRegistry, d_options))
 {
 }
 
@@ -52,13 +52,6 @@ void Env::setOptions(Options* optr)
     // owned by this Env.
     d_options.copyValues(*optr);
   }
-}
-
-void Env::setStatisticsRegistry(StatisticsRegistry* statReg)
-{
-  d_statisticsRegistry = statReg;
-  // now initialize resource manager
-  d_resourceManager.reset(new ResourceManager(*statReg, d_options));
 }
 
 void Env::setProofNodeManager(ProofNodeManager* pnm)
@@ -91,7 +84,7 @@ const LogicInfo& Env::getLogicInfo() const { return d_logic; }
 
 StatisticsRegistry* Env::getStatisticsRegistry()
 {
-  return d_statisticsRegistry;
+  return d_statisticsRegistry.get();
 }
 
 const Options& Env::getOptions() const { return d_options; }

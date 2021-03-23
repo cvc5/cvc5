@@ -14,17 +14,37 @@
 
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/skolemize.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 QuantifiersInferenceManager::QuantifiersInferenceManager(
-    Theory& t, QuantifiersState& state, ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm, "theory::quantifiers")
+    Theory& t,
+    QuantifiersState& state,
+    QuantifiersRegistry& qr,
+    TermRegistry& tr,
+    FirstOrderModel* m,
+    ProofNodeManager* pnm)
+    : InferenceManagerBuffered(t, state, pnm, "theory::quantifiers"),
+      d_instantiate(new Instantiate(state, *this, qr, tr, m, pnm)),
+      d_skolemize(new Skolemize(state, pnm))
 {
 }
 
 QuantifiersInferenceManager::~QuantifiersInferenceManager() {}
+
+Instantiate* QuantifiersInferenceManager::getInstantiate()
+{
+  return d_instantiate.get();
+}
+
+Skolemize* QuantifiersInferenceManager::getSkolemize()
+{
+  return d_skolemize.get();
+}
 
 void QuantifiersInferenceManager::doPending()
 {

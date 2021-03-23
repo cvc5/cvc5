@@ -96,8 +96,8 @@ if(TARGET CVC4::cvc4jar)
   #       -Djava.library.path=${CVC4_JNI_PATH}
   #       SimpleVC
   # )
-
-  add_subdirectory(api/java)
+  # TODO(project wishue #83): enable java examples
+  # add_subdirectory(api/java)
 endif()
 
 if(CVC4_BINDINGS_PYTHON)

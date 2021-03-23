@@ -49,6 +49,7 @@ TermRegistry::TermRegistry(SolverState& s,
       d_preregisteredTerms(s.getSatContext()),
       d_registeredTerms(s.getUserContext()),
       d_registeredTypes(s.getUserContext()),
+      d_proxyVar(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
       d_epg(pnm ? new EagerProofGenerator(
                       pnm,
@@ -246,8 +247,15 @@ void TermRegistry::preRegisterTerm(TNode n)
 
 void TermRegistry::registerTerm(Node n, int effort)
 {
-  TypeNode tn = n.getType();
+  Trace("strings-register") << "TheoryStrings::registerTerm() " << n
+                            << ", effort = " << effort << std::endl;
+  if (d_registeredTerms.find(n) != d_registeredTerms.end())
+  {
+    Trace("strings-register") << "...already registered" << std::endl;
+    return;
+  }
   bool do_register = true;
+  TypeNode tn = n.getType();
   if (!tn.isStringLike())
   {
     if (options::stringEagerLen())
@@ -261,17 +269,13 @@ void TermRegistry::registerTerm(Node n, int effort)
   }
   if (!do_register)
   {
+    Trace("strings-register") << "...do not register" << std::endl;
     return;
   }
-  if (d_registeredTerms.find(n) != d_registeredTerms.end())
-  {
-    return;
-  }
+  Trace("strings-register") << "...register" << std::endl;
   d_registeredTerms.insert(n);
   // ensure the type is registered
   registerType(tn);
-  Debug("strings-register") << "TheoryStrings::registerTerm() " << n
-                            << ", effort = " << effort << std::endl;
   TrustNode regTermLem;
   if (tn.isStringLike())
   {
@@ -555,7 +559,7 @@ Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
 
 Node TermRegistry::getProxyVariableFor(Node n) const
 {
-  std::map<Node, Node>::const_iterator it = d_proxyVar.find(n);
+  NodeNodeMap::const_iterator it = d_proxyVar.find(n);
   if (it != d_proxyVar.end())
   {
     return (*it).second;

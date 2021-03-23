@@ -23,6 +23,7 @@
 #include "options/options.h"
 #include "theory/logic_info.h"
 #include "util/statistics.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -164,9 +165,9 @@ class Env
    */
   LogicInfo d_logic;
   /**
-   * The statistics registry, which is owned by the SmtEngine that owns this.
+   * The statistics registry owned by this Env.
    */
-  StatisticsRegistry* d_statisticsRegistry;
+  std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
   /**
    * The options object, which contains the modified version of the options
    * provided as input to the SmtEngine that owns this environment. Note

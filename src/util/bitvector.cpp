@@ -60,11 +60,11 @@ size_t BitVector::hash() const
   return d_value.hash() + d_size;
 }
 
-BitVector BitVector::setBit(uint32_t i, bool value) const
+BitVector& BitVector::setBit(uint32_t i, bool value)
 {
   CheckArgument(i < d_size, i);
-  Integer res = d_value.setBit(i, value);
-  return BitVector(d_size, res);
+  d_value.setBit(i, value);
+  return *this;
 }
 
 bool BitVector::isBitSet(uint32_t i) const
@@ -364,7 +364,9 @@ BitVector BitVector::mkOnes(unsigned size)
 BitVector BitVector::mkMinSigned(unsigned size)
 {
   CheckArgument(size > 0, size);
-  return BitVector(size).setBit(size - 1, true);
+  BitVector res(size);
+  res.setBit(size - 1, true);
+  return res;
 }
 
 BitVector BitVector::mkMaxSigned(unsigned size)
