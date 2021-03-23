@@ -94,7 +94,7 @@ class TheoryQuantifiers : public Theory {
   /** The term registry */
   TermRegistry d_treg;
   /** The quantifiers inference manager */
-  QuantifiersInferenceManager d_qim;
+  std::unique_ptr<QuantifiersInferenceManager> d_qim;
   /** The quantifiers engine, which lives here */
   std::unique_ptr<QuantifiersEngine> d_qengine;
 };/* class TheoryQuantifiers */

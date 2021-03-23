@@ -237,10 +237,6 @@ public:
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
-  /** instantiate utility */
-  std::unique_ptr<quantifiers::Instantiate> d_instantiate;
-  /** skolemize utility */
-  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.
