@@ -26,7 +26,6 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-namespace inst {
 
 bool InstMatchTrie::existsInstMatch(quantifiers::QuantifiersState& qs,
                                     Node q,
@@ -369,7 +368,6 @@ bool InstMatchTrieOrdered::existsInstMatch(quantifiers::QuantifiersState& qs,
   return d_imt.existsInstMatch(qs, q, m, modEq, d_imtio);
 }
 
-} /* CVC4::theory::inst namespace */
 }  // namespace quantifiers
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

@@ -173,6 +173,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
                                   d_qstate,
                                   d_qim,
                                   d_qreg,
+                                  d_treg,
                                   q,
                                   nodes,
                                   true,

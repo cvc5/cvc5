@@ -22,7 +22,6 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-namespace inst {
 
 InstMatch::InstMatch(TNode q)
 {
@@ -104,7 +103,6 @@ bool InstMatch::set(quantifiers::QuantifiersState& qs, size_t i, TNode n)
   return true;
 }
 
-}/* CVC4::theory::inst namespace */
 }  // namespace quantifiers
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
