@@ -41,8 +41,6 @@ namespace api {
 class Solver;
 }
 
-class StatisticsRegistry;
-class StatisticsRegistry;
 class ResourceManager;
 class SkolemManager;
 class BoundVarManager;

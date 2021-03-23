@@ -241,6 +241,8 @@ class TheoryStrings : public Theory {
   void runInferStep(InferStep s, int effort);
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);
+  /** print strings equivalence classes for debugging */
+  std::string debugPrintStringsEqc();
   /** Commonly used constants */
   Node d_true;
   Node d_false;

@@ -28,13 +28,13 @@ struct SmtEngineStatistics
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
   /** number of constant propagations found during nonclausal simp */
-  IntStats d_numConstantProps;
+  IntStat d_numConstantProps;
   /** time spent converting to CNF */
   TimerStat d_cnfConversionTime;
   /** Number of assertions before ite removal */
-  IntStats d_numAssertionsPre;
+  IntStat d_numAssertionsPre;
   /** Number of assertions after ite removal */
-  IntStats d_numAssertionsPost;
+  IntStat d_numAssertionsPost;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
   /** time spent in checkUnsatCore() */
@@ -47,7 +47,7 @@ struct SmtEngineStatistics
   TimerStat d_processAssertionsTime;
 
   /** Has something simplified to false? */
-  IntStats d_simplifiedToFalse;
+  IntStat d_simplifiedToFalse;
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt

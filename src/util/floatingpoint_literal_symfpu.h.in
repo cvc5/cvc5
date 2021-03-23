@@ -285,11 +285,26 @@ class FloatingPointLiteral
   friend class FloatingPoint;
  public:
   /** Constructors. */
+
+  /** Create an FP literal from a FloatingPoint. */
   FloatingPointLiteral(FloatingPoint& other);
 // clang-format off
 #if @CVC4_USE_SYMFPU@
 // clang-format on
+
+  /** Create an FP literal from a symFPU unpacked float. */
   FloatingPointLiteral(SymFPUUnpackedFloatLiteral symuf) : d_symuf(symuf){};
+
+  /**
+   * Create a FP literal from unpacked representation.
+   *
+   * This unpacked representation accounts for additional bits required for the
+   * exponent to allow subnormals to be normalized.
+   *
+   * This should NOT be used to create a literal from its IEEE bit-vector
+   * representation -- for this, the above constructor is to be used while
+   * creating a SymFPUUnpackedFloatLiteral via symfpu::unpack.
+   */
   FloatingPointLiteral(const bool sign,
                        const BitVector& exp,
                        const BitVector& sig)

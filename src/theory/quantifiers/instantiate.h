@@ -32,15 +32,13 @@ namespace CVC4 {
 class LazyCDProof;
 
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
 
-class TermDb;
+class TermRegistry;
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
+class FirstOrderModel;
 
 /** Instantiation rewriter
  *
@@ -95,10 +93,11 @@ class Instantiate : public QuantifiersUtil
   typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
 
  public:
-  Instantiate(QuantifiersEngine* qe,
-              QuantifiersState& qs,
+  Instantiate(QuantifiersState& qs,
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
+              TermRegistry& tr,
+              FirstOrderModel* m,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -310,18 +309,18 @@ class Instantiate : public QuantifiersUtil
    */
   static Node ensureType(Node n, TypeNode tn);
 
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
   QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
   QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
+  /** Pointer to the model */
+  FirstOrderModel* d_model;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
-  /** cache of term database for quantifiers engine */
-  TermDb* d_term_db;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 

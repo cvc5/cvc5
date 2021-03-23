@@ -32,8 +32,6 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
-#include "options/options.h"
-#include "options/smt_options.h"
 #include "util/resource_manager.h"
 
 using namespace std;

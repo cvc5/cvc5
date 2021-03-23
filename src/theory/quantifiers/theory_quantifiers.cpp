@@ -16,17 +16,12 @@
 
 #include "theory/quantifiers/theory_quantifiers.h"
 
-#include "base/check.h"
-#include "expr/kind.h"
 #include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
+#include "theory/quantifiers/quantifiers_modules.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/valuation.h"
 
 using namespace CVC4::kind;
@@ -46,16 +41,9 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
       d_qstate(c, u, valuation, logicInfo),
       d_qreg(),
       d_treg(d_qstate, d_qreg),
-      d_qim(*this, d_qstate, pnm),
-      d_qengine(d_qstate, d_qreg, d_treg, d_qim, pnm)
+      d_qim(nullptr),
+      d_qengine(nullptr)
 {
-  // Finish initializing the term registry by hooking it up to the inference
-  // manager. This is required due to a cyclic dependency between the term
-  // database and the instantiate module. Term database needs inference manager
-  // since it sends out lemmas when term indexing is inconsistent, instantiate
-  // needs term database for entailment checks.
-  d_treg.finishInit(&d_qim);
-
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute("qid", this);
   out.handleUserAttribute( "quant-inst-max-level", this );
@@ -68,15 +56,50 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     // add the proof rules
     d_qChecker.registerTo(pc);
   }
+
+  Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
+  Trace("quant-engine-debug")
+      << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model here, since it is required for
+  // initializing the CombinationEngine and the rest of quantifiers engine.
+  if ((options::finiteModelFind() || options::fmfBound())
+      && QuantifiersModules::useFmcModel())
+  {
+    d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
+        d_qstate, d_qreg, d_treg, "FirstOrderModelFmc"));
+  }
+  else
+  {
+    d_qmodel.reset(new quantifiers::FirstOrderModel(
+        d_qstate, d_qreg, d_treg, "FirstOrderModel"));
+  }
+
+  d_qim.reset(new QuantifiersInferenceManager(
+      *this, d_qstate, d_qreg, d_treg, d_qmodel.get(), pnm));
+
+  // Finish initializing the term registry by hooking it up to the inference
+  // manager. This is required due to a cyclic dependency between the term
+  // database and the instantiate module. Term database needs inference manager
+  // since it sends out lemmas when term indexing is inconsistent, instantiate
+  // needs term database for entailment checks.
+  d_treg.finishInit(d_qim.get());
+
+  // construct the quantifiers engine
+  d_qengine.reset(new QuantifiersEngine(
+      d_qstate, d_qreg, d_treg, *d_qim.get(), d_qmodel.get(), pnm));
+
+  //!!!!!!!!!!!!!! temporary (project #15)
+  d_qmodel->finishInit(d_qengine.get());
+
   // indicate we are using the quantifiers theory state object
   d_theoryState = &d_qstate;
   // use the inference manager as the official inference manager
-  d_inferManager = &d_qim;
-
+  d_inferManager = d_qim.get();
   // Set the pointer to the quantifiers engine, which this theory owns. This
   // pointer will be retreived by TheoryEngine and set to all theories
   // post-construction.
-  d_quantEngine = &d_qengine;
+  d_quantEngine = d_qengine.get();
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {

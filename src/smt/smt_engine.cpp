@@ -426,10 +426,8 @@ const std::string& SmtEngine::getFilename() const
   return d_state->getFilename();
 }
 
-void SmtEngine::setResultStatistic(api::Result result) {
-    std::stringstream ss;
-    ss << result;
-    d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat", ss.str());
+void SmtEngine::setResultStatistic(const std::string& result) {
+    d_env->getStatisticsRegistry().registerValue<std::string>("driver::sat/unsat", result);
 }
 void SmtEngine::setTotalTimeStatistic(double seconds) {
   d_env->getStatisticsRegistry().registerValue<double>("driver::totalTime", seconds);

@@ -457,14 +457,10 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     // or other on_exit/atexit stuff.
     _exit(returnValue);
 #endif /* CVC4_COMPETITION_MODE */
-
-    pExecutor->getSmtEngine()->setResultStatistic(result);
+    pExecutor->getSmtEngine()->setResultStatistic(result.toString());
     std::chrono::duration totalTime = std::chrono::steady_clock::now() - totalTimeStart;
     pExecutor->getSmtEngine()->setTotalTimeStatistic(std::chrono::duration<double>(totalTime).count());
 
-    // Tim: I think that following comment is out of date?
-    // Set the global executor pointer to nullptr first.  If we get a
-    // signal while dumping statistics, we don't want to try again.
     pExecutor->flushOutputStreams();
 
 #ifdef CVC4_DEBUG
@@ -478,8 +474,6 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 #endif /* CVC4_DEBUG */
   }
 
-  // On exceptional exit, these are leaked, but that's okay... they
-  // need to be around in that case for main() to print statistics.
   delete pExecutor;
 
   pExecutor = nullptr;

@@ -20,7 +20,6 @@
 #include "base/exception.h"
 #include "cvc4autoconfig.h"
 #include "options/options.h"
-#include "util/statistics_stats.h"
 
 #ifndef CVC4__MAIN__MAIN_H
 #define CVC4__MAIN__MAIN_H

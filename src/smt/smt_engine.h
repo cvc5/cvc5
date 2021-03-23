@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
 #include "context/cdhashmap_forward.h"
 #include "cvc4_export.h"
 #include "options/options.h"
@@ -252,7 +251,16 @@ class CVC4_EXPORT SmtEngine
   /** return the input name (if any) */
   const std::string& getFilename() const;
 
-  void setResultStatistic(api::Result result) CVC4_EXPORT;
+  void setResultStatistic(const std::string& result) CVC4_EXPORT;
+  void setTotalTimeStatistic(double seconds) CVC4_EXPORT;
+
+  /**
+   * Helper method for the API to put the last check result into the statistics.
+   */
+  void setResultStatistic(const std::string& result) CVC4_EXPORT;
+  /**
+   * Helper method for the API to put the total runtime into the statistics.
+   */
   void setTotalTimeStatistic(double seconds) CVC4_EXPORT;
 
   /**
