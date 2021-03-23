@@ -24,7 +24,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
+
 class QuantifiersState;
 
 namespace inst {
@@ -90,7 +90,7 @@ inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {
 }
 
 }/* CVC4::theory::inst namespace */
-}
+}  // namespace quantifiers
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 

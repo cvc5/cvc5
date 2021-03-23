@@ -370,6 +370,6 @@ bool InstMatchTrieOrdered::existsInstMatch(quantifiers::QuantifiersState& qs,
 }
 
 } /* CVC4::theory::inst namespace */
-}
+}  // namespace quantifiers
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

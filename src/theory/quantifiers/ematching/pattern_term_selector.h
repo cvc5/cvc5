@@ -190,7 +190,7 @@ class PatternTermSelector
 };
 
 }  // namespace inst
-}
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
 

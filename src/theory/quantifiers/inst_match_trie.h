@@ -225,7 +225,7 @@ class InstMatchTrieOrdered
 };
 
 } /* CVC4::theory::inst namespace */
-}
+}  // namespace quantifiers
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 

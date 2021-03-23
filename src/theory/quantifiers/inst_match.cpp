@@ -105,6 +105,6 @@ bool InstMatch::set(quantifiers::QuantifiersState& qs, size_t i, TNode n)
 }
 
 }/* CVC4::theory::inst namespace */
-}
+}  // namespace quantifiers
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

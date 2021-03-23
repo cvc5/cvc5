@@ -727,6 +727,6 @@ void PatternTermSelector::getTriggerVariables(Node n,
 }
 
 }  // namespace inst
-}
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
