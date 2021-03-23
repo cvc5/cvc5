@@ -125,26 +125,6 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 
 /// !!!!!!!!!!!!!! temporary (project #15)
 
-quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
-{
-  return d_treg.getTermDatabase();
-}
-quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
-{
-  return d_treg.getTermDatabaseSygus();
-}
-quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
-{
-  return d_treg.getTermEnumeration();
-}
-quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
-{
-  return d_qim.getInstantiate();
-}
-quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
-{
-  return d_qim.getSkolemize();
-}
 inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
