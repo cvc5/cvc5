@@ -24,10 +24,9 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory::inst;
+using namespace CVC4::theory::quantifiers::inst;
 
 namespace CVC4 {
 namespace theory {
@@ -36,7 +35,8 @@ namespace quantifiers {
 InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
                                          QuantifiersState& qs,
                                          QuantifiersInferenceManager& qim,
-                                         QuantifiersRegistry& qr)
+                                         QuantifiersRegistry& qr,
+                                         TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, qe),
       d_instStrategies(),
       d_isup(),
@@ -53,13 +53,14 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr));
+      d_isup.reset(
+          new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr, tr));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(new InstStrategyAutoGenTriggers(
-        d_quantEngine, qs, qim, qr, d_quant_rel.get()));
+        d_quantEngine, qs, qim, qr, tr, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }

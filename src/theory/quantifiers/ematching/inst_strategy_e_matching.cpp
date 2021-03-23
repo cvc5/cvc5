@@ -23,7 +23,7 @@
 #include "util/random.h"
 
 using namespace CVC4::kind;
-using namespace CVC4::theory::inst;
+using namespace CVC4::theory::quantifiers::inst;
 
 namespace CVC4 {
 namespace theory {
@@ -66,8 +66,9 @@ InstStrategyAutoGenTriggers::InstStrategyAutoGenTriggers(
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,
+    TermRegistry& tr,
     QuantRelevance* qrlv)
-    : InstStrategy(qe, qs, qim, qr), d_quant_rel(qrlv)
+    : InstStrategy(qe, qs, qim, qr, tr), d_quant_rel(qrlv)
 {
   //how to select trigger terms
   d_tr_strategy = options::triggerSelMode();
@@ -284,6 +285,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                               d_qstate,
                               d_qim,
                               d_qreg,
+                              d_treg,
                               f,
                               patTerms[0],
                               false,
@@ -323,6 +325,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                               d_qstate,
                               d_qim,
                               d_qreg,
+                              d_treg,
                               f,
                               patTerms,
                               false,
@@ -367,6 +370,7 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
                                             d_qstate,
                                             d_qim,
                                             d_qreg,
+                                            d_treg,
                                             f,
                                             patTerms[index],
                                             false,

@@ -24,7 +24,7 @@
 
 namespace CVC4 {
 namespace theory {
-
+namespace quantifiers {
 namespace inst {
 
 /** A trie of triggers.
@@ -56,6 +56,7 @@ class TriggerTrie
 }; /* class inst::Trigger::TriggerTrie */
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
 

@@ -33,6 +33,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 InstMatchGenerator::InstMatchGenerator(Trigger* tparent, Node pat)
@@ -200,13 +201,13 @@ void InstMatchGenerator::initialize(Node q,
     }
   }
 
-  QuantifiersEngine* qe = getQuantifiersEngine();
   // create candidate generator
   if (mpk == APPLY_SELECTOR)
   {
     // candidates for apply selector are a union of correctly and incorrectly
     // applied selectors
-    d_cg = new inst::CandidateGeneratorSelector(qe, d_match_pattern);
+    d_cg =
+        new inst::CandidateGeneratorSelector(d_qstate, d_treg, d_match_pattern);
   }
   else if (TriggerTermInfo::isAtomicTriggerKind(mpk))
   {
@@ -217,12 +218,14 @@ void InstMatchGenerator::initialize(Node q,
       const DType& dt = d_match_pattern.getType().getDType();
       if (dt.getNumConstructors() == 1)
       {
-        d_cg = new inst::CandidateGeneratorConsExpand(qe, d_match_pattern);
+        d_cg = new inst::CandidateGeneratorConsExpand(
+            d_qstate, d_treg, d_match_pattern);
       }
     }
     if (d_cg == nullptr)
     {
-      CandidateGeneratorQE* cg = new CandidateGeneratorQE(qe, d_match_pattern);
+      CandidateGeneratorQE* cg =
+          new CandidateGeneratorQE(d_qstate, d_treg, d_match_pattern);
       // we will be scanning lists trying to find ground terms whose operator
       // is the same as d_match_operator's.
       d_cg = cg;
@@ -247,9 +250,9 @@ void InstMatchGenerator::initialize(Node q,
       Trace("inst-match-gen")
           << "Purify dt trigger " << d_pattern << ", will match terms of op "
           << cOp << std::endl;
-      d_cg = new inst::CandidateGeneratorQE(qe, cOp);
+      d_cg = new inst::CandidateGeneratorQE(d_qstate, d_treg, cOp);
     }else{
-      d_cg = new CandidateGeneratorQEAll(qe, d_match_pattern);
+      d_cg = new CandidateGeneratorQEAll(d_qstate, d_treg, d_match_pattern);
     }
   }
   else if (mpk == EQUAL)
@@ -258,7 +261,8 @@ void InstMatchGenerator::initialize(Node q,
     if (d_pattern.getKind() == NOT)
     {
       // candidates will be all disequalities
-      d_cg = new inst::CandidateGeneratorQELitDeq(qe, d_match_pattern);
+      d_cg = new inst::CandidateGeneratorQELitDeq(
+          d_qstate, d_treg, d_match_pattern);
     }
   }
   else
@@ -666,6 +670,7 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Trigger* tparent,
   return new InstMatchGenerator(tparent, n);
 }
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

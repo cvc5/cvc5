@@ -15,8 +15,9 @@
 #include "theory/quantifiers/quantifiers_modules.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -43,6 +44,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
                                     QuantifiersState& qs,
                                     QuantifiersInferenceManager& qim,
                                     QuantifiersRegistry& qr,
+                                    TermRegistry& tr,
                                     DecisionManager* dm,
                                     std::vector<QuantifiersModule*>& modules)
 {
@@ -59,7 +61,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
   }
   if (!options::finiteModelFind() || options::fmfInstEngine())
   {
-    d_inst_engine.reset(new InstantiationEngine(qe, qs, qim, qr));
+    d_inst_engine.reset(new InstantiationEngine(qe, qs, qim, qr, tr));
     modules.push_back(d_inst_engine.get());
   }
   if (options::cegqi())
@@ -86,7 +88,7 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     Trace("quant-init-debug")
         << "Initialize model engine, mbqi : " << options::mbqiMode() << " "
         << options::fmfBound() << std::endl;
-    if (useFmcModel())
+    if (tr.useFmcModel())
     {
       Trace("quant-init-debug") << "...make fmc builder." << std::endl;
       d_builder.reset(new fmcheck::FullModelChecker(qs, qr));
@@ -121,13 +123,6 @@ void QuantifiersModules::initialize(QuantifiersEngine* qe,
     d_sygus_inst.reset(new SygusInst(qe, qs, qim, qr));
     modules.push_back(d_sygus_inst.get());
   }
-}
-
-bool QuantifiersModules::useFmcModel()
-{
-  return options::mbqiMode() == options::MbqiMode::FMC
-         || options::mbqiMode() == options::MbqiMode::TRUST
-         || options::fmfBound();
 }
 
 }  // namespace quantifiers
