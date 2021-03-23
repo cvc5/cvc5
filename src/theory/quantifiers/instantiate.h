@@ -97,7 +97,6 @@ class Instantiate : public QuantifiersUtil
               QuantifiersInferenceManager& qim,
               QuantifiersRegistry& qr,
               TermRegistry& tr,
-              FirstOrderModel* m,
               ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
@@ -224,17 +223,6 @@ class Instantiate : public QuantifiersUtil
    * Same as above but with vars equal to the bound variables of q.
    */
   Node getInstantiation(Node q, std::vector<Node>& terms, bool doVts = false);
-  /** get term for type
-   *
-   * This returns an arbitrary term for type tn.
-   * This term is chosen heuristically to be the best
-   * term for instantiation. Currently, this
-   * heuristic enumerates the first term of the
-   * type if the type is closed enumerable, otherwise
-   * an existing ground term from the term database if
-   * one exists, or otherwise a fresh variable.
-   */
-  Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
   /**
@@ -318,8 +306,6 @@ class Instantiate : public QuantifiersUtil
   QuantifiersRegistry& d_qreg;
   /** Reference to the term registry */
   TermRegistry& d_treg;
-  /** Pointer to the model */
-  FirstOrderModel* d_model;
   /** pointer to the proof node manager */
   ProofNodeManager* d_pnm;
   /** instantiation rewriter classes */
@@ -335,8 +321,8 @@ class Instantiate : public QuantifiersUtil
    * We store context (dependent, independent) versions. If incremental solving
    * is disabled, we use d_inst_match_trie for performance reasons.
    */
-  std::map<Node, inst::InstMatchTrie> d_inst_match_trie;
-  std::map<Node, inst::CDInstMatchTrie*> d_c_inst_match_trie;
+  std::map<Node, InstMatchTrie> d_inst_match_trie;
+  std::map<Node, CDInstMatchTrie*> d_c_inst_match_trie;
   /**
    * The list of quantified formulas for which the domain of d_c_inst_match_trie
    * is valid.

@@ -51,7 +51,8 @@ class InstantiationEngine : public QuantifiersModule {
   InstantiationEngine(QuantifiersEngine* qe,
                       QuantifiersState& qs,
                       QuantifiersInferenceManager& qim,
-                      QuantifiersRegistry& qr);
+                      QuantifiersRegistry& qr,
+                      TermRegistry& tr);
   ~InstantiationEngine();
   void presolve() override;
   bool needsCheck(Theory::Effort e) override;
