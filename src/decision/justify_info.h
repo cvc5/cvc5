@@ -29,10 +29,11 @@ namespace CVC4 {
 class JustifyInfo
 {
  public:
-  JustifyInfo(context::Context* c)
-      : d_node(c), d_desiredVal(c, prop::SAT_VALUE_UNKNOWN), d_childIndex(c, 0)
-  {
-  }
+  JustifyInfo(context::Context* c);
+  ~JustifyInfo();
+  /** set */
+  void set(Node n, prop::SatValue desiredVal);
+ private:
   /** The node we are considering */
   context::CDO<Node> d_node;
   /** Desired value */

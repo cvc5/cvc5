@@ -21,4 +21,15 @@ JustifyInfo::JustifyInfo(context::Context* c)
 {
 }
 
+JustifyInfo::~JustifyInfo()
+{
+}
+
+void JustifyInfo::set(Node n, prop::SatValue desiredVal)
+{
+  d_node = n;
+  d_desiredVal = desiredVal;
+  d_childIndex = 0;
+}
+
 }  // namespace CVC4

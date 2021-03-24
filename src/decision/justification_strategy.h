@@ -85,9 +85,9 @@ class JustificationStrategy
   /** Set of justified nodes */
   context::CDHashSet<Node, NodeHashFunction> d_justified;
   /** Stack of justify info, valid up to index d_stackIndex-1 */
-  context::CDList<std::unique_ptr<JustifyInfo> > d_stack;
+  context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
   /** Current index in the justify info */
-  context::CDO<size_t> d_stackSizeValid;
+  context::CDO<size_t> d_stackIndex;
 };
 
 }  // namespace CVC4

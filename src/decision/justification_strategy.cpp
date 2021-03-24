@@ -14,6 +14,8 @@
 
 #include "decision/justification_strategy.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
@@ -26,7 +28,7 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_current(c),
       d_justified(c),
       d_stack(c),
-      d_stackSizeValid(c, 0)
+      d_stackIndex(c, 0)
 {
 }
 
@@ -41,6 +43,11 @@ prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 {
   // ensure we have an assertion
   refreshCurrentAssertion();
+  // get the current justify info
+  Assert (d_stack.size()>d_stackIndex.get());
+  JustifyInfo * ji = d_stack[d_stackIndex.get()].get();
+  
+  // TODO
 }
 
 bool JustificationStrategy::isDone()
@@ -91,13 +98,15 @@ void JustificationStrategy::refreshCurrentAssertion()
   {
     return;
   }
-  // use main assertions, then skolem assertions
+  // use main assertions first
   if (setCurrentAssertion(d_assertions.getNextAssertion()))
   {
     return;
   }
+  // if satisfied all main assertions, use the skolem assertions
   setCurrentAssertion(d_skolemAssertions.getNextAssertion());
 }
+
 bool JustificationStrategy::setCurrentAssertion(TNode c)
 {
   if (c.isNull())
@@ -105,7 +114,13 @@ bool JustificationStrategy::setCurrentAssertion(TNode c)
     return false;
   }
   d_current = c;
-  d_stackSizeValid = 0;
+  // set up the initial info: we want to set the atom of c to its polarity
+  bool pol = c.getKind()!=NOT;
+  TNode atom = pol ? c : c[0];
+  Assert (catom.getKind()!=NOT);
+  JustifyInfo* ji = getOrAllocJustifyInfo(0);
+  ji->set(atom, pol ? prop::SAT_VALUE_TRUE : prop::SAT_VALUE_FALSE);
+  d_stackIndex = 0;
   return true;
 }
 
@@ -115,9 +130,9 @@ JustifyInfo* JustificationStrategy::getOrAllocJustifyInfo(size_t i)
   Assert(i <= d_stack.size());
   if (i == d_stack.size())
   {
-    d_stack.emplace_back(std::make_unique<JustifyInfo>(d_context));
+    d_stack.push_back(std::make_shared<JustifyInfo>(d_context));
   }
-  return d_stack[i];
+  return d_stack[i].get();
 }
 
 }  // namespace CVC4
