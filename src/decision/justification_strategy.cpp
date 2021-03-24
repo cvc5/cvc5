@@ -80,7 +80,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       // Look up whether next.first already has a value
       lastChildVal = lookupValue(next.first);
       // have we processed the next node yet?
-      if (lastChildVal==SAT_VALUE_UNKNOWN)
+      if (lastChildVal == SAT_VALUE_UNKNOWN)
       {
         if (isTheoryLiteral(next.first))
         {
@@ -184,8 +184,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // determine the value of the next child request
   SatValue desiredVal = currPol ? jc.second : invertValue(jc.second);
   // TODO: lookahead
-  
-  
+
   // determine if already justified
   if (ck == AND || ck == OR)
   {
@@ -223,17 +222,19 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
   // check if we have already determined the value
   // notice that d_justified may contain nodes that are not assigned SAT values,
   // since this class infers when the value of nodes can be determined.
-  context::CDInsertHashMap<Node, SatValue, NodeHashFunction>::const_iterator jit = d_justified.find(atom);
-  if (jit!=d_justified.end())
+  context::CDInsertHashMap<Node, SatValue, NodeHashFunction>::const_iterator
+      jit = d_justified.find(atom);
+  if (jit != d_justified.end())
   {
     return pol ? jit->second : invertValue(jit->second);
   }
-  // TODO: for simplicity, should we just lookup values for non-theory atoms too?
+  // TODO: for simplicity, should we just lookup values for non-theory atoms
+  // too?
   if (isTheoryAtom(atom))
   {
     SatLiteral nsl = d_cnfStream->getLiteral(atom);
     prop::SatValue val = d_satSolver->value(nsl);
-    if (val!=SAT_VALUE_UNKNOWN)
+    if (val != SAT_VALUE_UNKNOWN)
     {
       d_justified.insert(atom, val);
     }

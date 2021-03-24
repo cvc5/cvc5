@@ -78,7 +78,7 @@ class JustificationStrategy
    * d_stackSizeValid.
    */
   JustifyInfo* getOrAllocJustifyInfo(size_t i);
-  /** 
+  /**
    * Lookup value, return value of n if one can be determined.
    */
   prop::SatValue lookupValue(TNode n);
