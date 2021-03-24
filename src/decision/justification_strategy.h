@@ -19,20 +19,13 @@
 
 #include "context/cdo.h"
 #include "decision/assertion_list.h"
+#include "decision/justify_info.h"
 #include "expr/node.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 
 namespace CVC4 {
-
-class JustifyInfo
-{
- public:
-  /** The child polarity in the parent */
-  context::CDList<Node> d_childPol;
-};
-
 class JustificationStrategy
 {
  public:
@@ -71,12 +64,19 @@ class JustificationStrategy
   /** Refresh current */
   void refreshCurrentAssertion();
   /** Set current */
-  bool setCurrent(TNode c);
-  /** CNF stream */
+  bool setCurrentAssertion(TNode c);
+  /** 
+   * Get or allocate justify info at position i. This does not impact
+   * d_stackSizeValid.
+   */
+  JustifyInfo * getOrAllocJustifyInfo(size_t i);
+  /** Pointer to the SAT context */
+  context::Context * d_context;
+  /** Pointer to the CNF stream */
   prop::CnfStream* d_cnfStream;
-  /** SAT solver */
+  /** Pointer to the SAT solver */
   prop::CDCLTSatSolverInterface* d_satSolver;
-  /** The assertions */
+  /** The assertions, which are user-context dependent. */
   AssertionList d_assertions;
   /** The skolem assertions */
   AssertionList d_skolemAssertions;
@@ -85,7 +85,7 @@ class JustificationStrategy
   /** Set of justified nodes */
   context::CDHashSet<Node, NodeHashFunction> d_justified;
   /** Stack of justify info, valid up to index d_stackIndex-1 */
-  context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
+  context::CDList<std::unique_ptr<JustifyInfo> > d_stack;
   /** Current index in the justify info */
   context::CDO<size_t> d_stackSizeValid;
 };

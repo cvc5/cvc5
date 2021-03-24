@@ -18,7 +18,8 @@ namespace CVC4 {
 
 JustificationStrategy::JustificationStrategy(context::Context* c,
                                              context::UserContext* u)
-    : d_cnfStream(nullptr),
+    : d_context(c),
+      d_cnfStream(nullptr),
       d_satSolver(nullptr),
       d_assertions(u, c),        // assertions are user-context dependent
       d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
@@ -91,13 +92,13 @@ void JustificationStrategy::refreshCurrentAssertion()
     return;
   }
   // use main assertions, then skolem assertions
-  if (setCurrent(d_assertions.getNextAssertion()))
+  if (setCurrentAssertion(d_assertions.getNextAssertion()))
   {
     return;
   }
-  setCurrent(d_skolemAssertions.getNextAssertion());
+  setCurrentAssertion(d_skolemAssertions.getNextAssertion());
 }
-bool JustificationStrategy::setCurrent(TNode c)
+bool JustificationStrategy::setCurrentAssertion(TNode c)
 {
   if (c.isNull())
   {
@@ -106,6 +107,17 @@ bool JustificationStrategy::setCurrent(TNode c)
   d_current = c;
   d_stackSizeValid = 0;
   return true;
+}
+
+JustifyInfo * JustificationStrategy::getOrAllocJustifyInfo(size_t i)
+{
+  // don't request stack beyond the bound
+  Assert (i<=d_stack.size());
+  if (i==d_stack.size())
+  {
+    d_stack.emplace_back(std::make_unique<JustifyInfo>(d_context));
+  }
+  return d_stack[i];
 }
 
 }  // namespace CVC4
