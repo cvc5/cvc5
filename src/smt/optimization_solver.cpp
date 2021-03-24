@@ -64,10 +64,10 @@ OptResult OptimizationSolver::checkOpt()
 
 void OptimizationSolver::activateObj(const Node& obj,
                                      const int& type,
-                                     bool bv_is_signed_compare)
+                                     bool bvSignedCompare)
 {
   d_activatedObjective =
-      Objective(obj, (ObjectiveType)type, bv_is_signed_compare);
+      Objective(obj, (ObjectiveType)type, bvSignedCompare);
 }
 
 Node OptimizationSolver::objectiveGetValue()
@@ -76,42 +76,9 @@ Node OptimizationSolver::objectiveGetValue()
   return d_savedValue;
 }
 
-// Kind OptimizationSolver::getLessThanOperatorForObjective()
-// {
-//   // the datatype of the objective
-//   // currently we support Integer/Real and BitVector
-//   // gets the objective datatype with type checking
-//   TypeNode objective_type = this->d_activatedObjective.getNode().getType(true);
 
-//   if (objective_type.isInteger() || objective_type.isReal())
-//   {
-//     // Integer and Real both share the same LT operator
-//     return kind::LT;
-//   }
-//   else if (objective_type.isBitVector())
-//   {
-//     // is it signed comparison?
-//     if (this->d_activatedObjective.getSigned())
-//     {
-//       // signed comparison for BitVectors
-//       return kind::BITVECTOR_SLT;
-//     }
-//     else
-//     {
-//       // unsigned comparison for BitVectors
-//       return kind::BITVECTOR_ULT;
-//     }
-//   }  // FloatingPoints?
-//   else
-//   {
-//     // the current objective datatype is not-yet supported
-//     // or doesn't support comparison (no total order)
-//     return kind::NULL_EXPR;
-//   }
-// }
-
-Objective::Objective(Node obj, ObjectiveType type, bool bv_is_signed_compare)
-    : d_type(type), d_node(obj), d_signed(bv_is_signed_compare)
+Objective::Objective(Node obj, ObjectiveType type, bool bvSignedCompare)
+    : d_type(type), d_node(obj), d_isSigned(bvSignedCompare)
 {
 }
 
@@ -119,7 +86,270 @@ ObjectiveType Objective::getType() { return d_type; }
 
 Node Objective::getNode() { return d_node; }
 
-bool Objective::getSigned() { return d_signed; }
+bool Objective::getSigned() { return d_isSigned; }
+
+
+
+
+
+std::pair<OptResult, CVC4::Node> OMTOptimizerInteger::optimize(SmtEngine *parentSMTSolver, CVC4::Node target, ObjectiveType objType) {
+  // linear search for integer goal 
+  // the smt engine to which we send intermediate queries
+  // for the linear search.
+  std::unique_ptr<CVC4::SmtEngine> optChecker; 
+  CVC4::theory::initializeSubsolver(optChecker);
+  CVC4::NodeManager* nm = optChecker->getNodeManager();
+  // we need to be in incremental mode for multiple objectives since we need to
+  // push pop we need to produce models to inrement on our objective
+  optChecker->setOption("incremental", "true");
+  optChecker->setOption("produce-models", "true");
+  // Move assertions from the parent solver to the subsolver
+  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
+  for (const Node &e : p_assertions) {
+    optChecker->assertFormula(e);
+  }
+
+  CVC4::Result intermediateSatResult = optChecker->checkSat();
+  // Model-value of objective (used in optimization loop)
+  CVC4::Node value;
+  if (intermediateSatResult.isUnknown()) {
+    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+  }
+  if (!intermediateSatResult.isSat()) {
+    return std::make_pair(OptResult::OPT_UNSAT, value);
+  }
+  // asserts objective > old_value (used in optimization loop)
+  CVC4::Node increment;
+  CVC4::Kind incrementalOperator = kind::NULL_EXPR; 
+  if (objType == ObjectiveType::OBJECTIVE_MINIMIZE) {
+    // if objective is MIN, then assert optimization_target < current_model_value 
+    incrementalOperator = kind::LT;
+  } else if (objType == ObjectiveType::OBJECTIVE_MAXIMIZE) {
+    // if objective is MAX, then assert optimization_target > current_model_value 
+    incrementalOperator = kind::GT;
+  }
+  // Workhorse of linear search:
+  // This loop will keep incrmenting/decrementing the objective until unsat
+  // When unsat is hit, 
+  // the optimized value is the model value just before the unsat call
+  while (intermediateSatResult.isSat()) {
+    value = optChecker->getValue(target);
+    Assert(!value.isNull());
+    increment = nm->mkNode(incrementalOperator, target, value);
+    optChecker->assertFormula(increment);
+    intermediateSatResult = optChecker->checkSat();
+  }
+  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+}
+
+
+std::pair<OptResult, CVC4::Node> OMTOptimizerInteger::minimize(SmtEngine *parentSMTSolver, CVC4::Node target) {
+  return this->optimize(parentSMTSolver, target, ObjectiveType::OBJECTIVE_MINIMIZE);
+}
+std::pair<OptResult, CVC4::Node> OMTOptimizerInteger::maximize(SmtEngine *parentSMTSolver, CVC4::Node target) {
+  return this->optimize(parentSMTSolver, target, ObjectiveType::OBJECTIVE_MAXIMIZE);
+}
+
+
+OMTOptimizerBitVector::OMTOptimizerBitVector(bool isSigned) : d_isSigned(isSigned) {}
+
+
+BitVector OMTOptimizerBitVector::computeAverage(const BitVector &a, const BitVector &b, bool isSigned) {
+  // computes (a + b) / 2 without overflow 
+  // rounding towards -infinity
+  // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
+  // Assert(a.getSize() == b.getSize());
+  uint32_t aMod2 = (uint32_t)(a.isBitSet(0));
+  uint32_t bMod2 = (uint32_t)(b.isBitSet(0));
+  BitVector aMod2PlusbMod2(a.getSize(), uint32_t((aMod2 + bMod2)/2));
+  BitVector bv1(a.getSize(), (uint32_t)1);
+  if (isSigned) {
+    return (a.arithRightShift(bv1) + b.arithRightShift(bv1) + aMod2PlusbMod2.arithRightShift(bv1));
+  } else {
+    return (a.logicalRightShift(bv1) + b.logicalRightShift(bv1) + aMod2PlusbMod2.logicalRightShift(bv1));
+  }
+}
+
+std::unique_ptr<CVC4::SmtEngine> OMTOptimizerBitVector::initOptChecker(SmtEngine *parentSMTSolver) {
+  std::unique_ptr<CVC4::SmtEngine> optChecker; 
+  CVC4::theory::initializeSubsolver(optChecker);
+  // we need to be in incremental mode for multiple objectives since we need to
+  // push pop we need to produce models to inrement on our objective
+  optChecker->setOption("incremental", "true");
+  optChecker->setOption("produce-models", "true");
+  // Move assertions from the parent solver to the subsolver
+  std::vector<Node> p_assertions = parentSMTSolver->getExpandedAssertions();
+  for (const Node &e : p_assertions) {
+    optChecker->assertFormula(e);
+  }
+  return optChecker;
+}
+
+
+
+std::pair<OptResult, CVC4::Node> OMTOptimizerBitVector::minimize(SmtEngine *parentSMTSolver, CVC4::Node target) {
+  // the smt engine to which we send intermediate queries
+  // for the binary search.
+  std::unique_ptr<CVC4::SmtEngine> optChecker = initOptChecker(parentSMTSolver); 
+  NodeManager* nm = optChecker->getNodeManager();
+  Result intermediateSatResult = optChecker->checkSat();
+  // Model-value of objective (used in optimization loop)
+  Node value;
+  if (intermediateSatResult.isUnknown()) {
+    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+  }
+  if (!intermediateSatResult.isSat()) {
+    return std::make_pair(OptResult::OPT_UNSAT, value);
+  }
+
+  // value equals to upperBound 
+  value = optChecker->getValue(target);
+
+  // this gets the bitvector! 
+  BitVector bvValue = value.getConst<BitVector>();
+  unsigned int bvSize = bvValue.getSize();
+  
+  // lowerbound
+  BitVector lowerBound = ((this->d_isSigned) ? 
+    (BitVector::mkMinSigned(bvSize)) : (BitVector::mkZero(bvSize)));
+  // upperbound must be a satisfying value 
+  // and value == upperbound
+  BitVector upperBound = bvValue;
+
+  Kind LTOperator = ((d_isSigned) ? (kind::BITVECTOR_SLT) : (kind::BITVECTOR_ULT));
+  Kind GEOperator = ((d_isSigned) ? (kind::BITVECTOR_SGE) : (kind::BITVECTOR_UGE));
+  BitVector pivot;
+  while (true) {
+    if (d_isSigned) {
+      if (!lowerBound.signedLessThan(upperBound)) break;
+    } else {
+      if (!lowerBound.unsignedLessThan(upperBound)) break;
+    }
+    pivot = computeAverage(lowerBound, upperBound, d_isSigned);
+    optChecker->push();
+    // lowerBound <= target < pivot 
+    optChecker->assertFormula(
+      nm->mkNode(kind::AND, 
+        nm->mkNode(GEOperator, target, nm->mkConst(lowerBound)), 
+        nm->mkNode(LTOperator, target, nm->mkConst(pivot)))
+    );
+    intermediateSatResult = optChecker->checkSat();
+    if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull()) {
+      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    }
+    if (intermediateSatResult.isSat() == Result::SAT) {
+      value = optChecker->getValue(target);
+      upperBound = value.getConst<BitVector>();
+    } else if (intermediateSatResult.isSat() == Result::UNSAT) {
+      if (lowerBound == pivot) {
+        // lowerBound == pivot ==> upperbound = lowerbound + 1 
+        // and lowerbound <= target < upperbound is UNSAT 
+        // return the upperbound
+        return std::make_pair(OptResult::OPT_OPTIMAL, value);
+      } else {
+        lowerBound = pivot;
+      }
+    } else {
+      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    }
+    optChecker->pop();
+  }
+  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+}
+
+
+std::pair<OptResult, CVC4::Node> OMTOptimizerBitVector::maximize(SmtEngine *parentSMTSolver, CVC4::Node target) {
+  // the smt engine to which we send intermediate queries
+  // for the binary search.
+  std::unique_ptr<CVC4::SmtEngine> optChecker = initOptChecker(parentSMTSolver); 
+  NodeManager* nm = optChecker->getNodeManager();
+  Result intermediateSatResult = optChecker->checkSat();
+  // Model-value of objective (used in optimization loop)
+  Node value;
+  if (intermediateSatResult.isUnknown()) {
+    return std::make_pair(OptResult::OPT_UNKNOWN, value);
+  }
+  if (!intermediateSatResult.isSat()) {
+    return std::make_pair(OptResult::OPT_UNSAT, value);
+  }
+
+  // value equals to upperBound 
+  value = optChecker->getValue(target);
+
+  // this gets the bitvector! 
+  BitVector bvValue = value.getConst<BitVector>();
+  unsigned int bvSize = bvValue.getSize();
+  // BitVector bv1 = BitVector::mkOne(bvSize);
+
+  // lowerbound must be a satisfying value 
+  // and value == lowerbound
+  BitVector lowerBound = bvValue;
+  
+  // upperbound 
+  BitVector upperBound = ((this->d_isSigned) ? 
+    (BitVector::mkMaxSigned(bvSize)) : (BitVector::mkOnes(bvSize)));
+
+  Kind LEOperator = ((d_isSigned) ? (kind::BITVECTOR_SLE) : (kind::BITVECTOR_ULE));
+  Kind GTOperator = ((d_isSigned) ? (kind::BITVECTOR_SGT) : (kind::BITVECTOR_UGT));
+  BitVector pivot;
+  while (true) {
+    if (d_isSigned) {
+      if (!lowerBound.signedLessThan(upperBound)) break;
+    } else {
+      if (!lowerBound.unsignedLessThan(upperBound)) break;
+    }
+    pivot = computeAverage(lowerBound, upperBound, d_isSigned);
+    
+    optChecker->push();
+    // pivot < target <= upperBound 
+    optChecker->assertFormula(
+      nm->mkNode(kind::AND, 
+        nm->mkNode(GTOperator, target, nm->mkConst(pivot)), 
+        nm->mkNode(LEOperator, target, nm->mkConst(upperBound)))
+    );
+    intermediateSatResult = optChecker->checkSat();
+    if (intermediateSatResult.isUnknown() || intermediateSatResult.isNull()) {
+      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    }
+    if (intermediateSatResult.isSat() == Result::SAT) {
+      value = optChecker->getValue(target);
+      lowerBound = value.getConst<BitVector>();
+    } else if (intermediateSatResult.isSat() == Result::UNSAT) {
+      if (lowerBound == pivot) {
+        // upperbound = lowerbound + 1 
+        // and lowerbound < target <= upperbound is UNSAT 
+        // return the lowerbound
+        return std::make_pair(OptResult::OPT_OPTIMAL, value);
+      } else {
+        upperBound = pivot;
+      }
+      
+    } else {
+      return std::make_pair(OptResult::OPT_UNKNOWN, value);
+    }
+    optChecker->pop();
+  }
+  return std::make_pair(OptResult::OPT_OPTIMAL, value);
+}
+
+
+std::unique_ptr<OMTOptimizer> OMTOptimizer::getOptimizerForNode(CVC4::Node targetNode, bool isSigned) {
+  // the datatype of the target node 
+  CVC4::TypeNode objectiveType = targetNode.getType(true);
+  if (objectiveType.isInteger()) {
+    // integer type: use OMTOptimizerInteger 
+    return std::unique_ptr<OMTOptimizer>(new OMTOptimizerInteger());
+  } 
+  else if (objectiveType.isBitVector()) {
+    // bitvector type: use OMTOptimizerBitVector 
+    return std::unique_ptr<OMTOptimizer>(new OMTOptimizerBitVector(isSigned));
+  }
+  else {
+    return nullptr;
+  }
+}
+
+
 
 }  // namespace smt
 }  // namespace CVC4
