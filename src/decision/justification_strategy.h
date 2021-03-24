@@ -70,8 +70,16 @@ class JustificationStrategy
   void pushToStack(TNode n, prop::SatValue desiredVal);
   /** Pop from stack */
   void popStack();
-  /** get next child */
-  JustifyNode getNextJustifyNode(JustifyInfo* ji, bool lastChildSuccess);
+  /** 
+   * Get next justify node.
+   * 
+   * Either:
+   * (1) Returns the justify node corresponding to the next node to consider
+   * adding to the stack
+   * (2) Returns a null justify node and updates lastChildVal to the value
+   * of the current node referenced by ji.
+   */
+  JustifyNode getNextJustifyNode(JustifyInfo* ji, prop::SatValue& lastChildVal);
   /**
    * Get or allocate justify info at position i. This does not impact
    * d_stackSizeValid.
@@ -93,7 +101,7 @@ class JustificationStrategy
   AssertionList d_skolemAssertions;
   /** The current assertion we are trying to satisfy */
   context::CDO<TNode> d_current;
-  /** Set of justified nodes */
+  /** Mapping from non-negated nodes to their SAT value */
   context::CDInsertHashMap<Node, prop::SatValue, NodeHashFunction> d_justified;
   /** Stack of justify info, valid up to index d_stackIndex-1 */
   context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
