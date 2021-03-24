@@ -20,7 +20,6 @@
 #define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
 #include "expr/node.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_registry.h"
@@ -89,12 +88,10 @@ class TheoryQuantifiers : public Theory {
   QuantifiersState d_qstate;
   /** The quantifiers registry */
   QuantifiersRegistry d_qreg;
-  /** extended model object */
-  std::unique_ptr<FirstOrderModel> d_qmodel;
   /** The term registry */
   TermRegistry d_treg;
   /** The quantifiers inference manager */
-  std::unique_ptr<QuantifiersInferenceManager> d_qim;
+  QuantifiersInferenceManager d_qim;
   /** The quantifiers engine, which lives here */
   std::unique_ptr<QuantifiersEngine> d_qengine;
 };/* class TheoryQuantifiers */

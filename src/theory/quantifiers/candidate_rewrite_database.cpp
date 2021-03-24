@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
-#include "api/cvc4cpp.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "smt/smt_engine.h"

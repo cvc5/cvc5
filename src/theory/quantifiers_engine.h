@@ -38,10 +38,12 @@ class DecisionManager;
 class QuantifiersModule;
 class RepSetIterator;
 
+namespace quantifiers {
+
 namespace inst {
 class TriggerTrie;
 }
-namespace quantifiers {
+
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -69,7 +71,6 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
-                    quantifiers::FirstOrderModel* qm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
@@ -98,7 +99,7 @@ class QuantifiersEngine {
   /** get skolemize utility */
   quantifiers::Skolemize* getSkolemize() const;
   /** get trigger database */
-  inst::TriggerTrie* getTriggerDatabase() const;
+  quantifiers::inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization
@@ -235,7 +236,7 @@ public:
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
   /** all triggers will be stored in this trie */
-  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
+  std::unique_ptr<quantifiers::inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities

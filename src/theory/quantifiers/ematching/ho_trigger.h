@@ -27,6 +27,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 class Trigger;
@@ -93,9 +94,10 @@ class HigherOrderTrigger : public Trigger
 
  private:
   HigherOrderTrigger(QuantifiersEngine* qe,
-                     quantifiers::QuantifiersState& qs,
-                     quantifiers::QuantifiersInferenceManager& qim,
-                     quantifiers::QuantifiersRegistry& qr,
+                     QuantifiersState& qs,
+                     QuantifiersInferenceManager& qim,
+                     QuantifiersRegistry& qr,
+                     TermRegistry& tr,
                      Node q,
                      std::vector<Node>& nodes,
                      std::map<Node, std::vector<Node> >& ho_apps);
@@ -274,8 +276,9 @@ class HigherOrderTrigger : public Trigger
                             bool arg_changed);
 };
 
-} /* CVC4::theory::inst namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__HO_TRIGGER_H */

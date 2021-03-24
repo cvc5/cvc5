@@ -777,8 +777,6 @@ libcvc4_add_sources(
   theory/quantifiers/term_tuple_enumerator.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
-  theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
-  theory/quantifiers/sygus/ce_guided_single_inv_sol.h
   theory/quantifiers/sygus/cegis.cpp
   theory/quantifiers/sygus/cegis.h
   theory/quantifiers/sygus/cegis_core_connective.cpp
@@ -797,6 +795,10 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/example_infer.h
   theory/quantifiers/sygus/example_min_eval.cpp
   theory/quantifiers/sygus/example_min_eval.h
+  theory/quantifiers/sygus/rcons_obligation_info.cpp
+  theory/quantifiers/sygus/rcons_obligation_info.h
+  theory/quantifiers/sygus/rcons_type_info.cpp
+  theory/quantifiers/sygus/rcons_type_info.h
   theory/quantifiers/sygus/sygus_abduct.cpp
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
@@ -823,6 +825,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_pbe.h
   theory/quantifiers/sygus/sygus_process_conj.cpp
   theory/quantifiers/sygus/sygus_process_conj.h
+  theory/quantifiers/sygus/sygus_reconstruct.cpp
+  theory/quantifiers/sygus/sygus_reconstruct.h
   theory/quantifiers/sygus/sygus_qe_preproc.cpp
   theory/quantifiers/sygus/sygus_qe_preproc.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
@@ -1135,17 +1139,9 @@ if(USE_KISSAT)
   target_link_libraries(cvc4 ${Kissat_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${Kissat_INCLUDE_DIR})
 endif()
-if(USE_DRAT2ER)
-  target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${Drat2Er_INCLUDE_DIR})
-endif()
 if(USE_GLPK)
   target_link_libraries(cvc4 ${GLPK_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${GLPK_INCLUDE_DIR})
-endif()
-if(USE_LFSC)
-  target_link_libraries(cvc4 ${LFSC_LIBRARIES})
-  target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
 endif()
 if(USE_POLY)
   target_link_libraries(cvc4 ${POLY_LIBRARIES})

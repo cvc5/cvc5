@@ -35,14 +35,8 @@ SmtEngine* currentSmtEngine() {
 bool smtEngineInScope() { return s_smtEngine_current != NULL; }
 
 ProofManager* currentProofManager() {
-#if IS_PROOFS_BUILD
   Assert(s_smtEngine_current != NULL);
   return s_smtEngine_current->getProofManager();
-#else  /* IS_PROOFS_BUILD */
-  InternalError()
-      << "proofs/unsat cores are not on, but ProofManager requested";
-  return NULL;
-#endif /* IS_PROOFS_BUILD */
 }
 
 ResourceManager* currentResourceManager()
