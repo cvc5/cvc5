@@ -23,13 +23,16 @@
 
 namespace CVC4 {
 
-/** 
+/**
  * Information concerning a single formula in the justification strategy.
  */
 class JustifyInfo
 {
  public:
-  JustifyInfo(context::Context* c) : d_node(c), d_desiredVal(c, prop::SAT_VALUE_UNKNOWN), d_childIndex(c, 0) {}
+  JustifyInfo(context::Context* c)
+      : d_node(c), d_desiredVal(c, prop::SAT_VALUE_UNKNOWN), d_childIndex(c, 0)
+  {
+  }
   /** The node we are considering */
   context::CDO<Node> d_node;
   /** Desired value */

@@ -109,11 +109,11 @@ bool JustificationStrategy::setCurrentAssertion(TNode c)
   return true;
 }
 
-JustifyInfo * JustificationStrategy::getOrAllocJustifyInfo(size_t i)
+JustifyInfo* JustificationStrategy::getOrAllocJustifyInfo(size_t i)
 {
   // don't request stack beyond the bound
-  Assert (i<=d_stack.size());
-  if (i==d_stack.size())
+  Assert(i <= d_stack.size());
+  if (i == d_stack.size())
   {
     d_stack.emplace_back(std::make_unique<JustifyInfo>(d_context));
   }

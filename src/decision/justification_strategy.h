@@ -65,13 +65,13 @@ class JustificationStrategy
   void refreshCurrentAssertion();
   /** Set current */
   bool setCurrentAssertion(TNode c);
-  /** 
+  /**
    * Get or allocate justify info at position i. This does not impact
    * d_stackSizeValid.
    */
-  JustifyInfo * getOrAllocJustifyInfo(size_t i);
+  JustifyInfo* getOrAllocJustifyInfo(size_t i);
   /** Pointer to the SAT context */
-  context::Context * d_context;
+  context::Context* d_context;
   /** Pointer to the CNF stream */
   prop::CnfStream* d_cnfStream;
   /** Pointer to the SAT solver */
