@@ -228,14 +228,7 @@ void SmtSolver::processAssertions(Assertions& as)
   }
 
   // process the assertions with the preprocessor
-  bool noConflict = d_pp.process(as);
-
-  // Notify the input formulas to theory engine
-  if (noConflict)
-  {
-    Chat() << "notifying theory engine..." << std::endl;
-    d_propEngine->notifyPreprocessedAssertions(ap.ref());
-  }
+  d_pp.process(as);
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
@@ -249,23 +242,7 @@ void SmtSolver::processAssertions(Assertions& as)
     // definitions, as the decision justification heuristic treates the latter
     // specially.
     preprocessing::IteSkolemMap& ism = ap.getIteSkolemMap();
-    preprocessing::IteSkolemMap::iterator it;
-    for (size_t i = 0, asize = assertions.size(); i < asize; i++)
-    {
-      // is the assertion a skolem definition?
-      it = ism.find(i);
-      if (it == ism.end())
-      {
-        Chat() << "+ input " << assertions[i] << std::endl;
-        d_propEngine->assertFormula(assertions[i]);
-      }
-      else
-      {
-        Chat() << "+ skolem definition " << assertions[i] << " (from "
-               << it->second << ")" << std::endl;
-        d_propEngine->assertSkolemDefinition(assertions[i], it->second);
-      }
-    }
+    d_propEngine->assertInputFormulas(assertions, ism);
   }
 
   // clear the current assertions

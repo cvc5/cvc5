@@ -26,6 +26,13 @@
 
 namespace CVC4 {
 
+class JustifyInfo
+{
+public:
+  /** The child polarity in the parent */
+  context::CDList<Node> d_childPol;
+};
+  
 class JustificationStrategy
 {
  public:
@@ -47,7 +54,9 @@ class JustificationStrategy
    */
   void addAssertion(TNode assertion);
   /**
-   * Notify this class that lem is an active assertion in this SAT context
+   * Notify this class that lem is an active assertion in this SAT context. This
+   * is triggered when lem is a skolem definition for skolem k, and k appears
+   * in a newly asserted literal.
    */
   void notifyRelevantSkolemAssertion(TNode lem);
 
@@ -61,6 +70,8 @@ class JustificationStrategy
  private:
   /** Refresh current */
   void refreshCurrentAssertion();
+  /** Set current */
+  bool setCurrent(TNode c);
   /** CNF stream */
   prop::CnfStream* d_cnfStream;
   /** SAT solver */
@@ -71,6 +82,12 @@ class JustificationStrategy
   AssertionList d_skolemAssertions;
   /** The current assertion we are trying to satisfy */
   context::CDO<TNode> d_current;
+  /** Set of justified nodes */
+  context::CDHashSet<Node, NodeHashFunction> d_justified;
+  /** Stack of justify info, valid up to index d_stackIndex-1 */
+  context::CDList< std::shared_ptr<JustifyInfo> > d_stack
+  /** Current index in the justify info */
+  context::CDO<size_t> d_stackSizeValid;
 };
 
 }  // namespace CVC4

@@ -22,7 +22,10 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_satSolver(nullptr),
       d_assertions(u, c),        // assertions are user-context dependent
       d_skolemAssertions(c, c),  // skolem assertions are SAT-context dependent
-      d_current(c)
+      d_current(c),
+      d_justified(c),
+      d_stack(c),
+      d_stackSizeValid(c, 0)
 {
 }
 
@@ -82,18 +85,27 @@ Node JustificationStrategy::getNode(prop::SatLiteral l)
 
 void JustificationStrategy::refreshCurrentAssertion()
 {
-  // if we already have a current assertion, we are done
+  // if we already have a current assertion, nothing to be done
   if (!d_current.get().isNull())
   {
     return;
   }
   // use main assertions, then skolem assertions
-  d_current = d_assertions.getNextAssertion();
-  if (!d_current.get().isNull())
+  if (setCurrent(d_assertions.getNextAssertion()))
   {
     return;
   }
-  d_current = d_skolemAssertions.getNextAssertion();
+  setCurrent(d_skolemAssertions.getNextAssertion());
+}
+bool JustificationStrategy::setCurrent(TNode c)
+{
+  if (c.isNull())
+  {
+    return false;
+  }
+  d_current = c;
+  d_stackSizeValid = 0;
+  return true;
 }
 
 }  // namespace CVC4
