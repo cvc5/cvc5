@@ -23,6 +23,9 @@
 
 namespace CVC4 {
 
+/** A pair indicating a node and its desired value */
+using JustifyNode = std::pair<TNode, prop::SatValue>;
+
 /**
  * Information concerning a single formula in the justification strategy.
  */
@@ -32,11 +35,16 @@ class JustifyInfo
   JustifyInfo(context::Context* c);
   ~JustifyInfo();
   /** set */
-  void set(Node n, prop::SatValue desiredVal);
-
+  void set(TNode n, prop::SatValue desiredVal);
+  /** get node */
+  JustifyNode getNode() const;
+  /** get next child index, and increment */
+  size_t getNextChildIndex();
+  /** is hard */
+  //bool isHard() const;
  private:
   /** The node we are considering */
-  context::CDO<Node> d_node;
+  context::CDO<TNode> d_node;
   /** Desired value */
   context::CDO<prop::SatValue> d_desiredVal;
   /** The child index we are considering */

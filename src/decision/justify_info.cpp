@@ -23,7 +23,19 @@ JustifyInfo::JustifyInfo(context::Context* c)
 
 JustifyInfo::~JustifyInfo() {}
 
-void JustifyInfo::set(Node n, prop::SatValue desiredVal)
+JustifyNode JustifyInfo::getNode() const
+{
+  return JustifyNode(d_node.get(), d_desiredVal.get());
+}
+
+size_t JustifyInfo::getNextChildIndex()
+{
+  size_t i = d_childIndex.get();
+  d_childIndex = d_childIndex + 1;
+  return i;
+}
+
+void JustifyInfo::set(TNode n, prop::SatValue desiredVal)
 {
   d_node = n;
   d_desiredVal = desiredVal;

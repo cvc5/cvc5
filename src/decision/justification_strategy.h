@@ -18,6 +18,7 @@
 #define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
 #include "context/cdo.h"
+#include "context/cdinsert_hashmap.h"
 #include "decision/assertion_list.h"
 #include "decision/justify_info.h"
 #include "expr/node.h"
@@ -62,14 +63,22 @@ class JustificationStrategy
 
  private:
   /** Refresh current */
-  void refreshCurrentAssertion();
-  /** Set current */
-  bool setCurrentAssertion(TNode c);
+  bool refreshCurrentAssertion();
+  /** Reference current assertion from list */
+  bool refreshCurrentAssertionFromList(AssertionList& al);
+  /** Push to stack */
+  void pushToStack(TNode n, prop::SatValue desiredVal);
+  /** Pop from stack */
+  void popStack();
   /**
    * Get or allocate justify info at position i. This does not impact
    * d_stackSizeValid.
    */
   JustifyInfo* getOrAllocJustifyInfo(size_t i);
+  /** Is n a theory literal? */
+  static bool isTheoryLiteral(TNode n);
+  /** Is n a theory atom? */
+  static bool isTheoryAtom(TNode n);
   /** Pointer to the SAT context */
   context::Context* d_context;
   /** Pointer to the CNF stream */
@@ -83,11 +92,11 @@ class JustificationStrategy
   /** The current assertion we are trying to satisfy */
   context::CDO<TNode> d_current;
   /** Set of justified nodes */
-  context::CDHashSet<Node, NodeHashFunction> d_justified;
+  context::CDInsertHashMap<Node, prop::SatValue, NodeHashFunction> d_justified;
   /** Stack of justify info, valid up to index d_stackIndex-1 */
   context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
-  /** Current index in the justify info */
-  context::CDO<size_t> d_stackIndex;
+  /** Current number of entries in the stack that are valid */
+  context::CDO<size_t> d_stackSizeValid;
 };
 
 }  // namespace CVC4
