@@ -78,6 +78,10 @@ class JustificationStrategy
    * d_stackSizeValid.
    */
   JustifyInfo* getOrAllocJustifyInfo(size_t i);
+  /** 
+   * Lookup value, return value of n if one can be determined.
+   */
+  prop::SatValue lookupValue(TNode n);
   /** Is n a theory literal? */
   static bool isTheoryLiteral(TNode n);
   /** Is n a theory atom? */
@@ -96,7 +100,7 @@ class JustificationStrategy
   context::CDO<TNode> d_current;
   /** Mapping from non-negated nodes to their SAT value */
   context::CDInsertHashMap<Node, prop::SatValue, NodeHashFunction> d_justified;
-  /** Stack of justify info, valid up to index d_stackIndex-1 */
+  /** Stack of justify info, valid up to index d_stackSizeValid-1 */
   context::CDList<std::shared_ptr<JustifyInfo> > d_stack;
   /** Current number of entries in the stack that are valid */
   context::CDO<size_t> d_stackSizeValid;

@@ -48,8 +48,6 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   JustifyInfo* ji;
   JustifyNode next;
   SatValue lastChildVal = SAT_VALUE_UNKNOWN;
-  context::CDInsertHashMap<Node, SatValue, NodeHashFunction>::const_iterator
-      jit;
   // while we are trying to satisfy assertions
   while (!d_current.get().isNull())
   {
@@ -79,47 +77,30 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       // must have requested a child
       Assert(!next.first.isNull());
       Assert(next.second != SAT_VALUE_UNKNOWN);
-      // Look up whether next.first has already been justified, we must use
-      // its atom for this lookup.
-      bool nextPol = next.first.getKind() != NOT;
-      TNode nextAtom = nextPol ? next.first : next.first[0];
-      Assert(nextAtom.getKind() != NOT);
-      jit = d_justified.find(nextAtom);
+      // Look up whether next.first already has a value
+      lastChildVal = lookupValue(next.first);
       // have we processed the next node yet?
-      if (jit == d_justified.end())
+      if (lastChildVal==SAT_VALUE_UNKNOWN)
       {
-        if (isTheoryAtom(nextAtom))
+        if (isTheoryLiteral(next.first))
         {
           // should be assigned a literal
-          Assert(d_cnfStream->hasLiteral(nextAtom));
+          Assert(d_cnfStream->hasLiteral(next.first));
           // maybe it has a SAT value already?
           SatLiteral nsl = d_cnfStream->getLiteral(next.first);
-          lastChildVal = d_satSolver->value(nsl);
-          if (lastChildVal == SAT_VALUE_UNKNOWN)
-          {
-            // (1) atom with unassigned value, return it, possibly inverted
-            return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
-          }
-          // (2) otherwise, atom with value, which we add the justified and
-          // process in the next iteration of the loop
-          d_justified.insert(
-              nextAtom, nextPol ? lastChildVal : invertValue(lastChildVal));
+          // (1) atom with unassigned value, return it, possibly inverted
+          return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
         {
-          // (3) unprocessed non-atom, push to the stack
+          // (2) unprocessed non-atom, push to the stack
           // push the child to the stack
           pushToStack(next.first, next.second);
           // we have yet to process children for the new node
-          lastChildVal = SAT_VALUE_UNKNOWN;
           continue;
         }
       }
-      else
-      {
-        // (4) non-atom that already has a value
-        lastChildVal = nextPol ? jit->second : invertValue(jit->second);
-      }
+      // (3) otherwise, formula that already has a value
     }
   }
   // we exhausted all assertions
@@ -202,6 +183,10 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   nextChild.first = curr[i];
   // determine the value of the next child request
   SatValue desiredVal = currPol ? jc.second : invertValue(jc.second);
+  // TODO: lookahead
+  
+  
+  // determine if already justified
   if (ck == AND || ck == OR)
   {
     nextChild.second = desiredVal;
@@ -212,17 +197,14 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   }
   else if (ck == ITE)
   {
-    // TODO: lookahead?
     nextChild.second = (i == 0) ? SAT_VALUE_TRUE : desiredVal;
   }
   else if (ck == XOR)
   {
-    // TODO: lookahead?
     nextChild.second = (i == 0) ? SAT_VALUE_TRUE : invertValue(lastChildVal);
   }
   else if (ck == EQUAL)
   {
-    // TODO: lookahead?
     nextChild.second = (i == 0) ? SAT_VALUE_TRUE : lastChildVal;
   }
   else
@@ -231,6 +213,33 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     Assert(false);
   }
   return nextChild;
+}
+
+prop::SatValue JustificationStrategy::lookupValue(TNode n)
+{
+  bool pol = n.getKind() != NOT;
+  TNode atom = pol ? n : n[0];
+  Assert(atom.getKind() != NOT);
+  // check if we have already determined the value
+  // notice that d_justified may contain nodes that are not assigned SAT values,
+  // since this class infers when the value of nodes can be determined.
+  context::CDInsertHashMap<Node, SatValue, NodeHashFunction>::const_iterator jit = d_justified.find(atom);
+  if (jit!=d_justified.end())
+  {
+    return pol ? jit->second : invertValue(jit->second);
+  }
+  // TODO: for simplicity, should we just lookup values for non-theory atoms too?
+  if (isTheoryAtom(atom))
+  {
+    SatLiteral nsl = d_cnfStream->getLiteral(atom);
+    prop::SatValue val = d_satSolver->value(nsl);
+    if (val!=SAT_VALUE_UNKNOWN)
+    {
+      d_justified.insert(atom, val);
+    }
+    return pol ? val : invertValue(val);
+  }
+  return SAT_VALUE_UNKNOWN;
 }
 
 bool JustificationStrategy::isDone() { return refreshCurrentAssertion(); }
@@ -279,7 +288,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
     Assert(!isTheoryLiteral(curr));
     if (d_justified.find(curr) == d_justified.end())
     {
-      // if not already justified, we reset the stack and push it
+      // if not already justified, we reset the stack and push to it
       d_current = curr;
       d_stackSizeValid = 0;
       pushToStack(curr, SAT_VALUE_TRUE);
