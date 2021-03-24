@@ -68,8 +68,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         popStack();
       }
     } while (!next.first.isNull() && d_stackSizeValid.get() > 0);
-    
-    if (d_stackSizeValid.get()==0)
+
+    if (d_stackSizeValid.get() == 0)
     {
       // we did not find a next node for current, refresh current assertion
       refreshCurrentAssertion();
@@ -83,7 +83,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       // its atom for this lookup.
       bool nextPol = next.first.getKind() != NOT;
       TNode nextAtom = nextPol ? next.first : next.first[0];
-      Assert (nextAtom.getKind()!=NOT);
+      Assert(nextAtom.getKind() != NOT);
       jit = d_justified.find(nextAtom);
       // have we processed the next node yet?
       if (jit == d_justified.end())
@@ -102,7 +102,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           }
           // (2) otherwise, atom with value, which we add the justified and
           // process in the next iteration of the loop
-          d_justified.insert(nextAtom, nextPol ? lastChildVal : invertValue(lastChildVal));
+          d_justified.insert(
+              nextAtom, nextPol ? lastChildVal : invertValue(lastChildVal));
         }
         else
         {
@@ -125,14 +126,14 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   return undefSatLiteral;
 }
 
-JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo* ji,
-                                                      prop::SatValue& lastChildVal)
+JustifyNode JustificationStrategy::getNextJustifyNode(
+    JustifyInfo* ji, prop::SatValue& lastChildVal)
 {
   JustifyNode jc = ji->getNode();
-  Assert (!jc.first.isNull());
-  Assert (jc.second!=SAT_VALUE_UNKNOWN);
+  Assert(!jc.first.isNull());
+  Assert(jc.second != SAT_VALUE_UNKNOWN);
   // extract the non-negated formula from jc
-  bool currPol = jc.first.getKind()!=NOT;
+  bool currPol = jc.first.getKind() != NOT;
   TNode curr = currPol ? jc.first : jc.first[0];
   Kind ck = curr.getKind();
   Assert(ck != NOT);
@@ -141,19 +142,20 @@ JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo* ji,
   Assert(!isTheoryAtom(curr));
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
-  if (lastChildVal!=SAT_VALUE_UNKNOWN)
+  if (lastChildVal != SAT_VALUE_UNKNOWN)
   {
-    Assert (i!=0);
-    // we just computed the value of the (i-1)^th child, compute if we have a value now
+    Assert(i != 0);
+    // we just computed the value of the (i-1)^th child, compute if we have a
+    // value now
     SatValue value = SAT_VALUE_UNKNOWN;
     if (ck == AND || ck == OR || ck == IMPLIES)
     {
-      if ((ck==AND)==(lastChildVal==SAT_VALUE_FALSE))
+      if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE))
       {
         // forcing case
         value = lastChildVal;
       }
-      else if (i==curr.getNumChildren())
+      else if (i == curr.getNumChildren())
       {
         // exhausted case
         value = invertValue(lastChildVal);
@@ -162,10 +164,10 @@ JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo* ji,
     }
     else if (ck == ITE)
     {
-      if (i==1)
+      if (i == 1)
       {
         // take the else branch if the condition was false
-        if (lastChildVal==SAT_VALUE_FALSE)
+        if (lastChildVal == SAT_VALUE_FALSE)
         {
           i = ji->getNextChildIndex();
         }
@@ -178,12 +180,12 @@ JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo* ji,
     }
     else
     {
-      Assert (ck == XOR || ck == EQUAL);
-      Assert (i==1);
+      Assert(ck == XOR || ck == EQUAL);
+      Assert(i == 1);
       // no value yet
     }
     // we return null if we are done with the current node
-    if (value!=SAT_VALUE_UNKNOWN)
+    if (value != SAT_VALUE_UNKNOWN)
     {
       // add to justify if so
       d_justified.insert(curr, value);
@@ -197,26 +199,26 @@ JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo* ji,
   nextChild.first = curr[i];
   // determine the value of the next child request
   SatValue desiredVal = currPol ? jc.second : invertValue(jc.second);
-  if (ck==AND || ck==OR)
+  if (ck == AND || ck == OR)
   {
     nextChild.second = desiredVal;
   }
   else if (ck == IMPLIES)
   {
-    nextChild.second = (i==0) ? invertValue(desiredVal) : desiredVal;
+    nextChild.second = (i == 0) ? invertValue(desiredVal) : desiredVal;
   }
   else if (ck == ITE)
   {
     // TODO: lookahead?
-    nextChild.second = (i==0) ? SAT_VALUE_TRUE : desiredVal;
+    nextChild.second = (i == 0) ? SAT_VALUE_TRUE : desiredVal;
   }
-  else if (ck==XOR)
+  else if (ck == XOR)
   {
-    nextChild.second = (i==0) ? SAT_VALUE_TRUE : invertValue(lastChildVal);
+    nextChild.second = (i == 0) ? SAT_VALUE_TRUE : invertValue(lastChildVal);
   }
-  else if (ck==EQUAL)
+  else if (ck == EQUAL)
   {
-    nextChild.second = (i==0) ? SAT_VALUE_TRUE : lastChildVal;
+    nextChild.second = (i == 0) ? SAT_VALUE_TRUE : lastChildVal;
   }
   else
   {

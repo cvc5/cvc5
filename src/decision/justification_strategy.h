@@ -70,9 +70,9 @@ class JustificationStrategy
   void pushToStack(TNode n, prop::SatValue desiredVal);
   /** Pop from stack */
   void popStack();
-  /** 
+  /**
    * Get next justify node.
-   * 
+   *
    * Either:
    * (1) Returns the justify node corresponding to the next node to consider
    * adding to the stack
