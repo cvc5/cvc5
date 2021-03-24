@@ -1,0 +1,24 @@
+; COMMAND-LINE: --sygus-si=all --dag-thresh=0
+; EXPECT: unsat
+; EXPECT: (define-fun f1 ((x Bool) (y Bool)) Bool (ite true true false))
+; EXPECT: (define-fun f2 ((x Bool) (y Bool)) Bool (ite x (ite y false (not false)) (not (ite false false (not false)))))
+
+; Test ensures that the solution does not contain a random variable
+
+(set-logic UF)
+
+(synth-fun f1 ((x Bool) (y Bool)) Bool
+  ((Start Bool))
+  ((Start Bool (false (ite true true Start)))))
+
+(synth-fun f2 ((x Bool) (y Bool)) Bool
+  ((Start Bool))
+  ((Start Bool (false x y (ite Start Start (not Start))))))
+
+(declare-var x Bool)
+(declare-var y Bool)
+
+(constraint (= (f1 x y) true))
+(constraint (= (f2 x y) (not (ite x y true))))
+
+(check-synth)

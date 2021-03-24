@@ -17,7 +17,6 @@
 
 #include <fstream>
 
-#include "api/cvc4cpp.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"

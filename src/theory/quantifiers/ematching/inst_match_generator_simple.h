@@ -25,6 +25,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 /** InstMatchGeneratorSimple class
@@ -101,6 +102,7 @@ class InstMatchGeneratorSimple : public IMGenerator
 };
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
 

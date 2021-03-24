@@ -23,13 +23,12 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers_engine.h"
 
-using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory;
-using namespace CVC4::theory::quantifiers;
-using namespace CVC4::theory::inst;
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
 
 //Model Engine constructor
 ModelEngine::ModelEngine(QuantifiersEngine* qe,
@@ -335,3 +334,6 @@ void ModelEngine::debugPrint( const char* c ){
   //d_quantEngine->getModel()->debugPrint( c );
 }
 
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
