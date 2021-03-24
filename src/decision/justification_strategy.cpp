@@ -219,7 +219,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // determine if already justified
   if (ck == AND || ck == OR)
   {
-    if ((ck==AND)==(pDesiredVal==SAT_VALUE_FALSE))
+    if ((ck == AND) == (pDesiredVal == SAT_VALUE_FALSE))
     {
       // TODO: lookahead to determine if already satisfied?
     }
@@ -227,7 +227,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   }
   else if (ck == IMPLIES)
   {
-    if (i==0)
+    if (i == 0)
     {
       // TODO: lookahead to determine if already satisfied?
       desiredVal = invertValue(pDesiredVal);
@@ -239,7 +239,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   }
   else if (ck == ITE)
   {
-    if (i==0)
+    if (i == 0)
     {
       // TODO: lookahead on branches
       desiredVal = SAT_VALUE_TRUE;
@@ -251,14 +251,14 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   }
   else if (ck == XOR || ck == EQUAL)
   {
-    if (i==0)
+    if (i == 0)
     {
       // TODO: lookahead on rhs
       desiredVal = SAT_VALUE_TRUE;
     }
     else
     {
-      desiredVal = ck == XOR  ? invertValue(lastChildVal) : lastChildVal;
+      desiredVal = ck == XOR ? invertValue(lastChildVal) : lastChildVal;
     }
   }
   else
@@ -345,7 +345,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
     // we never add theory literals to our assertions lists
     Assert(!isTheoryLiteral(curr));
     currValue = lookupValue(curr);
-    if (currValue==SAT_VALUE_UNKNOWN)
+    if (currValue == SAT_VALUE_UNKNOWN)
     {
       // if not already justified, we reset the stack and push to it
       d_current = curr;
@@ -355,7 +355,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
       return true;
     }
     // assertions should all be satisfied, otherwise we are in conflict
-    Assert (currValue==SAT_VALUE_TRUE);
+    Assert(currValue == SAT_VALUE_TRUE);
     // already justified, immediately skip
     curr = al.getNextAssertion();
   }
