@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-#
 
+# utility function to download a file
 function download {
   if [ -x "$(command -v wget)" ]; then
     wget -c -O "$2" "$1"
@@ -95,7 +95,7 @@ cat temp-lfsc.txt
 
 rm temp-lfsc.txt
 
-echo "=== Finshed check with lfsc"
+echo "=== Finished check with lfsc"
 EOF
 chmod +x $BASE_DIR/bin/lfsc-check.sh
 
