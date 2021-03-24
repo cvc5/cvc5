@@ -45,68 +45,39 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // ensure we have an assertion, this could perhaps be an Assert?
   refreshCurrentAssertion();
   JustifyInfo* ji;
-  JustifyNode curr;
-  JustifyNode nextChild;
+  JustifyNode next;
   SatValue nextVal;
   context::CDInsertHashMap<Node, SatValue, NodeHashFunction>::const_iterator
       jit;
   while (!d_current.get().isNull())
   {
+    // get the current justify info, which should be ready
+    Assert(d_stackSizeValid.get() > 0);
+    Assert(d_stack.size() >= d_stackSizeValid.get());
+    ji = d_stack[d_stackSizeValid.get() - 1].get();
+    // get the next justify node
+    next = getNextJustifyNode(ji, SAT_VALUE_UNKNOWN);
     do
     {
-      // get the current justify info, which should be ready
-      Assert(d_stackSizeValid.get() > 0);
-      Assert(d_stack.size() >= d_stackSizeValid.get());
-      ji = d_stack[d_stackSizeValid.get() - 1].get();
-      curr = ji->getNode();
-      // the current node should be a non-negated non-theory literal, due to our
-      // invariants of what is pushed onto the stack
-      Assert(curr.first.getKind() != NOT);
-      Assert(!isTheoryAtom(curr.first));
-      Kind ck = curr.first.getKind();
-      // get the next index to process, and construct the next child request
-      size_t i = ji->getNextChildIndex();
-      Assert(i < curr.first.getNumChildren());
-      nextChild.first = curr.first[i];
-      if (ck == AND || ck == OR || ck == IMPLIES)
-      {
-      }
-      else if (ck == ITE)
-      {
-      }
-      else if (ck == XOR || ck == EQUAL)
-      {
-        Assert(curr.first[0].getType().isBoolean());
-      }
-      else
-      {
-        // curr should not be an atom
-        Assert(false);
-      }
       // must have requested a child
-      Assert(!nextChild.first.isNull());
-      Assert(nextChild.second != SAT_VALUE_UNKNOWN);
-      if (nextChild.first.getKind() == NOT)
-      {
-        nextChild.first = nextChild.first[0];
-        nextChild.second = invertValue(nextChild.second);
-      }
-      Assert(nextChild.first.getKind() != NOT);
-      jit = d_justified.find(nextChild.first);
+      Assert(!next.first.isNull());
+      Assert(next.first.getKind() != NOT);
+      Assert(next.second != SAT_VALUE_UNKNOWN);
+      jit = d_justified.find(next.first);
       // have we processed this node yet?
       if (jit == d_justified.end())
       {
-        if (isTheoryAtom(nextChild.first))
+        if (isTheoryAtom(next.first))
         {
           // should be assigned a literal
-          Assert(hasSatLiteral(nextChild.first));
-          SatLiteral asl = getSatLiteral(nextChild.first);
+          Assert(hasSatLiteral(next.first));
+          SatLiteral asl = getSatLiteral(next.first);
           // maybe it has a SAT value already?
           nextVal = d_satSolver->value(asl);
           if (nextVal == SAT_VALUE_UNKNOWN)
           {
             // (1) atom with unassigned value, return it, possibly inverted
-            return nextChild.second == SAT_VALUE_FALSE ? ~asl : asl;
+            return next.second == SAT_VALUE_FALSE ? ~asl : asl;
           }
           // otherwise, we already have the correct or incorrect value below
         }
@@ -114,7 +85,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         {
           // (2) unprocessed non-atom, push to the stack
           // push the child to the stack
-          pushToStack(nextChild.first, nextChild.second);
+          pushToStack(next.first, next.second);
           continue;
         }
       }
@@ -124,19 +95,22 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       }
       Assert(nextVal != SAT_VALUE_UNKNOWN);
       // check whether we have the value we wanted
-      bool childSuccess = (nextVal == nextChild.second);
+      bool lastChildSuccess = (nextVal == next.second);
+      // we now get the next justify node again, if it can be found
       // (3) if we already have the desired value, we pop recursively until a
-      // "hard" node, or reach the top of the current assertion (4) if we
-      // already have the wrong value, we continue if we are an "easy" node.
-      bool foundNext = false;
+      // "hard" node, or reach the top of the current assertion, or 
+      // (4) if we already have the wrong value, we continue if we are an
+      // "easy" node.
       do
       {
-        if (!foundNext)
+        next = getNextJustifyNode(ji, lastChildSuccess);
+        // if the current node is finished, we pop the stack
+        if (!next.first.isNull())
         {
           popStack();
           ji = d_stack[d_stackSizeValid.get() - 1].get();
         }
-      } while (!foundNext && d_stackSizeValid.get() > 0);
+      } while (!next.first.isNull() && d_stackSizeValid.get() > 0);
     } while (d_stackSizeValid.get() > 0);
 
     // we did not find a decision for current, refresh current assertion
@@ -145,6 +119,51 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 
   // we exhausted all assertions
   return undefSatLiteral;
+}
+
+JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo * ji, bool lastChildSuccess)
+{
+  JustifyNode curr = ji->getNode();
+  Kind ck = curr.first.getKind();
+  Assert(ck != NOT);
+  Assert(!isTheoryAtom(curr.first));
+  
+  if (lastChildSuccess)
+  {
+    // TODO: we return null if we are done with the current node
+  }
+  JustifyNode nextChild;
+  // the current node should be a non-negated non-theory literal, due to our
+  // invariants of what is pushed onto the stack
+  // get the next index to process, and construct the next child request
+  size_t i = ji->getNextChildIndex();
+  Assert(i < curr.first.getNumChildren());
+  nextChild.first = curr.first[i];
+  nextChild.second = curr.second;
+  // determine if we flip polarity?
+  if (ck == AND || ck == OR || ck == IMPLIES)
+  {
+    
+  }
+  else if (ck == ITE)
+  {
+  }
+  else if (ck == XOR || ck == EQUAL)
+  {
+    Assert(curr.first[0].getType().isBoolean());
+  }
+  else
+  {
+    // curr should not be an atom
+    Assert(false);
+  }
+  // flip polarity if a NOT node
+  if (nextChild.first.getKind() == NOT)
+  {
+    nextChild.first = nextChild.first[0];
+    nextChild.second = invertValue(nextChild.second);
+  }
+  return nextChild;
 }
 
 bool JustificationStrategy::isDone() { return refreshCurrentAssertion(); }
@@ -211,11 +230,11 @@ bool JustificationStrategy::refreshCurrentAssertion()
 
 bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
 {
-  TNode curr = d_skolemAssertions.getNextAssertion();
+  TNode curr = al.getNextAssertion();
   while (!curr.isNull())
   {
     // we never add theory literals to our assertions lists
-    Assert(!isTheoryLiteral(c));
+    Assert(!isTheoryLiteral(curr));
     if (d_justified.find(curr) == d_justified.end())
     {
       // if not already justified, we reset the stack and push it
@@ -224,7 +243,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
       pushToStack(curr, SAT_VALUE_TRUE);
       return true;
     }
-    curr = d_skolemAssertions.getNextAssertion();
+    curr = al.getNextAssertion();
   }
   return false;
 }
