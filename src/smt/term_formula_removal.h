@@ -124,26 +124,6 @@ class RemoveTermFormulas {
    */
   static Node getAxiomFor(Node n);
 
-  /**
-   * Get the set of skolems introduced by this class that occur in node n,
-   * add them to skolems.
-   *
-   * @param n The node to traverse
-   * @param skolems The set where the skolems are added
-   */
-  void getSkolems(TNode n,
-                  std::unordered_set<Node, NodeHashFunction>& skolems) const;
-  /**
-   * Does n have skolems introduced by this class?
-   */
-  bool hasSkolems(TNode n) const;
-
-  /**
-   * Get the lemma for the skolem, or the null node if k is not a skolem this
-   * class introduced.
-   */
-  theory::TrustNode getLemmaForSkolem(TNode k) const;
-
  private:
   typedef context::CDInsertHashMap<
       std::pair<Node, uint32_t>,
@@ -177,11 +157,6 @@ class RemoveTermFormulas {
    *   d_tfCache[<ite( G, a, b ),0>] = d_tfCache[<ite( G, a, b ),1>] = k.
    */
   context::CDInsertHashMap<Node, Node, NodeHashFunction> d_skolem_cache;
-  /**
-   * Mapping from skolems to their corresponding lemma.
-   */
-  context::CDInsertHashMap<Node, theory::TrustNode, NodeHashFunction>
-      d_lemmaCache;
 
   /** gets the skolem for node
    *

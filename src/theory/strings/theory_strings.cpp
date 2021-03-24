@@ -203,8 +203,13 @@ void TheoryStrings::presolve() {
 bool TheoryStrings::collectModelValues(TheoryModel* m,
                                        const std::set<Node>& termSet)
 {
-  Trace("strings-model") << "TheoryStrings : Collect model values" << std::endl;
-
+  if (Trace.isOn("strings-model"))
+  {
+    Trace("strings-model") << "TheoryStrings : Collect model values"
+                           << std::endl;
+    Trace("strings-model") << "Equivalence classes are:" << std::endl;
+    Trace("strings-model") << debugPrintStringsEqc() << std::endl;
+  }
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
   // get the relevant string equivalence classes
@@ -578,16 +583,12 @@ bool TheoryStrings::preNotifyFact(
   // this is only required for internal facts, others are already registered
   if (isInternal && atom.getKind() == EQUAL)
   {
-    // we must ensure these terms are registered
+    // We must ensure these terms are registered. We register eagerly here for
+    // performance reasons. Alternatively, terms could be registered at full
+    // effort in e.g. BaseSolver::init.
     for (const Node& t : atom)
     {
-      // terms in the equality engine are already registered, hence skip
-      // currently done for only string-like terms, but this could potentially
-      // be avoided.
-      if (!d_equalityEngine->hasTerm(t) && t.getType().isStringLike())
-      {
-        d_termReg.registerTerm(t, 0);
-      }
+      d_termReg.registerTerm(t, 0);
     }
   }
   return false;
@@ -629,42 +630,7 @@ void TheoryStrings::postCheck(Effort e)
         << "Theory of strings " << e << " effort check " << std::endl;
     if (Trace.isOn("strings-eqc"))
     {
-      for (unsigned t = 0; t < 2; t++)
-      {
-        eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
-        Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
-        while( !eqcs2_i.isFinished() ){
-          Node eqc = (*eqcs2_i);
-          bool print = (t == 0 && eqc.getType().isStringLike())
-                       || (t == 1 && !eqc.getType().isStringLike());
-          if (print) {
-            eq::EqClassIterator eqc2_i =
-                eq::EqClassIterator(eqc, d_equalityEngine);
-            Trace("strings-eqc") << "Eqc( " << eqc << " ) : { ";
-            while( !eqc2_i.isFinished() ) {
-              if( (*eqc2_i)!=eqc && (*eqc2_i).getKind()!=kind::EQUAL ){
-                Trace("strings-eqc") << (*eqc2_i) << " ";
-              }
-              ++eqc2_i;
-            }
-            Trace("strings-eqc") << " } " << std::endl;
-            EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
-            if( ei ){
-              Trace("strings-eqc-debug")
-                  << "* Length term : " << ei->d_lengthTerm.get() << std::endl;
-              Trace("strings-eqc-debug")
-                  << "* Cardinality lemma k : " << ei->d_cardinalityLemK.get()
-                  << std::endl;
-              Trace("strings-eqc-debug")
-                  << "* Normalization length lemma : "
-                  << ei->d_normalizedLength.get() << std::endl;
-            }
-          }
-          ++eqcs2_i;
-        }
-        Trace("strings-eqc") << std::endl;
-      }
-      Trace("strings-eqc") << std::endl;
+      Trace("strings-eqc") << debugPrintStringsEqc() << std::endl;
     }
     ++(d_statistics.d_checkRuns);
     bool sentLemma = false;
@@ -1072,6 +1038,52 @@ void TheoryStrings::runStrategy(Theory::Effort e)
     ++it;
   }
   Trace("strings-process") << "----finished round---" << std::endl;
+}
+
+std::string TheoryStrings::debugPrintStringsEqc()
+{
+  std::stringstream ss;
+  for (unsigned t = 0; t < 2; t++)
+  {
+    eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
+    ss << (t == 0 ? "STRINGS:" : "OTHER:") << std::endl;
+    while (!eqcs2_i.isFinished())
+    {
+      Node eqc = (*eqcs2_i);
+      bool print = (t == 0 && eqc.getType().isStringLike())
+                   || (t == 1 && !eqc.getType().isStringLike());
+      if (print)
+      {
+        eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, d_equalityEngine);
+        ss << "Eqc( " << eqc << " ) : { ";
+        while (!eqc2_i.isFinished())
+        {
+          if ((*eqc2_i) != eqc && (*eqc2_i).getKind() != kind::EQUAL)
+          {
+            ss << (*eqc2_i) << " ";
+          }
+          ++eqc2_i;
+        }
+        ss << " } " << std::endl;
+        EqcInfo* ei = d_state.getOrMakeEqcInfo(eqc, false);
+        if (ei)
+        {
+          Trace("strings-eqc-debug")
+              << "* Length term : " << ei->d_lengthTerm.get() << std::endl;
+          Trace("strings-eqc-debug")
+              << "* Cardinality lemma k : " << ei->d_cardinalityLemK.get()
+              << std::endl;
+          Trace("strings-eqc-debug")
+              << "* Normalization length lemma : "
+              << ei->d_normalizedLength.get() << std::endl;
+        }
+      }
+      ++eqcs2_i;
+    }
+    ss << std::endl;
+  }
+  ss << std::endl;
+  return ss.str();
 }
 
 }/* CVC4::theory::strings namespace */
