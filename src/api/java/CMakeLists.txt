@@ -56,9 +56,11 @@ target_link_libraries(cvcJavaApi cvc4)
 # run gradle
 add_custom_target(
   gradleBuild
-  POST_BUILD
+  ALL
   COMMAND
     "./gradlew build"
   COMMENT "Build jar file for cvc Java API"
   VERBATIM
 )
+
+add_dependencies(gradleBuild cvc4)
