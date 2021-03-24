@@ -10,6 +10,8 @@
 ##
 
 # copy cvc libraries to the resource directory
+set(libFile "$<TARGET_FILE:cvc4>")
+message("libFile: ${libFile}")
 file(GLOB CVC_LIBS "${CMAKE_INSTALL_PREFIX}/lib/*.so*")
 file(COPY ${CVC_LIBS} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/resources")
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/cvc" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/src/main/java")
@@ -56,7 +58,6 @@ add_custom_target(
   gradleBuild
   POST_BUILD
   COMMAND
-    "cd ${CMAKE_CURRENT_BINARY_DIR}"
     "./gradlew build"
   COMMENT "Build jar file for cvc Java API"
   VERBATIM
