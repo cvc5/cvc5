@@ -187,7 +187,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // recompute the value of the first child
         SatValue val0 = lookupValue(curr[0]);
         Assert(val0 != SAT_VALUE_UNKNOWN);
-        value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
+        value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE
+                                                          : SAT_VALUE_FALSE;
       }
       // no value yet
     }
@@ -204,7 +205,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   }
   else
   {
-    Assert (i==0);
+    Assert(i == 0);
   }
   JustifyNode nextChild;
   // The next child should be in the range of curr. Otherwise, we did not
