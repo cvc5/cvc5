@@ -61,11 +61,11 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       // get the next child to process from the current justification info
       next = getNextJustifyNode(ji, lastChildVal);
       // if the current node is finished, we pop the stack
-      if (!next.first.isNull())
+      if (next.first.isNull())
       {
         popStack();
       }
-    } while (!next.first.isNull() && d_stackSizeValid.get() > 0);
+    } while (next.first.isNull() && d_stackSizeValid.get() > 0);
 
     if (d_stackSizeValid.get() == 0)
     {
@@ -94,13 +94,13 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         else
         {
           // (2) unprocessed non-atom, push to the stack
-          // push the child to the stack
           pushToStack(next.first, next.second);
-          // we have yet to process children for the new node
-          continue;
+          // we have yet to process children for the new node, so lastChildVal
+          // remains set to SAT_VALUE_UNKNOWN.
         }
       }
-      // (3) otherwise, formula that already has a value
+      // (3) otherwise, next already has a value lastChildVal which will be
+      // processed in the next iteration of the loop.
     }
   }
   // we exhausted all assertions
@@ -110,26 +110,27 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
 JustifyNode JustificationStrategy::getNextJustifyNode(
     JustifyInfo* ji, prop::SatValue& lastChildVal)
 {
+  // get the node we are trying to justify and its desired value
   JustifyNode jc = ji->getNode();
   Assert(!jc.first.isNull());
   Assert(jc.second != SAT_VALUE_UNKNOWN);
-  // extract the non-negated formula from jc
+  // extract the non-negated formula we are trying to justify
   bool currPol = jc.first.getKind() != NOT;
   TNode curr = currPol ? jc.first : jc.first[0];
   Kind ck = curr.getKind();
+  // the current node should be a non-theory literal and not be a double
+  // negation, due to our invariants of what is pushed onto the stack
   Assert(ck != NOT);
-  // the current node should be a non-theory literal, due to our
-  // invariants of what is pushed onto the stack
   Assert(!isTheoryAtom(curr));
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
   if (lastChildVal != SAT_VALUE_UNKNOWN)
   {
     Assert(i != 0);
-    // we just computed the value of the (i-1)^th child, compute if we have a
-    // value now
+    // we just computed the value of the (i-1)^th child, now compute if the
+    // current node has a value now
     SatValue value = SAT_VALUE_UNKNOWN;
-    if (ck == AND || ck == OR || ck == IMPLIES)
+    if (ck == AND || ck == OR)
     {
       if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE))
       {
@@ -139,9 +140,22 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       else if (i == curr.getNumChildren())
       {
         // exhausted case
-        value = invertValue(lastChildVal);
+        value = lastChildVal;
       }
       // otherwise, no forced value
+    }
+    else if (ck == IMPLIES)
+    {
+      if (lastChildVal == (i==1 ? SAT_VALUE_FALSE : SAT_VALUE_TRUE))
+      {
+        // forcing case
+        value = SAT_VALUE_TRUE;
+      }
+      else if (i==3)
+      {
+        // exhausted case
+        value = SAT_VALUE_FALSE;
+      }
     }
     else if (ck == ITE)
     {
@@ -150,6 +164,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // take the else branch if the condition was false
         if (lastChildVal == SAT_VALUE_FALSE)
         {
+          // this increments to the else branch
           i = ji->getNextChildIndex();
         }
       }
@@ -162,7 +177,13 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     else
     {
       Assert(ck == XOR || ck == EQUAL);
-      Assert(i == 1);
+      if (i==2)
+      {
+        // recompute the value of the first child
+        SatValue val0 = lookupValue(curr[0]);
+        Assert (val0!=SAT_VALUE_UNKNOWN);
+        value = (val0==lastChildVal)==(ck==EQUAL);
+      }
       // no value yet
     }
     // we return null if we are done with the current node
