@@ -146,12 +146,12 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     }
     else if (ck == IMPLIES)
     {
-      if (lastChildVal == (i==1 ? SAT_VALUE_FALSE : SAT_VALUE_TRUE))
+      if (lastChildVal == (i == 1 ? SAT_VALUE_FALSE : SAT_VALUE_TRUE))
       {
         // forcing case
         value = SAT_VALUE_TRUE;
       }
-      else if (i==3)
+      else if (i == 3)
       {
         // exhausted case
         value = SAT_VALUE_FALSE;
@@ -177,12 +177,12 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     else
     {
       Assert(ck == XOR || ck == EQUAL);
-      if (i==2)
+      if (i == 2)
       {
         // recompute the value of the first child
         SatValue val0 = lookupValue(curr[0]);
-        Assert (val0!=SAT_VALUE_UNKNOWN);
-        value = (val0==lastChildVal)==(ck==EQUAL);
+        Assert(val0 != SAT_VALUE_UNKNOWN);
+        value = (val0 == lastChildVal) == (ck == EQUAL);
       }
       // no value yet
     }
