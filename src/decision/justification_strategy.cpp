@@ -48,7 +48,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // temporary information in the loop below
   JustifyInfo* ji;
   JustifyNode next;
-  // get the last value implied by the last decision
+  // we start with the value implied by the last decision, if it exists
   SatValue lastChildVal = d_lastDecisionValue.get();
   // while we are trying to satisfy assertions
   while (!d_current.get().isNull())
@@ -61,6 +61,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       Assert(d_stack.size() >= d_stackSizeValid.get());
       ji = d_stack[d_stackSizeValid.get() - 1].get();
       // get the next child to process from the current justification info
+      // based on the fact that its last child process had value lastChildVal.
       next = getNextJustifyNode(ji, lastChildVal);
       // if the current node is finished, we pop the stack
       if (next.first.isNull())
@@ -76,12 +77,11 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     }
     else
     {
-      // must have requested a child
+      // must have requested a child to justify
       Assert(!next.first.isNull());
       Assert(next.second != SAT_VALUE_UNKNOWN);
       // Look up whether next.first already has a value
       lastChildVal = lookupValue(next.first);
-      // have we processed the next node yet?
       if (lastChildVal == SAT_VALUE_UNKNOWN)
       {
         if (isTheoryLiteral(next.first))
@@ -123,10 +123,10 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   bool currPol = jc.first.getKind() != NOT;
   TNode curr = currPol ? jc.first : jc.first[0];
   Kind ck = curr.getKind();
-  // the current node should be a non-theory literal and not be a double
+  // the current node should be a non-theory literal and not have double
   // negation, due to our invariants of what is pushed onto the stack
-  Assert(ck != NOT);
   Assert(!isTheoryAtom(curr));
+  Assert(ck != NOT);
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
   if (lastChildVal != SAT_VALUE_UNKNOWN)
@@ -156,7 +156,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // forcing case
         value = SAT_VALUE_TRUE;
       }
-      else if (i == 3)
+      else if (i == curr.getNumChildren())
       {
         // exhausted case
         value = SAT_VALUE_FALSE;
@@ -207,42 +207,42 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   {
     Assert(i == 0);
   }
-  JustifyNode nextChild;
   // The next child should be in the range of curr. Otherwise, we did not
   // recognize when its value could be inferred above.
   Assert(i < curr.getNumChildren());
-  nextChild.first = curr[i];
   // determine the value of the next child request
-  SatValue desiredVal = currPol ? jc.second : invertValue(jc.second);
-  // TODO: lookahead to check justified?
+  SatValue pDesiredVal = currPol ? jc.second : invertValue(jc.second);
+  SatValue desiredVal;
+  // TODO: lookahead to check already justified?
 
   // determine if already justified
   if (ck == AND || ck == OR)
   {
-    nextChild.second = desiredVal;
+    desiredVal = pDesiredVal;
   }
   else if (ck == IMPLIES)
   {
-    nextChild.second = (i == 0) ? invertValue(desiredVal) : desiredVal;
+    desiredVal = (i == 0) ? invertValue(pDesiredVal) : pDesiredVal;
   }
   else if (ck == ITE)
   {
-    nextChild.second = (i == 0) ? SAT_VALUE_TRUE : desiredVal;
+    desiredVal = (i == 0) ? SAT_VALUE_TRUE : pDesiredVal;
   }
   else if (ck == XOR)
   {
-    nextChild.second = (i == 0) ? SAT_VALUE_TRUE : invertValue(lastChildVal);
+    desiredVal = (i == 0) ? SAT_VALUE_TRUE : invertValue(lastChildVal);
   }
   else if (ck == EQUAL)
   {
-    nextChild.second = (i == 0) ? SAT_VALUE_TRUE : lastChildVal;
+    desiredVal = (i == 0) ? SAT_VALUE_TRUE : lastChildVal;
   }
   else
   {
     // curr should not be an atom
     Assert(false);
   }
-  return nextChild;
+  // return the justify node
+  return JustifyNode(curr[i], desiredVal);
 }
 
 prop::SatValue JustificationStrategy::lookupValue(TNode n)
@@ -274,7 +274,7 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
   return SAT_VALUE_UNKNOWN;
 }
 
-bool JustificationStrategy::isDone() { return refreshCurrentAssertion(); }
+bool JustificationStrategy::isDone() { return !refreshCurrentAssertion(); }
 
 void JustificationStrategy::addAssertion(TNode assertion)
 {
@@ -314,11 +314,13 @@ bool JustificationStrategy::refreshCurrentAssertion()
 bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
 {
   TNode curr = al.getNextAssertion();
+  SatValue currValue;
   while (!curr.isNull())
   {
     // we never add theory literals to our assertions lists
     Assert(!isTheoryLiteral(curr));
-    if (d_justified.find(curr) == d_justified.end())
+    currValue = lookupValue(curr);
+    if (currValue==SAT_VALUE_UNKNOWN)
     {
       // if not already justified, we reset the stack and push to it
       d_current = curr;
@@ -327,6 +329,9 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
       d_lastDecisionValue = SAT_VALUE_UNKNOWN;
       return true;
     }
+    // assertions should all be satisfied, otherwise we are in conflict
+    Assert (currValue==SAT_VALUE_TRUE);
+    // already justified, immediately skip
     curr = al.getNextAssertion();
   }
   return false;
@@ -334,13 +339,9 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
 
 void JustificationStrategy::pushToStack(TNode n, SatValue desiredVal)
 {
-  // set up the initial info: we want to set the atom of c to its polarity
-  bool pol = n.getKind() != NOT;
-  TNode atom = pol ? n : n[0];
-  // double negations should always be eliminated
-  Assert(atom.getKind() != NOT);
+  // note that n is possibly negated here
   JustifyInfo* ji = getOrAllocJustifyInfo(d_stackSizeValid.get());
-  ji->set(atom, pol ? desiredVal : invertValue(desiredVal));
+  ji->set(n, desiredVal);
   d_stackSizeValid = d_stackSizeValid + 1;
 }
 
