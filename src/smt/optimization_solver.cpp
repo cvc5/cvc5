@@ -69,9 +69,9 @@ OptResult OptimizationSolver::checkOpt()
 
 void OptimizationSolver::activateObj(const Node& obj,
                                      const int& type,
-                                     bool bvSignedCompare)
+                                     bool bvSigned)
 {
-  d_activatedObjective = Objective(obj, (ObjectiveType)type, bvSignedCompare);
+  d_activatedObjective = Objective(obj, (ObjectiveType)type, bvSigned);
 }
 
 Node OptimizationSolver::objectiveGetValue()
@@ -80,8 +80,8 @@ Node OptimizationSolver::objectiveGetValue()
   return d_savedValue;
 }
 
-Objective::Objective(Node obj, ObjectiveType type, bool bvSignedCompare)
-    : d_type(type), d_node(obj), d_isSigned(bvSignedCompare)
+Objective::Objective(Node obj, ObjectiveType type, bool bvSigned)
+    : d_type(type), d_node(obj), d_bvSigned(bvSigned)
 {
 }
 
@@ -89,7 +89,7 @@ ObjectiveType Objective::getType() { return d_type; }
 
 Node Objective::getNode() { return d_node; }
 
-bool Objective::getSigned() { return d_isSigned; }
+bool Objective::getSigned() { return d_bvSigned; }
 
 std::pair<OptResult, Node> OMTOptimizerInteger::optimize(
     SmtEngine* parentSMTSolver, Node target, ObjectiveType objType)

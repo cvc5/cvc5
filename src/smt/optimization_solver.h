@@ -68,14 +68,14 @@ enum OptResult
 class Objective
 {
  public:
-  Objective(Node n, ObjectiveType type, bool bvSignedCompare = false);
+  Objective(Node n, ObjectiveType type, bool bvSigned = false);
   ~Objective(){};
 
   /** A getter for d_type **/
   ObjectiveType getType();
   /** A getter for d_node **/
   Node getNode();
-  /** A getter for is_signed **/
+  /** A getter for d_bvSigned **/
   bool getSigned();
 
  private:
@@ -89,7 +89,7 @@ class Objective
   /** Specify whether to use signed or unsigned comparison
    * for BitVectors (only for BitVectors), this variable is defaulted to false
    * **/
-  bool d_isSigned;
+  bool d_bvSigned;
 };
 
 /**
@@ -110,12 +110,12 @@ class OptimizationSolver
   /** Runs the optimization loop for the activated objective **/
   OptResult checkOpt();
   /** Activates an objective: will be optimized for
-   * Parameter is_signed specifies whether we should use signed/unsigned
+   * Parameter bvSigned specifies whether we should use signed/unsigned
    * comparison for BitVectors (only effective for BitVectors)
    * and its default is false **/
   void activateObj(const Node& obj,
                    const int& type,
-                   bool bvSignedCompare = false);
+                   bool bvSigned=false);
   /** Gets the value of the optimized objective after checkopt is called **/
   Node objectiveGetValue();
 
