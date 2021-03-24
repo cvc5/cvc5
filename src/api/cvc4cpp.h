@@ -35,9 +35,6 @@ namespace CVC4 {
 template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
-typedef NodeTemplate<false> TNode;
-
-struct TNodeHashFunction;
 
 class AssertCommand;
 class BlockModelValuesCommand;
