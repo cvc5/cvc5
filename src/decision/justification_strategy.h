@@ -53,14 +53,6 @@ class JustificationStrategy
    * in a newly asserted literal.
    */
   void notifyRelevantSkolemAssertion(TNode lem);
-
-  /** Interface to SAT solver */
-  bool hasSatLiteral(TNode n);
-  prop::SatLiteral getSatLiteral(TNode n);
-  prop::SatValue getSatValue(prop::SatLiteral l);
-  prop::SatValue getSatValue(TNode n);
-  Node getNode(prop::SatLiteral l);
-
  private:
   /** Refresh current */
   bool refreshCurrentAssertion();

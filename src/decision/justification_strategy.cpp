@@ -91,7 +91,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         if (isTheoryAtom(nextAtom))
         {
           // should be assigned a literal
-          Assert(hasSatLiteral(nextAtom));
+          Assert(d_cnfStream->hasLiteral(nextAtom));
           // maybe it has a SAT value already?
           SatLiteral nsl = d_cnfStream->getLiteral(next.first);
           lastChildVal = d_satSolver->value(nsl);
@@ -214,10 +214,12 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   }
   else if (ck == XOR)
   {
+    // TODO: lookahead?
     nextChild.second = (i == 0) ? SAT_VALUE_TRUE : invertValue(lastChildVal);
   }
   else if (ck == EQUAL)
   {
+    // TODO: lookahead?
     nextChild.second = (i == 0) ? SAT_VALUE_TRUE : lastChildVal;
   }
   else
@@ -246,31 +248,6 @@ void JustificationStrategy::notifyRelevantSkolemAssertion(TNode lem)
   {
     d_skolemAssertions.addAssertion(lem);
   }
-}
-
-bool JustificationStrategy::hasSatLiteral(TNode n)
-{
-  return d_cnfStream->hasLiteral(n);
-}
-
-SatLiteral JustificationStrategy::getSatLiteral(TNode n)
-{
-  return d_cnfStream->getLiteral(n);
-}
-
-SatValue JustificationStrategy::getSatValue(SatLiteral l)
-{
-  return d_satSolver->value(l);
-}
-
-SatValue JustificationStrategy::getSatValue(TNode n)
-{
-  return getSatValue(getSatLiteral(n));
-}
-
-Node JustificationStrategy::getNode(SatLiteral l)
-{
-  return d_cnfStream->getNode(l);
 }
 
 bool JustificationStrategy::refreshCurrentAssertion()
@@ -316,7 +293,7 @@ void JustificationStrategy::pushToStack(TNode n, SatValue desiredVal)
   bool pol = n.getKind() != NOT;
   TNode atom = pol ? n : n[0];
   // double negations should always be eliminated
-  Assert(catom.getKind() != NOT);
+  Assert(atom.getKind() != NOT);
   JustifyInfo* ji = getOrAllocJustifyInfo(d_stackSizeValid.get());
   ji->set(atom, pol ? desiredVal : invertValue(desiredVal));
   d_stackSizeValid = d_stackSizeValid + 1;
