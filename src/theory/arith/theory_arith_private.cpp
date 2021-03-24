@@ -1855,21 +1855,27 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
  *
  * If there is no such variable, returns ARITHVAR_SENTINEL;
  */
-ArithVar TheoryArithPrivate::nextIntegerViolation(bool assumeBounds) const {
+ArithVar TheoryArithPrivate::nextIntegerViolation(bool assumeBounds) const
+{
   ArithVar numVars = d_partialModel.getNumberOfVariables();
   ArithVar v = d_nextIntegerCheckVar;
-  if(numVars > 0){
+  if (numVars > 0)
+  {
     const ArithVar rrEnd = d_nextIntegerCheckVar;
-    do {
-      if(isIntegerInput(v)){
-        if(!d_partialModel.integralAssignment(v)){
-          if( assumeBounds || d_partialModel.assignmentIsConsistent(v) ){
+    do
+    {
+      if (isIntegerInput(v))
+      {
+        if (!d_partialModel.integralAssignment(v))
+        {
+          if (assumeBounds || d_partialModel.assignmentIsConsistent(v))
+          {
             return v;
           }
         }
       }
-      v= (1 + v == numVars) ? 0 : (1 + v);
-    }while(v != rrEnd);
+      v = (1 + v == numVars) ? 0 : (1 + v);
+    } while (v != rrEnd);
   }
   return ARITHVAR_SENTINEL;
 }
@@ -1878,20 +1884,24 @@ ArithVar TheoryArithPrivate::nextIntegerViolation(bool assumeBounds) const {
  * Checks the set of integer variables I to see if each variable
  * in I has an integer assignment.
  */
-bool TheoryArithPrivate::hasIntegerModel(){
+bool TheoryArithPrivate::hasIntegerModel()
+{
   ArithVar next = nextIntegerViolation(true);
-  if(next != ARITHVAR_SENTINEL){
+  if (next != ARITHVAR_SENTINEL)
+  {
     d_nextIntegerCheckVar = next;
-    if(Debug.isOn("arith::hasIntegerModel")){
+    if (Debug.isOn("arith::hasIntegerModel"))
+    {
       Debug("arith::hasIntegerModel") << "has int model? " << next << endl;
       d_partialModel.printModel(next, Debug("arith::hasIntegerModel"));
     }
     return false;
-  }else{
+  }
+  else
+  {
     return true;
   }
 }
-
 
 Node flattenAndSort(Node n){
   Kind k = n.getKind();
@@ -2956,9 +2966,12 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
           importSolution(mipSolution);
           solveRelaxationOrPanic(effortLevel);
 
-          if(d_qflraStatus == Result::SAT){
-            if(!anyConflict()){
-              if(ARITHVAR_SENTINEL == nextIntegerViolation(false)){
+          if (d_qflraStatus == Result::SAT)
+          {
+            if (!anyConflict())
+            {
+              if (ARITHVAR_SENTINEL == nextIntegerViolation(false))
+              {
                 ++(d_statistics.d_solveIntModelsSuccessful);
               }
             }
@@ -3081,21 +3094,26 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   }
 }
 
-bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
+bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
+{
   // if at this point the linear relaxation is still unknown,
   //  attempt to branch an integer variable as a last ditch effort on full check
-  if(d_qflraStatus == Result::SAT_UNKNOWN){
+  if (d_qflraStatus == Result::SAT_UNKNOWN)
+  {
     d_qflraStatus = selectSimplex(true).findModel(false);
   }
 
-  if(Theory::fullEffort(effortLevel)  && d_qflraStatus == Result::SAT_UNKNOWN){
+  if (Theory::fullEffort(effortLevel) && d_qflraStatus == Result::SAT_UNKNOWN)
+  {
     ArithVar canBranch = nextIntegerViolation(false);
-    if(canBranch != ARITHVAR_SENTINEL){
+    if (canBranch != ARITHVAR_SENTINEL)
+    {
       ++d_statistics.d_panicBranches;
       TrustNode branch = branchIntegerVariable(canBranch);
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
-      if(!isSatLiteral(rwbranch)){
+      if (!isSatLiteral(rwbranch))
+      {
         d_approxCuts.push_back(branch);
         return true;
       }
