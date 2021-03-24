@@ -21,9 +21,7 @@ JustifyInfo::JustifyInfo(context::Context* c)
 {
 }
 
-JustifyInfo::~JustifyInfo()
-{
-}
+JustifyInfo::~JustifyInfo() {}
 
 void JustifyInfo::set(Node n, prop::SatValue desiredVal)
 {

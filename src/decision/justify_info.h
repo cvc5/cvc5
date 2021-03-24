@@ -33,6 +33,7 @@ class JustifyInfo
   ~JustifyInfo();
   /** set */
   void set(Node n, prop::SatValue desiredVal);
+
  private:
   /** The node we are considering */
   context::CDO<Node> d_node;

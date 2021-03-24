@@ -44,9 +44,9 @@ prop::SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // ensure we have an assertion
   refreshCurrentAssertion();
   // get the current justify info
-  Assert (d_stack.size()>d_stackIndex.get());
-  JustifyInfo * ji = d_stack[d_stackIndex.get()].get();
-  
+  Assert(d_stack.size() > d_stackIndex.get());
+  JustifyInfo* ji = d_stack[d_stackIndex.get()].get();
+
   // TODO
 }
 
@@ -115,9 +115,9 @@ bool JustificationStrategy::setCurrentAssertion(TNode c)
   }
   d_current = c;
   // set up the initial info: we want to set the atom of c to its polarity
-  bool pol = c.getKind()!=NOT;
+  bool pol = c.getKind() != NOT;
   TNode atom = pol ? c : c[0];
-  Assert (catom.getKind()!=NOT);
+  Assert(catom.getKind() != NOT);
   JustifyInfo* ji = getOrAllocJustifyInfo(0);
   ji->set(atom, pol ? prop::SAT_VALUE_TRUE : prop::SAT_VALUE_FALSE);
   d_stackIndex = 0;
