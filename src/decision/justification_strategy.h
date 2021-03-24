@@ -53,6 +53,7 @@ class JustificationStrategy
    * in a newly asserted literal.
    */
   void notifyRelevantSkolemAssertion(TNode lem);
+
  private:
   /** Refresh current */
   bool refreshCurrentAssertion();
