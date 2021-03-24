@@ -189,6 +189,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     {
       // add to justify if so
       d_justified.insert(curr, value);
+      // update the last child value, which will be used by the parent of this,
+      // if it exists
+      lastChildVal = value;
       return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
     }
   }
