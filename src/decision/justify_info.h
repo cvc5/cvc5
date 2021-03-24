@@ -41,7 +41,7 @@ class JustifyInfo
   /** get next child index, and increment */
   size_t getNextChildIndex();
   /** is hard */
-  //bool isHard() const;
+  // bool isHard() const;
  private:
   /** The node we are considering */
   context::CDO<TNode> d_node;

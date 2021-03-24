@@ -17,8 +17,8 @@
 #ifndef CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 #define CVC4__DECISION__JUSTIFICATION_STRATEGY_H
 
-#include "context/cdo.h"
 #include "context/cdinsert_hashmap.h"
+#include "context/cdo.h"
 #include "decision/assertion_list.h"
 #include "decision/justify_info.h"
 #include "expr/node.h"
