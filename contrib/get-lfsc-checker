@@ -100,3 +100,10 @@ EOF
 chmod +x $BASE_DIR/bin/lfsc-check.sh
 
 popd
+
+echo ""
+echo "========== How to use LFSC =========="
+echo "Check a generated proof:"
+echo "  $BASE_DIR/bin/lfsc-check.sh <proof file>"
+echo "Run CVC4 and check the generated proof:"
+echo "  $BASE_DIR/bin/cvc4-lfsc-check.sh <path to cvc4>/cvc4 <options for cvc4> <input file>"
