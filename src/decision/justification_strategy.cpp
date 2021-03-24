@@ -29,7 +29,8 @@ JustificationStrategy::JustificationStrategy(context::Context* c,
       d_current(c),
       d_justified(c),
       d_stack(c),
-      d_stackSizeValid(c, 0)
+      d_stackSizeValid(c, 0),
+      d_lastDecisionValue(c, SAT_VALUE_UNKNOWN)
 {
 }
 
@@ -47,7 +48,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   // temporary information in the loop below
   JustifyInfo* ji;
   JustifyNode next;
-  SatValue lastChildVal = SAT_VALUE_UNKNOWN;
+  // get the last value implied by the last decision
+  SatValue lastChildVal = d_lastDecisionValue.get();
   // while we are trying to satisfy assertions
   while (!d_current.get().isNull())
   {
@@ -88,6 +90,9 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           Assert(d_cnfStream->hasLiteral(next.first));
           // maybe it has a SAT value already?
           SatLiteral nsl = d_cnfStream->getLiteral(next.first);
+          // store the last decision value here, which will be used at the
+          // starting value on the next call to this method
+          d_lastDecisionValue = next.second;
           // (1) atom with unassigned value, return it, possibly inverted
           return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
@@ -182,7 +187,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // recompute the value of the first child
         SatValue val0 = lookupValue(curr[0]);
         Assert(val0 != SAT_VALUE_UNKNOWN);
-        value = (val0 == lastChildVal) == (ck == EQUAL);
+        value = ((val0 == lastChildVal) == (ck == EQUAL)) ? SAT_VALUE_TRUE : SAT_VALUE_FALSE;
       }
       // no value yet
     }
@@ -197,6 +202,10 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
     }
   }
+  else
+  {
+    Assert (i==0);
+  }
   JustifyNode nextChild;
   // The next child should be in the range of curr. Otherwise, we did not
   // recognize when its value could be inferred above.
@@ -204,7 +213,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   nextChild.first = curr[i];
   // determine the value of the next child request
   SatValue desiredVal = currPol ? jc.second : invertValue(jc.second);
-  // TODO: lookahead
+  // TODO: lookahead to check justified?
 
   // determine if already justified
   if (ck == AND || ck == OR)
@@ -258,8 +267,8 @@ prop::SatValue JustificationStrategy::lookupValue(TNode n)
     if (val != SAT_VALUE_UNKNOWN)
     {
       d_justified.insert(atom, val);
+      return pol ? val : invertValue(val);
     }
-    return pol ? val : invertValue(val);
   }
   return SAT_VALUE_UNKNOWN;
 }
@@ -314,6 +323,7 @@ bool JustificationStrategy::refreshCurrentAssertionFromList(AssertionList& al)
       d_current = curr;
       d_stackSizeValid = 0;
       pushToStack(curr, SAT_VALUE_TRUE);
+      d_lastDecisionValue = SAT_VALUE_UNKNOWN;
       return true;
     }
     curr = al.getNextAssertion();
