@@ -98,7 +98,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
       bool lastChildSuccess = (nextVal == next.second);
       // we now get the next justify node again, if it can be found
       // (3) if we already have the desired value, we pop recursively until a
-      // "hard" node, or reach the top of the current assertion, or 
+      // "hard" node, or reach the top of the current assertion, or
       // (4) if we already have the wrong value, we continue if we are an
       // "easy" node.
       do
@@ -121,13 +121,14 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
   return undefSatLiteral;
 }
 
-JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo * ji, bool lastChildSuccess)
+JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo* ji,
+                                                      bool lastChildSuccess)
 {
   JustifyNode curr = ji->getNode();
   Kind ck = curr.first.getKind();
   Assert(ck != NOT);
   Assert(!isTheoryAtom(curr.first));
-  
+
   if (lastChildSuccess)
   {
     // TODO: we return null if we are done with the current node
@@ -143,7 +144,6 @@ JustifyNode JustificationStrategy::getNextJustifyNode(JustifyInfo * ji, bool las
   // determine if we flip polarity?
   if (ck == AND || ck == OR || ck == IMPLIES)
   {
-    
   }
   else if (ck == ITE)
   {

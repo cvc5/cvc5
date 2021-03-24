@@ -71,7 +71,7 @@ class JustificationStrategy
   /** Pop from stack */
   void popStack();
   /** get next child */
-  JustifyNode getNextJustifyNode(JustifyInfo * ji, bool lastChildSuccess);
+  JustifyNode getNextJustifyNode(JustifyInfo* ji, bool lastChildSuccess);
   /**
    * Get or allocate justify info at position i. This does not impact
    * d_stackSizeValid.
