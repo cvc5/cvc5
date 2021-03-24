@@ -200,6 +200,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       // update the last child value, which will be used by the parent of this,
       // if it exists
       lastChildVal = value;
+      // return null, indicating there is nothing left to do for current
       return JustifyNode(TNode::null(), SAT_VALUE_UNKNOWN);
     }
   }
@@ -218,23 +219,47 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // determine if already justified
   if (ck == AND || ck == OR)
   {
+    if ((ck==AND)==(pDesiredVal==SAT_VALUE_FALSE))
+    {
+      // TODO: lookahead to determine if already satisfied?
+    }
     desiredVal = pDesiredVal;
   }
   else if (ck == IMPLIES)
   {
-    desiredVal = (i == 0) ? invertValue(pDesiredVal) : pDesiredVal;
+    if (i==0)
+    {
+      // TODO: lookahead to determine if already satisfied?
+      desiredVal = invertValue(pDesiredVal);
+    }
+    else
+    {
+      desiredVal = pDesiredVal;
+    }
   }
   else if (ck == ITE)
   {
-    desiredVal = (i == 0) ? SAT_VALUE_TRUE : pDesiredVal;
+    if (i==0)
+    {
+      // TODO: lookahead on branches
+      desiredVal = SAT_VALUE_TRUE;
+    }
+    else
+    {
+      desiredVal = pDesiredVal;
+    }
   }
-  else if (ck == XOR)
+  else if (ck == XOR || ck == EQUAL)
   {
-    desiredVal = (i == 0) ? SAT_VALUE_TRUE : invertValue(lastChildVal);
-  }
-  else if (ck == EQUAL)
-  {
-    desiredVal = (i == 0) ? SAT_VALUE_TRUE : lastChildVal;
+    if (i==0)
+    {
+      // TODO: lookahead on rhs
+      desiredVal = SAT_VALUE_TRUE;
+    }
+    else
+    {
+      desiredVal = ck == XOR  ? invertValue(lastChildVal) : lastChildVal;
+    }
   }
   else
   {
