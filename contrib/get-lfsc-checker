@@ -102,7 +102,9 @@ popd
 
 echo ""
 echo "========== How to use LFSC =========="
+echo "Generate a LFSC proof with CVC4:"
+echo "  cvc4 --dump-proofs --proof-format=lfsc <options> <input file>"
 echo "Check a generated proof:"
 echo "  $BASE_DIR/bin/lfsc-check.sh <proof file>"
-echo "Run CVC4 and check the generated proof:"
-echo "  $BASE_DIR/bin/cvc4-lfsc-check.sh <path to cvc4>/cvc4 <options for cvc4> <input file>"
+echo "Run CVC4 and check the generated proof (proof options are automatically added):"
+echo "  $BASE_DIR/bin/cvc4-lfsc-check.sh cvc4 <options> <input file>"
