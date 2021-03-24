@@ -22,11 +22,6 @@
 #include "smt/assertions.h"
 #include "util/result.h"
 
-#include "options/smt_options.h"
-#include "smt/smt_engine.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/smt_engine_subsolver.h"
-
 namespace CVC4 {
 
 class SmtEngine;
@@ -60,8 +55,8 @@ enum OptResult
   // the optimization loop finished and optimal
   OPT_OPTIMAL,
 
-  // the goal is unbounded, so it would be -inf or +inf 
-  OPT_UNBOUNDED, 
+  // the goal is unbounded, so it would be -inf or +inf
+  OPT_UNBOUNDED,
 
   // The last value is here as a preparation for future work
   // in which pproximate optimizations will be supported.
@@ -73,7 +68,7 @@ enum OptResult
 class Objective
 {
  public:
-  Objective(Node n, ObjectiveType type, bool bvSignedCompare = true);
+  Objective(Node n, ObjectiveType type, bool bvSignedCompare = false);
   ~Objective(){};
 
   /** A getter for d_type **/
@@ -92,11 +87,10 @@ class Objective
   Node d_node;
 
   /** Specify whether to use signed or unsigned comparison
-   * for BitVectors (only for BitVectors), this variable is defaulted to true
+   * for BitVectors (only for BitVectors), this variable is defaulted to false
    * **/
   bool d_isSigned;
 };
-
 
 /**
  * A solver for optimization queries.
@@ -117,10 +111,11 @@ class OptimizationSolver
   OptResult checkOpt();
   /** Activates an objective: will be optimized for
    * Parameter is_signed specifies whether we should use signed/unsigned
-   * comparison for BitVectors (only effective for BitVectors) **/
+   * comparison for BitVectors (only effective for BitVectors)
+   * and its default is false **/
   void activateObj(const Node& obj,
                    const int& type,
-                   bool bvSignedCompare = true);
+                   bool bvSignedCompare = false);
   /** Gets the value of the optimized objective after checkopt is called **/
   Node objectiveGetValue();
 
@@ -134,96 +129,118 @@ class OptimizationSolver
 };
 
 /**
- * Optimizer for individual datatype 
+ * Optimizer for individual CVC4 type
  * Currently supported: Integer, BitVector
  */
-struct OMTOptimizer 
+struct OMTOptimizer
 {
   virtual ~OMTOptimizer() = default;
-  /** Given a target node, retrieve an optimizer specific for the node's datatype 
-   * the second field isSigned specifies whether we should use signed comparison for BitVectors 
-   * and it's only valid when the datatype is BitVector
+  /** Given a target node, retrieve an optimizer specific for the node's type
+   * the second field isSigned specifies whether we should use signed comparison
+   * for BitVectors and it's only valid when the type is BitVector
    **/
-  static std::unique_ptr<OMTOptimizer> getOptimizerForNode(CVC4::Node targetNode, bool isSigned=false);
-  /** Minimize the target node with constraints encoded in parentSMTSolver 
-   * Parameters: 
-   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints 
-   * - target: the target expression to optimize 
-   * Return value: 
-   * - std::pair<OptResult, CVC4::Node>: the result of optimization and the optimized value 
+  static std::unique_ptr<OMTOptimizer> getOptimizerForNode(
+      Node targetNode, bool isSigned = false);
+  /** Minimize the target node with constraints encoded in parentSMTSolver
+   * Parameters:
+   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints
+   * - target: the target expression to optimize
+   * Return value:
+   * - std::pair<OptResult, Node>: the result of optimization and the optimized
+   *   value
    **/
-  virtual std::pair<OptResult, CVC4::Node> minimize(SmtEngine *parentSMTSolver, CVC4::Node target) = 0;
-  /** Maximize the target node with constraints encoded in parentSMTSolver 
-   * Parameters: 
-   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints 
-   * - target: the target expression to optimize 
-   * Return value: 
-   * - std::pair<OptResult, CVC4::Node>: the result of optimization and the optimized value 
+  virtual std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                              Node target) = 0;
+  /** Maximize the target node with constraints encoded in parentSMTSolver
+   * Parameters:
+   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints
+   * - target: the target expression to optimize
+   * Return value:
+   * - std::pair<OptResult, Node>: the result of optimization and the optimized
+   *   value
    **/
-  virtual std::pair<OptResult, CVC4::Node> maximize(SmtEngine *parentSMTSolver, CVC4::Node target) = 0;
+  virtual std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                              Node target) = 0;
 };
 
 /**
- * Optimizer for Integer datatype 
+ * Optimizer for Integer type
  */
-struct OMTOptimizerInteger : OMTOptimizer 
+struct OMTOptimizerInteger : OMTOptimizer
 {
-public:
+ public:
   virtual ~OMTOptimizerInteger() = default;
-  /** Minimize the target node with constraints encoded in parentSMTSolver 
-   * Parameters: 
-   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints 
-   * - target: the target expression to optimize 
-   * Return value: 
-   * - std::pair<OptResult, CVC4::Node>: the result of optimization and the optimized value 
+  /** Minimize the target node with constraints encoded in parentSMTSolver
+   * Parameters:
+   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints
+   * - target: the target expression to optimize
+   * Return value:
+   * - std::pair<OptResult, Node>: the result of optimization and the optimized
+   *   value
    **/
-  virtual std::pair<OptResult, CVC4::Node> minimize(SmtEngine *parentSMTSolver, CVC4::Node target) override;
-  /** Maximize the target node with constraints encoded in parentSMTSolver 
-   * Parameters: 
-   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints 
-   * - target: the target expression to optimize 
-   * Return value: 
-   * - std::pair<OptResult, CVC4::Node>: the result of optimization and the optimized value 
+  virtual std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                              Node target) override;
+  /** Maximize the target node with constraints encoded in parentSMTSolver
+   * Parameters:
+   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints
+   * - target: the target expression to optimize
+   * Return value:
+   * - std::pair<OptResult, Node>: the result of optimization and the optimized
+   *   value
    **/
-  virtual std::pair<OptResult, CVC4::Node> maximize(SmtEngine *parentSMTSolver, CVC4::Node target) override;
-private:
-  /** Handles the optimization query specified by objType (=OBJECTIVE_MINIMIZE/MAXIMIZE) **/
-  std::pair<OptResult, CVC4::Node> optimize(SmtEngine *parentSMTSolver, CVC4::Node target, ObjectiveType objType);
+  virtual std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                              Node target) override;
+
+ private:
+  /** Handles the optimization query specified by objType
+   * (=OBJECTIVE_MINIMIZE/MAXIMIZE) **/
+  std::pair<OptResult, Node> optimize(SmtEngine* parentSMTSolver,
+                                      Node target,
+                                      ObjectiveType objType);
 };
 
 /**
- * Optimizer for BitVector datatype 
+ * Optimizer for BitVector type
  */
-struct OMTOptimizerBitVector : OMTOptimizer 
+struct OMTOptimizerBitVector : OMTOptimizer
 {
-public:
+ public:
   OMTOptimizerBitVector(bool isSigned);
   virtual ~OMTOptimizerBitVector() = default;
-  /** Minimize the target node with constraints encoded in parentSMTSolver 
-   * Parameters: 
-   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints 
-   * - target: the target expression to optimize 
-   * Return value: 
-   * - std::pair<OptResult, CVC4::Node>: the result of optimization and the optimized value 
+  /** Minimize the target node with constraints encoded in parentSMTSolver
+   * Parameters:
+   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints
+   * - target: the target expression to optimize
+   * Return value:
+   * - std::pair<OptResult, Node>: the result of optimization and the optimized
+   *   value
    **/
-  virtual std::pair<OptResult, CVC4::Node> minimize(SmtEngine *parentSMTSolver, CVC4::Node target) override;
-  /** Maximize the target node with constraints encoded in parentSMTSolver 
-   * Parameters: 
-   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints 
-   * - target: the target expression to optimize 
-   * Return value: 
-   * - std::pair<OptResult, CVC4::Node>: the result of optimization and the optimized value 
+  virtual std::pair<OptResult, Node> minimize(SmtEngine* parentSMTSolver,
+                                              Node target) override;
+  /** Maximize the target node with constraints encoded in parentSMTSolver
+   * Parameters:
+   * - parentSMTSolver: an SMT solver encoding the assertions as the constraints
+   * - target: the target expression to optimize
+   * Return value:
+   * - std::pair<OptResult, Node>: the result of optimization and the optimized
+   *   value
    **/
-  virtual std::pair<OptResult, CVC4::Node> maximize(SmtEngine *parentSMTSolver, CVC4::Node target) override;
-private:
-  /** Computes the BitVector version of (a + b) / 2 without overflow, rounding towards -infinity **/
-  BitVector computeAverage(const BitVector &a, const BitVector &b, bool isSigned);
+  virtual std::pair<OptResult, Node> maximize(SmtEngine* parentSMTSolver,
+                                              Node target) override;
+
+ private:
+  /** Computes the BitVector version of (a + b) / 2 without overflow,
+   * rounding towards -infinity: -1.5 --> -2 and 1.5 --> 1
+   * same as the rounding scheme for int32_t
+   **/
+  BitVector computeAverage(const BitVector& a,
+                           const BitVector& b,
+                           bool isSigned);
   /** Initialize an SMT subsolver for offline optimization purpose **/
-  std::unique_ptr<CVC4::SmtEngine> initOptChecker(SmtEngine *parentSMTSolver);
+  std::unique_ptr<SmtEngine> initOptChecker(SmtEngine* parentSMTSolver);
   /** Is the BitVector doing signed comparison? **/
   bool d_isSigned;
 };
-
 
 }  // namespace smt
 }  // namespace CVC4
