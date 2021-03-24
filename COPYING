@@ -78,7 +78,6 @@ CVC4 optionally links against the following libraries:
   ABC                (https://bitbucket.org/alanmi/abc)
   CaDiCaL            (https://github.com/arminbiere/cadical)
   CryptoMiniSat      (https://github.com/msoos/cryptominisat)
-  LFSC checker       (https://github.com/CVC4/LFSC)
   LibPoly            (https://github.com/SRI-CSL/libpoly)
   libedit            (https://thrysoee.dk/editline)
 
@@ -108,4 +107,3 @@ CVC4 can be optionally configured to link against glpk-cut-log, a modified
 version of GLPK, the GNU Linear Programming Kit, available here:
 
   https://github.com/timothy-king/glpk-cut-log
-

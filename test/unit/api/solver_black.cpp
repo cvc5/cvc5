@@ -1346,59 +1346,48 @@ TEST_F(TestApiBlackSolver, getOption)
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions1)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "false");
   d_solver.checkSatAssuming(d_solver.mkFalse());
   ASSERT_THROW(d_solver.getUnsatAssumptions(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions2)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-assumptions", "false");
   d_solver.checkSatAssuming(d_solver.mkFalse());
   ASSERT_THROW(d_solver.getUnsatAssumptions(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatAssumptions3)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-assumptions", "true");
   d_solver.checkSatAssuming(d_solver.mkFalse());
   ASSERT_NO_THROW(d_solver.getUnsatAssumptions());
   d_solver.checkSatAssuming(d_solver.mkTrue());
   ASSERT_THROW(d_solver.getUnsatAssumptions(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatCore1)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
   ASSERT_THROW(d_solver.getUnsatCore(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatCore2)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "false");
   d_solver.setOption("produce-unsat-cores", "false");
   d_solver.assertFormula(d_solver.mkFalse());
   d_solver.checkSat();
   ASSERT_THROW(d_solver.getUnsatCore(), CVC4ApiException);
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getUnsatCore3)
 {
-#if IS_PROOFS_BUILD
   d_solver.setOption("incremental", "true");
   d_solver.setOption("produce-unsat-cores", "true");
 
@@ -1434,9 +1423,8 @@ TEST_F(TestApiBlackSolver, getUnsatCore3)
   {
     d_solver.assertFormula(t);
   }
-  Result res = d_solver.checkSat();
+  CVC4::api::Result res = d_solver.checkSat();
   ASSERT_TRUE(res.isUnsat());
-#endif
 }
 
 TEST_F(TestApiBlackSolver, getValue1)
