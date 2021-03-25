@@ -14,10 +14,10 @@
 
 #include "theory/quantifiers/inst_strategy_pool.h"
 
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/quantifiers/first_order_model.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -73,7 +73,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
   {
     clSet = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
-                       << std::endl;
+                         << std::endl;
   }
   FirstOrderModel* fm = d_quantEngine->getModel();
   uint64_t addedLemmas = 0;
