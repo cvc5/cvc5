@@ -177,7 +177,6 @@ BitVector OMTOptimizerBitVector::computeAverage(const BitVector& a,
   // computes (a + b) / 2 without overflow
   // rounding towards -infinity: -1.5 --> -2,  1.5 --> 1
   // average = (a / 2) + (b / 2) + (((a % 2) + (b % 2)) / 2)
-  // Assert(a.getSize() == b.getSize());
   uint32_t aMod2 = (uint32_t)(a.isBitSet(0));
   uint32_t bMod2 = (uint32_t)(b.isBitSet(0));
   BitVector aMod2PlusbMod2(a.getSize(), uint32_t((aMod2 + bMod2) / 2));
@@ -249,6 +248,10 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::minimize(
       ((d_isSigned) ? (kind::BITVECTOR_SLT) : (kind::BITVECTOR_ULT));
   Kind GEOperator =
       ((d_isSigned) ? (kind::BITVECTOR_SGE) : (kind::BITVECTOR_UGE));
+
+  // the pivot value for binary search, 
+  // pivot = (lowerBound + upperBound) / 2 
+  // rounded towards -infinity
   BitVector pivot;
   while (true)
   {
@@ -339,6 +342,10 @@ std::pair<OptResult, Node> OMTOptimizerBitVector::maximize(
       ((d_isSigned) ? (kind::BITVECTOR_SLE) : (kind::BITVECTOR_ULE));
   Kind GTOperator =
       ((d_isSigned) ? (kind::BITVECTOR_SGT) : (kind::BITVECTOR_UGT));
+
+  // the pivot value for binary search, 
+  // pivot = (lowerBound + upperBound) / 2 
+  // rounded towards -infinity
   BitVector pivot;
   while (true)
   {

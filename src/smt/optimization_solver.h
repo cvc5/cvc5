@@ -132,7 +132,7 @@ class OptimizationSolver
  * Optimizer for individual CVC4 type
  * Currently supported: Integer, BitVector
  */
-struct OMTOptimizer
+class OMTOptimizer
 {
   virtual ~OMTOptimizer() = default;
   /** Given a target node, retrieve an optimizer specific for the node's type
@@ -166,7 +166,7 @@ struct OMTOptimizer
 /**
  * Optimizer for Integer type
  */
-struct OMTOptimizerInteger : OMTOptimizer
+class OMTOptimizerInteger : OMTOptimizer
 {
  public:
   virtual ~OMTOptimizerInteger() = default;
@@ -202,7 +202,7 @@ struct OMTOptimizerInteger : OMTOptimizer
 /**
  * Optimizer for BitVector type
  */
-struct OMTOptimizerBitVector : OMTOptimizer
+class OMTOptimizerBitVector : OMTOptimizer
 {
  public:
   OMTOptimizerBitVector(bool isSigned);
