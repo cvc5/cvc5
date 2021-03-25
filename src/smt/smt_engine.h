@@ -499,6 +499,10 @@ class CVC4_EXPORT SmtEngine
   /*------------------------- end of sygus commands ------------------------*/
 
   /**
+   * Declare pool.
+   */
+  void declareTermPool(const Node& p, const std::vector<Node>& initValue);
+  /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one

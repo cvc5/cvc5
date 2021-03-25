@@ -188,7 +188,8 @@ public:
   * SynthConjecture::getSynthSolutions.
   */
  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-
+  /** Declare pool */
+  void declarePool(Node p, const std::vector<Node>& initValue);
  //----------end user interface for instantiations
 
  /** statistics class */

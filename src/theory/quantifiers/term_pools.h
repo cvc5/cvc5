@@ -41,11 +41,11 @@ class TermPoolDomain
 class TermPools
 {
  public:
-  TermPools();
+  TermPools() {}
   ~TermPools() {}
 
   /** register pool */
-  void registerPool(Node p);
+  void registerPool(Node p, const std::vector<Node>& initValue);
 
   /** add to pool */
   void addToPool(Node n, Node p);

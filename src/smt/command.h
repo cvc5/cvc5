@@ -406,6 +406,27 @@ class CVC4_EXPORT DeclareFunctionCommand : public DeclarationDefinitionCommand
       OutputLanguage language = language::output::LANG_AUTO) const override;
 }; /* class DeclareFunctionCommand */
 
+class CVC4_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
+{
+ protected:
+  api::Term d_func;
+  api::Sort d_sort;
+  api::Term d_initValue;
+ public:
+  DeclarePoolCommand(const std::string& id, api::Term func, api::Sort sort, api::Term initValue);
+  api::Term getFunction() const;
+  api::Sort getSort() const;
+
+  void invoke(api::Solver* solver, SymbolManager* sm) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
+}; /* class DeclareFunctionCommand */
+
 class CVC4_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {
  protected:

@@ -719,6 +719,10 @@ bool QuantifiersEngine::getSynthSolutions(
 {
   return d_qmodules->d_synth_e->getSynthSolutions(sol_map);
 }
+void QuantifiersEngine::declarePool(Node p, const std::vector<Node>& initValue)
+{
+  d_treg.declarePool(p, initValue);
+}
 
 }  // namespace theory
 }  // namespace CVC4

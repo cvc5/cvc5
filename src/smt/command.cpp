@@ -1131,6 +1131,49 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
       out, d_func.toString(), d_sort.getTypeNode());
 }
 
+
+/* -------------------------------------------------------------------------- */
+/* class DeclareFunctionCommand                                               */
+/* -------------------------------------------------------------------------- */
+
+DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
+                                               api::Term func,
+                                               api::Sort sort
+                                      api::Term initValue)
+    : DeclarationDefinitionCommand(id), d_func(func), d_sort(sort)
+{
+}
+
+api::Term DeclarePoolCommand::getFunction() const { return d_func; }
+api::Sort DeclarePoolCommand::getSort() const { return d_sort; }
+
+void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
+{
+  solver->declarePool(d_func, , d_initValue);
+  d_commandStatus = CommandSuccess::instance();
+}
+
+Command* DeclarePoolCommand::clone() const
+{
+  DeclarePoolCommand* dfc =
+      new DeclarePoolCommand(d_symbol, d_func, d_sort, d_initValue);
+  return dfc;
+}
+
+std::string DeclarePoolCommand::getCommandName() const
+{
+  return "declare-pool";
+}
+
+void DeclarePoolCommand::toStream(std::ostream& out,
+                                      int toDepth,
+                                      size_t dag,
+                                      OutputLanguage language) const
+{
+  Printer::getPrinter(language)->toStreamCmdDeclarePool(
+      out, d_func.toString(), d_sort.getTypeNode(), d_initValue.getNode());
+}
+
 /* -------------------------------------------------------------------------- */
 /* class DeclareSortCommand                                                   */
 /* -------------------------------------------------------------------------- */

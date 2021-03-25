@@ -117,6 +117,11 @@ Node TermRegistry::getTermForType(TypeNode tn)
   return d_termDb->getOrMakeTypeGroundTerm(tn);
 }
 
+void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
+{
+  d_termPools->registerPool(p, initValue);
+}
+
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }
 
 TermDbSygus* TermRegistry::getTermDatabaseSygus() const

@@ -1137,6 +1137,14 @@ Result SmtEngine::checkSynth()
    --------------------------------------------------------------------------
 */
 
+void SmtEngine::declareTermPool(const Node& p, const std::vector<Node>& initValue)
+{
+  finishInit();
+  QuantifiersEngine* qe =
+      getAvailableQuantifiersEngine("declareTermPool");
+  qe->declareTermPool(p, initValue);
+}
+
 Node SmtEngine::simplify(const Node& ex)
 {
   SmtScope smts(this);

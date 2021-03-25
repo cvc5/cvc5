@@ -21,12 +21,16 @@ namespace quantifiers {
 void TermPoolDomain::initialize() { d_terms.clear(); }
 void TermPoolDomain::add(Node n) { d_terms.insert(n); }
 
-void TermPools::registerPool(Node p) { d_pools[p].initialize(); }
+void TermPools::registerPool(Node p, const std::vector<Node>& initValue) { 
+  TermPoolDomain& d = d_pools[p];
+  d.initialize(); 
+  d.d_terms.insert(initValue.begin(), initValue.end());
+}
 
 void TermPools::addToPool(Node n, Node p)
 {
   TermPoolDomain& dom = getDomain(p);
-  dom.addTo(n);
+  dom.add(n);
 }
 
 TermPoolDomain& TermPools::getDomain(Node p) { return d_pools[p]; }
