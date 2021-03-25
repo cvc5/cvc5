@@ -895,6 +895,7 @@ class CVC4_EXPORT Term
   friend class CVC4::BlockModelValuesCommand;
   friend class CVC4::CheckSatCommand;
   friend class CVC4::CheckSatAssumingCommand;
+  friend class CVC4::DeclarePoolCommand;
   friend class CVC4::DeclareSygusVarCommand;
   friend class CVC4::DefineFunctionCommand;
   friend class CVC4::DefineFunctionRecCommand;
@@ -3344,7 +3345,7 @@ class CVC4_EXPORT Solver
   Term getSeparationNilTerm() const;
 
   /**
-   * Declare pool
+   * Declare a symbolic pool of terms with the given initial value.
    * @param pool The pool
    * @param initValue The initial value of the pool
    */

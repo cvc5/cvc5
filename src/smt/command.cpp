@@ -1155,7 +1155,7 @@ const std::vector<api::Term>& DeclarePoolCommand::getInitialValue() const
 
 void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declareTermPool(d_func, d_initValue);
+  solver->declarePool(d_func, d_initValue);
   d_commandStatus = CommandSuccess::instance();
 }
 
