@@ -1139,7 +1139,10 @@ DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
                                        api::Term func,
                                        api::Sort sort,
                                        api::Term initValue)
-    : DeclarationDefinitionCommand(id), d_func(func), d_sort(sort), d_initValue(initValue)
+    : DeclarationDefinitionCommand(id),
+      d_func(func),
+      d_sort(sort),
+      d_initValue(initValue)
 {
 }
 

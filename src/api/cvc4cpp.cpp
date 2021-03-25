@@ -6416,7 +6416,8 @@ Term Solver::getSeparationNilTerm() const
   CVC4_API_TRY_CATCH_END;
 }
 
-void Solver::declarePool(const Term& pool, const std::vector<Term>& initValue) const
+void Solver::declarePool(const Term& pool,
+                         const std::vector<Term>& initValue) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_TRY_CATCH_BEGIN;
