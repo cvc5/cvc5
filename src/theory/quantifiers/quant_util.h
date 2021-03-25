@@ -41,7 +41,7 @@ public:
    * Returns false if the reset failed. When reset fails, the utility should
    * have added a lemma via a call to d_qim.addPendingLemma.
    */
-  virtual bool reset( Theory::Effort e ) { return true; }
+  virtual bool reset(Theory::Effort e) { return true; }
   /* Called for new quantifiers */
   virtual void registerQuantifier(Node q) {}
   /** Identify this module (for debugging, dynamic configuration, etc..) */

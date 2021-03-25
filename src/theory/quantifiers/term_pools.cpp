@@ -21,15 +21,9 @@ namespace quantifiers {
 void TermPoolDomain::initialize() { d_terms.clear(); }
 void TermPoolDomain::add(Node n) { d_terms.insert(n); }
 
-void TermPools::registerQuantifier(Node q)
-{
-  if (
-}
+void TermPools::registerQuantifier(Node q) {if ( }
 
-std::string TermPools::identify()
-{
-  return "TermPools";
-}
+std::string TermPools::identify() { return "TermPools"; }
 
 void TermPools::registerPool(Node p, const std::vector<Node>& initValue)
 {
@@ -51,17 +45,17 @@ void TermPools::processInstantiation(Node q, const std::vector<Node>& terms)
   processInternal(q, terms, true);
 }
 
-void TermPools::processSkolemization(Node q,
-                          const std::vector<Node>& skolems)
+void TermPools::processSkolemization(Node q, const std::vector<Node>& skolems)
 {
   processInternal(q, skolems, false);
 }
 
-  void TermPools::processInternal(Node q,
-                            const std::vector<Node>& ts, bool isInst)
-  {
-  std::map<Node, TermPoolQuantInfo >::iterator it = d_qinfo.find(q);
-  if (it==d_qinfo.end())
+void TermPools::processInternal(Node q,
+                                const std::vector<Node>& ts,
+                                bool isInst)
+{
+  std::map<Node, TermPoolQuantInfo>::iterator it = d_qinfo.find(q);
+  if (it == d_qinfo.end())
   {
     return;
   }

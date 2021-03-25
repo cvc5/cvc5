@@ -39,7 +39,7 @@ class TermPoolDomain
 
 class TermPoolQuantInfo
 {
-public:
+ public:
   std::vector<Node> d_instAddToPool;
   std::vector<Node> d_skolemAddToPool;
 };
@@ -65,17 +65,16 @@ class TermPools : public QuantUtil
    * Process instantiation
    */
   void processInstantiation(Node q, const std::vector<Node>& terms);
-  void processSkolemization(Node q,
-                            const std::vector<Node>& skolems);
+  void processSkolemization(Node q, const std::vector<Node>& skolems);
+
  private:
-  void processInternal(Node q,
-                            const std::vector<Node>& ts, bool isInst);
+  void processInternal(Node q, const std::vector<Node>& ts, bool isInst);
   /** add to pool */
   void addToPool(Node n, Node p);
   /** Maps pools to a domain */
   std::map<Node, TermPoolDomain> d_pools;
   /** Maps quantifiers to info */
-  std::map<Node, TermPoolQuantInfo > d_qinfo;
+  std::map<Node, TermPoolQuantInfo> d_qinfo;
 };
 
 }  // namespace quantifiers
