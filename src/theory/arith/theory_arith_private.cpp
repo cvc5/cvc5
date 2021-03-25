@@ -113,6 +113,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_diseqQueue(c, false),
       d_currentPropagationList(),
       d_learnedBounds(c),
+      d_preregisteredNodes(u),
       d_partialModel(c, DeltaComputeCallback(*this)),
       d_errorSet(
           d_partialModel, TableauSizes(&d_tableau), BoundCountingLookup(*this)),
@@ -1299,65 +1300,6 @@ void TheoryArithPrivate::cautiousSetupPolynomial(const Polynomial& p){
   }
 }
 
-Node TheoryArithPrivate::axiomIteForTotalDivision(Node div_tot){
-  Assert(div_tot.getKind() == DIVISION_TOTAL);
-
-  // Inverse of multiplication axiom:
-  //   (for all ((n Real) (d Real))
-  //    (ite (= d 0)
-  //     (= (DIVISION_TOTAL n d) 0)
-  //     (= (* d (DIVISION_TOTAL n d)) n)))
-
-
-  Polynomial n = Polynomial::parsePolynomial(div_tot[0]);
-  Polynomial d = Polynomial::parsePolynomial(div_tot[1]);
-  Polynomial div_tot_p = Polynomial::parsePolynomial(div_tot);
-
-  Comparison invEq = Comparison::mkComparison(EQUAL, n, d * div_tot_p);
-  Comparison zeroEq = Comparison::mkComparison(EQUAL, div_tot_p, Polynomial::mkZero());
-  Node dEq0 = (d.getNode()).eqNode(mkRationalNode(0));
-  Node ite = dEq0.iteNode(zeroEq.getNode(), invEq.getNode());
-
-  return ite;
-}
-
-Node TheoryArithPrivate::axiomIteForTotalIntDivision(Node int_div_like){
-  Kind k = int_div_like.getKind();
-  Assert(k == INTS_DIVISION_TOTAL || k == INTS_MODULUS_TOTAL);
-
-  // See the discussion of integer division axioms above.
-
-  Polynomial n = Polynomial::parsePolynomial(int_div_like[0]);
-  Polynomial d = Polynomial::parsePolynomial(int_div_like[1]);
-
-  NodeManager* currNM = NodeManager::currentNM();
-  Node zero = mkRationalNode(0);
-
-  Node q = (k == INTS_DIVISION_TOTAL) ? int_div_like : currNM->mkNode(INTS_DIVISION_TOTAL, n.getNode(), d.getNode());
-  Node r = (k == INTS_MODULUS_TOTAL) ? int_div_like : currNM->mkNode(INTS_MODULUS_TOTAL, n.getNode(), d.getNode());
-
-  Node dEq0 = (d.getNode()).eqNode(zero);
-  Node qEq0 = q.eqNode(zero);
-  Node rEq0 = r.eqNode(zero);
-
-  Polynomial rp = Polynomial::parsePolynomial(r);
-  Polynomial qp = Polynomial::parsePolynomial(q);
-
-  Node abs_d = (d.isConstant()) ?
-    d.getHead().getConstant().abs().getNode() : mkIntSkolem("abs");
-
-  Node eq = Comparison::mkComparison(EQUAL, n, d * qp + rp).getNode();
-  Node leq0 = currNM->mkNode(LEQ, zero, r);
-  Node leq1 = currNM->mkNode(LT, r, abs_d);
-
-  Node andE = currNM->mkNode(AND, eq, leq0, leq1);
-  Node defDivMode = dEq0.iteNode(qEq0.andNode(rEq0), andE);
-  Node lem = abs_d.getMetaKind () == metakind::VARIABLE ?
-    defDivMode.andNode(d.makeAbsCondition(Variable(abs_d))) : defDivMode;
-
-  return lem;
-}
-
 
 void TheoryArithPrivate::setupPolynomial(const Polynomial& poly) {
   Assert(!poly.containsConstant());
@@ -1438,6 +1380,8 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
+
+  d_preregisteredNodes.insert(n);
 
   try {
     if(isRelationOperator(n.getKind())){
@@ -1852,21 +1796,27 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
  *
  * If there is no such variable, returns ARITHVAR_SENTINEL;
  */
-ArithVar TheoryArithPrivate::nextIntegerViolatation(bool assumeBounds) const {
+ArithVar TheoryArithPrivate::nextIntegerViolation(bool assumeBounds) const
+{
   ArithVar numVars = d_partialModel.getNumberOfVariables();
   ArithVar v = d_nextIntegerCheckVar;
-  if(numVars > 0){
+  if (numVars > 0)
+  {
     const ArithVar rrEnd = d_nextIntegerCheckVar;
-    do {
-      if(isIntegerInput(v)){
-        if(!d_partialModel.integralAssignment(v)){
-          if( assumeBounds || d_partialModel.assignmentIsConsistent(v) ){
+    do
+    {
+      if (isIntegerInput(v))
+      {
+        if (!d_partialModel.integralAssignment(v))
+        {
+          if (assumeBounds || d_partialModel.assignmentIsConsistent(v))
+          {
             return v;
           }
         }
       }
-      v= (1 + v == numVars) ? 0 : (1 + v);
-    }while(v != rrEnd);
+      v = (1 + v == numVars) ? 0 : (1 + v);
+    } while (v != rrEnd);
   }
   return ARITHVAR_SENTINEL;
 }
@@ -1875,20 +1825,24 @@ ArithVar TheoryArithPrivate::nextIntegerViolatation(bool assumeBounds) const {
  * Checks the set of integer variables I to see if each variable
  * in I has an integer assignment.
  */
-bool TheoryArithPrivate::hasIntegerModel(){
-  ArithVar next = nextIntegerViolatation(true);
-  if(next != ARITHVAR_SENTINEL){
+bool TheoryArithPrivate::hasIntegerModel()
+{
+  ArithVar next = nextIntegerViolation(true);
+  if (next != ARITHVAR_SENTINEL)
+  {
     d_nextIntegerCheckVar = next;
-    if(Debug.isOn("arith::hasIntegerModel")){
+    if (Debug.isOn("arith::hasIntegerModel"))
+    {
       Debug("arith::hasIntegerModel") << "has int model? " << next << endl;
       d_partialModel.printModel(next, Debug("arith::hasIntegerModel"));
     }
     return false;
-  }else{
+  }
+  else
+  {
     return true;
   }
 }
-
 
 Node flattenAndSort(Node n){
   Kind k = n.getKind();
@@ -2953,9 +2907,12 @@ void TheoryArithPrivate::solveInteger(Theory::Effort effortLevel){
           importSolution(mipSolution);
           solveRelaxationOrPanic(effortLevel);
 
-          if(d_qflraStatus == Result::SAT){
-            if(!anyConflict()){
-              if(ARITHVAR_SENTINEL == nextIntegerViolatation(false)){
+          if (d_qflraStatus == Result::SAT)
+          {
+            if (!anyConflict())
+            {
+              if (ARITHVAR_SENTINEL == nextIntegerViolation(false))
+              {
                 ++(d_statistics.d_solveIntModelsSuccessful);
               }
             }
@@ -3078,21 +3035,26 @@ void TheoryArithPrivate::importSolution(const ApproximateSimplex::Solution& solu
   }
 }
 
-bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel){
+bool TheoryArithPrivate::solveRelaxationOrPanic(Theory::Effort effortLevel)
+{
   // if at this point the linear relaxation is still unknown,
   //  attempt to branch an integer variable as a last ditch effort on full check
-  if(d_qflraStatus == Result::SAT_UNKNOWN){
+  if (d_qflraStatus == Result::SAT_UNKNOWN)
+  {
     d_qflraStatus = selectSimplex(true).findModel(false);
   }
 
-  if(Theory::fullEffort(effortLevel)  && d_qflraStatus == Result::SAT_UNKNOWN){
-    ArithVar canBranch = nextIntegerViolatation(false);
-    if(canBranch != ARITHVAR_SENTINEL){
+  if (Theory::fullEffort(effortLevel) && d_qflraStatus == Result::SAT_UNKNOWN)
+  {
+    ArithVar canBranch = nextIntegerViolation(false);
+    if (canBranch != ARITHVAR_SENTINEL)
+    {
       ++d_statistics.d_panicBranches;
       TrustNode branch = branchIntegerVariable(canBranch);
       Assert(branch.getNode().getKind() == kind::OR);
       Node rwbranch = Rewriter::rewrite(branch.getNode()[0]);
-      if(!isSatLiteral(rwbranch)){
+      if (!isSatLiteral(rwbranch))
+      {
         d_approxCuts.push_back(branch);
         return true;
       }

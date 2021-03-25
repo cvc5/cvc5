@@ -14,6 +14,8 @@
 
 #include "smt/set_defaults.h"
 
+#include <sstream>
+
 #include "base/output.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"

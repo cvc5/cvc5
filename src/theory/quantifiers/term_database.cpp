@@ -28,10 +28,8 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
-using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
-using namespace CVC4::theory::inst;
 
 namespace CVC4 {
 namespace theory {

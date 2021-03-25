@@ -30,12 +30,12 @@ namespace quantifiers {
 class QuantifiersState;
 class QuantifiersInferenceManager;
 class QuantifiersRegistry;
-}
+class TermRegistry;
+class InstMatch;
 
 namespace inst {
 
 class IMGenerator;
-class InstMatch;
 class InstMatchGenerator;
 /** A collection of nodes representing a trigger.
 *
@@ -162,9 +162,10 @@ class Trigger {
     TR_RETURN_NULL  //return null if a duplicate is found
   };
   static Trigger* mkTrigger(QuantifiersEngine* qe,
-                            quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim,
-                            quantifiers::QuantifiersRegistry& qr,
+                            QuantifiersState& qs,
+                            QuantifiersInferenceManager& qim,
+                            QuantifiersRegistry& qr,
+                            TermRegistry& tr,
                             Node q,
                             std::vector<Node>& nodes,
                             bool keepAll = true,
@@ -172,9 +173,10 @@ class Trigger {
                             size_t useNVars = 0);
   /** single trigger version that calls the above function */
   static Trigger* mkTrigger(QuantifiersEngine* qe,
-                            quantifiers::QuantifiersState& qs,
-                            quantifiers::QuantifiersInferenceManager& qim,
-                            quantifiers::QuantifiersRegistry& qr,
+                            QuantifiersState& qs,
+                            QuantifiersInferenceManager& qim,
+                            QuantifiersRegistry& qr,
+                            TermRegistry& tr,
                             Node q,
                             Node n,
                             bool keepAll = true,
@@ -197,9 +199,10 @@ class Trigger {
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
   Trigger(QuantifiersEngine* ie,
-          quantifiers::QuantifiersState& qs,
-          quantifiers::QuantifiersInferenceManager& qim,
-          quantifiers::QuantifiersRegistry& qr,
+          QuantifiersState& qs,
+          QuantifiersInferenceManager& qim,
+          QuantifiersRegistry& qr,
+          TermRegistry& tr,
           Node q,
           std::vector<Node>& nodes);
   /** add an instantiation (called by InstMatchGenerator)
@@ -250,11 +253,13 @@ class Trigger {
   // !!!!!!!!!!!!!!!!!! temporarily available (project #15)
   QuantifiersEngine* d_quantEngine;
   /** Reference to the quantifiers state */
-  quantifiers::QuantifiersState& d_qstate;
+  QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */
-  quantifiers::QuantifiersInferenceManager& d_qim;
+  QuantifiersInferenceManager& d_qim;
   /** The quantifiers registry */
-  quantifiers::QuantifiersRegistry& d_qreg;
+  QuantifiersRegistry& d_qreg;
+  /** Reference to the term registry */
+  TermRegistry& d_treg;
   /** The quantified formula this trigger is for. */
   Node d_quant;
   /** match generator
@@ -265,8 +270,9 @@ class Trigger {
   IMGenerator* d_mg;
 }; /* class Trigger */
 
-}/* CVC4::theory::inst namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace inst
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TRIGGER_H */

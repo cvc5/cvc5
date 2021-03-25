@@ -16,7 +16,6 @@
 
 #include "smt/smt_engine.h"
 
-#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "base/modal_exception.h"
@@ -151,9 +150,7 @@ SmtEngine::SmtEngine(NodeManager* nm, Options* optr)
   // d_proofManager must be created before Options has been finished
   // being parsed from the input file. Because of this, we cannot trust
   // that options::unsatCores() is set correctly yet.
-#ifdef CVC4_PROOF
   d_proofManager.reset(new ProofManager(getUserContext()));
-#endif
 
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
 }
@@ -332,9 +329,7 @@ SmtEngine::~SmtEngine()
     // Note: the proof manager must be destroyed before the theory engine.
     // Because the destruction of the proofs depends on contexts owned be the
     // theory solvers.
-#ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
-#endif
     d_pfManager.reset(nullptr);
     d_ucManager.reset(nullptr);
 
@@ -410,9 +405,10 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::notifyStartParsing(std::string filename)
+void SmtEngine::notifyStartParsing(const std::string& filename)
 {
   d_state->setFilename(filename);
+  d_stats->d_driverFilename.set(filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
@@ -423,6 +419,15 @@ const std::string& SmtEngine::getFilename() const
 {
   return d_state->getFilename();
 }
+
+void SmtEngine::setResultStatistic(const std::string& result) {
+    d_stats->d_driverResult.set(result);
+}
+
+void SmtEngine::setTotalTimeStatistic(double seconds) {
+  d_stats->d_driverTotalTime.set(seconds);
+}
+
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
@@ -508,15 +513,6 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "all-statistics")
   {
     vector<SExpr> stats;
-    StatisticsRegistry* sr = getNodeManager()->getStatisticsRegistry();
-    for (StatisticsRegistry::const_iterator i = sr->begin(); i != sr->end();
-         ++i)
-    {
-      vector<SExpr> v;
-      v.push_back((*i).first);
-      v.push_back((*i).second);
-      stats.push_back(v);
-    }
     for (StatisticsRegistry::const_iterator i = d_env->getStatisticsRegistry()->begin();
          i != d_env->getStatisticsRegistry()->end();
          ++i)
@@ -1412,7 +1408,6 @@ StatisticsRegistry* SmtEngine::getStatisticsRegistry()
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
-#if IS_PROOFS_BUILD
   if (!options::unsatCores())
   {
     throw ModalException(
@@ -1439,11 +1434,6 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   std::vector<Node> core;
   d_ucManager->getUnsatCore(pfn, *d_asserts, core);
   return UnsatCore(core);
-#else  /* IS_PROOFS_BUILD */
-  throw ModalException(
-      "This build of CVC4 doesn't have proof support (required for unsat "
-      "cores).");
-#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::checkUnsatCore() {
@@ -1550,7 +1540,6 @@ std::string SmtEngine::getProof()
   {
     getPrinter().toStreamCmdGetProof(getOutputManager().getDumpOut());
   }
-#if IS_PROOFS_BUILD
   if (!options::produceProofs())
   {
     throw ModalException("Cannot get a proof when proof option is off.");
@@ -1569,9 +1558,6 @@ std::string SmtEngine::getProof()
   std::ostringstream ss;
   d_pfManager->printProof(ss, pe->getProof(), *d_asserts, *d_definedFunctions);
   return ss.str();
-#else  /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support.");
-#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
@@ -1907,13 +1893,11 @@ SExpr SmtEngine::getStatistic(std::string name) const
 
 void SmtEngine::flushStatistics(std::ostream& out) const
 {
-  getNodeManager()->getStatisticsRegistry()->flushInformation(out);
   d_env->getStatisticsRegistry()->flushInformation(out);
 }
 
 void SmtEngine::safeFlushStatistics(int fd) const
 {
-  getNodeManager()->getStatisticsRegistry()->safeFlushInformation(fd);
   d_env->getStatisticsRegistry()->safeFlushInformation(fd);
 }
 

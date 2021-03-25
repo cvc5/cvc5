@@ -36,10 +36,12 @@ class DecisionManager;
 class QuantifiersModule;
 class RepSetIterator;
 
+namespace quantifiers {
+
 namespace inst {
 class TriggerTrie;
 }
-namespace quantifiers {
+
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -67,7 +69,6 @@ class QuantifiersEngine {
                     quantifiers::QuantifiersRegistry& qr,
                     quantifiers::TermRegistry& tr,
                     quantifiers::QuantifiersInferenceManager& qim,
-                    quantifiers::FirstOrderModel* qm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
@@ -79,24 +80,20 @@ class QuantifiersEngine {
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
+  /** The term registry */
+  quantifiers::TermRegistry& getTermRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get model */
-  quantifiers::FirstOrderModel* getModel() const;
   /** get term database */
   quantifiers::TermDb* getTermDatabase() const;
+  /** get model */
+  quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
-  /** get instantiate utility */
-  quantifiers::Instantiate* getInstantiate() const;
-  /** get skolemize utility */
-  quantifiers::Skolemize* getSkolemize() const;
   /** get trigger database */
-  inst::TriggerTrie* getTriggerDatabase() const;
+  quantifiers::inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization
@@ -234,13 +231,9 @@ public:
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
   /** all triggers will be stored in this trie */
-  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
+  std::unique_ptr<quantifiers::inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
-  /** instantiate utility */
-  std::unique_ptr<quantifiers::Instantiate> d_instantiate;
-  /** skolemize utility */
-  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
   //------------- end quantifiers utilities
   /**
    * The modules utility, which contains all of the quantifiers modules.

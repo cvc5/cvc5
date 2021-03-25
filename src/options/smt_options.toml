@@ -198,7 +198,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "produce-unsat-cores"
   type       = "bool"
-  predicates = ["proofEnabledBuild"]
   help       = "turn on unsat core generation"
 
 [[option]]
@@ -238,7 +237,6 @@ header = "options/smt_options.h"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
-  predicates = ["proofEnabledBuild"]
   read_only  = true
   help       = "turn on unsat assumptions generation"
 
