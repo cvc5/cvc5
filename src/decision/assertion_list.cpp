@@ -30,6 +30,7 @@ TNode AssertionList::getNextAssertion()
   {
     return Node::null();
   }
+  // increment for the next iteration
   d_assertionIndex = d_assertionIndex + 1;
   return d_assertions[i];
 }

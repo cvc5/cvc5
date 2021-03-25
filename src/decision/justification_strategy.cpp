@@ -88,12 +88,12 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
         {
           // should be assigned a literal
           Assert(d_cnfStream->hasLiteral(next.first));
-          // maybe it has a SAT value already?
+          // get the SAT literal
           SatLiteral nsl = d_cnfStream->getLiteral(next.first);
           // store the last decision value here, which will be used at the
           // starting value on the next call to this method
           d_lastDecisionValue = next.second;
-          // (1) atom with unassigned value, return it, possibly inverted
+          // (1) atom with unassigned value, return it as the decision, possibly inverted
           return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -160,14 +160,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       }
       desiredVal = currDesiredVal;
     }
-    else if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE))
+    else if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE) || i == curr.getNumChildren())
     {
-      // forcing case
-      value = lastChildVal;
-    }
-    else if (i == curr.getNumChildren())
-    {
-      // exhausted case
+      // forcing or exhausted case
       value = lastChildVal;
     }
     else
@@ -180,7 +175,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   {
     if (i == 0)
     {
-      // lookahead to second child to determine if already satisfied
+      // lookahead to second child to determine if value already forced
       if (lookupValue(curr[1]) == SAT_VALUE_TRUE)
       {
         value = SAT_VALUE_TRUE;
@@ -191,19 +186,16 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         desiredVal = invertValue(currDesiredVal);
       }
     }
-    else if (lastChildVal == ((i == 1) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE))
+    else if (i==1)
     {
       // forcing case
-      value = SAT_VALUE_TRUE;
-    }
-    else if (i == 2)
-    {
-      // exhausted case
-      value = SAT_VALUE_FALSE;
+      value = lastChildVal==SAT_VALUE_FALSE ? SAT_VALUE_TRUE : SAT_VALUE_UNKNOWN;
+      desiredVal = currDesiredVal;
     }
     else
     {
-      desiredVal = currDesiredVal;
+      // exhausted case
+      value = lastChildVal;
     }
   }
   else if (ck == ITE)
@@ -248,10 +240,11 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     Assert(curr[0].getType().isBoolean());
     if (i == 0)
     {
-      // check if the rhs requires current to have opposite value
+      // check if the rhs forces a value
       SatValue val1 = lookupValue(curr[1]);
       if (val1 == SAT_VALUE_UNKNOWN)
       {
+        // not forced, arbitrarily choose true
         desiredVal = SAT_VALUE_TRUE;
       }
       else
