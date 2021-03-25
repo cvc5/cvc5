@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 #include "expr/node.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,26 +37,45 @@ class TermPoolDomain
   std::unordered_set<Node, NodeHashFunction> d_terms;
 };
 
+class TermPoolQuantInfo
+{
+public:
+  std::vector<Node> d_instAddToPool;
+  std::vector<Node> d_skolemAddToPool;
+};
+
 /** Term pools
  */
-class TermPools
+class TermPools : public QuantUtil
 {
  public:
   TermPools() {}
   ~TermPools() {}
-
+  /* Called for new quantifiers */
+  void registerQuantifier(Node q) override;
+  /** Identify this module (for debugging, dynamic configuration, etc..) */
+  std::string identify() override;
   /** register pool */
   void registerPool(Node p, const std::vector<Node>& initValue);
-
-  /** add to pool */
-  void addToPool(Node n, Node p);
 
   /** get domain */
   TermPoolDomain& getDomain(Node p);
 
+  /**
+   * Process instantiation
+   */
+  void processInstantiation(Node q, const std::vector<Node>& terms);
+  void processSkolemization(Node q,
+                            const std::vector<Node>& skolems);
  private:
-  /** Maps nodes to a domain */
+  void processInternal(Node q,
+                            const std::vector<Node>& ts, bool isInst);
+  /** add to pool */
+  void addToPool(Node n, Node p);
+  /** Maps pools to a domain */
   std::map<Node, TermPoolDomain> d_pools;
+  /** Maps quantifiers to info */
+  std::map<Node, TermPoolQuantInfo > d_qinfo;
 };
 
 }  // namespace quantifiers

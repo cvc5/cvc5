@@ -19,6 +19,8 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/quantifiers_state.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -139,13 +141,13 @@ void TermRegistry::processInstantiation(Node q,
     }
     QuantAttributes::setInstantiationLevelAttr(ibody, q[1], maxInstLevel + 1);
   }
-  // TODO: process pool
+  d_termPools->processInstantiation(q, terms, ibody);
 }
 void TermRegistry::processSkolemization(Node q,
                                         const std::vector<Node>& skolems,
                                         Node kbody)
 {
-  // TODO: process pool
+  d_termPools->processSkolemization(q, terms, ibody);
 }
 
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }

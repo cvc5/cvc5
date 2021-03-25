@@ -65,6 +65,7 @@ QuantifiersEngine::QuantifiersEngine(
   d_util.push_back(&d_qreg);
   d_util.push_back(tr.getTermDatabase());
   d_util.push_back(qim.getInstantiate());
+  d_util.push_back(tr.getTermPools());
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
