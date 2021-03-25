@@ -219,6 +219,11 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
   // TODO : term enumerator instantiation?
 }
 
+std::string InstStrategyEnum::identify() const
+{
+  return std::string("InstStrategyEnum");
+}
+  
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

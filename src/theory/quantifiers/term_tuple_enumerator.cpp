@@ -508,7 +508,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
                           const TermTupleEnumeratorContext* context,
                           TermPools* tp,
                           Node pool)
-      : TermTupleEnumeratorPool(quantifier, context), d_tp(tp), d_pool(pool)
+      : TermTupleEnumeratorBase(quantifier, context), d_tp(tp), d_pool(pool)
   {
     Assert(d_pool.getKind() == kind::INST_POOL);
   }
@@ -517,7 +517,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
 
  protected:
   /** Pointer to the term pool utility */
-  TermPool* d_tp;
+  TermPools* d_tp;
   /** The pool annotation */
   Node d_pool;
   /**  a list of terms for each id */
@@ -527,7 +527,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   {
     Assert(d_pool.getNumChildren() > variableIx);
     // prepare terms from pool
-    d_tp.getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
+    d_tp->getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
   }
   virtual Node getTerm(size_t variableIx, size_t term_index) override
   {
@@ -539,7 +539,7 @@ TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
     Node q, const TermTupleEnumeratorContext* context, TermPools* tp, Node pool)
 {
   return static_cast<TermTupleEnumeratorInterface*>(
-      new TermTupleEnumeratorPool(quantifier, context, tp, pool))
+      new TermTupleEnumeratorPool(q, context, tp, pool));
 }
 
 }  // namespace quantifiers

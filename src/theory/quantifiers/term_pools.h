@@ -38,6 +38,8 @@ class TermPoolDomain
   void add(Node n);
   /** The list in this pool */
   std::vector<Node> d_terms;
+  /** the list of terms on this round */
+  std::vector<Node> d_currTerms;
 };
 
 class TermPoolQuantInfo
@@ -55,6 +57,8 @@ class TermPools : public QuantifiersUtil
  public:
   TermPools(QuantifiersState& qs);
   ~TermPools() {}
+  /** reset */
+  bool reset(Theory::Effort e) override;
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */

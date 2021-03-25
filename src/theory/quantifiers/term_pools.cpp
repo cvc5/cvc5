@@ -37,6 +37,15 @@ void TermPoolQuantInfo::initialize()
 
 TermPools::TermPools(QuantifiersState& qs) : d_qs(qs) {}
 
+bool TermPools::reset(Theory::Effort e)
+{
+  for (std::pair<const Node, TermPoolDomain>& p : d_pools)
+  {
+    p.second.d_currTerms.clear();
+  }
+  return true;
+}
+
 void TermPools::registerQuantifier(Node q)
 {
   if (q.getNumChildren() < 3)
@@ -81,11 +90,26 @@ void TermPools::addToPool(Node n, Node p)
 void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
 {
   TermPoolDomain& dom = d_pools[p];
-  // TODO: eliminate modulo equality
-  for (const Node& t : dom.d_terms)
+  if (dom.d_terms.empty())
   {
-    terms.push_back(t);
+    return;
   }
+  // if we have yet to compute terms on this round
+  if (dom.d_currTerms.empty())
+  {
+    std::unordered_set<Node, NodeHashFunction> reps;
+    // eliminate modulo equality
+    for (const Node& t : dom.d_terms)
+    {
+      Node r = d_qs.getRepresentative(t);
+      if (reps.find(r)==reps.end())
+      {
+        reps.insert(r);
+        dom.d_currTerms.push_back(t);
+      }
+    }
+  }
+  terms.insert(terms.end(), dom.d_currTerms.begin(), dom.d_currTerms.end());
 }
 
 void TermPools::processInstantiation(Node q, const std::vector<Node>& terms)

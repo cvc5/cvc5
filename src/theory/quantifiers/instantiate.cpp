@@ -382,7 +382,7 @@ bool Instantiate::addInstantiation(Node q,
           orig_body, q[1], maxInstLevel + 1);
     }
   }
-  d_treg.processInstantiation(q, terms, orig_body);
+  d_treg.processInstantiation(q, terms);
   Trace("inst-add-debug") << " --> Success." << std::endl;
   ++(d_statistics.d_instantiations);
   return true;
