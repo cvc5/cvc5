@@ -38,10 +38,6 @@ class RepSetIterator;
 
 namespace quantifiers {
 
-namespace inst {
-class TriggerTrie;
-}
-
 class FirstOrderModel;
 class Instantiate;
 class QModelBuilder;
@@ -92,8 +88,6 @@ class QuantifiersEngine {
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get trigger database */
-  quantifiers::inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
   //---------------------- private initialization
@@ -230,8 +224,6 @@ public:
   quantifiers::QuantifiersRegistry& d_qreg;
   /** The term registry */
   quantifiers::TermRegistry& d_treg;
-  /** all triggers will be stored in this trie */
-  std::unique_ptr<quantifiers::inst::TriggerTrie> d_tr_trie;
   /** extended model object */
   quantifiers::FirstOrderModel* d_model;
   //------------- end quantifiers utilities

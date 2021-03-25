@@ -59,7 +59,6 @@ QuantifiersEngine::QuantifiersEngine(
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
-      d_tr_trie(new quantifiers::inst::TriggerTrie),
       d_model(d_treg.getModel()),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
@@ -136,11 +135,6 @@ quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 {
   return d_treg.getTermDatabase();
-}
-
-quantifiers::inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
-{
-  return d_tr_trie.get();
 }
 /// !!!!!!!!!!!!!!
 
