@@ -23,12 +23,13 @@ void TermPoolDomain::add(Node n) { d_terms.insert(n); }
 
 void TermPoolQuantInfo::initialize()
 {
-d_instAddToPool.clear();
-d_skolemAddToPool.clear();
+  d_instAddToPool.clear();
+  d_skolemAddToPool.clear();
 }
 
-void TermPools::registerQuantifier(Node q) {
-  if (q.getNumChildren()<3)
+void TermPools::registerQuantifier(Node q)
+{
+  if (q.getNumChildren() < 3)
   {
     return;
   }
@@ -37,11 +38,11 @@ void TermPools::registerQuantifier(Node q) {
   for (const Node& p : q[2])
   {
     Kind pk = p.getKind();
-    if (pk==kind::INST_ADD_TO_POOL)
+    if (pk == kind::INST_ADD_TO_POOL)
     {
       qi.d_instAddToPool.push_back(p);
     }
-    else if (pk==kind::SKOLEM_ADD_TO_POOL)
+    else if (pk == kind::SKOLEM_ADD_TO_POOL)
     {
       qi.d_skolemAddToPool.push_back(p);
     }
@@ -89,10 +90,10 @@ void TermPools::processInternal(Node q,
     // does not impact
     return;
   }
-  std::vector<Node>& cmds = isInst = it->second.d_instAddToPool : it->second.d_skolemAddToPool;
+  std::vector<Node>& cmds = isInst =
+      it->second.d_instAddToPool : it->second.d_skolemAddToPool;
   for (const Node& c : cmds)
   {
-    
   }
 }
 

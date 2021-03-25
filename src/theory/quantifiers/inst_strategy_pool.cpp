@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/inst_strategy_pool.h"
 
-#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_pools.h"
+#include "theory/quantifiers/term_registry.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -31,10 +31,7 @@ InstStrategyPool::InstStrategyPool(QuantifiersEngine* qe,
     : QuantifiersModule(qs, qim, qr, qe)
 {
 }
-void InstStrategyPool::presolve()
-{
-  
-}
+void InstStrategyPool::presolve() {}
 bool InstStrategyPool::needsCheck(Theory::Effort e)
 {
   // TODO
@@ -73,8 +70,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
   for (size_t i = 0; i < nquant; i++)
   {
     Node q = fm->getAssertedQuantifier(i, true);
-    bool doProcess = d_qreg.hasOwnership(q, this)
-                      && fm->isQuantifierActive(q);
+    bool doProcess = d_qreg.hasOwnership(q, this) && fm->isQuantifierActive(q);
     if (!doProcess)
     {
       continue;
@@ -86,7 +82,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
     Trace("pool-engine") << "Added lemmas = " << addedLemmas << std::endl;
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("pool-engine") << "Finished pool instantiation, time = "
-                       << (clSet2 - clSet) << std::endl;
+                         << (clSet2 - clSet) << std::endl;
   }
 }
 

@@ -25,7 +25,7 @@ namespace quantifiers {
 
 class RelevantDomain;
 
-/** 
+/**
  * Pool-based instantiation.
  */
 class InstStrategyPool : public QuantifiersModule
@@ -61,8 +61,8 @@ class InstStrategyPool : public QuantifiersModule
   std::map<Node, std::vector<Node> > d_userPools;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif
