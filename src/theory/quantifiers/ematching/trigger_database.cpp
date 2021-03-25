@@ -18,18 +18,20 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-TriggerDatabase::TriggerDatabase(
-                  QuantifiersState& qs,
-                  QuantifiersInferenceManager& qim,
-                  QuantifiersRegistry& qr,
-                  TermRegistry& tr) : d_qs(qs), d_qim(qim), d_qreg(qr), d_treg(tr) {}
+TriggerDatabase::TriggerDatabase(QuantifiersState& qs,
+                                 QuantifiersInferenceManager& qim,
+                                 QuantifiersRegistry& qr,
+                                 TermRegistry& tr)
+    : d_qs(qs), d_qim(qim), d_qreg(qr), d_treg(tr)
+{
+}
 TriggerDatabase::~TriggerDatabase() {}
 
-Trigger* TriggerDatabase::::getTrigger(std::vector<Node>& nodes)
+Trigger* TriggerDatabase:: ::getTrigger(std::vector<Node>& nodes)
 {
   return d_trie.getTrigger(nodes);
 }
-void TriggerDatabase::::addTrigger(std::vector<Node>& nodes, Trigger* t)
+void TriggerDatabase:: ::addTrigger(std::vector<Node>& nodes, Trigger* t)
 {
   d_trie.addTrigger(nodes, t);
 }

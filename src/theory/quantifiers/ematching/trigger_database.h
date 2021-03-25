@@ -36,12 +36,12 @@ class TermRegistry;
 class TriggerDatabase
 {
  public:
-  TriggerDatabase(
-                      QuantifiersState& qs,
-                      QuantifiersInferenceManager& qim,
-                      QuantifiersRegistry& qr,
-                      TermRegistry& tr);
+  TriggerDatabase(QuantifiersState& qs,
+                  QuantifiersInferenceManager& qim,
+                  QuantifiersRegistry& qr,
+                  TermRegistry& tr);
   ~TriggerDatabase();
+
  private:
   /** Returns a Trigger t that is indexed by nodes, or nullptr otherwise. */
   Trigger* getTrigger(std::vector<Node>& nodes);
