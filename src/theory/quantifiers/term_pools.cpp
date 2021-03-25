@@ -14,18 +14,28 @@
 
 #include "theory/quantifiers/term_pools.h"
 
+#include "theory/quantifiers/quantifiers_state.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 void TermPoolDomain::initialize() { d_terms.clear(); }
-void TermPoolDomain::add(Node n) { d_terms.insert(n); }
+void TermPoolDomain::add(Node n) { 
+  if (std::find(d_terms.begin(), d_terms.end(), n)==d_terms.end())
+  {
+    d_terms.push_back(n);
+  }
+}
 
 void TermPoolQuantInfo::initialize()
 {
   d_instAddToPool.clear();
   d_skolemAddToPool.clear();
 }
+
+
+TermPools::TermPools(QuantifiersState& qs) : d_qs(qs) {}
 
 void TermPools::registerQuantifier(Node q)
 {
@@ -64,11 +74,19 @@ void TermPools::registerPool(Node p, const std::vector<Node>& initValue)
 
 void TermPools::addToPool(Node n, Node p)
 {
-  TermPoolDomain& dom = getDomain(p);
+  TermPoolDomain& dom = d_pools[p];
   dom.add(n);
 }
 
-TermPoolDomain& TermPools::getDomain(Node p) { return d_pools[p]; }
+void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
+{
+  TermPoolDomain& dom = d_pools[p];
+  // TODO: eliminate modulo equality
+  for (const Node& t : dom.d_terms)
+  {
+    terms.push_back(t);
+  }
+}
 
 void TermPools::processInstantiation(Node q, const std::vector<Node>& terms)
 {

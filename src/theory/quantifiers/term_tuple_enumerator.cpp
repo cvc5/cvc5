@@ -29,6 +29,7 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers_engine.h"
 #include "util/statistics_registry.h"
 
@@ -495,6 +496,53 @@ Node TermTupleEnumeratorBasic::getTerm(size_t variableIx, size_t term_index)
   const TypeNode type_node = d_typeCache[variableIx];
   Assert(term_index < d_termDbList[type_node].size());
   return d_termDbList[type_node][term_index];
+}
+
+
+/**
+ * Enumerate ground terms as they come from a user-provided term pool
+ */
+class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
+{
+ public:
+  TermTupleEnumeratorPool(Node quantifier,
+                           const TermTupleEnumeratorContext* context,
+                           TermPools* tp,
+                          Node pool
+                         )
+      : TermTupleEnumeratorPool(quantifier, context),
+      d_tp(tp), d_pool(pool)
+  {
+    Assert (d_pool.getKind()==kind::INST_POOL);
+  }
+
+  virtual ~TermTupleEnumeratorPool() = default;
+
+ protected:
+   /** Pointer to the term pool utility */
+   TermPool * d_tp;
+   /** The pool annotation */
+   Node d_pool;
+  /**  a list of terms for each id */
+  std::map<size_t, std::vector<Node> > d_poolList;
+  /** prepare terms gets the terms from the pool */
+  virtual size_t prepareTerms(size_t variableIx) override
+  {
+    Assert (d_pool.getNumChildren()>variableIx);
+    // prepare terms from pool
+    d_tp.getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
+  }
+  virtual Node getTerm(size_t variableIx, size_t term_index) override
+  {
+    Assert(term_index < d_poolList[variableIx].size());
+    return d_poolList[variableIx][variableIx];
+  }
+};
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
+  Node q, const TermTupleEnumeratorContext* context, TermPools * tp, Node pool)
+{
+  return static_cast<TermTupleEnumeratorInterface*>(
+                             new TermTupleEnumeratorPool(quantifier, context, tp, pool))
 }
 
 }  // namespace quantifiers

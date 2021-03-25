@@ -25,6 +25,7 @@ class QuantifiersEngine;
 
 namespace quantifiers {
 
+class TermPools;
 class RelevantDomain;
 
 /**  Interface for enumeration of tuples of terms.
@@ -82,6 +83,10 @@ struct TermTupleEnumeratorContext
  */
 TermTupleEnumeratorInterface* mkTermTupleEnumerator(
     Node quantifier, const TermTupleEnumeratorContext* context);
+
+/** Make term pool enumerator */
+TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(
+  Node q, const TermTupleEnumeratorContext* context, TermPools * tp, Node p);
 
 }  // namespace quantifiers
 }  // namespace theory

@@ -18,6 +18,7 @@
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/term_tuple_enumerator.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -38,8 +39,7 @@ void InstStrategyPool::presolve() {}
 
 bool InstStrategyPool::needsCheck(Theory::Effort e)
 {
-  // TODO
-  return false;
+  return d_qstate.getInstWhenNeedsCheck(e);
 }
 
 void InstStrategyPool::reset_round(Theory::Effort e) {}
@@ -106,8 +106,16 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
+std::string InstStrategyPool::identify() const
+{
+  return std::string("InstStrategyPool");
+}
+  
 void InstStrategyPool::process(Node q, Node p)
 {
+  TermPools * tp = d_quantEngine->getTermRegistry().getTermPools();
+  std::shared_ptr<TermTupleEnumeratorInterface> ttei = mkTermTupleEnumeratorPool(
+    q, context, tp, p);
   // TODO
 }
 

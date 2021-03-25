@@ -27,6 +27,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class QuantifiersState;
+  
 class TermPoolDomain
 {
  public:
@@ -35,7 +37,7 @@ class TermPoolDomain
   /** add node to pool */
   void add(Node n);
   /** The list in this pool */
-  std::unordered_set<Node, NodeHashFunction> d_terms;
+  std::vector<Node> d_terms;
 };
 
 class TermPoolQuantInfo
@@ -51,7 +53,7 @@ class TermPoolQuantInfo
 class TermPools : public QuantifiersUtil
 {
  public:
-  TermPools() {}
+  TermPools(QuantifiersState& qs);
   ~TermPools() {}
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
@@ -60,8 +62,8 @@ class TermPools : public QuantifiersUtil
   /** register pool */
   void registerPool(Node p, const std::vector<Node>& initValue);
 
-  /** get domain */
-  TermPoolDomain& getDomain(Node p);
+  /** get terms for pool */
+  void getTermsForPool(Node p, std::vector<Node>& terms);
 
   /**
    * Process instantiation
@@ -73,6 +75,8 @@ class TermPools : public QuantifiersUtil
   void processInternal(Node q, const std::vector<Node>& ts, bool isInst);
   /** add to pool */
   void addToPool(Node n, Node p);
+  /** reference to the quantifiers state */
+  QuantifiersState& d_qs;
   /** Maps pools to a domain */
   std::map<Node, TermPoolDomain> d_pools;
   /** Maps quantifiers to info */

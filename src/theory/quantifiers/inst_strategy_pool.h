@@ -50,10 +50,7 @@ class InstStrategyPool : public QuantifiersModule
    */
   void check(Theory::Effort e, QEffort quant_e) override;
   /** Identify. */
-  std::string identify() const override
-  {
-    return std::string("InstStrategyPool");
-  }
+  std::string identify() const override;
 
  private:
   /** Process quantified formula with user pool */

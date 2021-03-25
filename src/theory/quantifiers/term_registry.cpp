@@ -31,7 +31,7 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
       d_useFmcModel(false),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
-      d_termPools(new TermPools),
+      d_termPools(new TermPools(qs)),
       d_termDb(new TermDb(qs, qr)),
       d_sygusTdb(nullptr)
 {
