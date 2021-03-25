@@ -90,7 +90,7 @@ FloatingPointLiteral FloatingPointLiteral::makeNaN(
   return FloatingPointLiteral(size, SymFPUUnpackedFloatLiteral::makeNaN(size));
 #else
   unimplemented();
-  return FloatingPointLiteral(2, BitVector(4U, 0U), BitVector(4U, 0U));
+  return FloatingPointLiteral(size, BitVector(4u, 0u));
 #endif
 }
 
@@ -102,7 +102,7 @@ FloatingPointLiteral FloatingPointLiteral::makeInf(
                               SymFPUUnpackedFloatLiteral::makeInf(size, sign));
 #else
   unimplemented();
-  return FloatingPointLiteral(2, BitVector(4U, 0U), BitVector(4U, 0U));
+  return FloatingPointLiteral(size, BitVector(4u, 0u));
 #endif
 }
 
@@ -114,7 +114,7 @@ FloatingPointLiteral FloatingPointLiteral::makeZero(
                               SymFPUUnpackedFloatLiteral::makeZero(size, sign));
 #else
   unimplemented();
-  return FloatingPointLiteral(2, BitVector(4U, 0U), BitVector(4U, 0U));
+  return FloatingPointLiteral(size, BitVector(4u, 0u));
 #endif
 }
 
@@ -513,9 +513,9 @@ BitVector FloatingPointLiteral::convertToUBVTotal(BitVectorSize width,
 }
 
 #ifndef CVC4_USE_SYMFPU
-void FloatingPointLiteral::unimplemented(void) const
+void FloatingPointLiteral::unimplemented(void)
 {
-  Unimplemted() << "no concrete implementation of FloatingPointLiteral";
+  Unimplemented() << "no concrete implementation of FloatingPointLiteral";
 }
 
 size_t FloatingPointLiteral::hash(void) const
