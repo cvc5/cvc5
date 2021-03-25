@@ -655,6 +655,14 @@ header = "options/smt_options.h"
   read_only  = true
   help       = "Cross-theory rewrites"
 
+[[option]]
+  name       = "bvToIntFreshVars"
+  category   = "regular"
+  long       = "bv-to-int-fresh-vars"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "introduce fresh integer variables for BV variables, rather than using bv2nat operator"
 
 [[option]]
   name       = "solveBVAsInt"
@@ -676,6 +684,9 @@ header = "options/smt_options.h"
 [[option.mode.BV]]
   name = "bv"
   help = "Translate bvand back to bit-vectors"
+[[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "Introduce a UF operator for bvand, and eagerly add bitwise lemmas"
 
 [[option]]
   name       = "BVAndIntegerGranularity"

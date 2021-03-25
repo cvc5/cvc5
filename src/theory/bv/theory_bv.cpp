@@ -46,7 +46,7 @@ TheoryBV::TheoryBV(context::Context* c,
     case options::BVSolver::BITBLAST:
       d_internal.reset(new BVSolverBitblast(&d_state, d_im, pnm));
       break;
-
+    
     case options::BVSolver::LAZY:
       d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
       break;

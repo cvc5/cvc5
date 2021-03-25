@@ -242,6 +242,7 @@ set(regress_0_tests
   regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_bvuf_to_intuf.smt2
   regress0/bv/bv_to_int_elim_err.smt2
+  regress0/bv/bv_to_int_int1.smt2
   regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bv_to_int1.smt2
   regress0/bv/bv-abstr-bug.smt2
@@ -2328,6 +2329,7 @@ set(regress_2_tests
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_mask_array_3.smt2
   regress2/bv_to_int_shifts.smt2
+  regress2/bv_to_int_quantifiers_bvand.smt2
   regress2/error0.smt2
   regress2/error1.smtv1.smt2
   regress2/fuzz_2.smtv1.smt2

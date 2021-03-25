@@ -130,8 +130,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   /* Only BVSolver::LAZY natively supports int2bv and nat2bv, for other solvers
    * we need to eagerly eliminate the operators. */
-  if (options::bvSolver() == options::BVSolver::SIMPLE
-      || options::bvSolver() == options::BVSolver::BITBLAST)
+  if (options::bvSolver() != options::BVSolver::LAZY)
   {
     options::bvLazyReduceExtf.set(false);
     options::bvLazyRewriteExtf.set(false);
@@ -185,6 +184,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       logic.enableTheory(THEORY_ARITH);
       logic.arithNonLinear();
       logic.lock();
+    }
+  }
+
+  if (options::bvSolver() == options::BVSolver::INTBLAST)
+  {
+    if (logic.isTheoryEnabled(THEORY_BV))
+    {
+      logic = logic.getUnlockedCopy();
+      logic.enableTheory(THEORY_ARITH);
+      logic.arithNonLinear();
+      logic.lock();
+      options::nlExtTangentPlanes.set(true);
     }
   }
 

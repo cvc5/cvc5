@@ -255,7 +255,7 @@ Node IAndSolver::bitwiseLemma(Node i)
   Node x = i[0];
   Node y = i[1];
 
-  unsigned bvsize = i.getOperator().getConst<IntAnd>().d_size;
+  uint64_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
   uint64_t granularity = options::BVAndIntegerGranularity();
 
   Rational absI = d_model.computeAbstractModelValue(i).getConst<Rational>();
@@ -273,8 +273,8 @@ Node IAndSolver::bitwiseLemma(Node i)
   // compare each bit to bvI
   Node cond;
   Node bitIAnd;
-  unsigned high_bit;
-  for (unsigned j = 0; j < bvsize; j += granularity)
+  uint64_t high_bit;
+  for (uint64_t j = 0; j < bvsize; j += granularity)
   {
     high_bit = j + granularity - 1;
     // don't let high_bit pass bvsize
