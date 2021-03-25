@@ -58,8 +58,6 @@ public:
 
   static bool isAssertionBuild();
 
-  static bool isProofBuild();
-
   static bool isCoverageBuild();
 
   static bool isProfilingBuild();
@@ -106,11 +104,7 @@ public:
 
   static bool isBuiltWithKissat();
 
-  static bool isBuiltWithDrat2Er();
-
   static bool isBuiltWithEditline();
-
-  static bool isBuiltWithLfsc();
 
   static bool isBuiltWithPoly();
 

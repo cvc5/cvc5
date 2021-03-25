@@ -21,6 +21,7 @@
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -602,7 +603,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           //check each skolem variable
           bool disproven = true;
           std::vector<Node> skolems;
-          d_quantEngine->getSkolemize()->getSkolemConstants(q, skolems);
+          d_qim.getSkolemize()->getSkolemConstants(q, skolems);
           Trace("sg-conjecture") << "    CONJECTURE : ";
           std::vector< Node > ce;
           for (unsigned j = 0; j < skolems.size(); j++)
@@ -1102,7 +1103,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
   if( n.getNumChildren()>0 ){
     Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
                               << ")" << std::endl;
-    TermEnumeration* te = d_quantEngine->getTermEnumeration();
+    TermEnumeration* te = d_quantEngine->getTermRegistry().getTermEnumeration();
     // below, we do a fair enumeration of vectors vec of indices whose sum is
     // 1,2,3, ...
     std::vector< int > vec;
