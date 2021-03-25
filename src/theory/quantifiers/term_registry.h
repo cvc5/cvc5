@@ -72,6 +72,11 @@ class TermRegistry
    * Declare pool p with initial value initValue.
    */
   void declarePool(Node p, const std::vector<Node>& initValue);
+  /** 
+   * Process instantiation
+   */
+  void processInstantiation(Node q, const std::vector<Node>& terms, Node ibody);
+  void processSkolemization(Node q, const std::vector<Node>& skolems, Node kbody);
 
   /** Whether we use the full model check builder and corresponding model */
   bool useFmcModel() const;

@@ -122,6 +122,30 @@ void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
   d_termPools->registerPool(p, initValue);
 }
 
+void TermRegistry::processInstantiation(Node q, const std::vector<Node>& terms, Node ibody)
+{
+  if (options::instMaxLevel() != -1)
+  {
+    uint64_t maxInstLevel = 0;
+    for (const Node& tc : terms)
+    {
+      if (tc.hasAttribute(InstLevelAttribute())
+          && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
+      {
+        maxInstLevel = tc.getAttribute(InstLevelAttribute());
+      }
+    }
+    QuantAttributes::setInstantiationLevelAttr(
+        ibody, q[1], maxInstLevel + 1);
+  }
+  // TODO: process pool
+}
+void TermRegistry::processSkolemization(Node q, const std::vector<Node>& skolems, Node kbody)
+{
+  // TODO: process pool
+  
+}
+
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }
 
 TermDbSygus* TermRegistry::getTermDatabaseSygus() const

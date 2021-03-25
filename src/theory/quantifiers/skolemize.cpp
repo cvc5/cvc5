@@ -23,6 +23,7 @@
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/sort_inference.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -31,8 +32,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Skolemize::Skolemize(QuantifiersState& qs, ProofNodeManager* pnm)
+Skolemize::Skolemize(QuantifiersState& qs, TermRegistry& tr, ProofNodeManager* pnm)
     : d_qstate(qs),
+    d_treg(tr),
       d_skolemized(qs.getUserContext()),
       d_pnm(pnm),
       d_epg(pnm == nullptr ? nullptr
