@@ -398,6 +398,7 @@ protected:
      */
     vec<bool> theory;
 
+    /** Indicates if unsat cores should be generated via proofs. */
     bool d_unsatCoresProofs;
 
     enum TheoryCheckType {

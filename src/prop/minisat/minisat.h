@@ -101,6 +101,12 @@ class MinisatSatSolver : public CDCLTSatSolverInterface
   /** Context we will be using to synchronize the sat solver */
   context::Context* d_context;
 
+  /**
+   * Stores assumptions passed via last solve() call.
+   *
+   * It is used in getUnsatAssumptions() to determine which of the literals in
+   * the final conflict clause are assumptions.
+   */
   std::unordered_set<SatLiteral, SatLiteralHashFunction> d_assumptions;
 
   void setupOptions();

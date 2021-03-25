@@ -298,8 +298,10 @@ class PropEngine
   /** Is proof enabled? */
   bool isProofEnabled() const;
 
+  /** Retrieve unsat core from SAT solver for assumption-based unsat cores. */
   void getUnsatCore(std::vector<Node>& core);
 
+  /** Return the prop engine proof for assumption-based unsat cores. */
   std::shared_ptr<ProofNode> getRefutation();
 
  private:
@@ -384,6 +386,10 @@ class PropEngine
   /** Reference to the output manager of the smt engine */
   OutputManager& d_outMgr;
 
+  /**
+   * Stores assumptions added via assertInternal() if assumption-based unsat
+   * cores are enabled.
+   */
   context::CDList<Node> d_assumptions;
 };
 
