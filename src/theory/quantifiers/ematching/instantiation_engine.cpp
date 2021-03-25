@@ -54,8 +54,7 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     // user-provided patterns
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
-      d_isup.reset(
-          new InstStrategyUserPatterns(d_trdb, qs, qim, qr, tr));
+      d_isup.reset(new InstStrategyUserPatterns(d_trdb, qs, qim, qr, tr));
       d_instStrategies.push_back(d_isup.get());
     }
 

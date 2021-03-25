@@ -223,19 +223,19 @@ class HigherOrderTrigger : public Trigger
 
   /** higher-order pattern unification algorithm
    *
-  * Sends an instantiation that is equivalent to m via
-  * Instantiate::addInstantiation(...),
-  * based on Huet's algorithm.
-  *
-  * This is a helper function of sendInstantiation( m ) above.
-  *
-  * var_index is the index of the variable in m that we are currently processing
-  *   i.e. we are processing the var_index^{th} higher-order variable.
-  *
-  * For example, say we are processing the match from (EX4) above.
-  *   when var_index = 0,1, we are processing possibilities for
-  *    instantiation of f1,f2 respectively.
-  */
+   * Sends an instantiation that is equivalent to m via
+   * Instantiate::addInstantiation(...),
+   * based on Huet's algorithm.
+   *
+   * This is a helper function of sendInstantiation( m ) above.
+   *
+   * var_index is the index of the variable in m that we are currently
+   * processing i.e. we are processing the var_index^{th} higher-order variable.
+   *
+   * For example, say we are processing the match from (EX4) above.
+   *   when var_index = 0,1, we are processing possibilities for
+   *    instantiation of f1,f2 respectively.
+   */
   bool sendInstantiation(std::vector<Node>& m, size_t var_index);
   /** higher-order pattern unification algorithm
    * Sends an instantiation that is equivalent to m via

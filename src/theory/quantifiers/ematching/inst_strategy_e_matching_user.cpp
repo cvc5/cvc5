@@ -15,8 +15,8 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching_user.h"
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
-#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/quantifiers/ematching/trigger_database.h"
+#include "theory/quantifiers/quantifiers_state.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory::quantifiers::inst;
@@ -107,10 +107,8 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     std::vector<std::vector<Node> >& ugw = d_user_gen_wait[q];
     for (size_t i = 0, usize = ugw.size(); i < usize; i++)
     {
-      Trigger* t = d_td.mkTrigger(q,
-                                      ugw[i],
-                                      true,
-                                      TriggerDatabase::TR_RETURN_NULL);
+      Trigger* t =
+          d_td.mkTrigger(q, ugw[i], true, TriggerDatabase::TR_RETURN_NULL);
       if (t)
       {
         d_user_gen[q].push_back(t);
@@ -163,10 +161,7 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
     d_user_gen_wait[q].push_back(nodes);
     return;
   }
-  Trigger* t = d_td.mkTrigger(q,
-                                  nodes,
-                                  true,
-                                  TriggerDatabase::TR_MAKE_NEW);
+  Trigger* t = d_td.mkTrigger(q, nodes, true, TriggerDatabase::TR_MAKE_NEW);
   if (t)
   {
     d_user_gen[q].push_back(t);

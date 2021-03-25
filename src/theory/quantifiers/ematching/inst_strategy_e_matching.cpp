@@ -15,11 +15,11 @@
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
+#include "theory/quantifiers/ematching/trigger_database.h"
 #include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/quantifiers_registry.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers/ematching/trigger_database.h"
 #include "util/random.h"
 
 using namespace CVC4::kind;
@@ -282,10 +282,10 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
     if (d_is_single_trigger[patTerms[0]])
     {
       tr = d_td.mkTrigger(f,
-                              patTerms[0],
-                              false,
-                              TriggerDatabase::TR_RETURN_NULL,
-                              d_num_trigger_vars[f]);
+                          patTerms[0],
+                          false,
+                          TriggerDatabase::TR_RETURN_NULL,
+                          d_num_trigger_vars[f]);
       d_single_trigger_gen[patTerms[0]] = true;
     }
     else
@@ -317,10 +317,10 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       // will possibly want to get an old trigger
       tr = d_td.mkTrigger(f,
-                              patTerms,
-                              false,
-                              TriggerDatabase::TR_GET_OLD,
-                              d_num_trigger_vars[f]);
+                          patTerms,
+                          false,
+                          TriggerDatabase::TR_GET_OLD,
+                          d_num_trigger_vars[f]);
     }
     if (tr == nullptr)
     {
@@ -357,10 +357,10 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         {
           d_single_trigger_gen[patTerms[index]] = true;
           Trigger* tr2 = d_td.mkTrigger(f,
-                                            patTerms[index],
-                                            false,
-                                            TriggerDatabase::TR_RETURN_NULL,
-                                            d_num_trigger_vars[f]);
+                                        patTerms[index],
+                                        false,
+                                        TriggerDatabase::TR_RETURN_NULL,
+                                        d_num_trigger_vars[f]);
           addTrigger(tr2, f);
           success = true;
         }

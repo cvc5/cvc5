@@ -54,22 +54,23 @@ class TriggerDatabase
    *  useNVars : number of variables that should be bound by the trigger
    *             typically, the number of quantified variables in q.
    */
-  enum{
-    TR_MAKE_NEW,    //make new trigger even if it already may exist
-    TR_GET_OLD,     //return a previous trigger if it had already been created
-    TR_RETURN_NULL  //return null if a duplicate is found
+  enum
+  {
+    TR_MAKE_NEW,    // make new trigger even if it already may exist
+    TR_GET_OLD,     // return a previous trigger if it had already been created
+    TR_RETURN_NULL  // return null if a duplicate is found
   };
   Trigger* mkTrigger(Node q,
-                            const std::vector<Node>& nodes,
-                            bool keepAll = true,
-                            int trOption = TR_MAKE_NEW,
-                            size_t useNVars = 0);
+                     const std::vector<Node>& nodes,
+                     bool keepAll = true,
+                     int trOption = TR_MAKE_NEW,
+                     size_t useNVars = 0);
   /** single trigger version that calls the above function */
   Trigger* mkTrigger(Node q,
-                            Node n,
-                            bool keepAll = true,
-                            int trOption = TR_MAKE_NEW,
-                            size_t useNVars = 0);
+                     Node n,
+                     bool keepAll = true,
+                     int trOption = TR_MAKE_NEW,
+                     size_t useNVars = 0);
 
   /** make trigger terms
    *
@@ -84,6 +85,7 @@ class TriggerDatabase
                              const std::vector<Node>& nodes,
                              size_t nvars,
                              std::vector<Node>& trNodes);
+
  private:
   /** The trigger trie */
   TriggerTrie d_trie;

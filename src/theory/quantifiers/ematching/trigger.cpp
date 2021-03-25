@@ -46,11 +46,7 @@ Trigger::Trigger(QuantifiersState& qs,
                  TermRegistry& tr,
                  Node q,
                  std::vector<Node>& nodes)
-    : d_qstate(qs),
-      d_qim(qim),
-      d_qreg(qr),
-      d_treg(tr),
-      d_quant(q)
+    : d_qstate(qs), d_qim(qim), d_qreg(qr), d_treg(tr), d_quant(q)
 {
   // We must ensure that the ground subterms of the trigger have been
   // preprocessed.

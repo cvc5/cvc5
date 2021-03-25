@@ -14,9 +14,9 @@
 
 #include "theory/quantifiers/ematching/trigger_database.h"
 
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
+#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/term_util.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,32 +31,39 @@ TriggerDatabase::TriggerDatabase(QuantifiersState& qs,
 }
 TriggerDatabase::~TriggerDatabase() {}
 
-
 Trigger* TriggerDatabase::mkTrigger(Node f,
-                            const std::vector<Node>& nodes,
-                            bool keepAll,
-                            int trOption,
-                            size_t useNVars)
+                                    const std::vector<Node>& nodes,
+                                    bool keepAll,
+                                    int trOption,
+                                    size_t useNVars)
 {
-  std::vector< Node > trNodes;
-  if( !keepAll ){
+  std::vector<Node> trNodes;
+  if (!keepAll)
+  {
     size_t nvars = useNVars == 0 ? f[0].getNumChildren() : useNVars;
     if (!mkTriggerTerms(f, nodes, nvars, trNodes))
     {
       return nullptr;
     }
-  }else{
-    trNodes.insert( trNodes.begin(), nodes.begin(), nodes.end() );
+  }
+  else
+  {
+    trNodes.insert(trNodes.begin(), nodes.begin(), nodes.end());
   }
 
-  //check for duplicate?
-  if( trOption!=TR_MAKE_NEW ){
-    Trigger* t = d_trie.getTrigger( trNodes );
-    if( t ){
-      if( trOption==TR_GET_OLD ){
-        //just return old trigger
+  // check for duplicate?
+  if (trOption != TR_MAKE_NEW)
+  {
+    Trigger* t = d_trie.getTrigger(trNodes);
+    if (t)
+    {
+      if (trOption == TR_GET_OLD)
+      {
+        // just return old trigger
         return t;
-      }else{
+      }
+      else
+      {
         return nullptr;
       }
     }
@@ -79,33 +86,30 @@ Trigger* TriggerDatabase::mkTrigger(Node f,
     t = new Trigger(qs, qim, qr, tr, f, trNodes);
   }
 
-  d_trie.addTrigger( trNodes, t );
+  d_trie.addTrigger(trNodes, t);
   return t;
 }
 
-Trigger* TriggerDatabase::mkTrigger(Node q,
-                            Node n,
-                            bool keepAll,
-                            int trOption,
-                            size_t useNVars)
+Trigger* TriggerDatabase::mkTrigger(
+    Node q, Node n, bool keepAll, int trOption, size_t useNVars)
 {
-  std::vector< Node > nodes;
-  nodes.push_back( n );
+  std::vector<Node> nodes;
+  nodes.push_back(n);
   return mkTrigger(q, nodes, keepAll, trOption, useNVars);
 }
 
 bool TriggerDatabase::mkTriggerTerms(Node q,
-                             const std::vector<Node>& nodes,
-                             size_t nvars,
-                             std::vector<Node>& trNodes)
+                                     const std::vector<Node>& nodes,
+                                     size_t nvars,
+                                     std::vector<Node>& trNodes)
 {
-  //only take nodes that contribute variables to the trigger when added
-  std::vector< Node > temp;
-  temp.insert( temp.begin(), nodes.begin(), nodes.end() );
-  std::map< Node, bool > vars;
-  std::map< Node, std::vector< Node > > patterns;
+  // only take nodes that contribute variables to the trigger when added
+  std::vector<Node> temp;
+  temp.insert(temp.begin(), nodes.begin(), nodes.end());
+  std::map<Node, bool> vars;
+  std::map<Node, std::vector<Node> > patterns;
   size_t varCount = 0;
-  std::map< Node, std::vector< Node > > varContains;
+  std::map<Node, std::vector<Node> > varContains;
   for (const Node& pat : temp)
   {
     TermUtil::computeInstConstContainsForQuant(q, pat, varContains[pat]);
@@ -117,13 +121,15 @@ bool TriggerDatabase::mkTriggerTerms(Node q,
     for (const Node& v : vct)
     {
       Assert(TermUtil::getInstConstAttr(v) == q);
-      if( vars.find( v )==vars.end() ){
+      if (vars.find(v) == vars.end())
+      {
         varCount++;
-        vars[ v ] = true;
+        vars[v] = true;
         foundVar = true;
       }
     }
-    if( foundVar ){
+    if (foundVar)
+    {
       trNodes.push_back(t);
       for (const Node& v : vct)
       {
@@ -137,9 +143,11 @@ bool TriggerDatabase::mkTriggerTerms(Node q,
   }
   if (varCount < nvars)
   {
-    Trace("trigger-debug") << "Don't consider trigger since it does not contain specified number of variables." << std::endl;
+    Trace("trigger-debug") << "Don't consider trigger since it does not "
+                              "contain specified number of variables."
+                           << std::endl;
     Trace("trigger-debug") << nodes << std::endl;
-    //do not generate multi-trigger if it does not contain all variables
+    // do not generate multi-trigger if it does not contain all variables
     return false;
   }
   // now, minimize the trigger
