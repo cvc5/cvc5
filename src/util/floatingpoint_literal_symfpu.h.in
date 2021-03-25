@@ -363,7 +363,10 @@ class FloatingPointLiteral
   {
   }
 #else
-  FloatingPointLiteral(uint32_t, uint32_t, double) { unimplemented(); };
+  FloatingPointLiteral(uint32_t, uint32_t, double) : d_fp_size(0, 0)
+  {
+    unimplemented();
+  };
 #endif
   ~FloatingPointLiteral() {}
 
