@@ -74,7 +74,7 @@ int InstMatchGenerator::getActiveScore()
   if( d_match_pattern.isNull() ){
     return -1;
   }
-  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  quantifiers::TermDb* tdb = d_treg.getTermDatabase();
   if (TriggerTermInfo::isAtomicTrigger(d_match_pattern))
   {
     Node f = tdb->getMatchOperator(d_match_pattern);
@@ -157,7 +157,7 @@ void InstMatchGenerator::initialize(Node q,
   d_match_pattern_type = d_match_pattern.getType();
   Trace("inst-match-gen") << "Pattern is " << d_pattern << ", match pattern is "
                           << d_match_pattern << std::endl;
-  quantifiers::TermDb* tdb = getQuantifiersEngine()->getTermDatabase();
+  quantifiers::TermDb* tdb = d_treg.getTermDatabase();
   d_match_pattern_op = tdb->getMatchOperator(d_match_pattern);
 
   // now, collect children of d_match_pattern

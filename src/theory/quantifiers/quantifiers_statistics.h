@@ -2,7 +2,7 @@
 /*! \file quantifiers_statistics.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Gereon Kremer
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2021 by the authors listed in the file AUTHORS
  ** in the top-level source directory and their institutional affiliations.
@@ -18,15 +18,21 @@
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H
 
 #include "util/statistics_registry.h"
+#include "util/stats_timer.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** statistics class */
+/**
+ * Statistics class for quantifiers, which contains all statistics that need
+ * to be tracked globally within the quantifiers theory.
+ */
 class QuantifiersStatistics
 {
  public:
+  QuantifiersStatistics();
+  ~QuantifiersStatistics();
   TimerStat d_time;
   TimerStat d_qcf_time;
   TimerStat d_ematching_time;
@@ -37,8 +43,6 @@ class QuantifiersStatistics
   IntStat d_simple_triggers;
   IntStat d_multi_triggers;
   IntStat d_red_alpha_equiv;
-  Statistics();
-  ~Statistics();
 };
 
 }  // namespace quantifiers

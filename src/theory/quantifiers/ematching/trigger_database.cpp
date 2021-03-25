@@ -32,7 +32,7 @@ TriggerDatabase::TriggerDatabase(QuantifiersState& qs,
 }
 TriggerDatabase::~TriggerDatabase() {}
 
-Trigger* TriggerDatabase::mkTrigger(Node f,
+Trigger* TriggerDatabase::mkTrigger(Node q,
                                     const std::vector<Node>& nodes,
                                     bool keepAll,
                                     int trOption,
@@ -41,8 +41,8 @@ Trigger* TriggerDatabase::mkTrigger(Node f,
   std::vector<Node> trNodes;
   if (!keepAll)
   {
-    size_t nvars = useNVars == 0 ? f[0].getNumChildren() : useNVars;
-    if (!mkTriggerTerms(f, nodes, nvars, trNodes))
+    size_t nvars = useNVars == 0 ? q[0].getNumChildren() : useNVars;
+    if (!mkTriggerTerms(q, nodes, nvars, trNodes))
     {
       return nullptr;
     }
@@ -70,18 +70,18 @@ Trigger* TriggerDatabase::mkTrigger(Node f,
   // check if higher-order
   Trace("trigger-debug") << "Collect higher-order variable triggers..."
                          << std::endl;
-  std::map<Node, std::vector<Node> > ho_apps;
-  HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
-  Trace("trigger-debug") << "...got " << ho_apps.size()
+  std::map<Node, std::vector<Node> > hoApps;
+  HigherOrderTrigger::collectHoVarApplyTerms(q, trNodes, hoApps);
+  Trace("trigger-debug") << "...got " << hoApps.size()
                          << " higher-order applications." << std::endl;
   Trigger* t;
-  if (!ho_apps.empty())
+  if (!hoApps.empty())
   {
-    t = new HigherOrderTrigger(qs, qim, qr, tr, f, trNodes, ho_apps);
+    t = new HigherOrderTrigger(d_qs, d_qim, d_qreg, d_treg, q, trNodes, hoApps);
   }
   else
   {
-    t = new Trigger(qs, qim, qr, tr, f, trNodes);
+    t = new Trigger(d_qs, d_qim, d_qreg, d_treg, q, trNodes);
   }
   d_trie.addTrigger(trNodes, t);
   return t;

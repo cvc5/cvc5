@@ -66,14 +66,15 @@ Trigger::Trigger(QuantifiersState& qs,
       Trace("trigger") << "   " << n << std::endl;
     }
   }
+  QuantifiersStatistics& stats = qs.getStats();
   if( d_nodes.size()==1 ){
     if (TriggerTermInfo::isSimpleTrigger(d_nodes[0]))
     {
       d_mg = new InstMatchGeneratorSimple(this, q, d_nodes[0]);
-      ++(qe->d_statistics.d_triggers);
+      ++(stats.d_triggers);
     }else{
       d_mg = InstMatchGenerator::mkInstMatchGenerator(this, q, d_nodes[0]);
-      ++(qe->d_statistics.d_simple_triggers);
+      ++(stats.d_simple_triggers);
     }
   }else{
     if( options::multiTriggerCache() ){
@@ -89,7 +90,7 @@ Trigger::Trigger(QuantifiersState& qs,
         Trace("multi-trigger") << "   " << nc << std::endl;
       }
     }
-    ++(qe->d_statistics.d_multi_triggers);
+    ++(stats.d_multi_triggers);
   }
 
   Trace("trigger-debug") << "Finished making trigger." << std::endl;

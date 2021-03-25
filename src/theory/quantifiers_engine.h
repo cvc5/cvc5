@@ -24,7 +24,6 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/quantifiers/quant_util.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -56,8 +55,6 @@ class TermRegistry;
 class QuantifiersEngine {
   friend class ::CVC4::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
-  typedef context::CDList<Node> NodeList;
-  typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:

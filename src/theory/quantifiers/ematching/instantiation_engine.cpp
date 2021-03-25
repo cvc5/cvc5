@@ -135,7 +135,7 @@ void InstantiationEngine::reset_round( Theory::Effort e ){
 
 void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
 {
-  CodeTimer codeTimer(d_quantEngine->d_statistics.d_ematching_time);
+  CodeTimer codeTimer(d_qstate.getStats().d_ematching_time);
   if (quant_e != QEFFORT_STANDARD)
   {
     return;

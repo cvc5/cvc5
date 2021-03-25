@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of quantifiers engine class
+ ** \brief Implementation of quantifiers statistics class
  **/
 
 #include "theory/quantifiers/quantifiers_statistics.h"
@@ -18,7 +18,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Statistics::Statistics()
+QuantifiersStatistics::QuantifiersStatistics()
     : d_time("theory::QuantifiersEngine::time"),
       d_qcf_time("theory::QuantifiersEngine::time_qcf"),
       d_ematching_time("theory::QuantifiersEngine::time_ematching"),
@@ -43,7 +43,7 @@ Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
 }
 
-QuantifiersEngine::Statistics::~Statistics()
+QuantifiersStatistics::~QuantifiersStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_time);
   smtStatisticsRegistry()->unregisterStat(&d_qcf_time);
