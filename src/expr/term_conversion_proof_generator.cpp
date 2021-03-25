@@ -14,6 +14,8 @@
 
 #include "expr/term_conversion_proof_generator.h"
 
+#include <sstream>
+
 #include "expr/proof_checker.h"
 #include "expr/proof_node.h"
 #include "expr/term_context.h"

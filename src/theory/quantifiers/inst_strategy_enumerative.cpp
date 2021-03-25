@@ -22,15 +22,12 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
+using namespace CVC4::kind;
+using namespace CVC4::context;
+
 namespace CVC4 {
-
-using namespace kind;
-using namespace context;
-
 namespace theory {
 namespace quantifiers {
-
-using namespace inst;
 
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe,
                                    QuantifiersState& qs,
