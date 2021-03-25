@@ -25,10 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
 class TermPoolDomain
 {
-public:
+ public:
   /** initialize */
   void initialize();
   /** add node to pool */
@@ -36,7 +35,7 @@ public:
   /** The list in this pool */
   std::unordered_set<Node, NodeHashFunction> d_terms;
 };
-  
+
 /** Term pools
  */
 class TermPools
@@ -50,17 +49,17 @@ class TermPools
 
   /** add to pool */
   void addToPool(Node n, Node p);
-  
+
   /** get domain */
   TermPoolDomain& getDomain(Node p);
-  
+
  private:
   /** Maps nodes to a domain */
   std::map<Node, TermPoolDomain> d_pools;
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__TERM_POOLS_H */

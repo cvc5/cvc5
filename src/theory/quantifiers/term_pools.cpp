@@ -18,13 +18,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
-void TermPoolDomain::initialize() {
-  d_terms.clear();
-}
-void TermPoolDomain::add(Node n){
-  d_terms.insert(n);
-}
+void TermPoolDomain::initialize() { d_terms.clear(); }
+void TermPoolDomain::add(Node n) { d_terms.insert(n); }
 
 void TermPools::registerPool(Node p) { d_pools[p].initialize(); }
 
@@ -34,11 +29,8 @@ void TermPools::addToPool(Node n, Node p)
   dom.addTo(n);
 }
 
-TermPoolDomain& TermPools::getDomain(Node p)
-{
-  return d_pools[p];
-}
+TermPoolDomain& TermPools::getDomain(Node p) { return d_pools[p]; }
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
