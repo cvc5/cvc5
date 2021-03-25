@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 
+#include <sstream>
 #include <stack>
 
 #include "expr/dtype_cons.h"

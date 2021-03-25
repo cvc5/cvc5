@@ -16,8 +16,8 @@
 #include "theory/quantifiers/query_generator.h"
 
 #include <fstream>
+#include <sstream>
 
-#include "api/cvc4cpp.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"

@@ -16,6 +16,7 @@
 
 namespace CVC4 {
 namespace theory {
+namespace quantifiers {
 namespace inst {
 
 TriggerTrie::TriggerTrie() {}
@@ -71,5 +72,6 @@ void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
 }
 
 }  // namespace inst
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

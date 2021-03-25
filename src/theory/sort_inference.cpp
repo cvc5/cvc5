@@ -21,6 +21,7 @@
 
 #include "theory/sort_inference.h"
 
+#include <sstream>
 #include <vector>
 
 #include "options/quantifiers_options.h"
