@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file trigger_trie.h
+/*! \file trigger_database.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
@@ -42,16 +42,11 @@ class TriggerDatabase
                       QuantifiersRegistry& qr,
                       TermRegistry& tr);
   ~TriggerDatabase();
-  /**
-   * This returns a Trigger t that is indexed by nodes, or nullptr otherwise.
-   */
-  Trigger* getTrigger(std::vector<Node>& nodes);
-  /**
-   * This adds t to the trie, indexed by nodes. In typical use cases, nodes i
-   * t->d_nodes.
-   */
-  void addTrigger(std::vector<Node>& nodes, Trigger* t);
  private:
+  /** Returns a Trigger t that is indexed by nodes, or nullptr otherwise. */
+  Trigger* getTrigger(std::vector<Node>& nodes);
+  /** This adds t to the trie, indexed by nodes. */
+  void addTrigger(std::vector<Node>& nodes, Trigger* t);
   /** The trigger trie */
   TriggerTrie d_trie;
   /** Reference to the quantifiers state */
