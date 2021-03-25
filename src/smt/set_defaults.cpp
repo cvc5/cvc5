@@ -289,6 +289,14 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     disableProofs = true;
   }
 
+  if (options::unsatCores()
+      && options::unsatCoresMode() == options::UnsatCoresMode::ASSUMPTIONS)
+  {
+    Notice() << "Proof production and assumption-based unsat cores are "
+             << "not compatible. Disabling proof production." << std::endl;
+    disableProofs = true;
+  }
+
   if (options::arraysExp())
   {
     if (!logic.isQuantified())
