@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include <sstream>
+
 #include "expr/dtype.h"
 #include "expr/dtype_cons.h"
 #include "expr/node_algorithm.h"
