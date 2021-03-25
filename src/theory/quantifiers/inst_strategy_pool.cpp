@@ -75,14 +75,14 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
       continue;
     }
     uit = d_userPools.find(q);
-    if (uit==d_userPools.end())
+    if (uit == d_userPools.end())
     {
       continue;
     }
     // process with each user pool
     for (const Node& p : uit->second)
     {
-      process(q,p);
+      process(q, p);
     }
   }
   if (Trace.isOn("pool-engine"))
