@@ -869,7 +869,8 @@ void ResetCommand::invoke(api::Solver* solver, SymbolManager* sm)
     Options opts;
     opts.copyValues(*solver->d_originalOptions);
     solver->~Solver();
-    ::new (solver) api::Solver(&opts, nm);
+    delete nm;
+    ::new (solver) api::Solver(&opts);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
