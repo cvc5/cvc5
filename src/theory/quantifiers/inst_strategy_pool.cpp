@@ -113,9 +113,15 @@ std::string InstStrategyPool::identify() const
 
 void InstStrategyPool::process(Node q, Node p)
 {
+  TermTupleEnumeratorContext ttec;
+  ttec.d_quantEngine = d_quantEngine;
+  ttec.d_rd = nullptr;
+  ttec.d_fullEffort = fullEffort;
+  ttec.d_increaseSum = options::fullSaturateSum();
+  ttec.d_isRd = false;
   TermPools* tp = d_quantEngine->getTermRegistry().getTermPools();
   std::shared_ptr<TermTupleEnumeratorInterface> ttei =
-      mkTermTupleEnumeratorPool(q, context, tp, p);
+      mkTermTupleEnumeratorPool(q, &ttec, tp, p);
   // TODO
 }
 
