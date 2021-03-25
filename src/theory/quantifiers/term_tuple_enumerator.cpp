@@ -529,12 +529,14 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
     // prepare terms from pool
     d_poolList[variableIx].clear();
     d_tp->getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
+    Trace("pool-inst") << "Instantiation Terms for child " << variableIx << ": "
+                        << d_poolList[variableIx] << std::endl;
     return d_poolList[variableIx].size();
   }
   virtual Node getTerm(size_t variableIx, size_t term_index) override
   {
     Assert(term_index < d_poolList[variableIx].size());
-    return d_poolList[variableIx][variableIx];
+    return d_poolList[variableIx][term_index];
   }
 };
 TermTupleEnumeratorInterface* mkTermTupleEnumeratorPool(

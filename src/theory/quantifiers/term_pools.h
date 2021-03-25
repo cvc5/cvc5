@@ -77,8 +77,6 @@ class TermPools : public QuantifiersUtil
 
  private:
   void processInternal(Node q, const std::vector<Node>& ts, bool isInst);
-  /** add to pool */
-  void addToPool(Node n, Node p);
   /** reference to the quantifiers state */
   QuantifiersState& d_qs;
   /** Maps pools to a domain */

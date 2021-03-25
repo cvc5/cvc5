@@ -140,7 +140,8 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
   std::vector<Node> terms;
   std::vector<bool> failMask;
   // we instantiate exhaustively
-  for (enumerator->init(); enumerator->hasNext();)
+  enumerator->init();
+  while (enumerator->hasNext())
   {
     if (d_qstate.isInConflict())
     {
@@ -150,15 +151,17 @@ bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
     enumerator->next(terms);
     // try instantiation
     failMask.clear();
-    if (!ie->addInstantiationExpFail(
+    if (ie->addInstantiationExpFail(
             q, terms, failMask, InferenceId::QUANTIFIERS_INST_POOL))
     {
+      Trace("pool-inst") << "Success with " << terms << std::endl;
       addedLemmas++;
     }
     else
     {
+      Trace("pool-inst") << "Fail with " << terms << std::endl;
       // notify the enumerator of the failure
-      enumerator->failureReason(failMask);
+      ///enumerator->failureReason(failMask);
     }
   }
   return false;
