@@ -98,12 +98,13 @@ struct QuantifierInstPatternTypeRule {
   }
 };/* struct QuantifierInstPatternTypeRule */
 
-struct QuantifierAnnotationTypeRule {
+struct QuantifierAnnotationTypeRule
+{
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
   {
     return nodeManager->instPatternType();
   }
-};/* struct QuantifierAnnotationTypeRule */
+}; /* struct QuantifierAnnotationTypeRule */
 
 struct QuantifierInstPatternListTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
@@ -111,9 +112,15 @@ struct QuantifierInstPatternListTypeRule {
     Assert(n.getKind() == kind::INST_PATTERN_LIST);
     if( check ){
       for( int i=0; i<(int)n.getNumChildren(); i++ ){
-        Kind k =  n[i].getKind();
-        if( k!=kind::INST_PATTERN && k!=kind::INST_NO_PATTERN && k!=kind::INST_ATTRIBUTE && k != kind::INST_POOL && k != kind::INST_ADD_TO_POOL && k != kind::SKOLEM_ADD_TO_POOL ){
-          throw TypeCheckingExceptionPrivate(n, "argument of inst pattern list is not a legal quantifiers annotation");
+        Kind k = n[i].getKind();
+        if (k != kind::INST_PATTERN && k != kind::INST_NO_PATTERN
+            && k != kind::INST_ATTRIBUTE && k != kind::INST_POOL
+            && k != kind::INST_ADD_TO_POOL && k != kind::SKOLEM_ADD_TO_POOL)
+        {
+          throw TypeCheckingExceptionPrivate(
+              n,
+              "argument of inst pattern list is not a legal quantifiers "
+              "annotation");
         }
       }
     }
