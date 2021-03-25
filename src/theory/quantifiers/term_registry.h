@@ -75,10 +75,9 @@ class TermRegistry
   /**
    * Process instantiation
    */
-  void processInstantiation(Node q, const std::vector<Node>& terms, Node ibody);
+  void processInstantiation(Node q, const std::vector<Node>& terms);
   void processSkolemization(Node q,
-                            const std::vector<Node>& skolems,
-                            Node kbody);
+                            const std::vector<Node>& skolems);
 
   /** Whether we use the full model check builder and corresponding model */
   bool useFmcModel() const;

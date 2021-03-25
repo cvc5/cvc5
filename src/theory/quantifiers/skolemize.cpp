@@ -92,6 +92,8 @@ TrustNode Skolemize::process(Node q)
     lem = nb;
   }
   d_skolemized[q] = lem;
+  // triggered when skolemizing
+  d_treg.processSkolemization(q, d_skolem_constants[q]);
   return TrustNode::mkTrustLemma(lem, pg);
 }
 

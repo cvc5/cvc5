@@ -356,14 +356,31 @@ bool Instantiate::addInstantiation(Node q,
       }
     }
   }
-  if (options::instMaxLevel() != -1 && doVts)
+  if (options::instMaxLevel() != -1)
   {
-    // virtual term substitution/instantiation level features are
-    // incompatible
-    std::stringstream ss;
-    ss << "Cannot combine instantiation strategies that require virtual term "
-          "substitution with those that restrict instantiation levels";
-    throw LogicException(ss.str());
+    if (doVts)
+    {
+      // virtual term substitution/instantiation level features are
+      // incompatible
+      std::stringstream ss;
+      ss << "Cannot combine instantiation strategies that require virtual term "
+            "substitution with those that restrict instantiation levels";
+      throw LogicException(ss.str());
+    }
+    else
+    {
+      uint64_t maxInstLevel = 0;
+      for (const Node& tc : terms)
+      {
+        if (tc.hasAttribute(InstLevelAttribute())
+            && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
+        {
+          maxInstLevel = tc.getAttribute(InstLevelAttribute());
+        }
+      }
+      QuantAttributes::setInstantiationLevelAttr(
+          orig_body, q[1], maxInstLevel + 1);
+    }
   }
   d_treg.processInstantiation(q, terms, orig_body);
   Trace("inst-add-debug") << " --> Success." << std::endl;

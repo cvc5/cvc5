@@ -125,29 +125,14 @@ void TermRegistry::declarePool(Node p, const std::vector<Node>& initValue)
 }
 
 void TermRegistry::processInstantiation(Node q,
-                                        const std::vector<Node>& terms,
-                                        Node ibody)
+                                        const std::vector<Node>& terms)
 {
-  if (options::instMaxLevel() != -1)
-  {
-    uint64_t maxInstLevel = 0;
-    for (const Node& tc : terms)
-    {
-      if (tc.hasAttribute(InstLevelAttribute())
-          && tc.getAttribute(InstLevelAttribute()) > maxInstLevel)
-      {
-        maxInstLevel = tc.getAttribute(InstLevelAttribute());
-      }
-    }
-    QuantAttributes::setInstantiationLevelAttr(ibody, q[1], maxInstLevel + 1);
-  }
-  d_termPools->processInstantiation(q, terms, ibody);
+  d_termPools->processInstantiation(q, terms);
 }
 void TermRegistry::processSkolemization(Node q,
-                                        const std::vector<Node>& skolems,
-                                        Node kbody)
+                                        const std::vector<Node>& skolems)
 {
-  d_termPools->processSkolemization(q, terms, ibody);
+  d_termPools->processSkolemization(q, skolems);
 }
 
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }

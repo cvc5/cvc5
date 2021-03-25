@@ -16,6 +16,8 @@
 
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
+#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/first_order_model.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -31,7 +33,9 @@ InstStrategyPool::InstStrategyPool(QuantifiersEngine* qe,
     : QuantifiersModule(qs, qim, qr, qe)
 {
 }
+
 void InstStrategyPool::presolve() {}
+
 bool InstStrategyPool::needsCheck(Theory::Effort e)
 {
   // TODO
@@ -59,12 +63,20 @@ void InstStrategyPool::registerQuantifier(Node q)
 
 void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
 {
-  bool doCheck = !d_userPools.empty;
+  bool doCheck = !d_userPools.empty();
   if (!doCheck)
   {
     return;
   }
+  double clSet = 0;
+  if (Trace.isOn("pool-engine"))
+  {
+    clSet = double(clock()) / double(CLOCKS_PER_SEC);
+    Trace("pool-engine") << "---Pool instantiation, effort = " << e << "---"
+                       << std::endl;
+  }
   FirstOrderModel* fm = d_quantEngine->getModel();
+  uint64_t addedLemmas = 0;
   size_t nquant = fm->getNumAssertedQuantifiers();
   std::map<Node, std::vector<Node> >::iterator uit;
   for (size_t i = 0; i < nquant; i++)

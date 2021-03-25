@@ -90,10 +90,17 @@ void TermPools::processInternal(Node q,
     // does not impact
     return;
   }
-  std::vector<Node>& cmds = isInst =
+  std::vector<Node> vars(q[0].begin(), q[1].end());
+  Assert (vars.size()==ts.size());
+  std::vector<Node>& cmds = isInst ?
       it->second.d_instAddToPool : it->second.d_skolemAddToPool;
   for (const Node& c : cmds)
   {
+    Node t = c[0];
+    // substitute the term
+    Node st = t.substitute(vars.begin(), vars.end(), ts.begin(), ts.end());
+    // add to pool
+    addToPool(st, c[1]);
   }
 }
 

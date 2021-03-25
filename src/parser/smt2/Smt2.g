@@ -1069,7 +1069,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       { terms.push_back( e ); }
     )+ RPAREN_TOK
     { Debug("parser") << "declare pool: '" << name << "'" << std::endl;
-      api::Term setType = SOLVER->mkSetSort( t );
+      api::Sort setType = SOLVER->mkSetSort( t );
       api::Term func =
           PARSER_STATE->bindVar(name, setType, false, true);
       cmd->reset(new DeclarePoolCommand(name, func, t, terms));
