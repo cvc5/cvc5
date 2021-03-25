@@ -53,7 +53,7 @@ void TermPools::registerQuantifier(Node q)
   }
 }
 
-std::string TermPools::identify() { return "TermPools"; }
+std::string TermPools::identify() const { return "TermPools"; }
 
 void TermPools::registerPool(Node p, const std::vector<Node>& initValue)
 {

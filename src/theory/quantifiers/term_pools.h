@@ -18,6 +18,7 @@
 #define CVC4__THEORY__QUANTIFIERS__TERM_POOLS_H
 
 #include <unordered_set>
+#include <vector>
 
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
@@ -47,7 +48,7 @@ class TermPoolQuantInfo
 
 /** Term pools
  */
-class TermPools : public QuantUtil
+class TermPools : public QuantifiersUtil
 {
  public:
   TermPools() {}
@@ -55,7 +56,7 @@ class TermPools : public QuantUtil
   /* Called for new quantifiers */
   void registerQuantifier(Node q) override;
   /** Identify this module (for debugging, dynamic configuration, etc..) */
-  std::string identify() override;
+  std::string identify() const override;
   /** register pool */
   void registerPool(Node p, const std::vector<Node>& initValue);
 

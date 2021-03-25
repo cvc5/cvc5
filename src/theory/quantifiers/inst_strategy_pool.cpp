@@ -59,23 +59,31 @@ void InstStrategyPool::registerQuantifier(Node q)
 
 void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
 {
-  bool doCheck = false;
-  // TODO
+  bool doCheck = !d_userPools.empty;
   if (!doCheck)
   {
     return;
   }
   FirstOrderModel* fm = d_quantEngine->getModel();
   size_t nquant = fm->getNumAssertedQuantifiers();
+  std::map<Node, std::vector<Node> >::iterator uit;
   for (size_t i = 0; i < nquant; i++)
   {
     Node q = fm->getAssertedQuantifier(i, true);
-    bool doProcess = d_qreg.hasOwnership(q, this) && fm->isQuantifierActive(q);
-    if (!doProcess)
+    if (!d_qreg.hasOwnership(q, this) || !fm->isQuantifierActive(q))
     {
       continue;
     }
-    // TODO
+    uit = d_userPools.find(q);
+    if (uit==d_userPools.end())
+    {
+      continue;
+    }
+    // process with each user pool
+    for (const Node& p : uit->second)
+    {
+      process(q,p);
+    }
   }
   if (Trace.isOn("pool-engine"))
   {
@@ -84,6 +92,11 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
     Trace("pool-engine") << "Finished pool instantiation, time = "
                          << (clSet2 - clSet) << std::endl;
   }
+}
+
+void InstStrategyPool::process(Node q, Node p)
+{
+  // TODO
 }
 
 }  // namespace quantifiers
