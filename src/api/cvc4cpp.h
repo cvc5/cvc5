@@ -42,6 +42,7 @@ class CheckSatCommand;
 class CheckSatAssumingCommand;
 class DatatypeDeclarationCommand;
 class DeclareFunctionCommand;
+class DeclarePoolCommand;
 class DeclareHeapCommand;
 class DeclareSortCommand;
 class DeclareSygusVarCommand;
@@ -241,6 +242,7 @@ class CVC4_EXPORT Sort
 {
   friend class CVC4::DatatypeDeclarationCommand;
   friend class CVC4::DeclareFunctionCommand;
+  friend class CVC4::DeclarePoolCommand;
   friend class CVC4::DeclareHeapCommand;
   friend class CVC4::DeclareSortCommand;
   friend class CVC4::DeclareSygusVarCommand;
@@ -3341,6 +3343,12 @@ class CVC4_EXPORT Solver
    */
   Term getSeparationNilTerm() const;
 
+  /**
+   * Declare pool
+   * @param pool The pool
+   * @param initValue The initial value of the pool
+   */
+  void declarePool(const Term& pool, const std::vector<Term>& initValue) const;
   /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB: ( pop <numeral> )

@@ -420,6 +420,7 @@ class CVC4_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
                      api::Term initValue);
   api::Term getFunction() const;
   api::Sort getSort() const;
+  api::Term getInitialValue() const;
 
   void invoke(api::Solver* solver, SymbolManager* sm) override;
   Command* clone() const override;
@@ -429,7 +430,7 @@ class CVC4_EXPORT DeclarePoolCommand : public DeclarationDefinitionCommand
       int toDepth = -1,
       size_t dag = 1,
       OutputLanguage language = language::output::LANG_AUTO) const override;
-}; /* class DeclareFunctionCommand */
+}; /* class DeclarePoolCommand */
 
 class CVC4_EXPORT DeclareSortCommand : public DeclarationDefinitionCommand
 {

@@ -6416,6 +6416,19 @@ Term Solver::getSeparationNilTerm() const
   CVC4_API_TRY_CATCH_END;
 }
 
+void Solver::declarePool(const Term& pool, const std::vector<Term>& initValue) const
+{
+  NodeManagerScope scope(getNodeManager());
+  CVC4_API_TRY_CATCH_BEGIN;
+  CVC4_API_SOLVER_CHECK_TERM(pool);
+  CVC4_API_SOLVER_CHECK_TERMS(initValue);
+  //////// all checks before this line
+  std::vector<Node> initv = Term::termVectorToNodes(initValue);
+  d_smtEngine->declarePool(pool.getNode(), initv);
+  ////////
+  CVC4_API_TRY_CATCH_END;
+}
+
 /**
  *  ( pop <numeral> )
  */

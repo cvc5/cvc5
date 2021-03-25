@@ -1137,17 +1137,19 @@ void DeclareFunctionCommand::toStream(std::ostream& out,
 
 DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
                                        api::Term func,
-                                       api::Sort sort api::Term initValue)
-    : DeclarationDefinitionCommand(id), d_func(func), d_sort(sort)
+                                       api::Sort sort,
+                                       api::Term initValue)
+    : DeclarationDefinitionCommand(id), d_func(func), d_sort(sort), d_initValue(initValue)
 {
 }
 
 api::Term DeclarePoolCommand::getFunction() const { return d_func; }
 api::Sort DeclarePoolCommand::getSort() const { return d_sort; }
+api::Term DeclarePoolCommand::getInitialValue() const { return d_initValue; }
 
 void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
-  solver->declarePool(d_func, , d_initValue);
+  solver->declarePool(d_func, d_initValue);
   d_commandStatus = CommandSuccess::instance();
 }
 
