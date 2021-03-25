@@ -93,7 +93,8 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
           // store the last decision value here, which will be used at the
           // starting value on the next call to this method
           d_lastDecisionValue = next.second;
-          // (1) atom with unassigned value, return it as the decision, possibly inverted
+          // (1) atom with unassigned value, return it as the decision, possibly
+          // inverted
           return next.second == SAT_VALUE_FALSE ? ~nsl : nsl;
         }
         else
@@ -160,7 +161,8 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       }
       desiredVal = currDesiredVal;
     }
-    else if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE) || i == curr.getNumChildren())
+    else if ((ck == AND) == (lastChildVal == SAT_VALUE_FALSE)
+             || i == curr.getNumChildren())
     {
       // forcing or exhausted case
       value = lastChildVal;
@@ -186,10 +188,11 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         desiredVal = invertValue(currDesiredVal);
       }
     }
-    else if (i==1)
+    else if (i == 1)
     {
       // forcing case
-      value = lastChildVal==SAT_VALUE_FALSE ? SAT_VALUE_TRUE : SAT_VALUE_UNKNOWN;
+      value =
+          lastChildVal == SAT_VALUE_FALSE ? SAT_VALUE_TRUE : SAT_VALUE_UNKNOWN;
       desiredVal = currDesiredVal;
     }
     else
