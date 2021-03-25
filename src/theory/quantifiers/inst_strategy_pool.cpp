@@ -16,11 +16,11 @@
 
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
-#include "theory/quantifiers/quantifiers_inference_manager.h"
-#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
