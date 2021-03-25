@@ -178,7 +178,7 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "Base quantified formula is : " << d_embed_quant
                  << std::endl;
   // construct base instantiation
-  d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
+  d_base_inst = Rewriter::rewrite(d_qim.getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
   if (!d_embedSideCondition.isNull())
   {

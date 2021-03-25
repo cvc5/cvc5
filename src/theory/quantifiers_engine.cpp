@@ -112,6 +112,10 @@ quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 {
   return d_qreg;
 }
+quantifiers::TermRegistry& QuantifiersEngine::getTermRegistry()
+{
+  return d_treg;
+}
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
@@ -124,26 +128,16 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 
 /// !!!!!!!!!!!!!! temporary (project #15)
 
-quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
-{
-  return d_treg.getTermDatabase();
-}
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_treg.getTermDatabaseSygus();
 }
-quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
+
+quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 {
-  return d_treg.getTermEnumeration();
+  return d_treg.getTermDatabase();
 }
-quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
-{
-  return d_qim.getInstantiate();
-}
-quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
-{
-  return d_qim.getSkolemize();
-}
+
 quantifiers::inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();

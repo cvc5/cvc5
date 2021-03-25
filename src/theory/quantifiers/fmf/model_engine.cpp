@@ -279,7 +279,7 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
       if( !riter.isIncomplete() ){
         int triedLemmas = 0;
         int addedLemmas = 0;
-        Instantiate* inst = d_quantEngine->getInstantiate();
+        Instantiate* inst = d_qim.getInstantiate();
         while( !riter.isFinished() && ( addedLemmas==0 || !options::fmfOneInstPerRound() ) ){
           //instantiation was not shown to be true, construct the match
           InstMatch m( f );
