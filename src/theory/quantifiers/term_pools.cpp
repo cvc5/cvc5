@@ -78,7 +78,10 @@ void TermPools::registerPool(Node p, const std::vector<Node>& initValue)
 {
   TermPoolDomain& d = d_pools[p];
   d.initialize();
-  d.d_terms.insert(initValue.begin(), initValue.end());
+  for (const Node& i : initValue)
+  {
+    d.add(i);
+  }
 }
 
 void TermPools::addToPool(Node n, Node p)

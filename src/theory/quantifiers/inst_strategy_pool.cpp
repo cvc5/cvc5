@@ -79,25 +79,36 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
                          << std::endl;
   }
   FirstOrderModel* fm = d_quantEngine->getModel();
+  bool inConflict = false;
   uint64_t addedLemmas = 0;
   size_t nquant = fm->getNumAssertedQuantifiers();
   std::map<Node, std::vector<Node> >::iterator uit;
   for (size_t i = 0; i < nquant; i++)
   {
     Node q = fm->getAssertedQuantifier(i, true);
-    if (!d_qreg.hasOwnership(q, this) || !fm->isQuantifierActive(q))
-    {
-      continue;
-    }
     uit = d_userPools.find(q);
     if (uit == d_userPools.end())
     {
+      // no user pools for this
+      continue;
+    }
+    if (!d_qreg.hasOwnership(q, this) || !fm->isQuantifierActive(q))
+    {
+      // quantified formula is not owned by this or is inactive
       continue;
     }
     // process with each user pool
     for (const Node& p : uit->second)
     {
-      process(q, p, addedLemmas);
+      inConflict = process(q, p, addedLemmas);
+      if (inConflict)
+      {
+        break;
+      }
+    }
+    if (inConflict)
+    {
+      break;
     }
   }
   if (Trace.isOn("pool-engine"))
@@ -114,7 +125,7 @@ std::string InstStrategyPool::identify() const
   return std::string("InstStrategyPool");
 }
 
-void InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
+bool InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
   TermTupleEnumeratorContext ttec;
   ttec.d_quantEngine = d_quantEngine;
@@ -128,27 +139,29 @@ void InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
   Instantiate* ie = d_qim.getInstantiate();
   std::vector<Node> terms;
   std::vector<bool> failMask;
+  // we instantiate exhaustively
   for (enumerator->init(); enumerator->hasNext();)
   {
     if (d_qstate.isInConflict())
     {
       // could be conflicting for an internal reason
-      return;
+      return true;
     }
     enumerator->next(terms);
     // try instantiation
     failMask.clear();
     if (!ie->addInstantiationExpFail(
-            quantifier, terms, failMask, InferenceId::QUANTIFIERS_INST_POOL))
+            q, terms, failMask, InferenceId::QUANTIFIERS_INST_POOL))
+    {
+      addedLemmas++;
+    }
+    else
     {
       // notify the enumerator of the failure
       enumerator->failureReason(failMask);
     }
-    else
-    {
-      addedLemmas++;
-    }
   }
+  return false;
 }
 
 }  // namespace quantifiers

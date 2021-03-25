@@ -54,7 +54,7 @@ class InstStrategyPool : public QuantifiersModule
 
  private:
   /** Process quantified formula with user pool */
-  void process(Node q, Node p, uint64_t& addedLemmas);
+  bool process(Node q, Node p, uint64_t& addedLemmas);
   /** Map from quantified formulas to user pools */
   std::map<Node, std::vector<Node> > d_userPools;
 };
