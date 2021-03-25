@@ -73,7 +73,7 @@ SatLiteral JustificationStrategy::getNext(bool& stopSearch)
     if (d_stackSizeValid.get() == 0)
     {
       // assertion should be true?
-      Assert (lastChildVal==SAT_VALUE_TRUE);
+      Assert(lastChildVal == SAT_VALUE_TRUE);
       // we did not find a next node for current, refresh current assertion
       refreshCurrentAssertion();
     }
