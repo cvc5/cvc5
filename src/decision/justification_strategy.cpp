@@ -131,9 +131,9 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // get the next child index to process
   size_t i = ji->getNextChildIndex();
   // if i=0, we shouldn't have a last child value
-  Assert (i==0 || lastChildVal!=SAT_VALUE_UNKNOWN);
+  Assert(i == 0 || lastChildVal != SAT_VALUE_UNKNOWN);
   // if i>0, we just computed the value of the (i-1)^th child
-  Assert (i>0 || lastChildVal==SAT_VALUE_UNKNOWN);  
+  Assert(i > 0 || lastChildVal == SAT_VALUE_UNKNOWN);
   // In the following, we determine if we have a value and set value if so.
   // If not, we set desiredValue for the value of the next value to justify.
   // One of these two values should always be set below.
@@ -143,7 +143,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   SatValue currDesiredVal = currPol ? jc.second : invertValue(jc.second);
   if (ck == AND || ck == OR)
   {
-    if (i==0)
+    if (i == 0)
     {
       // Maybe expensive, so only do this for i==0?
       if ((ck == AND) == (currDesiredVal == SAT_VALUE_FALSE))
@@ -151,7 +151,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
         // lookahead to determine if already satisfied
         for (const Node& c : curr)
         {
-          if (lookupValue(c)==currDesiredVal)
+          if (lookupValue(c) == currDesiredVal)
           {
             value = currDesiredVal;
             break;
@@ -181,7 +181,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     if (i == 0)
     {
       // lookahead to second child to determine if already satisfied
-      if (lookupValue(curr[1])==SAT_VALUE_TRUE)
+      if (lookupValue(curr[1]) == SAT_VALUE_TRUE)
       {
         value = SAT_VALUE_TRUE;
       }
@@ -205,7 +205,6 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
     {
       desiredVal = currDesiredVal;
     }
-    
   }
   else if (ck == ITE)
   {
@@ -214,14 +213,18 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
       // lookahead on branches
       SatValue val1 = lookupValue(curr[1]);
       SatValue val2 = lookupValue(curr[2]);
-      if (val1==val2)
+      if (val1 == val2)
       {
         // branches have no difference, value is that of branches, which may
         // be unknown
         value = val1;
       }
-      // if first branch is already wrong or second branch is already right, try to make condition false
-      desiredVal = (val1==invertValue(currDesiredVal) || val2==currDesiredVal) ? SAT_VALUE_FALSE : SAT_VALUE_TRUE;
+      // if first branch is already wrong or second branch is already right, try
+      // to make condition false
+      desiredVal =
+          (val1 == invertValue(currDesiredVal) || val2 == currDesiredVal)
+              ? SAT_VALUE_FALSE
+              : SAT_VALUE_TRUE;
     }
     else if (i == 1)
     {
@@ -242,23 +245,27 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   }
   else if (ck == XOR || ck == EQUAL)
   {
-    Assert (curr[0].getType().isBoolean());
+    Assert(curr[0].getType().isBoolean());
     if (i == 0)
     {
       // check if the rhs requires current to have opposite value
       SatValue val1 = lookupValue(curr[1]);
-      if (val1==SAT_VALUE_UNKNOWN)
+      if (val1 == SAT_VALUE_UNKNOWN)
       {
         desiredVal = SAT_VALUE_TRUE;
       }
       else
       {
-        desiredVal = ((ck==EQUAL) == (currDesiredVal == SAT_VALUE_TRUE)) ? val1 : invertValue(val1);
+        desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
+                         ? val1
+                         : invertValue(val1);
       }
     }
-    else if (i==1)
+    else if (i == 1)
     {
-      desiredVal = ((ck == EQUAL)==(currDesiredVal == SAT_VALUE_TRUE)) ? lastChildVal : invertValue(lastChildVal);
+      desiredVal = ((ck == EQUAL) == (currDesiredVal == SAT_VALUE_TRUE))
+                       ? lastChildVal
+                       : invertValue(lastChildVal);
     }
     else
     {
@@ -290,7 +297,7 @@ JustifyNode JustificationStrategy::getNextJustifyNode(
   // recognize when its value could be inferred above.
   Assert(i < curr.getNumChildren());
   // should set a desired value
-  Assert (desiredVal!=SAT_VALUE_UNKNOWN);
+  Assert(desiredVal != SAT_VALUE_UNKNOWN);
   // return the justify node
   return JustifyNode(curr[i], desiredVal);
 }
