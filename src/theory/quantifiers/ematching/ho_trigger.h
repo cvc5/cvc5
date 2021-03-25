@@ -93,8 +93,7 @@ class HigherOrderTrigger : public Trigger
   friend class Trigger;
 
  private:
-  HigherOrderTrigger(QuantifiersEngine* qe,
-                     QuantifiersState& qs,
+  HigherOrderTrigger(QuantifiersState& qs,
                      QuantifiersInferenceManager& qim,
                      QuantifiersRegistry& qr,
                      TermRegistry& tr,
@@ -225,7 +224,7 @@ class HigherOrderTrigger : public Trigger
   /** higher-order pattern unification algorithm
    *
   * Sends an instantiation that is equivalent to m via
-  * d_quantEngine->addInstantiation(...),
+  * Instantiate::addInstantiation(...),
   * based on Huet's algorithm.
   *
   * This is a helper function of sendInstantiation( m ) above.
@@ -240,7 +239,7 @@ class HigherOrderTrigger : public Trigger
   bool sendInstantiation(std::vector<Node>& m, size_t var_index);
   /** higher-order pattern unification algorithm
    * Sends an instantiation that is equivalent to m via
-   * d_quantEngine->addInstantiation(...).
+   * Instantiate::addInstantiation(...).
    * This is a helper function of sendInstantiation( m, var_index ) above.
    *
    * var_index is the index of the variable in m that we are currently

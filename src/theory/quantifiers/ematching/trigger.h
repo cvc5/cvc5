@@ -144,62 +144,10 @@ class Trigger {
   int getActiveScore();
   /** print debug information for the trigger */
   void debugPrint(const char* c) const;
-  /** mkTrigger method
-   *
-   * This makes an instance of a trigger object.
-   *  qe     : pointer to the quantifier engine;
-   *  q      : the quantified formula we are making a trigger for
-   *  nodes  : the nodes comprising the (multi-)trigger
-   *  keepAll: don't remove unneeded patterns;
-   *  trOption : policy for dealing with triggers that already exist
-   *             (see below)
-   *  useNVars : number of variables that should be bound by the trigger
-   *             typically, the number of quantified variables in q.
-   */
-  enum{
-    TR_MAKE_NEW,    //make new trigger even if it already may exist
-    TR_GET_OLD,     //return a previous trigger if it had already been created
-    TR_RETURN_NULL  //return null if a duplicate is found
-  };
-  static Trigger* mkTrigger(QuantifiersEngine* qe,
-                            QuantifiersState& qs,
-                            QuantifiersInferenceManager& qim,
-                            QuantifiersRegistry& qr,
-                            TermRegistry& tr,
-                            Node q,
-                            std::vector<Node>& nodes,
-                            bool keepAll = true,
-                            int trOption = TR_MAKE_NEW,
-                            size_t useNVars = 0);
-  /** single trigger version that calls the above function */
-  static Trigger* mkTrigger(QuantifiersEngine* qe,
-                            QuantifiersState& qs,
-                            QuantifiersInferenceManager& qim,
-                            QuantifiersRegistry& qr,
-                            TermRegistry& tr,
-                            Node q,
-                            Node n,
-                            bool keepAll = true,
-                            int trOption = TR_MAKE_NEW,
-                            size_t useNVars = 0);
-  /** make trigger terms
-   *
-   * This takes a set of eligible trigger terms and stores a subset of them in
-   * trNodes, such that :
-   *   (1) the terms in trNodes contain at least n_vars of the quantified
-   *       variables in quantified formula q, and
-   *   (2) the set trNodes is minimal, i.e. removing one term from trNodes
-   *       always violates (1).
-   */
-  static bool mkTriggerTerms(Node q,
-                             std::vector<Node>& nodes,
-                             size_t nvars,
-                             std::vector<Node>& trNodes);
 
  protected:
   /** trigger constructor, intentionally protected (use Trigger::mkTrigger). */
-  Trigger(QuantifiersEngine* ie,
-          QuantifiersState& qs,
+  Trigger(QuantifiersState& qs,
           QuantifiersInferenceManager& qim,
           QuantifiersRegistry& qr,
           TermRegistry& tr,
@@ -250,8 +198,6 @@ class Trigger {
    * This example would fail to match when f(a) is not registered.
    */
   std::vector<Node> d_groundTerms;
-  // !!!!!!!!!!!!!!!!!! temporarily available (project #15)
-  QuantifiersEngine* d_quantEngine;
   /** Reference to the quantifiers state */
   QuantifiersState& d_qstate;
   /** Reference to the quantifiers inference manager */

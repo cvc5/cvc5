@@ -72,10 +72,10 @@ class InstantiationEngine : public QuantifiersModule {
  private:
   /** Return true if this module should process quantified formula q */
   bool shouldProcess(Node q);
-  /** for computing relevance of quantifiers */
-  std::unique_ptr<QuantRelevance> d_quant_rel;
   /** all triggers will be stored in this database */
   TriggerDatabase d_trdb;
+  /** for computing relevance of quantifiers */
+  std::unique_ptr<QuantRelevance> d_quant_rel;
 }; /* class InstantiationEngine */
 
 }/* CVC4::theory::quantifiers namespace */

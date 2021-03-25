@@ -16,7 +16,7 @@
 
 #include "theory/quantifiers/ematching/pattern_term_selector.h"
 #include "theory/quantifiers/quantifiers_state.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/ematching/trigger_database.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory::quantifiers::inst;
@@ -26,12 +26,12 @@ namespace theory {
 namespace quantifiers {
 
 InstStrategyUserPatterns::InstStrategyUserPatterns(
-    QuantifiersEngine* ie,
+    TriggerDatabase& td,
     QuantifiersState& qs,
     QuantifiersInferenceManager& qim,
     QuantifiersRegistry& qr,
     TermRegistry& tr)
-    : InstStrategy(ie, qs, qim, qr, tr)
+    : InstStrategy(td, qs, qim, qr, tr)
 {
 }
 InstStrategyUserPatterns::~InstStrategyUserPatterns() {}
@@ -107,15 +107,10 @@ InstStrategyStatus InstStrategyUserPatterns::process(Node q,
     std::vector<std::vector<Node> >& ugw = d_user_gen_wait[q];
     for (size_t i = 0, usize = ugw.size(); i < usize; i++)
     {
-      Trigger* t = Trigger::mkTrigger(d_quantEngine,
-                                      d_qstate,
-                                      d_qim,
-                                      d_qreg,
-                                      d_treg,
-                                      q,
+      Trigger* t = d_td.mkTrigger(q,
                                       ugw[i],
                                       true,
-                                      Trigger::TR_RETURN_NULL);
+                                      TriggerDatabase::TR_RETURN_NULL);
       if (t)
       {
         d_user_gen[q].push_back(t);
@@ -168,15 +163,10 @@ void InstStrategyUserPatterns::addUserPattern(Node q, Node pat)
     d_user_gen_wait[q].push_back(nodes);
     return;
   }
-  Trigger* t = Trigger::mkTrigger(d_quantEngine,
-                                  d_qstate,
-                                  d_qim,
-                                  d_qreg,
-                                  d_treg,
-                                  q,
+  Trigger* t = d_td.mkTrigger(q,
                                   nodes,
                                   true,
-                                  Trigger::TR_MAKE_NEW);
+                                  TriggerDatabase::TR_MAKE_NEW);
   if (t)
   {
     d_user_gen[q].push_back(t);

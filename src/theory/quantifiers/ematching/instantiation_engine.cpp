@@ -38,6 +38,7 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
                                          QuantifiersRegistry& qr,
                                          TermRegistry& tr)
     : QuantifiersModule(qs, qim, qr, qe),
+      d_trdb(qs, qim, qr, tr),
       d_instStrategies(),
       d_isup(),
       d_i_ag(),
@@ -54,13 +55,13 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe,
     if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
     {
       d_isup.reset(
-          new InstStrategyUserPatterns(d_quantEngine, qs, qim, qr, tr));
+          new InstStrategyUserPatterns(d_trdb, qs, qim, qr, tr));
       d_instStrategies.push_back(d_isup.get());
     }
 
     // auto-generated patterns
     d_i_ag.reset(new InstStrategyAutoGenTriggers(
-        d_quantEngine, qs, qim, qr, tr, d_quant_rel.get()));
+        d_trdb, qs, qim, qr, tr, d_quant_rel.get()));
     d_instStrategies.push_back(d_i_ag.get());
   }
 }
@@ -150,11 +151,11 @@ void InstantiationEngine::check(Theory::Effort e, QEffort quant_e)
   // collect all active quantified formulas belonging to this
   bool quantActive = false;
   d_quants.clear();
-  FirstOrderModel* m = d_quantEngine->getModel();
+  FirstOrderModel* m = d_treg.getModel();
   size_t nquant = m->getNumAssertedQuantifiers();
   for (size_t i = 0; i < nquant; i++)
   {
-    Node q = d_quantEngine->getModel()->getAssertedQuantifier(i, true);
+    Node q = d_treg.getModel()->getAssertedQuantifier(i, true);
     if (shouldProcess(q) && m->isQuantifierActive(q))
     {
       quantActive = true;

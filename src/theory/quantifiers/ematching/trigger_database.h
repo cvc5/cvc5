@@ -42,11 +42,49 @@ class TriggerDatabase
                   TermRegistry& tr);
   ~TriggerDatabase();
 
+  /** mkTrigger method
+   *
+   * This makes an instance of a trigger object.
+   *  qe     : pointer to the quantifier engine;
+   *  q      : the quantified formula we are making a trigger for
+   *  nodes  : the nodes comprising the (multi-)trigger
+   *  keepAll: don't remove unneeded patterns;
+   *  trOption : policy for dealing with triggers that already exist
+   *             (see below)
+   *  useNVars : number of variables that should be bound by the trigger
+   *             typically, the number of quantified variables in q.
+   */
+  enum{
+    TR_MAKE_NEW,    //make new trigger even if it already may exist
+    TR_GET_OLD,     //return a previous trigger if it had already been created
+    TR_RETURN_NULL  //return null if a duplicate is found
+  };
+  Trigger* mkTrigger(Node q,
+                            const std::vector<Node>& nodes,
+                            bool keepAll = true,
+                            int trOption = TR_MAKE_NEW,
+                            size_t useNVars = 0);
+  /** single trigger version that calls the above function */
+  Trigger* mkTrigger(Node q,
+                            Node n,
+                            bool keepAll = true,
+                            int trOption = TR_MAKE_NEW,
+                            size_t useNVars = 0);
+
+  /** make trigger terms
+   *
+   * This takes a set of eligible trigger terms and stores a subset of them in
+   * trNodes, such that :
+   *   (1) the terms in trNodes contain at least n_vars of the quantified
+   *       variables in quantified formula q, and
+   *   (2) the set trNodes is minimal, i.e. removing one term from trNodes
+   *       always violates (1).
+   */
+  static bool mkTriggerTerms(Node q,
+                             const std::vector<Node>& nodes,
+                             size_t nvars,
+                             std::vector<Node>& trNodes);
  private:
-  /** Returns a Trigger t that is indexed by nodes, or nullptr otherwise. */
-  Trigger* getTrigger(std::vector<Node>& nodes);
-  /** This adds t to the trie, indexed by nodes. */
-  void addTrigger(std::vector<Node>& nodes, Trigger* t);
   /** The trigger trie */
   TriggerTrie d_trie;
   /** Reference to the quantifiers state */
