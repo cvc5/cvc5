@@ -617,6 +617,13 @@ enum class PfRule : uint32_t
   // Conclusion: (or (ite C F1 F2) (not F1) (not F2))
   CNF_ITE_NEG3,
 
+  // ========= SAT Refutation for assumption-based unsat cores
+  // Children: (P1, ..., Pn)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: false
+  // Note: P1, ..., Pn corresponds to the unsat core determined by the SAT
+  // solver.
   SAT_REFUTATION,
 
   //================================================= Equality rules
