@@ -19,6 +19,8 @@
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
+#include "theory/quantifiers/quantifiers_inference_manager.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace CVC4::kind;
@@ -95,7 +97,7 @@ void InstStrategyPool::check(Theory::Effort e, QEffort quant_e)
     // process with each user pool
     for (const Node& p : uit->second)
     {
-      process(q, p);
+      process(q, p, addedLemmas);
     }
   }
   if (Trace.isOn("pool-engine"))
@@ -112,7 +114,7 @@ std::string InstStrategyPool::identify() const
   return std::string("InstStrategyPool");
 }
 
-void InstStrategyPool::process(Node q, Node p)
+void InstStrategyPool::process(Node q, Node p, uint64_t& addedLemmas)
 {
   TermTupleEnumeratorContext ttec;
   ttec.d_quantEngine = d_quantEngine;
@@ -121,9 +123,32 @@ void InstStrategyPool::process(Node q, Node p)
   ttec.d_increaseSum = options::fullSaturateSum();
   ttec.d_isRd = false;
   TermPools* tp = d_quantEngine->getTermRegistry().getTermPools();
-  std::shared_ptr<TermTupleEnumeratorInterface> ttei(
+  std::shared_ptr<TermTupleEnumeratorInterface> enumerator(
       mkTermTupleEnumeratorPool(q, &ttec, tp, p));
-  // TODO
+  Instantiate* ie = d_qim.getInstantiate();
+  std::vector<Node> terms;
+  std::vector<bool> failMask;
+  for (enumerator->init(); enumerator->hasNext();)
+  {
+    if (d_qstate.isInConflict())
+    {
+      // could be conflicting for an internal reason
+      return;
+    }
+    enumerator->next(terms);
+    // try instantiation
+    failMask.clear();
+    if (!ie->addInstantiationExpFail(
+            quantifier, terms, failMask, InferenceId::QUANTIFIERS_INST_POOL))
+    {
+      // notify the enumerator of the failure
+      enumerator->failureReason(failMask);
+    }
+    else
+    {
+      addedLemmas++;
+    }
+  }
 }
 
 }  // namespace quantifiers

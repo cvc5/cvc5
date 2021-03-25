@@ -257,6 +257,8 @@ enum class InferenceId
   QUANTIFIERS_INST_SYQI,
   // instantiations from enumerative instantiation
   QUANTIFIERS_INST_ENUM,
+  // instantiations from pool instantiation
+  QUANTIFIERS_INST_POOL,
   //-------------------- counterexample-guided instantiation
   // G2 => G1 where G2 is a counterexample literal for a nested quantifier whose
   // counterexample literal is G1.

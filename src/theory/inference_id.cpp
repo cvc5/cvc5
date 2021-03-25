@@ -148,6 +148,7 @@ const char* toString(InferenceId i)
     case InferenceId::QUANTIFIERS_INST_CEGQI: return "QUANTIFIERS_INST_CEGQI";
     case InferenceId::QUANTIFIERS_INST_SYQI: return "QUANTIFIERS_INST_SYQI";
     case InferenceId::QUANTIFIERS_INST_ENUM: return "QUANTIFIERS_INST_ENUM";
+    case InferenceId::QUANTIFIERS_INST_POOL: return "QUANTIFIERS_INST_POOL";
     case InferenceId::QUANTIFIERS_CEGQI_CEX_DEP:
       return "QUANTIFIERS_CEGQI_CEX_DEP";
     case InferenceId::QUANTIFIERS_CEGQI_VTS_LB_DELTA:
