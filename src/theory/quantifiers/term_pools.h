@@ -40,6 +40,7 @@ class TermPoolDomain
 class TermPoolQuantInfo
 {
  public:
+   void initialize();
   std::vector<Node> d_instAddToPool;
   std::vector<Node> d_skolemAddToPool;
 };

@@ -73,8 +73,6 @@ class InstStrategyEnum : public QuantifiersModule
   bool needsCheck(Theory::Effort e) override;
   /** Reset round. */
   void reset_round(Theory::Effort e) override;
-  /** Register quantified formula q */
-  void registerQuantifier(Node q) override;
   /** Check.
    * Adds instantiations for all currently asserted
    * quantified formulas via calls to process(...)
@@ -114,8 +112,6 @@ class InstStrategyEnum : public QuantifiersModule
    * during presolve.
    */
   int32_t d_fullSaturateLimit;
-  /** Map from quantified formulas to user pools */
-  std::map<Node, std::vector<Node> > d_userPools;
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */

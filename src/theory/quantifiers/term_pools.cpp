@@ -21,7 +21,36 @@ namespace quantifiers {
 void TermPoolDomain::initialize() { d_terms.clear(); }
 void TermPoolDomain::add(Node n) { d_terms.insert(n); }
 
-void TermPools::registerQuantifier(Node q) {if ( }
+void TermPoolQuantInfo::initialize()
+{
+d_instAddToPool.clear();
+d_skolemAddToPool.clear();
+}
+
+void TermPools::registerQuantifier(Node q) {
+  if (q.getNumChildren()<3)
+  {
+    return;
+  }
+  TermPoolQuantInfo& qi = d_qinfo[q];
+  qi.initialize();
+  for (const Node& p : q[2])
+  {
+    Kind pk = p.getKind();
+    if (pk==kind::INST_ADD_TO_POOL)
+    {
+      qi.d_instAddToPool.push_back(p);
+    }
+    else if (pk==kind::SKOLEM_ADD_TO_POOL)
+    {
+      qi.d_skolemAddToPool.push_back(p);
+    }
+  }
+  if (qi.d_instAddToPool.empty() && qi.d_skolemAddToPool.empty())
+  {
+    d_qinfo.erase(q);
+  }
+}
 
 std::string TermPools::identify() { return "TermPools"; }
 
@@ -57,7 +86,13 @@ void TermPools::processInternal(Node q,
   std::map<Node, TermPoolQuantInfo>::iterator it = d_qinfo.find(q);
   if (it == d_qinfo.end())
   {
+    // does not impact
     return;
+  }
+  std::vector<Node>& cmds = isInst = it->second.d_instAddToPool : it->second.d_skolemAddToPool;
+  for (const Node& c : cmds)
+  {
+    
   }
 }
 
