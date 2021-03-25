@@ -14,7 +14,6 @@
  ** Black box testing of the Solver class of the  C++ API.
  **/
 
-#include "base/configuration.h"
 #include "test_api.h"
 
 namespace CVC4 {
@@ -379,7 +378,7 @@ TEST_F(TestApiBlackSolver, mkBoolean)
 
 TEST_F(TestApiBlackSolver, mkRoundingMode)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
   }
@@ -422,7 +421,7 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   Term t1 = d_solver.mkBitVector(8);
   Term t2 = d_solver.mkBitVector(4);
   Term t3 = d_solver.mkInteger(2);
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkFloatingPoint(3, 5, t1));
   }
@@ -436,7 +435,7 @@ TEST_F(TestApiBlackSolver, mkFloatingPoint)
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC4ApiException);
   ASSERT_THROW(d_solver.mkFloatingPoint(3, 5, t2), CVC4ApiException);
 
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     Solver slv;
     ASSERT_THROW(slv.mkFloatingPoint(3, 5, t1), CVC4ApiException);
@@ -482,7 +481,7 @@ TEST_F(TestApiBlackSolver, mkFalse)
 
 TEST_F(TestApiBlackSolver, mkNaN)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkNaN(3, 5));
   }
@@ -494,7 +493,7 @@ TEST_F(TestApiBlackSolver, mkNaN)
 
 TEST_F(TestApiBlackSolver, mkNegZero)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkNegZero(3, 5));
   }
@@ -506,7 +505,7 @@ TEST_F(TestApiBlackSolver, mkNegZero)
 
 TEST_F(TestApiBlackSolver, mkNegInf)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkNegInf(3, 5));
   }
@@ -518,7 +517,7 @@ TEST_F(TestApiBlackSolver, mkNegInf)
 
 TEST_F(TestApiBlackSolver, mkPosInf)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkPosInf(3, 5));
   }
@@ -530,7 +529,7 @@ TEST_F(TestApiBlackSolver, mkPosInf)
 
 TEST_F(TestApiBlackSolver, mkPosZero)
 {
-  if (CVC4::Configuration::isBuiltWithSymFPU())
+  if (d_solver.supportsFloatingPoint())
   {
     ASSERT_NO_THROW(d_solver.mkPosZero(3, 5));
   }
