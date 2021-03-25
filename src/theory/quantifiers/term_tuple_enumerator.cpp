@@ -527,6 +527,7 @@ class TermTupleEnumeratorPool : public TermTupleEnumeratorBase
   {
     Assert(d_pool.getNumChildren() > variableIx);
     // prepare terms from pool
+    d_poolList[variableIx].clear();
     d_tp->getTermsForPool(d_pool[variableIx], d_poolList[variableIx]);
     return d_poolList[variableIx].size();
   }

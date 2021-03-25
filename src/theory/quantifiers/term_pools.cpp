@@ -92,6 +92,8 @@ void TermPools::addToPool(Node n, Node p)
 
 void TermPools::getTermsForPool(Node p, std::vector<Node>& terms)
 {
+  // for now, we assume it is a variable TODO: more complex pools
+  Assert (p.isVar());
   TermPoolDomain& dom = d_pools[p];
   if (dom.d_terms.empty())
   {
