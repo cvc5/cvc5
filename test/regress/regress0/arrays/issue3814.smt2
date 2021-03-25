@@ -1,4 +1,3 @@
-; REQUIRES: proof
 ; COMMAND-LINE: --produce-unsat-cores
 ; EXPECT: sat
 (set-logic QF_AX)

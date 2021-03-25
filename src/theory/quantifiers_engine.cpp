@@ -51,7 +51,6 @@ QuantifiersEngine::QuantifiersEngine(
     quantifiers::QuantifiersRegistry& qr,
     quantifiers::TermRegistry& tr,
     quantifiers::QuantifiersInferenceManager& qim,
-    quantifiers::FirstOrderModel* qm,
     ProofNodeManager* pnm)
     : d_qstate(qstate),
       d_qim(qim),
@@ -60,8 +59,8 @@ QuantifiersEngine::QuantifiersEngine(
       d_pnm(pnm),
       d_qreg(qr),
       d_treg(tr),
-      d_tr_trie(new inst::TriggerTrie),
-      d_model(qm),
+      d_tr_trie(new quantifiers::inst::TriggerTrie),
+      d_model(d_treg.getModel()),
       d_quants_prereg(qstate.getUserContext()),
       d_quants_red(qstate.getUserContext())
 {
@@ -81,7 +80,7 @@ void QuantifiersEngine::finishInit(TheoryEngine* te, DecisionManager* dm)
   d_decManager = dm;
   // Initialize the modules and the utilities here.
   d_qmodules.reset(new quantifiers::QuantifiersModules);
-  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, dm, d_modules);
+  d_qmodules->initialize(this, d_qstate, d_qim, d_qreg, d_treg, dm, d_modules);
   if (d_qmodules->d_rel_dom.get())
   {
     d_util.push_back(d_qmodules->d_rel_dom.get());
@@ -113,6 +112,10 @@ quantifiers::QuantifiersRegistry& QuantifiersEngine::getQuantifiersRegistry()
 {
   return d_qreg;
 }
+quantifiers::TermRegistry& QuantifiersEngine::getTermRegistry()
+{
+  return d_treg;
+}
 
 quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
@@ -125,27 +128,17 @@ quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
 
 /// !!!!!!!!!!!!!! temporary (project #15)
 
-quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
-{
-  return d_treg.getTermDatabase();
-}
 quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
 {
   return d_treg.getTermDatabaseSygus();
 }
-quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
+
+quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
 {
-  return d_treg.getTermEnumeration();
+  return d_treg.getTermDatabase();
 }
-quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
-{
-  return d_qim.getInstantiate();
-}
-quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
-{
-  return d_qim.getSkolemize();
-}
-inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
+
+quantifiers::inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
 {
   return d_tr_trie.get();
 }

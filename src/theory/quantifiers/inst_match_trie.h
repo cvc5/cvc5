@@ -25,14 +25,9 @@
 
 namespace CVC4 {
 namespace theory {
-
-class QuantifiersEngine;
-
 namespace quantifiers {
-class QuantifiersState;
-}
 
-namespace inst {
+class QuantifiersState;
 
 /** trie for InstMatch objects
  *
@@ -62,7 +57,7 @@ class InstMatchTrie
    * If modEq is true, we check for duplication modulo equality the current
    * equalities in the equality engine of qs.
    */
-  bool existsInstMatch(quantifiers::QuantifiersState& qs,
+  bool existsInstMatch(QuantifiersState& qs,
                        Node q,
                        const std::vector<Node>& m,
                        bool modEq = false,
@@ -76,7 +71,7 @@ class InstMatchTrie
    * If modEq is true, we check for duplication modulo equality the current
    * equalities in the equality engine of qs.
    */
-  bool addInstMatch(quantifiers::QuantifiersState& qs,
+  bool addInstMatch(QuantifiersState& qs,
                     Node f,
                     const std::vector<Node>& m,
                     bool modEq = false,
@@ -135,7 +130,7 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool existsInstMatch(quantifiers::QuantifiersState& qs,
+  bool existsInstMatch(QuantifiersState& qs,
                        Node q,
                        const std::vector<Node>& m,
                        bool modEq = false,
@@ -149,7 +144,7 @@ class CDInstMatchTrie
    * equalities in the equality engine of qs.
    * It additionally takes a context c, for which the entry is valid in.
    */
-  bool addInstMatch(quantifiers::QuantifiersState& qs,
+  bool addInstMatch(QuantifiersState& qs,
                     Node q,
                     const std::vector<Node>& m,
                     bool modEq = false,
@@ -205,7 +200,7 @@ class InstMatchTrieOrdered
    * class. If modEq is true, we consider duplicates modulo the current
    * equalities stored in the equality engine of qs.
    */
-  bool addInstMatch(quantifiers::QuantifiersState& qs,
+  bool addInstMatch(QuantifiersState& qs,
                     Node q,
                     const std::vector<Node>& m,
                     bool modEq = false);
@@ -215,7 +210,7 @@ class InstMatchTrieOrdered
    * class. If modEq is true, we consider duplicates modulo the current
    * equalities stored in the equality engine of qs.
    */
-  bool existsInstMatch(quantifiers::QuantifiersState& qs,
+  bool existsInstMatch(QuantifiersState& qs,
                        Node q,
                        const std::vector<Node>& m,
                        bool modEq = false);
@@ -227,8 +222,8 @@ class InstMatchTrieOrdered
   InstMatchTrie d_imt;
 };
 
-} /* CVC4::theory::inst namespace */
+}  // namespace quantifiers
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H */

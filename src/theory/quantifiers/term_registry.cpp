@@ -16,6 +16,8 @@
 
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/first_order_model_fmc.h"
 #include "theory/quantifiers/quantifiers_state.h"
 
 namespace CVC4 {
@@ -24,6 +26,7 @@ namespace quantifiers {
 
 TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
     : d_presolve(qs.getUserContext(), true),
+      d_useFmcModel(false),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
       d_termDb(new TermDb(qs, qr)),
@@ -33,6 +36,26 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
   {
     // must be constructed here since it is required for datatypes finistInit
     d_sygusTdb.reset(new TermDbSygus(qs));
+  }
+  Trace("quant-engine-debug") << "Initialize quantifiers engine." << std::endl;
+  Trace("quant-engine-debug")
+      << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
+  // Finite model finding requires specialized ways of building the model.
+  // We require constructing the model here, since it is required for
+  // initializing the CombinationEngine and the rest of quantifiers engine.
+  if ((options::finiteModelFind() || options::fmfBound())
+      && (options::mbqiMode() == options::MbqiMode::FMC
+          || options::mbqiMode() == options::MbqiMode::TRUST
+          || options::fmfBound()))
+  {
+    d_useFmcModel = true;
+    d_qmodel.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
+        qs, qr, *this, "FirstOrderModelFmc"));
+  }
+  else
+  {
+    d_qmodel.reset(
+        new quantifiers::FirstOrderModel(qs, qr, *this, "FirstOrderModel"));
   }
 }
 
@@ -84,6 +107,15 @@ void TermRegistry::addTerm(Node n, bool withinQuant)
   }
 }
 
+Node TermRegistry::getTermForType(TypeNode tn)
+{
+  if (tn.isClosedEnumerable())
+  {
+    return d_termEnum->getEnumerateTerm(tn, 0);
+  }
+  return d_termDb->getOrMakeTypeGroundTerm(tn);
+}
+
 TermDb* TermRegistry::getTermDatabase() const { return d_termDb.get(); }
 
 TermDbSygus* TermRegistry::getTermDatabaseSygus() const
@@ -95,6 +127,11 @@ TermEnumeration* TermRegistry::getTermEnumeration() const
 {
   return d_termEnum.get();
 }
+
+FirstOrderModel* TermRegistry::getModel() const { return d_qmodel.get(); }
+
+bool TermRegistry::useFmcModel() const { return d_useFmcModel; }
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

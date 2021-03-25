@@ -1,4 +1,3 @@
-; REQUIRES: proof
 ; COMMAND-LINE: --dump-instantiations --produce-unsat-cores --print-inst-full
 ; EXPECT: unsat
 ; EXPECT: (instantiations (forall ((x Int)) (or (P x) (Q x)))

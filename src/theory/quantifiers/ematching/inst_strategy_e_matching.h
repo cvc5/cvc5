@@ -89,6 +89,7 @@ class InstStrategyAutoGenTriggers : public InstStrategy
                               QuantifiersState& qs,
                               QuantifiersInferenceManager& qim,
                               QuantifiersRegistry& qr,
+                              TermRegistry& tr,
                               QuantRelevance* qrlv);
   ~InstStrategyAutoGenTriggers() {}
 
