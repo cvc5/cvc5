@@ -1,5 +1,5 @@
 #####################
-## FindANTLR.cmake
+## FindANTLR3.cmake
 ## Top contributors (to current version):
 ##   Gereon Kremer, Mathias Preiner, Aina Niemetz
 ## This file is part of the CVC4 project.
@@ -8,7 +8,7 @@
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.
 ##
-# Find ANTLR
+# Find ANTLR3
 # ANTLR3_FOUND - should always be true
 # ANTLR3 - target for the ANTLR3 runtime
 # ANTLR3_COMMAND - command line to run ANTLR3
@@ -70,10 +70,10 @@ if(NOT ANTLR3_FOUND_SYSTEM)
         COMMAND sed "s/avr32 \\\\/avr32 | aarch64 \\\\/" <SOURCE_DIR>/config.sub > <SOURCE_DIR>/config.sub.new
         COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/config.sub.new <SOURCE_DIR>/config.sub
         COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include include/
-        COMMAND <SOURCE_DIR>/configure --with-pic --disable-antlrdebug --prefix=<INSTALL_DIR> --srcdir=<SOURCE_DIR> --disable-shared --enable-static --enable-64bit --host=${TOOLCHAIN_PREFIX}
+        COMMAND <SOURCE_DIR>/configure --with-pic --disable-antlrdebug --prefix=<INSTALL_DIR> --srcdir=<SOURCE_DIR> --disable-shared --enable-static --host=${TOOLCHAIN_PREFIX}
     )
 
-    set(ANTLR3_BINARY java -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
+    set(ANTLR3_BINARY ${Java_JAVA_EXECUTABLE} -cp "${DEPS_BASE}/share/java/antlr-3.4-complete.jar" org.antlr.Tool)
     set(ANTLR3_INCLUDE_DIR "${DEPS_BASE}/include/")
     set(ANTLR3_RUNTIME "${DEPS_BASE}/lib/libantlr3c.a")
 endif()
