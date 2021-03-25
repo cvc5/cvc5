@@ -71,7 +71,7 @@ void TriggerTrie::addTrigger(std::vector<Node>& nodes, inst::Trigger* t)
   tt->d_tr.push_back(t);
 }
 
-}
+}  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

@@ -21,7 +21,7 @@
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  namespace inst {
+namespace inst {
 
 TriggerDatabase::TriggerDatabase(QuantifiersState& qs,
                                  QuantifiersInferenceManager& qim,
@@ -182,7 +182,7 @@ bool TriggerDatabase::mkTriggerTerms(Node q,
   return true;
 }
 
-  }
+}  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

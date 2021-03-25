@@ -43,7 +43,8 @@ Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_red_alpha_equiv);
 }
 
-QuantifiersEngine::Statistics::~Statistics(){
+QuantifiersEngine::Statistics::~Statistics()
+{
   smtStatisticsRegistry()->unregisterStat(&d_time);
   smtStatisticsRegistry()->unregisterStat(&d_qcf_time);
   smtStatisticsRegistry()->unregisterStat(&d_ematching_time);
@@ -56,6 +57,6 @@ QuantifiersEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_red_alpha_equiv);
 }
 
-}
+}  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

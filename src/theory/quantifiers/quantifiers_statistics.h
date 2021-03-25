@@ -26,7 +26,7 @@ namespace quantifiers {
 /** statistics class */
 class QuantifiersStatistics
 {
-public:
+ public:
   TimerStat d_time;
   TimerStat d_qcf_time;
   TimerStat d_ematching_time;
@@ -41,8 +41,8 @@ public:
   ~Statistics();
 };
 
-}
-}
-}
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_STATISTICS_H */

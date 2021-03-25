@@ -102,7 +102,7 @@ class TriggerDatabase
   TermRegistry& d_treg;
 };
 
-}
+}  // namespace inst
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
