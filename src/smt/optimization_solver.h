@@ -167,7 +167,7 @@ class OMTOptimizer
 /**
  * Optimizer for Integer type
  */
-class OMTOptimizerInteger : OMTOptimizer
+class OMTOptimizerInteger : public OMTOptimizer
 {
  public:
   virtual ~OMTOptimizerInteger() = default;
@@ -203,7 +203,7 @@ class OMTOptimizerInteger : OMTOptimizer
 /**
  * Optimizer for BitVector type
  */
-class OMTOptimizerBitVector : OMTOptimizer
+class OMTOptimizerBitVector : public OMTOptimizer
 {
  public:
   OMTOptimizerBitVector(bool isSigned);
