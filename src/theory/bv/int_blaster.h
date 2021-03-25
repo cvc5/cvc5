@@ -46,7 +46,8 @@
  ** Tr((bvand s t)) =
  ** Sigma_{i=0}^{b-1}(bvand s[(i+1)*g, i*g] t[(i+1)*g, i*g])*2^(i*g)
  **
- ** Similar transformations are done for bvor, bvxor, bvxnor, bvnand, bvnor.
+ ** bvor, bvxor, bvxnor, bvnand, bvnor -- are eliminated and so bvand is the
+ *only bit-wise operator that is directly handled.
  **
  ** Tr((bvshl a b)) = ite(Tr(b) >= k, 0, Tr(a)*ITE), where k is the bit width of
  **         a and b, and ITE represents exponentiation up to k, that is:
@@ -58,7 +59,13 @@
  ** Similar transformations are done for bvule, bvugt, and bvuge.
  **
  ** Bit-vector operators that are not listed above are either eliminated using
- ** the function eliminationPass, or are not supported.
+ ** the function eliminationPass, or go through the following default
+ *translation, that also works for non-bit-vector operators
+ ** with result type BV:
+ ** Tr((op t1 ... tn)) = (bv2nat (op (cast t1) ... (cast tn)))
+ ** where (cast x) is ((_ nat2bv k) x) or just x,
+ ** depending on the type of the corresponding argument of
+ ** op.
  **
  **/
 
@@ -86,8 +93,9 @@ class IntBlaster
    * @param context user context
    * @param mode bv-to-int translation mode
    * @param granularity bv-to-int translation granularity
-   * @param supportNoBV determines if the translation supports nodes that are
-   * not purely bit-vector nodes.
+   * @param introduceFreshIntVars determines whether bit-vector variables are
+   * translated to integer variables, or are directly casted using `bv2nat`
+   * operator. not purely bit-vector nodes.
    */
   IntBlaster(context::Context* context,
              options::SolveBVAsIntMode mode,
@@ -135,8 +143,14 @@ class IntBlaster
                        uint64_t bvsize,
                        bool isLeftShift);
 
+  /**
+   * Adds the constraint 0 <= node < 2^size to lemmas
+   */
   void addRangeConstraint(Node node, uint64_t size, std::vector<Node>& lemmas);
 
+  /**
+   * Adds a constraint that encodes bitwise and
+   */
   void addBitwiseConstraint(Node bitwiseConstraint, std::vector<Node>& lemmas);
 
   /**
@@ -191,6 +205,10 @@ class IntBlaster
    */
   Node modpow2(Node n, uint64_t exponent);
 
+  /**
+   * Returns true iff the type of at least
+   * one child of n was changed by the translation.
+   */
   bool childrenTypesChanged(Node n);
 
   /**
