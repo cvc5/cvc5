@@ -223,7 +223,7 @@ std::string InstStrategyEnum::identify() const
 {
   return std::string("InstStrategyEnum");
 }
-  
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

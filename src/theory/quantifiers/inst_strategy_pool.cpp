@@ -14,12 +14,12 @@
 
 #include "theory/quantifiers/inst_strategy_pool.h"
 
+#include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_pools.h"
 #include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_tuple_enumerator.h"
 #include "theory/quantifiers_engine.h"
-#include "options/quantifiers_options.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -117,7 +117,7 @@ void InstStrategyPool::process(Node q, Node p)
   TermTupleEnumeratorContext ttec;
   ttec.d_quantEngine = d_quantEngine;
   ttec.d_rd = nullptr;
-  ttec.d_fullEffort = false; /// TODO: what is this?
+  ttec.d_fullEffort = false;  /// TODO: what is this?
   ttec.d_increaseSum = options::fullSaturateSum();
   ttec.d_isRd = false;
   TermPools* tp = d_quantEngine->getTermRegistry().getTermPools();
