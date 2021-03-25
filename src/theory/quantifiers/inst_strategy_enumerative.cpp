@@ -194,7 +194,7 @@ bool InstStrategyEnum::process(Node quantifier, bool fullEffort, bool isRd)
       mkTermTupleEnumerator(quantifier, &ttec));
   std::vector<Node> terms;
   std::vector<bool> failMask;
-  Instantiate* ie = d_quantEngine->getInstantiate();
+  Instantiate* ie = d_qim.getInstantiate();
   for (enumerator->init(); enumerator->hasNext();)
   {
     if (d_qstate.isInConflict())

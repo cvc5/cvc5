@@ -154,7 +154,7 @@ uint64_t Trigger::addInstantiations()
 
 bool Trigger::sendInstantiation(std::vector<Node>& m, InferenceId id)
 {
-  return d_quantEngine->getInstantiate()->addInstantiation(d_quant, m, id);
+  return d_qim.getInstantiate()->addInstantiation(d_quant, m, id);
 }
 
 bool Trigger::sendInstantiation(InstMatch& m, InferenceId id)

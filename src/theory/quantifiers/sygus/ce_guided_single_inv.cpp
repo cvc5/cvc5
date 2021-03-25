@@ -27,6 +27,7 @@
 #include "theory/quantifiers/sygus/sygus_utils.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_registry.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
@@ -348,7 +349,7 @@ Node CegSingleInv::getSolutionFromInst(size_t index)
       ptn = ptn.getRangeType();
     }
     Trace("csi-sol") << "Get solution for (unconstrained) " << prog << std::endl;
-    s = d_qe->getTermEnumeration()->getEnumerateTerm(ptn, 0);
+    s = d_qe->getTermRegistry().getTermEnumeration()->getEnumerateTerm(ptn, 0);
   }
   else
   {

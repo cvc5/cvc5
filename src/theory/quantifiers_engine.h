@@ -80,22 +80,18 @@ class QuantifiersEngine {
   quantifiers::QuantifiersInferenceManager& getInferenceManager();
   /** The quantifiers registry */
   quantifiers::QuantifiersRegistry& getQuantifiersRegistry();
+  /** The term registry */
+  quantifiers::TermRegistry& getTermRegistry();
   //---------------------- end external interface
   //---------------------- utilities
   /** get the model builder */
   quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get model */
-  quantifiers::FirstOrderModel* getModel() const;
   /** get term database */
   quantifiers::TermDb* getTermDatabase() const;
+  /** get model */
+  quantifiers::FirstOrderModel* getModel() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
-  /** get instantiate utility */
-  quantifiers::Instantiate* getInstantiate() const;
-  /** get skolemize utility */
-  quantifiers::Skolemize* getSkolemize() const;
   /** get trigger database */
   quantifiers::inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
