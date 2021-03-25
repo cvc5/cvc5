@@ -1148,7 +1148,10 @@ DeclarePoolCommand::DeclarePoolCommand(const std::string& id,
 
 api::Term DeclarePoolCommand::getFunction() const { return d_func; }
 api::Sort DeclarePoolCommand::getSort() const { return d_sort; }
-const std::vector<api::Term>& DeclarePoolCommand::getInitialValue() const { return d_initValue; }
+const std::vector<api::Term>& DeclarePoolCommand::getInitialValue() const
+{
+  return d_initValue;
+}
 
 void DeclarePoolCommand::invoke(api::Solver* solver, SymbolManager* sm)
 {
@@ -1174,7 +1177,10 @@ void DeclarePoolCommand::toStream(std::ostream& out,
                                   OutputLanguage language) const
 {
   Printer::getPrinter(language)->toStreamCmdDeclarePool(
-      out, d_func.toString(), d_sort.getTypeNode(), api::Term::termVectorToNodes(d_initValue));
+      out,
+      d_func.toString(),
+      d_sort.getTypeNode(),
+      api::Term::termVectorToNodes(d_initValue));
 }
 
 /* -------------------------------------------------------------------------- */
