@@ -29,6 +29,7 @@ TermRegistry::TermRegistry(QuantifiersState& qs, QuantifiersRegistry& qr)
       d_useFmcModel(false),
       d_presolveCache(qs.getUserContext()),
       d_termEnum(new TermEnumeration),
+      d_termPools(new TermPools),
       d_termDb(new TermDb(qs, qr)),
       d_sygusTdb(nullptr)
 {
@@ -126,6 +127,11 @@ TermDbSygus* TermRegistry::getTermDatabaseSygus() const
 TermEnumeration* TermRegistry::getTermEnumeration() const
 {
   return d_termEnum.get();
+}
+
+TermPools* TermRegistry::getTermPools() const
+{
+  return d_termPools.get();
 }
 
 FirstOrderModel* TermRegistry::getModel() const { return d_qmodel.get(); }

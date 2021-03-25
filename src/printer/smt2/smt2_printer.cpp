@@ -937,12 +937,13 @@ void Smt2Printer::toStream(std::ostream& out,
     std::stringstream annot;
     if (n.getNumChildren() == 3)
     {
+      annot << " ";
       for (const Node& nc : n[2])
       {
         if (nc.getKind() == kind::INST_PATTERN)
         {
           out << "(! ";
-          annot << ":pattern " << nc;
+          annot << ":pattern ";
           toStream(annot, nc, toDepth, nullptr);
           annot << ") ";
         }
@@ -982,23 +983,8 @@ void Smt2Printer::toStream(std::ostream& out,
     return;
   }
   case kind::INST_PATTERN:
-  case kind::INST_NO_PATTERN: break;
-  case kind::INST_PATTERN_LIST:
-  {
-    for (const Node& nc : n)
-    {
-      if (nc.getKind() == kind::INST_PATTERN)
-      {
-        out << ":pattern " << nc;
-      }
-      else if (nc.getKind() == kind::INST_NO_PATTERN)
-      {
-        out << ":no-pattern " << nc[0];
-      }
-    }
-    return;
-    break;
-  }
+  case kind::INST_NO_PATTERN:
+  case kind::INST_PATTERN_LIST: break;
   default:
     // fall back on however the kind prints itself; this probably
     // won't be SMT-LIB v2 compliant, but it will be clear from the

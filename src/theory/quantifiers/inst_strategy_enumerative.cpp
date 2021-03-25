@@ -69,6 +69,24 @@ bool InstStrategyEnum::needsCheck(Theory::Effort e)
 }
 
 void InstStrategyEnum::reset_round(Theory::Effort e) {}
+
+void InstStrategyEnum::registerQuantifier(Node q)
+{
+  // take into account user pools
+  if (q.getNumChildren() == 3)
+  {
+    Node subsPat = d_qreg.substituteBoundVariablesToInstConstants(q[2], q);
+    // add patterns
+    for (const Node& p : subsPat)
+    {
+      if (p.getKind() == INST_POOL)
+      {
+        d_userPools[q].push_back(p);
+      }
+    }
+  }
+}
+
 void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;

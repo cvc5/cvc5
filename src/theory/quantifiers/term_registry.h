@@ -24,6 +24,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_pools.h"
 
 namespace CVC4 {
 namespace theory {
@@ -77,6 +78,8 @@ class TermRegistry
   TermDbSygus* getTermDatabaseSygus() const;
   /** get term enumeration utility */
   TermEnumeration* getTermEnumeration() const;
+  /** get the term pools utility */
+  TermPools* getTermPools() const;
   /** get the model utility */
   FirstOrderModel* getModel() const;
 
@@ -89,6 +92,8 @@ class TermRegistry
   NodeSet d_presolveCache;
   /** term enumeration utility */
   std::unique_ptr<TermEnumeration> d_termEnum;
+  /** term enumeration utility */
+  std::unique_ptr<TermPools> d_termPools;
   /** term database */
   std::unique_ptr<TermDb> d_termDb;
   /** sygus term database */
